@@ -1,0 +1,10 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/GenesysForge.Api/GenesysForge.Api.csproj" />
+    <Project Path="src/GenesysForge.Domain/GenesysForge.Domain.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/GenesysForge.Api.Tests/GenesysForge.Api.Tests.csproj" />
+    <Project Path="tests/GenesysForge.Domain.Tests/GenesysForge.Domain.Tests.csproj" />
+  </Folder>
+</Solution>
