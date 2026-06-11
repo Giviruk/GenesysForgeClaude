@@ -1,0 +1,23 @@
+# .NET
+bin/
+obj/
+*.user
+.vs/
+TestResults/
+artifacts/
+
+# Node
+node_modules/
+dist/
+*.local
+.vite/
+
+# Env / secrets
+.env
+appsettings.*.local.json
+
+# OS / IDE
+.DS_Store
+Thumbs.db
+.idea/
+*.swp
