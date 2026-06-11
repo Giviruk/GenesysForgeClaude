@@ -1,0 +1,95 @@
+import type {
+  AuthResponse, CharacterListItem, CharacterSheet, GameSystem, HeroicAbility, ItemDef,
+  ItemState, Reference, SkillDef, TalentDef,
+} from './types'
+
+const TOKEN_KEY = 'genesysforge.token'
+
+export const tokenStorage = {
+  get: () => localStorage.getItem(TOKEN_KEY),
+  set: (token: string) => localStorage.setItem(TOKEN_KEY, token),
+  clear: () => localStorage.removeItem(TOKEN_KEY),
+}
+
+export class ApiError extends Error {
+  status: number
+  constructor(status: number, message: string) {
+    super(message)
+    this.status = status
+  }
+}
+
+async function request<T>(method: string, url: string, body?: unknown): Promise<T> {
+  const headers: Record<string, string> = {}
+  if (body !== undefined) headers['Content-Type'] = 'application/json'
+  const token = tokenStorage.get()
+  if (token) headers.Authorization = `Bearer ${token}`
+
+  const response = await fetch(url, {
+    method,
+    headers,
+    body: body !== undefined ? JSON.stringify(body) : undefined,
+  })
+
+  if (!response.ok) {
+    let message = `Ошибка ${response.status}`
+    try {
+      const data = await response.json()
+      if (data?.message) message = data.message
+    } catch {
+      // тело не JSON — оставляем статус
+    }
+    throw new ApiError(response.status, message)
+  }
+  if (response.status === 204) return undefined as T
+  return (await response.json()) as T
+}
+
+export const api = {
+  register: (email: string, password: string, displayName: string) =>
+    request<AuthResponse>('POST', '/api/auth/register', { email, password, displayName }),
+  login: (email: string, password: string) =>
+    request<AuthResponse>('POST', '/api/auth/login', { email, password }),
+
+  reference: (system: GameSystem) =>
+    request<Reference>('GET', `/api/reference/${system === 'genesysCore' ? 'GenesysCore' : 'RealmsOfTerrinoth'}`),
+
+  characters: () => request<CharacterListItem[]>('GET', '/api/characters/'),
+  createCharacter: (name: string, system: GameSystem, archetypeId: string, careerId: string, freeCareerSkillNames: string[]) =>
+    request<{ id: string }>('POST', '/api/characters/', { name, system, archetypeId, careerId, freeCareerSkillNames }),
+  sheet: (id: string) => request<CharacterSheet>('GET', `/api/characters/${id}`),
+  deleteCharacter: (id: string) => request<void>('DELETE', `/api/characters/${id}`),
+  updateCharacter: (id: string, patch: { name?: string; totalXp?: number; woundsCurrent?: number; strainCurrent?: number }) =>
+    request<void>('PATCH', `/api/characters/${id}`, patch),
+  completeCreation: (id: string) => request<void>('POST', `/api/characters/${id}/complete-creation`),
+
+  buyCharacteristic: (id: string, characteristic: string) =>
+    request<void>('POST', `/api/characters/${id}/characteristics/${characteristic}/buy`),
+  buySkillRank: (id: string, skillDefId: string) =>
+    request<void>('POST', `/api/characters/${id}/skills/${skillDefId}/buy-rank`),
+  buyTalent: (id: string, talentDefId: string) =>
+    request<void>('POST', `/api/characters/${id}/talents/buy`, { talentDefId }),
+  setHeroicAbility: (id: string, heroicAbilityId: string | null) =>
+    request<void>('PUT', `/api/characters/${id}/heroic-ability`, { heroicAbilityId }),
+
+  addItem: (id: string, itemDefId: string, quantity: number, state: ItemState) =>
+    request<{ id: string }>('POST', `/api/characters/${id}/items`, { itemDefId, quantity, state }),
+  updateItem: (id: string, itemId: string, patch: { state?: ItemState; quantity?: number }) =>
+    request<void>('PATCH', `/api/characters/${id}/items/${itemId}`, patch),
+  removeItem: (id: string, itemId: string) =>
+    request<void>('DELETE', `/api/characters/${id}/items/${itemId}`),
+
+  createCustomSkill: (skill: { system: GameSystem; name: string; characteristic: string; kind: string }) =>
+    request<SkillDef>('POST', '/api/custom/skills', skill),
+  createCustomTalent: (talent: {
+    system: GameSystem; name: string; tier: number; isRanked: boolean; activation: string; description: string
+    woundBonus: number; strainBonus: number; soakBonus: number; meleeDefenseBonus: number; rangedDefenseBonus: number
+  }) => request<TalentDef>('POST', '/api/custom/talents', talent),
+  createCustomItem: (item: {
+    system: GameSystem; name: string; kind: string; encumbrance: number; soakBonus: number
+    meleeDefense: number; rangedDefense: number; encumbranceThresholdBonus: number
+    description: string; price: number; rarity: number
+  }) => request<ItemDef>('POST', '/api/custom/items', item),
+  createCustomHeroicAbility: (ability: { name: string; description: string }) =>
+    request<HeroicAbility>('POST', '/api/custom/heroic-abilities', ability),
+}
