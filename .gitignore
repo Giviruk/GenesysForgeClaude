@@ -21,3 +21,6 @@ appsettings.*.local.json
 Thumbs.db
 .idea/
 *.swp
+
+# Claude local settings
+.claude/settings.local.json
