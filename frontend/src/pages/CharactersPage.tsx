@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from 'react'
+import { useCallback, useEffect, useState, type FormEvent } from 'react'
 import { api } from '../api/client'
 import type { CharacterListItem, GameSystem, Reference } from '../api/types'
 import { CHARACTERISTICS, CHARACTERISTIC_LABELS, SYSTEM_LABELS } from '../utils/labels'
@@ -12,17 +12,16 @@ export function CharactersPage({ onOpen }: Props) {
   const [creating, setCreating] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  async function reload() {
-    try {
-      setCharacters(await api.characters())
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Ошибка загрузки')
-    }
-  }
+  const reload = useCallback(
+    () => api.characters()
+      .then(setCharacters)
+      .catch((err: unknown) => setError(err instanceof Error ? err.message : 'Ошибка загрузки')),
+    [],
+  )
 
   useEffect(() => {
     void reload()
-  }, [])
+  }, [reload])
 
   async function remove(id: string, name: string) {
     if (!confirm(`Удалить персонажа «${name}»?`)) return
@@ -66,7 +65,7 @@ export function CharactersPage({ onOpen }: Props) {
 
 function CreateCharacterForm({ onCancel, onCreated }: { onCancel: () => void; onCreated: (id: string) => void }) {
   const [system, setSystem] = useState<GameSystem>('genesysCore')
-  const [reference, setReference] = useState<Reference | null>(null)
+  const [loaded, setLoaded] = useState<{ system: GameSystem; data: Reference } | null>(null)
   const [name, setName] = useState('')
   const [archetypeId, setArchetypeId] = useState('')
   const [careerId, setCareerId] = useState('')
@@ -74,12 +73,23 @@ function CreateCharacterForm({ onCancel, onCreated }: { onCancel: () => void; on
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
 
+  // Справочник показывается только для текущей системы — при переключении стейл-данные скрываются сами
+  const reference = loaded?.system === system ? loaded.data : null
+
   useEffect(() => {
-    setReference(null)
-    setArchetypeId('')
-    setCareerId('')
-    setFreeSkills([])
-    api.reference(system).then(setReference).catch(err => setError(err.message))
+    let cancelled = false
+    api.reference(system)
+      .then(data => {
+        if (cancelled) return
+        setLoaded({ system, data })
+        setArchetypeId('')
+        setCareerId('')
+        setFreeSkills([])
+      })
+      .catch((err: unknown) => {
+        if (!cancelled) setError(err instanceof Error ? err.message : 'Ошибка загрузки')
+      })
+    return () => { cancelled = true }
   }, [system])
 
   const archetype = reference?.archetypes.find(a => a.id === archetypeId)

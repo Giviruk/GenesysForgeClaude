@@ -21,14 +21,16 @@ export function SheetPage({ characterId, onBack }: Props) {
   const [error, setError] = useState<string | null>(null)
   const [xpEdit, setXpEdit] = useState<string | null>(null)
 
-  const refresh = useCallback(async () => {
-    const next = await api.sheet(characterId)
-    setSheet(next)
-    setReference(await api.reference(next.system))
-  }, [characterId])
+  const refresh = useCallback(
+    () => api.sheet(characterId).then(next =>
+      api.reference(next.system).then(ref => {
+        setSheet(next)
+        setReference(ref)
+      })),
+    [characterId])
 
   useEffect(() => {
-    refresh().catch(err => setError(err.message))
+    refresh().catch((err: unknown) => setError(err instanceof Error ? err.message : 'Ошибка загрузки'))
   }, [refresh])
 
   // Ошибка действия показывается и сама скрывается
