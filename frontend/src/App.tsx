@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { AuthProvider, useAuth } from './auth'
+import { AuthProvider } from './auth'
+import { useAuth } from './auth-context'
 import { AuthPage } from './pages/AuthPage'
 import { CharactersPage } from './pages/CharactersPage'
 import { SheetPage } from './pages/SheetPage'

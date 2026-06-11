@@ -1,0 +1,15 @@
+Используются параметры запуска из src\GenesysForge.Api\Properties\launchSettings.json...
+info: Microsoft.EntityFrameworkCore.Update[30100]
+      Saved 180 entities to in-memory store.
+info: Microsoft.Hosting.Lifetime[14]
+      Now listening on: http://localhost:5080
+info: Microsoft.Hosting.Lifetime[0]
+      Application started. Press Ctrl+C to shut down.
+info: Microsoft.Hosting.Lifetime[0]
+      Hosting environment: Development
+info: Microsoft.Hosting.Lifetime[0]
+      Content root path: H:\repos\GenesysForveClaude\backend\src\GenesysForge.Api
+info: Microsoft.EntityFrameworkCore.Update[30100]
+      Saved 1 entities to in-memory store.
+info: Microsoft.EntityFrameworkCore.Update[30100]
+      Saved 9 entities to in-memory store.
