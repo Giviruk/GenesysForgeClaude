@@ -1,42 +1,36 @@
 using System.Text.Json.Serialization;
-using GenesysForge.Api.Contracts;
-using GenesysForge.Api.Data;
+using GenesysForge.Application;
+using GenesysForge.Application.Dtos;
+using GenesysForge.Application.Exceptions;
 using GenesysForge.Api.Endpoints;
-using GenesysForge.Api.Services;
+using GenesysForge.Domain;
+using GenesysForge.Infrastructure;
+using GenesysForge.Infrastructure.Auth;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddDbContext<AppDbContext>(options =>
-{
-    if (builder.Configuration.GetValue<bool>("UseInMemoryDatabase"))
-        options.UseInMemoryDatabase(builder.Configuration["InMemoryDatabaseName"] ?? "genesysforge-tests");
-    else
-        options.UseNpgsql(builder.Configuration.GetConnectionString("Default")
-            ?? "Host=localhost;Port=5432;Database=genesysforge;Username=genesys;Password=genesys_dev");
-});
-
-builder.Services.AddScoped<CharacterService>();
-builder.Services.AddSingleton<TokenService>();
-builder.Services.AddSingleton<IPasswordHasher<User>, PasswordHasher<User>>();
+builder.Services.AddApplication();
+builder.Services.AddInfrastructure(builder.Configuration);
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
         options.TokenValidationParameters = new()
         {
-            ValidIssuer = "GenesysForge",
-            ValidAudience = "GenesysForge",
+            ValidIssuer = TokenService.Issuer,
+            ValidAudience = TokenService.Issuer,
             IssuerSigningKey = TokenService.GetSigningKey(builder.Configuration),
             ValidateIssuerSigningKey = true,
         };
     });
 builder.Services.AddAuthorization();
 
+// Источники CORS настраиваются через конфиг (Cors:Origins — список через ';'), по умолчанию — dev-фронтенд.
+var corsOrigins = (builder.Configuration["Cors:Origins"] ?? "http://localhost:5173")
+    .Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 builder.Services.AddCors(options => options.AddDefaultPolicy(policy =>
-    policy.WithOrigins("http://localhost:5173").AllowAnyHeader().AllowAnyMethod()));
+    policy.WithOrigins(corsOrigins).AllowAnyHeader().AllowAnyMethod()));
 
 builder.Services.ConfigureHttpJsonOptions(options =>
 {
@@ -48,18 +42,13 @@ builder.Services.AddOpenApi();
 
 var app = builder.Build();
 
-using (var scope = app.Services.CreateScope())
-{
-    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    if (db.Database.IsRelational()) db.Database.EnsureCreated();
-    SeedData.Apply(db);
-}
+app.Services.InitializeDatabase();
 
 app.UseCors();
 app.UseAuthentication();
 app.UseAuthorization();
 
-// Доменные ошибки правил → 400 с сообщением.
+// Исключения Application/Domain → HTTP-статусы с сообщением.
 app.Use(async (context, next) =>
 {
     try
@@ -69,6 +58,16 @@ app.Use(async (context, next) =>
     catch (DomainRuleException ex)
     {
         context.Response.StatusCode = StatusCodes.Status400BadRequest;
+        await context.Response.WriteAsJsonAsync(new ErrorResponse(ex.Message));
+    }
+    catch (ConflictException ex)
+    {
+        context.Response.StatusCode = StatusCodes.Status409Conflict;
+        await context.Response.WriteAsJsonAsync(new ErrorResponse(ex.Message));
+    }
+    catch (UnauthorizedException ex)
+    {
+        context.Response.StatusCode = StatusCodes.Status401Unauthorized;
         await context.Response.WriteAsJsonAsync(new ErrorResponse(ex.Message));
     }
 });

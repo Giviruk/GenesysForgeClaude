@@ -1,0 +1,45 @@
+using GenesysForge.Application.Abstractions;
+using GenesysForge.Application.Dtos;
+using GenesysForge.Application.Features.Auth;
+using GenesysForge.Application.Features.Characters;
+using GenesysForge.Application.Features.CustomContent;
+using GenesysForge.Application.Features.Reference;
+using Microsoft.Extensions.DependencyInjection;
+
+namespace GenesysForge.Application;
+
+public static class DependencyInjection
+{
+    public static IServiceCollection AddApplication(this IServiceCollection services)
+    {
+        // Auth
+        services.AddScoped<ICommandHandler<RegisterUserCommand, AuthResponse>, RegisterUserHandler>();
+        services.AddScoped<ICommandHandler<LoginCommand, AuthResponse>, LoginHandler>();
+
+        // Reference
+        services.AddScoped<IQueryHandler<GetReferenceQuery, ReferenceResponse>, GetReferenceHandler>();
+
+        // Characters
+        services.AddScoped<IQueryHandler<GetCharactersQuery, List<CharacterListItemDto>>, GetCharactersHandler>();
+        services.AddScoped<IQueryHandler<GetCharacterSheetQuery, CharacterSheetDto>, GetCharacterSheetHandler>();
+        services.AddScoped<ICommandHandler<CreateCharacterCommand, Guid>, CreateCharacterHandler>();
+        services.AddScoped<ICommandHandler<UpdateCharacterCommand, Unit>, UpdateCharacterHandler>();
+        services.AddScoped<ICommandHandler<DeleteCharacterCommand, Unit>, DeleteCharacterHandler>();
+        services.AddScoped<ICommandHandler<CompleteCreationCommand, Unit>, CompleteCreationHandler>();
+        services.AddScoped<ICommandHandler<BuyCharacteristicCommand, Unit>, BuyCharacteristicHandler>();
+        services.AddScoped<ICommandHandler<BuySkillRankCommand, Unit>, BuySkillRankHandler>();
+        services.AddScoped<ICommandHandler<BuyTalentCommand, Unit>, BuyTalentHandler>();
+        services.AddScoped<ICommandHandler<SetHeroicAbilityCommand, Unit>, SetHeroicAbilityHandler>();
+        services.AddScoped<ICommandHandler<AddItemCommand, Guid>, AddItemHandler>();
+        services.AddScoped<ICommandHandler<UpdateItemCommand, Unit>, UpdateItemHandler>();
+        services.AddScoped<ICommandHandler<RemoveItemCommand, Unit>, RemoveItemHandler>();
+
+        // Custom content
+        services.AddScoped<ICommandHandler<CreateCustomSkillCommand, SkillDefDto>, CreateCustomSkillHandler>();
+        services.AddScoped<ICommandHandler<CreateCustomTalentCommand, TalentDefDto>, CreateCustomTalentHandler>();
+        services.AddScoped<ICommandHandler<CreateCustomItemCommand, ItemDefDto>, CreateCustomItemHandler>();
+        services.AddScoped<ICommandHandler<CreateCustomHeroicAbilityCommand, HeroicAbilityDto>, CreateCustomHeroicAbilityHandler>();
+
+        return services;
+    }
+}
