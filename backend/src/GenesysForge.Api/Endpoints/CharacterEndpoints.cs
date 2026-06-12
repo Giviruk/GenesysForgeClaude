@@ -1,9 +1,8 @@
 using System.Security.Claims;
-using GenesysForge.Api.Contracts;
-using GenesysForge.Api.Data;
-using GenesysForge.Api.Services;
+using GenesysForge.Application.Abstractions;
+using GenesysForge.Application.Dtos;
+using GenesysForge.Application.Features.Characters;
 using GenesysForge.Domain;
-using Microsoft.EntityFrameworkCore;
 
 namespace GenesysForge.Api.Endpoints;
 
@@ -13,116 +12,88 @@ public static class CharacterEndpoints
     {
         var group = app.MapGroup("/api/characters").RequireAuthorization();
 
-        group.MapGet("/", async (ClaimsPrincipal user, AppDbContext db) =>
+        group.MapGet("/", async (ClaimsPrincipal user,
+                IQueryHandler<GetCharactersQuery, List<CharacterListItemDto>> handler, CancellationToken ct) =>
+            Results.Ok(await handler.Handle(new GetCharactersQuery(user.UserId()), ct)));
+
+        group.MapPost("/", async (CreateCharacterRequest req, ClaimsPrincipal user,
+            ICommandHandler<CreateCharacterCommand, Guid> handler, CancellationToken ct) =>
         {
-            var userId = user.UserId();
-            var list = await db.Characters.AsNoTracking()
-                .Where(c => c.OwnerUserId == userId)
-                .OrderByDescending(c => c.CreatedAt)
-                .Select(c => new CharacterListItemDto(c.Id, c.Name, c.System, c.Archetype!.Name, c.Career!.Name,
-                    c.IsCreationPhase, c.CreatedAt))
-                .ToListAsync();
-            return Results.Ok(list);
+            var id = await handler.Handle(new CreateCharacterCommand(user.UserId(), req), ct);
+            return Results.Created($"/api/characters/{id}", new { Id = id });
         });
 
-        group.MapPost("/", async (CreateCharacterRequest req, ClaimsPrincipal user, CharacterService svc) =>
-        {
-            var character = await svc.CreateAsync(user.UserId(), req);
-            return Results.Created($"/api/characters/{character.Id}", new { character.Id });
-        });
-
-        group.MapGet("/{id:guid}", async (Guid id, ClaimsPrincipal user, CharacterService svc) =>
-        {
-            var userId = user.UserId();
-            var character = await svc.GetOwnedAsync(userId, id, tracking: false);
-            return Results.Ok(await svc.BuildSheetAsync(userId, character));
-        });
+        group.MapGet("/{id:guid}", async (Guid id, ClaimsPrincipal user,
+                IQueryHandler<GetCharacterSheetQuery, CharacterSheetDto> handler, CancellationToken ct) =>
+            Results.Ok(await handler.Handle(new GetCharacterSheetQuery(user.UserId(), id), ct)));
 
         group.MapPatch("/{id:guid}", async (Guid id, UpdateCharacterRequest req, ClaimsPrincipal user,
-            CharacterService svc, AppDbContext db) =>
+            ICommandHandler<UpdateCharacterCommand, Unit> handler, CancellationToken ct) =>
         {
-            var c = await svc.GetOwnedAsync(user.UserId(), id);
-            if (req.Name is not null)
-            {
-                if (string.IsNullOrWhiteSpace(req.Name))
-                    return Results.BadRequest(new ErrorResponse("Имя персонажа не может быть пустым."));
-                c.Name = req.Name.Trim();
-            }
-            if (req.TotalXp is not null)
-            {
-                if (req.TotalXp < c.SpentXp)
-                    return Results.BadRequest(new ErrorResponse($"Суммарный XP не может быть меньше потраченного ({c.SpentXp})."));
-                c.TotalXp = req.TotalXp.Value;
-            }
-            if (req.WoundsCurrent is not null) c.WoundsCurrent = Math.Max(0, req.WoundsCurrent.Value);
-            if (req.StrainCurrent is not null) c.StrainCurrent = Math.Max(0, req.StrainCurrent.Value);
-            await db.SaveChangesAsync();
+            await handler.Handle(new UpdateCharacterCommand(user.UserId(), id, req), ct);
             return Results.NoContent();
         });
 
-        group.MapDelete("/{id:guid}", async (Guid id, ClaimsPrincipal user, CharacterService svc, AppDbContext db) =>
+        group.MapDelete("/{id:guid}", async (Guid id, ClaimsPrincipal user,
+            ICommandHandler<DeleteCharacterCommand, Unit> handler, CancellationToken ct) =>
         {
-            var c = await svc.GetOwnedAsync(user.UserId(), id);
-            db.Characters.Remove(c);
-            await db.SaveChangesAsync();
+            await handler.Handle(new DeleteCharacterCommand(user.UserId(), id), ct);
             return Results.NoContent();
         });
 
-        group.MapPost("/{id:guid}/complete-creation", async (Guid id, ClaimsPrincipal user, CharacterService svc,
-            AppDbContext db) =>
+        group.MapPost("/{id:guid}/complete-creation", async (Guid id, ClaimsPrincipal user,
+            ICommandHandler<CompleteCreationCommand, Unit> handler, CancellationToken ct) =>
         {
-            var c = await svc.GetOwnedAsync(user.UserId(), id);
-            c.IsCreationPhase = false;
-            await db.SaveChangesAsync();
+            await handler.Handle(new CompleteCreationCommand(user.UserId(), id), ct);
             return Results.NoContent();
         });
 
         group.MapPost("/{id:guid}/characteristics/{type}/buy", async (Guid id, CharacteristicType type,
-            ClaimsPrincipal user, CharacterService svc) =>
+            ClaimsPrincipal user, ICommandHandler<BuyCharacteristicCommand, Unit> handler, CancellationToken ct) =>
         {
-            await svc.BuyCharacteristicAsync(user.UserId(), id, type);
+            await handler.Handle(new BuyCharacteristicCommand(user.UserId(), id, type), ct);
             return Results.NoContent();
         });
 
         group.MapPost("/{id:guid}/skills/{skillDefId:guid}/buy-rank", async (Guid id, Guid skillDefId,
-            ClaimsPrincipal user, CharacterService svc) =>
+            ClaimsPrincipal user, ICommandHandler<BuySkillRankCommand, Unit> handler, CancellationToken ct) =>
         {
-            await svc.BuySkillRankAsync(user.UserId(), id, skillDefId);
+            await handler.Handle(new BuySkillRankCommand(user.UserId(), id, skillDefId), ct);
             return Results.NoContent();
         });
 
         group.MapPost("/{id:guid}/talents/buy", async (Guid id, BuyTalentRequest req, ClaimsPrincipal user,
-            CharacterService svc) =>
+            ICommandHandler<BuyTalentCommand, Unit> handler, CancellationToken ct) =>
         {
-            await svc.BuyTalentAsync(user.UserId(), id, req.TalentDefId);
+            await handler.Handle(new BuyTalentCommand(user.UserId(), id, req.TalentDefId), ct);
             return Results.NoContent();
         });
 
         group.MapPut("/{id:guid}/heroic-ability", async (Guid id, SetHeroicAbilityRequest req, ClaimsPrincipal user,
-            CharacterService svc) =>
+            ICommandHandler<SetHeroicAbilityCommand, Unit> handler, CancellationToken ct) =>
         {
-            await svc.SetHeroicAbilityAsync(user.UserId(), id, req.HeroicAbilityId);
+            await handler.Handle(new SetHeroicAbilityCommand(user.UserId(), id, req.HeroicAbilityId), ct);
             return Results.NoContent();
         });
 
         group.MapPost("/{id:guid}/items", async (Guid id, AddItemRequest req, ClaimsPrincipal user,
-            CharacterService svc) =>
+            ICommandHandler<AddItemCommand, Guid> handler, CancellationToken ct) =>
         {
-            var item = await svc.AddItemAsync(user.UserId(), id, req);
-            return Results.Created($"/api/characters/{id}/items/{item.Id}", new { item.Id });
+            var itemId = await handler.Handle(new AddItemCommand(user.UserId(), id, req), ct);
+            return Results.Created($"/api/characters/{id}/items/{itemId}", new { Id = itemId });
         });
 
         group.MapPatch("/{id:guid}/items/{itemId:guid}", async (Guid id, Guid itemId, UpdateItemRequest req,
-            ClaimsPrincipal user, CharacterService svc) =>
+            ClaimsPrincipal user, ICommandHandler<UpdateItemCommand, Unit> handler, CancellationToken ct) =>
         {
-            await svc.UpdateItemAsync(user.UserId(), id, itemId, req);
+            await handler.Handle(new UpdateItemCommand(user.UserId(), id, itemId, req), ct);
             return Results.NoContent();
         });
 
         group.MapDelete("/{id:guid}/items/{itemId:guid}", async (Guid id, Guid itemId, ClaimsPrincipal user,
-            CharacterService svc) =>
+            ICommandHandler<RemoveItemCommand, Unit> handler, CancellationToken ct) =>
         {
-            await svc.RemoveItemAsync(user.UserId(), id, itemId);
+            await handler.Handle(new RemoveItemCommand(user.UserId(), id, itemId), ct);
             return Results.NoContent();
         });
     }

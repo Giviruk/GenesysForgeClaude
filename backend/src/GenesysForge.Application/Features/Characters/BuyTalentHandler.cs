@@ -1,0 +1,43 @@
+using GenesysForge.Application.Abstractions;
+using GenesysForge.Application.Common;
+using GenesysForge.Domain;
+using GenesysForge.Domain.Entities;
+using Microsoft.EntityFrameworkCore;
+
+namespace GenesysForge.Application.Features.Characters;
+
+public class BuyTalentHandler(IAppDbContext db) : ICommandHandler<BuyTalentCommand, Unit>
+{
+    public async Task<Unit> Handle(BuyTalentCommand command, CancellationToken ct = default)
+    {
+        var c = await db.GetOwnedAsync(command.UserId, command.CharacterId, ct: ct);
+        var talentDef = await db.TalentDefs.FirstOrDefaultAsync(t =>
+                t.Id == command.TalentDefId && t.System == c.System
+                && (t.OwnerUserId == null || t.OwnerUserId == command.UserId), ct)
+            ?? throw new DomainRuleException("Талант не найден.");
+
+        var row = c.Talents.FirstOrDefault(t => t.TalentDefId == command.TalentDefId);
+        var result = PurchaseValidator.BuyTalent(
+            talentDef.Tier,
+            row?.Ranks ?? 0,
+            talentDef.IsRanked,
+            TalentTierCounter.Count(c.Talents),
+            c.AvailableXp);
+        if (!result.Allowed) throw new DomainRuleException(result.Error!);
+
+        if (row is null)
+        {
+            row = new CharacterTalent
+            {
+                Id = Guid.NewGuid(), CharacterId = c.Id, TalentDefId = command.TalentDefId,
+                TalentDef = talentDef, Ranks = 0,
+            };
+            db.CharacterTalents.Add(row);
+            c.Talents.Add(row);
+        }
+        row.Ranks++;
+        c.SpentXp += result.Cost;
+        await db.SaveChangesAsync(ct);
+        return Unit.Value;
+    }
+}

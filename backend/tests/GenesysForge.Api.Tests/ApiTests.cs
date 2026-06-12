@@ -1,6 +1,6 @@
 using System.Net;
 using System.Net.Http.Json;
-using GenesysForge.Api.Contracts;
+using GenesysForge.Application.Dtos;
 using GenesysForge.Domain;
 
 namespace GenesysForge.Api.Tests;
