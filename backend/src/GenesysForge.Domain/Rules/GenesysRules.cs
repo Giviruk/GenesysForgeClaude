@@ -72,6 +72,28 @@ public static class GenesysRules
         return true;
     }
 
+    /// <summary>
+    /// Обратное правило пирамиды: талант тира N можно убрать, только если после удаления
+    /// пирамида остаётся корректной (талантов каждого тира строго больше, чем тиром выше).
+    /// </summary>
+    public static bool CanRemoveTalentTier(IReadOnlyDictionary<int, int> tierCounts, int tierToRemove)
+    {
+        if (tierToRemove is < 1 or > MaxTalentTier) return false;
+
+        var counts = new int[MaxTalentTier + 2];
+        for (var t = 1; t <= MaxTalentTier; t++)
+            counts[t] = tierCounts.TryGetValue(t, out var c) ? c : 0;
+        if (counts[tierToRemove] == 0) return false;
+        counts[tierToRemove]--;
+
+        for (var t = 2; t <= MaxTalentTier; t++)
+        {
+            if (counts[t] > 0 && counts[t - 1] < counts[t] + 1)
+                return false;
+        }
+        return true;
+    }
+
     /// <summary>Порог ран (HP): база архетипа + Brawn + модификаторы.</summary>
     public static int WoundThreshold(int archetypeBase, int brawn, int modifiers = 0) =>
         archetypeBase + brawn + modifiers;

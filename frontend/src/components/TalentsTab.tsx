@@ -1,7 +1,7 @@
 import { api } from '../api/client'
 import type { CharacterSheet, Reference, TalentDef } from '../api/types'
 import { nextRankTier, talentCost } from '../utils/labels'
-import { canPurchaseTier } from '../utils/pyramid'
+import { canPurchaseTier, canRemoveTier } from '../utils/pyramid'
 
 interface Props {
   sheet: CharacterSheet
@@ -14,6 +14,15 @@ export function TalentsTab({ sheet, reference, onError, refresh }: Props) {
   async function buy(talent: TalentDef) {
     try {
       await api.buyTalent(sheet.id, talent.id)
+      await refresh()
+    } catch (err) {
+      onError(err instanceof Error ? err.message : 'Ошибка')
+    }
+  }
+
+  async function refund(talent: TalentDef) {
+    try {
+      await api.refundTalent(sheet.id, talent.id)
       await refresh()
     } catch (err) {
       onError(err instanceof Error ? err.message : 'Ошибка')
@@ -85,10 +94,25 @@ export function TalentsTab({ sheet, reference, onError, refresh }: Props) {
                   </strong>
                   <p className="muted">{t.description}</p>
                 </div>
-                <button className="small" disabled={!!reason} title={reason ?? ''}
-                  onClick={() => buy(t)}>
-                  {maxedOut ? 'Куплен' : `Купить (${cost} XP${t.isRanked && ranksOwned > 0 ? `, тир ${effectiveTier}` : ''})`}
-                </button>
+                <div className="talent-actions">
+                  {sheet.isCreationPhase && ranksOwned > 0 && (() => {
+                    const lastTier = nextRankTier(t.tier, ranksOwned - 1)
+                    const removable = canRemoveTier(sheet.talentTierCounts, lastTier)
+                    return (
+                      <button className="small" disabled={!removable}
+                        title={removable
+                          ? `Вернуть ${t.isRanked ? `ранг ${ranksOwned}` : 'талант'} (+${talentCost(lastTier)} XP)`
+                          : 'Нельзя вернуть: нарушится пирамида'}
+                        onClick={() => refund(t)}>
+                        Вернуть
+                      </button>
+                    )
+                  })()}
+                  <button className="small" disabled={!!reason} title={reason ?? ''}
+                    onClick={() => buy(t)}>
+                    {maxedOut ? 'Куплен' : `Купить (${cost} XP${t.isRanked && ranksOwned > 0 ? `, тир ${effectiveTier}` : ''})`}
+                  </button>
+                </div>
               </div>
             )
           })}

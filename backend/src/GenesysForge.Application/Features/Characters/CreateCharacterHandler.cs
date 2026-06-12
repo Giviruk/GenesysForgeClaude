@@ -52,13 +52,15 @@ public class CreateCharacterHandler(IAppDbContext db) : ICommandHandler<CreateCh
             .ToListAsync(ct);
         foreach (var skill in systemSkills.Where(s => career.CareerSkillNames.Contains(s.Name)))
         {
+            var freeRank = freeSkills.Contains(skill.Name) ? 1 : 0;
             character.Skills.Add(new CharacterSkill
             {
                 Id = Guid.NewGuid(),
                 CharacterId = character.Id,
                 SkillDefId = skill.Id,
                 IsCareer = true,
-                Ranks = freeSkills.Contains(skill.Name) ? 1 : 0,
+                Ranks = freeRank,
+                FreeRanks = freeRank,
             });
         }
 

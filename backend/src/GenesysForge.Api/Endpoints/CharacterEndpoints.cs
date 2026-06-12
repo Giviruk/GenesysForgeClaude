@@ -58,6 +58,29 @@ public static class CharacterEndpoints
             return Results.NoContent();
         });
 
+        group.MapPost("/{id:guid}/characteristics/{type}/refund", async (Guid id, string type,
+            ClaimsPrincipal user, ICommandHandler<RefundCharacteristicCommand, Unit> handler, CancellationToken ct) =>
+        {
+            if (!Enum.TryParse<CharacteristicType>(type, ignoreCase: true, out var characteristic))
+                throw new DomainRuleException($"Неизвестная характеристика: «{type}».");
+            await handler.Handle(new RefundCharacteristicCommand(user.UserId(), id, characteristic), ct);
+            return Results.NoContent();
+        });
+
+        group.MapPost("/{id:guid}/skills/{skillDefId:guid}/refund-rank", async (Guid id, Guid skillDefId,
+            ClaimsPrincipal user, ICommandHandler<RefundSkillRankCommand, Unit> handler, CancellationToken ct) =>
+        {
+            await handler.Handle(new RefundSkillRankCommand(user.UserId(), id, skillDefId), ct);
+            return Results.NoContent();
+        });
+
+        group.MapPost("/{id:guid}/talents/refund", async (Guid id, BuyTalentRequest req, ClaimsPrincipal user,
+            ICommandHandler<RefundTalentCommand, Unit> handler, CancellationToken ct) =>
+        {
+            await handler.Handle(new RefundTalentCommand(user.UserId(), id, req.TalentDefId), ct);
+            return Results.NoContent();
+        });
+
         group.MapPost("/{id:guid}/skills/{skillDefId:guid}/buy-rank", async (Guid id, Guid skillDefId,
             ClaimsPrincipal user, ICommandHandler<BuySkillRankCommand, Unit> handler, CancellationToken ct) =>
         {

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { canPurchaseTier } from './pyramid'
+import { canPurchaseTier, canRemoveTier } from './pyramid'
 import { nextRankTier, talentCost } from './labels'
 
 describe('canPurchaseTier (правило пирамиды)', () => {
@@ -32,6 +32,28 @@ describe('canPurchaseTier (правило пирамиды)', () => {
   it('некорректный тир отклоняется', () => {
     expect(canPurchaseTier({}, 0)).toBe(false)
     expect(canPurchaseTier({}, 6)).toBe(false)
+  })
+})
+
+describe('canRemoveTier (откат талантов)', () => {
+  it('единственный талант тира 1 можно вернуть', () => {
+    expect(canRemoveTier({ '1': 1 }, 1)).toBe(true)
+  })
+
+  it('нельзя вернуть то, чего нет', () => {
+    expect(canRemoveTier({}, 1)).toBe(false)
+    expect(canRemoveTier({ '1': 1 }, 2)).toBe(false)
+  })
+
+  it('возврат тира 1 заблокирован, если без него рассыпается тир 2', () => {
+    expect(canRemoveTier({ '1': 2, '2': 1 }, 1)).toBe(false)
+    expect(canRemoveTier({ '1': 2, '2': 1 }, 2)).toBe(true)
+    expect(canRemoveTier({ '1': 3, '2': 1 }, 1)).toBe(true)
+  })
+
+  it('некорректный тир отклоняется', () => {
+    expect(canRemoveTier({ '1': 1 }, 0)).toBe(false)
+    expect(canRemoveTier({ '1': 1 }, 6)).toBe(false)
   })
 })
 
