@@ -18,6 +18,16 @@ export const CHARACTERISTICS: Characteristic[] = [
   'brawn', 'agility', 'intellect', 'cunning', 'willpower', 'presence',
 ]
 
+/** Короткие подписи характеристик для узких таблиц. */
+export const CHARACTERISTIC_SHORT_LABELS: Record<Characteristic, string> = {
+  brawn: 'Мощ',
+  agility: 'Лов',
+  intellect: 'Инт',
+  cunning: 'Хит',
+  willpower: 'Вол',
+  presence: 'Хар',
+}
+
 export const SKILL_KIND_LABELS: Record<SkillKind, string> = {
   general: 'Общие',
   combat: 'Боевые',

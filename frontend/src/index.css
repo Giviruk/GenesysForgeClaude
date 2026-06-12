@@ -143,6 +143,27 @@ h1.logo { margin: 0 0 0.3rem; }
 table.skills { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
 table.skills th { text-align: left; color: var(--muted); font-weight: 500; padding: 0.3rem 0.5rem; border-bottom: 1px solid var(--border); }
 table.skills td { padding: 0.3rem 0.5rem; border-bottom: 1px solid rgba(58, 49, 72, 0.5); }
+
+/* Навыки в две колонки; внутри — единая сетка колонок во всех разделах */
+.skills-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(26rem, 1fr));
+  gap: 0 2rem;
+  align-items: start;
+}
+.skill-block .skill-kind { margin-top: 0.6rem; }
+table.skills.fixed { table-layout: fixed; }
+table.skills.fixed th, table.skills.fixed td { padding: 0.3rem 0.35rem; white-space: nowrap; }
+col.col-name { width: 29%; }
+col.col-char { width: 11%; }
+col.col-career { width: 14%; }
+col.col-ranks { width: 15%; }
+col.col-pool { width: 16%; }
+col.col-action { width: 15%; }
+td.ellipsis { overflow: hidden; text-overflow: ellipsis; }
+.centered { text-align: center !important; }
+td.right { text-align: right; }
+table.skills .die { letter-spacing: 0; }
 tr.equipped-row td { background: rgba(200, 162, 74, 0.07); }
 
 .dice-pool { letter-spacing: 0.1em; white-space: nowrap; }
