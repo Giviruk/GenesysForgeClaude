@@ -16,46 +16,90 @@
 
 | Слой | Технологии |
 |---|---|
-| Backend | C# / .NET 10, ASP.NET Core Minimal API, EF Core 9 + Npgsql |
-| БД | PostgreSQL 17 (docker-compose) |
-| Frontend | React 19, Vite, TypeScript |
+| Backend | C# / .NET 10, ASP.NET Core Minimal API, EF Core 10 + Npgsql |
+| БД | PostgreSQL 17 |
+| Frontend | React 19, Vite, TypeScript; в проде — nginx |
 | Тесты | xUnit (domain + api), Vitest (frontend) |
 | CI | GitHub Actions: build + тесты на PR и push в master |
 
-## Структура
+## Архитектура (Clean Architecture + CQRS)
 
 ```
-backend/
-  src/GenesysForge.Domain/   — движок правил Genesys (чистый C#, без зависимостей)
-  src/GenesysForge.Api/      — ASP.NET Core API, EF Core, JWT, сид-данные систем
-  tests/GenesysForge.Domain.Tests/
-  tests/GenesysForge.Api.Tests/
-frontend/                    — React SPA
-.github/workflows/ci.yml     — CI pipeline
-docker-compose.yml           — PostgreSQL
+backend/src/
+  GenesysForge.Domain/          — ядро: сущности, enums, value objects, правила Genesys
+    Entities/  Enums/  ValueObjects/  Rules/  Exceptions/
+  GenesysForge.Application/     — use-cases: CQRS-команды/запросы и хендлеры
+    Abstractions/  (ICommand, IQuery, IAppDbContext, ITokenService, …)
+    Features/      (Auth, Characters, CustomContent, Reference — Command + Handler на файл)
+    Dtos/          (контракты API, один record на файл)
+    Common/        (SheetBuilder, CharacterLoader, TalentTierCounter, Mappers)
+  GenesysForge.Infrastructure/  — EF Core (Npgsql/InMemory), сид-данные, JWT, хешер паролей
+  GenesysForge.Api/             — тонкие minimal-api endpoints поверх хендлеров
+backend/tests/                  — GenesysForge.Domain.Tests, GenesysForge.Api.Tests
+frontend/                       — React SPA (+ Dockerfile с nginx)
 ```
 
-## Запуск
+Зависимости направлены строго внутрь: `Api → Infrastructure → Application → Domain`.
+CQRS без MediatR: лёгкие `ICommandHandler<,>` / `IQueryHandler<,>` через DI.
+
+## Запуск одной командой (Docker)
+
+```bash
+docker compose up -d --build
+```
+
+Поднимает PostgreSQL, API и фронтенд (nginx). Сайт: **http://localhost:8080**.
+Настройки (порт, пароли, JWT-ключ) — через `.env`, см. [.env.example](.env.example).
+
+## Запуск для разработки
 
 ```powershell
-# 1. БД
-docker compose up -d
-
-# 2. Backend (http://localhost:5080)
-dotnet run --project backend/src/GenesysForge.Api
-
-# 3. Frontend (http://localhost:5173, проксирует /api на backend)
-cd frontend
-npm install
-npm run dev
+docker compose up -d postgres                          # только БД
+dotnet run --project backend/src/GenesysForge.Api     # API на http://localhost:5080
+cd frontend; npm install; npm run dev                  # SPA на http://localhost:5173 (проксирует /api)
 ```
 
 ## Тесты
 
 ```powershell
-dotnet test backend/GenesysForge.sln
+dotnet test backend/GenesysForge.slnx
 cd frontend; npm test
 ```
+
+## Деплой на VPS
+
+Нужен Linux-сервер с Docker (Engine + compose-plugin). Шаги:
+
+```bash
+# 1. Установить Docker (Ubuntu/Debian)
+curl -fsSL https://get.docker.com | sh
+
+# 2. Получить код
+git clone https://github.com/Giviruk/GenesysForgeClaude.git
+cd GenesysForgeClaude
+
+# 3. Настроить секреты — ОБЯЗАТЕЛЬНО смените значения
+cp .env.example .env
+nano .env        # POSTGRES_PASSWORD, JWT_KEY (openssl rand -base64 48), WEB_PORT=80
+                 # POSTGRES_PORT наружу на VPS лучше не публиковать — удалите строку ports у postgres
+                 # или закройте порт фаерволом
+
+# 4. Запуск
+docker compose up -d --build
+
+# 5. Обновление до новой версии
+git pull && docker compose up -d --build
+```
+
+Данные Postgres живут в named-томе `pgdata` и переживают пересборку контейнеров.
+Бэкап: `docker exec genesysforge-db pg_dump -U genesys genesysforge > backup.sql`.
+
+**HTTPS.** Самый простой способ — поставить перед `web` реверс-прокси с автоматическим TLS,
+например [Caddy](https://caddyserver.com/): на хосте `caddy reverse-proxy --from example.com --to localhost:8080`,
+либо добавить caddy-сервис в compose. Альтернатива — nginx + certbot.
+
+**Замечание о схеме БД.** Сейчас схема создаётся при старте через `EnsureCreated` и сид встроенного контента.
+При эволюции схемы в проде стоит перейти на EF Core Migrations (`dotnet ef migrations add … && db.Database.Migrate()`).
 
 ## Примечание о данных систем
 
