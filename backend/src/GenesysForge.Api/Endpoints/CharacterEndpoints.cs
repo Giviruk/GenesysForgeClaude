@@ -48,10 +48,13 @@ public static class CharacterEndpoints
             return Results.NoContent();
         });
 
-        group.MapPost("/{id:guid}/characteristics/{type}/buy", async (Guid id, CharacteristicType type,
+        group.MapPost("/{id:guid}/characteristics/{type}/buy", async (Guid id, string type,
             ClaimsPrincipal user, ICommandHandler<BuyCharacteristicCommand, Unit> handler, CancellationToken ct) =>
         {
-            await handler.Handle(new BuyCharacteristicCommand(user.UserId(), id, type), ct);
+            // Биндинг enum из маршрута чувствителен к регистру, а фронтенд шлёт camelCase — разбираем сами.
+            if (!Enum.TryParse<CharacteristicType>(type, ignoreCase: true, out var characteristic))
+                throw new DomainRuleException($"Неизвестная характеристика: «{type}».");
+            await handler.Handle(new BuyCharacteristicCommand(user.UserId(), id, characteristic), ct);
             return Results.NoContent();
         });
 

@@ -230,7 +230,8 @@ public class CharacterFlowTests : IClassFixture<ApiFactory>
         var (client, _, id) = await CreateCharacterAsync(GameSystem.GenesysCore);
         var before = await SheetAsync(client, id);
 
-        var buy = await client.PostAsync($"/api/characters/{id}/characteristics/Agility/buy", null);
+        // фронтенд шлёт camelCase — маршрут обязан принимать без учёта регистра
+        var buy = await client.PostAsync($"/api/characters/{id}/characteristics/agility/buy", null);
         Assert.Equal(HttpStatusCode.NoContent, buy.StatusCode);
         var after = await SheetAsync(client, id);
         Assert.Equal(before.Characteristics["agility"] + 1, after.Characteristics["agility"]);
@@ -240,6 +241,16 @@ public class CharacterFlowTests : IClassFixture<ApiFactory>
         await client.PostAsync($"/api/characters/{id}/complete-creation", null);
         var locked = await client.PostAsync($"/api/characters/{id}/characteristics/Agility/buy", null);
         Assert.Equal(HttpStatusCode.BadRequest, locked.StatusCode);
+    }
+
+    [Fact]
+    public async Task BuyCharacteristic_UnknownName_Returns400WithMessage()
+    {
+        var (client, _, id) = await CreateCharacterAsync(GameSystem.GenesysCore);
+        var response = await client.PostAsync($"/api/characters/{id}/characteristics/strength/buy", null);
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        var error = await response.Content.ReadFromJsonAsync<ErrorResponse>(Json.Options);
+        Assert.Contains("Неизвестная характеристика", error!.Message);
     }
 
     [Fact]
