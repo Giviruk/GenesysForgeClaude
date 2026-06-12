@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { api } from '../api/client'
 import type { CharacterSheet, Reference, SkillKind } from '../api/types'
-import { CHARACTERISTICS, CHARACTERISTIC_LABELS, SKILL_KIND_LABELS } from '../utils/labels'
+import { CHARACTERISTICS, CHARACTERISTIC_LABELS, CHARACTERISTIC_SHORT_LABELS, SKILL_KIND_LABELS } from '../utils/labels'
 import { DicePoolView } from './DicePoolView'
 
 interface Props {
@@ -88,47 +88,60 @@ export function SheetTab({ sheet, reference, onError, refresh }: Props) {
 
       <section className="panel">
         <h3>Навыки</h3>
-        {SKILL_KINDS.map(kind => {
-          const skills = sheet.skills.filter(s => s.kind === kind)
-          if (skills.length === 0) return null
-          return (
-            <div key={kind}>
-              <h4 className="skill-kind">{SKILL_KIND_LABELS[kind]}</h4>
-              <table className="skills">
-                <thead>
-                  <tr>
-                    <th>Навык</th>
-                    <th>Хар-ка</th>
-                    <th>Карьерный</th>
-                    <th>Ранги</th>
-                    <th>Дайс-пул</th>
-                    <th></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {skills.map(s => (
-                    <tr key={s.skillDefId}>
-                      <td>{s.name}</td>
-                      <td className="muted">{CHARACTERISTIC_LABELS[s.characteristic]}</td>
-                      <td>{s.isCareer ? '✓' : ''}</td>
-                      <td>{'●'.repeat(s.ranks)}{'○'.repeat(Math.max(0, 5 - s.ranks))}</td>
-                      <td><DicePoolView pool={s.pool} /></td>
-                      <td>
-                        {s.ranks < 5 && (
-                          <button className="small" disabled={s.nextRankCost > sheet.availableXp}
-                            title={s.nextRankCost > sheet.availableXp ? 'Недостаточно XP' : ''}
-                            onClick={() => run(() => api.buySkillRank(sheet.id, s.skillDefId))}>
-                            +ранг ({s.nextRankCost} XP)
-                          </button>
-                        )}
-                      </td>
+        <div className="skills-grid">
+          {SKILL_KINDS.map(kind => {
+            const skills = sheet.skills.filter(s => s.kind === kind)
+            if (skills.length === 0) return null
+            return (
+              <div key={kind} className="skill-block">
+                <h4 className="skill-kind">{SKILL_KIND_LABELS[kind]}</h4>
+                <table className="skills fixed">
+                  {/* единые ширины колонок во всех разделах */}
+                  <colgroup>
+                    <col className="col-name" />
+                    <col className="col-char" />
+                    <col className="col-career" />
+                    <col className="col-ranks" />
+                    <col className="col-pool" />
+                    <col className="col-action" />
+                  </colgroup>
+                  <thead>
+                    <tr>
+                      <th>Навык</th>
+                      <th>Хар-ка</th>
+                      <th className="centered" title="Карьерный навык">Карьерн.</th>
+                      <th>Ранги</th>
+                      <th>Дайс-пул</th>
+                      <th></th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )
-        })}
+                  </thead>
+                  <tbody>
+                    {skills.map(s => (
+                      <tr key={s.skillDefId}>
+                        <td className="ellipsis" title={s.name}>{s.name}</td>
+                        <td className="muted" title={CHARACTERISTIC_LABELS[s.characteristic]}>
+                          {CHARACTERISTIC_SHORT_LABELS[s.characteristic]}
+                        </td>
+                        <td className="centered">{s.isCareer ? '✓' : ''}</td>
+                        <td>{'●'.repeat(s.ranks)}{'○'.repeat(Math.max(0, 5 - s.ranks))}</td>
+                        <td><DicePoolView pool={s.pool} /></td>
+                        <td className="right">
+                          {s.ranks < 5 && (
+                            <button className="small" disabled={s.nextRankCost > sheet.availableXp}
+                              title={s.nextRankCost > sheet.availableXp ? 'Недостаточно XP' : `Купить ранг ${s.ranks + 1}`}
+                              onClick={() => run(() => api.buySkillRank(sheet.id, s.skillDefId))}>
+                              +{s.nextRankCost} XP
+                            </button>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )
+          })}
+        </div>
       </section>
     </div>
   )
