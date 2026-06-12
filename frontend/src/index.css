@@ -132,6 +132,9 @@ h1.logo { margin: 0 0 0.3rem; }
 .stat-value { font-size: 1.5rem; color: #efeaf6; display: flex; gap: 0.4rem; justify-content: center; align-items: center; }
 .stat-label { font-size: 0.78rem; color: var(--muted); margin-top: 0.15rem; }
 .stat-box button.small { margin-top: 0.35rem; }
+.buy-row { display: flex; gap: 0.3rem; justify-content: center; }
+td.right button.small + button.small { margin-left: 0.3rem; }
+.talent-actions { display: flex; gap: 0.4rem; flex-shrink: 0; }
 
 .panel {
   background: var(--panel); border: 1px solid var(--border); border-radius: 10px;

@@ -54,4 +54,18 @@ public class Character
             default: throw new ArgumentOutOfRangeException(nameof(type));
         }
     }
+
+    public void DecreaseCharacteristic(CharacteristicType type)
+    {
+        switch (type)
+        {
+            case CharacteristicType.Brawn: Brawn--; break;
+            case CharacteristicType.Agility: Agility--; break;
+            case CharacteristicType.Intellect: Intellect--; break;
+            case CharacteristicType.Cunning: Cunning--; break;
+            case CharacteristicType.Willpower: Willpower--; break;
+            case CharacteristicType.Presence: Presence--; break;
+            default: throw new ArgumentOutOfRangeException(nameof(type));
+        }
+    }
 }

@@ -111,6 +111,7 @@ export interface SheetSkill {
   isCareer: boolean
   pool: DicePool
   nextRankCost: number
+  freeRanks: number
 }
 
 export interface SheetTalent {

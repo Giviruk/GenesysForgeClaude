@@ -35,10 +35,18 @@ export function SheetTab({ sheet, reference, onError, refresh }: Props) {
             <div className="stat-value">{sheet.characteristics[c]}</div>
             <div className="stat-label">{CHARACTERISTIC_LABELS[c]}</div>
             {sheet.isCreationPhase && (
-              <button className="small" title={`Повысить за ${(sheet.characteristics[c] + 1) * 10} XP`}
-                onClick={() => run(() => api.buyCharacteristic(sheet.id, c))}>
-                +{(sheet.characteristics[c] + 1) * 10} XP
-              </button>
+              <div className="buy-row">
+                {sheet.characteristics[c] > sheet.archetype[c] && (
+                  <button className="small" title={`Вернуть ${sheet.characteristics[c] * 10} XP`}
+                    onClick={() => run(() => api.refundCharacteristic(sheet.id, c))}>
+                    −
+                  </button>
+                )}
+                <button className="small" title={`Повысить за ${(sheet.characteristics[c] + 1) * 10} XP`}
+                  onClick={() => run(() => api.buyCharacteristic(sheet.id, c))}>
+                  +{(sheet.characteristics[c] + 1) * 10} XP
+                </button>
+              </div>
             )}
           </div>
         ))}
@@ -126,6 +134,13 @@ export function SheetTab({ sheet, reference, onError, refresh }: Props) {
                         <td>{'●'.repeat(s.ranks)}{'○'.repeat(Math.max(0, 5 - s.ranks))}</td>
                         <td><DicePoolView pool={s.pool} /></td>
                         <td className="right">
+                          {sheet.isCreationPhase && s.ranks > s.freeRanks && (
+                            <button className="small"
+                              title={`Вернуть ранг ${s.ranks} (+${s.ranks * 5 + (s.isCareer ? 0 : 5)} XP)`}
+                              onClick={() => run(() => api.refundSkillRank(sheet.id, s.skillDefId))}>
+                              −
+                            </button>
+                          )}
                           {s.ranks < 5 && (
                             <button className="small" disabled={s.nextRankCost > sheet.availableXp}
                               title={s.nextRankCost > sheet.availableXp ? 'Недостаточно XP' : `Купить ранг ${s.ranks + 1}`}

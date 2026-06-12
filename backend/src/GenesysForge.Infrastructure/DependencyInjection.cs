@@ -27,12 +27,12 @@ public static class DependencyInjection
         return services;
     }
 
-    /// <summary>Создание схемы и сид встроенного контента при старте.</summary>
+    /// <summary>Применение миграций и сид встроенного контента при старте.</summary>
     public static void InitializeDatabase(this IServiceProvider services)
     {
         using var scope = services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-        if (db.Database.IsRelational()) db.Database.EnsureCreated();
+        if (db.Database.IsRelational()) db.Database.Migrate();
         SeedData.Apply(db);
     }
 }

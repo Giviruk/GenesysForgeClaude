@@ -8,4 +8,6 @@ public class CharacterSkill
     public SkillDef? SkillDef { get; set; }
     public int Ranks { get; set; }
     public bool IsCareer { get; set; }
+    /// <summary>Бесплатные стартовые ранги (выбор карьерных навыков при создании) — не подлежат возврату за XP.</summary>
+    public int FreeRanks { get; set; }
 }

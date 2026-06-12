@@ -41,7 +41,8 @@ public static class SheetBuilder
             var pool = GenesysRules.BuildDicePool(ch.Get(def.Characteristic), ranks);
             return new CharacterSkillDto(def.Id, def.Name, def.Kind, def.Characteristic, ranks, isCareer,
                 new DicePoolDto(pool.Ability, pool.Proficiency),
-                ranks < GenesysRules.MaxSkillRank ? GenesysRules.SkillRankCost(ranks + 1, isCareer) : 0);
+                ranks < GenesysRules.MaxSkillRank ? GenesysRules.SkillRankCost(ranks + 1, isCareer) : 0,
+                row?.FreeRanks ?? 0);
         }).ToList();
 
         return new CharacterSheetDto(

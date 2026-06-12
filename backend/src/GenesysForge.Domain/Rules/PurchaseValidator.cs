@@ -29,6 +29,52 @@ public static class PurchaseValidator
             : PurchaseResult.Ok(cost);
     }
 
+    /// <summary>Возврат последнего повышения характеристики (только при создании, не ниже базы архетипа).</summary>
+    public static PurchaseResult RefundCharacteristic(int currentValue, int archetypeBase, bool isCreationPhase)
+    {
+        if (!isCreationPhase)
+            return PurchaseResult.Fail("Откат покупок доступен только до завершения создания персонажа.");
+        if (currentValue <= archetypeBase)
+            return PurchaseResult.Fail("Характеристика уже на стартовом значении архетипа.");
+        // возвращается то, что было заплачено за текущее значение
+        return PurchaseResult.Ok(GenesysRules.CharacteristicUpgradeCost(currentValue));
+    }
+
+    /// <summary>Возврат последнего ранга навыка (только при создании; бесплатные стартовые ранги не возвращаются).</summary>
+    public static PurchaseResult RefundSkillRank(int currentRank, int freeRanks, bool isCareer, bool isCreationPhase)
+    {
+        if (!isCreationPhase)
+            return PurchaseResult.Fail("Откат покупок доступен только до завершения создания персонажа.");
+        if (currentRank <= 0)
+            return PurchaseResult.Fail("У навыка нет рангов для возврата.");
+        if (currentRank <= freeRanks)
+            return PurchaseResult.Fail("Бесплатный стартовый ранг карьерного навыка вернуть нельзя.");
+        return PurchaseResult.Ok(GenesysRules.SkillRankCost(currentRank, isCareer));
+    }
+
+    /// <summary>
+    /// Возврат последнего ранга таланта (только при создании).
+    /// Удаление не должно ломать пирамиду для оставшихся талантов.
+    /// </summary>
+    public static PurchaseResult RefundTalent(
+        int baseTier,
+        int ranksOwned,
+        IReadOnlyDictionary<int, int> tierCounts,
+        bool isCreationPhase)
+    {
+        if (!isCreationPhase)
+            return PurchaseResult.Fail("Откат покупок доступен только до завершения создания персонажа.");
+        if (ranksOwned < 1)
+            return PurchaseResult.Fail("Этот талант не куплен.");
+
+        var lastTier = GenesysRules.RankedTalentEffectiveTier(baseTier, ranksOwned - 1);
+        if (!GenesysRules.CanRemoveTalentTier(tierCounts, lastTier))
+            return PurchaseResult.Fail(
+                "Нельзя вернуть талант: нарушится пирамида. Сначала верните таланты более высоких тиров.");
+
+        return PurchaseResult.Ok(GenesysRules.TalentCost(lastTier));
+    }
+
     /// <param name="baseTier">Базовый тир покупаемого таланта.</param>
     /// <param name="ranksOwned">Сколько рангов этого таланта уже есть (0, если талант новый).</param>
     /// <param name="isRanked">Является ли талант ранговым.</param>
