@@ -156,6 +156,42 @@ export interface Derived {
   encumbered: boolean
 }
 
+export interface CampaignListItem {
+  id: string
+  name: string
+  isGm: boolean
+  characterCount: number
+  createdAt: string
+}
+
+export interface CampaignMember {
+  characterId: string
+  characterName: string
+  system: GameSystem
+  archetype: string
+  career: string
+  isMine: boolean
+}
+
+export interface CampaignNote {
+  id: string
+  title: string
+  body: string
+  isPrivate: boolean
+  createdAt: string
+  updatedAt: string
+}
+
+export interface CampaignDetail {
+  id: string
+  name: string
+  description: string
+  isGm: boolean
+  joinCode: string | null
+  members: CampaignMember[]
+  notes: CampaignNote[]
+}
+
 export interface CharacterNote {
   id: string
   title: string

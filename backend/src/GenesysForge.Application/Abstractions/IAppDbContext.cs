@@ -18,6 +18,9 @@ public interface IAppDbContext
     DbSet<CharacterTalent> CharacterTalents { get; }
     DbSet<CharacterItem> CharacterItems { get; }
     DbSet<CharacterNote> CharacterNotes { get; }
+    DbSet<Campaign> Campaigns { get; }
+    DbSet<CampaignCharacter> CampaignCharacters { get; }
+    DbSet<CampaignNote> CampaignNotes { get; }
 
     Task<int> SaveChangesAsync(CancellationToken ct = default);
 }

@@ -1,6 +1,6 @@
 import type {
-  AuthResponse, CharacterListItem, CharacterNote, CharacterSheet, GameSystem, HeroicAbility, ItemDef,
-  ItemState, Reference, SkillDef, TalentDef,
+  AuthResponse, CampaignDetail, CampaignListItem, CampaignNote, CharacterListItem, CharacterNote,
+  CharacterSheet, GameSystem, HeroicAbility, ItemDef, ItemState, Reference, SkillDef, TalentDef,
 } from './types'
 
 const TOKEN_KEY = 'genesysforge.token'
@@ -131,6 +131,21 @@ export const api = {
     request<CharacterNote>('PUT', `/api/characters/${characterId}/notes/${noteId}`, { title, body }),
   deleteNote: (characterId: string, noteId: string) =>
     request<void>('DELETE', `/api/characters/${characterId}/notes/${noteId}`),
+
+  campaigns: () => request<CampaignListItem[]>('GET', '/api/campaigns/'),
+  campaign: (id: string) => request<CampaignDetail>('GET', `/api/campaigns/${id}`),
+  createCampaign: (name: string, description: string) =>
+    request<CampaignDetail>('POST', '/api/campaigns/', { name, description }),
+  joinCampaign: (joinCode: string, characterId: string) =>
+    request<CampaignDetail>('POST', '/api/campaigns/join', { joinCode, characterId }),
+  removeCampaignCharacter: (campaignId: string, characterId: string) =>
+    request<void>('DELETE', `/api/campaigns/${campaignId}/characters/${characterId}`),
+  createCampaignNote: (campaignId: string, note: { title: string; body: string; isPrivate: boolean }) =>
+    request<CampaignNote>('POST', `/api/campaigns/${campaignId}/notes`, note),
+  updateCampaignNote: (campaignId: string, noteId: string, note: { title: string; body: string; isPrivate: boolean }) =>
+    request<CampaignNote>('PUT', `/api/campaigns/${campaignId}/notes/${noteId}`, note),
+  deleteCampaignNote: (campaignId: string, noteId: string) =>
+    request<void>('DELETE', `/api/campaigns/${campaignId}/notes/${noteId}`),
 
   deleteCustomSkill: (id: string) => request<void>('DELETE', `/api/custom/skills/${id}`),
   deleteCustomTalent: (id: string) => request<void>('DELETE', `/api/custom/talents/${id}`),

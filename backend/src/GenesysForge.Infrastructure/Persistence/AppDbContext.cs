@@ -18,6 +18,9 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<CharacterTalent> CharacterTalents => Set<CharacterTalent>();
     public DbSet<CharacterItem> CharacterItems => Set<CharacterItem>();
     public DbSet<CharacterNote> CharacterNotes => Set<CharacterNote>();
+    public DbSet<Campaign> Campaigns => Set<Campaign>();
+    public DbSet<CampaignCharacter> CampaignCharacters => Set<CampaignCharacter>();
+    public DbSet<CampaignNote> CampaignNotes => Set<CampaignNote>();
 
     protected override void OnModelCreating(ModelBuilder b)
     {
@@ -53,5 +56,22 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             e.HasIndex(n => n.CharacterId);
             e.Property(n => n.Title).HasMaxLength(200);
         });
+
+        b.Entity<Campaign>(e =>
+        {
+            e.HasIndex(c => c.GmUserId);
+            e.HasIndex(c => c.JoinCode).IsUnique();
+            e.Property(c => c.Name).HasMaxLength(200);
+            e.Property(c => c.JoinCode).HasMaxLength(16);
+            e.HasMany(c => c.Characters).WithOne().HasForeignKey(cc => cc.CampaignId).OnDelete(DeleteBehavior.Cascade);
+            e.HasMany(c => c.Notes).WithOne().HasForeignKey(n => n.CampaignId).OnDelete(DeleteBehavior.Cascade);
+        });
+        b.Entity<CampaignCharacter>(e =>
+        {
+            // удаление персонажа убирает его из кампаний
+            e.HasOne(cc => cc.Character).WithMany().HasForeignKey(cc => cc.CharacterId).OnDelete(DeleteBehavior.Cascade);
+            e.HasIndex(cc => new { cc.CampaignId, cc.CharacterId }).IsUnique();
+        });
+        b.Entity<CampaignNote>().Property(n => n.Title).HasMaxLength(200);
     }
 }
