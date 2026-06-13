@@ -1,5 +1,6 @@
 using GenesysForge.Domain;
 using GenesysForge.Domain.Entities;
+using Microsoft.EntityFrameworkCore;
 
 namespace GenesysForge.Infrastructure.Persistence;
 
@@ -9,20 +10,60 @@ namespace GenesysForge.Infrastructure.Persistence;
 /// </summary>
 public static class SeedData
 {
+    /// <summary>
+    /// Идемпотентный сид: добавляет только отсутствующий встроенный контент (по System+Name,
+    /// для героик — по Name). Безопасно вызывать на уже засеянной БД — новые встроенные записи
+    /// (например, добавленные таланты) досеваются без пересоздания тома и без дублей.
+    /// Кастомный контент (OwnerUserId != null) не затрагивается.
+    /// </summary>
     public static void Apply(AppDbContext db)
     {
-        if (db.SkillDefs.Any(s => s.OwnerUserId == null)) return; // уже засеяно
+        var added = false;
 
-        db.SkillDefs.AddRange(CoreSkills().Concat(TerrinothSkills()));
-        db.ArchetypeDefs.AddRange(CoreArchetypes().Concat(TerrinothSpecies()));
-        db.CareerDefs.AddRange(CoreCareers().Concat(TerrinothCareers()));
-        db.TalentDefs.AddRange(Talents(GameSystem.GenesysCore)
-            .Concat(Talents(GameSystem.RealmsOfTerrinoth))
-            .Concat(TerrinothTalents()));
-        db.ItemDefs.AddRange(CoreItems().Concat(TerrinothItems()));
-        db.HeroicAbilityDefs.AddRange(HeroicAbilities());
-        db.SaveChanges();
+        added |= SeedMissing(db, db.SkillDefs, CoreSkills().Concat(TerrinothSkills()), d => (d.System, d.Name));
+        added |= SeedMissing(db, db.ArchetypeDefs, CoreArchetypes().Concat(TerrinothSpecies()), d => (d.System, d.Name));
+        added |= SeedMissing(db, db.CareerDefs, CoreCareers().Concat(TerrinothCareers()), d => (d.System, d.Name));
+        added |= SeedMissing(db, db.TalentDefs,
+            Talents(GameSystem.GenesysCore).Concat(Talents(GameSystem.RealmsOfTerrinoth)).Concat(TerrinothTalents()),
+            d => (d.System, d.Name));
+        added |= SeedMissing(db, db.ItemDefs, CoreItems().Concat(TerrinothItems()), d => (d.System, d.Name));
+        added |= SeedMissing(db, db.HeroicAbilityDefs, HeroicAbilities(), d => ((GameSystem)0, d.Name));
+
+        if (added) db.SaveChanges();
     }
+
+    /// <summary>Добавляет элементы, чьи ключи отсутствуют среди встроенных (OwnerUserId == null) записей.</summary>
+    private static bool SeedMissing<T>(
+        AppDbContext db,
+        DbSet<T> set,
+        IEnumerable<T> builtIn,
+        Func<T, (GameSystem System, string Name)> key) where T : class
+    {
+        var existing = set.AsEnumerable()
+            .Where(IsBuiltIn)
+            .Select(key)
+            .ToHashSet();
+
+        var added = false;
+        foreach (var def in builtIn)
+        {
+            if (existing.Add(key(def))) // true — ключа ещё не было
+            {
+                set.Add(def);
+                added = true;
+            }
+        }
+        return added;
+    }
+
+    private static bool IsBuiltIn<T>(T entity) => entity switch
+    {
+        SkillDef s => s.OwnerUserId == null,
+        TalentDef t => t.OwnerUserId == null,
+        ItemDef i => i.OwnerUserId == null,
+        HeroicAbilityDef h => h.OwnerUserId == null,
+        _ => true, // архетипы и карьеры всегда встроенные
+    };
 
     private static SkillDef Skill(GameSystem sys, string name, CharacteristicType ch, SkillKind kind) =>
         new() { Id = Guid.NewGuid(), System = sys, Name = name, Characteristic = ch, Kind = kind };
