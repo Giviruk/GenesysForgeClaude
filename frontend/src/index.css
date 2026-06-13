@@ -230,6 +230,13 @@ tr.equipped-row td { background: rgba(200, 162, 74, 0.07); }
   padding: 0.35rem 0; border-bottom: 1px solid rgba(58, 49, 72, 0.5); font-size: 0.9rem;
 }
 .custom-list-actions { display: flex; gap: 0.4rem; flex-shrink: 0; }
+
+/* ---------- Notes ---------- */
+.notes-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(20rem, 1fr)); gap: 0.7rem; }
+.note-card { background: var(--panel-2); border: 1px solid var(--border); border-radius: 8px; padding: 0.6rem 0.8rem; }
+.note-card-head { display: flex; justify-content: space-between; align-items: baseline; gap: 0.6rem; }
+.note-actions { display: flex; gap: 0.4rem; flex-shrink: 0; }
+.note-body { margin: 0.4rem 0; font-size: 0.88rem; white-space: pre-wrap; }
 .bonus-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr)); gap: 0.4rem 0.8rem; }
 .chips { display: flex; gap: 0.35rem; flex-wrap: wrap; }
 

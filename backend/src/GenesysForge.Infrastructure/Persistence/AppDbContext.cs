@@ -17,6 +17,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<CharacterSkill> CharacterSkills => Set<CharacterSkill>();
     public DbSet<CharacterTalent> CharacterTalents => Set<CharacterTalent>();
     public DbSet<CharacterItem> CharacterItems => Set<CharacterItem>();
+    public DbSet<CharacterNote> CharacterNotes => Set<CharacterNote>();
 
     protected override void OnModelCreating(ModelBuilder b)
     {
@@ -45,5 +46,12 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         });
         b.Entity<CharacterItem>()
             .HasOne(i => i.ItemDef).WithMany().OnDelete(DeleteBehavior.Cascade);
+
+        b.Entity<CharacterNote>(e =>
+        {
+            e.HasOne<Character>().WithMany().HasForeignKey(n => n.CharacterId).OnDelete(DeleteBehavior.Cascade);
+            e.HasIndex(n => n.CharacterId);
+            e.Property(n => n.Title).HasMaxLength(200);
+        });
     }
 }

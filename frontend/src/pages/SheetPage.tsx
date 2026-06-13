@@ -6,13 +6,14 @@ import { SheetTab } from '../components/SheetTab'
 import { TalentsTab } from '../components/TalentsTab'
 import { InventoryTab } from '../components/InventoryTab'
 import { CustomTab } from '../components/CustomTab'
+import { NotesTab } from '../components/NotesTab'
 
 interface Props {
   characterId: string
   onBack: () => void
 }
 
-type Tab = 'sheet' | 'talents' | 'inventory' | 'custom'
+type Tab = 'sheet' | 'talents' | 'inventory' | 'notes' | 'custom'
 
 export function SheetPage({ characterId, onBack }: Props) {
   const [sheet, setSheet] = useState<CharacterSheet | null>(null)
@@ -99,12 +100,14 @@ export function SheetPage({ characterId, onBack }: Props) {
         <button className={tab === 'sheet' ? 'tab active' : 'tab'} onClick={() => setTab('sheet')}>Лист</button>
         <button className={tab === 'talents' ? 'tab active' : 'tab'} onClick={() => setTab('talents')}>Таланты</button>
         <button className={tab === 'inventory' ? 'tab active' : 'tab'} onClick={() => setTab('inventory')}>Инвентарь</button>
+        <button className={tab === 'notes' ? 'tab active' : 'tab'} onClick={() => setTab('notes')}>Заметки</button>
         <button className={tab === 'custom' ? 'tab active' : 'tab'} onClick={() => setTab('custom')}>Кастом</button>
       </div>
 
       {tab === 'sheet' && <SheetTab sheet={sheet} reference={reference} onError={setError} refresh={refresh} />}
       {tab === 'talents' && <TalentsTab sheet={sheet} reference={reference} onError={setError} refresh={refresh} />}
       {tab === 'inventory' && <InventoryTab sheet={sheet} reference={reference} onError={setError} refresh={refresh} />}
+      {tab === 'notes' && <NotesTab characterId={sheet.id} onError={setError} />}
       {tab === 'custom' && <CustomTab sheet={sheet} reference={reference} onError={setError} refresh={refresh} />}
     </div>
   )
