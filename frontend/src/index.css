@@ -65,6 +65,7 @@ label.checkbox input { width: auto; }
 .error { color: #ff9b9b; background: rgba(199, 80, 80, 0.15); border: 1px solid var(--red); border-radius: 6px; padding: 0.4rem 0.7rem; margin: 0.5rem 0; }
 .error.floating { position: fixed; top: 1rem; right: 1rem; z-index: 100; max-width: 28rem; }
 .notice { color: #a7e3b3; background: rgba(65, 163, 86, 0.15); border: 1px solid var(--green); border-radius: 6px; padding: 0.4rem 0.7rem; margin: 0.5rem 0; }
+.notice.warn { color: var(--yellow); background: rgba(224, 182, 44, 0.12); border-color: var(--yellow); }
 .hint { color: var(--muted); font-size: 0.85rem; margin: 0.4rem 0; }
 .small-text { font-size: 0.78rem; }
 .label-line { font-size: 0.9rem; margin: 0.6rem 0 0.3rem; }

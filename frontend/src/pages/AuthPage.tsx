@@ -2,7 +2,7 @@ import { useState, type FormEvent } from 'react'
 import { useAuth } from '../auth-context'
 
 export function AuthPage() {
-  const { login, register } = useAuth()
+  const { login, register, sessionExpired } = useAuth()
   const [mode, setMode] = useState<'login' | 'register'>('login')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -29,6 +29,9 @@ export function AuthPage() {
       <div className="auth-card">
         <h1 className="logo">Genesys Forge</h1>
         <p className="muted">Листы персонажей для Genesys Core и Realms of Terrinoth</p>
+        {sessionExpired && mode === 'login' && (
+          <div className="notice warn">Сессия истекла. Пожалуйста, войдите снова.</div>
+        )}
         <div className="tabs">
           <button className={mode === 'login' ? 'tab active' : 'tab'} onClick={() => setMode('login')}>Вход</button>
           <button className={mode === 'register' ? 'tab active' : 'tab'} onClick={() => setMode('register')}>Регистрация</button>
