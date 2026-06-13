@@ -42,6 +42,14 @@ public static class DependencyInjection
         services.AddScoped<ICommandHandler<CreateCustomTalentCommand, TalentDefDto>, CreateCustomTalentHandler>();
         services.AddScoped<ICommandHandler<CreateCustomItemCommand, ItemDefDto>, CreateCustomItemHandler>();
         services.AddScoped<ICommandHandler<CreateCustomHeroicAbilityCommand, HeroicAbilityDto>, CreateCustomHeroicAbilityHandler>();
+        services.AddScoped<ICommandHandler<UpdateCustomSkillCommand, SkillDefDto>, UpdateCustomSkillHandler>();
+        services.AddScoped<ICommandHandler<UpdateCustomTalentCommand, TalentDefDto>, UpdateCustomTalentHandler>();
+        services.AddScoped<ICommandHandler<UpdateCustomItemCommand, ItemDefDto>, UpdateCustomItemHandler>();
+        services.AddScoped<ICommandHandler<UpdateCustomHeroicAbilityCommand, HeroicAbilityDto>, UpdateCustomHeroicAbilityHandler>();
+        services.AddScoped<ICommandHandler<DeleteCustomSkillCommand, Unit>, DeleteCustomSkillHandler>();
+        services.AddScoped<ICommandHandler<DeleteCustomTalentCommand, Unit>, DeleteCustomTalentHandler>();
+        services.AddScoped<ICommandHandler<DeleteCustomItemCommand, Unit>, DeleteCustomItemHandler>();
+        services.AddScoped<ICommandHandler<DeleteCustomHeroicAbilityCommand, Unit>, DeleteCustomHeroicAbilityHandler>();
 
         return services;
     }

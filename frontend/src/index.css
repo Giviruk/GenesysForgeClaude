@@ -218,6 +218,17 @@ tr.equipped-row td { background: rgba(200, 162, 74, 0.07); }
 
 /* ---------- Custom forms ---------- */
 .custom-form { max-width: 34rem; }
+.form-actions { display: flex; gap: 0.5rem; margin-top: 0.6rem; }
+.editing-banner {
+  background: rgba(200, 162, 74, 0.15); border: 1px solid var(--accent);
+  border-radius: 6px; padding: 0.3rem 0.6rem; margin-bottom: 0.5rem; font-size: 0.85rem; color: var(--accent);
+}
+.custom-list { margin-top: 1.2rem; border-top: 1px solid var(--border); padding-top: 0.6rem; }
+.custom-list-row {
+  display: flex; justify-content: space-between; align-items: center; gap: 1rem;
+  padding: 0.35rem 0; border-bottom: 1px solid rgba(58, 49, 72, 0.5); font-size: 0.9rem;
+}
+.custom-list-actions { display: flex; gap: 0.4rem; flex-shrink: 0; }
 .bonus-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr)); gap: 0.4rem 0.8rem; }
 .chips { display: flex; gap: 0.35rem; flex-wrap: wrap; }
 

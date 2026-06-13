@@ -26,5 +26,51 @@ public static class CustomContentEndpoints
         group.MapPost("/heroic-abilities", async (CreateCustomHeroicAbilityRequest req, ClaimsPrincipal user,
                 ICommandHandler<CreateCustomHeroicAbilityCommand, HeroicAbilityDto> handler, CancellationToken ct) =>
             Results.Ok(await handler.Handle(new CreateCustomHeroicAbilityCommand(user.UserId(), req), ct)));
+
+        // ---- Редактирование ----
+        group.MapPut("/skills/{id:guid}", async (Guid id, CreateCustomSkillRequest req, ClaimsPrincipal user,
+                ICommandHandler<UpdateCustomSkillCommand, SkillDefDto> handler, CancellationToken ct) =>
+            Results.Ok(await handler.Handle(new UpdateCustomSkillCommand(user.UserId(), id, req), ct)));
+
+        group.MapPut("/talents/{id:guid}", async (Guid id, CreateCustomTalentRequest req, ClaimsPrincipal user,
+                ICommandHandler<UpdateCustomTalentCommand, TalentDefDto> handler, CancellationToken ct) =>
+            Results.Ok(await handler.Handle(new UpdateCustomTalentCommand(user.UserId(), id, req), ct)));
+
+        group.MapPut("/items/{id:guid}", async (Guid id, CreateCustomItemRequest req, ClaimsPrincipal user,
+                ICommandHandler<UpdateCustomItemCommand, ItemDefDto> handler, CancellationToken ct) =>
+            Results.Ok(await handler.Handle(new UpdateCustomItemCommand(user.UserId(), id, req), ct)));
+
+        group.MapPut("/heroic-abilities/{id:guid}", async (Guid id, CreateCustomHeroicAbilityRequest req, ClaimsPrincipal user,
+                ICommandHandler<UpdateCustomHeroicAbilityCommand, HeroicAbilityDto> handler, CancellationToken ct) =>
+            Results.Ok(await handler.Handle(new UpdateCustomHeroicAbilityCommand(user.UserId(), id, req), ct)));
+
+        // ---- Удаление (блокируется, если контент используется персонажем) ----
+        group.MapDelete("/skills/{id:guid}", async (Guid id, ClaimsPrincipal user,
+            ICommandHandler<DeleteCustomSkillCommand, Unit> handler, CancellationToken ct) =>
+        {
+            await handler.Handle(new DeleteCustomSkillCommand(user.UserId(), id), ct);
+            return Results.NoContent();
+        });
+
+        group.MapDelete("/talents/{id:guid}", async (Guid id, ClaimsPrincipal user,
+            ICommandHandler<DeleteCustomTalentCommand, Unit> handler, CancellationToken ct) =>
+        {
+            await handler.Handle(new DeleteCustomTalentCommand(user.UserId(), id), ct);
+            return Results.NoContent();
+        });
+
+        group.MapDelete("/items/{id:guid}", async (Guid id, ClaimsPrincipal user,
+            ICommandHandler<DeleteCustomItemCommand, Unit> handler, CancellationToken ct) =>
+        {
+            await handler.Handle(new DeleteCustomItemCommand(user.UserId(), id), ct);
+            return Results.NoContent();
+        });
+
+        group.MapDelete("/heroic-abilities/{id:guid}", async (Guid id, ClaimsPrincipal user,
+            ICommandHandler<DeleteCustomHeroicAbilityCommand, Unit> handler, CancellationToken ct) =>
+        {
+            await handler.Handle(new DeleteCustomHeroicAbilityCommand(user.UserId(), id), ct);
+            return Results.NoContent();
+        });
     }
 }
