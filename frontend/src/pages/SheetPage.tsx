@@ -105,7 +105,7 @@ export function SheetPage({ characterId, onBack }: Props) {
       {tab === 'sheet' && <SheetTab sheet={sheet} reference={reference} onError={setError} refresh={refresh} />}
       {tab === 'talents' && <TalentsTab sheet={sheet} reference={reference} onError={setError} refresh={refresh} />}
       {tab === 'inventory' && <InventoryTab sheet={sheet} reference={reference} onError={setError} refresh={refresh} />}
-      {tab === 'custom' && <CustomTab sheet={sheet} onError={setError} refresh={refresh} />}
+      {tab === 'custom' && <CustomTab sheet={sheet} reference={reference} onError={setError} refresh={refresh} />}
     </div>
   )
 }

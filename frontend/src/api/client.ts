@@ -98,4 +98,23 @@ export const api = {
   }) => request<ItemDef>('POST', '/api/custom/items', item),
   createCustomHeroicAbility: (ability: { name: string; description: string }) =>
     request<HeroicAbility>('POST', '/api/custom/heroic-abilities', ability),
+
+  updateCustomSkill: (id: string, skill: { system: GameSystem; name: string; characteristic: string; kind: string }) =>
+    request<SkillDef>('PUT', `/api/custom/skills/${id}`, skill),
+  updateCustomTalent: (id: string, talent: {
+    system: GameSystem; name: string; tier: number; isRanked: boolean; activation: string; description: string
+    woundBonus: number; strainBonus: number; soakBonus: number; meleeDefenseBonus: number; rangedDefenseBonus: number
+  }) => request<TalentDef>('PUT', `/api/custom/talents/${id}`, talent),
+  updateCustomItem: (id: string, item: {
+    system: GameSystem; name: string; kind: string; encumbrance: number; soakBonus: number
+    meleeDefense: number; rangedDefense: number; encumbranceThresholdBonus: number
+    description: string; price: number; rarity: number
+  }) => request<ItemDef>('PUT', `/api/custom/items/${id}`, item),
+  updateCustomHeroicAbility: (id: string, ability: { name: string; description: string }) =>
+    request<HeroicAbility>('PUT', `/api/custom/heroic-abilities/${id}`, ability),
+
+  deleteCustomSkill: (id: string) => request<void>('DELETE', `/api/custom/skills/${id}`),
+  deleteCustomTalent: (id: string) => request<void>('DELETE', `/api/custom/talents/${id}`),
+  deleteCustomItem: (id: string) => request<void>('DELETE', `/api/custom/items/${id}`),
+  deleteCustomHeroicAbility: (id: string) => request<void>('DELETE', `/api/custom/heroic-abilities/${id}`),
 }
