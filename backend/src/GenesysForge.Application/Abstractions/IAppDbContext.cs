@@ -17,6 +17,7 @@ public interface IAppDbContext
     DbSet<CharacterSkill> CharacterSkills { get; }
     DbSet<CharacterTalent> CharacterTalents { get; }
     DbSet<CharacterItem> CharacterItems { get; }
+    DbSet<CharacterNote> CharacterNotes { get; }
 
     Task<int> SaveChangesAsync(CancellationToken ct = default);
 }

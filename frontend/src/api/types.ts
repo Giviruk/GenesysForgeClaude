@@ -156,6 +156,14 @@ export interface Derived {
   encumbered: boolean
 }
 
+export interface CharacterNote {
+  id: string
+  title: string
+  body: string
+  createdAt: string
+  updatedAt: string
+}
+
 export interface CharacterSheet {
   id: string
   name: string

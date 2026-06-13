@@ -3,6 +3,7 @@ using GenesysForge.Application.Dtos;
 using GenesysForge.Application.Features.Auth;
 using GenesysForge.Application.Features.Characters;
 using GenesysForge.Application.Features.CustomContent;
+using GenesysForge.Application.Features.Notes;
 using GenesysForge.Application.Features.Reference;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -50,6 +51,12 @@ public static class DependencyInjection
         services.AddScoped<ICommandHandler<DeleteCustomTalentCommand, Unit>, DeleteCustomTalentHandler>();
         services.AddScoped<ICommandHandler<DeleteCustomItemCommand, Unit>, DeleteCustomItemHandler>();
         services.AddScoped<ICommandHandler<DeleteCustomHeroicAbilityCommand, Unit>, DeleteCustomHeroicAbilityHandler>();
+
+        // Notes
+        services.AddScoped<IQueryHandler<GetCharacterNotesQuery, List<CharacterNoteDto>>, GetCharacterNotesHandler>();
+        services.AddScoped<ICommandHandler<CreateCharacterNoteCommand, CharacterNoteDto>, CreateCharacterNoteHandler>();
+        services.AddScoped<ICommandHandler<UpdateCharacterNoteCommand, CharacterNoteDto>, UpdateCharacterNoteHandler>();
+        services.AddScoped<ICommandHandler<DeleteCharacterNoteCommand, Unit>, DeleteCharacterNoteHandler>();
 
         return services;
     }

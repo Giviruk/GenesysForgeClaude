@@ -1,5 +1,5 @@
 import type {
-  AuthResponse, CharacterListItem, CharacterSheet, GameSystem, HeroicAbility, ItemDef,
+  AuthResponse, CharacterListItem, CharacterNote, CharacterSheet, GameSystem, HeroicAbility, ItemDef,
   ItemState, Reference, SkillDef, TalentDef,
 } from './types'
 
@@ -122,6 +122,15 @@ export const api = {
   }) => request<ItemDef>('PUT', `/api/custom/items/${id}`, item),
   updateCustomHeroicAbility: (id: string, ability: { name: string; description: string }) =>
     request<HeroicAbility>('PUT', `/api/custom/heroic-abilities/${id}`, ability),
+
+  notes: (characterId: string) =>
+    request<CharacterNote[]>('GET', `/api/characters/${characterId}/notes/`),
+  createNote: (characterId: string, title: string, body: string) =>
+    request<CharacterNote>('POST', `/api/characters/${characterId}/notes/`, { title, body }),
+  updateNote: (characterId: string, noteId: string, title: string, body: string) =>
+    request<CharacterNote>('PUT', `/api/characters/${characterId}/notes/${noteId}`, { title, body }),
+  deleteNote: (characterId: string, noteId: string) =>
+    request<void>('DELETE', `/api/characters/${characterId}/notes/${noteId}`),
 
   deleteCustomSkill: (id: string) => request<void>('DELETE', `/api/custom/skills/${id}`),
   deleteCustomTalent: (id: string) => request<void>('DELETE', `/api/custom/talents/${id}`),
