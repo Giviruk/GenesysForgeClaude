@@ -16,7 +16,9 @@ public static class SeedData
         db.SkillDefs.AddRange(CoreSkills().Concat(TerrinothSkills()));
         db.ArchetypeDefs.AddRange(CoreArchetypes().Concat(TerrinothSpecies()));
         db.CareerDefs.AddRange(CoreCareers().Concat(TerrinothCareers()));
-        db.TalentDefs.AddRange(Talents(GameSystem.GenesysCore).Concat(Talents(GameSystem.RealmsOfTerrinoth)));
+        db.TalentDefs.AddRange(Talents(GameSystem.GenesysCore)
+            .Concat(Talents(GameSystem.RealmsOfTerrinoth))
+            .Concat(TerrinothTalents()));
         db.ItemDefs.AddRange(CoreItems().Concat(TerrinothItems()));
         db.HeroicAbilityDefs.AddRange(HeroicAbilities());
         db.SaveChanges();
@@ -222,6 +224,38 @@ public static class SeedData
         Talent(s, "Master", 5, true, "Инцидент", "Раз в раунд потратьте 2 стрейна: снизьте сложность проверки выбранного навыка на 1 (минимум Easy)."),
         Talent(s, "Ruinous Repartee", 5, false, "Действие", "Раз в столкновение: проверка Charm/Coercion — противник получает стрейн, равный удвоенной Presence."),
     ];
+
+    /// <summary>
+    /// Таланты, специфичные для Realms of Terrinoth (фэнтези-бой и магия) — в дополнение к общим Genesys-талантам.
+    /// Набор сокращён и приближён к книге; расширяется кастомным контентом.
+    /// </summary>
+    private static IEnumerable<TalentDef> TerrinothTalents()
+    {
+        const GameSystem S = GameSystem.RealmsOfTerrinoth;
+        return
+        [
+            // Тир 1
+            Talent(S, "Brace", 1, true, "Манёвр", "Снимите до рангов Brace кубов Setback, наложенных на проверку условиями окружения или положением."),
+            Talent(S, "Hamstring Shot", 1, false, "Действие", "Одна атака Ranged или Brawl; при попадании скорость цели до конца её следующего хода снижается до 0."),
+            Talent(S, "Knack for It", 1, true, "Пассивный", "Выберите узкий навык: снимайте 1 Setback за ранг с его проверок."),
+            Talent(S, "Second Wind", 1, true, "Инцидент", "Раз в столкновение восстановите стрейн, равный числу рангов Second Wind."),
+            // Тир 2
+            Talent(S, "Familiar", 2, false, "Пассивный", "Магический спутник-фамильяр действует по вашей команде и помогает в проверках."),
+            Talent(S, "Heightened Awareness", 2, false, "Пассивный", "Союзники в короткой дальности добавляют 1 Boost к проверкам Perception и Vigilance."),
+            Talent(S, "Bought Info", 2, false, "Действие", "Проверка Streetwise или Knowledge, чтобы собрать слухи и сведения в поселении."),
+            // Тир 3
+            Talent(S, "Berserk", 3, false, "Манёвр", "Ярость: до конца столкновения +1 успех к ближним атакам, но вы не можете защищаться и совершать иные действия, кроме атак."),
+            Talent(S, "Dual Wielder", 3, false, "Манёвр", "Снизьте сложность совмещённой атаки двумя оружиями на 1."),
+            Talent(S, "Eldritch Insight", 3, false, "Пассивный", "Добавьте ранги Knowledge (Lore) к проверкам одного выбранного магического навыка при определении эффекта."),
+            // Тир 4
+            Talent(S, "Counterspell", 4, false, "Инцидент", "Потратьте 3 стрейна, чтобы повысить сложность вражеской магической проверки на 1."),
+            Talent(S, "Crippling Blow", 4, false, "Действие", "Атака ближнего боя; при попадании цель получает 1 стрейн при каждом своём действии до конца столкновения."),
+            Talent(S, "Superior Reflexes", 4, true, "Пассивный", "Защита (ближняя и дальняя) +1 за ранг.", mdef: 1, rdef: 1),
+            // Тир 5
+            Talent(S, "Heroic Will", 5, false, "Инцидент", "Потратьте Story Point, чтобы немедленно снять с себя один негативный статус или контролирующий эффект."),
+            Talent(S, "Runebound", 5, true, "Пассивный", "Связь с рунным осколком: порог ран +1 и порог стрейна +1 за ранг.", wt: 1, st: 1),
+        ];
+    }
 
     private static ItemDef Item(GameSystem sys, string name, ItemKind kind, int enc, string desc,
         int soak = 0, int mdef = 0, int rdef = 0, int encBonus = 0, int price = 0, int rarity = 1) => new()

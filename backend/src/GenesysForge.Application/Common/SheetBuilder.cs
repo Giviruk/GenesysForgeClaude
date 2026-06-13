@@ -62,7 +62,9 @@ public static class SheetBuilder
             c.Talents
                 .OrderBy(t => t.TalentDef!.Tier).ThenBy(t => t.TalentDef!.Name)
                 .Select(t => new CharacterTalentDto(t.TalentDefId, t.TalentDef!.Name, t.TalentDef.Tier,
-                    t.TalentDef.IsRanked, t.Ranks, t.TalentDef.Activation, t.TalentDef.Description))
+                    t.TalentDef.IsRanked, t.Ranks, t.TalentDef.Activation, t.TalentDef.Description,
+                    t.TalentDef.WoundBonus, t.TalentDef.StrainBonus, t.TalentDef.SoakBonus,
+                    t.TalentDef.MeleeDefenseBonus, t.TalentDef.RangedDefenseBonus))
                 .ToList(),
             TalentTierCounter.Count(c.Talents),
             c.HeroicAbility?.ToDto(),

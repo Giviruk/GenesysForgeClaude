@@ -122,6 +122,11 @@ export interface SheetTalent {
   ranks: number
   activation: string
   description: string
+  woundBonus: number
+  strainBonus: number
+  soakBonus: number
+  meleeDefenseBonus: number
+  rangedDefenseBonus: number
 }
 
 export interface SheetItem {

@@ -2,6 +2,7 @@ import { api } from '../api/client'
 import type { CharacterSheet, Reference, TalentDef } from '../api/types'
 import { nextRankTier, talentCost } from '../utils/labels'
 import { canPurchaseTier, canRemoveTier } from '../utils/pyramid'
+import { talentBonusSummary } from '../utils/talentBonuses'
 
 interface Props {
   sheet: CharacterSheet
@@ -42,12 +43,12 @@ export function TalentsTab({ sheet, reference, onError, refresh }: Props) {
         <div className="pyramid">
           {[1, 2, 3, 4, 5].map(tier => {
             const slots = sheet.talentTierCounts[String(tier)] ?? 0
-            const rows: { name: string; rank?: number }[] = []
+            const rows: { name: string; rank?: number; description: string }[] = []
             for (const t of sheet.talents) {
               const base = reference.talents.find(d => d.id === t.talentDefId)?.tier ?? t.tier
               for (let r = 0; r < t.ranks; r++) {
                 if (Math.min(base + r, 5) === tier) {
-                  rows.push({ name: t.name, rank: t.isRanked ? r + 1 : undefined })
+                  rows.push({ name: t.name, rank: t.isRanked ? r + 1 : undefined, description: t.description })
                 }
               }
             }
@@ -56,12 +57,51 @@ export function TalentsTab({ sheet, reference, onError, refresh }: Props) {
                 <div className="tier-label">Тир {tier} <span className="muted">({slots})</span></div>
                 <div className="tier-cells">
                   {rows.map((r, i) => (
-                    <div key={i} className="talent-cell" title={r.rank ? `${r.name} — ранг ${r.rank}` : r.name}>
+                    <div key={i} className="talent-cell"
+                      title={`${r.name}${r.rank ? ` — ранг ${r.rank}` : ''}\n${r.description}`}>
                       {r.name}{r.rank ? ` ${r.rank}` : ''}
                     </div>
                   ))}
                   {rows.length === 0 && <div className="talent-cell empty">—</div>}
                 </div>
+              </div>
+            )
+          })}
+        </div>
+      </section>
+
+      <section className="panel">
+        <h3>Купленные таланты</h3>
+        {sheet.talents.length === 0 && (
+          <p className="muted">Пока нет талантов — купите первый из списка ниже.</p>
+        )}
+        <div className="owned-talents">
+          {sheet.talents.map(t => {
+            const bonuses = talentBonusSummary(t, t.ranks)
+            const isPassive = t.activation.toLowerCase().startsWith('пассив')
+            return (
+              <div key={t.talentDefId} className="owned-talent">
+                <div className="owned-talent-head">
+                  <strong>{t.name}</strong>
+                  <span className="badge tier">Тир {t.tier}</span>
+                  <span className={isPassive ? 'badge passive' : 'badge active'}>
+                    {isPassive ? 'Пассивный' : `Активный · ${t.activation}`}
+                  </span>
+                </div>
+                <div className="owned-talent-ranks">
+                  {t.isRanked
+                    ? (() => {
+                        const maxRanks = 6 - t.tier // каждый ранг толкает эффективный тир к 5
+                        return <>Ранги: {'●'.repeat(t.ranks)}{'○'.repeat(Math.max(0, maxRanks - t.ranks))} <span className="muted">({t.ranks}/{maxRanks})</span></>
+                      })()
+                    : <span className="muted">Одноранговый талант</span>}
+                </div>
+                <p className="owned-talent-desc">{t.description}</p>
+                {bonuses.length > 0 && (
+                  <div className="bonus-line" title="Применяется к производным характеристикам автоматически">
+                    ⚡ {bonuses.join(' · ')}
+                  </div>
+                )}
               </div>
             )
           })}
