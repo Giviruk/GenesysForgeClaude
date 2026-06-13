@@ -1,0 +1,11 @@
+# Caddy терминирует TLS (Let's Encrypt) и проксирует на web-контейнер (nginx),
+# который раздаёт SPA и сам проксирует /api на api-контейнер.
+# Пока приложение одно (без разделения на режимы) — оба хоста ведут на один и тот же стек.
+{
+	email {$LETSENCRYPT_EMAIL}
+}
+
+{$PRIVATE_HOSTNAME}, {$PUBLIC_HOSTNAME} {
+	encode gzip
+	reverse_proxy web:80
+}

@@ -66,40 +66,38 @@ dotnet test backend/GenesysForge.slnx
 cd frontend; npm test
 ```
 
-## Деплой на VPS
+## Деплой на VPS (автоматический, через GitHub Actions)
 
-Нужен Linux-сервер с Docker (Engine + compose-plugin). Шаги:
+Деплой идёт сам при пуше в `master`: workflow [deploy.yml](.github/workflows/deploy.yml) после успешного CI
+собирает образы `api`/`web`, публикует их в **GHCR** (`ghcr.io/giviruk/genesysforge-api` и `-web`)
+и разворачивает на VPS по SSH прод-стек [docker-compose.prod.yml](docker-compose.prod.yml):
+PostgreSQL + API + web (nginx) + **Caddy** с автоматическим HTTPS (Let's Encrypt). Наружу публикуется только Caddy (80/443).
 
-```bash
-# 1. Установить Docker (Ubuntu/Debian)
-curl -fsSL https://get.docker.com | sh
+Сейчас разворачивается один стек; оба хоста (`PRIVATE_HOSTNAME`, `PUBLIC_HOSTNAME`) ведут на него.
+Разделение на два приложения (Private/Public) появится после реализации `AppMode`/`ContentMode` в коде.
 
-# 2. Получить код
-git clone https://github.com/Giviruk/GenesysForgeClaude.git
-cd GenesysForgeClaude
+### Конфигурация — только через GitHub Secrets/Variables (в репозитории секретов нет)
 
-# 3. Настроить секреты — ОБЯЗАТЕЛЬНО смените значения
-cp .env.example .env
-nano .env        # POSTGRES_PASSWORD, JWT_KEY (openssl rand -base64 48), WEB_PORT=80
-                 # POSTGRES_PORT наружу на VPS лучше не публиковать — удалите строку ports у postgres
-                 # или закройте порт фаерволом
+Secrets: `SSH_HOST`, `SSH_USER`, `SSH_PORT`, `SSH_PRIVATE_KEY`, `POSTGRES_PASSWORD`, `JWT_KEY`,
+`GHCR_USERNAME`, `GHCR_TOKEN` (с правом `write:packages`), `LETSENCRYPT_EMAIL`, `PRIVATE_OWNER_PASSWORD`.
+Variables: `DEPLOY_PATH` (`/opt/genesysforge`), `PRIVATE_HOSTNAME`, `PUBLIC_HOSTNAME` и др. режимные переменные.
 
-# 4. Запуск
-docker compose up -d --build
+### Требования к VPS
 
-# 5. Обновление до новой версии
-git pull && docker compose up -d --build
-```
+- Docker Engine + compose-plugin (`curl -fsSL https://get.docker.com | sh`).
+- `SSH_USER` имеет доступ на запись в `DEPLOY_PATH`; для swap желателен passwordless `sudo` (иначе шаг swap пропускается).
+- Свободны порты `80` и `443` (их займёт Caddy).
+- DNS/sslip.io хосты указывают на IP сервера.
 
-Данные Postgres живут в named-томе `pgdata` и переживают пересборку контейнеров.
-Бэкап: `docker exec genesysforge-db pg_dump -U genesys genesysforge > backup.sql`.
+### Первый запуск
 
-**HTTPS.** Самый простой способ — поставить перед `web` реверс-прокси с автоматическим TLS,
-например [Caddy](https://caddyserver.com/): на хосте `caddy reverse-proxy --from example.com --to localhost:8080`,
-либо добавить caddy-сервис в compose. Альтернатива — nginx + certbot.
+После настройки secrets/variables запустите workflow вручную: вкладка **Actions → Deploy → Run workflow**
+(последующие пуши в `master` деплоят автоматически после CI).
 
-**Замечание о схеме БД.** Сейчас схема создаётся при старте через `EnsureCreated` и сид встроенного контента.
-При эволюции схемы в проде стоит перейти на EF Core Migrations (`dotnet ef migrations add … && db.Database.Migrate()`).
+Данные Postgres живут в named-томе `pgdata`. Бэкап:
+`docker exec genesysforge-db pg_dump -U genesys genesysforge > backup.sql`.
+
+Схема БД применяется через **EF Core migrations** на старте (`Database.Migrate()`), сид встроенного контента идемпотентен.
 
 ## Примечание о данных систем
 

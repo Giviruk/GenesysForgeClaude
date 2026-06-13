@@ -1,0 +1,130 @@
+name: Deploy
+
+# Запускается после успешного прогона CI на master, либо вручную (workflow_dispatch).
+# Собирает образы api/web, публикует в GHCR и разворачивает стек на VPS по SSH.
+on:
+  workflow_run:
+    workflows: ["CI"]
+    types: [completed]
+    branches: [master]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Build images and deploy to VPS
+    runs-on: ubuntu-latest
+    # для workflow_run — только если CI завершился успехом; для ручного запуска — всегда
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Compute lowercase GHCR owner
+        id: ghcr
+        run: echo "owner=${GITHUB_REPOSITORY_OWNER,,}" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ secrets.GHCR_USERNAME }}
+          password: ${{ secrets.GHCR_TOKEN }}
+
+      - name: Build & push API image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./backend
+          push: true
+          tags: |
+            ghcr.io/${{ steps.ghcr.outputs.owner }}/genesysforge-api:latest
+            ghcr.io/${{ steps.ghcr.outputs.owner }}/genesysforge-api:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build & push Web image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./frontend
+          push: true
+          tags: |
+            ghcr.io/${{ steps.ghcr.outputs.owner }}/genesysforge-web:latest
+            ghcr.io/${{ steps.ghcr.outputs.owner }}/genesysforge-web:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Ensure deploy directory exists
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT }}
+          script: mkdir -p "${{ vars.DEPLOY_PATH }}/deploy"
+
+      - name: Copy compose and Caddyfile to VPS
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT }}
+          source: "docker-compose.prod.yml,deploy/Caddyfile"
+          target: ${{ vars.DEPLOY_PATH }}
+
+      - name: Deploy on VPS
+        uses: appleboy/ssh-action@v1.2.0
+        env:
+          GHCR_OWNER: ${{ steps.ghcr.outputs.owner }}
+          GHCR_USERNAME: ${{ secrets.GHCR_USERNAME }}
+          GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          JWT_KEY: ${{ secrets.JWT_KEY }}
+          LETSENCRYPT_EMAIL: ${{ secrets.LETSENCRYPT_EMAIL }}
+          PRIVATE_HOSTNAME: ${{ vars.PRIVATE_HOSTNAME }}
+          PUBLIC_HOSTNAME: ${{ vars.PUBLIC_HOSTNAME }}
+          DEPLOY_PATH: ${{ vars.DEPLOY_PATH }}
+          IMAGE_TAG: ${{ github.sha }}
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT }}
+          envs: GHCR_OWNER,GHCR_USERNAME,GHCR_TOKEN,POSTGRES_PASSWORD,JWT_KEY,LETSENCRYPT_EMAIL,PRIVATE_HOSTNAME,PUBLIC_HOSTNAME,DEPLOY_PATH,IMAGE_TAG
+          script: |
+            set -euo pipefail
+            cd "${DEPLOY_PATH}"
+
+            # Swap на случай пиков памяти при первом старте (best-effort, не валим деплой)
+            if ! swapon --show 2>/dev/null | grep -q '/swapfile'; then
+              ( sudo fallocate -l 2G /swapfile \
+                && sudo chmod 600 /swapfile \
+                && sudo mkswap /swapfile \
+                && sudo swapon /swapfile ) || echo "swap setup skipped (no sudo or already configured)"
+            fi
+
+            # .env для compose (значения не попадают в логи — секреты маскируются)
+            umask 077
+            cat > .env <<EOF
+            GHCR_OWNER=${GHCR_OWNER}
+            IMAGE_TAG=${IMAGE_TAG}
+            POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+            JWT_KEY=${JWT_KEY}
+            LETSENCRYPT_EMAIL=${LETSENCRYPT_EMAIL}
+            PRIVATE_HOSTNAME=${PRIVATE_HOSTNAME}
+            PUBLIC_HOSTNAME=${PUBLIC_HOSTNAME}
+            EOF
+
+            echo "${GHCR_TOKEN}" | docker login ghcr.io -u "${GHCR_USERNAME}" --password-stdin
+            docker compose -f docker-compose.prod.yml pull
+            docker compose -f docker-compose.prod.yml up -d
+            docker image prune -f
+            docker logout ghcr.io
