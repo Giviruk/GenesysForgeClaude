@@ -19,6 +19,10 @@ export class ApiError extends Error {
   }
 }
 
+// Вызывается при 401 на запросе с токеном (протухшая/невалидная сессия).
+let onUnauthorized: (() => void) | null = null
+export const setUnauthorizedHandler = (handler: (() => void) | null) => { onUnauthorized = handler }
+
 async function request<T>(method: string, url: string, body?: unknown): Promise<T> {
   const headers: Record<string, string> = {}
   if (body !== undefined) headers['Content-Type'] = 'application/json'
@@ -32,6 +36,12 @@ async function request<T>(method: string, url: string, body?: unknown): Promise<
   })
 
   if (!response.ok) {
+    // 401 при наличии токена — сессия истекла: чистим токен и уводим на логин.
+    // (на /auth/login и /auth/register токена нет, поэтому неверный пароль сюда не попадает)
+    if (response.status === 401 && token) {
+      tokenStorage.clear()
+      onUnauthorized?.()
+    }
     let message = `Ошибка ${response.status}`
     try {
       const data = await response.json()
