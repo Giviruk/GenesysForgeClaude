@@ -2,6 +2,7 @@ using GenesysForge.Application.Abstractions;
 using GenesysForge.Application.Dtos;
 using GenesysForge.Application.Features.Auth;
 using GenesysForge.Application.Features.Characters;
+using GenesysForge.Application.Features.Campaigns;
 using GenesysForge.Application.Features.CustomContent;
 using GenesysForge.Application.Features.Notes;
 using GenesysForge.Application.Features.Reference;
@@ -57,6 +58,16 @@ public static class DependencyInjection
         services.AddScoped<ICommandHandler<CreateCharacterNoteCommand, CharacterNoteDto>, CreateCharacterNoteHandler>();
         services.AddScoped<ICommandHandler<UpdateCharacterNoteCommand, CharacterNoteDto>, UpdateCharacterNoteHandler>();
         services.AddScoped<ICommandHandler<DeleteCharacterNoteCommand, Unit>, DeleteCharacterNoteHandler>();
+
+        // Campaigns
+        services.AddScoped<IQueryHandler<GetCampaignsQuery, List<CampaignListItemDto>>, GetCampaignsHandler>();
+        services.AddScoped<IQueryHandler<GetCampaignQuery, CampaignDetailDto>, GetCampaignHandler>();
+        services.AddScoped<ICommandHandler<CreateCampaignCommand, CampaignDetailDto>, CreateCampaignHandler>();
+        services.AddScoped<ICommandHandler<JoinCampaignCommand, CampaignDetailDto>, JoinCampaignHandler>();
+        services.AddScoped<ICommandHandler<RemoveCampaignCharacterCommand, Unit>, RemoveCampaignCharacterHandler>();
+        services.AddScoped<ICommandHandler<CreateCampaignNoteCommand, CampaignNoteDto>, CreateCampaignNoteHandler>();
+        services.AddScoped<ICommandHandler<UpdateCampaignNoteCommand, CampaignNoteDto>, UpdateCampaignNoteHandler>();
+        services.AddScoped<ICommandHandler<DeleteCampaignNoteCommand, Unit>, DeleteCampaignNoteHandler>();
 
         return services;
     }

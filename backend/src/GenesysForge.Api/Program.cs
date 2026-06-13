@@ -78,6 +78,7 @@ app.MapReference();
 app.MapCustomContent();
 app.MapCharacters();
 app.MapNotes();
+app.MapCampaigns();
 app.MapGet("/api/health", () => Results.Ok(new { status = "ok" }));
 
 app.Run();
