@@ -21,6 +21,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<Campaign> Campaigns => Set<Campaign>();
     public DbSet<CampaignCharacter> CampaignCharacters => Set<CampaignCharacter>();
     public DbSet<CampaignNote> CampaignNotes => Set<CampaignNote>();
+    public DbSet<SpellDef> SpellDefs => Set<SpellDef>();
 
     protected override void OnModelCreating(ModelBuilder b)
     {
@@ -73,5 +74,13 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             e.HasIndex(cc => new { cc.CampaignId, cc.CharacterId }).IsUnique();
         });
         b.Entity<CampaignNote>().Property(n => n.Title).HasMaxLength(200);
+
+        b.Entity<SpellDef>(e =>
+        {
+            e.HasIndex(s => new { s.System, s.MagicSkill, s.Kind });
+            e.Property(s => s.MagicSkill).HasMaxLength(40);
+            e.Property(s => s.NameRu).HasMaxLength(120);
+            e.Property(s => s.NameEn).HasMaxLength(120);
+        });
     }
 }

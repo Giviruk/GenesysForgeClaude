@@ -28,6 +28,9 @@ public static class SeedData
             d => (d.System, d.Name));
         added |= SeedMissing(db, db.ItemDefs, CoreItems().Concat(TerrinothItems()), d => (d.System, d.Name));
         added |= SeedMissing(db, db.HeroicAbilityDefs, HeroicAbilities(), d => ((GameSystem)0, d.Name));
+        added |= SeedMissing(db, db.SpellDefs,
+            Spells(GameSystem.GenesysCore).Concat(Spells(GameSystem.RealmsOfTerrinoth)),
+            d => (d.System, $"{d.MagicSkill}:{(int)d.Kind}:{d.NameEn}"));
 
         if (added) db.SaveChanges();
     }
@@ -62,6 +65,7 @@ public static class SeedData
         TalentDef t => t.OwnerUserId == null,
         ItemDef i => i.OwnerUserId == null,
         HeroicAbilityDef h => h.OwnerUserId == null,
+        SpellDef sp => sp.OwnerUserId == null,
         _ => true, // архетипы и карьеры всегда встроенные
     };
 
@@ -356,4 +360,56 @@ public static class SeedData
         new() { Id = Guid.NewGuid(), Name = "Unbreakable", Description = "Несокрушимость: раз в сессию, опустившись до 0 ран, останьтесь на ногах с 1 раной; активация инцидентом." },
         new() { Id = Guid.NewGuid(), Name = "Inspiring Presence", Description = "Воодушевляющее присутствие: союзники в пределах короткой дальности добавляют Boost к социальным проверкам; усиление за Story Point." },
     ];
+
+    private static SpellDef Spell(GameSystem sys, string skill, SpellEntryKind kind, string ru, string en,
+        string difficulty, string desc, int sort) => new()
+    {
+        Id = Guid.NewGuid(), System = sys, MagicSkill = skill, Kind = kind,
+        NameRu = ru, NameEn = en, Difficulty = difficulty, Description = desc, SortOrder = sort,
+    };
+
+    /// <summary>
+    /// Справочник магии: базовые эффекты заклинаний (направления) по магическим навыкам и общие
+    /// дополнительные эффекты-модификаторы. Только структура, числа и краткие парафразы — без текста книг.
+    /// Terrinoth добавляет навыки Runes и Verse.
+    /// </summary>
+    private static IEnumerable<SpellDef> Spells(GameSystem sys)
+    {
+        var skills = sys == GameSystem.RealmsOfTerrinoth
+            ? new[] { "Arcana", "Divine", "Primal", "Runes", "Verse" }
+            : ["Arcana", "Divine", "Primal"];
+
+        // Базовые эффекты доступны через любой магический навык — общий набор направлений.
+        var effects = new (string Ru, string En, string Diff, string Desc, int Sort)[]
+        {
+            ("Атака", "Attack", "2 (Average)", "Нанести магический урон цели в пределах короткой дальности; урон зависит от связанной характеристики.", 1),
+            ("Лечение", "Heal", "1 (Easy)", "Восстановить раны или стрейн союзнику в пределах короткой дальности.", 2),
+            ("Барьер", "Barrier", "2 (Average)", "Создать защиту: повысить поглощение или защиту цели до конца столкновения.", 3),
+            ("Усиление", "Augment", "2 (Average)", "Наделить цель полезным эффектом: бонусные кубы, доп. манёвр и т. п.", 4),
+            ("Призыв", "Conjure", "3 (Hard)", "Создать существо, предмет или стихию под вашим контролем на время.", 5),
+            ("Проклятие", "Curse", "3 (Hard)", "Наложить помеху на врага: штрафные кубы, стрейн или ослабление.", 6),
+            ("Развеивание", "Dispel", "2 (Average)", "Снять или подавить активный магический эффект.", 7),
+            ("Предсказание", "Predict", "1 (Easy)", "Получить подсказку о ближайшем будущем или скрытом знании.", 8),
+            ("Превращение", "Transform", "3 (Hard)", "Изменить форму или свойства цели либо предмета.", 9),
+            ("Утилита", "Utility", "1 (Easy)", "Прочие мелкие магические эффекты: свет, перемещение предмета, послание.", 10),
+        };
+
+        var modifiers = new (string Ru, string En, string Diff, string Desc, int Sort)[]
+        {
+            ("Доп. цель", "Additional Target", "+1 сложности за цель", "Добавить ещё одну цель в пределах дальности.", 1),
+            ("Увеличить дальность", "Increase Range", "+1 сложности за шаг", "Повысить дальность заклинания на один шаг.", 2),
+            ("Область", "Area of Effect", "+1 сложности", "Поразить всех в пределах короткой дальности от цели.", 3),
+            ("Усилить эффект", "Strengthen", "+1 сложности", "Увеличить урон/лечение/величину эффекта на значение характеристики.", 4),
+            ("Перегрузка", "Empowered", "варьируется", "Потратить стрейн, чтобы добавить кубы преимущества к проверке.", 5),
+            ("Быстрое колдовство", "Quick Cast", "+1 сложности", "Сотворить заклинание как манёвр (по решению ГМ).", 6),
+        };
+
+        foreach (var skill in skills)
+        {
+            foreach (var e in effects)
+                yield return Spell(sys, skill, SpellEntryKind.Effect, e.Ru, e.En, e.Diff, e.Desc, e.Sort);
+            foreach (var m in modifiers)
+                yield return Spell(sys, skill, SpellEntryKind.AdditionalEffect, m.Ru, m.En, m.Diff, m.Desc, m.Sort);
+        }
+    }
 }
