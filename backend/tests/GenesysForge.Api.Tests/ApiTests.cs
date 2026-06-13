@@ -166,6 +166,29 @@ public class CharacterFlowTests : IClassFixture<ApiFactory>
         var after = await SheetAsync(client, id);
 
         Assert.Equal(before.Derived.StrainThreshold + 1, after.Derived.StrainThreshold);
+        // лист отдаёт пассивные бонусы таланта — для детального отображения на клиенте
+        var owned = after.Talents.First(t => t.Name == "Grit");
+        Assert.Equal(1, owned.StrainBonus);
+        Assert.Equal(0, owned.WoundBonus);
+    }
+
+    [Fact]
+    public async Task Terrinoth_HasSystemSpecificTalents_AbsentFromGenesysCore()
+    {
+        var terrinoth = await _factory.CreateAuthorizedClientAsync();
+        var trefs = (await terrinoth.GetFromJsonAsync<ReferenceResponse>("/api/reference/RealmsOfTerrinoth", Json.Options))!;
+        var core = await _factory.CreateAuthorizedClientAsync();
+        var crefs = (await core.GetFromJsonAsync<ReferenceResponse>("/api/reference/GenesysCore", Json.Options))!;
+
+        // специфичные терринотские таланты присутствуют у Terrinoth и отсутствуют у Genesys Core
+        Assert.Contains(trefs.Talents, t => t.Name == "Runebound");
+        Assert.Contains(trefs.Talents, t => t.Name == "Berserk");
+        Assert.DoesNotContain(crefs.Talents, t => t.Name == "Runebound");
+        // общие таланты по-прежнему доступны в обеих системах
+        Assert.Contains(trefs.Talents, t => t.Name == "Grit");
+        Assert.Contains(crefs.Talents, t => t.Name == "Grit");
+        // у Terrinoth талантов строго больше, чем у Core (общие + специфичные)
+        Assert.True(trefs.Talents.Count > crefs.Talents.Count);
     }
 
     [Fact]

@@ -183,6 +183,19 @@ tr.equipped-row td { background: rgba(200, 162, 74, 0.07); }
   padding: 0.25rem 0.6rem; font-size: 0.82rem;
 }
 .talent-cell.empty { border-color: var(--border); color: var(--muted); }
+.owned-talents { display: grid; grid-template-columns: repeat(auto-fill, minmax(22rem, 1fr)); gap: 0.7rem; }
+.owned-talent {
+  background: var(--panel-2); border: 1px solid var(--accent-dark); border-radius: 8px;
+  padding: 0.6rem 0.8rem;
+}
+.owned-talent-head { display: flex; align-items: baseline; gap: 0.3rem; flex-wrap: wrap; }
+.owned-talent-head strong { margin-right: auto; }
+.owned-talent-ranks { font-size: 0.8rem; color: var(--muted); letter-spacing: 0.08em; margin: 0.3rem 0; }
+.owned-talent-desc { margin: 0.3rem 0; font-size: 0.85rem; }
+.badge.passive { border-color: var(--green); color: #a7e3b3; }
+.badge.active { border-color: var(--core); color: #9db9e8; }
+.bonus-line { font-size: 0.82rem; color: var(--yellow); margin-top: 0.3rem; }
+
 .talent-list { display: flex; flex-direction: column; gap: 0.6rem; }
 .talent-row {
   display: flex; justify-content: space-between; gap: 1rem; align-items: flex-start;
