@@ -1,0 +1,69 @@
+# Продакшен-стек для VPS: готовые образы из GHCR + Caddy (авто-HTTPS).
+# Наружу публикуется ТОЛЬКО Caddy (80/443); api/web/postgres — во внутренней сети.
+# Конфигурация приходит из .env, который deploy-workflow пишет на сервере из GitHub Secrets/Variables.
+# Запуск на VPS: docker compose -f docker-compose.prod.yml up -d
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: genesysforge-db
+    environment:
+      POSTGRES_USER: genesys
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: genesysforge
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U genesys -d genesysforge"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+    mem_limit: 256m
+
+  api:
+    image: ghcr.io/${GHCR_OWNER}/genesysforge-api:${IMAGE_TAG:-latest}
+    container_name: genesysforge-api
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      # Workstation GC заметно снижает потребление памяти .NET в маленьком контейнере
+      DOTNET_gcServer: "0"
+      ConnectionStrings__Default: "Host=postgres;Port=5432;Database=genesysforge;Username=genesys;Password=${POSTGRES_PASSWORD}"
+      Jwt__Key: ${JWT_KEY}
+      Cors__Origins: "https://${PRIVATE_HOSTNAME};https://${PUBLIC_HOSTNAME}"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+    mem_limit: 320m
+
+  web:
+    image: ghcr.io/${GHCR_OWNER}/genesysforge-web:${IMAGE_TAG:-latest}
+    container_name: genesysforge-web
+    depends_on:
+      - api
+    restart: unless-stopped
+    mem_limit: 64m
+
+  caddy:
+    image: caddy:2-alpine
+    container_name: genesysforge-caddy
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      PRIVATE_HOSTNAME: ${PRIVATE_HOSTNAME}
+      PUBLIC_HOSTNAME: ${PUBLIC_HOSTNAME}
+      LETSENCRYPT_EMAIL: ${LETSENCRYPT_EMAIL}
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - web
+    restart: unless-stopped
+    mem_limit: 64m
+
+volumes:
+  pgdata:
+  caddy_data:
+  caddy_config:
