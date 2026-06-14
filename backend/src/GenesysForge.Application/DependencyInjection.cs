@@ -6,6 +6,7 @@ using GenesysForge.Application.Features.Campaigns;
 using GenesysForge.Application.Features.CustomContent;
 using GenesysForge.Application.Features.Notes;
 using GenesysForge.Application.Features.Reference;
+using GenesysForge.Application.Features.Spells;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace GenesysForge.Application;
@@ -68,6 +69,9 @@ public static class DependencyInjection
         services.AddScoped<ICommandHandler<CreateCampaignNoteCommand, CampaignNoteDto>, CreateCampaignNoteHandler>();
         services.AddScoped<ICommandHandler<UpdateCampaignNoteCommand, CampaignNoteDto>, UpdateCampaignNoteHandler>();
         services.AddScoped<ICommandHandler<DeleteCampaignNoteCommand, Unit>, DeleteCampaignNoteHandler>();
+
+        // Spells
+        services.AddScoped<IQueryHandler<GetSpellsQuery, List<SpellDto>>, GetSpellsHandler>();
 
         return services;
     }

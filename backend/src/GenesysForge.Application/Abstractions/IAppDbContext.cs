@@ -21,6 +21,7 @@ public interface IAppDbContext
     DbSet<Campaign> Campaigns { get; }
     DbSet<CampaignCharacter> CampaignCharacters { get; }
     DbSet<CampaignNote> CampaignNotes { get; }
+    DbSet<SpellDef> SpellDefs { get; }
 
     Task<int> SaveChangesAsync(CancellationToken ct = default);
 }
