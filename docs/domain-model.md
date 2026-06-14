@@ -61,6 +61,17 @@ Rules:
 - Genesys Core assignment is rejected.
 - Mechanical execution of ability effects is not implemented.
 
+### SpellDef
+
+Fields: `Id`, `System`, `MagicSkill`, `Kind` (`SpellEntryKind`: `Effect`/`AdditionalEffect`), `NameRu`, `NameEn`, `Difficulty`, `Description` (full/private paraphrase), `SafeDescription` (copyright-safe public text), `Source` (book/section reference), `SortOrder`, `OwnerUserId`.
+
+Rules:
+
+- Reference-only content; not attached to a character sheet.
+- `MagicSkill` set differs per system: Arcana/Divine/Primal for both; Runes/Verse added for Realms of Terrinoth.
+- `Description` is served in full/private content mode; `SafeDescription` + `Source` are the copyright-safe public surface (forward-compatible with the planned `ContentMode` switch).
+- No book text is stored — only structure, numbers and original paraphrases.
+
 ### ArchetypeDef
 
 Fields: `Id`, `System`, `Name`, six characteristics, `WoundBase`, `StrainBase`, `StartingXp`, `Description`.

@@ -24,6 +24,7 @@
 - Character list, create, read, update, delete.
 - Game systems: `GenesysCore`, `RealmsOfTerrinoth`.
 - Built-in reference data for skills, archetypes, careers, talents, items, heroic abilities.
+- Magic/spell reference: spell effects and additional-effect modifiers per magic skill, with system differences (Runes/Verse for Terrinoth), Russian names, safe descriptions and source references; browsable in a frontend "Магия" tab with a magic-skill dropdown.
 - Character creation phase with XP spending restrictions.
 - Characteristic buy/refund during creation.
 - Skill rank buy/refund with career/non-career XP cost and creation cap.

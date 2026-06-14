@@ -48,6 +48,18 @@ export const ITEM_STATE_LABELS: Record<ItemState, string> = {
   backpack: 'В рюкзаке',
 }
 
+/** Подписи магических навыков (направлений магии). Ключ — стабильный код из seed. */
+export const MAGIC_SKILL_LABELS: Record<string, string> = {
+  Arcana: 'Тайная (Arcana)',
+  Divine: 'Божественная (Divine)',
+  Primal: 'Природная (Primal)',
+  Runes: 'Руны (Runes)',
+  Verse: 'Песнь (Verse)',
+}
+
+/** Подпись магического навыка с запасным вариантом для кастомных кодов. */
+export const magicSkillLabel = (skill: string) => MAGIC_SKILL_LABELS[skill] ?? skill
+
 /** Стоимость таланта тира N — 5 × N XP. */
 export const talentCost = (tier: number) => tier * 5
 

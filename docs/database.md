@@ -19,6 +19,7 @@ DbSets:
 - `CharacterSkills`
 - `CharacterTalents`
 - `CharacterItems`
+- `SpellDefs`
 
 ## Tables and purpose
 
@@ -113,15 +114,28 @@ Inventory item instances.
 
 Fields: `CharacterId`, `ItemDefId`, `Quantity`, `State`.
 
+### SpellDefs
+
+Built-in and custom magic reference entries (spell effects and additional-effect modifiers).
+
+Fields: `Id`, `System`, `MagicSkill` (Arcana/Divine/Primal, plus Runes/Verse for Terrinoth), `Kind` (`Effect`/`AdditionalEffect`), `NameRu`, `NameEn`, `Difficulty`, `Description` (full/private paraphrase), `SafeDescription` (copyright-safe public text), `Source` (book/section reference), `SortOrder`, `OwnerUserId`.
+
+Indexes:
+
+- non-unique `(System, MagicSkill, Kind)`.
+
 ## Migrations
 
 Migration folder:
 
 `backend/src/GenesysForge.Infrastructure/Persistence/Migrations`
 
-Found migration:
+Found migrations:
 
 - `20260612172325_InitialCreate`
+- `20260613194614_AddCharacterNotes`
+- `20260613195341_AddCampaigns`
+- `20260614082314_AddSpells` — creates `SpellDefs` table with `(System, MagicSkill, Kind)` index.
 
 Startup behavior:
 
@@ -130,7 +144,7 @@ Startup behavior:
 
 ## Seed data
 
-`SeedData.cs` inserts built-in skills, archetypes, careers, talents, items and heroic abilities.
+`SeedData.cs` inserts built-in skills, archetypes, careers, talents, items, heroic abilities and spell/magic reference entries.
 
 Current seed behavior:
 

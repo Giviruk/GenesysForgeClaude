@@ -81,6 +81,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             e.Property(s => s.MagicSkill).HasMaxLength(40);
             e.Property(s => s.NameRu).HasMaxLength(120);
             e.Property(s => s.NameEn).HasMaxLength(120);
+            e.Property(s => s.Source).HasMaxLength(120);
         });
     }
 }

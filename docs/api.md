@@ -58,6 +58,31 @@ Known errors:
 - `400` for unknown system.
 - `401` without token.
 
+## Magic / Spells
+
+### `GET /api/spells/{system}`
+
+Protected. `system` is parsed case-insensitively into `GameSystem`.
+
+Response: `List<SpellDto>` ordered by `MagicSkill`, `Kind`, `SortOrder`, `NameRu`. Each item:
+
+- `id`
+- `magicSkill` — Arcana/Divine/Primal (plus Runes/Verse for Realms of Terrinoth);
+- `kind` — `effect` (базовый эффект-направление) or `additionalEffect` (модификатор сложности);
+- `nameRu`, `nameEn`;
+- `difficulty` — display string (base difficulty for effects, `+N` for modifiers);
+- `description` — full (private) paraphrase;
+- `safeDescription` — copyright-safe public text;
+- `source` — book/section reference;
+- `isCustom`.
+
+The response includes built-in entries plus spells owned by the current user.
+
+Known errors:
+
+- `400` for unknown system.
+- `401` without token.
+
 ## Characters
 
 ### `GET /api/characters/`

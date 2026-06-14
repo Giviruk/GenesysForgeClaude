@@ -1,6 +1,6 @@
 import type {
   AuthResponse, CampaignDetail, CampaignListItem, CampaignNote, CharacterListItem, CharacterNote,
-  CharacterSheet, GameSystem, HeroicAbility, ItemDef, ItemState, Reference, SkillDef, TalentDef,
+  CharacterSheet, GameSystem, HeroicAbility, ItemDef, ItemState, Reference, SkillDef, Spell, TalentDef,
 } from './types'
 
 const TOKEN_KEY = 'genesysforge.token'
@@ -63,6 +63,8 @@ export const api = {
 
   reference: (system: GameSystem) =>
     request<Reference>('GET', `/api/reference/${system === 'genesysCore' ? 'GenesysCore' : 'RealmsOfTerrinoth'}`),
+  spells: (system: GameSystem) =>
+    request<Spell[]>('GET', `/api/spells/${system === 'genesysCore' ? 'GenesysCore' : 'RealmsOfTerrinoth'}`),
 
   characters: () => request<CharacterListItem[]>('GET', '/api/characters/'),
   createCharacter: (name: string, system: GameSystem, archetypeId: string, careerId: string, freeCareerSkillNames: string[]) =>

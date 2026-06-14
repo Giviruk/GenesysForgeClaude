@@ -37,4 +37,16 @@ describe('api client — обработка 401', () => {
     const list = await api.characters()
     expect(list).toHaveLength(1)
   })
+
+  it('spells() обращается к /api/spells/<System> с токеном', async () => {
+    tokenStorage.set('ok-token')
+    const fetchMock = vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+      new Response(JSON.stringify([]), { status: 200 }))
+
+    await api.spells('realmsOfTerrinoth')
+
+    const [url, init] = fetchMock.mock.calls[0]
+    expect(url).toBe('/api/spells/RealmsOfTerrinoth')
+    expect((init?.headers as Record<string, string>).Authorization).toBe('Bearer ok-token')
+  })
 })

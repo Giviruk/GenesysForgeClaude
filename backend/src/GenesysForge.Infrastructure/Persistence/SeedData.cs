@@ -362,54 +362,63 @@ public static class SeedData
     ];
 
     private static SpellDef Spell(GameSystem sys, string skill, SpellEntryKind kind, string ru, string en,
-        string difficulty, string desc, int sort) => new()
+        string difficulty, string desc, string safe, string source, int sort) => new()
     {
         Id = Guid.NewGuid(), System = sys, MagicSkill = skill, Kind = kind,
-        NameRu = ru, NameEn = en, Difficulty = difficulty, Description = desc, SortOrder = sort,
+        NameRu = ru, NameEn = en, Difficulty = difficulty, Description = desc,
+        SafeDescription = safe, Source = source, SortOrder = sort,
     };
 
     /// <summary>
     /// Справочник магии: базовые эффекты заклинаний (направления) по магическим навыкам и общие
     /// дополнительные эффекты-модификаторы. Только структура, числа и краткие парафразы — без текста книг.
+    /// Description — полный (private) парафраз, SafeDescription — короткий copyright-safe вариант для
+    /// публичной версии, Source — ссылка на раздел книги (без копирования текста).
     /// Terrinoth добавляет навыки Runes и Verse.
     /// </summary>
     private static IEnumerable<SpellDef> Spells(GameSystem sys)
     {
+        // Arcana/Divine/Primal — из базового CRB; Runes/Verse — специфика Terrinoth.
         var skills = sys == GameSystem.RealmsOfTerrinoth
             ? new[] { "Arcana", "Divine", "Primal", "Runes", "Verse" }
             : ["Arcana", "Divine", "Primal"];
 
+        string SourceFor(string skill) => skill is "Runes" or "Verse"
+            ? "Realms of Terrinoth, гл. «Магия»"
+            : "Genesys CRB, гл. «Магия»";
+
         // Базовые эффекты доступны через любой магический навык — общий набор направлений.
-        var effects = new (string Ru, string En, string Diff, string Desc, int Sort)[]
+        var effects = new (string Ru, string En, string Diff, string Desc, string Safe, int Sort)[]
         {
-            ("Атака", "Attack", "2 (Average)", "Нанести магический урон цели в пределах короткой дальности; урон зависит от связанной характеристики.", 1),
-            ("Лечение", "Heal", "1 (Easy)", "Восстановить раны или стрейн союзнику в пределах короткой дальности.", 2),
-            ("Барьер", "Barrier", "2 (Average)", "Создать защиту: повысить поглощение или защиту цели до конца столкновения.", 3),
-            ("Усиление", "Augment", "2 (Average)", "Наделить цель полезным эффектом: бонусные кубы, доп. манёвр и т. п.", 4),
-            ("Призыв", "Conjure", "3 (Hard)", "Создать существо, предмет или стихию под вашим контролем на время.", 5),
-            ("Проклятие", "Curse", "3 (Hard)", "Наложить помеху на врага: штрафные кубы, стрейн или ослабление.", 6),
-            ("Развеивание", "Dispel", "2 (Average)", "Снять или подавить активный магический эффект.", 7),
-            ("Предсказание", "Predict", "1 (Easy)", "Получить подсказку о ближайшем будущем или скрытом знании.", 8),
-            ("Превращение", "Transform", "3 (Hard)", "Изменить форму или свойства цели либо предмета.", 9),
-            ("Утилита", "Utility", "1 (Easy)", "Прочие мелкие магические эффекты: свет, перемещение предмета, послание.", 10),
+            ("Атака", "Attack", "2 (Average)", "Нанести магический урон цели в пределах короткой дальности; урон зависит от связанной характеристики.", "Боевое заклинание, наносящее урон.", 1),
+            ("Лечение", "Heal", "1 (Easy)", "Восстановить раны или стрейн союзнику в пределах короткой дальности.", "Восстанавливает раны или стрейн.", 2),
+            ("Барьер", "Barrier", "2 (Average)", "Создать защиту: повысить поглощение или защиту цели до конца столкновения.", "Повышает защиту/поглощение цели.", 3),
+            ("Усиление", "Augment", "2 (Average)", "Наделить цель полезным эффектом: бонусные кубы, доп. манёвр и т. п.", "Накладывает на цель полезный эффект.", 4),
+            ("Призыв", "Conjure", "3 (Hard)", "Создать существо, предмет или стихию под вашим контролем на время.", "Создаёт существо или предмет.", 5),
+            ("Проклятие", "Curse", "3 (Hard)", "Наложить помеху на врага: штрафные кубы, стрейн или ослабление.", "Накладывает на врага помеху.", 6),
+            ("Развеивание", "Dispel", "2 (Average)", "Снять или подавить активный магический эффект.", "Снимает магический эффект.", 7),
+            ("Предсказание", "Predict", "1 (Easy)", "Получить подсказку о ближайшем будущем или скрытом знании.", "Даёт подсказку о будущем/знании.", 8),
+            ("Превращение", "Transform", "3 (Hard)", "Изменить форму или свойства цели либо предмета.", "Изменяет форму или свойства цели.", 9),
+            ("Утилита", "Utility", "1 (Easy)", "Прочие мелкие магические эффекты: свет, перемещение предмета, послание.", "Мелкие вспомогательные эффекты.", 10),
         };
 
-        var modifiers = new (string Ru, string En, string Diff, string Desc, int Sort)[]
+        var modifiers = new (string Ru, string En, string Diff, string Desc, string Safe, int Sort)[]
         {
-            ("Доп. цель", "Additional Target", "+1 сложности за цель", "Добавить ещё одну цель в пределах дальности.", 1),
-            ("Увеличить дальность", "Increase Range", "+1 сложности за шаг", "Повысить дальность заклинания на один шаг.", 2),
-            ("Область", "Area of Effect", "+1 сложности", "Поразить всех в пределах короткой дальности от цели.", 3),
-            ("Усилить эффект", "Strengthen", "+1 сложности", "Увеличить урон/лечение/величину эффекта на значение характеристики.", 4),
-            ("Перегрузка", "Empowered", "варьируется", "Потратить стрейн, чтобы добавить кубы преимущества к проверке.", 5),
-            ("Быстрое колдовство", "Quick Cast", "+1 сложности", "Сотворить заклинание как манёвр (по решению ГМ).", 6),
+            ("Доп. цель", "Additional Target", "+1 сложности за цель", "Добавить ещё одну цель в пределах дальности.", "Добавляет цель.", 1),
+            ("Увеличить дальность", "Increase Range", "+1 сложности за шаг", "Повысить дальность заклинания на один шаг.", "Увеличивает дальность.", 2),
+            ("Область", "Area of Effect", "+1 сложности", "Поразить всех в пределах короткой дальности от цели.", "Делает заклинание зональным.", 3),
+            ("Усилить эффект", "Strengthen", "+1 сложности", "Увеличить урон/лечение/величину эффекта на значение характеристики.", "Усиливает величину эффекта.", 4),
+            ("Перегрузка", "Empowered", "варьируется", "Потратить стрейн, чтобы добавить кубы преимущества к проверке.", "Добавляет кубы за стрейн.", 5),
+            ("Быстрое колдовство", "Quick Cast", "+1 сложности", "Сотворить заклинание как манёвр (по решению ГМ).", "Сотворение как манёвр.", 6),
         };
 
         foreach (var skill in skills)
         {
+            var src = SourceFor(skill);
             foreach (var e in effects)
-                yield return Spell(sys, skill, SpellEntryKind.Effect, e.Ru, e.En, e.Diff, e.Desc, e.Sort);
+                yield return Spell(sys, skill, SpellEntryKind.Effect, e.Ru, e.En, e.Diff, e.Desc, e.Safe, src, e.Sort);
             foreach (var m in modifiers)
-                yield return Spell(sys, skill, SpellEntryKind.AdditionalEffect, m.Ru, m.En, m.Diff, m.Desc, m.Sort);
+                yield return Spell(sys, skill, SpellEntryKind.AdditionalEffect, m.Ru, m.En, m.Diff, m.Desc, m.Safe, src, m.Sort);
         }
     }
 }

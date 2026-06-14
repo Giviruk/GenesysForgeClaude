@@ -23,6 +23,7 @@ public class SeedDataTests
             Archetypes = db.ArchetypeDefs.Count(),
             Careers = db.CareerDefs.Count(),
             Heroics = db.HeroicAbilityDefs.Count(),
+            Spells = db.SpellDefs.Count(),
         };
 
         SeedData.Apply(db); // повторный вызов не должен ничего добавлять
@@ -33,6 +34,30 @@ public class SeedDataTests
         Assert.Equal(afterFirst.Archetypes, db.ArchetypeDefs.Count());
         Assert.Equal(afterFirst.Careers, db.CareerDefs.Count());
         Assert.Equal(afterFirst.Heroics, db.HeroicAbilityDefs.Count());
+        Assert.Equal(afterFirst.Spells, db.SpellDefs.Count());
+    }
+
+    [Fact]
+    public void Apply_SeedsSpells_TerrinothHasMoreMagicSkills()
+    {
+        using var db = NewDb();
+        SeedData.Apply(db);
+
+        var core = db.SpellDefs.Where(s => s.System == GameSystem.GenesysCore).ToList();
+        var terrinoth = db.SpellDefs.Where(s => s.System == GameSystem.RealmsOfTerrinoth).ToList();
+
+        Assert.NotEmpty(core);
+        // Terrinoth добавляет Runes и Verse поверх базовых навыков
+        Assert.DoesNotContain(core, s => s.MagicSkill is "Runes" or "Verse");
+        Assert.Contains(terrinoth, s => s.MagicSkill == "Runes");
+        Assert.Contains(terrinoth, s => s.MagicSkill == "Verse");
+        // у каждой записи заполнены русское имя, safe-описание и источник
+        Assert.All(db.SpellDefs, s =>
+        {
+            Assert.False(string.IsNullOrWhiteSpace(s.NameRu));
+            Assert.False(string.IsNullOrWhiteSpace(s.SafeDescription));
+            Assert.False(string.IsNullOrWhiteSpace(s.Source));
+        });
     }
 
     [Fact]

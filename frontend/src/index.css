@@ -170,6 +170,15 @@ td.right { text-align: right; }
 table.skills .die { letter-spacing: 0; }
 tr.equipped-row td { background: rgba(200, 162, 74, 0.07); }
 
+/* Горизонтальный скролл таблиц на узких экранах */
+.table-wrap { width: 100%; overflow-x: auto; }
+td.nowrap, th.nowrap { white-space: nowrap; }
+
+/* Шапка раздела магии: заголовок + выбор направления */
+.spells-head { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+.inline-label { display: inline-flex; align-items: center; gap: 0.4rem; color: var(--muted); font-size: 0.85rem; }
+.inline-label select { min-width: 12rem; }
+
 .dice-pool { letter-spacing: 0.1em; white-space: nowrap; }
 .die.ability { color: var(--green); }
 .die.proficiency { color: var(--yellow); }

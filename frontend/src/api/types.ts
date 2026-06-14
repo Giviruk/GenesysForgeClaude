@@ -56,6 +56,21 @@ export interface HeroicAbility {
   isCustom: boolean
 }
 
+export type SpellEntryKind = 'effect' | 'additionalEffect'
+
+export interface Spell {
+  id: string
+  magicSkill: string
+  kind: SpellEntryKind
+  nameRu: string
+  nameEn: string
+  difficulty: string
+  description: string
+  safeDescription: string
+  source: string
+  isCustom: boolean
+}
+
 export interface Archetype {
   id: string
   name: string
