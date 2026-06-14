@@ -29,7 +29,9 @@ services:
       DOTNET_gcServer: "0"
       ConnectionStrings__Default: "Host=postgres;Port=5432;Database=genesysforge;Username=genesys;Password=${POSTGRES_PASSWORD}"
       Jwt__Key: ${JWT_KEY}
-      Cors__Origins: "https://${PRIVATE_HOSTNAME};https://${PUBLIC_HOSTNAME}"
+      # ContentMode по умолчанию PrivateFull. Пока деплоим только private — CORS только private origin.
+      # Публичный origin добавим сюда вместе с PublicSafe-стеком.
+      Cors__Origins: "https://${PRIVATE_HOSTNAME}"
     depends_on:
       postgres:
         condition: service_healthy
@@ -52,7 +54,7 @@ services:
       - "443:443"
     environment:
       PRIVATE_HOSTNAME: ${PRIVATE_HOSTNAME}
-      PUBLIC_HOSTNAME: ${PUBLIC_HOSTNAME}
+      # PUBLIC_HOSTNAME вернуть вместе с публичным блоком в Caddyfile.
       LETSENCRYPT_EMAIL: ${LETSENCRYPT_EMAIL}
     volumes:
       - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro

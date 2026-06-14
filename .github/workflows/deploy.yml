@@ -92,7 +92,7 @@ jobs:
           JWT_KEY: ${{ secrets.JWT_KEY }}
           LETSENCRYPT_EMAIL: ${{ secrets.LETSENCRYPT_EMAIL }}
           PRIVATE_HOSTNAME: ${{ vars.PRIVATE_HOSTNAME }}
-          PUBLIC_HOSTNAME: ${{ vars.PUBLIC_HOSTNAME }}
+          # PUBLIC_HOSTNAME пока не деплоим (только private-версия); вернуть вместе с PublicSafe-стеком.
           DEPLOY_PATH: ${{ vars.DEPLOY_PATH }}
           IMAGE_TAG: ${{ github.sha }}
         with:
@@ -100,7 +100,7 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: ${{ secrets.SSH_PORT }}
-          envs: GHCR_OWNER,GHCR_USERNAME,GHCR_TOKEN,POSTGRES_PASSWORD,JWT_KEY,LETSENCRYPT_EMAIL,PRIVATE_HOSTNAME,PUBLIC_HOSTNAME,DEPLOY_PATH,IMAGE_TAG
+          envs: GHCR_OWNER,GHCR_USERNAME,GHCR_TOKEN,POSTGRES_PASSWORD,JWT_KEY,LETSENCRYPT_EMAIL,PRIVATE_HOSTNAME,DEPLOY_PATH,IMAGE_TAG
           script: |
             set -euo pipefail
             cd "${DEPLOY_PATH}"
@@ -122,7 +122,6 @@ jobs:
             JWT_KEY=${JWT_KEY}
             LETSENCRYPT_EMAIL=${LETSENCRYPT_EMAIL}
             PRIVATE_HOSTNAME=${PRIVATE_HOSTNAME}
-            PUBLIC_HOSTNAME=${PUBLIC_HOSTNAME}
             EOF
 
             echo "${GHCR_TOKEN}" | docker login ghcr.io -u "${GHCR_USERNAME}" --password-stdin

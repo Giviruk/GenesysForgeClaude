@@ -184,9 +184,9 @@ Pipeline isolation: a database is seeded with a single mode; the two pipelines n
 
 ### Private content overlay (`PrivateContentStore`)
 
-Full private descriptions live in `private-content/genesys-core.ru.json` and `private-content/realms-of-terrinoth.ru.json` (map of stable `Code` → full description). They are own paraphrases, **not** official book text, and are embedded into the Infrastructure assembly as resources (`WithCulture=false` so the `.ru` suffix is not mistaken for a culture). `PrivateContentStore.Load()` reads them; in `PublicSafe` they are not used.
+Full private descriptions live in `backend/private-content/genesys-core.ru.json` and `backend/private-content/realms-of-terrinoth.ru.json` (map of stable `Code` → full description). The directory lives under `backend/` so it is inside the Docker build context (`./backend`) and the Dockerfile copies it before `dotnet publish` — otherwise `PrivateFull` in the image would be empty. They are own paraphrases, **not** official book text, and are embedded into the Infrastructure assembly as resources (`WithCulture=false` so the `.ru` suffix is not mistaken for a culture). `PrivateContentStore.Load()` reads them; in `PublicSafe` they are not used.
 
-⚠️ Before opening the repository publicly, delete `private-content/` (or move it to external private storage) and rebuild. The csproj glob tolerates the files being absent, and the public app runs in `ContentMode=PublicSafe`, which does not need them. See `private-content/README.md`.
+⚠️ Before opening the repository publicly, delete the `*.ru.json` files (keep the directory itself, otherwise the Dockerfile `COPY` fails) or move them to external private storage, then rebuild. The csproj glob tolerates the files being absent, and the public app runs in `ContentMode=PublicSafe`, which does not need them. See `backend/private-content/README.md`.
 
 Legal risk:
 

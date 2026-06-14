@@ -16,7 +16,7 @@
   -->
   <ItemGroup>
     <!-- WithCulture=false: суффикс ".ru" в имени иначе принимается за культуру и уводит ресурс в сателлит. -->
-    <EmbeddedResource Include="..\..\..\private-content\*.ru.json">
+    <EmbeddedResource Include="..\..\private-content\*.ru.json">
       <Link>private-content\%(Filename)%(Extension)</Link>
       <WithCulture>false</WithCulture>
       <LogicalName>private-content.%(Filename)%(Extension)</LogicalName>

@@ -11,6 +11,11 @@ COPY src/GenesysForge.Api/GenesysForge.Api.csproj src/GenesysForge.Api/
 RUN dotnet restore src/GenesysForge.Api/GenesysForge.Api.csproj
 
 COPY src/ src/
+# Полные private-описания (embedded resource в Infrastructure.csproj: ..\..\private-content\*.ru.json).
+# Должны попасть в контекст до publish, иначе PrivateFull в образе будет неполным.
+# Перед публичным открытием репо удаляются только *.ru.json (каталог с README остаётся,
+# иначе COPY упадёт); тогда glob не находит файлов и private-сид падает на safe-описания.
+COPY private-content/ private-content/
 RUN dotnet publish src/GenesysForge.Api/GenesysForge.Api.csproj -c Release -o /app --no-restore
 
 # ---- runtime ----
