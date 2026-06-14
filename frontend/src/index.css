@@ -193,15 +193,19 @@ td.nowrap, th.nowrap { white-space: nowrap; }
 .die.proficiency { color: var(--yellow); }
 
 /* ---------- Talents ---------- */
-.pyramid { display: flex; flex-direction: column; gap: 0.4rem; }
-.pyramid-tier { display: flex; gap: 0.6rem; align-items: center; }
-.tier-label { width: 5.5rem; color: var(--muted); font-size: 0.85rem; flex-shrink: 0; }
-.tier-cells { display: flex; gap: 0.4rem; flex-wrap: wrap; }
-.talent-cell {
-  background: var(--panel-2); border: 1px solid var(--accent-dark); border-radius: 6px;
-  padding: 0.25rem 0.6rem; font-size: 0.82rem;
+.pyramid { display: flex; flex-direction: column; gap: 0.6rem; }
+.pyramid-tier { display: flex; gap: 0.6rem; align-items: flex-start; }
+.tier-label { width: 5.5rem; color: var(--muted); font-size: 0.85rem; flex-shrink: 0; padding-top: 0.5rem; }
+.tier-cells { display: flex; gap: 0.5rem; flex-wrap: wrap; flex: 1; }
+.pyramid-card {
+  background: var(--panel-2); border: 1px solid var(--accent-dark); border-radius: 8px;
+  padding: 0.5rem 0.7rem; width: 18rem; max-width: 100%;
 }
-.talent-cell.empty { border-color: var(--border); color: var(--muted); }
+.pyramid-card .owned-talent-desc { margin: 0.3rem 0 0; font-size: 0.82rem; }
+.pyramid-card.empty {
+  border-style: dashed; border-color: var(--border); color: var(--muted);
+  width: auto; align-self: center; padding: 0.25rem 0.6rem;
+}
 .owned-talents { display: grid; grid-template-columns: repeat(auto-fill, minmax(22rem, 1fr)); gap: 0.7rem; }
 .owned-talent {
   background: var(--panel-2); border: 1px solid var(--accent-dark); border-radius: 8px;
