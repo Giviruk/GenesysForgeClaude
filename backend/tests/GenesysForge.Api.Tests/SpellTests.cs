@@ -46,8 +46,55 @@ public class SpellTests : IClassFixture<ApiFactory>
         var client = await _factory.CreateAuthorizedClientAsync();
         var spells = (await client.GetFromJsonAsync<List<SpellDto>>("/api/spells/RealmsOfTerrinoth", Json.Options))!;
 
-        Assert.Contains(spells, s => s.MagicSkill == "Runes");
-        Assert.Contains(spells, s => s.MagicSkill == "Verse");
+        Assert.Contains(spells, s => s.MagicSkill == "Runes" && s.Kind == SpellEntryKind.Effect);
+        Assert.Contains(spells, s => s.MagicSkill == "Verse" && s.Kind == SpellEntryKind.Effect);
+    }
+
+    [Fact]
+    public async Task BaseEffects_FollowSkillAvailabilityMatrix()
+    {
+        var client = await _factory.CreateAuthorizedClientAsync();
+        var spells = (await client.GetFromJsonAsync<List<SpellDto>>("/api/spells/RealmsOfTerrinoth", Json.Options))!;
+
+        bool Available(string skill, string effect) =>
+            spells.Any(s => s.Kind == SpellEntryKind.Effect && s.MagicSkill == skill && s.NameEn == effect);
+
+        // По матрице: Verse не имеет Attack; Arcana не имеет Augment и Heal; Primal не имеет Barrier.
+        Assert.False(Available("Verse", "Attack"));
+        Assert.False(Available("Arcana", "Augment"));
+        Assert.False(Available("Arcana", "Heal"));
+        Assert.False(Available("Primal", "Barrier"));
+        Assert.False(Available("Runes", "Conjure"));
+        // Доступные комбинации присутствуют
+        Assert.True(Available("Arcana", "Attack"));
+        Assert.True(Available("Verse", "Heal"));
+        Assert.True(Available("Runes", "Augment"));
+        // Utility и Curse доступны всем навыкам
+        foreach (var skill in new[] { "Arcana", "Divine", "Primal", "Runes", "Verse" })
+        {
+            Assert.True(Available(skill, "Utility"), $"{skill} should have Utility");
+            Assert.True(Available(skill, "Curse"), $"{skill} should have Curse");
+        }
+    }
+
+    [Fact]
+    public async Task AdditionalEffects_BelongToAnExistingBaseEffect()
+    {
+        var client = await _factory.CreateAuthorizedClientAsync();
+        var spells = (await client.GetFromJsonAsync<List<SpellDto>>("/api/spells/GenesysCore", Json.Options))!;
+
+        var baseEffectCodes = spells.Where(s => s.Kind == SpellEntryKind.Effect)
+            .Select(s => s.NameEn).ToHashSet();
+        var additional = spells.Where(s => s.Kind == SpellEntryKind.AdditionalEffect).ToList();
+
+        Assert.NotEmpty(additional);
+        Assert.All(additional, m =>
+        {
+            Assert.False(string.IsNullOrWhiteSpace(m.ParentEffect));      // привязан к базовому
+            Assert.Contains(m.ParentEffect, baseEffectCodes);            // который существует
+        });
+        // у Attack есть свои доп. эффекты
+        Assert.Contains(additional, m => m.ParentEffect == "Attack");
     }
 
     [Fact]

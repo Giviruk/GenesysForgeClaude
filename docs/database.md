@@ -118,7 +118,9 @@ Fields: `CharacterId`, `ItemDefId`, `Quantity`, `State`.
 
 Built-in and custom magic reference entries (spell effects and additional-effect modifiers).
 
-Fields: `Id`, `System`, `MagicSkill` (Arcana/Divine/Primal, plus Runes/Verse for Terrinoth), `Kind` (`Effect`/`AdditionalEffect`), `NameRu`, `NameEn`, `Difficulty`, `Description` (full/private paraphrase), `SafeDescription` (copyright-safe public text), `Source` (book/section reference), `SortOrder`, `OwnerUserId`.
+Fields: `Id`, `System`, `MagicSkill` (Arcana/Divine/Primal, plus Runes/Verse for Terrinoth; empty for additional effects), `Kind` (`Effect`/`AdditionalEffect`), `ParentEffect` (for additional effects — the `NameEn` code of the base effect they modify; empty for base effects), `NameRu`, `NameEn`, `Difficulty`, `Description` (full/private paraphrase), `SafeDescription` (copyright-safe public text), `Source` (book/section reference), `SortOrder`, `OwnerUserId`.
+
+Base effects are seeded once per (system, magic skill) only for skills where the effect is available (availability matrix); additional effects are seeded once per (system, base effect) and are skill-agnostic.
 
 Indexes:
 
@@ -136,6 +138,7 @@ Found migrations:
 - `20260613194614_AddCharacterNotes`
 - `20260613195341_AddCampaigns`
 - `20260614082314_AddSpells` — creates `SpellDefs` table with `(System, MagicSkill, Kind)` index.
+- `20260614102018_AddSpellParentEffect` — adds `ParentEffect` column; clears built-in spell rows so the idempotent seed rebuilds them in the new structure (custom content untouched).
 
 Startup behavior:
 
