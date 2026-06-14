@@ -14,8 +14,11 @@ public static class CampaignMapper
     {
         var isGm = campaign.GmUserId == userId;
 
+        // Сортируем по исходному полю до проекции: OrderBy после Select в record-DTO
+        // не транслируется в SQL реляционным провайдером (Npgsql).
         var members = await db.CampaignCharacters.AsNoTracking()
             .Where(cc => cc.CampaignId == campaign.Id)
+            .OrderBy(cc => cc.Character!.Name)
             .Select(cc => new CampaignMemberDto(
                 cc.CharacterId,
                 cc.Character!.Name,
@@ -23,7 +26,6 @@ public static class CampaignMapper
                 cc.Character.Archetype!.Name,
                 cc.Character.Career!.Name,
                 cc.PlayerUserId == userId))
-            .OrderBy(m => m.CharacterName)
             .ToListAsync(ct);
 
         // GM видит все заметки; игрок — только общие (не приватные)
