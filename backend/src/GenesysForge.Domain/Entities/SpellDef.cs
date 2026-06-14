@@ -12,6 +12,11 @@ public class SpellDef
     /// <summary>Магический навык: Arcana, Divine, Primal, Runes, Verse.</summary>
     public required string MagicSkill { get; set; }
     public SpellEntryKind Kind { get; set; }
+    /// <summary>
+    /// Для дополнительного эффекта (Kind=AdditionalEffect) — стабильный код (NameEn) базового
+    /// эффекта, к которому он относится. У базовых эффектов пусто.
+    /// </summary>
+    public string ParentEffect { get; set; } = "";
     public required string NameRu { get; set; }
     public required string NameEn { get; set; }
     /// <summary>Отображаемая сложность: для эффектов — базовая, для модификаторов — «+N».</summary>

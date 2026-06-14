@@ -174,10 +174,19 @@ tr.equipped-row td { background: rgba(200, 162, 74, 0.07); }
 .table-wrap { width: 100%; overflow-x: auto; }
 td.nowrap, th.nowrap { white-space: nowrap; }
 
-/* Шапка раздела магии: заголовок + выбор направления */
+/* Шапка раздела магии: заголовок + выбор направления и базового эффекта */
 .spells-head { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+.spells-selectors { display: flex; gap: 1rem; flex-wrap: wrap; }
 .inline-label { display: inline-flex; align-items: center; gap: 0.4rem; color: var(--muted); font-size: 0.85rem; }
 .inline-label select { min-width: 12rem; }
+
+/* Карточка выбранного базового эффекта */
+.spell-detail-head { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+.spell-detail-head h3 { margin: 0; }
+.difficulty-badge {
+  border: 1px solid var(--border); border-radius: 999px; padding: 0.15rem 0.7rem;
+  font-size: 0.8rem; color: var(--accent); white-space: nowrap;
+}
 
 .dice-pool { letter-spacing: 0.1em; white-space: nowrap; }
 .die.ability { color: var(--green); }

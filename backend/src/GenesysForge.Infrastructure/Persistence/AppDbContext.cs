@@ -79,6 +79,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         {
             e.HasIndex(s => new { s.System, s.MagicSkill, s.Kind });
             e.Property(s => s.MagicSkill).HasMaxLength(40);
+            e.Property(s => s.ParentEffect).HasMaxLength(120);
             e.Property(s => s.NameRu).HasMaxLength(120);
             e.Property(s => s.NameEn).HasMaxLength(120);
             e.Property(s => s.Source).HasMaxLength(120);

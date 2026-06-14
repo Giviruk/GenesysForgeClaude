@@ -67,8 +67,9 @@ Protected. `system` is parsed case-insensitively into `GameSystem`.
 Response: `List<SpellDto>` ordered by `MagicSkill`, `Kind`, `SortOrder`, `NameRu`. Each item:
 
 - `id`
-- `magicSkill` — Arcana/Divine/Primal (plus Runes/Verse for Realms of Terrinoth);
+- `magicSkill` — Arcana/Divine/Primal (plus Runes/Verse for Realms of Terrinoth); empty for additional effects;
 - `kind` — `effect` (базовый эффект-направление) or `additionalEffect` (модификатор сложности);
+- `parentEffect` — for additional effects, the `nameEn` code of the base effect they modify (empty for base effects);
 - `nameRu`, `nameEn`;
 - `difficulty` — display string (base difficulty for effects, `+N` for modifiers);
 - `description` — full (private) paraphrase;

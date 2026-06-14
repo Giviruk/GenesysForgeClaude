@@ -62,6 +62,7 @@ export interface Spell {
   id: string
   magicSkill: string
   kind: SpellEntryKind
+  parentEffect: string
   nameRu: string
   nameEn: string
   difficulty: string

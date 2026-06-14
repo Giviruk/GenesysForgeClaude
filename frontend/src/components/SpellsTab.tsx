@@ -9,13 +9,14 @@ interface Props {
 }
 
 /**
- * Справочник магии: переключение направлений (магических навыков) через dropdown,
- * отдельные таблицы базовых эффектов и дополнительных эффектов-модификаторов.
- * Состав навыков различается между Genesys Core и Realms of Terrinoth (Runes/Verse).
+ * Справочник магии. Сначала выбирается магический навык (направление) — от него зависит
+ * список доступных базовых эффектов. Затем выбирается базовый эффект по названию: для него
+ * показываются описание и таблица дополнительных эффектов, привязанных именно к нему.
  */
 export function SpellsTab({ system, onError }: Props) {
   const [spells, setSpells] = useState<Spell[] | null>(null)
   const [skill, setSkill] = useState<string>('')
+  const [effectCode, setEffectCode] = useState<string>('')
 
   const reload = useCallback(
     () => api.spells(system)
@@ -25,22 +26,31 @@ export function SpellsTab({ system, onError }: Props) {
 
   useEffect(() => { void reload() }, [reload])
 
-  // Уникальные направления в порядке прихода с сервера.
+  // Навыки — только из базовых эффектов (у доп. эффектов навык не задан).
   const skills = useMemo(() => {
     if (!spells) return []
-    return [...new Set(spells.map(s => s.magicSkill))]
+    return [...new Set(spells.filter(s => s.kind === 'effect').map(s => s.magicSkill))]
   }, [spells])
 
-  // Активное направление: выбранное пользователем либо первое доступное
-  // (без хранения дефолта в эффекте — корректно переживает смену системы).
+  // Активный навык: выбранный либо первый доступный (без хранения дефолта в эффекте).
   const activeSkill = skill && skills.includes(skill) ? skill : (skills[0] ?? '')
 
-  const effects = useMemo(
-    () => spells?.filter(s => s.magicSkill === activeSkill && s.kind === 'effect') ?? [],
+  // Базовые эффекты, доступные выбранному навыку.
+  const baseEffects = useMemo(
+    () => spells?.filter(s => s.kind === 'effect' && s.magicSkill === activeSkill) ?? [],
     [spells, activeSkill])
-  const modifiers = useMemo(
-    () => spells?.filter(s => s.magicSkill === activeSkill && s.kind === 'additionalEffect') ?? [],
-    [spells, activeSkill])
+
+  // Активный базовый эффект (по стабильному коду nameEn), скорректированный под доступные.
+  const activeEffectCode = effectCode && baseEffects.some(e => e.nameEn === effectCode)
+    ? effectCode
+    : (baseEffects[0]?.nameEn ?? '')
+
+  const selectedEffect = baseEffects.find(e => e.nameEn === activeEffectCode) ?? null
+
+  // Дополнительные эффекты, привязанные к выбранному базовому.
+  const additional = useMemo(
+    () => spells?.filter(s => s.kind === 'additionalEffect' && s.parentEffect === activeEffectCode) ?? [],
+    [spells, activeEffectCode])
 
   if (spells === null) return <p className="muted">Загрузка…</p>
 
@@ -49,57 +59,68 @@ export function SpellsTab({ system, onError }: Props) {
       <section className="panel">
         <div className="spells-head">
           <h3>Магия</h3>
-          <label className="inline-label">Направление
-            <select value={activeSkill} onChange={e => setSkill(e.target.value)}>
-              {skills.map(s => <option key={s} value={s}>{magicSkillLabel(s)}</option>)}
-            </select>
-          </label>
+          <div className="spells-selectors">
+            <label className="inline-label">Направление
+              <select value={activeSkill} onChange={e => setSkill(e.target.value)}>
+                {skills.map(s => <option key={s} value={s}>{magicSkillLabel(s)}</option>)}
+              </select>
+            </label>
+            <label className="inline-label">Базовый эффект
+              <select value={activeEffectCode} onChange={e => setEffectCode(e.target.value)}>
+                {baseEffects.map(e => <option key={e.id} value={e.nameEn}>{e.nameRu}</option>)}
+              </select>
+            </label>
+          </div>
         </div>
         <p className="muted small-text">
-          Заклинание = базовый эффект + при желании дополнительные эффекты, каждый из которых повышает сложность проверки.
+          Заклинание = базовый эффект выбранного направления + при желании дополнительные эффекты,
+          каждый из которых повышает сложность проверки.
         </p>
       </section>
 
-      <section className="panel">
-        <h3>Базовые эффекты {effects.length ? `(${effects.length})` : ''}</h3>
-        <SpellTable rows={effects} />
-      </section>
+      {selectedEffect && (
+        <section className="panel">
+          <div className="spell-detail-head">
+            <h3>{selectedEffect.nameRu} <span className="muted">· {selectedEffect.nameEn}</span></h3>
+            <span className="difficulty-badge">Сложность: {selectedEffect.difficulty}</span>
+          </div>
+          <p>{selectedEffect.description || selectedEffect.safeDescription}</p>
+          <div className="muted small-text">Источник: {selectedEffect.source}</div>
+        </section>
+      )}
 
       <section className="panel">
-        <h3>Дополнительные эффекты {modifiers.length ? `(${modifiers.length})` : ''}</h3>
-        <SpellTable rows={modifiers} diffLabel="Сложность (+)" />
+        <h3>Дополнительные эффекты {additional.length ? `(${additional.length})` : ''}</h3>
+        {additional.length === 0
+          ? <p className="muted">У этого базового эффекта нет дополнительных эффектов.</p>
+          : (
+            <div className="table-wrap">
+              <table className="skills">
+                <thead>
+                  <tr>
+                    <th>Название</th>
+                    <th>Сложность (+)</th>
+                    <th>Описание</th>
+                    <th>Источник</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {additional.map(m => (
+                    <tr key={m.id}>
+                      <td>
+                        <strong>{m.nameRu}</strong>
+                        <div className="muted small-text">{m.nameEn}{m.isCustom && ' · кастом'}</div>
+                      </td>
+                      <td className="nowrap">{m.difficulty}</td>
+                      <td>{m.description || m.safeDescription}</td>
+                      <td className="muted small-text">{m.source}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
       </section>
-    </div>
-  )
-}
-
-function SpellTable({ rows, diffLabel = 'Сложность' }: { rows: Spell[]; diffLabel?: string }) {
-  if (rows.length === 0) return <p className="muted">Нет записей для этого направления.</p>
-  return (
-    <div className="table-wrap">
-      <table className="skills">
-        <thead>
-          <tr>
-            <th>Название</th>
-            <th>{diffLabel}</th>
-            <th>Описание</th>
-            <th>Источник</th>
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map(s => (
-            <tr key={s.id}>
-              <td>
-                <strong>{s.nameRu}</strong>
-                <div className="muted small-text">{s.nameEn}{s.isCustom && ' · кастом'}</div>
-              </td>
-              <td className="nowrap">{s.difficulty}</td>
-              <td>{s.description || s.safeDescription}</td>
-              <td className="muted small-text">{s.source}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
     </div>
   )
 }
