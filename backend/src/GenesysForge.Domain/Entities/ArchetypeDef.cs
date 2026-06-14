@@ -1,10 +1,15 @@
 namespace GenesysForge.Domain.Entities;
 
-public class ArchetypeDef
+public class ArchetypeDef : IContentDef
 {
     public Guid Id { get; set; }
     public GameSystem System { get; set; }
+    /// <summary>Стабильный код встроенного контента.</summary>
+    public string Code { get; set; } = "";
+    /// <summary>Оригинальное/английское название.</summary>
     public required string Name { get; set; }
+    /// <summary>Русское название.</summary>
+    public string NameRu { get; set; } = "";
     public int Brawn { get; set; }
     public int Agility { get; set; }
     public int Intellect { get; set; }
@@ -14,5 +19,10 @@ public class ArchetypeDef
     public int WoundBase { get; set; }
     public int StrainBase { get; set; }
     public int StartingXp { get; set; }
+    /// <summary>Полное (private) описание-парафраз. Отдаётся в режиме ContentMode.PrivateFull.</summary>
     public string Description { get; set; } = "";
+    /// <summary>Copyright-safe краткое описание для публичной версии (ContentMode.PublicSafe).</summary>
+    public string SafeDescription { get; set; } = "";
+    /// <summary>Ссылка на источник: книга/раздел/страница. Доступна в обоих режимах.</summary>
+    public string Source { get; set; } = "";
 }

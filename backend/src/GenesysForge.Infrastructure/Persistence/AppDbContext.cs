@@ -84,5 +84,21 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             e.Property(s => s.NameEn).HasMaxLength(120);
             e.Property(s => s.Source).HasMaxLength(120);
         });
+
+        // Content-model (Code/NameRu/Source) у справочных сущностей.
+        ConfigureContent<SkillDef>(b);
+        ConfigureContent<TalentDef>(b);
+        ConfigureContent<ItemDef>(b);
+        ConfigureContent<ArchetypeDef>(b);
+        ConfigureContent<CareerDef>(b);
+        ConfigureContent<HeroicAbilityDef>(b);
+    }
+
+    private static void ConfigureContent<T>(ModelBuilder b) where T : class, IContentDef
+    {
+        var e = b.Entity<T>();
+        e.Property(d => d.Code).HasMaxLength(80);
+        e.Property(d => d.NameRu).HasMaxLength(160);
+        e.Property(d => d.Source).HasMaxLength(160);
     }
 }

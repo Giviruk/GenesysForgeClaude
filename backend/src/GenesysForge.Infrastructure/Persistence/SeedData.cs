@@ -1,3 +1,4 @@
+using System.Text;
 using GenesysForge.Domain;
 using GenesysForge.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
@@ -7,32 +8,84 @@ namespace GenesysForge.Infrastructure.Persistence;
 /// <summary>
 /// Встроенный контент систем. Структура и правила соответствуют Genesys CRB и Realms of Terrinoth;
 /// набор сокращён, значения можно расширять кастомным контентом через UI.
+///
+/// Каждая запись несёт content-model: стабильный <c>Code</c>, русское имя <c>NameRu</c>,
+/// оригинальное имя <c>Name</c> (NameEn), safe-описание <c>SafeDescription</c> и ссылку на источник <c>Source</c>.
+/// Полные (private) описания берутся из <see cref="PrivateContentStore"/> (файлы private-content/*.ru.json).
+///
+/// Два независимых seed-pipeline выбираются <see cref="ContentMode"/>:
+/// <list type="bullet">
+/// <item>PrivateFull — полный контент: <c>Description</c> = private-описание (или fallback на safe);</item>
+/// <item>PublicSafe — copyright-safe: <c>Description</c> очищается, остаются NameRu + SafeDescription + Source.</item>
+/// </list>
+/// Наборы не смешиваются: одну БД сеют одним режимом (см. docs/database.md).
 /// </summary>
 public static class SeedData
 {
     /// <summary>
-    /// Идемпотентный сид: добавляет только отсутствующий встроенный контент (по System+Name,
-    /// для героик — по Name). Безопасно вызывать на уже засеянной БД — новые встроенные записи
-    /// (например, добавленные таланты) досеваются без пересоздания тома и без дублей.
-    /// Кастомный контент (OwnerUserId != null) не затрагивается.
+    /// Идемпотентный сид встроенного контента в выбранном <paramref name="mode"/>: добавляет только
+    /// отсутствующие записи (по System+Name, для героик — по Name). Безопасно вызывать повторно —
+    /// дублей не будет. Кастомный контент (OwnerUserId != null) не затрагивается.
     /// </summary>
-    public static void Apply(AppDbContext db)
+    public static void Apply(AppDbContext db, ContentMode mode = ContentMode.PrivateFull)
     {
-        var added = false;
+        var store = mode == ContentMode.PrivateFull ? PrivateContentStore.Load() : null;
 
-        added |= SeedMissing(db, db.SkillDefs, CoreSkills().Concat(TerrinothSkills()), d => (d.System, d.Name));
-        added |= SeedMissing(db, db.ArchetypeDefs, CoreArchetypes().Concat(TerrinothSpecies()), d => (d.System, d.Name));
-        added |= SeedMissing(db, db.CareerDefs, CoreCareers().Concat(TerrinothCareers()), d => (d.System, d.Name));
-        added |= SeedMissing(db, db.TalentDefs,
-            Talents(GameSystem.GenesysCore).Concat(Talents(GameSystem.RealmsOfTerrinoth)).Concat(TerrinothTalents()),
-            d => (d.System, d.Name));
-        added |= SeedMissing(db, db.ItemDefs, CoreItems().Concat(TerrinothItems()), d => (d.System, d.Name));
-        added |= SeedMissing(db, db.HeroicAbilityDefs, HeroicAbilities(), d => ((GameSystem)0, d.Name));
-        added |= SeedMissing(db, db.SpellDefs,
-            Spells(GameSystem.GenesysCore).Concat(Spells(GameSystem.RealmsOfTerrinoth)),
+        var skills = CoreSkills().Concat(TerrinothSkills()).ToList();
+        var archetypes = CoreArchetypes().Concat(TerrinothSpecies()).ToList();
+        var careers = CoreCareers().Concat(TerrinothCareers()).ToList();
+        var talents = TalentCatalog.Load().ToList();
+        var items = CoreItems().Concat(TerrinothItems()).ToList();
+        var heroics = HeroicAbilities().ToList();
+        var spells = Spells(GameSystem.GenesysCore).Concat(Spells(GameSystem.RealmsOfTerrinoth)).ToList();
+
+        // Проекция описаний под режим контента — единственное отличие private/public pipeline.
+        ProjectContent(skills, mode, store);
+        ProjectContent(archetypes, mode, store);
+        ProjectContent(careers, mode, store);
+        ProjectContent(talents, mode, store);
+        ProjectContent(items, mode, store);
+        ProjectContent(heroics, mode, store);
+        ProjectSpells(spells, mode);
+
+        var added = false;
+        added |= SeedMissing(db, db.SkillDefs, skills, d => (d.System, d.Name));
+        added |= SeedMissing(db, db.ArchetypeDefs, archetypes, d => (d.System, d.Name));
+        added |= SeedMissing(db, db.CareerDefs, careers, d => (d.System, d.Name));
+        added |= SeedMissing(db, db.TalentDefs, talents, d => (d.System, d.Name));
+        added |= SeedMissing(db, db.ItemDefs, items, d => (d.System, d.Name));
+        added |= SeedMissing(db, db.HeroicAbilityDefs, heroics, d => ((GameSystem)0, d.Name));
+        added |= SeedMissing(db, db.SpellDefs, spells,
             d => (d.System, $"{d.MagicSkill}:{(int)d.Kind}:{d.ParentEffect}:{d.NameEn}"));
 
         if (added) db.SaveChanges();
+    }
+
+    /// <summary>
+    /// Проекция content-model под режим: PublicSafe очищает полное описание (остаётся только safe),
+    /// PrivateFull подставляет полное описание из private-набора (или fallback на safe, чтобы было непусто).
+    /// </summary>
+    private static void ProjectContent(IEnumerable<IContentDef> items, ContentMode mode, PrivateContentStore? store)
+    {
+        foreach (var item in items)
+        {
+            if (mode == ContentMode.PublicSafe)
+            {
+                item.Description = "";
+                continue;
+            }
+
+            var full = store?.Get(item.Code);
+            if (!string.IsNullOrEmpty(full)) item.Description = full;
+            else if (string.IsNullOrEmpty(item.Description)) item.Description = item.SafeDescription;
+        }
+    }
+
+    /// <summary>Заклинания несут полное описание в коде (safe-парафраз из п1); в PublicSafe оно очищается.</summary>
+    private static void ProjectSpells(IEnumerable<SpellDef> spells, ContentMode mode)
+    {
+        if (mode != ContentMode.PublicSafe) return;
+        foreach (var s in spells) s.Description = "";
     }
 
     /// <summary>Добавляет элементы, чьи ключи отсутствуют среди встроенных (OwnerUserId == null) записей.</summary>
@@ -69,8 +122,57 @@ public static class SeedData
         _ => true, // архетипы и карьеры всегда встроенные
     };
 
+    // ─────────────────────────── content-model helpers ───────────────────────────
+
+    private static string Sys(GameSystem s) => s == GameSystem.GenesysCore ? "gc" : "rot";
+
+    /// <summary>ASCII-slug по оригинальному (английскому) имени для стабильного кода.</summary>
+    private static string Slug(string s)
+    {
+        var sb = new StringBuilder(s.Length);
+        var prevDash = false;
+        foreach (var ch in s.ToLowerInvariant())
+        {
+            if (char.IsLetterOrDigit(ch)) { sb.Append(ch); prevDash = false; }
+            else if (!prevDash && sb.Length > 0) { sb.Append('-'); prevDash = true; }
+        }
+        return sb.ToString().Trim('-');
+    }
+
+    private static string Code(GameSystem sys, string type, string name) => $"{Sys(sys)}.{type}.{Slug(name)}";
+
+    private static string Ru(IReadOnlyDictionary<string, string> map, string name) =>
+        map.TryGetValue(name, out var ru) ? ru : name;
+
+    // ─────────────────────────── skills ───────────────────────────
+
+    private static readonly Dictionary<string, string> SkillRu = new()
+    {
+        ["Athletics"] = "Атлетика", ["Computers"] = "Компьютеры", ["Cool"] = "Хладнокровие",
+        ["Coordination"] = "Координация", ["Discipline"] = "Дисциплина", ["Driving"] = "Вождение",
+        ["Mechanics"] = "Механика", ["Medicine"] = "Медицина", ["Operating"] = "Операторство",
+        ["Perception"] = "Внимательность", ["Piloting"] = "Пилотирование", ["Resilience"] = "Выносливость",
+        ["Riding"] = "Верховая езда", ["Skulduggery"] = "Плутовство", ["Stealth"] = "Скрытность",
+        ["Streetwise"] = "Уличная смекалка", ["Survival"] = "Выживание", ["Vigilance"] = "Бдительность",
+        ["Brawl"] = "Рукопашный бой", ["Gunnery"] = "Тяжёлое орудие", ["Melee"] = "Ближний бой",
+        ["Ranged (Heavy)"] = "Дальний бой (тяжёлый)", ["Ranged (Light)"] = "Дальний бой (лёгкий)",
+        ["Charm"] = "Обаяние", ["Coercion"] = "Принуждение", ["Deception"] = "Обман",
+        ["Leadership"] = "Лидерство", ["Negotiation"] = "Переговоры", ["Knowledge"] = "Знание",
+        ["Arcana"] = "Аркана", ["Divine"] = "Божественное", ["Primal"] = "Первозданное",
+        ["Alchemy"] = "Алхимия", ["Melee (Heavy)"] = "Ближний бой (тяжёлый)",
+        ["Melee (Light)"] = "Ближний бой (лёгкий)", ["Ranged"] = "Дальний бой",
+        ["Knowledge (Adventuring)"] = "Знание (приключения)", ["Knowledge (Forbidden)"] = "Знание (запретное)",
+        ["Knowledge (Geography)"] = "Знание (география)", ["Knowledge (Lore)"] = "Знание (предания)",
+        ["Runes"] = "Руны", ["Verse"] = "Стих",
+    };
+
     private static SkillDef Skill(GameSystem sys, string name, CharacteristicType ch, SkillKind kind) =>
-        new() { Id = Guid.NewGuid(), System = sys, Name = name, Characteristic = ch, Kind = kind };
+        new()
+        {
+            Id = Guid.NewGuid(), System = sys, Code = Code(sys, "skill", name),
+            Name = name, NameRu = Ru(SkillRu, name), Characteristic = ch, Kind = kind,
+            Source = (sys == GameSystem.GenesysCore ? "Genesys Core Rulebook" : "Realms of Terrinoth") + ", гл. «Навыки»",
+        };
 
     private static IEnumerable<SkillDef> CoreSkills()
     {
@@ -154,12 +256,24 @@ public static class SeedData
         ];
     }
 
-    private static ArchetypeDef Arch(GameSystem sys, string name, int br, int ag, int @int, int cun, int will, int pr,
-        int wt, int st, int xp, string desc) => new()
+    // ─────────────────────────── archetypes ───────────────────────────
+
+    private static readonly Dictionary<string, string> ArchetypeRu = new()
     {
-        Id = Guid.NewGuid(), System = sys, Name = name,
+        ["Average Human"] = "Обычный человек", ["The Laborer"] = "Работяга",
+        ["The Intellectual"] = "Интеллектуал", ["The Aristocrat"] = "Аристократ",
+        ["Human"] = "Человек", ["Elf (Latari)"] = "Эльф (Латари)", ["Dwarf"] = "Дворф",
+        ["Orc"] = "Орк", ["Gnome"] = "Гном", ["Catfolk (Hyrrinx)"] = "Котолюд (Хирринкс)",
+    };
+
+    private static ArchetypeDef Arch(GameSystem sys, string name, int br, int ag, int @int, int cun, int will, int pr,
+        int wt, int st, int xp, string safe) => new()
+    {
+        Id = Guid.NewGuid(), System = sys, Code = Code(sys, "archetype", name),
+        Name = name, NameRu = Ru(ArchetypeRu, name),
         Brawn = br, Agility = ag, Intellect = @int, Cunning = cun, Willpower = will, Presence = pr,
-        WoundBase = wt, StrainBase = st, StartingXp = xp, Description = desc,
+        WoundBase = wt, StrainBase = st, StartingXp = xp, SafeDescription = safe,
+        Source = (sys == GameSystem.GenesysCore ? "Genesys Core Rulebook, гл. «Архетипы»" : "Realms of Terrinoth, гл. «Народы»"),
     };
 
     private static IEnumerable<ArchetypeDef> CoreArchetypes() =>
@@ -174,14 +288,31 @@ public static class SeedData
     [
         Arch(GameSystem.RealmsOfTerrinoth, "Human", 2, 2, 2, 2, 2, 2, 10, 10, 110, "Люди Терринота — самый многочисленный и разносторонний народ."),
         Arch(GameSystem.RealmsOfTerrinoth, "Elf (Latari)", 2, 3, 2, 2, 2, 1, 9, 11, 100, "Латарийские эльфы — ловкие и долговечные жители лесов."),
-        Arch(GameSystem.RealmsOfTerrinoth, "Dwarf", 2, 1, 2, 2, 3, 2, 12, 10, 100, "Гномы Даннских холмов — стойкие мастера и воины."),
+        Arch(GameSystem.RealmsOfTerrinoth, "Dwarf", 2, 1, 2, 2, 3, 2, 12, 10, 100, "Дворфы Даннских холмов — стойкие мастера и воины."),
         Arch(GameSystem.RealmsOfTerrinoth, "Orc", 3, 2, 2, 2, 2, 1, 12, 9, 100, "Орки — могучие и свирепые воины Брокенских земель."),
         Arch(GameSystem.RealmsOfTerrinoth, "Gnome", 1, 2, 2, 3, 2, 2, 8, 11, 100, "Гномы-изобретатели — малы ростом, но хитроумны."),
         Arch(GameSystem.RealmsOfTerrinoth, "Catfolk (Hyrrinx)", 2, 3, 2, 2, 1, 2, 10, 9, 100, "Кошачий народ — стремительные охотники."),
     ];
 
-    private static CareerDef Career(GameSystem sys, string name, string desc, params string[] skills) =>
-        new() { Id = Guid.NewGuid(), System = sys, Name = name, Description = desc, CareerSkillNames = [.. skills] };
+    // ─────────────────────────── careers ───────────────────────────
+
+    private static readonly Dictionary<string, string> CareerRu = new()
+    {
+        ["Entertainer"] = "Артист", ["Explorer"] = "Исследователь", ["Healer"] = "Целитель",
+        ["Leader"] = "Лидер", ["Scoundrel"] = "Пройдоха", ["Socialite"] = "Светский лев",
+        ["Soldier"] = "Солдат", ["Tradesperson"] = "Ремесленник", ["Disciple"] = "Послушник",
+        ["Envoy"] = "Посланник", ["Mage"] = "Маг", ["Runemaster"] = "Рунный мастер",
+        ["Primalist"] = "Первозданник", ["Scholar"] = "Учёный", ["Scout"] = "Разведчик",
+        ["Warrior"] = "Воин",
+    };
+
+    private static CareerDef Career(GameSystem sys, string name, string safe, params string[] skills) =>
+        new()
+        {
+            Id = Guid.NewGuid(), System = sys, Code = Code(sys, "career", name),
+            Name = name, NameRu = Ru(CareerRu, name), SafeDescription = safe, CareerSkillNames = [.. skills],
+            Source = (sys == GameSystem.GenesysCore ? "Genesys Core Rulebook, гл. «Карьеры»" : "Realms of Terrinoth, гл. «Карьеры»"),
+        };
 
     private static IEnumerable<CareerDef> CoreCareers() =>
     [
@@ -225,89 +356,31 @@ public static class SeedData
             "Athletics", "Brawl", "Coercion", "Melee (Heavy)", "Melee (Light)", "Perception", "Resilience", "Vigilance"),
     ];
 
-    private static TalentDef Talent(GameSystem sys, string name, int tier, bool ranked, string activation, string desc,
-        int wt = 0, int st = 0, int soak = 0, int mdef = 0, int rdef = 0) => new()
+    // ─────────────────────────── talents ───────────────────────────
+    // Таланты загружаются из каталога SeedContent/talents.catalog.json (см. TalentCatalog).
+    // Сеттинг каждого таланта задаёт систему: Any → обе, Fantasy → только Realms of Terrinoth.
+
+    // ─────────────────────────── items ───────────────────────────
+
+    private static readonly Dictionary<string, string> ItemRu = new()
     {
-        Id = Guid.NewGuid(), System = sys, Name = name, Tier = tier, IsRanked = ranked,
-        Activation = activation, Description = desc,
-        WoundBonus = wt, StrainBonus = st, SoakBonus = soak, MeleeDefenseBonus = mdef, RangedDefenseBonus = rdef,
+        ["Knife"] = "Нож", ["Sword"] = "Меч", ["Pistol"] = "Пистолет", ["Rifle"] = "Винтовка",
+        ["Shield"] = "Щит", ["Heavy Jacket"] = "Плотная куртка", ["Armored Vest"] = "Бронежилет",
+        ["Backpack"] = "Рюкзак", ["Medkit"] = "Аптечка", ["Rations (1 day)"] = "Паёк (1 день)",
+        ["Dagger"] = "Кинжал", ["Longsword"] = "Длинный меч", ["Greatsword"] = "Двуручный меч",
+        ["Bow"] = "Лук", ["Crossbow"] = "Арбалет", ["Padded Armor"] = "Стёганый доспех",
+        ["Chainmail"] = "Кольчуга", ["Plate Armor"] = "Латный доспех", ["Healing Potion"] = "Зелье лечения",
+        ["Rope (10 m)"] = "Верёвка (10 м)", ["Torch"] = "Факел",
     };
 
-    private static IEnumerable<TalentDef> Talents(GameSystem s) =>
-    [
-        // Тир 1
-        Talent(s, "Grit", 1, true, "Пассивный", "Порог стрейна +1 за ранг.", st: 1),
-        Talent(s, "Toughened", 1, true, "Пассивный", "Порог ран +2 за ранг.", wt: 2),
-        Talent(s, "Jump Up", 1, false, "Манёвр", "Раз в раунд встать из положения сидя/лёжа как инцидентальное действие."),
-        Talent(s, "Quick Strike", 1, true, "Пассивный", "Добавьте 1 Boost к атакам по целям, ещё не действовавшим в этом столкновении (за ранг)."),
-        Talent(s, "Parry", 1, true, "Инцидент", "Потратьте 3 стрейна, чтобы снизить урон ближней атаки на 2 + ранги Parry."),
-        Talent(s, "Forager", 1, false, "Пассивный", "Убирает до 2 Setback с проверок поиска пищи, воды и укрытия."),
-        Talent(s, "Surgeon", 1, true, "Пассивный", "При лечении проверкой Medicine цель восстанавливает +1 рану за ранг."),
-        Talent(s, "Swift", 1, false, "Пассивный", "Игнорирует пересечённую местность при передвижении."),
-        // Тир 2
-        Talent(s, "Defensive Stance", 2, true, "Манёвр", "Потратьте манёвр и стрейн (≤ рангов): до конца хода атаки ближнего боя против вас сложнее на ранги."),
-        Talent(s, "Side Step", 2, true, "Манёвр", "Потратьте манёвр и стрейн (≤ рангов): до конца хода дальние атаки против вас сложнее на ранги."),
-        Talent(s, "Inspiring Rhetoric", 2, false, "Действие", "Проверка Leadership (Average): союзники восстанавливают стрейн за успехи."),
-        Talent(s, "Scathing Tirade", 2, false, "Действие", "Проверка Coercion (Average): противники получают стрейн за успехи."),
-        Talent(s, "Lucky Strike", 2, false, "Инцидент", "Потратив Story Point, добавьте урон, равный характеристике, к одному попаданию."),
-        Talent(s, "Counteroffer", 2, false, "Действие", "Раз в сессию предложите противнику в пределах средней дальности «сделку» — проверка Negotiation, чтобы вывести его из боя."),
-        // Тир 3
-        Talent(s, "Dodge", 3, true, "Инцидент", "При атаке по вам потратьте стрейн (≤ рангов): сложность атаки повышается на потраченное."),
-        Talent(s, "Animal Companion", 3, false, "Пассивный", "Верный зверь-спутник, действующий по вашей команде."),
-        Talent(s, "Field Commander", 3, false, "Действие", "Проверка Leadership: союзники немедленно совершают манёвр."),
-        Talent(s, "Full Throttle", 3, false, "Действие", "Повысьте максимальную скорость транспорта на 1 на несколько раундов."),
-        Talent(s, "Natural", 3, false, "Инцидент", "Раз в сессию переброс одной проверки двух выбранных навыков."),
-        Talent(s, "Heroic Recovery", 3, false, "Инцидент", "Потратив Story Point, восстановите стрейн, равный характеристике Willpower."),
-        // Тир 4
-        Talent(s, "Defensive", 4, true, "Пассивный", "Защита (ближняя и дальняя) +1 за ранг.", mdef: 1, rdef: 1),
-        Talent(s, "Enduring", 4, true, "Пассивный", "Поглощение +1 за ранг.", soak: 1),
-        Talent(s, "Can't We Talk About This?", 4, false, "Действие", "Проверка Charm/Deception: гуманоиды-противники не атакуют вас, пока вы не нападёте."),
-        Talent(s, "Deadeye", 4, false, "Инцидент", "После попадания дальней атакой потратьте 2 стрейна: критическая травма по вашему выбору."),
-        // Тир 5
-        Talent(s, "Dedication", 5, true, "Пассивный", "Повышает одну характеристику на 1 (макс. 6). Выбор характеристики — на листе."),
-        Talent(s, "Indomitable", 5, false, "Инцидент", "Раз в столкновение: получив травму, выводящую из строя, останьтесь в строю до конца следующего хода."),
-        Talent(s, "Master", 5, true, "Инцидент", "Раз в раунд потратьте 2 стрейна: снизьте сложность проверки выбранного навыка на 1 (минимум Easy)."),
-        Talent(s, "Ruinous Repartee", 5, false, "Действие", "Раз в столкновение: проверка Charm/Coercion — противник получает стрейн, равный удвоенной Presence."),
-    ];
-
-    /// <summary>
-    /// Таланты, специфичные для Realms of Terrinoth (фэнтези-бой и магия) — в дополнение к общим Genesys-талантам.
-    /// Набор сокращён и приближён к книге; расширяется кастомным контентом.
-    /// </summary>
-    private static IEnumerable<TalentDef> TerrinothTalents()
-    {
-        const GameSystem S = GameSystem.RealmsOfTerrinoth;
-        return
-        [
-            // Тир 1
-            Talent(S, "Brace", 1, true, "Манёвр", "Снимите до рангов Brace кубов Setback, наложенных на проверку условиями окружения или положением."),
-            Talent(S, "Hamstring Shot", 1, false, "Действие", "Одна атака Ranged или Brawl; при попадании скорость цели до конца её следующего хода снижается до 0."),
-            Talent(S, "Knack for It", 1, true, "Пассивный", "Выберите узкий навык: снимайте 1 Setback за ранг с его проверок."),
-            Talent(S, "Second Wind", 1, true, "Инцидент", "Раз в столкновение восстановите стрейн, равный числу рангов Second Wind."),
-            // Тир 2
-            Talent(S, "Familiar", 2, false, "Пассивный", "Магический спутник-фамильяр действует по вашей команде и помогает в проверках."),
-            Talent(S, "Heightened Awareness", 2, false, "Пассивный", "Союзники в короткой дальности добавляют 1 Boost к проверкам Perception и Vigilance."),
-            Talent(S, "Bought Info", 2, false, "Действие", "Проверка Streetwise или Knowledge, чтобы собрать слухи и сведения в поселении."),
-            // Тир 3
-            Talent(S, "Berserk", 3, false, "Манёвр", "Ярость: до конца столкновения +1 успех к ближним атакам, но вы не можете защищаться и совершать иные действия, кроме атак."),
-            Talent(S, "Dual Wielder", 3, false, "Манёвр", "Снизьте сложность совмещённой атаки двумя оружиями на 1."),
-            Talent(S, "Eldritch Insight", 3, false, "Пассивный", "Добавьте ранги Knowledge (Lore) к проверкам одного выбранного магического навыка при определении эффекта."),
-            // Тир 4
-            Talent(S, "Counterspell", 4, false, "Инцидент", "Потратьте 3 стрейна, чтобы повысить сложность вражеской магической проверки на 1."),
-            Talent(S, "Crippling Blow", 4, false, "Действие", "Атака ближнего боя; при попадании цель получает 1 стрейн при каждом своём действии до конца столкновения."),
-            Talent(S, "Superior Reflexes", 4, true, "Пассивный", "Защита (ближняя и дальняя) +1 за ранг.", mdef: 1, rdef: 1),
-            // Тир 5
-            Talent(S, "Heroic Will", 5, false, "Инцидент", "Потратьте Story Point, чтобы немедленно снять с себя один негативный статус или контролирующий эффект."),
-            Talent(S, "Runebound", 5, true, "Пассивный", "Связь с рунным осколком: порог ран +1 и порог стрейна +1 за ранг.", wt: 1, st: 1),
-        ];
-    }
-
-    private static ItemDef Item(GameSystem sys, string name, ItemKind kind, int enc, string desc,
+    private static ItemDef Item(GameSystem sys, string name, ItemKind kind, int enc, string safe,
         int soak = 0, int mdef = 0, int rdef = 0, int encBonus = 0, int price = 0, int rarity = 1) => new()
     {
-        Id = Guid.NewGuid(), System = sys, Name = name, Kind = kind, Encumbrance = enc, Description = desc,
+        Id = Guid.NewGuid(), System = sys, Code = Code(sys, "item", name),
+        Name = name, NameRu = Ru(ItemRu, name), Kind = kind, Encumbrance = enc, SafeDescription = safe,
         SoakBonus = soak, MeleeDefense = mdef, RangedDefense = rdef, EncumbranceThresholdBonus = encBonus,
         Price = price, Rarity = rarity,
+        Source = (sys == GameSystem.GenesysCore ? "Genesys Core Rulebook, гл. «Снаряжение»" : "Realms of Terrinoth, гл. «Снаряжение»"),
     };
 
     private static IEnumerable<ItemDef> CoreItems()
@@ -350,16 +423,35 @@ public static class SeedData
         ];
     }
 
+    // ─────────────────────────── heroic abilities ───────────────────────────
+
+    private static readonly Dictionary<string, string> HeroicRu = new()
+    {
+        ["Sixth Sense"] = "Шестое чувство", ["Signature Weapon"] = "Именное оружие",
+        ["Battle Fury"] = "Боевая ярость", ["Healing Hands"] = "Целящие руки",
+        ["Shadow Walker"] = "Идущий в тенях", ["Unbreakable"] = "Несокрушимость",
+        ["Inspiring Presence"] = "Воодушевляющее присутствие",
+    };
+
+    private static HeroicAbilityDef Heroic(string name, string safe) => new()
+    {
+        Id = Guid.NewGuid(), Code = $"rot.heroic.{Slug(name)}",
+        Name = name, NameRu = Ru(HeroicRu, name), SafeDescription = safe,
+        Source = "Realms of Terrinoth, гл. «Героические способности»",
+    };
+
     private static IEnumerable<HeroicAbilityDef> HeroicAbilities() =>
     [
-        new() { Id = Guid.NewGuid(), Name = "Sixth Sense", Description = "Сверхъестественное чутьё на опасность в выбранной сфере: раз в сессию ГМ отвечает на вопрос о скрытой угрозе; активация инцидентом за Story Point." },
-        new() { Id = Guid.NewGuid(), Name = "Signature Weapon", Description = "Легендарная связь с личным оружием: пока оно в руках, добавляйте Boost к атакам; оружие невозможно потерять навсегда." },
-        new() { Id = Guid.NewGuid(), Name = "Battle Fury", Description = "Боевое неистовство: активируйте инцидентом за Story Point — до конца раунда совершите дополнительный манёвр и добавьте урон, равный рангам Resilience." },
-        new() { Id = Guid.NewGuid(), Name = "Healing Hands", Description = "Целительное прикосновение: раз в столкновение исцелите союзника на величину Willpower; активация действием за Story Point." },
-        new() { Id = Guid.NewGuid(), Name = "Shadow Walker", Description = "Хождение в тенях: активируйте за Story Point, чтобы немедленно скрыться и переместиться на среднюю дальность незамеченным." },
-        new() { Id = Guid.NewGuid(), Name = "Unbreakable", Description = "Несокрушимость: раз в сессию, опустившись до 0 ран, останьтесь на ногах с 1 раной; активация инцидентом." },
-        new() { Id = Guid.NewGuid(), Name = "Inspiring Presence", Description = "Воодушевляющее присутствие: союзники в пределах короткой дальности добавляют Boost к социальным проверкам; усиление за Story Point." },
+        Heroic("Sixth Sense", "Сверхъестественное чутьё на опасность в выбранной сфере: раз в сессию ГМ отвечает на вопрос о скрытой угрозе; активация инцидентом за Story Point."),
+        Heroic("Signature Weapon", "Легендарная связь с личным оружием: пока оно в руках, добавляйте Boost к атакам; оружие невозможно потерять навсегда."),
+        Heroic("Battle Fury", "Боевое неистовство: активируйте инцидентом за Story Point — до конца раунда совершите дополнительный манёвр и добавьте урон, равный рангам Resilience."),
+        Heroic("Healing Hands", "Целительное прикосновение: раз в столкновение исцелите союзника на величину Willpower; активация действием за Story Point."),
+        Heroic("Shadow Walker", "Хождение в тенях: активируйте за Story Point, чтобы немедленно скрыться и переместиться на среднюю дальность незамеченным."),
+        Heroic("Unbreakable", "Несокрушимость: раз в сессию, опустившись до 0 ран, останьтесь на ногах с 1 раной; активация инцидентом."),
+        Heroic("Inspiring Presence", "Воодушевляющее присутствие: союзники в пределах короткой дальности добавляют Boost к социальным проверкам; усиление за Story Point."),
     ];
+
+    // ─────────────────────────── spells ───────────────────────────
 
     private static SpellDef Spell(GameSystem sys, string skill, SpellEntryKind kind, string parent, string ru,
         string en, string difficulty, string desc, string safe, string source, int sort) => new()

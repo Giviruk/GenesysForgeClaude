@@ -4,6 +4,25 @@
     <ProjectReference Include="..\GenesysForge.Application\GenesysForge.Application.csproj" />
   </ItemGroup>
 
+  <!-- Каталог талантов (структура + переработанные описания, не текст книг) — встроенный seed-контент. -->
+  <ItemGroup>
+    <EmbeddedResource Include="Persistence\SeedContent\talents.catalog.json" />
+  </ItemGroup>
+
+  <!--
+    Приватный полный контент (private-content/*.ru.json) подключается как embedded resource,
+    чтобы PrivateContentStore читал его независимо от рабочего каталога. Glob, не находящий файлов
+    (например, после их удаления перед публичным открытием репо), не ломает сборку.
+  -->
+  <ItemGroup>
+    <!-- WithCulture=false: суффикс ".ru" в имени иначе принимается за культуру и уводит ресурс в сателлит. -->
+    <EmbeddedResource Include="..\..\..\private-content\*.ru.json">
+      <Link>private-content\%(Filename)%(Extension)</Link>
+      <WithCulture>false</WithCulture>
+      <LogicalName>private-content.%(Filename)%(Extension)</LogicalName>
+    </EmbeddedResource>
+  </ItemGroup>
+
   <ItemGroup>
     <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="10.0.9" />
     <PackageReference Include="Microsoft.Extensions.Identity.Core" Version="10.0.9" />

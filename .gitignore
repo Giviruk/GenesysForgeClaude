@@ -27,3 +27,6 @@ Thumbs.db
 
 # Local run logs
 backend/api-*.log
+
+# Copyrighted source books — only for local data extraction, must never be committed
+_books/

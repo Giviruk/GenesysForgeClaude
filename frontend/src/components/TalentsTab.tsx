@@ -48,7 +48,7 @@ export function TalentsTab({ sheet, reference, onError, refresh }: Props) {
               const base = reference.talents.find(d => d.id === t.talentDefId)?.tier ?? t.tier
               for (let r = 0; r < t.ranks; r++) {
                 if (Math.min(base + r, 5) === tier) {
-                  rows.push({ name: t.name, rank: t.isRanked ? r + 1 : undefined, description: t.description })
+                  rows.push({ name: t.nameRu || t.name, rank: t.isRanked ? r + 1 : undefined, description: t.description })
                 }
               }
             }
@@ -82,7 +82,7 @@ export function TalentsTab({ sheet, reference, onError, refresh }: Props) {
             return (
               <div key={t.talentDefId} className="owned-talent">
                 <div className="owned-talent-head">
-                  <strong>{t.name}</strong>
+                  <strong>{t.nameRu || t.name}</strong>
                   <span className="badge tier">Тир {t.tier}</span>
                   <span className={isPassive ? 'badge passive' : 'badge active'}>
                     {isPassive ? 'Пассивный' : `Активный · ${t.activation}`}
@@ -127,7 +127,7 @@ export function TalentsTab({ sheet, reference, onError, refresh }: Props) {
               <div key={t.id} className="talent-row">
                 <div className="talent-info">
                   <strong>
-                    {t.name} <span className="badge tier">Тир {t.tier}</span>
+                    {t.nameRu || t.name} <span className="badge tier">Тир {t.tier}</span>
                     {t.isRanked && <span className="badge">Ранговый{ranksOwned > 0 ? `: ${ranksOwned}` : ''}</span>}
                     {t.isCustom && <span className="badge custom">Кастом</span>}
                     <span className="muted"> · {t.activation}</span>

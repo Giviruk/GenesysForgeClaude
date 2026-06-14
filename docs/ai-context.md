@@ -18,6 +18,10 @@ Dependency direction: `Api -> Infrastructure -> Application -> Domain`. Domain m
 
 JWT register/login, character CRUD, reference data, Genesys Core and Realms of Terrinoth systems, creation phase, XP spending for characteristics/skills/talents, refunds during creation, talent pyramid, ranked talents, Terrinoth heroic ability assignment, inventory/equipment, derived stats, custom skills/talents/items/heroic abilities scoped by owner, EF migrations, idempotent seed data, CI.
 
+Reference content model: every reference def (`SkillDef`/`TalentDef`/`ItemDef`/`ArchetypeDef`/`CareerDef`/`HeroicAbilityDef`, plus `SpellDef`) carries `Code` (stable key), `NameRu`, `Name` (original/EN), `Description` (full/private), `SafeDescription` (public) and `Source` via `IContentDef`. Two seed pipelines are selected by `ContentMode` (`Content:Mode` config, default `PrivateFull`): `PrivateFull` fills full descriptions (overlaid from embedded `private-content/*.ru.json`); `PublicSafe` clears full descriptions and keeps only Russian names, safe descriptions and sources. Both are idempotent and isolated; the public set is structurally complete without private data. This prepares for the later `AppMode` Private/Public split (not implemented yet). `private-content/` holds own paraphrases (not book text) and must be removed before the repo is opened publicly.
+
+Talents carry a `Setting` (`[Flags] GenesysSetting`) and are data-driven: built-in talents come from the embedded `Persistence/SeedContent/talents.catalog.json` catalog (`TalentCatalog`), generated from source CSVs (structure + reworked descriptions). Reference filtering: Genesys Core lists `Any`-setting talents; Realms of Terrinoth lists `Any` + `Fantasy`; a character's own custom talents always show. `_books/` (source PDFs/CSVs) is gitignored and must never be committed.
+
 Partially implemented: frontend routing/state, UI validation, frontend component test coverage, mechanical talent/heroic ability effects. Not implemented yet: campaigns, sharing, refresh tokens, password reset, import/export, PDF/print, E2E tests, API versioning.
 
 ## Core entities

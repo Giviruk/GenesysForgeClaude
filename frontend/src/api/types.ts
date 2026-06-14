@@ -14,18 +14,25 @@ export interface AuthResponse {
 export interface SkillDef {
   id: string
   name: string
+  nameRu: string
   characteristic: Characteristic
   kind: SkillKind
+  safeDescription: string
+  source: string
   isCustom: boolean
 }
 
 export interface TalentDef {
   id: string
   name: string
+  nameRu: string
   tier: number
   isRanked: boolean
+  setting: string
   activation: string
   description: string
+  safeDescription: string
+  source: string
   woundBonus: number
   strainBonus: number
   soakBonus: number
@@ -37,6 +44,7 @@ export interface TalentDef {
 export interface ItemDef {
   id: string
   name: string
+  nameRu: string
   kind: ItemKind
   encumbrance: number
   soakBonus: number
@@ -44,6 +52,8 @@ export interface ItemDef {
   rangedDefense: number
   encumbranceThresholdBonus: number
   description: string
+  safeDescription: string
+  source: string
   price: number
   rarity: number
   isCustom: boolean
@@ -52,7 +62,10 @@ export interface ItemDef {
 export interface HeroicAbility {
   id: string
   name: string
+  nameRu: string
   description: string
+  safeDescription: string
+  source: string
   isCustom: boolean
 }
 
@@ -75,6 +88,7 @@ export interface Spell {
 export interface Archetype {
   id: string
   name: string
+  nameRu: string
   brawn: number
   agility: number
   intellect: number
@@ -85,12 +99,17 @@ export interface Archetype {
   strainBase: number
   startingXp: number
   description: string
+  safeDescription: string
+  source: string
 }
 
 export interface Career {
   id: string
   name: string
+  nameRu: string
   description: string
+  safeDescription: string
+  source: string
   careerSkillNames: string[]
 }
 
@@ -133,6 +152,7 @@ export interface SheetSkill {
 export interface SheetTalent {
   talentDefId: string
   name: string
+  nameRu: string
   tier: number
   isRanked: boolean
   ranks: number

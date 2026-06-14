@@ -36,6 +36,9 @@
 - Custom skills, talents, items and heroic abilities.
 - Custom content visibility scoped by `OwnerUserId`.
 - EF Core migrations and automatic `Database.Migrate()` on startup.
+- Content model on all reference entities (`Code`, `NameRu`, `Name`/original, `Description` full, `SafeDescription`, `Source`) via `IContentDef`.
+- Talents have a `Setting` (`[Flags] GenesysSetting`) and are data-driven from an embedded catalog (`talents.catalog.json`, ~120 entries). Reference listing filters by setting: Genesys Core → `Any` only; Realms of Terrinoth → `Any` + `Fantasy`. Russian names (`NameRu`) shown in the talents UI.
+- Two idempotent seed pipelines selected by `ContentMode` (`Content:Mode` config): `PrivateFull` (full descriptions, overlaid from `private-content/*.ru.json`) and `PublicSafe` (no full descriptions; keeps Russian names, safe descriptions and source references). Public set is structurally complete on its own; pipelines stay isolated.
 - Idempotent seed application for built-in content.
 - Docker compose for PostgreSQL + API + web.
 - CI for backend build/test and frontend lint/test/build.

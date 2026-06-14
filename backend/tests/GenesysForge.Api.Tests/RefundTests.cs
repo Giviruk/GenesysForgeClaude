@@ -98,7 +98,7 @@ public class RefundTests : IClassFixture<ApiFactory>
     public async Task RankedTalent_RefundReturnsLastRankCost()
     {
         var (client, reference, id) = await CreateCharacterAsync();
-        var grit = reference.Talents.First(t => t.Name == "Grit");
+        var grit = reference.Talents.First(t => t.Name == "Упорство");
         var filler = reference.Talents.First(t => t.Tier == 1 && !t.IsRanked);
 
         await client.PostAsJsonAsync($"/api/characters/{id}/talents/buy", new BuyTalentRequest(grit.Id));   // T1, 5
@@ -109,7 +109,7 @@ public class RefundTests : IClassFixture<ApiFactory>
         Assert.Equal(HttpStatusCode.NoContent, refund.StatusCode);
         var sheet = await SheetAsync(client, id);
         Assert.Equal(10, sheet.SpentXp); // вернулись 10 за второй ранг (T2)
-        Assert.Equal(1, sheet.Talents.First(t => t.Name == "Grit").Ranks);
+        Assert.Equal(1, sheet.Talents.First(t => t.Name == "Упорство").Ranks);
     }
 
     [Fact]

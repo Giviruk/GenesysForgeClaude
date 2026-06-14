@@ -160,14 +160,14 @@ public class CharacterFlowTests : IClassFixture<ApiFactory>
     {
         var (client, reference, id) = await CreateCharacterAsync(GameSystem.GenesysCore);
         var before = await SheetAsync(client, id);
-        var grit = reference.Talents.First(t => t.Name == "Grit");
+        var grit = reference.Talents.First(t => t.Name == "Упорство"); // Grit: +1 порог стрейна за ранг
 
         await client.PostAsJsonAsync($"/api/characters/{id}/talents/buy", new BuyTalentRequest(grit.Id));
         var after = await SheetAsync(client, id);
 
         Assert.Equal(before.Derived.StrainThreshold + 1, after.Derived.StrainThreshold);
         // лист отдаёт пассивные бонусы таланта — для детального отображения на клиенте
-        var owned = after.Talents.First(t => t.Name == "Grit");
+        var owned = after.Talents.First(t => t.Name == "Упорство");
         Assert.Equal(1, owned.StrainBonus);
         Assert.Equal(0, owned.WoundBonus);
     }
@@ -180,13 +180,12 @@ public class CharacterFlowTests : IClassFixture<ApiFactory>
         var core = await _factory.CreateAuthorizedClientAsync();
         var crefs = (await core.GetFromJsonAsync<ReferenceResponse>("/api/reference/GenesysCore", Json.Options))!;
 
-        // специфичные терринотские таланты присутствуют у Terrinoth и отсутствуют у Genesys Core
-        Assert.Contains(trefs.Talents, t => t.Name == "Runebound");
-        Assert.Contains(trefs.Talents, t => t.Name == "Berserk");
-        Assert.DoesNotContain(crefs.Talents, t => t.Name == "Runebound");
-        // общие таланты по-прежнему доступны в обеих системах
-        Assert.Contains(trefs.Talents, t => t.Name == "Grit");
-        Assert.Contains(crefs.Talents, t => t.Name == "Grit");
+        // фэнтези-таланты присутствуют у Terrinoth и отсутствуют у Genesys Core
+        Assert.Contains(trefs.Talents, t => t.Setting.HasFlag(GenesysSetting.Fantasy));
+        Assert.DoesNotContain(crefs.Talents, t => t.Setting.HasFlag(GenesysSetting.Fantasy));
+        // общие таланты (для любого сеттинга) по-прежнему доступны в обеих системах
+        Assert.Contains(trefs.Talents, t => t.Name == "Упорство");
+        Assert.Contains(crefs.Talents, t => t.Name == "Упорство");
         // у Terrinoth талантов строго больше, чем у Core (общие + специфичные)
         Assert.True(trefs.Talents.Count > crefs.Talents.Count);
     }

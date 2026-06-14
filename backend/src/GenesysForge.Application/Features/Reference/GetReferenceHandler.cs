@@ -25,8 +25,16 @@ public class GetReferenceHandler(IAppDbContext db) : IQueryHandler<GetReferenceQ
             .OrderBy(s => s.Kind).ThenBy(s => s.Name)
             .Select(s => s.ToDto()).ToListAsync(ct);
 
+        // Genesys Core показывает только таланты «для любого сеттинга»; Realms of Terrinoth — плюс фэнтези.
+        // Кастомные таланты владельца показываются всегда, независимо от сеттинга.
+        var settingMask = system == GameSystem.RealmsOfTerrinoth
+            ? GenesysSetting.Any | GenesysSetting.Fantasy
+            : GenesysSetting.Any;
+
         var talents = await db.TalentDefs.AsNoTracking()
-            .Where(t => t.System == system && (t.OwnerUserId == null || t.OwnerUserId == userId))
+            .Where(t => t.System == system
+                && (t.OwnerUserId == userId
+                    || (t.OwnerUserId == null && (t.Setting & settingMask) != 0)))
             .OrderBy(t => t.Tier).ThenBy(t => t.Name)
             .Select(t => t.ToDto()).ToListAsync(ct);
 
