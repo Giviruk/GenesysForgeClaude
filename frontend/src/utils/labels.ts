@@ -48,6 +48,23 @@ export const ITEM_STATE_LABELS: Record<ItemState, string> = {
   backpack: 'В рюкзаке',
 }
 
+/** Нейтральная подпись валюты («монеты»). */
+export const CURRENCY_LABEL = 'монеты'
+export const CURRENCY_SHORT = 'мон.'
+
+/**
+ * Подбирает навык листа для броска оружием. Оружие хранит англ. имя навыка
+ * (например, «Melee (Light)»), но в Genesys Core навык называется просто «Melee» —
+ * поэтому при отсутствии точного совпадения пробуем базовое имя без скобок.
+ */
+export function resolveWeaponSkillName(weaponSkill: string, skillNames: string[]): string | null {
+  if (!weaponSkill) return null
+  if (skillNames.includes(weaponSkill)) return weaponSkill
+  const base = weaponSkill.replace(/\s*\(.*\)\s*/, '').trim()
+  if (base && skillNames.includes(base)) return base
+  return null
+}
+
 /** Подписи магических навыков (направлений магии). Ключ — стабильный код из seed. */
 export const MAGIC_SKILL_LABELS: Record<string, string> = {
   Arcana: 'Тайная (Arcana)',

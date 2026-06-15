@@ -26,6 +26,9 @@ public class Character
     public int WoundsCurrent { get; set; }
     public int StrainCurrent { get; set; }
 
+    /// <summary>Кошелёк персонажа (нейтральные «монеты»). Стартовый баланс — 500.</summary>
+    public int Money { get; set; } = 500;
+
     public Guid? HeroicAbilityId { get; set; }
     public HeroicAbilityDef? HeroicAbility { get; set; }
 

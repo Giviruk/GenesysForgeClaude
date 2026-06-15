@@ -55,7 +55,7 @@ public static class SheetBuilder
                 ["cunning"] = ch.Cunning, ["willpower"] = ch.Willpower, ["presence"] = ch.Presence,
             },
             c.TotalXp, c.SpentXp, c.AvailableXp, c.IsCreationPhase,
-            c.WoundsCurrent, c.StrainCurrent,
+            c.WoundsCurrent, c.StrainCurrent, c.Money,
             new DerivedDto(derived.WoundThreshold, derived.StrainThreshold, derived.Soak, derived.MeleeDefense,
                 derived.RangedDefense, derived.EncumbranceThreshold, derived.EncumbranceLoad, derived.Encumbered),
             skills,
@@ -76,7 +76,8 @@ public static class SheetBuilder
                     i.ItemDef.RangedDefense, i.ItemDef.EncumbranceThresholdBonus,
                     SheetCalculator.ItemLoad(new ItemInput(i.ItemDef.Name, i.ItemDef.Kind, i.State,
                         i.ItemDef.Encumbrance, i.Quantity)),
-                    i.ItemDef.Description))
+                    i.ItemDef.Description, i.ItemDef.Price,
+                    i.ItemDef.SkillName, i.ItemDef.Damage, i.ItemDef.Crit, i.ItemDef.RangeBand, i.ItemDef.Properties))
                 .ToList());
     }
 }

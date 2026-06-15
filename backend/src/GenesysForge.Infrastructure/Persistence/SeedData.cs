@@ -35,7 +35,7 @@ public static class SeedData
         var archetypes = CoreArchetypes().Concat(TerrinothSpecies()).ToList();
         var careers = CoreCareers().Concat(TerrinothCareers()).ToList();
         var talents = TalentCatalog.Load().ToList();
-        var items = CoreItems().Concat(TerrinothItems()).ToList();
+        var items = ItemCatalog.Load().ToList();
         var heroics = HeroicAbilities().ToList();
         var spells = Spells(GameSystem.GenesysCore).Concat(Spells(GameSystem.RealmsOfTerrinoth)).ToList();
 
@@ -361,67 +361,8 @@ public static class SeedData
     // Сеттинг каждого таланта задаёт систему: Any → обе, Fantasy → только Realms of Terrinoth.
 
     // ─────────────────────────── items ───────────────────────────
-
-    private static readonly Dictionary<string, string> ItemRu = new()
-    {
-        ["Knife"] = "Нож", ["Sword"] = "Меч", ["Pistol"] = "Пистолет", ["Rifle"] = "Винтовка",
-        ["Shield"] = "Щит", ["Heavy Jacket"] = "Плотная куртка", ["Armored Vest"] = "Бронежилет",
-        ["Backpack"] = "Рюкзак", ["Medkit"] = "Аптечка", ["Rations (1 day)"] = "Паёк (1 день)",
-        ["Dagger"] = "Кинжал", ["Longsword"] = "Длинный меч", ["Greatsword"] = "Двуручный меч",
-        ["Bow"] = "Лук", ["Crossbow"] = "Арбалет", ["Padded Armor"] = "Стёганый доспех",
-        ["Chainmail"] = "Кольчуга", ["Plate Armor"] = "Латный доспех", ["Healing Potion"] = "Зелье лечения",
-        ["Rope (10 m)"] = "Верёвка (10 м)", ["Torch"] = "Факел",
-    };
-
-    private static ItemDef Item(GameSystem sys, string name, ItemKind kind, int enc, string safe,
-        int soak = 0, int mdef = 0, int rdef = 0, int encBonus = 0, int price = 0, int rarity = 1) => new()
-    {
-        Id = Guid.NewGuid(), System = sys, Code = Code(sys, "item", name),
-        Name = name, NameRu = Ru(ItemRu, name), Kind = kind, Encumbrance = enc, SafeDescription = safe,
-        SoakBonus = soak, MeleeDefense = mdef, RangedDefense = rdef, EncumbranceThresholdBonus = encBonus,
-        Price = price, Rarity = rarity,
-        Source = (sys == GameSystem.GenesysCore ? "Genesys Core Rulebook, гл. «Снаряжение»" : "Realms of Terrinoth, гл. «Снаряжение»"),
-    };
-
-    private static IEnumerable<ItemDef> CoreItems()
-    {
-        const GameSystem S = GameSystem.GenesysCore;
-        return
-        [
-            Item(S, "Knife", ItemKind.Weapon, 1, "Урон +1; Крит 3; Ближний бой (Melee).", price: 10),
-            Item(S, "Sword", ItemKind.Weapon, 1, "Урон +2; Крит 2; Defensive 1 (Melee).", price: 250, rarity: 3),
-            Item(S, "Pistol", ItemKind.Weapon, 1, "Урон 6; Крит 3; Средняя дальность (Ranged Light).", price: 400, rarity: 4),
-            Item(S, "Rifle", ItemKind.Weapon, 4, "Урон 8; Крит 3; Дальняя дальность (Ranged Heavy).", price: 600, rarity: 5),
-            Item(S, "Shield", ItemKind.Weapon, 2, "Урон +0; Крит 5; Defensive 1, Deflection 1.", mdef: 1, price: 50, rarity: 2),
-            Item(S, "Heavy Jacket", ItemKind.Armor, 1, "Плотная куртка.", soak: 1, price: 50),
-            Item(S, "Armored Vest", ItemKind.Armor, 3, "Бронежилет.", soak: 2, price: 500, rarity: 5),
-            Item(S, "Backpack", ItemKind.Gear, 0, "Увеличивает порог переносимого веса на 4 (пока надет).", encBonus: 4, price: 25),
-            Item(S, "Medkit", ItemKind.Gear, 1, "Снимает Setback с проверок Medicine.", price: 100, rarity: 2),
-            Item(S, "Rations (1 day)", ItemKind.Gear, 1, "Дневной паёк.", price: 5),
-        ];
-    }
-
-    private static IEnumerable<ItemDef> TerrinothItems()
-    {
-        const GameSystem S = GameSystem.RealmsOfTerrinoth;
-        return
-        [
-            Item(S, "Dagger", ItemKind.Weapon, 1, "Урон +1; Крит 3 (Melee Light).", price: 5),
-            Item(S, "Longsword", ItemKind.Weapon, 2, "Урон +3; Крит 2; Defensive 1 (Melee Light).", price: 150, rarity: 4),
-            Item(S, "Greatsword", ItemKind.Weapon, 3, "Урон +4; Крит 2; Cumbersome 3, Pierce 1 (Melee Heavy).", price: 300, rarity: 5),
-            Item(S, "Bow", ItemKind.Weapon, 2, "Урон 7; Крит 3; Средняя дальность; Unwieldy 2 (Ranged).", price: 80, rarity: 2),
-            Item(S, "Crossbow", ItemKind.Weapon, 3, "Урон 7; Крит 2; Средняя дальность; Pierce 2, Prepare 1 (Ranged).", price: 120, rarity: 3),
-            Item(S, "Shield", ItemKind.Weapon, 2, "Урон +0; Крит 5; Defensive 1, Deflection 1.", mdef: 1, price: 25, rarity: 1),
-            Item(S, "Padded Armor", ItemKind.Armor, 2, "Стёганый доспех.", soak: 1, price: 15),
-            Item(S, "Chainmail", ItemKind.Armor, 4, "Кольчуга.", soak: 2, price: 200, rarity: 4),
-            Item(S, "Plate Armor", ItemKind.Armor, 6, "Латный доспех.", soak: 2, mdef: 1, rdef: 1, price: 1200, rarity: 7),
-            Item(S, "Backpack", ItemKind.Gear, 0, "Увеличивает порог переносимого веса на 4 (пока надет).", encBonus: 4, price: 10),
-            Item(S, "Healing Potion", ItemKind.Gear, 0, "Восстанавливает 4 раны (раз в день на персонажа).", price: 50, rarity: 4),
-            Item(S, "Rope (10 m)", ItemKind.Gear, 1, "Прочная верёвка.", price: 2),
-            Item(S, "Torch", ItemKind.Gear, 1, "Освещает короткую дальность.", price: 1),
-            Item(S, "Rations (1 day)", ItemKind.Gear, 1, "Дневной паёк.", price: 1),
-        ];
-    }
+    // Снаряжение загружается из каталога SeedContent/items.catalog.json (см. ItemCatalog).
+    // Сеттинг каждого предмета задаёт систему: Any → обе, Fantasy → только Realms of Terrinoth.
 
     // ─────────────────────────── heroic abilities ───────────────────────────
 

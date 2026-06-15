@@ -239,6 +239,13 @@ function ItemForm({ sheet, run, editing, onDone }: { sheet: CharacterSheet; run:
   const [name, setName] = useState(editing?.name ?? '')
   const [kind, setKind] = useState<string>(editing?.kind ?? 'gear')
   const [description, setDescription] = useState(editing?.description ?? '')
+  const [weapon, setWeapon] = useState({
+    skillName: editing?.skillName ?? '',
+    damage: editing?.damage ?? '',
+    crit: editing?.crit ?? '',
+    rangeBand: editing?.rangeBand ?? '',
+    properties: editing?.properties ?? '',
+  })
   const [numbers, setNumbers] = useState({
     encumbrance: editing?.encumbrance ?? 0,
     soakBonus: editing?.soakBonus ?? 0,
@@ -251,7 +258,7 @@ function ItemForm({ sheet, run, editing, onDone }: { sheet: CharacterSheet; run:
 
   function submit(e: FormEvent) {
     e.preventDefault()
-    const payload = { system: sheet.system, name, kind, description, ...numbers }
+    const payload = { system: sheet.system, name, kind, description, ...numbers, ...(kind === 'weapon' ? weapon : {}) }
     if (editing) {
       void run(() => api.updateCustomItem(editing.id, payload), `Предмет «${name}» обновлён.`)
       onDone()
@@ -282,7 +289,30 @@ function ItemForm({ sheet, run, editing, onDone }: { sheet: CharacterSheet; run:
           <option value="gear">Снаряжение</option>
         </select>
       </label>
-      <label>Описание (урон, крит, свойства…)<textarea value={description} onChange={e => setDescription(e.target.value)} rows={2} /></label>
+      {kind === 'weapon' && (
+        <>
+          <div className="label-line">Боевые характеристики оружия:</div>
+          <label>Навык броска
+            <select value={weapon.skillName} onChange={e => setWeapon(w => ({ ...w, skillName: e.target.value }))}>
+              <option value="">— не задан —</option>
+              {sheet.skills.filter(s => s.kind === 'combat').map(s => (
+                <option key={s.skillDefId} value={s.name}>{s.name}</option>
+              ))}
+            </select>
+          </label>
+          <div className="bonus-grid">
+            <label>Урон (например «+3» или «7»)
+              <input value={weapon.damage} onChange={e => setWeapon(w => ({ ...w, damage: e.target.value }))} /></label>
+            <label>Крит
+              <input value={weapon.crit} onChange={e => setWeapon(w => ({ ...w, crit: e.target.value }))} /></label>
+            <label>Дистанция
+              <input value={weapon.rangeBand} onChange={e => setWeapon(w => ({ ...w, rangeBand: e.target.value }))} /></label>
+          </div>
+          <label>Свойства
+            <input value={weapon.properties} onChange={e => setWeapon(w => ({ ...w, properties: e.target.value }))} /></label>
+        </>
+      )}
+      <label>Описание<textarea value={description} onChange={e => setDescription(e.target.value)} rows={2} /></label>
       <div className="bonus-grid">
         {numberFields.map(([key, label]) => (
           <label key={key}>{label}
