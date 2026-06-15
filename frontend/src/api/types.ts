@@ -39,6 +39,7 @@ export interface TalentDef {
   meleeDefenseBonus: number
   rangedDefenseBonus: number
   isCustom: boolean
+  grantsCharacteristic: boolean
 }
 
 export interface ItemDef {
@@ -163,6 +164,8 @@ export interface SheetTalent {
   soakBonus: number
   meleeDefenseBonus: number
   rangedDefenseBonus: number
+  grantsCharacteristic: boolean
+  grantedCharacteristics: Characteristic[]
 }
 
 export interface SheetItem {

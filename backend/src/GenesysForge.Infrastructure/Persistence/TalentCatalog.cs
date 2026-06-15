@@ -16,7 +16,8 @@ public static class TalentCatalog
     private sealed record Entry(
         string Code, string Name, string NameRu, int Tier, bool Ranked,
         string[] Setting, string Activation, string Desc,
-        int Wt, int St, int Soak, int Mdef, int Rdef);
+        int Wt, int St, int Soak, int Mdef, int Rdef,
+        bool GrantsCharacteristic = false);
 
     private static readonly JsonSerializerOptions JsonOptions = new() { PropertyNameCaseInsensitive = true };
 
@@ -55,6 +56,7 @@ public static class TalentCatalog
                     IsRanked = e.Ranked,
                     Setting = setting,
                     Activation = e.Activation,
+                    GrantsCharacteristic = e.GrantsCharacteristic,
                     SafeDescription = e.Desc,
                     WoundBonus = e.Wt, StrainBonus = e.St, SoakBonus = e.Soak,
                     MeleeDefenseBonus = e.Mdef, RangedDefenseBonus = e.Rdef,

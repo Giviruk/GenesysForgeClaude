@@ -78,7 +78,7 @@
 
 ## Domain gaps
 
-- Dedication talent is represented as a description, but no dedicated post-creation characteristic-increase workflow is implemented.
+- Dedication (`Повышение`) increases a player-chosen characteristic by 1 per rank: `TalentDef.GrantsCharacteristic` flags such talents, the buy flow requires picking a characteristic (capped at 5, no repeats per talent), and refund reverts the increase. The choices are stored per rank in `CharacterTalent.GrantedCharacteristics`.
 - Talent effects are limited to numeric passive bonuses plus text; active effects are not mechanically automated.
 - Weapon attack stats are mostly descriptive; no attack/damage roller is implemented.
 - Heroic abilities are selectable, but their effects are not mechanically automated.

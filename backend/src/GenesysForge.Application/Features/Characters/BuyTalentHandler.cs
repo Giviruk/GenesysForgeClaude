@@ -25,6 +25,20 @@ public class BuyTalentHandler(IAppDbContext db) : ICommandHandler<BuyTalentComma
             c.AvailableXp);
         if (!result.Allowed) throw new DomainRuleException(result.Error!);
 
+        // Таланты вида Dedication увеличивают выбранную характеристику на 1 за ранг.
+        CharacteristicType? grant = null;
+        if (talentDef.GrantsCharacteristic)
+        {
+            if (command.Characteristic is not { } chosen)
+                throw new DomainRuleException("Для этого таланта нужно выбрать характеристику для увеличения.");
+            if ((row?.ParseGrants() ?? []).Contains(chosen))
+                throw new DomainRuleException("Этим талантом нельзя дважды увеличить одну и ту же характеристику.");
+            if (c.GetCharacteristic(chosen) >= GenesysRules.MaxCharacteristicAtCreation)
+                throw new DomainRuleException(
+                    $"Талант не может увеличить характеристику выше {GenesysRules.MaxCharacteristicAtCreation}.");
+            grant = chosen;
+        }
+
         if (row is null)
         {
             row = new CharacterTalent
@@ -36,6 +50,11 @@ public class BuyTalentHandler(IAppDbContext db) : ICommandHandler<BuyTalentComma
             c.Talents.Add(row);
         }
         row.Ranks++;
+        if (grant is { } g)
+        {
+            c.IncreaseCharacteristic(g);
+            row.SetGrants([.. row.ParseGrants(), g]);
+        }
         c.SpentXp += result.Cost;
         await db.SaveChangesAsync(ct);
         return Unit.Value;

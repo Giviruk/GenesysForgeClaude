@@ -2,7 +2,7 @@
 
 ## Domain questions
 
-1. Should `Dedication` become a fully automated post-creation characteristic increase flow, or remain descriptive?
+1. ~~Should `Dedication` become a fully automated post-creation characteristic increase flow, or remain descriptive?~~ Resolved: automated — picking the talent prompts for a characteristic and increases it (`GrantsCharacteristic`).
 2. Which active talent effects should be mechanically automated versus stored as text only?
 3. Should heroic abilities have structured mechanical fields, cooldowns and activation costs?
 4. Should weapon stats become structured enough for attack/damage rolling?

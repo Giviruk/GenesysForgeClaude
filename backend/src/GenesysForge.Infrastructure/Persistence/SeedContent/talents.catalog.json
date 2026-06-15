@@ -1001,6 +1001,7 @@
   ],
   "activation": "Пассивный",
   "needsTranslation": false,
+  "grantsCharacteristic": true,
   "wt": 0,
   "st": 0,
   "soak": 0,

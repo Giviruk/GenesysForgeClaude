@@ -20,6 +20,18 @@ public class RefundTalentHandler(IAppDbContext db) : ICommandHandler<RefundTalen
         if (!result.Allowed) throw new DomainRuleException(result.Error!);
 
         row.Ranks--;
+        // Откатываем увеличение характеристики, выданное последним рангом (Dedication).
+        if (row.TalentDef.GrantsCharacteristic)
+        {
+            var grants = row.ParseGrants();
+            if (grants.Count > 0)
+            {
+                var last = grants[^1];
+                grants.RemoveAt(grants.Count - 1);
+                c.DecreaseCharacteristic(last);
+                row.SetGrants(grants);
+            }
+        }
         if (row.Ranks == 0)
         {
             c.Talents.Remove(row);

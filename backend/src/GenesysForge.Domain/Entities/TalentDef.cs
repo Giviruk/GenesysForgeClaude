@@ -21,6 +21,11 @@ public class TalentDef : IContentDef
     /// <summary>Ссылка на источник: книга/раздел/страница. Доступна в обоих режимах.</summary>
     public string Source { get; set; } = "";
     public string Activation { get; set; } = "Пассивный";
+    /// <summary>
+    /// Талант увеличивает выбранную характеристику на 1 за каждый ранг (Dedication / «Повышение»).
+    /// При покупке игрок выбирает характеристику; одну и ту же дважды этим талантом увеличить нельзя.
+    /// </summary>
+    public bool GrantsCharacteristic { get; set; }
     // Пассивные бонусы, применяемые автоматически за каждый ранг.
     public int WoundBonus { get; set; }
     public int StrainBonus { get; set; }

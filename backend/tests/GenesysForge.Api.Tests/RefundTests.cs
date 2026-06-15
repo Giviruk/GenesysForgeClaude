@@ -113,6 +113,52 @@ public class RefundTests : IClassFixture<ApiFactory>
     }
 
     [Fact]
+    public async Task Dedication_BuyGrantsChosenCharacteristic_RefundReverts()
+    {
+        var (client, reference, id) = await CreateCharacterAsync();
+        // Достаточно XP, чтобы выстроить пирамиду до тира 5.
+        await client.PatchAsJsonAsync($"/api/characters/{id}", new UpdateCharacterRequest(null, 400, null, null));
+
+        // Пирамида 5/4/3/2 из неранговых талантов открывает покупку тира 5.
+        int[] need = [0, 5, 4, 3, 2];
+        foreach (var tier in new[] { 1, 2, 3, 4 })
+            foreach (var talent in reference.Talents.Where(x => x.Tier == tier && !x.IsRanked).Take(need[tier]))
+            {
+                var r = await client.PostAsJsonAsync($"/api/characters/{id}/talents/buy", new BuyTalentRequest(talent.Id));
+                Assert.Equal(HttpStatusCode.NoContent, r.StatusCode);
+            }
+
+        var dedication = reference.Talents.First(t => t.Name == "Повышение");
+        Assert.True(dedication.GrantsCharacteristic);
+
+        var before = await SheetAsync(client, id);
+        var baseBrawn = before.Characteristics["brawn"];
+
+        // Без выбора характеристики покупка отклоняется.
+        var noPick = await client.PostAsJsonAsync($"/api/characters/{id}/talents/buy", new BuyTalentRequest(dedication.Id));
+        Assert.Equal(HttpStatusCode.BadRequest, noPick.StatusCode);
+
+        // С выбором — характеристика увеличивается на 1.
+        var buy = await client.PostAsJsonAsync($"/api/characters/{id}/talents/buy",
+            new BuyTalentRequest(dedication.Id, CharacteristicType.Brawn));
+        Assert.Equal(HttpStatusCode.NoContent, buy.StatusCode);
+        var after = await SheetAsync(client, id);
+        Assert.Equal(baseBrawn + 1, after.Characteristics["brawn"]);
+        Assert.Equal([CharacteristicType.Brawn], after.Talents.First(t => t.Name == "Повышение").GrantedCharacteristics);
+
+        // Повторно ту же характеристику этим талантом нельзя.
+        var dup = await client.PostAsJsonAsync($"/api/characters/{id}/talents/buy",
+            new BuyTalentRequest(dedication.Id, CharacteristicType.Brawn));
+        Assert.Equal(HttpStatusCode.BadRequest, dup.StatusCode);
+
+        // Возврат таланта откатывает увеличение характеристики.
+        var refund = await client.PostAsJsonAsync($"/api/characters/{id}/talents/refund", new BuyTalentRequest(dedication.Id));
+        Assert.Equal(HttpStatusCode.NoContent, refund.StatusCode);
+        var reverted = await SheetAsync(client, id);
+        Assert.Equal(baseBrawn, reverted.Characteristics["brawn"]);
+    }
+
+    [Fact]
     public async Task Refund_AfterCreationComplete_Rejected()
     {
         var (client, _, id) = await CreateCharacterAsync();

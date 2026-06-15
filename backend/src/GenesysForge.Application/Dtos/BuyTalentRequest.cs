@@ -1,3 +1,8 @@
+using GenesysForge.Domain;
+
 namespace GenesysForge.Application.Dtos;
 
-public record BuyTalentRequest(Guid TalentDefId);
+/// <param name="Characteristic">
+/// Для талантов, увеличивающих характеристику (Dedication), — выбранная характеристика. Иначе null.
+/// </param>
+public record BuyTalentRequest(Guid TalentDefId, CharacteristicType? Characteristic = null);
