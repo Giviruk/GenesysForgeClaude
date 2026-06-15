@@ -1,6 +1,7 @@
 import type {
   AuthResponse, CampaignDetail, CampaignListItem, CampaignNote, CharacterListItem, CharacterNote,
-  CharacterSheet, GameSystem, HeroicAbility, ItemDef, ItemState, Reference, SkillDef, Spell, TalentDef,
+  CharacterSheet, GameSystem, HeroicAbility, ItemDef, ItemState, NpcDetail, NpcFilter, NpcInput,
+  NpcListItem, QuickDraftRequest, Reference, SkillDef, Spell, TalentDef,
 } from './types'
 
 const TOKEN_KEY = 'genesysforge.token'
@@ -155,6 +156,25 @@ export const api = {
     request<CampaignNote>('PUT', `/api/campaigns/${campaignId}/notes/${noteId}`, note),
   deleteCampaignNote: (campaignId: string, noteId: string) =>
     request<void>('DELETE', `/api/campaigns/${campaignId}/notes/${noteId}`),
+
+  npcs: (filter: NpcFilter = {}) => {
+    const params = new URLSearchParams()
+    if (filter.search) params.set('search', filter.search)
+    if (filter.system) params.set('system', filter.system)
+    if (filter.kind) params.set('kind', filter.kind)
+    if (filter.role) params.set('role', filter.role)
+    if (filter.campaignId) params.set('campaignId', filter.campaignId)
+    if (filter.tag) params.set('tag', filter.tag)
+    if (filter.sort) params.set('sort', filter.sort)
+    const qs = params.toString()
+    return request<NpcListItem[]>('GET', `/api/npcs/${qs ? `?${qs}` : ''}`)
+  },
+  npc: (id: string) => request<NpcDetail>('GET', `/api/npcs/${id}`),
+  createNpc: (input: NpcInput) => request<NpcDetail>('POST', '/api/npcs/', input),
+  updateNpc: (id: string, input: NpcInput) => request<NpcDetail>('PUT', `/api/npcs/${id}`, input),
+  deleteNpc: (id: string) => request<void>('DELETE', `/api/npcs/${id}`),
+  duplicateNpc: (id: string) => request<NpcDetail>('POST', `/api/npcs/${id}/duplicate`),
+  quickDraftNpc: (req: QuickDraftRequest) => request<NpcDetail>('POST', '/api/npcs/quick-draft', req),
 
   deleteCustomSkill: (id: string) => request<void>('DELETE', `/api/custom/skills/${id}`),
   deleteCustomTalent: (id: string) => request<void>('DELETE', `/api/custom/talents/${id}`),

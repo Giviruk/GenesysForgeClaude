@@ -1,4 +1,7 @@
-import type { Characteristic, GameSystem, ItemKind, ItemState, SkillKind } from '../api/types'
+import type {
+  Characteristic, GameSystem, ItemKind, ItemState, NpcCombatStyle, NpcKind, NpcPowerLevel,
+  NpcRole, NpcVisibility, SkillKind,
+} from '../api/types'
 
 export const SYSTEM_LABELS: Record<GameSystem, string> = {
   genesysCore: 'Genesys Core',
@@ -76,6 +79,49 @@ export const MAGIC_SKILL_LABELS: Record<string, string> = {
 
 /** Подпись магического навыка с запасным вариантом для кастомных кодов. */
 export const magicSkillLabel = (skill: string) => MAGIC_SKILL_LABELS[skill] ?? skill
+
+export const NPC_KIND_LABELS: Record<NpcKind, string> = {
+  minion: 'Миньон',
+  rival: 'Ривал',
+  nemesis: 'Немезида',
+}
+
+export const NPC_ROLE_LABELS: Record<NpcRole, string> = {
+  brute: 'Громила',
+  skirmisher: 'Застрельщик',
+  archer: 'Стрелок',
+  caster: 'Маг',
+  leader: 'Командир',
+  social: 'Интриган',
+  support: 'Поддержка',
+  monster: 'Монстр',
+  custom: 'Особая',
+}
+
+export const NPC_VISIBILITY_LABELS: Record<NpcVisibility, string> = {
+  private: 'Приватный',
+  campaignVisible: 'Виден в кампании',
+  publicTemplate: 'Публичный шаблон',
+}
+
+export const NPC_POWER_LABELS: Record<NpcPowerLevel, string> = {
+  weak: 'Слабый',
+  standard: 'Обычный',
+  strong: 'Сильный',
+  elite: 'Элитный',
+}
+
+export const NPC_COMBAT_STYLE_LABELS: Record<NpcCombatStyle, string> = {
+  melee: 'Ближний бой',
+  ranged: 'Дальний бой',
+  magic: 'Магия',
+  social: 'Социальный',
+}
+
+export const NPC_KINDS: NpcKind[] = ['minion', 'rival', 'nemesis']
+export const NPC_ROLES: NpcRole[] = [
+  'brute', 'skirmisher', 'archer', 'caster', 'leader', 'social', 'support', 'monster', 'custom',
+]
 
 /** Стоимость таланта тира N — 5 × N XP. */
 export const talentCost = (tier: number) => tier * 5

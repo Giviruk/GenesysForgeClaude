@@ -23,6 +23,7 @@ public interface IAppDbContext
     DbSet<CampaignCharacter> CampaignCharacters { get; }
     DbSet<CampaignNote> CampaignNotes { get; }
     DbSet<SpellDef> SpellDefs { get; }
+    DbSet<Npc> Npcs { get; }
 
     Task<int> SaveChangesAsync(CancellationToken ct = default);
 }

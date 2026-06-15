@@ -23,6 +23,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<CampaignCharacter> CampaignCharacters => Set<CampaignCharacter>();
     public DbSet<CampaignNote> CampaignNotes => Set<CampaignNote>();
     public DbSet<SpellDef> SpellDefs => Set<SpellDef>();
+    public DbSet<Npc> Npcs => Set<Npc>();
 
     protected override void OnModelCreating(ModelBuilder b)
     {
@@ -104,6 +105,25 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             e.Property(i => i.Crit).HasMaxLength(20);
             e.Property(i => i.RangeBand).HasMaxLength(40);
             e.Property(i => i.Properties).HasMaxLength(400);
+        });
+
+        b.Entity<Npc>(e =>
+        {
+            e.HasIndex(n => n.OwnerUserId);
+            e.HasIndex(n => n.CampaignId);
+            e.Property(n => n.Name).HasMaxLength(200);
+            e.Property(n => n.Source).HasMaxLength(160);
+            e.Property(n => n.Talents).HasMaxLength(2000);
+            e.Property(n => n.Equipment).HasMaxLength(2000);
+            e.Property(n => n.Tags).HasMaxLength(1000);
+            e.HasMany(n => n.Skills).WithOne().HasForeignKey(s => s.NpcId).OnDelete(DeleteBehavior.Cascade);
+            e.HasMany(n => n.Abilities).WithOne().HasForeignKey(a => a.NpcId).OnDelete(DeleteBehavior.Cascade);
+        });
+        b.Entity<NpcSkill>().Property(s => s.Name).HasMaxLength(80);
+        b.Entity<NpcAbility>(e =>
+        {
+            e.Property(a => a.Name).HasMaxLength(120);
+            e.Property(a => a.Description).HasMaxLength(2000);
         });
 
         // Content-model (Code/NameRu/Source) у справочных сущностей.

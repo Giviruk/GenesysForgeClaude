@@ -387,3 +387,62 @@ td.nowrap, th.nowrap { white-space: nowrap; }
 .price-row label { display: flex; flex-direction: column; font-size: 0.78rem; color: var(--muted); gap: 0.15rem; }
 .price-total { font-size: 0.95rem; }
 button.tiny { font-size: 0.75rem; padding: 0.1rem 0.4rem; }
+
+/* ---------- NPC / Bestiary ---------- */
+.head-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+.npc-filters { display: flex; gap: 0.6rem; flex-wrap: wrap; align-items: center; }
+.npc-filters input, .npc-filters select { width: auto; flex: 0 1 auto; min-width: 9rem; }
+.npc-filters input { flex: 1 1 12rem; }
+.npc-stats-line { font-size: 0.82rem; color: var(--text); margin-top: 0.2rem; }
+.chips.tiny .chip { font-size: 0.72rem; padding: 0.05rem 0.4rem; }
+.card-actions { display: flex; gap: 0.4rem; margin-top: 0.5rem; }
+
+.form-row { display: flex; gap: 0.6rem; flex-wrap: wrap; align-items: flex-end; }
+.form-row > label { flex: 0 1 auto; margin: 0.4rem 0; }
+.form-row > label.grow { flex: 1 1 12rem; }
+.chars-row .char-input { flex: 1 1 4rem; min-width: 4rem; }
+.char-input input { text-align: center; }
+.modal.wide { max-width: 46rem; }
+.ranks-input { width: 4rem; text-align: center; }
+
+.list-editor { margin: 0.6rem 0; border-top: 1px dashed var(--border); padding-top: 0.5rem; }
+.ability-edit { margin-bottom: 0.5rem; }
+.chip.removable { display: inline-flex; align-items: center; gap: 0.3rem; }
+.chip.removable button {
+  background: none; border: none; color: var(--muted); padding: 0; font-size: 0.85rem; line-height: 1; cursor: pointer;
+}
+.chip.removable button:hover { color: var(--red); }
+
+/* Печатная карточка NPC */
+.npc-card {
+  background: var(--panel); border: 1px solid var(--border); border-radius: 10px;
+  padding: 1.2rem 1.4rem; max-width: 40rem; margin-top: 1rem;
+}
+.npc-card-head h3 { margin-bottom: 0.1rem; }
+.npc-desc { color: var(--muted); font-style: italic; margin: 0.5rem 0; }
+.npc-char-row { display: flex; gap: 0.5rem; margin: 0.8rem 0; flex-wrap: wrap; }
+.npc-char {
+  flex: 1 1 0; min-width: 3.2rem; text-align: center;
+  border: 1px solid var(--border); border-radius: 8px; padding: 0.4rem 0.2rem;
+}
+.npc-char-val { display: block; font-size: 1.3rem; font-weight: 600; color: var(--accent); }
+.npc-char-label { display: block; font-size: 0.72rem; color: var(--muted); }
+.npc-derived { display: flex; gap: 1rem; flex-wrap: wrap; margin: 0.6rem 0; padding: 0.5rem 0; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+.npc-section { margin-top: 0.7rem; }
+.npc-section h4 { margin: 0 0 0.2rem; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--accent); }
+.npc-section ul { margin: 0.2rem 0; padding-left: 1.1rem; }
+.npc-source { margin-top: 0.8rem; }
+
+@media print {
+  body { background: #fff; color: #000; }
+  .topbar, .no-print, .head-actions { display: none !important; }
+  .page { padding: 0; }
+  .npc-card {
+    border: 1px solid #999; background: #fff; color: #000; max-width: none; box-shadow: none;
+  }
+  .npc-card h3, .npc-card h4 { color: #000; }
+  .npc-char { border-color: #999; }
+  .npc-char-val { color: #000; }
+  .npc-char-label, .npc-desc, .muted { color: #333 !important; }
+  .chip { border-color: #999; color: #000; }
+}
