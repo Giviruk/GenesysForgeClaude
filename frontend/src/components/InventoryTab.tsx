@@ -5,6 +5,7 @@ import {
   CURRENCY_LABEL, ITEM_KIND_LABELS, ITEM_STATE_LABELS, resolveWeaponSkillName,
 } from '../utils/labels'
 import { DicePoolView } from './DicePoolView'
+import { PropertyTags } from './PropertyTags'
 
 interface Props {
   sheet: CharacterSheet
@@ -163,6 +164,7 @@ function ShopRow({ item, money, run, sheetId, open, onToggle }: {
           </div>
           {(item.description || item.safeDescription) &&
             <div className="muted small-text shop-desc">{item.description || item.safeDescription}</div>}
+          {item.properties && <PropertyTags properties={item.properties} className="shop-props small-text" />}
         </div>
         <div className="shop-row-actions">
           <button className="primary tiny" onClick={onToggle}>{open ? 'Отмена' : 'Купить'}</button>
@@ -203,6 +205,10 @@ function InventoryCard({ item, sheet, skillNames, run, sellOpen, onToggleSell }:
       </div>
 
       {item.kind === 'weapon' && <WeaponLine item={item} sheet={sheet} skillNames={skillNames} />}
+
+      {item.kind !== 'weapon' && item.properties && (
+        <PropertyTags properties={item.properties} className="small-text" />
+      )}
 
       {hasBonus && (
         <div className="muted small-text">
@@ -266,7 +272,7 @@ function WeaponLine({ item, sheet, skillNames }: { item: SheetItem; sheet: Chara
       ) : item.skillName ? (
         <span className="muted small-text">навык {item.skillName} не освоен</span>
       ) : null}
-      {item.properties && <span className="weapon-props muted small-text">{item.properties}</span>}
+      {item.properties && <PropertyTags properties={item.properties} className="weapon-props" />}
     </div>
   )
 }

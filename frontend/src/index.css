@@ -319,6 +319,48 @@ td.nowrap, th.nowrap { white-space: nowrap; }
 .weapon-pool { display: inline-flex; align-items: center; gap: 0.3rem; }
 .weapon-props { font-style: italic; }
 
+/* Теги свойств (качеств) предметов с тултипами */
+.prop-tags { display: inline-flex; flex-wrap: wrap; gap: 0.3rem 0.4rem; align-items: center; }
+.prop-tag-plain { color: var(--muted); font-size: 0.78rem; }
+.prop-tag {
+  position: relative;
+  display: inline-block;
+  padding: 0.05rem 0.4rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--panel-2);
+  color: var(--text);
+  font-size: 0.76rem;
+  font-style: normal;
+  line-height: 1.4;
+  cursor: help;
+  white-space: nowrap;
+  user-select: none;
+}
+.prop-tag:hover, .prop-tag:focus-visible { border-color: var(--accent); outline: none; }
+.prop-tag.pinned { border-color: var(--accent); background: var(--accent-dark); color: #fff; }
+
+.prop-tooltip {
+  position: absolute;
+  z-index: 50;
+  left: 0;
+  top: calc(100% + 0.4rem);
+  width: max-content;
+  max-width: min(22rem, 80vw);
+  padding: 0.55rem 0.7rem;
+  border: 1px solid var(--accent);
+  border-radius: 8px;
+  background: var(--panel);
+  color: var(--text);
+  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.5);
+  cursor: auto;
+  white-space: normal;
+  text-align: left;
+}
+.prop-tooltip-title { display: block; font-weight: 700; color: var(--accent); margin-bottom: 0.3rem; }
+.prop-tooltip-en { font-weight: 400; color: var(--muted); }
+.prop-tooltip-body { display: block; font-size: 0.82rem; line-height: 1.45; }
+
 /* Магазин */
 .inv-shop { position: sticky; top: 0.5rem; }
 .shop-search { width: 100%; margin-bottom: 0.5rem; }
