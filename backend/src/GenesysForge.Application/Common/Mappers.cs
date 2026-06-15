@@ -26,5 +26,9 @@ public static class Mappers
         i.SkillName, i.Damage, i.Crit, i.RangeBand, i.Properties, i.OwnerUserId != null);
 
     public static HeroicAbilityDto ToDto(this HeroicAbilityDef h) =>
-        new(h.Id, h.Name, h.NameRu, h.Description, h.SafeDescription, h.Source, h.OwnerUserId != null);
+        new(h.Id, h.Name, h.NameRu, h.Description, h.SafeDescription, h.Source, h.OwnerUserId != null,
+            h.Requirement, h.ActivationCost, h.Activation, h.Duration, h.Frequency, h.Notes,
+            h.Upgrades.OrderBy(u => u.Level)
+                .Select(u => new HeroicAbilityUpgradeDto((int)u.Level, u.Cost, u.Description, u.Notes))
+                .ToList());
 }

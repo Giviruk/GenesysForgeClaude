@@ -21,6 +21,10 @@ public class SetHeroicAbilityHandler(IAppDbContext db) : ICommandHandler<SetHero
             if (!exists) throw new DomainRuleException("Героическая способность не найдена.");
         }
 
+        // Улучшения привязаны к конкретной способности — при смене/сбросе откатываем купленный ранг.
+        if (c.HeroicAbilityId != command.HeroicAbilityId)
+            c.HeroicUpgradeRank = 0;
+
         c.HeroicAbilityId = command.HeroicAbilityId;
         await db.SaveChangesAsync(ct);
         return Unit.Value;

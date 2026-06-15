@@ -11,6 +11,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<TalentDef> TalentDefs => Set<TalentDef>();
     public DbSet<ItemDef> ItemDefs => Set<ItemDef>();
     public DbSet<HeroicAbilityDef> HeroicAbilityDefs => Set<HeroicAbilityDef>();
+    public DbSet<HeroicAbilityUpgradeDef> HeroicAbilityUpgradeDefs => Set<HeroicAbilityUpgradeDef>();
     public DbSet<ArchetypeDef> ArchetypeDefs => Set<ArchetypeDef>();
     public DbSet<CareerDef> CareerDefs => Set<CareerDef>();
     public DbSet<Character> Characters => Set<Character>();
@@ -83,6 +84,17 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             e.Property(s => s.NameRu).HasMaxLength(120);
             e.Property(s => s.NameEn).HasMaxLength(120);
             e.Property(s => s.Source).HasMaxLength(120);
+        });
+
+        b.Entity<HeroicAbilityDef>(e =>
+        {
+            e.HasMany(h => h.Upgrades).WithOne()
+                .HasForeignKey(u => u.HeroicAbilityDefId).OnDelete(DeleteBehavior.Cascade);
+            e.Property(h => h.Requirement).HasMaxLength(200);
+            e.Property(h => h.ActivationCost).HasMaxLength(80);
+            e.Property(h => h.Activation).HasMaxLength(120);
+            e.Property(h => h.Duration).HasMaxLength(200);
+            e.Property(h => h.Frequency).HasMaxLength(200);
         });
 
         b.Entity<ItemDef>(e =>

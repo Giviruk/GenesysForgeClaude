@@ -102,6 +102,13 @@ public static class CharacterEndpoints
             return Results.NoContent();
         });
 
+        group.MapPut("/{id:guid}/heroic-upgrade", async (Guid id, SetHeroicUpgradeRankRequest req,
+            ClaimsPrincipal user, ICommandHandler<SetHeroicUpgradeRankCommand, Unit> handler, CancellationToken ct) =>
+        {
+            await handler.Handle(new SetHeroicUpgradeRankCommand(user.UserId(), id, req.Rank), ct);
+            return Results.NoContent();
+        });
+
         group.MapPost("/{id:guid}/items", async (Guid id, AddItemRequest req, ClaimsPrincipal user,
             ICommandHandler<AddItemCommand, Guid> handler, CancellationToken ct) =>
         {

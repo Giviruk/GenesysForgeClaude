@@ -69,17 +69,13 @@ export function SheetTab({ sheet, reference, onError, refresh }: Props) {
         <section className="panel">
           <h3>Героическая способность</h3>
           {sheet.heroicAbility ? (
-            <div className="heroic">
-              <strong>{sheet.heroicAbility.name}</strong>
-              <p>{sheet.heroicAbility.description}</p>
-              <button className="small" onClick={() => run(() => api.setHeroicAbility(sheet.id, null))}>Сбросить</button>
-            </div>
+            <HeroicAbilityCard sheet={sheet} run={run} />
           ) : (
             <div className="inline-form">
               <select value={heroicPick} onChange={e => setHeroicPick(e.target.value)}>
                 <option value="" disabled>— выберите способность —</option>
                 {reference.heroicAbilities.map(h => (
-                  <option key={h.id} value={h.id}>{h.name}{h.isCustom ? ' (кастом)' : ''}</option>
+                  <option key={h.id} value={h.id}>{h.nameRu || h.name}{h.isCustom ? ' (кастом)' : ''}</option>
                 ))}
               </select>
               <button className="primary" disabled={!heroicPick}
@@ -178,6 +174,79 @@ function DerivedBox({ label, value, warning, onMinus, onPlus }: {
       </div>
       <div className="stat-label">{label}</div>
       {warning && <div className="error small-text">{warning}</div>}
+    </div>
+  )
+}
+
+const UPGRADE_LABELS: Record<number, string> = { 1: 'Improved · улучшенная', 2: 'Supreme · высшая' }
+
+function HeroicAbilityCard({ sheet, run }: {
+  sheet: CharacterSheet
+  run: (action: () => Promise<unknown>) => Promise<void>
+}) {
+  const h = sheet.heroicAbility!
+  const rank = sheet.heroicUpgradeRank
+  const total = sheet.heroicUpgradePointsTotal
+  const available = total - sheet.heroicUpgradePointsSpent
+  const meta: [string, string][] = [
+    ['Активация', [h.activationCost, h.activation].filter(Boolean).join(' · ')],
+    ['Длительность', h.duration],
+    ['Частота', h.frequency],
+    ['Требование', h.requirement && h.requirement !== '—' ? h.requirement : ''],
+  ]
+
+  return (
+    <div className="heroic">
+      <strong>{h.nameRu || h.name}</strong>
+      <p>{h.description}</p>
+      {meta.filter(([, v]) => v).map(([k, v]) => (
+        <div key={k} className="hint small-text"><b>{k}:</b> {v}</div>
+      ))}
+      {h.notes && <p className="hint small-text">{h.notes}</p>}
+
+      {h.upgrades.length > 0 && (
+        <div className="heroic-upgrades">
+          <div className="label-line">
+            Улучшения · очков доступно: {available} из {total}
+            <span className="hint"> (1 стартовое + по 1 каждые 50 заработанного XP)</span>
+          </div>
+          {h.upgrades.map(u => {
+            const purchased = rank >= u.level
+            const isNext = u.level === rank + 1
+            const canBuy = isNext && available >= u.cost
+            const isTop = purchased && u.level === rank
+            return (
+              <div key={u.level} className={purchased ? 'heroic-upgrade bought' : 'heroic-upgrade'}>
+                <div className="heroic-upgrade-head">
+                  <strong>{UPGRADE_LABELS[u.level] ?? `Уровень ${u.level}`}</strong>
+                  <span className="hint"> · {u.cost} очк.</span>
+                  {purchased && <span className="badge"> куплено</span>}
+                  {!purchased && canBuy && (
+                    <button className="small primary"
+                      onClick={() => run(() => api.setHeroicUpgradeRank(sheet.id, u.level))}>
+                      Купить
+                    </button>
+                  )}
+                  {!purchased && isNext && !canBuy && <span className="hint"> — не хватает очков</span>}
+                  {!purchased && !isNext && <span className="hint"> — сначала купите предыдущее</span>}
+                  {isTop && (
+                    <button className="small"
+                      onClick={() => run(() => api.setHeroicUpgradeRank(sheet.id, u.level - 1))}>
+                      Вернуть
+                    </button>
+                  )}
+                </div>
+                <p>{u.description}</p>
+                {u.notes && <p className="hint small-text">{u.notes}</p>}
+              </div>
+            )
+          })}
+        </div>
+      )}
+
+      <button className="small" onClick={() => run(() => api.setHeroicAbility(sheet.id, null))}>
+        Сбросить способность
+      </button>
     </div>
   )
 }

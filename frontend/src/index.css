@@ -280,6 +280,14 @@ td.nowrap, th.nowrap { white-space: nowrap; }
 .modal-actions { display: flex; justify-content: flex-end; gap: 0.6rem; margin-top: 1rem; }
 .system-switch { display: flex; gap: 0.4rem; margin-top: 0.3rem; }
 .heroic p { margin: 0.3rem 0; }
+.heroic-upgrades { margin: 0.6rem 0; display: flex; flex-direction: column; gap: 0.5rem; }
+.heroic-upgrade {
+  border: 1px solid var(--border); border-radius: 6px; padding: 0.5rem 0.7rem;
+  opacity: 0.75;
+}
+.heroic-upgrade.bought { opacity: 1; border-color: var(--terrinoth); }
+.heroic-upgrade p { margin: 0.25rem 0 0; }
+.heroic-upgrade-head { display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap; }
 
 /* ---------- Inventory + Shop ---------- */
 .inv-page { display: flex; flex-direction: column; }

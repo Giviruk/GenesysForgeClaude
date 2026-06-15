@@ -31,6 +31,8 @@ public class Character
 
     public Guid? HeroicAbilityId { get; set; }
     public HeroicAbilityDef? HeroicAbility { get; set; }
+    /// <summary>Купленный ранг улучшения героической способности: 0 — базовая, 1 — Improved, 2 — Supreme.</summary>
+    public int HeroicUpgradeRank { get; set; }
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
@@ -41,6 +43,16 @@ public class Character
     public CharacteristicsSet Characteristics => new(Brawn, Agility, Intellect, Cunning, Willpower, Presence);
 
     public int AvailableXp => TotalXp - SpentXp;
+
+    /// <summary>XP, заработанный после создания (сверх стартового XP архетипа).</summary>
+    public int EarnedXp => Math.Max(0, TotalXp - (Archetype?.StartingXp ?? 0));
+
+    /// <summary>Всего очков улучшения героики: 1 стартовое + по 1 каждые 50 заработанного XP.</summary>
+    public int HeroicUpgradePointsTotal => 1 + EarnedXp / 50;
+
+    /// <summary>Очки улучшения, потраченные на купленные ранги выбранной способности.</summary>
+    public int HeroicUpgradePointsSpent =>
+        HeroicAbility?.Upgrades.Where(u => (int)u.Level <= HeroicUpgradeRank).Sum(u => u.Cost) ?? 0;
 
     public int GetCharacteristic(CharacteristicType type) => Characteristics.Get(type);
 

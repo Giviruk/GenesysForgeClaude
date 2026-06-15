@@ -36,7 +36,7 @@ public static class SeedData
         var careers = CoreCareers().Concat(TerrinothCareers()).ToList();
         var talents = TalentCatalog.Load().ToList();
         var items = ItemCatalog.Load().ToList();
-        var heroics = HeroicAbilities().ToList();
+        var heroics = HeroicCatalog.Load().ToList();
         var spells = Spells(GameSystem.GenesysCore).Concat(Spells(GameSystem.RealmsOfTerrinoth)).ToList();
 
         // Проекция описаний под режим контента — единственное отличие private/public pipeline.
@@ -365,32 +365,8 @@ public static class SeedData
     // Сеттинг каждого предмета задаёт систему: Any → обе, Fantasy → только Realms of Terrinoth.
 
     // ─────────────────────────── heroic abilities ───────────────────────────
-
-    private static readonly Dictionary<string, string> HeroicRu = new()
-    {
-        ["Sixth Sense"] = "Шестое чувство", ["Signature Weapon"] = "Именное оружие",
-        ["Battle Fury"] = "Боевая ярость", ["Healing Hands"] = "Целящие руки",
-        ["Shadow Walker"] = "Идущий в тенях", ["Unbreakable"] = "Несокрушимость",
-        ["Inspiring Presence"] = "Воодушевляющее присутствие",
-    };
-
-    private static HeroicAbilityDef Heroic(string name, string safe) => new()
-    {
-        Id = Guid.NewGuid(), Code = $"rot.heroic.{Slug(name)}",
-        Name = name, NameRu = Ru(HeroicRu, name), SafeDescription = safe,
-        Source = "Realms of Terrinoth, гл. «Героические способности»",
-    };
-
-    private static IEnumerable<HeroicAbilityDef> HeroicAbilities() =>
-    [
-        Heroic("Sixth Sense", "Сверхъестественное чутьё на опасность в выбранной сфере: раз в сессию ГМ отвечает на вопрос о скрытой угрозе; активация инцидентом за Story Point."),
-        Heroic("Signature Weapon", "Легендарная связь с личным оружием: пока оно в руках, добавляйте Boost к атакам; оружие невозможно потерять навсегда."),
-        Heroic("Battle Fury", "Боевое неистовство: активируйте инцидентом за Story Point — до конца раунда совершите дополнительный манёвр и добавьте урон, равный рангам Resilience."),
-        Heroic("Healing Hands", "Целительное прикосновение: раз в столкновение исцелите союзника на величину Willpower; активация действием за Story Point."),
-        Heroic("Shadow Walker", "Хождение в тенях: активируйте за Story Point, чтобы немедленно скрыться и переместиться на среднюю дальность незамеченным."),
-        Heroic("Unbreakable", "Несокрушимость: раз в сессию, опустившись до 0 ран, останьтесь на ногах с 1 раной; активация инцидентом."),
-        Heroic("Inspiring Presence", "Воодушевляющее присутствие: союзники в пределах короткой дальности добавляют Boost к социальным проверкам; усиление за Story Point."),
-    ];
+    // Героические способности (с улучшениями Improved/Supreme) загружаются из каталога
+    // SeedContent/heroics.catalog.json (см. HeroicCatalog). Только Realms of Terrinoth.
 
     // ─────────────────────────── spells ───────────────────────────
 

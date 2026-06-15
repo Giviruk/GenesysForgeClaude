@@ -69,6 +69,9 @@ public static class SheetBuilder
                 .ToList(),
             TalentTierCounter.Count(c.Talents),
             c.HeroicAbility?.ToDto(),
+            c.HeroicUpgradeRank,
+            c.HeroicUpgradePointsTotal,
+            c.HeroicUpgradePointsSpent,
             c.Items
                 .OrderBy(i => i.ItemDef!.Kind).ThenBy(i => i.ItemDef!.Name)
                 .Select(i => new CharacterItemDto(i.Id, i.ItemDefId, i.ItemDef!.Name, i.ItemDef.Kind, i.State,

@@ -65,6 +65,13 @@ export interface ItemDef {
   isCustom: boolean
 }
 
+export interface HeroicAbilityUpgrade {
+  level: number // 1 — Improved, 2 — Supreme
+  cost: number
+  description: string
+  notes: string
+}
+
 export interface HeroicAbility {
   id: string
   name: string
@@ -73,6 +80,13 @@ export interface HeroicAbility {
   safeDescription: string
   source: string
   isCustom: boolean
+  requirement: string
+  activationCost: string
+  activation: string
+  duration: string
+  frequency: string
+  notes: string
+  upgrades: HeroicAbilityUpgrade[]
 }
 
 export type SpellEntryKind = 'effect' | 'additionalEffect'
@@ -269,5 +283,8 @@ export interface CharacterSheet {
   talents: SheetTalent[]
   talentTierCounts: Record<string, number>
   heroicAbility: HeroicAbility | null
+  heroicUpgradeRank: number
+  heroicUpgradePointsTotal: number
+  heroicUpgradePointsSpent: number
   items: SheetItem[]
 }

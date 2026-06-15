@@ -53,13 +53,27 @@ Rules:
 
 ### HeroicAbilityDef
 
-Fields: `Id`, `Name`, `Description`, `OwnerUserId`.
+Fields: `Id`, content-model fields (`Code`, `Name`, `NameRu`, `Description`, `SafeDescription`, `Source`),
+the activation card (`Requirement`, `ActivationCost`, `Activation`, `Duration`, `Frequency`, `Notes`),
+`OwnerUserId`, and `Upgrades`.
+
+Built-in abilities (Realms of Terrinoth) are loaded from the embedded `heroics.catalog.json` catalog
+(`HeroicCatalog`), generated from the user CSV by `_books/_heroic_abilities/gen-heroics-catalog.mjs`.
+
+### HeroicAbilityUpgradeDef
+
+A purchasable upgrade of a heroic ability. Fields: `Id`, `HeroicAbilityDefId`, `Level`
+(`HeroicUpgradeLevel`: `Improved`=1, `Supreme`=2), `Cost` (1 and 2 ability points), `Description`, `Notes`.
 
 Rules:
 
-- Assignable to Realms of Terrinoth characters.
-- Genesys Core assignment is rejected.
-- Mechanical execution of ability effects is not implemented.
+- Assignable to Realms of Terrinoth characters; Genesys Core assignment is rejected.
+- Upgrades are bought with **ability points**: 1 starting point + 1 per 50 XP earned after creation
+  (`1 + max(0, TotalXp − archetype.StartingXp) / 50`).
+- Ranks are sequential and cumulative: `Supreme` requires `Improved` first; `HeroicUpgradeRank`
+  (0/1/2) on the character records the highest purchased level. Lowering the rank refunds points.
+- Changing or clearing the selected ability resets `HeroicUpgradeRank` to 0.
+- Custom abilities carry no upgrades.
 
 ### SpellDef
 
@@ -93,7 +107,7 @@ Rules:
 
 ### Character
 
-Fields: `Id`, `OwnerUserId`, `Name`, `System`, `ArchetypeId`, `CareerId`, six characteristics, `TotalXp`, `SpentXp`, `IsCreationPhase`, `WoundsCurrent`, `StrainCurrent`, `HeroicAbilityId`, `CreatedAt`, `Skills`, `Talents`, `Items`.
+Fields: `Id`, `OwnerUserId`, `Name`, `System`, `ArchetypeId`, `CareerId`, six characteristics, `TotalXp`, `SpentXp`, `IsCreationPhase`, `WoundsCurrent`, `StrainCurrent`, `Money`, `HeroicAbilityId`, `HeroicUpgradeRank`, `CreatedAt`, `Skills`, `Talents`, `Items`.
 
 Rules:
 

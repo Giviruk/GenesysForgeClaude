@@ -169,9 +169,18 @@ Protected. Request: `BuyTalentRequest` with `talentDefId`. Refunds one talent ra
 
 ### `PUT /api/characters/{id}/heroic-ability`
 
-Protected. Request: `SetHeroicAbilityRequest` with nullable `heroicAbilityId`.
+Protected. Request: `SetHeroicAbilityRequest` with nullable `heroicAbilityId`. Changing or clearing the
+ability resets the purchased upgrade rank to 0.
 
 Known limitation: heroic abilities are intended for Realms of Terrinoth; Genesys Core assignment is rejected by application rules.
+
+### `PUT /api/characters/{id}/heroic-upgrade`
+
+Protected. Request: `SetHeroicUpgradeRankRequest` with `rank` (0/1/2). Sets the purchased upgrade rank of
+the selected ability. Validates that ranks are sequential (Supreme requires Improved) and that the
+cumulative cost fits the available ability points (1 starting + 1 per 50 XP earned after creation).
+Lowering the rank refunds points. The sheet DTO exposes `heroicUpgradeRank`, `heroicUpgradePointsTotal`
+and `heroicUpgradePointsSpent`.
 
 ## Inventory
 
