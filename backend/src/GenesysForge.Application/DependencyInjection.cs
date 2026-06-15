@@ -39,6 +39,7 @@ public static class DependencyInjection
         services.AddScoped<ICommandHandler<AddItemCommand, Guid>, AddItemHandler>();
         services.AddScoped<ICommandHandler<UpdateItemCommand, Unit>, UpdateItemHandler>();
         services.AddScoped<ICommandHandler<RemoveItemCommand, Unit>, RemoveItemHandler>();
+        services.AddScoped<ICommandHandler<SellItemCommand, Unit>, SellItemHandler>();
 
         // Custom content
         services.AddScoped<ICommandHandler<CreateCustomSkillCommand, SkillDefDto>, CreateCustomSkillHandler>();

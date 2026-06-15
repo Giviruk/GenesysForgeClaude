@@ -4,9 +4,10 @@
     <ProjectReference Include="..\GenesysForge.Application\GenesysForge.Application.csproj" />
   </ItemGroup>
 
-  <!-- Каталог талантов (структура + переработанные описания, не текст книг) — встроенный seed-контент. -->
+  <!-- Каталоги талантов и снаряжения (структура + переработанные описания, не текст книг) — встроенный seed-контент. -->
   <ItemGroup>
     <EmbeddedResource Include="Persistence\SeedContent\talents.catalog.json" />
+    <EmbeddedResource Include="Persistence\SeedContent\items.catalog.json" />
   </ItemGroup>
 
   <!--

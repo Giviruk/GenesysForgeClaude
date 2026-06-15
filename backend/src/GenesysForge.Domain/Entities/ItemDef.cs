@@ -24,5 +24,18 @@ public class ItemDef : IContentDef
     public string Source { get; set; } = "";
     public int Price { get; set; }
     public int Rarity { get; set; }
+
+    // ── Боевые характеристики (заполнены только у оружия) ──
+    /// <summary>Английское имя боевого навыка для броска (например, «Melee (Light)», «Ranged»). У не-оружия пусто.</summary>
+    public string SkillName { get; set; } = "";
+    /// <summary>Урон: «+3» (прибавка к Мощи для ближнего боя) или абсолютное число.</summary>
+    public string Damage { get; set; } = "";
+    /// <summary>Критическое значение.</summary>
+    public string Crit { get; set; } = "";
+    /// <summary>Дистанция (русская подпись): «Вплотную», «Средняя» и т. п.</summary>
+    public string RangeBand { get; set; } = "";
+    /// <summary>Свойства/эффекты оружия (русские).</summary>
+    public string Properties { get; set; } = "";
+
     public Guid? OwnerUserId { get; set; }
 }

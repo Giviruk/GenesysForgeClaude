@@ -71,7 +71,7 @@ export const api = {
     request<{ id: string }>('POST', '/api/characters/', { name, system, archetypeId, careerId, freeCareerSkillNames }),
   sheet: (id: string) => request<CharacterSheet>('GET', `/api/characters/${id}`),
   deleteCharacter: (id: string) => request<void>('DELETE', `/api/characters/${id}`),
-  updateCharacter: (id: string, patch: { name?: string; totalXp?: number; woundsCurrent?: number; strainCurrent?: number }) =>
+  updateCharacter: (id: string, patch: { name?: string; totalXp?: number; woundsCurrent?: number; strainCurrent?: number; money?: number }) =>
     request<void>('PATCH', `/api/characters/${id}`, patch),
   completeCreation: (id: string) => request<void>('POST', `/api/characters/${id}/complete-creation`),
 
@@ -90,10 +90,13 @@ export const api = {
   setHeroicAbility: (id: string, heroicAbilityId: string | null) =>
     request<void>('PUT', `/api/characters/${id}/heroic-ability`, { heroicAbilityId }),
 
-  addItem: (id: string, itemDefId: string, quantity: number, state: ItemState) =>
-    request<{ id: string }>('POST', `/api/characters/${id}/items`, { itemDefId, quantity, state }),
+  // cost — сколько монет списать при покупке; не передавайте (или 0) для бесплатного добавления.
+  addItem: (id: string, itemDefId: string, quantity: number, state: ItemState, cost?: number) =>
+    request<{ id: string }>('POST', `/api/characters/${id}/items`, { itemDefId, quantity, state, cost }),
   updateItem: (id: string, itemId: string, patch: { state?: ItemState; quantity?: number }) =>
     request<void>('PATCH', `/api/characters/${id}/items/${itemId}`, patch),
+  sellItem: (id: string, itemId: string, quantity: number, proceeds: number) =>
+    request<void>('POST', `/api/characters/${id}/items/${itemId}/sell`, { quantity, proceeds }),
   removeItem: (id: string, itemId: string) =>
     request<void>('DELETE', `/api/characters/${id}/items/${itemId}`),
 
@@ -107,6 +110,7 @@ export const api = {
     system: GameSystem; name: string; kind: string; encumbrance: number; soakBonus: number
     meleeDefense: number; rangedDefense: number; encumbranceThresholdBonus: number
     description: string; price: number; rarity: number
+    skillName?: string; damage?: string; crit?: string; rangeBand?: string; properties?: string
   }) => request<ItemDef>('POST', '/api/custom/items', item),
   createCustomHeroicAbility: (ability: { name: string; description: string }) =>
     request<HeroicAbility>('POST', '/api/custom/heroic-abilities', ability),
@@ -121,6 +125,7 @@ export const api = {
     system: GameSystem; name: string; kind: string; encumbrance: number; soakBonus: number
     meleeDefense: number; rangedDefense: number; encumbranceThresholdBonus: number
     description: string; price: number; rarity: number
+    skillName?: string; damage?: string; crit?: string; rangeBand?: string; properties?: string
   }) => request<ItemDef>('PUT', `/api/custom/items/${id}`, item),
   updateCustomHeroicAbility: (id: string, ability: { name: string; description: string }) =>
     request<HeroicAbility>('PUT', `/api/custom/heroic-abilities/${id}`, ability),

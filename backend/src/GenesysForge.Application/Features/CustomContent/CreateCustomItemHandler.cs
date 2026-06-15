@@ -22,6 +22,8 @@ public class CreateCustomItemHandler(IAppDbContext db) : ICommandHandler<CreateC
             Encumbrance = req.Encumbrance, SoakBonus = req.SoakBonus, MeleeDefense = req.MeleeDefense,
             RangedDefense = req.RangedDefense, EncumbranceThresholdBonus = req.EncumbranceThresholdBonus,
             Description = req.Description ?? "", Price = req.Price, Rarity = req.Rarity,
+            SkillName = req.SkillName ?? "", Damage = req.Damage ?? "", Crit = req.Crit ?? "",
+            RangeBand = req.RangeBand ?? "", Properties = req.Properties ?? "",
             OwnerUserId = command.UserId,
         };
         db.ItemDefs.Add(def);

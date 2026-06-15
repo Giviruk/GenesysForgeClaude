@@ -116,6 +116,13 @@ public static class CharacterEndpoints
             return Results.NoContent();
         });
 
+        group.MapPost("/{id:guid}/items/{itemId:guid}/sell", async (Guid id, Guid itemId, SellItemRequest req,
+            ClaimsPrincipal user, ICommandHandler<SellItemCommand, Unit> handler, CancellationToken ct) =>
+        {
+            await handler.Handle(new SellItemCommand(user.UserId(), id, itemId, req), ct);
+            return Results.NoContent();
+        });
+
         group.MapDelete("/{id:guid}/items/{itemId:guid}", async (Guid id, Guid itemId, ClaimsPrincipal user,
             ICommandHandler<RemoveItemCommand, Unit> handler, CancellationToken ct) =>
         {

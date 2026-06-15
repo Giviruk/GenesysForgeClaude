@@ -34,11 +34,11 @@ public class ContentSeedTests
         using var db = NewDb();
         SeedData.Apply(db, ContentMode.PrivateFull);
 
-        // private-content/genesys-core.ru.json содержит расширенное описание для gc.item.sword.
-        var sword = db.ItemDefs.Single(i => i.System == GameSystem.GenesysCore && i.Name == "Sword");
-        Assert.Contains("надёжное универсальное", sword.Description);
+        // private-content/genesys-core.ru.json содержит расширенное описание для gc.item.knife.
+        var knife = db.ItemDefs.Single(i => i.System == GameSystem.GenesysCore && i.Name == "Knife");
+        Assert.Contains("универсальный клинок", knife.Description);
         // safe-описание (механика) отличается от полного private-описания.
-        Assert.NotEqual(sword.SafeDescription, sword.Description);
+        Assert.NotEqual(knife.SafeDescription, knife.Description);
     }
 
     [Fact]
@@ -46,7 +46,7 @@ public class ContentSeedTests
     {
         var store = PrivateContentStore.Load();
         Assert.True(store.Count > 0, "private-content/*.ru.json должны подключаться как embedded resource");
-        Assert.NotNull(store.Get("rot.item.plate-armor"));
+        Assert.NotNull(store.Get("rot.item.plate"));
     }
 
     [Fact]

@@ -280,3 +280,60 @@ td.nowrap, th.nowrap { white-space: nowrap; }
 .modal-actions { display: flex; justify-content: flex-end; gap: 0.6rem; margin-top: 1rem; }
 .system-switch { display: flex; gap: 0.4rem; margin-top: 0.3rem; }
 .heroic p { margin: 0.3rem 0; }
+
+/* ---------- Inventory + Shop ---------- */
+.inv-page { display: flex; flex-direction: column; }
+
+/* Кошелёк */
+.money-panel { display: flex; align-items: center; gap: 1.4rem; flex-wrap: wrap; }
+.money-balance { display: flex; align-items: center; gap: 0.4rem; font-size: 1.3rem; }
+.money-balance .coin { font-size: 1.4rem; }
+.money-value { font-size: 1.3rem; font-weight: 700; color: var(--accent); }
+.money-input { width: 6rem; font-size: 1.2rem; }
+.money-adjust { display: flex; align-items: center; gap: 0.4rem; }
+.money-adjust input { width: 6rem; }
+.money-derived { margin-left: auto; font-size: 0.85rem; }
+
+/* Две колонки: инвентарь + магазин */
+.inv-layout { display: grid; grid-template-columns: 1fr 22rem; gap: 1rem; align-items: start; }
+@media (max-width: 60rem) { .inv-layout { grid-template-columns: 1fr; } }
+.inv-current, .inv-shop { margin: 0; }
+.inv-current h3, .inv-shop h3 { margin-top: 0; }
+
+/* Инвентарь персонажа */
+.inv-items { display: flex; flex-direction: column; gap: 0.6rem; }
+.inv-card {
+  border: 1px solid var(--border); border-radius: 8px; padding: 0.6rem 0.75rem;
+  background: var(--panel-2); display: flex; flex-direction: column; gap: 0.4rem;
+}
+.inv-card.equipped { border-color: var(--accent-dark); background: rgba(200, 162, 74, 0.07); }
+.inv-card-head { display: flex; justify-content: space-between; align-items: baseline; gap: 0.6rem; }
+.inv-card-qty { white-space: nowrap; }
+.inv-card-desc { font-size: 0.82rem; color: var(--muted); }
+.inv-card-foot { display: flex; justify-content: space-between; align-items: center; gap: 0.6rem; flex-wrap: wrap; }
+.inv-card-end { display: flex; align-items: center; gap: 0.5rem; }
+
+/* Строка боевых характеристик оружия */
+.weapon-line { display: flex; align-items: center; gap: 0.7rem; flex-wrap: wrap; font-size: 0.85rem; }
+.weapon-stat { white-space: nowrap; }
+.weapon-pool { display: inline-flex; align-items: center; gap: 0.3rem; }
+.weapon-props { font-style: italic; }
+
+/* Магазин */
+.inv-shop { position: sticky; top: 0.5rem; }
+.shop-search { width: 100%; margin-bottom: 0.5rem; }
+.shop-filters { display: flex; gap: 0.3rem; flex-wrap: wrap; margin-bottom: 0.6rem; }
+.shop-list { max-height: 70vh; overflow-y: auto; display: flex; flex-direction: column; gap: 0.4rem; padding-right: 0.3rem; }
+.shop-row { border: 1px solid var(--border); border-radius: 7px; padding: 0.45rem 0.55rem; background: var(--panel-2); }
+.shop-row-head { display: flex; justify-content: space-between; gap: 0.5rem; align-items: flex-start; }
+.shop-row-info { min-width: 0; }
+.shop-row-actions { display: flex; flex-direction: column; gap: 0.25rem; flex-shrink: 0; }
+.shop-desc { margin-top: 0.2rem; }
+
+/* Управление ценой при покупке/продаже */
+.price-control { margin-top: 0.5rem; border-top: 1px dashed var(--border); padding-top: 0.5rem; display: flex; flex-direction: column; gap: 0.4rem; }
+.price-mults { display: flex; gap: 0.25rem; flex-wrap: wrap; }
+.price-row { display: flex; align-items: flex-end; gap: 0.6rem; flex-wrap: wrap; }
+.price-row label { display: flex; flex-direction: column; font-size: 0.78rem; color: var(--muted); gap: 0.15rem; }
+.price-total { font-size: 0.95rem; }
+button.tiny { font-size: 0.75rem; padding: 0.1rem 0.4rem; }

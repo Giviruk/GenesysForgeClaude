@@ -22,7 +22,8 @@ public static class Mappers
 
     public static ItemDefDto ToDto(this ItemDef i) => new(i.Id, i.Name, i.NameRu, i.Kind, i.Encumbrance, i.SoakBonus,
         i.MeleeDefense, i.RangedDefense, i.EncumbranceThresholdBonus,
-        i.Description, i.SafeDescription, i.Source, i.Price, i.Rarity, i.OwnerUserId != null);
+        i.Description, i.SafeDescription, i.Source, i.Price, i.Rarity,
+        i.SkillName, i.Damage, i.Crit, i.RangeBand, i.Properties, i.OwnerUserId != null);
 
     public static HeroicAbilityDto ToDto(this HeroicAbilityDef h) =>
         new(h.Id, h.Name, h.NameRu, h.Description, h.SafeDescription, h.Source, h.OwnerUserId != null);

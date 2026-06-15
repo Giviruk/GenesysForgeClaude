@@ -57,6 +57,11 @@ export interface ItemDef {
   source: string
   price: number
   rarity: number
+  skillName: string
+  damage: string
+  crit: string
+  rangeBand: string
+  properties: string
   isCustom: boolean
 }
 
@@ -182,6 +187,12 @@ export interface SheetItem {
   encumbranceThresholdBonus: number
   load: number
   description: string
+  price: number
+  skillName: string
+  damage: string
+  crit: string
+  rangeBand: string
+  properties: string
 }
 
 export interface Derived {
@@ -252,6 +263,7 @@ export interface CharacterSheet {
   isCreationPhase: boolean
   woundsCurrent: number
   strainCurrent: number
+  money: number
   derived: Derived
   skills: SheetSkill[]
   talents: SheetTalent[]

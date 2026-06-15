@@ -25,6 +25,7 @@ public class UpdateCharacterHandler(IAppDbContext db) : ICommandHandler<UpdateCh
         }
         if (req.WoundsCurrent is not null) c.WoundsCurrent = Math.Max(0, req.WoundsCurrent.Value);
         if (req.StrainCurrent is not null) c.StrainCurrent = Math.Max(0, req.StrainCurrent.Value);
+        if (req.Money is not null) c.Money = Math.Max(0, req.Money.Value);
 
         await db.SaveChangesAsync(ct);
         return Unit.Value;

@@ -31,6 +31,11 @@ public class UpdateCustomItemHandler(IAppDbContext db) : ICommandHandler<UpdateC
         def.Description = req.Description ?? "";
         def.Price = req.Price;
         def.Rarity = req.Rarity;
+        def.SkillName = req.SkillName ?? "";
+        def.Damage = req.Damage ?? "";
+        def.Crit = req.Crit ?? "";
+        def.RangeBand = req.RangeBand ?? "";
+        def.Properties = req.Properties ?? "";
         await db.SaveChangesAsync(ct);
         return def.ToDto();
     }

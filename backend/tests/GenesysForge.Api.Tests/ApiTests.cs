@@ -195,7 +195,7 @@ public class CharacterFlowTests : IClassFixture<ApiFactory>
     {
         var (client, reference, id) = await CreateCharacterAsync(GameSystem.RealmsOfTerrinoth);
         var before = await SheetAsync(client, id);
-        var plate = reference.Items.First(i => i.Name == "Plate Armor");
+        var plate = reference.Items.First(i => i.Name == "Plate");
 
         // Добавить в рюкзак: бонусов нет, вес полный
         var add = await client.PostAsJsonAsync($"/api/characters/{id}/items",

@@ -85,6 +85,15 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             e.Property(s => s.Source).HasMaxLength(120);
         });
 
+        b.Entity<ItemDef>(e =>
+        {
+            e.Property(i => i.SkillName).HasMaxLength(40);
+            e.Property(i => i.Damage).HasMaxLength(20);
+            e.Property(i => i.Crit).HasMaxLength(20);
+            e.Property(i => i.RangeBand).HasMaxLength(40);
+            e.Property(i => i.Properties).HasMaxLength(400);
+        });
+
         // Content-model (Code/NameRu/Source) у справочных сущностей.
         ConfigureContent<SkillDef>(b);
         ConfigureContent<TalentDef>(b);

@@ -18,6 +18,14 @@ public class AddItemHandler(IAppDbContext db) : ICommandHandler<AddItemCommand, 
             ?? throw new DomainRuleException("Предмет не найден.");
         if (req.Quantity < 1) throw new DomainRuleException("Количество должно быть не меньше 1.");
 
+        // Покупка: списываем монеты. Cost == null/≤0 — бесплатное добавление.
+        if (req.Cost is > 0)
+        {
+            if (c.Money < req.Cost.Value)
+                throw new DomainRuleException($"Недостаточно монет: нужно {req.Cost.Value}, в наличии {c.Money}.");
+            c.Money -= req.Cost.Value;
+        }
+
         var item = new CharacterItem
         {
             Id = Guid.NewGuid(), CharacterId = c.Id, ItemDefId = itemDef.Id, ItemDef = itemDef,

@@ -15,6 +15,7 @@ public record CharacterSheetDto(
     bool IsCreationPhase,
     int WoundsCurrent,
     int StrainCurrent,
+    int Money,
     DerivedDto Derived,
     List<CharacterSkillDto> Skills,
     List<CharacterTalentDto> Talents,
