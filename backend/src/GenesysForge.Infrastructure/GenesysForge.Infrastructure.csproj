@@ -8,6 +8,7 @@
   <ItemGroup>
     <EmbeddedResource Include="Persistence\SeedContent\talents.catalog.json" />
     <EmbeddedResource Include="Persistence\SeedContent\items.catalog.json" />
+    <EmbeddedResource Include="Persistence\SeedContent\heroics.catalog.json" />
   </ItemGroup>
 
   <!--

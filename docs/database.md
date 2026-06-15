@@ -13,6 +13,7 @@ DbSets:
 - `TalentDefs`
 - `ItemDefs`
 - `HeroicAbilityDefs`
+- `HeroicAbilityUpgradeDefs`
 - `ArchetypeDefs`
 - `CareerDefs`
 - `Characters`
@@ -78,7 +79,14 @@ Fields include `System`, content-model fields, `Kind`, `Encumbrance`, `SoakBonus
 
 Built-in and custom heroic abilities.
 
-Fields include content-model fields and `OwnerUserId` (no `System` — heroic abilities are Realms of Terrinoth only).
+Fields include content-model fields, the activation card (`Requirement`, `ActivationCost`, `Activation`,
+`Duration`, `Frequency`, `Notes`) and `OwnerUserId` (no `System` — heroic abilities are Realms of Terrinoth only).
+
+### HeroicAbilityUpgradeDefs
+
+Purchasable upgrades (Improved/Supreme) of a heroic ability. Fields: `Id`, `HeroicAbilityDefId` (FK,
+cascade delete), `Level`, `Cost`, `Description`, `Notes`. The character's `HeroicUpgradeRank` (0/1/2)
+records the highest purchased level.
 
 ### ArchetypeDefs
 
@@ -167,7 +175,7 @@ Startup behavior:
 
 ## Seed data and content modes
 
-`SeedData.cs` inserts built-in skills, archetypes, careers, talents, items, heroic abilities and spell/magic reference entries with the full content model (`Code`, `NameRu`, `SafeDescription`, `Source`). Talents are loaded from the embedded `talents.catalog.json` catalog (`TalentCatalog`), the rest are defined in `SeedData.cs`.
+`SeedData.cs` inserts built-in skills, archetypes, careers, talents, items, heroic abilities and spell/magic reference entries with the full content model (`Code`, `NameRu`, `SafeDescription`, `Source`). Talents (`talents.catalog.json` / `TalentCatalog`), items (`items.catalog.json` / `ItemCatalog`) and heroic abilities with their upgrades (`heroics.catalog.json` / `HeroicCatalog`) are loaded from embedded catalogs; the rest are defined in `SeedData.cs`.
 
 Two seed pipelines are selected by `ContentMode` (param of `SeedData.Apply`, from `Content:Mode` config):
 

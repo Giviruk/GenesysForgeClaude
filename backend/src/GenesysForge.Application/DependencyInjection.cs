@@ -36,6 +36,7 @@ public static class DependencyInjection
         services.AddScoped<ICommandHandler<RefundSkillRankCommand, Unit>, RefundSkillRankHandler>();
         services.AddScoped<ICommandHandler<RefundTalentCommand, Unit>, RefundTalentHandler>();
         services.AddScoped<ICommandHandler<SetHeroicAbilityCommand, Unit>, SetHeroicAbilityHandler>();
+        services.AddScoped<ICommandHandler<SetHeroicUpgradeRankCommand, Unit>, SetHeroicUpgradeRankHandler>();
         services.AddScoped<ICommandHandler<AddItemCommand, Guid>, AddItemHandler>();
         services.AddScoped<ICommandHandler<UpdateItemCommand, Unit>, UpdateItemHandler>();
         services.AddScoped<ICommandHandler<RemoveItemCommand, Unit>, RemoveItemHandler>();

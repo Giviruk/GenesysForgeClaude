@@ -247,6 +247,44 @@ public class CharacterFlowTests : IClassFixture<ApiFactory>
     }
 
     [Fact]
+    public async Task HeroicAbility_HasUpgrades_AndUpgradePointsRespected()
+    {
+        var (client, reference, id) = await CreateCharacterAsync(GameSystem.RealmsOfTerrinoth);
+        var ability = reference.HeroicAbilities.First(h => h.Upgrades.Count == 2);
+        // Каждая встроенная способность несёт Improved (1 очко) и Supreme (2 очка).
+        Assert.Equal(1, ability.Upgrades[0].Level);
+        Assert.Equal(1, ability.Upgrades[0].Cost);
+        Assert.Equal(2, ability.Upgrades[1].Level);
+        Assert.Equal(2, ability.Upgrades[1].Cost);
+
+        await client.PutAsJsonAsync($"/api/characters/{id}/heroic-ability", new SetHeroicAbilityRequest(ability.Id));
+
+        // На создании доступно ровно 1 стартовое очко.
+        var sheet = await SheetAsync(client, id);
+        Assert.Equal(1, sheet.HeroicUpgradePointsTotal);
+        Assert.Equal(0, sheet.HeroicUpgradeRank);
+
+        // Improved (стоимость 1) — по карману.
+        var improved = await client.PutAsJsonAsync($"/api/characters/{id}/heroic-upgrade",
+            new SetHeroicUpgradeRankRequest(1));
+        Assert.Equal(HttpStatusCode.NoContent, improved.StatusCode);
+        sheet = await SheetAsync(client, id);
+        Assert.Equal(1, sheet.HeroicUpgradeRank);
+        Assert.Equal(1, sheet.HeroicUpgradePointsSpent);
+
+        // Supreme требует суммарно 3 очка — на создании нельзя.
+        var supreme = await client.PutAsJsonAsync($"/api/characters/{id}/heroic-upgrade",
+            new SetHeroicUpgradeRankRequest(2));
+        Assert.Equal(HttpStatusCode.BadRequest, supreme.StatusCode);
+
+        // Смена способности обнуляет купленный ранг.
+        var other = reference.HeroicAbilities.First(h => h.Id != ability.Id);
+        await client.PutAsJsonAsync($"/api/characters/{id}/heroic-ability", new SetHeroicAbilityRequest(other.Id));
+        sheet = await SheetAsync(client, id);
+        Assert.Equal(0, sheet.HeroicUpgradeRank);
+    }
+
+    [Fact]
     public async Task BuyCharacteristic_OnlyDuringCreation()
     {
         var (client, _, id) = await CreateCharacterAsync(GameSystem.GenesysCore);

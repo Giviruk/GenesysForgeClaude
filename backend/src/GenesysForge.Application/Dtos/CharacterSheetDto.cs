@@ -21,4 +21,7 @@ public record CharacterSheetDto(
     List<CharacterTalentDto> Talents,
     Dictionary<int, int> TalentTierCounts,
     HeroicAbilityDto? HeroicAbility,
+    int HeroicUpgradeRank,
+    int HeroicUpgradePointsTotal,
+    int HeroicUpgradePointsSpent,
     List<CharacterItemDto> Items);

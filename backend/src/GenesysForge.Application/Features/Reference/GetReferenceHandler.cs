@@ -43,12 +43,15 @@ public class GetReferenceHandler(IAppDbContext db) : IQueryHandler<GetReferenceQ
             .OrderBy(i => i.Kind).ThenBy(i => i.Name)
             .Select(i => i.ToDto()).ToListAsync(ct);
 
-        var heroics = system == GameSystem.RealmsOfTerrinoth
+        // Героики материализуем вместе с улучшениями и маппим в памяти (ToDto тянет навигацию Upgrades).
+        var heroicDefs = system == GameSystem.RealmsOfTerrinoth
             ? await db.HeroicAbilityDefs.AsNoTracking()
+                .Include(h => h.Upgrades)
                 .Where(h => h.OwnerUserId == null || h.OwnerUserId == userId)
-                .OrderBy(h => h.Name)
-                .Select(h => h.ToDto()).ToListAsync(ct)
+                .OrderBy(h => h.NameRu)
+                .ToListAsync(ct)
             : [];
+        var heroics = heroicDefs.Select(h => h.ToDto()).ToList();
 
         return new ReferenceResponse(archetypes, careers, skills, talents, items, heroics);
     }

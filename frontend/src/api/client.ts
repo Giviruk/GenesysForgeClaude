@@ -89,6 +89,8 @@ export const api = {
     request<void>('POST', `/api/characters/${id}/talents/refund`, { talentDefId }),
   setHeroicAbility: (id: string, heroicAbilityId: string | null) =>
     request<void>('PUT', `/api/characters/${id}/heroic-ability`, { heroicAbilityId }),
+  setHeroicUpgradeRank: (id: string, rank: number) =>
+    request<void>('PUT', `/api/characters/${id}/heroic-upgrade`, { rank }),
 
   // cost — сколько монет списать при покупке; не передавайте (или 0) для бесплатного добавления.
   addItem: (id: string, itemDefId: string, quantity: number, state: ItemState, cost?: number) =>

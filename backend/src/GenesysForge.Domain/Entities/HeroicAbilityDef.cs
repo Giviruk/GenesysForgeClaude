@@ -15,5 +15,22 @@ public class HeroicAbilityDef : IContentDef
     public string SafeDescription { get; set; } = "";
     /// <summary>Ссылка на источник: книга/раздел/страница. Доступна в обоих режимах.</summary>
     public string Source { get; set; } = "";
+
+    /// <summary>Стоимость/требование выбора (например, выбор навыка) или «—».</summary>
+    public string Requirement { get; set; } = "";
+    /// <summary>Стоимость активации (обычно «2 очка сюжета»).</summary>
+    public string ActivationCost { get; set; } = "";
+    /// <summary>Тип активации (действие/манёвр/инцидент и т.п.).</summary>
+    public string Activation { get; set; } = "";
+    /// <summary>Длительность эффекта.</summary>
+    public string Duration { get; set; } = "";
+    /// <summary>Частота использования.</summary>
+    public string Frequency { get; set; } = "";
+    /// <summary>Особые условия/заметки базового эффекта.</summary>
+    public string Notes { get; set; } = "";
+
     public Guid? OwnerUserId { get; set; }
+
+    /// <summary>Доступные улучшения способности (Improved/Supreme). У кастома — пусто.</summary>
+    public List<HeroicAbilityUpgradeDef> Upgrades { get; set; } = [];
 }

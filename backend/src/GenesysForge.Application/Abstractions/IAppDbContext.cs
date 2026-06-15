@@ -11,6 +11,7 @@ public interface IAppDbContext
     DbSet<TalentDef> TalentDefs { get; }
     DbSet<ItemDef> ItemDefs { get; }
     DbSet<HeroicAbilityDef> HeroicAbilityDefs { get; }
+    DbSet<HeroicAbilityUpgradeDef> HeroicAbilityUpgradeDefs { get; }
     DbSet<ArchetypeDef> ArchetypeDefs { get; }
     DbSet<CareerDef> CareerDefs { get; }
     DbSet<Character> Characters { get; }
