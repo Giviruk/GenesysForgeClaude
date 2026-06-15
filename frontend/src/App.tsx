@@ -4,9 +4,10 @@ import { useAuth } from './auth-context'
 import { AuthPage } from './pages/AuthPage'
 import { CharactersPage } from './pages/CharactersPage'
 import { CampaignsPage } from './pages/CampaignsPage'
+import { NpcsPage } from './pages/NpcsPage'
 import { SheetPage } from './pages/SheetPage'
 
-type Area = 'characters' | 'campaigns'
+type Area = 'characters' | 'campaigns' | 'npcs'
 
 function Shell() {
   const { token, logout } = useAuth()
@@ -27,6 +28,7 @@ function Shell() {
         <nav className="topnav">
           <button className={area === 'characters' ? 'tab active' : 'tab'} onClick={() => go('characters')}>Персонажи</button>
           <button className={area === 'campaigns' ? 'tab active' : 'tab'} onClick={() => go('campaigns')}>Кампании</button>
+          <button className={area === 'npcs' ? 'tab active' : 'tab'} onClick={() => go('npcs')}>Бестиарий</button>
         </nav>
         <button className="small" onClick={() => { setCharacterId(null); logout() }}>Выйти</button>
       </header>
@@ -34,7 +36,9 @@ function Shell() {
         ? (characterId
             ? <SheetPage characterId={characterId} onBack={() => setCharacterId(null)} />
             : <CharactersPage onOpen={setCharacterId} />)
-        : <CampaignsPage />}
+        : area === 'campaigns'
+          ? <CampaignsPage />
+          : <NpcsPage />}
     </div>
   )
 }

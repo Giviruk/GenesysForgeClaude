@@ -264,6 +264,118 @@ export interface CharacterNote {
   updatedAt: string
 }
 
+export type NpcKind = 'minion' | 'rival' | 'nemesis'
+export type NpcRole =
+  | 'brute' | 'skirmisher' | 'archer' | 'caster' | 'leader' | 'social' | 'support' | 'monster' | 'custom'
+export type NpcVisibility = 'private' | 'campaignVisible' | 'publicTemplate'
+export type NpcPowerLevel = 'weak' | 'standard' | 'strong' | 'elite'
+export type NpcCombatStyle = 'melee' | 'ranged' | 'magic' | 'social'
+
+export interface NpcSkillEntry {
+  name: string
+  ranks: number
+}
+
+export interface NpcAbilityEntry {
+  name: string
+  description: string
+}
+
+export interface NpcListItem {
+  id: string
+  name: string
+  system: GameSystem
+  kind: NpcKind
+  role: NpcRole
+  soak: number
+  woundThreshold: number
+  strainThreshold: number | null
+  visibility: NpcVisibility
+  campaignId: string | null
+  isMine: boolean
+  skills: NpcSkillEntry[]
+  tags: string[]
+  createdAt: string
+}
+
+export interface NpcDetail {
+  id: string
+  name: string
+  system: GameSystem
+  kind: NpcKind
+  role: NpcRole
+  description: string
+  source: string
+  brawn: number
+  agility: number
+  intellect: number
+  cunning: number
+  willpower: number
+  presence: number
+  woundThreshold: number
+  strainThreshold: number | null
+  soak: number
+  meleeDefense: number
+  rangedDefense: number
+  visibility: NpcVisibility
+  campaignId: string | null
+  isMine: boolean
+  skills: NpcSkillEntry[]
+  abilities: NpcAbilityEntry[]
+  talents: string[]
+  equipment: string[]
+  tags: string[]
+  createdAt: string
+  updatedAt: string
+}
+
+export interface NpcInput {
+  name: string
+  system: GameSystem
+  kind: NpcKind
+  role: NpcRole
+  description: string
+  source: string
+  brawn: number
+  agility: number
+  intellect: number
+  cunning: number
+  willpower: number
+  presence: number
+  woundThreshold: number
+  strainThreshold: number | null
+  soak: number
+  meleeDefense: number
+  rangedDefense: number
+  visibility: NpcVisibility
+  campaignId: string | null
+  skills: NpcSkillEntry[]
+  abilities: NpcAbilityEntry[]
+  talents: string[]
+  equipment: string[]
+  tags: string[]
+}
+
+export interface QuickDraftRequest {
+  system: GameSystem
+  kind: NpcKind
+  role: NpcRole
+  powerLevel: NpcPowerLevel
+  primaryCharacteristic: Characteristic | null
+  combatStyle: NpcCombatStyle
+  name: string | null
+}
+
+export interface NpcFilter {
+  search?: string
+  system?: GameSystem
+  kind?: NpcKind
+  role?: NpcRole
+  campaignId?: string
+  tag?: string
+  sort?: 'name' | 'createdAt'
+}
+
 export interface CharacterSheet {
   id: string
   name: string

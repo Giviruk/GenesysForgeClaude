@@ -5,6 +5,7 @@ using GenesysForge.Application.Features.Characters;
 using GenesysForge.Application.Features.Campaigns;
 using GenesysForge.Application.Features.CustomContent;
 using GenesysForge.Application.Features.Notes;
+using GenesysForge.Application.Features.Npcs;
 using GenesysForge.Application.Features.Reference;
 using GenesysForge.Application.Features.Spells;
 using Microsoft.Extensions.DependencyInjection;
@@ -74,6 +75,15 @@ public static class DependencyInjection
 
         // Spells
         services.AddScoped<IQueryHandler<GetSpellsQuery, List<SpellDto>>, GetSpellsHandler>();
+
+        // NPCs / Bestiary
+        services.AddScoped<IQueryHandler<GetNpcsQuery, List<NpcListItemDto>>, GetNpcsHandler>();
+        services.AddScoped<IQueryHandler<GetNpcQuery, NpcDetailDto>, GetNpcHandler>();
+        services.AddScoped<ICommandHandler<CreateNpcCommand, NpcDetailDto>, CreateNpcHandler>();
+        services.AddScoped<ICommandHandler<UpdateNpcCommand, NpcDetailDto>, UpdateNpcHandler>();
+        services.AddScoped<ICommandHandler<DeleteNpcCommand, Unit>, DeleteNpcHandler>();
+        services.AddScoped<ICommandHandler<DuplicateNpcCommand, NpcDetailDto>, DuplicateNpcHandler>();
+        services.AddScoped<ICommandHandler<QuickDraftNpcCommand, NpcDetailDto>, QuickDraftNpcHandler>();
 
         return services;
     }

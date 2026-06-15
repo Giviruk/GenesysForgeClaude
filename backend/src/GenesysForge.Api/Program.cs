@@ -80,6 +80,7 @@ app.MapCharacters();
 app.MapNotes();
 app.MapCampaigns();
 app.MapSpells();
+app.MapNpcs();
 app.MapGet("/api/health", () => Results.Ok(new { status = "ok" }));
 
 app.Run();
