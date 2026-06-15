@@ -59,22 +59,26 @@ public class SpellTests : IClassFixture<ApiFactory>
         bool Available(string skill, string effect) =>
             spells.Any(s => s.Kind == SpellEntryKind.Effect && s.MagicSkill == skill && s.NameEn == effect);
 
-        // По матрице: Verse не имеет Attack; Arcana не имеет Augment и Heal; Primal не имеет Barrier.
+        // По матрице: Verse не имеет Attack; Arcana не имеет Augment и Heal; Primal не имеет Barrier и Curse.
         Assert.False(Available("Verse", "Attack"));
         Assert.False(Available("Arcana", "Augment"));
         Assert.False(Available("Arcana", "Heal"));
         Assert.False(Available("Primal", "Barrier"));
         Assert.False(Available("Runes", "Conjure"));
+        Assert.False(Available("Primal", "Curse"));
         // Доступные комбинации присутствуют
         Assert.True(Available("Arcana", "Attack"));
         Assert.True(Available("Verse", "Heal"));
         Assert.True(Available("Runes", "Augment"));
-        // Utility и Curse доступны всем навыкам
+        // Utility доступна всем навыкам; Curse — всем кроме Primal
         foreach (var skill in new[] { "Arcana", "Divine", "Primal", "Runes", "Verse" })
-        {
             Assert.True(Available(skill, "Utility"), $"{skill} should have Utility");
+        foreach (var skill in new[] { "Arcana", "Divine", "Runes", "Verse" })
             Assert.True(Available(skill, "Curse"), $"{skill} should have Curse");
-        }
+        // EPG-заклинания присутствуют в обеих системах
+        Assert.True(Available("Arcana", "Mask"));
+        Assert.True(Available("Arcana", "Predict"));
+        Assert.True(Available("Primal", "Transform"));
     }
 
     [Fact]
