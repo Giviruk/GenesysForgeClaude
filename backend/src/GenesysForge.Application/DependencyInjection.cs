@@ -4,6 +4,7 @@ using GenesysForge.Application.Features.Auth;
 using GenesysForge.Application.Features.Characters;
 using GenesysForge.Application.Features.Campaigns;
 using GenesysForge.Application.Features.CustomContent;
+using GenesysForge.Application.Features.GameTable;
 using GenesysForge.Application.Features.Notes;
 using GenesysForge.Application.Features.Npcs;
 using GenesysForge.Application.Features.Reference;
@@ -84,6 +85,20 @@ public static class DependencyInjection
         services.AddScoped<ICommandHandler<DeleteNpcCommand, Unit>, DeleteNpcHandler>();
         services.AddScoped<ICommandHandler<DuplicateNpcCommand, NpcDetailDto>, DuplicateNpcHandler>();
         services.AddScoped<ICommandHandler<QuickDraftNpcCommand, NpcDetailDto>, QuickDraftNpcHandler>();
+
+        // Game Table / GM Cockpit
+        services.AddScoped<IQueryHandler<GetSessionQuery, GameSessionDto?>, GetSessionHandler>();
+        services.AddScoped<ICommandHandler<CreateSessionCommand, GameSessionDto>, CreateSessionHandler>();
+        services.AddScoped<ICommandHandler<UpdateSessionCommand, GameSessionDto>, UpdateSessionHandler>();
+        services.AddScoped<ICommandHandler<ResetSessionCommand, GameSessionDto>, ResetSessionHandler>();
+        services.AddScoped<ICommandHandler<EndSessionCommand, Unit>, EndSessionHandler>();
+        services.AddScoped<ICommandHandler<NextTurnCommand, GameSessionDto>, NextTurnHandler>();
+        services.AddScoped<ICommandHandler<AddParticipantCommand, GameSessionDto>, AddParticipantHandler>();
+        services.AddScoped<ICommandHandler<UpdateParticipantCommand, GameSessionDto>, UpdateParticipantHandler>();
+        services.AddScoped<ICommandHandler<RemoveParticipantCommand, Unit>, RemoveParticipantHandler>();
+        services.AddScoped<ICommandHandler<AddSlotCommand, GameSessionDto>, AddSlotHandler>();
+        services.AddScoped<ICommandHandler<UpdateSlotCommand, GameSessionDto>, UpdateSlotHandler>();
+        services.AddScoped<ICommandHandler<RemoveSlotCommand, Unit>, RemoveSlotHandler>();
 
         return services;
     }

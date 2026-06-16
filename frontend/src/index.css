@@ -446,3 +446,38 @@ button.tiny { font-size: 0.75rem; padding: 0.1rem 0.4rem; }
   .npc-char-label, .npc-desc, .muted { color: #333 !important; }
   .chip { border-color: #999; color: #000; }
 }
+
+/* ---------- Game Table / GM Cockpit ---------- */
+.campaign-tabs { margin: 0.8rem 0; }
+.game-table { display: flex; flex-direction: column; gap: 0.9rem; margin-top: 0.6rem; }
+.gt-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; flex-wrap: wrap; }
+.gt-round { margin-top: 0.3rem; font-size: 0.95rem; }
+.badge.slot-player { border-color: var(--core); color: #9db9e8; }
+.badge.slot-npc { border-color: var(--red); color: #e89d9d; }
+.badge.slot-neutral { border-color: var(--muted); color: var(--muted); }
+
+.gt-story { display: flex; align-items: center; justify-content: space-around; gap: 1rem; flex-wrap: wrap; }
+.story-counter { text-align: center; }
+.story-label { display: block; font-size: 0.8rem; color: var(--muted); margin-bottom: 0.3rem; }
+.story-val { display: flex; align-items: center; gap: 0.5rem; justify-content: center; font-size: 1.5rem; }
+.story-val strong { min-width: 1.6rem; color: var(--accent); }
+.story-flip { display: flex; flex-direction: column; gap: 0.3rem; }
+
+.init-list { list-style: none; counter-reset: slot; padding: 0; margin: 0.4rem 0; display: flex; flex-direction: column; gap: 0.35rem; }
+.init-slot { display: flex; align-items: center; gap: 0.5rem; padding: 0.35rem 0.6rem; border: 1px solid var(--border); border-radius: 6px; }
+.init-slot.current { border-color: var(--accent); background: rgba(200, 162, 74, 0.12); }
+.init-slot::before { counter-increment: slot; content: counter(slot); color: var(--muted); font-size: 0.8rem; min-width: 1rem; }
+.slot-assign { width: auto; flex: 1 1 auto; }
+
+.participant-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr)); gap: 0.7rem; margin: 0.5rem 0; }
+.participant-card { border: 1px solid var(--border); border-radius: 8px; padding: 0.6rem 0.8rem; background: var(--panel-2); }
+.participant-card.defeated { opacity: 0.55; }
+.pc-head { display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap; margin-bottom: 0.4rem; }
+.pc-vitals { display: flex; gap: 1rem; flex-wrap: wrap; }
+.vital { display: flex; flex-direction: column; }
+.vital-label { font-size: 0.72rem; color: var(--muted); }
+.vital-nums { display: flex; align-items: center; gap: 0.3rem; }
+.vital-over b { color: var(--red); }
+.pc-stats { margin-top: 0.4rem; }
+.pc-notes { margin-top: 0.3rem; font-style: italic; }
+.add-participant { margin-top: 0.6rem; border-top: 1px dashed var(--border); padding-top: 0.6rem; }

@@ -1,6 +1,6 @@
 import type {
-  Characteristic, GameSystem, ItemKind, ItemState, NpcCombatStyle, NpcKind, NpcPowerLevel,
-  NpcRole, NpcVisibility, SkillKind,
+  Characteristic, GameSystem, InitiativeSlotType, ItemKind, ItemState, NpcCombatStyle, NpcKind,
+  NpcPowerLevel, NpcRole, NpcVisibility, ParticipantType, SkillKind,
 } from '../api/types'
 
 export const SYSTEM_LABELS: Record<GameSystem, string> = {
@@ -122,6 +122,19 @@ export const NPC_KINDS: NpcKind[] = ['minion', 'rival', 'nemesis']
 export const NPC_ROLES: NpcRole[] = [
   'brute', 'skirmisher', 'archer', 'caster', 'leader', 'social', 'support', 'monster', 'custom',
 ]
+
+export const PARTICIPANT_TYPE_LABELS: Record<ParticipantType, string> = {
+  playerCharacter: 'Персонаж',
+  npc: 'NPC',
+  minionGroup: 'Группа миньонов',
+  hazard: 'Осложнение',
+}
+
+export const SLOT_TYPE_LABELS: Record<InitiativeSlotType, string> = {
+  player: 'Игроки',
+  npc: 'NPC',
+  neutral: 'Нейтрал',
+}
 
 /** Стоимость таланта тира N — 5 × N XP. */
 export const talentCost = (tier: number) => tier * 5
