@@ -376,6 +376,87 @@ export interface NpcFilter {
   sort?: 'name' | 'createdAt'
 }
 
+export type ParticipantType = 'playerCharacter' | 'npc' | 'minionGroup' | 'hazard'
+export type InitiativeSlotType = 'player' | 'npc' | 'neutral'
+
+export interface GameParticipant {
+  id: string
+  characterId: string | null
+  npcId: string | null
+  displayName: string
+  participantType: ParticipantType
+  initiativeSlotType: InitiativeSlotType
+  count: number
+  woundsCurrent: number
+  woundsThreshold: number
+  strainCurrent: number
+  strainThreshold: number | null
+  soak: number
+  meleeDefense: number
+  rangedDefense: number
+  isActive: boolean
+  isDefeated: boolean
+  isHiddenFromPlayers: boolean
+  notes: string
+  order: number
+}
+
+export interface InitiativeSlot {
+  id: string
+  slotType: InitiativeSlotType
+  order: number
+  assignedParticipantId: string | null
+  notes: string
+}
+
+export interface GameSession {
+  id: string
+  campaignId: string
+  name: string
+  description: string
+  isActive: boolean
+  isGm: boolean
+  allowPlayerEdits: boolean
+  playerStoryPoints: number
+  gmStoryPoints: number
+  currentRound: number
+  currentTurnIndex: number
+  publicNotes: string
+  gmNotes: string | null
+  participants: GameParticipant[]
+  slots: InitiativeSlot[]
+}
+
+export interface AddParticipantRequest {
+  characterId?: string | null
+  npcId?: string | null
+  displayName?: string | null
+  participantType?: ParticipantType | null
+  initiativeSlotType?: InitiativeSlotType | null
+  count?: number | null
+  woundsThreshold?: number | null
+  strainThreshold?: number | null
+  soak?: number | null
+  meleeDefense?: number | null
+  rangedDefense?: number | null
+}
+
+export interface UpdateParticipantRequest {
+  displayName?: string | null
+  woundsCurrent?: number | null
+  woundsThreshold?: number | null
+  strainCurrent?: number | null
+  strainThreshold?: number | null
+  soak?: number | null
+  meleeDefense?: number | null
+  rangedDefense?: number | null
+  isActive?: boolean | null
+  isDefeated?: boolean | null
+  isHiddenFromPlayers?: boolean | null
+  notes?: string | null
+  initiativeSlotType?: InitiativeSlotType | null
+}
+
 export interface CharacterSheet {
   id: string
   name: string

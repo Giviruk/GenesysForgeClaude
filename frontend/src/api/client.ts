@@ -1,7 +1,8 @@
 import type {
   AuthResponse, CampaignDetail, CampaignListItem, CampaignNote, CharacterListItem, CharacterNote,
-  CharacterSheet, GameSystem, HeroicAbility, ItemDef, ItemState, NpcDetail, NpcFilter, NpcInput,
-  NpcListItem, QuickDraftRequest, Reference, SkillDef, Spell, TalentDef,
+  AddParticipantRequest, CharacterSheet, GameSession, GameSystem, HeroicAbility, InitiativeSlotType,
+  ItemDef, ItemState, NpcDetail, NpcFilter, NpcInput, NpcListItem, QuickDraftRequest, Reference,
+  SkillDef, Spell, TalentDef, UpdateParticipantRequest,
 } from './types'
 
 const TOKEN_KEY = 'genesysforge.token'
@@ -175,6 +176,35 @@ export const api = {
   deleteNpc: (id: string) => request<void>('DELETE', `/api/npcs/${id}`),
   duplicateNpc: (id: string) => request<NpcDetail>('POST', `/api/npcs/${id}/duplicate`),
   quickDraftNpc: (req: QuickDraftRequest) => request<NpcDetail>('POST', '/api/npcs/quick-draft', req),
+
+  // Game Table / GM Cockpit (сцена кампании). GET возвращает 204 → null, если активной сцены нет.
+  session: async (campaignId: string): Promise<GameSession | null> => {
+    const r = await request<GameSession | undefined>('GET', `/api/campaigns/${campaignId}/session/`)
+    return r ?? null
+  },
+  createSession: (campaignId: string, body: { name: string; description: string; playerStoryPoints: number; gmStoryPoints: number }) =>
+    request<GameSession>('POST', `/api/campaigns/${campaignId}/session/`, body),
+  updateSession: (campaignId: string, patch: {
+    name?: string; description?: string; publicNotes?: string; gmNotes?: string
+    playerStoryPoints?: number; gmStoryPoints?: number; allowPlayerEdits?: boolean
+  }) => request<GameSession>('PATCH', `/api/campaigns/${campaignId}/session/`, patch),
+  resetSession: (campaignId: string) => request<GameSession>('POST', `/api/campaigns/${campaignId}/session/reset`),
+  nextTurn: (campaignId: string) => request<GameSession>('POST', `/api/campaigns/${campaignId}/session/next-turn`),
+  endSession: (campaignId: string) => request<void>('DELETE', `/api/campaigns/${campaignId}/session/`),
+
+  addParticipant: (campaignId: string, body: AddParticipantRequest) =>
+    request<GameSession>('POST', `/api/campaigns/${campaignId}/session/participants`, body),
+  updateParticipant: (campaignId: string, participantId: string, patch: UpdateParticipantRequest) =>
+    request<GameSession>('PATCH', `/api/campaigns/${campaignId}/session/participants/${participantId}`, patch),
+  removeParticipant: (campaignId: string, participantId: string) =>
+    request<void>('DELETE', `/api/campaigns/${campaignId}/session/participants/${participantId}`),
+
+  addSlot: (campaignId: string, body: { slotType: InitiativeSlotType; assignedParticipantId?: string | null; notes?: string }) =>
+    request<GameSession>('POST', `/api/campaigns/${campaignId}/session/slots`, body),
+  updateSlot: (campaignId: string, slotId: string, patch: { slotType?: InitiativeSlotType; order?: number; assignedParticipantId?: string | null; notes?: string }) =>
+    request<GameSession>('PATCH', `/api/campaigns/${campaignId}/session/slots/${slotId}`, patch),
+  removeSlot: (campaignId: string, slotId: string) =>
+    request<void>('DELETE', `/api/campaigns/${campaignId}/session/slots/${slotId}`),
 
   deleteCustomSkill: (id: string) => request<void>('DELETE', `/api/custom/skills/${id}`),
   deleteCustomTalent: (id: string) => request<void>('DELETE', `/api/custom/talents/${id}`),
