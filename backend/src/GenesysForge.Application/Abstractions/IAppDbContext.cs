@@ -24,6 +24,9 @@ public interface IAppDbContext
     DbSet<CampaignNote> CampaignNotes { get; }
     DbSet<SpellDef> SpellDefs { get; }
     DbSet<Npc> Npcs { get; }
+    DbSet<GameSession> GameSessions { get; }
+    DbSet<GameParticipant> GameParticipants { get; }
+    DbSet<InitiativeSlot> InitiativeSlots { get; }
 
     Task<int> SaveChangesAsync(CancellationToken ct = default);
 }

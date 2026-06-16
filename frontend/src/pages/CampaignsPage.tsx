@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState, type FormEvent } from 'react'
 import { api } from '../api/client'
 import type { CampaignDetail, CampaignListItem, CharacterListItem } from '../api/types'
 import { SYSTEM_LABELS } from '../utils/labels'
+import { GameTableTab } from '../components/GameTableTab'
 
 export function CampaignsPage() {
   const [campaigns, setCampaigns] = useState<CampaignListItem[] | null>(null)
@@ -105,6 +106,7 @@ function JoinCampaignForm({ onDone, onError }: { onDone: () => void; onError: (m
 function CampaignDetailView({ campaignId, onBack }: { campaignId: string; onBack: () => void }) {
   const [c, setC] = useState<CampaignDetail | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [tab, setTab] = useState<'overview' | 'table'>('overview')
 
   const reload = useCallback(
     () => api.campaign(campaignId).then(setC).catch((e: unknown) =>
@@ -131,37 +133,49 @@ function CampaignDetailView({ campaignId, onBack }: { campaignId: string; onBack
         </div>
       </div>
       {error && <div className="error floating">{error}</div>}
-      {c.description && <p className="muted">{c.description}</p>}
 
-      {c.isGm && c.joinCode && (
-        <div className="panel">
-          <strong>Код присоединения:</strong> <code className="join-code">{c.joinCode}</code>
-          <span className="hint"> — передайте игрокам, чтобы они добавили своих персонажей.</span>
-        </div>
+      <div className="system-switch campaign-tabs">
+        <button className={tab === 'overview' ? 'tab active' : 'tab'} onClick={() => setTab('overview')}>Обзор</button>
+        <button className={tab === 'table' ? 'tab active' : 'tab'} onClick={() => setTab('table')}>Game Table</button>
+      </div>
+
+      {tab === 'table' ? (
+        <GameTableTab campaignId={c.id} isGm={c.isGm} members={c.members} />
+      ) : (
+        <>
+          {c.description && <p className="muted">{c.description}</p>}
+
+          {c.isGm && c.joinCode && (
+            <div className="panel">
+              <strong>Код присоединения:</strong> <code className="join-code">{c.joinCode}</code>
+              <span className="hint"> — передайте игрокам, чтобы они добавили своих персонажей.</span>
+            </div>
+          )}
+
+          <section className="panel">
+            <h3>Персонажи кампании ({c.members.length})</h3>
+            {c.members.length === 0 && <p className="muted">Пока никто не присоединился.</p>}
+            <table className="skills">
+              <tbody>
+                {c.members.map(m => (
+                  <tr key={m.characterId}>
+                    <td><strong>{m.characterName}</strong>{m.isMine && <span className="badge custom">мой</span>}</td>
+                    <td className="muted">{SYSTEM_LABELS[m.system]} · {m.archetype} · {m.career}</td>
+                    <td className="right">
+                      {(c.isGm || m.isMine) && (
+                        <button className="danger small"
+                          onClick={() => run(() => api.removeCampaignCharacter(c.id, m.characterId))}>Убрать</button>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </section>
+
+          <CampaignNotesSection campaign={c} onRun={run} />
+        </>
       )}
-
-      <section className="panel">
-        <h3>Персонажи кампании ({c.members.length})</h3>
-        {c.members.length === 0 && <p className="muted">Пока никто не присоединился.</p>}
-        <table className="skills">
-          <tbody>
-            {c.members.map(m => (
-              <tr key={m.characterId}>
-                <td><strong>{m.characterName}</strong>{m.isMine && <span className="badge custom">мой</span>}</td>
-                <td className="muted">{SYSTEM_LABELS[m.system]} · {m.archetype} · {m.career}</td>
-                <td className="right">
-                  {(c.isGm || m.isMine) && (
-                    <button className="danger small"
-                      onClick={() => run(() => api.removeCampaignCharacter(c.id, m.characterId))}>Убрать</button>
-                  )}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </section>
-
-      <CampaignNotesSection campaign={c} onRun={run} />
     </div>
   )
 }

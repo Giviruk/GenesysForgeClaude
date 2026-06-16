@@ -24,6 +24,9 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<CampaignNote> CampaignNotes => Set<CampaignNote>();
     public DbSet<SpellDef> SpellDefs => Set<SpellDef>();
     public DbSet<Npc> Npcs => Set<Npc>();
+    public DbSet<GameSession> GameSessions => Set<GameSession>();
+    public DbSet<GameParticipant> GameParticipants => Set<GameParticipant>();
+    public DbSet<InitiativeSlot> InitiativeSlots => Set<InitiativeSlot>();
 
     protected override void OnModelCreating(ModelBuilder b)
     {
@@ -124,6 +127,25 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         {
             e.Property(a => a.Name).HasMaxLength(120);
             e.Property(a => a.Description).HasMaxLength(2000);
+        });
+
+        b.Entity<GameSession>(e =>
+        {
+            e.HasIndex(s => s.CampaignId);
+            e.Property(s => s.Name).HasMaxLength(200);
+            e.HasMany(s => s.Participants).WithOne().HasForeignKey(p => p.SessionId).OnDelete(DeleteBehavior.Cascade);
+            e.HasMany(s => s.Slots).WithOne().HasForeignKey(sl => sl.SessionId).OnDelete(DeleteBehavior.Cascade);
+        });
+        b.Entity<GameParticipant>(e =>
+        {
+            e.HasIndex(p => p.SessionId);
+            e.Property(p => p.DisplayName).HasMaxLength(200);
+            e.Property(p => p.Notes).HasMaxLength(2000);
+        });
+        b.Entity<InitiativeSlot>(e =>
+        {
+            e.HasIndex(s => s.SessionId);
+            e.Property(s => s.Notes).HasMaxLength(400);
         });
 
         // Content-model (Code/NameRu/Source) у справочных сущностей.
