@@ -192,6 +192,7 @@ col.col-action { width: 24%; }
 td.ellipsis { overflow: hidden; text-overflow: ellipsis; }
 .centered { text-align: center !important; }
 td.right { text-align: right; }
+table.skills.fixed td.right button.small { width: 3.45rem; }
 table.skills .die { letter-spacing: 0; }
 tr.equipped-row td { background: rgba(200, 162, 74, 0.07); }
 
@@ -605,6 +606,7 @@ button.tiny { font-size: 0.75rem; padding: 0.1rem 0.4rem; }
   table.skills.fixed td.right { white-space: normal; }
   table.skills.fixed td.right button.small {
     min-height: 1.45rem;
+    width: 2.75rem;
     padding: 0.08rem 0.24rem;
     font-size: 0.7rem;
     white-space: nowrap;
