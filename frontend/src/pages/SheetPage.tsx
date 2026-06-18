@@ -7,7 +7,7 @@ import { TalentsTab } from '../components/TalentsTab'
 import { InventoryTab } from '../components/InventoryTab'
 import { CustomTab } from '../components/CustomTab'
 import { NotesTab } from '../components/NotesTab'
-import { SpellsTab } from '../components/SpellsTab'
+import { MagicTab } from '../components/MagicTab'
 
 interface Props {
   characterId: string
@@ -109,7 +109,7 @@ export function SheetPage({ characterId, onBack }: Props) {
       {tab === 'sheet' && <SheetTab sheet={sheet} reference={reference} onError={setError} refresh={refresh} />}
       {tab === 'talents' && <TalentsTab sheet={sheet} reference={reference} onError={setError} refresh={refresh} />}
       {tab === 'inventory' && <InventoryTab sheet={sheet} reference={reference} onError={setError} refresh={refresh} />}
-      {tab === 'magic' && <SpellsTab system={sheet.system} onError={setError} />}
+      {tab === 'magic' && <MagicTab sheet={sheet} onError={setError} />}
       {tab === 'notes' && <NotesTab characterId={sheet.id} onError={setError} />}
       {tab === 'custom' && <CustomTab sheet={sheet} reference={reference} onError={setError} refresh={refresh} />}
     </div>

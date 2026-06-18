@@ -191,6 +191,18 @@ td.nowrap, th.nowrap { white-space: nowrap; }
 .dice-pool { letter-spacing: 0.1em; white-space: nowrap; }
 .die.ability { color: var(--green); }
 .die.proficiency { color: var(--yellow); }
+.die.difficulty { color: var(--purple, #a06cd5); }
+
+/* ---------- Magic Builder ---------- */
+.difficulty-badge.big { font-size: 0.95rem; padding: 0.25rem 0.9rem; }
+.magic-result .difficulty-dice { font-size: 1.3rem; letter-spacing: 0.15em; margin: 0.3rem 0; }
+.effect-list { display: flex; flex-direction: column; gap: 0.4rem; }
+.effect-row { display: flex; gap: 0.6rem; align-items: flex-start; border: 1px solid var(--border);
+  border-radius: 8px; padding: 0.5rem 0.7rem; background: var(--panel-2); cursor: pointer; }
+.effect-row.on { border-color: var(--accent); }
+.effect-row input { margin-top: 0.2rem; }
+.effect-main { display: flex; flex-direction: column; gap: 0.15rem; }
+.effect-main .difficulty-badge { align-self: flex-start; }
 
 /* ---------- Talents ---------- */
 .pyramid { display: flex; flex-direction: column; gap: 0.6rem; }
