@@ -464,9 +464,52 @@ button.tiny { font-size: 0.75rem; padding: 0.1rem 0.4rem; }
   min-width: 0;
   margin: 0.4rem 0;
 }
+.modal.wide .npc-stat-grid input,
+.modal.wide .npc-derived-grid input,
+.modal.wide .ranks-input {
+  text-align: center;
+  padding-left: 0.6rem;
+  padding-right: 0.6rem;
+}
+.modal.wide input[type="number"] {
+  appearance: textfield;
+}
+.modal.wide input[type="number"]::-webkit-outer-spin-button,
+.modal.wide input[type="number"]::-webkit-inner-spin-button {
+  appearance: none;
+  margin: 0;
+}
 .ranks-input { width: 4rem; text-align: center; }
 
 .list-editor { margin: 0.6rem 0; border-top: 1px dashed var(--border); padding-top: 0.5rem; }
+.list-editor .form-row {
+  align-items: center;
+  margin: 0.45rem 0;
+}
+.list-editor .form-row > input.grow {
+  flex: 1 1 14rem;
+  min-width: min(100%, 12rem);
+}
+.list-editor .form-row .ranks-input {
+  flex: 0 0 4rem;
+  width: 4rem;
+}
+.list-editor .form-row > button.small {
+  align-self: center;
+}
+.list-editor .form-row > button.danger.small {
+  width: 2rem;
+  padding-inline: 0;
+}
+.list-editor > button.small {
+  margin-top: 0.35rem;
+}
+.list-editor .chips {
+  margin: 0.35rem 0 0.55rem;
+}
+.list-editor .chips:empty {
+  margin: 0;
+}
 .ability-edit { margin-bottom: 0.5rem; }
 .chip.removable { display: inline-flex; align-items: center; gap: 0.3rem; }
 .chip.removable button {
@@ -623,6 +666,13 @@ button.tiny { font-size: 0.75rem; padding: 0.1rem 0.4rem; }
   .modal.wide .npc-stat-grid,
   .modal.wide .npc-derived-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
   .modal.wide .npc-meta-grid > label:nth-child(3) { grid-column: 1 / -1; }
+  .modal.wide .list-editor .form-row:has(.ranks-input) > input.grow {
+    flex-basis: 100%;
+  }
+  .modal.wide .list-editor .form-row:has(.ranks-input) > .ranks-input,
+  .modal.wide .list-editor .form-row:has(.ranks-input) > button.danger.small {
+    flex-grow: 0;
+  }
   .shop-row-head { flex-wrap: wrap; }
   .shop-row-actions { flex-direction: row; flex-wrap: wrap; width: 100%; }
   .shop-row-actions button { flex: 1 1 8rem; }
