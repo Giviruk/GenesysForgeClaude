@@ -1,6 +1,6 @@
 import type {
-  Characteristic, GameSystem, InitiativeSlotType, ItemKind, ItemState, NpcCombatStyle, NpcKind,
-  NpcPowerLevel, NpcRole, NpcVisibility, ParticipantType, SkillKind,
+  Characteristic, EncounterType, GameSystem, InitiativeSlotType, ItemKind, ItemState, NpcCombatStyle,
+  NpcKind, NpcPowerLevel, NpcRole, NpcVisibility, ParticipantType, SkillKind, ThreatLevel,
 } from '../api/types'
 
 export const SYSTEM_LABELS: Record<GameSystem, string> = {
@@ -135,6 +135,32 @@ export const SLOT_TYPE_LABELS: Record<InitiativeSlotType, string> = {
   npc: 'NPC',
   neutral: 'Нейтрал',
 }
+
+export const ENCOUNTER_TYPE_LABELS: Record<EncounterType, string> = {
+  combat: 'Бой',
+  social: 'Социальный',
+  exploration: 'Исследование',
+  chase: 'Погоня',
+  investigation: 'Расследование',
+  travel: 'Путешествие',
+  hazard: 'Опасность',
+  mixed: 'Смешанный',
+  custom: 'Особый',
+}
+
+export const ENCOUNTER_TYPES: EncounterType[] = [
+  'combat', 'social', 'exploration', 'chase', 'investigation', 'travel', 'hazard', 'mixed', 'custom',
+]
+
+export const THREAT_LEVEL_LABELS: Record<ThreatLevel, string> = {
+  trivial: 'Тривиальный',
+  easy: 'Лёгкий',
+  standard: 'Стандартный',
+  hard: 'Тяжёлый',
+  deadly: 'Смертельный',
+}
+
+export const THREAT_LEVELS: ThreatLevel[] = ['trivial', 'easy', 'standard', 'hard', 'deadly']
 
 /** Стоимость таланта тира N — 5 × N XP. */
 export const talentCost = (tier: number) => tier * 5

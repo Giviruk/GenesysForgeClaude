@@ -481,3 +481,4 @@ button.tiny { font-size: 0.75rem; padding: 0.1rem 0.4rem; }
 .pc-stats { margin-top: 0.4rem; }
 .pc-notes { margin-top: 0.3rem; font-style: italic; }
 .add-participant { margin-top: 0.6rem; border-top: 1px dashed var(--border); padding-top: 0.6rem; }
+.tag-row { display: flex; flex-wrap: wrap; gap: 0.3rem; margin-top: 0.4rem; }

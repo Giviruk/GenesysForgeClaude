@@ -457,6 +457,111 @@ export interface UpdateParticipantRequest {
   initiativeSlotType?: InitiativeSlotType | null
 }
 
+export type EncounterType =
+  | 'combat' | 'social' | 'exploration' | 'chase' | 'investigation' | 'travel' | 'hazard' | 'mixed' | 'custom'
+export type ThreatLevel = 'trivial' | 'easy' | 'standard' | 'hard' | 'deadly'
+export type SendToTableMode = 'replace' | 'append'
+
+export interface EncounterParticipant {
+  id: string
+  characterId: string | null
+  npcId: string | null
+  displayName: string
+  participantType: ParticipantType
+  initiativeSide: InitiativeSlotType
+  quantity: number
+  notes: string
+  startsHidden: boolean
+  startsDefeated: boolean
+  startingWoundsOverride: number | null
+  startingStrainOverride: number | null
+  order: number
+}
+
+export interface EncounterListItem {
+  id: string
+  name: string
+  system: GameSystem
+  type: EncounterType
+  threatLevel: ThreatLevel
+  isVisibleToPlayers: boolean
+  participantCount: number
+  tags: string[]
+  createdAt: string
+  updatedAt: string
+}
+
+export interface EncounterDetail {
+  id: string
+  campaignId: string
+  name: string
+  system: GameSystem
+  type: EncounterType
+  threatLevel: ThreatLevel
+  isGm: boolean
+  isVisibleToPlayers: boolean
+  gmDescription: string | null
+  playerDescription: string
+  playerGoals: string
+  npcGoals: string | null
+  location: string
+  environment: string
+  complications: string | null
+  rewards: string
+  tags: string[]
+  participants: EncounterParticipant[]
+  createdAt: string
+  updatedAt: string
+}
+
+export interface EncounterInput {
+  name: string
+  system: GameSystem
+  type: EncounterType
+  threatLevel: ThreatLevel
+  gmDescription: string
+  playerDescription: string
+  playerGoals: string
+  npcGoals: string
+  location: string
+  environment: string
+  complications: string
+  rewards: string
+  isVisibleToPlayers: boolean
+  tags: string[]
+}
+
+export interface AddEncounterParticipantRequest {
+  characterId?: string | null
+  npcId?: string | null
+  displayName?: string | null
+  participantType?: ParticipantType | null
+  initiativeSide?: InitiativeSlotType | null
+  quantity?: number | null
+  notes?: string | null
+  startsHidden?: boolean | null
+  startsDefeated?: boolean | null
+  startingWoundsOverride?: number | null
+  startingStrainOverride?: number | null
+}
+
+export interface UpdateEncounterParticipantRequest {
+  displayName?: string | null
+  initiativeSide?: InitiativeSlotType | null
+  quantity?: number | null
+  notes?: string | null
+  startsHidden?: boolean | null
+  startsDefeated?: boolean | null
+  startingWoundsOverride?: number | null
+  startingStrainOverride?: number | null
+}
+
+export interface EncounterFilter {
+  search?: string
+  type?: EncounterType
+  tag?: string
+}
+
 export interface CharacterSheet {
   id: string
   name: string

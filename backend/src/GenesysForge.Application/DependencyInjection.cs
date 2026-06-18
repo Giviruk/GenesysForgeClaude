@@ -4,6 +4,7 @@ using GenesysForge.Application.Features.Auth;
 using GenesysForge.Application.Features.Characters;
 using GenesysForge.Application.Features.Campaigns;
 using GenesysForge.Application.Features.CustomContent;
+using GenesysForge.Application.Features.Encounters;
 using GenesysForge.Application.Features.GameTable;
 using GenesysForge.Application.Features.Notes;
 using GenesysForge.Application.Features.Npcs;
@@ -99,6 +100,18 @@ public static class DependencyInjection
         services.AddScoped<ICommandHandler<AddSlotCommand, GameSessionDto>, AddSlotHandler>();
         services.AddScoped<ICommandHandler<UpdateSlotCommand, GameSessionDto>, UpdateSlotHandler>();
         services.AddScoped<ICommandHandler<RemoveSlotCommand, Unit>, RemoveSlotHandler>();
+
+        // Encounter Builder
+        services.AddScoped<IQueryHandler<GetEncountersQuery, List<EncounterListItemDto>>, GetEncountersHandler>();
+        services.AddScoped<IQueryHandler<GetEncounterQuery, EncounterDetailDto>, GetEncounterHandler>();
+        services.AddScoped<ICommandHandler<CreateEncounterCommand, EncounterDetailDto>, CreateEncounterHandler>();
+        services.AddScoped<ICommandHandler<UpdateEncounterCommand, EncounterDetailDto>, UpdateEncounterHandler>();
+        services.AddScoped<ICommandHandler<DeleteEncounterCommand, Unit>, DeleteEncounterHandler>();
+        services.AddScoped<ICommandHandler<AddEncounterParticipantCommand, EncounterDetailDto>, AddEncounterParticipantHandler>();
+        services.AddScoped<ICommandHandler<UpdateEncounterParticipantCommand, EncounterDetailDto>, UpdateEncounterParticipantHandler>();
+        services.AddScoped<ICommandHandler<RemoveEncounterParticipantCommand, Unit>, RemoveEncounterParticipantHandler>();
+        services.AddScoped<ICommandHandler<AddCampaignCharactersCommand, EncounterDetailDto>, AddCampaignCharactersHandler>();
+        services.AddScoped<ICommandHandler<SendToGameTableCommand, GameSessionDto>, SendToGameTableHandler>();
 
         return services;
     }
