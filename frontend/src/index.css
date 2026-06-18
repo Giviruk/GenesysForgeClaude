@@ -65,6 +65,14 @@ input, select, textarea {
   font-family: inherit;
   width: 100%;
 }
+select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23d7d2e0' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-position: right 0.95rem center;
+  background-repeat: no-repeat;
+  background-size: 0.85rem;
+  padding-right: 2.5rem;
+}
 input:focus, select:focus, textarea:focus { outline: none; border-color: var(--accent); }
 
 label { display: block; margin: 0.6rem 0; font-size: 0.9rem; }
@@ -110,7 +118,8 @@ h1.logo { margin: 0 0 0.3rem; }
 .page-head { display: flex; justify-content: space-between; align-items: center; gap: 0.75rem 1rem; flex-wrap: wrap; }
 .page-head > div { min-width: 0; }
 .page-head h2 { margin: 0.4rem 0; }
-.inline-title { display: inline-block; margin: 0 0.6rem; max-width: 100%; vertical-align: middle; overflow-wrap: anywhere; }
+.inline-title { display: inline-block; margin: 0 0.6rem 0 1rem; max-width: 100%; vertical-align: middle; overflow-wrap: anywhere; }
+.page-head h2.inline-title { margin: 0.4rem 0.6rem 0.4rem 1.15rem; }
 .xp-block { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
 .xp-available { color: var(--accent); }
 .xp-input { width: 5rem; }
@@ -170,16 +179,16 @@ table.skills td { padding: 0.3rem 0.5rem; border-bottom: 1px solid rgba(58, 49, 
   gap: 0 2rem;
   align-items: start;
 }
-.skill-block { min-width: 0; overflow-x: auto; padding-bottom: 0.25rem; }
+.skill-block { min-width: 0; overflow-x: visible; padding-bottom: 0.25rem; }
 .skill-block .skill-kind { margin-top: 0.6rem; }
-table.skills.fixed { table-layout: fixed; min-width: 34rem; }
+table.skills.fixed { table-layout: fixed; min-width: 0; }
 table.skills.fixed th, table.skills.fixed td { padding: 0.3rem 0.35rem; white-space: nowrap; }
-col.col-name { width: 29%; }
-col.col-char { width: 11%; }
-col.col-career { width: 14%; }
-col.col-ranks { width: 15%; }
-col.col-pool { width: 16%; }
-col.col-action { width: 15%; }
+col.col-name { width: 26%; }
+col.col-char { width: 10%; }
+col.col-career { width: 12%; }
+col.col-ranks { width: 14%; }
+col.col-pool { width: 14%; }
+col.col-action { width: 24%; }
 td.ellipsis { overflow: hidden; text-overflow: ellipsis; }
 .centered { text-align: center !important; }
 td.right { text-align: right; }
@@ -584,6 +593,23 @@ button.tiny { font-size: 0.75rem; padding: 0.1rem 0.4rem; }
   .topbar > .small { margin-left: 0; }
   .page-head { align-items: flex-start; }
   .page-head > .xp-block { flex: 1 1 100%; }
+  .page-head .inline-title { margin-left: 1.15rem; }
+  table.skills.fixed { min-width: 0; font-size: 0.78rem; }
+  table.skills.fixed th, table.skills.fixed td { padding: 0.28rem 0.16rem; }
+  table.skills.fixed col.col-name { width: 26%; }
+  table.skills.fixed col.col-char { width: 10%; }
+  table.skills.fixed col.col-career { width: 12%; }
+  table.skills.fixed col.col-ranks { width: 14%; }
+  table.skills.fixed col.col-pool { width: 14%; }
+  table.skills.fixed col.col-action { width: 24%; }
+  table.skills.fixed td.right { white-space: normal; }
+  table.skills.fixed td.right button.small {
+    min-height: 1.45rem;
+    padding: 0.08rem 0.24rem;
+    font-size: 0.7rem;
+    white-space: nowrap;
+  }
+  table.skills.fixed td.right button.small + button.small { margin-left: 0.15rem; }
   .talent-row { flex-direction: column; gap: 0.55rem; }
   .talent-actions { flex-wrap: wrap; width: 100%; }
   .talent-actions button { flex: 1 1 8rem; }
