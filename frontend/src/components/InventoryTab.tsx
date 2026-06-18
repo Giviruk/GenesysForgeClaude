@@ -6,6 +6,8 @@ import {
 } from '../utils/labels'
 import { DicePoolView } from './DicePoolView'
 import { PropertyTags } from './PropertyTags'
+import { PrintPreview } from './print/PrintPreview'
+import { ItemCard } from './print/cards'
 
 interface Props {
   sheet: CharacterSheet
@@ -188,6 +190,16 @@ function InventoryCard({ item, sheet, skillNames, run, sellOpen, onToggleSell }:
   sellOpen: boolean; onToggleSell: () => void
 }) {
   const hasBonus = item.soakBonus > 0 || item.meleeDefense > 0 || item.rangedDefense > 0 || item.encumbranceThresholdBonus > 0
+  const [printing, setPrinting] = useState(false)
+
+  if (printing) {
+    return (
+      <PrintPreview title={`Предмет — ${item.name}`} onClose={() => setPrinting(false)}>
+        {() => <ItemCard item={item} />}
+      </PrintPreview>
+    )
+  }
+
   return (
     <div className={`inv-card${item.state === 'equipped' ? ' equipped' : ''}`}>
       <div className="inv-card-head">
@@ -233,6 +245,7 @@ function InventoryCard({ item, sheet, skillNames, run, sellOpen, onToggleSell }:
         </div>
         <div className="inv-card-end">
           <span className="muted small-text">вес {item.load}</span>
+          <button className="small" title="Печать карточки предмета" onClick={() => setPrinting(true)}>🖨</button>
           <button className="small" onClick={onToggleSell}>{sellOpen ? 'Отмена' : 'Продать'}</button>
           <button className="danger small" title="Убрать без выручки"
             onClick={() => run(() => api.removeItem(sheet.id, item.id))}>✕</button>

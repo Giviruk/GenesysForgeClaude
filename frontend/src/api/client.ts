@@ -5,6 +5,7 @@ import type {
   SkillDef, Spell, TalentDef, UpdateParticipantRequest,
   AddEncounterParticipantRequest, EncounterDetail, EncounterFilter, EncounterInput, EncounterListItem,
   SendToTableMode, UpdateEncounterParticipantRequest,
+  ContentPackDetail, ContentPackEntryInput, ContentPackListItem,
 } from './types'
 
 const TOKEN_KEY = 'genesysforge.token'
@@ -233,6 +234,22 @@ export const api = {
     request<void>('DELETE', `/api/encounters/${id}/participants/${participantId}`),
   sendEncounterToTable: (id: string, mode: SendToTableMode) =>
     request<GameSession>('POST', `/api/encounters/${id}/send-to-table`, { mode }),
+
+  // Campaign Handbook / Content Packs.
+  contentPacks: (campaignId: string) =>
+    request<ContentPackListItem[]>('GET', `/api/campaigns/${campaignId}/content-packs/`),
+  contentPack: (id: string) => request<ContentPackDetail>('GET', `/api/content-packs/${id}`),
+  createContentPack: (campaignId: string, body: { name: string; description: string; system: GameSystem }) =>
+    request<ContentPackDetail>('POST', `/api/campaigns/${campaignId}/content-packs/`, body),
+  updateContentPack: (id: string, patch: { name?: string; description?: string; system?: GameSystem; isPublicToCampaign?: boolean }) =>
+    request<ContentPackDetail>('PATCH', `/api/content-packs/${id}`, patch),
+  deleteContentPack: (id: string) => request<void>('DELETE', `/api/content-packs/${id}`),
+  addContentPackEntry: (id: string, input: ContentPackEntryInput) =>
+    request<ContentPackDetail>('POST', `/api/content-packs/${id}/entries`, input),
+  updateContentPackEntry: (id: string, entryId: string, input: ContentPackEntryInput) =>
+    request<ContentPackDetail>('PUT', `/api/content-packs/${id}/entries/${entryId}`, input),
+  removeContentPackEntry: (id: string, entryId: string) =>
+    request<void>('DELETE', `/api/content-packs/${id}/entries/${entryId}`),
 
   deleteCustomSkill: (id: string) => request<void>('DELETE', `/api/custom/skills/${id}`),
   deleteCustomTalent: (id: string) => request<void>('DELETE', `/api/custom/talents/${id}`),

@@ -3,6 +3,9 @@ import { api } from '../api/client'
 import type { DicePool, GameSystem, Spell } from '../api/types'
 import { difficultyLabel, magicSkillLabel, parseDifficulty } from '../utils/labels'
 import { DicePoolView } from './DicePoolView'
+import { PrintPreview } from './print/PrintPreview'
+import { MagicActionCard, type MagicCardData } from './print/cards'
+import { magicMarkdown } from './print/markdown'
 
 export interface MagicSkillPool {
   name: string
@@ -26,6 +29,7 @@ export function MagicBuilder({ system, characterSkills, onError }: Props) {
   const [skill, setSkill] = useState('')
   const [effectCode, setEffectCode] = useState('')
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
+  const [printing, setPrinting] = useState(false)
 
   const reload = useCallback(
     () => api.spells(system)
@@ -84,8 +88,29 @@ export function MagicBuilder({ system, characterSkills, onError }: Props) {
     return lines.join('\n')
   }
 
+  const cardData: MagicCardData = {
+    skill: activeSkill,
+    baseEffectRu: selectedEffect?.nameRu ?? '',
+    baseEffectEn: selectedEffect?.nameEn ?? '',
+    baseDifficulty,
+    totalDifficulty,
+    effects: chosen.map(a => ({ ru: a.nameRu, en: a.nameEn, difficulty: a.difficulty, summary: a.safeDescription || a.description })),
+    description: selectedEffect ? (selectedEffect.description || selectedEffect.safeDescription) : '',
+    sources: selectedEffect ? [...new Set([selectedEffect.source, ...chosen.map(a => a.source)].filter(Boolean))] : [],
+    pool: charPool,
+  }
+
   if (spells === null) return <p className="muted">Загрузка…</p>
   if (skills.length === 0) return <p className="muted">Для этой системы нет магических направлений.</p>
+
+  if (printing && selectedEffect) {
+    return (
+      <PrintPreview title={`Магическое действие — ${selectedEffect.nameRu}`}
+        markdown={() => magicMarkdown(cardData)} onClose={() => setPrinting(false)}>
+        {() => <MagicActionCard data={cardData} />}
+      </PrintPreview>
+    )
+  }
 
   return (
     <div className="magic-builder">
@@ -129,6 +154,7 @@ export function MagicBuilder({ system, characterSkills, onError }: Props) {
           <div className="muted small-text">Источник: {selectedEffect.source}</div>
           <div className="card-actions">
             <CopyButton key={buildText()} text={buildText()} onError={onError} />
+            <button className="small" onClick={() => setPrinting(true)}>🖨 Печать карточки</button>
           </div>
         </section>
       )}

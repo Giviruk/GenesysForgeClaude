@@ -1,9 +1,11 @@
 import { useState } from 'react'
 import { api } from '../api/client'
-import type { Characteristic, CharacterSheet, Reference, TalentDef } from '../api/types'
+import type { Characteristic, CharacterSheet, Reference, SheetTalent, TalentDef } from '../api/types'
 import { CHARACTERISTICS, CHARACTERISTIC_LABELS, nextRankTier, talentCost } from '../utils/labels'
 import { canPurchaseTier, canRemoveTier } from '../utils/pyramid'
 import { talentBonusSummary } from '../utils/talentBonuses'
+import { PrintPreview } from './print/PrintPreview'
+import { TalentCard } from './print/cards'
 
 interface Props {
   sheet: CharacterSheet
@@ -20,6 +22,8 @@ export function TalentsTab({ sheet, reference, onError, refresh }: Props) {
   const [activeTier, setActiveTier] = useState<number>(1)
   // Талант, для которого открыт выбор характеристики (Dedication).
   const [pickFor, setPickFor] = useState<TalentDef | null>(null)
+  // Купленный талант, открытый на печать.
+  const [printTalent, setPrintTalent] = useState<SheetTalent | null>(null)
 
   async function buy(talent: TalentDef, characteristic?: string) {
     try {
@@ -86,6 +90,14 @@ export function TalentsTab({ sheet, reference, onError, refresh }: Props) {
   }
 
   const tierTalents = reference.talents.filter(t => t.tier === activeTier)
+
+  if (printTalent) {
+    return (
+      <PrintPreview title={`Талант — ${printTalent.name}`} onClose={() => setPrintTalent(null)}>
+        {() => <TalentCard talent={printTalent} />}
+      </PrintPreview>
+    )
+  }
 
   return (
     <div>
@@ -200,6 +212,10 @@ export function TalentsTab({ sheet, reference, onError, refresh }: Props) {
                     onClick={() => (t.grantsCharacteristic ? setPickFor(t) : buy(t))}>
                     {maxedOut ? 'Куплен' : `Купить (${cost} XP${t.isRanked && ranksOwned > 0 ? `, тир ${effectiveTier}` : ''})`}
                   </button>
+                  {ownedRow && (
+                    <button className="small" title="Печать карточки таланта"
+                      onClick={() => setPrintTalent(ownedRow)}>🖨</button>
+                  )}
                 </div>
               </div>
             )

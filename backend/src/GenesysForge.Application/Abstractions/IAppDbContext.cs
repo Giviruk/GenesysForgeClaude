@@ -29,6 +29,8 @@ public interface IAppDbContext
     DbSet<InitiativeSlot> InitiativeSlots { get; }
     DbSet<Encounter> Encounters { get; }
     DbSet<EncounterParticipant> EncounterParticipants { get; }
+    DbSet<ContentPack> ContentPacks { get; }
+    DbSet<ContentPackEntry> ContentPackEntries { get; }
 
     Task<int> SaveChangesAsync(CancellationToken ct = default);
 }

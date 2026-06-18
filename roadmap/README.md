@@ -8,8 +8,8 @@
 2. ✅ [Adversary / NPC Quick Creator](02-adversary-npc-quick-creator.md)
 3. ✅ [Encounter Builder](03-encounter-builder.md)
 4. ✅ [Magic / Alchemy / Rune Assistant](04-magic-alchemy-rune-assistant.md) — MVP: Magic Action Builder
-5. [Campaign Handbook / Content Packs](05-campaign-handbook-content-packs.md)
-6. [Printable Cards / Export](06-printable-cards-export.md)
+5. ✅ [Campaign Handbook / Content Packs](05-campaign-handbook-content-packs.md)
+6. ✅ [Printable Cards / Export](06-printable-cards-export.md)
 
 ## Рекомендуемый порядок реализации
 
@@ -17,8 +17,8 @@
 2. ✅ GM Cockpit / Game Table
 3. ✅ Encounter Builder
 4. ✅ Magic Action Builder
-5. Campaign Handbook / Content Packs
-6. Printable Cards / Export
+5. ✅ Campaign Handbook / Content Packs
+6. ✅ Printable Cards / Export
 
 ## Общая продуктовая логика
 
