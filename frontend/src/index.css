@@ -494,3 +494,13 @@ button.tiny { font-size: 0.75rem; padding: 0.1rem 0.4rem; }
 .pc-notes { margin-top: 0.3rem; font-style: italic; }
 .add-participant { margin-top: 0.6rem; border-top: 1px dashed var(--border); padding-top: 0.6rem; }
 .tag-row { display: flex; flex-wrap: wrap; gap: 0.3rem; margin-top: 0.4rem; }
+
+/* ---------- Campaign Handbook ---------- */
+.handbook .filters, .content-pack .filters {
+  display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; margin: 0.6rem 0;
+}
+.content-pack .filters input { flex: 1 1 12rem; }
+.entry-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr)); gap: 0.7rem; }
+.entry-card { border: 1px solid var(--border); border-radius: 8px; padding: 0.6rem 0.8rem; background: var(--panel-2); }
+.entry-head { display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap; margin-bottom: 0.35rem; }
+.badge.danger-badge { color: var(--red); border-color: var(--red); }
