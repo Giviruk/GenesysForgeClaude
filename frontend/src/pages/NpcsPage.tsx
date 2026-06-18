@@ -8,6 +8,9 @@ import {
   CHARACTERISTICS, CHARACTERISTIC_LABELS, NPC_COMBAT_STYLE_LABELS, NPC_KIND_LABELS, NPC_KINDS,
   NPC_POWER_LABELS, NPC_ROLE_LABELS, NPC_ROLES, NPC_VISIBILITY_LABELS, SYSTEM_LABELS,
 } from '../utils/labels'
+import { PrintPreview } from '../components/print/PrintPreview'
+import { AdversaryCard } from '../components/print/cards'
+import { adversaryMarkdown } from '../components/print/markdown'
 
 const SYSTEMS: GameSystem[] = ['genesysCore', 'realmsOfTerrinoth']
 
@@ -130,12 +133,24 @@ function NpcDetailView({ npcId, onBack, onEdit }: {
 }) {
   const [n, setN] = useState<NpcDetail | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [printing, setPrinting] = useState(false)
 
   useEffect(() => {
     api.npc(npcId).then(setN).catch((e: unknown) => setError(e instanceof Error ? e.message : 'Ошибка'))
   }, [npcId])
 
   if (!n) return <div className="page"><button onClick={onBack}>← Бестиарий</button>{error && <div className="error">{error}</div>}</div>
+
+  if (printing) {
+    // GM видит обе версии; владелец считается GM. Игрок без доступа печатает только player-версию.
+    const versions: ('gm' | 'player')[] = n.isMine ? ['gm', 'player'] : ['player']
+    return (
+      <PrintPreview title={`Карточка NPC — ${n.name}`} versions={versions}
+        markdown={(v) => adversaryMarkdown(n, v)} onClose={() => setPrinting(false)}>
+        {(v) => <AdversaryCard npc={n} version={v} />}
+      </PrintPreview>
+    )
+  }
 
   const chars: [Characteristic, number][] = [
     ['brawn', n.brawn], ['agility', n.agility], ['intellect', n.intellect],
@@ -150,7 +165,7 @@ function NpcDetailView({ npcId, onBack, onEdit }: {
           <h2 className="inline-title">{n.name}</h2>
         </div>
         <div className="head-actions">
-          <button onClick={() => window.print()}>🖨 Печать карточки</button>
+          <button onClick={() => setPrinting(true)}>🖨 Печать карточки</button>
           {n.isMine && <button className="primary" onClick={() => onEdit(n)}>Редактировать</button>}
         </div>
       </div>

@@ -457,7 +457,37 @@ button.tiny { font-size: 0.75rem; padding: 0.1rem 0.4rem; }
   .npc-char-val { color: #000; }
   .npc-char-label, .npc-desc, .muted { color: #333 !important; }
   .chip { border-color: #999; color: #000; }
+
+  /* Режим Print Preview: печатаем только карточки. */
+  body.printing * { visibility: hidden; }
+  body.printing .print-area, body.printing .print-area * { visibility: visible; }
+  body.printing .print-area { position: absolute; left: 0; top: 0; width: 100%; }
+  body.printing .print-overlay { position: static; background: #fff; }
 }
+
+/* ---------- Print Preview / Printable Cards ---------- */
+.print-overlay {
+  position: fixed; inset: 0; z-index: 1000; background: var(--bg, #1a1a1a);
+  overflow: auto; padding: 1rem;
+}
+.print-toolbar { display: flex; align-items: center; gap: 0.6rem; margin-bottom: 1rem; flex-wrap: wrap; }
+.print-toolbar .spacer { flex: 1; }
+.print-area { display: flex; flex-wrap: wrap; gap: 1rem; align-items: flex-start; }
+.print-card {
+  page-break-inside: avoid; break-inside: avoid;
+  border: 1px solid #999; border-radius: 8px; padding: 0.8rem 1rem;
+  background: #fff; color: #000; width: 22rem; max-width: 100%; font-size: 0.9rem;
+}
+.print-card.wide { width: 46rem; }
+.print-card h3 { margin: 0; color: #000; }
+.print-card p, .print-card ul, .print-card div { margin: 0.4rem 0; }
+.print-card ul { padding-left: 1.2rem; }
+.pcard-head { border-bottom: 1px solid #ccc; padding-bottom: 0.3rem; margin-bottom: 0.4rem; }
+.pcard-sub { color: #555; font-size: 0.8rem; }
+.pcard-chars { display: flex; flex-wrap: wrap; gap: 0.6rem; }
+.pcard-line { display: flex; flex-wrap: wrap; gap: 0.8rem; }
+.pcard-diff { font-size: 1rem; }
+.pcard-tags, .pcard-src, .pcard-muted { color: #555; font-size: 0.8rem; }
 
 /* ---------- Game Table / GM Cockpit ---------- */
 .campaign-tabs { margin: 0.8rem 0; }
