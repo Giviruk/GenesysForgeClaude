@@ -3,6 +3,8 @@ import type {
   AddParticipantRequest, CharacterSheet, GameSession, GameSystem, HeroicAbility, InitiativeSlotType,
   ItemDef, ItemState, NpcDetail, NpcFilter, NpcInput, NpcListItem, QuickDraftRequest, Reference,
   SkillDef, Spell, TalentDef, UpdateParticipantRequest,
+  AddEncounterParticipantRequest, EncounterDetail, EncounterFilter, EncounterInput, EncounterListItem,
+  SendToTableMode, UpdateEncounterParticipantRequest,
 } from './types'
 
 const TOKEN_KEY = 'genesysforge.token'
@@ -205,6 +207,32 @@ export const api = {
     request<GameSession>('PATCH', `/api/campaigns/${campaignId}/session/slots/${slotId}`, patch),
   removeSlot: (campaignId: string, slotId: string) =>
     request<void>('DELETE', `/api/campaigns/${campaignId}/session/slots/${slotId}`),
+
+  // Encounter Builder (подготовка сцен кампании).
+  encounters: (campaignId: string, filter: EncounterFilter = {}) => {
+    const params = new URLSearchParams()
+    if (filter.search) params.set('search', filter.search)
+    if (filter.type) params.set('type', filter.type)
+    if (filter.tag) params.set('tag', filter.tag)
+    const qs = params.toString()
+    return request<EncounterListItem[]>('GET', `/api/campaigns/${campaignId}/encounters/${qs ? `?${qs}` : ''}`)
+  },
+  encounter: (id: string) => request<EncounterDetail>('GET', `/api/encounters/${id}`),
+  createEncounter: (campaignId: string, input: EncounterInput) =>
+    request<EncounterDetail>('POST', `/api/campaigns/${campaignId}/encounters/`, input),
+  updateEncounter: (id: string, input: EncounterInput) =>
+    request<EncounterDetail>('PUT', `/api/encounters/${id}`, input),
+  deleteEncounter: (id: string) => request<void>('DELETE', `/api/encounters/${id}`),
+  addEncounterParticipant: (id: string, body: AddEncounterParticipantRequest) =>
+    request<EncounterDetail>('POST', `/api/encounters/${id}/participants`, body),
+  addEncounterCharacters: (id: string, characterIds: string[] | null) =>
+    request<EncounterDetail>('POST', `/api/encounters/${id}/participants/characters`, { characterIds }),
+  updateEncounterParticipant: (id: string, participantId: string, patch: UpdateEncounterParticipantRequest) =>
+    request<EncounterDetail>('PATCH', `/api/encounters/${id}/participants/${participantId}`, patch),
+  removeEncounterParticipant: (id: string, participantId: string) =>
+    request<void>('DELETE', `/api/encounters/${id}/participants/${participantId}`),
+  sendEncounterToTable: (id: string, mode: SendToTableMode) =>
+    request<GameSession>('POST', `/api/encounters/${id}/send-to-table`, { mode }),
 
   deleteCustomSkill: (id: string) => request<void>('DELETE', `/api/custom/skills/${id}`),
   deleteCustomTalent: (id: string) => request<void>('DELETE', `/api/custom/talents/${id}`),

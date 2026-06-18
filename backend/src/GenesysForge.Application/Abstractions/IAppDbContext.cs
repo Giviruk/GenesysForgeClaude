@@ -27,6 +27,8 @@ public interface IAppDbContext
     DbSet<GameSession> GameSessions { get; }
     DbSet<GameParticipant> GameParticipants { get; }
     DbSet<InitiativeSlot> InitiativeSlots { get; }
+    DbSet<Encounter> Encounters { get; }
+    DbSet<EncounterParticipant> EncounterParticipants { get; }
 
     Task<int> SaveChangesAsync(CancellationToken ct = default);
 }
