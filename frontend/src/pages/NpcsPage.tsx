@@ -267,7 +267,7 @@ function NpcEditor({ initial, onCancel, onSaved }: {
       <form className="modal wide" onClick={e => e.stopPropagation()} onSubmit={submit}>
         <h3>{initial ? 'Редактировать NPC' : 'Новый NPC'}</h3>
 
-        <div className="form-row">
+        <div className="form-row npc-main-grid">
           <label className="grow">Имя<input value={form.name} onChange={e => set('name', e.target.value)} required /></label>
           <label>Система
             <select value={form.system} onChange={e => set('system', e.target.value as GameSystem)}>
@@ -276,7 +276,7 @@ function NpcEditor({ initial, onCancel, onSaved }: {
           </label>
         </div>
 
-        <div className="form-row">
+        <div className="form-row npc-meta-grid">
           <label>Тип
             <select value={form.kind} onChange={e => set('kind', e.target.value as NpcKind)}>
               {NPC_KINDS.map(k => <option key={k} value={k}>{NPC_KIND_LABELS[k]}</option>)}
@@ -298,7 +298,7 @@ function NpcEditor({ initial, onCancel, onSaved }: {
         <label>Описание<textarea value={form.description} onChange={e => set('description', e.target.value)} rows={2} /></label>
 
         <div className="label-line">Характеристики (1–6)</div>
-        <div className="form-row chars-row">
+        <div className="form-row chars-row npc-stat-grid">
           {CHARACTERISTICS.map(c => (
             <label key={c} className="char-input">{CHARACTERISTIC_LABELS[c]}
               <input type="number" min={1} max={6} value={form[c]}
@@ -308,7 +308,7 @@ function NpcEditor({ initial, onCancel, onSaved }: {
         </div>
 
         <div className="label-line">Производные параметры</div>
-        <div className="form-row chars-row">
+        <div className="form-row chars-row npc-derived-grid">
           <label className="char-input">Раны<input type="number" min={1} value={form.woundThreshold}
             onChange={e => set('woundThreshold', Math.max(1, +e.target.value))} /></label>
           <label className="char-input">Стрейн<input type="number" min={0} value={form.strainThreshold ?? ''}
