@@ -4,6 +4,7 @@ import type { CampaignDetail, CampaignListItem, CharacterListItem } from '../api
 import { SYSTEM_LABELS } from '../utils/labels'
 import { GameTableTab } from '../components/GameTableTab'
 import { EncountersTab } from '../components/EncountersTab'
+import { HandbookTab } from '../components/HandbookTab'
 
 export function CampaignsPage() {
   const [campaigns, setCampaigns] = useState<CampaignListItem[] | null>(null)
@@ -107,7 +108,7 @@ function JoinCampaignForm({ onDone, onError }: { onDone: () => void; onError: (m
 function CampaignDetailView({ campaignId, onBack }: { campaignId: string; onBack: () => void }) {
   const [c, setC] = useState<CampaignDetail | null>(null)
   const [error, setError] = useState<string | null>(null)
-  const [tab, setTab] = useState<'overview' | 'encounters' | 'table'>('overview')
+  const [tab, setTab] = useState<'overview' | 'handbook' | 'encounters' | 'table'>('overview')
 
   const reload = useCallback(
     () => api.campaign(campaignId).then(setC).catch((e: unknown) =>
@@ -137,12 +138,15 @@ function CampaignDetailView({ campaignId, onBack }: { campaignId: string; onBack
 
       <div className="system-switch campaign-tabs">
         <button className={tab === 'overview' ? 'tab active' : 'tab'} onClick={() => setTab('overview')}>Обзор</button>
+        <button className={tab === 'handbook' ? 'tab active' : 'tab'} onClick={() => setTab('handbook')}>Handbook</button>
         <button className={tab === 'encounters' ? 'tab active' : 'tab'} onClick={() => setTab('encounters')}>Энкаунтеры</button>
         <button className={tab === 'table' ? 'tab active' : 'tab'} onClick={() => setTab('table')}>Game Table</button>
       </div>
 
       {tab === 'table' ? (
         <GameTableTab campaignId={c.id} isGm={c.isGm} members={c.members} />
+      ) : tab === 'handbook' ? (
+        <HandbookTab campaignId={c.id} isGm={c.isGm} />
       ) : tab === 'encounters' ? (
         <EncountersTab campaignId={c.id} isGm={c.isGm} members={c.members} onSentToTable={() => setTab('table')} />
       ) : (

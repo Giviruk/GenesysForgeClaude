@@ -1,6 +1,7 @@
 import type {
-  Characteristic, EncounterType, GameSystem, InitiativeSlotType, ItemKind, ItemState, NpcCombatStyle,
-  NpcKind, NpcPowerLevel, NpcRole, NpcVisibility, ParticipantType, SkillKind, ThreatLevel,
+  AllowedState, Characteristic, ContentEntryType, EncounterType, GameSystem, HouseRuleCategory,
+  InitiativeSlotType, ItemKind, ItemState, NpcCombatStyle, NpcKind, NpcPowerLevel, NpcRole,
+  NpcVisibility, ParticipantType, SkillKind, ThreatLevel,
 } from '../api/types'
 
 export const SYSTEM_LABELS: Record<GameSystem, string> = {
@@ -79,6 +80,28 @@ export const MAGIC_SKILL_LABELS: Record<string, string> = {
 
 /** Подпись магического навыка с запасным вариантом для кастомных кодов. */
 export const magicSkillLabel = (skill: string) => MAGIC_SKILL_LABELS[skill] ?? skill
+
+/** Подписи уровней сложности проверки Genesys (число фиолетовых кубов). */
+export const DIFFICULTY_LABELS: Record<number, string> = {
+  0: 'Простая',
+  1: 'Лёгкая',
+  2: 'Средняя',
+  3: 'Сложная',
+  4: 'Трудная',
+  5: 'Грозная',
+}
+
+/** Подпись уровня сложности с ограничением 0..5. */
+export const difficultyLabel = (n: number) => DIFFICULTY_LABELS[Math.max(0, Math.min(5, n))] ?? `${n}`
+
+/**
+ * Извлекает числовое значение сложности из строки справочника магии:
+ * базовый эффект — «2 (Average)» → 2; доп. эффект — «+1» → 1. Пусто/нечисло → 0.
+ */
+export const parseDifficulty = (raw: string): number => {
+  const m = raw.match(/-?\d+/)
+  return m ? parseInt(m[0], 10) : 0
+}
 
 export const NPC_KIND_LABELS: Record<NpcKind, string> = {
   minion: 'Миньон',
@@ -161,6 +184,49 @@ export const THREAT_LEVEL_LABELS: Record<ThreatLevel, string> = {
 }
 
 export const THREAT_LEVELS: ThreatLevel[] = ['trivial', 'easy', 'standard', 'hard', 'deadly']
+
+export const CONTENT_ENTRY_TYPE_LABELS: Record<ContentEntryType, string> = {
+  archetype: 'Архетип',
+  career: 'Карьера',
+  skill: 'Навык',
+  talent: 'Талант',
+  item: 'Предмет',
+  heroicAbility: 'Геройская способность',
+  spell: 'Заклинание',
+  magicAction: 'Магическое действие',
+  alchemyRecipe: 'Алхимический рецепт',
+  rune: 'Руна',
+  houseRule: 'Домашнее правило',
+  customNote: 'Заметка',
+}
+
+export const CONTENT_ENTRY_TYPES: ContentEntryType[] = [
+  'talent', 'item', 'career', 'archetype', 'skill', 'heroicAbility',
+  'spell', 'magicAction', 'alchemyRecipe', 'rune', 'houseRule', 'customNote',
+]
+
+export const ALLOWED_STATE_LABELS: Record<AllowedState, string> = {
+  allowed: 'Разрешено',
+  disallowed: 'Запрещено',
+  askGm: 'С разрешения мастера',
+}
+
+export const ALLOWED_STATES: AllowedState[] = ['allowed', 'disallowed', 'askGm']
+
+export const HOUSE_RULE_CATEGORY_LABELS: Record<HouseRuleCategory, string> = {
+  none: '—',
+  characterCreation: 'Создание персонажа',
+  combat: 'Бой',
+  magic: 'Магия',
+  equipment: 'Снаряжение',
+  xp: 'Опыт (XP)',
+  campaignTone: 'Тон кампании',
+  custom: 'Особая',
+}
+
+export const HOUSE_RULE_CATEGORIES: HouseRuleCategory[] = [
+  'characterCreation', 'combat', 'magic', 'equipment', 'xp', 'campaignTone', 'custom',
+]
 
 /** Стоимость таланта тира N — 5 × N XP. */
 export const talentCost = (tier: number) => tier * 5

@@ -3,6 +3,7 @@ using GenesysForge.Application.Dtos;
 using GenesysForge.Application.Features.Auth;
 using GenesysForge.Application.Features.Characters;
 using GenesysForge.Application.Features.Campaigns;
+using GenesysForge.Application.Features.ContentPacks;
 using GenesysForge.Application.Features.CustomContent;
 using GenesysForge.Application.Features.Encounters;
 using GenesysForge.Application.Features.GameTable;
@@ -112,6 +113,16 @@ public static class DependencyInjection
         services.AddScoped<ICommandHandler<RemoveEncounterParticipantCommand, Unit>, RemoveEncounterParticipantHandler>();
         services.AddScoped<ICommandHandler<AddCampaignCharactersCommand, EncounterDetailDto>, AddCampaignCharactersHandler>();
         services.AddScoped<ICommandHandler<SendToGameTableCommand, GameSessionDto>, SendToGameTableHandler>();
+
+        // Campaign Handbook / Content Packs
+        services.AddScoped<IQueryHandler<GetContentPacksQuery, List<ContentPackListItemDto>>, GetContentPacksHandler>();
+        services.AddScoped<IQueryHandler<GetContentPackQuery, ContentPackDetailDto>, GetContentPackHandler>();
+        services.AddScoped<ICommandHandler<CreateContentPackCommand, ContentPackDetailDto>, CreateContentPackHandler>();
+        services.AddScoped<ICommandHandler<UpdateContentPackCommand, ContentPackDetailDto>, UpdateContentPackHandler>();
+        services.AddScoped<ICommandHandler<DeleteContentPackCommand, Unit>, DeleteContentPackHandler>();
+        services.AddScoped<ICommandHandler<AddContentPackEntryCommand, ContentPackDetailDto>, AddContentPackEntryHandler>();
+        services.AddScoped<ICommandHandler<UpdateContentPackEntryCommand, ContentPackDetailDto>, UpdateContentPackEntryHandler>();
+        services.AddScoped<ICommandHandler<RemoveContentPackEntryCommand, Unit>, RemoveContentPackEntryHandler>();
 
         return services;
     }
