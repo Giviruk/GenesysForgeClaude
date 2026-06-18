@@ -8,6 +8,9 @@ import {
   ENCOUNTER_TYPE_LABELS, ENCOUNTER_TYPES, PARTICIPANT_TYPE_LABELS, SLOT_TYPE_LABELS,
   SYSTEM_LABELS, THREAT_LEVEL_LABELS, THREAT_LEVELS,
 } from '../utils/labels'
+import { PrintPreview } from './print/PrintPreview'
+import { EncounterSheet } from './print/cards'
+import { encounterMarkdown } from './print/markdown'
 
 interface Props {
   campaignId: string
@@ -121,6 +124,7 @@ function EncounterEditor({ encounterId, isGm, members, onBack, onSentToTable }: 
 }) {
   const [enc, setEnc] = useState<EncounterDetail | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [printing, setPrinting] = useState(false)
 
   const reload = useCallback(() =>
     api.encounter(encounterId).then(setEnc).catch((e: unknown) =>
@@ -141,6 +145,16 @@ function EncounterEditor({ encounterId, isGm, members, onBack, onSentToTable }: 
     return <div><button onClick={onBack}>← К списку</button>{error && <div className="error">{error}</div>}</div>
   }
 
+  if (printing) {
+    const versions: ('gm' | 'player')[] = isGm ? ['gm', 'player'] : ['player']
+    return (
+      <PrintPreview title={`Энкаунтер — ${enc.name}`} versions={versions}
+        markdown={(v) => encounterMarkdown(enc, v)} onClose={() => setPrinting(false)}>
+        {(v) => <EncounterSheet enc={enc} version={v} />}
+      </PrintPreview>
+    )
+  }
+
   return (
     <div className="encounter-editor">
       <div className="page-head">
@@ -150,6 +164,9 @@ function EncounterEditor({ encounterId, isGm, members, onBack, onSentToTable }: 
           <span className="badge">{ENCOUNTER_TYPE_LABELS[enc.type]}</span>
           <span className="badge tier">{THREAT_LEVEL_LABELS[enc.threatLevel]}</span>
           {!enc.isVisibleToPlayers && <span className="badge">скрыт</span>}
+        </div>
+        <div className="head-actions">
+          <button onClick={() => setPrinting(true)}>🖨 Печать</button>
         </div>
       </div>
       {error && <div className="error floating">{error}</div>}
