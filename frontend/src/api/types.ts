@@ -562,6 +562,65 @@ export interface EncounterFilter {
   tag?: string
 }
 
+export type ContentEntryType =
+  | 'archetype' | 'career' | 'skill' | 'talent' | 'item' | 'heroicAbility'
+  | 'spell' | 'magicAction' | 'alchemyRecipe' | 'rune' | 'houseRule' | 'customNote'
+export type AllowedState = 'allowed' | 'disallowed' | 'askGm'
+export type HouseRuleCategory =
+  | 'none' | 'characterCreation' | 'combat' | 'magic' | 'equipment' | 'xp' | 'campaignTone' | 'custom'
+
+export interface ContentPackEntry {
+  id: string
+  contentType: ContentEntryType
+  contentId: string | null
+  title: string
+  allowedState: AllowedState
+  category: HouseRuleCategory
+  safeSummary: string
+  source: string
+  pageRef: string
+  gmNotes: string | null
+  playerNotes: string
+  tags: string[]
+  sortOrder: number
+}
+
+export interface ContentPackListItem {
+  id: string
+  name: string
+  system: GameSystem
+  isPublicToCampaign: boolean
+  entryCount: number
+  updatedAt: string
+}
+
+export interface ContentPackDetail {
+  id: string
+  campaignId: string
+  name: string
+  description: string
+  system: GameSystem
+  isGm: boolean
+  isPublicToCampaign: boolean
+  entries: ContentPackEntry[]
+  createdAt: string
+  updatedAt: string
+}
+
+export interface ContentPackEntryInput {
+  contentType: ContentEntryType
+  contentId?: string | null
+  title: string
+  allowedState: AllowedState
+  category?: HouseRuleCategory | null
+  safeSummary?: string
+  source?: string
+  pageRef?: string
+  gmNotes?: string
+  playerNotes?: string
+  tags?: string[]
+}
+
 export interface CharacterSheet {
   id: string
   name: string

@@ -83,6 +83,7 @@ app.MapSpells();
 app.MapNpcs();
 app.MapGameTable();
 app.MapEncounters();
+app.MapContentPacks();
 app.MapGet("/api/health", () => Results.Ok(new { status = "ok" }));
 
 app.Run();
