@@ -215,8 +215,8 @@ td.nowrap, th.nowrap { white-space: nowrap; }
 .effect-row { display: flex; gap: 0.6rem; align-items: flex-start; border: 1px solid var(--border);
   border-radius: 8px; padding: 0.5rem 0.7rem; background: var(--panel-2); cursor: pointer; }
 .effect-row.on { border-color: var(--accent); }
-.effect-row input { margin-top: 0.2rem; }
-.effect-main { display: flex; flex-direction: column; gap: 0.15rem; }
+.effect-row input[type="checkbox"] { width: auto; flex: 0 0 auto; margin-top: 0.2rem; }
+.effect-main { display: flex; flex-direction: column; gap: 0.15rem; min-width: 0; flex: 1 1 auto; }
 .effect-main .difficulty-badge { align-self: flex-start; }
 
 /* ---------- Talents ---------- */
@@ -434,6 +434,25 @@ button.tiny { font-size: 0.75rem; padding: 0.1rem 0.4rem; }
 .chars-row .char-input { flex: 1 1 4rem; min-width: 4rem; }
 .char-input input { text-align: center; }
 .modal.wide { max-width: 46rem; }
+.modal.wide .npc-main-grid,
+.modal.wide .npc-meta-grid,
+.modal.wide .npc-stat-grid,
+.modal.wide .npc-derived-grid {
+  display: grid;
+  gap: 0.6rem;
+  align-items: end;
+}
+.modal.wide .npc-main-grid { grid-template-columns: minmax(0, 2fr) minmax(11rem, 1fr); }
+.modal.wide .npc-meta-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.modal.wide .npc-stat-grid { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+.modal.wide .npc-derived-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+.modal.wide .npc-main-grid > label,
+.modal.wide .npc-meta-grid > label,
+.modal.wide .npc-stat-grid > label,
+.modal.wide .npc-derived-grid > label {
+  min-width: 0;
+  margin: 0.4rem 0;
+}
 .ranks-input { width: 4rem; text-align: center; }
 
 .list-editor { margin: 0.6rem 0; border-top: 1px dashed var(--border); padding-top: 0.5rem; }
@@ -569,7 +588,18 @@ button.tiny { font-size: 0.75rem; padding: 0.1rem 0.4rem; }
   .modal { padding: 1rem; }
   .modal-actions > button { flex: 1 1 8rem; }
   .system-switch > button { flex: 1 1 10rem; }
+  .modal.wide .npc-main-grid { grid-template-columns: 1fr; }
+  .modal.wide .npc-meta-grid,
+  .modal.wide .npc-stat-grid,
+  .modal.wide .npc-derived-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .modal.wide .npc-meta-grid > label:nth-child(3) { grid-column: 1 / -1; }
   .shop-row-head { flex-wrap: wrap; }
   .shop-row-actions { flex-direction: row; flex-wrap: wrap; width: 100%; }
   .shop-row-actions button { flex: 1 1 8rem; }
+}
+
+@media (max-width: 28rem) {
+  .modal.wide .npc-meta-grid,
+  .modal.wide .npc-stat-grid,
+  .modal.wide .npc-derived-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
