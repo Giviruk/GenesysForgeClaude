@@ -80,6 +80,28 @@ export const MAGIC_SKILL_LABELS: Record<string, string> = {
 /** Подпись магического навыка с запасным вариантом для кастомных кодов. */
 export const magicSkillLabel = (skill: string) => MAGIC_SKILL_LABELS[skill] ?? skill
 
+/** Подписи уровней сложности проверки Genesys (число фиолетовых кубов). */
+export const DIFFICULTY_LABELS: Record<number, string> = {
+  0: 'Простая',
+  1: 'Лёгкая',
+  2: 'Средняя',
+  3: 'Сложная',
+  4: 'Трудная',
+  5: 'Грозная',
+}
+
+/** Подпись уровня сложности с ограничением 0..5. */
+export const difficultyLabel = (n: number) => DIFFICULTY_LABELS[Math.max(0, Math.min(5, n))] ?? `${n}`
+
+/**
+ * Извлекает числовое значение сложности из строки справочника магии:
+ * базовый эффект — «2 (Average)» → 2; доп. эффект — «+1» → 1. Пусто/нечисло → 0.
+ */
+export const parseDifficulty = (raw: string): number => {
+  const m = raw.match(/-?\d+/)
+  return m ? parseInt(m[0], 10) : 0
+}
+
 export const NPC_KIND_LABELS: Record<NpcKind, string> = {
   minion: 'Миньон',
   rival: 'Ривал',

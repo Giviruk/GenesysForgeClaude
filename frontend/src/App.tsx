@@ -6,8 +6,9 @@ import { CharactersPage } from './pages/CharactersPage'
 import { CampaignsPage } from './pages/CampaignsPage'
 import { NpcsPage } from './pages/NpcsPage'
 import { SheetPage } from './pages/SheetPage'
+import { MagicPage } from './pages/MagicPage'
 
-type Area = 'characters' | 'campaigns' | 'npcs'
+type Area = 'characters' | 'campaigns' | 'npcs' | 'magic'
 
 function Shell() {
   const { token, logout } = useAuth()
@@ -29,6 +30,7 @@ function Shell() {
           <button className={area === 'characters' ? 'tab active' : 'tab'} onClick={() => go('characters')}>Персонажи</button>
           <button className={area === 'campaigns' ? 'tab active' : 'tab'} onClick={() => go('campaigns')}>Кампании</button>
           <button className={area === 'npcs' ? 'tab active' : 'tab'} onClick={() => go('npcs')}>Бестиарий</button>
+          <button className={area === 'magic' ? 'tab active' : 'tab'} onClick={() => go('magic')}>Магия</button>
         </nav>
         <button className="small" onClick={() => { setCharacterId(null); logout() }}>Выйти</button>
       </header>
@@ -38,7 +40,9 @@ function Shell() {
             : <CharactersPage onOpen={setCharacterId} />)
         : area === 'campaigns'
           ? <CampaignsPage />
-          : <NpcsPage />}
+          : area === 'npcs'
+            ? <NpcsPage />
+            : <MagicPage />}
     </div>
   )
 }
