@@ -32,7 +32,10 @@ export function AuthPage() {
         <h1 className="logo">Genesys Forge</h1>
         <p className="muted">Листы персонажей для Genesys Core и Realms of Terrinoth</p>
         {sessionExpired && mode === 'login' && (
-          <div className="notice warn">Сессия истекла. Пожалуйста, войдите снова.</div>
+          <div className="notice warn">
+            Сессия истекла — войдите снова.
+            {returnTo && ' После входа вернётесь на открытую страницу.'}
+          </div>
         )}
         <div className="tabs">
           <button className={mode === 'login' ? 'tab active' : 'tab'} onClick={() => { setError(null); navigate('/login') }}>Вход</button>
