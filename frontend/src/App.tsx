@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import { AuthProvider } from './auth'
 import { useAuth } from './auth-context'
 import { AuthPage } from './pages/AuthPage'
@@ -7,19 +6,18 @@ import { CampaignsPage } from './pages/CampaignsPage'
 import { NpcsPage } from './pages/NpcsPage'
 import { SheetPage } from './pages/SheetPage'
 import { MagicPage } from './pages/MagicPage'
-
-type Area = 'characters' | 'campaigns' | 'npcs' | 'magic'
+import { navigate, parseRoute, usePath, type AppArea } from './router'
 
 function Shell() {
   const { token, logout } = useAuth()
-  const [area, setArea] = useState<Area>('characters')
-  const [characterId, setCharacterId] = useState<string | null>(null)
+  const path = usePath()
 
   if (!token) return <AuthPage />
 
-  function go(next: Area) {
-    setCharacterId(null)
-    setArea(next)
+  const route = parseRoute(path)
+
+  function go(area: AppArea) {
+    navigate(`/${area}`)
   }
 
   return (
@@ -27,22 +25,38 @@ function Shell() {
       <header className="topbar">
         <span className="logo" onClick={() => go('characters')}>Genesys Forge</span>
         <nav className="topnav">
-          <button className={area === 'characters' ? 'tab active' : 'tab'} onClick={() => go('characters')}>Персонажи</button>
-          <button className={area === 'campaigns' ? 'tab active' : 'tab'} onClick={() => go('campaigns')}>Кампании</button>
-          <button className={area === 'npcs' ? 'tab active' : 'tab'} onClick={() => go('npcs')}>Бестиарий</button>
-          <button className={area === 'magic' ? 'tab active' : 'tab'} onClick={() => go('magic')}>Магия</button>
+          <button className={route.area === 'characters' ? 'tab active' : 'tab'} onClick={() => go('characters')}>Персонажи</button>
+          <button className={route.area === 'campaigns' ? 'tab active' : 'tab'} onClick={() => go('campaigns')}>Кампании</button>
+          <button className={route.area === 'npcs' ? 'tab active' : 'tab'} onClick={() => go('npcs')}>Бестиарий</button>
+          <button className={route.area === 'magic' ? 'tab active' : 'tab'} onClick={() => go('magic')}>Магия</button>
         </nav>
-        <button className="small" onClick={() => { setCharacterId(null); logout() }}>Выйти</button>
+        <button className="small" onClick={() => { logout(); navigate('/login') }}>Выйти</button>
       </header>
-      {area === 'characters'
-        ? (characterId
-            ? <SheetPage characterId={characterId} onBack={() => setCharacterId(null)} />
-            : <CharactersPage onOpen={setCharacterId} />)
-        : area === 'campaigns'
-          ? <CampaignsPage />
-          : area === 'npcs'
-            ? <NpcsPage />
-            : <MagicPage />}
+      {route.unknown
+        ? <NotFound />
+        : route.area === 'characters'
+          ? (route.id
+              ? <SheetPage characterId={route.id} onBack={() => navigate('/characters')} />
+              : <CharactersPage onOpen={id => navigate(`/characters/${id}`)} />)
+          : route.area === 'campaigns'
+            ? <CampaignsPage openId={route.id}
+                onOpen={id => navigate(`/campaigns/${id}`)} onBack={() => navigate('/campaigns')} />
+            : route.area === 'npcs'
+              ? <NpcsPage openId={route.id}
+                  onOpen={id => navigate(`/npcs/${id}`)} onBack={() => navigate('/npcs')} />
+              : <MagicPage />}
+    </div>
+  )
+}
+
+function NotFound() {
+  return (
+    <div className="page">
+      <div className="panel">
+        <h2>Страница не найдена</h2>
+        <p className="muted">Такого адреса нет. Вернитесь к списку персонажей.</p>
+        <button className="primary" onClick={() => navigate('/characters')}>← К персонажам</button>
+      </div>
     </div>
   )
 }
