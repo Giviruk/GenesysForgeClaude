@@ -65,6 +65,10 @@ export const api = {
     request<AuthResponse>('POST', '/api/auth/register', { email, password, displayName }),
   login: (email: string, password: string) =>
     request<AuthResponse>('POST', '/api/auth/login', { email, password }),
+  confirmEmail: (token: string) =>
+    request<void>('POST', '/api/auth/email/confirm', { token }),
+  resendEmailConfirmation: (email: string) =>
+    request<void>('POST', '/api/auth/email/resend', { email }),
 
   reference: (system: GameSystem) =>
     request<Reference>('GET', `/api/reference/${system === 'genesysCore' ? 'GenesysCore' : 'RealmsOfTerrinoth'}`),

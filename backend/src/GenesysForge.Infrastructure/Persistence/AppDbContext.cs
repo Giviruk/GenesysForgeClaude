@@ -7,6 +7,7 @@ namespace GenesysForge.Infrastructure.Persistence;
 public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(options), IAppDbContext
 {
     public DbSet<User> Users => Set<User>();
+    public DbSet<EmailConfirmationToken> EmailConfirmationTokens => Set<EmailConfirmationToken>();
     public DbSet<SkillDef> SkillDefs => Set<SkillDef>();
     public DbSet<TalentDef> TalentDefs => Set<TalentDef>();
     public DbSet<ItemDef> ItemDefs => Set<ItemDef>();
@@ -34,7 +35,20 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
 
     protected override void OnModelCreating(ModelBuilder b)
     {
-        b.Entity<User>().HasIndex(u => u.Email).IsUnique();
+        b.Entity<User>(e =>
+        {
+            e.HasIndex(u => u.Email).IsUnique();
+            // Существующие до фичи аккаунты считаются подтверждёнными; новые регистрации ставят false явно.
+            e.Property(u => u.EmailConfirmed).HasDefaultValue(true);
+        });
+
+        b.Entity<EmailConfirmationToken>(e =>
+        {
+            e.HasIndex(t => t.TokenHash);
+            e.HasIndex(t => t.UserId);
+            e.Property(t => t.TokenHash).HasMaxLength(64);
+            e.HasOne<User>().WithMany().HasForeignKey(t => t.UserId).OnDelete(DeleteBehavior.Cascade);
+        });
 
         b.Entity<Character>(e =>
         {

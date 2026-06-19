@@ -22,6 +22,8 @@ public static class DependencyInjection
         // Auth
         services.AddScoped<ICommandHandler<RegisterUserCommand, AuthResponse>, RegisterUserHandler>();
         services.AddScoped<ICommandHandler<LoginCommand, AuthResponse>, LoginHandler>();
+        services.AddScoped<ICommandHandler<ConfirmEmailCommand, Unit>, ConfirmEmailHandler>();
+        services.AddScoped<ICommandHandler<ResendEmailConfirmationCommand, Unit>, ResendEmailConfirmationHandler>();
 
         // Reference
         services.AddScoped<IQueryHandler<GetReferenceQuery, ReferenceResponse>, GetReferenceHandler>();

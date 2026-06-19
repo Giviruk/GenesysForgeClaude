@@ -7,6 +7,7 @@ namespace GenesysForge.Application.Abstractions;
 public interface IAppDbContext
 {
     DbSet<User> Users { get; }
+    DbSet<EmailConfirmationToken> EmailConfirmationTokens { get; }
     DbSet<SkillDef> SkillDefs { get; }
     DbSet<TalentDef> TalentDefs { get; }
     DbSet<ItemDef> ItemDefs { get; }

@@ -16,6 +16,10 @@ Fields:
 
 Response: `AuthResponse` with `token`, `userId`, `email`, `displayName`.
 
+New accounts start with `EmailConfirmed = false`; a confirmation link is "sent" (stubbed to the
+API log via `LoggingEmailSender`, base address `App:BaseUrl`). Accounts created before this feature
+are treated as confirmed.
+
 Known errors:
 
 - `409` for duplicate email.
@@ -32,9 +36,24 @@ Fields:
 
 Response: `AuthResponse`.
 
+When `Auth:RequireEmailConfirmation` is `true`, unconfirmed users are rejected with `401` until
+they confirm. Default is `false` (private MVP does not block login).
+
 Known errors:
 
-- `401` for wrong credentials.
+- `401` for wrong credentials, or an unconfirmed email when confirmation is required.
+
+### `POST /api/auth/email/confirm`
+
+Public. Request: `ConfirmEmailRequest` (`token`). Marks the email confirmed and invalidates the
+token (single-use). Returns `204`.
+
+- `400` for an invalid/expired/used token.
+
+### `POST /api/auth/email/resend`
+
+Public. Request: `ResendEmailConfirmationRequest` (`email`). Always returns `204` (no enumeration);
+re-sends a confirmation link only if the account exists and is not yet confirmed.
 
 ## Reference
 
