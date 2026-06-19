@@ -6,6 +6,8 @@ Roadmap описывает продуктовые этапы. Он не явля
 
 Цель: рабочий личный лист персонажа с auth, расчетами и базовым custom content.
 
+Status: implemented in current codebase.
+
 - Регистрация и авторизация по JWT.
 - Создание персонажа.
 - Выбор `GameSystem`: Genesys Core или Realms of Terrinoth.
@@ -43,8 +45,10 @@ Roadmap описывает продуктовые этапы. Он не явля
 - Мягкое предупреждение при перегрузе.
 - Более подробные filters/search для навыков, талантов, предметов.
 - Справочник магии (заклинания и дополнительные эффекты) с переключением направлений и различиями систем. (готово)
+- Campaigns, join code, campaign notes, NPC library, encounter builder, Game Table and campaign content packs. (готово, требует E2E/UX pass)
+- Print preview/cards for NPCs, encounters, magic actions, items and talents. (готово; полный printable character sheet не готов)
 - Импорт/экспорт персонажа в JSON.
-- Печать или PDF-friendly лист.
+- Печать или PDF-friendly лист персонажа.
 - Административный/maintenance сценарий для seed data.
 - Расширенные API tests на негативные сценарии.
 - E2E smoke tests для основных пользовательских flows.
@@ -64,15 +68,14 @@ Roadmap описывает продуктовые этапы. Он не явля
 - User-facing documentation или help pages без официальных текстов.
 - Release checklist и changelog.
 - Security review auth и ownership checks.
+- Решение по refresh/session rotation, password reset/email confirmation и URL deep links; рабочий план — `docs/mvp-ux-account-readiness.md`.
 
 ## Future Features
 
 Идеи после 1.0; не добавлять в MVP без отдельного решения.
 
-- Кампании и приглашения игроков.
-- Роли ведущий/игрок.
 - Shared character sheets.
-- Notes, injuries, obligations/motivations и campaign-specific fields.
+- Injuries, obligations/motivations and richer campaign-specific fields.
 - Dice roller и история бросков.
 - Custom rule packs.
 - Версионирование homebrew content.

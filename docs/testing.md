@@ -61,12 +61,18 @@ API tests cover:
 - characteristic purchase restriction after creation;
 - unknown characteristic error;
 - foreign character access;
-- custom skill/talent/item/heroic ability scenarios.
+- custom skill/talent/item/heroic ability scenarios;
+- character notes;
+- campaign ownership, join code, members and campaign notes;
+- NPC CRUD, filters, quick draft, duplicate and ownership checks;
+- Game Table session, participants, initiative slots and visibility rules;
+- spells and content seed modes.
 
 Frontend tests cover:
 
 - API client behavior, including token/unauthorized handling.
 - Pyramid/talent helper utilities.
+- Magic labels/difficulty helper utilities.
 
 ## Critical gaps
 
@@ -74,6 +80,7 @@ Not implemented yet:
 
 - Full component tests for pages and tabs.
 - E2E tests for auth -> create character -> edit sheet.
+- E2E tests for campaign -> encounter -> send to Game Table.
 - Visual/regression tests.
 - Tests around production nginx config.
 - Tests around migration application against real PostgreSQL in CI.

@@ -13,8 +13,9 @@
 1. Should API versioning be introduced before release 1.0?
 2. Should startup migrations remain automatic in production?
 3. Should database check constraints be added for ranks, XP, tier and quantity?
-4. Should frontend adopt real routing for character URLs?
+4. Should frontend adopt real routing for character/campaign/NPC URLs? Recommended next step is documented in `docs/mvp-ux-account-readiness.md`.
 5. Should CI include PostgreSQL integration tests instead of only InMemory API tests?
+6. Should public and private deployments be split into separate compose services before opening the app publicly?
 
 ## UX questions
 
@@ -23,6 +24,7 @@
 3. How should XP history be displayed?
 4. Should custom content be managed globally or per character context?
 5. What mobile layout is expected for full sheet editing?
+6. Which account recovery path is acceptable for MVP: operator-assisted reset, email reset, or no recovery for private beta?
 
 ## Legal/copyright questions
 
@@ -36,5 +38,5 @@
 
 - Formal legal policy document beyond docs created in this pass.
 - Product decision on sharing/community content.
-- Release criteria for 1.0.
+- Final release criteria for 1.0.
 

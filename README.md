@@ -11,6 +11,8 @@
 - Героические способности для Realms of Terrinoth
 - Инвентарь: состояния «используется / не используется / в рюкзаке», автоматический пересчёт поглощения, защиты, порога переносимого веса (надетая броня: encumbrance −3)
 - Кастомный контент через UI: навыки, таланты, предметы, героические способности
+- Кампании с join code, заметками, энкаунтерами, Game Table и campaign handbook/content packs
+- Бестиарий/NPC, сборка магических действий и печать карточек игровых материалов через browser print
 
 ## Стек
 
@@ -73,14 +75,14 @@ cd frontend; npm test
 и разворачивает на VPS по SSH прод-стек [docker-compose.prod.yml](docker-compose.prod.yml):
 PostgreSQL + API + web (nginx) + **Caddy** с автоматическим HTTPS (Let's Encrypt). Наружу публикуется только Caddy (80/443).
 
-Сейчас разворачивается один стек; оба хоста (`PRIVATE_HOSTNAME`, `PUBLIC_HOSTNAME`) ведут на него.
-Разделение на два приложения (Private/Public) появится после реализации `AppMode`/`ContentMode` в коде.
+Сейчас разворачивается один private-стек на `PRIVATE_HOSTNAME` в режиме `ContentMode=PrivateFull`.
+Публичный `PUBLIC_HOSTNAME` в prod-compose/Caddy пока не подключён; его нужно вернуть отдельным `PublicSafe`-стеком перед публичным запуском.
 
 ### Конфигурация — только через GitHub Secrets/Variables (в репозитории секретов нет)
 
 Secrets: `SSH_HOST`, `SSH_USER`, `SSH_PORT`, `SSH_PRIVATE_KEY`, `POSTGRES_PASSWORD`, `JWT_KEY`,
 `GHCR_USERNAME`, `GHCR_TOKEN` (с правом `write:packages`), `LETSENCRYPT_EMAIL`, `PRIVATE_OWNER_PASSWORD`.
-Variables: `DEPLOY_PATH` (`/opt/genesysforge`), `PRIVATE_HOSTNAME`, `PUBLIC_HOSTNAME` и др. режимные переменные.
+Variables: `DEPLOY_PATH` (`/opt/genesysforge`), `PRIVATE_HOSTNAME` и др. режимные переменные. `PUBLIC_HOSTNAME` понадобится при добавлении публичного `PublicSafe`-стека.
 
 ### Требования к VPS
 

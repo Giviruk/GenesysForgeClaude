@@ -26,6 +26,10 @@ GenesysForge — веб-приложение для создания и веде
 - Добавлять предметы, менять количество и состояние экипировки.
 - Видеть пересчитанные wounds, strain, soak, defense, encumbrance.
 - Создавать custom skills, talents, items, heroic abilities.
+- Вести заметки персонажа.
+- Создавать кампании, присоединять персонажей по join code и вести заметки кампании.
+- Создавать NPC, энкаунтеры и активную сцену Game Table для кампании.
+- Собирать магические действия и печатать карточки игровых материалов.
 
 ## Границы текущего MVP
 
@@ -37,6 +41,10 @@ Implemented:
 - Базовые справочники через seed data.
 - Creation phase и часть progression rules.
 - Custom content, видимый только владельцу.
+- Character notes.
+- Campaigns, join code, membership and campaign notes.
+- NPC/adversary library, encounter builder, Game Table and campaign content packs.
+- Magic reference/action builder and browser-print cards for GM/player materials.
 - Docker/CI/test foundation.
 
 Partially implemented:
@@ -44,11 +52,13 @@ Partially implemented:
 - UI покрывает основные операции, но без URL routing и полноценного E2E покрытия.
 - Talent effects автоматизированы только для числовых пассивных бонусов.
 - Описания справочников есть, но требуют юридической осторожности.
+- Печать реализована для карточек и GM-материалов через browser print; полного печатного листа персонажа пока нет.
 
 Not implemented yet:
 
-- Кампании, совместный доступ и роли ведущего.
-- Импорт/экспорт, PDF/печать.
+- Shareable character sheet URLs and real browser routing.
+- Импорт/экспорт персонажа.
+- Полный PDF/print layout листа персонажа.
 - Refresh token/password reset.
 - Механическое исполнение активных талантов, оружейных атак и heroic ability effects.
 

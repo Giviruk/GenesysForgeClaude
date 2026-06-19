@@ -15,7 +15,7 @@
   - `GenesysForge.Api.Tests`
 - Frontend: `frontend`, React + TypeScript + Vite.
 - Frontend tests: Vitest test files in `frontend/src/api` and `frontend/src/utils`.
-- Infrastructure: `docker-compose.yml`, backend/frontend Dockerfiles, GitHub Actions CI.
+- Infrastructure: `docker-compose.yml`, `docker-compose.prod.yml`, backend/frontend Dockerfiles, GitHub Actions CI and deploy workflow.
 
 ## Implemented
 
@@ -31,10 +31,19 @@
 - Talent buy/refund with ranked/unranked handling and talent pyramid validation.
 - Realms of Terrinoth heroic ability assignment.
 - Inventory add/update/delete.
+- Money tracking, paid item purchase and item sale.
 - Equipped item effects on soak, defense and encumbrance.
 - Derived stats calculation.
+- Character notes.
 - Custom skills, talents, items and heroic abilities.
 - Custom content visibility scoped by `OwnerUserId`.
+- Campaigns: GM-owned campaigns, join code, character membership and campaign notes with private/public visibility.
+- NPC/adversary library with filters, deterministic quick draft, duplication and ownership checks.
+- Encounter builder for campaign scenes, participants, hidden/defeated flags, print view and send-to-table flow.
+- Game Table / GM cockpit: active campaign session, story points, participants, initiative slots, next turn, reset and end session.
+- Campaign Handbook / Content Packs with campaign-scoped entries.
+- Magic Action Builder with difficulty calculation, character magic dice pool, print card and Markdown copy.
+- Print preview/cards for NPCs, encounters, magic actions, items and talents through browser print.
 - EF Core migrations and automatic `Database.Migrate()` on startup.
 - Content model on all reference entities (`Code`, `NameRu`, `Name`/original, `Description` full, `SafeDescription`, `Source`) via `IContentDef`.
 - Talents have a `Setting` (`[Flags] GenesysSetting`) and are data-driven from an embedded catalog (`talents.catalog.json`, ~120 entries). Reference listing filters by setting: Genesys Core → `Any` only; Realms of Terrinoth → `Any` + `Fantasy`. Russian names (`NameRu`) shown in the talents UI.
@@ -47,20 +56,20 @@
 
 - Frontend routing: implemented as local React state, not URL/browser routing.
 - State management: implemented with React state/context, no external store.
-- API documentation: OpenAPI is enabled, but detailed hand-written API docs were missing before this documentation pass.
+- API documentation: OpenAPI is enabled; hand-written docs cover the main routes but should be kept in sync after endpoint changes.
 - Validation: domain/application validation exists; frontend validation is basic HTML/form/state validation.
 - Copyright policy: documented now, but current seed still contains paraphrased descriptions that should be reviewed manually for legal safety.
 - Frontend tests: utilities and API client are tested; broad component/flow coverage is limited.
-- Production readiness: Docker exists, but observability, backup automation and secret rotation are minimal.
+- Production readiness: Docker, VPS compose and deploy workflow exist, but observability, backup automation and secret rotation are minimal.
 
 ## Not implemented yet
 
 - Refresh tokens or session rotation.
 - Password reset / email confirmation.
-- Campaigns, parties, sharing, GM roles.
 - Real URL routing with deep links.
+- Shareable character sheets by URL.
 - Import/export character files.
-- PDF/print character sheet.
+- Full printable character sheet; current print support is card/material oriented.
 - Audit log or XP history.
 - Full E2E browser test suite.
 - Role-based administration.
@@ -74,6 +83,7 @@
 - API currently exposes pre-1.0 unversioned routes.
 - Frontend navigation state is lost on refresh because there is no URL route for a specific character.
 - No refresh token flow; expired JWT causes logout.
+- Password loss requires manual/operator intervention because self-service reset is not implemented.
 - Some database constraints are enforced in domain/application rather than database check constraints.
 
 ## Domain gaps
