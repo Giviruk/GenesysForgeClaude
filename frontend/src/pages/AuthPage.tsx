@@ -1,9 +1,12 @@
 import { useState, type FormEvent } from 'react'
 import { useAuth } from '../auth-context'
+import { peekReturnTo } from '../session'
 
 export function AuthPage() {
   const { login, register, sessionExpired } = useAuth()
   const [mode, setMode] = useState<'login' | 'register'>('login')
+  // Куда вернёмся после повторного входа (если сессия истекла на конкретном экране).
+  const returnTo = sessionExpired ? peekReturnTo() : null
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [displayName, setDisplayName] = useState('')
@@ -30,7 +33,10 @@ export function AuthPage() {
         <h1 className="logo">Genesys Forge</h1>
         <p className="muted">Листы персонажей для Genesys Core и Realms of Terrinoth</p>
         {sessionExpired && mode === 'login' && (
-          <div className="notice warn">Сессия истекла. Пожалуйста, войдите снова.</div>
+          <div className="notice warn">
+            Сессия истекла — войдите снова.
+            {returnTo && ' После входа вернётесь на открытую страницу.'}
+          </div>
         )}
         <div className="tabs">
           <button className={mode === 'login' ? 'tab active' : 'tab'} onClick={() => setMode('login')}>Вход</button>
