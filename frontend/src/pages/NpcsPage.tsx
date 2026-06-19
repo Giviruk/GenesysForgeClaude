@@ -14,9 +14,14 @@ import { adversaryMarkdown } from '../components/print/markdown'
 
 const SYSTEMS: GameSystem[] = ['genesysCore', 'realmsOfTerrinoth']
 
-export function NpcsPage() {
+interface Props {
+  openId: string | null
+  onOpen: (id: string) => void
+  onBack: () => void
+}
+
+export function NpcsPage({ openId, onOpen, onBack }: Props) {
   const [npcs, setNpcs] = useState<NpcListItem[] | null>(null)
-  const [openId, setOpenId] = useState<string | null>(null)
   const [editing, setEditing] = useState<NpcDetail | 'new' | null>(null)
   const [drafting, setDrafting] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -37,10 +42,11 @@ export function NpcsPage() {
   }).then(setNpcs).catch((e: unknown) => setError(e instanceof Error ? e.message : 'Ошибка загрузки')),
     [search, system, kind, role, sort])
 
-  useEffect(() => { void reload() }, [reload])
+  // Список перезагружается по фильтрам и при возврате из карточки NPC.
+  useEffect(() => { if (!openId) void reload() }, [openId, reload])
 
-  if (openId) return <NpcDetailView npcId={openId} onBack={() => { setOpenId(null); void reload() }}
-    onEdit={n => { setOpenId(null); setEditing(n) }} />
+  if (openId) return <NpcDetailView npcId={openId} onBack={onBack}
+    onEdit={n => { onBack(); setEditing(n) }} />
 
   async function run(action: () => Promise<unknown>) {
     try { await action(); await reload() }
@@ -82,7 +88,7 @@ export function NpcsPage() {
       {npcs?.length === 0 && <p className="muted">Ничего не найдено — создайте NPC или быстрый черновик.</p>}
       <div className="card-grid">
         {npcs?.map(n => (
-          <div key={n.id} className="char-card" onClick={() => setOpenId(n.id)}>
+          <div key={n.id} className="char-card" onClick={() => onOpen(n.id)}>
             <div className="char-card-head">
               <strong>{n.name}</strong>
               <span className={`badge ${n.system}`}>{SYSTEM_LABELS[n.system]}</span>
