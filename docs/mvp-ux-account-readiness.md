@@ -1,6 +1,6 @@
 # MVP UX and Account Readiness
 
-Этот документ закрывает пункт MVP-review про известные UX/account ограничения: URL deep links, session UX, password reset/email confirmation, Google OAuth, refresh tokens/rotation и real-time collaboration.
+Этот документ закрывает пункт MVP-review про известные UX/account ограничения и критичные UX-доработки: URL deep links, session UX, password reset/email confirmation, Google OAuth, refresh tokens/rotation, real-time collaboration и поиск/фильтры магазина.
 
 ## Current state
 
@@ -12,6 +12,7 @@
 - OAuth: Google sign-in is not implemented.
 - Refresh tokens: session rotation and token revocation are not implemented.
 - Collaboration: all views are request/refresh based; there are no real-time updates between users.
+- Shop UX: inventory shop search exists, but MVP search/filter requirements should include description and tag matching plus a dedicated tag picker button.
 
 ## MVP decision
 
@@ -153,6 +154,30 @@ Google OAuth, refresh-token rotation and real-time collaboration are not require
    - operational transform/CRDT document editing;
    - offline-first conflict resolution.
 
+8. Shop search and tag filter eighth.
+
+   Improve the inventory shop so players can find items by how they are described, not only by visible names or categories.
+
+   Search behavior:
+
+   - search text should match item name, Russian display name where present, safe/full description text, source text and item properties/tags;
+   - matching should be case-insensitive and tolerant of extra spaces;
+   - search and filters should compose, e.g. text query + item kind + selected tags.
+
+   Tag filter UX:
+
+   - tag selection must open from a separate button near the search field, e.g. "Tags" / "Теги";
+   - the tag picker should not be permanently expanded in the shop layout;
+   - selected tags should be visible as removable chips;
+   - the filter button should indicate active filters, e.g. count badge or active state;
+   - include a clear/reset action for selected tags.
+
+   Data assumptions:
+
+   - existing item properties can be used as initial tags if no dedicated tag field exists;
+   - if a dedicated tag field is added later, built-in seed and custom item forms should use the same tag model;
+   - do not add copyrighted item descriptions while improving search metadata.
+
 ## Acceptance checklist
 
 - Refreshing `/characters/:id` reopens the same character after login.
@@ -164,6 +189,8 @@ Google OAuth, refresh-token rotation and real-time collaboration are not require
 - Google OAuth decision is explicit: deferred, optional, or required for public signup.
 - If refresh tokens are added, reused rotated tokens revoke the token family and force login.
 - If real-time collaboration is added, unauthorized users cannot subscribe to campaign events.
+- Shop search returns items matched by description/properties/tags, not only by name.
+- Shop tag filter opens from a dedicated button, shows selected tags as chips and can be reset.
 
 ## Not in scope
 
