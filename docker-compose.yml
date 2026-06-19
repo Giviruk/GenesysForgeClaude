@@ -25,6 +25,8 @@ services:
       ASPNETCORE_ENVIRONMENT: ${API_ENVIRONMENT:-Production}
       ConnectionStrings__Default: "Host=postgres;Port=5432;Database=genesysforge;Username=genesys;Password=${POSTGRES_PASSWORD:-genesys_dev}"
       Jwt__Key: ${JWT_KEY:-genesysforge-dev-signing-key-change-in-production!}
+      # Google OAuth (опционально). Пусто — вход через Google выключен (кнопка скрыта).
+      Auth__Google__ClientId: ${GOOGLE_CLIENT_ID:-}
     depends_on:
       postgres:
         condition: service_healthy

@@ -22,6 +22,7 @@ public static class DependencyInjection
         // Auth
         services.AddScoped<ICommandHandler<RegisterUserCommand, AuthResponse>, RegisterUserHandler>();
         services.AddScoped<ICommandHandler<LoginCommand, AuthResponse>, LoginHandler>();
+        services.AddScoped<ICommandHandler<GoogleSignInCommand, AuthResponse>, GoogleSignInHandler>();
 
         // Reference
         services.AddScoped<IQueryHandler<GetReferenceQuery, ReferenceResponse>, GetReferenceHandler>();

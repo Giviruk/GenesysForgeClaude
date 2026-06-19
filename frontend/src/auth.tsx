@@ -29,6 +29,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setToken(auth.token)
   }, [])
 
+  const loginWithGoogle = useCallback(async (idToken: string) => {
+    const auth = await api.googleSignIn(idToken)
+    tokenStorage.set(auth.token)
+    setSessionExpired(false)
+    setToken(auth.token)
+  }, [])
+
   const logout = useCallback(() => {
     tokenStorage.clear()
     setSessionExpired(false) // обычный выход — не показываем «сессия истекла»
@@ -36,7 +43,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const value = useMemo(
-    () => ({ token, sessionExpired, login, register, logout }),
-    [token, sessionExpired, login, register, logout])
+    () => ({ token, sessionExpired, login, register, loginWithGoogle, logout }),
+    [token, sessionExpired, login, register, loginWithGoogle, logout])
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }

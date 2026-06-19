@@ -29,6 +29,7 @@ public static class DependencyInjection
 
         services.AddSingleton<ITokenService, TokenService>();
         services.AddSingleton<IPasswordHasherService, PasswordHasherService>();
+        services.AddSingleton<IExternalIdentityValidator, GoogleIdTokenValidator>();
 
         return services;
     }

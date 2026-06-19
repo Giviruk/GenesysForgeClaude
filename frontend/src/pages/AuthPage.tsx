@@ -1,14 +1,24 @@
-import { useState, type FormEvent } from 'react'
+import { useCallback, useEffect, useState, type FormEvent } from 'react'
 import { useAuth } from '../auth-context'
+import { api } from '../api/client'
+import { GoogleSignInButton } from '../components/GoogleSignInButton'
 
 export function AuthPage() {
-  const { login, register, sessionExpired } = useAuth()
+  const { login, register, loginWithGoogle, sessionExpired } = useAuth()
   const [mode, setMode] = useState<'login' | 'register'>('login')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [displayName, setDisplayName] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
+  // client id Google, если вход через Google настроен на сервере.
+  const [googleClientId, setGoogleClientId] = useState<string | null>(null)
+
+  useEffect(() => {
+    api.authProviders()
+      .then(p => setGoogleClientId(p.googleClientId || null))
+      .catch(() => { /* провайдеры не критичны — просто не показываем кнопку */ })
+  }, [])
 
   async function submit(e: FormEvent) {
     e.preventDefault()
@@ -23,6 +33,15 @@ export function AuthPage() {
       setBusy(false)
     }
   }
+
+  const onGoogleCredential = useCallback(async (idToken: string) => {
+    setError(null)
+    try {
+      await loginWithGoogle(idToken)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Не удалось войти через Google')
+    }
+  }, [loginWithGoogle])
 
   return (
     <div className="auth-page">
@@ -56,6 +75,13 @@ export function AuthPage() {
             {mode === 'login' ? 'Войти' : 'Создать аккаунт'}
           </button>
         </form>
+        {googleClientId && (
+          <div className="auth-divider-block">
+            <div className="auth-divider"><span>или</span></div>
+            <GoogleSignInButton clientId={googleClientId}
+              onCredential={onGoogleCredential} onError={setError} />
+          </div>
+        )}
       </div>
     </div>
   )

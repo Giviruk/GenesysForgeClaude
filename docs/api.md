@@ -36,6 +36,28 @@ Known errors:
 
 - `401` for wrong credentials.
 
+### `GET /api/auth/providers`
+
+Public. Returns `AuthProvidersResponse` with `googleClientId` (null when Google sign-in is not
+configured). The frontend uses it to decide whether to render the Google button.
+
+### `POST /api/auth/google`
+
+Public. Request: `GoogleSignInRequest` (`idToken` from Google Identity Services).
+
+Validates the Google ID token against Google's JWKS and the configured `Auth:Google:ClientId`. Links
+the Google identity to an existing user by **verified** email when one exists, otherwise creates a new
+account; returns the usual `AuthResponse` (the frontend auth context is unchanged). Uniqueness is
+enforced on (`provider`, `providerUserId`).
+
+**OAuth decision:** Google sign-in is **optional and deferred** for the private MVP. It is fully
+implemented but disabled until `Auth:Google:ClientId` (env `GOOGLE_CLIENT_ID`) is set with a Google
+Cloud OAuth client. Email/password remains the primary method.
+
+Known errors:
+
+- `400` when Google sign-in is not configured, the token is invalid, or the email is not verified.
+
 ## Reference
 
 ### `GET /api/reference/{system}`

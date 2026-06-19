@@ -11,6 +11,11 @@ export interface AuthResponse {
   displayName: string
 }
 
+export interface AuthProviders {
+  /** client id Google OAuth, либо null/пусто, если вход через Google не настроен */
+  googleClientId: string | null
+}
+
 export interface SkillDef {
   id: string
   name: string
