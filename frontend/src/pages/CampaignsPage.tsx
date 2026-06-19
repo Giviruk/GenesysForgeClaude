@@ -6,9 +6,14 @@ import { GameTableTab } from '../components/GameTableTab'
 import { EncountersTab } from '../components/EncountersTab'
 import { HandbookTab } from '../components/HandbookTab'
 
-export function CampaignsPage() {
+interface Props {
+  openId: string | null
+  onOpen: (id: string) => void
+  onBack: () => void
+}
+
+export function CampaignsPage({ openId, onOpen, onBack }: Props) {
   const [campaigns, setCampaigns] = useState<CampaignListItem[] | null>(null)
-  const [openId, setOpenId] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
 
   const reload = useCallback(
@@ -16,9 +21,10 @@ export function CampaignsPage() {
       setError(e instanceof Error ? e.message : 'Ошибка загрузки')),
     [])
 
-  useEffect(() => { void reload() }, [reload])
+  // Перезагружаем список при показе (в т.ч. при возврате из карточки кампании).
+  useEffect(() => { if (!openId) void reload() }, [openId, reload])
 
-  if (openId) return <CampaignDetailView campaignId={openId} onBack={() => { setOpenId(null); void reload() }} />
+  if (openId) return <CampaignDetailView campaignId={openId} onBack={onBack} />
 
   return (
     <div className="page">
@@ -36,7 +42,7 @@ export function CampaignsPage() {
       {campaigns?.length === 0 && <p className="muted">Пока нет кампаний — создайте свою или присоединитесь по коду.</p>}
       <div className="card-grid">
         {campaigns?.map(c => (
-          <div key={c.id} className="char-card" onClick={() => setOpenId(c.id)}>
+          <div key={c.id} className="char-card" onClick={() => onOpen(c.id)}>
             <div className="char-card-head">
               <strong>{c.name}</strong>
               <span className={c.isGm ? 'badge tier' : 'badge'}>{c.isGm ? 'Мастер' : 'Игрок'}</span>
