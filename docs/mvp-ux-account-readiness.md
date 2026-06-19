@@ -1,6 +1,6 @@
 # MVP UX and Account Readiness
 
-Этот документ закрывает пункт MVP-review про известные UX/account ограничения: refresh/session rotation, password reset/email confirmation и URL deep links. Он не описывает новую игровую функциональность.
+Этот документ закрывает пункт MVP-review про известные UX/account ограничения: URL deep links, session UX, password reset/email confirmation, Google OAuth, refresh tokens/rotation и real-time collaboration.
 
 ## Current state
 
@@ -9,6 +9,9 @@
 - Recovery: self-service password reset and email confirmation are not implemented.
 - Routing: top-level navigation and selected entity state live in React state. There is no URL route for a character, campaign, NPC, encounter or content pack.
 - Sharing: character sheets are not shareable by URL. Campaign access is through join code plus owned character membership.
+- OAuth: Google sign-in is not implemented.
+- Refresh tokens: session rotation and token revocation are not implemented.
+- Collaboration: all views are request/refresh based; there are no real-time updates between users.
 
 ## MVP decision
 
@@ -20,6 +23,8 @@ Private MVP can launch with the current auth model if the release notes state th
 - links to a specific character/campaign/NPC are not supported.
 
 Public MVP should not launch with only manual recovery. It needs at least email-based password reset or a documented support workflow with identity verification.
+
+Google OAuth, refresh-token rotation and real-time collaboration are not required for private MVP. For public MVP, refresh-token rotation is recommended before broad usage; Google OAuth and real-time collaboration can remain post-MVP unless they become explicit product requirements.
 
 ## Recommended implementation order
 
@@ -70,6 +75,84 @@ Public MVP should not launch with only manual recovery. It needs at least email-
 
    Add only if public signup abuse or account ownership is a real release risk. For private MVP, invite/manual account policy may be enough.
 
+5. Google OAuth fifth.
+
+   Use Google OAuth as an additional login method, not a replacement for email/password, unless product decides to close direct registration.
+
+   Minimum public-ready flow:
+
+   - create Google OAuth client for the production hostname;
+   - add backend endpoint to exchange/validate Google ID token;
+   - link Google identity to existing `User` by verified email when safe;
+   - create a new user when no account exists;
+   - preserve existing JWT response shape so the frontend auth context stays simple;
+   - add UI button on login/register screens.
+
+   Data model impact:
+
+   - add external auth identity storage, e.g. provider `google`, provider user id, user id, verified email;
+   - enforce uniqueness on provider + provider user id;
+   - decide whether the same email can have both password and Google auth.
+
+   Assumption: Google Cloud project, OAuth consent screen and allowed domains are not configured yet.
+
+6. Refresh tokens and rotation sixth.
+
+   Add this before broad public usage or long-lived sessions. It is not necessary for a small private MVP if short JWT lifetime plus re-login is acceptable.
+
+   Recommended model:
+
+   - short-lived access JWT, e.g. 10-30 minutes;
+   - long-lived refresh token stored server-side as a hash;
+   - one active token family per device/session;
+   - rotate refresh token on every refresh;
+   - revoke token family on reuse detection;
+   - logout revokes the current refresh token family.
+
+   API surface:
+
+   ```text
+   POST /api/auth/refresh
+   POST /api/auth/logout
+   ```
+
+   Storage/security requirements:
+
+   - store refresh token hash, user id, expiry, created/revoked timestamps, replacement token id and user agent/IP metadata where useful;
+   - prefer HttpOnly Secure SameSite cookie for refresh token transport in browser deployment;
+   - keep access token in memory where practical, or continue current storage only as a deliberate risk decision;
+   - add tests for rotation, reuse detection, expiry and logout revocation.
+
+7. Real-time collaboration seventh.
+
+   Real-time collaboration is not needed for MVP character ownership flows. It becomes relevant when multiple users actively view/edit the same campaign, encounter or Game Table.
+
+   Recommended first scope:
+
+   - Game Table updates for campaign members;
+   - encounter sent-to-table notifications;
+   - campaign membership/notes refresh notifications.
+
+   Suggested backend approach:
+
+   - ASP.NET Core SignalR hub scoped by campaign id;
+   - authorize hub connections with the same JWT auth;
+   - join groups only after campaign access check;
+   - broadcast small invalidation/update events after existing command handlers succeed;
+   - keep REST as source of truth; clients refetch affected resources on events.
+
+   Suggested frontend approach:
+
+   - connect only while a campaign detail/Game Table view is open;
+   - on event, refetch the current session/campaign/encounter instead of applying complex local patches;
+   - show connection state only when it affects expected behavior.
+
+   Not first scope:
+
+   - character sheet co-editing;
+   - operational transform/CRDT document editing;
+   - offline-first conflict resolution.
+
 ## Acceptance checklist
 
 - Refreshing `/characters/:id` reopens the same character after login.
@@ -78,11 +161,11 @@ Public MVP should not launch with only manual recovery. It needs at least email-
 - `401` clears the token, shows a session-expired message and keeps the intended route.
 - Private MVP docs describe manual recovery limits.
 - Public MVP either has password reset or a documented support recovery process.
+- Google OAuth decision is explicit: deferred, optional, or required for public signup.
+- If refresh tokens are added, reused rotated tokens revoke the token family and force login.
+- If real-time collaboration is added, unauthorized users cannot subscribe to campaign events.
 
 ## Not in scope
 
-- Refresh tokens and rotation.
-- OAuth/social login.
-- Real-time collaboration.
 - Public share links for unauthenticated viewers.
 - Role-based administration UI.
