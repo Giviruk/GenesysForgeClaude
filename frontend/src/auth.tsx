@@ -15,6 +15,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => setUnauthorizedHandler(null)
   }, [])
 
+  // На загрузке без access-токена пробуем восстановить сессию по refresh-cookie.
+  useEffect(() => {
+    if (tokenStorage.get()) return
+    let cancelled = false
+    api.refresh()
+      .then(auth => { if (!cancelled) { tokenStorage.set(auth.token); setToken(auth.token) } })
+      .catch(() => { /* нет валидного refresh-токена — остаёмся на экране входа */ })
+    return () => { cancelled = true }
+  }, [])
+
   const login = useCallback(async (email: string, password: string) => {
     const auth = await api.login(email, password)
     tokenStorage.set(auth.token)
@@ -30,6 +40,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const logout = useCallback(() => {
+    void api.logout() // отзыв семейства refresh-токенов на сервере + очистка cookie
     tokenStorage.clear()
     setSessionExpired(false) // обычный выход — не показываем «сессия истекла»
     setToken(null)

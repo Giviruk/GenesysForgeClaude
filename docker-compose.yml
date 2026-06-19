@@ -25,6 +25,8 @@ services:
       ASPNETCORE_ENVIRONMENT: ${API_ENVIRONMENT:-Production}
       ConnectionStrings__Default: "Host=postgres;Port=5432;Database=genesysforge;Username=genesys;Password=${POSTGRES_PASSWORD:-genesys_dev}"
       Jwt__Key: ${JWT_KEY:-genesysforge-dev-signing-key-change-in-production!}
+      # Время жизни access-токена в минутах (короткое — есть refresh-токены). По умолчанию 30.
+      Jwt__AccessLifetimeMinutes: ${JWT_ACCESS_LIFETIME_MINUTES:-30}
     depends_on:
       postgres:
         condition: service_healthy
