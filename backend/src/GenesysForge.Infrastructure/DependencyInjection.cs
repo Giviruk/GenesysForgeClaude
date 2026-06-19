@@ -29,6 +29,8 @@ public static class DependencyInjection
 
         services.AddSingleton<ITokenService, TokenService>();
         services.AddSingleton<IPasswordHasherService, PasswordHasherService>();
+        // Заглушка отправки писем (ссылка сброса пароля — в лог). Заменяется реальным провайдером позже.
+        services.AddSingleton<IEmailSender, LoggingEmailSender>();
 
         return services;
     }

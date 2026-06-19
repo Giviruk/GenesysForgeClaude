@@ -36,6 +36,25 @@ Known errors:
 
 - `401` for wrong credentials.
 
+### `POST /api/auth/password-reset/request`
+
+Public. Request: `PasswordResetRequestRequest` (`email`).
+
+Always returns `204` regardless of whether the account exists (no user enumeration).
+If the account exists, a single-use reset token (1 hour TTL) is stored hashed and a reset
+link is sent. The email provider is not selected yet, so the link is written to the API log
+(`LoggingEmailSender`); base address is `App:BaseUrl`.
+
+### `POST /api/auth/password-reset/confirm`
+
+Public. Request: `PasswordResetConfirmRequest` (`token`, `newPassword`).
+
+Sets the new password and invalidates the token (single-use). Returns `204`.
+
+Known errors:
+
+- `400` for an invalid/expired/used token or a password shorter than 6 characters.
+
 ## Reference
 
 ### `GET /api/reference/{system}`

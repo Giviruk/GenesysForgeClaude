@@ -7,6 +7,7 @@ namespace GenesysForge.Infrastructure.Persistence;
 public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(options), IAppDbContext
 {
     public DbSet<User> Users => Set<User>();
+    public DbSet<PasswordResetToken> PasswordResetTokens => Set<PasswordResetToken>();
     public DbSet<SkillDef> SkillDefs => Set<SkillDef>();
     public DbSet<TalentDef> TalentDefs => Set<TalentDef>();
     public DbSet<ItemDef> ItemDefs => Set<ItemDef>();
@@ -35,6 +36,14 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     protected override void OnModelCreating(ModelBuilder b)
     {
         b.Entity<User>().HasIndex(u => u.Email).IsUnique();
+
+        b.Entity<PasswordResetToken>(e =>
+        {
+            e.HasIndex(t => t.TokenHash);
+            e.HasIndex(t => t.UserId);
+            e.Property(t => t.TokenHash).HasMaxLength(64);
+            e.HasOne<User>().WithMany().HasForeignKey(t => t.UserId).OnDelete(DeleteBehavior.Cascade);
+        });
 
         b.Entity<Character>(e =>
         {
