@@ -9,9 +9,11 @@ interface Props {
   campaignId: string
   isGm: boolean
   members: CampaignMember[]
+  /** Счётчик realtime-инвалидаций: при изменении сцена перечитывается (другой участник внёс правку). */
+  refreshSignal?: number
 }
 
-export function GameTableTab({ campaignId, isGm, members }: Props) {
+export function GameTableTab({ campaignId, isGm, members, refreshSignal }: Props) {
   const [session, setSession] = useState<GameSession | null>(null)
   const [loaded, setLoaded] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -23,6 +25,8 @@ export function GameTableTab({ campaignId, isGm, members }: Props) {
     [campaignId])
 
   useEffect(() => { void reload() }, [reload])
+  // Перечитываем сцену по realtime-событию (правка другого участника).
+  useEffect(() => { if (refreshSignal) void reload() }, [refreshSignal, reload])
 
   const run = useCallback(async (action: () => Promise<unknown>) => {
     try {
