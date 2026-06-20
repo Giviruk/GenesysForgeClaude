@@ -2,6 +2,7 @@ import { useState, type FormEvent } from 'react'
 import { useAuth } from '../auth-context'
 import { api } from '../api/client'
 import { navigate, usePath } from '../router'
+import { peekReturnTo } from '../session'
 
 type Mode = 'login' | 'register' | 'reset-request' | 'reset-confirm'
 
@@ -14,6 +15,8 @@ export function AuthPage() {
   const [resetMode, setResetMode] = useState<'reset-request' | 'reset-confirm' | null>(
     resetToken ? 'reset-confirm' : null)
   const mode: Mode = resetMode ?? (path === '/register' ? 'register' : 'login')
+  // Куда вернёмся после повторного входа (если сессия истекла на конкретном экране).
+  const returnTo = sessionExpired ? peekReturnTo() : null
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [displayName, setDisplayName] = useState('')
@@ -69,9 +72,11 @@ export function AuthPage() {
       <div className="auth-card">
         <h1 className="logo">Genesys Forge</h1>
         <p className="muted">Листы персонажей для Genesys Core и Realms of Terrinoth</p>
-
         {sessionExpired && mode === 'login' && !info && (
-          <div className="notice warn">Сессия истекла. Пожалуйста, войдите снова.</div>
+          <div className="notice warn">
+            Сессия истекла — войдите снова.
+            {returnTo && ' После входа вернётесь на открытую страницу.'}
+          </div>
         )}
         {info && <div className="notice">{info}</div>}
 
