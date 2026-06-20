@@ -11,6 +11,20 @@ public static class GameTableEndpoints
     {
         var group = app.MapGroup("/api/campaigns/{campaignId:guid}/session").RequireAuthorization();
 
+        // После любой успешной мутации сцены уведомляем подписчиков кампании (realtime).
+        group.AddEndpointFilter(async (ctx, next) =>
+        {
+            var result = await next(ctx);
+            if (ctx.HttpContext.Request.Method != HttpMethods.Get &&
+                ctx.HttpContext.Request.RouteValues["campaignId"] is string cid &&
+                Guid.TryParse(cid, out var campaignId))
+            {
+                await ctx.HttpContext.RequestServices
+                    .GetRequiredService<ICampaignNotifier>().GameTableChangedAsync(campaignId);
+            }
+            return result;
+        });
+
         group.MapGet("/", async (Guid campaignId, ClaimsPrincipal user,
             IQueryHandler<GetSessionQuery, GameSessionDto?> handler, CancellationToken ct) =>
         {

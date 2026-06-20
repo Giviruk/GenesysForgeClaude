@@ -11,6 +11,20 @@ public static class CampaignEndpoints
     {
         var group = app.MapGroup("/api/campaigns").RequireAuthorization();
 
+        // Мутации состава/заметок конкретной кампании ({id}) → realtime-уведомление подписчикам.
+        group.AddEndpointFilter(async (ctx, next) =>
+        {
+            var result = await next(ctx);
+            if (ctx.HttpContext.Request.Method != HttpMethods.Get &&
+                ctx.HttpContext.Request.RouteValues["id"] is string cid &&
+                Guid.TryParse(cid, out var campaignId))
+            {
+                await ctx.HttpContext.RequestServices
+                    .GetRequiredService<ICampaignNotifier>().CampaignChangedAsync(campaignId);
+            }
+            return result;
+        });
+
         group.MapGet("/", async (ClaimsPrincipal user,
                 IQueryHandler<GetCampaignsQuery, List<CampaignListItemDto>> handler, CancellationToken ct) =>
             Results.Ok(await handler.Handle(new GetCampaignsQuery(user.UserId()), ct)));
@@ -27,8 +41,13 @@ public static class CampaignEndpoints
             Results.Ok(await handler.Handle(new GetCampaignQuery(user.UserId(), id), ct)));
 
         group.MapPost("/join", async (JoinCampaignRequest req, ClaimsPrincipal user,
-                ICommandHandler<JoinCampaignCommand, CampaignDetailDto> handler, CancellationToken ct) =>
-            Results.Ok(await handler.Handle(new JoinCampaignCommand(user.UserId(), req), ct)));
+            ICommandHandler<JoinCampaignCommand, CampaignDetailDto> handler, ICampaignNotifier notifier,
+            CancellationToken ct) =>
+        {
+            var campaign = await handler.Handle(new JoinCampaignCommand(user.UserId(), req), ct);
+            await notifier.CampaignChangedAsync(campaign.Id); // GM увидит нового участника
+            return Results.Ok(campaign);
+        });
 
         group.MapDelete("/{id:guid}/characters/{characterId:guid}", async (Guid id, Guid characterId,
             ClaimsPrincipal user, ICommandHandler<RemoveCampaignCharacterCommand, Unit> handler, CancellationToken ct) =>

@@ -1,8 +1,10 @@
 using System.Text.Json.Serialization;
 using GenesysForge.Application;
+using GenesysForge.Application.Abstractions;
 using GenesysForge.Application.Dtos;
 using GenesysForge.Application.Exceptions;
 using GenesysForge.Api.Endpoints;
+using GenesysForge.Api.Realtime;
 using GenesysForge.Domain;
 using GenesysForge.Infrastructure;
 using GenesysForge.Infrastructure.Auth;
@@ -13,6 +15,9 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
 
+builder.Services.AddSignalR();
+builder.Services.AddSingleton<ICampaignNotifier, SignalRCampaignNotifier>();
+
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
@@ -22,6 +27,20 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidAudience = TokenService.Issuer,
             IssuerSigningKey = TokenService.GetSigningKey(builder.Configuration),
             ValidateIssuerSigningKey = true,
+        };
+        // WebSocket'ы не передают заголовок Authorization — для хабов берём токен из query (?access_token=).
+        options.Events = new JwtBearerEvents
+        {
+            OnMessageReceived = context =>
+            {
+                var accessToken = context.Request.Query["access_token"];
+                if (!string.IsNullOrEmpty(accessToken) &&
+                    context.HttpContext.Request.Path.StartsWithSegments("/hubs"))
+                {
+                    context.Token = accessToken;
+                }
+                return Task.CompletedTask;
+            },
         };
     });
 builder.Services.AddAuthorization();
@@ -84,6 +103,7 @@ app.MapNpcs();
 app.MapGameTable();
 app.MapEncounters();
 app.MapContentPacks();
+app.MapHub<CampaignHub>("/hubs/campaign");
 app.MapGet("/api/health", () => Results.Ok(new { status = "ok" }));
 
 app.Run();

@@ -150,6 +150,7 @@ h1.logo { margin: 0 0 0.3rem; }
 .badge.creation { border-color: var(--yellow); color: var(--yellow); align-self: flex-start; }
 .badge.tier { border-color: var(--accent); color: var(--accent); }
 .badge.custom { border-color: var(--green); color: #a7e3b3; }
+.badge.warn { border-color: var(--yellow); color: var(--yellow); }
 
 /* ---------- Stats ---------- */
 /* Сетка вместо flex-wrap: одиночный бокс в последнем ряду не растягивается на всю ширину */

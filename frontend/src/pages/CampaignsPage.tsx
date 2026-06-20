@@ -5,6 +5,7 @@ import { SYSTEM_LABELS } from '../utils/labels'
 import { GameTableTab } from '../components/GameTableTab'
 import { EncountersTab } from '../components/EncountersTab'
 import { HandbookTab } from '../components/HandbookTab'
+import { useCampaignHub, type CampaignHubStatus } from '../useCampaignHub'
 
 interface Props {
   openId: string | null
@@ -115,12 +116,22 @@ function CampaignDetailView({ campaignId, onBack }: { campaignId: string; onBack
   const [c, setC] = useState<CampaignDetail | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [tab, setTab] = useState<'overview' | 'handbook' | 'encounters' | 'table'>('overview')
+  // Счётчик realtime-инвалидаций: меняется на событиях хаба, вкладки перечитывают данные.
+  const [liveSignal, setLiveSignal] = useState(0)
+  const [hubStatus, setHubStatus] = useState<CampaignHubStatus>('connecting')
 
   const reload = useCallback(
     () => api.campaign(campaignId).then(setC).catch((e: unknown) =>
       setError(e instanceof Error ? e.message : 'Ошибка загрузки')),
     [campaignId])
   useEffect(() => { void reload() }, [reload])
+
+  // Подписка на события кампании на время открытой карточки.
+  useCampaignHub(campaignId, {
+    onGameTableChanged: () => setLiveSignal(v => v + 1),
+    onCampaignChanged: () => { setLiveSignal(v => v + 1); void reload() },
+    onStatus: setHubStatus,
+  })
 
   async function run(action: () => Promise<unknown>) {
     try { await action(); await reload() }
@@ -138,6 +149,12 @@ function CampaignDetailView({ campaignId, onBack }: { campaignId: string; onBack
           <button onClick={onBack}>← Кампании</button>
           <h2 className="inline-title">{c.name}</h2>
           <span className={c.isGm ? 'badge tier' : 'badge'}>{c.isGm ? 'Мастер' : 'Игрок'}</span>
+          {/* Состояние связи показываем, только когда оно влияет на ожидания (нет live-обновлений). */}
+          {hubStatus !== 'connected' && (
+            <span className="badge warn live-badge" title="Обновления в реальном времени недоступны — обновите вручную">
+              {hubStatus === 'connecting' ? 'подключение…' : 'офлайн'}
+            </span>
+          )}
         </div>
       </div>
       {error && <div className="error floating">{error}</div>}
@@ -150,7 +167,7 @@ function CampaignDetailView({ campaignId, onBack }: { campaignId: string; onBack
       </div>
 
       {tab === 'table' ? (
-        <GameTableTab campaignId={c.id} isGm={c.isGm} members={c.members} />
+        <GameTableTab campaignId={c.id} isGm={c.isGm} members={c.members} refreshSignal={liveSignal} />
       ) : tab === 'handbook' ? (
         <HandbookTab campaignId={c.id} isGm={c.isGm} />
       ) : tab === 'encounters' ? (

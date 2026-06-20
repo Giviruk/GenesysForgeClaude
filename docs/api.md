@@ -112,6 +112,20 @@ Public (auth via the refresh cookie). Rotates the refresh token and returns a fr
 Public (auth via the refresh cookie). Revokes the current refresh-token family and clears the
 cookie. Returns `204`.
 
+## Realtime (SignalR)
+
+Hub at `/hubs/campaign`. Authenticated with the same JWT (passed as `access_token` query for the
+WebSocket). Clients call `SubscribeCampaign(campaignId)` / `UnsubscribeCampaign(campaignId)`; the
+subscribe is rejected with a `HubException` unless the user is the GM or a member of the campaign,
+so outsiders cannot receive a campaign's events.
+
+Server-sent events (thin invalidation signals — clients refetch the affected REST resource):
+
+- `GameTableChanged(campaignId)` — after any Game Table mutation or an encounter sent to the table.
+- `CampaignChanged(campaignId)` — after membership/notes changes.
+
+REST stays the source of truth; events only tell clients what to refetch.
+
 ## Reference
 
 ### `GET /api/reference/{system}`

@@ -69,7 +69,12 @@ public static class EncounterEndpoints
 
         // Отправка в Game Table
         group.MapPost("/{id:guid}/send-to-table", async (Guid id, SendToTableRequest req, ClaimsPrincipal user,
-                ICommandHandler<SendToGameTableCommand, GameSessionDto> handler, CancellationToken ct) =>
-            Results.Ok(await handler.Handle(new SendToGameTableCommand(user.UserId(), id, req.Mode), ct)));
+            ICommandHandler<SendToGameTableCommand, GameSessionDto> handler, ICampaignNotifier notifier,
+            CancellationToken ct) =>
+        {
+            var session = await handler.Handle(new SendToGameTableCommand(user.UserId(), id, req.Mode), ct);
+            await notifier.GameTableChangedAsync(session.CampaignId); // оповестить открытый Game Table
+            return Results.Ok(session);
+        });
     }
 }
