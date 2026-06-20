@@ -1,13 +1,14 @@
-import { useState, type FormEvent } from 'react'
+import { useCallback, useEffect, useState, type FormEvent } from 'react'
 import { useAuth } from '../auth-context'
 import { api } from '../api/client'
+import { GoogleSignInButton } from '../components/GoogleSignInButton'
 import { navigate, usePath } from '../router'
 import { peekReturnTo } from '../session'
 
 type Mode = 'login' | 'register' | 'reset-request' | 'reset-confirm'
 
 export function AuthPage() {
-  const { login, register, sessionExpired } = useAuth()
+  const { login, register, loginWithGoogle, sessionExpired } = useAuth()
   const path = usePath()
   // Токен сброса приходит в письме как ?token=… — читаем один раз при открытии.
   const [resetToken] = useState(() => new URLSearchParams(window.location.search).get('token'))
@@ -23,6 +24,14 @@ export function AuthPage() {
   const [error, setError] = useState<string | null>(null)
   const [info, setInfo] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
+  // client id Google, если вход через Google настроен на сервере.
+  const [googleClientId, setGoogleClientId] = useState<string | null>(null)
+
+  useEffect(() => {
+    api.authProviders()
+      .then(p => setGoogleClientId(p.googleClientId || null))
+      .catch(() => { /* провайдеры не критичны — просто не показываем кнопку */ })
+  }, [])
 
   // Возврат к входу/регистрации сбрасывает оверлей сброса и меняет URL.
   function goAuth(to: '/login' | '/register') {
@@ -73,6 +82,15 @@ export function AuthPage() {
       setError(err instanceof Error ? err.message : 'Не удалось отправить письмо.')
     }
   }
+
+  const onGoogleCredential = useCallback(async (idToken: string) => {
+    setError(null)
+    try {
+      await loginWithGoogle(idToken)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Не удалось войти через Google')
+    }
+  }, [loginWithGoogle])
 
   const submitLabel =
     mode === 'login' ? 'Войти'
@@ -158,6 +176,14 @@ export function AuthPage() {
             </button>
           )}
         </div>
+
+        {googleClientId && (
+          <div className="auth-divider-block">
+            <div className="auth-divider"><span>или</span></div>
+            <GoogleSignInButton clientId={googleClientId}
+              onCredential={onGoogleCredential} onError={setError} />
+          </div>
+        )}
       </div>
     </div>
   )

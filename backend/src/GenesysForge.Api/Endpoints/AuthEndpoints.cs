@@ -1,6 +1,7 @@
 using GenesysForge.Application.Abstractions;
 using GenesysForge.Application.Dtos;
 using GenesysForge.Application.Features.Auth;
+using Microsoft.Extensions.Configuration;
 
 namespace GenesysForge.Api.Endpoints;
 
@@ -48,5 +49,14 @@ public static class AuthEndpoints
             await handler.Handle(new ResendEmailConfirmationCommand(req), ct);
             return Results.NoContent();
         });
+
+        // Вход через Google: фронтенд присылает ID-токен от Google Identity Services.
+        group.MapPost("/google", async (GoogleSignInRequest req,
+                ICommandHandler<GoogleSignInCommand, AuthResponse> handler, CancellationToken ct) =>
+            Results.Ok(await handler.Handle(new GoogleSignInCommand(req), ct)));
+
+        // Какие внешние провайдеры входа доступны (для отрисовки кнопок). Публично.
+        group.MapGet("/providers", (IConfiguration config) =>
+            Results.Ok(new AuthProvidersResponse(config["Auth:Google:ClientId"])));
     }
 }

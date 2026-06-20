@@ -34,6 +34,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     clearReturnTo() // новая регистрация начинает с чистого листа
   }, [])
 
+  const loginWithGoogle = useCallback(async (idToken: string) => {
+    const auth = await api.googleSignIn(idToken)
+    tokenStorage.set(auth.token)
+    setSessionExpired(false)
+    setToken(auth.token)
+  }, [])
+
   const logout = useCallback(() => {
     tokenStorage.clear()
     clearReturnTo()
@@ -42,7 +49,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const value = useMemo(
-    () => ({ token, sessionExpired, login, register, logout }),
-    [token, sessionExpired, login, register, logout])
+    () => ({ token, sessionExpired, login, register, loginWithGoogle, logout }),
+    [token, sessionExpired, login, register, loginWithGoogle, logout])
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }

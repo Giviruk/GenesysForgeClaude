@@ -26,6 +26,7 @@ public static class DependencyInjection
         services.AddScoped<ICommandHandler<ConfirmPasswordResetCommand, Unit>, ConfirmPasswordResetHandler>();
         services.AddScoped<ICommandHandler<ConfirmEmailCommand, Unit>, ConfirmEmailHandler>();
         services.AddScoped<ICommandHandler<ResendEmailConfirmationCommand, Unit>, ResendEmailConfirmationHandler>();
+        services.AddScoped<ICommandHandler<GoogleSignInCommand, AuthResponse>, GoogleSignInHandler>();
 
         // Reference
         services.AddScoped<IQueryHandler<GetReferenceQuery, ReferenceResponse>, GetReferenceHandler>();

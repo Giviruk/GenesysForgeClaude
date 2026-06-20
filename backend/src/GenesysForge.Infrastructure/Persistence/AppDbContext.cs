@@ -9,6 +9,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<User> Users => Set<User>();
     public DbSet<PasswordResetToken> PasswordResetTokens => Set<PasswordResetToken>();
     public DbSet<EmailConfirmationToken> EmailConfirmationTokens => Set<EmailConfirmationToken>();
+    public DbSet<ExternalAuthIdentity> ExternalAuthIdentities => Set<ExternalAuthIdentity>();
     public DbSet<SkillDef> SkillDefs => Set<SkillDef>();
     public DbSet<TalentDef> TalentDefs => Set<TalentDef>();
     public DbSet<ItemDef> ItemDefs => Set<ItemDef>();
@@ -57,6 +58,16 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             e.HasIndex(t => t.UserId);
             e.Property(t => t.TokenHash).HasMaxLength(64);
             e.HasOne<User>().WithMany().HasForeignKey(t => t.UserId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        b.Entity<ExternalAuthIdentity>(e =>
+        {
+            e.HasIndex(i => new { i.Provider, i.ProviderUserId }).IsUnique();
+            e.HasIndex(i => i.UserId);
+            e.Property(i => i.Provider).HasMaxLength(40);
+            e.Property(i => i.ProviderUserId).HasMaxLength(255);
+            e.Property(i => i.Email).HasMaxLength(255);
+            e.HasOne<User>().WithMany().HasForeignKey(i => i.UserId).OnDelete(DeleteBehavior.Cascade);
         });
 
         b.Entity<Character>(e =>

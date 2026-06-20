@@ -1,5 +1,5 @@
 import type {
-  AuthResponse, CampaignDetail, CampaignListItem, CampaignNote, CharacterListItem, CharacterNote,
+  AuthResponse, AuthProviders, CampaignDetail, CampaignListItem, CampaignNote, CharacterListItem, CharacterNote,
   AddParticipantRequest, CharacterSheet, GameSession, GameSystem, HeroicAbility, InitiativeSlotType,
   ItemDef, ItemState, NpcDetail, NpcFilter, NpcInput, NpcListItem, QuickDraftRequest, Reference,
   SkillDef, Spell, TalentDef, UpdateParticipantRequest,
@@ -73,6 +73,9 @@ export const api = {
     request<void>('POST', '/api/auth/email/confirm', { token }),
   resendEmailConfirmation: (email: string) =>
     request<void>('POST', '/api/auth/email/resend', { email }),
+  authProviders: () => request<AuthProviders>('GET', '/api/auth/providers'),
+  googleSignIn: (idToken: string) =>
+    request<AuthResponse>('POST', '/api/auth/google', { idToken }),
 
   reference: (system: GameSystem) =>
     request<Reference>('GET', `/api/reference/${system === 'genesysCore' ? 'GenesysCore' : 'RealmsOfTerrinoth'}`),

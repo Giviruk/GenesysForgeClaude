@@ -101,6 +101,12 @@ label.checkbox input { width: auto; }
 .logo { font-family: Georgia, serif; color: var(--accent); letter-spacing: 0.05em; cursor: pointer; }
 h1.logo { margin: 0 0 0.3rem; }
 
+/* Внешние провайдеры входа (Google) */
+.auth-divider-block { margin-top: 1rem; }
+.auth-divider { display: flex; align-items: center; gap: 0.6rem; color: var(--muted); margin: 0.6rem 0; }
+.auth-divider::before, .auth-divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+.google-btn { display: flex; justify-content: center; }
+
 /* ---------- Tabs ---------- */
 .tabs { display: flex; gap: 0.4rem; margin: 1rem 0; flex-wrap: wrap; align-items: stretch; }
 .tab { border-radius: 6px 6px 0 0; }

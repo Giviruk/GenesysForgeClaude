@@ -31,6 +31,8 @@ services:
       App__BaseUrl: ${APP_BASE_URL:-http://localhost:8080}
       # Требовать подтверждённый e-mail для входа (для публичного запуска). По умолчанию выключено.
       Auth__RequireEmailConfirmation: ${REQUIRE_EMAIL_CONFIRMATION:-false}
+      # Google OAuth (опционально). Пусто — вход через Google выключен (кнопка скрыта).
+      Auth__Google__ClientId: ${GOOGLE_CLIENT_ID:-}
     depends_on:
       postgres:
         condition: service_healthy
