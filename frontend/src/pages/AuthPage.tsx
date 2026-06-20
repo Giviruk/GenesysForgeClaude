@@ -1,9 +1,11 @@
 import { useState, type FormEvent } from 'react'
 import { useAuth } from '../auth-context'
+import { navigate, usePath } from '../router'
 
 export function AuthPage() {
   const { login, register, sessionExpired } = useAuth()
-  const [mode, setMode] = useState<'login' | 'register'>('login')
+  const path = usePath()
+  const mode: 'login' | 'register' = path === '/register' ? 'register' : 'login'
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [displayName, setDisplayName] = useState('')
@@ -33,8 +35,8 @@ export function AuthPage() {
           <div className="notice warn">Сессия истекла. Пожалуйста, войдите снова.</div>
         )}
         <div className="tabs">
-          <button className={mode === 'login' ? 'tab active' : 'tab'} onClick={() => setMode('login')}>Вход</button>
-          <button className={mode === 'register' ? 'tab active' : 'tab'} onClick={() => setMode('register')}>Регистрация</button>
+          <button className={mode === 'login' ? 'tab active' : 'tab'} onClick={() => { setError(null); navigate('/login') }}>Вход</button>
+          <button className={mode === 'register' ? 'tab active' : 'tab'} onClick={() => { setError(null); navigate('/register') }}>Регистрация</button>
         </div>
         <form onSubmit={submit}>
           {mode === 'register' && (
