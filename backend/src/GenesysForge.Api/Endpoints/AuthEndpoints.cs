@@ -17,5 +17,21 @@ public static class AuthEndpoints
         group.MapPost("/login", async (LoginRequest req,
                 ICommandHandler<LoginCommand, AuthResponse> handler, CancellationToken ct) =>
             Results.Ok(await handler.Handle(new LoginCommand(req), ct)));
+
+        // Сброс пароля. Запрос всегда отвечает 204 (не раскрывает наличие аккаунта);
+        // подтверждение по одноразовому токену из письма.
+        group.MapPost("/password-reset/request", async (PasswordResetRequestRequest req,
+            ICommandHandler<RequestPasswordResetCommand, Unit> handler, CancellationToken ct) =>
+        {
+            await handler.Handle(new RequestPasswordResetCommand(req), ct);
+            return Results.NoContent();
+        });
+
+        group.MapPost("/password-reset/confirm", async (PasswordResetConfirmRequest req,
+            ICommandHandler<ConfirmPasswordResetCommand, Unit> handler, CancellationToken ct) =>
+        {
+            await handler.Handle(new ConfirmPasswordResetCommand(req), ct);
+            return Results.NoContent();
+        });
     }
 }
