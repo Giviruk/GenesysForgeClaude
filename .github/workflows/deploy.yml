@@ -95,12 +95,14 @@ jobs:
           # PUBLIC_HOSTNAME пока не деплоим (только private-версия); вернуть вместе с PublicSafe-стеком.
           DEPLOY_PATH: ${{ vars.DEPLOY_PATH }}
           IMAGE_TAG: ${{ github.sha }}
+          # Google OAuth client id — публичный (уходит в браузер), потому Variable, а не Secret. Пусто — кнопка скрыта.
+          GOOGLE_CLIENT_ID: ${{ vars.GOOGLE_CLIENT_ID }}
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: ${{ secrets.SSH_PORT }}
-          envs: GHCR_OWNER,GHCR_USERNAME,GHCR_TOKEN,POSTGRES_PASSWORD,JWT_KEY,LETSENCRYPT_EMAIL,PRIVATE_HOSTNAME,DEPLOY_PATH,IMAGE_TAG
+          envs: GHCR_OWNER,GHCR_USERNAME,GHCR_TOKEN,POSTGRES_PASSWORD,JWT_KEY,LETSENCRYPT_EMAIL,PRIVATE_HOSTNAME,DEPLOY_PATH,IMAGE_TAG,GOOGLE_CLIENT_ID
           script: |
             set -euo pipefail
             cd "${DEPLOY_PATH}"
@@ -122,6 +124,7 @@ jobs:
             JWT_KEY=${JWT_KEY}
             LETSENCRYPT_EMAIL=${LETSENCRYPT_EMAIL}
             PRIVATE_HOSTNAME=${PRIVATE_HOSTNAME}
+            GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
             EOF
 
             echo "${GHCR_TOKEN}" | docker login ghcr.io -u "${GHCR_USERNAME}" --password-stdin

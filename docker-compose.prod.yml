@@ -32,6 +32,8 @@ services:
       # ContentMode по умолчанию PrivateFull. Пока деплоим только private — CORS только private origin.
       # Публичный origin добавим сюда вместе с PublicSafe-стеком.
       Cors__Origins: "https://${PRIVATE_HOSTNAME}"
+      # Google OAuth (опционально). Пусто — вход через Google выключен (кнопка скрыта).
+      Auth__Google__ClientId: ${GOOGLE_CLIENT_ID:-}
     depends_on:
       postgres:
         condition: service_healthy
