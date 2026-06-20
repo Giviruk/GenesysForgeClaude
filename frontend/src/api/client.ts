@@ -28,24 +28,53 @@ export class ApiError extends Error {
 let onUnauthorized: (() => void) | null = null
 export const setUnauthorizedHandler = (handler: (() => void) | null) => { onUnauthorized = handler }
 
-async function request<T>(method: string, url: string, body?: unknown): Promise<T> {
+const isAuthPath = (url: string) => url.startsWith('/api/auth/')
+
+// Обновление access-токена по refresh-cookie (single-flight: параллельные 401 ждут один запрос).
+let refreshing: Promise<boolean> | null = null
+function tryRefresh(): Promise<boolean> {
+  refreshing ??= (async () => {
+    try {
+      const r = await fetch('/api/auth/refresh', { method: 'POST', credentials: 'include' })
+      if (!r.ok) return false
+      const data = await r.json() as AuthResponse
+      tokenStorage.set(data.token)
+      return true
+    } catch {
+      return false
+    }
+  })().finally(() => { refreshing = null })
+  return refreshing
+}
+
+async function rawFetch(method: string, url: string, body: unknown): Promise<Response> {
   const headers: Record<string, string> = {}
   if (body !== undefined) headers['Content-Type'] = 'application/json'
   const token = tokenStorage.get()
   if (token) headers.Authorization = `Bearer ${token}`
-
-  const response = await fetch(url, {
+  return fetch(url, {
     method,
     headers,
     body: body !== undefined ? JSON.stringify(body) : undefined,
+    credentials: 'include', // отправлять/принимать refresh-cookie
   })
+}
+
+async function request<T>(method: string, url: string, body?: unknown, retried = false): Promise<T> {
+  const hadToken = tokenStorage.get() !== null
+  const response = await rawFetch(method, url, body)
 
   if (!response.ok) {
-    // 401 при наличии токена — сессия истекла: чистим токен и уводим на логин.
-    // (на /auth/login и /auth/register токена нет, поэтому неверный пароль сюда не попадает)
-    if (response.status === 401 && token) {
-      tokenStorage.clear()
-      onUnauthorized?.()
+    // 401 на защищённом запросе: пробуем тихо обновить access-токен по refresh-cookie и повторить.
+    // (на /api/auth/* не обновляем — там неверный логин/refresh сам по себе)
+    if (response.status === 401 && !isAuthPath(url)) {
+      if (!retried && await tryRefresh()) {
+        return request<T>(method, url, body, true)
+      }
+      if (hadToken) {
+        tokenStorage.clear()
+        onUnauthorized?.()
+      }
     }
     let message = `Ошибка ${response.status}`
     try {
@@ -76,6 +105,10 @@ export const api = {
   authProviders: () => request<AuthProviders>('GET', '/api/auth/providers'),
   googleSignIn: (idToken: string) =>
     request<AuthResponse>('POST', '/api/auth/google', { idToken }),
+  // Восстановление сессии по refresh-cookie (бросает при отсутствии валидного refresh-токена).
+  refresh: () => request<AuthResponse>('POST', '/api/auth/refresh'),
+  // Выход: сервер отзывает семейство refresh-токенов и чистит cookie.
+  logout: () => request<void>('POST', '/api/auth/logout'),
 
   reference: (system: GameSystem) =>
     request<Reference>('GET', `/api/reference/${system === 'genesysCore' ? 'GenesysCore' : 'RealmsOfTerrinoth'}`),

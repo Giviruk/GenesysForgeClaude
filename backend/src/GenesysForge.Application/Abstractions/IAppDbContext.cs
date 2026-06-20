@@ -10,6 +10,7 @@ public interface IAppDbContext
     DbSet<PasswordResetToken> PasswordResetTokens { get; }
     DbSet<EmailConfirmationToken> EmailConfirmationTokens { get; }
     DbSet<ExternalAuthIdentity> ExternalAuthIdentities { get; }
+    DbSet<RefreshToken> RefreshTokens { get; }
     DbSet<SkillDef> SkillDefs { get; }
     DbSet<TalentDef> TalentDefs { get; }
     DbSet<ItemDef> ItemDefs { get; }

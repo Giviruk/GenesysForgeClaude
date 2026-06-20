@@ -25,8 +25,8 @@ services:
       ASPNETCORE_ENVIRONMENT: ${API_ENVIRONMENT:-Production}
       ConnectionStrings__Default: "Host=postgres;Port=5432;Database=genesysforge;Username=genesys;Password=${POSTGRES_PASSWORD:-genesys_dev}"
       Jwt__Key: ${JWT_KEY:-genesysforge-dev-signing-key-change-in-production!}
-      # Время жизни access-токена в минутах (по умолчанию 10080 = 7 дней).
-      Jwt__LifetimeMinutes: ${JWT_LIFETIME_MINUTES:-10080}
+      # Время жизни access-токена в минутах (короткое — сессия продлевается refresh-токеном). По умолчанию 30.
+      Jwt__AccessLifetimeMinutes: ${JWT_ACCESS_LIFETIME_MINUTES:-30}
       # Базовый адрес сайта для ссылок в письмах (сброс пароля, подтверждение e-mail).
       App__BaseUrl: ${APP_BASE_URL:-http://localhost:8080}
       # Требовать подтверждённый e-mail для входа (для публичного запуска). По умолчанию выключено.

@@ -10,6 +10,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<PasswordResetToken> PasswordResetTokens => Set<PasswordResetToken>();
     public DbSet<EmailConfirmationToken> EmailConfirmationTokens => Set<EmailConfirmationToken>();
     public DbSet<ExternalAuthIdentity> ExternalAuthIdentities => Set<ExternalAuthIdentity>();
+    public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
     public DbSet<SkillDef> SkillDefs => Set<SkillDef>();
     public DbSet<TalentDef> TalentDefs => Set<TalentDef>();
     public DbSet<ItemDef> ItemDefs => Set<ItemDef>();
@@ -68,6 +69,18 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             e.Property(i => i.ProviderUserId).HasMaxLength(255);
             e.Property(i => i.Email).HasMaxLength(255);
             e.HasOne<User>().WithMany().HasForeignKey(i => i.UserId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        b.Entity<RefreshToken>(e =>
+        {
+            e.HasIndex(t => t.TokenHash).IsUnique();
+            e.HasIndex(t => t.FamilyId);
+            e.HasIndex(t => t.UserId);
+            e.Property(t => t.TokenHash).HasMaxLength(64);
+            e.Property(t => t.UserAgent).HasMaxLength(400);
+            e.Property(t => t.CreatedByIp).HasMaxLength(64);
+            e.Ignore(t => t.IsActive);
+            e.HasOne<User>().WithMany().HasForeignKey(t => t.UserId).OnDelete(DeleteBehavior.Cascade);
         });
 
         b.Entity<Character>(e =>

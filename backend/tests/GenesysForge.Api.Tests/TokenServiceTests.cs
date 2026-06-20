@@ -31,18 +31,27 @@ public class TokenServiceTests
     }
 
     [Fact]
-    public void Default_lifetime_is_seven_days()
+    public void Default_lifetime_is_short()
     {
+        // С refresh-токенами access-токен короткий (30 минут по умолчанию).
         var jwt = new TokenService(Config()).CreateToken(SampleUser());
-        AssertLifetimeMinutes(TokenService.DefaultLifetimeMinutes, jwt);
-        Assert.Equal(60 * 24 * 7, TokenService.DefaultLifetimeMinutes);
+        AssertLifetimeMinutes(TokenService.DefaultAccessLifetimeMinutes, jwt);
+        Assert.Equal(30, TokenService.DefaultAccessLifetimeMinutes);
     }
 
     [Fact]
-    public void Configured_lifetime_is_honored()
+    public void Configured_access_lifetime_is_honored()
     {
-        var jwt = new TokenService(Config(("Jwt:LifetimeMinutes", "30"))).CreateToken(SampleUser());
-        AssertLifetimeMinutes(30, jwt);
+        var jwt = new TokenService(Config(("Jwt:AccessLifetimeMinutes", "45"))).CreateToken(SampleUser());
+        AssertLifetimeMinutes(45, jwt);
+    }
+
+    [Fact]
+    public void Legacy_lifetime_key_is_still_read()
+    {
+        // Старый ключ Jwt:LifetimeMinutes поддерживается для совместимости.
+        var jwt = new TokenService(Config(("Jwt:LifetimeMinutes", "120"))).CreateToken(SampleUser());
+        AssertLifetimeMinutes(120, jwt);
     }
 
     [Theory]
@@ -51,7 +60,7 @@ public class TokenServiceTests
     [InlineData("not-a-number")]
     public void Invalid_lifetime_falls_back_to_default(string value)
     {
-        var jwt = new TokenService(Config(("Jwt:LifetimeMinutes", value))).CreateToken(SampleUser());
-        AssertLifetimeMinutes(TokenService.DefaultLifetimeMinutes, jwt);
+        var jwt = new TokenService(Config(("Jwt:AccessLifetimeMinutes", value))).CreateToken(SampleUser());
+        AssertLifetimeMinutes(TokenService.DefaultAccessLifetimeMinutes, jwt);
     }
 }

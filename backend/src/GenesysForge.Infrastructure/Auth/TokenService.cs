@@ -13,21 +13,25 @@ public class TokenService(IConfiguration config) : ITokenService
     public const string Issuer = "GenesysForge";
     public const string DevFallbackKey = "genesysforge-dev-signing-key-change-in-production!";
 
-    /// <summary>Время жизни access-токена по умолчанию — 7 дней (для MVP без refresh-токенов).</summary>
-    public const int DefaultLifetimeMinutes = 60 * 24 * 7;
+    /// <summary>Короткое время жизни access-токена при наличии refresh-токенов — 30 минут.</summary>
+    public const int DefaultAccessLifetimeMinutes = 30;
 
     public static SymmetricSecurityKey GetSigningKey(IConfiguration config) =>
         new(Encoding.UTF8.GetBytes(config["Jwt:Key"] ?? DevFallbackKey));
 
     /// <summary>
-    /// Время жизни токена в минутах. Настраивается через <c>Jwt:LifetimeMinutes</c>
-    /// (env <c>Jwt__LifetimeMinutes</c>); некорректное/≤0 значение откатывается к 7 дням.
+    /// Время жизни access-токена в минутах. Основной ключ — <c>Jwt:AccessLifetimeMinutes</c>;
+    /// для совместимости читается также <c>Jwt:LifetimeMinutes</c>. По умолчанию 30 минут —
+    /// сессия продлевается refresh-токеном. Некорректное/≤0 значение откатывается к умолчанию.
     /// Задокументировано в docs/operator-notes.md.
     /// </summary>
-    public static int GetLifetimeMinutes(IConfiguration config) =>
-        int.TryParse(config["Jwt:LifetimeMinutes"], out var minutes) && minutes > 0
-            ? minutes
-            : DefaultLifetimeMinutes;
+    public static int GetAccessLifetimeMinutes(IConfiguration config) =>
+        TryMinutes(config["Jwt:AccessLifetimeMinutes"])
+        ?? TryMinutes(config["Jwt:LifetimeMinutes"])
+        ?? DefaultAccessLifetimeMinutes;
+
+    private static int? TryMinutes(string? value) =>
+        int.TryParse(value, out var minutes) && minutes > 0 ? minutes : null;
 
     public string CreateToken(User user)
     {
@@ -41,7 +45,7 @@ public class TokenService(IConfiguration config) : ITokenService
                 new Claim(JwtRegisteredClaimNames.Email, user.Email),
                 new Claim("name", user.DisplayName),
             ],
-            expires: DateTime.UtcNow.AddMinutes(GetLifetimeMinutes(config)),
+            expires: DateTime.UtcNow.AddMinutes(GetAccessLifetimeMinutes(config)),
             signingCredentials: creds);
         return new JwtSecurityTokenHandler().WriteToken(token);
     }

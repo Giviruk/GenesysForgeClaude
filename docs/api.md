@@ -34,7 +34,9 @@ Fields:
 - `email`
 - `password`
 
-Response: `AuthResponse`.
+Response: `AuthResponse` (a short-lived access JWT, default 30 min via `Jwt:AccessLifetimeMinutes`).
+On success a long-lived **refresh token** is also set as an `HttpOnly` `SameSite=Lax` cookie
+(`gf_refresh`, path `/api/auth`, `Secure` on HTTPS). `register` sets the same cookie.
 
 When `Auth:RequireEmailConfirmation` is `true`, unconfirmed users are rejected with `401` until
 they confirm. Default is `false` (private MVP does not block login).
@@ -95,6 +97,20 @@ Cloud OAuth client. Email/password remains the primary method.
 Known errors:
 
 - `400` when Google sign-in is not configured, the token is invalid, or the email is not verified.
+
+### `POST /api/auth/refresh`
+
+Public (auth via the refresh cookie). Rotates the refresh token and returns a fresh `AuthResponse`.
+
+- Each refresh issues a new refresh token in the same family and revokes the previous one.
+- Presenting an already-rotated (revoked) token is treated as compromise: the whole family is
+  revoked and the client must sign in again.
+- `401` when the cookie is missing, invalid, expired, or the family was revoked.
+
+### `POST /api/auth/logout`
+
+Public (auth via the refresh cookie). Revokes the current refresh-token family and clears the
+cookie. Returns `204`.
 
 ## Reference
 
