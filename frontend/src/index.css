@@ -420,7 +420,21 @@ td.nowrap, th.nowrap { white-space: nowrap; }
 
 /* Магазин */
 .inv-shop { position: sticky; top: 0.5rem; }
-.shop-search { width: 100%; margin-bottom: 0.5rem; }
+.shop-search { width: 100%; }
+.shop-search-row { display: flex; gap: 0.4rem; align-items: stretch; margin-bottom: 0.5rem; }
+.shop-tags-btn { white-space: nowrap; gap: 0.35rem; }
+.shop-tags-btn.active { border-color: var(--accent); color: var(--accent); }
+.filter-count {
+  display: inline-flex; align-items: center; justify-content: center; min-width: 1.15rem; height: 1.15rem;
+  padding: 0 0.3rem; border-radius: 999px; background: var(--accent-dark); color: #fff; font-size: 0.72rem;
+}
+.shop-selected-tags { display: flex; gap: 0.3rem; flex-wrap: wrap; align-items: center; margin-bottom: 0.5rem; }
+.shop-tag-picker {
+  border: 1px solid var(--border); border-radius: 8px; background: var(--panel-2);
+  padding: 0.55rem 0.65rem; margin-bottom: 0.6rem;
+}
+.shop-tag-picker-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.45rem; }
+.shop-tag-picker-actions { display: flex; gap: 0.6rem; }
 .shop-filters { display: flex; gap: 0.3rem; flex-wrap: wrap; margin-bottom: 0.6rem; }
 .shop-list { max-height: 70vh; overflow-y: auto; display: flex; flex-direction: column; gap: 0.4rem; padding-right: 0.3rem; }
 .shop-row { border: 1px solid var(--border); border-radius: 7px; padding: 0.45rem 0.55rem; background: var(--panel-2); }

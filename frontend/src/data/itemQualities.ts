@@ -251,3 +251,15 @@ export function parseProperties(properties: string | null | undefined): ParsedPr
       }
     })
 }
+
+/**
+ * Нормализованные теги предмета из строки свойств: каноничное имя свойства без рейтинга
+ * («Оборонительное 2» → «Оборонительное»). Используется как набор тегов для фильтра магазина,
+ * пока нет отдельного поля тегов. Дубликаты убираются.
+ */
+export function itemTags(properties: string | null | undefined): string[] {
+  const tags = parseProperties(properties)
+    .map(p => (p.quality?.nameRu ?? p.raw.replace(/\s*\d+\s*$/, '')).trim())
+    .filter(Boolean)
+  return [...new Set(tags)]
+}
