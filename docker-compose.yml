@@ -27,8 +27,10 @@ services:
       Jwt__Key: ${JWT_KEY:-genesysforge-dev-signing-key-change-in-production!}
       # Время жизни access-токена в минутах (по умолчанию 10080 = 7 дней).
       Jwt__LifetimeMinutes: ${JWT_LIFETIME_MINUTES:-10080}
-      # Базовый адрес сайта для ссылок в письмах (сброс пароля). По умолчанию — локальный web.
+      # Базовый адрес сайта для ссылок в письмах (сброс пароля, подтверждение e-mail).
       App__BaseUrl: ${APP_BASE_URL:-http://localhost:8080}
+      # Требовать подтверждённый e-mail для входа (для публичного запуска). По умолчанию выключено.
+      Auth__RequireEmailConfirmation: ${REQUIRE_EMAIL_CONFIRMATION:-false}
     depends_on:
       postgres:
         condition: service_healthy

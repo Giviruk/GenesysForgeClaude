@@ -33,5 +33,20 @@ public static class AuthEndpoints
             await handler.Handle(new ConfirmPasswordResetCommand(req), ct);
             return Results.NoContent();
         });
+
+        // Подтверждение e-mail по токену из письма + повторная отправка (всегда 204, без раскрытия аккаунта).
+        group.MapPost("/email/confirm", async (ConfirmEmailRequest req,
+            ICommandHandler<ConfirmEmailCommand, Unit> handler, CancellationToken ct) =>
+        {
+            await handler.Handle(new ConfirmEmailCommand(req), ct);
+            return Results.NoContent();
+        });
+
+        group.MapPost("/email/resend", async (ResendEmailConfirmationRequest req,
+            ICommandHandler<ResendEmailConfirmationCommand, Unit> handler, CancellationToken ct) =>
+        {
+            await handler.Handle(new ResendEmailConfirmationCommand(req), ct);
+            return Results.NoContent();
+        });
     }
 }

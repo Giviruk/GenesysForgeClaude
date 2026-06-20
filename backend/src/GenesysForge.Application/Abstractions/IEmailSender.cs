@@ -8,4 +8,7 @@ public interface IEmailSender
 {
     /// <summary>Отправить письмо со ссылкой сброса пароля. <paramref name="rawToken"/> — исходный токен (не хеш).</summary>
     Task SendPasswordResetAsync(string email, string rawToken, CancellationToken ct = default);
+
+    /// <summary>Письмо со ссылкой подтверждения e-mail. <paramref name="rawToken"/> — исходный токен (не хеш).</summary>
+    Task SendEmailConfirmationAsync(string email, string rawToken, CancellationToken ct = default);
 }

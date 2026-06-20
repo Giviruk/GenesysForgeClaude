@@ -22,6 +22,9 @@ public sealed class CapturingEmailSender : IEmailSender
         Sent++;
         return Task.CompletedTask;
     }
+
+    public Task SendEmailConfirmationAsync(string email, string rawToken, CancellationToken ct = default)
+        => Task.CompletedTask; // не интересует в тестах сброса пароля
 }
 
 public class PasswordResetTests : IClassFixture<ApiFactory>

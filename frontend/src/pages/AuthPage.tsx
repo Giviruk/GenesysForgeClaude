@@ -35,6 +35,7 @@ export function AuthPage() {
   async function submit(e: FormEvent) {
     e.preventDefault()
     setError(null)
+    setInfo(null)
     setBusy(true)
     try {
       if (mode === 'login') {
@@ -61,6 +62,18 @@ export function AuthPage() {
     }
   }
 
+  async function resendConfirmation() {
+    setError(null)
+    if (!email) { setInfo('Введите e-mail, чтобы выслать письмо подтверждения.'); return }
+    try {
+      await api.resendEmailConfirmation(email)
+      // Всегда одинаковый ответ — не раскрываем наличие/статус аккаунта.
+      setInfo('Если e-mail не подтверждён, мы выслали новую ссылку подтверждения.')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Не удалось отправить письмо.')
+    }
+  }
+
   const submitLabel =
     mode === 'login' ? 'Войти'
       : mode === 'register' ? 'Создать аккаунт'
@@ -72,6 +85,7 @@ export function AuthPage() {
       <div className="auth-card">
         <h1 className="logo">Genesys Forge</h1>
         <p className="muted">Листы персонажей для Genesys Core и Realms of Terrinoth</p>
+
         {sessionExpired && mode === 'login' && !info && (
           <div className="notice warn">
             Сессия истекла — войдите снова.
@@ -131,6 +145,11 @@ export function AuthPage() {
           {mode === 'login' && (
             <button className="linklike" type="button" onClick={() => { setResetMode('reset-request'); setError(null); setInfo(null) }}>
               Забыли пароль?
+            </button>
+          )}
+          {mode === 'login' && (
+            <button className="linklike" type="button" onClick={() => void resendConfirmation()}>
+              Письмо для подтверждения e-mail не пришло? Отправить повторно
             </button>
           )}
           {(mode === 'reset-request' || mode === 'reset-confirm') && (

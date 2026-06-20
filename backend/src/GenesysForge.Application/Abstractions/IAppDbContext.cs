@@ -8,6 +8,7 @@ public interface IAppDbContext
 {
     DbSet<User> Users { get; }
     DbSet<PasswordResetToken> PasswordResetTokens { get; }
+    DbSet<EmailConfirmationToken> EmailConfirmationTokens { get; }
     DbSet<SkillDef> SkillDefs { get; }
     DbSet<TalentDef> TalentDefs { get; }
     DbSet<ItemDef> ItemDefs { get; }
