@@ -36,7 +36,8 @@ button {
   color: var(--text);
   border: 1px solid var(--border);
   border-radius: 6px;
-  padding: 0.45rem 0.9rem;
+  /* Segoe UI оптически сидит низко: нижний vertical-паддинг чуть больше верхнего — текст центрируется по чернилам. */
+  padding: 0.38rem 0.9rem 0.52rem;
   cursor: pointer;
   font-size: 0.9rem;
   font-family: inherit;
@@ -51,8 +52,8 @@ button:hover:not(:disabled) { border-color: var(--accent); }
 button:disabled { opacity: 0.45; cursor: not-allowed; }
 button.primary { background: var(--accent-dark); border-color: var(--accent); color: #fff; }
 button.danger { border-color: var(--red); color: var(--red); }
-button.small { padding: 0.2rem 0.55rem; font-size: 0.8rem; min-height: 1.8rem; }
-button.tiny { padding: 0 0.45rem; font-size: 0.8rem; min-height: 1.45rem; }
+button.small { padding: 0.1rem 0.55rem 0.3rem; font-size: 0.8rem; min-height: 1.8rem; }
+button.tiny { padding: 0.05rem 0.45rem 0.15rem; font-size: 0.8rem; min-height: 1.45rem; }
 button.linklike { display: inline; min-height: 0; background: none; border: none; color: var(--accent); text-decoration: underline; padding: 0; font-size: inherit; }
 
 input, select, textarea {
@@ -141,9 +142,12 @@ h1.logo { margin: 0 0 0.3rem; }
 .char-card-head strong { min-width: 0; overflow-wrap: anywhere; }
 
 .badge {
-  display: inline-block; font-size: 0.7rem; padding: 0.1rem 0.5rem;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 0.7rem; line-height: 1;
+  /* Нижний паддинг больше верхнего — компенсация оптически низкой посадки Segoe UI в «таблетках». */
+  padding: 0.15rem 0.5rem 0.27rem;
   border-radius: 999px; border: 1px solid var(--border); color: var(--muted);
-  margin-left: 0.3rem; line-height: 1.35; vertical-align: middle;
+  margin-left: 0.3rem; vertical-align: middle;
 }
 .badge.genesysCore { border-color: var(--core); color: #9db9e8; }
 .badge.realmsOfTerrinoth { border-color: var(--terrinoth); color: #c2a4ef; }
@@ -281,7 +285,8 @@ td.nowrap, th.nowrap { white-space: nowrap; }
 .state-switch { display: flex; gap: 0.25rem; flex-wrap: wrap; min-width: 0; }
 .chip {
   display: inline-flex; align-items: center; justify-content: center; gap: 0.25rem;
-  font-size: 0.75rem; padding: 0.15rem 0.55rem; border-radius: 999px;
+  /* Нижний паддинг чуть больше верхнего — компенсация оптически низкой посадки Segoe UI. */
+  font-size: 0.75rem; padding: 0.1rem 0.55rem 0.2rem; border-radius: 999px;
   background: var(--bg); border: 1px solid var(--border);
   min-height: 1.55rem; line-height: 1.2; text-align: center; overflow-wrap: anywhere;
 }
@@ -449,7 +454,7 @@ td.nowrap, th.nowrap { white-space: nowrap; }
 .price-row { display: flex; align-items: flex-end; gap: 0.6rem; flex-wrap: wrap; }
 .price-row label { display: flex; flex-direction: column; font-size: 0.78rem; color: var(--muted); gap: 0.15rem; }
 .price-total { font-size: 0.95rem; }
-button.tiny { font-size: 0.75rem; padding: 0.1rem 0.4rem; }
+button.tiny { font-size: 0.75rem; padding: 0.05rem 0.4rem 0.15rem; }
 
 /* ---------- NPC / Bestiary ---------- */
 .head-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
@@ -457,7 +462,7 @@ button.tiny { font-size: 0.75rem; padding: 0.1rem 0.4rem; }
 .npc-filters input, .npc-filters select { width: auto; flex: 0 1 auto; min-width: 9rem; }
 .npc-filters input { flex: 1 1 12rem; }
 .npc-stats-line { font-size: 0.82rem; color: var(--text); margin-top: 0.2rem; }
-.chips.tiny .chip { font-size: 0.72rem; padding: 0.05rem 0.4rem; min-height: 1.35rem; }
+.chips.tiny .chip { font-size: 0.72rem; padding: 0.06rem 0.4rem 0.1rem; min-height: 1.35rem; }
 .card-actions { display: flex; gap: 0.4rem; margin-top: 0.5rem; flex-wrap: wrap; }
 
 .form-row { display: flex; gap: 0.6rem; flex-wrap: wrap; align-items: flex-end; }

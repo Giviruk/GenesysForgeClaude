@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react
 import { api } from '../api/client'
 import type {
   Characteristic, GameSystem, NpcCombatStyle, NpcDetail, NpcInput, NpcKind, NpcListItem,
-  NpcPowerLevel, NpcRole, NpcVisibility, QuickDraftRequest,
+  NpcPowerLevel, NpcRole, NpcVisibility, QuickDraftRequest, Reference,
 } from '../api/types'
 import {
   CHARACTERISTICS, CHARACTERISTIC_LABELS, NPC_COMBAT_STYLE_LABELS, NPC_KIND_LABELS, NPC_KINDS,
@@ -249,7 +249,21 @@ function NpcEditor({ initial, onCancel, onSaved }: {
   const [form, setForm] = useState<NpcInput>(initial ? toInput(initial) : EMPTY_INPUT)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  // Справочник выбранной системы — источник доступных навыков, талантов и снаряжения.
+  // Храним вместе с системой, для которой загружен: при смене системы старые опции
+  // сразу считаются неактуальными (ref === null), пока не подтянется новый справочник.
+  const [loaded, setLoaded] = useState<{ system: GameSystem; data: Reference } | null>(null)
   const set = <K extends keyof NpcInput>(key: K, value: NpcInput[K]) => setForm(f => ({ ...f, [key]: value }))
+
+  // Перезагружаем справочник при смене системы; уже выбранные значения сохраняем.
+  useEffect(() => {
+    let cancelled = false
+    api.reference(form.system)
+      .then(r => { if (!cancelled) setLoaded({ system: form.system, data: r }) })
+      .catch(() => { /* справочник не загрузился — списки останутся пустыми */ })
+    return () => { cancelled = true }
+  }, [form.system])
+  const reference = loaded?.system === form.system ? loaded.data : null
 
   // Миньон обычно без стрейна; немезида обязан иметь.
   const minion = form.kind === 'minion'
@@ -328,10 +342,12 @@ function NpcEditor({ initial, onCancel, onSaved }: {
             onChange={e => set('rangedDefense', Math.max(0, +e.target.value))} /></label>
         </div>
 
-        <SkillsEditor skills={form.skills} onChange={s => set('skills', s)} />
+        <SkillsEditor skills={form.skills} available={reference?.skills ?? []} onChange={s => set('skills', s)} />
         <AbilitiesEditor abilities={form.abilities} onChange={a => set('abilities', a)} />
-        <StringListEditor label="Таланты" values={form.talents} onChange={v => set('talents', v)} placeholder="Название таланта" />
-        <StringListEditor label="Снаряжение" values={form.equipment} onChange={v => set('equipment', v)} placeholder="Предмет / оружие" />
+        <PickListEditor label="Таланты" values={form.talents} options={reference?.talents ?? []}
+          onChange={v => set('talents', v)} placeholder="Выберите талант из списка" />
+        <PickListEditor label="Снаряжение" values={form.equipment} options={reference?.items ?? []}
+          onChange={v => set('equipment', v)} placeholder="Выберите предмет из списка" />
         <StringListEditor label="Теги" values={form.tags} onChange={v => set('tags', v)} placeholder="Тег" />
 
         <div className="form-row">
@@ -348,20 +364,64 @@ function NpcEditor({ initial, onCancel, onSaved }: {
   )
 }
 
-function SkillsEditor({ skills, onChange }: { skills: NpcInput['skills']; onChange: (s: NpcInput['skills']) => void }) {
+// Отображаемое имя справочной записи: русское, с откатом на оригинальное.
+const refLabel = (o: { name: string; nameRu: string }) => o.nameRu || o.name
+
+function SkillsEditor({ skills, available, onChange }: {
+  skills: NpcInput['skills']; available: { name: string; nameRu: string }[]
+  onChange: (s: NpcInput['skills']) => void
+}) {
+  const names = available.map(refLabel)
   return (
     <div className="list-editor">
       <div className="label-line">Навыки</div>
-      {skills.map((s, i) => (
-        <div key={i} className="form-row">
-          <input className="grow" placeholder="Навык" value={s.name}
-            onChange={e => onChange(skills.map((x, j) => j === i ? { ...x, name: e.target.value } : x))} />
-          <input type="number" min={0} max={5} className="ranks-input" value={s.ranks}
-            onChange={e => onChange(skills.map((x, j) => j === i ? { ...x, ranks: clamp(+e.target.value, 0, 5) } : x))} />
-          <button type="button" className="danger small" onClick={() => onChange(skills.filter((_, j) => j !== i))}>×</button>
-        </div>
-      ))}
-      <button type="button" className="small" onClick={() => onChange([...skills, { name: '', ranks: 1 }])}>+ Навык</button>
+      {skills.map((s, i) => {
+        // Текущее значение оставляем выбираемым, даже если его нет в справочнике (кастом/смена системы).
+        const orphan = s.name !== '' && !names.includes(s.name)
+        return (
+          <div key={i} className="form-row">
+            <select className="grow" value={s.name}
+              onChange={e => onChange(skills.map((x, j) => j === i ? { ...x, name: e.target.value } : x))}>
+              <option value="">— выберите навык —</option>
+              {orphan && <option value={s.name}>{s.name} (вне справочника)</option>}
+              {available.map(sk => <option key={sk.name} value={refLabel(sk)}>{refLabel(sk)}</option>)}
+            </select>
+            <input type="number" min={0} max={5} className="ranks-input" value={s.ranks}
+              onChange={e => onChange(skills.map((x, j) => j === i ? { ...x, ranks: clamp(+e.target.value, 0, 5) } : x))} />
+            <button type="button" className="danger small" onClick={() => onChange(skills.filter((_, j) => j !== i))}>×</button>
+          </div>
+        )
+      })}
+      <button type="button" className="small" disabled={available.length === 0}
+        onClick={() => onChange([...skills, { name: '', ranks: 1 }])}>+ Навык</button>
+    </div>
+  )
+}
+
+/** Выбор значений из справочника (таланты, снаряжение): чипы выбранного + выпадающий список доступного. */
+function PickListEditor({ label, values, options, onChange, placeholder }: {
+  label: string; values: string[]; options: { name: string; nameRu: string }[]
+  onChange: (v: string[]) => void; placeholder: string
+}) {
+  const remaining = options.filter(o => !values.includes(refLabel(o)))
+  return (
+    <div className="list-editor">
+      <div className="label-line">{label}</div>
+      <div className="chips">
+        {values.map((v, i) => (
+          <span key={i} className="chip removable">
+            {v}<button type="button" onClick={() => onChange(values.filter((_, j) => j !== i))}>×</button>
+          </span>
+        ))}
+      </div>
+      <select className="grow" value="" disabled={remaining.length === 0}
+        onChange={e => { if (e.target.value) onChange([...values, e.target.value]) }}>
+        <option value="">
+          {options.length === 0 ? 'Справочник загружается…'
+            : remaining.length === 0 ? 'Все доступные уже добавлены' : placeholder}
+        </option>
+        {remaining.map(o => <option key={o.name} value={refLabel(o)}>{refLabel(o)}</option>)}
+      </select>
     </div>
   )
 }
