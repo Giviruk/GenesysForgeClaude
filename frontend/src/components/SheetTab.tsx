@@ -11,7 +11,12 @@ interface Props {
   refresh: () => Promise<void>
 }
 
-const SKILL_KINDS: SkillKind[] = ['general', 'combat', 'social', 'knowledge', 'magic']
+// Левая колонка — крупный блок «общие»; правая — боевые, под ними знания/магия и
+// социальные, чтобы плотно заполнить пространство и меньше скроллить.
+const SKILL_COLUMNS: SkillKind[][] = [
+  ['general'],
+  ['combat', 'knowledge', 'magic', 'social'],
+]
 
 export function SheetTab({ sheet, reference, onError, refresh }: Props) {
   const [heroicPick, setHeroicPick] = useState('')
@@ -93,65 +98,69 @@ export function SheetTab({ sheet, reference, onError, refresh }: Props) {
       <section className="panel">
         <h3>Навыки</h3>
         <div className="skills-grid">
-          {SKILL_KINDS.map(kind => {
-            const skills = sheet.skills.filter(s => s.kind === kind)
-            if (skills.length === 0) return null
-            return (
-              <div key={kind} className="skill-block">
-                <h4 className="skill-kind">{SKILL_KIND_LABELS[kind]}</h4>
-                <table className="skills fixed">
-                  {/* единые ширины колонок во всех разделах */}
-                  <colgroup>
-                    <col className="col-name" />
-                    <col className="col-char" />
-                    <col className="col-career" />
-                    <col className="col-ranks" />
-                    <col className="col-pool" />
-                    <col className="col-action" />
-                  </colgroup>
-                  <thead>
-                    <tr>
-                      <th>Навык</th>
-                      <th>Хар-ка</th>
-                      <th className="centered" title="Карьерный навык">Карьерн.</th>
-                      <th>Ранги</th>
-                      <th>Дайс-пул</th>
-                      <th></th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {skills.map(s => (
-                      <tr key={s.skillDefId}>
-                        <td className="ellipsis" title={s.name}>{s.name}</td>
-                        <td className="muted" title={CHARACTERISTIC_LABELS[s.characteristic]}>
-                          {CHARACTERISTIC_SHORT_LABELS[s.characteristic]}
-                        </td>
-                        <td className="centered">{s.isCareer ? '✓' : ''}</td>
-                        <td>{'●'.repeat(s.ranks)}{'○'.repeat(Math.max(0, 5 - s.ranks))}</td>
-                        <td><DicePoolView pool={s.pool} /></td>
-                        <td className="right">
-                          {sheet.isCreationPhase && s.ranks > s.freeRanks && (
-                            <button className="small"
-                              title={`Вернуть ранг ${s.ranks} (+${s.ranks * 5 + (s.isCareer ? 0 : 5)} XP)`}
-                              onClick={() => run(() => api.refundSkillRank(sheet.id, s.skillDefId))}>
-                              −
-                            </button>
-                          )}
-                          {s.ranks < 5 && (
-                            <button className="small" disabled={s.nextRankCost > sheet.availableXp}
-                              title={s.nextRankCost > sheet.availableXp ? 'Недостаточно XP' : `Купить ранг ${s.ranks + 1}`}
-                              onClick={() => run(() => api.buySkillRank(sheet.id, s.skillDefId))}>
-                              +{s.nextRankCost} XP
-                            </button>
-                          )}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )
-          })}
+          {SKILL_COLUMNS.map((kinds, i) => (
+            <div key={i} className="skill-column">
+              {kinds.map(kind => {
+                const skills = sheet.skills.filter(s => s.kind === kind)
+                if (skills.length === 0) return null
+                return (
+                  <div key={kind} className="skill-block">
+                    <h4 className="skill-kind">{SKILL_KIND_LABELS[kind]}</h4>
+                    <table className="skills fixed">
+                      {/* единые ширины колонок во всех разделах */}
+                      <colgroup>
+                        <col className="col-name" />
+                        <col className="col-char" />
+                        <col className="col-career" />
+                        <col className="col-ranks" />
+                        <col className="col-pool" />
+                        <col className="col-action" />
+                      </colgroup>
+                      <thead>
+                        <tr>
+                          <th>Навык</th>
+                          <th>Хар-ка</th>
+                          <th className="centered" title="Карьерный навык">Карьерн.</th>
+                          <th>Ранги</th>
+                          <th>Дайс-пул</th>
+                          <th></th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {skills.map(s => (
+                          <tr key={s.skillDefId}>
+                            <td className="ellipsis" title={s.name}>{s.name}</td>
+                            <td className="muted" title={CHARACTERISTIC_LABELS[s.characteristic]}>
+                              {CHARACTERISTIC_SHORT_LABELS[s.characteristic]}
+                            </td>
+                            <td className="centered">{s.isCareer ? '✓' : ''}</td>
+                            <td>{'●'.repeat(s.ranks)}{'○'.repeat(Math.max(0, 5 - s.ranks))}</td>
+                            <td><DicePoolView pool={s.pool} /></td>
+                            <td className="right">
+                              {sheet.isCreationPhase && s.ranks > s.freeRanks && (
+                                <button className="small"
+                                  title={`Вернуть ранг ${s.ranks} (+${s.ranks * 5 + (s.isCareer ? 0 : 5)} XP)`}
+                                  onClick={() => run(() => api.refundSkillRank(sheet.id, s.skillDefId))}>
+                                  −
+                                </button>
+                              )}
+                              {s.ranks < 5 && (
+                                <button className="small" disabled={s.nextRankCost > sheet.availableXp}
+                                  title={s.nextRankCost > sheet.availableXp ? 'Недостаточно XP' : `Купить ранг ${s.ranks + 1}`}
+                                  onClick={() => run(() => api.buySkillRank(sheet.id, s.skillDefId))}>
+                                  +{s.nextRankCost} XP
+                                </button>
+                              )}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )
+              })}
+            </div>
+          ))}
         </div>
       </section>
     </div>
