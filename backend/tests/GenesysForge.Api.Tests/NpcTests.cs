@@ -70,6 +70,65 @@ public class NpcTests : IClassFixture<ApiFactory>
     }
 
     [Fact]
+    public async Task QuickDraft_StartingSkillAndWeapon_AreFromCatalog()
+    {
+        var gm = await _factory.CreateAuthorizedClientAsync();
+        var req = new QuickDraftRequest(GameSystem.RealmsOfTerrinoth, NpcKind.Rival, NpcRole.Brute,
+            NpcPowerLevel.Standard, null, NpcCombatStyle.Melee, "Орк");
+
+        var resp = await gm.PostAsJsonAsync("/api/npcs/quick-draft", req, Json.Options);
+        var npc = (await resp.Content.ReadFromJsonAsync<NpcDetailDto>(Json.Options))!;
+        var reference = (await gm.GetFromJsonAsync<ReferenceResponse>(
+            "/api/reference/RealmsOfTerrinoth", Json.Options))!;
+
+        string Label(string nameRu, string name) => string.IsNullOrWhiteSpace(nameRu) ? name : nameRu;
+        var skillLabels = reference.Skills.Select(s => Label(s.NameRu, s.Name)).ToHashSet();
+        var weaponLabels = reference.Items.Where(i => i.Kind == ItemKind.Weapon)
+            .Select(i => Label(i.NameRu, i.Name)).ToHashSet();
+
+        // Стартовый навык и оружие — реальные записи каталога (а не свободный текст).
+        Assert.Contains(npc.Skills[0].Name, skillLabels);
+        Assert.NotEmpty(npc.Equipment);
+        Assert.Contains(npc.Equipment[0], weaponLabels);
+
+        // Навык оружия согласован с навыком NPC: оружие распознаётся и считает пул.
+        var weapon = reference.Items.Single(i => Label(i.NameRu, i.Name) == npc.Equipment[0]);
+        var baseName = (string s) => System.Text.RegularExpressions.Regex.Replace(s, @"\s*\(.*\)\s*", "").Trim();
+        var weaponSkill = reference.Skills.First(s => Label(s.NameRu, s.Name) == npc.Skills[0].Name);
+        Assert.Equal(baseName(weaponSkill.Name), baseName(weapon.SkillName));
+    }
+
+    [Fact]
+    public async Task QuickDraft_PowerLevel_AddsArmorAndSkills_AndSoakReflectsArmor()
+    {
+        var gm = await _factory.CreateAuthorizedClientAsync();
+        async Task<NpcDetailDto> Draft(NpcPowerLevel lvl) =>
+            (await (await gm.PostAsJsonAsync("/api/npcs/quick-draft",
+                new QuickDraftRequest(GameSystem.RealmsOfTerrinoth, NpcKind.Rival, NpcRole.Brute,
+                    lvl, null, NpcCombatStyle.Melee, "Орк"), Json.Options))
+                .Content.ReadFromJsonAsync<NpcDetailDto>(Json.Options))!;
+        var reference = (await gm.GetFromJsonAsync<ReferenceResponse>(
+            "/api/reference/RealmsOfTerrinoth", Json.Options))!;
+        string Label(string nameRu, string name) => string.IsNullOrWhiteSpace(nameRu) ? name : nameRu;
+        var armorByLabel = reference.Items.Where(i => i.Kind == ItemKind.Armor)
+            .ToDictionary(i => Label(i.NameRu, i.Name), i => i.SoakBonus);
+
+        var weak = await Draft(NpcPowerLevel.Weak);
+        var elite = await Draft(NpcPowerLevel.Elite);
+
+        // Слабый: без доспеха поглощение = Мощи (нет фантомного бонуса).
+        Assert.Equal(weak.Brawn, weak.Soak);
+
+        // Элитный: появился доспех в снаряжении, и Soak = Мощь + бонус доспеха.
+        var armorEntry = elite.Equipment.FirstOrDefault(e => armorByLabel.ContainsKey(e));
+        Assert.NotNull(armorEntry);
+        Assert.Equal(elite.Brawn + armorByLabel[armorEntry!], elite.Soak);
+
+        // Выше уровень силы — больше навыков.
+        Assert.True(elite.Skills.Count > weak.Skills.Count);
+    }
+
+    [Fact]
     public async Task Nemesis_WithoutStrain_IsRejected()
     {
         var gm = await _factory.CreateAuthorizedClientAsync();

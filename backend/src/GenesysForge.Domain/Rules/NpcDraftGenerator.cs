@@ -48,9 +48,10 @@ public static class NpcDraftGenerator
             Tags = [RoleTag(req.Role)],
         };
 
-        // Soak: Brawn + броня (растёт с уровнем, у Brute/Monster — плотнее).
-        var armor = level + (req.Role is NpcRole.Brute or NpcRole.Monster ? 1 : 0);
-        npc.Soak = npc.Brawn + armor;
+        // Базовое поглощение — только от Мощи (+ природная броня у чудовищ). Доспех как
+        // отдельный предмет снаряжения добавляет обработчик черновика и поднимает Soak на свой бонус.
+        var naturalSoak = req.Role == NpcRole.Monster ? 1 + level / 2 : 0;
+        npc.Soak = npc.Brawn + naturalSoak;
 
         // Защита: Skirmisher подвижнее, «элита» получает +1.
         var def = (req.Role == NpcRole.Skirmisher ? 1 : 0) + (req.PowerLevel == NpcPowerLevel.Elite ? 1 : 0);
@@ -77,7 +78,10 @@ public static class NpcDraftGenerator
         if (req.Role is NpcRole.Leader or NpcRole.Social)
             npc.Skills.Add(new NpcSkill { NpcId = npc.Id, Name = "Лидерство", Ranks = Math.Min(5, ranks) });
 
-        npc.Equipment.Add(WeaponFor(req.CombatStyle));
+        // Оружие; для чисто социального стиля оружие не добавляем.
+        var weapon = WeaponFor(req.CombatStyle);
+        if (weapon != "—")
+            npc.Equipment.Add(weapon);
 
         return npc;
     }
@@ -95,7 +99,7 @@ public static class NpcDraftGenerator
         _ => Make(2, 2, 2, 2, 2, 2),
     };
 
-    private static CharacteristicType PrimaryOf(NpcRole role) => role switch
+    public static CharacteristicType PrimaryOf(NpcRole role) => role switch
     {
         NpcRole.Brute or NpcRole.Monster => CharacteristicType.Brawn,
         NpcRole.Skirmisher or NpcRole.Archer => CharacteristicType.Agility,
@@ -104,7 +108,7 @@ public static class NpcDraftGenerator
         _ => CharacteristicType.Brawn,
     };
 
-    private static CharacteristicType SecondaryOf(NpcRole role) => role switch
+    public static CharacteristicType SecondaryOf(NpcRole role) => role switch
     {
         NpcRole.Brute or NpcRole.Monster => CharacteristicType.Agility,
         NpcRole.Skirmisher => CharacteristicType.Cunning,

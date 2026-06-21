@@ -5,9 +5,12 @@ import type {
   NpcPowerLevel, NpcRole, NpcVisibility, QuickDraftRequest, Reference,
 } from '../api/types'
 import {
-  CHARACTERISTICS, CHARACTERISTIC_LABELS, NPC_COMBAT_STYLE_LABELS, NPC_KIND_LABELS, NPC_KINDS,
-  NPC_POWER_LABELS, NPC_ROLE_LABELS, NPC_ROLES, NPC_VISIBILITY_LABELS, SYSTEM_LABELS,
+  CHARACTERISTICS, CHARACTERISTIC_LABELS, ITEM_KIND_LABELS, NPC_COMBAT_STYLE_LABELS, NPC_KIND_LABELS,
+  NPC_KINDS, NPC_POWER_LABELS, NPC_ROLE_LABELS, NPC_ROLES, NPC_VISIBILITY_LABELS, SYSTEM_LABELS,
 } from '../utils/labels'
+import { npcSkillViews, skillIndex, splitEquipment, type NpcGearView } from '../utils/npcStats'
+import { DicePoolView } from '../components/DicePoolView'
+import { PropertyTags } from '../components/PropertyTags'
 import { PrintPreview } from '../components/print/PrintPreview'
 import { AdversaryCard } from '../components/print/cards'
 import { adversaryMarkdown } from '../components/print/markdown'
@@ -25,6 +28,9 @@ export function NpcsPage({ openId, onOpen, onBack }: Props) {
   const [editing, setEditing] = useState<NpcDetail | 'new' | null>(null)
   const [drafting, setDrafting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  // Счётчик принудительной перезагрузки открытой карточки: растёт после правки того же NPC
+  // (его id не меняется, поэтому key/remount не срабатывает — обновляемся по этому токену).
+  const [detailVersion, setDetailVersion] = useState(0)
 
   // фильтры
   const [search, setSearch] = useState('')
@@ -42,19 +48,11 @@ export function NpcsPage({ openId, onOpen, onBack }: Props) {
   }).then(setNpcs).catch((e: unknown) => setError(e instanceof Error ? e.message : 'Ошибка загрузки')),
     [search, system, kind, role, sort])
 
-  // Список перезагружается по фильтрам и при возврате из карточки NPC.
-  useEffect(() => { if (!openId) void reload() }, [openId, reload])
-
-  if (openId) return <NpcDetailView npcId={openId} onBack={onBack}
-    onEdit={n => { onBack(); setEditing(n) }} />
-
-  async function run(action: () => Promise<unknown>) {
-    try { await action(); await reload() }
-    catch (e) { setError(e instanceof Error ? e.message : 'Ошибка') }
-  }
+  // Список всегда виден (master-detail) и перезагружается по фильтрам.
+  useEffect(() => { void reload() }, [reload])
 
   return (
-    <div className="page">
+    <div className="page npc-page">
       <div className="page-head">
         <h2>NPC / Бестиарий</h2>
         <div className="head-actions">
@@ -64,64 +62,70 @@ export function NpcsPage({ openId, onOpen, onBack }: Props) {
       </div>
       {error && <div className="error">{error}</div>}
 
-      <div className="npc-filters panel">
-        <input placeholder="Поиск по имени…" value={search} onChange={e => setSearch(e.target.value)} />
-        <select value={system} onChange={e => setSystem(e.target.value as GameSystem | '')}>
-          <option value="">Все системы</option>
-          {SYSTEMS.map(s => <option key={s} value={s}>{SYSTEM_LABELS[s]}</option>)}
-        </select>
-        <select value={kind} onChange={e => setKind(e.target.value as NpcKind | '')}>
-          <option value="">Все типы</option>
-          {NPC_KINDS.map(k => <option key={k} value={k}>{NPC_KIND_LABELS[k]}</option>)}
-        </select>
-        <select value={role} onChange={e => setRole(e.target.value as NpcRole | '')}>
-          <option value="">Все роли</option>
-          {NPC_ROLES.map(r => <option key={r} value={r}>{NPC_ROLE_LABELS[r]}</option>)}
-        </select>
-        <select value={sort} onChange={e => setSort(e.target.value as 'createdAt' | 'name')}>
-          <option value="createdAt">Сначала новые</option>
-          <option value="name">По имени</option>
-        </select>
-      </div>
-
-      {npcs === null && <p className="muted">Загрузка…</p>}
-      {npcs?.length === 0 && <p className="muted">Ничего не найдено — создайте NPC или быстрый черновик.</p>}
-      <div className="card-grid">
-        {npcs?.map(n => (
-          <div key={n.id} className="char-card" onClick={() => onOpen(n.id)}>
-            <div className="char-card-head">
-              <strong>{n.name}</strong>
-              <span className={`badge ${n.system}`}>{SYSTEM_LABELS[n.system]}</span>
+      <div className="bestiary-layout">
+        <aside className="bestiary-list panel">
+          <div className="npc-filters">
+            <input placeholder="Поиск по имени…" value={search} onChange={e => setSearch(e.target.value)} />
+            <div className="npc-filter-row">
+              <select value={system} onChange={e => setSystem(e.target.value as GameSystem | '')}>
+                <option value="">Все системы</option>
+                {SYSTEMS.map(s => <option key={s} value={s}>{SYSTEM_LABELS[s]}</option>)}
+              </select>
+              <select value={kind} onChange={e => setKind(e.target.value as NpcKind | '')}>
+                <option value="">Все типы</option>
+                {NPC_KINDS.map(k => <option key={k} value={k}>{NPC_KIND_LABELS[k]}</option>)}
+              </select>
             </div>
-            <div className="muted">{NPC_KIND_LABELS[n.kind]} · {NPC_ROLE_LABELS[n.role]}</div>
-            <div className="npc-stats-line">
-              Soak {n.soak} · Раны {n.woundThreshold}{n.strainThreshold != null ? ` · Стрейн ${n.strainThreshold}` : ''}
+            <div className="npc-filter-row">
+              <select value={role} onChange={e => setRole(e.target.value as NpcRole | '')}>
+                <option value="">Все роли</option>
+                {NPC_ROLES.map(r => <option key={r} value={r}>{NPC_ROLE_LABELS[r]}</option>)}
+              </select>
+              <select value={sort} onChange={e => setSort(e.target.value as 'createdAt' | 'name')}>
+                <option value="createdAt">Сначала новые</option>
+                <option value="name">По имени</option>
+              </select>
             </div>
-            {n.skills.length > 0 && (
-              <div className="muted small-text">
-                {n.skills.slice(0, 4).map(s => `${s.name} ${s.ranks}`).join(', ')}
-              </div>
-            )}
-            {n.tags.length > 0 && <div className="chips tiny">{n.tags.map(t => <span key={t} className="chip">{t}</span>)}</div>}
-            {n.isMine && (
-              <div className="card-actions">
-                <button className="small" onClick={e => { e.stopPropagation(); void run(() => api.duplicateNpc(n.id)) }}>Дублировать</button>
-                <button className="danger small" onClick={e => {
-                  e.stopPropagation()
-                  if (confirm(`Удалить NPC «${n.name}»?`)) void run(() => api.deleteNpc(n.id))
-                }}>Удалить</button>
-              </div>
-            )}
-            {!n.isMine && <span className="badge">из кампании</span>}
           </div>
-        ))}
+
+          {npcs === null && <p className="muted bestiary-hint">Загрузка…</p>}
+          {npcs?.length === 0 && <p className="muted bestiary-hint">Ничего не найдено — создайте NPC или быстрый черновик.</p>}
+          <ul className="bestiary-items">
+            {npcs?.map(n => (
+              <li key={n.id}>
+                <button type="button" className={`bestiary-item${n.id === openId ? ' active' : ''}`}
+                  onClick={() => onOpen(n.id)}>
+                  <span className="bestiary-item-main">
+                    <strong>{n.name}</strong>
+                    <span className={`badge ${n.system}`}>{SYSTEM_LABELS[n.system]}</span>
+                  </span>
+                  <span className="bestiary-item-sub muted">
+                    {NPC_KIND_LABELS[n.kind]} · {NPC_ROLE_LABELS[n.role]} · Soak {n.soak} · Раны {n.woundThreshold}
+                  </span>
+                  {!n.isMine && <span className="bestiary-item-flag muted">из кампании</span>}
+                </button>
+              </li>
+            ))}
+          </ul>
+        </aside>
+
+        <section className="bestiary-detail">
+          {openId
+            ? <NpcDetailView key={openId} npcId={openId} reloadToken={detailVersion}
+                onEdit={n => setEditing(n)}
+                onDuplicated={id => { void reload(); onOpen(id) }}
+                onDeleted={() => { onBack(); void reload() }} />
+            : <div className="panel bestiary-empty">
+                <p className="muted">← Выберите NPC из списка, чтобы увидеть статблок с пулами кубов.</p>
+              </div>}
+        </section>
       </div>
 
       {editing && (
         <NpcEditor
           initial={editing === 'new' ? null : editing}
           onCancel={() => setEditing(null)}
-          onSaved={() => { setEditing(null); void reload() }}
+          onSaved={saved => { setEditing(null); void reload(); onOpen(saved.id); setDetailVersion(v => v + 1) }}
         />
       )}
       {drafting && (
@@ -134,18 +138,48 @@ export function NpcsPage({ openId, onOpen, onBack }: Props) {
   )
 }
 
-function NpcDetailView({ npcId, onBack, onEdit }: {
-  npcId: string; onBack: () => void; onEdit: (n: NpcDetail) => void
+function NpcDetailView({ npcId, reloadToken, onEdit, onDuplicated, onDeleted }: {
+  npcId: string
+  reloadToken: number
+  onEdit: (n: NpcDetail) => void
+  onDuplicated: (id: string) => void
+  onDeleted: () => void
 }) {
   const [n, setN] = useState<NpcDetail | null>(null)
+  const [reference, setReference] = useState<Reference | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [printing, setPrinting] = useState(false)
+  const [busy, setBusy] = useState(false)
 
+  // Грузим карточку при открытии и при росте reloadToken (после правки того же NPC).
   useEffect(() => {
-    api.npc(npcId).then(setN).catch((e: unknown) => setError(e instanceof Error ? e.message : 'Ошибка'))
-  }, [npcId])
+    let cancelled = false
+    api.npc(npcId)
+      .then(d => { if (!cancelled) setN(d) })
+      .catch((e: unknown) => { if (!cancelled) setError(e instanceof Error ? e.message : 'Ошибка') })
+    return () => { cancelled = true }
+  }, [npcId, reloadToken])
 
-  if (!n) return <div className="page"><button onClick={onBack}>← Бестиарий</button>{error && <div className="error">{error}</div>}</div>
+  // Справочник системы NPC нужен для характеристик навыков и боевых параметров оружия.
+  const system = n?.system
+  useEffect(() => {
+    if (!system) return
+    let cancelled = false
+    api.reference(system)
+      .then(r => { if (!cancelled) setReference(r) })
+      .catch(() => { /* без справочника пулы кубов просто не покажем */ })
+    return () => { cancelled = true }
+  }, [system])
+
+  // Пулы навыков и разбор снаряжения на оружие/прочее — пересчитываем при смене NPC/справочника.
+  const index = useMemo(() => skillIndex(reference), [reference])
+  const skills = useMemo(() => (n ? npcSkillViews(n, index) : []), [n, index])
+  const { weapons, gear } = useMemo(() => (
+    n ? splitEquipment(n, reference) : { weapons: [], gear: [] }
+  ), [n, reference])
+
+  if (error) return <div className="panel bestiary-empty"><div className="error">{error}</div></div>
+  if (!n) return <div className="panel bestiary-empty"><p className="muted">Загрузка…</p></div>
 
   if (printing) {
     // GM видит обе версии; владелец считается GM. Игрок без доступа печатает только player-версию.
@@ -163,17 +197,28 @@ function NpcDetailView({ npcId, onBack, onEdit }: {
     ['cunning', n.cunning], ['willpower', n.willpower], ['presence', n.presence],
   ]
 
+  async function action(fn: () => Promise<void>) {
+    setBusy(true); setError(null)
+    try { await fn() }
+    catch (e) { setError(e instanceof Error ? e.message : 'Ошибка') }
+    finally { setBusy(false) }
+  }
+
   return (
-    <div className="page npc-detail">
-      <div className="page-head no-print">
-        <div>
-          <button onClick={onBack}>← Бестиарий</button>
-          <h2 className="inline-title">{n.name}</h2>
-        </div>
-        <div className="head-actions">
-          <button onClick={() => setPrinting(true)}>🖨 Печать карточки</button>
-          {n.isMine && <button className="primary" onClick={() => onEdit(n)}>Редактировать</button>}
-        </div>
+    <div className="npc-detail">
+      <div className="npc-detail-actions no-print">
+        <button onClick={() => setPrinting(true)}>🖨 Печать</button>
+        {n.isMine && <>
+          <button onClick={() => onEdit(n)}>Редактировать</button>
+          <button disabled={busy}
+            onClick={() => void action(async () => { const dup = await api.duplicateNpc(n.id); onDuplicated(dup.id) })}>
+            Дублировать
+          </button>
+          <button className="danger" disabled={busy}
+            onClick={() => { if (confirm(`Удалить NPC «${n.name}»?`)) void action(async () => { await api.deleteNpc(n.id); onDeleted() }) }}>
+            Удалить
+          </button>
+        </>}
       </div>
 
       <div className="npc-card">
@@ -202,12 +247,54 @@ function NpcDetailView({ npcId, onBack, onEdit }: {
           <span><b>Дал. защита</b> {n.rangedDefense}</span>
         </div>
 
-        {n.skills.length > 0 && (
+        {skills.length > 0 && (
           <div className="npc-section">
             <h4>Навыки</h4>
-            <div>{n.skills.map(s => `${s.name} ${s.ranks}`).join(' · ')}</div>
+            <ul className="npc-skill-list">
+              {skills.map((s, i) => (
+                <li key={i} className="npc-skill-row">
+                  <span className="npc-skill-name">
+                    {s.name} <span className="muted">{s.ranks}</span>
+                    {s.characteristic && (
+                      <span className="muted small-text"> · {CHARACTERISTIC_LABELS[s.characteristic]}</span>
+                    )}
+                  </span>
+                  {s.pool
+                    ? <DicePoolView pool={s.pool} />
+                    : <span className="muted small-text">пул не определён</span>}
+                </li>
+              ))}
+            </ul>
           </div>
         )}
+
+        {weapons.length > 0 && (
+          <div className="npc-section">
+            <h4>Оружие</h4>
+            <ul className="npc-weapon-list">
+              {weapons.map((w, i) => (
+                <li key={i} className="npc-weapon">
+                  <div className="npc-weapon-head">
+                    <strong>{w.name}</strong>
+                    {w.pool
+                      ? <span className="weapon-pool" title={w.skillLabel ? `Бросок: ${w.skillLabel}` : undefined}>
+                          <DicePoolView pool={w.pool} />
+                          {w.skillLabel && <span className="muted small-text">{w.skillLabel}</span>}
+                        </span>
+                      : <span className="muted small-text">навык не освоен</span>}
+                  </div>
+                  <div className="npc-weapon-stats">
+                    <span className="weapon-stat">Урон <strong>{w.damageText}</strong></span>
+                    {w.crit && <span className="weapon-stat">Крит <strong>{w.crit}</strong></span>}
+                    {w.rangeBand && <span className="weapon-stat">{w.rangeBand}</span>}
+                  </div>
+                  {w.properties && <PropertyTags properties={w.properties} className="weapon-props small-text" />}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
         {n.abilities.length > 0 && (
           <div className="npc-section">
             <h4>Способности</h4>
@@ -215,10 +302,15 @@ function NpcDetailView({ npcId, onBack, onEdit }: {
           </div>
         )}
         {n.talents.length > 0 && (
-          <div className="npc-section"><h4>Таланты</h4><div>{n.talents.join(' · ')}</div></div>
+          <div className="npc-section"><h4>Таланты</h4><div className="chips">{n.talents.map((t, i) => <span key={i} className="chip">{t}</span>)}</div></div>
         )}
-        {n.equipment.length > 0 && (
-          <div className="npc-section"><h4>Снаряжение</h4><div>{n.equipment.join(' · ')}</div></div>
+        {gear.length > 0 && (
+          <div className="npc-section">
+            <h4>Снаряжение</h4>
+            <ul className="npc-gear-list">
+              {gear.map((g, i) => <NpcGearRow key={i} gear={g} />)}
+            </ul>
+          </div>
         )}
         {n.tags.length > 0 && (
           <div className="npc-section"><h4>Теги</h4><div className="chips">{n.tags.map(t => <span key={t} className="chip">{t}</span>)}</div></div>
@@ -226,6 +318,29 @@ function NpcDetailView({ npcId, onBack, onEdit }: {
         {n.source && <div className="muted small-text npc-source">Источник: {n.source}</div>}
       </div>
     </div>
+  )
+}
+
+/** Строка снаряжения NPC: имя, тип, бонусы брони и описание из каталога (если найдено). */
+function NpcGearRow({ gear }: { gear: NpcGearView }) {
+  const { name, item } = gear
+  const bonuses = item ? [
+    item.soakBonus > 0 && `Поглощение +${item.soakBonus}`,
+    item.meleeDefense > 0 && `Бл. защита +${item.meleeDefense}`,
+    item.rangedDefense > 0 && `Дал. защита +${item.rangedDefense}`,
+    item.encumbranceThresholdBonus > 0 && `Порог веса +${item.encumbranceThresholdBonus}`,
+  ].filter(Boolean) as string[] : []
+  const description = item ? (item.description || item.safeDescription) : ''
+  return (
+    <li className="npc-gear">
+      <div className="npc-gear-head">
+        <strong>{name}</strong>
+        {item && <span className="muted small-text">{ITEM_KIND_LABELS[item.kind]}</span>}
+        {bonuses.length > 0 && <span className="npc-gear-bonus">{bonuses.join(' · ')}</span>}
+      </div>
+      {description && <div className="muted small-text npc-gear-desc">{description}</div>}
+      {item?.properties && <PropertyTags properties={item.properties} className="small-text" />}
+    </li>
   )
 }
 
@@ -244,7 +359,7 @@ function toInput(n: NpcDetail): NpcInput {
 }
 
 function NpcEditor({ initial, onCancel, onSaved }: {
-  initial: NpcDetail | null; onCancel: () => void; onSaved: () => void
+  initial: NpcDetail | null; onCancel: () => void; onSaved: (saved: NpcDetail) => void
 }) {
   const [form, setForm] = useState<NpcInput>(initial ? toInput(initial) : EMPTY_INPUT)
   const [busy, setBusy] = useState(false)
@@ -273,9 +388,8 @@ function NpcEditor({ initial, onCancel, onSaved }: {
     setBusy(true); setError(null)
     const payload: NpcInput = { ...form, strainThreshold: minion ? null : form.strainThreshold }
     try {
-      if (initial) await api.updateNpc(initial.id, payload)
-      else await api.createNpc(payload)
-      onSaved()
+      const saved = initial ? await api.updateNpc(initial.id, payload) : await api.createNpc(payload)
+      onSaved(saved)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Ошибка сохранения')
       setBusy(false)

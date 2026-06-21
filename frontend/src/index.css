@@ -474,6 +474,53 @@ button.tiny { font-size: 0.75rem; padding: 0.05rem 0.4rem 0.15rem; }
 .chips.tiny .chip { font-size: 0.72rem; padding: 0.06rem 0.4rem 0.1rem; min-height: 1.35rem; }
 .card-actions { display: flex; gap: 0.4rem; margin-top: 0.5rem; flex-wrap: wrap; }
 
+/* Master-detail: список слева, карточка справа */
+.bestiary-layout { display: grid; grid-template-columns: minmax(16rem, 22rem) minmax(0, 1fr); gap: 1rem; align-items: start; margin-top: 1rem; }
+.bestiary-list { position: sticky; top: 1rem; max-height: calc(100vh - 7rem); display: flex; flex-direction: column; padding: 0.8rem; }
+.bestiary-list .npc-filters { flex-direction: column; align-items: stretch; gap: 0.5rem; flex: 0 0 auto; }
+.bestiary-list .npc-filters input { flex: none; width: 100%; min-width: 0; }
+.bestiary-list .npc-filter-row { display: flex; gap: 0.5rem; }
+.bestiary-list .npc-filter-row select { flex: 1 1 0; width: auto; min-width: 0; }
+.bestiary-hint { margin: 0.6rem 0.2rem; }
+.bestiary-items { list-style: none; margin: 0.6rem 0 0; padding: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 0.3rem; }
+.bestiary-item {
+  width: 100%; text-align: left; background: var(--bg); border: 1px solid var(--border);
+  border-radius: 8px; padding: 0.5rem 0.6rem; cursor: pointer; display: flex; flex-direction: column;
+  gap: 0.15rem; min-height: 0;
+}
+.bestiary-item:hover { border-color: var(--accent); }
+.bestiary-item.active { border-color: var(--accent); background: var(--panel); box-shadow: inset 0 0 0 1px var(--accent); }
+.bestiary-item-main { display: flex; align-items: center; justify-content: space-between; gap: 0.4rem; }
+.bestiary-item-main strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bestiary-item-sub { font-size: 0.76rem; }
+.bestiary-item-flag { font-size: 0.7rem; font-style: italic; }
+.bestiary-detail { min-width: 0; }
+.bestiary-empty { display: flex; align-items: center; justify-content: center; min-height: 12rem; text-align: center; }
+.bestiary-detail .npc-card { max-width: none; margin-top: 0; }
+.npc-detail-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.7rem; }
+
+/* Навыки и оружие с пулами кубов */
+.npc-skill-list { list-style: none; margin: 0.3rem 0 0; padding: 0; display: flex; flex-direction: column; gap: 0.3rem; }
+.npc-skill-row { display: flex; align-items: center; justify-content: space-between; gap: 0.6rem; padding: 0.25rem 0; border-bottom: 1px dashed var(--border); }
+.npc-skill-row:last-child { border-bottom: none; }
+.npc-skill-name { min-width: 0; }
+.npc-weapon-list { list-style: none; margin: 0.3rem 0 0; padding: 0; display: flex; flex-direction: column; gap: 0.5rem; }
+.npc-weapon { border: 1px solid var(--border); border-radius: 8px; padding: 0.5rem 0.7rem; background: var(--bg); }
+.npc-weapon-head { display: flex; align-items: center; justify-content: space-between; gap: 0.6rem; flex-wrap: wrap; }
+.npc-weapon-stats { display: flex; gap: 0.9rem; flex-wrap: wrap; font-size: 0.85rem; margin-top: 0.25rem; }
+.npc-weapon .weapon-props { margin-top: 0.3rem; }
+.npc-gear-list { list-style: none; margin: 0.3rem 0 0; padding: 0; display: flex; flex-direction: column; gap: 0.4rem; }
+.npc-gear { border: 1px solid var(--border); border-radius: 8px; padding: 0.45rem 0.7rem; background: var(--bg); }
+.npc-gear-head { display: flex; align-items: baseline; gap: 0.6rem; flex-wrap: wrap; }
+.npc-gear-bonus { font-size: 0.82rem; color: var(--green); }
+.npc-gear-desc { margin-top: 0.2rem; }
+
+@media (max-width: 760px) {
+  .bestiary-layout { grid-template-columns: 1fr; }
+  .bestiary-list { position: static; max-height: none; }
+  .bestiary-items { max-height: 18rem; }
+}
+
 .form-row { display: flex; gap: 0.6rem; flex-wrap: wrap; align-items: flex-end; }
 .form-row > label { flex: 0 1 auto; margin: 0.4rem 0; }
 .form-row > label.grow { flex: 1 1 12rem; }
