@@ -296,64 +296,73 @@ public static class SeedData
 
     // ─────────────────────────── careers ───────────────────────────
 
-    private static readonly Dictionary<string, string> CareerRu = new()
-    {
-        ["Entertainer"] = "Артист", ["Explorer"] = "Исследователь", ["Healer"] = "Целитель",
-        ["Leader"] = "Лидер", ["Scoundrel"] = "Пройдоха", ["Socialite"] = "Светский лев",
-        ["Soldier"] = "Солдат", ["Tradesperson"] = "Ремесленник", ["Disciple"] = "Послушник",
-        ["Envoy"] = "Посланник", ["Mage"] = "Маг", ["Runemaster"] = "Рунный мастер",
-        ["Primalist"] = "Первозданник", ["Scholar"] = "Учёный", ["Scout"] = "Разведчик",
-        ["Warrior"] = "Воин",
-    };
-
-    private static CareerDef Career(GameSystem sys, string name, string safe, params string[] skills) =>
+    private static CareerDef Career(GameSystem sys, string name, string nameRu, string safe, params string[] skills) =>
         new()
         {
             Id = Guid.NewGuid(), System = sys, Code = Code(sys, "career", name),
-            Name = name, NameRu = Ru(CareerRu, name), SafeDescription = safe, CareerSkillNames = [.. skills],
+            Name = name, NameRu = nameRu, SafeDescription = safe, CareerSkillNames = [.. skills],
             Source = (sys == GameSystem.GenesysCore ? "Genesys Core Rulebook, гл. «Карьеры»" : "Realms of Terrinoth, гл. «Карьеры»"),
         };
 
+    // Карьерные навыки и названия соответствуют genesys_rot_core_careers_ru.csv (колонки «Карьерные навыки EN» и «Название RU»).
+    // Core не имеет общего Ranged: по примечанию каждой карьеры обобщённый Ranged → Ranged (Light), у солдата → Ranged (Heavy).
     private static IEnumerable<CareerDef> CoreCareers() =>
     [
-        Career(GameSystem.GenesysCore, "Entertainer", "Артист и душа компании.",
+        Career(GameSystem.GenesysCore, "Entertainer", "Артист",
+            "Исполнитель, актёр, музыкант или другой публичный персонаж, полезный в социальных сценах, обмане и скрытности.",
             "Charm", "Coordination", "Deception", "Discipline", "Leadership", "Melee", "Skulduggery", "Stealth"),
-        Career(GameSystem.GenesysCore, "Explorer", "Первопроходец и искатель приключений.",
-            "Athletics", "Brawl", "Perception", "Piloting", "Ranged (Light)", "Resilience", "Streetwise", "Survival"),
-        Career(GameSystem.GenesysCore, "Healer", "Врач и спаситель жизней.",
-            "Brawl", "Cool", "Discipline", "Knowledge", "Medicine", "Resilience", "Survival", "Vigilance"),
-        Career(GameSystem.GenesysCore, "Leader", "Командир и вдохновитель.",
+        Career(GameSystem.GenesysCore, "Explorer", "Исследователь",
+            "Следопыт, охотник или разведчик, хорошо чувствующий себя в дикой местности и дальнем бою.",
+            "Athletics", "Brawl", "Coordination", "Deception", "Perception", "Ranged (Light)", "Stealth", "Survival"),
+        Career(GameSystem.GenesysCore, "Healer", "Лекарь",
+            "Персонаж поддержки, лечащий союзников и сохраняющий хладнокровие в опасных условиях.",
+            "Cool", "Discipline", "Knowledge", "Medicine", "Melee", "Resilience", "Survival", "Vigilance"),
+        Career(GameSystem.GenesysCore, "Leader", "Лидер",
+            "Командир, политик или руководитель, который направляет союзников и действует через социальное давление.",
             "Charm", "Coercion", "Cool", "Discipline", "Leadership", "Melee", "Negotiation", "Perception"),
-        Career(GameSystem.GenesysCore, "Scoundrel", "Плут, живущий на грани закона.",
-            "Charm", "Cool", "Coordination", "Deception", "Perception", "Ranged (Light)", "Skulduggery", "Streetwise"),
-        Career(GameSystem.GenesysCore, "Socialite", "Мастер светских интриг.",
+        Career(GameSystem.GenesysCore, "Scoundrel", "Мошенник",
+            "Вор, аферист, карманник или шулер; мастер обмана, скрытности и городской среды.",
+            "Charm", "Cool", "Coordination", "Deception", "Ranged (Light)", "Skulduggery", "Stealth", "Streetwise"),
+        Career(GameSystem.GenesysCore, "Socialite", "Переговорщик",
+            "Общительный персонаж, который умеет заводить связи, договариваться и извлекать выгоду из разговоров.",
             "Charm", "Cool", "Deception", "Knowledge", "Negotiation", "Perception", "Streetwise", "Vigilance"),
-        Career(GameSystem.GenesysCore, "Soldier", "Профессиональный боец.",
-            "Athletics", "Brawl", "Gunnery", "Melee", "Perception", "Ranged (Heavy)", "Resilience", "Vigilance"),
-        Career(GameSystem.GenesysCore, "Tradesperson", "Ремесленник и мастер своего дела.",
-            "Athletics", "Discipline", "Mechanics", "Negotiation", "Perception", "Resilience", "Streetwise", "Vigilance"),
+        Career(GameSystem.GenesysCore, "Soldier", "Солдат",
+            "Профессиональный боец, ориентированный на оружие, выживание и боевую готовность.",
+            "Athletics", "Brawl", "Coercion", "Melee", "Perception", "Ranged (Heavy)", "Survival", "Vigilance"),
+        Career(GameSystem.GenesysCore, "Tradesperson", "Специалист",
+            "Ремесленник, техник, механик или другой специалист ручного труда и практической подготовки.",
+            "Athletics", "Brawl", "Discipline", "Mechanics", "Negotiation", "Perception", "Resilience", "Streetwise"),
     ];
 
     private static IEnumerable<CareerDef> TerrinothCareers() =>
     [
-        Career(GameSystem.RealmsOfTerrinoth, "Disciple", "Служитель божества, несущий веру и исцеление.",
-            "Charm", "Coercion", "Discipline", "Divine", "Knowledge (Lore)", "Leadership", "Medicine", "Melee (Light)"),
-        Career(GameSystem.RealmsOfTerrinoth, "Envoy", "Дипломат и посредник.",
-            "Charm", "Cool", "Deception", "Discipline", "Knowledge (Geography)", "Leadership", "Negotiation", "Streetwise"),
-        Career(GameSystem.RealmsOfTerrinoth, "Mage", "Заклинатель, постигший тайны арканы.",
-            "Arcana", "Cool", "Discipline", "Knowledge (Forbidden)", "Knowledge (Lore)", "Melee (Light)", "Perception", "Vigilance"),
-        Career(GameSystem.RealmsOfTerrinoth, "Runemaster", "Мастер рун — вариант мага, черпающий силу из рунных осколков.",
-            "Runes", "Cool", "Discipline", "Knowledge (Forbidden)", "Knowledge (Lore)", "Melee (Heavy)", "Perception", "Resilience"),
-        Career(GameSystem.RealmsOfTerrinoth, "Primalist", "Заклинатель первозданной магии природы.",
-            "Primal", "Brawl", "Coercion", "Medicine", "Perception", "Resilience", "Survival", "Vigilance"),
-        Career(GameSystem.RealmsOfTerrinoth, "Scholar", "Учёный, искатель знаний.",
-            "Alchemy", "Discipline", "Knowledge (Adventuring)", "Knowledge (Forbidden)", "Knowledge (Geography)", "Knowledge (Lore)", "Medicine", "Perception"),
-        Career(GameSystem.RealmsOfTerrinoth, "Scoundrel", "Вор, контрабандист и авантюрист.",
+        Career(GameSystem.RealmsOfTerrinoth, "Disciple", "Послушник",
+            "Мистик и служитель, помогающий другим через веру, исцеление, наставление и оружие, благословлённое богами.",
+            "Athletics", "Charm", "Discipline", "Divine", "Knowledge (Lore)", "Leadership", "Melee (Light)", "Resilience"),
+        Career(GameSystem.RealmsOfTerrinoth, "Envoy", "Посланник",
+            "Дипломат, бард, дворянин или представитель власти; голос группы в переговорах, интригах и убеждении.",
+            "Charm", "Cool", "Deception", "Knowledge (Geography)", "Leadership", "Melee (Light)", "Negotiation", "Vigilance"),
+        Career(GameSystem.RealmsOfTerrinoth, "Mage", "Маг",
+            "Арканный заклинатель и исследователь тайн, способный уничтожать врагов и менять мир с помощью магии.",
+            "Alchemy", "Arcana", "Cool", "Discipline", "Knowledge (Adventuring)", "Knowledge (Forbidden)", "Knowledge (Lore)", "Perception"),
+        Career(GameSystem.RealmsOfTerrinoth, "Runemaster", "Рунный мастер",
+            "Вариант мага, сосредоточенный на рунах и рунических осколках вместо обычной арканной магии.",
+            "Alchemy", "Cool", "Discipline", "Knowledge (Adventuring)", "Knowledge (Forbidden)", "Knowledge (Lore)", "Perception", "Runes"),
+        Career(GameSystem.RealmsOfTerrinoth, "Primalist", "Первозданник",
+            "Заклинатель природы, духов, бурь и живых богов; поддерживает союзников, управляет стихиями и дикой силой.",
+            "Alchemy", "Brawl", "Discipline", "Knowledge (Lore)", "Medicine", "Melee (Heavy)", "Primal", "Survival"),
+        Career(GameSystem.RealmsOfTerrinoth, "Scholar", "Учёный",
+            "Исследователь истории, культур, алхимии, ремёсел и рун; верит, что знание само по себе является силой.",
+            "Alchemy", "Knowledge (Forbidden)", "Knowledge (Geography)", "Knowledge (Lore)", "Mechanics", "Medicine", "Perception", "Runes"),
+        Career(GameSystem.RealmsOfTerrinoth, "Scoundrel", "Проходимец",
+            "Ловкий мошенник, вор, пират, убийца, торговец или авантюрист, выживающий за счёт ума и скорости.",
             "Charm", "Cool", "Coordination", "Deception", "Ranged", "Skulduggery", "Stealth", "Streetwise"),
-        Career(GameSystem.RealmsOfTerrinoth, "Scout", "Следопыт и разведчик диких земель.",
-            "Athletics", "Brawl", "Coordination", "Knowledge (Geography)", "Perception", "Ranged", "Stealth", "Survival"),
-        Career(GameSystem.RealmsOfTerrinoth, "Warrior", "Воин, мастер ближнего боя.",
-            "Athletics", "Brawl", "Coercion", "Melee (Heavy)", "Melee (Light)", "Perception", "Resilience", "Vigilance"),
+        Career(GameSystem.RealmsOfTerrinoth, "Scout", "Разведчик",
+            "Следопыт, охотник, рейнджер или дозорный, одинаково хорошо охотящийся на зверей и людей.",
+            "Knowledge (Adventuring)", "Knowledge (Geography)", "Perception", "Ranged", "Riding", "Stealth", "Survival", "Vigilance"),
+        Career(GameSystem.RealmsOfTerrinoth, "Warrior", "Воин",
+            "Мастер оружия и битвы: рыцарь, берсерк, маршал, наёмник или странствующий чемпион.",
+            "Brawl", "Coercion", "Leadership", "Melee (Heavy)", "Melee (Light)", "Resilience", "Riding", "Vigilance"),
     ];
 
     // ─────────────────────────── talents ───────────────────────────
