@@ -16,6 +16,10 @@ export function AuthPage() {
   const [resetMode, setResetMode] = useState<'reset-request' | 'reset-confirm' | null>(
     resetToken ? 'reset-confirm' : null)
   const mode: Mode = resetMode ?? (path === '/register' ? 'register' : 'login')
+  // Стартовый экран — список способов входа; форма открывается по выбору способа.
+  // Сразу показываем форму, если это глубокая ссылка (регистрация/сброс) или истёкшая сессия.
+  const [showForm, setShowForm] = useState(
+    () => !!resetToken || path === '/register' || sessionExpired)
   // Куда вернёмся после повторного входа (если сессия истекла на конкретном экране).
   const returnTo = sessionExpired ? peekReturnTo() : null
   const [email, setEmail] = useState('')
@@ -39,6 +43,21 @@ export function AuthPage() {
     setError(null)
     setInfo(null)
     navigate(to)
+  }
+
+  // Открыть форму выбранным способом со стартового экрана.
+  function openForm(to: '/login' | '/register') {
+    goAuth(to)
+    setShowForm(true)
+  }
+
+  // Вернуться со формы на стартовый экран со способами входа.
+  function backToLanding() {
+    setResetMode(null)
+    setError(null)
+    setInfo(null)
+    setShowForm(false)
+    navigate('/login')
   }
 
   async function submit(e: FormEvent) {
@@ -71,18 +90,6 @@ export function AuthPage() {
     }
   }
 
-  async function resendConfirmation() {
-    setError(null)
-    if (!email) { setInfo('Введите e-mail, чтобы выслать письмо подтверждения.'); return }
-    try {
-      await api.resendEmailConfirmation(email)
-      // Всегда одинаковый ответ — не раскрываем наличие/статус аккаунта.
-      setInfo('Если e-mail не подтверждён, мы выслали новую ссылку подтверждения.')
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Не удалось отправить письмо.')
-    }
-  }
-
   const onGoogleCredential = useCallback(async (idToken: string) => {
     setError(null)
     try {
@@ -98,10 +105,45 @@ export function AuthPage() {
         : mode === 'reset-request' ? 'Отправить ссылку'
           : 'Сохранить пароль'
 
+  // ── Стартовый экран: бренд сверху, способы входа стопкой, подпись снизу. ──
+  if (!showForm) {
+    return (
+      <div className="auth-page">
+        <div className="auth-card auth-landing">
+          <h1 className="logo auth-brand">Genesys Forge</h1>
+          <p className="muted auth-brand-sub">Листы персонажей для Genesys Core и Realms of Terrinoth</p>
+
+          {sessionExpired && (
+            <div className="notice warn">Сессия истекла — войдите снова.</div>
+          )}
+          {error && <div className="error">{error}</div>}
+
+          <div className="auth-methods">
+            {googleClientId && (
+              <GoogleSignInButton clientId={googleClientId}
+                onCredential={onGoogleCredential} onError={setError} />
+            )}
+            <button className="primary auth-method" type="button" onClick={() => openForm('/login')}>
+              Войти по e-mail
+            </button>
+            <button className="auth-method" type="button" onClick={() => openForm('/register')}>
+              Создать аккаунт
+            </button>
+          </div>
+
+          <p className="auth-foot muted small-text">
+            Некоммерческий фанатский инструмент для Genesys от Fantasy Flight Games.
+          </p>
+        </div>
+      </div>
+    )
+  }
+
+  // ── Форма выбранного способа (e-mail вход / регистрация / сброс пароля). ──
   return (
     <div className="auth-page">
       <div className="auth-card">
-        <h1 className="logo">Genesys Forge</h1>
+        <h1 className="logo auth-brand">Genesys Forge</h1>
         <p className="muted">Листы персонажей для Genesys Core и Realms of Terrinoth</p>
 
         {sessionExpired && mode === 'login' && !info && (
@@ -165,16 +207,14 @@ export function AuthPage() {
               Забыли пароль?
             </button>
           )}
-          {mode === 'login' && (
-            <button className="linklike" type="button" onClick={() => void resendConfirmation()}>
-              Письмо для подтверждения e-mail не пришло? Отправить повторно
-            </button>
-          )}
           {(mode === 'reset-request' || mode === 'reset-confirm') && (
             <button className="linklike" type="button" onClick={() => goAuth('/login')}>
               ← Вернуться ко входу
             </button>
           )}
+          <button className="linklike" type="button" onClick={backToLanding}>
+            ← Все способы входа
+          </button>
         </div>
 
         {googleClientId && (

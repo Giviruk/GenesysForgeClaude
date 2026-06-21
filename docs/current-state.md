@@ -65,7 +65,7 @@
 ## Not implemented yet
 
 - Refresh tokens or session rotation.
-- Password reset / email confirmation.
+- Password reset (endpoints exist; email delivery is stubbed to logs).
 - Real URL routing with deep links.
 - Shareable character sheets by URL.
 - Import/export character files.

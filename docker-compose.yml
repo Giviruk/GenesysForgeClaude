@@ -27,10 +27,8 @@ services:
       Jwt__Key: ${JWT_KEY:-genesysforge-dev-signing-key-change-in-production!}
       # Время жизни access-токена в минутах (короткое — сессия продлевается refresh-токеном). По умолчанию 30.
       Jwt__AccessLifetimeMinutes: ${JWT_ACCESS_LIFETIME_MINUTES:-30}
-      # Базовый адрес сайта для ссылок в письмах (сброс пароля, подтверждение e-mail).
+      # Базовый адрес сайта для ссылок в письмах (сброс пароля).
       App__BaseUrl: ${APP_BASE_URL:-http://localhost:8080}
-      # Требовать подтверждённый e-mail для входа (для публичного запуска). По умолчанию выключено.
-      Auth__RequireEmailConfirmation: ${REQUIRE_EMAIL_CONFIRMATION:-false}
       # Google OAuth (опционально). Пусто — вход через Google выключен (кнопка скрыта).
       Auth__Google__ClientId: ${GOOGLE_CLIENT_ID:-}
     depends_on:

@@ -98,10 +98,6 @@ export const api = {
     request<void>('POST', '/api/auth/password-reset/request', { email }),
   confirmPasswordReset: (token: string, newPassword: string) =>
     request<void>('POST', '/api/auth/password-reset/confirm', { token, newPassword }),
-  confirmEmail: (token: string) =>
-    request<void>('POST', '/api/auth/email/confirm', { token }),
-  resendEmailConfirmation: (email: string) =>
-    request<void>('POST', '/api/auth/email/resend', { email }),
   authProviders: () => request<AuthProviders>('GET', '/api/auth/providers'),
   googleSignIn: (idToken: string) =>
     request<AuthResponse>('POST', '/api/auth/google', { idToken }),

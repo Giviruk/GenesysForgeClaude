@@ -8,7 +8,6 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
 {
     public DbSet<User> Users => Set<User>();
     public DbSet<PasswordResetToken> PasswordResetTokens => Set<PasswordResetToken>();
-    public DbSet<EmailConfirmationToken> EmailConfirmationTokens => Set<EmailConfirmationToken>();
     public DbSet<ExternalAuthIdentity> ExternalAuthIdentities => Set<ExternalAuthIdentity>();
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
     public DbSet<SkillDef> SkillDefs => Set<SkillDef>();
@@ -41,16 +40,6 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         b.Entity<User>(e =>
         {
             e.HasIndex(u => u.Email).IsUnique();
-            // Существующие до фичи аккаунты считаются подтверждёнными; новые регистрации ставят false явно.
-            e.Property(u => u.EmailConfirmed).HasDefaultValue(true);
-        });
-
-        b.Entity<EmailConfirmationToken>(e =>
-        {
-            e.HasIndex(t => t.TokenHash);
-            e.HasIndex(t => t.UserId);
-            e.Property(t => t.TokenHash).HasMaxLength(64);
-            e.HasOne<User>().WithMany().HasForeignKey(t => t.UserId).OnDelete(DeleteBehavior.Cascade);
         });
 
         b.Entity<PasswordResetToken>(e =>

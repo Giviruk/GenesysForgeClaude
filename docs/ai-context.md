@@ -22,7 +22,7 @@ Reference content model: every reference def (`SkillDef`/`TalentDef`/`ItemDef`/`
 
 Talents carry a `Setting` (`[Flags] GenesysSetting`) and are data-driven: built-in talents come from the embedded `Persistence/SeedContent/talents.catalog.json` catalog (`TalentCatalog`), generated from source CSVs (structure + reworked descriptions). Reference filtering: Genesys Core lists `Any`-setting talents; Realms of Terrinoth lists `Any` + `Fantasy`; a character's own custom talents always show. `_books/` (source PDFs/CSVs) is gitignored and must never be committed.
 
-Partially implemented: frontend routing/state, UI validation, frontend component test coverage, mechanical talent/heroic ability effects, production operations. Not implemented yet: refresh tokens/session rotation, password reset/email confirmation, shareable deep links, import/export character files, full printable character sheet, E2E tests, API versioning.
+Partially implemented: frontend routing/state, UI validation, frontend component test coverage, mechanical talent/heroic ability effects, production operations. Not implemented yet: refresh tokens/session rotation, password reset, shareable deep links, import/export character files, full printable character sheet, E2E tests, API versioning.
 
 ## Core entities
 

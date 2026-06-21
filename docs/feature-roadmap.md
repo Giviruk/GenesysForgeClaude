@@ -68,7 +68,7 @@ Status: implemented in current codebase.
 - User-facing documentation или help pages без официальных текстов.
 - Release checklist и changelog.
 - Security review auth и ownership checks.
-- Решение по refresh/session rotation, password reset/email confirmation и URL deep links; рабочий план — `docs/mvp-ux-account-readiness.md`.
+- Решение по refresh/session rotation, password reset и URL deep links; рабочий план — `docs/mvp-ux-account-readiness.md`.
 
 ## Future Features
 

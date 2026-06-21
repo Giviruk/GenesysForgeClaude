@@ -45,21 +45,6 @@ public static class AuthEndpoints
             return Results.NoContent();
         });
 
-        // Подтверждение e-mail по токену из письма + повторная отправка (всегда 204, без раскрытия аккаунта).
-        group.MapPost("/email/confirm", async (ConfirmEmailRequest req,
-            ICommandHandler<ConfirmEmailCommand, Unit> handler, CancellationToken ct) =>
-        {
-            await handler.Handle(new ConfirmEmailCommand(req), ct);
-            return Results.NoContent();
-        });
-
-        group.MapPost("/email/resend", async (ResendEmailConfirmationRequest req,
-            ICommandHandler<ResendEmailConfirmationCommand, Unit> handler, CancellationToken ct) =>
-        {
-            await handler.Handle(new ResendEmailConfirmationCommand(req), ct);
-            return Results.NoContent();
-        });
-
         // Вход через Google: фронтенд присылает ID-токен от Google Identity Services.
         group.MapPost("/google", async (GoogleSignInRequest req, HttpContext ctx,
             ICommandHandler<GoogleSignInCommand, AuthResponse> handler, IRefreshTokenService refresh,

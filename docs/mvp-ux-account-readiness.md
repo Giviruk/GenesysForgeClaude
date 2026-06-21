@@ -72,9 +72,12 @@ Google OAuth, refresh-token rotation and real-time collaboration are not require
 
    Assumption: email provider and sender domain are not selected yet.
 
-4. Email confirmation fourth.
+4. Email confirmation fourth. **Removed.**
 
-   Add only if public signup abuse or account ownership is a real release risk. For private MVP, invite/manual account policy may be enough.
+   Was added during this work, then removed from the project by product decision: registration logs the
+   user in immediately and there is no e-mail confirmation step. Account policy relies on invite/manual
+   moderation (see `docs/operator-notes.md`). Re-introduce only if public signup abuse or account
+   ownership becomes a real release risk.
 
 5. Google OAuth fifth.
 

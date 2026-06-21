@@ -102,6 +102,15 @@ label.checkbox input { width: auto; }
 .logo { font-family: Georgia, serif; color: var(--accent); letter-spacing: 0.05em; cursor: pointer; }
 h1.logo { margin: 0 0 0.3rem; }
 
+/* Стартовый экран входа: бренд по центру, способы входа стопкой */
+.auth-landing { text-align: center; }
+h1.auth-brand { font-size: 2rem; margin: 0 0 0.2rem; }
+.auth-brand-sub { margin: 0 0 1.6rem; }
+.auth-methods { display: flex; flex-direction: column; align-items: center; gap: 0.7rem; margin: 0.5rem 0 1.4rem; }
+.auth-method { width: 100%; max-width: 17.5rem; }
+.auth-foot { margin: 0; }
+.auth-landing .error, .auth-landing .notice { text-align: left; }
+
 /* Внешние провайдеры входа (Google) */
 .auth-divider-block { margin-top: 1rem; }
 .auth-divider { display: flex; align-items: center; gap: 0.6rem; color: var(--muted); margin: 0.6rem 0; }

@@ -14,11 +14,8 @@ Fields:
 - `password`
 - `displayName`
 
-Response: `AuthResponse` with `token`, `userId`, `email`, `displayName`.
-
-New accounts start with `EmailConfirmed = false`; a confirmation link is "sent" (stubbed to the
-API log via `LoggingEmailSender`, base address `App:BaseUrl`). Accounts created before this feature
-are treated as confirmed.
+Response: `AuthResponse` with `token`, `userId`, `email`, `displayName`. Registration logs the user
+in immediately (no email confirmation step).
 
 Known errors:
 
@@ -38,24 +35,9 @@ Response: `AuthResponse` (a short-lived access JWT, default 30 min via `Jwt:Acce
 On success a long-lived **refresh token** is also set as an `HttpOnly` `SameSite=Lax` cookie
 (`gf_refresh`, path `/api/auth`, `Secure` on HTTPS). `register` sets the same cookie.
 
-When `Auth:RequireEmailConfirmation` is `true`, unconfirmed users are rejected with `401` until
-they confirm. Default is `false` (private MVP does not block login).
-
 Known errors:
 
-- `401` for wrong credentials, or an unconfirmed email when confirmation is required.
-
-### `POST /api/auth/email/confirm`
-
-Public. Request: `ConfirmEmailRequest` (`token`). Marks the email confirmed and invalidates the
-token (single-use). Returns `204`.
-
-- `400` for an invalid/expired/used token.
-
-### `POST /api/auth/email/resend`
-
-Public. Request: `ResendEmailConfirmationRequest` (`email`). Always returns `204` (no enumeration);
-re-sends a confirmation link only if the account exists and is not yet confirmed.
+- `401` for wrong credentials.
 
 ### `POST /api/auth/password-reset/request`
 

@@ -1,8 +1,6 @@
-import { useState } from 'react'
 import { AuthProvider } from './auth'
 import { useAuth } from './auth-context'
 import { AuthPage } from './pages/AuthPage'
-import { ConfirmEmailPage } from './pages/ConfirmEmailPage'
 import { CharactersPage } from './pages/CharactersPage'
 import { CampaignsPage } from './pages/CampaignsPage'
 import { NpcsPage } from './pages/NpcsPage'
@@ -13,16 +11,6 @@ import { navigate, parseRoute, usePath, type AppArea } from './router'
 function Shell() {
   const { token, logout } = useAuth()
   const path = usePath()
-  // Ссылка подтверждения e-mail (?confirmToken=…) обрабатывается до проверки сессии.
-  const [confirmToken, setConfirmToken] = useState(
-    () => new URLSearchParams(window.location.search).get('confirmToken'))
-
-  if (confirmToken) {
-    return <ConfirmEmailPage token={confirmToken} onDone={() => {
-      window.history.replaceState(null, '', window.location.pathname)
-      setConfirmToken(null)
-    }} />
-  }
 
   if (!token) return <AuthPage />
 

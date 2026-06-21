@@ -136,5 +136,5 @@ Critical gaps:
 - No URL deep linking.
 - No global data cache.
 - UI behavior depends on full refresh after mutations.
-- No self-service password reset or email confirmation UI.
+- No self-service password reset UI.
 

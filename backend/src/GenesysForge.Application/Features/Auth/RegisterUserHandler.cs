@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore;
 namespace GenesysForge.Application.Features.Auth;
 
 public class RegisterUserHandler(
-    IAppDbContext db, ITokenService tokens, IPasswordHasherService hasher, IEmailSender emailSender)
+    IAppDbContext db, ITokenService tokens, IPasswordHasherService hasher)
     : ICommandHandler<RegisterUserCommand, AuthResponse>
 {
     public async Task<AuthResponse> Handle(RegisterUserCommand command, CancellationToken ct = default)
@@ -28,14 +28,11 @@ public class RegisterUserHandler(
         var user = new User
         {
             Id = Guid.NewGuid(), Email = email, DisplayName = req.DisplayName.Trim(),
-            PasswordHash = "", EmailConfirmed = false,
+            PasswordHash = "",
         };
         user.PasswordHash = hasher.Hash(user, req.Password!);
         db.Users.Add(user);
         await db.SaveChangesAsync(ct);
-
-        // Выдаём токен подтверждения и «отправляем» письмо (заглушка пишет ссылку в лог).
-        await EmailTokens.IssueAndSendAsync(db, emailSender, user, ct);
 
         return new AuthResponse(tokens.CreateToken(user), user.Id, user.Email, user.DisplayName);
     }
