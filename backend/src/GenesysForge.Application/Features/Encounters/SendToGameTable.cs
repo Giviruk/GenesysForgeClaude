@@ -42,7 +42,9 @@ public class SendToGameTableHandler(IAppDbContext db) : ICommandHandler<SendToGa
                 db, session.Id, encounter.CampaignId, ToAddRequest(ep), ct);
             ApplyEncounterState(participant, ep);
             participant.Order = order++;
-            session.Participants.Add(participant);
+            // Через DbSet, а не в Include-коллекцию (Append к существующей сессии иначе
+            // ломает InMemory-провайдер). FK SessionId уже проставлен фабрикой.
+            db.GameParticipants.Add(participant);
         }
 
         session.UpdatedAt = DateTime.UtcNow;

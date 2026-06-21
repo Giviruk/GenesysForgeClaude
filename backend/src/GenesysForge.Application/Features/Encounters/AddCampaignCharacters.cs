@@ -33,9 +33,11 @@ public class AddCampaignCharactersHandler(IAppDbContext db)
         var existing = encounter.Participants.Where(p => p.CharacterId != null).Select(p => p.CharacterId).ToHashSet();
         var order = encounter.Participants.Count == 0 ? 0 : encounter.Participants.Max(p => p.Order) + 1;
 
+        // Добавляем через DbSet, а не в Include-коллекцию: иначе InMemory-провайдер кидает
+        // DbUpdateConcurrencyException. Для ответа перечитываем энкаунтер свежим.
         foreach (var m in members.Where(m => !existing.Contains(m.CharacterId)))
         {
-            encounter.Participants.Add(new EncounterParticipant
+            db.EncounterParticipants.Add(new EncounterParticipant
             {
                 Id = Guid.NewGuid(),
                 EncounterId = encounter.Id,
@@ -50,6 +52,8 @@ public class AddCampaignCharactersHandler(IAppDbContext db)
 
         encounter.UpdatedAt = DateTime.UtcNow;
         await db.SaveChangesAsync(ct);
-        return EncounterMapper.ToDetail(encounter, isGm: true);
+
+        var fresh = await EncounterMapper.LoadAsync(db, encounter.Id, ct);
+        return EncounterMapper.ToDetail(fresh, isGm: true);
     }
 }

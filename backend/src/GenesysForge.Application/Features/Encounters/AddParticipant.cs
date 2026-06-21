@@ -16,10 +16,13 @@ public class AddEncounterParticipantHandler(IAppDbContext db)
         var participant = await EncounterParticipantFactory.CreateAsync(
             db, encounter.Id, encounter.CampaignId, command.Request, ct);
         participant.Order = encounter.Participants.Count == 0 ? 0 : encounter.Participants.Max(p => p.Order) + 1;
-        encounter.Participants.Add(participant);
+        // Добавляем через DbSet, а не в Include-коллекцию: иначе InMemory-провайдер кидает
+        // DbUpdateConcurrencyException. Для ответа перечитываем энкаунтер свежим.
+        db.EncounterParticipants.Add(participant);
         encounter.UpdatedAt = DateTime.UtcNow;
-
         await db.SaveChangesAsync(ct);
-        return EncounterMapper.ToDetail(encounter, isGm: true);
+
+        var fresh = await EncounterMapper.LoadAsync(db, encounter.Id, ct);
+        return EncounterMapper.ToDetail(fresh, isGm: true);
     }
 }
