@@ -199,6 +199,7 @@ table.skills td { padding: 0.3rem 0.5rem; border-bottom: 1px solid rgba(58, 49, 
   gap: 0 2rem;
   align-items: start;
 }
+.skill-column { display: flex; flex-direction: column; min-width: 0; }
 .skill-block { min-width: 0; overflow-x: visible; padding-bottom: 0.25rem; }
 .skill-block .skill-kind { margin-top: 0.6rem; }
 table.skills.fixed { table-layout: fixed; min-width: 0; }
