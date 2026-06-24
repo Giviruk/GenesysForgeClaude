@@ -14,6 +14,10 @@
 
 Шкала приоритетов: **P0** блокеры/фундамент → **P1** ядро ценности → **P2** игровой движок/глубина → **P3** полировка/паблик.
 
+**Статусы задач** (строка `Статус` под каждым `U-xx`; обновляет агент — см. [AGENTS.md](../AGENTS.md) §5):
+⬜ Todo · 🚧 In progress · ✅ Done (PR #N). `✅` — только после слияния PR.
+Детальные планы по задачам — в [tasks/](tasks/).
+
 ---
 
 ## Карта соответствия (audit ↔ GF-plan)
@@ -49,12 +53,14 @@
 # P0 — Стабилизация и снятие блокеров запуска
 
 ## U-01 · Синхронизация документации с кодом
+- **Статус:** ⬜ Todo
 - **Источник:** GF-001
 - **Зачем:** документы расходятся с кодом (refresh-токены, password reset, Game Table, magic builder уже есть). AI-агенты получают неверный контекст.
 - **Scope (Docs):** обновить `README.md`, `docs/current-state.md`, `docs/feature-roadmap.md`, `docs/mvp-ux-account-readiness.md`, `docs/api.md`. Разнести в `current-state.md`: Implemented / Partially / Not implemented / Technical risks / Domain gaps.
 - **DoD:** документы не противоречат коду; в `feature-roadmap.md` задачи разбиты MVP/Beta/1.0/Future.
 
 ## U-02 · Лицензия, авторские права и публичность
+- **Статус:** ⬜ Todo
 - **Источник:** Аудит §10 (+ changelog из GF-016)
 - **Зачем:** **отсутствие `LICENSE` — юридический блокер** публичного релиза; нужен дисклеймер о правах FFG/Genesys.
 - **Scope:**
@@ -65,6 +71,7 @@
 - **DoD:** есть LICENSE; футер/README ссылаются на About, changelog, sponsors; дисклеймер виден; roadmap опубликован.
 
 ## U-03 · Экспорт/импорт персонажа в JSON
+- **Статус:** ⬜ Todo
 - **Источник:** GF-002 · Аудит §2.4 (боль сообщества #3)
 - **Зачем:** бэкапы, перенос между аккаунтами, обмен с мастером, совместимость.
 - **Scope (B):** `GET /api/characters/{id}/export`, `POST /api/characters/import`, опц. `POST /api/characters/import/preview`. Формат `genesysforge.character.v1` (см. GF-002 в todo-plan). Без `OwnerUserId`/internal id; built-in маппится по `Code`, fallback `System+Name`; custom — импортировать вместе или помечать unresolved.
@@ -74,6 +81,7 @@
 - **DoD:** round-trip export→import сохраняет основные значения; нет зависимости от старых id.
 
 ## U-04 · Полный printable / PDF-friendly лист персонажа
+- **Статус:** ⬜ Todo
 - **Источник:** GF-003 · Аудит §2.4, §9.2 (сейчас только печать карточек)
 - **Зачем:** «нормальный PDF-экспорт» — боль сообщества #4.
 - **Scope (F):** маршрут `/characters/:id/print` или кнопка «Печать листа» в `SheetPage`. На листе: основная инфо, 6 характеристик, derived (wounds/strain/soak/melee+ranged defense/enc threshold/current enc), навыки (RU/EN, карьерный, ранг, характеристика, dice pool), таланты (tier/ranked/activation/эффект), героика (activation/duration/frequency/upgrade rank/эффект), инвентарь (equipped/backpack/qty/enc/боевые статы/броня), заметки. Использовать существующий `CharacterSheetDto`.
@@ -81,6 +89,7 @@
 - **DoD:** печатается на A4/Letter без разрывов; навигация/кнопки не печатаются; сохранение в PDF через системный диалог.
 
 ## U-05 · Production hardening (безопасность + эксплуатация)
+- **Статус:** ⬜ Todo
 - **Источник:** GF-016 · Аудит §9 (rate limiting, логи), §10 (changelog)
 - **Scope (B/Deploy):**
   - **Rate limiting** на `/api/auth/*` (`AddRateLimiter`, пакет уже в зависимостях) — против brute force.
@@ -91,6 +100,7 @@
 - **DoD:** auth защищён от простого brute force; secure cookies в prod; есть backup/restore и rollback инструкции; health checks покрывают API+DB; PublicSafe не содержит private content.
 
 ## U-06 · Реальный email provider + публичный password reset
+- **Статус:** ⬜ Todo
 - **Источник:** GF-014 · Аудит §1.1
 - **Зачем:** сейчас отправка письма — `LoggingEmailSender` (stub).
 - **Scope (B):** реализация `IEmailSender` (SMTP/Resend/Mailgun/SendGrid). Конфиг `Email__Provider/From/Smtp__*`. Токен — только hash, expiry 15–60 мин, single-use, revoke сессий после смены (refresh-семейство уже есть). Rate limiting (из U-05).
@@ -98,6 +108,7 @@
 - **DoD:** восстановление пароля без доступа к логам; токен одноразовый; тесты на expiry/reuse/invalid.
 
 ## U-07 · Реальные URL / deep links
+- **Статус:** ⬜ Todo
 - **Источник:** GF-013
 - **Зачем:** refresh страницы сбрасывает экран; нельзя поделиться ссылкой.
 - **Scope (F):** маршруты `/login /register /characters /characters/:id /characters/:id/print /campaigns /campaigns/:id /campaigns/:id/table /campaigns/:id/encounters/:eid /npcs /npcs/:id /magic`. Есть [router.ts](../frontend/src/router.ts) — расширить или перейти на React Router. После login возврат на исходный URL; 404/empty state; нет данных без авторизации.
@@ -108,6 +119,7 @@
 # P1 — Полнота персонажа и «правила как данные»
 
 ## U-08 · Нарративный dice roller + секретный бросок GM
+- **Статус:** ⬜ Todo
 - **Источник:** Аудит §7 (НЕ покрыто GF-планом — GF-011 только боевой)
 - **Зачем:** ключевой GM live-tool; сейчас `DicePoolView` показывает только **состав** пула.
 - **Scope (F, v1 без сохранения):** собрать пул (ability/proficiency/difficulty/challenge/boost/setback), бросок, результат символами **Success/Failure/Advantage/Threat/Triumph/Despair** с нетто-итогом. Кнопка «бросить» из листа/NPC по навыку.
@@ -116,12 +128,14 @@
 - **DoD:** игрок/GM бросает пул и видит символьный результат; секретный бросок не виден игрокам; бросок появляется в логе стола realtime.
 
 ## U-09 · История трат XP / audit log
+- **Статус:** ⬜ Todo
 - **Источник:** GF-004 · Аудит §2.3
 - **Scope (B):** `CharacterAuditEntry` + enum `CharacterAuditAction` (см. GF-004). Писать запись при buy/refund характеристик/навыков/талантов/предметов, complete-creation, ручном изменении XP — в одной транзакции с операцией. `GET /api/characters/{id}/audit`, `POST /api/characters/{id}/xp-awards`.
 - **Scope (F):** вкладка «История» на листе (дата/тип/описание/ΔXP/состояние после).
 - **DoD:** все XP-операции в истории; видно, почему изменился `SpentXp`; виден refund.
 
 ## U-10 · Структурные свойства предметов и эффекты заклинаний
+- **Статус:** ⬜ Todo
 - **Источник:** GF-005 · Аудит §8 (крафт/качества)
 - **Зачем:** строки `Properties` мешают фильтрам/тултипам/валидации/роллеру.
 - **Scope (B/D):** `QualityDef` (Code/NameEn/NameRu/Kind/HasRating/DefaultActivationCost/Desc/SafeDesc/Source) + `ItemQualityValue(ItemDefId, QualityDefId, Rating)`. Seed справочника из **`_books/_qualities/genesys_rot_item_and_spell_qualities.csv`** (94 качества, уже с рейтингом/тратой/категорией). Миграция: сохранить старое `ItemDef.Properties`, написать parser строк («Точное 1», «Pierce 3»), fallback на строку.
@@ -129,6 +143,7 @@
 - **DoD:** структурные свойства у предметов; старые не ломаются; tooltips и фильтр работают; готово для роллера.
 
 ## U-11 · Справочные таблицы правил + глобальный поиск
+- **Статус:** ⬜ Todo
 - **Источник:** Аудит §8 (НЕ в GF-плане)
 - **Зачем:** сейчас `/api/reference` отдаёт контент, а не правила-таблицы.
 - **Scope (B/D):** статические данные-таблицы: сложности (Difficulty/Challenge по задаче), траты Advantage/Threat/Triumph/Despair по ситуациям (бой/социалка/прочее), range bands, таблица критических ранений (d100). Источники парафразов — `_magic` CSV (траты символов уже размечены колонками «Расход …») и Core Rulebook.
@@ -136,18 +151,21 @@
 - **DoD:** мастер видит таблицы трат/сложностей/дистанций/критов; поиск находит по названию/символу.
 
 ## U-12 · Структурные модели архетипов/видов
+- **Статус:** ⬜ Todo
 - **Источник:** GF-006 · Аудит §3
 - **Scope (B):** `ArchetypeAbilityDef` (видовые способности + AutomationKind) и `ArchetypeStartingSkill` (FreeRanks/IsChoice/ChoiceGroup). Применять стартовые навыки/выборы при создании.
 - **Scope (F):** на выборе вида показывать характеристики, wounds/strain/xp, стартовые навыки, способности, предупреждения по выборам.
 - **DoD:** видовые способности — данные, а не только описание; стартовые навыки применяются автоматически; новые виды без кода.
 
 ## U-13 · Структурные модели карьер + стартовое снаряжение
+- **Статус:** ⬜ Todo
 - **Источник:** GF-007 · Аудит §3
 - **Scope (B):** `CareerStartingGear` (ItemCode/qty/choice) и `CareerRule` (Kind). На создании RoT: выбор бесплатных карьерных рангов, выбор стартового снаряжения → в инвентарь, валидация числа опций.
 - **Справочные данные:** карьерный CSV (`genesys_rot_core_careers_ru.csv` упомянут в коде, но **в `_books` отсутствует** — см. reference-materials, нужно запросить).
 - **DoD:** RoT-карьеры выдают стартовое снаряжение в инвентарь; правила выбора в UI; карьерные навыки остаются data-driven.
 
 ## U-14 · Структурированные атаки NPC
+- **Статус:** ⬜ Todo
 - **Источник:** GF-008 · Аудит §5
 - **Зачем:** `Npc.Equipment` = `List<string>` — мало для боя/карточек/импорта.
 - **Scope (B):** `NpcAttack` (Name/SkillName/Damage/Critical/RangeBand/Notes) + `NpcAttackQuality` (QualityCode/NameRu/Rating). Перенести боевые строки из `Equipment` в атаки, оставить `Equipment` для небоевого. Обновить `NpcDto`, endpoints.
@@ -155,6 +173,7 @@
 - **DoD:** у NPC несколько структурных атак; Encounter/Game Table их видят; карточка пригодна для стола.
 
 ## U-15 · Валидация NPC (errors + warnings)
+- **Статус:** ⬜ Todo
 - **Источник:** GF-009 · Аудит §5
 - **Scope (B):** `NpcValidationResult { Errors, Warnings }`. Правила: Minion (strain=null, не слишком много актив. способностей, group skills); Rival (strain опционален); Nemesis (strain обязателен, hook рекомендован); defense >4 warning / >6 error без override; magic skill RoT должен соответствовать доступным действиям; атаки требуют skill/damage/range, crit положительный/пустой, qualities из справочника или custom.
 - **DoD:** errors блокируют сохранение; warnings показываются и не блокируют; QuickDraft создаёт NPC без errors.
@@ -164,51 +183,60 @@
 # P2 — Игровой движок и глубина контента
 
 ## U-16 · NPC Draft Generator под Realms of Terrinoth
+- **Статус:** ⬜ Todo
 - **Источник:** GF-010 · Аудит §3.2/§5
 - **Scope (B):** расширить [NpcDraftGenerator.cs](../backend/src/GenesysForge.Domain/Rules/NpcDraftGenerator.cs): роли Undead/Beast/Dragon/Demon/Construct/Minion Swarm; параметры setting/creatureTags/magicSkill/environment. Для RoT — навыки RoT (Melee Light/Heavy, Ranged, Runes, Verse, Knowledge (Lore)), без Core-only (Computers/Driving/Operating); magic NPC → magic skill; undead → теги/сопротивления/terror; beast/monster → natural weapons. Генерить структурные `NpcAttack` (из U-14).
 - **DoD:** разные NPC для RoT и Core; RoT не получает Core-навыки; генерит структурные атаки + теги + warnings.
 
 ## U-17 · Боевой attack/damage roller
+- **Статус:** ⬜ Todo
 - **Источник:** GF-011 · Аудит §7
 - **Зачем:** первый слой боевых бросков поверх U-08 (пул) и U-10 (качества).
 - **Scope:** выбрать персонажа/NPC и оружие/атаку → показать skill+характеристику, собрать базовый пул, вручную добавить difficulty/boost/setback/upgrade, бросок (через U-08) → ввод/расчёт net successes/adv/threat/triumph/despair → базовый damage + доступные качества с ценой активации. v1 — frontend calc; лог — через `RollLogEntry` (U-08).
 - **DoD:** видно расчёт базового урона по оружию; качества показаны с ценой активации; roller не решает за мастера.
 
 ## U-18 · Автоматизация талантов и героических способностей
+- **Статус:** ⬜ Todo
 - **Источник:** GF-012 · Аудит §2.2
 - **Scope (B):** `RuleEffectDef` (Source/Timing/Automation/Target/DataJson). Автоматизировать простое: +wt/+st/+soak/+melee+ranged def/+enc threshold, heal wounds/strain, spend story points, add boost/setback к следующей проверке, timed-effect с длительностью. НЕ автоматизировать сложные нарративные/GM-решения (показывать как manual prompt).
 - **Scope (F):** для активных талантов/героик — кнопка «Активировать» (стоимость, авто-часть, timed effect, запись в audit-log U-09).
 - **DoD:** простые активные эффекты применяются кнопкой; сложные — manual prompt; видно, что применилось автоматически.
 
 ## U-19 · Преднаполненный бестиарий Terrinoth
+- **Статус:** ⬜ Todo
 - **Источник:** Аудит §3.2/§5 (НЕ в GF-плане)
 - **Scope (D):** seed-набор существ RoT как built-in NPC (stat-блоки) поверх существующей модели NPC + U-14 атак. Источник — `_books/Королевство Терринот.pdf` (нужно извлечь stat-блоки, парафраз, без текста книги).
 - **DoD:** в библиотеке NPC есть встроенные существа RoT; их можно клонировать/добавлять в encounter/стол.
 
 ## U-20 · GM видит полные листы персонажей игроков
+- **Статус:** ⬜ Todo
 - **Источник:** Аудит §6
 - **Scope (B/F):** в кампании GM-доступ к read-only листу персонажа участника (переиспользовать `GetCharacterSheet` с проверкой роли GM в кампании). UI — открытие листа из списка участников.
 - **DoD:** GM открывает лист игрока read-only; игрок чужие листы не видит.
 
 ## U-21 · Профиль / управление аккаунтом
+- **Статус:** ⬜ Todo
 - **Источник:** Аудит §1.2 (НЕ в GF-плане)
 - **Scope (B):** `GET /api/account`, `PATCH /api/account` (displayName, опц. avatarUrl/инициалы), `POST /api/account/change-password` (old+new, revoke семейства). Поле `User.AvatarUrl` (миграция).
 - **Scope (F):** страница профиля/настроек.
 - **DoD:** пользователь видит/редактирует имя и аватар, меняет пароль в сессии.
 
 ## U-22 · Мотивации и предыстория персонажа
+- **Статус:** ⬜ Todo
 - **Источник:** Аудит §2.1 (НЕ в GF-плане)
 - **Scope (B):** поля `Desire/Fear/Strength/Flaw` + `Background` в `Character` (миграция), в `CreateCharacterRequest`/`UpdateCharacterRequest`/`CharacterSheetDto`.
 - **Scope (F):** блок мотиваций и текст предыстории на листе/создании; выводить в печать (U-04).
 - **DoD:** мотивации и предыстория сохраняются, видны на листе и в печати.
 
 ## U-23 · Критические ранения
+- **Статус:** ⬜ Todo
 - **Источник:** Аудит §2.2 + §8 (НЕ в GF-плане)
 - **Scope (B):** `CharacterCriticalInjury` (severity/result/notes) на персонаже; для участников стола — счётчик/список критов. Связать с таблицей крит-ранений из U-11.
 - **Scope (F):** секция критов на листе и на карточке участника стола.
 - **DoD:** криты добавляются/снимаются; видны на листе и за столом; ссылаются на таблицу.
 
 ## U-24 · Клонирование и read-only шеринг персонажа
+- **Статус:** ⬜ Todo
 - **Источник:** Аудит §2.4 (НЕ в GF-плане)
 - **Scope (B):** `POST /api/characters/{id}/duplicate` (по образцу `DuplicateNpc`); шеринг — `POST /api/characters/{id}/share` (генерит токен) + публичный `GET /api/share/{token}` (read-only sheet, без auth).
 - **Scope (F):** кнопки «Клонировать» и «Поделиться (ссылка)» на листе/списке.
@@ -219,12 +247,14 @@
 # P2 — Глубина homebrew
 
 ## U-25 · Кастомные архетип/раса и карьера
+- **Статус:** ⬜ Todo
 - **Источник:** Аудит §4.1 (боль сообщества #1, НЕ в GF-плане)
 - **Scope (B):** расширить [CustomContentEndpoints.cs](../backend/src/GenesysForge.Api/Endpoints/CustomContentEndpoints.cs): CRUD кастомного архетипа (характеристики/пороги/XP/способность) и кастомной карьеры (карьерные навыки). Использовать `OwnerUserId` как у прочего homebrew; учесть структурные модели U-12/U-13.
 - **Scope (F):** формы в [CustomTab.tsx](../frontend/src/components/CustomTab.tsx); доступность в создании персонажа.
 - **DoD:** пользователь создаёт свой вид/карьеру и собирает на них персонажа без правки кода.
 
 ## U-26 · Импорт homebrew из JSON + шеринг + per-character toggle
+- **Статус:** ⬜ Todo
 - **Источник:** Аудит §4.2 (НЕ в GF-плане)
 - **Scope (B):** импорт набора homebrew (skills/talents/items/heroics/archetypes/careers) из JSON (совместимый формат, маппинг по Code); публикация набора другим пользователям (отдельно от campaign Content Packs, которые остаются справочными); флаг включения homebrew-набора на персонажа/кампанию.
 - **DoD:** homebrew переносится через JSON; можно расшарить набор; персонаж может включать/выключать наборы.
@@ -234,21 +264,25 @@
 # P3 — Полировка, паблик, инфраструктура
 
 ## U-27 · API versioning + Swagger/Scalar UI + индексы БД
+- **Статус:** ⬜ Todo
 - **Источник:** Аудит §9.1/§9.3
 - **Scope (B):** префикс `/api/v1` (или version header) на группах; подключить Scalar/Swagger UI поверх существующего `MapOpenApi`; явные индексы EF на «горячих» полях (поиск NPC по System/Kind/Role/Tag, контент по System/OwnerUserId, токены).
 - **DoD:** версия в путях; UI документации открывается; миграция с индексами применена.
 
 ## U-28 · PWA / офлайн (можно отложить)
+- **Статус:** ⬜ Todo
 - **Источник:** Аудит §9.2 (в GF-плане отложено)
 - **Scope (F):** manifest + service worker (vite-plugin-pwa), кеш статики и справочника read-only.
 - **DoD:** установка как PWA; справочник доступен офлайн. *(низкий приоритет, после Beta)*
 
 ## U-29 · E2E smoke tests
+- **Статус:** ⬜ Todo
 - **Источник:** GF-015
 - **Scope:** Playwright — 10 сценариев из GF-015 (register→sheet, buy/refund skill+talent, equip→derived, campaign join, NPC duplicate→encounter, encounter→table, magic builder, export→import, reset screen). Job `e2e` в CI или отдельный workflow.
 - **DoD:** smoke-покрытие главных flow; запускается локально и в CI.
 
 ## U-30 · User-facing help pages
+- **Статус:** ⬜ Todo
 - **Источник:** GF-017
 - **Scope:** `docs/user-guide/` (Markdown) → отрисовка в UI: создание персонажа, карьерные навыки, покупка навыков/талантов, инвентарь, магия, NPC, encounter, Game Table, PublicSafe/PrivateFull. Без текста книг.
 - **DoD:** новичок понимает базовый flow без README; ссылка «Справка» в UI.
