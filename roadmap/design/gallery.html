@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GenesysForge — галерея roadmap-дизайнов</title>
+  <style>
+    :root { color-scheme: dark; font-family: "Segoe UI", system-ui, sans-serif; }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: #090a10; color: #c8c8d2; }
+    main { width: min(1518px, calc(100% - 18px)); margin: 0 auto; padding: 22px 0 48px; }
+    h1 { margin: 0; color: #c99d3d; font: 34px Georgia, serif; font-variant: small-caps; letter-spacing: .035em; }
+    .lead { color: #7f8190; max-width: 760px; font-size: 13px; }
+    .hero { width: 100%; margin: 18px 0 10px; border: 1px solid #313443; border-radius: 4px; display: block; }
+    .grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; }
+    a { display: block; overflow: hidden; border: 1px solid #313443; border-radius: 3px; background: #13151f; color: #eeeef3; text-decoration: none; }
+    a:hover { border-color: #d7a82c; color: #efbd39; }
+    a img { display: block; width: 100%; aspect-ratio: 16 / 9; object-fit: cover; object-position: top; border-bottom: 1px solid #313443; }
+    a b { display: block; margin: 10px 12px 4px; }
+    a span { display: block; min-height: 48px; margin: 0 12px 10px; color: #7f8190; font-size: 12px; }
+    @media (max-width: 1000px) { .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>GenesysForge roadmap designs</h1>
+    <p class="lead">10 целевых поверхностей, сгруппированных из UI-задач unified-roadmap.md и выполненных в текущей тёмно-фиолетовой/золотой системе приложения.</p>
+    <img class="hero" src="concept-overview.png" alt="Общий концепт интерфейсов GenesysForge">
+    <div class="grid">
+      <a href="index.html?screen=shell"><img src="shell-preview.png" alt=""><b>01 · App shell</b><span>Поиск, справка, профиль, offline status и footer.</span></a>
+      <a href="index.html?screen=characters"><img src="characters-preview.png" alt=""><b>02 · Импорт персонажа</b><span>JSON preview, warnings и создание копии.</span></a>
+      <a href="index.html?screen=sheet"><img src="sheet-preview.png" alt=""><b>03 · Расширенный лист</b><span>Мотивации, XP audit, эффекты и критические ранения.</span></a>
+      <a href="index.html?screen=print"><img src="print-preview.png" alt=""><b>04 · Печатный лист</b><span>A4/PDF-friendly полный character sheet.</span></a>
+      <a href="index.html?screen=roller"><img src="roller-preview.png" alt=""><b>05 · Dice & combat roller</b><span>Пул, символы результата, урон и активации.</span></a>
+      <a href="index.html?screen=reference"><img src="reference-preview.png" alt=""><b>06 · Справочник правил</b><span>Глобальный поиск и структурные таблицы.</span></a>
+      <a href="index.html?screen=npc"><img src="npc-preview.png" alt=""><b>07 · NPC Studio</b><span>Draft generator, атаки, качества и validation.</span></a>
+      <a href="index.html?screen=gm"><img src="gm-preview.png" alt=""><b>08 · GM workspace</b><span>Игровой стол, roll log и read-only лист игрока.</span></a>
+      <a href="index.html?screen=homebrew"><img src="homebrew-preview.png" alt=""><b>09 · Homebrew Studio</b><span>Виды, карьеры, import/share и toggles наборов.</span></a>
+      <a href="index.html?screen=account"><img src="account-preview.png" alt=""><b>10 · Account & Help</b><span>Профиль, пароль, user guide и legal/About.</span></a>
+    </div>
+  </main>
+</body>
+</html>

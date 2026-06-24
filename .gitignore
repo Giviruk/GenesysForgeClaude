@@ -30,3 +30,6 @@ backend/api-*.log
 
 # Copyrighted source books — only for local data extraction, must never be committed
 _books/
+
+# graphify knowledge-graph output (regenerable tool artifact)
+graphify-out/

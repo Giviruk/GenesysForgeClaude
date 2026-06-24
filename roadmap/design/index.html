@@ -1,0 +1,242 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GenesysForge — Roadmap Designs</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <section class="screen" data-screen="shell">
+    <div class="shell">
+      <header class="topbar">
+        <div class="logo">Genesys Forge</div>
+        <nav class="nav">
+          <button class="active">Персонажи</button><button>Кампании</button><button>Бестиарий</button><button>Магия</button><button>Справочник</button>
+        </nav>
+        <div class="top-spacer"></div>
+        <div class="search"><input placeholder="Поиск по правилам и контенту"></div>
+        <button class="ghost small">? Справка</button><div class="avatar">АГ</div>
+      </header>
+      <main class="page">
+        <div class="page-head"><div><h2>Мои персонажи</h2><p class="muted">Создание, развитие и игровые листы</p></div><div class="actions"><button>Импорт JSON</button><button class="primary">+ Новый персонаж</button></div></div>
+        <div class="notice warn">Работа без сети: справочник доступен, изменения листов будут синхронизированы после подключения.</div>
+        <div class="cards" style="margin-top:14px">
+          <article class="char-card featured"><div class="card-head"><h3>Эйрин Серебряный Лист</h3><span class="badge terrinoth">Terrinoth</span></div><p class="muted">Эльф · Маг</p><p><span class="badge gold">62 XP доступно</span><span class="badge green">В кампании</span></p><div class="card-actions"><button class="small primary">Открыть</button><button class="small">Экспорт</button><button class="small">Поделиться</button><button class="small kebab">•••</button></div></article>
+          <article class="char-card"><div class="card-head"><h3>Лира Восс</h3><span class="badge core">Genesys Core</span></div><p class="muted">Интеллектуал · Хакер</p><p><span class="badge warn">Создание</span></p><div class="card-actions"><button class="small primary">Продолжить</button><button class="small">Клонировать</button><button class="small kebab">•••</button></div></article>
+          <article class="char-card"><div class="card-head"><h3>Брок Железная Кость</h3><span class="badge terrinoth">Terrinoth</span></div><p class="muted">Орк · Воин</p><p><span class="badge gold">15 XP доступно</span></p><div class="card-actions"><button class="small primary">Открыть</button><button class="small">Печать</button><button class="small kebab">•••</button></div></article>
+          <article class="char-card"><div class="card-head"><h3>Нейра Тишина</h3><span class="badge core">Genesys Core</span></div><p class="muted">Дипломат · Посланник</p><p><span class="badge gold">28 XP доступно</span></p><div class="card-actions"><button class="small primary">Открыть</button><button class="small">Экспорт</button><button class="small kebab">•••</button></div></article>
+        </div>
+        <div class="grid three" style="margin-top:14px">
+          <div class="panel"><div class="panel-title"><h3>Недавние броски</h3><button class="small">Открыть стол</button></div><p><span class="badge core">Лира</span> Компьютеры — <b class="green">2 успеха, 1 преимущество</b></p><p><span class="badge terrinoth">Эйрин</span> Аркана — <b class="red">1 провал, 2 угрозы</b></p></div>
+          <div class="panel"><div class="panel-title"><h3>Быстрый доступ</h3></div><p>Траты символов</p><p>Диапазоны дистанции</p><p>Критические ранения</p></div>
+          <div class="panel"><div class="panel-title"><h3>Система</h3></div><p><span class="green">● Подключено</span></p><p class="muted">PublicSafe · данные обновлены 4 мин назад</p></div>
+        </div>
+        <div class="dashboard-bottom">
+          <section class="panel">
+            <div class="panel-title"><h3>Домашние правила и наборы</h3><button class="small">Все наборы ›</button></div>
+            <div class="compact-list">
+              <div class="compact-row"><b>▣ Лунные земли</b><span class="badge terrinoth">v1.3</span><span class="muted">23 элемента</span><div class="toggle"></div></div>
+              <div class="compact-row"><b>▣ Алхимия Ардена</b><span class="badge core">обновление</span><span class="muted">18 элементов</span><div class="toggle"></div></div>
+              <div class="compact-row"><b>▣ Магические артефакты</b><span class="badge">черновик</span><span class="muted">4 элемента</span><div class="toggle" style="filter:grayscale(1);opacity:.55"></div></div>
+            </div>
+            <button class="primary" style="margin-top:9px">+ Создать набор</button>
+          </section>
+          <section class="panel">
+            <div class="panel-title"><h3>Профиль и помощь</h3></div>
+            <div class="help-columns">
+              <div>
+                <div class="row"><div class="avatar">АГ</div><div><b>Алексей Громов</b><p class="muted">Игрок · PublicSafe</p></div></div>
+                <button style="margin-top:12px">✎ Редактировать профиль</button>
+              </div>
+              <div><h4 class="section-title">Ресурсы</h4><div class="link-list"><span>▧ Быстрый старт</span><span>▣ Руководство</span><span>? Частые вопросы</span><span>▶ Видео и уроки</span></div></div>
+              <div><h4 class="section-title">Поддержка</h4><div class="link-list"><span>⚙ Сообщить об ошибке</span><span>✦ Запросить функцию</span><span>□ Связаться с поддержкой</span><span>ⓘ О приложении</span></div></div>
+            </div>
+          </section>
+        </div>
+        <footer class="footer-bar">GenesysForge · О проекте · Changelog · Поддержать · Не аффилировано с Fantasy Flight Games</footer>
+      </main>
+    </div>
+  </section>
+
+  <section class="screen" data-screen="characters">
+    <div class="shell">
+      <header class="topbar"><div class="logo">Genesys Forge</div><nav class="nav"><button class="active">Персонажи</button><button>Кампании</button><button>Бестиарий</button><button>Магия</button></nav><div class="top-spacer"></div><div class="avatar">АГ</div></header>
+      <main class="page modal-stage">
+        <div class="modal">
+          <div class="panel-title"><div><h2>Импорт персонажа</h2><p class="muted">Формат genesysforge.character.v1</p></div><button class="ghost">×</button></div>
+          <div class="import-preview">
+            <div class="file-box"><div><div style="font-size:38px;color:var(--accent)">JSON</div><b>eyrin.json</b><p class="muted">18 KB · формат распознан</p><button class="small">Выбрать другой</button></div></div>
+            <div>
+              <div class="card-head"><h3>Эйрин Серебряный Лист</h3><span class="badge terrinoth">Realms of Terrinoth</span></div>
+              <p class="muted">Эльф · Маг · 175 XP</p>
+              <div class="grid four" style="margin-top:12px"><div class="stat"><strong>3</strong><span>таланта</span></div><div class="stat"><strong>12</strong><span>навыков</span></div><div class="stat"><strong>8</strong><span>предметов</span></div><div class="stat"><strong>2</strong><span>заметки</span></div></div>
+              <div class="notice warn" style="margin-top:12px"><b>2 предупреждения</b><br>Пользовательский талант «Лунная вязь» будет импортирован вместе с персонажем.<br>Предмет «Сумка алхимика» не найден и будет создан как custom.</div>
+              <label style="display:block;margin-top:12px">Имя нового персонажа<input value="Эйрин Серебряный Лист — копия"></label>
+            </div>
+          </div>
+          <div class="toolbar" style="justify-content:flex-end;margin-top:16px"><button>Отмена</button><button class="primary">Импортировать персонажа</button></div>
+        </div>
+      </main>
+    </div>
+  </section>
+
+  <section class="screen" data-screen="sheet">
+    <div class="shell">
+      <header class="topbar"><div class="logo">Genesys Forge</div><nav class="nav"><button class="active">Персонажи</button><button>Кампании</button><button>Бестиарий</button><button>Магия</button></nav><div class="top-spacer"></div><div class="avatar">АГ</div></header>
+      <main class="page">
+        <div class="page-head"><div class="row"><button>← Персонажи</button><h2>Эйрин Серебряный Лист</h2><span class="badge terrinoth">Terrinoth</span><span class="muted">Эльф · Маг</span></div><div class="actions"><button>Клонировать</button><button>Поделиться</button><button>Печать</button><b class="gold">XP 62</b></div></div>
+        <div class="tabs"><button>Лист</button><button>Таланты</button><button>Инвентарь</button><button>Магия</button><button class="active">История и история героя</button><button>Кастом</button></div>
+        <div class="grid six">
+          <div class="stat"><strong>2</strong><span>Мощь</span></div><div class="stat"><strong>3</strong><span>Ловкость</span></div><div class="stat"><strong>4</strong><span>Интеллект</span></div><div class="stat"><strong>3</strong><span>Хитрость</span></div><div class="stat"><strong>3</strong><span>Воля</span></div><div class="stat"><strong>2</strong><span>Обаяние</span></div>
+        </div>
+        <div class="split" style="margin-top:13px">
+          <div>
+            <section class="panel"><div class="panel-title"><h3>Мотивации</h3><button class="small">Изменить</button></div><div class="grid two"><div class="motivation"><b>Желание</b>Вернуть утраченную библиотеку своего дома.</div><div class="motivation"><b>Страх</b>Потерять контроль над магией в решающий момент.</div><div class="motivation"><b>Сильная сторона</b>Любопытство и терпение исследователя.</div><div class="motivation"><b>Слабость</b>Не умеет оставить тайну нераскрытой.</div></div><h4 class="section-title" style="margin-top:14px">Предыстория</h4><p>Ученица странствующего рунного мастера, которая ищет фрагменты картотеки древнего ордена.</p></section>
+            <section class="panel"><div class="panel-title"><h3>История XP и действий</h3><div class="actions"><select style="width:150px"><option>Все события</option></select><button class="small">+ Наградить XP</button></div></div><div class="timeline">
+              <div class="event"><div class="event-line"><b>Куплен ранг Арканы 3</b><b class="red">−15 XP</b></div><span class="muted">Сегодня, 22:14 · осталось 62 XP</span></div>
+              <div class="event"><div class="event-line"><b>Активирован талант «Защитная вязь»</b><span class="badge gold">авто</span></div><span class="muted">Сегодня, 21:58 · +1 защита до конца раунда</span></div>
+              <div class="event"><div class="event-line"><b>Награда мастера</b><b class="green">+10 XP</b></div><span class="muted">18 июня · «Завершение главы»</span></div>
+              <div class="event"><div class="event-line"><b>Возврат таланта «Быстрый шаг»</b><b class="green">+5 XP</b></div><span class="muted">12 июня · этап создания</span></div>
+            </div></section>
+          </div>
+          <aside>
+            <section class="panel"><div class="panel-title"><h3>Активные эффекты</h3><button class="small">Все эффекты</button></div><div class="effect"><div class="card-head"><b>Защитная вязь</b><span class="badge gold">1 раунд</span></div><p class="muted">Автоматически: +1 ближняя и дальняя защита</p><button class="small">Завершить</button></div></section>
+            <section class="panel"><div class="panel-title"><h3>Критические ранения</h3><button class="small primary">+ Добавить</button></div><div class="injury"><div class="card-head"><b>Ошеломление</b><span class="badge error">Среднее</span></div><p>Следующая проверка получает setback.</p><p class="muted">Результат 48 · заметка мастера</p><button class="small">Вылечить</button></div><p class="muted" style="margin-top:10px">Открыть таблицу критических ранений →</p></section>
+          </aside>
+        </div>
+      </main>
+    </div>
+  </section>
+
+  <section class="screen print-screen" data-screen="print">
+    <div class="print-toolbar toolbar"><button>← К листу</button><b>Предпросмотр печати</b><div class="top-spacer"></div><select style="width:110px"><option>A4</option></select><button>Настройки</button><button class="primary">Печать / PDF</button></div>
+    <article class="paper">
+      <div class="page-head"><div><h1>Эйрин Серебряный Лист</h1><p class="muted">Эльф · Маг · Realms of Terrinoth</p></div><div style="text-align:right"><b>XP 175</b><br><span class="muted">потрачено 113 · доступно 62</span></div></div>
+      <div class="grid six" style="margin:20px 0"><div class="stat"><strong>2</strong><span>Мощь</span></div><div class="stat"><strong>3</strong><span>Ловкость</span></div><div class="stat"><strong>4</strong><span>Интеллект</span></div><div class="stat"><strong>3</strong><span>Хитрость</span></div><div class="stat"><strong>3</strong><span>Воля</span></div><div class="stat"><strong>2</strong><span>Обаяние</span></div></div>
+      <div class="grid six"><div class="stat"><strong>12 / 14</strong><span>Раны</span></div><div class="stat"><strong>6 / 13</strong><span>Стрейн</span></div><div class="stat"><strong>4</strong><span>Поглощение</span></div><div class="stat"><strong>1</strong><span>Ближняя защита</span></div><div class="stat"><strong>2</strong><span>Дальняя защита</span></div><div class="stat"><strong>5 / 9</strong><span>Нагрузка</span></div></div>
+      <div class="grid two" style="margin-top:24px">
+        <section><h3 class="section-title">Навыки</h3><table class="table"><tr><th>Навык</th><th>Хар.</th><th>Ранг</th><th>Пул</th></tr><tr><td>Аркана / Arcana</td><td>Инт</td><td>3</td><td>◆◆◆◇</td></tr><tr><td>Знания / Knowledge</td><td>Инт</td><td>2</td><td>◆◆◇◇</td></tr><tr><td>Восприятие / Perception</td><td>Хит</td><td>2</td><td>◆◆◇</td></tr><tr><td>Бдительность / Vigilance</td><td>Вол</td><td>1</td><td>◆◇◇</td></tr></table></section>
+        <section><h3 class="section-title">Мотивации</h3><p><b>Желание:</b> вернуть утраченную библиотеку.</p><p><b>Страх:</b> потерять контроль над магией.</p><p><b>Сила:</b> терпение исследователя.</p><p><b>Слабость:</b> одержимость тайнами.</p><h3 class="section-title" style="margin-top:18px">Критические ранения</h3><p><b>Ошеломление</b> · среднее · результат 48</p></section>
+      </div>
+      <div class="grid two" style="margin-top:24px"><section><h3 class="section-title">Таланты и героика</h3><p><b>Защитная вязь</b> <span class="badge">Активный · tier 2</span></p><p class="muted">Краткий пользовательский эффект.</p><p><b>Память рун</b> <span class="badge">Пассивный · tier 1</span></p><p><b>Героическая способность</b> <span class="badge">Ранг 2</span></p></section><section><h3 class="section-title">Инвентарь</h3><table class="table"><tr><th>Предмет</th><th>Кол.</th><th>Нагр.</th></tr><tr><td>Рунный посох · экипирован</td><td>1</td><td>2</td></tr><tr><td>Дорожная одежда</td><td>1</td><td>1</td></tr><tr><td>Набор алхимика</td><td>1</td><td>2</td></tr></table></section></div>
+      <section style="margin-top:24px"><h3 class="section-title">Предыстория и заметки</h3><p>Ученица странствующего рунного мастера. Ищет фрагменты картотеки древнего ордена и сведения о пропавшем наставнике.</p></section>
+    </article>
+  </section>
+
+  <section class="screen" data-screen="roller">
+    <div class="shell">
+      <header class="topbar"><div class="logo">Genesys Forge</div><nav class="nav"><button>Персонажи</button><button class="active">Кампании</button><button>Бестиарий</button><button>Магия</button></nav><div class="top-spacer"></div><div class="avatar">АГ</div></header>
+      <main class="page">
+        <div class="page-head"><div><h2>Боевой бросок</h2><p class="muted">Кампания «Пепел Каргена» · Раунд 4</p></div><label class="row"><span class="muted">Секретный бросок GM</span><div class="toggle"></div></label></div>
+        <div class="split">
+          <section>
+            <div class="panel"><div class="grid two"><label>Участник<select><option>Эйрин Серебряный Лист</option></select></label><label>Оружие / атака<select><option>Рунный посох — Аркана</option></select></label></div><div class="notice" style="margin-top:8px">Аркана 3 + Интеллект 4 → базовый пул <b>3 proficiency + 1 ability</b>. Базовый урон 7.</div></div>
+            <div class="panel"><div class="panel-title"><h3>Пул кубов</h3><button class="small">Сбросить модификаторы</button></div><div class="dice-line" style="margin-bottom:12px"><div class="die proficiency"><span>P</span></div><div class="die proficiency"><span>P</span></div><div class="die proficiency"><span>P</span></div><div class="die ability"><span>A</span></div><div class="die difficulty"><span>D</span></div><div class="die difficulty"><span>D</span></div><div class="die setback"><span>S</span></div></div>
+              <div class="pool-control"><span>Difficulty</span><span class="muted">Дистанция: средняя</span><div class="stepper"><button>−</button><b>2</b><button>+</button></div></div>
+              <div class="pool-control"><span>Boost</span><span class="muted">Помощь союзника</span><div class="stepper"><button>−</button><b>0</b><button>+</button></div></div>
+              <div class="pool-control"><span>Setback</span><span class="muted">Крит: Ошеломление</span><div class="stepper"><button>−</button><b>1</b><button>+</button></div></div>
+              <div class="pool-control"><span>Upgrade</span><span class="muted">Потратить story point</span><div class="stepper"><button>−</button><b>0</b><button>+</button></div></div>
+              <button class="primary" style="width:100%;margin-top:14px">Бросить 7 кубов</button>
+            </div>
+          </section>
+          <aside>
+            <div class="panel"><div class="panel-title"><h3>Результат</h3><span class="badge green">записан в лог</span></div><div class="result-strip"><div class="result net"><strong>2</strong><span>Успех</span></div><div class="result"><strong>3</strong><span>Преим.</span></div><div class="result"><strong>0</strong><span>Угроза</span></div><div class="result"><strong>1</strong><span>Триумф</span></div><div class="result"><strong>0</strong><span>Отчаяние</span></div><div class="result net"><strong>9</strong><span>Урон</span></div></div></div>
+            <div class="panel"><div class="panel-title"><h3>Доступные активации</h3><span class="badge gold">3 преимущества</span></div><div class="attack"><div class="card-head"><b>Оглушение 2</b><span class="badge gold">2 преимущества</span></div><p class="muted">Доступно по свойству оружия.</p><button class="small primary">Отметить активацию</button></div><div class="attack"><div class="card-head"><b>Критическое ранение</b><span class="badge gold">3 преимущества</span></div><p class="muted">Критический рейтинг оружия: 3.</p><button class="small">Открыть таблицу</button></div><div class="notice warn" style="margin-top:10px">Roller показывает варианты, но итоговую трактовку выбирает мастер.</div></div>
+          </aside>
+        </div>
+      </main>
+    </div>
+  </section>
+
+  <section class="screen" data-screen="reference">
+    <div class="shell">
+      <header class="topbar"><div class="logo">Genesys Forge</div><nav class="nav"><button>Персонажи</button><button>Кампании</button><button>Бестиарий</button><button>Магия</button><button class="active">Справочник</button></nav><div class="top-spacer"></div><div class="avatar">АГ</div></header>
+      <main class="page">
+        <div class="page-head"><div><h2>Справочник правил</h2><p class="muted">Краткие paraphrase-таблицы и структурный контент</p></div><span class="badge green">Доступен офлайн</span></div>
+        <div class="panel"><div class="filter-row"><div class="search" style="width:auto"><input value="преимущество"></div><select><option>Все разделы</option></select><select><option>Genesys Core + Terrinoth</option></select></div><div class="row"><span class="chip active">Траты символов</span><span class="chip">Сложности</span><span class="chip">Дистанции</span><span class="chip">Критические ранения</span><span class="chip">Качества предметов</span></div></div>
+        <div class="master-detail" style="margin-top:13px">
+          <aside class="panel"><p class="muted">Найдено 12 результатов</p><div class="list-item active"><b>Преимущество в бою</b><p class="muted">Траты символов · 6 вариантов</p></div><div class="list-item"><b>Преимущество вне боя</b><p class="muted">Траты символов · 5 вариантов</p></div><div class="list-item"><b>Триумф</b><p class="muted">Траты символов</p></div><div class="list-item"><b>Качество «Точное»</b><p class="muted">Качества предметов</p></div><div class="list-item"><b>Критический рейтинг</b><p class="muted">Боевые правила</p></div></aside>
+          <section class="panel"><div class="panel-title"><div><h2>Преимущество в бою</h2><p class="muted">Варианты трат · окончательное решение за игроком и GM</p></div><button class="small">Копировать ссылку</button></div><table class="table"><tr><th>Стоимость</th><th>Вариант</th><th>Контекст</th></tr><tr class="selected"><td><span class="badge gold">1 преимущество</span></td><td><b>Передать boost следующему союзнику</b><br><span class="muted">Помочь следующему активному персонажу.</span></td><td>Любая успешная или неуспешная проверка</td></tr><tr><td><span class="badge gold">2 преимущества</span></td><td><b>Получить boost на следующую проверку</b><br><span class="muted">Сохранить позиционное преимущество.</span></td><td>По согласованию с GM</td></tr><tr><td><span class="badge gold">2 преимущества</span></td><td><b>Добавить setback выбранной цели</b><br><span class="muted">Краткое неудобство или потеря позиции.</span></td><td>До конца следующего хода цели</td></tr><tr><td><span class="badge gold">3 преимущества</span></td><td><b>Активировать критическое ранение</b><br><span class="muted">Требуется подходящий критический рейтинг.</span></td><td>Атака наносит урон</td></tr></table><div class="notice warn" style="margin-top:14px">Текст в публичной версии — собственный краткий paraphrase, без оригинальных формулировок книг.</div></section>
+        </div>
+      </main>
+    </div>
+  </section>
+
+  <section class="screen" data-screen="npc">
+    <div class="shell">
+      <header class="topbar"><div class="logo">Genesys Forge</div><nav class="nav"><button>Персонажи</button><button>Кампании</button><button class="active">Бестиарий</button><button>Магия</button></nav><div class="top-spacer"></div><div class="avatar">АГ</div></header>
+      <main class="page">
+        <div class="page-head"><div><h2>NPC Studio</h2><p class="muted">Черновик, валидация и структурированные атаки</p></div><div class="actions"><button>Импорт</button><button>Быстрый черновик</button><button class="primary">Сохранить NPC</button></div></div>
+        <div class="validation"><div class="notice error"><b>1 ошибка</b> · Атака «Когти» не содержит дистанцию.</div><div class="notice warn"><b>2 предупреждения</b> · Защита 5 выше обычного диапазона; для Nemesis рекомендован сюжетный hook.</div></div>
+        <div class="master-detail" style="margin-top:13px;grid-template-columns:300px 1fr">
+          <aside class="panel"><div class="panel-title"><h3>Генератор Terrinoth</h3><span class="badge terrinoth">Draft</span></div><label>Роль<select><option>Undead</option></select></label><label>Тип<select><option>Nemesis</option></select></label><label>Среда<select><option>Заброшенные катакомбы</option></select></label><label>Магический навык<select><option>Руны</option></select></label><div class="row" style="flex-wrap:wrap"><span class="chip active">Undead</span><span class="chip active">Terror</span><span class="chip">Armored</span></div><button class="primary" style="width:100%;margin-top:13px">Сгенерировать черновик</button><p class="muted">Генератор создаёт структуру без книжного текста.</p></aside>
+          <section>
+            <div class="panel"><div class="grid two"><label>Название<input value="Хранитель разбитой печати"></label><label>Система<select><option>Realms of Terrinoth</option></select></label></div><div class="grid three"><label>Тип<select><option>Nemesis</option></select></label><label>Роль<select><option>Undead caster</option></select></label><label>Источник<select><option>Пользовательский</option></select></label></div><div class="grid six"><div class="stat"><strong>3</strong><span>Мощь</span></div><div class="stat"><strong>2</strong><span>Ловкость</span></div><div class="stat"><strong>4</strong><span>Интеллект</span></div><div class="stat"><strong>3</strong><span>Хитрость</span></div><div class="stat"><strong>4</strong><span>Воля</span></div><div class="stat"><strong>2</strong><span>Обаяние</span></div></div></div>
+            <div class="panel"><div class="panel-title"><h3>Атаки</h3><button class="small primary">+ Добавить атаку</button></div><div class="attack"><div class="grid four"><label>Название<input value="Рунный посох"></label><label>Навык<select><option>Руны</option></select></label><label>Урон<input value="8"></label><label>Крит<input value="3"></label></div><div class="grid two"><label>Дистанция<select><option>Средняя</option></select></label><label>Качества<div class="row"><span class="chip active">Оглушение 2</span><span class="chip active">Точное 1</span><button class="small">+</button></div></label></div></div><div class="attack" style="border-color:var(--red)"><div class="grid four"><label>Название<input value="Когти"></label><label>Навык<select><option>Ближний бой</option></select></label><label>Урон<input value="6"></label><label>Крит<input value="4"></label></div><p class="red">Выберите дистанцию атаки.</p></div></div>
+          </section>
+        </div>
+      </main>
+    </div>
+  </section>
+
+  <section class="screen" data-screen="gm">
+    <div class="shell">
+      <header class="topbar"><div class="logo">Genesys Forge</div><nav class="nav"><button>Персонажи</button><button class="active">Кампании</button><button>Бестиарий</button><button>Магия</button></nav><div class="top-spacer"></div><div class="avatar">АГ</div></header>
+      <main class="page">
+        <div class="page-head"><div><h2>Игровой стол · Пепел Каргена</h2><p class="muted">Раунд 4 · ход игрока</p></div><div class="actions"><button>Новый бросок</button><button>Справочник</button><button class="primary">Следующий слот</button></div></div>
+        <div class="drawer-layout">
+          <div>
+            <div class="panel"><div class="panel-title"><h3>Участники</h3><div class="row"><span class="badge core">Игроки 3</span><span class="badge error">NPC 2</span></div></div><div class="participant-grid"><div class="participant current"><div class="card-head"><b>Эйрин</b><span class="badge gold">текущий ход</span></div><div class="vitals"><div class="vital"><b>12/14</b><span>раны</span></div><div class="vital"><b>6/13</b><span>стрейн</span></div><div class="vital"><b>4</b><span>soak</span></div></div><p><span class="badge error">1 крит</span><span class="badge gold">эффект 1</span></p><button class="small primary">Открыть лист</button></div><div class="participant"><div class="card-head"><b>Брок</b><span class="badge core">игрок</span></div><div class="vitals"><div class="vital"><b>7/18</b><span>раны</span></div><div class="vital"><b>4/11</b><span>стрейн</span></div><div class="vital"><b>6</b><span>soak</span></div></div><button class="small">Открыть лист</button></div><div class="participant"><div class="card-head"><b>Хранитель</b><span class="badge error">Nemesis</span></div><div class="vitals"><div class="vital"><b>10/20</b><span>раны</span></div><div class="vital"><b>3/15</b><span>стрейн</span></div><div class="vital"><b>5</b><span>soak</span></div></div><button class="small">Атака</button></div></div></div>
+            <div class="panel"><div class="panel-title"><h3>Лог бросков</h3><label class="row"><span class="muted">Показывать секретные</span><div class="toggle"></div></label></div><table class="table"><tr><th>Время</th><th>Участник</th><th>Проверка</th><th>Результат</th></tr><tr><td>22:14</td><td>Эйрин</td><td>Аркана · Рунный посох</td><td class="green">2 успеха · 3 преимущества · триумф</td></tr><tr class="selected"><td>22:11</td><td>GM</td><td>Секретная проверка</td><td><span class="badge gold">только GM</span></td></tr><tr><td>22:08</td><td>Брок</td><td>Ближний бой</td><td class="red">1 провал · 2 угрозы</td></tr></table></div>
+          </div>
+          <aside class="drawer"><div class="panel-title"><div><h3>Эйрин · лист игрока</h3><p class="muted">Read-only · доступ GM</p></div><button>×</button></div><div class="grid three"><div class="stat"><strong>12/14</strong><span>раны</span></div><div class="stat"><strong>6/13</strong><span>стрейн</span></div><div class="stat"><strong>4</strong><span>soak</span></div></div><h4 class="section-title" style="margin-top:16px">Ключевые навыки</h4><p>Аркана 3 <span class="gold">◆◆◆◇</span></p><p>Восприятие 2 <span class="gold">◆◆◇</span></p><p>Бдительность 1 <span class="gold">◆◇◇</span></p><h4 class="section-title" style="margin-top:16px">Критические ранения</h4><div class="injury"><b>Ошеломление</b><p class="muted">Следующая проверка получает setback.</p><button class="small">Отметить лечение</button></div><h4 class="section-title" style="margin-top:16px">Активные эффекты</h4><div class="effect"><b>Защитная вязь</b><p class="muted">+1 защита · до конца раунда</p></div><button style="width:100%;margin-top:16px">Открыть полный read-only лист</button></aside>
+        </div>
+      </main>
+    </div>
+  </section>
+
+  <section class="screen" data-screen="homebrew">
+    <div class="shell">
+      <header class="topbar"><div class="logo">Genesys Forge</div><nav class="nav"><button class="active">Персонажи</button><button>Кампании</button><button>Бестиарий</button><button>Магия</button></nav><div class="top-spacer"></div><div class="avatar">АГ</div></header>
+      <main class="page">
+        <div class="page-head"><div><h2>Homebrew Studio</h2><p class="muted">Собственные виды, карьеры и переносимые наборы</p></div><div class="actions"><button>Импорт JSON</button><button>Экспорт набора</button><button class="primary">+ Новый элемент</button></div></div>
+        <div class="tabs"><button>Навыки</button><button>Таланты</button><button>Предметы</button><button>Героика</button><button class="active">Виды и карьеры</button><button>Наборы</button></div>
+        <div class="split">
+          <section>
+            <div class="panel"><div class="panel-title"><div><h3>Вид: Луннорождённый</h3><p class="muted">Пользовательский · Realms of Terrinoth</p></div><span class="badge green">Черновик</span></div><div class="grid two"><label>Название<input value="Луннорождённый"></label><label>Код<input value="moonborn"></label></div><div class="grid six"><label>Мощь<input value="2"></label><label>Ловкость<input value="3"></label><label>Интеллект<input value="3"></label><label>Хитрость<input value="2"></label><label>Воля<input value="3"></label><label>Обаяние<input value="2"></label></div><div class="grid three"><label>База ран<input value="9"></label><label>База стрейна<input value="11"></label><label>Стартовый XP<input value="100"></label></div><h4 class="section-title">Стартовые навыки и выборы</h4><div class="attack"><div class="card-head"><b>Группа выбора 1</b><span class="badge gold">выбрать 1 из 2</span></div><div class="row"><span class="chip active">Восприятие +1</span><span class="chip active">Бдительность +1</span><button class="small">Изменить</button></div></div><h4 class="section-title" style="margin-top:14px">Видовая способность</h4><div class="attack"><b>Зрение в сумерках</b><p class="muted">Automation: добавить boost при подходящем освещении; решение подтверждает GM.</p></div><div class="toolbar" style="justify-content:flex-end;margin-top:14px"><button>Удалить</button><button class="primary">Сохранить вид</button></div></div>
+          </section>
+          <aside>
+            <div class="panel"><div class="panel-title"><h3>Подключённые наборы</h3><button class="small">Управление</button></div><div class="pack"><div class="card-head"><div><b>Лунные земли</b><p class="muted">2 вида · 3 карьеры · 8 талантов</p></div><div class="toggle"></div></div><p><span class="badge green">Мой набор</span><span class="badge gold">v1.3</span></p><button class="small">Поделиться ссылкой</button></div><div class="pack"><div class="card-head"><div><b>Алхимия Ардена</b><p class="muted">12 предметов · 6 качеств</p></div><div class="toggle"></div></div><p><span class="badge core">Получен по ссылке</span></p><button class="small">Отключить для персонажа</button></div></div>
+            <div class="panel"><div class="panel-title"><h3>Импорт набора</h3><span class="badge warn">preview</span></div><p><b>rot-northlands.json</b></p><p class="muted">Будет добавлено 19 элементов. Конфликт кодов: 2.</p><div class="notice warn">Существующие элементы не будут заменены без подтверждения.</div><button class="primary" style="width:100%;margin-top:10px">Просмотреть конфликты</button></div>
+          </aside>
+        </div>
+      </main>
+    </div>
+  </section>
+
+  <section class="screen" data-screen="account">
+    <div class="shell">
+      <header class="topbar"><div class="logo">Genesys Forge</div><nav class="nav"><button>Персонажи</button><button>Кампании</button><button>Бестиарий</button><button>Магия</button><button>Справочник</button></nav><div class="top-spacer"></div><button class="ghost small">? Справка</button><div class="avatar">АГ</div></header>
+      <main class="page">
+        <div class="page-head"><div><h2>Профиль и справка</h2><p class="muted">Аккаунт, безопасность и документация пользователя</p></div><button>Выйти</button></div>
+        <div class="profile-layout">
+          <aside class="panel profile-card"><div class="profile-avatar">АГ</div><h3>Алексей Громов</h3><p class="muted">alexey@example.com</p><button class="small">Изменить аватар</button><hr style="border:0;border-top:1px solid var(--border);margin:16px 0"><p><span class="green">● Аккаунт подтверждён</span></p><p class="muted">Последний вход: сегодня, 21:44</p></aside>
+          <div>
+            <section class="panel"><div class="panel-title"><h3>Настройки профиля</h3><span class="badge green">Сохранено</span></div><div class="grid two"><label>Отображаемое имя<input value="Алексей Громов"></label><label>Инициалы<input value="АГ"></label></div><div class="toolbar" style="justify-content:flex-end"><button class="primary">Сохранить изменения</button></div></section>
+            <section class="panel"><div class="panel-title"><h3>Безопасность</h3></div><div class="grid three"><label>Текущий пароль<input value="••••••••"></label><label>Новый пароль<input value="••••••••••••"></label><label>Повторите пароль<input value="••••••••••••"></label></div><div class="notice warn">После смены пароля остальные активные сессии будут завершены.</div><div class="toolbar" style="justify-content:flex-end;margin-top:10px"><button>Сменить пароль</button></div></section>
+            <section class="panel"><div class="panel-title"><div><h3>Справка</h3><p class="muted">Короткие инструкции внутри приложения</p></div><div class="search" style="width:250px"><input placeholder="Найти инструкцию"></div></div><div class="help-list"><div class="help-item"><b>Создание персонажа</b><p class="muted">Вид, карьера, бесплатные навыки и стартовый XP.</p></div><div class="help-item"><b>Развитие за XP</b><p class="muted">Навыки, таланты, refund и история операций.</p></div><div class="help-item"><b>Инвентарь и экипировка</b><p class="muted">Нагрузка, свойства и производные параметры.</p></div><div class="help-item"><b>Game Table для GM</b><p class="muted">Инициатива, участники, броски и критические ранения.</p></div></div></section>
+            <section class="panel"><div class="panel-title"><h3>О проекте</h3><span class="badge gold">PublicSafe</span></div><p>GenesysForge — независимый инструмент сообщества. Не аффилирован с Fantasy Flight Games.</p><p class="muted">Версия 0.9.0 · Changelog · Лицензия кода · Поддержать проект</p></section>
+          </div>
+        </div>
+      </main>
+    </div>
+  </section>
+
+  <script>
+    const requested = new URLSearchParams(location.search).get('screen') || 'shell';
+    const target = document.querySelector(`[data-screen="${requested}"]`) || document.querySelector('[data-screen="shell"]');
+    target.classList.add('active');
+  </script>
+</body>
+</html>
