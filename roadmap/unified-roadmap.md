@@ -60,7 +60,7 @@
 - **DoD:** документы не противоречат коду; в `feature-roadmap.md` задачи разбиты MVP/Beta/1.0/Future.
 
 ## U-02 · Лицензия, авторские права и публичность
-- **Статус:** 🚧 In progress (PR #31)
+- **Статус:** ✅ Done (PR #31)
 - **Источник:** Аудит §10 (+ changelog из GF-016)
 - **Зачем:** **отсутствие `LICENSE` — юридический блокер** публичного релиза; нужен дисклеймер о правах FFG/Genesys.
 - **Scope:**
@@ -71,7 +71,7 @@
 - **DoD:** есть LICENSE; футер/README ссылаются на About, changelog, sponsors; дисклеймер виден; roadmap опубликован.
 
 ## U-03 · Экспорт/импорт персонажа в JSON
-- **Статус:** ⬜ Todo
+- **Статус:** 🚧 In progress (PR #32)
 - **Источник:** GF-002 · Аудит §2.4 (боль сообщества #3)
 - **Зачем:** бэкапы, перенос между аккаунтами, обмен с мастером, совместимость.
 - **Scope (B):** `GET /api/characters/{id}/export`, `POST /api/characters/import`, опц. `POST /api/characters/import/preview`. Формат `genesysforge.character.v1` (см. GF-002 в todo-plan). Без `OwnerUserId`/internal id; built-in маппится по `Code`, fallback `System+Name`; custom — импортировать вместе или помечать unresolved.

@@ -6,6 +6,7 @@ import type {
   AddEncounterParticipantRequest, EncounterDetail, EncounterFilter, EncounterInput, EncounterListItem,
   SendToTableMode, UpdateEncounterParticipantRequest,
   ContentPackDetail, ContentPackEntryInput, ContentPackListItem,
+  CharacterExport, ImportPreview, ImportResult,
 } from './types'
 
 const TOKEN_KEY = 'genesysforge.token'
@@ -115,6 +116,9 @@ export const api = {
   createCharacter: (name: string, system: GameSystem, archetypeId: string, careerId: string, freeCareerSkillNames: string[]) =>
     request<{ id: string }>('POST', '/api/characters/', { name, system, archetypeId, careerId, freeCareerSkillNames }),
   sheet: (id: string) => request<CharacterSheet>('GET', `/api/characters/${id}`),
+  exportCharacter: (id: string) => request<CharacterExport>('GET', `/api/characters/${id}/export`),
+  importCharacter: (payload: CharacterExport) => request<ImportResult>('POST', '/api/characters/import', payload),
+  previewImport: (payload: CharacterExport) => request<ImportPreview>('POST', '/api/characters/import/preview', payload),
   deleteCharacter: (id: string) => request<void>('DELETE', `/api/characters/${id}`),
   updateCharacter: (id: string, patch: { name?: string; totalXp?: number; woundsCurrent?: number; strainCurrent?: number; money?: number }) =>
     request<void>('PATCH', `/api/characters/${id}`, patch),

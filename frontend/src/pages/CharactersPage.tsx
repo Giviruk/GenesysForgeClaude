@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useState, type FormEvent } from 'react'
+import { useCallback, useEffect, useRef, useState, type ChangeEvent, type FormEvent } from 'react'
 import { api } from '../api/client'
-import type { CharacterListItem, GameSystem, Reference } from '../api/types'
+import type { CharacterExport, CharacterListItem, GameSystem, ImportPreview, Reference } from '../api/types'
 import { CHARACTERISTICS, CHARACTERISTIC_LABELS, SYSTEM_LABELS } from '../utils/labels'
 
 interface Props {
@@ -11,6 +11,8 @@ export function CharactersPage({ onOpen }: Props) {
   const [characters, setCharacters] = useState<CharacterListItem[] | null>(null)
   const [creating, setCreating] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [importState, setImportState] = useState<{ payload: CharacterExport; preview: ImportPreview } | null>(null)
+  const fileRef = useRef<HTMLInputElement>(null)
 
   const reload = useCallback(
     () => api.characters()
@@ -29,11 +31,29 @@ export function CharactersPage({ onOpen }: Props) {
     await reload()
   }
 
+  async function onFile(e: ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    e.target.value = '' // позволяем повторно выбрать тот же файл
+    if (!file) return
+    setError(null)
+    try {
+      const payload = JSON.parse(await file.text()) as CharacterExport
+      const preview = await api.previewImport(payload)
+      setImportState({ payload, preview })
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Не удалось прочитать файл персонажа')
+    }
+  }
+
   return (
     <div className="page">
       <div className="page-head">
         <h2>Мои персонажи</h2>
-        <button className="primary" onClick={() => setCreating(true)}>+ Новый персонаж</button>
+        <div className="head-actions">
+          <button onClick={() => fileRef.current?.click()}>Импорт JSON</button>
+          <button className="primary" onClick={() => setCreating(true)}>+ Новый персонаж</button>
+          <input ref={fileRef} type="file" accept="application/json,.json" hidden onChange={onFile} />
+        </div>
       </div>
       {error && <div className="error">{error}</div>}
       {characters === null && <p className="muted">Загрузка…</p>}
@@ -59,6 +79,63 @@ export function CharactersPage({ onOpen }: Props) {
           onCreated={id => { setCreating(false); onOpen(id) }}
         />
       )}
+      {importState && (
+        <ImportCharacterModal
+          payload={importState.payload}
+          preview={importState.preview}
+          onCancel={() => setImportState(null)}
+          onImported={id => { setImportState(null); onOpen(id) }}
+        />
+      )}
+    </div>
+  )
+}
+
+function ImportCharacterModal({ payload, preview, onCancel, onImported }: {
+  payload: CharacterExport
+  preview: ImportPreview
+  onCancel: () => void
+  onImported: (id: string) => void
+}) {
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  async function doImport(e: FormEvent) {
+    e.preventDefault()
+    setBusy(true)
+    setError(null)
+    try {
+      const result = await api.importCharacter(payload)
+      onImported(result.characterId)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Ошибка импорта')
+      setBusy(false)
+    }
+  }
+
+  return (
+    <div className="modal-backdrop" onClick={onCancel}>
+      <form className="modal" onClick={e => e.stopPropagation()} onSubmit={doImport}>
+        <h3>Импорт персонажа</h3>
+        <div className="hint">
+          <strong>{preview.name}</strong> · <span className={`badge ${preview.system}`}>{SYSTEM_LABELS[preview.system]}</span>
+          <br />{preview.archetypeName} · {preview.careerName}
+          <br />XP: {preview.totalXp} (потрачено {preview.spentXp})
+          <br />Навыков {preview.skillCount} · талантов {preview.talentCount} · предметов {preview.itemCount} · заметок {preview.noteCount}
+        </div>
+        {preview.warnings.length > 0 && (
+          <div className="notice warn">
+            <strong>Предупреждения:</strong>
+            <ul>{preview.warnings.map((w, i) => <li key={i}>{w}</li>)}</ul>
+          </div>
+        )}
+        <p className="muted small-text">Будет создан новый персонаж; существующие не изменятся.</p>
+        {error && <div className="error">{error}</div>}
+        <div className="modal-actions">
+          <button type="button" onClick={onCancel}>Отмена</button>
+          <button className="primary" type="submit" disabled={busy}>Импортировать</button>
+        </div>
+      </form>
     </div>
   )
 }

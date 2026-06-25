@@ -650,3 +650,32 @@ export interface CharacterSheet {
   heroicUpgradePointsSpent: number
   items: SheetItem[]
 }
+
+// ── Экспорт / импорт персонажа (формат genesysforge.character.v1) ──
+
+/** Переносимый JSON персонажа. Структура совпадает с серверным CharacterExportDto. */
+export interface CharacterExport {
+  format: string
+  exportedAt: string
+  character: unknown
+}
+
+export interface ImportPreview {
+  name: string
+  system: GameSystem
+  archetypeName: string
+  careerName: string
+  totalXp: number
+  spentXp: number
+  skillCount: number
+  talentCount: number
+  itemCount: number
+  noteCount: number
+  warnings: string[]
+}
+
+export interface ImportResult {
+  characterId: string
+  name: string
+  warnings: string[]
+}

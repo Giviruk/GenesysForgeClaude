@@ -51,6 +51,22 @@ export function SheetPage({ characterId, onBack }: Props) {
     )
   }
 
+  async function exportJson() {
+    if (!sheet) return
+    try {
+      const data = await api.exportCharacter(sheet.id)
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `${sheet.name.replace(/[^\p{L}\p{N}_-]+/gu, '_') || 'character'}.genesysforge.json`
+      a.click()
+      URL.revokeObjectURL(url)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Ошибка экспорта')
+    }
+  }
+
   async function saveXp() {
     if (xpEdit === null || !sheet) return
     const value = Number(xpEdit)
@@ -86,6 +102,10 @@ export function SheetPage({ characterId, onBack }: Props) {
           </span>
           <span className="muted"> потрачено {sheet.spentXp} · </span>
           <strong className="xp-available">доступно {sheet.availableXp}</strong>
+          <button className="small" title="Скачать персонажа в JSON (бэкап / перенос между аккаунтами)"
+            onClick={() => void exportJson()}>
+            Экспорт JSON
+          </button>
           {sheet.isCreationPhase && (
             <button className="small" title="Завершить создание: зафиксировать характеристики и снять лимит рангов"
               onClick={async () => { await api.completeCreation(sheet.id); await refresh() }}>

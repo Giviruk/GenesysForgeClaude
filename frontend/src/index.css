@@ -769,6 +769,9 @@ button.tiny { font-size: 0.75rem; padding: 0.05rem 0.4rem 0.15rem; }
   .npc-char-row { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
 
+/* Группа кнопок справа в шапке страницы (напр. Импорт + Новый персонаж) */
+.head-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center; }
+
 /* Глобальный футер: ссылки + копирайт-дисклеймер */
 .app-footer {
   margin-top: 2.5rem;
