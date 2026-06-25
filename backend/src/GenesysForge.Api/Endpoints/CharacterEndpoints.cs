@@ -27,6 +27,24 @@ public static class CharacterEndpoints
                 IQueryHandler<GetCharacterSheetQuery, CharacterSheetDto> handler, CancellationToken ct) =>
             Results.Ok(await handler.Handle(new GetCharacterSheetQuery(user.UserId(), id), ct)));
 
+        // Экспорт персонажа в переносимый JSON (формат genesysforge.character.v1).
+        group.MapGet("/{id:guid}/export", async (Guid id, ClaimsPrincipal user,
+                IQueryHandler<ExportCharacterQuery, CharacterExportDto> handler, CancellationToken ct) =>
+            Results.Ok(await handler.Handle(new ExportCharacterQuery(user.UserId(), id), ct)));
+
+        // Импорт персонажа из JSON — всегда создаёт нового. Возвращает id и предупреждения.
+        group.MapPost("/import", async (CharacterExportDto payload, ClaimsPrincipal user,
+            ICommandHandler<ImportCharacterCommand, ImportCharacterResult> handler, CancellationToken ct) =>
+        {
+            var result = await handler.Handle(new ImportCharacterCommand(user.UserId(), payload), ct);
+            return Results.Created($"/api/characters/{result.CharacterId}", result);
+        });
+
+        // Предпросмотр импорта: что будет создано + предупреждения о неразрешённых ссылках. Без сохранения.
+        group.MapPost("/import/preview", async (CharacterExportDto payload, ClaimsPrincipal user,
+                IQueryHandler<PreviewImportCharacterQuery, ImportPreviewDto> handler, CancellationToken ct) =>
+            Results.Ok(await handler.Handle(new PreviewImportCharacterQuery(user.UserId(), payload), ct)));
+
         group.MapPatch("/{id:guid}", async (Guid id, UpdateCharacterRequest req, ClaimsPrincipal user,
             ICommandHandler<UpdateCharacterCommand, Unit> handler, CancellationToken ct) =>
         {

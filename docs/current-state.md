@@ -50,6 +50,7 @@
 - URL routing / deep links via a lightweight History-API router (`frontend/src/router.ts`): `/characters/:id`, `/campaigns/:id`, `/npcs/:id` and `/magic` survive refresh (SPA fallback in nginx/Vite); login returns to the intended URL (`session.ts`), and a session-expired message is shown on `401`.
 - Real-time campaign updates over SignalR (hub `/hubs/campaign`): thin `GameTableChanged` / `CampaignChanged` invalidation events authorized by campaign membership; REST stays the source of truth.
 - Inventory shop search/filter matching name/description/properties with a dedicated tag picker.
+- Character JSON export/import (`genesysforge.character.v1`): `GET /api/characters/{id}/export`, `POST /api/characters/import` (always creates a new character) and `POST /api/characters/import/preview`. References resolve by `Code` (fallback `System`+`Name`); unresolved custom content is skipped with warnings. Frontend: «Экспорт JSON» on the sheet and «Импорт JSON» with a preview dialog on the character list.
 - EF Core migrations and automatic `Database.Migrate()` on startup.
 - Content model on all reference entities (`Code`, `NameRu`, `Name`/original, `Description` full, `SafeDescription`, `Source`) via `IContentDef`.
 - Talents have a `Setting` (`[Flags] GenesysSetting`) and are data-driven from an embedded catalog (`talents.catalog.json`, ~120 entries). Reference listing filters by setting: Genesys Core → `Any` only; Realms of Terrinoth → `Any` + `Fantasy`. Russian names (`NameRu`) shown in the talents UI.
@@ -74,7 +75,6 @@
 - Real e-mail delivery for password reset (provider not selected; links are written to the log).
 - Deep links for every sub-view (printable sheet, Game Table, encounter detail).
 - Shareable character sheets by URL.
-- Import/export character files.
 - Full printable character sheet; current print support is card/material oriented.
 - Audit log or XP history.
 - Full E2E browser test suite.

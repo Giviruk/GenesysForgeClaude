@@ -214,6 +214,35 @@ Protected. Deletes owned character. Response: `204`.
 
 Protected. Ends creation phase. Response: `204`.
 
+### `GET /api/characters/{id}/export`
+
+Protected (owner only). Returns the character as a portable JSON document
+(`CharacterExportDto`, format `genesysforge.character.v1`). References to reference content use the
+stable `Code` + `Name` instead of internal ids; `OwnerUserId` and database ids are not included.
+Exporting a character you do not own returns `400` ("персонаж не найден").
+
+### `POST /api/characters/import`
+
+Protected. Body: a `CharacterExportDto` (the exported JSON). Always creates a **new** character owned
+by the caller — it never overwrites an existing one. Returns `201 Created` with
+`ImportCharacterResult` (`characterId`, `name`, `warnings`).
+
+Resolution rules:
+
+- Archetype/career are resolved by `Code` (fallback `System` + `Name`). If unresolved, the import is
+  rejected with `400`.
+- Skills/talents/items/heroic ability are resolved by `Code` for built-in content and by `Name`
+  within the caller's scope (built-in or the caller's own custom) otherwise. Unresolved entries are
+  skipped and reported in `warnings` (they do not block the import).
+- An unknown `format` is rejected with `400`.
+
+### `POST /api/characters/import/preview`
+
+Protected. Same body as import. Resolves references **without** creating anything and returns
+`ImportPreviewDto` (`name`, `system`, `archetypeName`, `careerName`, `totalXp`, `spentXp`,
+`skillCount`, `talentCount`, `itemCount`, `noteCount`, `warnings`). Used by the frontend to show a
+confirmation preview before importing. Returns `400` on unknown format or unresolved archetype/career.
+
 ## Character progression
 
 ### `POST /api/characters/{id}/characteristics/{type}/buy`
