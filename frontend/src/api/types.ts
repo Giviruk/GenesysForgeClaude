@@ -68,6 +68,35 @@ export interface ItemDef {
   rangeBand: string
   properties: string
   isCustom: boolean
+  /** Структурные качества (U-10): свойство+рейтинг, бэкфилнутые из строки properties у встроенных предметов. */
+  qualities: ItemQualityRef[]
+}
+
+/** Структурное качество предмета: ссылка на справочник по коду + рейтинг. */
+export interface ItemQualityRef {
+  code: string
+  nameRu: string
+  nameEn: string
+  rating: number | null
+  hasRating: boolean
+  isActive: boolean
+  activationCost: string
+}
+
+/** Справочное качество предмета/заклинания (U-10). */
+export interface Quality {
+  id: string
+  code: string
+  nameEn: string
+  nameRu: string
+  kind: 'itemQuality' | 'spellAdditionalEffect'
+  isActive: boolean
+  hasRating: boolean
+  activationCost: string
+  category: string
+  description: string
+  safeDescription: string
+  source: string
 }
 
 export interface HeroicAbilityUpgrade {
@@ -145,6 +174,7 @@ export interface Reference {
   talents: TalentDef[]
   items: ItemDef[]
   heroicAbilities: HeroicAbility[]
+  qualities: Quality[]
 }
 
 export interface CharacterListItem {

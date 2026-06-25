@@ -36,6 +36,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<ContentPackEntry> ContentPackEntries => Set<ContentPackEntry>();
     public DbSet<RollLogEntry> RollLogEntries => Set<RollLogEntry>();
     public DbSet<CharacterAuditEntry> CharacterAuditEntries => Set<CharacterAuditEntry>();
+    public DbSet<QualityDef> QualityDefs => Set<QualityDef>();
+    public DbSet<ItemQualityValue> ItemQualityValues => Set<ItemQualityValue>();
 
     protected override void OnModelCreating(ModelBuilder b)
     {
@@ -150,6 +152,24 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             e.Property(i => i.Crit).HasMaxLength(20);
             e.Property(i => i.RangeBand).HasMaxLength(40);
             e.Property(i => i.Properties).HasMaxLength(400);
+            e.HasMany(i => i.Qualities).WithOne()
+                .HasForeignKey(v => v.ItemDefId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        b.Entity<QualityDef>(e =>
+        {
+            e.HasIndex(q => q.Code).IsUnique();
+            e.Property(q => q.NameEn).HasMaxLength(80);
+            e.Property(q => q.ActivationCost).HasMaxLength(160);
+            e.Property(q => q.Category).HasMaxLength(120);
+            e.Property(q => q.Description).HasMaxLength(2000);
+            e.Property(q => q.SafeDescription).HasMaxLength(600);
+        });
+        b.Entity<ItemQualityValue>(e =>
+        {
+            e.HasIndex(v => v.ItemDefId);
+            e.HasOne(v => v.QualityDef).WithMany()
+                .HasForeignKey(v => v.QualityDefId).OnDelete(DeleteBehavior.Cascade);
         });
 
         b.Entity<Npc>(e =>
@@ -252,6 +272,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         ConfigureContent<ArchetypeDef>(b);
         ConfigureContent<CareerDef>(b);
         ConfigureContent<HeroicAbilityDef>(b);
+        ConfigureContent<QualityDef>(b);
     }
 
     private static void ConfigureContent<T>(ModelBuilder b) where T : class, IContentDef

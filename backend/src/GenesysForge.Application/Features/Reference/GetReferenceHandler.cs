@@ -38,10 +38,17 @@ public class GetReferenceHandler(IAppDbContext db) : IQueryHandler<GetReferenceQ
             .OrderBy(t => t.Tier).ThenBy(t => t.Name)
             .Select(t => t.ToDto()).ToListAsync(ct);
 
-        var items = await db.ItemDefs.AsNoTracking()
+        // Материализуем с навигацией Qualities → QualityDef, затем маппим в памяти (ToDto тянет навигацию).
+        var itemDefs = await db.ItemDefs.AsNoTracking()
+            .Include(i => i.Qualities).ThenInclude(v => v.QualityDef)
             .Where(i => i.System == system && (i.OwnerUserId == null || i.OwnerUserId == userId))
             .OrderBy(i => i.Kind).ThenBy(i => i.Name)
-            .Select(i => i.ToDto()).ToListAsync(ct);
+            .ToListAsync(ct);
+        var items = itemDefs.Select(i => i.ToDto()).ToList();
+
+        var qualities = await db.QualityDefs.AsNoTracking()
+            .OrderBy(q => q.NameRu)
+            .Select(q => q.ToDto()).ToListAsync(ct);
 
         // Героики материализуем вместе с улучшениями и маппим в памяти (ToDto тянет навигацию Upgrades).
         var heroicDefs = system == GameSystem.RealmsOfTerrinoth
@@ -53,6 +60,6 @@ public class GetReferenceHandler(IAppDbContext db) : IQueryHandler<GetReferenceQ
             : [];
         var heroics = heroicDefs.Select(h => h.ToDto()).ToList();
 
-        return new ReferenceResponse(archetypes, careers, skills, talents, items, heroics);
+        return new ReferenceResponse(archetypes, careers, skills, talents, items, heroics, qualities);
     }
 }

@@ -10,12 +10,13 @@ function itemDef(p: Partial<ItemDef> & Pick<ItemDef, 'name' | 'nameRu' | 'kind'>
   return {
     id: p.name, encumbrance: 0, soakBonus: 0, meleeDefense: 0, rangedDefense: 0,
     encumbranceThresholdBonus: 0, description: '', safeDescription: '', source: '', price: 0,
-    rarity: 0, skillName: '', damage: '', crit: '', rangeBand: '', properties: '', isCustom: false, ...p,
+    rarity: 0, skillName: '', damage: '', crit: '', rangeBand: '', properties: '', isCustom: false,
+    qualities: [], ...p,
   }
 }
 
 const reference: Reference = {
-  archetypes: [], careers: [], talents: [], heroicAbilities: [],
+  archetypes: [], careers: [], talents: [], heroicAbilities: [], qualities: [],
   skills: [
     skillDef({ name: 'Melee', nameRu: 'Ближний бой', characteristic: 'brawn' }),
     skillDef({ name: 'Ranged (Light)', nameRu: 'Дальний бой (лёгкое)', characteristic: 'agility' }),

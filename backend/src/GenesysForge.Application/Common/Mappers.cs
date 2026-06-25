@@ -23,7 +23,16 @@ public static class Mappers
     public static ItemDefDto ToDto(this ItemDef i) => new(i.Id, i.Name, i.NameRu, i.Kind, i.Encumbrance, i.SoakBonus,
         i.MeleeDefense, i.RangedDefense, i.EncumbranceThresholdBonus,
         i.Description, i.SafeDescription, i.Source, i.Price, i.Rarity,
-        i.SkillName, i.Damage, i.Crit, i.RangeBand, i.Properties, i.OwnerUserId != null);
+        i.SkillName, i.Damage, i.Crit, i.RangeBand, i.Properties, i.OwnerUserId != null,
+        i.Qualities
+            .Where(q => q.QualityDef != null)
+            .Select(q => new ItemQualityRefDto(
+                q.QualityDef!.Code, q.QualityDef.NameRu, q.QualityDef.NameEn, q.Rating,
+                q.QualityDef.HasRating, q.QualityDef.IsActive, q.QualityDef.ActivationCost))
+            .ToList());
+
+    public static QualityDto ToDto(this QualityDef q) => new(q.Id, q.Code, q.NameEn, q.NameRu, q.Kind,
+        q.IsActive, q.HasRating, q.ActivationCost, q.Category, q.Description, q.SafeDescription, q.Source);
 
     public static HeroicAbilityDto ToDto(this HeroicAbilityDef h) =>
         new(h.Id, h.Name, h.NameRu, h.Description, h.SafeDescription, h.Source, h.OwnerUserId != null,

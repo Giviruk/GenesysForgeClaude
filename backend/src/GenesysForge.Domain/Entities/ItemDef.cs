@@ -34,8 +34,11 @@ public class ItemDef : IContentDef
     public string Crit { get; set; } = "";
     /// <summary>Дистанция (русская подпись): «Вплотную», «Средняя» и т. п.</summary>
     public string RangeBand { get; set; } = "";
-    /// <summary>Свойства/эффекты оружия (русские).</summary>
+    /// <summary>Свойства/эффекты оружия (русские). Сохраняется как исходный fallback к структурным <see cref="Qualities"/>.</summary>
     public string Properties { get; set; } = "";
+
+    /// <summary>Структурные качества (свойство+рейтинг). Бэкфилятся из <see cref="Properties"/> у встроенных предметов.</summary>
+    public List<ItemQualityValue> Qualities { get; set; } = [];
 
     public Guid? OwnerUserId { get; set; }
 }

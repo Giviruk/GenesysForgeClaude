@@ -36,6 +36,8 @@ public interface IAppDbContext
     DbSet<ContentPackEntry> ContentPackEntries { get; }
     DbSet<RollLogEntry> RollLogEntries { get; }
     DbSet<CharacterAuditEntry> CharacterAuditEntries { get; }
+    DbSet<QualityDef> QualityDefs { get; }
+    DbSet<ItemQualityValue> ItemQualityValues { get; }
 
     Task<int> SaveChangesAsync(CancellationToken ct = default);
 }

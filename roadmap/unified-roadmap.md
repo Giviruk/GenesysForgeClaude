@@ -135,7 +135,7 @@
 - **DoD:** все XP-операции в истории; видно, почему изменился `SpentXp`; виден refund.
 
 ## U-10 · Структурные свойства предметов и эффекты заклинаний
-- **Статус:** ⬜ Todo
+- **Статус:** 🚧 In progress
 - **Источник:** GF-005 · Аудит §8 (крафт/качества)
 - **Зачем:** строки `Properties` мешают фильтрам/тултипам/валидации/роллеру.
 - **Scope (B/D):** `QualityDef` (Code/NameEn/NameRu/Kind/HasRating/DefaultActivationCost/Desc/SafeDesc/Source) + `ItemQualityValue(ItemDefId, QualityDefId, Rating)`. Seed справочника из **`_books/_qualities/genesys_rot_item_and_spell_qualities.csv`** (94 качества, уже с рейтингом/тратой/категорией). Миграция: сохранить старое `ItemDef.Properties`, написать parser строк («Точное 1», «Pierce 3»), fallback на строку.

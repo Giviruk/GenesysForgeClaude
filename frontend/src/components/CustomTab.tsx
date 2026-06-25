@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { api } from '../api/client'
-import type { CharacterSheet, HeroicAbility, ItemDef, Reference, SkillDef, TalentDef } from '../api/types'
+import type { CharacterSheet, HeroicAbility, ItemDef, Quality, Reference, SkillDef, TalentDef } from '../api/types'
 import { CHARACTERISTICS, CHARACTERISTIC_LABELS, ITEM_KIND_LABELS, SKILL_KIND_LABELS } from '../utils/labels'
 
 interface Props {
@@ -76,7 +76,7 @@ export function CustomTab({ sheet, reference, onError, refresh }: Props) {
         )}
         {section === 'item' && (
           <>
-            <ItemForm key={editingItem?.id ?? 'new'} sheet={sheet} run={run} editing={editingItem}
+            <ItemForm key={editingItem?.id ?? 'new'} sheet={sheet} reference={reference} run={run} editing={editingItem}
               onDone={() => setEditingItem(null)} />
             <CustomList items={customItems.map(i => ({ id: i.id, label: `${i.name} · ${ITEM_KIND_LABELS[i.kind]} · вес ${i.encumbrance}` }))}
               onEdit={id => setEditingItem(customItems.find(i => i.id === id)!)}
@@ -235,7 +235,7 @@ function TalentForm({ sheet, run, editing, onDone }: { sheet: CharacterSheet; ru
   )
 }
 
-function ItemForm({ sheet, run, editing, onDone }: { sheet: CharacterSheet; run: Run; editing: ItemDef | null; onDone: () => void }) {
+function ItemForm({ sheet, reference, run, editing, onDone }: { sheet: CharacterSheet; reference: Reference; run: Run; editing: ItemDef | null; onDone: () => void }) {
   const [name, setName] = useState(editing?.name ?? '')
   const [kind, setKind] = useState<string>(editing?.kind ?? 'gear')
   const [description, setDescription] = useState(editing?.description ?? '')
@@ -310,6 +310,8 @@ function ItemForm({ sheet, run, editing, onDone }: { sheet: CharacterSheet; run:
           </div>
           <label>Свойства
             <input value={weapon.properties} onChange={e => setWeapon(w => ({ ...w, properties: e.target.value }))} /></label>
+          <QualityPicker qualities={reference.qualities}
+            onAdd={token => setWeapon(w => ({ ...w, properties: appendProperty(w.properties, token) }))} />
         </>
       )}
       <label>Описание<textarea value={description} onChange={e => setDescription(e.target.value)} rows={2} /></label>
@@ -326,6 +328,49 @@ function ItemForm({ sheet, run, editing, onDone }: { sheet: CharacterSheet; run:
         {editing && <button type="button" onClick={onDone}>Отмена</button>}
       </div>
     </form>
+  )
+}
+
+/** Добавляет канонический токен свойства («Точное 1») в строку properties без дублей по имени. */
+function appendProperty(properties: string, token: string): string {
+  const norm = (s: string) => s.toLowerCase().replace(/ё/g, 'е').replace(/\s*\d+\s*$/, '').trim()
+  const existing = properties.split(',').map(s => s.trim()).filter(Boolean)
+  if (existing.some(p => norm(p) === norm(token))) return properties
+  return [...existing, token].join(', ')
+}
+
+/** Селектор справочного качества (+рейтинг) для формы кастом-предмета (U-10). */
+function QualityPicker({ qualities, onAdd }: { qualities: Quality[]; onAdd: (token: string) => void }) {
+  const items = qualities.filter(q => q.kind === 'itemQuality')
+  const [code, setCode] = useState('')
+  const [rating, setRating] = useState(1)
+  const selected = items.find(q => q.code === code)
+
+  function add() {
+    if (!selected) return
+    const token = selected.hasRating ? `${selected.nameRu} ${rating}` : selected.nameRu
+    onAdd(token)
+    setCode('')
+    setRating(1)
+  }
+
+  if (items.length === 0) return null
+  return (
+    <div className="form-row quality-picker">
+      <select className="grow" value={code} onChange={e => setCode(e.target.value)}>
+        <option value="">— добавить свойство из справочника —</option>
+        {items.map(q => (
+          <option key={q.code} value={q.code} title={q.safeDescription}>
+            {q.nameRu}{q.hasRating ? ' (рейтинг)' : ''}
+          </option>
+        ))}
+      </select>
+      {selected?.hasRating && (
+        <input className="ranks-input" type="number" min={1} value={rating}
+          onChange={e => setRating(Math.max(1, +e.target.value))} title="Рейтинг свойства" />
+      )}
+      <button type="button" className="small" onClick={add} disabled={!selected}>+ свойство</button>
+    </div>
   )
 }
 
