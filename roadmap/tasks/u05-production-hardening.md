@@ -18,7 +18,7 @@ PublicSafe-стек без embedded private-content.
 - [x] Rate limiting для `/api/auth/*` с отдельными лимитами login/register/reset и refresh
 - [x] Forwarded headers + secure refresh-cookie в Production
 - [x] Валидация JWT key и CORS-конфигурации при старте
-- [x] Структурное request logging на встроенном `ILogger`
+- [x] Структурное request logging на **Serilog** (compact JSON в Production, `UseSerilogRequestLogging`)
 - [x] `/api/health` проверяет API и доступность БД
 - [x] Тесты rate limit, cookie security, JWT validation и health
 - [x] PublicSafe API image без embedded private-content
@@ -35,8 +35,9 @@ PublicSafe-стек без embedded private-content.
 
 ## Что осталось / блокеры
 
-- Serilog требует новую NuGet-зависимость. До явного разрешения используется встроенный
-  структурный `ILogger`; это единственное осознанное отклонение от roadmap scope.
+- ~~Serilog требует новую NuGet-зависимость~~ — по явному запросу подключён `Serilog.AspNetCore` 9.0.0:
+  host-логгер с compact JSON в Production / текстом в Development, `UseSerilogRequestLogging` вместо
+  кастомного middleware (файл `RequestLoggingMiddleware.cs` удалён), шум `Microsoft.AspNetCore` → Warning.
 - Docker engine локально недоступен; private/public/web Docker builds должны пройти в GitHub Buildx.
 - ~~Повторный backend test заблокирован лимитом внешнего запуска~~ — выполнен локально:
   `dotnet test backend/GenesysForge.slnx` → 62 domain + 132 API тестов, 0 fail.

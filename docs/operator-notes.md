@@ -40,8 +40,10 @@ API принимает `X-Forwarded-For` и `X-Forwarded-Proto` только в 
 - `200 { "status": "ok", "database": "ok" }`;
 - `503 { "status": "degraded", "database": "unavailable" }`.
 
-Production console logging использует JSON formatter. Request middleware пишет method, path,
-status code, duration, trace ID и remote IP; тела запросов, пароли и токены не логируются.
+Логирование на **Serilog**: в Production пишется compact JSON в stdout (для агрегаторов логов),
+в Development — человекочитаемый текст. `UseSerilogRequestLogging` даёт одну структурную запись
+на запрос (method, path, status code, duration) с обогащением `TraceId` и `RemoteIp`; шум фреймворка
+(`Microsoft.AspNetCore`) приглушён до Warning. Тела запросов, пароли и токены не логируются.
 
 ## PrivateFull / PublicSafe
 

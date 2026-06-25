@@ -63,7 +63,7 @@
   and non-HTTPS/missing CORS origins.
 - Production refresh cookies are always `Secure`; forwarded HTTPS/IP headers are handled behind
   Caddy/nginx.
-- Structured JSON console/request logging and DB-aware `/api/health`.
+- Serilog structured logging (compact JSON in Production) with per-request summary, and DB-aware `/api/health`.
 - Separate PrivateFull and PublicSafe production API/database/web stacks; the public API image is
   published without embedded `private-content` resources.
 - Automated daily PostgreSQL dumps plus documented backup/restore/rollback/release procedures.

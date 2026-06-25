@@ -12,16 +12,31 @@ using GenesysForge.Infrastructure.Auth;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
+using Serilog;
+using Serilog.Events;
+using Serilog.Formatting.Compact;
 
 var builder = WebApplication.CreateBuilder(args);
 
 ProductionConfiguration.Validate(builder.Configuration, builder.Environment);
 
-if (builder.Environment.IsProduction())
+// Структурное логирование на Serilog: compact JSON в Production (для агрегаторов логов),
+// человекочитаемый текст в Development. Дополнительные настройки можно задать в "Serilog" секции конфига.
+builder.Host.UseSerilog((context, services, loggerConfiguration) =>
 {
-    builder.Logging.ClearProviders();
-    builder.Logging.AddJsonConsole(options => options.IncludeScopes = true);
-}
+    loggerConfiguration
+        .ReadFrom.Configuration(context.Configuration)
+        .ReadFrom.Services(services)
+        .MinimumLevel.Information()
+        // Серый шум фреймворка глушим: единый summary на запрос даёт UseSerilogRequestLogging.
+        .MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Warning)
+        .Enrich.FromLogContext();
+
+    if (context.HostingEnvironment.IsProduction())
+        loggerConfiguration.WriteTo.Console(new CompactJsonFormatter());
+    else
+        loggerConfiguration.WriteTo.Console();
+});
 
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
@@ -85,7 +100,15 @@ var app = builder.Build();
 app.Services.InitializeDatabase();
 
 app.UseForwardedHeaders();
-app.UseMiddleware<RequestLoggingMiddleware>();
+// Одна структурная запись на запрос (метод, путь, статус, длительность) + traceId/remoteIp.
+app.UseSerilogRequestLogging(options =>
+{
+    options.EnrichDiagnosticContext = (diagnosticContext, httpContext) =>
+    {
+        diagnosticContext.Set("TraceId", httpContext.TraceIdentifier);
+        diagnosticContext.Set("RemoteIp", httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown");
+    };
+});
 if (builder.Configuration.GetValue("RateLimiting:Enabled", true))
     app.UseRateLimiter();
 app.UseCors();
