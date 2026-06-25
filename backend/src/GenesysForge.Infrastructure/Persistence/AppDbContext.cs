@@ -34,6 +34,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<EncounterParticipant> EncounterParticipants => Set<EncounterParticipant>();
     public DbSet<ContentPack> ContentPacks => Set<ContentPack>();
     public DbSet<ContentPackEntry> ContentPackEntries => Set<ContentPackEntry>();
+    public DbSet<RollLogEntry> RollLogEntries => Set<RollLogEntry>();
 
     protected override void OnModelCreating(ModelBuilder b)
     {
@@ -223,6 +224,16 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             e.Property(en => en.GmNotes).HasMaxLength(2000);
             e.Property(en => en.PlayerNotes).HasMaxLength(2000);
             e.Property(en => en.Tags).HasMaxLength(1000);
+        });
+
+        b.Entity<RollLogEntry>(e =>
+        {
+            e.HasIndex(r => new { r.CampaignId, r.CreatedAt });
+            e.Property(r => r.ActorName).HasMaxLength(200);
+            e.Property(r => r.Label).HasMaxLength(200);
+            e.Property(r => r.PoolJson).HasMaxLength(2000);
+            e.Property(r => r.ResultJson).HasMaxLength(4000);
+            e.Property(r => r.Summary).HasMaxLength(400);
         });
 
         // Content-model (Code/NameRu/Source) у справочных сущностей.

@@ -7,6 +7,7 @@ export type CampaignHubStatus = 'connecting' | 'connected' | 'disconnected'
 interface Handlers {
   onGameTableChanged?: () => void
   onCampaignChanged?: () => void
+  onRollAdded?: () => void
   onStatus?: (status: CampaignHubStatus) => void
 }
 
@@ -34,6 +35,7 @@ export function useCampaignHub(campaignId: string | null, handlers: Handlers): v
 
     connection.on('GameTableChanged', () => h().onGameTableChanged?.())
     connection.on('CampaignChanged', () => h().onCampaignChanged?.())
+    connection.on('RollAdded', () => h().onRollAdded?.())
     connection.onreconnecting(() => h().onStatus?.('connecting'))
     connection.onreconnected(() => {
       h().onStatus?.('connected')

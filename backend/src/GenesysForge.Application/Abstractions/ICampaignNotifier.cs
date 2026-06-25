@@ -12,4 +12,7 @@ public interface ICampaignNotifier
 
     /// <summary>Изменился состав/заметки кампании.</summary>
     Task CampaignChangedAsync(Guid campaignId);
+
+    /// <summary>В лог стола добавлен бросок (клиент перечитывает лог бросков).</summary>
+    Task RollAddedAsync(Guid campaignId);
 }
