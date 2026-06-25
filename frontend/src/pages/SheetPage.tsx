@@ -13,18 +13,21 @@ import { CharacterSheetPrint } from '../components/print/CharacterSheetPrint'
 
 interface Props {
   characterId: string
+  /** Открыт ли печатный лист (deep link /characters/:id/print). */
+  printing: boolean
+  onOpenPrint: () => void
+  onClosePrint: () => void
   onBack: () => void
 }
 
 type Tab = 'sheet' | 'talents' | 'inventory' | 'magic' | 'notes' | 'custom'
 
-export function SheetPage({ characterId, onBack }: Props) {
+export function SheetPage({ characterId, printing, onOpenPrint, onClosePrint, onBack }: Props) {
   const [sheet, setSheet] = useState<CharacterSheet | null>(null)
   const [reference, setReference] = useState<Reference | null>(null)
   const [tab, setTab] = useState<Tab>('sheet')
   const [error, setError] = useState<string | null>(null)
   const [xpEdit, setXpEdit] = useState<string | null>(null)
-  const [printing, setPrinting] = useState(false)
 
   const refresh = useCallback(
     () => api.sheet(characterId).then(next =>
@@ -109,7 +112,7 @@ export function SheetPage({ characterId, onBack }: Props) {
           </div>
           <div className="sheet-action-buttons">
             <button className="small" title="Печать листа персонажа / сохранение в PDF"
-              onClick={() => setPrinting(true)}>
+              onClick={onOpenPrint}>
               Печать листа
             </button>
             <button className="small" title="Скачать персонажа в JSON (бэкап / перенос между аккаунтами)"
@@ -145,7 +148,7 @@ export function SheetPage({ characterId, onBack }: Props) {
       {tab === 'custom' && <CustomTab sheet={sheet} reference={reference} onError={setError} refresh={refresh} />}
 
       {printing && (
-        <PrintPreview title={`Лист персонажа — ${sheet.name}`} onClose={() => setPrinting(false)}>
+        <PrintPreview title={`Лист персонажа — ${sheet.name}`} onClose={onClosePrint}>
           {() => <CharacterSheetPrint sheet={sheet} reference={reference} />}
         </PrintPreview>
       )}

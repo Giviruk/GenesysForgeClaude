@@ -9,6 +9,10 @@ import { MagicPage } from './pages/MagicPage'
 import { AboutPage } from './pages/AboutPage'
 import { Footer } from './components/Footer'
 import { navigate, parseRoute, usePath, type AppArea } from './router'
+import type { CampaignView } from './pages/CampaignsPage'
+
+const campaignView = (sub: string | null): CampaignView =>
+  sub === 'table' || sub === 'handbook' || sub === 'encounters' ? sub : 'overview'
 
 function Shell() {
   const { token, logout } = useAuth()
@@ -41,11 +45,19 @@ function Shell() {
         ? <NotFound />
         : route.area === 'characters'
           ? (route.id
-              ? <SheetPage characterId={route.id} onBack={() => navigate('/characters')} />
+              ? <SheetPage characterId={route.id}
+                  printing={route.sub === 'print'}
+                  onOpenPrint={() => navigate(`/characters/${route.id}/print`)}
+                  onClosePrint={() => navigate(`/characters/${route.id}`)}
+                  onBack={() => navigate('/characters')} />
               : <CharactersPage onOpen={id => navigate(`/characters/${id}`)} />)
           : route.area === 'campaigns'
             ? <CampaignsPage openId={route.id}
-                onOpen={id => navigate(`/campaigns/${id}`)} onBack={() => navigate('/campaigns')} />
+                view={campaignView(route.sub)} openEncounterId={route.subId}
+                onOpen={id => navigate(`/campaigns/${id}`)} onBack={() => navigate('/campaigns')}
+                onView={view => navigate(view === 'overview' ? `/campaigns/${route.id}` : `/campaigns/${route.id}/${view}`)}
+                onOpenEncounter={eid => navigate(`/campaigns/${route.id}/encounters/${eid}`)}
+                onCloseEncounter={() => navigate(`/campaigns/${route.id}/encounters`)} />
             : route.area === 'npcs'
               ? <NpcsPage openId={route.id}
                   onOpen={id => navigate(`/npcs/${id}`)} onBack={() => navigate('/npcs')} />

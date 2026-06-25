@@ -16,6 +16,10 @@ interface Props {
   campaignId: string
   isGm: boolean
   members: CampaignMember[]
+  /** Открытый энкаунтер из URL (/campaigns/:id/encounters/:eid), иначе список. */
+  openEncounterId: string | null
+  onOpenEncounter: (eid: string) => void
+  onCloseEncounter: () => void
   onSentToTable?: () => void
 }
 
@@ -26,9 +30,10 @@ const blankInput = (system: GameSystem): EncounterInput => ({
   isVisibleToPlayers: false, tags: [],
 })
 
-export function EncountersTab({ campaignId, isGm, members, onSentToTable }: Props) {
+export function EncountersTab({
+  campaignId, isGm, members, openEncounterId, onOpenEncounter, onCloseEncounter, onSentToTable,
+}: Props) {
   const [list, setList] = useState<EncounterListItem[] | null>(null)
-  const [openId, setOpenId] = useState<string | null>(null)
   const [creating, setCreating] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -40,9 +45,9 @@ export function EncountersTab({ campaignId, isGm, members, onSentToTable }: Prop
 
   useEffect(() => { void reload() }, [reload])
 
-  if (openId) {
-    return <EncounterEditor encounterId={openId} isGm={isGm} members={members}
-      onBack={() => { setOpenId(null); void reload() }} onSentToTable={onSentToTable} />
+  if (openEncounterId) {
+    return <EncounterEditor encounterId={openEncounterId} isGm={isGm} members={members}
+      onBack={() => { onCloseEncounter(); void reload() }} onSentToTable={onSentToTable} />
   }
 
   return (
@@ -59,7 +64,7 @@ export function EncountersTab({ campaignId, isGm, members, onSentToTable }: Prop
             const e = await api.createEncounter(campaignId, input)
             setCreating(false)
             await reload()
-            setOpenId(e.id)
+            onOpenEncounter(e.id)
           } catch (err) { setError(err instanceof Error ? err.message : 'Ошибка') }
         }} />
       )}
@@ -68,7 +73,7 @@ export function EncountersTab({ campaignId, isGm, members, onSentToTable }: Prop
       {list?.length === 0 && <p className="muted">Энкаунтеров пока нет.{isGm && ' Создайте первую сцену.'}</p>}
       <div className="card-grid">
         {list?.map(e => (
-          <div key={e.id} className="char-card" onClick={() => setOpenId(e.id)}>
+          <div key={e.id} className="char-card" onClick={() => onOpenEncounter(e.id)}>
             <div className="char-card-head">
               <strong>{e.name}</strong>
               <span className="badge">{ENCOUNTER_TYPE_LABELS[e.type]}</span>
