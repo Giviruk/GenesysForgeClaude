@@ -11,12 +11,22 @@
     <EmbeddedResource Include="Persistence\SeedContent\heroics.catalog.json" />
   </ItemGroup>
 
+  <Target Name="VerifyPublicBuildHasNoPrivateContent" BeforeTargets="PrepareResources"
+          Condition="'$(IncludePrivateContent)' == 'false'">
+    <ItemGroup>
+      <UnexpectedPrivateResource Include="@(EmbeddedResource)"
+        Condition="$([System.String]::Copy('%(EmbeddedResource.Identity)').Contains('private-content'))" />
+    </ItemGroup>
+    <Error Condition="'@(UnexpectedPrivateResource)' != ''"
+           Text="Public build must not embed private-content resources: @(UnexpectedPrivateResource)" />
+  </Target>
+
   <!--
     Приватный полный контент (private-content/*.ru.json) подключается как embedded resource,
     чтобы PrivateContentStore читал его независимо от рабочего каталога. Glob, не находящий файлов
     (например, после их удаления перед публичным открытием репо), не ломает сборку.
   -->
-  <ItemGroup>
+  <ItemGroup Condition="'$(IncludePrivateContent)' != 'false'">
     <!-- WithCulture=false: суффикс ".ru" в имени иначе принимается за культуру и уводит ресурс в сателлит. -->
     <EmbeddedResource Include="..\..\private-content\*.ru.json">
       <Link>private-content\%(Filename)%(Extension)</Link>

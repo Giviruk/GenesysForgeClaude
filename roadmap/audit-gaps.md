@@ -93,7 +93,7 @@
 |---|---|---|---|
 | Версионирование API (`/api/v1`) | ❌ | `/api/...` | префикс версии или version header |
 | Schema-валидация входа | ⚠️ | доменная валидация | слой валидации DTO (напр. FluentValidation/minimal filters) |
-| Структурное логирование | ⚠️ | дефолт ASP.NET | Serilog/структурные логи (**GF-016**) |
+| Структурное логирование | ✅ | Serilog (compact JSON в prod) + request logging | готово (**GF-016**, U-05) |
 | Rate limiting | ❌ | пакет в транзитиве, не подключён | лимиты на auth-эндпоинты (**GF-016**) |
 | Swagger/Scalar UI | ⚠️ | OpenAPI-документ есть (`MapOpenApi`), UI нет | подключить UI |
 | PWA / офлайн | ❌ | нет SW/manifest | service worker + manifest (можно отложить) |

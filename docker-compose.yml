@@ -19,10 +19,13 @@ services:
       retries: 10
 
   api:
-    build: ./backend
+    build:
+      context: ./backend
+      target: final
     container_name: genesysforge-api
     environment:
-      ASPNETCORE_ENVIRONMENT: ${API_ENVIRONMENT:-Production}
+      # Локальный compose доступен по HTTP; production compose задаёт Production отдельно.
+      ASPNETCORE_ENVIRONMENT: Development
       ConnectionStrings__Default: "Host=postgres;Port=5432;Database=genesysforge;Username=genesys;Password=${POSTGRES_PASSWORD:-genesys_dev}"
       Jwt__Key: ${JWT_KEY:-genesysforge-dev-signing-key-change-in-production!}
       # Время жизни access-токена в минутах (короткое — сессия продлевается refresh-токеном). По умолчанию 30.

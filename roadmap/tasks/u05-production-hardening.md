@@ -1,0 +1,51 @@
+# Production hardening (u05-production-hardening)
+
+- **Roadmap:** U-05 — Production hardening (см. [unified-roadmap.md](../unified-roadmap.md))
+- **Ветка:** `feature/u05-production-hardening`
+- **Базовая ветка:** `master` (PR #34 слит, открытых PR нет)
+- **PR:** [#35](https://github.com/Giviruk/GenesysForgeClaude/pull/35)
+- **Статус:** 🚧 In progress
+
+## Контекст
+
+Усилить production-безопасность и эксплуатационную готовность: защита auth от brute force,
+корректные secure cookies за reverse proxy, отказ от слабого JWT key, DB health check,
+структурные request logs, автоматические backup/restore/rollback инструкции и отдельный
+PublicSafe-стек без embedded private-content.
+
+## План выполнения
+
+- [x] Rate limiting для `/api/auth/*` с отдельными лимитами login/register/reset и refresh
+- [x] Forwarded headers + secure refresh-cookie в Production
+- [x] Валидация JWT key и CORS-конфигурации при старте
+- [x] Структурное request logging на **Serilog** (compact JSON в Production, `UseSerilogRequestLogging`)
+- [x] `/api/health` проверяет API и доступность БД
+- [x] Тесты rate limit, cookie security, JWT validation и health
+- [x] PublicSafe API image без embedded private-content
+- [x] Отдельные PublicSafe database/API/web/Caddy services
+- [x] Ежедневный backup, restore/rollback scripts и release checklist
+- [x] Обновить operator/deploy/API документацию и `.env.example`
+- [x] Frontend/public-publish/compose checks
+- [x] Повторный backend test после финального CORS/health hardening (62 domain + 132 API, all green)
+- [ ] Docker image builds (локальный Docker engine не запущен; проверит PR CI/deploy Buildx)
+- [x] Миграции не требуются
+- [x] Copyright: public assembly содержит только три safe catalog resource
+- [x] Статус roadmap обновлён
+- [x] PR открыт (#35)
+
+## Что осталось / блокеры
+
+- ~~Serilog требует новую NuGet-зависимость~~ — по явному запросу подключён `Serilog.AspNetCore` 9.0.0:
+  host-логгер с compact JSON в Production / текстом в Development, `UseSerilogRequestLogging` вместо
+  кастомного middleware (файл `RequestLoggingMiddleware.cs` удалён), шум `Microsoft.AspNetCore` → Warning.
+- Docker engine локально недоступен; private/public/web Docker builds должны пройти в GitHub Buildx.
+- ~~Повторный backend test заблокирован лимитом внешнего запуска~~ — выполнен локально:
+  `dotnet test backend/GenesysForge.slnx` → 62 domain + 132 API тестов, 0 fail.
+- Наличие GitHub variable `PUBLIC_HOSTNAME` не удалось проверить из-за лимита внешних операций.
+  Без variable безопасный fallback — `public-disabled.localhost`.
+
+## Заметки / решения
+
+- PublicSafe использует отдельную БД, чтобы private/public seed pipelines и пользовательские
+  данные не смешивались.
+- Health endpoint реализуется без нового пакета через `Database.CanConnectAsync`.

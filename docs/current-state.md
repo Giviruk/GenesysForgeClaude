@@ -59,6 +59,14 @@
 - Idempotent seed application for built-in content.
 - Docker compose for PostgreSQL + API + web.
 - CI for backend build/test and frontend lint/test/build.
+- Production auth rate limiting by client IP; production startup rejects weak/default JWT keys
+  and non-HTTPS/missing CORS origins.
+- Production refresh cookies are always `Secure`; forwarded HTTPS/IP headers are handled behind
+  Caddy/nginx.
+- Serilog structured logging (compact JSON in Production) with per-request summary, and DB-aware `/api/health`.
+- Separate PrivateFull and PublicSafe production API/database/web stacks; the public API image is
+  published without embedded `private-content` resources.
+- Automated daily PostgreSQL dumps plus documented backup/restore/rollback/release procedures.
 
 ## Partially implemented
 
@@ -69,7 +77,9 @@
 - Validation: domain/application validation exists; frontend validation is basic HTML/form/state validation.
 - Copyright policy: documented now, but current seed still contains paraphrased descriptions that should be reviewed manually for legal safety.
 - Frontend tests: utilities and API client are tested; broad component/flow coverage is limited.
-- Production readiness: Docker, VPS compose and deploy workflow exist, but observability, backup automation and secret rotation are minimal.
+- Production readiness: Docker, dual private/public VPS compose, deploy workflow, JSON logs,
+  health checks and backup automation exist; off-host backup monitoring and secret rotation remain
+  operator responsibilities.
 
 ## Not implemented yet
 

@@ -81,7 +81,7 @@
 - **DoD:** round-trip export→import сохраняет основные значения; нет зависимости от старых id.
 
 ## U-04 · Полный printable / PDF-friendly лист персонажа
-- **Статус:** 🚧 In progress (PR #34; follow-up после PR #33)
+- **Статус:** ✅ Done (PR #34)
 - **Источник:** GF-003 · Аудит §2.4, §9.2 (сейчас только печать карточек)
 - **Зачем:** «нормальный PDF-экспорт» — боль сообщества #4.
 - **Scope (F):** маршрут `/characters/:id/print` или кнопка «Печать листа» в `SheetPage`. На листе: основная инфо, 6 характеристик, derived (wounds/strain/soak/melee+ranged defense/enc threshold/current enc), навыки (RU/EN, карьерный, ранг, характеристика, dice pool), таланты (tier/ranked/activation/эффект), героика (activation/duration/frequency/upgrade rank/эффект), инвентарь (equipped/backpack/qty/enc/боевые статы/броня), заметки. Использовать существующий `CharacterSheetDto`.
@@ -89,7 +89,7 @@
 - **DoD:** печатается на A4/Letter без разрывов; навигация/кнопки не печатаются; сохранение в PDF через системный диалог.
 
 ## U-05 · Production hardening (безопасность + эксплуатация)
-- **Статус:** ⬜ Todo
+- **Статус:** 🚧 In progress
 - **Источник:** GF-016 · Аудит §9 (rate limiting, логи), §10 (changelog)
 - **Scope (B/Deploy):**
   - **Rate limiting** на `/api/auth/*` (`AddRateLimiter`, пакет уже в зависимостях) — против brute force.

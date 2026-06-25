@@ -1,5 +1,5 @@
-# ---- build ----
-FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
+# ---- restore + shared source ----
+FROM mcr.microsoft.com/dotnet/sdk:10.0 AS restore
 WORKDIR /src
 
 # слои восстановления кешируются отдельно от исходников
@@ -10,18 +10,32 @@ COPY src/GenesysForge.Infrastructure/GenesysForge.Infrastructure.csproj src/Gene
 COPY src/GenesysForge.Api/GenesysForge.Api.csproj src/GenesysForge.Api/
 RUN dotnet restore src/GenesysForge.Api/GenesysForge.Api.csproj
 
+FROM restore AS source
 COPY src/ src/
+
+# ---- private build: embeds private-content resources ----
+FROM source AS private-build
 # Полные private-описания (embedded resource в Infrastructure.csproj: ..\..\private-content\*.ru.json).
-# Должны попасть в контекст до publish, иначе PrivateFull в образе будет неполным.
-# Перед публичным открытием репо удаляются только *.ru.json (каталог с README остаётся,
-# иначе COPY упадёт); тогда glob не находит файлов и private-сид падает на safe-описания.
 COPY private-content/ private-content/
 RUN dotnet publish src/GenesysForge.Api/GenesysForge.Api.csproj -c Release -o /app --no-restore
 
-# ---- runtime ----
-FROM mcr.microsoft.com/dotnet/aspnet:10.0
+# ---- public build: explicitly excludes private embedded resources ----
+FROM source AS public-build
+RUN dotnet publish src/GenesysForge.Api/GenesysForge.Api.csproj -c Release -o /app --no-restore \
+    /p:IncludePrivateContent=false
+
+# ---- shared runtime ----
+FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS runtime
 WORKDIR /app
-COPY --from=build /app .
 ENV ASPNETCORE_URLS=http://+:8080
 EXPOSE 8080
 ENTRYPOINT ["dotnet", "GenesysForge.Api.dll"]
+
+FROM runtime AS private
+COPY --from=private-build /app .
+
+FROM runtime AS public
+COPY --from=public-build /app .
+
+# Local/default builds remain PrivateFull-compatible.
+FROM private AS final

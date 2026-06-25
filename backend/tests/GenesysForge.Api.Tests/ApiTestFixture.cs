@@ -19,6 +19,25 @@ public class ApiFactory : WebApplicationFactory<Program>
                 ["UseInMemoryDatabase"] = "true",
                 // Уникальное имя БД на фабрику — изоляция параллельных тест-классов
                 ["InMemoryDatabaseName"] = $"genesysforge-tests-{Guid.NewGuid():N}",
+                // Большинство integration-тестов проверяют use cases, а не throttling.
+                ["RateLimiting:Enabled"] = "false",
+            }));
+        return base.CreateHost(builder);
+    }
+}
+
+public class RateLimitedApiFactory : WebApplicationFactory<Program>
+{
+    protected override IHost CreateHost(IHostBuilder builder)
+    {
+        builder.ConfigureHostConfiguration(config =>
+            config.AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["UseInMemoryDatabase"] = "true",
+                ["InMemoryDatabaseName"] = $"genesysforge-rate-limit-{Guid.NewGuid():N}",
+                ["RateLimiting:Enabled"] = "true",
+                ["RateLimiting:AuthSensitive:PermitLimit"] = "2",
+                ["RateLimiting:AuthSensitive:WindowSeconds"] = "60",
             }));
         return base.CreateHost(builder);
     }

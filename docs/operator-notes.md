@@ -1,55 +1,58 @@
 # Operator notes
 
-Эксплуатационные заметки для приватного MVP: время жизни сессии, поведение при
-истечении и ограничения восстановления доступа. Дополняет
-[mvp-ux-account-readiness.md](mvp-ux-account-readiness.md).
+Эксплуатационные заметки для production. Подробные release/backup/restore/rollback процедуры:
+[production-operations.md](production-operations.md).
 
-## Сессии и время жизни токена
+## Сессии
 
-- Аутентификация — один **access-токен JWT** (refresh-токенов пока нет).
-- Время жизни по умолчанию — **7 дней** (`10080` минут).
-- Настраивается переменной окружения **`JWT_LIFETIME_MINUTES`** (маппится в
-  `Jwt__LifetimeMinutes`). Некорректное или `≤ 0` значение откатывается к 7 дням.
-  Реализация — `TokenService.GetLifetimeMinutes`.
-- Ключ подписи — `JWT_KEY` (`Jwt__Key`), минимум 32 символа. При смене ключа все
-  ранее выданные токены становятся недействительными — пользователи войдут заново.
+- Access JWT живёт 30 минут по умолчанию (`Jwt:AccessLifetimeMinutes`,
+  env `JWT_ACCESS_LIFETIME_MINUTES`).
+- Refresh token передаётся в `HttpOnly`, `SameSite=Lax` cookie `gf_refresh`.
+- Cookie всегда `Secure` в Production; forwarded HTTPS scheme принимается от Caddy/nginx.
+- Refresh token ротируется при каждом `/api/auth/refresh`; повторное использование старого
+  токена отзывает всё семейство.
+- Logout отзывает семейство и очищает cookie.
 
-Рекомендации:
+`JWT_KEY` в Production обязателен, должен содержать не менее 32 символов и не может быть
+sample/change-me значением. Невалидная конфигурация останавливает API при старте.
 
-- короче TTL (например, `60`–`240`) — выше безопасность, но чаще повторный вход;
-- длиннее TTL (до 7 дней) — удобнее для приватного круга игроков;
-- для публичного запуска вместо длинного TTL стоит добавить refresh-токены
-  (см. пункт 6 в [mvp-ux-account-readiness.md](mvp-ux-account-readiness.md)).
+## Rate limiting
 
-## Что видит пользователь при истечении сессии
+Auth endpoints ограничиваются по client IP:
 
-- Любой запрос с истёкшим/невалидным токеном получает `401`.
-- Клиент очищает токен, уводит на экран входа и показывает сообщение
-  «Сессия истекла — войдите снова».
-- Открытый перед этим экран **запоминается**: после повторного входа пользователь
-  возвращается на ту же страницу (см. `frontend/src/session.ts`).
-- Обычный выход («Выйти») сессию-возврат не сохраняет.
+- register/login/google/password-reset: 10 запросов в 60 секунд;
+- refresh/logout: 30 запросов в 60 секунд;
+- providers: 60 запросов в 60 секунд.
 
-## Ограничения восстановления доступа (приватный MVP)
+Лимиты задаются через `RateLimiting__*` / соответствующие env в `.env.example`.
+Ответ при превышении — `429` с `{ "message": "Слишком много запросов..." }`.
 
-Эти ограничения должны быть в release notes приватного запуска:
+## CORS и reverse proxy
 
-- истёкшая сессия требует повторного входа;
-- **самостоятельного сброса пароля нет** — забытый пароль оператор решает вручную
-  (смена `PasswordHash` в БД администратором) либо пересозданием аккаунта;
-- подтверждения e-mail при регистрации нет — политика аккаунтов держится на
-  приглашениях/ручной модерации;
-- публичный запуск так выпускать **нельзя**: нужен хотя бы e-mail-сброс пароля
-  или документированный support-процесс с проверкой личности.
+Production требует явный `Cors:Origins`: список HTTPS origins через `;`, без path/query.
+API принимает `X-Forwarded-For` и `X-Forwarded-Proto` только в topology, где наружу опубликован
+только Caddy, а API доступен внутри Docker network.
 
-## Ручной сброс пароля (временный процесс)
+## Health и логи
 
-Пока нет self-service сброса, оператор может:
+`GET /api/health` проверяет подключение EF Core к БД:
 
-1. подтвердить личность пользователя вне приложения;
-2. сгенерировать новый хеш тем же алгоритмом, что и `PasswordHasherService`
-   (или попросить пользователя зарегистрировать новый аккаунт);
-3. обновить `Users.PasswordHash` для нужного `Email`.
+- `200 { "status": "ok", "database": "ok" }`;
+- `503 { "status": "degraded", "database": "unavailable" }`.
 
-После сброса все активные токены остаются валидными до истечения TTL — при
-необходимости немедленного отзыва смените `JWT_KEY` (разлогинит всех).
+Логирование на **Serilog**: в Production пишется compact JSON в stdout (для агрегаторов логов),
+в Development — человекочитаемый текст. `UseSerilogRequestLogging` даёт одну структурную запись
+на запрос (method, path, status code, duration) с обогащением `TraceId` и `RemoteIp`; шум фреймворка
+(`Microsoft.AspNetCore`) приглушён до Warning. Тела запросов, пароли и токены не логируются.
+
+## PrivateFull / PublicSafe
+
+Production compose поднимает два изолированных стека:
+
+- private: `api` + `postgres`, `Content__Mode=PrivateFull`;
+- public: `api-public` + `postgres-public`, `Content__Mode=PublicSafe`.
+
+Public API собирается Docker target `public` с `IncludePrivateContent=false`. Private resources
+не встраиваются в public runtime assembly. Оба стека используют отдельные volumes и hostnames.
+Public JWT signing key получает отдельный namespace (`JWT_KEY` + public suffix), поэтому private
+access tokens не принимаются public API.

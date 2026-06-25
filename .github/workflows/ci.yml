@@ -30,6 +30,13 @@ jobs:
       - name: Test
         run: dotnet test --no-build --configuration Release --verbosity normal
 
+      - name: Verify PublicSafe publish excludes private resources
+        run: >-
+          dotnet publish src/GenesysForge.Api/GenesysForge.Api.csproj
+          --configuration Release --no-restore
+          --output public-safe-publish
+          /p:IncludePrivateContent=false
+
   frontend:
     name: Frontend (React)
     runs-on: ubuntu-latest
