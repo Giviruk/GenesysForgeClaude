@@ -639,6 +639,11 @@ button.tiny { font-size: 0.75rem; padding: 0.05rem 0.4rem 0.15rem; }
   body.printing .print-area, body.printing .print-area * { visibility: visible; }
   body.printing .print-area { position: absolute; left: 0; top: 0; width: 100%; }
   body.printing .print-overlay { position: static; background: #fff; }
+
+  /* Полный лист персонажа: на бумагу — без рамки/скруглений, во всю ширину страницы. */
+  .sheet-doc { max-width: none; margin: 0; padding: 0; border-radius: 0; font-size: 11pt; }
+
+  @page { size: A4; margin: 14mm; }
 }
 
 /* ---------- Print Preview / Printable Cards ---------- */
@@ -664,6 +669,41 @@ button.tiny { font-size: 0.75rem; padding: 0.05rem 0.4rem 0.15rem; }
 .pcard-line { display: flex; flex-wrap: wrap; gap: 0.8rem; }
 .pcard-diff { font-size: 1rem; }
 .pcard-tags, .pcard-src, .pcard-muted { color: #555; font-size: 0.8rem; }
+
+/* ---------- Полный печатный лист персонажа (CharacterSheetPrint) ---------- */
+.sheet-doc {
+  width: 100%; max-width: 52rem; margin: 0 auto;
+  background: #fff; color: #000; padding: 1.6rem 1.8rem; border-radius: 8px;
+  font-size: 0.9rem; line-height: 1.4;
+}
+.sheet-doc h1 { margin: 0 0 0.2rem; font-size: 1.6rem; color: #000; }
+.sheet-doc h2 {
+  font-size: 1.05rem; margin: 1.2rem 0 0.5rem; padding-bottom: 0.2rem;
+  border-bottom: 1px solid #bbb; color: #000; page-break-after: avoid;
+}
+.sheet-doc h3 { font-size: 0.9rem; margin: 0.6rem 0 0.3rem; color: #333; }
+.sheet-head .sheet-sub { font-size: 0.95rem; color: #444; }
+.sheet-head .sheet-xp { font-size: 0.85rem; color: #444; margin-top: 0.2rem; }
+.sheet-chars { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.sheet-char {
+  border: 1px solid #999; border-radius: 6px; padding: 0.3rem 0.7rem;
+  text-align: center; min-width: 4.5rem;
+}
+.sheet-char .v { display: block; font-size: 1.4rem; font-weight: bold; }
+.sheet-derived { display: flex; flex-wrap: wrap; gap: 0.4rem 1.2rem; }
+.sheet-derived span { white-space: nowrap; }
+.sheet-table { width: 100%; border-collapse: collapse; }
+.sheet-table th, .sheet-table td {
+  text-align: left; padding: 0.22rem 0.4rem; border-bottom: 1px solid #e2e2e2; vertical-align: top;
+}
+.sheet-table th { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.02em; color: #666; }
+.sheet-entry { page-break-inside: avoid; break-inside: avoid; margin: 0.35rem 0; }
+.sheet-entry .sheet-meta { color: #555; font-size: 0.85rem; }
+.sheet-entry .sheet-desc { color: #222; font-size: 0.85rem; margin-top: 0.1rem; }
+.sheet-inv-group { page-break-inside: avoid; break-inside: avoid; }
+/* Кубы пула читаемы на белой бумаге (жёлтый на белом был бы невидим) */
+.sheet-doc .die.proficiency { color: #b07d00; }
+.sheet-doc .die.ability { color: #2e7d32; }
 
 /* ---------- Game Table / GM Cockpit ---------- */
 .campaign-tabs { margin: 0.8rem 0; }

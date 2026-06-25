@@ -46,9 +46,9 @@ Status: implemented in current codebase.
 - Более подробные filters/search для навыков, талантов, предметов.
 - Справочник магии (заклинания и дополнительные эффекты) с переключением направлений и различиями систем. (готово)
 - Campaigns, join code, campaign notes, NPC library, encounter builder, Game Table and campaign content packs. (готово, требует E2E/UX pass)
-- Print preview/cards for NPCs, encounters, magic actions, items and talents. (готово; полный printable character sheet не готов)
+- Print preview/cards for NPCs, encounters, magic actions, items and talents. (готово)
 - Импорт/экспорт персонажа в JSON. (готово)
-- Печать или PDF-friendly лист персонажа.
+- Печать или PDF-friendly лист персонажа. (готово)
 - Административный/maintenance сценарий для seed data.
 - Расширенные API tests на негативные сценарии.
 - E2E smoke tests для основных пользовательских flows.

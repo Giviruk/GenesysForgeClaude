@@ -8,6 +8,8 @@ import { InventoryTab } from '../components/InventoryTab'
 import { CustomTab } from '../components/CustomTab'
 import { NotesTab } from '../components/NotesTab'
 import { MagicTab } from '../components/MagicTab'
+import { PrintPreview } from '../components/print/PrintPreview'
+import { CharacterSheetPrint } from '../components/print/CharacterSheetPrint'
 
 interface Props {
   characterId: string
@@ -22,6 +24,7 @@ export function SheetPage({ characterId, onBack }: Props) {
   const [tab, setTab] = useState<Tab>('sheet')
   const [error, setError] = useState<string | null>(null)
   const [xpEdit, setXpEdit] = useState<string | null>(null)
+  const [printing, setPrinting] = useState(false)
 
   const refresh = useCallback(
     () => api.sheet(characterId).then(next =>
@@ -102,6 +105,10 @@ export function SheetPage({ characterId, onBack }: Props) {
           </span>
           <span className="muted"> потрачено {sheet.spentXp} · </span>
           <strong className="xp-available">доступно {sheet.availableXp}</strong>
+          <button className="small" title="Печать листа персонажа / сохранение в PDF"
+            onClick={() => setPrinting(true)}>
+            Печать листа
+          </button>
           <button className="small" title="Скачать персонажа в JSON (бэкап / перенос между аккаунтами)"
             onClick={() => void exportJson()}>
             Экспорт JSON
@@ -132,6 +139,12 @@ export function SheetPage({ characterId, onBack }: Props) {
       {tab === 'magic' && <MagicTab sheet={sheet} onError={setError} />}
       {tab === 'notes' && <NotesTab characterId={sheet.id} onError={setError} />}
       {tab === 'custom' && <CustomTab sheet={sheet} reference={reference} onError={setError} refresh={refresh} />}
+
+      {printing && (
+        <PrintPreview title={`Лист персонажа — ${sheet.name}`} onClose={() => setPrinting(false)}>
+          {() => <CharacterSheetPrint sheet={sheet} reference={reference} />}
+        </PrintPreview>
+      )}
     </div>
   )
 }
