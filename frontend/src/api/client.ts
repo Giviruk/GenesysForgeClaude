@@ -7,6 +7,7 @@ import type {
   SendToTableMode, UpdateEncounterParticipantRequest,
   ContentPackDetail, ContentPackEntryInput, ContentPackListItem,
   CharacterExport, ImportPreview, ImportResult,
+  RollLogEntry, CreateRollRequest,
 } from './types'
 
 const TOKEN_KEY = 'genesysforge.token'
@@ -245,6 +246,12 @@ export const api = {
     request<GameSession>('PATCH', `/api/campaigns/${campaignId}/session/participants/${participantId}`, patch),
   removeParticipant: (campaignId: string, participantId: string) =>
     request<void>('DELETE', `/api/campaigns/${campaignId}/session/participants/${participantId}`),
+
+  // Лог бросков стола (U-08).
+  rolls: (campaignId: string, take = 30) =>
+    request<RollLogEntry[]>('GET', `/api/campaigns/${campaignId}/rolls/?take=${take}`),
+  createRoll: (campaignId: string, body: CreateRollRequest) =>
+    request<RollLogEntry>('POST', `/api/campaigns/${campaignId}/rolls/`, body),
 
   addSlot: (campaignId: string, body: { slotType: InitiativeSlotType; assignedParticipantId?: string | null; notes?: string }) =>
     request<GameSession>('POST', `/api/campaigns/${campaignId}/session/slots`, body),

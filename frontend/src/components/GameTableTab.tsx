@@ -1,9 +1,11 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react'
 import { api } from '../api/client'
 import type {
-  CampaignMember, GameParticipant, GameSession, InitiativeSlotType, NpcListItem,
+  CampaignMember, GameParticipant, GameSession, InitiativeSlotType, NpcListItem, RollLogEntry,
 } from '../api/types'
 import { PARTICIPANT_TYPE_LABELS, SLOT_TYPE_LABELS } from '../utils/labels'
+import { DiceRoller, RollSymbolsView } from './DiceRoller'
+import type { RollSymbols } from '../utils/diceRoller'
 
 interface Props {
   campaignId: string
@@ -81,6 +83,8 @@ export function GameTableTab({ campaignId, isGm, members, refreshSignal }: Props
       <InitiativeTracker session={session} isGm={isGm} onRun={run} campaignId={campaignId} />
 
       <ParticipantsBlock session={session} isGm={isGm} members={members} onRun={run} campaignId={campaignId} />
+
+      <RollSection campaignId={campaignId} isGm={isGm} refreshSignal={refreshSignal} />
 
       <NotesBlock session={session} isGm={isGm} onRun={run} campaignId={campaignId} />
     </div>
@@ -331,6 +335,55 @@ function NotesBlock({ session, isGm, onRun, campaignId }: BlockProps) {
       )}
     </section>
   )
+}
+
+function RollSection({ campaignId, isGm, refreshSignal }: { campaignId: string; isGm: boolean; refreshSignal?: number }) {
+  const [rolls, setRolls] = useState<RollLogEntry[]>([])
+  const [error, setError] = useState<string | null>(null)
+
+  const reload = useCallback(() =>
+    api.rolls(campaignId).then(setRolls).catch(() => { /* лог не критичен */ }),
+    [campaignId])
+
+  useEffect(() => { void reload() }, [reload])
+  // Перечитываем лог по realtime-событию (чужой бросок).
+  useEffect(() => { if (refreshSignal) void reload() }, [refreshSignal, reload])
+
+  async function log(req: { poolJson: string; resultJson: string; summary: string; label: string; isSecret: boolean }) {
+    try {
+      await api.createRoll(campaignId, req)
+      setError(null)
+      await reload()
+    } catch (e) { setError(e instanceof Error ? e.message : 'Ошибка броска') }
+  }
+
+  return (
+    <section className="panel gt-rolls">
+      <h3>Броски кубов</h3>
+      {error && <div className="error">{error}</div>}
+      <DiceRoller onLog={log} canSecret={isGm} />
+
+      <div className="roll-log">
+        {rolls.length === 0 && <p className="muted">Бросков пока нет.</p>}
+        {rolls.map(r => (
+          <div key={r.id} className="roll-entry">
+            <span className="roll-actor"><strong>{r.actorName}</strong>{r.label && <span className="muted"> · {r.label}</span>}</span>
+            <RollSymbolsView symbols={parseSymbols(r.resultJson)} />
+            {r.isSecret && <span className="badge tier" title="Виден только мастеру">секретно</span>}
+          </div>
+        ))}
+      </div>
+    </section>
+  )
+}
+
+function parseSymbols(json: string): RollSymbols {
+  const empty: RollSymbols = { success: 0, failure: 0, advantage: 0, threat: 0, triumph: 0, despair: 0 }
+  try {
+    return { ...empty, ...(JSON.parse(json) as Partial<RollSymbols>) }
+  } catch {
+    return empty
+  }
 }
 
 interface BlockProps {

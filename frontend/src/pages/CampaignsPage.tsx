@@ -146,6 +146,7 @@ function CampaignDetailView({ campaignId, view, openEncounterId, onBack, onView,
   // Подписка на события кампании на время открытой карточки.
   useCampaignHub(campaignId, {
     onGameTableChanged: () => setLiveSignal(v => v + 1),
+    onRollAdded: () => setLiveSignal(v => v + 1),
     onCampaignChanged: () => { setLiveSignal(v => v + 1); void reload() },
     onStatus: setHubStatus,
   })

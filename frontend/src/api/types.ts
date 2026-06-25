@@ -432,6 +432,29 @@ export interface GameSession {
   slots: InitiativeSlot[]
 }
 
+// Лог бросков стола (U-08). Pool/Result хранятся как JSON-снимки (см. utils/diceRoller.ts).
+export interface RollLogEntry {
+  id: string
+  campaignId: string
+  sessionId: string | null
+  actorName: string
+  label: string
+  poolJson: string
+  resultJson: string
+  summary: string
+  isSecret: boolean
+  createdAt: string
+}
+
+export interface CreateRollRequest {
+  actorName?: string | null
+  label?: string | null
+  poolJson: string
+  resultJson: string
+  summary?: string | null
+  isSecret: boolean
+}
+
 export interface AddParticipantRequest {
   characterId?: string | null
   npcId?: string | null

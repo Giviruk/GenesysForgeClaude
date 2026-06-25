@@ -873,3 +873,58 @@ button.tiny { font-size: 0.75rem; padding: 0.05rem 0.4rem 0.15rem; }
 .about-page ul { margin: 0.3rem 0 0.9rem 1.1rem; padding: 0; }
 .about-page li { margin: 0.25rem 0; }
 .about-page h3 { margin: 1.1rem 0 0.3rem; }
+
+/* ── Dice roller (U-08) ───────────────────────────────────────────── */
+.dice-roller { display: flex; flex-direction: column; gap: 0.7rem; }
+.dr-pool { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.dr-die {
+  display: flex; align-items: center; gap: 0.35rem;
+  border: 1px solid var(--border); border-radius: 8px;
+  padding: 0.3rem 0.5rem; background: var(--panel-2);
+}
+.dr-die-glyph { font-size: 1.1rem; line-height: 1; }
+.dr-die-count { min-width: 1ch; text-align: center; font-weight: 600; }
+.dr-die-btns { display: inline-flex; gap: 0.2rem; }
+.dr-ability .dr-die-glyph { color: var(--green); }
+.dr-proficiency .dr-die-glyph { color: var(--yellow); }
+.dr-difficulty .dr-die-glyph { color: var(--purple, #a06cd5); }
+.dr-challenge .dr-die-glyph { color: var(--red); }
+.dr-boost .dr-die-glyph { color: var(--core); }
+.dr-setback .dr-die-glyph { color: var(--muted); }
+.dr-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 0.6rem; }
+.dr-secret { margin-left: auto; }
+.dr-result { display: flex; flex-wrap: wrap; align-items: center; gap: 0.6rem; }
+.dr-summary { color: var(--muted); }
+
+.dr-symbols { display: inline-flex; flex-wrap: wrap; gap: 0.4rem; }
+.roll-sym {
+  display: inline-flex; align-items: center; gap: 0.2rem;
+  border: 1px solid var(--border); border-radius: 6px;
+  padding: 0.05rem 0.4rem; font-size: 0.85rem; white-space: nowrap;
+}
+.roll-success { color: var(--green); border-color: var(--green); }
+.roll-failure { color: var(--red); border-color: var(--red); }
+.roll-advantage { color: #6fb3e8; border-color: var(--core); }
+.roll-threat { color: #e8a36f; border-color: var(--accent-dark); }
+.roll-triumph { color: var(--yellow); border-color: var(--yellow); }
+.roll-despair { color: #d36f6f; border-color: var(--red); }
+
+.gt-rolls .roll-log { margin-top: 0.8rem; display: flex; flex-direction: column; gap: 0.4rem; }
+.roll-entry {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 0.6rem;
+  padding: 0.35rem 0; border-top: 1px solid var(--border);
+}
+.roll-actor { min-width: 8rem; }
+
+/* ── Modal (U-08 sheet roll) ──────────────────────────────────────── */
+.modal-overlay {
+  position: fixed; inset: 0; z-index: 50;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex; align-items: flex-start; justify-content: center;
+  padding: 4rem 1rem 1rem;
+}
+.modal-card {
+  background: var(--panel); border: 1px solid var(--border); border-radius: 10px;
+  padding: 1.1rem 1.2rem; width: min(32rem, 100%); box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+}
+.modal-head { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }

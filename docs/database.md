@@ -151,6 +151,16 @@ Indexes:
 
 - non-unique `(System, MagicSkill, Kind)`.
 
+### RollLogEntries
+
+Game Table dice-roll log (U-08). The roll outcome is computed on the client (Genesys narrative dice); the row stores it for history and realtime display to other table participants.
+
+Fields: `Id`, `CampaignId`, `SessionId` (nullable — the active scene at roll time, if any), `ActorUserId`, `ActorName` (display name snapshot), `Label` (what was rolled, optional), `PoolJson` (dice pool snapshot), `ResultJson` (net symbols snapshot), `Summary` (short human-readable result), `IsSecret` (GM-only roll; honored only for the GM), `CreatedAt`.
+
+Indexes:
+
+- non-unique `(CampaignId, CreatedAt)`.
+
 ## Migrations
 
 Migration folder:
@@ -166,6 +176,7 @@ Found migrations:
 - `20260614102018_AddSpellParentEffect` — adds `ParentEffect` column; clears built-in spell rows so the idempotent seed rebuilds them in the new structure (custom content untouched).
 - `20260614105225_AddContentModel` — adds content-model columns (`Code`, `NameRu`, `Description`, `SafeDescription`, `Source`) to the six reference def tables. Non-destructive (only `AddColumn`, default `""`).
 - `20260614143200_AddTalentSetting` — adds `Setting` (int flags) to `TalentDefs`. Non-destructive; default `1` (`Any`) so pre-existing talents stay visible. `CharacterTalents` reference talents via cascade, so the table is not recreated — correct per-talent settings come from a fresh seed.
+- `20260625182741_AddRollLog` — creates `RollLogEntries` table (Game Table dice-roll log, U-08) with `(CampaignId, CreatedAt)` index. Non-destructive (only `CreateTable`).
 
 Startup behavior:
 

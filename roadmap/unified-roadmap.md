@@ -119,7 +119,7 @@
 # P1 — Полнота персонажа и «правила как данные»
 
 ## U-08 · Нарративный dice roller + секретный бросок GM
-- **Статус:** ⬜ Todo
+- **Статус:** 🚧 In progress
 - **Источник:** Аудит §7 (НЕ покрыто GF-планом — GF-011 только боевой)
 - **Зачем:** ключевой GM live-tool; сейчас `DicePoolView` показывает только **состав** пула.
 - **Scope (F, v1 без сохранения):** собрать пул (ability/proficiency/difficulty/challenge/boost/setback), бросок, результат символами **Success/Failure/Advantage/Threat/Triumph/Despair** с нетто-итогом. Кнопка «бросить» из листа/NPC по навыку.

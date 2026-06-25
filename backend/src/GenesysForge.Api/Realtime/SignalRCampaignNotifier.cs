@@ -11,4 +11,7 @@ public class SignalRCampaignNotifier(IHubContext<CampaignHub> hub) : ICampaignNo
 
     public Task CampaignChangedAsync(Guid campaignId) =>
         hub.Clients.Group(CampaignHub.Group(campaignId)).SendAsync("CampaignChanged", campaignId);
+
+    public Task RollAddedAsync(Guid campaignId) =>
+        hub.Clients.Group(CampaignHub.Group(campaignId)).SendAsync("RollAdded", campaignId);
 }

@@ -108,6 +108,8 @@ public static class DependencyInjection
         services.AddScoped<ICommandHandler<AddSlotCommand, GameSessionDto>, AddSlotHandler>();
         services.AddScoped<ICommandHandler<UpdateSlotCommand, GameSessionDto>, UpdateSlotHandler>();
         services.AddScoped<ICommandHandler<RemoveSlotCommand, Unit>, RemoveSlotHandler>();
+        services.AddScoped<ICommandHandler<CreateRollCommand, RollLogEntryDto>, CreateRollHandler>();
+        services.AddScoped<IQueryHandler<GetRollsQuery, IReadOnlyList<RollLogEntryDto>>, GetRollsHandler>();
 
         // Encounter Builder
         services.AddScoped<IQueryHandler<GetEncountersQuery, List<EncounterListItemDto>>, GetEncountersHandler>();

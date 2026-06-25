@@ -3,6 +3,7 @@ import { api } from '../api/client'
 import type { CharacterSheet, Reference, SkillKind } from '../api/types'
 import { CHARACTERISTICS, CHARACTERISTIC_LABELS, CHARACTERISTIC_SHORT_LABELS, SKILL_KIND_LABELS } from '../utils/labels'
 import { DicePoolView } from './DicePoolView'
+import { DiceRoller } from './DiceRoller'
 
 interface Props {
   sheet: CharacterSheet
@@ -20,6 +21,8 @@ const SKILL_COLUMNS: SkillKind[][] = [
 
 export function SheetTab({ sheet, reference, onError, refresh }: Props) {
   const [heroicPick, setHeroicPick] = useState('')
+  // Локальный нарративный бросок по навыку (без записи в лог — лист вне контекста стола).
+  const [rollSkill, setRollSkill] = useState<{ name: string; ability: number; proficiency: number } | null>(null)
 
   async function run(action: () => Promise<unknown>) {
     try {
@@ -137,6 +140,10 @@ export function SheetTab({ sheet, reference, onError, refresh }: Props) {
                             <td>{'●'.repeat(s.ranks)}{'○'.repeat(Math.max(0, 5 - s.ranks))}</td>
                             <td><DicePoolView pool={s.pool} /></td>
                             <td className="right">
+                              <button className="small" title={`Бросить пул навыка «${s.name}»`}
+                                onClick={() => setRollSkill({ name: s.name, ability: s.pool.ability, proficiency: s.pool.proficiency })}>
+                                🎲
+                              </button>
                               {sheet.isCreationPhase && s.ranks > s.freeRanks && (
                                 <button className="small"
                                   title={`Вернуть ранг ${s.ranks} (+${s.ranks * 5 + (s.isCareer ? 0 : 5)} XP)`}
@@ -163,6 +170,20 @@ export function SheetTab({ sheet, reference, onError, refresh }: Props) {
           ))}
         </div>
       </section>
+
+      {rollSkill && (
+        <div className="modal-overlay" onClick={() => setRollSkill(null)}>
+          <div className="modal-card" onClick={e => e.stopPropagation()}>
+            <div className="modal-head">
+              <h3 className="inline-title">Бросок: {rollSkill.name}</h3>
+              <button className="small" onClick={() => setRollSkill(null)}>Закрыть</button>
+            </div>
+            <p className="muted small-text">Базовый пул из навыка. Добавьте сложность/бонусы/помехи под бросок.</p>
+            <DiceRoller initialPool={{ ability: rollSkill.ability, proficiency: rollSkill.proficiency }}
+              label={rollSkill.name} />
+          </div>
+        </div>
+      )}
     </div>
   )
 }
