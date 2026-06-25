@@ -151,6 +151,22 @@ Indexes:
 
 - non-unique `(System, MagicSkill, Kind)`.
 
+### QualityDefs
+
+Reference catalog of item/spell qualities (U-10, GF-005). System-agnostic — one definition per quality, referenced by items of both systems. Seeded from the embedded `SeedContent/qualities.catalog.json` (generated from `_books/_qualities/genesys_rot_item_and_spell_qualities.csv`).
+
+Fields: `Id`, `Code` (unique slug of `NameEn`), `NameEn`, `NameRu`, `Kind` (`QualityKind`: ItemQuality/SpellAdditionalEffect — currently all ItemQuality), `IsActive` (active vs passive), `HasRating`, `ActivationCost`, `Category`, `Description` (full/private), `SafeDescription`, `Source`. Dual-mode content like other defs (PublicSafe clears `Description`).
+
+Indexes: unique `Code`.
+
+### ItemQualityValues
+
+Structural link between an item and a quality with an optional rating (U-10). Back-filled from `ItemDef.Properties` strings of built-in items by `SeedData.BackfillItemQualities` (idempotent; the `Properties` string is kept as fallback). Custom items currently carry qualities via the `Properties` string only.
+
+Fields: `Id`, `ItemDefId`, `QualityDefId`, `Rating` (nullable).
+
+Indexes: non-unique `ItemDefId`, `QualityDefId`. Cascade FKs to `ItemDefs` and `QualityDefs`.
+
 ### CharacterAuditEntries
 
 Per-character history / audit log (U-09). A row is written in the same transaction as the operation it records (buy/refund of characteristics/skills/talents, item add/sell/remove, creation completed, manual XP edit, XP award), so it reflects the post-operation state.
@@ -189,6 +205,7 @@ Found migrations:
 - `20260614143200_AddTalentSetting` — adds `Setting` (int flags) to `TalentDefs`. Non-destructive; default `1` (`Any`) so pre-existing talents stay visible. `CharacterTalents` reference talents via cascade, so the table is not recreated — correct per-talent settings come from a fresh seed.
 - `20260625182741_AddRollLog` — creates `RollLogEntries` table (Game Table dice-roll log, U-08) with `(CampaignId, CreatedAt)` index. Non-destructive (only `CreateTable`).
 - `20260625185307_AddCharacterAudit` — creates `CharacterAuditEntries` table (character XP/audit log, U-09) with `(CharacterId, CreatedAt)` index and cascade FK to `Characters`. Non-destructive (only `CreateTable`).
+- `20260625193055_AddItemQualities` — creates `QualityDefs` (unique `Code`) and `ItemQualityValues` (cascade FKs to `ItemDefs`/`QualityDefs`) for structural item qualities (U-10). Non-destructive (only `CreateTable`); `ItemDef.Properties` retained.
 
 Startup behavior:
 

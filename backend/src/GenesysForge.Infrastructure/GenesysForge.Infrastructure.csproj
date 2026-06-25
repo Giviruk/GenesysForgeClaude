@@ -9,6 +9,7 @@
     <EmbeddedResource Include="Persistence\SeedContent\talents.catalog.json" />
     <EmbeddedResource Include="Persistence\SeedContent\items.catalog.json" />
     <EmbeddedResource Include="Persistence\SeedContent\heroics.catalog.json" />
+    <EmbeddedResource Include="Persistence\SeedContent\qualities.catalog.json" />
   </ItemGroup>
 
   <Target Name="VerifyPublicBuildHasNoPrivateContent" BeforeTargets="PrepareResources"

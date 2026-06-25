@@ -1,6 +1,7 @@
 using System.Text;
 using GenesysForge.Domain;
 using GenesysForge.Domain.Entities;
+using GenesysForge.Domain.Rules;
 using Microsoft.EntityFrameworkCore;
 
 namespace GenesysForge.Infrastructure.Persistence;
@@ -37,6 +38,7 @@ public static class SeedData
         var talents = TalentCatalog.Load().ToList();
         var items = ItemCatalog.Load().ToList();
         var heroics = HeroicCatalog.Load().ToList();
+        var qualities = QualityCatalog.Load().ToList();
         var spells = Spells(GameSystem.GenesysCore).Concat(Spells(GameSystem.RealmsOfTerrinoth)).ToList();
 
         // Проекция описаний под режим контента — единственное отличие private/public pipeline.
@@ -46,6 +48,7 @@ public static class SeedData
         ProjectContent(talents, mode, store);
         ProjectContent(items, mode, store);
         ProjectContent(heroics, mode, store);
+        ProjectContent(qualities, mode, store);
         ProjectSpells(spells, mode);
 
         var added = false;
@@ -55,11 +58,70 @@ public static class SeedData
         added |= SeedMissing(db, db.TalentDefs, talents, d => (d.System, d.Name));
         added |= SeedMissing(db, db.ItemDefs, items, d => (d.System, d.Name));
         added |= SeedMissing(db, db.HeroicAbilityDefs, heroics, d => ((GameSystem)0, d.Name));
+        added |= SeedMissing(db, db.QualityDefs, qualities, d => ((GameSystem)0, d.NameEn));
         added |= SeedMissing(db, db.SpellDefs, spells,
             d => (d.System, $"{d.MagicSkill}:{(int)d.Kind}:{d.ParentEffect}:{d.NameEn}"));
 
         if (added) db.SaveChanges();
+
+        // Бэкфилл структурных качеств из строк Properties встроенных предметов (идемпотентно).
+        BackfillItemQualities(db);
     }
+
+    /// <summary>
+    /// Разбирает строку <c>ItemDef.Properties</c> встроенных предметов и создаёт структурные
+    /// <see cref="ItemQualityValue"/>, сопоставляя имена со справочником <see cref="QualityDef"/>.
+    /// Идемпотентно: предметы с уже привязанными качествами пропускаются. Несопоставленные
+    /// токены остаются только в строке Properties (fallback).
+    /// </summary>
+    private static void BackfillItemQualities(AppDbContext db)
+    {
+        var qualities = db.QualityDefs.AsEnumerable().ToList();
+        if (qualities.Count == 0) return;
+
+        var byName = new Dictionary<string, QualityDef>();
+        void Map(string name, QualityDef q)
+        {
+            var key = ItemPropertyParser.Normalize(name);
+            if (key.Length > 0) byName.TryAdd(key, q);
+        }
+        foreach (var q in qualities) { Map(q.NameRu, q); Map(q.NameEn, q); }
+        // Варианты написания из каталога предметов, отличные от каноничного имени.
+        foreach (var (variant, canon) in QualityAliases)
+            if (byName.TryGetValue(ItemPropertyParser.Normalize(canon), out var q)) Map(variant, q);
+
+        var items = db.ItemDefs
+            .Include(i => i.Qualities)
+            .Where(i => i.OwnerUserId == null && i.Properties != "")
+            .ToList();
+
+        var added = false;
+        foreach (var item in items)
+        {
+            if (item.Qualities.Count > 0) continue; // уже бэкфилнут
+            foreach (var token in ItemPropertyParser.Parse(item.Properties))
+            {
+                if (!byName.TryGetValue(ItemPropertyParser.Normalize(token.Name), out var q)) continue;
+                db.ItemQualityValues.Add(new ItemQualityValue
+                {
+                    Id = Guid.NewGuid(),
+                    ItemDefId = item.Id,
+                    QualityDefId = q.Id,
+                    Rating = q.HasRating ? token.Rating : null,
+                });
+                added = true;
+            }
+        }
+        if (added) db.SaveChanges();
+    }
+
+    /// <summary>Варианты написания свойств в каталоге предметов → каноничное имя справочника.</summary>
+    private static readonly (string Variant, string Canon)[] QualityAliases =
+    [
+        ("Оглушающее", "Оглушение"),
+        ("Дезориентирующее", "Дезориентация"),
+        ("Сцепленное", "Залповое"),
+    ];
 
     /// <summary>
     /// Проекция content-model под режим: PublicSafe очищает полное описание (остаётся только safe),
