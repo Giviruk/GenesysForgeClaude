@@ -3,7 +3,7 @@
 - **Roadmap:** U-09 — История трат XP / audit log (см. [unified-roadmap.md](../unified-roadmap.md))
 - **Ветка:** `feature/u09-xp-audit-log`
 - **Базовая ветка:** `master` (открытых PR нет на момент старта)
-- **PR:** #<номер> (после создания)
+- **PR:** [#41](https://github.com/Giviruk/GenesysForgeClaude/pull/41) (base — master)
 - **Статус:** 🚧 In progress
 
 ## Контекст
@@ -34,7 +34,7 @@ complete-creation, ручном изменении XP и выдаче XP.
 - [x] `dotnet test` (62 dom + 147 api) и frontend lint/build/test (67) зелёные
 - [x] Миграция создана + `docs/database.md` обновлён
 - [x] Статус в `unified-roadmap.md` обновлён
-- [ ] PR открыт
+- [x] PR открыт — #41 (base — master)
 
 ## Что осталось / блокеры
 
