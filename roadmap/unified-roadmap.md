@@ -100,7 +100,7 @@
 - **DoD:** auth защищён от простого brute force; secure cookies в prod; есть backup/restore и rollback инструкции; health checks покрывают API+DB; PublicSafe не содержит private content.
 
 ## U-06 · Реальный email provider + публичный password reset
-- **Статус:** 🚧 In progress
+- **Статус:** ✅ Done (PR #36)
 - **Источник:** GF-014 · Аудит §1.1
 - **Зачем:** сейчас отправка письма — `LoggingEmailSender` (stub).
 - **Scope (B):** реализация `IEmailSender` (SMTP/Resend/Mailgun/SendGrid). Конфиг `Email__Provider/From/Smtp__*`. Токен — только hash, expiry 15–60 мин, single-use, revoke сессий после смены (refresh-семейство уже есть). Rate limiting (из U-05).
@@ -108,7 +108,7 @@
 - **DoD:** восстановление пароля без доступа к логам; токен одноразовый; тесты на expiry/reuse/invalid.
 
 ## U-07 · Реальные URL / deep links
-- **Статус:** 🚧 In progress
+- **Статус:** ✅ Done (PR #37)
 - **Источник:** GF-013
 - **Зачем:** refresh страницы сбрасывает экран; нельзя поделиться ссылкой.
 - **Scope (F):** маршруты `/login /register /characters /characters/:id /characters/:id/print /campaigns /campaigns/:id /campaigns/:id/table /campaigns/:id/encounters/:eid /npcs /npcs/:id /magic`. Есть [router.ts](../frontend/src/router.ts) — расширить или перейти на React Router. После login возврат на исходный URL; 404/empty state; нет данных без авторизации.
