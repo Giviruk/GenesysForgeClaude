@@ -3,7 +3,7 @@
 - **Roadmap:** U-05 — Production hardening (см. [unified-roadmap.md](../unified-roadmap.md))
 - **Ветка:** `feature/u05-production-hardening`
 - **Базовая ветка:** `master` (PR #34 слит, открытых PR нет)
-- **PR:** pending
+- **PR:** [#35](https://github.com/Giviruk/GenesysForgeClaude/pull/35)
 - **Статус:** 🚧 In progress
 
 ## Контекст
@@ -31,7 +31,7 @@ PublicSafe-стек без embedded private-content.
 - [x] Миграции не требуются
 - [x] Copyright: public assembly содержит только три safe catalog resource
 - [x] Статус roadmap обновлён
-- [ ] PR открыт
+- [x] PR открыт (#35)
 
 ## Что осталось / блокеры
 
