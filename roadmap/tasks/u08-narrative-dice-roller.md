@@ -3,7 +3,7 @@
 - **Roadmap:** U-08 — Нарративный dice roller + секретный бросок GM (см. [unified-roadmap.md](../unified-roadmap.md))
 - **Ветка:** `feature/u08-narrative-dice-roller`
 - **Базовая ветка:** `feature/u07-deep-links-to-master` (стек поверх PR #38, ещё не слит — AGENTS.md §2)
-- **PR:** #<номер> (после создания)
+- **PR:** [#39](https://github.com/Giviruk/GenesysForgeClaude/pull/39) (base — ветка U-07)
 - **Статус:** 🚧 In progress
 
 ## Контекст
@@ -36,7 +36,7 @@ Triumph/Despair) и лог бросков за столом с realtime-публ
 - [x] `npm run lint` / `npm run build` / `npm test` (67) и `dotnet test` (62 dom + 140 api) зелёные
 - [x] Миграция создана + `docs/database.md` обновлён
 - [x] Статус в `unified-roadmap.md` обновлён
-- [ ] PR открыт (base — `feature/u07-deep-links-to-master`)
+- [x] PR открыт — #39 (base — `feature/u07-deep-links-to-master`)
 - [ ] Браузерная проверка стола (нужна auth-сессия + кампания GM+игрок + Postgres для realtime/секрета)
 
 ## Что осталось / блокеры
