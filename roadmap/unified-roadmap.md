@@ -81,7 +81,7 @@
 - **DoD:** round-trip export→import сохраняет основные значения; нет зависимости от старых id.
 
 ## U-04 · Полный printable / PDF-friendly лист персонажа
-- **Статус:** 🚧 In progress (ветка `feature/u04-printable-sheet`)
+- **Статус:** 🚧 In progress (PR #33)
 - **Источник:** GF-003 · Аудит §2.4, §9.2 (сейчас только печать карточек)
 - **Зачем:** «нормальный PDF-экспорт» — боль сообщества #4.
 - **Scope (F):** маршрут `/characters/:id/print` или кнопка «Печать листа» в `SheetPage`. На листе: основная инфо, 6 характеристик, derived (wounds/strain/soak/melee+ranged defense/enc threshold/current enc), навыки (RU/EN, карьерный, ранг, характеристика, dice pool), таланты (tier/ranked/activation/эффект), героика (activation/duration/frequency/upgrade rank/эффект), инвентарь (equipped/backpack/qty/enc/боевые статы/броня), заметки. Использовать существующий `CharacterSheetDto`.

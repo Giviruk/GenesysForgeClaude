@@ -3,7 +3,7 @@
 - **Roadmap:** U-04 — Полный printable / PDF-friendly лист персонажа (см. [unified-roadmap.md](../unified-roadmap.md))
 - **Ветка:** `feature/u04-printable-sheet`
 - **Базовая ветка:** `master` (U-03/PR #32 слит, открытых PR нет — стека нет)
-- **PR:** #<номер> (после создания)
+- **PR:** [#33](https://github.com/Giviruk/GenesysForgeClaude/pull/33)
 - **Статус:** 🚧 In progress
 
 ## Контекст
