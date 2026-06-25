@@ -7,13 +7,22 @@ import { EncountersTab } from '../components/EncountersTab'
 import { HandbookTab } from '../components/HandbookTab'
 import { useCampaignHub, type CampaignHubStatus } from '../useCampaignHub'
 
+export type CampaignView = 'overview' | 'handbook' | 'encounters' | 'table'
+
 interface Props {
   openId: string | null
+  view: CampaignView
+  openEncounterId: string | null
   onOpen: (id: string) => void
   onBack: () => void
+  onView: (view: CampaignView) => void
+  onOpenEncounter: (eid: string) => void
+  onCloseEncounter: () => void
 }
 
-export function CampaignsPage({ openId, onOpen, onBack }: Props) {
+export function CampaignsPage({
+  openId, view, openEncounterId, onOpen, onBack, onView, onOpenEncounter, onCloseEncounter,
+}: Props) {
   const [campaigns, setCampaigns] = useState<CampaignListItem[] | null>(null)
   const [error, setError] = useState<string | null>(null)
 
@@ -25,7 +34,8 @@ export function CampaignsPage({ openId, onOpen, onBack }: Props) {
   // Перезагружаем список при показе (в т.ч. при возврате из карточки кампании).
   useEffect(() => { if (!openId) void reload() }, [openId, reload])
 
-  if (openId) return <CampaignDetailView campaignId={openId} onBack={onBack} />
+  if (openId) return <CampaignDetailView campaignId={openId} view={view} openEncounterId={openEncounterId}
+    onBack={onBack} onView={onView} onOpenEncounter={onOpenEncounter} onCloseEncounter={onCloseEncounter} />
 
   return (
     <div className="page">
@@ -112,10 +122,17 @@ function JoinCampaignForm({ onDone, onError }: { onDone: () => void; onError: (m
   )
 }
 
-function CampaignDetailView({ campaignId, onBack }: { campaignId: string; onBack: () => void }) {
+function CampaignDetailView({ campaignId, view, openEncounterId, onBack, onView, onOpenEncounter, onCloseEncounter }: {
+  campaignId: string
+  view: CampaignView
+  openEncounterId: string | null
+  onBack: () => void
+  onView: (view: CampaignView) => void
+  onOpenEncounter: (eid: string) => void
+  onCloseEncounter: () => void
+}) {
   const [c, setC] = useState<CampaignDetail | null>(null)
   const [error, setError] = useState<string | null>(null)
-  const [tab, setTab] = useState<'overview' | 'handbook' | 'encounters' | 'table'>('overview')
   // Счётчик realtime-инвалидаций: меняется на событиях хаба, вкладки перечитывают данные.
   const [liveSignal, setLiveSignal] = useState(0)
   const [hubStatus, setHubStatus] = useState<CampaignHubStatus>('connecting')
@@ -160,18 +177,20 @@ function CampaignDetailView({ campaignId, onBack }: { campaignId: string; onBack
       {error && <div className="error floating">{error}</div>}
 
       <div className="system-switch campaign-tabs">
-        <button className={tab === 'overview' ? 'tab active' : 'tab'} onClick={() => setTab('overview')}>Обзор</button>
-        <button className={tab === 'handbook' ? 'tab active' : 'tab'} onClick={() => setTab('handbook')}>Handbook</button>
-        <button className={tab === 'encounters' ? 'tab active' : 'tab'} onClick={() => setTab('encounters')}>Энкаунтеры</button>
-        <button className={tab === 'table' ? 'tab active' : 'tab'} onClick={() => setTab('table')}>Game Table</button>
+        <button className={view === 'overview' ? 'tab active' : 'tab'} onClick={() => onView('overview')}>Обзор</button>
+        <button className={view === 'handbook' ? 'tab active' : 'tab'} onClick={() => onView('handbook')}>Handbook</button>
+        <button className={view === 'encounters' ? 'tab active' : 'tab'} onClick={() => onView('encounters')}>Энкаунтеры</button>
+        <button className={view === 'table' ? 'tab active' : 'tab'} onClick={() => onView('table')}>Game Table</button>
       </div>
 
-      {tab === 'table' ? (
+      {view === 'table' ? (
         <GameTableTab campaignId={c.id} isGm={c.isGm} members={c.members} refreshSignal={liveSignal} />
-      ) : tab === 'handbook' ? (
+      ) : view === 'handbook' ? (
         <HandbookTab campaignId={c.id} isGm={c.isGm} />
-      ) : tab === 'encounters' ? (
-        <EncountersTab campaignId={c.id} isGm={c.isGm} members={c.members} onSentToTable={() => setTab('table')} />
+      ) : view === 'encounters' ? (
+        <EncountersTab campaignId={c.id} isGm={c.isGm} members={c.members}
+          openEncounterId={openEncounterId} onOpenEncounter={onOpenEncounter} onCloseEncounter={onCloseEncounter}
+          onSentToTable={() => onView('table')} />
       ) : (
         <>
           {c.description && <p className="muted">{c.description}</p>}
