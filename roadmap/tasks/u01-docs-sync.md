@@ -3,7 +3,7 @@
 - **Roadmap:** U-01 — Синхронизация документации с кодом (см. [unified-roadmap.md](../unified-roadmap.md))
 - **Ветка:** `feature/u01-docs-sync`
 - **Базовая ветка:** `master` (открытых PR нет — стека нет)
-- **PR:** #<номер> (после создания)
+- **PR:** [#30](https://github.com/Giviruk/GenesysForgeClaude/pull/30)
 - **Статус:** 🚧 In progress
 
 ## Контекст
