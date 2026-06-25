@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react'
 import { api } from '../../api/client'
 import type { CharacterNote, CharacterSheet, ItemState, Reference } from '../../api/types'
-import { CHARACTERISTICS, CHARACTERISTIC_LABELS, ITEM_STATE_LABELS, SYSTEM_LABELS } from '../../utils/labels'
+import {
+  CHARACTERISTICS, CHARACTERISTIC_LABELS, ITEM_STATE_LABELS, resolveWeaponSkillName, SYSTEM_LABELS,
+} from '../../utils/labels'
 import { DicePoolView } from '../DicePoolView'
 
 const ITEM_STATE_ORDER: ItemState[] = ['equipped', 'carried', 'backpack']
@@ -16,6 +18,8 @@ export function CharacterSheetPrint({ sheet, reference }: { sheet: CharacterShee
 
   const skillRu = new Map(reference.skills.map(s => [s.id, s.nameRu]))
   const itemRu = new Map(reference.items.map(i => [i.id, i.nameRu]))
+  const skillNames = sheet.skills.map(s => s.name)
+  const skillsByName = new Map(sheet.skills.map(s => [s.name, s]))
   const d = sheet.derived
   const h = sheet.heroicAbility
 
@@ -33,28 +37,23 @@ export function CharacterSheetPrint({ sheet, reference }: { sheet: CharacterShee
         </div>
       </header>
 
-      <section className="sheet-section">
-        <h2>Характеристики</h2>
-        <div className="sheet-chars">
+      <section className="sheet-stat-block" aria-label="Характеристики и производные показатели">
+        <div className="sheet-stat-grid">
           {CHARACTERISTICS.map(c => (
-            <div key={c} className="sheet-char">
-              <span className="v">{sheet.characteristics[c]}</span>
-              {CHARACTERISTIC_LABELS[c]}
+            <div key={c} className="sheet-stat">
+              <span className="sheet-stat-value">{sheet.characteristics[c]}</span>
+              <span className="sheet-stat-label">{CHARACTERISTIC_LABELS[c]}</span>
             </div>
           ))}
         </div>
-      </section>
-
-      <section className="sheet-section">
-        <h2>Производные характеристики</h2>
-        <div className="sheet-derived">
-          <span>Раны: {sheet.woundsCurrent}/{d.woundThreshold}</span>
-          <span>Стрейн: {sheet.strainCurrent}/{d.strainThreshold}</span>
-          <span>Поглощение: {d.soak}</span>
-          <span>Защита ближняя: {d.meleeDefense}</span>
-          <span>Защита дальняя: {d.rangedDefense}</span>
-          <span>Порог нагрузки: {d.encumbranceThreshold}</span>
-          <span>Текущая нагрузка: {d.encumbranceLoad}{d.encumbered ? ' — перегруз!' : ''}</span>
+        <div className="sheet-stat-grid sheet-derived-grid">
+          <DerivedStat value={`${sheet.woundsCurrent} / ${d.woundThreshold}`} label="Раны" />
+          <DerivedStat value={`${sheet.strainCurrent} / ${d.strainThreshold}`} label="Стрейн" />
+          <DerivedStat value={d.soak} label="Поглощение" />
+          <DerivedStat value={d.meleeDefense} label="Ближняя защита" />
+          <DerivedStat value={d.rangedDefense} label="Дальняя защита" />
+          <DerivedStat value={`${d.encumbranceLoad} / ${d.encumbranceThreshold}`} label="Нагрузка"
+            warning={d.encumbered} />
         </div>
       </section>
 
@@ -62,7 +61,7 @@ export function CharacterSheetPrint({ sheet, reference }: { sheet: CharacterShee
         <h2>Навыки</h2>
         <table className="sheet-table">
           <thead>
-            <tr><th>Навык</th><th>Хар-ка</th><th>Карьерный</th><th>Ранги</th><th>Пул</th></tr>
+            <tr><th>Навык</th><th>Хар.</th><th>Кар.</th><th>Ранг</th><th>Пул</th></tr>
           </thead>
           <tbody>
             {sheet.skills.map(s => {
@@ -127,6 +126,10 @@ export function CharacterSheetPrint({ sheet, reference }: { sheet: CharacterShee
               <h3>{ITEM_STATE_LABELS[state]}</h3>
               {items.map(i => {
                 const ru = itemRu.get(i.itemDefId) || ''
+                const weaponSkillName = i.kind === 'weapon'
+                  ? resolveWeaponSkillName(i.skillName, skillNames)
+                  : null
+                const weaponSkill = weaponSkillName ? skillsByName.get(weaponSkillName) : null
                 const combat = [i.damage && `урон ${i.damage}`, i.crit && `крит ${i.crit}`, i.rangeBand, i.skillName]
                   .filter(Boolean).join(', ')
                 const armor = [
@@ -143,6 +146,14 @@ export function CharacterSheetPrint({ sheet, reference }: { sheet: CharacterShee
                       {armor ? ` · ${armor}` : ''}
                       {i.properties ? ` · ${i.properties}` : ''}
                     </span>
+                    {i.kind === 'weapon' && (
+                      <div className="sheet-weapon-pool">
+                        <span className="sheet-weapon-pool-label">Пул</span>
+                        {weaponSkill
+                          ? <><DicePoolView pool={weaponSkill.pool} /><span>{weaponSkill.name}</span></>
+                          : <span className="muted">—{i.skillName ? ` навык ${i.skillName} не найден` : ''}</span>}
+                      </div>
+                    )}
                   </div>
                 )
               })}
@@ -162,6 +173,15 @@ export function CharacterSheetPrint({ sheet, reference }: { sheet: CharacterShee
           ))}
         </section>
       )}
+    </div>
+  )
+}
+
+function DerivedStat({ value, label, warning = false }: { value: string | number; label: string; warning?: boolean }) {
+  return (
+    <div className={`sheet-stat${warning ? ' warning' : ''}`}>
+      <span className="sheet-stat-value">{value}</span>
+      <span className="sheet-stat-label">{label}</span>
     </div>
   )
 }

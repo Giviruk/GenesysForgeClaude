@@ -30,16 +30,18 @@
       derived, навыки RU/EN+пул, таланты, героика, инвентарь по состояниям, заметки)
 - [x] Кнопка «Печать листа» в `SheetPage` → `PrintPreview` с этим компонентом
 - [x] CSS: `.sheet-doc` + `@media print` (`@page A4`, скрыть chrome, page-break-inside: avoid)
-- [x] Frontend lint/build/test (49) зелёные; preview-проверка end-to-end (backend in-memory):
+- [x] Визуально привести блок характеристик/derived к макету `roadmap/design/print-preview.png`
+      (два ряда по 6 стат-боксов); для оружия в инвентаре выводить рассчитанный dice pool
+- [x] Frontend lint/build/test (50) зелёные; preview-проверка end-to-end (backend in-memory):
       открыт лист, нажата «Печать листа», скриншоты header/характеристики/навыки/инвентарь/заметки,
-      без console-ошибок
+      оружейный dice pool, desktop/mobile без overflow и console-ошибок
 - [x] docs: current-state/feature-roadmap отметили полный printable лист
 - [ ] Статус в `unified-roadmap.md` → done после merge
-- [ ] PR
+- [x] PR #33 открыт, CI зелёный
 
 ## Что осталось / блокеры
 
-(заполняется по ходу)
+- После merge PR #33 обновить статус U-04 на `✅ Done (PR #33)`.
 
 ## Заметки / решения
 
