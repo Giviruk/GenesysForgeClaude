@@ -1,8 +1,8 @@
 namespace GenesysForge.Application.Abstractions;
 
 /// <summary>
-/// Отправка транзакционных писем. Провайдер и домен отправителя для MVP ещё не выбраны,
-/// поэтому базовая реализация — заглушка, пишущая ссылку в лог (см. LoggingEmailSender).
+/// Отправка транзакционных писем. Реализация выбирается по конфигу <c>Email:Provider</c>:
+/// SmtpEmailSender (реальный SMTP, MailKit) или LoggingEmailSender (заглушка в лог для dev).
 /// </summary>
 public interface IEmailSender
 {

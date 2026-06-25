@@ -30,8 +30,14 @@ public static class DependencyInjection
         services.AddSingleton<ITokenService, TokenService>();
         services.AddSingleton<IPasswordHasherService, PasswordHasherService>();
         services.AddSingleton<IExternalIdentityValidator, GoogleIdTokenValidator>();
-        // Заглушка отправки писем (ссылка сброса пароля — в лог). Заменяется провайдером позже.
-        services.AddSingleton<IEmailSender, LoggingEmailSender>();
+
+        // Отправка писем: при Email:Provider=Smtp — реальный SMTP (MailKit), иначе заглушка в лог.
+        var emailSection = config.GetSection(EmailOptions.SectionName);
+        services.Configure<EmailOptions>(emailSection);
+        if (string.Equals(emailSection["Provider"], "Smtp", StringComparison.OrdinalIgnoreCase))
+            services.AddSingleton<IEmailSender, SmtpEmailSender>();
+        else
+            services.AddSingleton<IEmailSender, LoggingEmailSender>();
 
         return services;
     }

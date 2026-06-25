@@ -5,9 +5,9 @@ using Microsoft.Extensions.Logging;
 namespace GenesysForge.Infrastructure.Auth;
 
 /// <summary>
-/// Заглушка отправки писем для MVP: email-провайдер и домен отправителя ещё не выбраны
-/// (см. docs/mvp-ux-account-readiness.md, пункты 3–4), поэтому ссылку сброса пароля
-/// пишем в лог. Базовый адрес — из App:BaseUrl.
+/// Заглушка отправки писем (dev/тесты): реальная отправка не выполняется, ссылку сброса
+/// пароля пишем в лог. Активна, когда <c>Email:Provider</c> ≠ <c>Smtp</c>. Для реальной
+/// отправки используется <see cref="SmtpEmailSender"/>. Базовый адрес — из App:BaseUrl.
 /// </summary>
 public class LoggingEmailSender(IConfiguration config, ILogger<LoggingEmailSender> logger) : IEmailSender
 {

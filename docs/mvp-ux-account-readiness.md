@@ -9,7 +9,7 @@
 
 - Auth: `POST /api/auth/register`, `POST /api/auth/login` и `POST /api/auth/google` возвращают access-JWT; фронтенд хранит его в `localStorage`. Доступные провайдеры — через `GET /api/auth/providers`.
 - Session expiry: API client очищает токен и показывает сообщение «сессия истекла», возвращая на экран авторизации на `401`, когда токен был.
-- Recovery: self-service password reset реализован (`POST /api/auth/password-reset/request` / `/confirm`, хешированный одноразовый токен, без user enumeration), есть экраны forgot/reset. E-mail-провайдер ещё не выбран — ссылка пишется в лог (`LoggingEmailSender`). Email confirmation удалён по продуктовому решению (регистрация логинит сразу).
+- Recovery: self-service password reset реализован (`POST /api/auth/password-reset/request` / `/confirm`, хешированный одноразовый токен, без user enumeration), есть экраны forgot/reset. E-mail-провайдер подключаемый: реальная отправка по SMTP (`SmtpEmailSender`, MailKit) при `Email:Provider=Smtp`, иначе заглушка в лог (`LoggingEmailSender`, дефолт в dev). Смена пароля отзывает все refresh-сессии. Email confirmation удалён по продуктовому решению (регистрация логинит сразу).
 - Routing: реализован лёгкий History-API роутер (`frontend/src/router.ts`) — URL-маршруты для `/characters/:id`, `/campaigns/:id`, `/npcs/:id`, `/magic`; SPA-fallback в nginx/Vite; после логина возврат на исходный URL (`session.ts`).
 - Sharing: листы персонажа всё ещё не шарятся по публичной ссылке. Доступ к кампании — через join code и членство персонажа.
 - OAuth: Google sign-in реализован (валидация ID-токена против JWKS, линковка по verified email), но **отключён**, пока не задан `Auth:Google:ClientId`.
