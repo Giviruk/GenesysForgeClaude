@@ -3,7 +3,7 @@
 - **Roadmap:** U-06 — Реальный email provider + публичный password reset (см. [unified-roadmap.md](../unified-roadmap.md))
 - **Ветка:** `feature/u06-email-provider-password-reset`
 - **Базовая ветка:** `master` (PR #35 слит, открытых PR нет)
-- **PR:** pending
+- **PR:** [#36](https://github.com/Giviruk/GenesysForgeClaude/pull/36)
 - **Статус:** 🚧 In progress
 
 ## Контекст
@@ -33,7 +33,7 @@ relay — свой сервер или SMTP-режим Resend/SendGrid/Mailgun),
 - [x] Миграции не требуются (модель не меняется)
 - [x] Copyright: транзакционный текст письма — собственный, book text не используется
 - [x] Статус в `unified-roadmap.md` обновлён (U-05 → Done #35, U-06 → In progress)
-- [ ] PR открыт
+- [x] PR открыт (#36)
 - [ ] Docker image builds (локальный Docker недоступен; проверит CI/deploy Buildx)
 
 ## Что осталось / блокеры
