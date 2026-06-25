@@ -22,7 +22,7 @@
 - User registration and login with JWT.
 - Google sign-in (`POST /api/auth/google`) validating Google ID tokens against Google's JWKS, linking by verified email; fully implemented but disabled until `Auth:Google:ClientId` is configured. `GET /api/auth/providers` advertises availability to the frontend.
 - Refresh tokens with rotation: short-lived access JWT plus a long-lived `HttpOnly` refresh cookie (`gf_refresh`); `POST /api/auth/refresh` rotates the token, reuse of a rotated token revokes the whole family, `POST /api/auth/logout` revokes the current family.
-- Self-service password reset endpoints (`POST /api/auth/password-reset/request` / `/confirm`): hashed single-use token with TTL, no user enumeration; e-mail delivery is still a log stub (`LoggingEmailSender`).
+- Self-service password reset endpoints (`POST /api/auth/password-reset/request` / `/confirm`): hashed single-use token with TTL, no user enumeration; changing the password revokes all refresh sessions. E-mail delivery is pluggable via `Email:Provider` — real SMTP sending (`SmtpEmailSender`, MailKit) or a log stub (`LoggingEmailSender`, default in dev).
 - Protected API endpoints via JWT Bearer.
 - Character list, create, read, update, delete.
 - Game systems: `GenesysCore`, `RealmsOfTerrinoth`.
@@ -71,7 +71,7 @@
 ## Partially implemented
 
 - Frontend routing: top-level areas and entity detail are URL-backed (History API), but not every sub-view has a deep link yet (e.g. the printable sheet, Game Table and encounter sub-routes are still reached from within the campaign/character view).
-- Password reset: endpoints, hashed single-use tokens and frontend forgot/reset screens exist, but real e-mail delivery is stubbed to the API log (`LoggingEmailSender`) until a provider is configured.
+- Password reset: end-to-end (endpoints, hashed single-use tokens, session revoke, frontend forgot/reset screens) with a pluggable e-mail provider — SMTP via MailKit when `Email:Provider=Smtp`, otherwise a log stub for dev.
 - State management: implemented with React state/context, no external store.
 - API documentation: OpenAPI is enabled; hand-written docs cover the main routes but should be kept in sync after endpoint changes.
 - Validation: domain/application validation exists; frontend validation is basic HTML/form/state validation.
@@ -83,7 +83,6 @@
 
 ## Not implemented yet
 
-- Real e-mail delivery for password reset (provider not selected; links are written to the log).
 - Deep links for every sub-view (printable sheet, Game Table, encounter detail).
 - Shareable character sheets by URL.
 - Audit log or XP history.
@@ -97,7 +96,7 @@
 - Seed content legal review is important because descriptions must remain original/paraphrased.
 - Startup applies migrations automatically; convenient for small deployments, but should be reviewed for production operations.
 - API currently exposes pre-1.0 unversioned routes.
-- Password reset is implemented end-to-end except real e-mail delivery; until a provider is configured the reset link only reaches the API log, so production recovery still depends on operator access to logs.
+- Password reset is implemented end-to-end, including pluggable e-mail delivery (SMTP via MailKit). With `Email:Provider=Logging` (the dev default) the link only reaches the API log; production recovery requires configuring an SMTP relay.
 - Refresh-token rotation works, but the access token is kept in `localStorage`; this is a deliberate trade-off that should be revisited before broad public use.
 - Some database constraints are enforced in domain/application rather than database check constraints.
 

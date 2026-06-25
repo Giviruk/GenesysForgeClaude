@@ -89,7 +89,7 @@
 - **DoD:** печатается на A4/Letter без разрывов; навигация/кнопки не печатаются; сохранение в PDF через системный диалог.
 
 ## U-05 · Production hardening (безопасность + эксплуатация)
-- **Статус:** 🚧 In progress
+- **Статус:** ✅ Done (PR #35)
 - **Источник:** GF-016 · Аудит §9 (rate limiting, логи), §10 (changelog)
 - **Scope (B/Deploy):**
   - **Rate limiting** на `/api/auth/*` (`AddRateLimiter`, пакет уже в зависимостях) — против brute force.
@@ -100,7 +100,7 @@
 - **DoD:** auth защищён от простого brute force; secure cookies в prod; есть backup/restore и rollback инструкции; health checks покрывают API+DB; PublicSafe не содержит private content.
 
 ## U-06 · Реальный email provider + публичный password reset
-- **Статус:** ⬜ Todo
+- **Статус:** 🚧 In progress
 - **Источник:** GF-014 · Аудит §1.1
 - **Зачем:** сейчас отправка письма — `LoggingEmailSender` (stub).
 - **Scope (B):** реализация `IEmailSender` (SMTP/Resend/Mailgun/SendGrid). Конфиг `Email__Provider/From/Smtp__*`. Токен — только hash, expiry 15–60 мин, single-use, revoke сессий после смены (refresh-семейство уже есть). Rate limiting (из U-05).

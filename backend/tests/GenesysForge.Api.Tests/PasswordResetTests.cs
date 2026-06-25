@@ -93,6 +93,28 @@ public class PasswordResetTests : IClassFixture<ApiFactory>
     }
 
     [Fact]
+    public async Task Reset_revokes_existing_sessions()
+    {
+        var sender = new CapturingEmailSender();
+        var client = WithSender(sender).CreateClient();
+        const string email = "reset-revoke@test.local";
+        await RegisterAsync(client, email, "oldpassword");
+
+        // Сессия активна: refresh по выданной cookie проходит (и ротирует токен в клиенте).
+        var before = await client.PostAsync("/api/auth/refresh", null);
+        Assert.Equal(HttpStatusCode.OK, before.StatusCode);
+
+        await client.PostAsJsonAsync("/api/auth/password-reset/request", new PasswordResetRequestRequest(email));
+        var confirm = await client.PostAsJsonAsync("/api/auth/password-reset/confirm",
+            new PasswordResetConfirmRequest(sender.LastToken!, "newpassword"));
+        Assert.Equal(HttpStatusCode.NoContent, confirm.StatusCode);
+
+        // После смены пароля прежний refresh-токен отозван — сессия больше не действительна.
+        var after = await client.PostAsync("/api/auth/refresh", null);
+        Assert.Equal(HttpStatusCode.Unauthorized, after.StatusCode);
+    }
+
+    [Fact]
     public async Task Token_is_single_use()
     {
         var sender = new CapturingEmailSender();

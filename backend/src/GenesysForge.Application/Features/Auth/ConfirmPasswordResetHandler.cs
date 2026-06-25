@@ -34,6 +34,12 @@ public class ConfirmPasswordResetHandler(IAppDbContext db, IPasswordHasherServic
             .ToListAsync(ct);
         foreach (var t in active) t.UsedAt = now;
 
+        // Смена пароля разлогинивает все сессии: отзываем активные refresh-токены пользователя.
+        var sessions = await db.RefreshTokens
+            .Where(r => r.UserId == user.Id && r.RevokedAt == null)
+            .ToListAsync(ct);
+        foreach (var r in sessions) r.RevokedAt = now;
+
         await db.SaveChangesAsync(ct);
         return Unit.Value;
     }

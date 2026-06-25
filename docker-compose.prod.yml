@@ -57,6 +57,17 @@ services:
       Cors__Origins: "https://${PRIVATE_HOSTNAME}"
       # Google OAuth (опционально). Пусто — вход через Google выключен (кнопка скрыта).
       Auth__Google__ClientId: ${GOOGLE_CLIENT_ID:-}
+      App__BaseUrl: "https://${PRIVATE_HOSTNAME}"
+      # Email-провайдер для писем сброса пароля. По умолчанию Logging (ссылка пишется в лог API).
+      # Реальная отправка: EMAIL_PROVIDER=Smtp + параметры SMTP-relay (см. .env.example).
+      Email__Provider: ${EMAIL_PROVIDER:-Logging}
+      Email__From: ${EMAIL_FROM:-no-reply@${PRIVATE_HOSTNAME}}
+      Email__FromName: ${EMAIL_FROM_NAME:-GenesysForge}
+      Email__Smtp__Host: ${EMAIL_SMTP_HOST:-}
+      Email__Smtp__Port: ${EMAIL_SMTP_PORT:-587}
+      Email__Smtp__Username: ${EMAIL_SMTP_USERNAME:-}
+      Email__Smtp__Password: ${EMAIL_SMTP_PASSWORD:-}
+      Email__Smtp__UseStartTls: ${EMAIL_SMTP_USE_STARTTLS:-true}
     depends_on:
       postgres:
         condition: service_healthy
@@ -82,6 +93,15 @@ services:
       Content__Mode: PublicSafe
       Cors__Origins: "https://${PUBLIC_HOSTNAME:-public-disabled.localhost}"
       Auth__Google__ClientId: ${GOOGLE_CLIENT_ID:-}
+      App__BaseUrl: "https://${PUBLIC_HOSTNAME:-public-disabled.localhost}"
+      Email__Provider: ${EMAIL_PROVIDER:-Logging}
+      Email__From: ${EMAIL_FROM:-no-reply@${PUBLIC_HOSTNAME:-public-disabled.localhost}}
+      Email__FromName: ${EMAIL_FROM_NAME:-GenesysForge}
+      Email__Smtp__Host: ${EMAIL_SMTP_HOST:-}
+      Email__Smtp__Port: ${EMAIL_SMTP_PORT:-587}
+      Email__Smtp__Username: ${EMAIL_SMTP_USERNAME:-}
+      Email__Smtp__Password: ${EMAIL_SMTP_PASSWORD:-}
+      Email__Smtp__UseStartTls: ${EMAIL_SMTP_USE_STARTTLS:-true}
     depends_on:
       postgres-public:
         condition: service_healthy

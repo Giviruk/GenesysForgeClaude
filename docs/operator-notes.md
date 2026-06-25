@@ -45,6 +45,20 @@ API принимает `X-Forwarded-For` и `X-Forwarded-Proto` только в 
 на запрос (method, path, status code, duration) с обогащением `TraceId` и `RemoteIp`; шум фреймворка
 (`Microsoft.AspNetCore`) приглушён до Warning. Тела запросов, пароли и токены не логируются.
 
+## Email (сброс пароля)
+
+Письмо со ссылкой сброса пароля отправляет провайдер из секции `Email`:
+
+- `Email__Provider=Logging` (по умолчанию) — реальная отправка не выполняется, ссылка пишется
+  в лог API. Подходит для dev/тестов.
+- `Email__Provider=Smtp` — отправка через SMTP-relay (MailKit). Параметры: `Email__From`,
+  `Email__FromName`, `Email__Smtp__Host`, `Email__Smtp__Port` (587 + STARTTLS по умолчанию;
+  для 465 выставьте `Email__Smtp__UseStartTls=false`), `Email__Smtp__Username/Password`.
+
+В prod compose значения берутся из `.env` (`EMAIL_PROVIDER`, `EMAIL_FROM`, `EMAIL_SMTP_*`).
+Ссылка строится из `App__BaseUrl` (в prod — из `PRIVATE_HOSTNAME`/`PUBLIC_HOSTNAME`). Токен сброса
+живёт в БД только как хеш, действует 1 час, одноразовый; смена пароля отзывает все refresh-сессии.
+
 ## PrivateFull / PublicSafe
 
 Production compose поднимает два изолированных стека:
