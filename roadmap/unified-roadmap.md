@@ -108,7 +108,7 @@
 - **DoD:** восстановление пароля без доступа к логам; токен одноразовый; тесты на expiry/reuse/invalid.
 
 ## U-07 · Реальные URL / deep links
-- **Статус:** ⬜ Todo
+- **Статус:** 🚧 In progress
 - **Источник:** GF-013
 - **Зачем:** refresh страницы сбрасывает экран; нельзя поделиться ссылкой.
 - **Scope (F):** маршруты `/login /register /characters /characters/:id /characters/:id/print /campaigns /campaigns/:id /campaigns/:id/table /campaigns/:id/encounters/:eid /npcs /npcs/:id /magic`. Есть [router.ts](../frontend/src/router.ts) — расширить или перейти на React Router. После login возврат на исходный URL; 404/empty state; нет данных без авторизации.
