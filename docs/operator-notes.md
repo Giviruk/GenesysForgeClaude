@@ -56,6 +56,7 @@ API принимает `X-Forwarded-For` и `X-Forwarded-Proto` только в 
   для 465 выставьте `Email__Smtp__UseStartTls=false`), `Email__Smtp__Username/Password`.
 
 В prod compose значения берутся из `.env` (`EMAIL_PROVIDER`, `EMAIL_FROM`, `EMAIL_SMTP_*`).
+Пошаговый чеклист «что предоставить» — [email-setup-checklist.md](email-setup-checklist.md).
 Ссылка строится из `App__BaseUrl` (в prod — из `PRIVATE_HOSTNAME`/`PUBLIC_HOSTNAME`). Токен сброса
 живёт в БД только как хеш, действует 1 час, одноразовый; смена пароля отзывает все refresh-сессии.
 
