@@ -3,7 +3,7 @@
 - **Roadmap:** U-03 — Экспорт/импорт персонажа в JSON (см. [unified-roadmap.md](../unified-roadmap.md))
 - **Ветка:** `feature/u03-character-json-export`
 - **Базовая ветка:** `master` (U-02/PR #31 слит, открытых PR нет — стека нет)
-- **PR:** #<номер> (после создания)
+- **PR:** [#32](https://github.com/Giviruk/GenesysForgeClaude/pull/32)
 - **Статус:** 🚧 In progress
 
 ## Контекст
