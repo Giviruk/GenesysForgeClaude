@@ -3,7 +3,7 @@
 - **Roadmap:** U-02 — Лицензия, авторские права и публичность (см. [unified-roadmap.md](../unified-roadmap.md))
 - **Ветка:** `feature/u02-license-about`
 - **Базовая ветка:** `master` (U-01/PR #30 уже слит, открытых PR нет — стека нет)
-- **PR:** #<номер> (после создания)
+- **PR:** [#31](https://github.com/Giviruk/GenesysForgeClaude/pull/31)
 - **Статус:** 🚧 In progress
 
 ## Контекст
