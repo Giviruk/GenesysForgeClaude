@@ -3,7 +3,7 @@
 - **Roadmap:** U-07 — Реальные URL / deep links (см. [unified-roadmap.md](../unified-roadmap.md))
 - **Ветка:** `feature/u07-deep-links`
 - **Базовая ветка:** `feature/u06-email-provider-password-reset` (стек поверх PR #36, ещё не слит — см. AGENTS.md §2)
-- **PR:** pending
+- **PR:** [#37](https://github.com/Giviruk/GenesysForgeClaude/pull/37) (base — ветка U-06)
 - **Статус:** 🚧 In progress
 
 ## Контекст
@@ -35,7 +35,7 @@
 - [ ] Браузерная проверка deep link / back-forward / refresh (нужна auth-сессия + данные)
 - [x] Миграции не требуются (frontend-only)
 - [x] Статус в `unified-roadmap.md` обновлён
-- [ ] PR открыт (base — ветка U-06)
+- [x] PR открыт (#37, base — ветка U-06)
 
 ## Что осталось / блокеры
 
