@@ -1,0 +1,50 @@
+# Полный printable / PDF-friendly лист персонажа (u04-printable-sheet)
+
+- **Roadmap:** U-04 — Полный printable / PDF-friendly лист персонажа (см. [unified-roadmap.md](../unified-roadmap.md))
+- **Ветка:** `feature/u04-printable-sheet`
+- **Базовая ветка:** `master` (U-03/PR #32 слит, открытых PR нет — стека нет)
+- **PR:** [#33](https://github.com/Giviruk/GenesysForgeClaude/pull/33)
+- **Статус:** 🚧 In progress
+
+## Контекст
+
+«Нормальный PDF-экспорт» — боль сообщества. Сейчас печать только для карточек/материалов.
+Нужен полный печатный лист персонажа.
+
+Решение по подходу: **переиспользовать существующий `PrintPreview`** (overlay + `body.printing`,
+печатает только `.print-area`) + кнопка «Печать листа» в `SheetPage`. Без новых endpoints и без
+изменения роутера — консистентно с печатью NPC/карточек. Данные — существующий `CharacterSheet`
+(+ `Reference` для RU-имён навыков/предметов, `api.notes(id)` для заметок).
+
+Факты из кода:
+- `CharacterSheet`: characteristics, derived (woundThreshold/strainThreshold/soak/melee+rangedDefense/
+  encumbranceThreshold/encumbranceLoad/encumbered), skills (SheetSkill: name, characteristic, ranks,
+  isCareer, pool), talents (SheetTalent: nameRu, tier, ranked, ranks, activation, description, бонусы),
+  heroicAbility (activation/duration/frequency/upgrades + upgradeRank), items (SheetItem: combat/armor).
+- Навыки RU — из `reference.skills` (SkillDef.nameRu) по skillDefId; предметы RU — `reference.items`.
+- Заметки — отдельный endpoint `api.notes(id)`.
+
+## План выполнения
+
+- [x] Компонент `components/print/CharacterSheetPrint.tsx` — полный лист (инфо, характеристики,
+      derived, навыки RU/EN+пул, таланты, героика, инвентарь по состояниям, заметки)
+- [x] Кнопка «Печать листа» в `SheetPage` → `PrintPreview` с этим компонентом
+- [x] CSS: `.sheet-doc` + `@media print` (`@page A4`, скрыть chrome, page-break-inside: avoid)
+- [x] Визуально привести блок характеристик/derived к макету `roadmap/design/print-preview.png`
+      (два ряда по 6 стат-боксов); для оружия в инвентаре выводить рассчитанный dice pool
+- [x] Frontend lint/build/test (50) зелёные; preview-проверка end-to-end (backend in-memory):
+      открыт лист, нажата «Печать листа», скриншоты header/характеристики/навыки/инвентарь/заметки,
+      оружейный dice pool, desktop/mobile без overflow и console-ошибок
+- [x] docs: current-state/feature-roadmap отметили полный printable лист
+- [ ] Статус в `unified-roadmap.md` → done после merge
+- [x] PR #33 открыт, CI зелёный
+
+## Что осталось / блокеры
+
+- После merge PR #33 обновить статус U-04 на `✅ Done (PR #33)`.
+
+## Заметки / решения
+
+- Без backend-изменений и миграций.
+- Печать через системный диалог браузера (Ctrl+P / кнопка 🖨), сохранение в PDF.
+- Copyright: печатаем пользовательские/структурные данные; book text не добавляем.
