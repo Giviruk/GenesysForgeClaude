@@ -3,8 +3,8 @@
 - **Roadmap:** U-08 — Нарративный dice roller + секретный бросок GM (см. [unified-roadmap.md](../unified-roadmap.md))
 - **Ветка:** `feature/u08-narrative-dice-roller`
 - **Базовая ветка:** `feature/u07-deep-links-to-master` (стек поверх PR #38, ещё не слит — AGENTS.md §2)
-- **PR:** [#39](https://github.com/Giviruk/GenesysForgeClaude/pull/39) (base — ветка U-07)
-- **Статус:** 🚧 In progress
+- **PR:** [#39](https://github.com/Giviruk/GenesysForgeClaude/pull/39) (слит в master)
+- **Статус:** ✅ Done
 
 ## Контекст
 
