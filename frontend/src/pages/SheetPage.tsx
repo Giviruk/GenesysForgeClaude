@@ -92,33 +92,37 @@ export function SheetPage({ characterId, onBack }: Props) {
           <span className={`badge ${sheet.system}`}>{SYSTEM_LABELS[sheet.system]}</span>
           <span className="muted"> {sheet.archetype.name} · {sheet.career.name}</span>
         </div>
-        <div className="xp-block">
-          <span title="Суммарный опыт — кликните, чтобы изменить (награды ГМа)">
-            XP: {xpEdit !== null ? (
-              <input autoFocus className="xp-input" value={xpEdit}
-                onChange={e => setXpEdit(e.target.value)}
-                onBlur={() => void saveXp()}
-                onKeyDown={e => e.key === 'Enter' && void saveXp()} />
-            ) : (
-              <button className="linklike" onClick={() => setXpEdit(String(sheet.totalXp))}>{sheet.totalXp}</button>
-            )}
-          </span>
-          <span className="muted"> потрачено {sheet.spentXp} · </span>
-          <strong className="xp-available">доступно {sheet.availableXp}</strong>
-          <button className="small" title="Печать листа персонажа / сохранение в PDF"
-            onClick={() => setPrinting(true)}>
-            Печать листа
-          </button>
-          <button className="small" title="Скачать персонажа в JSON (бэкап / перенос между аккаунтами)"
-            onClick={() => void exportJson()}>
-            Экспорт JSON
-          </button>
-          {sheet.isCreationPhase && (
-            <button className="small" title="Завершить создание: зафиксировать характеристики и снять лимит рангов"
-              onClick={async () => { await api.completeCreation(sheet.id); await refresh() }}>
-              Завершить создание
+        <div className="sheet-head-controls">
+          <div className="xp-block">
+            <span title="Суммарный опыт — кликните, чтобы изменить (награды ГМа)">
+              XP: {xpEdit !== null ? (
+                <input autoFocus className="xp-input" value={xpEdit}
+                  onChange={e => setXpEdit(e.target.value)}
+                  onBlur={() => void saveXp()}
+                  onKeyDown={e => e.key === 'Enter' && void saveXp()} />
+              ) : (
+                <button className="linklike" onClick={() => setXpEdit(String(sheet.totalXp))}>{sheet.totalXp}</button>
+              )}
+            </span>
+            <span className="muted"> потрачено {sheet.spentXp} · </span>
+            <strong className="xp-available">доступно {sheet.availableXp}</strong>
+          </div>
+          <div className="sheet-action-buttons">
+            <button className="small" title="Печать листа персонажа / сохранение в PDF"
+              onClick={() => setPrinting(true)}>
+              Печать листа
             </button>
-          )}
+            <button className="small" title="Скачать персонажа в JSON (бэкап / перенос между аккаунтами)"
+              onClick={() => void exportJson()}>
+              Экспорт JSON
+            </button>
+            {sheet.isCreationPhase && (
+              <button className="small" title="Завершить создание: зафиксировать характеристики и снять лимит рангов"
+                onClick={async () => { await api.completeCreation(sheet.id); await refresh() }}>
+                Завершить создание
+              </button>
+            )}
+          </div>
         </div>
       </div>
 

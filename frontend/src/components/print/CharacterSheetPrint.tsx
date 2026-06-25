@@ -1,12 +1,14 @@
 import { useEffect, useState } from 'react'
 import { api } from '../../api/client'
-import type { CharacterNote, CharacterSheet, ItemState, Reference } from '../../api/types'
+import type { CharacterNote, CharacterSheet, ItemState, Reference, SheetSkill, SkillKind } from '../../api/types'
 import {
-  CHARACTERISTICS, CHARACTERISTIC_LABELS, ITEM_STATE_LABELS, resolveWeaponSkillName, SYSTEM_LABELS,
+  CHARACTERISTICS, CHARACTERISTIC_LABELS, ITEM_STATE_LABELS, resolveWeaponSkillName, SKILL_KIND_LABELS,
+  SYSTEM_LABELS,
 } from '../../utils/labels'
 import { DicePoolView } from '../DicePoolView'
 
 const ITEM_STATE_ORDER: ItemState[] = ['equipped', 'carried', 'backpack']
+const SKILL_KIND_ORDER: SkillKind[] = ['general', 'combat', 'social', 'knowledge', 'magic']
 
 /** Полный печатный лист персонажа для PrintPreview (→ браузерная печать / сохранение в PDF). */
 export function CharacterSheetPrint({ sheet, reference }: { sheet: CharacterSheet; reference: Reference }) {
@@ -20,6 +22,10 @@ export function CharacterSheetPrint({ sheet, reference }: { sheet: CharacterShee
   const itemRu = new Map(reference.items.map(i => [i.id, i.nameRu]))
   const skillNames = sheet.skills.map(s => s.name)
   const skillsByName = new Map(sheet.skills.map(s => [s.name, s]))
+  const skillGroups = SKILL_KIND_ORDER
+    .map(kind => ({ kind, skills: sheet.skills.filter(skill => skill.kind === kind) }))
+    .filter(group => group.skills.length > 0)
+  const skillColumns = balanceSkillGroups(skillGroups)
   const d = sheet.derived
   const h = sheet.heroicAbility
 
@@ -59,25 +65,15 @@ export function CharacterSheetPrint({ sheet, reference }: { sheet: CharacterShee
 
       <section className="sheet-section">
         <h2>Навыки</h2>
-        <table className="sheet-table">
-          <thead>
-            <tr><th>Навык</th><th>Хар.</th><th>Кар.</th><th>Ранг</th><th>Пул</th></tr>
-          </thead>
-          <tbody>
-            {sheet.skills.map(s => {
-              const ru = skillRu.get(s.skillDefId) || ''
-              return (
-                <tr key={s.skillDefId}>
-                  <td>{ru ? `${ru} (${s.name})` : s.name}</td>
-                  <td>{CHARACTERISTIC_LABELS[s.characteristic]}</td>
-                  <td>{s.isCareer ? '✓' : ''}</td>
-                  <td>{s.ranks}</td>
-                  <td><DicePoolView pool={s.pool} /></td>
-                </tr>
-              )
-            })}
-          </tbody>
-        </table>
+        <div className="sheet-skill-columns">
+          {skillColumns.map((column, index) => (
+            <div key={index} className="sheet-skill-column">
+              {column.map(group => (
+                <SkillGroup key={group.kind} kind={group.kind} skills={group.skills} skillRu={skillRu} />
+              ))}
+            </div>
+          ))}
+        </div>
       </section>
 
       {sheet.talents.length > 0 && (
@@ -183,5 +179,57 @@ function DerivedStat({ value, label, warning = false }: { value: string | number
       <span className="sheet-stat-value">{value}</span>
       <span className="sheet-stat-label">{label}</span>
     </div>
+  )
+}
+
+interface SkillGroupData {
+  kind: SkillKind
+  skills: SheetSkill[]
+}
+
+function balanceSkillGroups(groups: SkillGroupData[]): SkillGroupData[][] {
+  if (groups.length < 2) return [groups]
+
+  const total = groups.reduce((sum, group) => sum + group.skills.length, 0)
+  let leftCount = 0
+  let splitAt = 1
+  let smallestDifference = Number.POSITIVE_INFINITY
+
+  for (let index = 1; index < groups.length; index += 1) {
+    leftCount += groups[index - 1].skills.length
+    const difference = Math.abs(total - leftCount * 2)
+    if (difference < smallestDifference) {
+      smallestDifference = difference
+      splitAt = index
+    }
+  }
+
+  return [groups.slice(0, splitAt), groups.slice(splitAt)]
+}
+
+function SkillGroup({ kind, skills, skillRu }: SkillGroupData & { skillRu: Map<string, string> }) {
+  return (
+    <section className="sheet-skill-group">
+      <h3>{SKILL_KIND_LABELS[kind]}</h3>
+      <table className="sheet-table">
+        <thead>
+          <tr><th>Навык</th><th>Хар.</th><th>Кар.</th><th>Ранг</th><th>Пул</th></tr>
+        </thead>
+        <tbody>
+          {skills.map(skill => {
+            const ru = skillRu.get(skill.skillDefId) || ''
+            return (
+              <tr key={skill.skillDefId}>
+                <td>{ru ? `${ru} (${skill.name})` : skill.name}</td>
+                <td>{CHARACTERISTIC_LABELS[skill.characteristic]}</td>
+                <td>{skill.isCareer ? '✓' : ''}</td>
+                <td>{skill.ranks}</td>
+                <td><DicePoolView pool={skill.pool} /></td>
+              </tr>
+            )
+          })}
+        </tbody>
+      </table>
+    </section>
   )
 }
