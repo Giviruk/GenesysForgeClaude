@@ -6,15 +6,20 @@ import { CampaignsPage } from './pages/CampaignsPage'
 import { NpcsPage } from './pages/NpcsPage'
 import { SheetPage } from './pages/SheetPage'
 import { MagicPage } from './pages/MagicPage'
+import { AboutPage } from './pages/AboutPage'
+import { Footer } from './components/Footer'
 import { navigate, parseRoute, usePath, type AppArea } from './router'
 
 function Shell() {
   const { token, logout } = useAuth()
   const path = usePath()
 
-  if (!token) return <AuthPage />
-
   const route = parseRoute(path)
+
+  // «О проекте» доступна публично — до проверки токена (виден дисклеймер до входа).
+  if (route.area === 'about') return <AboutPage loggedIn={!!token} />
+
+  if (!token) return <AuthPage />
 
   function go(area: AppArea) {
     navigate(`/${area}`)
@@ -45,6 +50,7 @@ function Shell() {
               ? <NpcsPage openId={route.id}
                   onOpen={id => navigate(`/npcs/${id}`)} onBack={() => navigate('/npcs')} />
               : <MagicPage />}
+      <Footer />
     </div>
   )
 }
