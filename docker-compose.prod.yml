@@ -20,6 +20,23 @@ services:
     restart: unless-stopped
     mem_limit: 256m
 
+  postgres-public:
+    image: postgres:17-alpine
+    container_name: genesysforge-db-public
+    environment:
+      POSTGRES_USER: genesys
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: genesysforge_public
+    volumes:
+      - pgdata_public:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U genesys -d genesysforge_public"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+    mem_limit: 256m
+
   api:
     image: ghcr.io/${GHCR_OWNER}/genesysforge-api:${IMAGE_TAG:-latest}
     container_name: genesysforge-api
@@ -29,13 +46,44 @@ services:
       DOTNET_gcServer: "0"
       ConnectionStrings__Default: "Host=postgres;Port=5432;Database=genesysforge;Username=genesys;Password=${POSTGRES_PASSWORD}"
       Jwt__Key: ${JWT_KEY}
-      # ContentMode по умолчанию PrivateFull. Пока деплоим только private — CORS только private origin.
-      # Публичный origin добавим сюда вместе с PublicSafe-стеком.
+      Jwt__AccessLifetimeMinutes: ${JWT_ACCESS_LIFETIME_MINUTES:-30}
+      RateLimiting__AuthSensitive__PermitLimit: ${AUTH_SENSITIVE_PERMIT_LIMIT:-10}
+      RateLimiting__AuthSensitive__WindowSeconds: ${AUTH_RATE_WINDOW_SECONDS:-60}
+      RateLimiting__AuthSession__PermitLimit: ${AUTH_SESSION_PERMIT_LIMIT:-30}
+      RateLimiting__AuthSession__WindowSeconds: ${AUTH_RATE_WINDOW_SECONDS:-60}
+      RateLimiting__AuthPublic__PermitLimit: ${AUTH_PUBLIC_PERMIT_LIMIT:-60}
+      RateLimiting__AuthPublic__WindowSeconds: ${AUTH_RATE_WINDOW_SECONDS:-60}
+      Content__Mode: PrivateFull
       Cors__Origins: "https://${PRIVATE_HOSTNAME}"
       # Google OAuth (опционально). Пусто — вход через Google выключен (кнопка скрыта).
       Auth__Google__ClientId: ${GOOGLE_CLIENT_ID:-}
     depends_on:
       postgres:
+        condition: service_healthy
+    restart: unless-stopped
+    mem_limit: 320m
+
+  api-public:
+    image: ghcr.io/${GHCR_OWNER}/genesysforge-api-public:${IMAGE_TAG:-latest}
+    container_name: genesysforge-api-public
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      DOTNET_gcServer: "0"
+      ConnectionStrings__Default: "Host=postgres-public;Port=5432;Database=genesysforge_public;Username=genesys;Password=${POSTGRES_PASSWORD}"
+      # Separate signing key namespace: private access tokens are invalid in the public stack.
+      Jwt__Key: "${JWT_KEY}-public"
+      Jwt__AccessLifetimeMinutes: ${JWT_ACCESS_LIFETIME_MINUTES:-30}
+      RateLimiting__AuthSensitive__PermitLimit: ${AUTH_SENSITIVE_PERMIT_LIMIT:-10}
+      RateLimiting__AuthSensitive__WindowSeconds: ${AUTH_RATE_WINDOW_SECONDS:-60}
+      RateLimiting__AuthSession__PermitLimit: ${AUTH_SESSION_PERMIT_LIMIT:-30}
+      RateLimiting__AuthSession__WindowSeconds: ${AUTH_RATE_WINDOW_SECONDS:-60}
+      RateLimiting__AuthPublic__PermitLimit: ${AUTH_PUBLIC_PERMIT_LIMIT:-60}
+      RateLimiting__AuthPublic__WindowSeconds: ${AUTH_RATE_WINDOW_SECONDS:-60}
+      Content__Mode: PublicSafe
+      Cors__Origins: "https://${PUBLIC_HOSTNAME:-public-disabled.localhost}"
+      Auth__Google__ClientId: ${GOOGLE_CLIENT_ID:-}
+    depends_on:
+      postgres-public:
         condition: service_healthy
     restart: unless-stopped
     mem_limit: 320m
@@ -48,6 +96,43 @@ services:
     restart: unless-stopped
     mem_limit: 64m
 
+  web-public:
+    image: ghcr.io/${GHCR_OWNER}/genesysforge-web:${IMAGE_TAG:-latest}
+    container_name: genesysforge-web-public
+    environment:
+      API_UPSTREAM: api-public
+    depends_on:
+      - api-public
+    restart: unless-stopped
+    mem_limit: 64m
+
+  backup:
+    image: postgres:17-alpine
+    container_name: genesysforge-backup
+    environment:
+      PGPASSWORD: ${POSTGRES_PASSWORD}
+      BACKUP_RETENTION_DAYS: ${BACKUP_RETENTION_DAYS:-14}
+    command:
+      - /bin/sh
+      - -ec
+      - |
+        while true; do
+          timestamp="$$(date -u +%Y%m%dT%H%M%SZ)"
+          pg_dump -h postgres -U genesys -d genesysforge -Fc -f "/backups/private-$${timestamp}.dump"
+          pg_dump -h postgres-public -U genesys -d genesysforge_public -Fc -f "/backups/public-$${timestamp}.dump"
+          find /backups -type f -name '*.dump' -mtime "+$${BACKUP_RETENTION_DAYS}" -delete
+          sleep 86400
+        done
+    volumes:
+      - pgbackups:/backups
+    depends_on:
+      postgres:
+        condition: service_healthy
+      postgres-public:
+        condition: service_healthy
+    restart: unless-stopped
+    mem_limit: 64m
+
   caddy:
     image: caddy:2-alpine
     container_name: genesysforge-caddy
@@ -56,7 +141,7 @@ services:
       - "443:443"
     environment:
       PRIVATE_HOSTNAME: ${PRIVATE_HOSTNAME}
-      # PUBLIC_HOSTNAME вернуть вместе с публичным блоком в Caddyfile.
+      PUBLIC_HOSTNAME: ${PUBLIC_HOSTNAME:-public-disabled.localhost}
       LETSENCRYPT_EMAIL: ${LETSENCRYPT_EMAIL}
     volumes:
       - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
@@ -64,10 +149,13 @@ services:
       - caddy_config:/config
     depends_on:
       - web
+      - web-public
     restart: unless-stopped
     mem_limit: 64m
 
 volumes:
   pgdata:
+  pgdata_public:
+  pgbackups:
   caddy_data:
   caddy_config:

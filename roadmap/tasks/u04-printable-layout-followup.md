@@ -4,7 +4,7 @@
 - **Ветка:** `feature/u04-printable-layout-followup`
 - **Базовая ветка:** `master` (PR #33 слит, открытых PR нет)
 - **PR:** [#34](https://github.com/Giviruk/GenesysForgeClaude/pull/34)
-- **Статус:** 🚧 In progress
+- **Статус:** ✅ Done (PR #34)
 
 ## Контекст
 
@@ -21,12 +21,12 @@ Follow-up после PR #33: сделать печатный список нав
 - [x] Browser QA: desktop/mobile, overflow и console
 - [x] Миграции не требуются
 - [x] Copyright-проверка: seed/справочники не менялись
-- [x] Статус в `unified-roadmap.md` оставлен `In progress` до merge follow-up PR
+- [x] Статус в `unified-roadmap.md` обновлён после merge
 - [x] PR #34 открыт
 
 ## Что осталось / блокеры
 
-- После merge отметить U-04 как `✅ Done (PR #N)`.
+- Нет.
 
 ## Заметки / решения
 

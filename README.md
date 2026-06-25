@@ -72,18 +72,18 @@ cd frontend; npm test
 ## Деплой на VPS (автоматический, через GitHub Actions)
 
 Деплой идёт сам при пуше в `master`: workflow [deploy.yml](.github/workflows/deploy.yml) после успешного CI
-собирает образы `api`/`web`, публикует их в **GHCR** (`ghcr.io/giviruk/genesysforge-api` и `-web`)
+собирает private/public API и web-образы, публикует их в **GHCR**
 и разворачивает на VPS по SSH прод-стек [docker-compose.prod.yml](docker-compose.prod.yml):
-PostgreSQL + API + web (nginx) + **Caddy** с автоматическим HTTPS (Let's Encrypt). Наружу публикуется только Caddy (80/443).
-
-Сейчас разворачивается один private-стек на `PRIVATE_HOSTNAME` в режиме `ContentMode=PrivateFull`.
-Публичный `PUBLIC_HOSTNAME` в prod-compose/Caddy пока не подключён; его нужно вернуть отдельным `PublicSafe`-стеком перед публичным запуском.
+два PostgreSQL + два API/web стека + **Caddy** с автоматическим HTTPS. Наружу публикуется только
+Caddy (80/443). `PRIVATE_HOSTNAME` работает в `PrivateFull`, `PUBLIC_HOSTNAME` — в `PublicSafe`;
+public API image собирается без embedded `private-content`.
 
 ### Конфигурация — только через GitHub Secrets/Variables (в репозитории секретов нет)
 
 Secrets: `SSH_HOST`, `SSH_USER`, `SSH_PORT`, `SSH_PRIVATE_KEY`, `POSTGRES_PASSWORD`, `JWT_KEY`,
 `GHCR_USERNAME`, `GHCR_TOKEN` (с правом `write:packages`), `LETSENCRYPT_EMAIL`, `PRIVATE_OWNER_PASSWORD`.
-Variables: `DEPLOY_PATH` (`/opt/genesysforge`), `PRIVATE_HOSTNAME` и др. режимные переменные. `PUBLIC_HOSTNAME` понадобится при добавлении публичного `PublicSafe`-стека.
+Variables: `DEPLOY_PATH` (`/opt/genesysforge`), `PRIVATE_HOSTNAME`, `PUBLIC_HOSTNAME`,
+`JWT_ACCESS_LIFETIME_MINUTES`, backup/rate-limit параметры и Google client id.
 
 ### Требования к VPS
 
@@ -97,8 +97,8 @@ Variables: `DEPLOY_PATH` (`/opt/genesysforge`), `PRIVATE_HOSTNAME` и др. ре
 После настройки secrets/variables запустите workflow вручную: вкладка **Actions → Deploy → Run workflow**
 (последующие пуши в `master` деплоят автоматически после CI).
 
-Данные Postgres живут в named-томе `pgdata`. Бэкап:
-`docker exec genesysforge-db pg_dump -U genesys genesysforge > backup.sql`.
+Данные живут в отдельных `pgdata` / `pgdata_public` volumes. Compose-сервис `backup` ежедневно
+создаёт дампы обеих БД. Release, backup, restore и rollback: [production-operations.md](docs/production-operations.md).
 
 Схема БД применяется через **EF Core migrations** на старте (`Database.Migrate()`), сид встроенного контента идемпотентен.
 

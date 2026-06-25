@@ -454,9 +454,12 @@ Content packs are campaign handbook containers. Entries are typed by `ContentEnt
 
 ## Health
 
-### `GET /api/health`
+`GET /api/health` checks both API availability and database connectivity.
 
-Public. Returns `{ "status": "ok" }`.
+- `200`: `{ "status": "ok", "database": "ok" }`
+- `503`: `{ "status": "degraded", "database": "unavailable" }`
+
+Auth endpoints return `429` when the configured per-IP rate limit is exceeded.
 
 ## Error model
 

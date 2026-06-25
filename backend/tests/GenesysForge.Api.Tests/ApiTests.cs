@@ -54,6 +54,18 @@ public class AuthTests : IClassFixture<ApiFactory>
         var response = await client.GetAsync("/api/characters/");
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
+
+    [Fact]
+    public async Task Health_reports_database_connectivity()
+    {
+        var client = _factory.CreateClient();
+        var response = await client.GetAsync("/api/health");
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var body = await response.Content.ReadFromJsonAsync<Dictionary<string, string>>();
+        Assert.Equal("ok", body!["status"]);
+        Assert.Equal("ok", body["database"]);
+    }
 }
 
 public class CharacterFlowTests : IClassFixture<ApiFactory>

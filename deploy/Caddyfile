@@ -1,7 +1,6 @@
 # Caddy терминирует TLS (Let's Encrypt) и проксирует на web-контейнер (nginx),
 # который раздаёт SPA и сам проксирует /api на api-контейнер.
-# Сейчас деплоим только private-версию (ContentMode=PrivateFull) на PRIVATE_HOSTNAME.
-# Публичный хост добавим позже отдельным блоком, когда будет готов PublicSafe-стек.
+# PrivateFull и PublicSafe работают раздельно: разные API-контейнеры и базы данных.
 {
 	email {$LETSENCRYPT_EMAIL}
 }
@@ -9,4 +8,9 @@
 {$PRIVATE_HOSTNAME} {
 	encode gzip
 	reverse_proxy web:80
+}
+
+{$PUBLIC_HOSTNAME} {
+	encode gzip
+	reverse_proxy web-public:80
 }

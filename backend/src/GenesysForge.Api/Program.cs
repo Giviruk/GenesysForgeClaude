@@ -3,17 +3,29 @@ using GenesysForge.Application;
 using GenesysForge.Application.Abstractions;
 using GenesysForge.Application.Dtos;
 using GenesysForge.Application.Exceptions;
+using GenesysForge.Api;
 using GenesysForge.Api.Endpoints;
 using GenesysForge.Api.Realtime;
 using GenesysForge.Domain;
 using GenesysForge.Infrastructure;
 using GenesysForge.Infrastructure.Auth;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.HttpOverrides;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
+ProductionConfiguration.Validate(builder.Configuration, builder.Environment);
+
+if (builder.Environment.IsProduction())
+{
+    builder.Logging.ClearProviders();
+    builder.Logging.AddJsonConsole(options => options.IncludeScopes = true);
+}
+
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
+builder.Services.AddAuthRateLimiting(builder.Configuration);
 
 builder.Services.AddSignalR();
 builder.Services.AddSingleton<ICampaignNotifier, SignalRCampaignNotifier>();
@@ -45,9 +57,18 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     });
 builder.Services.AddAuthorization();
 
-// Источники CORS настраиваются через конфиг (Cors:Origins — список через ';'), по умолчанию — dev-фронтенд.
-var corsOrigins = (builder.Configuration["Cors:Origins"] ?? "http://localhost:5173")
-    .Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+    options.ForwardLimit = 2;
+    // Docker network addresses are dynamic; only reverse proxies can reach the API in production compose.
+    options.KnownIPNetworks.Clear();
+    options.KnownProxies.Clear();
+});
+
+// Источники CORS настраиваются через конфиг. ProductionConfiguration требует явные HTTPS origins.
+var corsOrigins = ProductionConfiguration.ParseCorsOrigins(builder.Configuration);
+if (corsOrigins.Length == 0) corsOrigins = ["http://localhost:5173"];
 builder.Services.AddCors(options => options.AddDefaultPolicy(policy =>
     policy.WithOrigins(corsOrigins).AllowAnyHeader().AllowAnyMethod()));
 
@@ -63,6 +84,10 @@ var app = builder.Build();
 
 app.Services.InitializeDatabase();
 
+app.UseForwardedHeaders();
+app.UseMiddleware<RequestLoggingMiddleware>();
+if (builder.Configuration.GetValue("RateLimiting:Enabled", true))
+    app.UseRateLimiter();
 app.UseCors();
 app.UseAuthentication();
 app.UseAuthorization();
@@ -104,7 +129,26 @@ app.MapGameTable();
 app.MapEncounters();
 app.MapContentPacks();
 app.MapHub<CampaignHub>("/hubs/campaign");
-app.MapGet("/api/health", () => Results.Ok(new { status = "ok" }));
+app.MapGet("/api/health", async (
+    GenesysForge.Infrastructure.Persistence.AppDbContext db,
+    ILogger<Program> logger,
+    CancellationToken ct) =>
+{
+    try
+    {
+        var databaseOk = await db.Database.CanConnectAsync(ct);
+        return databaseOk
+            ? Results.Ok(new { status = "ok", database = "ok" })
+            : Results.Json(new { status = "degraded", database = "unavailable" },
+                statusCode: StatusCodes.Status503ServiceUnavailable);
+    }
+    catch (Exception ex)
+    {
+        logger.LogWarning(ex, "Database health check failed");
+        return Results.Json(new { status = "degraded", database = "unavailable" },
+            statusCode: StatusCodes.Status503ServiceUnavailable);
+    }
+});
 
 app.Run();
 

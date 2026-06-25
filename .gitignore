@@ -5,6 +5,7 @@ obj/
 .vs/
 TestResults/
 artifacts/
+.tmp/
 
 # Node
 node_modules/
