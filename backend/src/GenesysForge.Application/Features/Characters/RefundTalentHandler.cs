@@ -1,6 +1,7 @@
 using GenesysForge.Application.Abstractions;
 using GenesysForge.Application.Common;
 using GenesysForge.Domain;
+using GenesysForge.Domain.Entities;
 
 namespace GenesysForge.Application.Features.Characters;
 
@@ -38,6 +39,12 @@ public class RefundTalentHandler(IAppDbContext db) : ICommandHandler<RefundTalen
             db.CharacterTalents.Remove(row);
         }
         c.SpentXp -= result.Cost;
+
+        var talentName = row.TalentDef!.Name;
+        CharacterAudit.Record(db, c, command.UserId, CharacterAuditAction.TalentRefunded,
+            $"Возврат таланта «{talentName}» (→{row.Ranks})", result.Cost,
+            new { talent = talentName, rank = row.Ranks, cost = result.Cost });
+
         await db.SaveChangesAsync(ct);
         return Unit.Value;
     }

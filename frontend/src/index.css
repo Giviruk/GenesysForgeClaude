@@ -928,3 +928,15 @@ button.tiny { font-size: 0.75rem; padding: 0.05rem 0.4rem 0.15rem; }
   padding: 1.1rem 1.2rem; width: min(32rem, 100%); box-shadow: 0 10px 30px rgba(0,0,0,0.4);
 }
 .modal-head { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+
+/* ── Character history / audit log (U-09) ─────────────────────────── */
+.history-tab { display: flex; flex-direction: column; gap: 1rem; }
+.history-tab .award-xp .form-row { align-items: center; gap: 0.6rem; }
+.audit-table { width: 100%; border-collapse: collapse; }
+.audit-table th, .audit-table td { padding: 0.35rem 0.5rem; text-align: left; vertical-align: top; }
+.audit-table thead th { color: var(--muted); font-weight: 600; border-bottom: 1px solid var(--border); }
+.audit-table tbody tr { border-bottom: 1px solid var(--border); }
+.audit-table .right { text-align: right; }
+.audit-table .nowrap { white-space: nowrap; }
+.xp-pos { color: var(--green); font-weight: 600; }
+.xp-neg { color: var(--muted); }

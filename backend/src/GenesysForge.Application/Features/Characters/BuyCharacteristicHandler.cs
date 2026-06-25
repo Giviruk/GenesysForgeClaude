@@ -1,6 +1,7 @@
 using GenesysForge.Application.Abstractions;
 using GenesysForge.Application.Common;
 using GenesysForge.Domain;
+using GenesysForge.Domain.Entities;
 
 namespace GenesysForge.Application.Features.Characters;
 
@@ -16,6 +17,12 @@ public class BuyCharacteristicHandler(IAppDbContext db) : ICommandHandler<BuyCha
 
         c.IncreaseCharacteristic(command.Characteristic);
         c.SpentXp += result.Cost;
+
+        var label = CharacterAudit.CharacteristicLabel(command.Characteristic);
+        CharacterAudit.Record(db, c, command.UserId, CharacterAuditAction.CharacteristicBought,
+            $"Куплена характеристика «{label}» ({current}→{current + 1})", -result.Cost,
+            new { characteristic = command.Characteristic.ToString(), from = current, to = current + 1, cost = result.Cost });
+
         await db.SaveChangesAsync(ct);
         return Unit.Value;
     }

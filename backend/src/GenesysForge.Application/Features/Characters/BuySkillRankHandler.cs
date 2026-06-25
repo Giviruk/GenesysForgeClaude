@@ -34,6 +34,11 @@ public class BuySkillRankHandler(IAppDbContext db) : ICommandHandler<BuySkillRan
         }
         row.Ranks++;
         c.SpentXp += result.Cost;
+
+        CharacterAudit.Record(db, c, command.UserId, CharacterAuditAction.SkillRankBought,
+            $"Куплен ранг навыка «{skillDef.Name}» (→{row.Ranks})", -result.Cost,
+            new { skill = skillDef.Name, rank = row.Ranks, cost = result.Cost });
+
         await db.SaveChangesAsync(ct);
         return Unit.Value;
     }

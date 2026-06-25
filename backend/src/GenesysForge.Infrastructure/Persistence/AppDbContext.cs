@@ -35,6 +35,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<ContentPack> ContentPacks => Set<ContentPack>();
     public DbSet<ContentPackEntry> ContentPackEntries => Set<ContentPackEntry>();
     public DbSet<RollLogEntry> RollLogEntries => Set<RollLogEntry>();
+    public DbSet<CharacterAuditEntry> CharacterAuditEntries => Set<CharacterAuditEntry>();
 
     protected override void OnModelCreating(ModelBuilder b)
     {
@@ -224,6 +225,14 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             e.Property(en => en.GmNotes).HasMaxLength(2000);
             e.Property(en => en.PlayerNotes).HasMaxLength(2000);
             e.Property(en => en.Tags).HasMaxLength(1000);
+        });
+
+        b.Entity<CharacterAuditEntry>(e =>
+        {
+            e.HasIndex(a => new { a.CharacterId, a.CreatedAt });
+            e.Property(a => a.Summary).HasMaxLength(400);
+            e.Property(a => a.DataJson).HasMaxLength(2000);
+            e.HasOne<Character>().WithMany().HasForeignKey(a => a.CharacterId).OnDelete(DeleteBehavior.Cascade);
         });
 
         b.Entity<RollLogEntry>(e =>

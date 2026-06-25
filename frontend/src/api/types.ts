@@ -674,6 +674,24 @@ export interface CharacterSheet {
   items: SheetItem[]
 }
 
+// ── История персонажа / audit log (U-09) ──
+
+export type CharacterAuditAction =
+  | 'xpAwarded' | 'characteristicBought' | 'characteristicRefunded'
+  | 'skillRankBought' | 'skillRankRefunded' | 'talentBought' | 'talentRefunded'
+  | 'itemBought' | 'itemSold' | 'itemRemoved'
+  | 'heroicAbilityChanged' | 'creationCompleted' | 'manualEdit'
+
+export interface CharacterAuditEntry {
+  id: string
+  createdAt: string
+  action: CharacterAuditAction
+  summary: string
+  xpDelta: number | null
+  totalXpAfter: number
+  spentXpAfter: number
+}
+
 // ── Экспорт / импорт персонажа (формат genesysforge.character.v1) ──
 
 /** Переносимый JSON персонажа. Структура совпадает с серверным CharacterExportDto. */
