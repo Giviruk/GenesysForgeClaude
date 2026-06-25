@@ -137,6 +137,11 @@ h1.auth-brand { font-size: 2rem; margin: 0 0 0.2rem; }
 .inline-title { display: inline-block; margin: 0 0.6rem 0 1rem; max-width: 100%; vertical-align: middle; overflow-wrap: anywhere; }
 .page-head h2.inline-title { margin: 0.4rem 0.6rem 0.4rem 1.15rem; }
 .xp-block { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+.sheet-head-controls {
+  display: flex; flex-direction: column; align-items: flex-end; gap: 0.45rem;
+  margin-left: auto;
+}
+.sheet-action-buttons { display: flex; justify-content: flex-end; gap: 0.5rem; flex-wrap: wrap; }
 .xp-available { color: var(--accent); }
 .xp-input { width: 5rem; }
 
@@ -703,6 +708,16 @@ button.tiny { font-size: 0.75rem; padding: 0.05rem 0.4rem 0.15rem; }
   text-align: left; padding: 0.22rem 0.4rem; border-bottom: 1px solid #e2e2e2; vertical-align: top;
 }
 .sheet-table th { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.02em; color: #666; }
+.sheet-skill-columns {
+  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.2rem;
+  align-items: start;
+}
+.sheet-skill-column { min-width: 0; }
+.sheet-skill-group { break-inside: avoid; page-break-inside: avoid; margin-bottom: 0.9rem; }
+.sheet-skill-group h3 {
+  margin: 0 0 0.2rem; padding-bottom: 0.15rem; border-bottom: 1px solid #c8a350;
+  color: #6f5510; font-size: 0.78rem; letter-spacing: 0.05em; text-transform: uppercase;
+}
 .sheet-entry { page-break-inside: avoid; break-inside: avoid; margin: 0.35rem 0; }
 .sheet-entry .sheet-meta { color: #555; font-size: 0.85rem; }
 .sheet-entry .sheet-desc { color: #222; font-size: 0.85rem; margin-top: 0.1rem; }
@@ -721,6 +736,7 @@ button.tiny { font-size: 0.75rem; padding: 0.05rem 0.4rem 0.15rem; }
 
 @media (max-width: 720px) {
   .sheet-stat-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .sheet-skill-columns { grid-template-columns: 1fr; gap: 0; }
   .sheet-table { table-layout: fixed; font-size: 0.72rem; }
   .sheet-table th, .sheet-table td { padding: 0.18rem 0.2rem; overflow-wrap: anywhere; }
   .sheet-table th:nth-child(1) { width: 40%; }
@@ -784,8 +800,9 @@ button.tiny { font-size: 0.75rem; padding: 0.05rem 0.4rem 0.15rem; }
   .topnav .tab { flex: 1 1 8.5rem; }
   .topbar > .small { margin-left: 0; }
   .page-head { align-items: flex-start; }
-  .page-head > .xp-block { flex: 1 1 100%; }
+  .page-head > .sheet-head-controls { flex: 1 1 100%; align-items: flex-end; }
   .page-head .inline-title { margin-left: 1.15rem; }
+  .sheet-action-buttons { width: 100%; }
   table.skills.fixed { min-width: 0; font-size: 0.78rem; }
   table.skills.fixed th, table.skills.fixed td { padding: 0.28rem 0.16rem; }
   table.skills.fixed col.col-name { width: 26%; }

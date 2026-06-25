@@ -4,7 +4,7 @@
 - **Ветка:** `feature/u04-printable-sheet`
 - **Базовая ветка:** `master` (U-03/PR #32 слит, открытых PR нет — стека нет)
 - **PR:** [#33](https://github.com/Giviruk/GenesysForgeClaude/pull/33)
-- **Статус:** 🚧 In progress
+- **Статус:** ✅ Done (PR #33)
 
 ## Контекст
 
@@ -36,12 +36,12 @@
       открыт лист, нажата «Печать листа», скриншоты header/характеристики/навыки/инвентарь/заметки,
       оружейный dice pool, desktop/mobile без overflow и console-ошибок
 - [x] docs: current-state/feature-roadmap отметили полный printable лист
-- [ ] Статус в `unified-roadmap.md` → done после merge
+- [x] Статус в `unified-roadmap.md` → done после merge
 - [x] PR #33 открыт, CI зелёный
 
 ## Что осталось / блокеры
 
-- После merge PR #33 обновить статус U-04 на `✅ Done (PR #33)`.
+- Нет.
 
 ## Заметки / решения
 

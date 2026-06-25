@@ -33,17 +33,30 @@ const sheet = {
     encumbranceLoad: 5,
     encumbered: false,
   },
-  skills: [{
-    skillDefId: 'skill-melee',
-    name: 'Melee',
-    kind: 'combat',
-    characteristic: 'brawn',
-    ranks: 2,
-    isCareer: true,
-    pool: { ability: 0, proficiency: 2 },
-    nextRankCost: 15,
-    freeRanks: 0,
-  }],
+  skills: [
+    {
+      skillDefId: 'skill-athletics',
+      name: 'Athletics',
+      kind: 'general',
+      characteristic: 'brawn',
+      ranks: 1,
+      isCareer: true,
+      pool: { ability: 1, proficiency: 1 },
+      nextRankCost: 10,
+      freeRanks: 0,
+    },
+    {
+      skillDefId: 'skill-melee',
+      name: 'Melee',
+      kind: 'combat',
+      characteristic: 'brawn',
+      ranks: 2,
+      isCareer: true,
+      pool: { ability: 0, proficiency: 2 },
+      nextRankCost: 15,
+      freeRanks: 0,
+    },
+  ],
   talents: [],
   talentTierCounts: {},
   heroicAbility: null,
@@ -74,7 +87,10 @@ const sheet = {
 } as unknown as CharacterSheet
 
 const reference = {
-  skills: [{ id: 'skill-melee', name: 'Melee', nameRu: 'Ближний бой' }],
+  skills: [
+    { id: 'skill-athletics', name: 'Athletics', nameRu: 'Атлетика' },
+    { id: 'skill-melee', name: 'Melee', nameRu: 'Ближний бой' },
+  ],
   items: [{ id: 'weapon-1', name: 'Sword', nameRu: 'Меч' }],
 } as unknown as Reference
 
@@ -88,6 +104,9 @@ describe('CharacterSheetPrint', () => {
     expect(container.querySelector('.sheet-weapon-pool .dice-pool')
       ?.getAttribute('title')).toBe('2 мастерства + 0 способности')
     expect(container.querySelectorAll('.sheet-stat')).toHaveLength(12)
+    expect(screen.getByRole('heading', { name: 'Общие' })).toBeTruthy()
+    expect(screen.getByRole('heading', { name: 'Боевые' })).toBeTruthy()
+    expect(container.querySelectorAll('.sheet-skill-column')).toHaveLength(2)
     await waitFor(() => expect(screen.queryByText('Заметки')).toBeNull())
   })
 })
