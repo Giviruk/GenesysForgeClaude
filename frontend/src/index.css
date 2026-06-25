@@ -768,3 +768,23 @@ button.tiny { font-size: 0.75rem; padding: 0.05rem 0.4rem 0.15rem; }
   /* На узких экранах 6 колонок характеристик не помещаются — раскладываем 3×2 */
   .npc-char-row { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
+
+/* Глобальный футер: ссылки + копирайт-дисклеймер */
+.app-footer {
+  margin-top: 2.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.45rem;
+  text-align: center;
+}
+.footer-links { display: flex; gap: 1.1rem; justify-content: center; flex-wrap: wrap; }
+.footer-disclaimer { max-width: 42rem; margin: 0; }
+/* На auth-экране (grid place-items: center) футер не растягиваем на всю высоту */
+.auth-page .app-footer { margin-top: 1.5rem; border-top: none; }
+
+.about-page ul { margin: 0.3rem 0 0.9rem 1.1rem; padding: 0; }
+.about-page li { margin: 0.25rem 0; }
+.about-page h3 { margin: 1.1rem 0 0.3rem; }

@@ -1,0 +1,27 @@
+GenesysForge
+Copyright 2026 GenesysForge contributors
+
+This product is licensed under the Apache License, Version 2.0 (see LICENSE).
+The Apache-2.0 license above covers the SOURCE CODE of this project only.
+
+────────────────────────────────────────────────────────────────────────
+Content & trademark disclaimer (not covered by the code license)
+────────────────────────────────────────────────────────────────────────
+
+GenesysForge is an independent, non-commercial fan project. It is NOT
+affiliated with, endorsed, sponsored, or approved by Fantasy Flight Games,
+Edge Studio, Asmodee, or any of their affiliates.
+
+"Genesys", "Realms of Terrinoth", and related names, logos, and game terms
+are trademarks and/or copyrights of their respective owners. They are used
+here only to identify the game systems this tool supports, under nominative
+fair use.
+
+This repository does NOT contain original text from the Genesys Core
+Rulebook, Realms of Terrinoth, or any other official publication. Seed data
+reproduces only structural information and numeric parameters together with
+the project's own short paraphrased descriptions. Full private descriptions
+live outside the public build (see docs/current-state.md, ContentMode).
+
+If you own the rights to any material and believe something here infringes
+them, please open an issue and it will be addressed.

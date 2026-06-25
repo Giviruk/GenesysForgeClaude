@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState, type FormEvent } from 'react'
 import { useAuth } from '../auth-context'
 import { api } from '../api/client'
 import { GoogleSignInButton } from '../components/GoogleSignInButton'
+import { Footer } from '../components/Footer'
 import { navigate, usePath } from '../router'
 import { peekReturnTo } from '../session'
 
@@ -135,6 +136,7 @@ export function AuthPage() {
             Некоммерческий фанатский инструмент для Genesys от Fantasy Flight Games.
           </p>
         </div>
+        <Footer />
       </div>
     )
   }
@@ -225,6 +227,7 @@ export function AuthPage() {
           </div>
         )}
       </div>
+      <Footer />
     </div>
   )
 }

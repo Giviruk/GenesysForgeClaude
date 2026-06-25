@@ -42,7 +42,7 @@ export function usePath(): string {
   return path
 }
 
-export type AppArea = 'characters' | 'campaigns' | 'npcs' | 'magic'
+export type AppArea = 'characters' | 'campaigns' | 'npcs' | 'magic' | 'about'
 
 export interface AppRoute {
   area: AppArea
@@ -62,6 +62,7 @@ const ENTITY_AREAS: AppArea[] = ['characters', 'campaigns', 'npcs']
  *   /campaigns[/:id]
  *   /npcs[/:id]
  *   /magic
+ *   /about
  */
 export function parseRoute(pathname: string): AppRoute {
   const segments = pathname.replace(/^\/+|\/+$/g, '').split('/').filter(Boolean)
@@ -70,6 +71,7 @@ export function parseRoute(pathname: string): AppRoute {
   const [head, second] = segments
   if (head === 'login' || head === 'register') return { area: 'characters', id: null, unknown: false }
   if (head === 'magic') return { area: 'magic', id: null, unknown: segments.length > 1 }
+  if (head === 'about') return { area: 'about', id: null, unknown: segments.length > 1 }
   if (ENTITY_AREAS.includes(head as AppArea)) {
     return { area: head as AppArea, id: second ?? null, unknown: segments.length > 2 }
   }
