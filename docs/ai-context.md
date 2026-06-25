@@ -10,7 +10,7 @@ Backend: .NET 10, ASP.NET Core Minimal API, EF Core 10, Npgsql/PostgreSQL 17, xU
 
 Backend solution: `backend/GenesysForge.slnx`. Projects: `GenesysForge.Domain`, `GenesysForge.Application`, `GenesysForge.Infrastructure`, `GenesysForge.Api`. Tests: `backend/tests/GenesysForge.Domain.Tests`, `backend/tests/GenesysForge.Api.Tests`.
 
-Frontend lives in `frontend/src`: `api/client.ts`, `api/types.ts`, `pages`, `components`, `utils`, `auth.tsx`. Routing is local React state, not URL routing.
+Frontend lives in `frontend/src`: `api/client.ts`, `api/types.ts`, `pages`, `components`, `utils`, `auth.tsx`, `router.ts`. Routing uses a lightweight History-API router (`router.ts`) with deep links for characters/campaigns/npcs/magic; not every sub-view has its own URL yet.
 
 Dependency direction: `Api -> Infrastructure -> Application -> Domain`. Domain must stay free of EF/HTTP/DI.
 
@@ -22,7 +22,7 @@ Reference content model: every reference def (`SkillDef`/`TalentDef`/`ItemDef`/`
 
 Talents carry a `Setting` (`[Flags] GenesysSetting`) and are data-driven: built-in talents come from the embedded `Persistence/SeedContent/talents.catalog.json` catalog (`TalentCatalog`), generated from source CSVs (structure + reworked descriptions). Reference filtering: Genesys Core lists `Any`-setting talents; Realms of Terrinoth lists `Any` + `Fantasy`; a character's own custom talents always show. `_books/` (source PDFs/CSVs) is gitignored and must never be committed.
 
-Partially implemented: frontend routing/state, UI validation, frontend component test coverage, mechanical talent/heroic ability effects, production operations. Not implemented yet: refresh tokens/session rotation, password reset, shareable deep links, import/export character files, full printable character sheet, E2E tests, API versioning.
+Also implemented: Google sign-in (disabled until `Auth:Google:ClientId` is set), refresh-token rotation with `HttpOnly` cookie, self-service password reset (e-mail stubbed to log), URL deep links, and SignalR real-time campaign/Game-Table events. Partially implemented: deep links for every sub-view, UI validation, frontend component test coverage, mechanical talent/heroic ability effects, production operations, real e-mail delivery for password reset. Not implemented yet: shareable public character-sheet links, import/export character files, full printable character sheet, E2E tests, API versioning.
 
 ## Core entities
 
@@ -40,7 +40,7 @@ Heroic abilities are for Realms of Terrinoth characters; Genesys Core assignment
 
 ## API
 
-Public: `POST /api/auth/register`, `POST /api/auth/login`, `GET /api/health`. Protected: `GET /api/reference/{system}`, `/api/spells/{system}`, `/api/characters/*`, `/api/custom/*`, `/api/campaigns/*`, `/api/npcs/*`, `/api/encounters/*`, `/api/content-packs/*`. Error body: `{ "message": "..." }`. Known exception mapping: `DomainRuleException -> 400`, `ConflictException -> 409`, `UnauthorizedException -> 401`. API is unversioned.
+Public: `POST /api/auth/register`, `/login`, `/google`, `/password-reset/request`, `/password-reset/confirm`, `/refresh`, `/logout`, `GET /api/auth/providers`, `GET /api/health`. Protected: `GET /api/reference/{system}`, `/api/spells/{system}`, `/api/characters/*`, `/api/custom/*`, `/api/campaigns/*`, `/api/npcs/*`, `/api/encounters/*`, `/api/content-packs/*`. Real-time: SignalR hub `/hubs/campaign` (JWT-authenticated, campaign-scoped). Error body: `{ "message": "..." }`. Known exception mapping: `DomainRuleException -> 400`, `ConflictException -> 409`, `UnauthorizedException -> 401`. API is unversioned. Full reference: [api.md](api.md).
 
 ## Commands
 

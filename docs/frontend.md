@@ -63,16 +63,16 @@ frontend/src/
 
 ## Routing
 
-Partially implemented.
+URL-backed via a custom History-API router in `frontend/src/router.ts` (no `react-router` dependency). It exposes `currentPath`, `navigate`, `usePath` and `parseRoute`; nginx and the Vite dev server have an SPA fallback so direct navigation/refresh on any path serves the app.
 
-There is no `react-router` or browser URL routing in current code. Navigation is controlled by state in `App.tsx`:
+`App.tsx` derives the view from the parsed route:
 
-- no token -> `AuthPage`;
-- token + top-level area state -> characters, campaigns, NPCs or magic;
-- characters area + no selected character -> `CharactersPage`;
-- characters area + selected character id -> `SheetPage`.
+- no token -> `AuthPage` (login/register handled by path);
+- `/` or `/characters` -> `CharactersPage`; `/characters/:id` -> `SheetPage`;
+- `/campaigns[/:id]`, `/npcs[/:id]`, `/magic` -> the matching area;
+- unknown path -> "not found" state.
 
-Known issue: refreshing the browser loses selected character screen because the selection is not encoded in URL.
+After login the user is returned to the originally requested URL (`session.ts`). Not every sub-view (printable sheet, Game Table, encounter detail) has its own deep link yet.
 
 ## API work
 
@@ -88,7 +88,7 @@ The client handles:
 
 ## Auth flow
 
-`AuthProvider` reads token from local storage, exposes `login`, `register`, `logout` and resets session on unauthorized callback. `AuthPage` calls context methods. Logout clears token and returns to auth screen.
+`AuthProvider` reads token from local storage, exposes `login`, `register`, `logout` and resets session on unauthorized callback. `AuthPage` calls context methods and renders forgot/reset-password screens plus a Google sign-in button when `GET /api/auth/providers` reports a configured client. A `401` with an existing token clears it and shows a session-expired message while preserving the intended route. Access tokens are silently refreshed via the `gf_refresh` cookie (`POST /api/auth/refresh`); logout revokes the refresh-token family.
 
 ## State management
 
@@ -133,8 +133,7 @@ Critical gaps:
 ## Known issues
 
 - Text in terminal output may appear mojibaked on some Windows code pages, but source files are intended as UTF-8.
-- No URL deep linking.
+- Deep links exist for main areas but not every sub-view (printable sheet, Game Table, encounter detail).
 - No global data cache.
-- UI behavior depends on full refresh after mutations.
-- No self-service password reset UI.
+- UI behavior depends on full refetch after mutations (now nudged by SignalR invalidation events for campaign/Game-Table views).
 
