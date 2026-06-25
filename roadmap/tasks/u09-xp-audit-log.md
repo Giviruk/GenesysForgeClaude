@@ -3,8 +3,8 @@
 - **Roadmap:** U-09 — История трат XP / audit log (см. [unified-roadmap.md](../unified-roadmap.md))
 - **Ветка:** `feature/u09-xp-audit-log`
 - **Базовая ветка:** `master` (открытых PR нет на момент старта)
-- **PR:** [#41](https://github.com/Giviruk/GenesysForgeClaude/pull/41) (base — master)
-- **Статус:** 🚧 In progress
+- **PR:** [#41](https://github.com/Giviruk/GenesysForgeClaude/pull/41) (слит в master)
+- **Статус:** ✅ Done
 
 ## Контекст
 

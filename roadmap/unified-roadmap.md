@@ -128,7 +128,7 @@
 - **DoD:** игрок/GM бросает пул и видит символьный результат; секретный бросок не виден игрокам; бросок появляется в логе стола realtime.
 
 ## U-09 · История трат XP / audit log
-- **Статус:** 🚧 In progress
+- **Статус:** ✅ Done (PR #41)
 - **Источник:** GF-004 · Аудит §2.3
 - **Scope (B):** `CharacterAuditEntry` + enum `CharacterAuditAction` (см. GF-004). Писать запись при buy/refund характеристик/навыков/талантов/предметов, complete-creation, ручном изменении XP — в одной транзакции с операцией. `GET /api/characters/{id}/audit`, `POST /api/characters/{id}/xp-awards`.
 - **Scope (F):** вкладка «История» на листе (дата/тип/описание/ΔXP/состояние после).
