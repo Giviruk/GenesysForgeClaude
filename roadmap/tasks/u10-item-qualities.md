@@ -3,7 +3,7 @@
 - **Roadmap:** U-10 — Структурные свойства предметов (GF-005) (см. [unified-roadmap.md](../unified-roadmap.md))
 - **Ветка:** `feature/u10-item-qualities`
 - **Базовая ветка:** `master`
-- **PR:** #<номер>
+- **PR:** [#43](https://github.com/Giviruk/GenesysForgeClaude/pull/43) (base — master)
 - **Статус:** 🚧 In progress
 
 ## Контекст
@@ -31,7 +31,7 @@ reference API и селектор свойств в форме кастом-пр
 - [x] F: типы (`Quality`/`ItemQualityRef`) + reference; селектор свойств+рейтинг в форме кастом-предмета (`CustomTab`)
 - [x] Тесты: xUnit `ItemPropertyParserTests` (3) + `QualityReferenceTests` (4); `dotnet test` 65 dom + 151 api; frontend lint/build + 67 vitest
 - [x] Миграция + `docs/database.md`; статус roadmap
-- [ ] PR
+- [x] PR открыт — #43 (base — master)
 
 ## Что осталось / блокеры
 
