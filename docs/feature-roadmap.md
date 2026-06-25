@@ -68,7 +68,7 @@ Status: implemented in current codebase.
 - User-facing documentation или help pages без официальных текстов.
 - Release checklist и changelog.
 - Security review auth и ownership checks.
-- Решение по refresh/session rotation, password reset и URL deep links; рабочий план — `docs/mvp-ux-account-readiness.md`.
+- ✅ Решение по refresh/session rotation, password reset, Google OAuth, URL deep links и real-time реализовано (см. `docs/mvp-ux-account-readiness.md`); осталось подключить реального e-mail-провайдера для reset.
 
 ## Future Features
 
@@ -83,7 +83,7 @@ Status: implemented in current codebase.
 - Поддержка дополнительных Genesys settings.
 - Импорт из сторонних форматов.
 - Offline-first режим.
-- Real-time collaboration.
+- Расширение real-time collaboration за пределы Game Table (со-редактирование листов, presence). Базовый real-time для Game Table/кампаний уже реализован.
 - Audit log для изменений листа.
 - Fine-grained permissions.
 - Internationalization.

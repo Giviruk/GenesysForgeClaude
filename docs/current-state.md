@@ -20,6 +20,9 @@
 ## Implemented
 
 - User registration and login with JWT.
+- Google sign-in (`POST /api/auth/google`) validating Google ID tokens against Google's JWKS, linking by verified email; fully implemented but disabled until `Auth:Google:ClientId` is configured. `GET /api/auth/providers` advertises availability to the frontend.
+- Refresh tokens with rotation: short-lived access JWT plus a long-lived `HttpOnly` refresh cookie (`gf_refresh`); `POST /api/auth/refresh` rotates the token, reuse of a rotated token revokes the whole family, `POST /api/auth/logout` revokes the current family.
+- Self-service password reset endpoints (`POST /api/auth/password-reset/request` / `/confirm`): hashed single-use token with TTL, no user enumeration; e-mail delivery is still a log stub (`LoggingEmailSender`).
 - Protected API endpoints via JWT Bearer.
 - Character list, create, read, update, delete.
 - Game systems: `GenesysCore`, `RealmsOfTerrinoth`.
@@ -44,6 +47,9 @@
 - Campaign Handbook / Content Packs with campaign-scoped entries.
 - Magic Action Builder with difficulty calculation, character magic dice pool, print card and Markdown copy.
 - Print preview/cards for NPCs, encounters, magic actions, items and talents through browser print.
+- URL routing / deep links via a lightweight History-API router (`frontend/src/router.ts`): `/characters/:id`, `/campaigns/:id`, `/npcs/:id` and `/magic` survive refresh (SPA fallback in nginx/Vite); login returns to the intended URL (`session.ts`), and a session-expired message is shown on `401`.
+- Real-time campaign updates over SignalR (hub `/hubs/campaign`): thin `GameTableChanged` / `CampaignChanged` invalidation events authorized by campaign membership; REST stays the source of truth.
+- Inventory shop search/filter matching name/description/properties with a dedicated tag picker.
 - EF Core migrations and automatic `Database.Migrate()` on startup.
 - Content model on all reference entities (`Code`, `NameRu`, `Name`/original, `Description` full, `SafeDescription`, `Source`) via `IContentDef`.
 - Talents have a `Setting` (`[Flags] GenesysSetting`) and are data-driven from an embedded catalog (`talents.catalog.json`, ~120 entries). Reference listing filters by setting: Genesys Core → `Any` only; Realms of Terrinoth → `Any` + `Fantasy`. Russian names (`NameRu`) shown in the talents UI.
@@ -54,7 +60,8 @@
 
 ## Partially implemented
 
-- Frontend routing: implemented as local React state, not URL/browser routing.
+- Frontend routing: top-level areas and entity detail are URL-backed (History API), but not every sub-view has a deep link yet (e.g. the printable sheet, Game Table and encounter sub-routes are still reached from within the campaign/character view).
+- Password reset: endpoints, hashed single-use tokens and frontend forgot/reset screens exist, but real e-mail delivery is stubbed to the API log (`LoggingEmailSender`) until a provider is configured.
 - State management: implemented with React state/context, no external store.
 - API documentation: OpenAPI is enabled; hand-written docs cover the main routes but should be kept in sync after endpoint changes.
 - Validation: domain/application validation exists; frontend validation is basic HTML/form/state validation.
@@ -64,9 +71,8 @@
 
 ## Not implemented yet
 
-- Refresh tokens or session rotation.
-- Password reset (endpoints exist; email delivery is stubbed to logs).
-- Real URL routing with deep links.
+- Real e-mail delivery for password reset (provider not selected; links are written to the log).
+- Deep links for every sub-view (printable sheet, Game Table, encounter detail).
 - Shareable character sheets by URL.
 - Import/export character files.
 - Full printable character sheet; current print support is card/material oriented.
@@ -81,9 +87,8 @@
 - Seed content legal review is important because descriptions must remain original/paraphrased.
 - Startup applies migrations automatically; convenient for small deployments, but should be reviewed for production operations.
 - API currently exposes pre-1.0 unversioned routes.
-- Frontend navigation state is lost on refresh because there is no URL route for a specific character.
-- No refresh token flow; expired JWT causes logout.
-- Password loss requires manual/operator intervention because self-service reset is not implemented.
+- Password reset is implemented end-to-end except real e-mail delivery; until a provider is configured the reset link only reaches the API log, so production recovery still depends on operator access to logs.
+- Refresh-token rotation works, but the access token is kept in `localStorage`; this is a deliberate trade-off that should be revisited before broad public use.
 - Some database constraints are enforced in domain/application rather than database check constraints.
 
 ## Domain gaps

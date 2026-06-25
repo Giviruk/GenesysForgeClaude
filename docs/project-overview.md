@@ -49,17 +49,22 @@ Implemented:
 
 Partially implemented:
 
-- UI покрывает основные операции, но без URL routing и полноценного E2E покрытия.
+- UI покрывает основные операции; URL deep links есть для основных областей, но не для каждого под-экрана, и нет полноценного E2E покрытия.
 - Talent effects автоматизированы только для числовых пассивных бонусов.
 - Описания справочников есть, но требуют юридической осторожности.
 - Печать реализована для карточек и GM-материалов через browser print; полного печатного листа персонажа пока нет.
 
+Также реализовано (после первоначального MVP):
+
+- Вход через Google (отключён до настройки `Auth:Google:ClientId`), refresh-токены с ротацией, self-service сброс пароля (e-mail — стаб в логе).
+- URL deep links и real-time обновления кампаний/Game Table через SignalR.
+
 Not implemented yet:
 
-- Shareable character sheet URLs and real browser routing.
+- Публичные shareable-ссылки на лист персонажа без авторизации.
 - Импорт/экспорт персонажа.
 - Полный PDF/print layout листа персонажа.
-- Refresh token/password reset.
+- Реальная отправка e-mail для сброса пароля.
 - Механическое исполнение активных талантов, оружейных атак и heroic ability effects.
 
 ## Copyright ограничения

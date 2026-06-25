@@ -53,7 +53,7 @@
 # P0 — Стабилизация и снятие блокеров запуска
 
 ## U-01 · Синхронизация документации с кодом
-- **Статус:** ⬜ Todo
+- **Статус:** 🚧 In progress (PR #30)
 - **Источник:** GF-001
 - **Зачем:** документы расходятся с кодом (refresh-токены, password reset, Game Table, magic builder уже есть). AI-агенты получают неверный контекст.
 - **Scope (Docs):** обновить `README.md`, `docs/current-state.md`, `docs/feature-roadmap.md`, `docs/mvp-ux-account-readiness.md`, `docs/api.md`. Разнести в `current-state.md`: Implemented / Partially / Not implemented / Technical risks / Domain gaps.
