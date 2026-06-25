@@ -66,6 +66,19 @@ public static class CharacterEndpoints
             return Results.NoContent();
         });
 
+        // История персонажа (XP / audit log, U-09).
+        group.MapGet("/{id:guid}/audit", async (Guid id, int? take, ClaimsPrincipal user,
+                IQueryHandler<GetCharacterAuditQuery, IReadOnlyList<CharacterAuditEntryDto>> handler,
+                CancellationToken ct) =>
+            Results.Ok(await handler.Handle(new GetCharacterAuditQuery(user.UserId(), id, take ?? 100), ct)));
+
+        group.MapPost("/{id:guid}/xp-awards", async (Guid id, AwardXpRequest req, ClaimsPrincipal user,
+            ICommandHandler<AwardXpCommand, Unit> handler, CancellationToken ct) =>
+        {
+            await handler.Handle(new AwardXpCommand(user.UserId(), id, req), ct);
+            return Results.NoContent();
+        });
+
         group.MapPost("/{id:guid}/characteristics/{type}/buy", async (Guid id, string type,
             ClaimsPrincipal user, ICommandHandler<BuyCharacteristicCommand, Unit> handler, CancellationToken ct) =>
         {

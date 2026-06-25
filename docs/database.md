@@ -151,6 +151,17 @@ Indexes:
 
 - non-unique `(System, MagicSkill, Kind)`.
 
+### CharacterAuditEntries
+
+Per-character history / audit log (U-09). A row is written in the same transaction as the operation it records (buy/refund of characteristics/skills/talents, item add/sell/remove, creation completed, manual XP edit, XP award), so it reflects the post-operation state.
+
+Fields: `Id`, `CharacterId`, `UserId`, `CreatedAt`, `Action` (`CharacterAuditAction` enum), `Summary` (human-readable), `XpDelta` (nullable — change in *available* XP; negative for purchases, positive for refunds/awards; null for non-XP actions), `TotalXpAfter`, `SpentXpAfter`, `DataJson` (structured detail).
+
+Indexes:
+
+- non-unique `(CharacterId, CreatedAt)`.
+- FK to `Characters` with cascade delete.
+
 ### RollLogEntries
 
 Game Table dice-roll log (U-08). The roll outcome is computed on the client (Genesys narrative dice); the row stores it for history and realtime display to other table participants.
@@ -177,6 +188,7 @@ Found migrations:
 - `20260614105225_AddContentModel` — adds content-model columns (`Code`, `NameRu`, `Description`, `SafeDescription`, `Source`) to the six reference def tables. Non-destructive (only `AddColumn`, default `""`).
 - `20260614143200_AddTalentSetting` — adds `Setting` (int flags) to `TalentDefs`. Non-destructive; default `1` (`Any`) so pre-existing talents stay visible. `CharacterTalents` reference talents via cascade, so the table is not recreated — correct per-talent settings come from a fresh seed.
 - `20260625182741_AddRollLog` — creates `RollLogEntries` table (Game Table dice-roll log, U-08) with `(CampaignId, CreatedAt)` index. Non-destructive (only `CreateTable`).
+- `20260625185307_AddCharacterAudit` — creates `CharacterAuditEntries` table (character XP/audit log, U-09) with `(CharacterId, CreatedAt)` index and cascade FK to `Characters`. Non-destructive (only `CreateTable`).
 
 Startup behavior:
 

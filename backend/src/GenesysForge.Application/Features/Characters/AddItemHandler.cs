@@ -33,6 +33,13 @@ public class AddItemHandler(IAppDbContext db) : ICommandHandler<AddItemCommand, 
         };
         db.CharacterItems.Add(item);
         c.Items.Add(item);
+
+        var costNote = req.Cost is > 0 ? $", −{req.Cost} монет" : "";
+        var qtyNote = req.Quantity > 1 ? $" ×{req.Quantity}" : "";
+        CharacterAudit.Record(db, c, command.UserId, CharacterAuditAction.ItemBought,
+            $"Добавлен предмет «{itemDef.Name}»{qtyNote}{costNote}", null,
+            new { item = itemDef.Name, quantity = req.Quantity, cost = req.Cost });
+
         await db.SaveChangesAsync(ct);
         return item.Id;
     }

@@ -1,6 +1,7 @@
 using GenesysForge.Application.Abstractions;
 using GenesysForge.Application.Common;
 using GenesysForge.Domain;
+using GenesysForge.Domain.Entities;
 
 namespace GenesysForge.Application.Features.Characters;
 
@@ -17,6 +18,12 @@ public class RefundSkillRankHandler(IAppDbContext db) : ICommandHandler<RefundSk
 
         row.Ranks--;
         c.SpentXp -= result.Cost;
+
+        var skillName = row.SkillDef?.Name ?? "навык";
+        CharacterAudit.Record(db, c, command.UserId, CharacterAuditAction.SkillRankRefunded,
+            $"Возврат ранга навыка «{skillName}» (→{row.Ranks})", result.Cost,
+            new { skill = skillName, rank = row.Ranks, cost = result.Cost });
+
         await db.SaveChangesAsync(ct);
         return Unit.Value;
     }

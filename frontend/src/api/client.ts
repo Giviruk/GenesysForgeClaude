@@ -8,6 +8,7 @@ import type {
   ContentPackDetail, ContentPackEntryInput, ContentPackListItem,
   CharacterExport, ImportPreview, ImportResult,
   RollLogEntry, CreateRollRequest,
+  CharacterAuditEntry,
 } from './types'
 
 const TOKEN_KEY = 'genesysforge.token'
@@ -124,6 +125,12 @@ export const api = {
   updateCharacter: (id: string, patch: { name?: string; totalXp?: number; woundsCurrent?: number; strainCurrent?: number; money?: number }) =>
     request<void>('PATCH', `/api/characters/${id}`, patch),
   completeCreation: (id: string) => request<void>('POST', `/api/characters/${id}/complete-creation`),
+
+  // История персонажа / выдача XP (U-09).
+  characterAudit: (id: string, take = 100) =>
+    request<CharacterAuditEntry[]>('GET', `/api/characters/${id}/audit?take=${take}`),
+  awardXp: (id: string, body: { amount: number; note?: string }) =>
+    request<void>('POST', `/api/characters/${id}/xp-awards`, body),
 
   buyCharacteristic: (id: string, characteristic: string) =>
     request<void>('POST', `/api/characters/${id}/characteristics/${characteristic}/buy`),

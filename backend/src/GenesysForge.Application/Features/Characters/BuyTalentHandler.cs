@@ -56,6 +56,12 @@ public class BuyTalentHandler(IAppDbContext db) : ICommandHandler<BuyTalentComma
             row.SetGrants([.. row.ParseGrants(), g]);
         }
         c.SpentXp += result.Cost;
+
+        var grantNote = grant is { } gc ? $" (+1 к «{CharacterAudit.CharacteristicLabel(gc)}»)" : "";
+        CharacterAudit.Record(db, c, command.UserId, CharacterAuditAction.TalentBought,
+            $"Куплен талант «{talentDef.Name}» (→{row.Ranks}){grantNote}", -result.Cost,
+            new { talent = talentDef.Name, rank = row.Ranks, cost = result.Cost, grant = grant?.ToString() });
+
         await db.SaveChangesAsync(ct);
         return Unit.Value;
     }
