@@ -33,7 +33,7 @@ public static class SeedData
         var store = mode == ContentMode.PrivateFull ? PrivateContentStore.Load() : null;
 
         var skills = CoreSkills().Concat(TerrinothSkills()).ToList();
-        var archetypes = CoreArchetypes().Concat(TerrinothSpecies()).ToList();
+        var archetypes = ArchetypeCatalog.Load().ToList();
         var careers = CoreCareers().Concat(TerrinothCareers()).ToList();
         var talents = TalentCatalog.Load().ToList();
         var items = ItemCatalog.Load().ToList();
@@ -54,7 +54,7 @@ public static class SeedData
 
         var added = false;
         added |= SeedMissing(db, db.SkillDefs, skills, d => (d.System, d.Name));
-        added |= SeedMissing(db, db.ArchetypeDefs, archetypes, d => (d.System, d.Name));
+        added |= SeedOrUpdateArchetypes(db, archetypes);
         added |= SeedMissing(db, db.CareerDefs, careers, d => (d.System, d.Name));
         added |= SeedMissing(db, db.TalentDefs, talents, d => (d.System, d.Name));
         added |= SeedMissing(db, db.ItemDefs, items, d => (d.System, d.Name));
@@ -183,6 +183,55 @@ public static class SeedData
             row.Source = def.Source; row.SourcePage = def.SourcePage; row.SearchText = def.SearchText;
             changed = true;
         }
+        return changed;
+    }
+
+    /// <summary>
+    /// Upsert архетипов/видов по <see cref="ArchetypeDef.Code"/> из каталога. Встроенные виды,
+    /// которых больше нет в каталоге, помечаются <see cref="ArchetypeDef.Retired"/> (остаются в БД
+    /// ради уже созданных персонажей, но не предлагаются при создании). Возвращает true при изменениях.
+    /// </summary>
+    private static bool SeedOrUpdateArchetypes(AppDbContext db, IReadOnlyList<ArchetypeDef> catalog)
+    {
+        var existing = db.ArchetypeDefs.ToList();
+        var byCode = existing.ToDictionary(a => a.Code);
+        var catalogCodes = catalog.Select(a => a.Code).ToHashSet();
+        var changed = false;
+
+        foreach (var def in catalog)
+        {
+            if (!byCode.TryGetValue(def.Code, out var row))
+            {
+                db.ArchetypeDefs.Add(def);
+                changed = true;
+                continue;
+            }
+
+            if (!row.Retired && row.System == def.System && row.Name == def.Name && row.NameRu == def.NameRu
+                && row.Brawn == def.Brawn && row.Agility == def.Agility && row.Intellect == def.Intellect
+                && row.Cunning == def.Cunning && row.Willpower == def.Willpower && row.Presence == def.Presence
+                && row.WoundBase == def.WoundBase && row.StrainBase == def.StrainBase && row.StartingXp == def.StartingXp
+                && row.SafeDescription == def.SafeDescription && row.Description == def.Description
+                && row.Source == def.Source)
+                continue;
+
+            row.Retired = false;
+            row.System = def.System; row.Name = def.Name; row.NameRu = def.NameRu;
+            row.Brawn = def.Brawn; row.Agility = def.Agility; row.Intellect = def.Intellect;
+            row.Cunning = def.Cunning; row.Willpower = def.Willpower; row.Presence = def.Presence;
+            row.WoundBase = def.WoundBase; row.StrainBase = def.StrainBase; row.StartingXp = def.StartingXp;
+            row.SafeDescription = def.SafeDescription; row.Description = def.Description; row.Source = def.Source;
+            changed = true;
+        }
+
+        // Встроенные виды вне текущего каталога — деактивируем (например, заменены детальными видами RoT).
+        foreach (var row in existing)
+            if (!catalogCodes.Contains(row.Code) && !row.Retired)
+            {
+                row.Retired = true;
+                changed = true;
+            }
+
         return changed;
     }
 
@@ -355,42 +404,9 @@ public static class SeedData
     }
 
     // ─────────────────────────── archetypes ───────────────────────────
-
-    private static readonly Dictionary<string, string> ArchetypeRu = new()
-    {
-        ["Average Human"] = "Обычный человек", ["The Laborer"] = "Работяга",
-        ["The Intellectual"] = "Интеллектуал", ["The Aristocrat"] = "Аристократ",
-        ["Human"] = "Человек", ["Elf (Latari)"] = "Эльф (Латари)", ["Dwarf"] = "Дворф",
-        ["Orc"] = "Орк", ["Gnome"] = "Гном", ["Catfolk (Hyrrinx)"] = "Котолюд (Хирринкс)",
-    };
-
-    private static ArchetypeDef Arch(GameSystem sys, string name, int br, int ag, int @int, int cun, int will, int pr,
-        int wt, int st, int xp, string safe) => new()
-    {
-        Id = Guid.NewGuid(), System = sys, Code = Code(sys, "archetype", name),
-        Name = name, NameRu = Ru(ArchetypeRu, name),
-        Brawn = br, Agility = ag, Intellect = @int, Cunning = cun, Willpower = will, Presence = pr,
-        WoundBase = wt, StrainBase = st, StartingXp = xp, SafeDescription = safe,
-        Source = (sys == GameSystem.GenesysCore ? "Genesys Core Rulebook, гл. «Архетипы»" : "Realms of Terrinoth, гл. «Народы»"),
-    };
-
-    private static IEnumerable<ArchetypeDef> CoreArchetypes() =>
-    [
-        Arch(GameSystem.GenesysCore, "Average Human", 2, 2, 2, 2, 2, 2, 10, 10, 110, "Универсальный архетип без выраженных сильных и слабых сторон."),
-        Arch(GameSystem.GenesysCore, "The Laborer", 3, 2, 2, 2, 2, 1, 12, 8, 100, "Сильный и выносливый труженик."),
-        Arch(GameSystem.GenesysCore, "The Intellectual", 1, 2, 3, 2, 2, 2, 8, 12, 100, "Учёный и мыслитель."),
-        Arch(GameSystem.GenesysCore, "The Aristocrat", 1, 2, 2, 2, 2, 3, 9, 11, 100, "Харизматичный представитель высшего общества."),
-    ];
-
-    private static IEnumerable<ArchetypeDef> TerrinothSpecies() =>
-    [
-        Arch(GameSystem.RealmsOfTerrinoth, "Human", 2, 2, 2, 2, 2, 2, 10, 10, 110, "Люди Терринота — самый многочисленный и разносторонний народ."),
-        Arch(GameSystem.RealmsOfTerrinoth, "Elf (Latari)", 2, 3, 2, 2, 2, 1, 9, 11, 100, "Латарийские эльфы — ловкие и долговечные жители лесов."),
-        Arch(GameSystem.RealmsOfTerrinoth, "Dwarf", 2, 1, 2, 2, 3, 2, 12, 10, 100, "Дворфы Даннских холмов — стойкие мастера и воины."),
-        Arch(GameSystem.RealmsOfTerrinoth, "Orc", 3, 2, 2, 2, 2, 1, 12, 9, 100, "Орки — могучие и свирепые воины Брокенских земель."),
-        Arch(GameSystem.RealmsOfTerrinoth, "Gnome", 1, 2, 2, 3, 2, 2, 8, 11, 100, "Гномы-изобретатели — малы ростом, но хитроумны."),
-        Arch(GameSystem.RealmsOfTerrinoth, "Catfolk (Hyrrinx)", 2, 3, 2, 2, 1, 2, 10, 9, 100, "Кошачий народ — стремительные охотники."),
-    ];
+    // Виды/архетипы загружаются из каталога SeedContent/archetypes.catalog.json (см. ArchetypeCatalog),
+    // собранного из genesys_rot_core_archetypes_ru.csv. Сеттинг «Any» → Genesys Core, «Fantasy» → RoT.
+    // Сид — upsert по Code (SeedOrUpdateArchetypes): виды вне каталога помечаются Retired.
 
     // ─────────────────────────── careers ───────────────────────────
 
@@ -430,6 +446,16 @@ public static class SeedData
         Career(GameSystem.GenesysCore, "Tradesperson", "Специалист",
             "Ремесленник, техник, механик или другой специалист ручного труда и практической подготовки.",
             "Athletics", "Brawl", "Discipline", "Mechanics", "Negotiation", "Perception", "Resilience", "Streetwise"),
+        // Сеттинговые карьеры «с магией» из Core (genesys_rot_core_careers_ru.csv) — фэнтези/магия.
+        Career(GameSystem.GenesysCore, "Mage", "Волшебник",
+            "Изучающий магию как дисциплину; направляет энергию через ритуалы, фокусы и заклинания.",
+            "Arcana", "Coercion", "Discipline", "Knowledge", "Leadership", "Skulduggery", "Stealth", "Vigilance"),
+        Career(GameSystem.GenesysCore, "Druid", "Друид",
+            "Маг природы, отшельник или хранитель дикой земли, связанный с жизненными силами мира.",
+            "Athletics", "Brawl", "Coordination", "Melee", "Primal", "Resilience", "Survival", "Vigilance"),
+        Career(GameSystem.GenesysCore, "Priest", "Жрец",
+            "Священнослужитель, чьи молитвы и вера дают ощутимый магический эффект.",
+            "Charm", "Coercion", "Cool", "Discipline", "Divine", "Medicine", "Melee", "Negotiation"),
     ];
 
     private static IEnumerable<CareerDef> TerrinothCareers() =>
@@ -461,6 +487,9 @@ public static class SeedData
         Career(GameSystem.RealmsOfTerrinoth, "Warrior", "Воин",
             "Мастер оружия и битвы: рыцарь, берсерк, маршал, наёмник или странствующий чемпион.",
             "Brawl", "Coercion", "Leadership", "Melee (Heavy)", "Melee (Light)", "Resilience", "Riding", "Vigilance"),
+        Career(GameSystem.RealmsOfTerrinoth, "Knight", "Рыцарь",
+            "Знатный воин, обученный бою, верховой езде и исполнению обязанностей перед сюзереном.",
+            "Athletics", "Discipline", "Leadership", "Melee (Heavy)", "Melee (Light)", "Resilience", "Riding", "Vigilance"),
     ];
 
     // ─────────────────────────── talents ───────────────────────────
