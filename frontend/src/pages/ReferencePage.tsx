@@ -26,6 +26,13 @@ const KIND_TAB_LABELS: Record<RuleTableKind, string> = {
 }
 
 type Section = RuleTableKind | 'all'
+type Polarity = 'all' | 'positive' | 'negative'
+
+const RANGE_SUBS = ['Общая информация', 'Перемещение'] as const
+type RangeSub = (typeof RANGE_SUBS)[number]
+
+// Полярность траты определяем по символам в стоимости (Threat/Despair → негатив).
+const isNegativeSpend = (e: RuleTableEntry) => /threat|despair|угроз|крах/i.test(e.symbolCost)
 
 const HIT_GROUP_ORDER = ['Правила', 'Навыки', 'Таланты', 'Предметы', 'Качества',
   'Архетипы', 'Карьеры', 'Героика', 'NPC', 'Персонажи']
@@ -35,6 +42,9 @@ export function ReferencePage({ onNavigate }: { onNavigate: (to: string) => void
   const [rules, setRules] = useState<RuleTableEntry[]>([])
   const [filter, setFilter] = useState('')
   const [section, setSection] = useState<Section>('difficulty')
+  const [spendSituation, setSpendSituation] = useState<string>('all')
+  const [spendPolarity, setSpendPolarity] = useState<Polarity>('all')
+  const [rangeSub, setRangeSub] = useState<RangeSub>('Общая информация')
   const [query, setQuery] = useState('')
   const [hits, setHits] = useState<SearchHit[] | null>(null)
   const [searching, setSearching] = useState(false)
@@ -84,8 +94,33 @@ export function ReferencePage({ onNavigate }: { onNavigate: (to: string) => void
     return m
   }, [rules])
 
-  const visibleKinds = KIND_ORDER.filter(k => section === 'all' || k === section)
-  const visibleCount = visibleKinds.reduce((n, k) => n + (byKind.get(k)?.length ?? 0), 0)
+  // Список ситуаций для под-фильтра «Траты» (по данным, чтобы подписи совпадали с groupRu).
+  const spendSituations = useMemo(() => {
+    const s = new Set<string>()
+    for (const e of rules) if (e.kind === 'symbolSpend' && e.groupRu) s.add(e.groupRu)
+    return [...s]
+  }, [rules])
+
+  // Итоговые таблицы с учётом активного раздела и под-фильтров (траты/дистанции).
+  const tables = useMemo(() => {
+    const visibleKinds = KIND_ORDER.filter(k => section === 'all' || k === section)
+    return visibleKinds.map(kind => {
+      let entries = byKind.get(kind) ?? []
+      let showCost = true
+      if (kind === 'symbolSpend' && section === 'symbolSpend') {
+        if (spendSituation !== 'all') entries = entries.filter(e => e.groupRu === spendSituation)
+        if (spendPolarity !== 'all') entries = entries.filter(e =>
+          spendPolarity === 'negative' ? isNegativeSpend(e) : !isNegativeSpend(e))
+      }
+      if (kind === 'rangeBand' && section === 'rangeBand') {
+        entries = entries.filter(e => e.groupRu === rangeSub)
+        showCost = rangeSub === 'Перемещение' // в «Общей информации» колонки стоимости нет
+      }
+      return { kind, entries, showCost }
+    }).filter(t => t.entries.length > 0)
+  }, [byKind, section, spendSituation, spendPolarity, rangeSub])
+
+  const renderedCount = tables.reduce((n, t) => n + t.entries.length, 0)
 
   const groupedHits = useMemo(() => {
     if (!hits) return []
@@ -167,6 +202,40 @@ export function ReferencePage({ onNavigate }: { onNavigate: (to: string) => void
             })}
           </div>
         )}
+        {section === 'symbolSpend' && (
+          <>
+            <div className="section-switch" role="tablist" aria-label="Ситуация">
+              <button role="tab" aria-selected={spendSituation === 'all'}
+                      className={spendSituation === 'all' ? 'tab active' : 'tab'}
+                      onClick={() => setSpendSituation('all')}>Все ситуации</button>
+              {spendSituations.map(s => (
+                <button key={s} role="tab" aria-selected={spendSituation === s}
+                        className={spendSituation === s ? 'tab active' : 'tab'}
+                        onClick={() => setSpendSituation(s)}>{s}</button>
+              ))}
+            </div>
+            <div className="section-switch" role="tablist" aria-label="Символы">
+              <button role="tab" aria-selected={spendPolarity === 'all'}
+                      className={spendPolarity === 'all' ? 'tab active' : 'tab'}
+                      onClick={() => setSpendPolarity('all')}>Любые символы</button>
+              <button role="tab" aria-selected={spendPolarity === 'positive'}
+                      className={spendPolarity === 'positive' ? 'tab active' : 'tab'}
+                      onClick={() => setSpendPolarity('positive')}>Преимущества и триумфы</button>
+              <button role="tab" aria-selected={spendPolarity === 'negative'}
+                      className={spendPolarity === 'negative' ? 'tab active' : 'tab'}
+                      onClick={() => setSpendPolarity('negative')}>Угрозы и крахи</button>
+            </div>
+          </>
+        )}
+        {section === 'rangeBand' && (
+          <div className="section-switch" role="tablist" aria-label="Раздел дистанций">
+            {RANGE_SUBS.map(sub => (
+              <button key={sub} role="tab" aria-selected={rangeSub === sub}
+                      className={rangeSub === sub ? 'tab active' : 'tab'}
+                      onClick={() => setRangeSub(sub)}>{sub}</button>
+            ))}
+          </div>
+        )}
         <input
           className="search"
           type="search"
@@ -175,12 +244,10 @@ export function ReferencePage({ onNavigate }: { onNavigate: (to: string) => void
           onChange={e => setFilter(e.target.value)}
         />
         {rules.length === 0 && !error && <p className="muted">Загрузка таблиц…</p>}
-        {visibleKinds.map(kind => {
-          const entries = byKind.get(kind)
-          if (!entries || entries.length === 0) return null
-          return <RuleTable key={kind} kind={kind} entries={entries} />
-        })}
-        {rules.length > 0 && visibleCount === 0 && (
+        {tables.map(t => (
+          <RuleTable key={t.kind} kind={t.kind} entries={t.entries} showCost={t.showCost} />
+        ))}
+        {rules.length > 0 && renderedCount === 0 && (
           <p className="muted">
             {filter.trim() ? `Нет строк по фильтру «${filter.trim()}».` : 'В этом разделе нет строк.'}
           </p>
@@ -190,13 +257,16 @@ export function ReferencePage({ onNavigate }: { onNavigate: (to: string) => void
   )
 }
 
-function RuleTable({ kind, entries }: { kind: RuleTableKind; entries: RuleTableEntry[] }) {
+function RuleTable({ kind, entries, showCost = true }:
+  { kind: RuleTableKind; entries: RuleTableEntry[]; showCost?: boolean }) {
   // Заголовок первой колонки зависит от вида таблицы.
   const firstCol = kind === 'criticalInjury' ? 'Бросок'
     : kind === 'symbolSpend' ? 'Ситуация'
-    : kind === 'difficulty' ? 'Сложность' : 'Диапазон'
+    : kind === 'difficulty' ? 'Сложность'
+    : kind === 'rangeBand' ? 'Название' : 'Диапазон'
   const costCol = kind === 'criticalInjury' ? 'Сложность'
-    : kind === 'difficulty' ? 'Кубы' : 'Стоимость'
+    : kind === 'difficulty' ? 'Кубы'
+    : kind === 'rangeBand' ? 'Манёвры' : 'Стоимость'
 
   const firstValue = (e: RuleTableEntry) =>
     kind === 'criticalInjury' ? e.rollRange
@@ -211,7 +281,7 @@ function RuleTable({ kind, entries }: { kind: RuleTableKind; entries: RuleTableE
           <tr>
             <th>{firstCol}</th>
             {kind === 'criticalInjury' && <th>Название</th>}
-            <th>{costCol}</th>
+            {showCost && <th>{costCol}</th>}
             <th>Описание</th>
           </tr>
         </thead>
@@ -222,7 +292,7 @@ function RuleTable({ kind, entries }: { kind: RuleTableKind; entries: RuleTableE
               {kind === 'criticalInjury' && (
                 <td>{e.nameRu}{e.groupRu && <span className="muted"> · {e.groupRu}</span>}</td>
               )}
-              <td className="ref-cost">{e.symbolCost}</td>
+              {showCost && <td className="ref-cost">{e.symbolCost}</td>}
               <td>
                 {e.body}
                 {e.notes && <div className="muted ref-notes">{e.notes}</div>}

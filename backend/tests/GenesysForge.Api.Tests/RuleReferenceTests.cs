@@ -51,6 +51,21 @@ public class RuleReferenceTests : IClassFixture<ApiFactory>
     }
 
     [Fact]
+    public async Task Rules_RangeBand_SplitIntoSubgroups()
+    {
+        var client = await _factory.CreateAuthorizedClientAsync();
+        var rules = (await client.GetFromJsonAsync<RulesResponse>("/api/reference/rules", Json.Options))!;
+
+        var range = rules.Entries.Where(e => e.Kind == RuleTableKind.RangeBand).ToList();
+        Assert.NotEmpty(range);
+        // Под-раздел кладётся в GroupRu; допустимы ровно две группы.
+        Assert.Equal(["Общая информация", "Перемещение"], range.Select(e => e.GroupRu).Distinct().Order());
+        // Переходы перемещения несут стоимость в манёврах; описания дистанций — нет.
+        Assert.All(range.Where(e => e.GroupRu == "Перемещение"), e => Assert.Contains("манёвр", e.SymbolCost));
+        Assert.All(range.Where(e => e.GroupRu == "Общая информация"), e => Assert.Equal("", e.SymbolCost));
+    }
+
+    [Fact]
     public async Task Search_FindsRule_AndContent()
     {
         var client = await _factory.CreateAuthorizedClientAsync();
