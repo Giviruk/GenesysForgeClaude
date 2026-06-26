@@ -4,7 +4,7 @@
 - **Ветка:** `feature/u13-career-models`
 - **Базовая ветка:** `master` (стек пуст — U-01…U-12 слиты).
 - **PR:** [#53](https://github.com/Giviruk/GenesysForgeClaude/pull/53)
-- **Статус:** 🚧 In progress
+- **Статус:** ✅ Done
 
 ## Контекст
 
