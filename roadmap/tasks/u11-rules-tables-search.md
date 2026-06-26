@@ -3,7 +3,7 @@
 - **Roadmap:** U-11 — Справочные таблицы правил + глобальный поиск (см. [unified-roadmap.md](../unified-roadmap.md))
 - **Ветка:** `feature/u11-rules-tables-search`
 - **Базовая ветка:** `master` (стек пуст — все нижестоящие U-01…U-10 слиты)
-- **PR:** #<номер> (после создания)
+- **PR:** [#46](https://github.com/Giviruk/GenesysForgeClaude/pull/46)
 - **Статус:** 🚧 In progress
 
 ## Контекст
@@ -35,8 +35,8 @@
 - [x] API: `/api/reference/rules` (в ReferenceEndpoints), `SearchEndpoints` (`GET /api/search?q=&system=`)
 - [x] Frontend: типы, клиент (`api.rules`/`api.search`), область `reference` в роутере/навигации, `ReferencePage` (таблицы) + глобальный поиск
 - [x] Тесты: xUnit (RuleReferenceTests: 5) + Vitest (ReferencePage + router) — Api 157 / Domain 65 / front 69 зелёные
-- [x] Статус в `unified-roadmap.md` обновлён → 🚧 (PR #N)
-- [ ] PR открыт
+- [x] Статус в `unified-roadmap.md` обновлён → 🚧 (PR #46)
+- [x] PR открыт — #46
 
 ## Что осталось / блокеры
 
