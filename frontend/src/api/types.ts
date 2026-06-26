@@ -750,3 +750,40 @@ export interface ImportResult {
   name: string
   warnings: string[]
 }
+
+// Справочные таблицы правил (U-11).
+export type RuleTableKind = 'difficulty' | 'symbolSpend' | 'rangeBand' | 'criticalInjury'
+
+export interface RuleTableEntry {
+  id: string
+  kind: RuleTableKind
+  code: string
+  nameRu: string
+  nameEn: string
+  groupRu: string
+  sortOrder: number
+  rollRange: string
+  symbolCost: string
+  body: string
+  notes: string
+  source: string
+  sourcePage: string
+}
+
+export interface RulesResponse {
+  entries: RuleTableEntry[]
+}
+
+// Глобальный поиск (U-11).
+export interface SearchHit {
+  type: string
+  group: string
+  title: string
+  subtitle: string
+  snippet: string
+  route: string
+}
+
+export interface SearchResponse {
+  hits: SearchHit[]
+}

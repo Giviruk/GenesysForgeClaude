@@ -39,6 +39,7 @@ public static class SeedData
         var items = ItemCatalog.Load().ToList();
         var heroics = HeroicCatalog.Load().ToList();
         var qualities = QualityCatalog.Load().ToList();
+        var rules = RuleCatalog.Load().ToList();
         var spells = Spells(GameSystem.GenesysCore).Concat(Spells(GameSystem.RealmsOfTerrinoth)).ToList();
 
         // Проекция описаний под режим контента — единственное отличие private/public pipeline.
@@ -59,6 +60,7 @@ public static class SeedData
         added |= SeedMissing(db, db.ItemDefs, items, d => (d.System, d.Name));
         added |= SeedMissing(db, db.HeroicAbilityDefs, heroics, d => ((GameSystem)0, d.Name));
         added |= SeedMissing(db, db.QualityDefs, qualities, d => ((GameSystem)0, d.NameEn));
+        added |= SeedMissing(db, db.RuleTableEntries, rules, d => ((GameSystem)0, d.Code));
         added |= SeedMissing(db, db.SpellDefs, spells,
             d => (d.System, $"{d.MagicSkill}:{(int)d.Kind}:{d.ParentEffect}:{d.NameEn}"));
 

@@ -9,6 +9,7 @@ import type {
   CharacterExport, ImportPreview, ImportResult,
   RollLogEntry, CreateRollRequest,
   CharacterAuditEntry,
+  RulesResponse, SearchResponse,
 } from './types'
 
 const TOKEN_KEY = 'genesysforge.token'
@@ -111,6 +112,14 @@ export const api = {
 
   reference: (system: GameSystem) =>
     request<Reference>('GET', `/api/reference/${system === 'genesysCore' ? 'GenesysCore' : 'RealmsOfTerrinoth'}`),
+
+  // Справочные таблицы правил (U-11). Системо-независимы; опц. q — фильтр по подстроке.
+  rules: (q?: string) =>
+    request<RulesResponse>('GET', `/api/reference/rules${q ? `?q=${encodeURIComponent(q)}` : ''}`),
+  // Глобальный поиск по справочнику/контенту/сущностям (U-11).
+  search: (system: GameSystem, q: string) =>
+    request<SearchResponse>('GET',
+      `/api/search?system=${system === 'genesysCore' ? 'GenesysCore' : 'RealmsOfTerrinoth'}&q=${encodeURIComponent(q)}`),
   spells: (system: GameSystem) =>
     request<Spell[]>('GET', `/api/spells/${system === 'genesysCore' ? 'GenesysCore' : 'RealmsOfTerrinoth'}`),
 

@@ -226,6 +226,37 @@ tr.equipped-row td { background: rgba(200, 162, 74, 0.07); }
 .table-wrap { width: 100%; overflow-x: auto; }
 td.nowrap, th.nowrap { white-space: nowrap; }
 
+/* ---------- Справочник правил / поиск (U-11) ---------- */
+.search {
+  width: 100%; box-sizing: border-box; padding: 0.5rem 0.7rem;
+  background: var(--bg); border: 1px solid var(--border); border-radius: 8px;
+  color: var(--text); font-size: 0.95rem;
+}
+.search:focus { outline: none; border-color: var(--accent); }
+
+.search-results { margin-top: 0.8rem; display: flex; flex-direction: column; gap: 0.8rem; }
+.search-group h4 { margin: 0 0 0.3rem; color: var(--accent); font-size: 0.95rem; }
+.search-hits { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.25rem; }
+.search-hit { padding: 0.35rem 0.5rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); }
+.search-hit.clickable { cursor: pointer; }
+.search-hit.clickable:hover { border-color: var(--accent); }
+.hit-title { font-weight: 600; }
+.hit-subtitle { color: var(--muted); }
+.hit-snippet { display: block; color: var(--muted); font-size: 0.85rem; margin-top: 0.15rem; }
+
+.rule-table { margin-top: 1.1rem; }
+.rule-table h3 { margin: 0 0 0.4rem; color: var(--accent); }
+table.ref-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+table.ref-table th {
+  text-align: left; color: var(--muted); font-weight: 500;
+  padding: 0.3rem 0.5rem; border-bottom: 1px solid var(--border); vertical-align: top;
+}
+table.ref-table td { padding: 0.4rem 0.5rem; border-bottom: 1px solid rgba(58, 49, 72, 0.5); vertical-align: top; }
+table.ref-table td.ref-first { white-space: nowrap; font-weight: 600; }
+table.ref-table td.ref-cost { white-space: nowrap; color: var(--accent); }
+.ref-notes { font-size: 0.82rem; margin-top: 0.25rem; }
+.ref-source { font-size: 0.78rem; margin-top: 0.2rem; font-style: italic; }
+
 /* Шапка раздела магии: заголовок + выбор направления и базового эффекта */
 .spells-head { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
 .spells-selectors { display: flex; gap: 1rem; flex-wrap: wrap; }
