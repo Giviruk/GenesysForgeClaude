@@ -1,5 +1,7 @@
 using System.Net.Http.Json;
 using GenesysForge.Application.Dtos;
+using GenesysForge.Domain.Entities;
+using GenesysForge.Infrastructure.Persistence;
 
 namespace GenesysForge.Api.Tests;
 
@@ -27,6 +29,19 @@ public class QualityReferenceTests : IClassFixture<ApiFactory>
         var knockdown = reference.Qualities.FirstOrDefault(q => q.NameEn == "Knockdown");
         Assert.NotNull(knockdown);
         Assert.False(knockdown!.HasRating);
+    }
+
+    [Fact]
+    public void QualityCatalog_ValuesFitDatabaseLimits()
+    {
+        var longest = QualityCatalog.Load()
+            .OrderByDescending(q => q.ActivationCost.Length)
+            .First();
+
+        Assert.True(
+            longest.ActivationCost.Length <= QualityDef.MaxActivationCostLength,
+            $"Quality '{longest.Code}' has ActivationCost length {longest.ActivationCost.Length}, " +
+            $"limit is {QualityDef.MaxActivationCostLength}.");
     }
 
     [Fact]

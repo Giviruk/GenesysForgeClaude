@@ -29,9 +29,10 @@ reference API и селектор свойств в форме кастом-пр
 - [x] `QualityCatalog.Load`; SeedData: seed качеств (ProjectContent, dual-mode) + бэкфилл `ItemQualityValue` из `Properties` (идемпотентно, алиасы)
 - [x] Reference API: `QualityDto`, `ReferenceResponse.Qualities`, `ItemDefDto.Qualities` (+ Include)
 - [x] F: типы (`Quality`/`ItemQualityRef`) + reference; селектор свойств+рейтинг в форме кастом-предмета (`CustomTab`)
-- [x] Тесты: xUnit `ItemPropertyParserTests` (3) + `QualityReferenceTests` (4); `dotnet test` 65 dom + 151 api; frontend lint/build + 67 vitest
+- [x] Тесты: xUnit `ItemPropertyParserTests` (3) + `QualityReferenceTests` (5); `dotnet test` 65 dom + 151 api; frontend lint/build + 67 vitest
 - [x] Миграция + `docs/database.md`; статус roadmap
 - [x] PR открыт — #43 (base — master)
+- [x] Hotfix 502: `QualityDefs.ActivationCost` расширен 160→400 отдельной recovery-миграцией; каталог проверяется тестом на лимит
 
 ## Что осталось / блокеры
 
