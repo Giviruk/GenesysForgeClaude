@@ -90,11 +90,13 @@ Rules:
 
 ### ArchetypeDef
 
-Fields: `Id`, `System`, `Name`, six characteristics, `WoundBase`, `StrainBase`, `StartingXp`, `Description`.
+Fields: `Id`, `System`, `Name`, six characteristics, `WoundBase`, `StrainBase`, `StartingXp`, `Description`, `Retired`, `Abilities`, `StartingSkills`.
 
 Rules:
 
 - Used as character starting characteristics and XP source.
+- `Abilities` (`ArchetypeAbilityDef`: `Code`, `NameRu`, `NameEn`, `SafeDescription`, `AutomationKind`) are the species abilities as data, shown when picking a species. `AutomationKind` is a classification tag only — effect execution is U-18.
+- `StartingSkills` (`ArchetypeStartingSkill`: `SkillName`, `NameRu`, `FreeRanks`, `IsChoice`, `ChoiceGroup`, `ChoiceCount`) drive starting skill ranks at creation. Fixed entries are auto-applied as free ranks (merging with career free ranks); choice entries (e.g. `any-noncareer`, pick N) are picked by the player and validated server-side (count, distinct, non-career).
 
 ### CareerDef
 

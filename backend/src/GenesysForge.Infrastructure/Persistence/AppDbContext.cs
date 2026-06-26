@@ -16,6 +16,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<HeroicAbilityDef> HeroicAbilityDefs => Set<HeroicAbilityDef>();
     public DbSet<HeroicAbilityUpgradeDef> HeroicAbilityUpgradeDefs => Set<HeroicAbilityUpgradeDef>();
     public DbSet<ArchetypeDef> ArchetypeDefs => Set<ArchetypeDef>();
+    public DbSet<ArchetypeAbilityDef> ArchetypeAbilityDefs => Set<ArchetypeAbilityDef>();
+    public DbSet<ArchetypeStartingSkill> ArchetypeStartingSkills => Set<ArchetypeStartingSkill>();
     public DbSet<CareerDef> CareerDefs => Set<CareerDef>();
     public DbSet<Character> Characters => Set<Character>();
     public DbSet<CharacterSkill> CharacterSkills => Set<CharacterSkill>();
@@ -281,6 +283,29 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             e.Property(r => r.PoolJson).HasMaxLength(2000);
             e.Property(r => r.ResultJson).HasMaxLength(4000);
             e.Property(r => r.Summary).HasMaxLength(400);
+        });
+
+        b.Entity<ArchetypeDef>(e =>
+        {
+            e.HasMany(a => a.Abilities).WithOne()
+                .HasForeignKey(x => x.ArchetypeId).OnDelete(DeleteBehavior.Cascade);
+            e.HasMany(a => a.StartingSkills).WithOne()
+                .HasForeignKey(x => x.ArchetypeId).OnDelete(DeleteBehavior.Cascade);
+        });
+        b.Entity<ArchetypeAbilityDef>(e =>
+        {
+            e.HasIndex(a => a.ArchetypeId);
+            e.Property(a => a.Code).HasMaxLength(80);
+            e.Property(a => a.NameRu).HasMaxLength(160);
+            e.Property(a => a.NameEn).HasMaxLength(160);
+            e.Property(a => a.SafeDescription).HasMaxLength(2000);
+        });
+        b.Entity<ArchetypeStartingSkill>(e =>
+        {
+            e.HasIndex(s => s.ArchetypeId);
+            e.Property(s => s.SkillName).HasMaxLength(80);
+            e.Property(s => s.NameRu).HasMaxLength(80);
+            e.Property(s => s.ChoiceGroup).HasMaxLength(40);
         });
 
         // Content-model (Code/NameRu/Source) у справочных сущностей.

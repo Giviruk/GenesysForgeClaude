@@ -15,6 +15,8 @@ DbSets:
 - `HeroicAbilityDefs`
 - `HeroicAbilityUpgradeDefs`
 - `ArchetypeDefs`
+- `ArchetypeAbilityDefs`
+- `ArchetypeStartingSkills`
 - `CareerDefs`
 - `Characters`
 - `CharacterSkills`
@@ -95,6 +97,16 @@ Built-in archetypes/species. Loaded from the embedded catalog `Persistence/SeedC
 Fields include `System`, content-model fields, six characteristics, wound/strain bases, starting XP, and `Retired`.
 
 `Retired` archetypes stay in the table (existing characters reference them by FK) but are excluded from the reference endpoint, so they are not offered when creating a character.
+
+Two child collections carry the structured species data parsed from the catalog (U-12), replaced wholesale on upsert when they drift from the catalog:
+
+### ArchetypeAbilityDefs
+
+Structured species abilities (formerly free text in `SafeDescription`). Fields: `ArchetypeId`, `Code`, `NameRu`, `NameEn`, `SafeDescription`, `AutomationKind` (`Passive`/`ActivationCost`/`TimedEffect`/`Manual`/`RequiresGmDecision` — classification only; effect execution is U-18, default `Manual`). Cascade delete from archetype; indexed by `ArchetypeId`.
+
+### ArchetypeStartingSkills
+
+Species starting skills applied at character creation. Fields: `ArchetypeId`, `SkillName` (English canonical, matches `SkillDef.Name`), `NameRu`, `FreeRanks`, `IsChoice`, `ChoiceGroup`, `ChoiceCount`. Fixed entries (`IsChoice = false`) are auto-applied as free ranks; choice entries (e.g. `any-noncareer`, pick N) are resolved by the creation picker. Cascade delete from archetype; indexed by `ArchetypeId`.
 
 ### CareerDefs
 
@@ -221,6 +233,7 @@ Found migrations:
 - `20260625210000_ExpandQualityActivationCost` — expands `QualityDefs.ActivationCost` from 160 to 400 characters so startup seed accepts the full catalog.
 - `20260626091551_AddRuleTables` — creates `RuleTableEntries` table (rule reference tables, U-11) with unique `Code` and `(Kind, SortOrder)` index. Non-destructive (only `CreateTable`).
 - `20260626134851_AddArchetypeRetired` — adds `Retired` (bool, default false) to `ArchetypeDefs` so built-in species replaced by the detailed Terrinoth roster are hidden from selection while preserved for existing characters. Non-destructive (only `AddColumn`).
+- `20260626152610_AddArchetypeAbilitiesAndStartingSkills` — creates `ArchetypeAbilityDefs` and `ArchetypeStartingSkills` tables (structured species abilities/starting skills, U-12) with cascade FKs to `ArchetypeDefs` and `ArchetypeId` indexes. Non-destructive (only `CreateTable`).
 
 Startup behavior:
 

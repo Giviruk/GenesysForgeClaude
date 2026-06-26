@@ -151,8 +151,8 @@
 - **DoD:** мастер видит таблицы трат/сложностей/дистанций/критов; поиск находит по названию/символу.
 
 ## U-12 · Структурные модели архетипов/видов
-- **Статус:** ⬜ Todo
-- **Подготовка:** ростер видов/карьер + RU-имена при создании уже сделаны (PR #49/#51, см. [archetype-roster-refresh.md](tasks/archetype-roster-refresh.md)); способности/стартовые навыки видов пока лежат текстом в `SafeDescription` — здесь их нужно вынести в структурные `ArchetypeAbilityDef`/`ArchetypeStartingSkill`.
+- **Статус:** 🚧 In progress
+- **Подготовка:** ростер видов/карьер + RU-имена при создании уже сделаны (PR #49/#51, см. [archetype-roster-refresh.md](tasks/archetype-roster-refresh.md)); способности/стартовые навыки видов вынесены в структурные `ArchetypeAbilityDef`/`ArchetypeStartingSkill` (см. [u12-archetype-models.md](tasks/u12-archetype-models.md)).
 - **Источник:** GF-006 · Аудит §3
 - **Scope (B):** `ArchetypeAbilityDef` (видовые способности + AutomationKind) и `ArchetypeStartingSkill` (FreeRanks/IsChoice/ChoiceGroup). Применять стартовые навыки/выборы при создании.
 - **Scope (F):** на выборе вида показывать характеристики, wounds/strain/xp, стартовые навыки, способности, предупреждения по выборам.

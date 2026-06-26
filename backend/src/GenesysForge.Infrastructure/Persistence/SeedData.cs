@@ -193,7 +193,10 @@ public static class SeedData
     /// </summary>
     private static bool SeedOrUpdateArchetypes(AppDbContext db, IReadOnlyList<ArchetypeDef> catalog)
     {
-        var existing = db.ArchetypeDefs.ToList();
+        var existing = db.ArchetypeDefs
+            .Include(a => a.Abilities)
+            .Include(a => a.StartingSkills)
+            .ToList();
         var byCode = existing.ToDictionary(a => a.Code);
         var catalogCodes = catalog.Select(a => a.Code).ToHashSet();
         var changed = false;
@@ -207,13 +210,14 @@ public static class SeedData
                 continue;
             }
 
-            if (!row.Retired && row.System == def.System && row.Name == def.Name && row.NameRu == def.NameRu
+            var scalarSame = !row.Retired && row.System == def.System && row.Name == def.Name && row.NameRu == def.NameRu
                 && row.Brawn == def.Brawn && row.Agility == def.Agility && row.Intellect == def.Intellect
                 && row.Cunning == def.Cunning && row.Willpower == def.Willpower && row.Presence == def.Presence
                 && row.WoundBase == def.WoundBase && row.StrainBase == def.StrainBase && row.StartingXp == def.StartingXp
                 && row.SafeDescription == def.SafeDescription && row.Description == def.Description
-                && row.Source == def.Source)
-                continue;
+                && row.Source == def.Source;
+            var childrenSame = ArchetypeChildrenMatch(row, def);
+            if (scalarSame && childrenSame) continue;
 
             row.Retired = false;
             row.System = def.System; row.Name = def.Name; row.NameRu = def.NameRu;
@@ -221,6 +225,17 @@ public static class SeedData
             row.Cunning = def.Cunning; row.Willpower = def.Willpower; row.Presence = def.Presence;
             row.WoundBase = def.WoundBase; row.StrainBase = def.StrainBase; row.StartingXp = def.StartingXp;
             row.SafeDescription = def.SafeDescription; row.Description = def.Description; row.Source = def.Source;
+
+            if (!childrenSame)
+            {
+                // Полная замена дочерних коллекций — каталог авторитетен (как SeedOrUpdateRules для скаляров).
+                db.ArchetypeAbilityDefs.RemoveRange(row.Abilities.ToList());
+                db.ArchetypeStartingSkills.RemoveRange(row.StartingSkills.ToList());
+                row.Abilities.Clear();
+                row.StartingSkills.Clear();
+                foreach (var a in def.Abilities) { a.ArchetypeId = row.Id; db.ArchetypeAbilityDefs.Add(a); }
+                foreach (var s in def.StartingSkills) { s.ArchetypeId = row.Id; db.ArchetypeStartingSkills.Add(s); }
+            }
             changed = true;
         }
 
@@ -233,6 +248,30 @@ public static class SeedData
             }
 
         return changed;
+    }
+
+    /// <summary>Сравнивает дочерние коллекции архетипа (способности/стартовые навыки) с каталогом по порядку.</summary>
+    private static bool ArchetypeChildrenMatch(ArchetypeDef row, ArchetypeDef def)
+    {
+        if (row.Abilities.Count != def.Abilities.Count || row.StartingSkills.Count != def.StartingSkills.Count)
+            return false;
+
+        var ra = row.Abilities.OrderBy(x => x.Code).ToList();
+        var da = def.Abilities.OrderBy(x => x.Code).ToList();
+        for (var i = 0; i < ra.Count; i++)
+            if (ra[i].Code != da[i].Code || ra[i].NameRu != da[i].NameRu || ra[i].NameEn != da[i].NameEn
+                || ra[i].SafeDescription != da[i].SafeDescription || ra[i].AutomationKind != da[i].AutomationKind)
+                return false;
+
+        var rs = row.StartingSkills.OrderBy(x => x.SkillName).ThenBy(x => x.ChoiceGroup).ToList();
+        var ds = def.StartingSkills.OrderBy(x => x.SkillName).ThenBy(x => x.ChoiceGroup).ToList();
+        for (var i = 0; i < rs.Count; i++)
+            if (rs[i].SkillName != ds[i].SkillName || rs[i].NameRu != ds[i].NameRu || rs[i].FreeRanks != ds[i].FreeRanks
+                || rs[i].IsChoice != ds[i].IsChoice || rs[i].ChoiceGroup != ds[i].ChoiceGroup
+                || rs[i].ChoiceCount != ds[i].ChoiceCount)
+                return false;
+
+        return true;
     }
 
     /// <summary>Добавляет элементы, чьи ключи отсутствуют среди встроенных (OwnerUserId == null) записей.</summary>

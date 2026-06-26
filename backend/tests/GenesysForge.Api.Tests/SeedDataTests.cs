@@ -165,6 +165,90 @@ public class SeedDataTests
     }
 
     [Fact]
+    public void Apply_SeedsArchetypeStartingSkillsAndAbilities_Structured()
+    {
+        using var db = NewDb();
+        SeedData.Apply(db);
+
+        Domain.Entities.ArchetypeDef Get(string nameRu) => db.ArchetypeDefs
+            .Include(a => a.StartingSkills).Include(a => a.Abilities)
+            .Single(a => a.NameRu == nameRu);
+
+        // Фиксированный одиночный стартовый навык (RU-имя нормализовано в EN-канон).
+        var laborer = Get("Трудяга");
+        var ath = Assert.Single(laborer.StartingSkills);
+        Assert.False(ath.IsChoice);
+        Assert.Equal("Athletics", ath.SkillName);
+        Assert.Equal(1, ath.FreeRanks);
+
+        // Несколько фиксированных навыков с разными рангами; альтернативный RU-перевод сопоставлен.
+        var deepElf = Get("Глубинный эльф");
+        Assert.Contains(deepElf.StartingSkills, s => s.SkillName == "Knowledge (Forbidden)" && s.FreeRanks == 2);
+        Assert.Contains(deepElf.StartingSkills, s => s.SkillName == "Discipline"); // «Выдержка» → Discipline
+
+        // Навык-выбор: «1 ранг в двух разных некарьерных навыках».
+        var human = Get("Обыватель");
+        var choice = Assert.Single(human.StartingSkills);
+        Assert.True(choice.IsChoice);
+        Assert.Equal("any-noncareer", choice.ChoiceGroup);
+        Assert.Equal(2, choice.ChoiceCount);
+
+        // Несколько структурных способностей из одной ячейки CSV.
+        var catfolk = Get("Котолюд");
+        Assert.Equal(2, catfolk.Abilities.Count);
+        Assert.All(catfolk.Abilities, a =>
+        {
+            Assert.False(string.IsNullOrWhiteSpace(a.NameRu));
+            Assert.False(string.IsNullOrWhiteSpace(a.SafeDescription));
+        });
+
+        // Все фиксированные стартовые навыки резолвятся к засиженным навыкам своей системы,
+        // иначе они не применятся при создании персонажа.
+        foreach (var arch in db.ArchetypeDefs.Include(a => a.StartingSkills).Where(a => !a.Retired))
+        {
+            var skillNames = db.SkillDefs.Where(s => s.System == arch.System).Select(s => s.Name).ToHashSet();
+            foreach (var ss in arch.StartingSkills.Where(s => !s.IsChoice && s.SkillName != ""))
+                Assert.Contains(ss.SkillName, skillNames);
+        }
+    }
+
+    [Fact]
+    public void Apply_ArchetypeChildren_Idempotent()
+    {
+        using var db = NewDb();
+        SeedData.Apply(db);
+        var abilities = db.ArchetypeAbilityDefs.Count();
+        var startingSkills = db.ArchetypeStartingSkills.Count();
+        Assert.True(abilities > 0);
+        Assert.True(startingSkills > 0);
+
+        SeedData.Apply(db); // повторный сид не плодит дочерние строки
+
+        Assert.Equal(abilities, db.ArchetypeAbilityDefs.Count());
+        Assert.Equal(startingSkills, db.ArchetypeStartingSkills.Count());
+    }
+
+    [Fact]
+    public void Apply_RestoresArchetypeChildrenFromCatalog_WhenMissing()
+    {
+        using var db = NewDb();
+        SeedData.Apply(db);
+
+        // имитируем «старую» БД без структурных стартовых навыков у вида
+        var laborer = db.ArchetypeDefs.Include(a => a.StartingSkills)
+            .Single(a => a.NameRu == "Трудяга");
+        db.ArchetypeStartingSkills.RemoveRange(laborer.StartingSkills);
+        db.SaveChanges();
+        db.ChangeTracker.Clear(); // как свежий контекст на старте приложения
+
+        SeedData.Apply(db); // upsert восстанавливает дочерние из каталога
+
+        var restored = db.ArchetypeDefs.Include(a => a.StartingSkills)
+            .Single(a => a.NameRu == "Трудяга");
+        Assert.Contains(restored.StartingSkills, s => s.SkillName == "Athletics");
+    }
+
+    [Fact]
     public void Apply_DoesNotTouchCustomContent()
     {
         using var db = NewDb();

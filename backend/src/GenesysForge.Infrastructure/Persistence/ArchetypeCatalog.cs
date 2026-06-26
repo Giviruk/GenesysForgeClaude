@@ -16,7 +16,13 @@ public static class ArchetypeCatalog
     private sealed record Entry(
         string System, string Code, string Name, string NameRu,
         int Brawn, int Agility, int Intellect, int Cunning, int Willpower, int Presence,
-        int WoundBase, int StrainBase, int StartingXp, string Safe, string Source);
+        int WoundBase, int StrainBase, int StartingXp, string Safe, string Source,
+        List<AbilityEntry>? Abilities, List<StartingSkillEntry>? StartingSkills);
+
+    private sealed record AbilityEntry(string Code, string NameRu, string NameEn, string Safe, string AutomationKind);
+
+    private sealed record StartingSkillEntry(
+        string SkillName, string NameRu, int FreeRanks, bool IsChoice, string ChoiceGroup, int ChoiceCount);
 
     private static readonly JsonSerializerOptions JsonOptions = new() { PropertyNameCaseInsensitive = true };
 
@@ -41,6 +47,18 @@ public static class ArchetypeCatalog
                 Cunning = e.Cunning, Willpower = e.Willpower, Presence = e.Presence,
                 WoundBase = e.WoundBase, StrainBase = e.StrainBase, StartingXp = e.StartingXp,
                 SafeDescription = e.Safe, Source = e.Source,
+                Abilities = (e.Abilities ?? []).Select(a => new ArchetypeAbilityDef
+                {
+                    Id = Guid.NewGuid(), Code = a.Code, NameRu = a.NameRu, NameEn = a.NameEn,
+                    SafeDescription = a.Safe,
+                    AutomationKind = Enum.TryParse<ArchetypeAbilityAutomationKind>(a.AutomationKind, ignoreCase: true, out var k)
+                        ? k : ArchetypeAbilityAutomationKind.Manual,
+                }).ToList(),
+                StartingSkills = (e.StartingSkills ?? []).Select(s => new ArchetypeStartingSkill
+                {
+                    Id = Guid.NewGuid(), SkillName = s.SkillName, NameRu = s.NameRu, FreeRanks = s.FreeRanks,
+                    IsChoice = s.IsChoice, ChoiceGroup = s.ChoiceGroup, ChoiceCount = s.ChoiceCount,
+                }).ToList(),
             };
         }
     }
