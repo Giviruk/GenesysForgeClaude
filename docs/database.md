@@ -157,6 +157,8 @@ Reference catalog of item/spell qualities (U-10, GF-005). System-agnostic — on
 
 Fields: `Id`, `Code` (unique slug of `NameEn`), `NameEn`, `NameRu`, `Kind` (`QualityKind`: ItemQuality/SpellAdditionalEffect — currently all ItemQuality), `IsActive` (active vs passive), `HasRating`, `ActivationCost`, `Category`, `Description` (full/private), `SafeDescription`, `Source`. Dual-mode content like other defs (PublicSafe clears `Description`).
 
+`ActivationCost` is `varchar(400)` because some structured activation descriptions exceed 160 characters.
+
 Indexes: unique `Code`.
 
 ### ItemQualityValues
@@ -206,6 +208,7 @@ Found migrations:
 - `20260625182741_AddRollLog` — creates `RollLogEntries` table (Game Table dice-roll log, U-08) with `(CampaignId, CreatedAt)` index. Non-destructive (only `CreateTable`).
 - `20260625185307_AddCharacterAudit` — creates `CharacterAuditEntries` table (character XP/audit log, U-09) with `(CharacterId, CreatedAt)` index and cascade FK to `Characters`. Non-destructive (only `CreateTable`).
 - `20260625193055_AddItemQualities` — creates `QualityDefs` (unique `Code`) and `ItemQualityValues` (cascade FKs to `ItemDefs`/`QualityDefs`) for structural item qualities (U-10). Non-destructive (only `CreateTable`); `ItemDef.Properties` retained.
+- `20260625210000_ExpandQualityActivationCost` — expands `QualityDefs.ActivationCost` from 160 to 400 characters so startup seed accepts the full catalog.
 
 Startup behavior:
 

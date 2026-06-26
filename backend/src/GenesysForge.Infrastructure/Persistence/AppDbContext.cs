@@ -160,7 +160,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         {
             e.HasIndex(q => q.Code).IsUnique();
             e.Property(q => q.NameEn).HasMaxLength(80);
-            e.Property(q => q.ActivationCost).HasMaxLength(160);
+            e.Property(q => q.ActivationCost).HasMaxLength(QualityDef.MaxActivationCostLength);
             e.Property(q => q.Category).HasMaxLength(120);
             e.Property(q => q.Description).HasMaxLength(2000);
             e.Property(q => q.SafeDescription).HasMaxLength(600);

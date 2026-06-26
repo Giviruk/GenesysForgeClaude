@@ -1325,8 +1325,8 @@ namespace GenesysForge.Infrastructure.Persistence.Migrations
 
                     b.Property<string>("ActivationCost")
                         .IsRequired()
-                        .HasMaxLength(160)
-                        .HasColumnType("character varying(160)");
+                        .HasMaxLength(400)
+                        .HasColumnType("character varying(400)");
 
                     b.Property<string>("Category")
                         .IsRequired()

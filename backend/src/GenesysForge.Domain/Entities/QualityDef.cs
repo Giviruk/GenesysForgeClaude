@@ -6,6 +6,8 @@ namespace GenesysForge.Domain.Entities;
 /// </summary>
 public class QualityDef : IContentDef
 {
+    public const int MaxActivationCostLength = 400;
+
     public Guid Id { get; set; }
     /// <summary>Стабильный код (slug английского имени).</summary>
     public string Code { get; set; } = "";
