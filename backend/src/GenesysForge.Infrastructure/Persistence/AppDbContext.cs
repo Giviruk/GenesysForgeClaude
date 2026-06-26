@@ -19,6 +19,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<ArchetypeAbilityDef> ArchetypeAbilityDefs => Set<ArchetypeAbilityDef>();
     public DbSet<ArchetypeStartingSkill> ArchetypeStartingSkills => Set<ArchetypeStartingSkill>();
     public DbSet<CareerDef> CareerDefs => Set<CareerDef>();
+    public DbSet<CareerStartingGear> CareerStartingGears => Set<CareerStartingGear>();
+    public DbSet<CareerRule> CareerRules => Set<CareerRule>();
     public DbSet<Character> Characters => Set<Character>();
     public DbSet<CharacterSkill> CharacterSkills => Set<CharacterSkill>();
     public DbSet<CharacterTalent> CharacterTalents => Set<CharacterTalent>();
@@ -306,6 +308,28 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             e.Property(s => s.SkillName).HasMaxLength(80);
             e.Property(s => s.NameRu).HasMaxLength(80);
             e.Property(s => s.ChoiceGroup).HasMaxLength(40);
+        });
+
+        b.Entity<CareerDef>(e =>
+        {
+            e.Property(c => c.StartingMoneyDice).HasMaxLength(20);
+            e.HasMany(c => c.StartingGear).WithOne()
+                .HasForeignKey(x => x.CareerId).OnDelete(DeleteBehavior.Cascade);
+            e.HasMany(c => c.Rules).WithOne()
+                .HasForeignKey(x => x.CareerId).OnDelete(DeleteBehavior.Cascade);
+        });
+        b.Entity<CareerStartingGear>(e =>
+        {
+            e.HasIndex(g => g.CareerId);
+            e.Property(g => g.ItemCode).HasMaxLength(80);
+            e.Property(g => g.ItemNameFallback).HasMaxLength(120);
+            e.Property(g => g.ChoiceGroup).HasMaxLength(40);
+        });
+        b.Entity<CareerRule>(e =>
+        {
+            e.HasIndex(r => r.CareerId);
+            e.Property(r => r.Code).HasMaxLength(80);
+            e.Property(r => r.Description).HasMaxLength(600);
         });
 
         // Content-model (Code/NameRu/Source) у справочных сущностей.

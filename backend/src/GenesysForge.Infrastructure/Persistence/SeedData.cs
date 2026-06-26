@@ -66,6 +66,9 @@ public static class SeedData
 
         if (added) db.SaveChanges();
 
+        // Стартовое снаряжение/деньги/правила карьер из каталога extras (идемпотентно, поверх засиженных карьер).
+        SeedCareerExtras(db);
+
         // Бэкфилл структурных качеств из строк Properties встроенных предметов (идемпотентно).
         BackfillItemQualities(db);
     }
@@ -271,6 +274,77 @@ public static class SeedData
                 || rs[i].ChoiceCount != ds[i].ChoiceCount)
                 return false;
 
+        return true;
+    }
+
+    /// <summary>
+    /// Раскладывает «extras» карьер (стартовые деньги/снаряжение/правила) из каталога по существующим
+    /// <see cref="CareerDef"/> (по <see cref="CareerDef.Code"/>). Идемпотентно: money-поля и дочерние
+    /// коллекции синхронизируются с каталогом (полная замена при расхождении).
+    /// </summary>
+    private static void SeedCareerExtras(AppDbContext db)
+    {
+        var catalog = CareerExtrasCatalog.Load().ToList();
+        if (catalog.Count == 0) return;
+
+        var careers = db.CareerDefs
+            .Include(c => c.StartingGear)
+            .Include(c => c.Rules)
+            .ToList()
+            .ToDictionary(c => c.Code);
+        var changed = false;
+
+        foreach (var ex in catalog)
+        {
+            if (!careers.TryGetValue(ex.Code, out var career)) continue;
+
+            if (career.StartingMoneyFixed != ex.MoneyFixed || career.StartingMoneyDice != ex.MoneyDice)
+            {
+                career.StartingMoneyFixed = ex.MoneyFixed;
+                career.StartingMoneyDice = ex.MoneyDice;
+                changed = true;
+            }
+
+            if (!GearMatches(career.StartingGear, ex.Gear))
+            {
+                db.CareerStartingGears.RemoveRange(career.StartingGear.ToList());
+                career.StartingGear.Clear();
+                foreach (var g in ex.Gear) { g.CareerId = career.Id; db.CareerStartingGears.Add(g); }
+                changed = true;
+            }
+            if (!RulesMatch(career.Rules, ex.Rules))
+            {
+                db.CareerRules.RemoveRange(career.Rules.ToList());
+                career.Rules.Clear();
+                foreach (var r in ex.Rules) { r.CareerId = career.Id; db.CareerRules.Add(r); }
+                changed = true;
+            }
+        }
+
+        if (changed) db.SaveChanges();
+    }
+
+    private static bool GearMatches(IReadOnlyCollection<CareerStartingGear> rows, IReadOnlyList<CareerStartingGear> cat)
+    {
+        if (rows.Count != cat.Count) return false;
+        var a = rows.OrderBy(x => x.ChoiceGroup).ThenBy(x => x.ChoiceOption).ThenBy(x => x.ItemCode).ToList();
+        var b = cat.OrderBy(x => x.ChoiceGroup).ThenBy(x => x.ChoiceOption).ThenBy(x => x.ItemCode).ToList();
+        for (var i = 0; i < a.Count; i++)
+            if (a[i].ItemCode != b[i].ItemCode || a[i].ItemNameFallback != b[i].ItemNameFallback
+                || a[i].Quantity != b[i].Quantity || a[i].IsChoice != b[i].IsChoice
+                || a[i].ChoiceGroup != b[i].ChoiceGroup || a[i].ChoiceOption != b[i].ChoiceOption)
+                return false;
+        return true;
+    }
+
+    private static bool RulesMatch(IReadOnlyCollection<CareerRule> rows, IReadOnlyList<CareerRule> cat)
+    {
+        if (rows.Count != cat.Count) return false;
+        var a = rows.OrderBy(x => x.Code).ToList();
+        var b = cat.OrderBy(x => x.Code).ToList();
+        for (var i = 0; i < a.Count; i++)
+            if (a[i].Code != b[i].Code || a[i].Kind != b[i].Kind || a[i].Description != b[i].Description)
+                return false;
         return true;
     }
 

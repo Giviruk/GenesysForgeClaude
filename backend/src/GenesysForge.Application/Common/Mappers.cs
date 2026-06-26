@@ -12,7 +12,11 @@ public static class Mappers
         a.StartingSkills.Select(x => new ArchetypeStartingSkillDto(x.SkillName, x.NameRu, x.FreeRanks, x.IsChoice, x.ChoiceGroup, x.ChoiceCount)).ToList());
 
     public static CareerDto ToDto(this CareerDef c) =>
-        new(c.Id, c.Name, c.NameRu, c.Description, c.SafeDescription, c.Source, c.CareerSkillNames);
+        new(c.Id, c.Name, c.NameRu, c.Description, c.SafeDescription, c.Source, c.CareerSkillNames,
+            c.StartingMoneyFixed, c.StartingMoneyDice,
+            c.StartingGear.Select(g => new CareerStartingGearDto(g.ItemCode, g.ItemNameFallback, g.Quantity,
+                g.IsChoice, g.ChoiceGroup, g.ChoiceOption)).ToList(),
+            c.Rules.Select(r => new CareerRuleDto(r.Code, r.Kind, r.Description)).ToList());
 
     public static SkillDefDto ToDto(this SkillDef s) =>
         new(s.Id, s.Name, s.NameRu, s.Characteristic, s.Kind, s.SafeDescription, s.Source, s.OwnerUserId != null);

@@ -4,7 +4,7 @@
 - **Ветка:** `feature/u12-archetype-models`
 - **Базовая ветка:** `master` (стек пуст — U-01…U-11 + archetype-roster-refresh слиты).
 - **PR:** [#52](https://github.com/Giviruk/GenesysForgeClaude/pull/52)
-- **Статус:** 🚧 In progress
+- **Статус:** ✅ Done
 
 ## Контекст
 

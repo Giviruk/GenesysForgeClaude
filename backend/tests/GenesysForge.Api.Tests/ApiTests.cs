@@ -217,16 +217,17 @@ public class CharacterFlowTests : IClassFixture<ApiFactory>
             new AddItemRequest(plate.Id, 1, ItemState.Backpack));
         Assert.Equal(HttpStatusCode.Created, add.StatusCode);
         var inBackpack = await SheetAsync(client, id);
+        // Дельты относительно стартового снаряжения карьеры (RoT-карьеры выдают экипировку при создании).
         Assert.Equal(before.Derived.Soak, inBackpack.Derived.Soak);
-        Assert.Equal(plate.Encumbrance, inBackpack.Derived.EncumbranceLoad);
+        Assert.Equal(before.Derived.EncumbranceLoad + plate.Encumbrance, inBackpack.Derived.EncumbranceLoad);
 
         // Надеть: +поглощение, +защита, вес −3
-        var itemId = inBackpack.Items[0].Id;
+        var itemId = inBackpack.Items.First(i => i.ItemDefId == plate.Id).Id;
         await client.PatchAsJsonAsync($"/api/characters/{id}/items/{itemId}", new UpdateItemRequest(ItemState.Equipped, null), Json.Options);
         var equipped = await SheetAsync(client, id);
         Assert.Equal(before.Derived.Soak + plate.SoakBonus, equipped.Derived.Soak);
         Assert.Equal(plate.MeleeDefense, equipped.Derived.MeleeDefense);
-        Assert.Equal(plate.Encumbrance - 3, equipped.Derived.EncumbranceLoad);
+        Assert.Equal(before.Derived.EncumbranceLoad + plate.Encumbrance - 3, equipped.Derived.EncumbranceLoad);
     }
 
     [Fact]

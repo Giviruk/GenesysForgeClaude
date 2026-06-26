@@ -24,8 +24,21 @@ const reference: Reference = {
       startingSkills: [{ skillName: 'Athletics', nameRu: 'Атлетика', freeRanks: 1, isChoice: false, choiceGroup: '', choiceCount: 0 }],
     }),
   ],
-  careers: [{ id: 'career-soldier', name: 'Soldier', nameRu: 'Солдат', description: 'desc',
-    safeDescription: '', source: '', careerSkillNames: ['Athletics', 'Cool'] }],
+  careers: [
+    { id: 'career-soldier', name: 'Soldier', nameRu: 'Солдат', description: 'desc',
+      safeDescription: '', source: '', careerSkillNames: ['Athletics', 'Cool'],
+      startingMoneyFixed: 0, startingMoneyDice: '', startingGear: [], rules: [] },
+    { id: 'career-warrior', name: 'Warrior', nameRu: 'Воин', description: 'боец',
+      safeDescription: '', source: '', careerSkillNames: ['Athletics'],
+      startingMoneyFixed: 0, startingMoneyDice: '1d100',
+      startingGear: [
+        { itemCode: 'leather', itemNameRu: 'кожаная броня', quantity: 1, isChoice: false, choiceGroup: '', choiceOption: 0 },
+        { itemCode: 'sword', itemNameRu: 'меч', quantity: 1, isChoice: true, choiceGroup: 'slot-1', choiceOption: 0 },
+        { itemCode: 'shield', itemNameRu: 'щит', quantity: 1, isChoice: true, choiceGroup: 'slot-1', choiceOption: 0 },
+        { itemCode: 'halberd', itemNameRu: 'алебарда', quantity: 1, isChoice: true, choiceGroup: 'slot-1', choiceOption: 1 },
+      ],
+      rules: [{ code: 'r1', kind: 'advisory', description: 'Замена Melee на Melee (Light).' }] },
+  ],
   skills: [
     { id: 's1', name: 'Athletics', nameRu: 'Атлетика', characteristic: 'brawn', kind: 'general', safeDescription: '', source: '', isCustom: false },
     { id: 's2', name: 'Cool', nameRu: 'Хладнокровие', characteristic: 'presence', kind: 'general', safeDescription: '', source: '', isCustom: false },
@@ -83,5 +96,34 @@ describe('CreateCharacterForm — стартовые навыки вида (U-12
     await waitFor(() => expect(createCharacterMock).toHaveBeenCalled())
     const call = createCharacterMock.mock.calls[0]
     expect(call[5]).toEqual([{ choiceGroup: 'any-noncareer', skillNames: ['Stealth', 'Coordination'] }])
+  })
+})
+
+describe('CreateCharacterForm — стартовое снаряжение карьеры (U-13)', () => {
+  it('показывает деньги/снаряжение, гейтит выбор и передаёт его при создании', async () => {
+    createCharacterMock.mockClear()
+    render(<CreateCharacterForm onCancel={() => {}} onCreated={() => {}} />)
+    await waitFor(() => expect(screen.getByRole('option', { name: 'Воин' })).toBeTruthy())
+
+    fireEvent.change(screen.getByLabelText('Имя персонажа'), { target: { value: 'Герой' } })
+    const [archetypeSelect, careerSelect] = screen.getAllByRole('combobox')
+    fireEvent.change(archetypeSelect, { target: { value: 'arch-fixed' } }) // без выборов навыков
+    fireEvent.change(careerSelect, { target: { value: 'career-warrior' } })
+
+    // деньги, фиксированное снаряжение и заметка карьеры
+    expect(screen.getByText(/1d100 серебра/)).toBeTruthy()
+    expect(screen.getByText(/Снаряжение: кожаная броня/)).toBeTruthy()
+    expect(screen.getByText(/Замена Melee/)).toBeTruthy()
+
+    // вариант снаряжения не выбран → «Создать» заблокирована
+    expect(screen.getByRole('button', { name: 'Создать' })).toHaveProperty('disabled', true)
+
+    fireEvent.click(screen.getByRole('button', { name: 'алебарда' }))
+    const submit = screen.getByRole('button', { name: 'Создать' })
+    expect(submit).toHaveProperty('disabled', false)
+    fireEvent.click(submit)
+
+    await waitFor(() => expect(createCharacterMock).toHaveBeenCalled())
+    expect(createCharacterMock.mock.calls[0][6]).toEqual([{ choiceGroup: 'slot-1', optionIndex: 1 }])
   })
 })

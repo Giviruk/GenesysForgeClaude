@@ -1,11 +1,13 @@
+using System.Text.RegularExpressions;
 using GenesysForge.Application.Abstractions;
+using GenesysForge.Application.Dtos;
 using GenesysForge.Domain;
 using GenesysForge.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace GenesysForge.Application.Features.Characters;
 
-public class CreateCharacterHandler(IAppDbContext db) : ICommandHandler<CreateCharacterCommand, Guid>
+public partial class CreateCharacterHandler(IAppDbContext db) : ICommandHandler<CreateCharacterCommand, Guid>
 {
     private const int MaxFreeCareerSkills = 4;
 
@@ -18,6 +20,7 @@ public class CreateCharacterHandler(IAppDbContext db) : ICommandHandler<CreateCh
                 .FirstOrDefaultAsync(a => a.Id == req.ArchetypeId && a.System == req.System, ct)
             ?? throw new DomainRuleException("Архетип не найден или принадлежит другой системе.");
         var career = await db.CareerDefs
+                .Include(c => c.StartingGear)
                 .FirstOrDefaultAsync(c => c.Id == req.CareerId && c.System == req.System, ct)
             ?? throw new DomainRuleException("Карьера не найдена или принадлежит другой системе.");
         if (string.IsNullOrWhiteSpace(req.Name))
@@ -45,6 +48,7 @@ public class CreateCharacterHandler(IAppDbContext db) : ICommandHandler<CreateCh
             Willpower = archetype.Willpower,
             Presence = archetype.Presence,
             TotalXp = archetype.StartingXp,
+            Money = career.StartingMoneyFixed + RollDice(career.StartingMoneyDice),
         };
 
         // Резолвер навыков системы: built-in приоритетнее одноимённого custom.
@@ -117,8 +121,68 @@ public class CreateCharacterHandler(IAppDbContext db) : ICommandHandler<CreateCh
             }
         }
 
+        // Стартовое снаряжение карьеры: фиксированное — автоматически, выборы — по запросу (лениво).
+        await ApplyStartingGearAsync(character, career, req, ct);
+
         db.Characters.Add(character);
         await db.SaveChangesAsync(ct);
         return character.Id;
     }
+
+    private async Task ApplyStartingGearAsync(Character character, CareerDef career, CreateCharacterRequest req, CancellationToken ct)
+    {
+        if (career.StartingGear.Count == 0) return;
+
+        var prefix = req.System == GameSystem.GenesysCore ? "gc" : "rot";
+        var codes = career.StartingGear.Where(g => g.ItemCode.Length > 0)
+            .Select(g => $"{prefix}.item.{g.ItemCode}").ToHashSet();
+        var itemsByCode = await db.ItemDefs
+            .Where(i => i.System == req.System && i.OwnerUserId == null && codes.Contains(i.Code))
+            .ToDictionaryAsync(i => i.Code, ct);
+
+        var charItems = new Dictionary<Guid, CharacterItem>();
+        void AddItem(string itemCode, int qty)
+        {
+            if (itemCode.Length == 0) return;
+            if (!itemsByCode.TryGetValue($"{prefix}.item.{itemCode}", out var def)) return; // нерезолвленный — пропускаем
+            if (!charItems.TryGetValue(def.Id, out var ci))
+            {
+                ci = new CharacterItem { Id = Guid.NewGuid(), CharacterId = character.Id, ItemDefId = def.Id, Quantity = 0 };
+                charItems[def.Id] = ci;
+                character.Items.Add(ci);
+            }
+            ci.Quantity += qty;
+        }
+
+        foreach (var g in career.StartingGear.Where(g => !g.IsChoice))
+            AddItem(g.ItemCode, g.Quantity);
+
+        var picks = (req.CareerGearChoices ?? [])
+            .GroupBy(c => c.ChoiceGroup)
+            .ToDictionary(g => g.Key, g => g.Last().OptionIndex);
+        foreach (var group in career.StartingGear.Where(g => g.IsChoice).Select(g => g.ChoiceGroup).Distinct())
+        {
+            if (!picks.TryGetValue(group, out var optionIndex)) continue; // не выбран — снаряжение не обязательно
+            var optionItems = career.StartingGear
+                .Where(g => g.IsChoice && g.ChoiceGroup == group && g.ChoiceOption == optionIndex).ToList();
+            if (optionItems.Count == 0)
+                throw new DomainRuleException($"Неверный вариант стартового снаряжения для слота {group}.");
+            foreach (var g in optionItems) AddItem(g.ItemCode, g.Quantity);
+        }
+    }
+
+    /// <summary>Бросок стартовых денег формата <c>NdM</c> (например «1d100»). Пусто/некорректно → 0.</summary>
+    private static int RollDice(string dice)
+    {
+        if (string.IsNullOrWhiteSpace(dice)) return 0;
+        var m = DiceRegex().Match(dice.Trim());
+        if (!m.Success) return 0;
+        var (count, sides) = (int.Parse(m.Groups[1].Value), int.Parse(m.Groups[2].Value));
+        var sum = 0;
+        for (var i = 0; i < count; i++) sum += Random.Shared.Next(1, sides + 1);
+        return sum;
+    }
+
+    [GeneratedRegex(@"^(\d+)d(\d+)$", RegexOptions.IgnoreCase)]
+    private static partial Regex DiceRegex();
 }

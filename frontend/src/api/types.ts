@@ -183,6 +183,28 @@ export interface Archetype {
   startingSkills: ArchetypeStartingSkill[]
 }
 
+export type CareerRuleKind = 'advisory' | 'skillSubstitution'
+
+export interface CareerStartingGear {
+  itemCode: string
+  itemNameRu: string
+  quantity: number
+  isChoice: boolean
+  choiceGroup: string
+  choiceOption: number
+}
+
+export interface CareerRule {
+  code: string
+  kind: CareerRuleKind
+  description: string
+}
+
+export interface CareerGearChoice {
+  choiceGroup: string
+  optionIndex: number
+}
+
 export interface Career {
   id: string
   name: string
@@ -191,6 +213,10 @@ export interface Career {
   safeDescription: string
   source: string
   careerSkillNames: string[]
+  startingMoneyFixed: number
+  startingMoneyDice: string
+  startingGear: CareerStartingGear[]
+  rules: CareerRule[]
 }
 
 export interface Reference {

@@ -21,9 +21,12 @@ public class GetReferenceHandler(IAppDbContext db) : IQueryHandler<GetReferenceQ
             .ToListAsync(ct);
         var archetypes = archetypeDefs.Select(a => a.ToDto()).ToList();
 
-        var careers = await db.CareerDefs.AsNoTracking()
+        var careerDefs = await db.CareerDefs.AsNoTracking()
+            .Include(c => c.StartingGear)
+            .Include(c => c.Rules)
             .Where(c => c.System == system).OrderBy(c => c.NameRu)
-            .Select(c => c.ToDto()).ToListAsync(ct);
+            .ToListAsync(ct);
+        var careers = careerDefs.Select(c => c.ToDto()).ToList();
 
         var skills = await db.SkillDefs.AsNoTracking()
             .Where(s => s.System == system && (s.OwnerUserId == null || s.OwnerUserId == userId))

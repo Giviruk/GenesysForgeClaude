@@ -151,7 +151,7 @@
 - **DoD:** мастер видит таблицы трат/сложностей/дистанций/критов; поиск находит по названию/символу.
 
 ## U-12 · Структурные модели архетипов/видов
-- **Статус:** 🚧 In progress (PR #52)
+- **Статус:** ✅ Done (PR #52)
 - **Подготовка:** ростер видов/карьер + RU-имена при создании уже сделаны (PR #49/#51, см. [archetype-roster-refresh.md](tasks/archetype-roster-refresh.md)); способности/стартовые навыки видов вынесены в структурные `ArchetypeAbilityDef`/`ArchetypeStartingSkill` (см. [u12-archetype-models.md](tasks/u12-archetype-models.md)).
 - **Источник:** GF-006 · Аудит §3
 - **Scope (B):** `ArchetypeAbilityDef` (видовые способности + AutomationKind) и `ArchetypeStartingSkill` (FreeRanks/IsChoice/ChoiceGroup). Применять стартовые навыки/выборы при создании.
@@ -159,10 +159,11 @@
 - **DoD:** видовые способности — данные, а не только описание; стартовые навыки применяются автоматически; новые виды без кода.
 
 ## U-13 · Структурные модели карьер + стартовое снаряжение
-- **Статус:** ⬜ Todo
+- **Статус:** 🚧 In progress (PR #53)
+- **Детали:** `CareerStartingGear` + `CareerRule` + стартовые деньги; снаряжение из CSV через генератор `gen-career-extras-catalog.mjs`, применяется при создании (фикс + пикер выборов). См. [u13-career-models.md](tasks/u13-career-models.md).
 - **Источник:** GF-007 · Аудит §3
 - **Scope (B):** `CareerStartingGear` (ItemCode/qty/choice) и `CareerRule` (Kind). На создании RoT: выбор бесплатных карьерных рангов, выбор стартового снаряжения → в инвентарь, валидация числа опций.
-- **Справочные данные:** карьерный CSV (`genesys_rot_core_careers_ru.csv` упомянут в коде, но **в `_books` отсутствует** — см. reference-materials, нужно запросить).
+- **Справочные данные:** карьерный CSV `_books/genesys_rot_core_careers_ru.csv` (есть; колонки «Стартовое снаряжение RU», «Заметки RU»).
 - **DoD:** RoT-карьеры выдают стартовое снаряжение в инвентарь; правила выбора в UI; карьерные навыки остаются data-driven.
 
 ## U-14 · Структурированные атаки NPC

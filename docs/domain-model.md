@@ -100,12 +100,15 @@ Rules:
 
 ### CareerDef
 
-Fields: `Id`, `System`, `Name`, `Description`, `CareerSkillNames`.
+Fields: `Id`, `System`, `Name`, `Description`, `CareerSkillNames`, `StartingMoneyFixed`, `StartingMoneyDice`, `StartingGear`, `Rules`.
 
 Rules:
 
 - Career skill names mark matching `CharacterSkill` rows as career skills.
 - During character creation, selected free career skills get `FreeRanks`.
+- `StartingMoney*` set starting `Money` at creation: `StartingMoneyFixed` + a roll of `StartingMoneyDice` (`NdM`, e.g. `1d100`) — RoT careers only.
+- `StartingGear` (`CareerStartingGear`) is granted at creation: fixed rows auto-added to inventory; choice slots (`ChoiceGroup`, options by `ChoiceOption`) resolved by the player's `CareerGearChoice` (lenient — an unselected slot is skipped, not blocked).
+- `Rules` (`CareerRule`: `Kind`, `Description`) are advisory career notes shown in the UI (not automated).
 
 ### Character
 
