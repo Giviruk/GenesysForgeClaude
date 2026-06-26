@@ -3,8 +3,8 @@
 - **Roadmap:** подготовка к U-12 (структурные модели видов) / U-13 (карьеры) — частичный шаг (данные + отображение), без структурных ArchetypeAbilityDef/CareerStartingGear.
 - **Ветка:** `feature/archetype-roster-refresh`
 - **Базовая ветка:** `feature/u11-rules-tables-search` (стек поверх PR #46 — общие правки SeedData/AppDbContext/миграций)
-- **PR:** [#49](https://github.com/Giviruk/GenesysForgeClaude/pull/49)
-- **Статус:** 🚧 In progress
+- **PR:** [#49](https://github.com/Giviruk/GenesysForgeClaude/pull/49) (re-land в master — [#51](https://github.com/Giviruk/GenesysForgeClaude/pull/51))
+- **Статус:** ✅ Done
 
 ## Контекст
 

@@ -3,8 +3,8 @@
 - **Roadmap:** U-11 — Справочные таблицы правил + глобальный поиск (см. [unified-roadmap.md](../unified-roadmap.md))
 - **Ветка:** `feature/u11-rules-tables-search`
 - **Базовая ветка:** `master` (стек пуст — все нижестоящие U-01…U-10 слиты)
-- **PR:** [#46](https://github.com/Giviruk/GenesysForgeClaude/pull/46)
-- **Статус:** 🚧 In progress
+- **PR:** [#46](https://github.com/Giviruk/GenesysForgeClaude/pull/46) (доработки [#47](https://github.com/Giviruk/GenesysForgeClaude/pull/47)/[#48](https://github.com/Giviruk/GenesysForgeClaude/pull/48)/[#50](https://github.com/Giviruk/GenesysForgeClaude/pull/50))
+- **Статус:** ✅ Done
 
 ## Контекст
 
