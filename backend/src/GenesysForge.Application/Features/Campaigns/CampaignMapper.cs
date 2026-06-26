@@ -23,8 +23,8 @@ public static class CampaignMapper
                 cc.CharacterId,
                 cc.Character!.Name,
                 cc.Character.System,
-                cc.Character.Archetype!.Name,
-                cc.Character.Career!.Name,
+                cc.Character.Archetype!.NameRu,
+                cc.Character.Career!.NameRu,
                 cc.PlayerUserId == userId))
             .ToListAsync(ct);
 
