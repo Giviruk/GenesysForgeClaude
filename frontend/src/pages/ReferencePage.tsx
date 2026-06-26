@@ -113,7 +113,8 @@ export function ReferencePage({ onNavigate }: { onNavigate: (to: string) => void
           spendPolarity === 'negative' ? isNegativeSpend(e) : !isNegativeSpend(e))
       }
       if (kind === 'rangeBand' && section === 'rangeBand') {
-        entries = entries.filter(e => e.groupRu === rangeSub)
+        // Пустой groupRu (старые данные до пересида) трактуем как «Общую информацию».
+        entries = entries.filter(e => (e.groupRu || 'Общая информация') === rangeSub)
         showCost = rangeSub === 'Перемещение' // в «Общей информации» колонки стоимости нет
       }
       return { kind, entries, showCost }

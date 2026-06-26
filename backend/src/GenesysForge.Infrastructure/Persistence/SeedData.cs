@@ -60,7 +60,7 @@ public static class SeedData
         added |= SeedMissing(db, db.ItemDefs, items, d => (d.System, d.Name));
         added |= SeedMissing(db, db.HeroicAbilityDefs, heroics, d => ((GameSystem)0, d.Name));
         added |= SeedMissing(db, db.QualityDefs, qualities, d => ((GameSystem)0, d.NameEn));
-        added |= SeedMissing(db, db.RuleTableEntries, rules, d => ((GameSystem)0, d.Code));
+        added |= SeedOrUpdateRules(db, rules);
         added |= SeedMissing(db, db.SpellDefs, spells,
             d => (d.System, $"{d.MagicSkill}:{(int)d.Kind}:{d.ParentEffect}:{d.NameEn}"));
 
@@ -150,6 +150,40 @@ public static class SeedData
     {
         if (mode != ContentMode.PublicSafe) return;
         foreach (var s in spells) s.Description = "";
+    }
+
+    /// <summary>
+    /// Upsert справочных таблиц правил по <see cref="RuleTableEntry.Code"/>. Правила — чистые
+    /// справочные данные без владельца, поэтому существующие строки синхронизируются с каталогом
+    /// (в отличие от аддитивного <see cref="SeedMissing{T}"/>): смена парафраза/группировки в
+    /// каталоге подхватывается на старте без миграции. Возвращает true, если что-то добавлено/изменено.
+    /// </summary>
+    private static bool SeedOrUpdateRules(AppDbContext db, IEnumerable<RuleTableEntry> catalog)
+    {
+        var existing = db.RuleTableEntries.ToDictionary(r => r.Code);
+        var changed = false;
+        foreach (var def in catalog)
+        {
+            if (!existing.TryGetValue(def.Code, out var row))
+            {
+                db.RuleTableEntries.Add(def);
+                changed = true;
+                continue;
+            }
+
+            if (row.Kind == def.Kind && row.NameRu == def.NameRu && row.NameEn == def.NameEn
+                && row.GroupRu == def.GroupRu && row.SortOrder == def.SortOrder && row.RollRange == def.RollRange
+                && row.SymbolCost == def.SymbolCost && row.Body == def.Body && row.Notes == def.Notes
+                && row.Source == def.Source && row.SourcePage == def.SourcePage && row.SearchText == def.SearchText)
+                continue;
+
+            row.Kind = def.Kind; row.NameRu = def.NameRu; row.NameEn = def.NameEn;
+            row.GroupRu = def.GroupRu; row.SortOrder = def.SortOrder; row.RollRange = def.RollRange;
+            row.SymbolCost = def.SymbolCost; row.Body = def.Body; row.Notes = def.Notes;
+            row.Source = def.Source; row.SourcePage = def.SourcePage; row.SearchText = def.SearchText;
+            changed = true;
+        }
+        return changed;
     }
 
     /// <summary>Добавляет элементы, чьи ключи отсутствуют среди встроенных (OwnerUserId == null) записей.</summary>
