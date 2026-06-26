@@ -3,7 +3,7 @@
 - **Roadmap:** подготовка к U-12 (структурные модели видов) / U-13 (карьеры) — частичный шаг (данные + отображение), без структурных ArchetypeAbilityDef/CareerStartingGear.
 - **Ветка:** `feature/archetype-roster-refresh`
 - **Базовая ветка:** `feature/u11-rules-tables-search` (стек поверх PR #46 — общие правки SeedData/AppDbContext/миграций)
-- **PR:** #<номер>
+- **PR:** [#49](https://github.com/Giviruk/GenesysForgeClaude/pull/49)
 - **Статус:** 🚧 In progress
 
 ## Контекст
@@ -31,7 +31,7 @@
 - [x] RU-имена в UI: дропдауны создания (CharactersPage), описание архетипа, RU-чипы карьерных навыков; список персонажей и кампаний (NameRu). Экспорт оставлен на EN (контракт импорта)
 - [x] Тесты: SeedDataTests (каталог/retire/резолв навыков), Api 162 / Domain 65 зелёные; front 72
 - [x] docs/database.md обновлён
-- [ ] PR открыт
+- [x] PR открыт — #49
 
 ## Что осталось / блокеры
 
