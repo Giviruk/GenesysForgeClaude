@@ -29,11 +29,25 @@ vi.mock('../api/client', () => ({
 }))
 
 describe('ReferencePage', () => {
-  it('renders rule tables grouped by kind', async () => {
+  it('shows the default section and switches sections on tab click', async () => {
     render(<ReferencePage onNavigate={() => {}} />)
+    // По умолчанию открыт раздел «Сложности»; криты скрыты до переключения.
     await waitFor(() => expect(screen.getByRole('heading', { name: /Сложности/ })).toBeTruthy())
+    expect(screen.queryByRole('heading', { name: /Критические ранения/ })).toBeNull()
+
+    fireEvent.click(screen.getByRole('tab', { name: /Криты/ }))
     expect(screen.getByRole('heading', { name: /Критические ранения/ })).toBeTruthy()
     expect(screen.getByText('01-05')).toBeTruthy()
+    // Раздел «Сложности» при этом скрывается (показываем по одному).
+    expect(screen.queryByRole('heading', { name: /^Сложности/ })).toBeNull()
+  })
+
+  it('shows every section when "Все" is selected', async () => {
+    render(<ReferencePage onNavigate={() => {}} />)
+    await waitFor(() => expect(screen.getByRole('tab', { name: /Все/ })).toBeTruthy())
+    fireEvent.click(screen.getByRole('tab', { name: /Все/ }))
+    expect(screen.getByRole('heading', { name: /Сложности/ })).toBeTruthy()
+    expect(screen.getByRole('heading', { name: /Критические ранения/ })).toBeTruthy()
   })
 
   it('runs global search and navigates on hit click', async () => {

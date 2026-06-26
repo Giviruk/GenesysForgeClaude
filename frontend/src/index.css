@@ -244,6 +244,8 @@ td.nowrap, th.nowrap { white-space: nowrap; }
 .hit-subtitle { color: var(--muted); }
 .hit-snippet { display: block; color: var(--muted); font-size: 0.85rem; margin-top: 0.15rem; }
 
+.section-switch { display: flex; gap: 0.4rem; flex-wrap: wrap; margin-bottom: 0.7rem; }
+
 .rule-table { margin-top: 1.1rem; }
 .rule-table h3 { margin: 0 0 0.4rem; color: var(--accent); }
 table.ref-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }

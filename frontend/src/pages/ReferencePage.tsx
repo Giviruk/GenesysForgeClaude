@@ -17,6 +17,16 @@ const KIND_LABELS: Record<RuleTableKind, string> = {
   criticalInjury: 'Критические ранения (d100)',
 }
 
+// Короткие подписи для переключателя разделов.
+const KIND_TAB_LABELS: Record<RuleTableKind, string> = {
+  difficulty: 'Сложности',
+  symbolSpend: 'Траты',
+  rangeBand: 'Дистанции',
+  criticalInjury: 'Криты',
+}
+
+type Section = RuleTableKind | 'all'
+
 const HIT_GROUP_ORDER = ['Правила', 'Навыки', 'Таланты', 'Предметы', 'Качества',
   'Архетипы', 'Карьеры', 'Героика', 'NPC', 'Персонажи']
 
@@ -24,6 +34,7 @@ export function ReferencePage({ onNavigate }: { onNavigate: (to: string) => void
   const [system, setSystem] = useState<GameSystem>('realmsOfTerrinoth')
   const [rules, setRules] = useState<RuleTableEntry[]>([])
   const [filter, setFilter] = useState('')
+  const [section, setSection] = useState<Section>('difficulty')
   const [query, setQuery] = useState('')
   const [hits, setHits] = useState<SearchHit[] | null>(null)
   const [searching, setSearching] = useState(false)
@@ -65,6 +76,16 @@ export function ReferencePage({ onNavigate }: { onNavigate: (to: string) => void
     }
     return map
   }, [filteredRules])
+
+  // Счётчики по видам (по всему набору, не зависят от фильтра) — для подписей переключателя.
+  const kindCounts = useMemo(() => {
+    const m = new Map<RuleTableKind, number>()
+    for (const e of rules) m.set(e.kind, (m.get(e.kind) ?? 0) + 1)
+    return m
+  }, [rules])
+
+  const visibleKinds = KIND_ORDER.filter(k => section === 'all' || k === section)
+  const visibleCount = visibleKinds.reduce((n, k) => n + (byKind.get(k)?.length ?? 0), 0)
 
   const groupedHits = useMemo(() => {
     if (!hits) return []
@@ -128,6 +149,24 @@ export function ReferencePage({ onNavigate }: { onNavigate: (to: string) => void
       </div>
 
       <div className="panel">
+        {rules.length > 0 && (
+          <div className="section-switch" role="tablist">
+            <button role="tab" aria-selected={section === 'all'}
+                    className={section === 'all' ? 'tab active' : 'tab'} onClick={() => setSection('all')}>
+              Все <span className="muted">({rules.length})</span>
+            </button>
+            {KIND_ORDER.map(kind => {
+              const count = kindCounts.get(kind) ?? 0
+              if (count === 0) return null
+              return (
+                <button key={kind} role="tab" aria-selected={section === kind}
+                        className={section === kind ? 'tab active' : 'tab'} onClick={() => setSection(kind)}>
+                  {KIND_TAB_LABELS[kind]} <span className="muted">({count})</span>
+                </button>
+              )
+            })}
+          </div>
+        )}
         <input
           className="search"
           type="search"
@@ -136,13 +175,15 @@ export function ReferencePage({ onNavigate }: { onNavigate: (to: string) => void
           onChange={e => setFilter(e.target.value)}
         />
         {rules.length === 0 && !error && <p className="muted">Загрузка таблиц…</p>}
-        {KIND_ORDER.map(kind => {
+        {visibleKinds.map(kind => {
           const entries = byKind.get(kind)
           if (!entries || entries.length === 0) return null
           return <RuleTable key={kind} kind={kind} entries={entries} />
         })}
-        {rules.length > 0 && filteredRules.length === 0 && (
-          <p className="muted">Нет строк по фильтру «{filter.trim()}».</p>
+        {rules.length > 0 && visibleCount === 0 && (
+          <p className="muted">
+            {filter.trim() ? `Нет строк по фильтру «${filter.trim()}».` : 'В этом разделе нет строк.'}
+          </p>
         )}
       </div>
     </div>
