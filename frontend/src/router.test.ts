@@ -21,14 +21,16 @@ describe('parseRoute', () => {
     expect(parseRoute('/npcs/n1')).toEqual(route({ area: 'npcs', id: 'n1' }))
   })
 
-  it('parses idless areas magic and about', () => {
+  it('parses idless areas magic, reference and about', () => {
     expect(parseRoute('/magic')).toEqual(route({ area: 'magic' }))
+    expect(parseRoute('/reference')).toEqual(route({ area: 'reference' }))
     expect(parseRoute('/about')).toEqual(route({ area: 'about' }))
   })
 
   it('flags trailing segments on idless areas as unknown', () => {
     expect(parseRoute('/about/extra')).toEqual(route({ area: 'about', unknown: true }))
     expect(parseRoute('/magic/extra')).toEqual(route({ area: 'magic', unknown: true }))
+    expect(parseRoute('/reference/extra')).toEqual(route({ area: 'reference', unknown: true }))
   })
 
   it('flags unknown heads as unknown', () => {

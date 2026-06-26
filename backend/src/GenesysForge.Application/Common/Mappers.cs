@@ -34,6 +34,9 @@ public static class Mappers
     public static QualityDto ToDto(this QualityDef q) => new(q.Id, q.Code, q.NameEn, q.NameRu, q.Kind,
         q.IsActive, q.HasRating, q.ActivationCost, q.Category, q.Description, q.SafeDescription, q.Source);
 
+    public static RuleTableEntryDto ToDto(this RuleTableEntry r) => new(r.Id, r.Kind, r.Code, r.NameRu,
+        r.NameEn, r.GroupRu, r.SortOrder, r.RollRange, r.SymbolCost, r.Body, r.Notes, r.Source, r.SourcePage);
+
     public static HeroicAbilityDto ToDto(this HeroicAbilityDef h) =>
         new(h.Id, h.Name, h.NameRu, h.Description, h.SafeDescription, h.Source, h.OwnerUserId != null,
             h.Requirement, h.ActivationCost, h.Activation, h.Duration, h.Frequency, h.Notes,

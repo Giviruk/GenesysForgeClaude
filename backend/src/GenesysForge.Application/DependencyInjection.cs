@@ -10,6 +10,7 @@ using GenesysForge.Application.Features.GameTable;
 using GenesysForge.Application.Features.Notes;
 using GenesysForge.Application.Features.Npcs;
 using GenesysForge.Application.Features.Reference;
+using GenesysForge.Application.Features.Search;
 using GenesysForge.Application.Features.Spells;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -29,6 +30,10 @@ public static class DependencyInjection
 
         // Reference
         services.AddScoped<IQueryHandler<GetReferenceQuery, ReferenceResponse>, GetReferenceHandler>();
+        services.AddScoped<IQueryHandler<GetRulesQuery, RulesResponse>, GetRulesHandler>();
+
+        // Search
+        services.AddScoped<IQueryHandler<GlobalSearchQuery, SearchResponse>, GlobalSearchHandler>();
 
         // Characters
         services.AddScoped<IQueryHandler<GetCharactersQuery, List<CharacterListItemDto>>, GetCharactersHandler>();

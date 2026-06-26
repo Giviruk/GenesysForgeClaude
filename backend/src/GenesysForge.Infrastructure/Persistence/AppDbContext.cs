@@ -38,6 +38,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<CharacterAuditEntry> CharacterAuditEntries => Set<CharacterAuditEntry>();
     public DbSet<QualityDef> QualityDefs => Set<QualityDef>();
     public DbSet<ItemQualityValue> ItemQualityValues => Set<ItemQualityValue>();
+    public DbSet<RuleTableEntry> RuleTableEntries => Set<RuleTableEntry>();
 
     protected override void OnModelCreating(ModelBuilder b)
     {
@@ -170,6 +171,23 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             e.HasIndex(v => v.ItemDefId);
             e.HasOne(v => v.QualityDef).WithMany()
                 .HasForeignKey(v => v.QualityDefId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        b.Entity<RuleTableEntry>(e =>
+        {
+            e.HasIndex(r => r.Code).IsUnique();
+            e.HasIndex(r => new { r.Kind, r.SortOrder });
+            e.Property(r => r.Code).HasMaxLength(80);
+            e.Property(r => r.NameRu).HasMaxLength(200);
+            e.Property(r => r.NameEn).HasMaxLength(200);
+            e.Property(r => r.GroupRu).HasMaxLength(80);
+            e.Property(r => r.RollRange).HasMaxLength(20);
+            e.Property(r => r.SymbolCost).HasMaxLength(200);
+            e.Property(r => r.Body).HasMaxLength(2000);
+            e.Property(r => r.Notes).HasMaxLength(2000);
+            e.Property(r => r.Source).HasMaxLength(160);
+            e.Property(r => r.SourcePage).HasMaxLength(40);
+            e.Property(r => r.SearchText).HasMaxLength(4000);
         });
 
         b.Entity<Npc>(e =>

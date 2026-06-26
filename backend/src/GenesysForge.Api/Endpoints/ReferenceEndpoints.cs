@@ -21,5 +21,10 @@ public static class ReferenceEndpoints
                 throw new DomainRuleException($"Неизвестная система: «{system}».");
             return Results.Ok(await handler.Handle(new GetReferenceQuery(user.UserId(), gameSystem), ct));
         });
+
+        // Справочные таблицы правил (системо-независимы; опц. ?q= для фильтра по подстроке).
+        group.MapGet("/rules", async (string? q,
+            IQueryHandler<GetRulesQuery, RulesResponse> handler, CancellationToken ct) =>
+            Results.Ok(await handler.Handle(new GetRulesQuery(q), ct)));
     }
 }

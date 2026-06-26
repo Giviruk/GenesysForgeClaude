@@ -6,6 +6,7 @@ import { CampaignsPage } from './pages/CampaignsPage'
 import { NpcsPage } from './pages/NpcsPage'
 import { SheetPage } from './pages/SheetPage'
 import { MagicPage } from './pages/MagicPage'
+import { ReferencePage } from './pages/ReferencePage'
 import { AboutPage } from './pages/AboutPage'
 import { Footer } from './components/Footer'
 import { navigate, parseRoute, usePath, type AppArea } from './router'
@@ -38,6 +39,7 @@ function Shell() {
           <button className={route.area === 'campaigns' ? 'tab active' : 'tab'} onClick={() => go('campaigns')}>Кампании</button>
           <button className={route.area === 'npcs' ? 'tab active' : 'tab'} onClick={() => go('npcs')}>Бестиарий</button>
           <button className={route.area === 'magic' ? 'tab active' : 'tab'} onClick={() => go('magic')}>Магия</button>
+          <button className={route.area === 'reference' ? 'tab active' : 'tab'} onClick={() => go('reference')}>Справочник</button>
         </nav>
         <button className="small" onClick={() => { logout(); navigate('/login') }}>Выйти</button>
       </header>
@@ -61,7 +63,9 @@ function Shell() {
             : route.area === 'npcs'
               ? <NpcsPage openId={route.id}
                   onOpen={id => navigate(`/npcs/${id}`)} onBack={() => navigate('/npcs')} />
-              : <MagicPage />}
+              : route.area === 'magic'
+                ? <MagicPage />
+                : <ReferencePage onNavigate={navigate} />}
       <Footer />
     </div>
   )
