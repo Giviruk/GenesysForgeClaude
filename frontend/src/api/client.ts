@@ -10,7 +10,7 @@ import type {
   RollLogEntry, CreateRollRequest,
   CharacterAuditEntry,
   RulesResponse, SearchResponse,
-  ArchetypeSkillChoice,
+  ArchetypeSkillChoice, CareerGearChoice,
 } from './types'
 
 const TOKEN_KEY = 'genesysforge.token'
@@ -126,9 +126,10 @@ export const api = {
 
   characters: () => request<CharacterListItem[]>('GET', '/api/characters/'),
   createCharacter: (name: string, system: GameSystem, archetypeId: string, careerId: string,
-    freeCareerSkillNames: string[], archetypeSkillChoices: ArchetypeSkillChoice[] = []) =>
+    freeCareerSkillNames: string[], archetypeSkillChoices: ArchetypeSkillChoice[] = [],
+    careerGearChoices: CareerGearChoice[] = []) =>
     request<{ id: string }>('POST', '/api/characters/',
-      { name, system, archetypeId, careerId, freeCareerSkillNames, archetypeSkillChoices }),
+      { name, system, archetypeId, careerId, freeCareerSkillNames, archetypeSkillChoices, careerGearChoices }),
   sheet: (id: string) => request<CharacterSheet>('GET', `/api/characters/${id}`),
   exportCharacter: (id: string) => request<CharacterExport>('GET', `/api/characters/${id}/export`),
   importCharacter: (payload: CharacterExport) => request<ImportResult>('POST', '/api/characters/import', payload),

@@ -2706,5 +2706,21 @@
     "rarity": 0,
     "desc": "Снаряжение.",
     "source": "Realms of Terrinoth, с. 106"
+  },
+  {
+    "code": "adventuring-pack",
+    "name": "Adventuring Pack",
+    "nameRu": "Дорожный набор",
+    "kind": "gear",
+    "setting": "Fantasy",
+    "enc": 3,
+    "soak": 0,
+    "def": 0,
+    "rdef": 0,
+    "encBonus": 0,
+    "price": 25,
+    "rarity": 1,
+    "desc": "Базовый набор путешественника: верёвка, паёк, спальный мешок и мелкое походное снаряжение.",
+    "source": "Realms of Terrinoth, с. 102"
   }
 ]

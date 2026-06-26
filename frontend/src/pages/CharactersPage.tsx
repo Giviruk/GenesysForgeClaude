@@ -149,6 +149,8 @@ export function CreateCharacterForm({ onCancel, onCreated }: { onCancel: () => v
   const [freeSkills, setFreeSkills] = useState<string[]>([])
   // Выборы стартовых навыков вида: choiceGroup → выбранные EN-имена навыков.
   const [skillChoices, setSkillChoices] = useState<Record<string, string[]>>({})
+  // Выборы стартового снаряжения карьеры: choiceGroup → индекс выбранного варианта.
+  const [gearChoices, setGearChoices] = useState<Record<string, number>>({})
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
 
@@ -165,6 +167,7 @@ export function CreateCharacterForm({ onCancel, onCreated }: { onCancel: () => v
         setCareerId('')
         setFreeSkills([])
         setSkillChoices({})
+        setGearChoices({})
       })
       .catch((err: unknown) => {
         if (!cancelled) setError(err instanceof Error ? err.message : 'Ошибка загрузки')
@@ -183,6 +186,26 @@ export function CreateCharacterForm({ onCancel, onCreated }: { onCancel: () => v
   const choiceCandidates = (group: string) => (reference?.skills ?? [])
     .filter(s => group !== 'any-noncareer' || !career?.careerSkillNames.includes(s.name))
   const choicesComplete = choiceGroups.every(g => (skillChoices[g.choiceGroup]?.length ?? 0) === g.choiceCount)
+
+  // Стартовое снаряжение карьеры: фиксированное и слоты выбора (вариант = набор предметов).
+  const gearLabel = (g: { itemNameRu: string; quantity: number }) => g.quantity > 1 ? `${g.itemNameRu} ×${g.quantity}` : g.itemNameRu
+  const fixedGear = (career?.startingGear ?? []).filter(g => !g.isChoice)
+  const gearSlots = [...new Set((career?.startingGear ?? []).filter(g => g.isChoice).map(g => g.choiceGroup))]
+    .map(group => ({
+      group,
+      options: [...new Set(career!.startingGear.filter(g => g.isChoice && g.choiceGroup === group).map(g => g.choiceOption))]
+        .sort((a, b) => a - b)
+        .map(index => ({
+          index,
+          label: career!.startingGear
+            .filter(g => g.isChoice && g.choiceGroup === group && g.choiceOption === index)
+            .map(gearLabel).join(' + '),
+        })),
+    }))
+  const gearComplete = gearSlots.every(s => gearChoices[s.group] !== undefined)
+  const moneyLabel = career
+    ? [career.startingMoneyFixed || null, career.startingMoneyDice || null].filter(Boolean).join(' + ')
+    : ''
 
   function toggleFreeSkill(skillName: string) {
     setFreeSkills(prev => prev.includes(skillName)
@@ -206,7 +229,8 @@ export function CreateCharacterForm({ onCancel, onCreated }: { onCancel: () => v
     setBusy(true)
     try {
       const choices = choiceGroups.map(g => ({ choiceGroup: g.choiceGroup, skillNames: skillChoices[g.choiceGroup] ?? [] }))
-      const { id } = await api.createCharacter(name, system, archetypeId, careerId, freeSkills, choices)
+      const gear = gearSlots.map(s => ({ choiceGroup: s.group, optionIndex: gearChoices[s.group] }))
+      const { id } = await api.createCharacter(name, system, archetypeId, careerId, freeSkills, choices, gear)
       onCreated(id)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Ошибка создания')
@@ -282,7 +306,7 @@ export function CreateCharacterForm({ onCancel, onCreated }: { onCancel: () => v
 
         <label>
           Карьера
-          <select value={careerId} onChange={e => setCareerId(e.target.value)} required>
+          <select value={careerId} onChange={e => { setCareerId(e.target.value); setGearChoices({}) }} required>
             <option value="" disabled>— выберите —</option>
             {reference?.careers.map(c => <option key={c.id} value={c.id}>{c.nameRu || c.name}</option>)}
           </select>
@@ -304,10 +328,32 @@ export function CreateCharacterForm({ onCancel, onCreated }: { onCancel: () => v
           </div>
         )}
 
+        {career && career.startingGear.length > 0 && (
+          <div>
+            {moneyLabel && <div className="hint">Стартовые деньги: {moneyLabel} серебра</div>}
+            {fixedGear.length > 0 && <div className="hint">Снаряжение: {fixedGear.map(gearLabel).join(', ')}</div>}
+            {gearSlots.map(slot => (
+              <div key={slot.group}>
+                <div className="label-line">Снаряжение — выберите вариант:</div>
+                <div className="chips">
+                  {slot.options.map(o => (
+                    <button key={o.index} type="button"
+                      className={gearChoices[slot.group] === o.index ? 'chip active' : 'chip'}
+                      onClick={() => setGearChoices(prev => ({ ...prev, [slot.group]: o.index }))}>
+                      {o.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ))}
+            {career.rules.map(r => <div key={r.code} className="hint">{r.description}</div>)}
+          </div>
+        )}
+
         {error && <div className="error">{error}</div>}
         <div className="modal-actions">
           <button type="button" onClick={onCancel}>Отмена</button>
-          <button className="primary" type="submit" disabled={busy || !archetypeId || !careerId || !choicesComplete}>Создать</button>
+          <button className="primary" type="submit" disabled={busy || !archetypeId || !careerId || !choicesComplete || !gearComplete}>Создать</button>
         </div>
       </form>
     </div>

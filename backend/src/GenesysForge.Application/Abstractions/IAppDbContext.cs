@@ -19,6 +19,8 @@ public interface IAppDbContext
     DbSet<ArchetypeAbilityDef> ArchetypeAbilityDefs { get; }
     DbSet<ArchetypeStartingSkill> ArchetypeStartingSkills { get; }
     DbSet<CareerDef> CareerDefs { get; }
+    DbSet<CareerStartingGear> CareerStartingGears { get; }
+    DbSet<CareerRule> CareerRules { get; }
     DbSet<Character> Characters { get; }
     DbSet<CharacterSkill> CharacterSkills { get; }
     DbSet<CharacterTalent> CharacterTalents { get; }

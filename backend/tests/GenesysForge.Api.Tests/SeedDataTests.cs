@@ -249,6 +249,56 @@ public class SeedDataTests
     }
 
     [Fact]
+    public void Apply_SeedsCareerStartingGearMoneyAndRules()
+    {
+        using var db = NewDb();
+        SeedData.Apply(db);
+
+        Domain.Entities.CareerDef Get(string nameRu) => db.CareerDefs
+            .Include(c => c.StartingGear).Include(c => c.Rules)
+            .Single(c => c.NameRu == nameRu && c.System == GameSystem.RealmsOfTerrinoth);
+
+        // Воин: бросок денег, фиксированная броня и слот выбора оружия с несколькими вариантами.
+        var warrior = Get("Воин");
+        Assert.Equal("1d100", warrior.StartingMoneyDice);
+        Assert.Contains(warrior.StartingGear, g => !g.IsChoice && g.ItemCode == "leather");
+        var choiceGroup = warrior.StartingGear.Where(g => g.IsChoice).Select(g => g.ChoiceGroup).Distinct().Single();
+        var options = warrior.StartingGear.Where(g => g.IsChoice && g.ChoiceGroup == choiceGroup)
+            .Select(g => g.ChoiceOption).Distinct().ToList();
+        Assert.True(options.Count >= 2);
+
+        // Посланник: фиксированная часть денег «200 + 1d100».
+        Assert.Equal(200, Get("Посланник").StartingMoneyFixed);
+
+        // Core-карьеры — без стартового снаряжения.
+        var core = db.CareerDefs.Include(c => c.StartingGear).Where(c => c.System == GameSystem.GenesysCore).ToList();
+        Assert.All(core, c => Assert.Empty(c.StartingGear));
+
+        // Все коды снаряжения резолвятся к засиженным предметам своей системы (gear-карьеры — RoT).
+        foreach (var career in db.CareerDefs.Include(c => c.StartingGear).Where(c => c.StartingGear.Count > 0))
+        {
+            var codes = db.ItemDefs.Where(i => i.System == career.System).Select(i => i.Code).ToHashSet();
+            foreach (var g in career.StartingGear.Where(g => g.ItemCode.Length > 0))
+                Assert.Contains($"rot.item.{g.ItemCode}", codes);
+        }
+    }
+
+    [Fact]
+    public void Apply_CareerExtras_Idempotent()
+    {
+        using var db = NewDb();
+        SeedData.Apply(db);
+        var gear = db.CareerStartingGears.Count();
+        var rules = db.CareerRules.Count();
+        Assert.True(gear > 0);
+
+        SeedData.Apply(db); // повторный сид не плодит дочерние строки
+
+        Assert.Equal(gear, db.CareerStartingGears.Count());
+        Assert.Equal(rules, db.CareerRules.Count());
+    }
+
+    [Fact]
     public void Apply_DoesNotTouchCustomContent()
     {
         using var db = NewDb();
