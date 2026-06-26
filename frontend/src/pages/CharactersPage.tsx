@@ -171,6 +171,8 @@ function CreateCharacterForm({ onCancel, onCreated }: { onCancel: () => void; on
 
   const archetype = reference?.archetypes.find(a => a.id === archetypeId)
   const career = reference?.careers.find(c => c.id === careerId)
+  // EN-имя навыка → RU для подписей чипов (значение для бэкенда остаётся английским).
+  const skillRu = (name: string) => reference?.skills.find(s => s.name === name)?.nameRu || name
 
   function toggleFreeSkill(skillName: string) {
     setFreeSkills(prev => prev.includes(skillName)
@@ -218,13 +220,14 @@ function CreateCharacterForm({ onCancel, onCreated }: { onCancel: () => void; on
           {system === 'realmsOfTerrinoth' ? 'Раса (архетип)' : 'Архетип'}
           <select value={archetypeId} onChange={e => setArchetypeId(e.target.value)} required>
             <option value="" disabled>— выберите —</option>
-            {reference?.archetypes.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
+            {reference?.archetypes.map(a => <option key={a.id} value={a.id}>{a.nameRu || a.name}</option>)}
           </select>
         </label>
         {archetype && (
           <div className="hint">
             {CHARACTERISTICS.map(c => `${CHARACTERISTIC_LABELS[c]} ${archetype[c]}`).join(' · ')}
             <br />Раны {archetype.woundBase}+Мощь · Стрейн {archetype.strainBase}+Воля · Старт. XP {archetype.startingXp}
+            {archetype.safeDescription && <><br />{archetype.safeDescription}</>}
           </div>
         )}
 
@@ -232,7 +235,7 @@ function CreateCharacterForm({ onCancel, onCreated }: { onCancel: () => void; on
           Карьера
           <select value={careerId} onChange={e => setCareerId(e.target.value)} required>
             <option value="" disabled>— выберите —</option>
-            {reference?.careers.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+            {reference?.careers.map(c => <option key={c.id} value={c.id}>{c.nameRu || c.name}</option>)}
           </select>
         </label>
 
@@ -245,7 +248,7 @@ function CreateCharacterForm({ onCancel, onCreated }: { onCancel: () => void; on
                 <button key={s} type="button"
                   className={freeSkills.includes(s) ? 'chip active' : 'chip'}
                   onClick={() => toggleFreeSkill(s)}>
-                  {s}
+                  {skillRu(s)}
                 </button>
               ))}
             </div>
