@@ -139,6 +139,30 @@ export interface Spell {
   isCustom: boolean
 }
 
+export type ArchetypeAbilityAutomationKind = 'passive' | 'activationCost' | 'timedEffect' | 'manual' | 'requiresGmDecision'
+
+export interface ArchetypeAbility {
+  code: string
+  nameRu: string
+  nameEn: string
+  safeDescription: string
+  automationKind: ArchetypeAbilityAutomationKind
+}
+
+export interface ArchetypeStartingSkill {
+  skillName: string
+  nameRu: string
+  freeRanks: number
+  isChoice: boolean
+  choiceGroup: string
+  choiceCount: number
+}
+
+export interface ArchetypeSkillChoice {
+  choiceGroup: string
+  skillNames: string[]
+}
+
 export interface Archetype {
   id: string
   name: string
@@ -155,6 +179,8 @@ export interface Archetype {
   description: string
   safeDescription: string
   source: string
+  abilities: ArchetypeAbility[]
+  startingSkills: ArchetypeStartingSkill[]
 }
 
 export interface Career {

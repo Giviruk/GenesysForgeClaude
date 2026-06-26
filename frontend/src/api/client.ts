@@ -10,6 +10,7 @@ import type {
   RollLogEntry, CreateRollRequest,
   CharacterAuditEntry,
   RulesResponse, SearchResponse,
+  ArchetypeSkillChoice,
 } from './types'
 
 const TOKEN_KEY = 'genesysforge.token'
@@ -124,8 +125,10 @@ export const api = {
     request<Spell[]>('GET', `/api/spells/${system === 'genesysCore' ? 'GenesysCore' : 'RealmsOfTerrinoth'}`),
 
   characters: () => request<CharacterListItem[]>('GET', '/api/characters/'),
-  createCharacter: (name: string, system: GameSystem, archetypeId: string, careerId: string, freeCareerSkillNames: string[]) =>
-    request<{ id: string }>('POST', '/api/characters/', { name, system, archetypeId, careerId, freeCareerSkillNames }),
+  createCharacter: (name: string, system: GameSystem, archetypeId: string, careerId: string,
+    freeCareerSkillNames: string[], archetypeSkillChoices: ArchetypeSkillChoice[] = []) =>
+    request<{ id: string }>('POST', '/api/characters/',
+      { name, system, archetypeId, careerId, freeCareerSkillNames, archetypeSkillChoices }),
   sheet: (id: string) => request<CharacterSheet>('GET', `/api/characters/${id}`),
   exportCharacter: (id: string) => request<CharacterExport>('GET', `/api/characters/${id}/export`),
   importCharacter: (payload: CharacterExport) => request<ImportResult>('POST', '/api/characters/import', payload),

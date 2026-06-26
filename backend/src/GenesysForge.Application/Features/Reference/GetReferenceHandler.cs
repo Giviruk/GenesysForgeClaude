@@ -13,9 +13,13 @@ public class GetReferenceHandler(IAppDbContext db) : IQueryHandler<GetReferenceQ
         var (userId, system) = (query.UserId, query.System);
 
         // Retired виды остаются в БД ради уже созданных персонажей, но не предлагаются при создании.
-        var archetypes = await db.ArchetypeDefs.AsNoTracking()
+        // Материализуем с дочерними коллекциями (способности/стартовые навыки) и маппим в памяти.
+        var archetypeDefs = await db.ArchetypeDefs.AsNoTracking()
+            .Include(a => a.Abilities)
+            .Include(a => a.StartingSkills)
             .Where(a => a.System == system && !a.Retired).OrderBy(a => a.NameRu)
-            .Select(a => a.ToDto()).ToListAsync(ct);
+            .ToListAsync(ct);
+        var archetypes = archetypeDefs.Select(a => a.ToDto()).ToList();
 
         var careers = await db.CareerDefs.AsNoTracking()
             .Where(c => c.System == system).OrderBy(c => c.NameRu)

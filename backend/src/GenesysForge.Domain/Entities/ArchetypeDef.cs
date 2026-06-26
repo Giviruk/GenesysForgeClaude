@@ -30,4 +30,9 @@ public class ArchetypeDef : IContentDef
     /// уже созданных персонажей (FK). Выставляется сидом для built-in видов, которых больше нет в каталоге.
     /// </summary>
     public bool Retired { get; set; }
+
+    /// <summary>Видовые способности (структурно). См. <see cref="ArchetypeAbilityDef"/>.</summary>
+    public List<ArchetypeAbilityDef> Abilities { get; set; } = [];
+    /// <summary>Стартовые навыки вида. См. <see cref="ArchetypeStartingSkill"/>.</summary>
+    public List<ArchetypeStartingSkill> StartingSkills { get; set; } = [];
 }

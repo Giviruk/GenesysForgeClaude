@@ -140,13 +140,15 @@ function ImportCharacterModal({ payload, preview, onCancel, onImported }: {
   )
 }
 
-function CreateCharacterForm({ onCancel, onCreated }: { onCancel: () => void; onCreated: (id: string) => void }) {
+export function CreateCharacterForm({ onCancel, onCreated }: { onCancel: () => void; onCreated: (id: string) => void }) {
   const [system, setSystem] = useState<GameSystem>('genesysCore')
   const [loaded, setLoaded] = useState<{ system: GameSystem; data: Reference } | null>(null)
   const [name, setName] = useState('')
   const [archetypeId, setArchetypeId] = useState('')
   const [careerId, setCareerId] = useState('')
   const [freeSkills, setFreeSkills] = useState<string[]>([])
+  // Выборы стартовых навыков вида: choiceGroup → выбранные EN-имена навыков.
+  const [skillChoices, setSkillChoices] = useState<Record<string, string[]>>({})
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
 
@@ -162,6 +164,7 @@ function CreateCharacterForm({ onCancel, onCreated }: { onCancel: () => void; on
         setArchetypeId('')
         setCareerId('')
         setFreeSkills([])
+        setSkillChoices({})
       })
       .catch((err: unknown) => {
         if (!cancelled) setError(err instanceof Error ? err.message : 'Ошибка загрузки')
@@ -174,10 +177,27 @@ function CreateCharacterForm({ onCancel, onCreated }: { onCancel: () => void; on
   // EN-имя навыка → RU для подписей чипов (значение для бэкенда остаётся английским).
   const skillRu = (name: string) => reference?.skills.find(s => s.name === name)?.nameRu || name
 
+  const fixedStartingSkills = (archetype?.startingSkills ?? []).filter(s => !s.isChoice && s.skillName)
+  const choiceGroups = (archetype?.startingSkills ?? []).filter(s => s.isChoice)
+  // Кандидаты для выбора: для «any-noncareer» — навыки вне карьерных (как валидирует бэкенд).
+  const choiceCandidates = (group: string) => (reference?.skills ?? [])
+    .filter(s => group !== 'any-noncareer' || !career?.careerSkillNames.includes(s.name))
+  const choicesComplete = choiceGroups.every(g => (skillChoices[g.choiceGroup]?.length ?? 0) === g.choiceCount)
+
   function toggleFreeSkill(skillName: string) {
     setFreeSkills(prev => prev.includes(skillName)
       ? prev.filter(s => s !== skillName)
       : prev.length < 4 ? [...prev, skillName] : prev)
+  }
+
+  function toggleChoiceSkill(group: string, skillName: string, max: number) {
+    setSkillChoices(prev => {
+      const cur = prev[group] ?? []
+      const next = cur.includes(skillName)
+        ? cur.filter(s => s !== skillName)
+        : cur.length < max ? [...cur, skillName] : cur
+      return { ...prev, [group]: next }
+    })
   }
 
   async function submit(e: FormEvent) {
@@ -185,7 +205,8 @@ function CreateCharacterForm({ onCancel, onCreated }: { onCancel: () => void; on
     setError(null)
     setBusy(true)
     try {
-      const { id } = await api.createCharacter(name, system, archetypeId, careerId, freeSkills)
+      const choices = choiceGroups.map(g => ({ choiceGroup: g.choiceGroup, skillNames: skillChoices[g.choiceGroup] ?? [] }))
+      const { id } = await api.createCharacter(name, system, archetypeId, careerId, freeSkills, choices)
       onCreated(id)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Ошибка создания')
@@ -218,7 +239,8 @@ function CreateCharacterForm({ onCancel, onCreated }: { onCancel: () => void; on
 
         <label>
           {system === 'realmsOfTerrinoth' ? 'Раса (архетип)' : 'Архетип'}
-          <select value={archetypeId} onChange={e => setArchetypeId(e.target.value)} required>
+          <select value={archetypeId}
+            onChange={e => { setArchetypeId(e.target.value); setSkillChoices({}) }} required>
             <option value="" disabled>— выберите —</option>
             {reference?.archetypes.map(a => <option key={a.id} value={a.id}>{a.nameRu || a.name}</option>)}
           </select>
@@ -227,9 +249,36 @@ function CreateCharacterForm({ onCancel, onCreated }: { onCancel: () => void; on
           <div className="hint">
             {CHARACTERISTICS.map(c => `${CHARACTERISTIC_LABELS[c]} ${archetype[c]}`).join(' · ')}
             <br />Раны {archetype.woundBase}+Мощь · Стрейн {archetype.strainBase}+Воля · Старт. XP {archetype.startingXp}
-            {archetype.safeDescription && <><br />{archetype.safeDescription}</>}
+            {fixedStartingSkills.length > 0 && (
+              <><br />Стартовые навыки: {fixedStartingSkills
+                .map(s => `${s.nameRu || skillRu(s.skillName)}${s.freeRanks > 1 ? ` ${s.freeRanks}` : ''}`)
+                .join(', ')}</>
+            )}
+            {archetype.abilities.map(ab => (
+              <div key={ab.code}><strong>{ab.nameRu}</strong>{ab.safeDescription ? `: ${ab.safeDescription.replace(new RegExp(`^${ab.nameRu}:\\s*`), '')}` : ''}</div>
+            ))}
           </div>
         )}
+        {archetype && choiceGroups.map(g => {
+          const picked = skillChoices[g.choiceGroup] ?? []
+          return (
+            <div key={g.choiceGroup}>
+              <div className="label-line">
+                Стартовые навыки вида — выберите {g.choiceCount} разных некарьерных ({picked.length}/{g.choiceCount}):
+              </div>
+              {g.choiceGroup === 'any-noncareer' && !career && <div className="hint">Сначала выберите карьеру.</div>}
+              <div className="chips">
+                {choiceCandidates(g.choiceGroup).map(s => (
+                  <button key={s.id} type="button"
+                    className={picked.includes(s.name) ? 'chip active' : 'chip'}
+                    onClick={() => toggleChoiceSkill(g.choiceGroup, s.name, g.choiceCount)}>
+                    {s.nameRu || s.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )
+        })}
 
         <label>
           Карьера
@@ -258,7 +307,7 @@ function CreateCharacterForm({ onCancel, onCreated }: { onCancel: () => void; on
         {error && <div className="error">{error}</div>}
         <div className="modal-actions">
           <button type="button" onClick={onCancel}>Отмена</button>
-          <button className="primary" type="submit" disabled={busy || !archetypeId || !careerId}>Создать</button>
+          <button className="primary" type="submit" disabled={busy || !archetypeId || !careerId || !choicesComplete}>Создать</button>
         </div>
       </form>
     </div>
