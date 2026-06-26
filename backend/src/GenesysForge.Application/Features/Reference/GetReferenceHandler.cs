@@ -12,12 +12,13 @@ public class GetReferenceHandler(IAppDbContext db) : IQueryHandler<GetReferenceQ
     {
         var (userId, system) = (query.UserId, query.System);
 
+        // Retired виды остаются в БД ради уже созданных персонажей, но не предлагаются при создании.
         var archetypes = await db.ArchetypeDefs.AsNoTracking()
-            .Where(a => a.System == system).OrderBy(a => a.Name)
+            .Where(a => a.System == system && !a.Retired).OrderBy(a => a.NameRu)
             .Select(a => a.ToDto()).ToListAsync(ct);
 
         var careers = await db.CareerDefs.AsNoTracking()
-            .Where(c => c.System == system).OrderBy(c => c.Name)
+            .Where(c => c.System == system).OrderBy(c => c.NameRu)
             .Select(c => c.ToDto()).ToListAsync(ct);
 
         var skills = await db.SkillDefs.AsNoTracking()

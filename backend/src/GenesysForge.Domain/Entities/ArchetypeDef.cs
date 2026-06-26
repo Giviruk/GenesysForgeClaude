@@ -25,4 +25,9 @@ public class ArchetypeDef : IContentDef
     public string SafeDescription { get; set; } = "";
     /// <summary>Ссылка на источник: книга/раздел/страница. Доступна в обоих режимах.</summary>
     public string Source { get; set; } = "";
+    /// <summary>
+    /// Устаревший встроенный вид: не предлагается при создании персонажа, но остаётся в БД ради
+    /// уже созданных персонажей (FK). Выставляется сидом для built-in видов, которых больше нет в каталоге.
+    /// </summary>
+    public bool Retired { get; set; }
 }
