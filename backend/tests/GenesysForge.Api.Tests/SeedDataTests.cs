@@ -81,6 +81,27 @@ public class SeedDataTests
     }
 
     [Fact]
+    public void Apply_UpsertsRuleTables_RestoresChangedFieldsFromCatalog()
+    {
+        using var db = NewDb();
+        SeedData.Apply(db);
+
+        // имитируем «старую» БД: у строк дистанций ещё не было под-раздела (groupRu пустой)
+        var ranges = db.RuleTableEntries.Where(r => r.Kind == Domain.Entities.RuleTableKind.RangeBand).ToList();
+        Assert.NotEmpty(ranges);
+        foreach (var r in ranges) r.GroupRu = "";
+        db.SaveChanges();
+        var countBefore = db.RuleTableEntries.Count();
+
+        SeedData.Apply(db); // upsert должен синхронизировать поля с каталогом, не плодя дублей
+
+        Assert.Equal(countBefore, db.RuleTableEntries.Count());
+        var restored = db.RuleTableEntries.Where(r => r.Kind == Domain.Entities.RuleTableKind.RangeBand).ToList();
+        Assert.All(restored, r => Assert.Contains(r.GroupRu, new[] { "Общая информация", "Перемещение" }));
+        Assert.Contains(restored, r => r.GroupRu == "Перемещение");
+    }
+
+    [Fact]
     public void Apply_DoesNotTouchCustomContent()
     {
         using var db = NewDb();
