@@ -3,7 +3,7 @@
 - **Roadmap:** U-13 — структурные модели карьер + стартовое снаряжение (см. [unified-roadmap.md](../unified-roadmap.md)); источник GF-007 / Аудит §3.
 - **Ветка:** `feature/u13-career-models`
 - **Базовая ветка:** `master` (стек пуст — U-01…U-12 слиты).
-- **PR:** _(заполняется после открытия)_
+- **PR:** [#53](https://github.com/Giviruk/GenesysForgeClaude/pull/53)
 - **Статус:** 🚧 In progress
 
 ## Контекст
@@ -28,7 +28,7 @@
 - [x] Frontend: типы, `createCharacter` клиент, `CharactersPage` — деньги/снаряжение/правила, пикер вариантов, блокировка submit.
 - [x] Тесты: SeedData (gear/money/rules, идемпотентность, резолв кодов), CreateCharacter (фикс/выбор/деньги-диапазон/невалидный индекс), правка теста брони на дельты; Vitest CharactersPage. Api 176 / Domain 65 / front 75 зелёные.
 - [x] docs/database.md, docs/domain-model.md обновлены.
-- [ ] PR открыт.
+- [x] PR открыт — #53.
 
 ## Что осталось / блокеры
 
