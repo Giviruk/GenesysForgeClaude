@@ -3,7 +3,7 @@
 - **Roadmap:** U-12 — структурные модели видов (см. [unified-roadmap.md](../unified-roadmap.md)); источник GF-006 / Аудит §3.
 - **Ветка:** `feature/u12-archetype-models`
 - **Базовая ветка:** `master` (стек пуст — U-01…U-11 + archetype-roster-refresh слиты).
-- **PR:** _(заполняется после открытия)_
+- **PR:** [#52](https://github.com/Giviruk/GenesysForgeClaude/pull/52)
 - **Статус:** 🚧 In progress
 
 ## Контекст
@@ -31,7 +31,7 @@
 - [x] Frontend: типы, `createCharacter` клиент, `CharactersPage` — показ способностей/навыков, пикер выбора, блокировка submit.
 - [x] Тесты: SeedData (структура/идемпотентность/восстановление), CreateCharacter (фикс/выбор/валидация); Vitest CharactersPage. Api 170 / Domain 65 / front 74 зелёные.
 - [x] docs/database.md, docs/domain-model.md обновлены.
-- [ ] PR открыт.
+- [x] PR открыт — #52.
 
 ## Что осталось / блокеры
 

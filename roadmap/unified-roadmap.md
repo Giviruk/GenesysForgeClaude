@@ -151,7 +151,7 @@
 - **DoD:** мастер видит таблицы трат/сложностей/дистанций/критов; поиск находит по названию/символу.
 
 ## U-12 · Структурные модели архетипов/видов
-- **Статус:** 🚧 In progress
+- **Статус:** 🚧 In progress (PR #52)
 - **Подготовка:** ростер видов/карьер + RU-имена при создании уже сделаны (PR #49/#51, см. [archetype-roster-refresh.md](tasks/archetype-roster-refresh.md)); способности/стартовые навыки видов вынесены в структурные `ArchetypeAbilityDef`/`ArchetypeStartingSkill` (см. [u12-archetype-models.md](tasks/u12-archetype-models.md)).
 - **Источник:** GF-006 · Аудит §3
 - **Scope (B):** `ArchetypeAbilityDef` (видовые способности + AutomationKind) и `ArchetypeStartingSkill` (FreeRanks/IsChoice/ChoiceGroup). Применять стартовые навыки/выборы при создании.
