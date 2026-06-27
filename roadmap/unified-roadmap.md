@@ -167,7 +167,7 @@
 - **DoD:** RoT-карьеры выдают стартовое снаряжение в инвентарь; правила выбора в UI; карьерные навыки остаются data-driven.
 
 ## U-14 · Структурированные атаки NPC
-- **Статус:** 🚧 In progress (PR #54)
+- **Статус:** ✅ Done (PR #54)
 - **Детали:** `NpcAttack` + `NpcAttackQuality` (качества через каталог `QualityDef` из U-10); backfill боевых строк из `Equipment` парсером; генератор/QuickDraft выдают структурные атаки. См. [u14-npc-attacks.md](tasks/u14-npc-attacks.md).
 - **Источник:** GF-008 · Аудит §5
 - **Зачем:** `Npc.Equipment` = `List<string>` — мало для боя/карточек/импорта.
@@ -176,7 +176,7 @@
 - **DoD:** у NPC несколько структурных атак; Encounter/Game Table их видят; карточка пригодна для стола.
 
 ## U-15 · Валидация NPC + соответствие правилам создания adversary
-- **Статус:** ⬜ Todo
+- **Статус:** 🚧 In progress
 - **Источник:** GF-009 · Аудит §5 · правила [_books/_npc/genesys_adversary_creation_rules_for_claude.json](../_books/_npc/genesys_adversary_creation_rules_for_claude.json)
 - **Детали:** расширен после аудита U-14 — NPC должны создаваться по правилам adversary (Minion/Rival/Nemesis). См. [u15-npc-validation.md](tasks/u15-npc-validation.md). Четыре блока:
   - **Гарды валидации** (`NpcValidationResult { Errors, Warnings }`): defense >4 warning / >6 error; soak чрезмерный (>7) warning; лимит ~8 навыков warning; magic NPC должен иметь магнавык+заклинания; атаки требуют skill/damage/range, crit ≥1 или пусто, качества из справочника или custom; Minion strain=null + **без рангов** (group skills); Rival strain обычно пуст (warning при наличии); Nemesis strain обязателен.
