@@ -16,6 +16,8 @@ public static class NpcMapper
         npc.Visibility, npc.CampaignId, npc.OwnerUserId == userId,
         npc.Skills.OrderBy(s => s.Name).Select(s => new NpcSkillDto(s.Name, s.Ranks)).ToList(),
         npc.Abilities.Select(a => new NpcAbilityDto(a.Name, a.Description)).ToList(),
+        npc.Attacks.Select(a => new NpcAttackDto(a.Name, a.SkillName, a.Damage, a.Critical, a.RangeBand, a.Notes,
+            a.Qualities.Select(q => new NpcAttackQualityDto(q.QualityCode, q.NameRu, q.Rating)).ToList())).ToList(),
         npc.Talents, npc.Equipment, npc.Tags,
         npc.CreatedAt, npc.UpdatedAt);
 
@@ -28,7 +30,8 @@ public static class NpcMapper
     /// <summary>Загружает NPC с коллекциями или бросает «не найден».</summary>
     public static async Task<Npc> LoadAsync(IAppDbContext db, Guid id, CancellationToken ct, bool tracking = false)
     {
-        var query = db.Npcs.Include(n => n.Skills).Include(n => n.Abilities).AsQueryable();
+        var query = db.Npcs.Include(n => n.Skills).Include(n => n.Abilities)
+            .Include(n => n.Attacks).ThenInclude(a => a.Qualities).AsQueryable();
         if (!tracking) query = query.AsNoTracking();
         return await query.FirstOrDefaultAsync(n => n.Id == id, ct)
             ?? throw new DomainRuleException("NPC не найден.");
@@ -91,7 +94,50 @@ public static class NpcMapper
             .Where(a => !string.IsNullOrWhiteSpace(a.Name))
             .Select(a => new NpcAbility { NpcId = npc.Id, Name = a.Name.Trim(), Description = a.Description?.Trim() ?? "" })
             .ToList();
+        npc.Attacks = (input.Attacks ?? [])
+            .Where(a => !string.IsNullOrWhiteSpace(a.Name))
+            .Select(a => new NpcAttack
+            {
+                NpcId = npc.Id,
+                Name = a.Name.Trim(),
+                SkillName = a.SkillName?.Trim() ?? "",
+                Damage = a.Damage?.Trim() ?? "",
+                Critical = a.Critical?.Trim() ?? "",
+                RangeBand = a.RangeBand?.Trim() ?? "",
+                Notes = a.Notes?.Trim() ?? "",
+                Qualities = (a.Qualities ?? [])
+                    .Where(q => !string.IsNullOrWhiteSpace(q.QualityCode) || !string.IsNullOrWhiteSpace(q.NameRu))
+                    .Select(q => new NpcAttackQuality
+                    {
+                        QualityCode = q.QualityCode?.Trim() ?? "",
+                        NameRu = q.NameRu?.Trim() ?? "",
+                        Rating = q.Rating,
+                    }).ToList(),
+            }).ToList();
         npc.UpdatedAt = DateTime.UtcNow;
+    }
+
+    /// <summary>
+    /// Привязывает качества атак к справочнику <see cref="QualityDef"/> по коду: проставляет
+    /// <c>QualityDefId</c>, канонизирует <c>NameRu</c> и обнуляет рейтинг у безрейтинговых качеств.
+    /// Несопоставленные коды остаются кастомными (QualityDefId = null). Вызывать после <see cref="Apply"/>.
+    /// </summary>
+    public static async Task ResolveAttackQualitiesAsync(IAppDbContext db, Npc npc, CancellationToken ct)
+    {
+        var codes = npc.Attacks.SelectMany(a => a.Qualities)
+            .Select(q => q.QualityCode).Where(c => c.Length > 0).Distinct().ToList();
+        if (codes.Count == 0) return;
+
+        var defs = await db.QualityDefs.AsNoTracking()
+            .Where(q => codes.Contains(q.Code)).ToDictionaryAsync(q => q.Code, ct);
+
+        foreach (var quality in npc.Attacks.SelectMany(a => a.Qualities))
+        {
+            if (!defs.TryGetValue(quality.QualityCode, out var def)) continue;
+            quality.QualityDefId = def.Id;
+            if (!string.IsNullOrWhiteSpace(def.NameRu)) quality.NameRu = def.NameRu;
+            if (!def.HasRating) quality.Rating = null;
+        }
     }
 
     private static List<string> Clean(List<string>? values) =>

@@ -1,14 +1,14 @@
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react'
 import { api } from '../api/client'
 import type {
-  Characteristic, GameSystem, NpcCombatStyle, NpcDetail, NpcInput, NpcKind, NpcListItem,
-  NpcPowerLevel, NpcRole, NpcVisibility, QuickDraftRequest, Reference,
+  Characteristic, GameSystem, NpcAttackEntry, NpcCombatStyle, NpcDetail, NpcInput, NpcKind, NpcListItem,
+  NpcPowerLevel, NpcRole, NpcVisibility, Quality, QuickDraftRequest, Reference, SkillDef,
 } from '../api/types'
 import {
   CHARACTERISTICS, CHARACTERISTIC_LABELS, ITEM_KIND_LABELS, NPC_COMBAT_STYLE_LABELS, NPC_KIND_LABELS,
   NPC_KINDS, NPC_POWER_LABELS, NPC_ROLE_LABELS, NPC_ROLES, NPC_VISIBILITY_LABELS, SYSTEM_LABELS,
 } from '../utils/labels'
-import { npcSkillViews, skillIndex, splitEquipment, type NpcGearView } from '../utils/npcStats'
+import { npcAttackViews, npcGearViews, npcSkillViews, skillIndex, type NpcGearView } from '../utils/npcStats'
 import { DicePoolView } from '../components/DicePoolView'
 import { PropertyTags } from '../components/PropertyTags'
 import { PrintPreview } from '../components/print/PrintPreview'
@@ -174,9 +174,8 @@ function NpcDetailView({ npcId, reloadToken, onEdit, onDuplicated, onDeleted }: 
   // Пулы навыков и разбор снаряжения на оружие/прочее — пересчитываем при смене NPC/справочника.
   const index = useMemo(() => skillIndex(reference), [reference])
   const skills = useMemo(() => (n ? npcSkillViews(n, index) : []), [n, index])
-  const { weapons, gear } = useMemo(() => (
-    n ? splitEquipment(n, reference) : { weapons: [], gear: [] }
-  ), [n, reference])
+  const attacks = useMemo(() => (n ? npcAttackViews(n, reference) : []), [n, reference])
+  const gear = useMemo(() => (n ? npcGearViews(n, reference) : []), [n, reference])
 
   if (error) return <div className="panel bestiary-empty"><div className="error">{error}</div></div>
   if (!n) return <div className="panel bestiary-empty"><p className="muted">Загрузка…</p></div>
@@ -268,11 +267,11 @@ function NpcDetailView({ npcId, reloadToken, onEdit, onDuplicated, onDeleted }: 
           </div>
         )}
 
-        {weapons.length > 0 && (
+        {attacks.length > 0 && (
           <div className="npc-section">
-            <h4>Оружие</h4>
+            <h4>Атаки</h4>
             <ul className="npc-weapon-list">
-              {weapons.map((w, i) => (
+              {attacks.map((w, i) => (
                 <li key={i} className="npc-weapon">
                   <div className="npc-weapon-head">
                     <strong>{w.name}</strong>
@@ -281,14 +280,19 @@ function NpcDetailView({ npcId, reloadToken, onEdit, onDuplicated, onDeleted }: 
                           <DicePoolView pool={w.pool} />
                           {w.skillLabel && <span className="muted small-text">{w.skillLabel}</span>}
                         </span>
-                      : <span className="muted small-text">навык не освоен</span>}
+                      : w.skillLabel === null && <span className="muted small-text">навык не указан</span>}
                   </div>
                   <div className="npc-weapon-stats">
                     <span className="weapon-stat">Урон <strong>{w.damageText}</strong></span>
                     {w.crit && <span className="weapon-stat">Крит <strong>{w.crit}</strong></span>}
                     {w.rangeBand && <span className="weapon-stat">{w.rangeBand}</span>}
                   </div>
-                  {w.properties && <PropertyTags properties={w.properties} className="weapon-props small-text" />}
+                  {w.qualities.length > 0 && (
+                    <div className="chips weapon-props small-text">
+                      {w.qualities.map((q, j) => <span key={j} className="chip">{q.label}</span>)}
+                    </div>
+                  )}
+                  {w.notes && <div className="muted small-text">{w.notes}</div>}
                 </li>
               ))}
             </ul>
@@ -349,7 +353,7 @@ const EMPTY_INPUT: NpcInput = {
   brawn: 2, agility: 2, intellect: 2, cunning: 2, willpower: 2, presence: 2,
   woundThreshold: 10, strainThreshold: 10, soak: 2, meleeDefense: 0, rangedDefense: 0,
   visibility: 'private', campaignId: null,
-  skills: [], abilities: [], talents: [], equipment: [], tags: [],
+  skills: [], abilities: [], attacks: [], talents: [], equipment: [], tags: [],
 }
 
 function toInput(n: NpcDetail): NpcInput {
@@ -457,6 +461,8 @@ function NpcEditor({ initial, onCancel, onSaved }: {
         </div>
 
         <SkillsEditor skills={form.skills} available={reference?.skills ?? []} onChange={s => set('skills', s)} />
+        <AttacksEditor attacks={form.attacks} skills={reference?.skills ?? []} qualities={reference?.qualities ?? []}
+          onChange={a => set('attacks', a)} />
         <AbilitiesEditor abilities={form.abilities} onChange={a => set('abilities', a)} />
         <PickListEditor label="Таланты" values={form.talents} options={reference?.talents ?? []}
           onChange={v => set('talents', v)} placeholder="Выберите талант из списка" />
@@ -556,6 +562,75 @@ function AbilitiesEditor({ abilities, onChange }: { abilities: NpcInput['abiliti
         </div>
       ))}
       <button type="button" className="small" onClick={() => onChange([...abilities, { name: '', description: '' }])}>+ Способность</button>
+    </div>
+  )
+}
+
+const EMPTY_ATTACK: NpcAttackEntry = {
+  name: '', skillName: '', damage: '', critical: '', rangeBand: '', notes: '', qualities: [],
+}
+
+/** Редактор структурных атак NPC: имя, навык, урон/крит/дистанция и качества из справочника. */
+function AttacksEditor({ attacks, skills, qualities, onChange }: {
+  attacks: NpcAttackEntry[]; skills: SkillDef[]; qualities: Quality[]
+  onChange: (a: NpcAttackEntry[]) => void
+}) {
+  const upd = (i: number, patch: Partial<NpcAttackEntry>) =>
+    onChange(attacks.map((x, j) => j === i ? { ...x, ...patch } : x))
+  return (
+    <div className="list-editor">
+      <div className="label-line">Атаки</div>
+      {attacks.map((a, i) => {
+        const remaining = qualities.filter(q => !a.qualities.some(x => x.qualityCode === q.code))
+        return (
+          <div key={i} className="ability-edit">
+            <div className="form-row">
+              <input className="grow" placeholder="Название атаки/оружия" value={a.name}
+                onChange={e => upd(i, { name: e.target.value })} />
+              <button type="button" className="danger small" onClick={() => onChange(attacks.filter((_, j) => j !== i))}>×</button>
+            </div>
+            <div className="form-row">
+              <select className="grow" value={a.skillName} onChange={e => upd(i, { skillName: e.target.value })}>
+                <option value="">— навык броска —</option>
+                {a.skillName !== '' && !skills.some(s => s.name === a.skillName) &&
+                  <option value={a.skillName}>{a.skillName} (вне справочника)</option>}
+                {skills.filter(s => s.kind === 'combat' || s.kind === 'magic').map(s => (
+                  <option key={s.name} value={s.name}>{refLabel(s)}</option>
+                ))}
+              </select>
+            </div>
+            <div className="form-row">
+              <label className="char-input">Урон<input value={a.damage} placeholder="+3 / 7"
+                onChange={e => upd(i, { damage: e.target.value })} /></label>
+              <label className="char-input">Крит<input value={a.critical} placeholder="2"
+                onChange={e => upd(i, { critical: e.target.value })} /></label>
+              <label className="char-input grow">Дистанция<input value={a.rangeBand} placeholder="Вплотную"
+                onChange={e => upd(i, { rangeBand: e.target.value })} /></label>
+            </div>
+            <div className="chips">
+              {a.qualities.map((q, k) => (
+                <span key={k} className="chip removable">
+                  {q.nameRu || q.qualityCode}
+                  {q.rating != null && <input type="number" min={1} className="ranks-input" value={q.rating}
+                    onChange={e => upd(i, { qualities: a.qualities.map((x, m) => m === k ? { ...x, rating: Math.max(1, +e.target.value) } : x) })} />}
+                  <button type="button" onClick={() => upd(i, { qualities: a.qualities.filter((_, m) => m !== k) })}>×</button>
+                </span>
+              ))}
+            </div>
+            <select className="grow" value="" disabled={remaining.length === 0}
+              onChange={e => {
+                const q = qualities.find(x => x.code === e.target.value)
+                if (q) upd(i, { qualities: [...a.qualities, { qualityCode: q.code, nameRu: q.nameRu || q.nameEn, rating: q.hasRating ? 1 : null }] })
+              }}>
+              <option value="">{qualities.length === 0 ? 'Справочник качеств загружается…' : remaining.length === 0 ? 'Все качества добавлены' : 'Добавить качество'}</option>
+              {remaining.map(q => <option key={q.code} value={q.code}>{q.nameRu || q.nameEn}</option>)}
+            </select>
+            <input placeholder="Заметки по атаке" value={a.notes}
+              onChange={e => upd(i, { notes: e.target.value })} />
+          </div>
+        )
+      })}
+      <button type="button" className="small" onClick={() => onChange([...attacks, { ...EMPTY_ATTACK }])}>+ Атака</button>
     </div>
   )
 }

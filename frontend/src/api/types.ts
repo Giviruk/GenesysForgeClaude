@@ -368,6 +368,22 @@ export interface NpcAbilityEntry {
   description: string
 }
 
+export interface NpcAttackQualityEntry {
+  qualityCode: string
+  nameRu: string
+  rating: number | null
+}
+
+export interface NpcAttackEntry {
+  name: string
+  skillName: string
+  damage: string
+  critical: string
+  rangeBand: string
+  notes: string
+  qualities: NpcAttackQualityEntry[]
+}
+
 export interface NpcListItem {
   id: string
   name: string
@@ -409,6 +425,7 @@ export interface NpcDetail {
   isMine: boolean
   skills: NpcSkillEntry[]
   abilities: NpcAbilityEntry[]
+  attacks: NpcAttackEntry[]
   talents: string[]
   equipment: string[]
   tags: string[]
@@ -438,6 +455,7 @@ export interface NpcInput {
   campaignId: string | null
   skills: NpcSkillEntry[]
   abilities: NpcAbilityEntry[]
+  attacks: NpcAttackEntry[]
   talents: string[]
   equipment: string[]
   tags: string[]

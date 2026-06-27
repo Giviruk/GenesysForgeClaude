@@ -27,30 +27,29 @@
 
 ## План выполнения
 
-- [ ] Domain: `NpcAttack` (NpcId/Name/SkillName/Damage/Critical/RangeBand/Notes + nav `Qualities`) и
+- [x] Domain: `NpcAttack` (NpcId/Name/SkillName/Damage/Critical/RangeBand/Notes + nav `Qualities`) и
       `NpcAttackQuality` (NpcAttackId/QualityDefId/Rating + денорм `QualityCode`/`NameRu`); в `Npc` — nav `Attacks`.
-- [ ] EF: `AppDbContext`/`IAppDbContext` DbSet'ы + конфиг (FK cascade Npc→Attack→Quality, индекс NpcId);
-      миграция `AddNpcAttacks`. Backfill-парсер боевых строк `Equipment`→`NpcAttack` внутри миграции/seed
-      (Урон/Крит/Дистанция/качества по справочнику; неразобранное оставить в `Equipment`).
-- [ ] DTO: `NpcAttackDto` (+ `NpcAttackQualityDto`); добавить `Attacks` в `NpcDetailDto`; `NpcInput.Attacks`.
-      `NpcMapper.ToDetail`/`Apply` — маппинг и валидация (skill/damage/range обязательны, crit ≥1 или пусто,
-      качество резолвится по `QualityDef.Code` либо custom). `LoadAsync` — `Include(Attacks).ThenInclude(Qualities)`.
-- [ ] Команды: `CreateNpcCommand`/`UpdateNpcCommand`/`DuplicateNpcCommand` сохраняют атаки (дубликат — копия
-      детей с новыми Id).
-- [ ] Генератор: `QuickDraftNpcHandler.PickWeapon`/`ApplyCatalogLoadout` кладут оружие как `NpcAttack`
-      (skill/damage/crit/range/качества из `ItemDef`), а не строкой в `Equipment`. `NpcDraftGenerator.WeaponFor`
-      — отдавать данные для атаки.
-- [ ] Frontend: типы `types.ts`, секция «Атаки» в форме NPC (skill dropdown, damage, crit, range, пикер качеств
-      из каталога), отображение атак в детальной карточке; статблок-атаки в печатной карточке
-      [cards.tsx](../../frontend/src/components/print/cards.tsx) с бейджами-tooltip по качествам.
-- [ ] Тесты: Domain (парсер боевых строк, маппинг ItemDef→NpcAttack), Api (CRUD с атаками, duplicate копирует
-      атаки, валидация, QuickDraft даёт структурную атаку, backfill миграции), Vitest форма NPC.
-- [ ] docs/database.md, docs/domain-model.md обновить.
+- [x] EF: `AppDbContext`/`IAppDbContext` DbSet'ы + конфиг (FK cascade Npc→Attack→Quality, SetNull Quality→QualityDef,
+      индекс NpcId); миграция `AddNpcAttacks`. Backfill `Equipment`→`NpcAttack` в `SeedData.BackfillNpcAttacks`
+      через `NpcEquipmentParser` (Урон/Крит/Дистанция/качества; неразобранное остаётся в `Equipment`; идемпотентно).
+- [x] DTO: `NpcAttackDto` (+ `NpcAttackQualityDto`); `Attacks` в `NpcDetailDto`; `NpcInput.Attacks`.
+      `NpcMapper.ToDetail`/`Apply` маппинг; `ResolveAttackQualitiesAsync` резолвит код→`QualityDefId`+канон NameRu
+      (несопоставленное — custom). `LoadAsync` — `Include(Attacks).ThenInclude(Qualities)`.
+- [x] Команды: Create/Update вызывают резолв качеств; `DuplicateNpcHandler` копирует атаки с детьми (новые Id).
+- [x] Генератор: `QuickDraftNpcHandler.ApplyCatalogLoadout` кладёт оружие как `NpcAttack` (`AttackFromWeapon` —
+      skill/damage/crit/range/качества из `ItemDef`), броня остаётся в `Equipment`.
+- [x] Frontend: типы `types.ts`; `npcStats.npcAttackViews`/`npcGearViews`; секция «Атаки» в детали и `AttacksEditor`
+      (skill dropdown боевые/магия, damage/crit/range, пикер качеств из каталога с рейтингом); статблок-атаки в
+      печатной карточке [cards.tsx](../../frontend/src/components/print/cards.tsx) и markdown.
+- [x] Тесты: Domain `NpcEquipmentParserTests` (7); Api round-trip качества + duplicate копирует атаки; QuickDraft-тест
+      обновлён на структурную атаку; Vitest `npcAttackViews`. Итог: Api 178 / Domain 72 / front 77 зелёные.
+- [x] docs/database.md обновлён (секция NpcAttacks + миграция). domain-model.md NPC не документирует — не трогаем.
 - [ ] PR открыть, номер записать сюда + в unified-roadmap.
 
 ## Что осталось / блокеры
 
-- Требуется применить миграцию + перезапуск backend (backfill отрабатывает на старте/в миграции).
+- Открыть PR.
+- Применить миграцию + перезапуск backend на проде (backfill `BackfillNpcAttacks` отрабатывает на старте).
 
 ## Заметки / решения
 

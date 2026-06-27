@@ -23,6 +23,7 @@ public partial class QuickDraftNpcHandler(IAppDbContext db) : ICommandHandler<Qu
             .Where(s => s.System == r.System && (s.OwnerUserId == null || s.OwnerUserId == command.UserId))
             .ToListAsync(ct);
         var items = await db.ItemDefs.AsNoTracking()
+            .Include(i => i.Qualities).ThenInclude(q => q.QualityDef)
             .Where(i => i.System == r.System && (i.Kind == ItemKind.Weapon || i.Kind == ItemKind.Armor)
                 && (i.OwnerUserId == null || i.OwnerUserId == command.UserId))
             .ToListAsync(ct);
@@ -70,15 +71,18 @@ public partial class QuickDraftNpcHandler(IAppDbContext db) : ICommandHandler<Qu
         // ── Броня по уровню силы (целевой бонус поглощения ≈ уровень) ──
         var armor = level == 0 ? null : PickArmor(armors, targetSoak: level);
 
-        // Перестраиваем снаряжение из каталожных предметов; при пустом каталоге оставляем
-        // сгенерированное (офлайн-фолбэк).
-        var loadout = new List<string>();
-        if (weapon != null) loadout.Add(Label(weapon));
-        if (armor != null) loadout.Add(Label(armor));
-        if (loadout.Count > 0)
+        // Оружие → структурная атака (skill/damage/crit/range/качества из каталога); броня остаётся
+        // небоевым снаряжением. При пустом каталоге оставляем сгенерированное (офлайн-фолбэк).
+        if (weapon != null)
         {
+            npc.Attacks.Clear();
+            npc.Attacks.Add(AttackFromWeapon(weapon));
             npc.Equipment.Clear();
-            npc.Equipment.AddRange(loadout);
+        }
+        if (armor != null)
+        {
+            if (weapon == null) npc.Equipment.Clear();
+            npc.Equipment.Add(Label(armor));
         }
 
         // Доспех увеличивает поглощение и защиту (у NPC это хранимые поля).
@@ -143,6 +147,23 @@ public partial class QuickDraftNpcHandler(IAppDbContext db) : ICommandHandler<Qu
             ?? skills.Where(s => string.Equals(BaseName(s.Name), BaseName(weaponSkill), StringComparison.OrdinalIgnoreCase))
                 .OrderBy(s => s.Name).FirstOrDefault();
     }
+
+    /// <summary>Структурная атака из оружейного предмета каталога (с переносом качеств).</summary>
+    private static NpcAttack AttackFromWeapon(ItemDef w) => new()
+    {
+        Name = Label(w),
+        SkillName = w.SkillName,
+        Damage = w.Damage,
+        Critical = w.Crit,
+        RangeBand = w.RangeBand,
+        Qualities = w.Qualities.Select(q => new NpcAttackQuality
+        {
+            QualityDefId = q.QualityDefId,
+            QualityCode = q.QualityDef?.Code ?? "",
+            NameRu = q.QualityDef?.NameRu ?? "",
+            Rating = q.Rating,
+        }).ToList(),
+    };
 
     /// <summary>Отображаемое имя записи: русское, с откатом на оригинальное.</summary>
     private static string Label(SkillDef s) => string.IsNullOrWhiteSpace(s.NameRu) ? s.Name : s.NameRu;

@@ -109,6 +109,66 @@ export function npcWeaponView(equipmentName: string, npc: NpcDetail, reference: 
   }
 }
 
+/** Качество атаки для отображения: подпись (имя + рейтинг) и исходные поля. */
+export interface NpcAttackQualityView {
+  label: string
+  nameRu: string
+  rating: number | null
+}
+
+/** Структурная атака NPC с посчитанным пулом броска (зеркалит NpcWeaponView, но без привязки к предмету). */
+export interface NpcAttackView {
+  name: string
+  damageText: string
+  crit: string
+  rangeBand: string
+  notes: string
+  qualities: NpcAttackQualityView[]
+  /** Подпись навыка броска (рус), null если навык атаки не найден в справочнике. */
+  skillLabel: string | null
+  /** Пул атаки; null, если навык не сопоставлен. */
+  pool: DicePool | null
+}
+
+/** Виды структурных атак NPC: считает пул по навыку атаки и раскрывает урон «+N» как Мощь+N. */
+export function npcAttackViews(npc: NpcDetail, reference: Reference | null): NpcAttackView[] {
+  return npc.attacks.map(a => {
+    let pool: DicePool | null = null
+    let skillLabel: string | null = null
+    if (reference && a.skillName) {
+      const skillName = resolveWeaponSkillName(a.skillName, reference.skills.map(s => s.name))
+      const skillDef = skillName ? reference.skills.find(s => s.name === skillName) ?? null : null
+      if (skillDef) {
+        skillLabel = refLabel(skillDef)
+        const ranks = npc.skills.find(s => s.name === skillLabel || s.name === skillDef.name)?.ranks ?? 0
+        pool = buildPool(npc[skillDef.characteristic], ranks)
+      }
+    }
+
+    const dmg = a.damage.trim()
+    let damageText = dmg
+    if (dmg.startsWith('+')) {
+      const bonus = Number(dmg.slice(1))
+      if (Number.isFinite(bonus)) damageText = `${npc.brawn + bonus} (Мощь ${dmg})`
+    }
+
+    const qualities = a.qualities.map(q => {
+      const nameRu = q.nameRu || q.qualityCode
+      return { nameRu, rating: q.rating, label: q.rating != null ? `${nameRu} ${q.rating}` : nameRu }
+    })
+
+    return { name: a.name, damageText: damageText || '—', crit: a.critical, rangeBand: a.rangeBand, notes: a.notes, qualities, skillLabel, pool }
+  })
+}
+
+/** Снаряжение NPC (всё небоевое) с привязкой к каталогу для описания и бонусов. */
+export function npcGearViews(npc: NpcDetail, reference: Reference | null): NpcGearView[] {
+  return npc.equipment.map(name => ({
+    name,
+    item: reference?.items.find(i => (i.nameRu || i.name) === name || i.name === name) ?? null,
+  }))
+}
+
 /** Прочее снаряжение NPC (броня/предметы) с привязкой к каталогу для описания и бонусов. */
 export interface NpcGearView {
   /** Имя из снаряжения NPC (как сохранено). */
