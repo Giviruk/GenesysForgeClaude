@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest'
 import type { ItemDef, NpcDetail, Reference, SkillDef } from '../api/types'
-import { buildPool, npcAttackViews, npcSkillViews, skillIndex, splitEquipment } from './npcStats'
+import type { NpcAttackEntry } from '../api/types'
+import {
+  attackFromItem, buildPool, npcAttackViews, npcSkillViews, skillIndex, splitEquipment,
+  syncAttacksWithEquipment, weaponsByLabel,
+} from './npcStats'
 
 function skillDef(p: Partial<SkillDef> & Pick<SkillDef, 'name' | 'nameRu' | 'characteristic'>): SkillDef {
   return { id: p.name, kind: 'combat', safeDescription: '', source: '', isCustom: false, ...p }
@@ -95,7 +99,7 @@ describe('npcAttackViews — структурные атаки NPC', () => {
     ...npc,
     attacks: [{
       name: 'Длинный меч', skillName: 'Melee', damage: '+2', critical: '2', rangeBand: 'Ближняя', notes: '',
-      qualities: [{ qualityCode: 'precise', nameRu: 'Точное', rating: 1 }],
+      qualities: [{ qualityCode: 'precise', nameRu: 'Точное', rating: 1 }], sourceWeapon: '',
     }],
   }
 
@@ -113,5 +117,42 @@ describe('npcAttackViews — структурные атаки NPC', () => {
     expect(a.pool).toBeNull()
     expect(a.skillLabel).toBeNull()
     expect(a.damageText).toBe('5 (Мощь +2)') // раскрытие урона не зависит от справочника
+  })
+})
+
+describe('syncAttacksWithEquipment — атаки из снаряжения', () => {
+  const wbl = weaponsByLabel(reference)
+  const custom: NpcAttackEntry = {
+    name: 'Плевок', skillName: 'Ranged (Light)', damage: '4', critical: '5', rangeBand: 'Средняя',
+    notes: '', qualities: [], sourceWeapon: '',
+  }
+
+  it('оружие в снаряжении создаёт производную атаку, броня — нет', () => {
+    const result = syncAttacksWithEquipment(['Меч', 'Роба'], [custom], wbl)
+    expect(result).toHaveLength(2) // производная (Меч) + кастом
+    const derived = result.find(a => a.sourceWeapon === 'Меч')!
+    expect(derived.damage).toBe('+2')           // из каталога
+    expect(derived.skillName).toBe('Melee')
+    expect(derived.name).toBe('Меч')
+    expect(result).toContain(custom)            // кастомная сохранена
+    expect(result.some(a => a.sourceWeapon === 'Роба')).toBe(false) // броня не оружие
+  })
+
+  it('убрали оружие → производная атака исчезла, кастом остался', () => {
+    const withSword = syncAttacksWithEquipment(['Меч'], [custom], wbl)
+    const afterRemoval = syncAttacksWithEquipment([], withSword, wbl)
+    expect(afterRemoval).toEqual([custom])
+  })
+
+  it('правки производной атаки сохраняются при ресинке (ключ — подпись оружия)', () => {
+    const first = syncAttacksWithEquipment(['Меч'], [], wbl)
+    const edited = first.map(a => ({ ...a, notes: 'целит в ноги' }))
+    const resynced = syncAttacksWithEquipment(['Меч'], edited, wbl)
+    expect(resynced[0].notes).toBe('целит в ноги')
+  })
+
+  it('attackFromItem помечает источник подписью оружия', () => {
+    const sword = reference.items.find(i => i.nameRu === 'Меч')!
+    expect(attackFromItem(sword).sourceWeapon).toBe('Меч')
   })
 })

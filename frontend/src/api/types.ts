@@ -383,7 +383,10 @@ export interface NpcAttackEntry {
   rangeBand: string
   notes: string
   qualities: NpcAttackQualityEntry[]
+  /** Подпись оружия из снаряжения, из которого атака автосоздана. Пусто — кастомная (ручная) атака. */
+  sourceWeapon: string
 }
+
 
 export interface NpcListItem {
   id: string

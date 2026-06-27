@@ -19,6 +19,12 @@ public class NpcAttack
     /// <summary>Свободные заметки по атаке.</summary>
     public string Notes { get; set; } = "";
 
+    /// <summary>
+    /// Подпись предмета из снаряжения, из которого атака автосоздана (U-«атаки из снаряжения»).
+    /// Пусто — кастомная (ручная) атака. Используется для синхронизации атак с оружием в инвентаре.
+    /// </summary>
+    public string SourceWeapon { get; set; } = "";
+
     /// <summary>Структурные качества атаки (свойство + рейтинг), ссылаются на справочник <see cref="QualityDef"/>.</summary>
     public List<NpcAttackQuality> Qualities { get; set; } = [];
 }

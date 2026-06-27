@@ -45,7 +45,7 @@ public class DuplicateNpcHandler(IAppDbContext db) : ICommandHandler<DuplicateNp
         {
             NpcId = copy.Id,
             Name = a.Name, SkillName = a.SkillName, Damage = a.Damage,
-            Critical = a.Critical, RangeBand = a.RangeBand, Notes = a.Notes,
+            Critical = a.Critical, RangeBand = a.RangeBand, Notes = a.Notes, SourceWeapon = a.SourceWeapon,
             Qualities = a.Qualities.Select(q => new NpcAttackQuality
             {
                 QualityDefId = q.QualityDefId, QualityCode = q.QualityCode, NameRu = q.NameRu, Rating = q.Rating,

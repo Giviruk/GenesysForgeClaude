@@ -1,15 +1,18 @@
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react'
 import { api } from '../api/client'
 import type {
-  Characteristic, CreatureTemplate, GameSystem, NpcAttackEntry, NpcCombatStyle, NpcDetail, NpcInput, NpcKind,
-  NpcListItem, NpcPowerLevel, NpcRole, NpcVisibility, Quality, QuickDraftRequest, Reference, SkillDef,
+  Characteristic, CreatureTemplate, GameSystem, NpcAttackEntry, NpcCombatStyle, NpcDetail, NpcInput,
+  NpcKind, NpcListItem, NpcPowerLevel, NpcRole, NpcVisibility, Quality, QuickDraftRequest, Reference, SkillDef,
 } from '../api/types'
 import {
   CHARACTERISTICS, CHARACTERISTIC_LABELS, CREATURE_TEMPLATE_LABELS, CREATURE_TEMPLATES, ITEM_KIND_LABELS,
   NPC_COMBAT_STYLE_LABELS, NPC_KIND_LABELS, NPC_KINDS, NPC_POWER_LABELS, NPC_ROLE_LABELS, NPC_ROLES,
   NPC_VISIBILITY_LABELS, SYSTEM_LABELS,
 } from '../utils/labels'
-import { npcAttackViews, npcGearViews, npcSkillViews, skillIndex, type NpcGearView } from '../utils/npcStats'
+import {
+  npcAttackViews, npcGearViews, npcSkillViews, skillIndex, syncAttacksWithEquipment, weaponsByLabel,
+  type NpcGearView,
+} from '../utils/npcStats'
 import { DicePoolView } from '../components/DicePoolView'
 import { PropertyTags } from '../components/PropertyTags'
 import { PrintPreview } from '../components/print/PrintPreview'
@@ -400,6 +403,13 @@ function NpcEditor({ initial, onCancel, onSaved }: {
   // Миньон обычно без стрейна; немезида обязан иметь.
   const minion = form.kind === 'minion'
 
+  // Оружие каталога по подписи — источник производных атак из снаряжения.
+  const weaponMap = useMemo(() => weaponsByLabel(reference), [reference])
+
+  // Снаряжение меняется → пересобираем производные атаки (оружие → атака), кастомные сохраняем.
+  const setEquipment = (equipment: string[]) =>
+    setForm(f => ({ ...f, equipment, attacks: syncAttacksWithEquipment(equipment, f.attacks, weaponMap) }))
+
   async function submit(e: FormEvent) {
     e.preventDefault()
     setBusy(true); setError(null)
@@ -483,7 +493,7 @@ function NpcEditor({ initial, onCancel, onSaved }: {
         <PickListEditor label="Таланты" values={form.talents} options={reference?.talents ?? []}
           onChange={v => set('talents', v)} placeholder="Выберите талант из списка" />
         <PickListEditor label="Снаряжение" values={form.equipment} options={reference?.items ?? []}
-          onChange={v => set('equipment', v)} placeholder="Выберите предмет из списка" />
+          onChange={setEquipment} placeholder="Выберите предмет из списка" />
         <StringListEditor label="Теги" values={form.tags} onChange={v => set('tags', v)} placeholder="Тег" />
 
         <label>Тактика (1–3 раунда)<textarea value={form.tactics} rows={2}
@@ -590,10 +600,10 @@ function AbilitiesEditor({ abilities, onChange }: { abilities: NpcInput['abiliti
 }
 
 const EMPTY_ATTACK: NpcAttackEntry = {
-  name: '', skillName: '', damage: '', critical: '', rangeBand: '', notes: '', qualities: [],
+  name: '', skillName: '', damage: '', critical: '', rangeBand: '', notes: '', qualities: [], sourceWeapon: '',
 }
 
-/** Редактор структурных атак NPC: имя, навык, урон/крит/дистанция и качества из справочника. */
+/** Редактор структурных атак NPC: производные из снаряжения (бейдж) + кастомные (имя, навык, урон…). */
 function AttacksEditor({ attacks, skills, qualities, onChange }: {
   attacks: NpcAttackEntry[]; skills: SkillDef[]; qualities: Quality[]
   onChange: (a: NpcAttackEntry[]) => void
@@ -603,14 +613,17 @@ function AttacksEditor({ attacks, skills, qualities, onChange }: {
   return (
     <div className="list-editor">
       <div className="label-line">Атаки</div>
+      <div className="muted small-text">Оружие из «Снаряжения» добавляет атаку автоматически; «+ Атака» — кастомная.</div>
       {attacks.map((a, i) => {
         const remaining = qualities.filter(q => !a.qualities.some(x => x.qualityCode === q.code))
+        const derived = a.sourceWeapon !== ''
         return (
           <div key={i} className="ability-edit">
+            {derived && <div className="muted small-text">🗡 из снаряжения: «{a.sourceWeapon}» (убрать — удалить оружие из инвентаря)</div>}
             <div className="form-row">
               <input className="grow" placeholder="Название атаки/оружия" value={a.name}
                 onChange={e => upd(i, { name: e.target.value })} />
-              <button type="button" className="danger small" onClick={() => onChange(attacks.filter((_, j) => j !== i))}>×</button>
+              {!derived && <button type="button" className="danger small" onClick={() => onChange(attacks.filter((_, j) => j !== i))}>×</button>}
             </div>
             <div className="form-row">
               <select className="grow" value={a.skillName} onChange={e => upd(i, { skillName: e.target.value })}>

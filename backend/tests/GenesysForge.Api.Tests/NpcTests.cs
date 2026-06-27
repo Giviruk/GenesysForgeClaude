@@ -203,6 +203,25 @@ public class NpcTests : IClassFixture<ApiFactory>
     }
 
     [Fact]
+    public async Task Attack_SourceWeapon_RoundTrips()
+    {
+        var gm = await _factory.CreateAuthorizedClientAsync();
+        var input = SampleInput() with
+        {
+            Attacks = [new NpcAttackDto("Длинный меч", "Melee (Heavy)", "+3", "2", "Вплотную", "", [],
+                SourceWeapon: "Длинный меч")],
+        };
+        var resp = await gm.PostAsJsonAsync("/api/npcs/", input, Json.Options);
+        var npc = (await resp.Content.ReadFromJsonAsync<NpcDetailDto>(Json.Options))!;
+        Assert.Equal("Длинный меч", Assert.Single(npc.Attacks).SourceWeapon);
+
+        // Duplicate сохраняет привязку к источнику.
+        var dup = await gm.PostAsync($"/api/npcs/{npc.Id}/duplicate", null);
+        var copy = (await dup.Content.ReadFromJsonAsync<NpcDetailDto>(Json.Options))!;
+        Assert.Equal("Длинный меч", Assert.Single(copy.Attacks).SourceWeapon);
+    }
+
+    [Fact]
     public async Task HighDefense_Warning_SavesWithWarnings()
     {
         var gm = await _factory.CreateAuthorizedClientAsync();
