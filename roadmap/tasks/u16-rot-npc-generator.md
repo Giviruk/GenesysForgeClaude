@@ -4,7 +4,7 @@
 - **Ветка:** `feature/u16-rot-npc-generator` (от master после U-15).
 - **Базовая ветка:** `master`.
 - **PR:** [#56](https://github.com/Giviruk/GenesysForgeClaude/pull/56)
-- **Статус:** 🚧 In progress
+- **Статус:** ✅ Done
 
 ## Контекст
 
