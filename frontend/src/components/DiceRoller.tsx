@@ -21,6 +21,8 @@ interface Props {
   onLog?: (req: RollLogRequest) => void
   /** Можно ли делать секретный бросок (только GM). */
   canSecret?: boolean
+  /** Вызывается с исходом каждого броска (для боевого расчёта урона поверх roller). */
+  onResult?: (outcome: RollOutcome) => void
 }
 
 const DIE_META: Record<DieKind, { label: string; glyph: string }> = {
@@ -41,7 +43,7 @@ const SYMBOL_META: Record<DieSymbol, { label: string; glyph: string }> = {
   despair: { label: 'Отчаяние', glyph: '☠' },
 }
 
-export function DiceRoller({ initialPool, label, onLog, canSecret }: Props) {
+export function DiceRoller({ initialPool, label, onLog, canSecret, onResult }: Props) {
   const [pool, setPool] = useState<RollPool>({ ...emptyPool(), ...initialPool })
   const [outcome, setOutcome] = useState<RollOutcome | null>(null)
   const [secret, setSecret] = useState(false)
@@ -54,6 +56,7 @@ export function DiceRoller({ initialPool, label, onLog, canSecret }: Props) {
     if (total === 0) return
     const result = rollPool(pool)
     setOutcome(result)
+    onResult?.(result)
     if (onLog) {
       onLog({
         poolJson: JSON.stringify(pool),

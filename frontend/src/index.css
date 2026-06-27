@@ -931,6 +931,11 @@ button.tiny { font-size: 0.75rem; padding: 0.05rem 0.4rem 0.15rem; }
 .dr-result { display: flex; flex-wrap: wrap; align-items: center; gap: 0.6rem; }
 .dr-summary { color: var(--muted); }
 
+.combat-roller-head { display: flex; flex-direction: column; gap: 0.4rem; margin: 0.4rem 0 0.6rem; padding-bottom: 0.6rem; border-bottom: 1px solid var(--border); }
+.combat-qualities { margin: 0.2rem 0; padding-left: 1.1rem; }
+.combat-damage { display: flex; flex-direction: column; gap: 0.4rem; margin-top: 0.7rem; padding: 0.5rem 0.7rem; border-radius: 6px; background: rgba(120, 160, 120, 0.12); }
+.combat-damage-calc { font-size: 1.05rem; }
+
 .dr-symbols { display: inline-flex; flex-wrap: wrap; gap: 0.4rem; }
 .roll-sym {
   display: inline-flex; align-items: center; gap: 0.2rem;

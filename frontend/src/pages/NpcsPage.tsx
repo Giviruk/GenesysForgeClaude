@@ -14,6 +14,8 @@ import {
   type NpcGearView,
 } from '../utils/npcStats'
 import { DicePoolView } from '../components/DicePoolView'
+import { CombatRoller } from '../components/CombatRoller'
+import { resolveQualityCosts } from '../utils/combat'
 import { PropertyTags } from '../components/PropertyTags'
 import { PrintPreview } from '../components/print/PrintPreview'
 import { AdversaryCard } from '../components/print/cards'
@@ -154,6 +156,7 @@ function NpcDetailView({ npcId, reloadToken, onEdit, onDuplicated, onDeleted }: 
   const [error, setError] = useState<string | null>(null)
   const [printing, setPrinting] = useState(false)
   const [busy, setBusy] = useState(false)
+  const [attacking, setAttacking] = useState<number | null>(null) // индекс атаки в боевом roller
 
   // Грузим карточку при открытии и при росте reloadToken (после правки того же NPC).
   useEffect(() => {
@@ -293,6 +296,7 @@ function NpcDetailView({ npcId, reloadToken, onEdit, onDuplicated, onDeleted }: 
                           {w.skillLabel && <span className="muted small-text">{w.skillLabel}</span>}
                         </span>
                       : w.skillLabel === null && <span className="muted small-text">навык не указан</span>}
+                    <button type="button" className="small no-print" onClick={() => setAttacking(i)}>🎲 Атаковать</button>
                   </div>
                   <div className="npc-weapon-stats">
                     <span className="weapon-stat">Урон <strong>{w.damageText}</strong></span>
@@ -336,6 +340,26 @@ function NpcDetailView({ npcId, reloadToken, onEdit, onDuplicated, onDeleted }: 
         )}
         {n.source && <div className="muted small-text npc-source">Источник: {n.source}</div>}
       </div>
+
+      {attacking != null && attacks[attacking] && (
+        <CombatRoller
+          title={attacks[attacking].name}
+          skillLabel={attacks[attacking].skillLabel}
+          basePool={attacks[attacking].pool ?? {}}
+          damage={n.attacks[attacking].damage}
+          brawn={n.brawn}
+          crit={n.attacks[attacking].critical}
+          rangeBand={n.attacks[attacking].rangeBand}
+          qualities={resolveQualityCosts(
+            n.attacks[attacking].qualities.map(q => ({ code: q.qualityCode, label: q.nameRu || q.qualityCode, rating: q.rating })),
+            reference)}
+          onClose={() => setAttacking(null)}
+          onLog={n.isMine && n.campaignId
+            ? (req => { void api.createRoll(n.campaignId!, req) })
+            : undefined}
+          canSecret={n.isMine}
+        />
+      )}
     </div>
   )
 }
