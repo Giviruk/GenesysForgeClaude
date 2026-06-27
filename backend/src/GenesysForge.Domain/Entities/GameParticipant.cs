@@ -1,7 +1,9 @@
+using GenesysForge.Domain.Rules;
+
 namespace GenesysForge.Domain.Entities;
 
 /// <summary>Участник сцены Game Table (персонаж игрока, NPC, группа миньонов или осложнение).</summary>
-public class GameParticipant
+public class GameParticipant : ICombatTarget
 {
     public Guid Id { get; set; }
     public Guid SessionId { get; set; }

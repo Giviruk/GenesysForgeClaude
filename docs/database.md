@@ -258,6 +258,7 @@ Found migrations:
 - `20260626234831_AddNpcAttacks` — creates `NpcAttacks` (cascade FK to `Npcs`) and `NpcAttackQualities` (cascade FK to `NpcAttacks`, `SetNull` FK to `QualityDefs`) for structural NPC attacks (U-14). Non-destructive (only `CreateTable`); `Npc.Equipment` retained, combat strings back-filled into attacks on seed.
 - `20260627084602_AddNpcSilhouetteAndTactics` — adds `Silhouette` (`int`, existing rows default `1`) and `Tactics` (`varchar(2000)`) to `Npcs` for adversary creation rules (U-15). Non-destructive (`AddColumn`).
 - `20260627153450_AddNpcAttackSourceWeapon` — adds `SourceWeapon` (`varchar(160)`) to `NpcAttacks` to link weapon-derived attacks to inventory weapons (auto-create/sync). Non-destructive (`AddColumn`).
+- `20260627224610_AddRuleEffectDefs` — creates `RuleEffectDefs` (cascade FK to `HeroicAbilityDefs`) for structural activation effects (U-18). Non-destructive (only `CreateTable`). New seeds carry effect markup; existing DBs get effects only on reseed of heroics.
 
 Startup behavior:
 

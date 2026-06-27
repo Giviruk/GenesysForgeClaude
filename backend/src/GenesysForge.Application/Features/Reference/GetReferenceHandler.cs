@@ -62,6 +62,7 @@ public class GetReferenceHandler(IAppDbContext db) : IQueryHandler<GetReferenceQ
         var heroicDefs = system == GameSystem.RealmsOfTerrinoth
             ? await db.HeroicAbilityDefs.AsNoTracking()
                 .Include(h => h.Upgrades)
+                .Include(h => h.Effects)
                 .Where(h => h.OwnerUserId == null || h.OwnerUserId == userId)
                 .OrderBy(h => h.NameRu)
                 .ToListAsync(ct)

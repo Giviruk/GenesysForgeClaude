@@ -112,6 +112,7 @@ public static class DependencyInjection
         services.AddScoped<ICommandHandler<NextTurnCommand, GameSessionDto>, NextTurnHandler>();
         services.AddScoped<ICommandHandler<AddParticipantCommand, GameSessionDto>, AddParticipantHandler>();
         services.AddScoped<ICommandHandler<UpdateParticipantCommand, GameSessionDto>, UpdateParticipantHandler>();
+        services.AddScoped<ICommandHandler<ActivateAbilityCommand, ActivateAbilityResult>, ActivateAbilityHandler>();
         services.AddScoped<ICommandHandler<RemoveParticipantCommand, Unit>, RemoveParticipantHandler>();
         services.AddScoped<ICommandHandler<AddSlotCommand, GameSessionDto>, AddSlotHandler>();
         services.AddScoped<ICommandHandler<UpdateSlotCommand, GameSessionDto>, UpdateSlotHandler>();

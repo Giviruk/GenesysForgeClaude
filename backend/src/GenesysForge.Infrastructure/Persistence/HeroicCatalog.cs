@@ -62,9 +62,25 @@ public static class HeroicCatalog
                     Description = u.Desc,
                     Notes = u.Notes,
                 }).ToList(),
+                Effects = EffectsFor(e.Code),
             };
         }
     }
+
+    /// <summary>
+    /// Структурная разметка эффектов автоматизации (U-18) по коду героики. Размечены только способности
+    /// с явным механическим эффектом; остальные (нарратив/GM-решения) без эффектов → ручная подсказка.
+    /// </summary>
+    private static List<RuleEffectDef> EffectsFor(string code) => code switch
+    {
+        "hard-to-kill" =>
+            [new RuleEffectDef { Id = Guid.NewGuid(), Kind = RuleEffectKind.AdjustSoak, Amount = 4,
+                Duration = "пока способность активна", Description = "+4 к поглощению" }],
+        "miraculous-recovery" =>
+            [new RuleEffectDef { Id = Guid.NewGuid(), Kind = RuleEffectKind.HealWounds, Amount = 3,
+                Description = "Лечит 3 раны" }],
+        _ => [],
+    };
 
     private static HeroicUpgradeLevel ParseLevel(string level) =>
         string.Equals(level, "Supreme", StringComparison.OrdinalIgnoreCase)

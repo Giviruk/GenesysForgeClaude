@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react'
 import { api } from '../api/client'
 import type {
-  CampaignMember, GameParticipant, GameSession, InitiativeSlotType, NpcListItem, RollLogEntry,
+  ActivateAbilityResult, CampaignMember, GameParticipant, GameSession, HeroicAbility,
+  InitiativeSlotType, NpcListItem, RollLogEntry,
 } from '../api/types'
 import { PARTICIPANT_TYPE_LABELS, SLOT_TYPE_LABELS } from '../utils/labels'
 import { DiceRoller, RollSymbolsView } from './DiceRoller'
@@ -19,6 +20,24 @@ export function GameTableTab({ campaignId, isGm, members, refreshSignal }: Props
   const [session, setSession] = useState<GameSession | null>(null)
   const [loaded, setLoaded] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  // Способности с автоматизируемыми эффектами (U-18) — для кнопки «Активировать» у участника.
+  const [abilities, setAbilities] = useState<HeroicAbility[]>([])
+
+  useEffect(() => {
+    let cancelled = false
+    api.reference('realmsOfTerrinoth')
+      .then(r => { if (!cancelled) setAbilities(r.heroicAbilities.filter(h => h.effects.length > 0)) })
+      .catch(() => { /* без справочника список активируемых способностей будет пуст */ })
+    return () => { cancelled = true }
+  }, [])
+
+  const activate = useCallback(async (participantId: string, code: string): Promise<ActivateAbilityResult | null> => {
+    try {
+      const r = await api.activateAbility(campaignId, participantId, code)
+      setSession(r.session); setError(null)
+      return r
+    } catch (e) { setError(e instanceof Error ? e.message : 'Ошибка'); return null }
+  }, [campaignId])
 
   const reload = useCallback(() =>
     api.session(campaignId)
@@ -82,7 +101,8 @@ export function GameTableTab({ campaignId, isGm, members, refreshSignal }: Props
 
       <InitiativeTracker session={session} isGm={isGm} onRun={run} campaignId={campaignId} />
 
-      <ParticipantsBlock session={session} isGm={isGm} members={members} onRun={run} campaignId={campaignId} />
+      <ParticipantsBlock session={session} isGm={isGm} members={members} onRun={run} campaignId={campaignId}
+        abilities={abilities} onActivate={activate} />
 
       <RollSection campaignId={campaignId} isGm={isGm} refreshSignal={refreshSignal} />
 
@@ -181,7 +201,9 @@ function InitiativeTracker({ session, isGm, onRun, campaignId }: BlockProps) {
   )
 }
 
-function ParticipantsBlock({ session, isGm, members, onRun, campaignId }: BlockProps & { members: CampaignMember[] }) {
+function ParticipantsBlock({ session, isGm, members, onRun, campaignId, abilities, onActivate }:
+  BlockProps & { members: CampaignMember[]; abilities: HeroicAbility[]
+    onActivate: (participantId: string, code: string) => Promise<ActivateAbilityResult | null> }) {
   return (
     <section className="panel">
       <h3>Участники ({session.participants.length})</h3>
@@ -189,7 +211,7 @@ function ParticipantsBlock({ session, isGm, members, onRun, campaignId }: BlockP
       <div className="participant-grid">
         {session.participants.map(p => (
           <ParticipantCard key={p.id} p={p} isGm={isGm} allowPlayerEdits={session.allowPlayerEdits}
-            onRun={onRun} campaignId={campaignId} />
+            onRun={onRun} campaignId={campaignId} abilities={abilities} onActivate={onActivate} />
         ))}
       </div>
       {isGm && <AddParticipant members={members} onRun={onRun} campaignId={campaignId} />}
@@ -197,13 +219,24 @@ function ParticipantsBlock({ session, isGm, members, onRun, campaignId }: BlockP
   )
 }
 
-function ParticipantCard({ p, isGm, allowPlayerEdits, onRun, campaignId }: {
+function ParticipantCard({ p, isGm, allowPlayerEdits, onRun, campaignId, abilities, onActivate }: {
   p: GameParticipant; isGm: boolean; allowPlayerEdits: boolean
   onRun: (a: () => Promise<unknown>) => Promise<void>; campaignId: string
+  abilities: HeroicAbility[]
+  onActivate: (participantId: string, code: string) => Promise<ActivateAbilityResult | null>
 }) {
   const patch = (body: Parameters<typeof api.updateParticipant>[2]) => onRun(() => api.updateParticipant(campaignId, p.id, body))
   // Игрок может крутить вайталы только своего персонажа, если мастер разрешил.
   const canEditVitals = isGm || (allowPlayerEdits && p.characterId != null)
+  const [ability, setAbility] = useState('')
+  const [outcome, setOutcome] = useState<ActivateAbilityResult | null>(null)
+
+  async function activate() {
+    const a = abilities.find(x => x.id === ability)
+    if (!a) return
+    const r = await onActivate(p.id, a.code)
+    if (r) setOutcome(r)
+  }
 
   return (
     <div className={`participant-card${p.isDefeated ? ' defeated' : ''}`}>
@@ -223,6 +256,25 @@ function ParticipantCard({ p, isGm, allowPlayerEdits, onRun, campaignId }: {
       <div className="pc-stats muted small-text">
         Soak {p.soak} · Бл.защ {p.meleeDefense} · Дал.защ {p.rangedDefense}{p.count > 1 ? ` · ×${p.count}` : ''}
       </div>
+
+      {canEditVitals && abilities.length > 0 && (
+        <div className="pc-activate">
+          <div className="form-row">
+            <select className="grow" value={ability} onChange={e => setAbility(e.target.value)}>
+              <option value="">— способность —</option>
+              {abilities.map(a => <option key={a.id} value={a.id}>{a.nameRu || a.name}</option>)}
+            </select>
+            <button className="small" disabled={!ability} onClick={() => void activate()}>Активировать</button>
+          </div>
+          {outcome && (
+            <div className="pc-activate-result small-text">
+              <strong>{outcome.abilityName}.</strong>
+              {outcome.applied.map((a, i) => <span key={`a${i}`}> {a}.</span>)}
+              {outcome.manual.map((m, i) => <span key={`m${i}`} className="muted"> {m}</span>)}
+            </div>
+          )}
+        </div>
+      )}
       {isGm && (
         <>
           {p.notes && <div className="pc-notes small-text">{p.notes}</div>}

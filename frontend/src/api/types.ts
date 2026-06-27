@@ -106,8 +106,20 @@ export interface HeroicAbilityUpgrade {
   notes: string
 }
 
+export type RuleEffectKind =
+  | 'manual' | 'healWounds' | 'healStrain' | 'adjustSoak' | 'adjustMeleeDefense' | 'adjustRangedDefense'
+  | 'adjustWoundThreshold' | 'adjustStrainThreshold' | 'addBoostNextCheck' | 'addSetbackNextCheck' | 'spendStoryPoint'
+
+export interface RuleEffect {
+  kind: RuleEffectKind
+  amount: number
+  duration: string
+  description: string
+}
+
 export interface HeroicAbility {
   id: string
+  code: string
   name: string
   nameRu: string
   description: string
@@ -121,6 +133,14 @@ export interface HeroicAbility {
   frequency: string
   notes: string
   upgrades: HeroicAbilityUpgrade[]
+  effects: RuleEffect[]
+}
+
+export interface ActivateAbilityResult {
+  session: GameSession
+  abilityName: string
+  applied: string[]
+  manual: string[]
 }
 
 export type SpellEntryKind = 'effect' | 'additionalEffect'

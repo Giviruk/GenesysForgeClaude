@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Http.Json;
 using GenesysForge.Application.Dtos;
+using GenesysForge.Application.Features.GameTable;
 using GenesysForge.Domain;
 
 namespace GenesysForge.Api.Tests;
@@ -108,6 +109,39 @@ public class GameTableTests : IClassFixture<ApiFactory>
         Assert.Equal(ParticipantType.MinionGroup, group.ParticipantType);
         Assert.Equal(3, group.Count);
         Assert.Equal(15, group.WoundsThreshold); // 5 × 3
+    }
+
+    [Fact]
+    public async Task ActivateAbility_AppliesEffect_ToParticipant_AndLogs()
+    {
+        var (gm, _, campaignId, _) = await SetupCampaignWithPlayerAsync(_factory);
+        await CreateSessionAsync(gm, campaignId);
+
+        // NPC-участник с известным поглощением.
+        var npcResp = await gm.PostAsJsonAsync("/api/npcs/", new NpcInput(
+            "Страж", GameSystem.GenesysCore, NpcKind.Rival, NpcRole.Brute, null, null,
+            3, 2, 2, 2, 2, 2, 12, 10, 2, 0, 0, 1, null, NpcVisibility.Private, null, null, null, null, null, null, null), Json.Options);
+        var npc = (await npcResp.Content.ReadFromJsonAsync<NpcDetailDto>(Json.Options))!;
+        var addResp = await gm.PostAsJsonAsync($"/api/campaigns/{campaignId}/session/participants",
+            new AddParticipantRequest(null, npc.Id, null, ParticipantType.Npc, null, null, null, null, null, null, null), Json.Options);
+        var session = (await addResp.Content.ReadFromJsonAsync<GameSessionDto>(Json.Options))!;
+        var pid = session.Participants.First(p => p.NpcId == npc.Id).Id;
+        var soakBefore = session.Participants.First(p => p.Id == pid).Soak;
+
+        // «Трудно убить» → +4 к поглощению (структурный эффект U-18).
+        var actResp = await gm.PostAsJsonAsync(
+            $"/api/campaigns/{campaignId}/session/participants/{pid}/activate",
+            new ActivateAbilityRequest("rot.heroic.hard-to-kill"), Json.Options);
+        Assert.Equal(HttpStatusCode.OK, actResp.StatusCode);
+        var result = (await actResp.Content.ReadFromJsonAsync<ActivateAbilityResult>(Json.Options))!;
+
+        Assert.NotEmpty(result.Applied);
+        Assert.Equal(soakBefore + 4, result.Session.Participants.First(p => p.Id == pid).Soak);
+
+        // Активация записана в лог стола.
+        var rolls = (await gm.GetFromJsonAsync<List<RollLogEntryDto>>(
+            $"/api/campaigns/{campaignId}/rolls/", Json.Options))!;
+        Assert.Contains(rolls, r => r.Label.Contains("Трудно убить"));
     }
 
     [Fact]
