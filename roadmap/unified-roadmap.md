@@ -203,7 +203,7 @@
 - **DoD:** видно расчёт базового урона по оружию; качества показаны с ценой активации; roller не решает за мастера.
 
 ## U-18 · Автоматизация талантов и героических способностей
-- **Статус:** 🚧 In progress
+- **Статус:** 🚧 In progress (Stage 1 — PR #60; Stage 2 — лист персонажа + audit-log)
 - **Источник:** GF-012 · Аудит §2.2
 - **Scope (B):** `RuleEffectDef` (Source/Timing/Automation/Target/DataJson). Автоматизировать простое: +wt/+st/+soak/+melee+ranged def/+enc threshold, heal wounds/strain, spend story points, add boost/setback к следующей проверке, timed-effect с длительностью. НЕ автоматизировать сложные нарративные/GM-решения (показывать как manual prompt).
 - **Scope (F):** для активных талантов/героик — кнопка «Активировать» (стоимость, авто-часть, timed effect, запись в audit-log U-09).

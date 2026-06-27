@@ -3,8 +3,8 @@
 - **Roadmap:** U-18 (см. [unified-roadmap.md](../unified-roadmap.md)); источник GF-012 / Аудит §2.2.
 - **Ветка:** `feature/u18-talent-automation` (от master после U-17).
 - **Базовая ветка:** `master`.
-- **PR:** _(Stage 1 — будет указан)_
-- **Статус:** 🚧 In progress
+- **PR:** Stage 1 — [#60](https://github.com/Giviruk/GenesysForgeClaude/pull/60); Stage 2 — _(позже)_
+- **Статус:** 🚧 In progress (Stage 1 в ревью)
 
 ## Контекст
 
@@ -18,7 +18,7 @@
 
 НЕ автоматизируем сложные нарративные/GM-эффекты → показываем как manual prompt.
 
-## Stage 1 — модель эффектов + Game Table  ✅ (PR — будет указан)
+## Stage 1 — модель эффектов + Game Table  ✅ (PR #60)
 
 - [x] Domain: enum `RuleEffectKind` (HealWounds/HealStrain/AdjustSoak/AdjustMeleeDefense/AdjustRangedDefense/
       AdjustWoundThreshold/AdjustStrainThreshold/AddBoostNextCheck/AddSetbackNextCheck/SpendStoryPoint/Manual);
