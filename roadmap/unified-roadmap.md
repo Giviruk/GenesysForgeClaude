@@ -196,14 +196,14 @@
 - **DoD:** разные NPC для RoT и Core; RoT не получает Core-навыки; генерит структурные атаки + теги + warnings.
 
 ## U-17 · Боевой attack/damage roller
-- **Статус:** 🚧 In progress (PR #59)
+- **Статус:** ✅ Done (PR #59)
 - **Источник:** GF-011 · Аудит §7
 - **Зачем:** первый слой боевых бросков поверх U-08 (пул) и U-10 (качества).
 - **Scope:** выбрать персонажа/NPC и оружие/атаку → показать skill+характеристику, собрать базовый пул, вручную добавить difficulty/boost/setback/upgrade, бросок (через U-08) → ввод/расчёт net successes/adv/threat/triumph/despair → базовый damage + доступные качества с ценой активации. v1 — frontend calc; лог — через `RollLogEntry` (U-08).
 - **DoD:** видно расчёт базового урона по оружию; качества показаны с ценой активации; roller не решает за мастера.
 
 ## U-18 · Автоматизация талантов и героических способностей
-- **Статус:** ⬜ Todo
+- **Статус:** 🚧 In progress
 - **Источник:** GF-012 · Аудит §2.2
 - **Scope (B):** `RuleEffectDef` (Source/Timing/Automation/Target/DataJson). Автоматизировать простое: +wt/+st/+soak/+melee+ranged def/+enc threshold, heal wounds/strain, spend story points, add boost/setback к следующей проверке, timed-effect с длительностью. НЕ автоматизировать сложные нарративные/GM-решения (показывать как manual prompt).
 - **Scope (F):** для активных талантов/героик — кнопка «Активировать» (стоимость, авто-часть, timed effect, запись в audit-log U-09).
