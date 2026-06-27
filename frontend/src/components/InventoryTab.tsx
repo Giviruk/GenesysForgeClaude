@@ -6,6 +6,8 @@ import {
 } from '../utils/labels'
 import { itemTags } from '../data/itemQualities'
 import { DicePoolView } from './DicePoolView'
+import { CombatRoller } from './CombatRoller'
+import { qualitiesFromProperties } from '../utils/combat'
 import { PropertyTags } from './PropertyTags'
 import { PrintPreview } from './print/PrintPreview'
 import { ItemCard } from './print/cards'
@@ -92,6 +94,7 @@ export function InventoryTab({ sheet, reference, onError, refresh }: Props) {
           <div className="inv-items">
             {sheet.items.map(item => (
               <InventoryCard key={item.id} item={item} sheet={sheet} skillNames={skillNames} run={run}
+                reference={reference}
                 sellOpen={sellOpen === item.id} onToggleSell={() => setSellOpen(sellOpen === item.id ? null : item.id)} />
             ))}
           </div>
@@ -257,8 +260,8 @@ function ShopRow({ item, money, run, sheetId, open, onToggle }: {
   )
 }
 
-function InventoryCard({ item, sheet, skillNames, run, sellOpen, onToggleSell }: {
-  item: SheetItem; sheet: CharacterSheet; skillNames: string[]; run: Run
+function InventoryCard({ item, sheet, skillNames, run, reference, sellOpen, onToggleSell }: {
+  item: SheetItem; sheet: CharacterSheet; skillNames: string[]; run: Run; reference: Reference
   sellOpen: boolean; onToggleSell: () => void
 }) {
   const hasBonus = item.soakBonus > 0 || item.meleeDefense > 0 || item.rangedDefense > 0 || item.encumbranceThresholdBonus > 0
@@ -288,7 +291,7 @@ function InventoryCard({ item, sheet, skillNames, run, sellOpen, onToggleSell }:
         </div>
       </div>
 
-      {item.kind === 'weapon' && <WeaponLine item={item} sheet={sheet} skillNames={skillNames} />}
+      {item.kind === 'weapon' && <WeaponLine item={item} sheet={sheet} skillNames={skillNames} reference={reference} />}
 
       {item.kind !== 'weapon' && item.properties && (
         <PropertyTags properties={item.properties} className="small-text" />
@@ -335,7 +338,10 @@ function InventoryCard({ item, sheet, skillNames, run, sellOpen, onToggleSell }:
   )
 }
 
-function WeaponLine({ item, sheet, skillNames }: { item: SheetItem; sheet: CharacterSheet; skillNames: string[] }) {
+function WeaponLine({ item, sheet, skillNames, reference }: {
+  item: SheetItem; sheet: CharacterSheet; skillNames: string[]; reference: Reference
+}) {
+  const [rolling, setRolling] = useState(false)
   const skillName = resolveWeaponSkillName(item.skillName, skillNames)
   const skill = skillName ? sheet.skills.find(s => s.name === skillName) : null
   // Урон «+N» в ближнем бою — это прибавка к Мощи; абсолютное число — итоговый урон оружия.
@@ -358,6 +364,21 @@ function WeaponLine({ item, sheet, skillNames }: { item: SheetItem; sheet: Chara
         <span className="muted small-text">навык {item.skillName} не освоен</span>
       ) : null}
       {item.properties && <PropertyTags properties={item.properties} className="weapon-props" />}
+      <button type="button" className="small no-print" onClick={() => setRolling(true)}>🎲 Атаковать</button>
+
+      {rolling && (
+        <CombatRoller
+          title={item.name}
+          skillLabel={skill?.name ?? null}
+          basePool={skill ? { ability: skill.pool.ability, proficiency: skill.pool.proficiency } : {}}
+          damage={item.damage}
+          brawn={sheet.characteristics.brawn}
+          crit={item.crit}
+          rangeBand={item.rangeBand}
+          qualities={qualitiesFromProperties(item.properties, reference)}
+          onClose={() => setRolling(false)}
+        />
+      )}
     </div>
   )
 }

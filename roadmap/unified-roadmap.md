@@ -196,7 +196,7 @@
 - **DoD:** разные NPC для RoT и Core; RoT не получает Core-навыки; генерит структурные атаки + теги + warnings.
 
 ## U-17 · Боевой attack/damage roller
-- **Статус:** ⬜ Todo
+- **Статус:** 🚧 In progress
 - **Источник:** GF-011 · Аудит §7
 - **Зачем:** первый слой боевых бросков поверх U-08 (пул) и U-10 (качества).
 - **Scope:** выбрать персонажа/NPC и оружие/атаку → показать skill+характеристику, собрать базовый пул, вручную добавить difficulty/boost/setback/upgrade, бросок (через U-08) → ввод/расчёт net successes/adv/threat/triumph/despair → базовый damage + доступные качества с ценой активации. v1 — frontend calc; лог — через `RollLogEntry` (U-08).
