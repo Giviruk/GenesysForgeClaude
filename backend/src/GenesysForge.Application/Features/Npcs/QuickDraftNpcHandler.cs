@@ -29,7 +29,7 @@ public partial class QuickDraftNpcHandler(IAppDbContext db) : ICommandHandler<Qu
             .ToListAsync(ct);
         ApplyCatalogLoadout(npc, r, skills, items);
 
-        NpcValidator.Validate(npc);
+        NpcValidator.ValidateAndThrow(npc);
 
         db.Npcs.Add(npc);
         await db.SaveChangesAsync(ct);

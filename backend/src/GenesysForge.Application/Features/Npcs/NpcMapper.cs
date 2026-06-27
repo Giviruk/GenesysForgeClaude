@@ -2,6 +2,7 @@ using GenesysForge.Application.Abstractions;
 using GenesysForge.Application.Dtos;
 using GenesysForge.Domain;
 using GenesysForge.Domain.Entities;
+using GenesysForge.Domain.Rules;
 using Microsoft.EntityFrameworkCore;
 
 namespace GenesysForge.Application.Features.Npcs;
@@ -13,12 +14,14 @@ public static class NpcMapper
         npc.Id, npc.Name, npc.System, npc.Kind, npc.Role, npc.Description, npc.Source,
         npc.Brawn, npc.Agility, npc.Intellect, npc.Cunning, npc.Willpower, npc.Presence,
         npc.WoundThreshold, npc.StrainThreshold, npc.Soak, npc.MeleeDefense, npc.RangedDefense,
+        npc.Silhouette, npc.Tactics,
         npc.Visibility, npc.CampaignId, npc.OwnerUserId == userId,
         npc.Skills.OrderBy(s => s.Name).Select(s => new NpcSkillDto(s.Name, s.Ranks)).ToList(),
         npc.Abilities.Select(a => new NpcAbilityDto(a.Name, a.Description)).ToList(),
         npc.Attacks.Select(a => new NpcAttackDto(a.Name, a.SkillName, a.Damage, a.Critical, a.RangeBand, a.Notes,
             a.Qualities.Select(q => new NpcAttackQualityDto(q.QualityCode, q.NameRu, q.Rating)).ToList())).ToList(),
         npc.Talents, npc.Equipment, npc.Tags,
+        NpcValidator.Validate(npc).Warnings,
         npc.CreatedAt, npc.UpdatedAt);
 
     public static NpcListItemDto ToListItem(Npc npc, Guid userId) => new(
@@ -81,14 +84,18 @@ public static class NpcMapper
         npc.Soak = input.Soak;
         npc.MeleeDefense = input.MeleeDefense;
         npc.RangedDefense = input.RangedDefense;
+        npc.Silhouette = input.Silhouette;
+        npc.Tactics = input.Tactics?.Trim() ?? "";
         npc.Visibility = input.Visibility;
         npc.CampaignId = input.CampaignId;
         npc.Talents = Clean(input.Talents);
         npc.Equipment = Clean(input.Equipment);
         npc.Tags = Clean(input.Tags);
+        // Миньон использует групповые навыки: индивидуальные ранги не значимы (ранг = размер группы − 1).
+        var minion = input.Kind == NpcKind.Minion;
         npc.Skills = (input.Skills ?? [])
             .Where(s => !string.IsNullOrWhiteSpace(s.Name))
-            .Select(s => new NpcSkill { NpcId = npc.Id, Name = s.Name.Trim(), Ranks = s.Ranks })
+            .Select(s => new NpcSkill { NpcId = npc.Id, Name = s.Name.Trim(), Ranks = minion ? 0 : s.Ranks })
             .ToList();
         npc.Abilities = (input.Abilities ?? [])
             .Where(a => !string.IsNullOrWhiteSpace(a.Name))

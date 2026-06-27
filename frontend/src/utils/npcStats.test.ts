@@ -32,9 +32,11 @@ const npc: NpcDetail = {
   id: 'n1', name: 'Гоблин', system: 'realmsOfTerrinoth', kind: 'rival', role: 'brute',
   description: '', source: '', brawn: 3, agility: 2, intellect: 2, cunning: 2, willpower: 1, presence: 1,
   woundThreshold: 12, strainThreshold: 12, soak: 4, meleeDefense: 0, rangedDefense: 0,
+  silhouette: 1, tactics: '',
   visibility: 'private', campaignId: null, isMine: true,
   skills: [{ name: 'Ближний бой', ranks: 2 }],
   abilities: [], attacks: [], talents: [], equipment: ['Меч', 'Пистолет', 'Роба'], tags: [],
+  warnings: [],
   createdAt: '', updatedAt: '',
 }
 

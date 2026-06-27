@@ -256,6 +256,7 @@ Found migrations:
 - `20260626152610_AddArchetypeAbilitiesAndStartingSkills` — creates `ArchetypeAbilityDefs` and `ArchetypeStartingSkills` tables (structured species abilities/starting skills, U-12) with cascade FKs to `ArchetypeDefs` and `ArchetypeId` indexes. Non-destructive (only `CreateTable`).
 - `20260626211746_AddCareerStartingGearAndRules` — adds `StartingMoneyFixed`/`StartingMoneyDice` to `CareerDefs` and creates `CareerStartingGears` and `CareerRules` tables (career starting gear/rules, U-13) with cascade FKs to `CareerDefs` and `CareerId` indexes. Non-destructive (`AddColumn` + `CreateTable`).
 - `20260626234831_AddNpcAttacks` — creates `NpcAttacks` (cascade FK to `Npcs`) and `NpcAttackQualities` (cascade FK to `NpcAttacks`, `SetNull` FK to `QualityDefs`) for structural NPC attacks (U-14). Non-destructive (only `CreateTable`); `Npc.Equipment` retained, combat strings back-filled into attacks on seed.
+- `20260627084602_AddNpcSilhouetteAndTactics` — adds `Silhouette` (`int`, existing rows default `1`) and `Tactics` (`varchar(2000)`) to `Npcs` for adversary creation rules (U-15). Non-destructive (`AddColumn`).
 
 Startup behavior:
 

@@ -4,7 +4,7 @@
 - **Ветка:** `feature/u14-npc-attacks`
 - **Базовая ветка:** `master` (стек пуст — U-01…U-13 слиты, master @ cf7116f).
 - **PR:** [#54](https://github.com/Giviruk/GenesysForgeClaude/pull/54)
-- **Статус:** 🚧 In progress
+- **Статус:** ✅ Done
 
 ## Контекст
 
