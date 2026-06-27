@@ -101,6 +101,7 @@ public static class DependencyInjection
         services.AddScoped<ICommandHandler<DeleteNpcCommand, Unit>, DeleteNpcHandler>();
         services.AddScoped<ICommandHandler<DuplicateNpcCommand, NpcDetailDto>, DuplicateNpcHandler>();
         services.AddScoped<ICommandHandler<QuickDraftNpcCommand, NpcDetailDto>, QuickDraftNpcHandler>();
+        services.AddScoped<ICommandHandler<ApplyNpcTemplateCommand, NpcDetailDto>, ApplyNpcTemplateHandler>();
 
         // Game Table / GM Cockpit
         services.AddScoped<IQueryHandler<GetSessionQuery, GameSessionDto?>, GetSessionHandler>();

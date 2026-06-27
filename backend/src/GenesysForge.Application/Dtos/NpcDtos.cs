@@ -97,6 +97,9 @@ public record NpcInput(
     List<string>? Equipment,
     List<string>? Tags);
 
+/// <summary>Применение шаблона типа существа к текущей форме NPC (ручной режим). NPC не сохраняется.</summary>
+public record ApplyTemplateRequest(NpcInput Input, CreatureTemplate Template);
+
 /// <summary>Параметры быстрого детерминированного черновика.</summary>
 public record QuickDraftRequest(
     GameSystem System,
