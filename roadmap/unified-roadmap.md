@@ -167,7 +167,7 @@
 - **DoD:** RoT-карьеры выдают стартовое снаряжение в инвентарь; правила выбора в UI; карьерные навыки остаются data-driven.
 
 ## U-14 · Структурированные атаки NPC
-- **Статус:** 🚧 In progress
+- **Статус:** 🚧 In progress (PR #54)
 - **Детали:** `NpcAttack` + `NpcAttackQuality` (качества через каталог `QualityDef` из U-10); backfill боевых строк из `Equipment` парсером; генератор/QuickDraft выдают структурные атаки. См. [u14-npc-attacks.md](tasks/u14-npc-attacks.md).
 - **Источник:** GF-008 · Аудит §5
 - **Зачем:** `Npc.Equipment` = `List<string>` — мало для боя/карточек/импорта.

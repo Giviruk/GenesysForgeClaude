@@ -3,7 +3,7 @@
 - **Roadmap:** U-14 — структурированные атаки NPC (см. [unified-roadmap.md](../unified-roadmap.md)); источник GF-008 / Аудит §5.
 - **Ветка:** `feature/u14-npc-attacks`
 - **Базовая ветка:** `master` (стек пуст — U-01…U-13 слиты, master @ cf7116f).
-- **PR:** _(пока нет)_
+- **PR:** [#54](https://github.com/Giviruk/GenesysForgeClaude/pull/54)
 - **Статус:** 🚧 In progress
 
 ## Контекст
@@ -44,11 +44,11 @@
 - [x] Тесты: Domain `NpcEquipmentParserTests` (7); Api round-trip качества + duplicate копирует атаки; QuickDraft-тест
       обновлён на структурную атаку; Vitest `npcAttackViews`. Итог: Api 178 / Domain 72 / front 77 зелёные.
 - [x] docs/database.md обновлён (секция NpcAttacks + миграция). domain-model.md NPC не документирует — не трогаем.
-- [ ] PR открыть, номер записать сюда + в unified-roadmap.
+- [x] PR открыт — #54.
 
 ## Что осталось / блокеры
 
-- Открыть PR.
+- Дождаться ревью/слияния PR #54 → статус Done.
 - Применить миграцию + перезапуск backend на проде (backfill `BackfillNpcAttacks` отрабатывает на старте).
 
 ## Заметки / решения
