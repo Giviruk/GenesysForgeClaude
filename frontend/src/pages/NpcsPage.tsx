@@ -384,6 +384,9 @@ function NpcEditor({ initial, onCancel, onSaved }: {
   const [form, setForm] = useState<NpcInput>(initial ? toInput(initial) : EMPTY_INPUT)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  // Тип существа — параметр применения шаблона (теги/способности/природная атака), не поле модели.
+  const [template, setTemplate] = useState<CreatureTemplate>('none')
+  const [applying, setApplying] = useState(false)
   // Справочник выбранной системы — источник доступных навыков, талантов и снаряжения.
   // Храним вместе с системой, для которой загружен: при смене системы старые опции
   // сразу считаются неактуальными (ref === null), пока не подтянется новый справочник.
@@ -409,6 +412,20 @@ function NpcEditor({ initial, onCancel, onSaved }: {
   // Снаряжение меняется → пересобираем производные атаки (оружие → атака), кастомные сохраняем.
   const setEquipment = (equipment: string[]) =>
     setForm(f => ({ ...f, equipment, attacks: syncAttacksWithEquipment(equipment, f.attacks, weaponMap) }))
+
+  // Применяет шаблон типа существа к текущей форме на сервере (единый источник правды с генератором).
+  async function applyTemplate() {
+    if (template === 'none') return
+    setApplying(true); setError(null)
+    try {
+      const payload: NpcInput = { ...form, strainThreshold: minion ? null : form.strainThreshold }
+      setForm(toInput(await api.applyNpcTemplate(payload, template)))
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Ошибка применения шаблона')
+    } finally {
+      setApplying(false)
+    }
+  }
 
   async function submit(e: FormEvent) {
     e.preventDefault()
@@ -457,6 +474,18 @@ function NpcEditor({ initial, onCancel, onSaved }: {
         </div>
 
         <label>Описание<textarea value={form.description} onChange={e => set('description', e.target.value)} rows={2} /></label>
+
+        <div className="list-editor">
+          <div className="label-line">Тип существа (шаблон)</div>
+          <div className="muted small-text">Добавит к NPC теги, способности и природную атаку выбранного типа. Шаблон не хранится — после применения всё редактируемо.</div>
+          <div className="form-row">
+            <select className="grow" value={template} onChange={e => setTemplate(e.target.value as CreatureTemplate)}>
+              {CREATURE_TEMPLATES.map(t => <option key={t} value={t}>{CREATURE_TEMPLATE_LABELS[t]}</option>)}
+            </select>
+            <button type="button" className="small" disabled={template === 'none' || applying}
+              onClick={() => void applyTemplate()}>Применить шаблон</button>
+          </div>
+        </div>
 
         <div className="label-line">Характеристики (1–6)</div>
         <div className="form-row chars-row npc-stat-grid">

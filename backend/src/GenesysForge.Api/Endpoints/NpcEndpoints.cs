@@ -43,6 +43,10 @@ public static class NpcEndpoints
             return Results.Created($"/api/npcs/{npc.Id}", npc);
         });
 
+        group.MapPost("/apply-template", async (ApplyTemplateRequest req, ClaimsPrincipal user,
+            ICommandHandler<ApplyNpcTemplateCommand, NpcDetailDto> handler, CancellationToken ct) =>
+            Results.Ok(await handler.Handle(new ApplyNpcTemplateCommand(user.UserId(), req), ct)));
+
         group.MapPost("/{id:guid}/duplicate", async (Guid id, ClaimsPrincipal user,
             ICommandHandler<DuplicateNpcCommand, NpcDetailDto> handler, CancellationToken ct) =>
         {

@@ -1,6 +1,6 @@
 import type {
   AuthResponse, AuthProviders, CampaignDetail, CampaignListItem, CampaignNote, CharacterListItem, CharacterNote,
-  AddParticipantRequest, CharacterSheet, GameSession, GameSystem, HeroicAbility, InitiativeSlotType,
+  AddParticipantRequest, CharacterSheet, CreatureTemplate, GameSession, GameSystem, HeroicAbility, InitiativeSlotType,
   ItemDef, ItemState, NpcDetail, NpcFilter, NpcInput, NpcListItem, QuickDraftRequest, Reference,
   SkillDef, Spell, TalentDef, UpdateParticipantRequest,
   AddEncounterParticipantRequest, EncounterDetail, EncounterFilter, EncounterInput, EncounterListItem,
@@ -244,6 +244,8 @@ export const api = {
   deleteNpc: (id: string) => request<void>('DELETE', `/api/npcs/${id}`),
   duplicateNpc: (id: string) => request<NpcDetail>('POST', `/api/npcs/${id}/duplicate`),
   quickDraftNpc: (req: QuickDraftRequest) => request<NpcDetail>('POST', '/api/npcs/quick-draft', req),
+  applyNpcTemplate: (input: NpcInput, template: CreatureTemplate) =>
+    request<NpcDetail>('POST', '/api/npcs/apply-template', { input, template }),
 
   // Game Table / GM Cockpit (сцена кампании). GET возвращает 204 → null, если активной сцены нет.
   session: async (campaignId: string): Promise<GameSession | null> => {

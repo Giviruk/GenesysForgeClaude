@@ -119,10 +119,13 @@ public static class NpcDraftGenerator
     /// <summary>
     /// Применяет шаблон типа существа: добавляет тег, тематические способности, природную структурную
     /// атаку и корректирует поглощение/силуэт. Чистая логика; каталожное оружие к таким NPC не применяется.
+    /// Идемпотентно: если тег существа уже есть, шаблон считается применённым и повторно не накладывается
+    /// (используется и генератором, и ручным режимом «Применить шаблон»).
     /// </summary>
-    private static void ApplyTemplate(Npc npc, CreatureTemplate template, int level)
+    public static void ApplyTemplate(Npc npc, CreatureTemplate template, int level)
     {
         if (template == CreatureTemplate.None) return;
+        if (npc.Tags.Contains(CreatureTag(template))) return; // уже применён
 
         npc.Tags.Add(CreatureTag(template));
 

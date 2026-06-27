@@ -303,6 +303,35 @@ public class NpcTests : IClassFixture<ApiFactory>
     }
 
     [Fact]
+    public async Task ApplyTemplate_AddsCreatureTagAbilityAttack_AndIsIdempotent()
+    {
+        var gm = await _factory.CreateAuthorizedClientAsync();
+        var input = SampleInput("Скелет", NpcKind.Rival) with { Tags = [], Attacks = [], Abilities = [] };
+
+        var resp = await gm.PostAsJsonAsync("/api/npcs/apply-template",
+            new ApplyTemplateRequest(input, CreatureTemplate.Undead), Json.Options);
+        Assert.Equal(HttpStatusCode.OK, resp.StatusCode);
+        var npc = (await resp.Content.ReadFromJsonAsync<NpcDetailDto>(Json.Options))!;
+
+        Assert.Contains("нежить", npc.Tags);
+        Assert.NotEmpty(npc.Attacks);                                   // природная атака
+        Assert.Contains(npc.Abilities, a => a.Name.Contains("Ужас"));   // тематическая способность
+
+        // Повторное применение того же шаблона к результату ничего не дублирует (идемпотентно).
+        var input2 = input with
+        {
+            Tags = [.. npc.Tags],
+            Attacks = [.. npc.Attacks],
+            Abilities = [.. npc.Abilities.Select(a => new NpcAbilityDto(a.Name, a.Description))],
+        };
+        var resp2 = await gm.PostAsJsonAsync("/api/npcs/apply-template",
+            new ApplyTemplateRequest(input2, CreatureTemplate.Undead), Json.Options);
+        var npc2 = (await resp2.Content.ReadFromJsonAsync<NpcDetailDto>(Json.Options))!;
+        Assert.Equal(npc.Tags.Count(t => t == "нежить"), npc2.Tags.Count(t => t == "нежить"));
+        Assert.Equal(npc.Attacks.Count, npc2.Attacks.Count);
+    }
+
+    [Fact]
     public async Task PrivateNpc_NotVisibleToOtherUsers()
     {
         var gm = await _factory.CreateAuthorizedClientAsync();
