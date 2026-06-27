@@ -19,7 +19,8 @@ public static class NpcMapper
         npc.Skills.OrderBy(s => s.Name).Select(s => new NpcSkillDto(s.Name, s.Ranks)).ToList(),
         npc.Abilities.Select(a => new NpcAbilityDto(a.Name, a.Description)).ToList(),
         npc.Attacks.Select(a => new NpcAttackDto(a.Name, a.SkillName, a.Damage, a.Critical, a.RangeBand, a.Notes,
-            a.Qualities.Select(q => new NpcAttackQualityDto(q.QualityCode, q.NameRu, q.Rating)).ToList())).ToList(),
+            a.Qualities.Select(q => new NpcAttackQualityDto(q.QualityCode, q.NameRu, q.Rating)).ToList(),
+            a.SourceWeapon)).ToList(),
         npc.Talents, npc.Equipment, npc.Tags,
         NpcValidator.Validate(npc).Warnings,
         npc.CreatedAt, npc.UpdatedAt);
@@ -112,6 +113,7 @@ public static class NpcMapper
                 Critical = a.Critical?.Trim() ?? "",
                 RangeBand = a.RangeBand?.Trim() ?? "",
                 Notes = a.Notes?.Trim() ?? "",
+                SourceWeapon = a.SourceWeapon?.Trim() ?? "",
                 Qualities = (a.Qualities ?? [])
                     .Where(q => !string.IsNullOrWhiteSpace(q.QualityCode) || !string.IsNullOrWhiteSpace(q.NameRu))
                     .Select(q => new NpcAttackQuality

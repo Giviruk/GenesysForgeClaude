@@ -1,10 +1,51 @@
 import type {
-  Characteristic, DicePool, ItemDef, NpcDetail, Reference, SkillDef,
+  Characteristic, DicePool, ItemDef, NpcAttackEntry, NpcDetail, Reference, SkillDef,
 } from '../api/types'
 import { resolveWeaponSkillName } from './labels'
 
 /** Отображаемое имя справочной записи: русское, с откатом на оригинальное. */
 const refLabel = (o: { name: string; nameRu: string }) => o.nameRu || o.name
+
+/** Структурная атака из оружия каталога: навык/урон/крит/дистанция/качества переносятся из предмета. */
+export function attackFromItem(item: ItemDef): NpcAttackEntry {
+  return {
+    name: refLabel(item),
+    skillName: item.skillName,
+    damage: item.damage,
+    critical: item.crit,
+    rangeBand: item.rangeBand,
+    notes: '',
+    qualities: item.qualities.map(q => ({ qualityCode: q.code, nameRu: q.nameRu || q.nameEn, rating: q.rating })),
+    sourceWeapon: refLabel(item),
+  }
+}
+
+/**
+ * Синхронизирует атаки со снаряжением: для каждого оружия в инвентаре держит производную атаку
+ * (ключ — подпись оружия), сохраняя ручные правки; кастомные атаки (sourceWeapon='') не трогает.
+ */
+export function syncAttacksWithEquipment(
+  equipment: string[], attacks: NpcAttackEntry[], weaponsByLabel: Map<string, ItemDef>,
+): NpcAttackEntry[] {
+  const custom = attacks.filter(a => !a.sourceWeapon)
+  const derivedByLabel = new Map(attacks.filter(a => a.sourceWeapon).map(a => [a.sourceWeapon, a]))
+  const derived: NpcAttackEntry[] = []
+  const seen = new Set<string>()
+  for (const label of equipment) {
+    const item = weaponsByLabel.get(label)
+    if (!item || seen.has(label)) continue
+    seen.add(label)
+    derived.push(derivedByLabel.get(label) ?? attackFromItem(item)) // переиспользуем — сохраняем правки
+  }
+  return [...derived, ...custom]
+}
+
+/** Карта «подпись оружия → предмет каталога» из справочника (для синхронизации атак со снаряжением). */
+export function weaponsByLabel(reference: Reference | null): Map<string, ItemDef> {
+  const m = new Map<string, ItemDef>()
+  for (const it of reference?.items ?? []) if (it.kind === 'weapon') m.set(refLabel(it), it)
+  return m
+}
 
 /**
  * Дайс-пул проверки навыка: большее из (характеристика, ранги) кубов,

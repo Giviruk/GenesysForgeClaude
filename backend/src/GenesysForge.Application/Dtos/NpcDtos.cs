@@ -12,7 +12,8 @@ public record NpcAttackDto(
     string Critical,
     string RangeBand,
     string Notes,
-    IReadOnlyList<NpcAttackQualityDto> Qualities);
+    IReadOnlyList<NpcAttackQualityDto> Qualities,
+    string SourceWeapon = "");
 
 /// <summary>Карточка NPC в списке библиотеки.</summary>
 public record NpcListItemDto(

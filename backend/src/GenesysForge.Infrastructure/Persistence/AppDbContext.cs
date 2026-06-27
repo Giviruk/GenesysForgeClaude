@@ -225,6 +225,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             e.Property(a => a.Critical).HasMaxLength(20);
             e.Property(a => a.RangeBand).HasMaxLength(40);
             e.Property(a => a.Notes).HasMaxLength(600);
+            e.Property(a => a.SourceWeapon).HasMaxLength(160);
             e.HasMany(a => a.Qualities).WithOne()
                 .HasForeignKey(q => q.NpcAttackId).OnDelete(DeleteBehavior.Cascade);
         });

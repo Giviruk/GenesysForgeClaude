@@ -197,7 +197,7 @@ Indexes: non-unique `ItemDefId`, `QualityDefId`. Cascade FKs to `ItemDefs` and `
 
 Structural combat attacks for NPCs (U-14, GF-008 / Audit §5), replacing combat strings previously embedded in `Npc.Equipment` (non-combat gear stays in `Equipment`).
 
-`NpcAttacks` fields: `Id`, `NpcId`, `Name`, `SkillName` (English roll skill, e.g. `Melee (Heavy)`), `Damage` (`+N` melee bonus or absolute), `Critical`, `RangeBand` (Russian label), `Notes`. Cascade FK to `Npcs`; non-unique `NpcId` index.
+`NpcAttacks` fields: `Id`, `NpcId`, `Name`, `SkillName` (English roll skill, e.g. `Melee (Heavy)`), `Damage` (`+N` melee bonus or absolute), `Critical`, `RangeBand` (Russian label), `Notes`, `SourceWeapon`. Cascade FK to `Npcs`; non-unique `NpcId` index. `SourceWeapon` is the equipment label a weapon-derived attack was generated from (empty = manual/custom); the NPC editor keeps such attacks in sync with weapons in `Equipment` while preserving custom ones.
 
 `NpcAttackQualities` fields: `Id`, `NpcAttackId`, `QualityDefId` (nullable — null for custom), `QualityCode`, `NameRu`, `Rating` (nullable). Reuses the U-10 `QualityDefs` catalog: codes are resolved to `QualityDefId` and canonical `NameRu` on save (`NpcMapper.ResolveAttackQualitiesAsync`); unmatched codes stay custom. Cascade FK to `NpcAttacks`; `SetNull` FK to `QualityDefs` (deleting a catalog quality keeps the attack with denormalized fields). Non-unique `NpcAttackId`, `QualityDefId` indexes.
 
@@ -257,6 +257,7 @@ Found migrations:
 - `20260626211746_AddCareerStartingGearAndRules` — adds `StartingMoneyFixed`/`StartingMoneyDice` to `CareerDefs` and creates `CareerStartingGears` and `CareerRules` tables (career starting gear/rules, U-13) with cascade FKs to `CareerDefs` and `CareerId` indexes. Non-destructive (`AddColumn` + `CreateTable`).
 - `20260626234831_AddNpcAttacks` — creates `NpcAttacks` (cascade FK to `Npcs`) and `NpcAttackQualities` (cascade FK to `NpcAttacks`, `SetNull` FK to `QualityDefs`) for structural NPC attacks (U-14). Non-destructive (only `CreateTable`); `Npc.Equipment` retained, combat strings back-filled into attacks on seed.
 - `20260627084602_AddNpcSilhouetteAndTactics` — adds `Silhouette` (`int`, existing rows default `1`) and `Tactics` (`varchar(2000)`) to `Npcs` for adversary creation rules (U-15). Non-destructive (`AddColumn`).
+- `20260627153450_AddNpcAttackSourceWeapon` — adds `SourceWeapon` (`varchar(160)`) to `NpcAttacks` to link weapon-derived attacks to inventory weapons (auto-create/sync). Non-destructive (`AddColumn`).
 
 Startup behavior:
 
