@@ -190,7 +190,7 @@
 # P2 — Игровой движок и глубина контента
 
 ## U-16 · NPC Draft Generator под Realms of Terrinoth
-- **Статус:** 🚧 In progress
+- **Статус:** 🚧 In progress (PR #56)
 - **Источник:** GF-010 · Аудит §3.2/§5
 - **Scope (B):** расширить [NpcDraftGenerator.cs](../backend/src/GenesysForge.Domain/Rules/NpcDraftGenerator.cs): роли Undead/Beast/Dragon/Demon/Construct/Minion Swarm; параметры setting/creatureTags/magicSkill/environment. Для RoT — навыки RoT (Melee Light/Heavy, Ranged, Runes, Verse, Knowledge (Lore)), без Core-only (Computers/Driving/Operating); magic NPC → magic skill; undead → теги/сопротивления/terror; beast/monster → natural weapons. Генерить структурные `NpcAttack` (из U-14).
 - **DoD:** разные NPC для RoT и Core; RoT не получает Core-навыки; генерит структурные атаки + теги + warnings.
