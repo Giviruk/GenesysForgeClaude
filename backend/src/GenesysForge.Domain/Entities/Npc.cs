@@ -30,6 +30,11 @@ public class Npc
     public int Soak { get; set; }
     public int MeleeDefense { get; set; }
     public int RangedDefense { get; set; }
+    /// <summary>Силуэт (размер). Обычный гуманоид = 1; крупные монстры ≥ 2 (правило wound ≥ силуэт×10).</summary>
+    public int Silhouette { get; set; } = 1;
+
+    /// <summary>Тактика на 1–3 раунда (что NPC делает в бою). Свободный текст.</summary>
+    public string Tactics { get; set; } = "";
 
     public NpcVisibility Visibility { get; set; } = NpcVisibility.Private;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

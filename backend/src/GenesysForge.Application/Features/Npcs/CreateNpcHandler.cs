@@ -12,7 +12,7 @@ public class CreateNpcHandler(IAppDbContext db) : ICommandHandler<CreateNpcComma
         var npc = new Npc { Id = Guid.NewGuid(), OwnerUserId = command.UserId, Name = command.Input.Name };
         NpcMapper.Apply(npc, command.Input);
         await NpcMapper.ResolveAttackQualitiesAsync(db, npc, ct);
-        NpcValidator.Validate(npc);
+        NpcValidator.ValidateAndThrow(npc);
 
         db.Npcs.Add(npc);
         await db.SaveChangesAsync(ct);

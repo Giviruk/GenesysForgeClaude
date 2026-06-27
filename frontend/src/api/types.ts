@@ -420,6 +420,8 @@ export interface NpcDetail {
   soak: number
   meleeDefense: number
   rangedDefense: number
+  silhouette: number
+  tactics: string
   visibility: NpcVisibility
   campaignId: string | null
   isMine: boolean
@@ -429,6 +431,7 @@ export interface NpcDetail {
   talents: string[]
   equipment: string[]
   tags: string[]
+  warnings: string[]
   createdAt: string
   updatedAt: string
 }
@@ -451,6 +454,8 @@ export interface NpcInput {
   soak: number
   meleeDefense: number
   rangedDefense: number
+  silhouette: number
+  tactics: string
   visibility: NpcVisibility
   campaignId: string | null
   skills: NpcSkillEntry[]

@@ -205,6 +205,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             e.Property(n => n.Talents).HasMaxLength(2000);
             e.Property(n => n.Equipment).HasMaxLength(2000);
             e.Property(n => n.Tags).HasMaxLength(1000);
+            e.Property(n => n.Tactics).HasMaxLength(2000);
             e.HasMany(n => n.Skills).WithOne().HasForeignKey(s => s.NpcId).OnDelete(DeleteBehavior.Cascade);
             e.HasMany(n => n.Abilities).WithOne().HasForeignKey(a => a.NpcId).OnDelete(DeleteBehavior.Cascade);
             e.HasMany(n => n.Attacks).WithOne().HasForeignKey(a => a.NpcId).OnDelete(DeleteBehavior.Cascade);

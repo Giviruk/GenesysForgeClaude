@@ -15,6 +15,7 @@ public class NpcTests : IClassFixture<ApiFactory>
         Brawn: 2, Agility: 3, Intellect: 2, Cunning: 3, Willpower: 2, Presence: 2,
         WoundThreshold: 12, StrainThreshold: kind == NpcKind.Minion ? null : 10,
         Soak: 3, MeleeDefense: 1, RangedDefense: 0,
+        Silhouette: 1, Tactics: "",
         Visibility: NpcVisibility.Private, CampaignId: null,
         Skills: [new NpcSkillDto("Ближний бой", 2)],
         Abilities: [new NpcAbilityDto("Засада", "Добавляет преимущество при внезапной атаке")],
@@ -199,6 +200,53 @@ public class NpcTests : IClassFixture<ApiFactory>
         var attack = Assert.Single(copy.Attacks);
         Assert.Equal("Когти", attack.Name);
         Assert.Equal("+1", attack.Damage);
+    }
+
+    [Fact]
+    public async Task HighDefense_Warning_SavesWithWarnings()
+    {
+        var gm = await _factory.CreateAuthorizedClientAsync();
+        var resp = await gm.PostAsJsonAsync("/api/npcs/", SampleInput() with { MeleeDefense = 5 }, Json.Options);
+        Assert.Equal(HttpStatusCode.Created, resp.StatusCode);
+        var npc = (await resp.Content.ReadFromJsonAsync<NpcDetailDto>(Json.Options))!;
+        Assert.Contains(npc.Warnings, w => w.Contains("Защита"));
+    }
+
+    [Fact]
+    public async Task ExcessiveDefense_Error_IsRejected()
+    {
+        var gm = await _factory.CreateAuthorizedClientAsync();
+        var resp = await gm.PostAsJsonAsync("/api/npcs/", SampleInput() with { RangedDefense = 7 }, Json.Options);
+        Assert.Equal(HttpStatusCode.BadRequest, resp.StatusCode);
+    }
+
+    [Fact]
+    public async Task Minion_SkillRanks_AreNormalizedToZero()
+    {
+        var gm = await _factory.CreateAuthorizedClientAsync();
+        var input = SampleInput("Гоблин-рой", NpcKind.Minion) with
+        {
+            Skills = [new NpcSkillDto("Ближний бой", 3)],
+        };
+        var resp = await gm.PostAsJsonAsync("/api/npcs/", input, Json.Options);
+        Assert.Equal(HttpStatusCode.Created, resp.StatusCode);
+        var npc = (await resp.Content.ReadFromJsonAsync<NpcDetailDto>(Json.Options))!;
+        Assert.All(npc.Skills, s => Assert.Equal(0, s.Ranks)); // групповые навыки без рангов
+    }
+
+    [Fact]
+    public async Task Silhouette_And_Tactics_RoundTrip()
+    {
+        var gm = await _factory.CreateAuthorizedClientAsync();
+        var input = SampleInput("Дракон", NpcKind.Nemesis) with
+        {
+            Silhouette = 3, Tactics = "Дышит огнём по площади", WoundThreshold = 40, StrainThreshold = 15,
+        };
+        var resp = await gm.PostAsJsonAsync("/api/npcs/", input, Json.Options);
+        Assert.Equal(HttpStatusCode.Created, resp.StatusCode);
+        var npc = (await resp.Content.ReadFromJsonAsync<NpcDetailDto>(Json.Options))!;
+        Assert.Equal(3, npc.Silhouette);
+        Assert.Equal("Дышит огнём по площади", npc.Tactics);
     }
 
     [Fact]

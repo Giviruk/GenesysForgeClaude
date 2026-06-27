@@ -244,16 +244,24 @@ function NpcDetailView({ npcId, reloadToken, onEdit, onDuplicated, onDeleted }: 
           {n.strainThreshold != null && <span><b>Стрейн</b> {n.strainThreshold}</span>}
           <span><b>Бл. защита</b> {n.meleeDefense}</span>
           <span><b>Дал. защита</b> {n.rangedDefense}</span>
+          {n.silhouette !== 1 && <span><b>Силуэт</b> {n.silhouette}</span>}
         </div>
+
+        {n.warnings.length > 0 && (
+          <div className="npc-warnings">
+            <b>Предупреждения:</b>
+            <ul>{n.warnings.map((w, i) => <li key={i}>{w}</li>)}</ul>
+          </div>
+        )}
 
         {skills.length > 0 && (
           <div className="npc-section">
-            <h4>Навыки</h4>
+            <h4>{n.kind === 'minion' ? 'Групповые навыки' : 'Навыки'}</h4>
             <ul className="npc-skill-list">
               {skills.map((s, i) => (
                 <li key={i} className="npc-skill-row">
                   <span className="npc-skill-name">
-                    {s.name} <span className="muted">{s.ranks}</span>
+                    {s.name} {n.kind !== 'minion' && <span className="muted">{s.ranks}</span>}
                     {s.characteristic && (
                       <span className="muted small-text"> · {CHARACTERISTIC_LABELS[s.characteristic]}</span>
                     )}
@@ -316,6 +324,9 @@ function NpcDetailView({ npcId, reloadToken, onEdit, onDuplicated, onDeleted }: 
             </ul>
           </div>
         )}
+        {n.tactics && (
+          <div className="npc-section"><h4>Тактика</h4><p className="npc-desc">{n.tactics}</p></div>
+        )}
         {n.tags.length > 0 && (
           <div className="npc-section"><h4>Теги</h4><div className="chips">{n.tags.map(t => <span key={t} className="chip">{t}</span>)}</div></div>
         )}
@@ -352,13 +363,14 @@ const EMPTY_INPUT: NpcInput = {
   name: '', system: 'realmsOfTerrinoth', kind: 'rival', role: 'brute', description: '', source: '',
   brawn: 2, agility: 2, intellect: 2, cunning: 2, willpower: 2, presence: 2,
   woundThreshold: 10, strainThreshold: 10, soak: 2, meleeDefense: 0, rangedDefense: 0,
+  silhouette: 1, tactics: '',
   visibility: 'private', campaignId: null,
   skills: [], abilities: [], attacks: [], talents: [], equipment: [], tags: [],
 }
 
 function toInput(n: NpcDetail): NpcInput {
-  const { id, isMine, createdAt, updatedAt, ...rest } = n
-  void id; void isMine; void createdAt; void updatedAt
+  const { id, isMine, createdAt, updatedAt, warnings, ...rest } = n
+  void id; void isMine; void createdAt; void updatedAt; void warnings
   return rest
 }
 
@@ -458,9 +470,12 @@ function NpcEditor({ initial, onCancel, onSaved }: {
             onChange={e => set('meleeDefense', Math.max(0, +e.target.value))} /></label>
           <label className="char-input">Дал. защита<input type="number" min={0} value={form.rangedDefense}
             onChange={e => set('rangedDefense', Math.max(0, +e.target.value))} /></label>
+          <label className="char-input">Силуэт<input type="number" min={0} max={10} value={form.silhouette}
+            onChange={e => set('silhouette', clamp(+e.target.value, 0, 10))} /></label>
         </div>
 
-        <SkillsEditor skills={form.skills} available={reference?.skills ?? []} onChange={s => set('skills', s)} />
+        <SkillsEditor skills={form.skills} available={reference?.skills ?? []} groupSkills={minion}
+          onChange={s => set('skills', s)} />
         <AttacksEditor attacks={form.attacks} skills={reference?.skills ?? []} qualities={reference?.qualities ?? []}
           onChange={a => set('attacks', a)} />
         <AbilitiesEditor abilities={form.abilities} onChange={a => set('abilities', a)} />
@@ -469,6 +484,9 @@ function NpcEditor({ initial, onCancel, onSaved }: {
         <PickListEditor label="Снаряжение" values={form.equipment} options={reference?.items ?? []}
           onChange={v => set('equipment', v)} placeholder="Выберите предмет из списка" />
         <StringListEditor label="Теги" values={form.tags} onChange={v => set('tags', v)} placeholder="Тег" />
+
+        <label>Тактика (1–3 раунда)<textarea value={form.tactics} rows={2}
+          onChange={e => set('tactics', e.target.value)} placeholder="Что NPC делает в бою" /></label>
 
         <div className="form-row">
           <label className="grow">Источник<input value={form.source} onChange={e => set('source', e.target.value)} /></label>
@@ -487,14 +505,16 @@ function NpcEditor({ initial, onCancel, onSaved }: {
 // Отображаемое имя справочной записи: русское, с откатом на оригинальное.
 const refLabel = (o: { name: string; nameRu: string }) => o.nameRu || o.name
 
-function SkillsEditor({ skills, available, onChange }: {
+function SkillsEditor({ skills, available, groupSkills = false, onChange }: {
   skills: NpcInput['skills']; available: { name: string; nameRu: string }[]
+  groupSkills?: boolean
   onChange: (s: NpcInput['skills']) => void
 }) {
   const names = available.map(refLabel)
   return (
     <div className="list-editor">
-      <div className="label-line">Навыки</div>
+      <div className="label-line">{groupSkills ? 'Групповые навыки' : 'Навыки'}</div>
+      {groupSkills && <div className="muted small-text">Миньоны используют групповые навыки без рангов (ранг = размер группы − 1).</div>}
       {skills.map((s, i) => {
         // Текущее значение оставляем выбираемым, даже если его нет в справочнике (кастом/смена системы).
         const orphan = s.name !== '' && !names.includes(s.name)
@@ -506,14 +526,16 @@ function SkillsEditor({ skills, available, onChange }: {
               {orphan && <option value={s.name}>{s.name} (вне справочника)</option>}
               {available.map(sk => <option key={sk.name} value={refLabel(sk)}>{refLabel(sk)}</option>)}
             </select>
-            <input type="number" min={0} max={5} className="ranks-input" value={s.ranks}
-              onChange={e => onChange(skills.map((x, j) => j === i ? { ...x, ranks: clamp(+e.target.value, 0, 5) } : x))} />
+            {!groupSkills && <input type="number" min={0} max={5} className="ranks-input" value={s.ranks}
+              onChange={e => onChange(skills.map((x, j) => j === i ? { ...x, ranks: clamp(+e.target.value, 0, 5) } : x))} />}
             <button type="button" className="danger small" onClick={() => onChange(skills.filter((_, j) => j !== i))}>×</button>
           </div>
         )
       })}
       <button type="button" className="small" disabled={available.length === 0}
-        onClick={() => onChange([...skills, { name: '', ranks: 1 }])}>+ Навык</button>
+        onClick={() => onChange([...skills, { name: '', ranks: groupSkills ? 0 : 1 }])}>
+        {groupSkills ? '+ Групповой навык' : '+ Навык'}
+      </button>
     </div>
   )
 }

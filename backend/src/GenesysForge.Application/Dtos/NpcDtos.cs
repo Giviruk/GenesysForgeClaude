@@ -51,6 +51,8 @@ public record NpcDetailDto(
     int Soak,
     int MeleeDefense,
     int RangedDefense,
+    int Silhouette,
+    string Tactics,
     NpcVisibility Visibility,
     Guid? CampaignId,
     bool IsMine,
@@ -60,6 +62,7 @@ public record NpcDetailDto(
     IReadOnlyList<string> Talents,
     IReadOnlyList<string> Equipment,
     IReadOnlyList<string> Tags,
+    IReadOnlyList<string> Warnings,
     DateTime CreatedAt,
     DateTime UpdatedAt);
 
@@ -82,6 +85,8 @@ public record NpcInput(
     int Soak,
     int MeleeDefense,
     int RangedDefense,
+    int Silhouette,
+    string? Tactics,
     NpcVisibility Visibility,
     Guid? CampaignId,
     List<NpcSkillDto>? Skills,

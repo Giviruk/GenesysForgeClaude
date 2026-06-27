@@ -654,6 +654,8 @@ button.tiny { font-size: 0.75rem; padding: 0.05rem 0.4rem 0.15rem; }
 .npc-char-val { display: block; font-size: 1.3rem; font-weight: 600; color: var(--accent); }
 .npc-char-label { display: block; font-size: 0.72rem; color: var(--muted); }
 .npc-derived { display: flex; gap: 1rem; flex-wrap: wrap; margin: 0.6rem 0; padding: 0.5rem 0; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+.npc-warnings { margin: 0.6rem 0; padding: 0.4rem 0.7rem; border-radius: 6px; background: rgba(212, 160, 80, 0.13); border: 1px solid var(--amber, #c79a4a); font-size: 0.85rem; }
+.npc-warnings ul { margin: 0.2rem 0 0; padding-left: 1.1rem; }
 .npc-section { margin-top: 0.7rem; }
 .npc-section h4 { margin: 0 0 0.2rem; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--accent); }
 .npc-section ul { margin: 0.2rem 0; padding-left: 1.1rem; }

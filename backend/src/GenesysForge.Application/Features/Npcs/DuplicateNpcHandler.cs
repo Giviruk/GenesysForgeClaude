@@ -32,6 +32,8 @@ public class DuplicateNpcHandler(IAppDbContext db) : ICommandHandler<DuplicateNp
             Soak = src.Soak,
             MeleeDefense = src.MeleeDefense,
             RangedDefense = src.RangedDefense,
+            Silhouette = src.Silhouette,
+            Tactics = src.Tactics,
             Visibility = src.OwnerUserId == command.UserId ? src.Visibility : Domain.NpcVisibility.Private,
             Talents = [.. src.Talents],
             Equipment = [.. src.Equipment],

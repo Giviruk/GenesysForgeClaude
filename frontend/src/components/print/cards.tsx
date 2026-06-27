@@ -43,6 +43,7 @@ export function AdversaryCard({ npc, version }: { npc: NpcDetail; version: Print
             {npc.strainThreshold != null && <span><b>Стрейн</b> {npc.strainThreshold}</span>}
             <span><b>Бл.защ</b> {npc.meleeDefense}</span>
             <span><b>Дал.защ</b> {npc.rangedDefense}</span>
+            {npc.silhouette !== 1 && <span><b>Силуэт</b> {npc.silhouette}</span>}
           </div>
           {npc.skills.length > 0 && <p><b>Навыки:</b> {npc.skills.map(s => `${s.name} ${s.ranks}`).join(' · ')}</p>}
           {npc.attacks.length > 0 && (
@@ -59,6 +60,7 @@ export function AdversaryCard({ npc, version }: { npc: NpcDetail; version: Print
           )}
           {npc.talents.length > 0 && <p><b>Таланты:</b> {npc.talents.join(' · ')}</p>}
           {npc.equipment.length > 0 && <p><b>Снаряжение:</b> {npc.equipment.join(' · ')}</p>}
+          {npc.tactics && <p><b>Тактика:</b> {npc.tactics}</p>}
           {npc.tags.length > 0 && <p className="pcard-tags">{npc.tags.join(' · ')}</p>}
         </>
       ) : (

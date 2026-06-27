@@ -58,25 +58,32 @@ public static class NpcDraftGenerator
         npc.MeleeDefense = def;
         npc.RangedDefense = def;
 
-        // Wound/Strain threshold по типу и уровню.
+        // Wound/Strain threshold по формулам правил создания adversary (характеристики уже подняты уровнем).
         npc.WoundThreshold = req.Kind switch
         {
-            NpcKind.Minion => 3 + level,
-            NpcKind.Rival => npc.Brawn + 5 + 2 * level,
-            _ => npc.Brawn + 8 + 3 * level, // Nemesis
+            NpcKind.Minion => 3 + level,        // 3..6 для группы миньонов
+            NpcKind.Rival => 8 + npc.Brawn,     // JSON: 8 + Brawn
+            _ => 12 + npc.Brawn,                // Nemesis: 12 + Brawn
         };
         npc.StrainThreshold = req.Kind switch
         {
-            NpcKind.Minion => null,                            // у миньонов нет
-            NpcKind.Rival => npc.Willpower + 3 + level,
-            _ => npc.Willpower + 5 + 2 * level,                // Nemesis обязан иметь
+            NpcKind.Nemesis => 10 + npc.Willpower, // JSON: 10 + Willpower
+            _ => null,                              // Minion и Rival — без усталости (считается ранами)
         };
 
-        // Основной навык по боевому стилю; ранги растут с уровнем.
-        var ranks = Math.Min(5, 1 + level);
+        // Крупные монстры (силуэт ≥ 2): запас ран не ниже силуэт×10.
+        if (req.Role == NpcRole.Monster && level >= 2)
+        {
+            npc.Silhouette = 2;
+            npc.WoundThreshold = Math.Max(npc.WoundThreshold, npc.Silhouette * 10);
+        }
+
+        // Основной навык по боевому стилю. Миньон использует групповые навыки без рангов (ранг = размер−1
+        // считается за столом); остальные растут с уровнем.
+        var ranks = req.Kind == NpcKind.Minion ? 0 : Math.Min(5, 1 + level);
         npc.Skills.Add(new NpcSkill { NpcId = npc.Id, Name = SkillFor(req.CombatStyle), Ranks = ranks });
         if (req.Role is NpcRole.Leader or NpcRole.Social)
-            npc.Skills.Add(new NpcSkill { NpcId = npc.Id, Name = "Лидерство", Ranks = Math.Min(5, ranks) });
+            npc.Skills.Add(new NpcSkill { NpcId = npc.Id, Name = "Лидерство", Ranks = ranks });
 
         // Оружие; для чисто социального стиля оружие не добавляем.
         var weapon = WeaponFor(req.CombatStyle);
