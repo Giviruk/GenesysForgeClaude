@@ -357,6 +357,7 @@ export type NpcRole =
 export type NpcVisibility = 'private' | 'campaignVisible' | 'publicTemplate'
 export type NpcPowerLevel = 'weak' | 'standard' | 'strong' | 'elite'
 export type NpcCombatStyle = 'melee' | 'ranged' | 'magic' | 'social'
+export type CreatureTemplate = 'none' | 'undead' | 'beast' | 'dragon' | 'demon' | 'construct'
 
 export interface NpcSkillEntry {
   name: string
@@ -474,6 +475,9 @@ export interface QuickDraftRequest {
   primaryCharacteristic: Characteristic | null
   combatStyle: NpcCombatStyle
   name: string | null
+  template?: CreatureTemplate
+  magicSkill?: string | null
+  environment?: string | null
 }
 
 export interface NpcFilter {

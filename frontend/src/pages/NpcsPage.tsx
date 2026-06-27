@@ -1,12 +1,13 @@
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react'
 import { api } from '../api/client'
 import type {
-  Characteristic, GameSystem, NpcAttackEntry, NpcCombatStyle, NpcDetail, NpcInput, NpcKind, NpcListItem,
-  NpcPowerLevel, NpcRole, NpcVisibility, Quality, QuickDraftRequest, Reference, SkillDef,
+  Characteristic, CreatureTemplate, GameSystem, NpcAttackEntry, NpcCombatStyle, NpcDetail, NpcInput, NpcKind,
+  NpcListItem, NpcPowerLevel, NpcRole, NpcVisibility, Quality, QuickDraftRequest, Reference, SkillDef,
 } from '../api/types'
 import {
-  CHARACTERISTICS, CHARACTERISTIC_LABELS, ITEM_KIND_LABELS, NPC_COMBAT_STYLE_LABELS, NPC_KIND_LABELS,
-  NPC_KINDS, NPC_POWER_LABELS, NPC_ROLE_LABELS, NPC_ROLES, NPC_VISIBILITY_LABELS, SYSTEM_LABELS,
+  CHARACTERISTICS, CHARACTERISTIC_LABELS, CREATURE_TEMPLATE_LABELS, CREATURE_TEMPLATES, ITEM_KIND_LABELS,
+  NPC_COMBAT_STYLE_LABELS, NPC_KIND_LABELS, NPC_KINDS, NPC_POWER_LABELS, NPC_ROLE_LABELS, NPC_ROLES,
+  NPC_VISIBILITY_LABELS, SYSTEM_LABELS,
 } from '../utils/labels'
 import { npcAttackViews, npcGearViews, npcSkillViews, skillIndex, type NpcGearView } from '../utils/npcStats'
 import { DicePoolView } from '../components/DicePoolView'
@@ -689,12 +690,24 @@ function QuickDraftForm({ onCancel, onCreated }: { onCancel: () => void; onCreat
   const [req, setReq] = useState<QuickDraftRequest>({
     system: 'realmsOfTerrinoth', kind: 'rival', role: 'brute', powerLevel: 'standard',
     primaryCharacteristic: null, combatStyle: 'melee', name: null,
+    template: 'none', magicSkill: null, environment: null,
   })
   const [name, setName] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const set = <K extends keyof QuickDraftRequest>(k: K, v: QuickDraftRequest[K]) => setReq(r => ({ ...r, [k]: v }))
   const powerLevels = useMemo<NpcPowerLevel[]>(() => ['weak', 'standard', 'strong', 'elite'], [])
+
+  // Справочник системы — для выбора магшколы (магические навыки RoT/Core).
+  const [loaded, setLoaded] = useState<{ system: GameSystem; data: Reference } | null>(null)
+  useEffect(() => {
+    let cancelled = false
+    api.reference(req.system)
+      .then(r => { if (!cancelled) setLoaded({ system: req.system, data: r }) })
+      .catch(() => { /* без справочника список магшкол будет пуст */ })
+    return () => { cancelled = true }
+  }, [req.system])
+  const magicSkills = (loaded?.system === req.system ? loaded.data.skills : []).filter(s => s.kind === 'magic')
 
   async function submit(e: FormEvent) {
     e.preventDefault()
@@ -754,6 +767,25 @@ function QuickDraftForm({ onCancel, onCreated }: { onCancel: () => void; onCreat
             </select>
           </label>
         </div>
+        <div className="form-row">
+          <label>Тип существа
+            <select value={req.template ?? 'none'} onChange={e => set('template', e.target.value as CreatureTemplate)}>
+              {CREATURE_TEMPLATES.map(t => <option key={t} value={t}>{CREATURE_TEMPLATE_LABELS[t]}</option>)}
+            </select>
+          </label>
+          {req.combatStyle === 'magic' && (
+            <label>Магшкола
+              <select value={req.magicSkill ?? ''} onChange={e => set('magicSkill', e.target.value || null)}>
+                <option value="">По умолчанию</option>
+                {magicSkills.map(s => <option key={s.name} value={refLabel(s)}>{refLabel(s)}</option>)}
+              </select>
+            </label>
+          )}
+        </div>
+        <label>Окружение / тег (необязательно)
+          <input value={req.environment ?? ''} onChange={e => set('environment', e.target.value || null)}
+            placeholder="например, лес, подземелье" />
+        </label>
 
         {error && <div className="error">{error}</div>}
         <div className="modal-actions">

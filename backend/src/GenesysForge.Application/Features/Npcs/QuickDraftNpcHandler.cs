@@ -14,7 +14,8 @@ public partial class QuickDraftNpcHandler(IAppDbContext db) : ICommandHandler<Qu
     {
         var r = command.Request;
         var npc = NpcDraftGenerator.Generate(command.UserId,
-            new NpcDraftRequest(r.System, r.Kind, r.Role, r.PowerLevel, r.PrimaryCharacteristic, r.CombatStyle, r.Name));
+            new NpcDraftRequest(r.System, r.Kind, r.Role, r.PowerLevel, r.PrimaryCharacteristic, r.CombatStyle,
+                r.Name, r.Template, r.MagicSkill, r.Environment));
 
         // Снаряжение и навыки подбираем из каталога системы: оружие+броня по уровню силы,
         // вторичные навыки — чтобы у черновика сразу были пулы кубов, видимый доспех и
@@ -48,6 +49,21 @@ public partial class QuickDraftNpcHandler(IAppDbContext db) : ICommandHandler<Qu
         var weapons = items.Where(i => i.Kind == ItemKind.Weapon).ToList();
         var armors = items.Where(i => i.Kind == ItemKind.Armor).ToList();
 
+        // Существо по шаблону: природные атаки уже заданы генератором — каталожное оружие/броню не
+        // применяем. Боевой навык приводим к каталожному (RoT-корректному), синхронизируем навык атак.
+        if (r.Template != CreatureTemplate.None)
+        {
+            var natSkill = FirstCombat(skills, CharacteristicType.Brawn) ?? FirstByKind(skills, SkillKind.Combat);
+            if (natSkill != null)
+            {
+                npc.Skills[0].Name = Label(natSkill);
+                foreach (var a in npc.Attacks.Where(a => a.RangeBand == "Вплотную"))
+                    a.SkillName = natSkill.Name;
+            }
+            AddSecondarySkills(npc, r.Role, skills, count: level);
+            return;
+        }
+
         // ── Основной навык + оружие (навык оружия = навык NPC, чтобы пул совпадал с атакой) ──
         var weapon = r.CombatStyle switch
         {
@@ -59,7 +75,8 @@ public partial class QuickDraftNpcHandler(IAppDbContext db) : ICommandHandler<Qu
             ? ResolveSkill(skills, weapon.SkillName)
             : r.CombatStyle switch
             {
-                NpcCombatStyle.Magic => FirstByKind(skills, SkillKind.Magic),
+                // Для магии — заданная магшкола из каталога, иначе первый магнавык.
+                NpcCombatStyle.Magic => ResolveSkillByLabel(skills, r.MagicSkill) ?? FirstByKind(skills, SkillKind.Magic),
                 NpcCombatStyle.Social => FirstByKind(skills, SkillKind.Social),
                 NpcCombatStyle.Melee => FirstCombat(skills, CharacteristicType.Brawn),
                 NpcCombatStyle.Ranged => FirstCombat(skills, CharacteristicType.Agility),
@@ -138,6 +155,16 @@ public partial class QuickDraftNpcHandler(IAppDbContext db) : ICommandHandler<Qu
 
     private static SkillDef? FirstCombat(IReadOnlyList<SkillDef> skills, CharacteristicType ch) =>
         skills.Where(s => s.Kind == SkillKind.Combat && s.Characteristic == ch).OrderBy(s => s.Name).FirstOrDefault();
+
+    /// <summary>Навык каталога по отображаемому имени (RU/EN), регистронезависимо. null для пустого/ненайденного.</summary>
+    private static SkillDef? ResolveSkillByLabel(IReadOnlyList<SkillDef> skills, string? label)
+    {
+        if (string.IsNullOrWhiteSpace(label)) return null;
+        var l = label.Trim();
+        return skills.FirstOrDefault(s =>
+            string.Equals(s.NameRu, l, StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(s.Name, l, StringComparison.OrdinalIgnoreCase));
+    }
 
     /// <summary>Навык каталога по английскому имени навыка оружия: точное, затем по базовому имени.</summary>
     private static SkillDef? ResolveSkill(IReadOnlyList<SkillDef> skills, string weaponSkill)

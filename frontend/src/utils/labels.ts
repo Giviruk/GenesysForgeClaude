@@ -1,5 +1,5 @@
 import type {
-  AllowedState, Characteristic, ContentEntryType, EncounterType, GameSystem, HouseRuleCategory,
+  AllowedState, Characteristic, ContentEntryType, CreatureTemplate, EncounterType, GameSystem, HouseRuleCategory,
   InitiativeSlotType, ItemKind, ItemState, NpcCombatStyle, NpcKind, NpcPowerLevel, NpcRole,
   NpcVisibility, ParticipantType, SkillKind, ThreatLevel,
 } from '../api/types'
@@ -140,6 +140,16 @@ export const NPC_COMBAT_STYLE_LABELS: Record<NpcCombatStyle, string> = {
   magic: 'Магия',
   social: 'Социальный',
 }
+
+export const CREATURE_TEMPLATE_LABELS: Record<CreatureTemplate, string> = {
+  none: 'Без шаблона (гуманоид)',
+  undead: 'Нежить',
+  beast: 'Зверь',
+  dragon: 'Дракон',
+  demon: 'Демон',
+  construct: 'Конструкт',
+}
+export const CREATURE_TEMPLATES: CreatureTemplate[] = ['none', 'undead', 'beast', 'dragon', 'demon', 'construct']
 
 export const NPC_KINDS: NpcKind[] = ['minion', 'rival', 'nemesis']
 export const NPC_ROLES: NpcRole[] = [

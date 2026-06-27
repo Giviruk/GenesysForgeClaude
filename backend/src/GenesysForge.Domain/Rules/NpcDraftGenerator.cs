@@ -10,7 +10,10 @@ public readonly record struct NpcDraftRequest(
     NpcPowerLevel PowerLevel,
     CharacteristicType? PrimaryCharacteristic,
     NpcCombatStyle CombatStyle,
-    string? Name);
+    string? Name,
+    CreatureTemplate Template = CreatureTemplate.None,
+    string? MagicSkill = null,
+    string? Environment = null);
 
 /// <summary>
 /// Детерминированный генератор черновиков NPC (без LLM). По роли, типу и уровню силы
@@ -79,19 +82,106 @@ public static class NpcDraftGenerator
         }
 
         // Основной навык по боевому стилю. Миньон использует групповые навыки без рангов (ранг = размер−1
-        // считается за столом); остальные растут с уровнем.
+        // считается за столом); остальные растут с уровнем. Для магии — заданная магшкола (или общий навык).
         var ranks = req.Kind == NpcKind.Minion ? 0 : Math.Min(5, 1 + level);
-        npc.Skills.Add(new NpcSkill { NpcId = npc.Id, Name = SkillFor(req.CombatStyle), Ranks = ranks });
+        var primarySkill = req.CombatStyle == NpcCombatStyle.Magic && !string.IsNullOrWhiteSpace(req.MagicSkill)
+            ? req.MagicSkill!.Trim()
+            : SkillFor(req.CombatStyle);
+        npc.Skills.Add(new NpcSkill { NpcId = npc.Id, Name = primarySkill, Ranks = ranks });
         if (req.Role is NpcRole.Leader or NpcRole.Social)
             npc.Skills.Add(new NpcSkill { NpcId = npc.Id, Name = "Лидерство", Ranks = ranks });
 
-        // Оружие; для чисто социального стиля оружие не добавляем.
-        var weapon = WeaponFor(req.CombatStyle);
-        if (weapon != "—")
-            npc.Equipment.Add(weapon);
+        // Маг получает способность «Заклинания» (магический NPC должен иметь действие — см. NpcValidator).
+        if (req.CombatStyle == NpcCombatStyle.Magic)
+            npc.Abilities.Add(new NpcAbility
+            {
+                NpcId = npc.Id, Name = "Заклинания",
+                Description = $"Творит заклинания навыком «{primarySkill}».",
+            });
+
+        // Тип существа (нежить/зверь/дракон/…): теги, способности, природные атаки, terror/иммунитеты.
+        ApplyTemplate(npc, req.Template, level);
+
+        // Оружие гуманоида (если нет шаблона существа с природной атакой); социальный стиль — без оружия.
+        if (req.Template == CreatureTemplate.None)
+        {
+            var weapon = WeaponFor(req.CombatStyle);
+            if (weapon != "—")
+                npc.Equipment.Add(weapon);
+        }
+
+        if (!string.IsNullOrWhiteSpace(req.Environment))
+            npc.Tags.Add(req.Environment!.Trim());
 
         return npc;
     }
+
+    /// <summary>
+    /// Применяет шаблон типа существа: добавляет тег, тематические способности, природную структурную
+    /// атаку и корректирует поглощение/силуэт. Чистая логика; каталожное оружие к таким NPC не применяется.
+    /// </summary>
+    private static void ApplyTemplate(Npc npc, CreatureTemplate template, int level)
+    {
+        if (template == CreatureTemplate.None) return;
+
+        npc.Tags.Add(CreatureTag(template));
+
+        switch (template)
+        {
+            case CreatureTemplate.Undead:
+                Ability(npc, "Ужас", "Проверка страха при встрече (см. правила Ужаса).");
+                Ability(npc, "Природа нежити", "Не дышит, иммунен к ядам и усталости; не получает стрейн.");
+                NaturalAttack(npc, "Когти", damage: $"+{1 + level / 2}", crit: "4");
+                break;
+            case CreatureTemplate.Beast:
+                Ability(npc, "Природное оружие", "Атакует когтями и клыками без оружия.");
+                NaturalAttack(npc, "Клыки и когти", damage: $"+{1 + level / 2}", crit: "3");
+                break;
+            case CreatureTemplate.Dragon:
+                npc.Silhouette = Math.Max(npc.Silhouette, level >= 2 ? 3 : 2);
+                npc.WoundThreshold = Math.Max(npc.WoundThreshold, npc.Silhouette * 10);
+                npc.Soak += 2;
+                Ability(npc, "Ужас", "Проверка страха при встрече.");
+                NaturalAttack(npc, "Когти и хвост", damage: $"+{2 + level / 2}", crit: "3");
+                NaturalAttack(npc, "Огненное дыхание", damage: $"{8 + 2 * level}", crit: "2",
+                    range: "Короткая", notes: "Площадь; качество «Взрывное».");
+                break;
+            case CreatureTemplate.Demon:
+                npc.Soak += 1;
+                Ability(npc, "Ужас", "Проверка страха при встрече.");
+                Ability(npc, "Магическое сопротивление", "Повышает сложность нацеленной на него магии.");
+                NaturalAttack(npc, "Когти", damage: $"+{2 + level / 2}", crit: "3");
+                break;
+            case CreatureTemplate.Construct:
+                npc.Soak += 2;
+                Ability(npc, "Иммунитеты конструкта", "Иммунен к яду, усталости и страху.");
+                NaturalAttack(npc, "Сокрушающий удар", damage: $"+{2 + level / 2}", crit: "4");
+                break;
+        }
+    }
+
+    private static void Ability(Npc npc, string name, string description) =>
+        npc.Abilities.Add(new NpcAbility { NpcId = npc.Id, Name = name, Description = description });
+
+    /// <summary>Природная атака существа (структурная). Навык совпадает с основным боевым навыком NPC.</summary>
+    private static void NaturalAttack(Npc npc, string name, string damage, string crit,
+        string range = "Вплотную", string notes = "") =>
+        npc.Attacks.Add(new NpcAttack
+        {
+            NpcId = npc.Id, Name = name,
+            SkillName = npc.Skills.Count > 0 ? npc.Skills[0].Name : "Ближний бой",
+            Damage = damage, Critical = crit, RangeBand = range, Notes = notes,
+        });
+
+    private static string CreatureTag(CreatureTemplate t) => t switch
+    {
+        CreatureTemplate.Undead => "нежить",
+        CreatureTemplate.Beast => "зверь",
+        CreatureTemplate.Dragon => "дракон",
+        CreatureTemplate.Demon => "демон",
+        CreatureTemplate.Construct => "конструкт",
+        _ => "существо",
+    };
 
     private static Dictionary<CharacteristicType, int> BaseCharacteristics(NpcRole role) => role switch
     {

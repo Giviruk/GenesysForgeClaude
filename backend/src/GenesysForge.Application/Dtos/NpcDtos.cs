@@ -104,4 +104,7 @@ public record QuickDraftRequest(
     NpcPowerLevel PowerLevel,
     CharacteristicType? PrimaryCharacteristic,
     NpcCombatStyle CombatStyle,
-    string? Name);
+    string? Name,
+    CreatureTemplate Template = CreatureTemplate.None,
+    string? MagicSkill = null,
+    string? Environment = null);

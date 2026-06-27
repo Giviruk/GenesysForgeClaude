@@ -4,7 +4,7 @@
 - **Ветка:** `feature/u15-npc-validation` (от master после слияния U-14 — зависит от `NpcAttack`).
 - **Базовая ветка:** `master`.
 - **PR:** [#55](https://github.com/Giviruk/GenesysForgeClaude/pull/55)
-- **Статус:** 🚧 In progress
+- **Статус:** ✅ Done
 
 ## Контекст
 
