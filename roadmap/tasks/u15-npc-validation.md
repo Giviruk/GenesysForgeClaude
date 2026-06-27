@@ -3,7 +3,7 @@
 - **Roadmap:** U-15 (см. [unified-roadmap.md](../unified-roadmap.md)); источник GF-009 / Аудит §5.
 - **Ветка:** `feature/u15-npc-validation` (от master после слияния U-14 — зависит от `NpcAttack`).
 - **Базовая ветка:** `master`.
-- **PR:** _(пока нет)_
+- **PR:** [#55](https://github.com/Giviruk/GenesysForgeClaude/pull/55)
 - **Статус:** 🚧 In progress
 
 ## Контекст

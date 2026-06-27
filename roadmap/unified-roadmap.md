@@ -176,7 +176,7 @@
 - **DoD:** у NPC несколько структурных атак; Encounter/Game Table их видят; карточка пригодна для стола.
 
 ## U-15 · Валидация NPC + соответствие правилам создания adversary
-- **Статус:** 🚧 In progress
+- **Статус:** 🚧 In progress (PR #55)
 - **Источник:** GF-009 · Аудит §5 · правила [_books/_npc/genesys_adversary_creation_rules_for_claude.json](../_books/_npc/genesys_adversary_creation_rules_for_claude.json)
 - **Детали:** расширен после аудита U-14 — NPC должны создаваться по правилам adversary (Minion/Rival/Nemesis). См. [u15-npc-validation.md](tasks/u15-npc-validation.md). Четыре блока:
   - **Гарды валидации** (`NpcValidationResult { Errors, Warnings }`): defense >4 warning / >6 error; soak чрезмерный (>7) warning; лимит ~8 навыков warning; magic NPC должен иметь магнавык+заклинания; атаки требуют skill/damage/range, crit ≥1 или пусто, качества из справочника или custom; Minion strain=null + **без рангов** (group skills); Rival strain обычно пуст (warning при наличии); Nemesis strain обязателен.
