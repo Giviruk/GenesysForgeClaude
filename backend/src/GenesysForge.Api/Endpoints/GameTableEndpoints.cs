@@ -70,6 +70,12 @@ public static class GameTableEndpoints
             Results.Ok(await handler.Handle(
                 new UpdateParticipantCommand(user.UserId(), campaignId, participantId, req), ct)));
 
+        group.MapPost("/participants/{participantId:guid}/activate", async (Guid campaignId, Guid participantId,
+                ActivateAbilityRequest req, ClaimsPrincipal user,
+                ICommandHandler<ActivateAbilityCommand, ActivateAbilityResult> handler, CancellationToken ct) =>
+            Results.Ok(await handler.Handle(
+                new ActivateAbilityCommand(user.UserId(), campaignId, participantId, req), ct)));
+
         group.MapDelete("/participants/{participantId:guid}", async (Guid campaignId, Guid participantId,
             ClaimsPrincipal user, ICommandHandler<RemoveParticipantCommand, Unit> handler, CancellationToken ct) =>
         {

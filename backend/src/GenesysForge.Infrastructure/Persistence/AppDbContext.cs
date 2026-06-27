@@ -15,6 +15,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<ItemDef> ItemDefs => Set<ItemDef>();
     public DbSet<HeroicAbilityDef> HeroicAbilityDefs => Set<HeroicAbilityDef>();
     public DbSet<HeroicAbilityUpgradeDef> HeroicAbilityUpgradeDefs => Set<HeroicAbilityUpgradeDef>();
+    public DbSet<RuleEffectDef> RuleEffectDefs => Set<RuleEffectDef>();
     public DbSet<ArchetypeDef> ArchetypeDefs => Set<ArchetypeDef>();
     public DbSet<ArchetypeAbilityDef> ArchetypeAbilityDefs => Set<ArchetypeAbilityDef>();
     public DbSet<ArchetypeStartingSkill> ArchetypeStartingSkills => Set<ArchetypeStartingSkill>();
@@ -145,6 +146,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         {
             e.HasMany(h => h.Upgrades).WithOne()
                 .HasForeignKey(u => u.HeroicAbilityDefId).OnDelete(DeleteBehavior.Cascade);
+            e.HasMany(h => h.Effects).WithOne()
+                .HasForeignKey(x => x.HeroicAbilityDefId).OnDelete(DeleteBehavior.Cascade);
             e.Property(h => h.Requirement).HasMaxLength(200);
             e.Property(h => h.ActivationCost).HasMaxLength(80);
             e.Property(h => h.Activation).HasMaxLength(120);
@@ -161,6 +164,13 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             e.Property(i => i.Properties).HasMaxLength(400);
             e.HasMany(i => i.Qualities).WithOne()
                 .HasForeignKey(v => v.ItemDefId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        b.Entity<RuleEffectDef>(e =>
+        {
+            e.HasIndex(x => x.HeroicAbilityDefId);
+            e.Property(x => x.Duration).HasMaxLength(120);
+            e.Property(x => x.Description).HasMaxLength(600);
         });
 
         b.Entity<QualityDef>(e =>

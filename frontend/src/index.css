@@ -813,6 +813,8 @@ button.tiny { font-size: 0.75rem; padding: 0.05rem 0.4rem 0.15rem; }
 .vital-nums { display: flex; align-items: center; gap: 0.3rem; }
 .vital-over b { color: var(--red); }
 .pc-stats { margin-top: 0.4rem; }
+.pc-activate { margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px dashed var(--border); }
+.pc-activate-result { margin-top: 0.3rem; padding: 0.3rem 0.5rem; border-radius: 6px; background: rgba(120, 160, 120, 0.12); }
 .pc-notes { margin-top: 0.3rem; font-style: italic; }
 .add-participant { margin-top: 0.6rem; border-top: 1px dashed var(--border); padding-top: 0.6rem; }
 .tag-row { display: flex; flex-wrap: wrap; gap: 0.3rem; margin-top: 0.4rem; }

@@ -1,6 +1,6 @@
 import type {
   AuthResponse, AuthProviders, CampaignDetail, CampaignListItem, CampaignNote, CharacterListItem, CharacterNote,
-  AddParticipantRequest, CharacterSheet, CreatureTemplate, GameSession, GameSystem, HeroicAbility, InitiativeSlotType,
+  ActivateAbilityResult, AddParticipantRequest, CharacterSheet, CreatureTemplate, GameSession, GameSystem, HeroicAbility, InitiativeSlotType,
   ItemDef, ItemState, NpcDetail, NpcFilter, NpcInput, NpcListItem, QuickDraftRequest, Reference,
   SkillDef, Spell, TalentDef, UpdateParticipantRequest,
   AddEncounterParticipantRequest, EncounterDetail, EncounterFilter, EncounterInput, EncounterListItem,
@@ -268,6 +268,9 @@ export const api = {
     request<GameSession>('PATCH', `/api/campaigns/${campaignId}/session/participants/${participantId}`, patch),
   removeParticipant: (campaignId: string, participantId: string) =>
     request<void>('DELETE', `/api/campaigns/${campaignId}/session/participants/${participantId}`),
+  activateAbility: (campaignId: string, participantId: string, abilityCode: string) =>
+    request<ActivateAbilityResult>('POST',
+      `/api/campaigns/${campaignId}/session/participants/${participantId}/activate`, { abilityCode }),
 
   // Лог бросков стола (U-08).
   rolls: (campaignId: string, take = 30) =>

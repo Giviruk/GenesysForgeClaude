@@ -4,7 +4,7 @@
 - **Ветка:** `feature/u17-combat-roller` (от master после U-16).
 - **Базовая ветка:** `master`.
 - **PR:** [#59](https://github.com/Giviruk/GenesysForgeClaude/pull/59)
-- **Статус:** 🚧 In progress
+- **Статус:** ✅ Done
 
 ## Контекст
 

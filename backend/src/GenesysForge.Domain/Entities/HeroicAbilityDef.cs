@@ -33,4 +33,7 @@ public class HeroicAbilityDef : IContentDef
 
     /// <summary>Доступные улучшения способности (Improved/Supreme). У кастома — пусто.</summary>
     public List<HeroicAbilityUpgradeDef> Upgrades { get; set; } = [];
+
+    /// <summary>Структурные эффекты для автоматизации активации (U-18). Пусто → только ручная подсказка.</summary>
+    public List<RuleEffectDef> Effects { get; set; } = [];
 }
