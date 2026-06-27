@@ -250,6 +250,40 @@ public class NpcTests : IClassFixture<ApiFactory>
     }
 
     [Fact]
+    public async Task QuickDraft_RoT_UsesOnlyRotCatalogSkills()
+    {
+        var gm = await _factory.CreateAuthorizedClientAsync();
+        var req = new QuickDraftRequest(GameSystem.RealmsOfTerrinoth, NpcKind.Nemesis, NpcRole.Caster,
+            NpcPowerLevel.Elite, null, NpcCombatStyle.Magic, "Маг", MagicSkill: null, Environment: "башня");
+        var npc = (await (await gm.PostAsJsonAsync("/api/npcs/quick-draft", req, Json.Options))
+            .Content.ReadFromJsonAsync<NpcDetailDto>(Json.Options))!;
+
+        var reference = (await gm.GetFromJsonAsync<ReferenceResponse>(
+            "/api/reference/RealmsOfTerrinoth", Json.Options))!;
+        string Label(string nameRu, string name) => string.IsNullOrWhiteSpace(nameRu) ? name : nameRu;
+        var rotSkills = reference.Skills.Select(s => Label(s.NameRu, s.Name)).ToHashSet();
+
+        // Все навыки сгенерированного RoT-NPC — из каталога RoT (без Core-only вроде Computers/Driving).
+        Assert.All(npc.Skills, s => Assert.Contains(s.Name, rotSkills));
+        Assert.Contains("башня", npc.Tags);
+    }
+
+    [Fact]
+    public async Task QuickDraft_CreatureTemplate_HasNaturalAttackAndTag()
+    {
+        var gm = await _factory.CreateAuthorizedClientAsync();
+        var req = new QuickDraftRequest(GameSystem.RealmsOfTerrinoth, NpcKind.Rival, NpcRole.Monster,
+            NpcPowerLevel.Standard, null, NpcCombatStyle.Melee, "Волк", Template: CreatureTemplate.Beast);
+        var npc = (await (await gm.PostAsJsonAsync("/api/npcs/quick-draft", req, Json.Options))
+            .Content.ReadFromJsonAsync<NpcDetailDto>(Json.Options))!;
+
+        Assert.Contains("зверь", npc.Tags);
+        Assert.NotEmpty(npc.Attacks);              // природная атака, не каталожное оружие
+        Assert.Empty(npc.Equipment);
+        Assert.All(npc.Attacks, a => Assert.False(string.IsNullOrWhiteSpace(a.SkillName)));
+    }
+
+    [Fact]
     public async Task PrivateNpc_NotVisibleToOtherUsers()
     {
         var gm = await _factory.CreateAuthorizedClientAsync();

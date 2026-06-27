@@ -176,7 +176,7 @@
 - **DoD:** у NPC несколько структурных атак; Encounter/Game Table их видят; карточка пригодна для стола.
 
 ## U-15 · Валидация NPC + соответствие правилам создания adversary
-- **Статус:** 🚧 In progress (PR #55)
+- **Статус:** ✅ Done (PR #55)
 - **Источник:** GF-009 · Аудит §5 · правила [_books/_npc/genesys_adversary_creation_rules_for_claude.json](../_books/_npc/genesys_adversary_creation_rules_for_claude.json)
 - **Детали:** расширен после аудита U-14 — NPC должны создаваться по правилам adversary (Minion/Rival/Nemesis). См. [u15-npc-validation.md](tasks/u15-npc-validation.md). Четыре блока:
   - **Гарды валидации** (`NpcValidationResult { Errors, Warnings }`): defense >4 warning / >6 error; soak чрезмерный (>7) warning; лимит ~8 навыков warning; magic NPC должен иметь магнавык+заклинания; атаки требуют skill/damage/range, crit ≥1 или пусто, качества из справочника или custom; Minion strain=null + **без рангов** (group skills); Rival strain обычно пуст (warning при наличии); Nemesis strain обязателен.
@@ -190,7 +190,7 @@
 # P2 — Игровой движок и глубина контента
 
 ## U-16 · NPC Draft Generator под Realms of Terrinoth
-- **Статус:** ⬜ Todo
+- **Статус:** 🚧 In progress
 - **Источник:** GF-010 · Аудит §3.2/§5
 - **Scope (B):** расширить [NpcDraftGenerator.cs](../backend/src/GenesysForge.Domain/Rules/NpcDraftGenerator.cs): роли Undead/Beast/Dragon/Demon/Construct/Minion Swarm; параметры setting/creatureTags/magicSkill/environment. Для RoT — навыки RoT (Melee Light/Heavy, Ranged, Runes, Verse, Knowledge (Lore)), без Core-only (Computers/Driving/Operating); magic NPC → magic skill; undead → теги/сопротивления/terror; beast/monster → natural weapons. Генерить структурные `NpcAttack` (из U-14).
 - **DoD:** разные NPC для RoT и Core; RoT не получает Core-навыки; генерит структурные атаки + теги + warnings.
