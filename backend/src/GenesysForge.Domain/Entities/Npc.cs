@@ -37,9 +37,11 @@ public class Npc
 
     public List<NpcSkill> Skills { get; set; } = [];
     public List<NpcAbility> Abilities { get; set; } = [];
+    /// <summary>Структурные боевые атаки NPC.</summary>
+    public List<NpcAttack> Attacks { get; set; } = [];
     /// <summary>Названия талантов NPC.</summary>
     public List<string> Talents { get; set; } = [];
-    /// <summary>Снаряжение/оружие в свободной форме.</summary>
+    /// <summary>Небоевое снаряжение в свободной форме (боевое вынесено в <see cref="Attacks"/>).</summary>
     public List<string> Equipment { get; set; } = [];
     /// <summary>Теги для фильтрации (например «нежить», «лес», «командир»).</summary>
     public List<string> Tags { get; set; } = [];

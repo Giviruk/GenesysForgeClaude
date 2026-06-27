@@ -99,7 +99,7 @@ public class GameTableTests : IClassFixture<ApiFactory>
         // создаём NPC и добавляем группой
         var npcResp = await gm.PostAsJsonAsync("/api/npcs/", new NpcInput(
             "Гоблин", GameSystem.GenesysCore, NpcKind.Minion, NpcRole.Skirmisher, null, null,
-            2, 3, 2, 2, 2, 2, 5, null, 2, 0, 0, NpcVisibility.Private, null, null, null, null, null, null), Json.Options);
+            2, 3, 2, 2, 2, 2, 5, null, 2, 0, 0, NpcVisibility.Private, null, null, null, null, null, null, null), Json.Options);
         var npc = (await npcResp.Content.ReadFromJsonAsync<NpcDetailDto>(Json.Options))!;
         var grpResp = await gm.PostAsJsonAsync($"/api/campaigns/{campaignId}/session/participants",
             new AddParticipantRequest(null, npc.Id, null, ParticipantType.MinionGroup, null, 3, null, null, null, null, null), Json.Options);

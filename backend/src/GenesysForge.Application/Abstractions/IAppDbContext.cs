@@ -31,6 +31,8 @@ public interface IAppDbContext
     DbSet<CampaignNote> CampaignNotes { get; }
     DbSet<SpellDef> SpellDefs { get; }
     DbSet<Npc> Npcs { get; }
+    DbSet<NpcAttack> NpcAttacks { get; }
+    DbSet<NpcAttackQuality> NpcAttackQualities { get; }
     DbSet<GameSession> GameSessions { get; }
     DbSet<GameParticipant> GameParticipants { get; }
     DbSet<InitiativeSlot> InitiativeSlots { get; }

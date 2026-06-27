@@ -18,6 +18,7 @@ public class NpcTests : IClassFixture<ApiFactory>
         Visibility: NpcVisibility.Private, CampaignId: null,
         Skills: [new NpcSkillDto("Ближний бой", 2)],
         Abilities: [new NpcAbilityDto("Засада", "Добавляет преимущество при внезапной атаке")],
+        Attacks: null,
         Talents: ["Быстрый"], Equipment: ["Кинжал"], Tags: ["гоблин", "лес"]);
 
     [Fact]
@@ -86,16 +87,19 @@ public class NpcTests : IClassFixture<ApiFactory>
         var weaponLabels = reference.Items.Where(i => i.Kind == ItemKind.Weapon)
             .Select(i => Label(i.NameRu, i.Name)).ToHashSet();
 
-        // Стартовый навык и оружие — реальные записи каталога (а не свободный текст).
+        // Стартовый навык — реальная запись каталога; оружие — структурная атака (а не свободный текст).
         Assert.Contains(npc.Skills[0].Name, skillLabels);
-        Assert.NotEmpty(npc.Equipment);
-        Assert.Contains(npc.Equipment[0], weaponLabels);
+        Assert.NotEmpty(npc.Attacks);
+        var attack = npc.Attacks[0];
+        Assert.Contains(attack.Name, weaponLabels);
+        Assert.NotEmpty(attack.Damage); // боевые статы перенесены из предмета каталога
 
         // Навык оружия согласован с навыком NPC: оружие распознаётся и считает пул.
-        var weapon = reference.Items.Single(i => Label(i.NameRu, i.Name) == npc.Equipment[0]);
+        var weapon = reference.Items.Single(i => Label(i.NameRu, i.Name) == attack.Name);
         var baseName = (string s) => System.Text.RegularExpressions.Regex.Replace(s, @"\s*\(.*\)\s*", "").Trim();
         var weaponSkill = reference.Skills.First(s => Label(s.NameRu, s.Name) == npc.Skills[0].Name);
         Assert.Equal(baseName(weaponSkill.Name), baseName(weapon.SkillName));
+        Assert.Equal(weapon.SkillName, attack.SkillName);
     }
 
     [Fact]
@@ -150,6 +154,51 @@ public class NpcTests : IClassFixture<ApiFactory>
         Assert.NotEqual(npc.Id, copy.Id);
         Assert.Contains("копия", copy.Name);
         Assert.Equal(npc.Skills.Count, copy.Skills.Count);
+    }
+
+    [Fact]
+    public async Task Attack_RoundTrips_AndResolvesCatalogQuality()
+    {
+        var gm = await _factory.CreateAuthorizedClientAsync();
+        var input = SampleInput() with
+        {
+            Attacks =
+            [
+                new NpcAttackDto("Длинный меч", "Melee (Heavy)", "+3", "2", "Вплотную", "режущая",
+                    [new NpcAttackQualityDto("accurate", "", 2)]),
+            ],
+        };
+
+        var resp = await gm.PostAsJsonAsync("/api/npcs/", input, Json.Options);
+        Assert.Equal(HttpStatusCode.Created, resp.StatusCode);
+        var npc = (await resp.Content.ReadFromJsonAsync<NpcDetailDto>(Json.Options))!;
+
+        var attack = Assert.Single(npc.Attacks);
+        Assert.Equal("Длинный меч", attack.Name);
+        Assert.Equal("+3", attack.Damage);
+        Assert.Equal("2", attack.Critical);
+        var quality = Assert.Single(attack.Qualities);
+        Assert.Equal("accurate", quality.QualityCode);
+        Assert.False(string.IsNullOrEmpty(quality.NameRu)); // имя подтянуто из справочника
+        Assert.Equal(2, quality.Rating);                    // рейтинговое качество сохраняет рейтинг
+    }
+
+    [Fact]
+    public async Task Duplicate_CopiesAttacks()
+    {
+        var gm = await _factory.CreateAuthorizedClientAsync();
+        var input = SampleInput() with
+        {
+            Attacks = [new NpcAttackDto("Когти", "Brawl", "+1", "4", "Вплотную", "", [])],
+        };
+        var created = await gm.PostAsJsonAsync("/api/npcs/", input, Json.Options);
+        var npc = (await created.Content.ReadFromJsonAsync<NpcDetailDto>(Json.Options))!;
+
+        var dup = await gm.PostAsync($"/api/npcs/{npc.Id}/duplicate", null);
+        var copy = (await dup.Content.ReadFromJsonAsync<NpcDetailDto>(Json.Options))!;
+        var attack = Assert.Single(copy.Attacks);
+        Assert.Equal("Когти", attack.Name);
+        Assert.Equal("+1", attack.Damage);
     }
 
     [Fact]

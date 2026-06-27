@@ -71,6 +71,81 @@ public static class SeedData
 
         // Бэкфилл структурных качеств из строк Properties встроенных предметов (идемпотентно).
         BackfillItemQualities(db);
+
+        // Бэкфилл структурных атак NPC из боевых строк Equipment (идемпотентно).
+        BackfillNpcAttacks(db);
+    }
+
+    /// <summary>
+    /// Индекс справочных качеств по нормализованному имени (RU/EN + варианты написания).
+    /// Используется бэкфиллами качеств предметов и атак NPC.
+    /// </summary>
+    private static Dictionary<string, QualityDef> BuildQualityNameIndex(IReadOnlyList<QualityDef> qualities)
+    {
+        var byName = new Dictionary<string, QualityDef>();
+        void Map(string name, QualityDef q)
+        {
+            var key = ItemPropertyParser.Normalize(name);
+            if (key.Length > 0) byName.TryAdd(key, q);
+        }
+        foreach (var q in qualities) { Map(q.NameRu, q); Map(q.NameEn, q); }
+        foreach (var (variant, canon) in QualityAliases)
+            if (byName.TryGetValue(ItemPropertyParser.Normalize(canon), out var q)) Map(variant, q);
+        return byName;
+    }
+
+    /// <summary>
+    /// Разбирает боевые строки <c>Npc.Equipment</c> (с маркерами урона/крита) в структурные
+    /// <see cref="NpcAttack"/> и убирает их из Equipment; небоевые строки остаются. Качества
+    /// сопоставляются со справочником по имени. Идемпотентно: NPC с уже заведёнными атаками
+    /// пропускаются.
+    /// </summary>
+    private static void BackfillNpcAttacks(AppDbContext db)
+    {
+        var qualities = db.QualityDefs.AsEnumerable().ToList();
+        var byName = BuildQualityNameIndex(qualities);
+
+        var npcs = db.Npcs.Include(n => n.Attacks)
+            .Where(n => n.Equipment.Count > 0).ToList();
+
+        var added = false;
+        foreach (var npc in npcs)
+        {
+            if (npc.Attacks.Count > 0) continue; // уже бэкфилнут
+
+            var remaining = new List<string>();
+            foreach (var line in npc.Equipment)
+            {
+                var parsed = NpcEquipmentParser.Parse(line);
+                if (parsed is not { } a) { remaining.Add(line); continue; }
+
+                var attack = new NpcAttack
+                {
+                    Id = Guid.NewGuid(),
+                    NpcId = npc.Id,
+                    Name = a.Name,
+                    Damage = a.Damage,
+                    Critical = a.Critical,
+                    RangeBand = a.RangeBand,
+                };
+                foreach (var token in a.Qualities)
+                {
+                    byName.TryGetValue(ItemPropertyParser.Normalize(token.Name), out var def);
+                    attack.Qualities.Add(new NpcAttackQuality
+                    {
+                        Id = Guid.NewGuid(),
+                        QualityDefId = def?.Id,
+                        QualityCode = def?.Code ?? "",
+                        NameRu = def?.NameRu ?? token.Name,
+                        Rating = def is { HasRating: true } ? token.Rating : (def == null ? token.Rating : null),
+                    });
+                }
+                npc.Attacks.Add(attack);
+                added = true;
+            }
+            if (npc.Attacks.Count > 0) npc.Equipment = remaining;
+        }
+        if (added) db.SaveChanges();
     }
 
     /// <summary>
@@ -84,16 +159,7 @@ public static class SeedData
         var qualities = db.QualityDefs.AsEnumerable().ToList();
         if (qualities.Count == 0) return;
 
-        var byName = new Dictionary<string, QualityDef>();
-        void Map(string name, QualityDef q)
-        {
-            var key = ItemPropertyParser.Normalize(name);
-            if (key.Length > 0) byName.TryAdd(key, q);
-        }
-        foreach (var q in qualities) { Map(q.NameRu, q); Map(q.NameEn, q); }
-        // Варианты написания из каталога предметов, отличные от каноничного имени.
-        foreach (var (variant, canon) in QualityAliases)
-            if (byName.TryGetValue(ItemPropertyParser.Normalize(canon), out var q)) Map(variant, q);
+        var byName = BuildQualityNameIndex(qualities);
 
         var items = db.ItemDefs
             .Include(i => i.Qualities)

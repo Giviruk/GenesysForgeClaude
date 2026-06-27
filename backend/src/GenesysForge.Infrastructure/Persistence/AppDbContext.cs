@@ -31,6 +31,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<CampaignNote> CampaignNotes => Set<CampaignNote>();
     public DbSet<SpellDef> SpellDefs => Set<SpellDef>();
     public DbSet<Npc> Npcs => Set<Npc>();
+    public DbSet<NpcAttack> NpcAttacks => Set<NpcAttack>();
+    public DbSet<NpcAttackQuality> NpcAttackQualities => Set<NpcAttackQuality>();
     public DbSet<GameSession> GameSessions => Set<GameSession>();
     public DbSet<GameParticipant> GameParticipants => Set<GameParticipant>();
     public DbSet<InitiativeSlot> InitiativeSlots => Set<InitiativeSlot>();
@@ -205,12 +207,34 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             e.Property(n => n.Tags).HasMaxLength(1000);
             e.HasMany(n => n.Skills).WithOne().HasForeignKey(s => s.NpcId).OnDelete(DeleteBehavior.Cascade);
             e.HasMany(n => n.Abilities).WithOne().HasForeignKey(a => a.NpcId).OnDelete(DeleteBehavior.Cascade);
+            e.HasMany(n => n.Attacks).WithOne().HasForeignKey(a => a.NpcId).OnDelete(DeleteBehavior.Cascade);
         });
         b.Entity<NpcSkill>().Property(s => s.Name).HasMaxLength(80);
         b.Entity<NpcAbility>(e =>
         {
             e.Property(a => a.Name).HasMaxLength(120);
             e.Property(a => a.Description).HasMaxLength(2000);
+        });
+        b.Entity<NpcAttack>(e =>
+        {
+            e.HasIndex(a => a.NpcId);
+            e.Property(a => a.Name).HasMaxLength(160);
+            e.Property(a => a.SkillName).HasMaxLength(40);
+            e.Property(a => a.Damage).HasMaxLength(20);
+            e.Property(a => a.Critical).HasMaxLength(20);
+            e.Property(a => a.RangeBand).HasMaxLength(40);
+            e.Property(a => a.Notes).HasMaxLength(600);
+            e.HasMany(a => a.Qualities).WithOne()
+                .HasForeignKey(q => q.NpcAttackId).OnDelete(DeleteBehavior.Cascade);
+        });
+        b.Entity<NpcAttackQuality>(e =>
+        {
+            e.HasIndex(q => q.NpcAttackId);
+            e.Property(q => q.QualityCode).HasMaxLength(80);
+            e.Property(q => q.NameRu).HasMaxLength(120);
+            // SetNull: удаление справочного качества не удаляет атаку (денорм-поля остаются).
+            e.HasOne(q => q.QualityDef).WithMany()
+                .HasForeignKey(q => q.QualityDefId).OnDelete(DeleteBehavior.SetNull);
         });
 
         b.Entity<GameSession>(e =>

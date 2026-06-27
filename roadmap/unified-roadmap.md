@@ -159,7 +159,7 @@
 - **DoD:** видовые способности — данные, а не только описание; стартовые навыки применяются автоматически; новые виды без кода.
 
 ## U-13 · Структурные модели карьер + стартовое снаряжение
-- **Статус:** 🚧 In progress (PR #53)
+- **Статус:** ✅ Done (PR #53)
 - **Детали:** `CareerStartingGear` + `CareerRule` + стартовые деньги; снаряжение из CSV через генератор `gen-career-extras-catalog.mjs`, применяется при создании (фикс + пикер выборов). См. [u13-career-models.md](tasks/u13-career-models.md).
 - **Источник:** GF-007 · Аудит §3
 - **Scope (B):** `CareerStartingGear` (ItemCode/qty/choice) и `CareerRule` (Kind). На создании RoT: выбор бесплатных карьерных рангов, выбор стартового снаряжения → в инвентарь, валидация числа опций.
@@ -167,18 +167,23 @@
 - **DoD:** RoT-карьеры выдают стартовое снаряжение в инвентарь; правила выбора в UI; карьерные навыки остаются data-driven.
 
 ## U-14 · Структурированные атаки NPC
-- **Статус:** ⬜ Todo
+- **Статус:** 🚧 In progress (PR #54)
+- **Детали:** `NpcAttack` + `NpcAttackQuality` (качества через каталог `QualityDef` из U-10); backfill боевых строк из `Equipment` парсером; генератор/QuickDraft выдают структурные атаки. См. [u14-npc-attacks.md](tasks/u14-npc-attacks.md).
 - **Источник:** GF-008 · Аудит §5
 - **Зачем:** `Npc.Equipment` = `List<string>` — мало для боя/карточек/импорта.
 - **Scope (B):** `NpcAttack` (Name/SkillName/Damage/Critical/RangeBand/Notes) + `NpcAttackQuality` (QualityCode/NameRu/Rating). Перенести боевые строки из `Equipment` в атаки, оставить `Equipment` для небоевого. Обновить `NpcDto`, endpoints.
 - **Scope (F):** секция «Атаки» в форме NPC (skill dropdown, damage, crit, range, qualities); статблок-атаки в карточке ([cards.tsx](../frontend/src/components/print/cards.tsx)) с бейджами-tooltip.
 - **DoD:** у NPC несколько структурных атак; Encounter/Game Table их видят; карточка пригодна для стола.
 
-## U-15 · Валидация NPC (errors + warnings)
+## U-15 · Валидация NPC + соответствие правилам создания adversary
 - **Статус:** ⬜ Todo
-- **Источник:** GF-009 · Аудит §5
-- **Scope (B):** `NpcValidationResult { Errors, Warnings }`. Правила: Minion (strain=null, не слишком много актив. способностей, group skills); Rival (strain опционален); Nemesis (strain обязателен, hook рекомендован); defense >4 warning / >6 error без override; magic skill RoT должен соответствовать доступным действиям; атаки требуют skill/damage/range, crit положительный/пустой, qualities из справочника или custom.
-- **DoD:** errors блокируют сохранение; warnings показываются и не блокируют; QuickDraft создаёт NPC без errors.
+- **Источник:** GF-009 · Аудит §5 · правила [_books/_npc/genesys_adversary_creation_rules_for_claude.json](../_books/_npc/genesys_adversary_creation_rules_for_claude.json)
+- **Детали:** расширен после аудита U-14 — NPC должны создаваться по правилам adversary (Minion/Rival/Nemesis). См. [u15-npc-validation.md](tasks/u15-npc-validation.md). Четыре блока:
+  - **Гарды валидации** (`NpcValidationResult { Errors, Warnings }`): defense >4 warning / >6 error; soak чрезмерный (>7) warning; лимит ~8 навыков warning; magic NPC должен иметь магнавык+заклинания; атаки требуют skill/damage/range, crit ≥1 или пусто, качества из справочника или custom; Minion strain=null + **без рангов** (group skills); Rival strain обычно пуст (warning при наличии); Nemesis strain обязателен.
+  - **Minion group_skills:** навыки миньона трактуются как групповые — ранги не значимы (ранг группы = размер−1 за столом); валидатор требует ranks=0; генератор/UI это учитывают (без отдельной сущности — переиспользуем `NpcSkill`).
+  - **silhouette + tactics:** поля `Npc.Silhouette` (правило wound ≥ sil×10 для крупных) и `Npc.Tactics` (модель+миграция+DTO+UI).
+  - **Генератор по формулам JSON:** `NpcDraftGenerator` — Rival wound `8+Brawn`, Nemesis `12+Brawn` / strain `10+Willpower`, Rival без strain по умолчанию, финальный урон миньона вместо `+X`.
+- **DoD:** errors блокируют сохранение; warnings показываются и не блокируют; QuickDraft создаёт NPC без errors и соответствует формулам; финальный чеклист из JSON проходит.
 
 ---
 

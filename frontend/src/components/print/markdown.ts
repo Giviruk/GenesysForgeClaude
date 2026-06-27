@@ -16,6 +16,17 @@ export function adversaryMarkdown(npc: NpcDetail, version: PrintVersion): string
     lines.push('', `**Характеристики:** ${CHARS.map(c => `${CHARACTERISTIC_LABELS[c]} ${npc[c]}`).join(', ')}`)
     lines.push(`**Soak** ${npc.soak} · **Раны** ${npc.woundThreshold}${npc.strainThreshold != null ? ` · **Стрейн** ${npc.strainThreshold}` : ''} · **Бл.защ** ${npc.meleeDefense} · **Дал.защ** ${npc.rangedDefense}`)
     if (npc.skills.length) lines.push(`**Навыки:** ${npc.skills.map(s => `${s.name} ${s.ranks}`).join(', ')}`)
+    if (npc.attacks.length) {
+      lines.push('', '**Атаки:**')
+      for (const a of npc.attacks) {
+        const stats = [
+          a.skillName && `навык ${a.skillName}`, a.damage && `Урон ${a.damage}`,
+          a.critical && `Крит ${a.critical}`, a.rangeBand,
+          ...a.qualities.map(q => (q.nameRu || q.qualityCode) + (q.rating != null ? ` ${q.rating}` : '')),
+        ].filter(Boolean)
+        lines.push(`- ${a.name}${stats.length ? ` (${stats.join(', ')})` : ''}`)
+      }
+    }
     if (npc.talents.length) lines.push(`**Таланты:** ${npc.talents.join(', ')}`)
     if (npc.equipment.length) lines.push(`**Снаряжение:** ${npc.equipment.join(', ')}`)
   }

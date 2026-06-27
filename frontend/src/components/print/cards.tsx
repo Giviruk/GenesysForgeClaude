@@ -10,6 +10,18 @@ import type { PrintVersion } from './PrintPreview'
 
 const CHARS: Characteristic[] = ['brawn', 'agility', 'intellect', 'cunning', 'willpower', 'presence']
 
+/** Однострочный статблок атаки NPC для печати: имя [навык], Урон/Крит/Дистанция, качества. */
+function attackLine(a: NpcDetail['attacks'][number]): string {
+  const stats = [
+    a.skillName && `навык ${a.skillName}`,
+    a.damage && `Урон ${a.damage}`,
+    a.critical && `Крит ${a.critical}`,
+    a.rangeBand,
+    ...a.qualities.map(q => (q.nameRu || q.qualityCode) + (q.rating != null ? ` ${q.rating}` : '')),
+  ].filter(Boolean)
+  return `${a.name}${stats.length ? ` (${stats.join(', ')})` : ''}`
+}
+
 /** Карточка NPC (§3.1). Версия игрока скрывает stats/заметки/способности. */
 export function AdversaryCard({ npc, version }: { npc: NpcDetail; version: PrintVersion }) {
   const gm = version === 'gm'
@@ -33,6 +45,12 @@ export function AdversaryCard({ npc, version }: { npc: NpcDetail; version: Print
             <span><b>Дал.защ</b> {npc.rangedDefense}</span>
           </div>
           {npc.skills.length > 0 && <p><b>Навыки:</b> {npc.skills.map(s => `${s.name} ${s.ranks}`).join(' · ')}</p>}
+          {npc.attacks.length > 0 && (
+            <div>
+              <b>Атаки:</b>
+              <ul>{npc.attacks.map((a, i) => <li key={i}>{attackLine(a)}</li>)}</ul>
+            </div>
+          )}
           {npc.abilities.length > 0 && (
             <div>
               <b>Способности:</b>

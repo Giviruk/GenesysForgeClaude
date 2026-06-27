@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { ItemDef, NpcDetail, Reference, SkillDef } from '../api/types'
-import { buildPool, npcSkillViews, skillIndex, splitEquipment } from './npcStats'
+import { buildPool, npcAttackViews, npcSkillViews, skillIndex, splitEquipment } from './npcStats'
 
 function skillDef(p: Partial<SkillDef> & Pick<SkillDef, 'name' | 'nameRu' | 'characteristic'>): SkillDef {
   return { id: p.name, kind: 'combat', safeDescription: '', source: '', isCustom: false, ...p }
@@ -34,7 +34,7 @@ const npc: NpcDetail = {
   woundThreshold: 12, strainThreshold: 12, soak: 4, meleeDefense: 0, rangedDefense: 0,
   visibility: 'private', campaignId: null, isMine: true,
   skills: [{ name: 'Ближний бой', ranks: 2 }],
-  abilities: [], talents: [], equipment: ['Меч', 'Пистолет', 'Роба'], tags: [],
+  abilities: [], attacks: [], talents: [], equipment: ['Меч', 'Пистолет', 'Роба'], tags: [],
   createdAt: '', updatedAt: '',
 }
 
@@ -85,5 +85,31 @@ describe('splitEquipment — оружие vs прочее', () => {
     expect(weapons).toEqual([])
     expect(gear.map(g => g.name)).toEqual(['Меч', 'Пистолет', 'Роба'])
     expect(gear.every(g => g.item === null)).toBe(true)
+  })
+})
+
+describe('npcAttackViews — структурные атаки NPC', () => {
+  const withAttacks: NpcDetail = {
+    ...npc,
+    attacks: [{
+      name: 'Длинный меч', skillName: 'Melee', damage: '+2', critical: '2', rangeBand: 'Ближняя', notes: '',
+      qualities: [{ qualityCode: 'precise', nameRu: 'Точное', rating: 1 }],
+    }],
+  }
+
+  it('считает пул по навыку атаки и раскрывает урон «+N» как Мощь', () => {
+    const [a] = npcAttackViews(withAttacks, reference)
+    expect(a.skillLabel).toBe('Ближний бой')
+    expect(a.pool).toEqual({ ability: 1, proficiency: 2 }) // Мощь 3, 2 ранга
+    expect(a.damageText).toBe('5 (Мощь +2)')
+    expect(a.crit).toBe('2')
+    expect(a.qualities[0].label).toBe('Точное 1')
+  })
+
+  it('без справочника пул null, абсолютные поля сохраняются', () => {
+    const [a] = npcAttackViews(withAttacks, null)
+    expect(a.pool).toBeNull()
+    expect(a.skillLabel).toBeNull()
+    expect(a.damageText).toBe('5 (Мощь +2)') // раскрытие урона не зависит от справочника
   })
 })

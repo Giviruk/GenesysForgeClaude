@@ -4,6 +4,15 @@ namespace GenesysForge.Application.Dtos;
 
 public record NpcSkillDto(string Name, int Ranks);
 public record NpcAbilityDto(string Name, string Description);
+public record NpcAttackQualityDto(string QualityCode, string NameRu, int? Rating);
+public record NpcAttackDto(
+    string Name,
+    string SkillName,
+    string Damage,
+    string Critical,
+    string RangeBand,
+    string Notes,
+    IReadOnlyList<NpcAttackQualityDto> Qualities);
 
 /// <summary>Карточка NPC в списке библиотеки.</summary>
 public record NpcListItemDto(
@@ -47,6 +56,7 @@ public record NpcDetailDto(
     bool IsMine,
     IReadOnlyList<NpcSkillDto> Skills,
     IReadOnlyList<NpcAbilityDto> Abilities,
+    IReadOnlyList<NpcAttackDto> Attacks,
     IReadOnlyList<string> Talents,
     IReadOnlyList<string> Equipment,
     IReadOnlyList<string> Tags,
@@ -76,6 +86,7 @@ public record NpcInput(
     Guid? CampaignId,
     List<NpcSkillDto>? Skills,
     List<NpcAbilityDto>? Abilities,
+    List<NpcAttackDto>? Attacks,
     List<string>? Talents,
     List<string>? Equipment,
     List<string>? Tags);

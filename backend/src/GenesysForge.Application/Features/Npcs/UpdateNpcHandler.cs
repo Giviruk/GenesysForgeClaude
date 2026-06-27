@@ -10,6 +10,7 @@ public class UpdateNpcHandler(IAppDbContext db) : ICommandHandler<UpdateNpcComma
     {
         var npc = await NpcMapper.GetOwnedAsync(db, command.UserId, command.Id, ct, tracking: true);
         NpcMapper.Apply(npc, command.Input);
+        await NpcMapper.ResolveAttackQualitiesAsync(db, npc, ct);
         NpcValidator.Validate(npc);
 
         await db.SaveChangesAsync(ct);
