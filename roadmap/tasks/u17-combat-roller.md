@@ -3,7 +3,7 @@
 - **Roadmap:** U-17 (см. [unified-roadmap.md](../unified-roadmap.md)); источник GF-011 / Аудит §7.
 - **Ветка:** `feature/u17-combat-roller` (от master после U-16).
 - **Базовая ветка:** `master`.
-- **PR:** _(пока нет)_
+- **PR:** [#59](https://github.com/Giviruk/GenesysForgeClaude/pull/59)
 - **Статус:** 🚧 In progress
 
 ## Контекст
