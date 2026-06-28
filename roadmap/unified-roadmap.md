@@ -217,8 +217,9 @@
 - **DoD:** в библиотеке NPC есть встроенные существа RoT; их можно клонировать/добавлять в encounter/стол.
 
 ## U-20 · GM видит полные листы персонажей игроков
-- **Статус:** ⬜ Todo
+- **Статус:** 🚧 In progress (ветка `feature/u20-gm-view-sheets`)
 - **Источник:** Аудит §6
+- **Детали:** `GET /api/campaigns/{id}/characters/{characterId}/sheet` (`GetCampaignMemberSheetHandler`): проверка GM (`CampaignMapper.GetAsGmAsync`) + членство персонажа, лист строится под владельца-игрока (`SheetBuilder` + новый `CharacterLoader.LoadWithRelationsAsync` без owner-check). UI — кнопка «Лист» у участника (GM) → read-only `CharacterSheetPrint` в `PrintPreview`. См. [u20-gm-view-sheets.md](tasks/u20-gm-view-sheets.md).
 - **Scope (B/F):** в кампании GM-доступ к read-only листу персонажа участника (переиспользовать `GetCharacterSheet` с проверкой роли GM в кампании). UI — открытие листа из списка участников.
 - **DoD:** GM открывает лист игрока read-only; игрок чужие листы не видит.
 

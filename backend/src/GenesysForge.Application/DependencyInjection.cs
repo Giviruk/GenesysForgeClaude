@@ -85,6 +85,7 @@ public static class DependencyInjection
         // Campaigns
         services.AddScoped<IQueryHandler<GetCampaignsQuery, List<CampaignListItemDto>>, GetCampaignsHandler>();
         services.AddScoped<IQueryHandler<GetCampaignQuery, CampaignDetailDto>, GetCampaignHandler>();
+        services.AddScoped<IQueryHandler<GetCampaignMemberSheetQuery, CharacterSheetDto>, GetCampaignMemberSheetHandler>();
         services.AddScoped<ICommandHandler<CreateCampaignCommand, CampaignDetailDto>, CreateCampaignHandler>();
         services.AddScoped<ICommandHandler<JoinCampaignCommand, CampaignDetailDto>, JoinCampaignHandler>();
         services.AddScoped<ICommandHandler<RemoveCampaignCharacterCommand, Unit>, RemoveCampaignCharacterHandler>();

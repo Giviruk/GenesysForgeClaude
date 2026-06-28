@@ -40,6 +40,12 @@ public static class CampaignEndpoints
                 IQueryHandler<GetCampaignQuery, CampaignDetailDto> handler, CancellationToken ct) =>
             Results.Ok(await handler.Handle(new GetCampaignQuery(user.UserId(), id), ct)));
 
+        // GM открывает read-only лист персонажа участника своей кампании (U-20).
+        group.MapGet("/{id:guid}/characters/{characterId:guid}/sheet", async (Guid id, Guid characterId,
+                ClaimsPrincipal user, IQueryHandler<GetCampaignMemberSheetQuery, CharacterSheetDto> handler,
+                CancellationToken ct) =>
+            Results.Ok(await handler.Handle(new GetCampaignMemberSheetQuery(user.UserId(), id, characterId), ct)));
+
         group.MapPost("/join", async (JoinCampaignRequest req, ClaimsPrincipal user,
             ICommandHandler<JoinCampaignCommand, CampaignDetailDto> handler, ICampaignNotifier notifier,
             CancellationToken ct) =>

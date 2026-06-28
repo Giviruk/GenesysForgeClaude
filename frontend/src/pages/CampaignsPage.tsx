@@ -1,10 +1,12 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react'
 import { api } from '../api/client'
-import type { CampaignDetail, CampaignListItem, CharacterListItem } from '../api/types'
+import type { CampaignDetail, CampaignListItem, CharacterListItem, CharacterSheet, Reference } from '../api/types'
 import { SYSTEM_LABELS } from '../utils/labels'
 import { GameTableTab } from '../components/GameTableTab'
 import { EncountersTab } from '../components/EncountersTab'
 import { HandbookTab } from '../components/HandbookTab'
+import { PrintPreview } from '../components/print/PrintPreview'
+import { CharacterSheetPrint } from '../components/print/CharacterSheetPrint'
 import { useCampaignHub, type CampaignHubStatus } from '../useCampaignHub'
 
 export type CampaignView = 'overview' | 'handbook' | 'encounters' | 'table'
@@ -136,6 +138,16 @@ function CampaignDetailView({ campaignId, view, openEncounterId, onBack, onView,
   // Счётчик realtime-инвалидаций: меняется на событиях хаба, вкладки перечитывают данные.
   const [liveSignal, setLiveSignal] = useState(0)
   const [hubStatus, setHubStatus] = useState<CampaignHubStatus>('connecting')
+  // GM открыл read-only лист персонажа участника (U-20).
+  const [memberSheet, setMemberSheet] = useState<{ name: string; sheet: CharacterSheet; reference: Reference } | null>(null)
+
+  async function openMemberSheet(characterId: string, name: string) {
+    try {
+      const sheet = await api.campaignMemberSheet(campaignId, characterId)
+      const reference = await api.reference(sheet.system)
+      setMemberSheet({ name, sheet, reference })
+    } catch (err) { setError(err instanceof Error ? err.message : 'Не удалось открыть лист') }
+  }
 
   const reload = useCallback(
     () => api.campaign(campaignId).then(setC).catch((e: unknown) =>
@@ -213,6 +225,10 @@ function CampaignDetailView({ campaignId, view, openEncounterId, onBack, onView,
                     <td><strong>{m.characterName}</strong>{m.isMine && <span className="badge custom">мой</span>}</td>
                     <td className="muted">{SYSTEM_LABELS[m.system]} · {m.archetype} · {m.career}</td>
                     <td className="right">
+                      {c.isGm && (
+                        <button className="small" title="Открыть лист персонажа (только чтение)"
+                          onClick={() => void openMemberSheet(m.characterId, m.characterName)}>Лист</button>
+                      )}
                       {(c.isGm || m.isMine) && (
                         <button className="danger small"
                           onClick={() => run(() => api.removeCampaignCharacter(c.id, m.characterId))}>Убрать</button>
@@ -226,6 +242,12 @@ function CampaignDetailView({ campaignId, view, openEncounterId, onBack, onView,
 
           <CampaignNotesSection campaign={c} onRun={run} />
         </>
+      )}
+
+      {memberSheet && (
+        <PrintPreview title={`Лист персонажа — ${memberSheet.name}`} onClose={() => setMemberSheet(null)}>
+          {() => <CharacterSheetPrint sheet={memberSheet.sheet} reference={memberSheet.reference} />}
+        </PrintPreview>
       )}
     </div>
   )
