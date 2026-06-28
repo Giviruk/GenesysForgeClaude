@@ -1,6 +1,6 @@
 # U-19 · Преднаполненный бестиарий Terrinoth
 
-**Статус:** 🚧 In progress · ветка `feature/u19-terrinoth-bestiary` (от master) · PR: _TBD_
+**Статус:** 🚧 In progress · ветка `feature/u19-terrinoth-bestiary` (от master) · PR #62
 **Roadmap:** [unified-roadmap.md](../unified-roadmap.md) U-19 · Источник: Аудит §3.2/§5
 
 ## Зачем
