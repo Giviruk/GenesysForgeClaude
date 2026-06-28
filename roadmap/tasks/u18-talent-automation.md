@@ -3,8 +3,8 @@
 - **Roadmap:** U-18 (см. [unified-roadmap.md](../unified-roadmap.md)); источник GF-012 / Аудит §2.2.
 - **Ветка:** `feature/u18-talent-automation` (от master после U-17).
 - **Базовая ветка:** `master`.
-- **PR:** Stage 1 — [#60](https://github.com/Giviruk/GenesysForgeClaude/pull/60); Stage 2 — _(позже)_
-- **Статус:** 🚧 In progress (Stage 1 в ревью)
+- **PR:** Stage 1 — [#60](https://github.com/Giviruk/GenesysForgeClaude/pull/60) (merged); Stage 2 — [#61](https://github.com/Giviruk/GenesysForgeClaude/pull/61)
+- **Статус:** 🚧 In progress (Stage 2 в ревью)
 
 ## Контекст
 
@@ -34,7 +34,7 @@
       показ applied/manual.
 - [x] Тесты: Domain `RuleEffectApplierTests` (4), Api `ActivateAbility...` (участник+лог). Domain 102 / Api 187 / front 92.
 
-## Stage 2 — лист персонажа  ✅ (PR — будет указан)
+## Stage 2 — лист персонажа  ✅ (PR #61)
 - [x] `Character` уже хранит `WoundsCurrent`/`StrainCurrent` (миграция не нужна); лист показывает current.
 - [x] `MutableCombatTarget` (ICombatTarget для листа); `POST /api/characters/{id}/activate-ability` активирует
       героику персонажа: heal-эффекты персистятся в current, остальное (soak/защита/порог/boost) — на сцену/подсказка;
