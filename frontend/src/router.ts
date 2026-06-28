@@ -42,7 +42,7 @@ export function usePath(): string {
   return path
 }
 
-export type AppArea = 'characters' | 'campaigns' | 'npcs' | 'magic' | 'reference' | 'about'
+export type AppArea = 'characters' | 'campaigns' | 'npcs' | 'magic' | 'reference' | 'about' | 'account'
 
 export interface AppRoute {
   area: AppArea
@@ -88,6 +88,7 @@ export function parseRoute(pathname: string): AppRoute {
   if (head === 'magic') return base('magic', null, segments.length > 1)
   if (head === 'reference') return base('reference', null, segments.length > 1)
   if (head === 'about') return base('about', null, segments.length > 1)
+  if (head === 'account') return base('account', null, segments.length > 1)
   if (!ENTITY_AREAS.includes(head as AppArea)) return base('characters', null, true)
 
   const area = head as AppArea

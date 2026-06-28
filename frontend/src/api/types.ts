@@ -16,6 +16,15 @@ export interface AuthProviders {
   googleClientId: string | null
 }
 
+/** Профиль текущего пользователя (U-21). */
+export interface Account {
+  id: string
+  email: string
+  displayName: string
+  avatarUrl: string | null
+  createdAt: string
+}
+
 export interface SkillDef {
   id: string
   name: string

@@ -984,3 +984,10 @@ button.tiny { font-size: 0.75rem; padding: 0.05rem 0.4rem 0.15rem; }
 .audit-table .nowrap { white-space: nowrap; }
 .xp-pos { color: var(--green); font-weight: 600; }
 .xp-neg { color: var(--muted); }
+
+/* Профиль / аккаунт (U-21) */
+.profile-identity { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
+.avatar { display: inline-flex; align-items: center; justify-content: center; border-radius: 50%;
+  object-fit: cover; background: var(--border); color: var(--text); overflow: hidden; }
+.avatar.lg { width: 56px; height: 56px; font-size: 20px; font-weight: 600; }
+.avatar.initials { background: var(--accent, #6366f1); color: #fff; }
