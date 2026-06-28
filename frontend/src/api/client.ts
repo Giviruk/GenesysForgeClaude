@@ -1,4 +1,5 @@
 import type {
+  Account,
   AuthResponse, AuthProviders, CampaignDetail, CampaignListItem, CampaignNote, CharacterListItem, CharacterNote,
   ActivateAbilityResult, ActivateCharacterAbilityResult, AddParticipantRequest, CharacterSheet, CreatureTemplate, GameSession, GameSystem, HeroicAbility, InitiativeSlotType,
   ItemDef, ItemState, NpcDetail, NpcFilter, NpcInput, NpcListItem, QuickDraftRequest, Reference,
@@ -212,6 +213,13 @@ export const api = {
     request<CharacterNote>('PUT', `/api/characters/${characterId}/notes/${noteId}`, { title, body }),
   deleteNote: (characterId: string, noteId: string) =>
     request<void>('DELETE', `/api/characters/${characterId}/notes/${noteId}`),
+
+  // Профиль / аккаунт (U-21)
+  account: () => request<Account>('GET', '/api/account/'),
+  updateAccount: (data: { displayName?: string; avatarUrl?: string }) =>
+    request<Account>('PATCH', '/api/account/', data),
+  changePassword: (currentPassword: string, newPassword: string) =>
+    request<void>('POST', '/api/account/change-password', { currentPassword, newPassword }),
 
   campaigns: () => request<CampaignListItem[]>('GET', '/api/campaigns/'),
   campaign: (id: string) => request<CampaignDetail>('GET', `/api/campaigns/${id}`),

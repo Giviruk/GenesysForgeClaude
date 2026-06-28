@@ -52,6 +52,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         b.Entity<User>(e =>
         {
             e.HasIndex(u => u.Email).IsUnique();
+            e.Property(u => u.AvatarUrl).HasMaxLength(1000);
         });
 
         b.Entity<PasswordResetToken>(e =>

@@ -141,6 +141,7 @@ app.Use(async (context, next) =>
 
 app.MapOpenApi();
 app.MapAuth();
+app.MapAccount();
 app.MapReference();
 app.MapSearch();
 app.MapCustomContent();

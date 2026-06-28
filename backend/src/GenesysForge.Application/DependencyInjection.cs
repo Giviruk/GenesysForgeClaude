@@ -1,5 +1,6 @@
 using GenesysForge.Application.Abstractions;
 using GenesysForge.Application.Dtos;
+using GenesysForge.Application.Features.Account;
 using GenesysForge.Application.Features.Auth;
 using GenesysForge.Application.Features.Characters;
 using GenesysForge.Application.Features.Campaigns;
@@ -27,6 +28,11 @@ public static class DependencyInjection
         services.AddScoped<ICommandHandler<ConfirmPasswordResetCommand, Unit>, ConfirmPasswordResetHandler>();
         services.AddScoped<ICommandHandler<GoogleSignInCommand, AuthResponse>, GoogleSignInHandler>();
         services.AddScoped<IRefreshTokenService, RefreshTokenService>();
+
+        // Account / профиль
+        services.AddScoped<IQueryHandler<GetAccountQuery, AccountDto>, GetAccountHandler>();
+        services.AddScoped<ICommandHandler<UpdateAccountCommand, AccountDto>, UpdateAccountHandler>();
+        services.AddScoped<ICommandHandler<ChangePasswordCommand, Unit>, ChangePasswordHandler>();
 
         // Reference
         services.AddScoped<IQueryHandler<GetReferenceQuery, ReferenceResponse>, GetReferenceHandler>();

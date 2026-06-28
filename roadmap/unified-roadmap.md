@@ -224,8 +224,9 @@
 - **DoD:** GM открывает лист игрока read-only; игрок чужие листы не видит.
 
 ## U-21 · Профиль / управление аккаунтом
-- **Статус:** ⬜ Todo
+- **Статус:** 🚧 In progress (PR #64)
 - **Источник:** Аудит §1.2 (НЕ в GF-плане)
+- **Детали:** `User.AvatarUrl` (миграция `AddUserAvatar`); `GET/PATCH /api/account`, `POST /api/account/change-password` (verify current → revoke всех refresh-сессий → свежий cookie текущему устройству). Фронт — страница «Профиль» (`ProfilePage`, область роутера `account`): имя/аватар + смена пароля. См. [u21-account-profile.md](tasks/u21-account-profile.md).
 - **Scope (B):** `GET /api/account`, `PATCH /api/account` (displayName, опц. avatarUrl/инициалы), `POST /api/account/change-password` (old+new, revoke семейства). Поле `User.AvatarUrl` (миграция).
 - **Scope (F):** страница профиля/настроек.
 - **DoD:** пользователь видит/редактирует имя и аватар, меняет пароль в сессии.
