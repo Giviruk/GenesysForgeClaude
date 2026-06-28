@@ -28,6 +28,7 @@ public record NpcListItemDto(
     NpcVisibility Visibility,
     Guid? CampaignId,
     bool IsMine,
+    bool IsBuiltIn,
     IReadOnlyList<NpcSkillDto> Skills,
     IReadOnlyList<string> Tags,
     DateTime CreatedAt);
@@ -57,6 +58,7 @@ public record NpcDetailDto(
     NpcVisibility Visibility,
     Guid? CampaignId,
     bool IsMine,
+    bool IsBuiltIn,
     IReadOnlyList<NpcSkillDto> Skills,
     IReadOnlyList<NpcAbilityDto> Abilities,
     IReadOnlyList<NpcAttackDto> Attacks,

@@ -210,9 +210,10 @@
 - **DoD:** простые активные эффекты применяются кнопкой; сложные — manual prompt; видно, что применилось автоматически.
 
 ## U-19 · Преднаполненный бестиарий Terrinoth
-- **Статус:** ⬜ Todo
+- **Статус:** 🚧 In progress (ветка `feature/u19-terrinoth-bestiary`)
 - **Источник:** Аудит §3.2/§5 (НЕ в GF-плане)
-- **Scope (D):** seed-набор существ RoT как built-in NPC (stat-блоки) поверх существующей модели NPC + U-14 атак. Источник — `_books/Королевство Терринот.pdf` (нужно извлечь stat-блоки, парафраз, без текста книги).
+- **Детали:** `Npc.IsBuiltIn` + `OwnerUserId` nullable; встроенные существа видны всем read-only (`CanViewAsync`/`GetNpcsHandler`), правка/удаление закрыты, клонируются в свою библиотеку (`DuplicateNpc`). Импорт **86 официальных существ RoT** из `_books/_adversaries/genesys_fantasy_adversaries_ru.json` (генератор `gen-bestiary-catalog.mjs` → embedded `bestiary.catalog.json`, идемпотентный `SeedBestiary`). См. [u19-terrinoth-bestiary.md](tasks/u19-terrinoth-bestiary.md).
+- **Scope (D):** seed-набор существ RoT как built-in NPC (stat-блоки) поверх существующей модели NPC + U-14 атак.
 - **DoD:** в библиотеке NPC есть встроенные существа RoT; их можно клонировать/добавлять в encounter/стол.
 
 ## U-20 · GM видит полные листы персонажей игроков

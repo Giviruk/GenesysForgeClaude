@@ -299,6 +299,65 @@ public class SeedDataTests
     }
 
     [Fact]
+    public void Apply_SeedsBuiltInBestiary_AllValidOwnerlessAndTerrinoth()
+    {
+        using var db = NewDb();
+        SeedData.Apply(db);
+
+        var bestiary = db.Npcs
+            .Include(n => n.Skills).Include(n => n.Abilities)
+            .Include(n => n.Attacks).ThenInclude(a => a.Qualities)
+            .Where(n => n.IsBuiltIn).ToList();
+
+        Assert.NotEmpty(bestiary);
+        // Все встроенные существа — без владельца, видимость PublicTemplate, система RoT.
+        Assert.All(bestiary, n =>
+        {
+            Assert.Null(n.OwnerUserId);
+            Assert.True(n.IsBuiltIn);
+            Assert.Equal(GameSystem.RealmsOfTerrinoth, n.System);
+            Assert.Equal(Domain.NpcVisibility.PublicTemplate, n.Visibility);
+            Assert.Equal("Realms of Terrinoth", n.Source);
+        });
+
+        // Ни одно встроенное существо не должно нарушать правила adversary (errors блокируют сохранение).
+        Assert.All(bestiary, n =>
+        {
+            var result = Domain.Rules.NpcValidator.Validate(n);
+            Assert.True(result.IsValid, $"{n.Name}: {string.Join(" ", result.Errors)}");
+        });
+
+        // Известное существо с корректным статблоком (Гигант — Nemesis, силуэт 3, есть усталость).
+        var giant = bestiary.Single(n => n.Name == "Гигант");
+        Assert.Equal(NpcKind.Nemesis, giant.Kind);
+        Assert.Equal(3, giant.Silhouette);
+        Assert.NotNull(giant.StrainThreshold);
+        Assert.Contains(giant.Attacks, a => a.Qualities.Any(q => q.QualityDefId != null)); // качества привязаны к справочнику
+
+        // Миньоны — без усталости и без индивидуальных рангов (групповые навыки, правило U-15).
+        Assert.All(bestiary.Where(n => n.Kind == NpcKind.Minion), n =>
+        {
+            Assert.Null(n.StrainThreshold);
+            Assert.All(n.Skills, s => Assert.Equal(0, s.Ranks));
+        });
+    }
+
+    [Fact]
+    public void Apply_Bestiary_Idempotent()
+    {
+        using var db = NewDb();
+        SeedData.Apply(db);
+        var npcs = db.Npcs.Count(n => n.IsBuiltIn);
+        var attacks = db.NpcAttacks.Count();
+        Assert.True(npcs > 0);
+
+        SeedData.Apply(db); // повторный сид не плодит встроенных существ/атак
+
+        Assert.Equal(npcs, db.Npcs.Count(n => n.IsBuiltIn));
+        Assert.Equal(attacks, db.NpcAttacks.Count());
+    }
+
+    [Fact]
     public void Apply_DoesNotTouchCustomContent()
     {
         using var db = NewDb();

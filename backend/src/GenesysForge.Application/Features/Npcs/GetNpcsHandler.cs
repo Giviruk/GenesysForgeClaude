@@ -21,6 +21,7 @@ public class GetNpcsHandler(IAppDbContext db) : IQueryHandler<GetNpcsQuery, List
         var query = db.Npcs.AsNoTracking()
             .Include(n => n.Skills)
             .Where(n => n.OwnerUserId == uid
+                || n.IsBuiltIn
                 || (n.Visibility == NpcVisibility.CampaignVisible && n.CampaignId != null
                     && memberCampaignIds.Contains(n.CampaignId.Value)));
 

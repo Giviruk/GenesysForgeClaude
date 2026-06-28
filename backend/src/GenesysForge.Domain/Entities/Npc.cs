@@ -4,7 +4,10 @@ namespace GenesysForge.Domain.Entities;
 public class Npc
 {
     public Guid Id { get; set; }
-    public Guid OwnerUserId { get; set; }
+    /// <summary>Владелец-мастер. <c>null</c> у встроенных существ (см. <see cref="IsBuiltIn"/>).</summary>
+    public Guid? OwnerUserId { get; set; }
+    /// <summary>Встроенное существо из преднаполненного бестиария: read-only, видно всем, клонируется.</summary>
+    public bool IsBuiltIn { get; set; }
     /// <summary>Кампания, к которой привязан NPC (необязательно).</summary>
     public Guid? CampaignId { get; set; }
 
