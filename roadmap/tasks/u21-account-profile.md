@@ -1,6 +1,6 @@
 # U-21 · Профиль / управление аккаунтом
 
-**Статус:** 🚧 In progress · ветка `feature/u21-account-profile` (от master) · PR: _TBD_
+**Статус:** 🚧 In progress · ветка `feature/u21-account-profile` (от master) · PR #64
 **Roadmap:** [unified-roadmap.md](../unified-roadmap.md) U-21 · Источник: Аудит §1.2
 
 ## Зачем
