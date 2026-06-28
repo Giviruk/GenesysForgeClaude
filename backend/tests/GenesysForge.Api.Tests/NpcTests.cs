@@ -347,6 +347,50 @@ public class NpcTests : IClassFixture<ApiFactory>
     }
 
     [Fact]
+    public async Task BuiltInBestiary_VisibleToAnyUser_ReadOnly()
+    {
+        var user = await _factory.CreateAuthorizedClientAsync();
+
+        // Встроенные существа видны новому пользователю в библиотеке (не его, но read-only).
+        var list = (await user.GetFromJsonAsync<List<NpcListItemDto>>("/api/npcs/", Json.Options))!;
+        var builtIn = Assert.Single(list, n => n.Name == "Гигант");
+        Assert.True(builtIn.IsBuiltIn);
+        Assert.False(builtIn.IsMine);
+
+        // Деталь встроенного открывается.
+        var detail = (await user.GetFromJsonAsync<NpcDetailDto>($"/api/npcs/{builtIn.Id}", Json.Options))!;
+        Assert.True(detail.IsBuiltIn);
+        Assert.False(detail.IsMine);
+        Assert.Equal("Realms of Terrinoth", detail.Source);
+
+        // Править и удалять встроенных нельзя (owner-only → «не найден»).
+        var put = await user.PutAsJsonAsync($"/api/npcs/{builtIn.Id}", SampleInput("Взлом"), Json.Options);
+        Assert.Equal(HttpStatusCode.BadRequest, put.StatusCode);
+        var del = await user.DeleteAsync($"/api/npcs/{builtIn.Id}");
+        Assert.Equal(HttpStatusCode.BadRequest, del.StatusCode);
+    }
+
+    [Fact]
+    public async Task BuiltInBestiary_DuplicatesIntoOwnLibrary()
+    {
+        var user = await _factory.CreateAuthorizedClientAsync();
+        var list = (await user.GetFromJsonAsync<List<NpcListItemDto>>("/api/npcs/", Json.Options))!;
+        var builtIn = list.First(n => n.IsBuiltIn && n.Kind != NpcKind.Minion);
+
+        var dup = await user.PostAsync($"/api/npcs/{builtIn.Id}/duplicate", null);
+        Assert.Equal(HttpStatusCode.Created, dup.StatusCode);
+        var copy = (await dup.Content.ReadFromJsonAsync<NpcDetailDto>(Json.Options))!;
+
+        // Копия принадлежит пользователю, приватна и больше не встроенная — её можно редактировать.
+        Assert.True(copy.IsMine);
+        Assert.False(copy.IsBuiltIn);
+        Assert.Equal(NpcVisibility.Private, copy.Visibility);
+        var edit = await user.PutAsJsonAsync($"/api/npcs/{copy.Id}",
+            SampleInput("Мой клон", copy.Kind), Json.Options);
+        Assert.Equal(HttpStatusCode.OK, edit.StatusCode);
+    }
+
+    [Fact]
     public async Task Update_And_Delete_OwnerOnly()
     {
         var gm = await _factory.CreateAuthorizedClientAsync();

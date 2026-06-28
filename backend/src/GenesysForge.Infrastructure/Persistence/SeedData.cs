@@ -74,6 +74,47 @@ public static class SeedData
 
         // Бэкфилл структурных атак NPC из боевых строк Equipment (идемпотентно).
         BackfillNpcAttacks(db);
+
+        // Встроенный бестиарий Realms of Terrinoth (идемпотентно, по натуральному ключу System+Name).
+        SeedBestiary(db);
+    }
+
+    /// <summary>
+    /// Идемпотентно сеет встроенный бестиарий (<see cref="BestiaryCatalog"/>): добавляет только
+    /// отсутствующих встроенных существ (по System+Name среди <c>IsBuiltIn</c>). Качества атак
+    /// привязываются к справочнику <see cref="QualityDef"/> по коду. Повторный вызов дублей не плодит.
+    /// </summary>
+    private static void SeedBestiary(AppDbContext db)
+    {
+        var catalog = BestiaryCatalog.Load();
+        if (catalog.Count == 0) return;
+
+        var existing = db.Npcs.Where(n => n.IsBuiltIn)
+            .Select(n => new { n.System, n.Name })
+            .ToHashSet();
+
+        var byCode = db.QualityDefs.AsEnumerable()
+            .GroupBy(q => q.Code)
+            .ToDictionary(g => g.Key, g => g.First(), StringComparer.OrdinalIgnoreCase);
+
+        var added = false;
+        foreach (var npc in catalog)
+        {
+            if (existing.Contains(new { npc.System, npc.Name })) continue;
+
+            foreach (var quality in npc.Attacks.SelectMany(a => a.Qualities))
+            {
+                if (string.IsNullOrWhiteSpace(quality.QualityCode)) continue;
+                if (!byCode.TryGetValue(quality.QualityCode, out var def)) continue;
+                quality.QualityDefId = def.Id;
+                if (!string.IsNullOrWhiteSpace(def.NameRu)) quality.NameRu = def.NameRu;
+                if (!def.HasRating) quality.Rating = null;
+            }
+
+            db.Npcs.Add(npc);
+            added = true;
+        }
+        if (added) db.SaveChanges();
     }
 
     /// <summary>

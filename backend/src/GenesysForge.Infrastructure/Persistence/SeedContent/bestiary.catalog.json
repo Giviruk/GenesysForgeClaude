@@ -1,0 +1,7766 @@
+[
+  {
+    "system": "RealmsOfTerrinoth",
+    "name": "Баргест",
+    "nameEn": "Barghest",
+    "kind": "Rival",
+    "role": "Monster",
+    "source": "Realms of Terrinoth",
+    "description": "",
+    "brawn": 4,
+    "agility": 3,
+    "intellect": 1,
+    "cunning": 2,
+    "willpower": 3,
+    "presence": 1,
+    "woundThreshold": 13,
+    "strainThreshold": null,
+    "soak": 5,
+    "meleeDefense": 0,
+    "rangedDefense": 0,
+    "silhouette": 1,
+    "tactics": "",
+    "skills": [
+      {
+        "name": "Athletics",
+        "ranks": 2
+      },
+      {
+        "name": "Brawl",
+        "ranks": 2
+      },
+      {
+        "name": "Perception",
+        "ranks": 3
+      },
+      {
+        "name": "Resilience",
+        "ranks": 3
+      },
+      {
+        "name": "Vigilance",
+        "ranks": 2
+      }
+    ],
+    "abilities": [
+      {
+        "name": "Растерзать",
+        "description": ""
+      },
+      {
+        "name": "Ужасающий 3",
+        "description": ""
+      },
+      {
+        "name": "Нежить",
+        "description": ""
+      }
+    ],
+    "attacks": [
+      {
+        "name": "Когти и клыки",
+        "skill": "Brawl",
+        "damage": "6",
+        "critical": "3",
+        "range": "Engaged",
+        "notes": "",
+        "qualities": [
+          {
+            "code": "knockdown",
+            "nameRu": "Опрокидывание",
+            "rating": null
+          },
+          {
+            "code": "vicious",
+            "nameRu": "Жестокое",
+            "rating": 1
+          }
+        ]
+      }
+    ],
+    "talents": [
+      "Swift"
+    ],
+    "equipment": [],
+    "tags": [
+      "нежить",
+      "страх"
+    ]
+  },
+  {
+    "system": "RealmsOfTerrinoth",
+    "name": "Баронский рыцарь",
+    "nameEn": "Baronial Knight",
+    "kind": "Rival",
+    "role": "Leader",
+    "source": "Realms of Terrinoth",
+    "description": "",
+    "brawn": 3,
+    "agility": 2,
+    "intellect": 2,
+    "cunning": 2,
+    "willpower": 3,
+    "presence": 3,
+    "woundThreshold": 16,
+    "strainThreshold": null,
+    "soak": 5,
+    "meleeDefense": 4,
+    "rangedDefense": 3,
+    "silhouette": 1,
+    "tactics": "",
+    "skills": [
+      {
+        "name": "Athletics",
+        "ranks": 2
+      },
+      {
+        "name": "Discipline",
+        "ranks": 2
+      },
+      {
+        "name": "Leadership",
+        "ranks": 1
+      },
+      {
+        "name": "Melee (Light)",
+        "ranks": 3
+      },
+      {
+        "name": "Resilience",
+        "ranks": 2
+      },
+      {
+        "name": "Riding",
+        "ranks": 3
+      },
+      {
+        "name": "Vigilance",
+        "ranks": 2
+      }
+    ],
+    "abilities": [],
+    "attacks": [
+      {
+        "name": "Меч",
+        "skill": "Melee (Light)",
+        "damage": "6",
+        "critical": "2",
+        "range": "Engaged",
+        "notes": "",
+        "qualities": [
+          {
+            "code": "defensive",
+            "nameRu": "Оборонительное",
+            "rating": 1
+          }
+        ]
+      },
+      {
+        "name": "Копьё",
+        "skill": "Melee (Light)",
+        "damage": "9",
+        "critical": "3",
+        "range": "Engaged",
+        "notes": "",
+        "qualities": [
+          {
+            "code": "knockdown",
+            "nameRu": "Опрокидывание",
+            "rating": null
+          }
+        ]
+      },
+      {
+        "name": "Большой щит",
+        "skill": "Melee (Light)",
+        "damage": "4",
+        "critical": "5",
+        "range": "Engaged",
+        "notes": "",
+        "qualities": [
+          {
+            "code": "defensive",
+            "nameRu": "Оборонительное",
+            "rating": 2
+          },
+          {
+            "code": "deflection",
+            "nameRu": "Отражающее",
+            "rating": 2
+          },
+          {
+            "code": "inaccurate",
+            "nameRu": "Неточное",
+            "rating": 2
+          },
+          {
+            "code": "knockdown",
+            "nameRu": "Опрокидывание",
+            "rating": null
+          }
+        ]
+      }
+    ],
+    "talents": [],
+    "equipment": [
+      "Латная броня: +2 поглощения, +1 защиты.",
+      "Боевой маунт: см. RoT, стр. 105."
+    ],
+    "tags": []
+  },
+  {
+    "system": "RealmsOfTerrinoth",
+    "name": "Берсерк",
+    "nameEn": "Berserker",
+    "kind": "Minion",
+    "role": "Brute",
+    "source": "Realms of Terrinoth",
+    "description": "",
+    "brawn": 3,
+    "agility": 2,
+    "intellect": 1,
+    "cunning": 2,
+    "willpower": 2,
+    "presence": 1,
+    "woundThreshold": 5,
+    "strainThreshold": null,
+    "soak": 3,
+    "meleeDefense": 0,
+    "rangedDefense": 0,
+    "silhouette": 1,
+    "tactics": "",
+    "skills": [
+      {
+        "name": "Brawl",
+        "ranks": 0
+      },
+      {
+        "name": "Melee (Light)",
+        "ranks": 0
+      },
+      {
+        "name": "Resilience",
+        "ranks": 0
+      },
+      {
+        "name": "Survival",
+        "ranks": 0
+      }
+    ],
+    "abilities": [
+      {
+        "name": "Костные шпоры",
+        "description": "Берсеркер, ставший целью проверки рукопашного боя, может потратить угрозуаугрозаугроза или крах, чтобы нападающий получил 3 раны."
+      },
+      {
+        "name": "Хорошая смерть",
+        "description": "Кстати, в начале своего хода группа миньонов-берсерков, сражающаяся с врагом, может удалить члена своей группы в качестве жертвы, чтобы добавить +6 урона к атаке группы миньонов в этом ходу."
+      }
+    ],
+    "attacks": [
+      {
+        "name": "Два костяных клинка",
+        "skill": "Melee (Light)",
+        "damage": "6",
+        "critical": "4",
+        "range": "Engaged",
+        "notes": "",
+        "qualities": []
+      }
+    ],
+    "talents": [],
+    "equipment": [],
+    "tags": []
+  },
+  {
+    "system": "RealmsOfTerrinoth",
+    "name": "ведьма и колдун",
+    "nameEn": "Witch And Warlock",
+    "kind": "Rival",
+    "role": "Caster",
+    "source": "Realms of Terrinoth",
+    "description": "",
+    "brawn": 2,
+    "agility": 2,
+    "intellect": 3,
+    "cunning": 3,
+    "willpower": 3,
+    "presence": 3,
+    "woundThreshold": 18,
+    "strainThreshold": null,
+    "soak": 3,
+    "meleeDefense": 0,
+    "rangedDefense": 0,
+    "silhouette": 1,
+    "tactics": "",
+    "skills": [
+      {
+        "name": "Divine",
+        "ranks": 3
+      },
+      {
+        "name": "Cool",
+        "ranks": 1
+      },
+      {
+        "name": "Knowledge (Forbidden)",
+        "ranks": 3
+      },
+      {
+        "name": "Melee (Light)",
+        "ranks": 1
+      }
+    ],
+    "abilities": [
+      {
+        "name": "Телепатическая координация",
+        "description": "Ведьма или колдун может выполнить маневр, чтобы добавить :boost: к следующей проверке, сделанной всеми остальными Утук Илланами в столкновении."
+      },
+      {
+        "name": "Жертва",
+        "description": "После нанесения ран живому существу (врагу или союзнику) ведьма или колдун добавляет :boost: к своей следующей проверке магического навыка; после убийства живого существа ведьма или колдун вместо этого один раз улучшает способность своей следующей проверки магических навыков."
+      },
+      {
+        "name": "Заклинания (Вера)",
+        "description": ""
+      },
+      {
+        "name": "Заклинания: Раскол костей",
+        "description": "Выберите одну цель на близком расстоянии для этой магической атаки и проведите сложную Божественную проверку. Если проверка успешна, магическая атака наносит 5 повреждений, +1 урон за успех, с качествами Пронзающий 3, Раскол и Злобный 3 и с рейтингом критического удара 2."
+      },
+      {
+        "name": "Заклинания: Кипение крови",
+        "description": "Выберите одну цель на близком расстоянии для этого проклятия и проведите среднюю проверку Божественности. Если проверка успешна, то до конца следующего хода ведьмы или чернокнижника цель уменьшает эффективность любых проверок навыков, которые она совершает, на одну и переносит одно дополнительное напряжение каждый раз, когда испытывает напряжение по какой-либо причине. Ведьма или колдун может поддерживать эти эффекты с помощью маневра концентрации."
+      }
+    ],
+    "attacks": [
+      {
+        "name": "Жертвенный клинок",
+        "skill": "Melee (Light)",
+        "damage": "4",
+        "critical": "3",
+        "range": "Engaged",
+        "notes": "",
+        "qualities": [
+          {
+            "code": "vicious",
+            "nameRu": "Жестокое",
+            "rating": 1
+          }
+        ]
+      }
+    ],
+    "talents": [
+      "Adversary 1",
+      "Dark Insight"
+    ],
+    "equipment": [
+      "Костяная броня: +1 поглощение"
+    ],
+    "tags": [
+      "магия"
+    ]
+  },
+  {
+    "system": "RealmsOfTerrinoth",
+    "name": "Вейк Воин",
+    "nameEn": "Weik Warrior",
+    "kind": "Minion",
+    "role": "Brute",
+    "source": "Realms of Terrinoth",
+    "description": "",
+    "brawn": 3,
+    "agility": 2,
+    "intellect": 1,
+    "cunning": 2,
+    "willpower": 3,
+    "presence": 2,
+    "woundThreshold": 6,
+    "strainThreshold": null,
+    "soak": 3,
+    "meleeDefense": 1,
+    "rangedDefense": 0,
+    "silhouette": 1,
+    "tactics": "",
+    "skills": [
+      {
+        "name": "Cool",
+        "ranks": 0
+      },
+      {
+        "name": "Brawl",
+        "ranks": 0
+      },
+      {
+        "name": "Melee (Light)",
+        "ranks": 0
+      },
+      {
+        "name": "Resilience",
+        "ranks": 0
+      }
+    ],
+    "abilities": [
+      {
+        "name": "Агрессивный боец",
+        "description": "Воины Вейка добавляют преимущества к комбинированным проверкам, которые они совершают, для атаки двумя оружиями ближнего боя."
+      }
+    ],
+    "attacks": [
+      {
+        "name": "Топор",
+        "skill": "Melee (Light)",
+        "damage": "6",
+        "critical": "3",
+        "range": "Engaged",
+        "notes": "",
+        "qualities": [
+          {
+            "code": "vicious",
+            "nameRu": "Жестокое",
+            "rating": 1
+          }
+        ]
+      },
+      {
+        "name": "Меч",
+        "skill": "Melee (Light)",
+        "damage": "6",
+        "critical": "2",
+        "range": "Engaged",
+        "notes": "",
+        "qualities": [
+          {
+            "code": "defensive",
+            "nameRu": "Оборонительное",
+            "rating": 1
+          }
+        ]
+      },
+      {
+        "name": "Лук",
+        "skill": "Ranged",
+        "damage": "7",
+        "critical": "3",
+        "range": "Medium",
+        "notes": "",
+        "qualities": [
+          {
+            "code": "unwieldy",
+            "nameRu": "Неуклюжее",
+            "rating": 2
+          }
+        ]
+      }
+    ],
+    "talents": [],
+    "equipment": [],
+    "tags": []
+  },
+  {
+    "system": "RealmsOfTerrinoth",
+    "name": "Вендиго",
+    "nameEn": "Wendigo",
+    "kind": "Rival",
+    "role": "Brute",
+    "source": "Realms of Terrinoth",
+    "description": "",
+    "brawn": 4,
+    "agility": 3,
+    "intellect": 1,
+    "cunning": 3,
+    "willpower": 2,
+    "presence": 1,
+    "woundThreshold": 18,
+    "strainThreshold": null,
+    "soak": 6,
+    "meleeDefense": 0,
+    "rangedDefense": 0,
+    "silhouette": 1,
+    "tactics": "",
+    "skills": [
+      {
+        "name": "Athletics",
+        "ranks": 4
+      },
+      {
+        "name": "Brawl",
+        "ranks": 4
+      },
+      {
+        "name": "Coercion",
+        "ranks": 4
+      },
+      {
+        "name": "Resilience",
+        "ranks": 4
+      },
+      {
+        "name": "Stealth",
+        "ranks": 3
+      },
+      {
+        "name": "Vigilance",
+        "ranks": 3
+      }
+    ],
+    "abilities": [
+      {
+        "name": "Кровавое безумие",
+        "description": "Пока хотя бы один противник в бою получает критическую травму, Вендиго увеличивает базовый урон своих атак на 2."
+      },
+      {
+        "name": "Безглазое зрение",
+        "description": "Вендиго не добавляют :setback: к проверкам темноты или сокрытия и невосприимчивы к способностям или критическим травмам, влияющим на зрение существа."
+      },
+      {
+        "name": "Ужасающий 3",
+        "description": ""
+      }
+    ],
+    "attacks": [
+      {
+        "name": "Клыки",
+        "skill": "Brawl",
+        "damage": "6",
+        "critical": "2",
+        "range": "Engaged",
+        "notes": "",
+        "qualities": [
+          {
+            "code": "vicious",
+            "nameRu": "Жестокое",
+            "rating": 2
+          }
+        ]
+      },
+      {
+        "name": "Когти",
+        "skill": "Brawl",
+        "damage": "8",
+        "critical": "3",
+        "range": "Engaged",
+        "notes": "",
+        "qualities": [
+          {
+            "code": "knockdown",
+            "nameRu": "Опрокидывание",
+            "rating": null
+          }
+        ]
+      }
+    ],
+    "talents": [
+      "Adversary 1"
+    ],
+    "equipment": [],
+    "tags": [
+      "страх"
+    ]
+  },
+  {
+    "system": "RealmsOfTerrinoth",
+    "name": "Волшебник Грейхейвена",
+    "nameEn": "Greyhaven Wizard",
+    "kind": "Nemesis",
+    "role": "Caster",
+    "source": "Realms of Terrinoth",
+    "description": "",
+    "brawn": 1,
+    "agility": 2,
+    "intellect": 4,
+    "cunning": 2,
+    "willpower": 3,
+    "presence": 2,
+    "woundThreshold": 12,
+    "strainThreshold": 18,
+    "soak": 1,
+    "meleeDefense": 1,
+    "rangedDefense": 1,
+    "silhouette": 1,
+    "tactics": "",
+    "skills": [
+      {
+        "name": "Arcana",
+        "ranks": 3
+      },
+      {
+        "name": "Cool",
+        "ranks": 2
+      },
+      {
+        "name": "Discipline",
+        "ranks": 2
+      },
+      {
+        "name": "Knowledge (Lore)",
+        "ranks": 4
+      },
+      {
+        "name": "Runes",
+        "ranks": 3
+      }
+    ],
+    "abilities": [
+      {
+        "name": "Заклинания (Магия)",
+        "description": ""
+      },
+      {
+        "name": "Заклинания: Огненный шар",
+        "description": "Выберите одну цель на коротком или среднем расстоянии и совершите сложную проверку Магии; в случае успеха эта магическая атака наносит 8 урона +1 урон за каждый успех с качествами «Взрыв 4» и «Сжигание 4»."
+      },
+      {
+        "name": "Заклинания: Магический Щит",
+        "description": "Совершите сложную проверку Магии; в случае успеха до конца следующего хода волшебника уменьшите урон от всех ударов по нему на единицу плюс один за каждый успех, и волшебник получает +3 защиты. Волшебник может поддерживать эти эффекты с помощью маневра концентрации."
+      }
+    ],
+    "attacks": [],
+    "talents": [
+      "Adversary 1"
+    ],
+    "equipment": [
+      "Магический посох: добавьте +4 урона к магическим атакам; первый добавленный эффект дальности не увеличивает сложность.",
+      "Тяжелые мантии: +1 защита."
+    ],
+    "tags": [
+      "магия"
+    ]
+  },
+  {
+    "system": "RealmsOfTerrinoth",
+    "name": "Гвардия Фэрроу",
+    "nameEn": "Farrow’s Guard",
+    "kind": "Rival",
+    "role": "Brute",
+    "source": "Realms of Terrinoth",
+    "description": "",
+    "brawn": 3,
+    "agility": 3,
+    "intellect": 2,
+    "cunning": 2,
+    "willpower": 2,
+    "presence": 2,
+    "woundThreshold": 14,
+    "strainThreshold": null,
+    "soak": 4,
+    "meleeDefense": 1,
+    "rangedDefense": 1,
+    "silhouette": 1,
+    "tactics": "",
+    "skills": [
+      {
+        "name": "Cool",
+        "ranks": 2
+      },
+      {
+        "name": "Discipline",
+        "ranks": 1
+      },
+      {
+        "name": "Ranged",
+        "ranks": 2
+      },
+      {
+        "name": "Riding",
+        "ranks": 1
+      },
+      {
+        "name": "Melee (Light)",
+        "ranks": 2
+      },
+      {
+        "name": "Vigilance",
+        "ranks": 1
+      }
+    ],
+    "abilities": [
+      {
+        "name": "Грейфер",
+        "description": "Может взять Grapple случайно; до начала следующего хода стражника враги должны потратить два маневра, чтобы выйти из боя."
+      },
+      {
+        "name": "Оставайся позади!",
+        "description": "Когда персонаж, находящийся на близком расстоянии, пытается пройти мимо охранника, охранник может, вне очереди, потратить Очко истории из запаса GM и сбить персонажа с ног."
+      }
+    ],
+    "attacks": [
+      {
+        "name": "Меч",
+        "skill": "Melee (Light)",
+        "damage": "6",
+        "critical": "2",
+        "range": "Engaged",
+        "notes": "",
+        "qualities": [
+          {
+            "code": "defensive",
+            "nameRu": "Оборонительное",
+            "rating": 1
+          }
+        ]
+      },
+      {
+        "name": "Арбалет",
+        "skill": "Ranged",
+        "damage": "7",
+        "critical": "2",
+        "range": "Medium",
+        "notes": "",
+        "qualities": [
+          {
+            "code": "pierce",
+            "nameRu": "Проникающее",
+            "rating": 2
+          },
+          {
+            "code": "prepare",
+            "nameRu": "Подготовка",
+            "rating": 1
+          }
+        ]
+      },
+      {
+        "name": "Щит",
+        "skill": "Melee (Light)",
+        "damage": "3",
+        "critical": "6",
+        "range": "Engaged",
+        "notes": "",
+        "qualities": [
+          {
+            "code": "defensive",
+            "nameRu": "Оборонительное",
+            "rating": 1
+          },
+          {
+            "code": "deflection",
+            "nameRu": "Отражающее",
+            "rating": 1
+          },
+          {
+            "code": "inaccurate",
+            "nameRu": "Неточное",
+            "rating": 2
+          },
+          {
+            "code": "knockdown",
+            "nameRu": "Опрокидывание",
+            "rating": null
+          }
+        ]
+      }
+    ],
+    "talents": [
+      "Quick Draw"
+    ],
+    "equipment": [
+      "Кожаная броня: +1 впитывание"
+    ],
+    "tags": []
+  },
+  {
+    "system": "RealmsOfTerrinoth",
+    "name": "Гигант",
+    "nameEn": "Giant",
+    "kind": "Nemesis",
+    "role": "Brute",
+    "source": "Realms of Terrinoth",
+    "description": "",
+    "brawn": 6,
+    "agility": 2,
+    "intellect": 1,
+    "cunning": 2,
+    "willpower": 2,
+    "presence": 2,
+    "woundThreshold": 33,
+    "strainThreshold": 29,
+    "soak": 8,
+    "meleeDefense": 0,
+    "rangedDefense": 0,
+    "silhouette": 3,
+    "tactics": "",
+    "skills": [
+      {
+        "name": "Athletics",
+        "ranks": 2
+      },
+      {
+        "name": "Brawl",
+        "ranks": 2
+      }
+    ],
+    "abilities": [
+      {
+        "name": "Гигантский топот!",
+        "description": "Атаки Драки, совершаемые гигантами, имеют критический рейтинг 3, и если они наносят критические травмы, к итоговому результату критической травмы добавляется +40."
+      },
+      {
+        "name": "Ужасающий 3",
+        "description": ""
+      }
+    ],
+    "attacks": [
+      {
+        "name": "Огромный клуб",
+        "skill": "Melee",
+        "damage": "12",
+        "critical": "2",
+        "range": "Short",
+        "notes": "",
+        "qualities": [
+          {
+            "code": "inaccurate",
+            "nameRu": "Неточное",
+            "rating": 1
+          },
+          {
+            "code": "knockdown",
+            "nameRu": "Опрокидывание",
+            "rating": null
+          },
+          {
+            "code": "prepare",
+            "nameRu": "Подготовка",
+            "rating": 1
+          }
+        ]
+      }
+    ],
+    "talents": [
+      "Adversary 1"
+    ],
+    "equipment": [],
+    "tags": [
+      "страх"
+    ]
+  },
+  {
+    "system": "RealmsOfTerrinoth",
+    "name": "Гигантская змея",
+    "nameEn": "Giant Snake",
+    "kind": "Rival",
+    "role": "Brute",
+    "source": "Realms of Terrinoth",
+    "description": "",
+    "brawn": 4,
+    "agility": 2,
+    "intellect": 1,
+    "cunning": 2,
+    "willpower": 2,
+    "presence": 1,
+    "woundThreshold": 14,
+    "strainThreshold": null,
+    "soak": 4,
+    "meleeDefense": 0,
+    "rangedDefense": 0,
+    "silhouette": 3,
+    "tactics": "",
+    "skills": [
+      {
+        "name": "Brawl",
+        "ranks": 3
+      },
+      {
+        "name": "Resilience",
+        "ranks": 2
+      },
+      {
+        "name": "Stealth",
+        "ranks": 2
+      }
+    ],
+    "abilities": [
+      {
+        "name": "Глотать",
+        "description": "Может совершить противодействующую проверку Драки, чтобы проглотить атакуемую цель. Если проверка успешна, проглоченные персонажи обездвиживаются и получают 6 единиц урона в начале каждого раунда, но могут спастись, если змея убита или совершив успешную сложную проверку Атлетики."
+      }
+    ],
+    "attacks": [
+      {
+        "name": "Челюсти",
+        "skill": "Brawl",
+        "damage": "6",
+        "critical": "2",
+        "range": "Engaged",
+        "notes": "",
+        "qualities": [
+          {
+            "code": "vicious",
+            "nameRu": "Жестокое",
+            "rating": 2
+          }
+        ]
+      },
+      {
+        "name": "Сжимающие катушки",
+        "skill": "Brawl",
+        "damage": "10",
+        "critical": "3",
+        "range": "Engaged",
+        "notes": "",
+        "qualities": [
+          {
+            "code": "ensnare",
+            "nameRu": "Сковывающее",
+            "rating": 4
+          },
+          {
+            "code": "stun",
+            "nameRu": "Оглушение",
+            "rating": 4
+          }
+        ]
+      }
+    ],
+    "talents": [],
+    "equipment": [],
+    "tags": []
+  },
+  {
+    "system": "RealmsOfTerrinoth",
+    "name": "Глубинный Эльф",
+    "nameEn": "Deep Elf",
+    "kind": "Rival",
+    "role": "Brute",
+    "source": "Realms of Terrinoth",
+    "description": "",
+    "brawn": 2,
+    "agility": 3,
+    "intellect": 2,
+    "cunning": 3,
+    "willpower": 3,
+    "presence": 2,
+    "woundThreshold": 12,
+    "strainThreshold": null,
+    "soak": 2,
+    "meleeDefense": 1,
+    "rangedDefense": 1,
+    "silhouette": 1,
+    "tactics": "",
+    "skills": [
+      {
+        "name": "Discipline",
+        "ranks": 2
+      },
+      {
+        "name": "Knowledge (Forbidden)",
+        "ranks": 3
+      },
+      {
+        "name": "Melee (Light)",
+        "ranks": 3
+      },
+      {
+        "name": "Skulduggery",
+        "ranks": 2
+      },
+      {
+        "name": "Stealth",
+        "ranks": 3
+      }
+    ],
+    "abilities": [
+      {
+        "name": "Теневое обучение",
+        "description": "Enemies add :setback: to magic checks targeting a Deep Elf"
+      }
+    ],
+    "attacks": [
+      {
+        "name": "Два замораживающих лезвия",
+        "skill": "Melee (Light)",
+        "damage": "5",
+        "critical": "2",
+        "range": "Engaged",
+        "notes": "",
+        "qualities": [
+          {
+            "code": "accurate",
+            "nameRu": "Точное",
+            "rating": 1
+          },
+          {
+            "code": "sunder",
+            "nameRu": "Разрушительное",
+            "rating": null
+          }
+        ]
+      }
+    ],
+    "talents": [
+      "Dual Wielder"
+    ],
+    "equipment": [],
+    "tags": []
+  },
+  {
+    "system": "RealmsOfTerrinoth",
+    "name": "Глубоководный лучник",
+    "nameEn": "Deepwood Archer",
+    "kind": "Minion",
+    "role": "Archer",
+    "source": "Realms of Terrinoth",
+    "description": "",
+    "brawn": 3,
+    "agility": 3,
+    "intellect": 2,
+    "cunning": 3,
+    "willpower": 2,
+    "presence": 2,
+    "woundThreshold": 4,
+    "strainThreshold": null,
+    "soak": 4,
+    "meleeDefense": 1,
+    "rangedDefense": 1,
+    "silhouette": 1,
+    "tactics": "",
+    "skills": [
+      {
+        "name": "Cool",
+        "ranks": 0
+      },
+      {
+        "name": "Ranged",
+        "ranks": 0
+      },
+      {
+        "name": "Perception",
+        "ranks": 0
+      },
+      {
+        "name": "Vigilance",
+        "ranks": 0
+      }
+    ],
+    "abilities": [
+      {
+        "name": "Выстрел в упор",
+        "description": "When making a Ranged combat check targeting an opponent the Deepwood Archer is engaged with, increase the difficulty once (instead of twice)."
+      }
+    ],
+    "attacks": [
+      {
+        "name": "Deepwood Longbow",
+        "skill": "Ranged",
+        "damage": "8",
+        "critical": "2",
+        "range": "Extreme",
+        "notes": "",
+        "qualities": [
+          {
+            "code": "accurate",
+            "nameRu": "Точное",
+            "rating": 1
+          },
+          {
+            "code": "cumbersome",
+            "nameRu": "Громоздкое",
+            "rating": 3
+          },
+          {
+            "code": "superior",
+            "nameRu": "Превосходное",
+            "rating": null
+          },
+          {
+            "code": "unwieldy",
+            "nameRu": "Неуклюжее",
+            "rating": 3
+          }
+        ]
+      }
+    ],
+    "talents": [],
+    "equipment": [
+      "Кожаная броня: +1 впитывание"
+    ],
+    "tags": []
+  },
+  {
+    "system": "RealmsOfTerrinoth",
+    "name": "Гном-менестрель",
+    "nameEn": "Gnome Minstrel",
+    "kind": "Nemesis",
+    "role": "Caster",
+    "source": "Realms of Terrinoth",
+    "description": "",
+    "brawn": 1,
+    "agility": 2,
+    "intellect": 2,
+    "cunning": 4,
+    "willpower": 2,
+    "presence": 2,
+    "woundThreshold": 7,
+    "strainThreshold": 11,
+    "soak": 2,
+    "meleeDefense": 1,
+    "rangedDefense": 1,
+    "silhouette": 0,
+    "tactics": "",
+    "skills": [
+      {
+        "name": "Charm",
+        "ranks": 3
+      },
+      {
+        "name": "Coordination",
+        "ranks": 1
+      },
+      {
+        "name": "Knowledge (Geography)",
+        "ranks": 2
+      },
+      {
+        "name": "Stealth",
+        "ranks": 1
+      },
+      {
+        "name": "Verse",
+        "ranks": 2
+      }
+    ],
+    "abilities": [
+      {
+        "name": "Призрачные мелодии",
+        "description": "Гномы-менестрели могут потратить дополнительный ресурс на успешную проверку Очарования, чтобы нанести 1 напряжение своей цели, и могут сделать это несколько раз."
+      },
+      {
+        "name": "Заклинания (Стихосложение)",
+        "description": ""
+      },
+      {
+        "name": "Заклинания: Сумасшедшая мелодия",
+        "description": "Сделайте среднюю проверку стихов. Если проверка успешна, до конца следующего хода менестреля все остальные персонажи в пределах средней дистанции должны сначала получить одно напряжение, прежде чем использовать маневр концентрации. Менестрель может поддерживать этот эффект с помощью маневра концентрации."
+      },
+      {
+        "name": "Заклинания: Деморализующая строфа",
+        "description": "Выберите одну цель на небольшом расстоянии и проведите среднюю проверку Стиха. Если проверка успешна, до конца следующего хода менестреля цель уменьшает эффективность любых проверок навыков, которые она совершает, на одну. Менестрель может поддерживать этот эффект с помощью маневра концентрации."
+      }
+    ],
+    "attacks": [],
+    "talents": [
+      "Encouraging Song"
+    ],
+    "equipment": [
+      "Лютня, дудка и другие музыкальные инструменты.",
+      "Красочная одежда"
+    ],
+    "tags": [
+      "магия"
+    ]
+  },
+  {
+    "system": "RealmsOfTerrinoth",
+    "name": "Гномий охотник на драконов",
+    "nameEn": "Dwarven Dragon Hunter",
+    "kind": "Nemesis",
+    "role": "Brute",
+    "source": "Realms of Terrinoth",
+    "description": "",
+    "brawn": 4,
+    "agility": 2,
+    "intellect": 2,
+    "cunning": 3,
+    "willpower": 4,
+    "presence": 2,
+    "woundThreshold": 17,
+    "strainThreshold": 18,
+    "soak": 6,
+    "meleeDefense": 1,
+    "rangedDefense": 1,
+    "silhouette": 1,
+    "tactics": "",
+    "skills": [
+      {
+        "name": "Discipline",
+        "ranks": 4
+      },
+      {
+        "name": "Melee (Light)",
+        "ranks": 3
+      },
+      {
+        "name": "Ranged",
+        "ranks": 4
+      },
+      {
+        "name": "Resilience",
+        "ranks": 3
+      },
+      {
+        "name": "Survival",
+        "ranks": 3
+      }
+    ],
+    "abilities": [
+      {
+        "name": "Бесстрашный",
+        "description": "Гномьи охотники на драконов улучшают способность проверок Дисциплины, которые они совершают, чтобы противостоять страху или запугиванию один раз."
+      },
+      {
+        "name": "Darkvision",
+        "description": ""
+      }
+    ],
+    "attacks": [
+      {
+        "name": "Топор",
+        "skill": "Melee (Light)",
+        "damage": "8",
+        "critical": "3",
+        "range": "Engaged",
+        "notes": "",
+        "qualities": [
+          {
+            "code": "vicious",
+            "nameRu": "Жестокое",
+            "rating": 1
+          }
+        ]
+      },
+      {
+        "name": "Портативный болтомет",
+        "skill": "Ranged",
+        "damage": "9",
+        "critical": "2",
+        "range": "Extreme",
+        "notes": "",
+        "qualities": [
+          {
+            "code": "cumbersome",
+            "nameRu": "Громоздкое",
+            "rating": 3
+          },
+          {
+            "code": "pierce",
+            "nameRu": "Проникающее",
+            "rating": 2
+          },
+          {
+            "code": "prepare",
+            "nameRu": "Подготовка",
+            "rating": 1
+          }
+        ]
+      },
+      {
+        "name": "Гномьи зажигательные бомбы",
+        "skill": "Ranged",
+        "damage": "8",
+        "critical": "3",
+        "range": "Short",
+        "notes": "",
+        "qualities": [
+          {
+            "code": "blast",
+            "nameRu": "Взрыв",
+            "rating": 6
+          },
+          {
+            "code": "burn",
+            "nameRu": "Горение",
+            "rating": 2
+          },
+          {
+            "code": "limited-ammo",
+            "nameRu": "Ограниченный боезапас",
+            "rating": 1
+          }
+        ]
+      }
+    ],
+    "talents": [
+      "Adversary 1"
+    ],
+    "equipment": [],
+    "tags": []
+  },
+  {
+    "system": "RealmsOfTerrinoth",
+    "name": "Гоблин (Официальный)",
+    "nameEn": "Goblin (Official)",
+    "kind": "Minion",
+    "role": "Brute",
+    "source": "Realms of Terrinoth",
+    "description": "",
+    "brawn": 2,
+    "agility": 3,
+    "intellect": 1,
+    "cunning": 2,
+    "willpower": 1,
+    "presence": 1,
+    "woundThreshold": 4,
+    "strainThreshold": null,
+    "soak": 3,
+    "meleeDefense": 1,
+    "rangedDefense": 0,
+    "silhouette": 1,
+    "tactics": "",
+    "skills": [
+      {
+        "name": "Brawl",
+        "ranks": 0
+      },
+      {
+        "name": "Cool",
+        "ranks": 0
+      },
+      {
+        "name": "Deception",
+        "ranks": 0
+      },
+      {
+        "name": "Melee (Light)",
+        "ranks": 0
+      },
+      {
+        "name": "Ranged",
+        "ranks": 0
+      },
+      {
+        "name": "Stealth",
+        "ranks": 0
+      }
+    ],
+    "abilities": [
+      {
+        "name": "Darkvision",
+        "description": ""
+      },
+      {
+        "name": "Оппортунистический",
+        "description": "Гоблины наносят 1 дополнительный урон при успешных атаках ближнего боя по лежачим или обездвиженным целям."
+      }
+    ],
+    "attacks": [
+      {
+        "name": "Зазубренный клинок",
+        "skill": "Melee (Light)",
+        "damage": "5",
+        "critical": "3",
+        "range": "Engaged",
+        "notes": "",
+        "qualities": []
+      },
+      {
+        "name": "Грубый лук",
+        "skill": "Ranged",
+        "damage": "6",
+        "critical": "4",
+        "range": "Medium",
+        "notes": "",
+        "qualities": [
+          {
+            "code": "unwieldy",
+            "nameRu": "Неуклюжее",
+            "rating": 2
+          }
+        ]
+      }
+    ],
+    "talents": [],
+    "equipment": [
+      "Грязная лоскутная броня: +1 впитывание."
+    ],
+    "tags": []
+  },
+  {
+    "system": "RealmsOfTerrinoth",
+    "name": "Гоблин Ведьмак",
+    "nameEn": "Goblin Witcher",
+    "kind": "Rival",
+    "role": "Caster",
+    "source": "Realms of Terrinoth",
+    "description": "",
+    "brawn": 2,
+    "agility": 3,
+    "intellect": 2,
+    "cunning": 2,
+    "willpower": 2,
+    "presence": 2,
+    "woundThreshold": 16,
+    "strainThreshold": null,
+    "soak": 3,
+    "meleeDefense": 1,
+    "rangedDefense": 1,
+    "silhouette": 1,
+    "tactics": "",
+    "skills": [
+      {
+        "name": "Cool",
+        "ranks": 2
+      },
+      {
+        "name": "Deception",
+        "ranks": 2
+      },
+      {
+        "name": "Arcana",
+        "ranks": 3
+      },
+      {
+        "name": "Knowledge (Forbidden)",
+        "ranks": 2
+      },
+      {
+        "name": "Stealth",
+        "ranks": 1
+      }
+    ],
+    "abilities": [
+      {
+        "name": "Darkvision",
+        "description": ""
+      },
+      {
+        "name": "Злобное проклятие",
+        "description": "Добавьте :boost::boost: к магическим действиям, нацеленным на персонажа, который ранее нанес раны гоблину-ведьмаку во время этой встречи."
+      },
+      {
+        "name": "Заклинания (Магия)",
+        "description": ""
+      },
+      {
+        "name": "Заклинания: Агонизирующее проклятие",
+        "description": "Выберите цель на короткой или средней дистанции для этой атаки и проведите среднюю проверку Магии. В случае успеха эта магическая атака наносит 6 единиц урона +1 урон за каждый успех с качествами «Дизориентация 2» и «Нокдаун»."
+      },
+      {
+        "name": "Заклинания: Невезение",
+        "description": "Выберите цель на коротком или среднем расстоянии и совершите сложную проверку Магии. В случае успеха цель уменьшает способность любых проверок навыков, которые она совершает, на 1 до конца следующего хода гоблина-ведьмака, а когда цель совершает проверку, может изменить одну :setback: на лицо с изображением f. Гоблин-ведьмак может поддерживать эти эффекты, выполняя маневр концентрации."
+      }
+    ],
+    "attacks": [
+      {
+        "name": "Острые зубы",
+        "skill": "Brawl",
+        "damage": "3",
+        "critical": "3",
+        "range": "Engaged",
+        "notes": "",
+        "qualities": [
+          {
+            "code": "vicious",
+            "nameRu": "Жестокое",
+            "rating": 1
+          }
+        ]
+      }
+    ],
+    "talents": [
+      "Adversary 1",
+      "Dark Insight"
+    ],
+    "equipment": [
+      "Костяной посох: +4 урона от магических атак; первый добавленный эффект дальности не увеличивает сложность; при использовании заклинания, наносящего 1 или более ран, заклинатель исцеляет 1 рану.",
+      "Одетая костяная броня: +1 поглощение, +1 защита."
+    ],
+    "tags": [
+      "магия"
+    ]
+  },
+  {
+    "system": "RealmsOfTerrinoth",
+    "name": "Городская стража",
+    "nameEn": "City Guard",
+    "kind": "Rival",
+    "role": "Brute",
+    "source": "Realms of Terrinoth",
+    "description": "",
+    "brawn": 3,
+    "agility": 2,
+    "intellect": 2,
+    "cunning": 2,
+    "willpower": 2,
+    "presence": 2,
+    "woundThreshold": 13,
+    "strainThreshold": null,
+    "soak": 4,
+    "meleeDefense": 2,
+    "rangedDefense": 1,
+    "silhouette": 1,
+    "tactics": "",
+    "skills": [
+      {
+        "name": "Discipline",
+        "ranks": 1
+      },
+      {
+        "name": "Melee (Light)",
+        "ranks": 2
+      },
+      {
+        "name": "Perception",
+        "ranks": 1
+      },
+      {
+        "name": "Vigilance",
+        "ranks": 1
+      }
+    ],
+    "abilities": [],
+    "attacks": [
+      {
+        "name": "Ополченское копье",
+        "skill": "Melee (Light)",
+        "damage": "5",
+        "critical": "4",
+        "range": "Engaged",
+        "notes": "",
+        "qualities": [
+          {
+            "code": "accurate",
+            "nameRu": "Точное",
+            "rating": 1
+          }
+        ]
+      },
+      {
+        "name": "Щит",
+        "skill": "Melee (Light)",
+        "damage": "3",
+        "critical": "6",
+        "range": "Engaged",
+        "notes": "",
+        "qualities": [
+          {
+            "code": "defensive",
+            "nameRu": "Оборонительное",
+            "rating": 1
+          },
+          {
+            "code": "deflection",
+            "nameRu": "Отражающее",
+            "rating": 1
+          },
+          {
+            "code": "inaccurate",
+            "nameRu": "Неточное",
+            "rating": 2
+          },
+          {
+            "code": "knockdown",
+            "nameRu": "Опрокидывание",
+            "rating": null
+          }
+        ]
+      }
+    ],
+    "talents": [],
+    "equipment": [
+      "Кожаная броня: +1 впитывание"
+    ],
+    "tags": []
+  },
+  {
+    "system": "RealmsOfTerrinoth",
+    "name": "Гротеск",
+    "nameEn": "Grotesque",
+    "kind": "Rival",
+    "role": "Brute",
+    "source": "Realms of Terrinoth",
+    "description": "",
+    "brawn": 4,
+    "agility": 2,
+    "intellect": 1,
+    "cunning": 2,
+    "willpower": 2,
+    "presence": 1,
+    "woundThreshold": 14,
+    "strainThreshold": null,
+    "soak": 5,
+    "meleeDefense": 0,
+    "rangedDefense": 0,
+    "silhouette": 1,
+    "tactics": "",
+    "skills": [
+      {
+        "name": "Brawl",
+        "ranks": 2
+      },
+      {
+        "name": "Melee (Light)",
+        "ranks": 3
+      },
+      {
+        "name": "Ranged",
+        "ranks": 2
+      },
+      {
+        "name": "Resilience",
+        "ranks": 2
+      },
+      {
+        "name": "Vigilance",
+        "ranks": 2
+      }
+    ],
+    "abilities": [
+      {
+        "name": "Костные шпоры",
+        "description": "Гротеск может потратить угрозуаугрозаугроза или крах на проверку рукопашного боя, нацеленную на них, чтобы нанести атакующему 6 единиц урона."
+      },
+      {
+        "name": "Убийственное безумие",
+        "description": "Гротеск добавляет :boost::boost: ко всем проверкам рукопашного боя, но атакующие добавляют :boost: ко всем боевым проверкам, нацеленным на гротеск."
+      }
+    ],
+    "attacks": [
+      {
+        "name": "Массивный коготь",
+        "skill": "Melee (Light)",
+        "damage": "7",
+        "critical": "3",
+        "range": "Engaged",
+        "notes": "",
+        "qualities": [
+          {
+            "code": "ensnare",
+            "nameRu": "Сковывающее",
+            "rating": 1
+          },
+          {
+            "code": "knockdown",
+            "nameRu": "Опрокидывание",
+            "rating": null
+          }
+        ]
+      },
+      {
+        "name": "Брошенные осколки костей",
+        "skill": "Ranged",
+        "damage": "5",
+        "critical": "3",
+        "range": "Short",
+        "notes": "",
+        "qualities": [
+          {
+            "code": "vicious",
+            "nameRu": "Жестокое",
+            "rating": 2
+          }
+        ]
+      }
+    ],
+    "talents": [],
+    "equipment": [],
+    "tags": []
+  },
+  {
+    "system": "RealmsOfTerrinoth",
+    "name": "Гурак Тол",
+    "nameEn": "Gurak Tol",
+    "kind": "Rival",
+    "role": "Brute",
+    "source": "Realms of Terrinoth",
+    "description": "",
+    "brawn": 4,
+    "agility": 3,
+    "intellect": 1,
+    "cunning": 2,
+    "willpower": 3,
+    "presence": 1,
+    "woundThreshold": 18,
+    "strainThreshold": null,
+    "soak": 5,
+    "meleeDefense": 0,
+    "rangedDefense": 0,
+    "silhouette": 1,
+    "tactics": "",
+    "skills": [
+      {
+        "name": "Athletics",
+        "ranks": 3
+      },
+      {
+        "name": "Brawl",
+        "ranks": 2
+      },
+      {
+        "name": "Resilience",
+        "ranks": 2
+      }
+    ],
+    "abilities": [
+      {
+        "name": "Хвостовая катапульта",
+        "description": "При бою с Гураком Толом, с которым связан всадник орков, всадник орков может использовать скакуна для выполнения дальней атаки со следующим профилем: дальний; Урон 8; Критический 4; Диапазон (Средний); Сотрясение 1, Неточное 1, Нокдаун"
+      }
+    ],
+    "attacks": [
+      {
+        "name": "Когти и клыки",
+        "skill": "Brawl",
+        "damage": "7",
+        "critical": "3",
+        "range": "Engaged",
+        "notes": "",
+        "qualities": [
+          {
+            "code": "vicious",
+            "nameRu": "Жестокое",
+            "rating": 1
+          }
+        ]
+      },
+      {
+        "name": "Хвост",
+        "skill": "Brawl",
+        "damage": "7",
+        "critical": "4",
+        "range": "Engaged",
+        "notes": "",
+        "qualities": [
+          {
+            "code": "disorient",
+            "nameRu": "Дезориентирующее",
+            "rating": 3
+          },
+          {
+            "code": "knockdown",
+            "nameRu": "Опрокидывание",
+            "rating": null
+          }
+        ]
+      }
+    ],
+    "talents": [
+      "Swift"
+    ],
+    "equipment": [
+      "При соединении с всадником орков Гурак Тол получает броню, которая добавляет +2 к ее поглощению."
+    ],
+    "tags": []
+  },
+  {
+    "system": "RealmsOfTerrinoth",
+    "name": "Джинн",
+    "nameEn": "Djinn",
+    "kind": "Nemesis",
+    "role": "Caster",
+    "source": "Realms of Terrinoth",
+    "description": "",
+    "brawn": 4,
+    "agility": 3,
+    "intellect": 4,
+    "cunning": 5,
+    "willpower": 5,
+    "presence": 5,
+    "woundThreshold": 25,
+    "strainThreshold": 25,
+    "soak": 6,
+    "meleeDefense": 1,
+    "rangedDefense": 1,
+    "silhouette": 1,
+    "tactics": "",
+    "skills": [
+      {
+        "name": "Arcana",
+        "ranks": 5
+      },
+      {
+        "name": "Brawl",
+        "ranks": 3
+      },
+      {
+        "name": "Charm",
+        "ranks": 3
+      },
+      {
+        "name": "Cool",
+        "ranks": 3
+      },
+      {
+        "name": "Deception",
+        "ranks": 4
+      },
+      {
+        "name": "Discipline",
+        "ranks": 4
+      },
+      {
+        "name": "Knowledge (Lore)",
+        "ranks": 4
+      },
+      {
+        "name": "Melee (Light)",
+        "ranks": 3
+      },
+      {
+        "name": "Negotiation",
+        "ranks": 4
+      },
+      {
+        "name": "Vigilance",
+        "ranks": 3
+      }
+    ],
+    "abilities": [
+      {
+        "name": "Летающий",
+        "description": ""
+      },
+      {
+        "name": "Оборотень",
+        "description": "Один раз за раунд Джинн может случайно увеличить или уменьшить свой силуэт на 1 и изменить свой внешний вид на внешний вид любого персонажа или существа его текущего силуэта."
+      },
+      {
+        "name": "Заклинания (Магия)",
+        "description": ""
+      },
+      {
+        "name": "Заклинания: Циклон",
+        "description": "The Djinn chooses one target at up to medium range and make a сложная Arcana check. If successful, this magic attack inflicts 4 damage +1 damage per успех, with the Disorient 4 and Knockdown qualities. The Djinn can also spend преимущество to move the target up to one range band in any direction."
+      },
+      {
+        "name": "Заклинания: Извращенное желание",
+        "description": "Джинн выбирает одну цель на близком расстоянии и совершает очень сложную проверку Магии. В случае успеха, до конца следующего хода Джинна, каждый раз, когда цель совершает проверку навыка, уменьшите способность на единицу, и Джинн может выбрать замену любого кубика в пуле, не отображающего триумф или крах, на любое другое лицо. Джинн может выдержать эти эффекты с помощью маневра концентрации."
+      }
+    ],
+    "attacks": [
+      {
+        "name": "Сотворенный ятаган",
+        "skill": "Melee (Light)",
+        "damage": "9",
+        "critical": "2",
+        "range": "Engaged",
+        "notes": "",
+        "qualities": []
+      },
+      {
+        "name": "Иллюзорные когти",
+        "skill": "Brawl",
+        "damage": "6",
+        "critical": "3",
+        "range": "Engaged",
+        "notes": "",
+        "qualities": [
+          {
+            "code": "vicious",
+            "nameRu": "Жестокое",
+            "rating": 2
+          }
+        ]
+      }
+    ],
+    "talents": [
+      "Adversary 3",
+      "Ruinous Repartee"
+    ],
+    "equipment": [],
+    "tags": [
+      "летающий",
+      "магия"
+    ]
+  },
+  {
+    "system": "RealmsOfTerrinoth",
+    "name": "Дикий дракон",
+    "nameEn": "Feral Dragon",
+    "kind": "Nemesis",
+    "role": "Monster",
+    "source": "Realms of Terrinoth",
+    "description": "",
+    "brawn": 5,
+    "agility": 4,
+    "intellect": 2,
+    "cunning": 4,
+    "willpower": 4,
+    "presence": 2,
+    "woundThreshold": 41,
+    "strainThreshold": 20,
+    "soak": 8,
+    "meleeDefense": 0,
+    "rangedDefense": 0,
+    "silhouette": 4,
+    "tactics": "",
+    "skills": [
+      {
+        "name": "Brawl",
+        "ranks": 4
+      },
+      {
+        "name": "Coercion",
+        "ranks": 4
+      },
+      {
+        "name": "Cool",
+        "ranks": 3
+      },
+      {
+        "name": "Discipline",
+        "ranks": 4
+      },
+      {
+        "name": "Ranged",
+        "ranks": 4
+      },
+      {
+        "name": "Resilience",
+        "ranks": 4
+      },
+      {
+        "name": "Vigilance",
+        "ranks": 3
+      }
+    ],
+    "abilities": [
+      {
+        "name": "Летающий",
+        "description": ""
+      },
+      {
+        "name": "Улучшенный широкий удар",
+        "description": ""
+      },
+      {
+        "name": "Ужасающий 4",
+        "description": ""
+      }
+    ],
+    "attacks": [
+      {
+        "name": "Огненное дыхание",
+        "skill": "Ranged",
+        "damage": "12",
+        "critical": "3",
+        "range": "Medium",
+        "notes": "",
+        "qualities": [
+          {
+            "code": "blast",
+            "nameRu": "Взрыв",
+            "rating": 12
+          },
+          {
+            "code": "burn",
+            "nameRu": "Горение",
+            "rating": 3
+          },
+          {
+            "code": "slow-firing",
+            "nameRu": "Медленная перезарядка",
+            "rating": 2
+          }
+        ]
+      },
+      {
+        "name": "Когти",
+        "skill": "Brawl",
+        "damage": "11",
+        "critical": "2",
+        "range": "Engaged",
+        "notes": "",
+        "qualities": [
+          {
+            "code": "knockdown",
+            "nameRu": "Опрокидывание",
+            "rating": null
+          },
+          {
+            "code": "vicious",
+            "nameRu": "Жестокое",
+            "rating": 3
+          }
+        ]
+      }
+    ],
+    "talents": [
+      "Adversary 2",
+      "Swift"
+    ],
+    "equipment": [],
+    "tags": [
+      "летающий",
+      "страх"
+    ]
+  },
+  {
+    "system": "RealmsOfTerrinoth",
+    "name": "Димора",
+    "nameEn": "Dimora",
+    "kind": "Nemesis",
+    "role": "Caster",
+    "source": "Realms of Terrinoth",
+    "description": "",
+    "brawn": 4,
+    "agility": 1,
+    "intellect": 3,
+    "cunning": 2,
+    "willpower": 4,
+    "presence": 1,
+    "woundThreshold": 18,
+    "strainThreshold": 18,
+    "soak": 6,
+    "meleeDefense": 0,
+    "rangedDefense": 0,
+    "silhouette": 1,
+    "tactics": "",
+    "skills": [
+      {
+        "name": "Arcana",
+        "ranks": 3
+      },
+      {
+        "name": "Brawl",
+        "ranks": 2
+      },
+      {
+        "name": "Cool",
+        "ranks": 3
+      },
+      {
+        "name": "Knowledge (Lore)",
+        "ranks": 3
+      },
+      {
+        "name": "Melee (Light)",
+        "ranks": 2
+      },
+      {
+        "name": "Stealth",
+        "ranks": 2
+      }
+    ],
+    "abilities": [
+      {
+        "name": "Creature of the Aenlong",
+        "description": ""
+      },
+      {
+        "name": "Стоунволкер",
+        "description": "A Dimora moves normally through difficult or impassable terrain of stone, soil, or similar materials."
+      },
+      {
+        "name": "Ужасающий 2",
+        "description": ""
+      },
+      {
+        "name": "Заклинания (Магия)",
+        "description": ""
+      },
+      {
+        "name": "Заклинания: Тремор",
+        "description": "The Dimora chooses one target at short range and makes an средняя Arcana check. Если проверка успешна, эта магическая атака наносит 7 повреждений, +1 урон за успех, а цель и все персонажи, сражающиеся с целью, сбиваются с ног. The Dimora can spend преимущество on the check to move the target up to one range band in any direction."
+      },
+      {
+        "name": "Заклинания: Каменная тюрьма",
+        "description": "The Dimora chooses one target at short range and makes an средняя Arcana check. If the check is successful, this magic attack inflicts 7 damage, +1 damage per успех, with the Blast 3 and Ensnare 3 qualities."
+      }
+    ],
+    "attacks": [
+      {
+        "name": "Каменные клинки",
+        "skill": "Melee",
+        "damage": "7",
+        "critical": "3",
+        "range": "Engaged",
+        "notes": "",
+        "qualities": [
+          {
+            "code": "vicious",
+            "nameRu": "Жестокое",
+            "rating": 2
+          }
+        ]
+      },
+      {
+        "name": "Каменные кулаки",
+        "skill": "Brawl",
+        "damage": "5",
+        "critical": "3",
+        "range": "Engaged",
+        "notes": "",
+        "qualities": [
+          {
+            "code": "disorient",
+            "nameRu": "Дезориентирующее",
+            "rating": 2
+          },
+          {
+            "code": "knockdown",
+            "nameRu": "Опрокидывание",
+            "rating": null
+          }
+        ]
+      }
+    ],
+    "talents": [
+      "Durable 2"
+    ],
+    "equipment": [],
+    "tags": [
+      "магия",
+      "страх"
+    ]
+  },
+  {
+    "system": "RealmsOfTerrinoth",
+    "name": "Дракон Гибрид",
+    "nameEn": "Dragon Hybrid",
+    "kind": "Rival",
+    "role": "Monster",
+    "source": "Realms of Terrinoth",
+    "description": "",
+    "brawn": 4,
+    "agility": 3,
+    "intellect": 1,
+    "cunning": 2,
+    "willpower": 3,
+    "presence": 2,
+    "woundThreshold": 15,
+    "strainThreshold": null,
+    "soak": 6,
+    "meleeDefense": 1,
+    "rangedDefense": 0,
+    "silhouette": 1,
+    "tactics": "",
+    "skills": [
+      {
+        "name": "Brawl",
+        "ranks": 2
+      },
+      {
+        "name": "Coercion",
+        "ranks": 2
+      },
+      {
+        "name": "Melee (Heavy)",
+        "ranks": 1
+      },
+      {
+        "name": "Ranged",
+        "ranks": 2
+      },
+      {
+        "name": "Resilience",
+        "ranks": 2
+      },
+      {
+        "name": "Vigilance",
+        "ranks": 1
+      }
+    ],
+    "abilities": [
+      {
+        "name": "Драконье наследие",
+        "description": "Гибриды драконов уменьшают урон, получаемый ими от огня и подобных источников, на 3."
+      },
+      {
+        "name": "Летающий",
+        "description": ""
+      }
+    ],
+    "attacks": [
+      {
+        "name": "Большой меч",
+        "skill": "Melee (Heavy)",
+        "damage": "8",
+        "critical": "2",
+        "range": "Engaged",
+        "notes": "",
+        "qualities": [
+          {
+            "code": "defensive",
+            "nameRu": "Оборонительное",
+            "rating": 1
+          },
+          {
+            "code": "pierce",
+            "nameRu": "Проникающее",
+            "rating": 1
+          },
+          {
+            "code": "unwieldy",
+            "nameRu": "Неуклюжее",
+            "rating": 3
+          }
+        ]
+      },
+      {
+        "name": "Огненное дыхание",
+        "skill": "Ranged",
+        "damage": "6",
+        "critical": "3",
+        "range": "Short",
+        "notes": "",
+        "qualities": [
+          {
+            "code": "blast",
+            "nameRu": "Взрыв",
+            "rating": 6
+          },
+          {
+            "code": "burn",
+            "nameRu": "Горение",
+            "rating": 1
+          },
+          {
+            "code": "prepare",
+            "nameRu": "Подготовка",
+            "rating": 1
+          },
+          {
+            "code": "slow-firing",
+            "nameRu": "Медленная перезарядка",
+            "rating": 2
+          }
+        ]
+      },
+      {
+        "name": "Когти",
+        "skill": "Brawl",
+        "damage": "5",
+        "critical": "3",
+        "range": "Engaged",
+        "notes": "",
+        "qualities": [
+          {
+            "code": "vicious",
+            "nameRu": "Жестокое",
+            "rating": 1
+          }
+        ]
+      }
+    ],
+    "talents": [
+      "Adversary 1"
+    ],
+    "equipment": [
+      "Чешуйчатая броня: +2 поглощения"
+    ],
+    "tags": [
+      "летающий"
+    ]
+  },
+  {
+    "system": "RealmsOfTerrinoth",
+    "name": "Древний дракон",
+    "nameEn": "Ancient Dragon",
+    "kind": "Nemesis",
+    "role": "Caster",
+    "source": "Realms of Terrinoth",
+    "description": "",
+    "brawn": 5,
+    "agility": 4,
+    "intellect": 5,
+    "cunning": 4,
+    "willpower": 5,
+    "presence": 4,
+    "woundThreshold": 45,
+    "strainThreshold": 34,
+    "soak": 8,
+    "meleeDefense": 0,
+    "rangedDefense": 0,
+    "silhouette": 4,
+    "tactics": "",
+    "skills": [
+      {
+        "name": "Arcana",
+        "ranks": 4
+      },
+      {
+        "name": "Brawl",
+        "ranks": 4
+      },
+      {
+        "name": "Charm",
+        "ranks": 3
+      },
+      {
+        "name": "Coercion",
+        "ranks": 4
+      },
+      {
+        "name": "Cool",
+        "ranks": 3
+      },
+      {
+        "name": "Discipline",
+        "ranks": 4
+      },
+      {
+        "name": "Ranged",
+        "ranks": 4
+      },
+      {
+        "name": "Resilience",
+        "ranks": 4
+      },
+      {
+        "name": "Runes",
+        "ranks": 4
+      },
+      {
+        "name": "Vigilance",
+        "ranks": 3
+      }
+    ],
+    "abilities": [
+      {
+        "name": "Улучшенный широкий удар",
+        "description": ""
+      },
+      {
+        "name": "Летающий",
+        "description": ""
+      },
+      {
+        "name": "Ужасающий 4",
+        "description": ""
+      },
+      {
+        "name": "Заклинания (Магия)",
+        "description": ""
+      },
+      {
+        "name": "Заклинания: Заклинание освобождения",
+        "description": "Дракон выбирает цель на близком расстоянии, находящуюся под действием заклинания, и совершает сложную проверку Магии. Если проверка успешна, заклинание воздействует на цель."
+      },
+      {
+        "name": "Заклинания: Слова Разрушения",
+        "description": "Дракон выбирает один магический предмет (включая магическое оружие и броню или осколок с рунами в пределах средней дистанции) и совершает очень сложную проверку Тайны. В случае успеха до начала следующего хода дракона этот предмет теряет свою магическую способность и становится обычным драгоценным камнем, доспехом, мечом, камнем и т. д. Дракон может поддерживать это заклинание, выполняя маневр концентрации."
+      }
+    ],
+    "attacks": [
+      {
+        "name": "Огненное дыхание",
+        "skill": "Ranged",
+        "damage": "16",
+        "critical": "3",
+        "range": "Medium",
+        "notes": "",
+        "qualities": [
+          {
+            "code": "blast",
+            "nameRu": "Взрыв",
+            "rating": 16
+          },
+          {
+            "code": "burn",
+            "nameRu": "Горение",
+            "rating": 3
+          },
+          {
+            "code": "prepare",
+            "nameRu": "Подготовка",
+            "rating": 1
+          }
+        ]
+      },
+      {
+        "name": "Когти",
+        "skill": "Brawl",
+        "damage": "17",
+        "critical": "2",
+        "range": "Engaged",
+        "notes": "",
+        "qualities": [
+          {
+            "code": "knockdown",
+            "nameRu": "Опрокидывание",
+            "rating": null
+          },
+          {
+            "code": "sunder",
+            "nameRu": "Разрушительное",
+            "rating": null
+          },
+          {
+            "code": "vicious",
+            "nameRu": "Жестокое",
+            "rating": 5
+          }
+        ]
+      }
+    ],
+    "talents": [
+      "Adversary 2",
+      "Swift"
+    ],
+    "equipment": [],
+    "tags": [
+      "летающий",
+      "магия",
+      "страх"
+    ]
+  },
+  {
+    "system": "RealmsOfTerrinoth",
+    "name": "Железный",
+    "nameEn": "Ironbound",
+    "kind": "Rival",
+    "role": "Brute",
+    "source": "Realms of Terrinoth",
+    "description": "",
+    "brawn": 4,
+    "agility": 2,
+    "intellect": 1,
+    "cunning": 1,
+    "willpower": 1,
+    "presence": 1,
+    "woundThreshold": 15,
+    "strainThreshold": null,
+    "soak": 6,
+    "meleeDefense": 3,
+    "rangedDefense": 2,
+    "silhouette": 1,
+    "tactics": "",
+    "skills": [
+      {
+        "name": "Discipline",
+        "ranks": 3
+      },
+      {
+        "name": "Melee (Heavy)",
+        "ranks": 3
+      },
+      {
+        "name": "Melee (Light)",
+        "ranks": 3
+      },
+      {
+        "name": "Resilience",
+        "ranks": 3
+      },
+      {
+        "name": "Vigilance",
+        "ranks": 3
+      }
+    ],
+    "abilities": [
+      {
+        "name": "Могильные стражи",
+        "description": "Увеличивает сложность всех заклинаний, дважды нацеленных на скованного железом."
+      },
+      {
+        "name": "Сила железа",
+        "description": "Скованный железом может держать в одной руке тяжелое оружие ближнего боя."
+      },
+      {
+        "name": "бдительный",
+        "description": "Ironbound добавляет :boost::boost: к проверкам Внимательности и Бдительности, чтобы обнаружить использование или эффекты магических навыков."
+      }
+    ],
+    "attacks": [
+      {
+        "name": "Алебарда",
+        "skill": "Melee (Heavy)",
+        "damage": "7",
+        "critical": "3",
+        "range": "Engaged",
+        "notes": "",
+        "qualities": [
+          {
+            "code": "defensive",
+            "nameRu": "Оборонительное",
+            "rating": 1
+          },
+          {
+            "code": "pierce",
+            "nameRu": "Проникающее",
+            "rating": 3
+          }
+        ]
+      },
+      {
+        "name": "Большой щит",
+        "skill": "Melee (Light)",
+        "damage": "5",
+        "critical": "5",
+        "range": "Engaged",
+        "notes": "",
+        "qualities": [
+          {
+            "code": "defensive",
+            "nameRu": "Оборонительное",
+            "rating": 2
+          },
+          {
+            "code": "deflection",
+            "nameRu": "Отражающее",
+            "rating": 2
+          },
+          {
+            "code": "inaccurate",
+            "nameRu": "Неточное",
+            "rating": 2
+          },
+          {
+            "code": "knockdown",
+            "nameRu": "Опрокидывание",
+            "rating": null
+          }
+        ]
+      }
+    ],
+    "talents": [],
+    "equipment": [],
+    "tags": []
+  },
+  {
+    "system": "RealmsOfTerrinoth",
+    "name": "Жрец Келлоса",
+    "nameEn": "Priest Of Kellos",
+    "kind": "Rival",
+    "role": "Caster",
+    "source": "Realms of Terrinoth",
+    "description": "",
+    "brawn": 2,
+    "agility": 2,
+    "intellect": 2,
+    "cunning": 2,
+    "willpower": 3,
+    "presence": 3,
+    "woundThreshold": 16,
+    "strainThreshold": null,
+    "soak": 2,
+    "meleeDefense": 1,
+    "rangedDefense": 1,
+    "silhouette": 1,
+    "tactics": "",
+    "skills": [
+      {
+        "name": "Charm",
+        "ranks": 2
+      },
+      {
+        "name": "Discipline",
+        "ranks": 2
+      },
+      {
+        "name": "Divine",
+        "ranks": 2
+      },
+      {
+        "name": "Knowledge (Lore)",
+        "ranks": 3
+      },
+      {
+        "name": "Melee (Light)",
+        "ranks": 2
+      },
+      {
+        "name": "Vigilance",
+        "ranks": 1
+      }
+    ],
+    "abilities": [
+      {
+        "name": "Заклинания (Вера)",
+        "description": ""
+      },
+      {
+        "name": "Заклинания: Исцеляющая Искра",
+        "description": "Выберите цель на небольшом расстоянии и совершите среднюю проверку Божественности. Если проверка успешна, цель исцеляет 1 рану за успех и 1 травму за каждого персонажа."
+      },
+      {
+        "name": "Заклинания: Праведное пламя",
+        "description": "Выберите одну цель на небольшом расстоянии и проведите среднюю проверку Божественности. В случае успеха эта магическая атака наносит 3 урона +1 урон за каждый неотмененный успех с качеством «Сожжение 3». Вместо этого атака против цели-нежити наносит +2 урона за каждый успех."
+      }
+    ],
+    "attacks": [
+      {
+        "name": "Мейс",
+        "skill": "Melee (Light)",
+        "damage": "5",
+        "critical": "4",
+        "range": "Engaged",
+        "notes": "",
+        "qualities": []
+      }
+    ],
+    "talents": [
+      "Flames of Kellos"
+    ],
+    "equipment": [
+      "Тяжелые мантии: +1 защита."
+    ],
+    "tags": [
+      "магия"
+    ]
+  },
+  {
+    "system": "RealmsOfTerrinoth",
+    "name": "Зверочеловек",
+    "nameEn": "Beastman",
+    "kind": "Minion",
+    "role": "Brute",
+    "source": "Realms of Terrinoth",
+    "description": "",
+    "brawn": 3,
+    "agility": 2,
+    "intellect": 1,
+    "cunning": 2,
+    "willpower": 1,
+    "presence": 1,
+    "woundThreshold": 6,
+    "strainThreshold": null,
+    "soak": 3,
+    "meleeDefense": 0,
+    "rangedDefense": 0,
+    "silhouette": 1,
+    "tactics": "",
+    "skills": [
+      {
+        "name": "Brawl",
+        "ranks": 0
+      },
+      {
+        "name": "Perception",
+        "ranks": 0
+      },
+      {
+        "name": "Vigilance",
+        "ranks": 0
+      }
+    ],
+    "abilities": [
+      {
+        "name": "Звериная ярость",
+        "description": "Группа миньонов зверолюдей или зверолюдов, получившая урон, снижает критический рейтинг своих атак до 1."
+      }
+    ],
+    "attacks": [
+      {
+        "name": "Клыки и когти",
+        "skill": "Brawl",
+        "damage": "6",
+        "critical": "3",
+        "range": "Engaged",
+        "notes": "",
+        "qualities": []
+      }
+    ],
+    "talents": [],
+    "equipment": [],
+    "tags": []
+  },
+  {
+    "system": "RealmsOfTerrinoth",
+    "name": "Змей Глубин",
+    "nameEn": "Wyrm Of The Deep",
+    "kind": "Nemesis",
+    "role": "Monster",
+    "source": "Realms of Terrinoth",
+    "description": "",
+    "brawn": 5,
+    "agility": 4,
+    "intellect": 2,
+    "cunning": 3,
+    "willpower": 2,
+    "presence": 4,
+    "woundThreshold": 28,
+    "strainThreshold": 24,
+    "soak": 9,
+    "meleeDefense": 1,
+    "rangedDefense": 1,
+    "silhouette": 4,
+    "tactics": "",
+    "skills": [
+      {
+        "name": "Brawl",
+        "ranks": 4
+      },
+      {
+        "name": "Discipline",
+        "ranks": 3
+      },
+      {
+        "name": "Resilience",
+        "ranks": 4
+      },
+      {
+        "name": "Vigilance",
+        "ranks": 2
+      }
+    ],
+    "abilities": [
+      {
+        "name": "Amphibious",
+        "description": ""
+      },
+      {
+        "name": "Ужасающий 3",
+        "description": ""
+      }
+    ],
+    "attacks": [
+      {
+        "name": "Массивные челюсти",
+        "skill": "Brawl",
+        "damage": "12",
+        "critical": "2",
+        "range": "Engaged",
+        "notes": "",
+        "qualities": [
+          {
+            "code": "ensnare",
+            "nameRu": "Сковывающее",
+            "rating": 2
+          },
+          {
+            "code": "vicious",
+            "nameRu": "Жестокое",
+            "rating": 4
+          }
+        ]
+      },
+      {
+        "name": "Хвост и плавники",
+        "skill": "Brawl",
+        "damage": "10",
+        "critical": "4",
+        "range": "Engaged",
+        "notes": "",
+        "qualities": [
+          {
+            "code": "knockdown",
+            "nameRu": "Опрокидывание",
+            "rating": null
+          }
+        ]
+      }
+    ],
+    "talents": [
+      "Adversary 1"
+    ],
+    "equipment": [],
+    "tags": [
+      "страх"
+    ]
+  },
+  {
+    "system": "RealmsOfTerrinoth",
+    "name": "Истинная Фейри",
+    "nameEn": "True Fae",
+    "kind": "Nemesis",
+    "role": "Caster",
+    "source": "Realms of Terrinoth",
+    "description": "",
+    "brawn": 3,
+    "agility": 3,
+    "intellect": 4,
+    "cunning": 4,
+    "willpower": 3,
+    "presence": 4,
+    "woundThreshold": 17,
+    "strainThreshold": 19,
+    "soak": 3,
+    "meleeDefense": 1,
+    "rangedDefense": 1,
+    "silhouette": 1,
+    "tactics": "",
+    "skills": [
+      {
+        "name": "Arcana",
+        "ranks": 3
+      },
+      {
+        "name": "Brawl",
+        "ranks": 2
+      },
+      {
+        "name": "Knowledge (Lore)",
+        "ranks": 3
+      },
+      {
+        "name": "Melee (Light)",
+        "ranks": 2
+      },
+      {
+        "name": "Stealth",
+        "ranks": 3
+      },
+      {
+        "name": "Vigilance",
+        "ranks": 3
+      }
+    ],
+    "abilities": [
+      {
+        "name": "Creature of the Aenlong",
+        "description": ""
+      },
+      {
+        "name": "Летающий",
+        "description": ""
+      },
+      {
+        "name": "Ужасающий 3",
+        "description": ""
+      },
+      {
+        "name": "Заклинания (Магия)",
+        "description": ""
+      },
+      {
+        "name": "Заклинания: Ослепляющее проклятие",
+        "description": "Фейри выбирает одну цель на близком расстоянии и совершает среднюю проверку Магии. Если проверка успешна, цель уменьшает способность всех проверок, которые она совершает, и добавляет :setback::setback: ко всем проверкам, включающим зрение, до конца следующего хода Фейри. Фейри могут поддерживать эти эффекты, выполняя маневр концентрации."
+      },
+      {
+        "name": "Заклинания: Дрожащий паралич",
+        "description": "Фейри выбирает одну цель на близком расстоянии и совершает легкую проверку Магии. Если проверка успешна, эта магическая атака наносит 7 повреждений, +1 урон за успех, с качеством Ловушка 3."
+      }
+    ],
+    "attacks": [
+      {
+        "name": "Жуткий клинок",
+        "skill": "Melee",
+        "damage": "4",
+        "critical": "2",
+        "range": "Engaged",
+        "notes": "",
+        "qualities": [
+          {
+            "code": "disorient",
+            "nameRu": "Дезориентирующее",
+            "rating": 2
+          },
+          {
+            "code": "pierce",
+            "nameRu": "Проникающее",
+            "rating": 4
+          }
+        ]
+      },
+      {
+        "name": "Когти и зубы",
+        "skill": "Brawl",
+        "damage": "4",
+        "critical": "3",
+        "range": "Engaged",
+        "notes": "",
+        "qualities": [
+          {
+            "code": "vicious",
+            "nameRu": "Жестокое",
+            "rating": 1
+          }
+        ]
+      }
+    ],
+    "talents": [
+      "Quick Strike 2"
+    ],
+    "equipment": [],
+    "tags": [
+      "летающий",
+      "магия",
+      "страх"
+    ]
+  },
+  {
+    "system": "RealmsOfTerrinoth",
+    "name": "Карликовый гульден",
+    "nameEn": "Dwarf Guilder",
+    "kind": "Rival",
+    "role": "Brute",
+    "source": "Realms of Terrinoth",
+    "description": "",
+    "brawn": 2,
+    "agility": 1,
+    "intellect": 3,
+    "cunning": 2,
+    "willpower": 3,
+    "presence": 2,
+    "woundThreshold": 14,
+    "strainThreshold": null,
+    "soak": 3,
+    "meleeDefense": 0,
+    "rangedDefense": 0,
+    "silhouette": 1,
+    "tactics": "",
+    "skills": [
+      {
+        "name": "Melee (Light)",
+        "ranks": 2
+      },
+      {
+        "name": "Ranged",
+        "ranks": 2
+      },
+      {
+        "name": "Resilience",
+        "ranks": 2
+      }
+    ],
+    "abilities": [
+      {
+        "name": "Darkvision",
+        "description": ""
+      },
+      {
+        "name": "Член гильдии",
+        "description": "Выполняя проверку, связанную с их конкретной гильдией, гномьи гильдии улучшают способность проверки дважды."
+      }
+    ],
+    "attacks": [],
+    "talents": [],
+    "equipment": [
+      "Инструменты и свитки гильдии"
+    ],
+    "tags": []
+  },
+  {
+    "system": "RealmsOfTerrinoth",
+    "name": "Кеннсир Гном",
+    "nameEn": "Kennsir Dwarf",
+    "kind": "Rival",
+    "role": "Brute",
+    "source": "Realms of Terrinoth",
+    "description": "",
+    "brawn": 2,
+    "agility": 2,
+    "intellect": 2,
+    "cunning": 3,
+    "willpower": 3,
+    "presence": 2,
+    "woundThreshold": 15,
+    "strainThreshold": null,
+    "soak": 3,
+    "meleeDefense": 1,
+    "rangedDefense": 0,
+    "silhouette": 1,
+    "tactics": "",
+    "skills": [
+      {
+        "name": "Melee (Light)",
+        "ranks": 3
+      },
+      {
+        "name": "Resilience",
+        "ranks": 3
+      },
+      {
+        "name": "Skulduggery",
+        "ranks": 2
+      },
+      {
+        "name": "Stealth",
+        "ranks": 2
+      },
+      {
+        "name": "Survival",
+        "ranks": 2
+      }
+    ],
+    "abilities": [
+      {
+        "name": "Darkvision",
+        "description": ""
+      },
+      {
+        "name": "Туннельный истребитель",
+        "description": "Добавьте :boost::boost: для боевых проверок Кеннсирских гномов в закрытых помещениях."
+      }
+    ],
+    "attacks": [
+      {
+        "name": "Наручи гномьих кирок",
+        "skill": "Melee (Light)",
+        "damage": "4",
+        "critical": "2",
+        "range": "Engaged",
+        "notes": "",
+        "qualities": [
+          {
+            "code": "pierce",
+            "nameRu": "Проникающее",
+            "rating": 2
+          }
+        ]
+      }
+    ],
+    "talents": [],
+    "equipment": [
+      "Дымовые шашки, флаконы с отравляющим газом"
+    ],
+    "tags": []
+  },
+  {
+    "system": "RealmsOfTerrinoth",
+    "name": "Кобольд",
+    "nameEn": "Kobold",
+    "kind": "Minion",
+    "role": "Brute",
+    "source": "Realms of Terrinoth",
+    "description": "",
+    "brawn": 1,
+    "agility": 2,
+    "intellect": 1,
+    "cunning": 1,
+    "willpower": 1,
+    "presence": 1,
+    "woundThreshold": 3,
+    "strainThreshold": null,
+    "soak": 1,
+    "meleeDefense": 0,
+    "rangedDefense": 0,
+    "silhouette": 0,
+    "tactics": "",
+    "skills": [
+      {
+        "name": "Brawl",
+        "ranks": 0
+      },
+      {
+        "name": "Melee (Light)",
+        "ranks": 0
+      },
+      {
+        "name": "Skulduggery",
+        "ranks": 0
+      }
+    ],
+    "abilities": [
+      {
+        "name": "Не Другой!",
+        "description": "В столкновении с любым количеством кобольдов ГМ может потратить угрозуаугрозу из любой проверки, сделанной персонажем, чтобы добавить одного кобольда в существующую группу миньонов, или потратить крах, чтобы добавить в столкновение новую группу миньонов из трех кобольдов."
+      }
+    ],
+    "attacks": [
+      {
+        "name": "Когти и зубы",
+        "skill": "Brawl",
+        "damage": "2",
+        "critical": "3",
+        "range": "Engaged",
+        "notes": "",
+        "qualities": [
+          {
+            "code": "vicious",
+            "nameRu": "Жестокое",
+            "rating": 1
+          }
+        ]
+      },
+      {
+        "name": "Грубый клинок",
+        "skill": "Melee (Light)",
+        "damage": "4",
+        "critical": "3",
+        "range": "Engaged",
+        "notes": "",
+        "qualities": []
+      }
+    ],
+    "talents": [],
+    "equipment": [],
+    "tags": []
+  },
+  {
+    "system": "RealmsOfTerrinoth",
+    "name": "Кошелёк Гильдии Воров",
+    "nameEn": "Thieves Guild Cutpurse",
+    "kind": "Rival",
+    "role": "Brute",
+    "source": "Realms of Terrinoth",
+    "description": "",
+    "brawn": 2,
+    "agility": 3,
+    "intellect": 2,
+    "cunning": 3,
+    "willpower": 2,
+    "presence": 2,
+    "woundThreshold": 12,
+    "strainThreshold": null,
+    "soak": 2,
+    "meleeDefense": 0,
+    "rangedDefense": 0,
+    "silhouette": 1,
+    "tactics": "",
+    "skills": [
+      {
+        "name": "Cool",
+        "ranks": 2
+      },
+      {
+        "name": "Coordination",
+        "ranks": 2
+      },
+      {
+        "name": "Deception",
+        "ranks": 2
+      },
+      {
+        "name": "Melee (Light)",
+        "ranks": 2
+      },
+      {
+        "name": "Skulduggery",
+        "ranks": 3
+      },
+      {
+        "name": "Stealth",
+        "ranks": 3
+      }
+    ],
+    "abilities": [],
+    "attacks": [
+      {
+        "name": "Кинжал",
+        "skill": "Melee (Light)",
+        "damage": "3",
+        "critical": "3",
+        "range": "Engaged",
+        "notes": "",
+        "qualities": [
+          {
+            "code": "accurate",
+            "nameRu": "Точное",
+            "rating": 1
+          }
+        ]
+      },
+      {
+        "name": "Блэкджек",
+        "skill": "Melee (Light)",
+        "damage": "5",
+        "critical": "5",
+        "range": "Engaged",
+        "notes": "",
+        "qualities": [
+          {
+            "code": "disorient",
+            "nameRu": "Дезориентирующее",
+            "rating": 2
+          },
+          {
+            "code": "stun-damage",
+            "nameRu": "Оглушающий урон",
+            "rating": null
+          }
+        ]
+      }
+    ],
+    "talents": [
+      "Finesse"
+    ],
+    "equipment": [],
+    "tags": []
+  },
+  {
+    "system": "RealmsOfTerrinoth",
+    "name": "Кровавая сестра и Ночная провидица",
+    "nameEn": "Bloodsister And Nightseer",
+    "kind": "Nemesis",
+    "role": "Caster",
+    "source": "Realms of Terrinoth",
+    "description": "",
+    "brawn": 2,
+    "agility": 2,
+    "intellect": 4,
+    "cunning": 3,
+    "willpower": 4,
+    "presence": 4,
+    "woundThreshold": 17,
+    "strainThreshold": 17,
+    "soak": 3,
+    "meleeDefense": 0,
+    "rangedDefense": 0,
+    "silhouette": 1,
+    "tactics": "",
+    "skills": [
+      {
+        "name": "Divine",
+        "ranks": 3
+      },
+      {
+        "name": "Coercion",
+        "ranks": 3
+      },
+      {
+        "name": "Cool",
+        "ranks": 2
+      },
+      {
+        "name": "Knowledge (Forbidden)",
+        "ranks": 4
+      },
+      {
+        "name": "Melee (Light)",
+        "ranks": 1
+      }
+    ],
+    "abilities": [
+      {
+        "name": "Телепатическая связь",
+        "description": "Сестра крови может выполнить случайную проверку один раз за раунд, чтобы добавить :boost: к следующей проверке, сделанной всеми остальными Утук Илланами в схватке."
+      },
+      {
+        "name": "Телепатическое господство",
+        "description": "Сестра крови или ночная провидица могут попытаться телепатически доминировать над врагом один раз за встречу в качестве действия, совершая противоположную проверку Принуждения против Дисциплины, нацеленную на одного персонажа на коротком расстоянии; в случае успеха цель обездвиживается на 1 раунд за успех, а кровная сестра может потратить триумф, чтобы ошеломить цель на 1 раунд."
+      },
+      {
+        "name": "Сновидец",
+        "description": "Один раз за сеанс ночной провидец может потратить Очко истории, чтобы либо перебросить запас кубиков после проверки, либо заставить ПК перебросить запас кубиков после проверки."
+      },
+      {
+        "name": "Заклинания (Вера)",
+        "description": ""
+      },
+      {
+        "name": "Заклинания: Извержение костей",
+        "description": "Выберите одну цель на коротком или среднем расстоянии и проведите сложную Божественную проверку. Если проверка успешна, эта магическая атака наносит 8 повреждений, +1 урон за успех, с качествами Пронзающий 4, Раскол и Порочный 4 и с рейтингом критического удара 2."
+      },
+      {
+        "name": "Заклинания: Обескровливание",
+        "description": "Выберите одну цель на коротком или среднем расстоянии для этого проклятия и проведите сложную Божественную проверку. Если проверка успешна, то до конца следующего хода ведьмы цель теряет способность любых проверок навыков, которые она совершает, на одну и получает одно дополнительное ранение каждый раз, когда получает раны. Ведьма может поддерживать эти эффекты с помощью маневра концентрации."
+      }
+    ],
+    "attacks": [],
+    "talents": [
+      "Adversary 1",
+      "Dark Insight"
+    ],
+    "equipment": [
+      "Костяной посох: +4 урона от магических атак; первый добавленный эффект дальности не увеличивает сложность; при использовании заклинания, наносящего 1 или более ран, заклинатель исцеляет 1 рану.",
+      "Кожаная броня: +1 впитывание"
+    ],
+    "tags": [
+      "магия"
+    ]
+  },
+  {
+    "system": "RealmsOfTerrinoth",
+    "name": "Кучер",
+    "nameEn": "Coachman",
+    "kind": "Rival",
+    "role": "Brute",
+    "source": "Realms of Terrinoth",
+    "description": "",
+    "brawn": 2,
+    "agility": 3,
+    "intellect": 2,
+    "cunning": 2,
+    "willpower": 2,
+    "presence": 1,
+    "woundThreshold": 10,
+    "strainThreshold": null,
+    "soak": 3,
+    "meleeDefense": 1,
+    "rangedDefense": 1,
+    "silhouette": 1,
+    "tactics": "",
+    "skills": [
+      {
+        "name": "Brawl",
+        "ranks": 1
+      },
+      {
+        "name": "Ranged",
+        "ranks": 1
+      },
+      {
+        "name": "Riding",
+        "ranks": 2
+      },
+      {
+        "name": "Vigilance",
+        "ranks": 2
+      }
+    ],
+    "abilities": [],
+    "attacks": [
+      {
+        "name": "Кинжал",
+        "skill": "Melee (Light)",
+        "damage": "3",
+        "critical": "",
+        "range": "Engaged",
+        "notes": "",
+        "qualities": []
+      }
+    ],
+    "talents": [],
+    "equipment": [
+      "Мягкая броня: +1 впитывание"
+    ],
+    "tags": []
+  },
+  {
+    "system": "RealmsOfTerrinoth",
+    "name": "Ледяной Змей",
+    "nameEn": "Ice Wyrm",
+    "kind": "Nemesis",
+    "role": "Monster",
+    "source": "Realms of Terrinoth",
+    "description": "",
+    "brawn": 5,
+    "agility": 5,
+    "intellect": 3,
+    "cunning": 3,
+    "willpower": 3,
+    "presence": 2,
+    "woundThreshold": 31,
+    "strainThreshold": 20,
+    "soak": 8,
+    "meleeDefense": 0,
+    "rangedDefense": 0,
+    "silhouette": 4,
+    "tactics": "",
+    "skills": [
+      {
+        "name": "Brawl",
+        "ranks": 4
+      },
+      {
+        "name": "Coercion",
+        "ranks": 4
+      },
+      {
+        "name": "Cool",
+        "ranks": 3
+      },
+      {
+        "name": "Discipline",
+        "ranks": 3
+      },
+      {
+        "name": "Ranged",
+        "ranks": 4
+      },
+      {
+        "name": "Resilience",
+        "ranks": 4
+      },
+      {
+        "name": "Stealth",
+        "ranks": 3
+      },
+      {
+        "name": "Vigilance",
+        "ranks": 3
+      }
+    ],
+    "abilities": [
+      {
+        "name": "Летающий",
+        "description": ""
+      },
+      {
+        "name": "Замаскированная чешуя",
+        "description": "Ледяной змей добавляет :boost::boost: к проверкам Скрытности в ледяной или заснеженной местности."
+      }
+    ],
+    "attacks": [
+      {
+        "name": "Ледяной поток крови",
+        "skill": "Ranged",
+        "damage": "10",
+        "critical": "3",
+        "range": "Medium",
+        "notes": "",
+        "qualities": [
+          {
+            "code": "blast",
+            "nameRu": "Взрыв",
+            "rating": 8
+          },
+          {
+            "code": "concussive",
+            "nameRu": "Оглушающее",
+            "rating": 1
+          },
+          {
+            "code": "ensnare",
+            "nameRu": "Сковывающее",
+            "rating": 4
+          }
+        ]
+      },
+      {
+        "name": "Когти и клыки",
+        "skill": "Brawl",
+        "damage": "8",
+        "critical": "2",
+        "range": "Engaged",
+        "notes": "",
+        "qualities": [
+          {
+            "code": "knockdown",
+            "nameRu": "Опрокидывание",
+            "rating": null
+          },
+          {
+            "code": "vicious",
+            "nameRu": "Жестокое",
+            "rating": 3
+          }
+        ]
+      }
+    ],
+    "talents": [
+      "Adversary 2",
+      "Swift"
+    ],
+    "equipment": [],
+    "tags": [
+      "летающий"
+    ]
+  },
+  {
+    "system": "RealmsOfTerrinoth",
+    "name": "Ледяной Кровь Воин",
+    "nameEn": "Ice-Blood Warrior",
+    "kind": "Minion",
+    "role": "Brute",
+    "source": "Realms of Terrinoth",
+    "description": "",
+    "brawn": 3,
+    "agility": 2,
+    "intellect": 1,
+    "cunning": 3,
+    "willpower": 1,
+    "presence": 1,
+    "woundThreshold": 5,
+    "strainThreshold": null,
+    "soak": 4,
+    "meleeDefense": 0,
+    "rangedDefense": 0,
+    "silhouette": 1,
+    "tactics": "",
+    "skills": [
+      {
+        "name": "Cool",
+        "ranks": 0
+      },
+      {
+        "name": "Brawl",
+        "ranks": 0
+      },
+      {
+        "name": "Melee (Light)",
+        "ranks": 0
+      },
+      {
+        "name": "Resilience",
+        "ranks": 0
+      }
+    ],
+    "abilities": [
+      {
+        "name": "Ледяное безумие",
+        "description": "Увеличьте сложность проверок социальных навыков, нацеленных на воина ледяной крови."
+      }
+    ],
+    "attacks": [
+      {
+        "name": "Хрупкий топор",
+        "skill": "Melee (Light)",
+        "damage": "6",
+        "critical": "3",
+        "range": "Engaged",
+        "notes": "",
+        "qualities": [
+          {
+            "code": "vicious",
+            "nameRu": "Жестокое",
+            "rating": 1
+          }
+        ]
+      },
+      {
+        "name": "Ледяное прикосновение",
+        "skill": "Brawl",
+        "damage": "5",
+        "critical": "4",
+        "range": "Engaged",
+        "notes": "",
+        "qualities": [
+          {
+            "code": "stun",
+            "nameRu": "Оглушение",
+            "rating": 3
+          }
+        ]
+      }
+    ],
+    "talents": [],
+    "equipment": [],
+    "tags": []
+  },
+  {
+    "system": "RealmsOfTerrinoth",
+    "name": "Леонкс",
+    "nameEn": "Leonx",
+    "kind": "Rival",
+    "role": "Monster",
+    "source": "Realms of Terrinoth",
+    "description": "",
+    "brawn": 4,
+    "agility": 4,
+    "intellect": 1,
+    "cunning": 3,
+    "willpower": 2,
+    "presence": 1,
+    "woundThreshold": 14,
+    "strainThreshold": null,
+    "soak": 4,
+    "meleeDefense": 0,
+    "rangedDefense": 0,
+    "silhouette": 1,
+    "tactics": "",
+    "skills": [
+      {
+        "name": "Brawl",
+        "ranks": 2
+      },
+      {
+        "name": "Survival",
+        "ranks": 3
+      },
+      {
+        "name": "Vigilance",
+        "ranks": 2
+      }
+    ],
+    "abilities": [
+      {
+        "name": "Растерзать",
+        "description": ""
+      }
+    ],
+    "attacks": [
+      {
+        "name": "Когти и клыки",
+        "skill": "Brawl",
+        "damage": "6",
+        "critical": "3",
+        "range": "Engaged",
+        "notes": "",
+        "qualities": [
+          {
+            "code": "knockdown",
+            "nameRu": "Опрокидывание",
+            "rating": null
+          },
+          {
+            "code": "pierce",
+            "nameRu": "Проникающее",
+            "rating": 2
+          },
+          {
+            "code": "vicious",
+            "nameRu": "Жестокое",
+            "rating": 1
+          }
+        ]
+      }
+    ],
+    "talents": [
+      "Swift"
+    ],
+    "equipment": [],
+    "tags": []
+  },
+  {
+    "system": "RealmsOfTerrinoth",
+    "name": "Леонкс Райдер",
+    "nameEn": "Leonx Rider",
+    "kind": "Rival",
+    "role": "Brute",
+    "source": "Realms of Terrinoth",
+    "description": "",
+    "brawn": 3,
+    "agility": 3,
+    "intellect": 2,
+    "cunning": 3,
+    "willpower": 3,
+    "presence": 3,
+    "woundThreshold": 15,
+    "strainThreshold": null,
+    "soak": 4,
+    "meleeDefense": 2,
+    "rangedDefense": 1,
+    "silhouette": 1,
+    "tactics": "",
+    "skills": [
+      {
+        "name": "Cool",
+        "ranks": 2
+      },
+      {
+        "name": "Melee (Heavy)",
+        "ranks": 2
+      },
+      {
+        "name": "Riding",
+        "ranks": 2
+      },
+      {
+        "name": "Survival",
+        "ranks": 2
+      },
+      {
+        "name": "Vigilance",
+        "ranks": 2
+      }
+    ],
+    "abilities": [
+      {
+        "name": "Леонкс Бонд",
+        "description": "Когда наездник Леонкса управляет своим скакуном, он может выполнять действие и маневр и не ограничивается использованием своих маневров для движения."
+      }
+    ],
+    "attacks": [
+      {
+        "name": "Копье",
+        "skill": "Melee (Heavy)",
+        "damage": "6",
+        "critical": "3",
+        "range": "Engaged",
+        "notes": "",
+        "qualities": [
+          {
+            "code": "accurate",
+            "nameRu": "Точное",
+            "rating": 1
+          },
+          {
+            "code": "defensive",
+            "nameRu": "Оборонительное",
+            "rating": 1
+          }
+        ]
+      }
+    ],
+    "talents": [],
+    "equipment": [
+      "Кожаная броня: +1 к впитыванию, Леонкс, см. стр. 180."
+    ],
+    "tags": []
+  },
+  {
+    "system": "RealmsOfTerrinoth",
+    "name": "Лесной страж",
+    "nameEn": "Forest Guardian",
+    "kind": "Nemesis",
+    "role": "Brute",
+    "source": "Realms of Terrinoth",
+    "description": "",
+    "brawn": 5,
+    "agility": 2,
+    "intellect": 2,
+    "cunning": 2,
+    "willpower": 3,
+    "presence": 3,
+    "woundThreshold": 25,
+    "strainThreshold": 18,
+    "soak": 6,
+    "meleeDefense": 0,
+    "rangedDefense": 0,
+    "silhouette": 3,
+    "tactics": "",
+    "skills": [
+      {
+        "name": "Cool",
+        "ranks": 2
+      },
+      {
+        "name": "Discipline",
+        "ranks": 2
+      },
+      {
+        "name": "Brawl",
+        "ranks": 2
+      },
+      {
+        "name": "Resilience",
+        "ranks": 3
+      }
+    ],
+    "abilities": [
+      {
+        "name": "Улучшенный широкий удар",
+        "description": ""
+      }
+    ],
+    "attacks": [
+      {
+        "name": "Огромные конечности",
+        "skill": "Brawl",
+        "damage": "10",
+        "critical": "4",
+        "range": "Short",
+        "notes": "",
+        "qualities": [
+          {
+            "code": "knockdown",
+            "nameRu": "Опрокидывание",
+            "rating": null
+          },
+          {
+            "code": "prepare",
+            "nameRu": "Подготовка",
+            "rating": 1
+          }
+        ]
+      }
+    ],
+    "talents": [
+      "Adversary 2"
+    ],
+    "equipment": [],
+    "tags": []
+  },
+  {
+    "system": "RealmsOfTerrinoth",
+    "name": "Лорд Байлхолла",
+    "nameEn": "Lord Of Bilehall",
+    "kind": "Nemesis",
+    "role": "Caster",
+    "source": "Realms of Terrinoth",
+    "description": "",
+    "brawn": 4,
+    "agility": 5,
+    "intellect": 4,
+    "cunning": 4,
+    "willpower": 4,
+    "presence": 4,
+    "woundThreshold": 18,
+    "strainThreshold": 20,
+    "soak": 6,
+    "meleeDefense": 0,
+    "rangedDefense": 0,
+    "silhouette": 1,
+    "tactics": "",
+    "skills": [
+      {
+        "name": "Arcana",
+        "ranks": 3
+      },
+      {
+        "name": "Brawl",
+        "ranks": 2
+      },
+      {
+        "name": "Charm",
+        "ranks": 3
+      },
+      {
+        "name": "Cool",
+        "ranks": 3
+      },
+      {
+        "name": "Discipline",
+        "ranks": 3
+      },
+      {
+        "name": "Knowledge (Forbidden)",
+        "ranks": 5
+      },
+      {
+        "name": "Negotiation",
+        "ranks": 3
+      },
+      {
+        "name": "Ranged",
+        "ranks": 3
+      },
+      {
+        "name": "Vigilance",
+        "ranks": 2
+      }
+    ],
+    "abilities": [
+      {
+        "name": "Кровавый зов",
+        "description": "Когда Лорд Байлхолла наносит урон цели своими клыками или магической атакой, он исцеляет раны, равные нанесенным ранам."
+      },
+      {
+        "name": "Чувствительность к солнечному свету",
+        "description": "Находясь под воздействием солнечного света, Лорд Байлхолла снижает все свои характеристики на 2 и вдвое уменьшает порог ранения и порог напряжения."
+      },
+      {
+        "name": "Ужасающий 4",
+        "description": ""
+      },
+      {
+        "name": "Нежить",
+        "description": "Не нуждается в дыхании, еде и питье (кроме крови) и может выжить под водой; невосприимчив к ядам и токсинам."
+      },
+      {
+        "name": "Вампирическая Магия",
+        "description": "Лорд Байлхолла снижает сложность всех проверок магических навыков на один шаг."
+      },
+      {
+        "name": "Заклинания (Магия)",
+        "description": ""
+      },
+      {
+        "name": "Заклинания: Кровавая воронка",
+        "description": "Выберите одну цель на близком расстоянии для атаки и совершите проверку Магии; Если боевая магическая проверка успешна, цель получает 4 повреждения + 1 повреждение за каждый неснятый успех с критическим рейтингом 2 и качествами Взрыв 4 и Яростность 4."
+      },
+      {
+        "name": "Заклинания: Проклятие ночи",
+        "description": "Выберите одну цель на небольшом расстоянии и совершите сложную проверку Магии; Если проверка успешна, цель уменьшает эффективность любых проверок навыков, которые она совершает, на одну, а также уменьшает свои пороги растяжения и ранений на 4 до конца следующего хода Лорда Байлхолла. Лорд Байлхолла может поддерживать эти эффекты, выполняя маневр «Концентрация»."
+      }
+    ],
+    "attacks": [
+      {
+        "name": "Окровавленные клыки",
+        "skill": "Brawl",
+        "damage": "6",
+        "critical": "2",
+        "range": "Engaged",
+        "notes": "",
+        "qualities": [
+          {
+            "code": "ensnare",
+            "nameRu": "Сковывающее",
+            "rating": 1
+          },
+          {
+            "code": "vicious",
+            "nameRu": "Жестокое",
+            "rating": 2
+          }
+        ]
+      }
+    ],
+    "talents": [
+      "Adversary 2",
+      "Dark Insight"
+    ],
+    "equipment": [
+      "Волшебный посох: добавьте +4 урона к магическим атакам; первый добавленный эффект дальности не увеличивает сложность"
+    ],
+    "tags": [
+      "нежить",
+      "магия",
+      "страх"
+    ]
+  },
+  {
+    "system": "RealmsOfTerrinoth",
+    "name": "Лоримор Марин",
+    "nameEn": "Lorimor Marine",
+    "kind": "Minion",
+    "role": "Brute",
+    "source": "Realms of Terrinoth",
+    "description": "",
+    "brawn": 3,
+    "agility": 2,
+    "intellect": 2,
+    "cunning": 2,
+    "willpower": 2,
+    "presence": 2,
+    "woundThreshold": 5,
+    "strainThreshold": null,
+    "soak": 4,
+    "meleeDefense": 1,
+    "rangedDefense": 0,
+    "silhouette": 1,
+    "tactics": "",
+    "skills": [
+      {
+        "name": "Athletics",
+        "ranks": 0
+      },
+      {
+        "name": "Cool",
+        "ranks": 0
+      },
+      {
+        "name": "Melee (Light)",
+        "ranks": 0
+      }
+    ],
+    "abilities": [
+      {
+        "name": "Морские ноги",
+        "description": "Морской пехотинец Лоримора не добавляет :setback: к проверкам из-за нестабильного положения на корабле или лодке или в подобной среде."
+      }
+    ],
+    "attacks": [
+      {
+        "name": "Сабля",
+        "skill": "Melee (Light)",
+        "damage": "6",
+        "critical": "2",
+        "range": "Engaged",
+        "notes": "",
+        "qualities": [
+          {
+            "code": "defensive",
+            "nameRu": "Оборонительное",
+            "rating": 1
+          }
+        ]
+      }
+    ],
+    "talents": [],
+    "equipment": [
+      "Чешуйчатая кираса: +1 впитывание"
+    ],
+    "tags": []
+  },
+  {
+    "system": "RealmsOfTerrinoth",
+    "name": "Лучник Змеиного Легиона",
+    "nameEn": "Viper Legion Archer",
+    "kind": "Rival",
+    "role": "Archer",
+    "source": "Realms of Terrinoth",
+    "description": "",
+    "brawn": 2,
+    "agility": 3,
+    "intellect": 1,
+    "cunning": 3,
+    "willpower": 2,
+    "presence": 1,
+    "woundThreshold": 12,
+    "strainThreshold": null,
+    "soak": 3,
+    "meleeDefense": 0,
+    "rangedDefense": 0,
+    "silhouette": 1,
+    "tactics": "",
+    "skills": [
+      {
+        "name": "Cool",
+        "ranks": 2
+      },
+      {
+        "name": "Ranged",
+        "ranks": 3
+      },
+      {
+        "name": "Stealth",
+        "ranks": 2
+      }
+    ],
+    "abilities": [
+      {
+        "name": "Специальный яд",
+        "description": "Один раз за столкновение перед проверкой дальнего боя лучник легиона змеи в качестве маневра может нанести на стрелу специальный яд; если проверка успешна, атака наносит дополнительный урон, равный наивысшей характеристике цели, и получает качество Дезориентация 3."
+      }
+    ],
+    "attacks": [
+      {
+        "name": "Змеиный лук",
+        "skill": "Ranged",
+        "damage": "8",
+        "critical": "3",
+        "range": "Long",
+        "notes": "",
+        "qualities": [
+          {
+            "code": "unwieldy",
+            "nameRu": "Неуклюжее",
+            "rating": 3
+          }
+        ]
+      }
+    ],
+    "talents": [],
+    "equipment": [
+      "Кожаная броня: +1 впитывание"
+    ],
+    "tags": []
+  },
+  {
+    "system": "RealmsOfTerrinoth",
+    "name": "Маварис Скейн, некромант",
+    "nameEn": "Mavaris Skain, Necromancer",
+    "kind": "Nemesis",
+    "role": "Caster",
+    "source": "Realms of Terrinoth",
+    "description": "",
+    "brawn": 2,
+    "agility": 2,
+    "intellect": 4,
+    "cunning": 3,
+    "willpower": 3,
+    "presence": 2,
+    "woundThreshold": 13,
+    "strainThreshold": 17,
+    "soak": 2,
+    "meleeDefense": 1,
+    "rangedDefense": 1,
+    "silhouette": 1,
+    "tactics": "",
+    "skills": [
+      {
+        "name": "Arcana",
+        "ranks": 3
+      },
+      {
+        "name": "Cool",
+        "ranks": 2
+      },
+      {
+        "name": "Discipline",
+        "ranks": 2
+      },
+      {
+        "name": "Knowledge (Forbidden)",
+        "ranks": 3
+      },
+      {
+        "name": "Melee (Light)",
+        "ranks": 1
+      },
+      {
+        "name": "Vigilance",
+        "ranks": 1
+      }
+    ],
+    "abilities": [
+      {
+        "name": "Заклинания (Магия)",
+        "description": ""
+      },
+      {
+        "name": "Заклинания: Погребальный звон",
+        "description": "Выберите одну цель на короткой или средней дистанции и совершите среднюю проверку Магии; если проверка успешна, эта магическая атака наносит 8 повреждений +1 урон за каждый неснятый успех с критическим рейтингом 2 и качествами Ловушка 3 и Порочный 3."
+      },
+      {
+        "name": "Заклинания: Увядание",
+        "description": "Выберите две цели на близком расстоянии и совершите среднюю проверку Магии; если проверка успешна, Скейн может выбрать одну дополнительную цель для каждого преимущества, и все цели уменьшают эффективность любых проверок навыков, которые они совершают, на одну до конца следующего хода Скэйна; если затронутый персонаж по какой-либо причине испытывает напряжение, он получает 1 дополнительное напряжение; Скейн может выполнить маневр концентрации, чтобы сохранить все эффекты этого проклятия."
+      },
+      {
+        "name": "Заклинания: Стена костей",
+        "description": "Совершите сложную проверку Магии; если проверка успешна, Скейн уменьшает урон от всех полученных им ударов на 1 плюс 1 за каждый успех после первого до конца своего следующего хода; кроме того, если атака, нацеленная на Скаина, порождает угрозуаугрозаугроза или крах, атакующий получает удар, наносящий урон, равный общему урону от атаки; Скейн может выполнить маневр концентрации, чтобы сохранить эффект этого барьера."
+      }
+    ],
+    "attacks": [
+      {
+        "name": "Жертвенный кинжал",
+        "skill": "Melee (Light)",
+        "damage": "4",
+        "critical": "3",
+        "range": "Engaged",
+        "notes": "",
+        "qualities": [
+          {
+            "code": "accurate",
+            "nameRu": "Точное",
+            "rating": 1
+          },
+          {
+            "code": "vicious",
+            "nameRu": "Жестокое",
+            "rating": 1
+          }
+        ]
+      }
+    ],
+    "talents": [
+      "Adversary 1",
+      "Chill of Nordros",
+      "Dark Insight",
+      "Necromancy"
+    ],
+    "equipment": [
+      "Один посох: добавляет +4 урона к магическим атакам, и первый эффект дальности не увеличивает сложность; исцелить 1 рану после повреждения цели заклинанием.",
+      "Тяжелые мантии: +1 защита.",
+      "Запретный гримуар: пользователь с талантом «Темное понимание» может добавлять эффекты «Дополнительная цель» и «Ослабление» к заклинаниям проклятия без увеличения сложности."
+    ],
+    "tags": [
+      "магия"
+    ]
+  },
+  {
+    "system": "RealmsOfTerrinoth",
+    "name": "Мантикора",
+    "nameEn": "Manticore",
+    "kind": "Nemesis",
+    "role": "Monster",
+    "source": "Realms of Terrinoth",
+    "description": "",
+    "brawn": 4,
+    "agility": 3,
+    "intellect": 1,
+    "cunning": 2,
+    "willpower": 2,
+    "presence": 1,
+    "woundThreshold": 21,
+    "strainThreshold": 19,
+    "soak": 5,
+    "meleeDefense": 1,
+    "rangedDefense": 0,
+    "silhouette": 2,
+    "tactics": "",
+    "skills": [
+      {
+        "name": "Athletics",
+        "ranks": 2
+      },
+      {
+        "name": "Brawl",
+        "ranks": 3
+      },
+      {
+        "name": "Ranged",
+        "ranks": 2
+      }
+    ],
+    "abilities": [
+      {
+        "name": "Летающий",
+        "description": ""
+      }
+    ],
+    "attacks": [
+      {
+        "name": "Когти и клыки",
+        "skill": "Brawl",
+        "damage": "6",
+        "critical": "3",
+        "range": "Engaged",
+        "notes": "",
+        "qualities": []
+      },
+      {
+        "name": "Хвостовое жало",
+        "skill": "Ranged",
+        "damage": "7",
+        "critical": "3",
+        "range": "Medium",
+        "notes": "",
+        "qualities": [
+          {
+            "code": "slow-firing",
+            "nameRu": "Медленная перезарядка",
+            "rating": 1
+          },
+          {
+            "code": "pierce",
+            "nameRu": "Проникающее",
+            "rating": 2
+          }
+        ]
+      }
+    ],
+    "talents": [],
+    "equipment": [],
+    "tags": [
+      "летающий"
+    ]
+  },
+  {
+    "system": "RealmsOfTerrinoth",
+    "name": "Мастер гильдии Тамалира",
+    "nameEn": "Tamalir Guildmaster",
+    "kind": "Rival",
+    "role": "Brute",
+    "source": "Realms of Terrinoth",
+    "description": "",
+    "brawn": 2,
+    "agility": 2,
+    "intellect": 3,
+    "cunning": 3,
+    "willpower": 2,
+    "presence": 3,
+    "woundThreshold": 13,
+    "strainThreshold": null,
+    "soak": 2,
+    "meleeDefense": 0,
+    "rangedDefense": 0,
+    "silhouette": 1,
+    "tactics": "",
+    "skills": [
+      {
+        "name": "Charm",
+        "ranks": 3
+      },
+      {
+        "name": "Cool",
+        "ranks": 2
+      },
+      {
+        "name": "Deception",
+        "ranks": 2
+      },
+      {
+        "name": "Discipline",
+        "ranks": 2
+      },
+      {
+        "name": "Negotiation",
+        "ranks": 3
+      }
+    ],
+    "abilities": [
+      {
+        "name": "Вы уверены, что хотите это сделать?",
+        "description": "При выборе цели проверки на Мастера Гильдии персонаж получает 1 напряжение."
+      }
+    ],
+    "attacks": [
+      {
+        "name": "Кинжал",
+        "skill": "Melee (Light)",
+        "damage": "4",
+        "critical": "3",
+        "range": "Engaged",
+        "notes": "",
+        "qualities": []
+      }
+    ],
+    "talents": [],
+    "equipment": [
+      "Прекрасная одежда"
+    ],
+    "tags": []
+  },
+  {
+    "system": "RealmsOfTerrinoth",
+    "name": "Махим",
+    "nameEn": "Makhim",
+    "kind": "Minion",
+    "role": "Brute",
+    "source": "Realms of Terrinoth",
+    "description": "",
+    "brawn": 3,
+    "agility": 3,
+    "intellect": 2,
+    "cunning": 2,
+    "willpower": 2,
+    "presence": 1,
+    "woundThreshold": 6,
+    "strainThreshold": null,
+    "soak": 4,
+    "meleeDefense": 0,
+    "rangedDefense": 0,
+    "silhouette": 1,
+    "tactics": "",
+    "skills": [
+      {
+        "name": "Brawl",
+        "ranks": 0
+      },
+      {
+        "name": "Ranged",
+        "ranks": 0
+      },
+      {
+        "name": "Survival",
+        "ranks": 0
+      },
+      {
+        "name": "Stealth",
+        "ranks": 0
+      },
+      {
+        "name": "Vigilance",
+        "ranks": 0
+      }
+    ],
+    "abilities": [
+      {
+        "name": "Multiattack",
+        "description": ""
+      }
+    ],
+    "attacks": [
+      {
+        "name": "Долохи",
+        "skill": "Brawl",
+        "damage": "5",
+        "critical": "3",
+        "range": "Engaged",
+        "notes": "",
+        "qualities": [
+          {
+            "code": "accurate",
+            "nameRu": "Точное",
+            "rating": 1
+          },
+          {
+            "code": "linked",
+            "nameRu": "Связанное",
+            "rating": 1
+          }
+        ]
+      },
+      {
+        "name": "Кулаки",
+        "skill": "Brawl",
+        "damage": "4",
+        "critical": "3",
+        "range": "Engaged",
+        "notes": "",
+        "qualities": [
+          {
+            "code": "linked",
+            "nameRu": "Связанное",
+            "rating": 1
+          },
+          {
+            "code": "vicious",
+            "nameRu": "Жестокое",
+            "rating": 1
+          }
+        ]
+      },
+      {
+        "name": "Слинг",
+        "skill": "Ranged",
+        "damage": "4",
+        "critical": "4",
+        "range": "Medium",
+        "notes": "",
+        "qualities": [
+          {
+            "code": "disorient",
+            "nameRu": "Дезориентирующее",
+            "rating": 2
+          },
+          {
+            "code": "prepare",
+            "nameRu": "Подготовка",
+            "rating": 1
+          }
+        ]
+      }
+    ],
+    "talents": [],
+    "equipment": [],
+    "tags": []
+  },
+  {
+    "system": "RealmsOfTerrinoth",
+    "name": "Мерриод",
+    "nameEn": "Merriod",
+    "kind": "Nemesis",
+    "role": "Monster",
+    "source": "Realms of Terrinoth",
+    "description": "",
+    "brawn": 4,
+    "agility": 4,
+    "intellect": 1,
+    "cunning": 3,
+    "willpower": 1,
+    "presence": 1,
+    "woundThreshold": 22,
+    "strainThreshold": 18,
+    "soak": 5,
+    "meleeDefense": 0,
+    "rangedDefense": 0,
+    "silhouette": 2,
+    "tactics": "",
+    "skills": [
+      {
+        "name": "Athletics",
+        "ranks": 4
+      },
+      {
+        "name": "Brawl",
+        "ranks": 3
+      },
+      {
+        "name": "Stealth",
+        "ranks": 2
+      },
+      {
+        "name": "Vigilance",
+        "ranks": 3
+      }
+    ],
+    "abilities": [
+      {
+        "name": "Amphibious",
+        "description": ""
+      },
+      {
+        "name": "Чудовищные конечности",
+        "description": "Мерриод не увеличивает сложность комбинированных проверок атаки когтями, щупальцами и челюстями и может потратить преимуществопреимущество или триумф на попадание каждым дополнительным оружием."
+      },
+      {
+        "name": "Multiattack",
+        "description": ""
+      },
+      {
+        "name": "Ужасающий 3",
+        "description": ""
+      }
+    ],
+    "attacks": [
+      {
+        "name": "Когти",
+        "skill": "Brawl",
+        "damage": "7",
+        "critical": "3",
+        "range": "Engaged",
+        "notes": "",
+        "qualities": [
+          {
+            "code": "vicious",
+            "nameRu": "Жестокое",
+            "rating": 1
+          }
+        ]
+      },
+      {
+        "name": "Изуродованные щупальца",
+        "skill": "Brawl",
+        "damage": "7",
+        "critical": "3",
+        "range": "Short",
+        "notes": "",
+        "qualities": [
+          {
+            "code": "ensnare",
+            "nameRu": "Сковывающее",
+            "rating": 3
+          },
+          {
+            "code": "linked",
+            "nameRu": "Связанное",
+            "rating": 1
+          }
+        ]
+      },
+      {
+        "name": "Челюсти",
+        "skill": "Brawl",
+        "damage": "6",
+        "critical": "2",
+        "range": "Engaged",
+        "notes": "",
+        "qualities": [
+          {
+            "code": "pierce",
+            "nameRu": "Проникающее",
+            "rating": 2
+          },
+          {
+            "code": "vicious",
+            "nameRu": "Жестокое",
+            "rating": 2
+          }
+        ]
+      }
+    ],
+    "talents": [
+      "Adversary 1"
+    ],
+    "equipment": [],
+    "tags": [
+      "страх"
+    ]
+  },
+  {
+    "system": "RealmsOfTerrinoth",
+    "name": "Меч Поэт",
+    "nameEn": "Sword Poet",
+    "kind": "Nemesis",
+    "role": "Brute",
+    "source": "Realms of Terrinoth",
+    "description": "",
+    "brawn": 2,
+    "agility": 3,
+    "intellect": 2,
+    "cunning": 2,
+    "willpower": 2,
+    "presence": 3,
+    "woundThreshold": 18,
+    "strainThreshold": 16,
+    "soak": 2,
+    "meleeDefense": 1,
+    "rangedDefense": 0,
+    "silhouette": 1,
+    "tactics": "",
+    "skills": [
+      {
+        "name": "Charm",
+        "ranks": 3
+      },
+      {
+        "name": "Cool",
+        "ranks": 2
+      },
+      {
+        "name": "Deception",
+        "ranks": 2
+      },
+      {
+        "name": "Melee (Light)",
+        "ranks": 3
+      }
+    ],
+    "abilities": [
+      {
+        "name": "Выпендриваться",
+        "description": "Поэт меча может нанести оглушающий урон при успешной проверке рукопашного боя или использовании способности «Улучшенное парирование»."
+      }
+    ],
+    "attacks": [
+      {
+        "name": "Дуэльная рапира",
+        "skill": "Melee (Light)",
+        "damage": "5",
+        "critical": "2",
+        "range": "Engaged",
+        "notes": "",
+        "qualities": [
+          {
+            "code": "defensive",
+            "nameRu": "Оборонительное",
+            "rating": 1
+          },
+          {
+            "code": "pierce",
+            "nameRu": "Проникающее",
+            "rating": 3
+          }
+        ]
+      }
+    ],
+    "talents": [
+      "Adversary 1",
+      "Duelist",
+      "Parry 3",
+      "Parry (Improved)"
+    ],
+    "equipment": [
+      "Необычная одежда"
+    ],
+    "tags": []
+  },
+  {
+    "system": "RealmsOfTerrinoth",
+    "name": "Мировой судья Эдмин Коул",
+    "nameEn": "Magistrate Edmin Cawl",
+    "kind": "Rival",
+    "role": "Brute",
+    "source": "Realms of Terrinoth",
+    "description": "",
+    "brawn": 2,
+    "agility": 2,
+    "intellect": 3,
+    "cunning": 3,
+    "willpower": 3,
+    "presence": 3,
+    "woundThreshold": 12,
+    "strainThreshold": null,
+    "soak": 2,
+    "meleeDefense": 0,
+    "rangedDefense": 0,
+    "silhouette": 1,
+    "tactics": "",
+    "skills": [
+      {
+        "name": "Charm",
+        "ranks": 1
+      },
+      {
+        "name": "Coercion",
+        "ranks": 2
+      },
+      {
+        "name": "Cool",
+        "ranks": 2
+      },
+      {
+        "name": "Deception",
+        "ranks": 1
+      },
+      {
+        "name": "Discipline",
+        "ranks": 2
+      },
+      {
+        "name": "Negotiation",
+        "ranks": 2
+      }
+    ],
+    "abilities": [],
+    "attacks": [],
+    "talents": [],
+    "equipment": [
+      "Прекрасная одежда, офисный пояс"
+    ],
+    "tags": []
+  },
+  {
+    "system": "RealmsOfTerrinoth",
+    "name": "Младший элементаль (Весна)",
+    "nameEn": "Minor Elemental (Spring)",
+    "kind": "Rival",
+    "role": "Monster",
+    "source": "Realms of Terrinoth",
+    "description": "",
+    "brawn": 3,
+    "agility": 3,
+    "intellect": 1,
+    "cunning": 2,
+    "willpower": 3,
+    "presence": 1,
+    "woundThreshold": 13,
+    "strainThreshold": null,
+    "soak": 3,
+    "meleeDefense": 4,
+    "rangedDefense": 4,
+    "silhouette": 1,
+    "tactics": "",
+    "skills": [
+      {
+        "name": "Brawl",
+        "ranks": 2
+      },
+      {
+        "name": "Cool",
+        "ranks": 2
+      },
+      {
+        "name": "Stealth",
+        "ranks": 2
+      },
+      {
+        "name": "Vigilance",
+        "ranks": 2
+      }
+    ],
+    "abilities": [
+      {
+        "name": "Amorphous",
+        "description": ""
+      },
+      {
+        "name": "Inconspicuous",
+        "description": ""
+      }
+    ],
+    "attacks": [
+      {
+        "name": "Псевдоподии",
+        "skill": "Brawl",
+        "damage": "6",
+        "critical": "3",
+        "range": "Engaged",
+        "notes": "",
+        "qualities": [
+          {
+            "code": "linked",
+            "nameRu": "Связанное",
+            "rating": 1
+          },
+          {
+            "code": "stun",
+            "nameRu": "Оглушение",
+            "rating": 5
+          }
+        ]
+      }
+    ],
+    "talents": [],
+    "equipment": [],
+    "tags": []
+  },
+  {
+    "system": "RealmsOfTerrinoth",
+    "name": "Младший элементаль (Зыбучие пески)",
+    "nameEn": "Minor Elemental (Quicksand)",
+    "kind": "Rival",
+    "role": "Monster",
+    "source": "Realms of Terrinoth",
+    "description": "",
+    "brawn": 3,
+    "agility": 3,
+    "intellect": 1,
+    "cunning": 2,
+    "willpower": 3,
+    "presence": 1,
+    "woundThreshold": 13,
+    "strainThreshold": null,
+    "soak": 3,
+    "meleeDefense": 4,
+    "rangedDefense": 4,
+    "silhouette": 1,
+    "tactics": "",
+    "skills": [
+      {
+        "name": "Brawl",
+        "ranks": 2
+      },
+      {
+        "name": "Cool",
+        "ranks": 2
+      },
+      {
+        "name": "Stealth",
+        "ranks": 2
+      },
+      {
+        "name": "Vigilance",
+        "ranks": 2
+      }
+    ],
+    "abilities": [
+      {
+        "name": "Amorphous",
+        "description": ""
+      },
+      {
+        "name": "Inconspicuous",
+        "description": ""
+      }
+    ],
+    "attacks": [
+      {
+        "name": "Псевдоподии",
+        "skill": "Brawl",
+        "damage": "6",
+        "critical": "3",
+        "range": "Engaged",
+        "notes": "",
+        "qualities": [
+          {
+            "code": "ensnare",
+            "nameRu": "Сковывающее",
+            "rating": 1
+          },
+          {
+            "code": "linked",
+            "nameRu": "Связанное",
+            "rating": 1
+          }
+        ]
+      }
+    ],
+    "talents": [],
+    "equipment": [],
+    "tags": []
+  },
+  {
+    "system": "RealmsOfTerrinoth",
+    "name": "Младший элементаль (Огонь)",
+    "nameEn": "Minor Elemental (Fire)",
+    "kind": "Rival",
+    "role": "Monster",
+    "source": "Realms of Terrinoth",
+    "description": "",
+    "brawn": 3,
+    "agility": 3,
+    "intellect": 1,
+    "cunning": 2,
+    "willpower": 3,
+    "presence": 1,
+    "woundThreshold": 13,
+    "strainThreshold": null,
+    "soak": 3,
+    "meleeDefense": 4,
+    "rangedDefense": 4,
+    "silhouette": 1,
+    "tactics": "",
+    "skills": [
+      {
+        "name": "Brawl",
+        "ranks": 2
+      },
+      {
+        "name": "Cool",
+        "ranks": 2
+      },
+      {
+        "name": "Stealth",
+        "ranks": 2
+      },
+      {
+        "name": "Vigilance",
+        "ranks": 2
+      }
+    ],
+    "abilities": [
+      {
+        "name": "Amorphous",
+        "description": ""
+      },
+      {
+        "name": "Inconspicuous",
+        "description": ""
+      }
+    ],
+    "attacks": [
+      {
+        "name": "Псевдоподии",
+        "skill": "Brawl",
+        "damage": "6",
+        "critical": "3",
+        "range": "Engaged",
+        "notes": "",
+        "qualities": [
+          {
+            "code": "linked",
+            "nameRu": "Связанное",
+            "rating": 1
+          },
+          {
+            "code": "burn",
+            "nameRu": "Горение",
+            "rating": 1
+          }
+        ]
+      }
+    ],
+    "talents": [],
+    "equipment": [],
+    "tags": []
+  },
+  {
+    "system": "RealmsOfTerrinoth",
+    "name": "Молодой дракон",
+    "nameEn": "Young Dragon",
+    "kind": "Rival",
+    "role": "Caster",
+    "source": "Realms of Terrinoth",
+    "description": "",
+    "brawn": 4,
+    "agility": 3,
+    "intellect": 3,
+    "cunning": 2,
+    "willpower": 2,
+    "presence": 2,
+    "woundThreshold": 23,
+    "strainThreshold": null,
+    "soak": 6,
+    "meleeDefense": 0,
+    "rangedDefense": 0,
+    "silhouette": 2,
+    "tactics": "",
+    "skills": [
+      {
+        "name": "Arcana",
+        "ranks": 1
+      },
+      {
+        "name": "Brawl",
+        "ranks": 2
+      },
+      {
+        "name": "Cool",
+        "ranks": 3
+      },
+      {
+        "name": "Ranged",
+        "ranks": 2
+      },
+      {
+        "name": "Resilience",
+        "ranks": 2
+      },
+      {
+        "name": "Runes",
+        "ranks": 1
+      },
+      {
+        "name": "Vigilance",
+        "ranks": 3
+      }
+    ],
+    "abilities": [
+      {
+        "name": "Летающий",
+        "description": ""
+      },
+      {
+        "name": "Ужасающий 3",
+        "description": ""
+      }
+    ],
+    "attacks": [
+      {
+        "name": "Огненное дыхание",
+        "skill": "Ranged",
+        "damage": "8",
+        "critical": "3",
+        "range": "Short",
+        "notes": "",
+        "qualities": [
+          {
+            "code": "blast",
+            "nameRu": "Взрыв",
+            "rating": 8
+          },
+          {
+            "code": "burn",
+            "nameRu": "Горение",
+            "rating": 2
+          },
+          {
+            "code": "prepare",
+            "nameRu": "Подготовка",
+            "rating": 1
+          }
+        ]
+      },
+      {
+        "name": "Когти",
+        "skill": "Brawl",
+        "damage": "8",
+        "critical": "3",
+        "range": "Engaged",
+        "notes": "",
+        "qualities": [
+          {
+            "code": "vicious",
+            "nameRu": "Жестокое",
+            "rating": 2
+          }
+        ]
+      }
+    ],
+    "talents": [
+      "Swift"
+    ],
+    "equipment": [],
+    "tags": [
+      "летающий",
+      "магия",
+      "страх"
+    ]
+  },
+  {
+    "system": "RealmsOfTerrinoth",
+    "name": "Нага-жрица",
+    "nameEn": "Naga Priestess",
+    "kind": "Rival",
+    "role": "Leader",
+    "source": "Realms of Terrinoth",
+    "description": "",
+    "brawn": 3,
+    "agility": 3,
+    "intellect": 2,
+    "cunning": 3,
+    "willpower": 3,
+    "presence": 4,
+    "woundThreshold": 16,
+    "strainThreshold": null,
+    "soak": 2,
+    "meleeDefense": 4,
+    "rangedDefense": 4,
+    "silhouette": 1,
+    "tactics": "",
+    "skills": [
+      {
+        "name": "Brawl",
+        "ranks": 2
+      },
+      {
+        "name": "Charm",
+        "ranks": 3
+      },
+      {
+        "name": "Cool",
+        "ranks": 3
+      },
+      {
+        "name": "Coordination",
+        "ranks": 4
+      },
+      {
+        "name": "Leadership",
+        "ranks": 3
+      }
+    ],
+    "abilities": [
+      {
+        "name": "Гипнотический взгляд",
+        "description": "Жрица-нага может совершить противоположную проверку Очарования против Дисциплины как действие, нацеленное на одного персонажа на небольшом расстоянии. В случае успеха цель обездвиживается на 1 раунд за каждый успех, и нага может потратить триумф, чтобы ошеломить цель на 1 раунд."
+      },
+      {
+        "name": "Оппортунистический хищник",
+        "description": "При совершении боевой проверки, нацеленной на обездвиженного персонажа, нага наносит +2 урона за успех вместо +1."
+      }
+    ],
+    "attacks": [
+      {
+        "name": "Клыки",
+        "skill": "Brawl",
+        "damage": "5",
+        "critical": "2",
+        "range": "Engaged",
+        "notes": "",
+        "qualities": [
+          {
+            "code": "pierce",
+            "nameRu": "Проникающее",
+            "rating": 1
+          },
+          {
+            "code": "vicious",
+            "nameRu": "Жестокое",
+            "rating": 2
+          }
+        ]
+      }
+    ],
+    "talents": [
+      "Adversary 1"
+    ],
+    "equipment": [],
+    "tags": []
+  },
+  {
+    "system": "RealmsOfTerrinoth",
+    "name": "Некромант",
+    "nameEn": "Necromancer",
+    "kind": "Nemesis",
+    "role": "Caster",
+    "source": "Realms of Terrinoth",
+    "description": "",
+    "brawn": 1,
+    "agility": 2,
+    "intellect": 3,
+    "cunning": 2,
+    "willpower": 3,
+    "presence": 2,
+    "woundThreshold": 12,
+    "strainThreshold": 18,
+    "soak": 1,
+    "meleeDefense": 1,
+    "rangedDefense": 1,
+    "silhouette": 1,
+    "tactics": "",
+    "skills": [
+      {
+        "name": "Arcana",
+        "ranks": 3
+      },
+      {
+        "name": "Cool",
+        "ranks": 2
+      },
+      {
+        "name": "Discipline",
+        "ranks": 2
+      },
+      {
+        "name": "Knowledge (Forbidden)",
+        "ranks": 3
+      },
+      {
+        "name": "Melee (Light)",
+        "ranks": 1
+      },
+      {
+        "name": "Vigilance",
+        "ranks": 1
+      }
+    ],
+    "abilities": [
+      {
+        "name": "Заклинания (Магия)",
+        "description": ""
+      },
+      {
+        "name": "Заклинания: Погребальный звон",
+        "description": "Выберите одну цель на короткой или средней дистанции и проведите среднюю проверку Магии. В случае успеха эта магическая атака наносит 8 урона +1 урон за каждый неснятый успех с критическим рейтингом 2 и качествами Ловушка 3 и Порочный 3."
+      },
+      {
+        "name": "Заклинания: Увядание",
+        "description": "Выберите две цели на близком расстоянии и проведите среднюю проверку Магии. В случае успеха Некромант может выбрать одну дополнительную цель для каждого преимущества, и все цели уменьшают эффективность любых проверок навыков, которые они совершают, на одну до конца следующего хода некроманта. Если затронутый персонаж по какой-либо причине испытывает напряжение, он получает 1 дополнительное напряжение. Некромант может выполнить маневр концентрации, чтобы сохранить все эффекты этого проклятия."
+      },
+      {
+        "name": "Заклинания: Стена костей",
+        "description": "Совершите сложную проверку Магии. В случае успеха некромант уменьшает урон от всех полученных им ударов на 1 плюс 1 за каждый успех после первого до конца своего следующего хода; кроме того, если атака, направленная на некроманта, порождает угрозуаугрозаугроза или крах, атакующий получает удар, наносящий урон, равный общему урону от атаки; некромант может выполнить маневр концентрации, чтобы сохранить эффект этого барьера."
+      }
+    ],
+    "attacks": [
+      {
+        "name": "Церемониальный кинжал",
+        "skill": "Melee (Light)",
+        "damage": "4",
+        "critical": "3",
+        "range": "Engaged",
+        "notes": "",
+        "qualities": [
+          {
+            "code": "accurate",
+            "nameRu": "Точное",
+            "rating": 1
+          },
+          {
+            "code": "vicious",
+            "nameRu": "Жестокое",
+            "rating": 1
+          }
+        ]
+      }
+    ],
+    "talents": [
+      "Adversary 1",
+      "Chill of Nordros",
+      "Necromancy"
+    ],
+    "equipment": [
+      "Костяной посох: добавьте +4 урона к магическим атакам; первый добавленный эффект дальности не увеличивает сложность; при использовании заклинания, наносящего 1 или более ран, заклинатель исцеляет 1 рану.",
+      "Тяжелые мантии: +1 защита.",
+      "Запретный гримуар: пользователь с талантом «Темное понимание» может добавлять эффекты «Дополнительная цель» и «Ослабление» к заклинаниям «Проклятие» без увеличения сложности."
+    ],
+    "tags": [
+      "магия"
+    ]
+  },
+  {
+    "system": "RealmsOfTerrinoth",
+    "name": "Огр",
+    "nameEn": "Ogre",
+    "kind": "Nemesis",
+    "role": "Brute",
+    "source": "Realms of Terrinoth",
+    "description": "",
+    "brawn": 5,
+    "agility": 2,
+    "intellect": 2,
+    "cunning": 3,
+    "willpower": 2,
+    "presence": 1,
+    "woundThreshold": 20,
+    "strainThreshold": 12,
+    "soak": 7,
+    "meleeDefense": 0,
+    "rangedDefense": 0,
+    "silhouette": 1,
+    "tactics": "",
+    "skills": [
+      {
+        "name": "Athletics",
+        "ranks": 2
+      },
+      {
+        "name": "Melee (Heavy)",
+        "ranks": 2
+      },
+      {
+        "name": "Perception",
+        "ranks": 1
+      },
+      {
+        "name": "Ranged",
+        "ranks": 2
+      }
+    ],
+    "abilities": [
+      {
+        "name": "Regeneration",
+        "description": ""
+      },
+      {
+        "name": "Sweep Attack",
+        "description": ""
+      }
+    ],
+    "attacks": [
+      {
+        "name": "Дубина",
+        "skill": "Melee",
+        "damage": "10",
+        "critical": "4",
+        "range": "Engaged",
+        "notes": "",
+        "qualities": [
+          {
+            "code": "disorient",
+            "nameRu": "Дезориентирующее",
+            "rating": 2
+          },
+          {
+            "code": "knockdown",
+            "nameRu": "Опрокидывание",
+            "rating": null
+          }
+        ]
+      },
+      {
+        "name": "Шипастая цепь",
+        "skill": "Ranged",
+        "damage": "7",
+        "critical": "5",
+        "range": "Short",
+        "notes": "",
+        "qualities": [
+          {
+            "code": "ensnare",
+            "nameRu": "Сковывающее",
+            "rating": 2
+          },
+          {
+            "code": "knockdown",
+            "nameRu": "Опрокидывание",
+            "rating": null
+          }
+        ]
+      }
+    ],
+    "talents": [],
+    "equipment": [
+      "Собранная броня: +2 впитывания"
+    ],
+    "tags": []
+  },
+  {
+    "system": "RealmsOfTerrinoth",
+    "name": "Оноит Шаман",
+    "nameEn": "Onoit Shaman",
+    "kind": "Rival",
+    "role": "Caster",
+    "source": "Realms of Terrinoth",
+    "description": "",
+    "brawn": 2,
+    "agility": 3,
+    "intellect": 2,
+    "cunning": 3,
+    "willpower": 3,
+    "presence": 3,
+    "woundThreshold": 8,
+    "strainThreshold": null,
+    "soak": 2,
+    "meleeDefense": 1,
+    "rangedDefense": 1,
+    "silhouette": 0,
+    "tactics": "",
+    "skills": [
+      {
+        "name": "Leadership",
+        "ranks": 2
+      },
+      {
+        "name": "Melee",
+        "ranks": 2
+      },
+      {
+        "name": "Knowledge (Lore)",
+        "ranks": 3
+      },
+      {
+        "name": "Primal",
+        "ranks": 3
+      },
+      {
+        "name": "Survival",
+        "ranks": 3
+      },
+      {
+        "name": "Vigilance",
+        "ranks": 2
+      }
+    ],
+    "abilities": [
+      {
+        "name": "Заклинания (Природа)",
+        "description": ""
+      },
+      {
+        "name": "Заклинания: Зимняя буря",
+        "description": "Выберите одну цель на коротком или среднем расстоянии и пройдите проверку Изначальности. В случае успеха эта магическая атака наносит 7 единиц урона +1 урон за каждый успех с качествами предметов «Взрыв 3» и «Ловушка 3»."
+      },
+      {
+        "name": "Заклинания: Исцеляющий порыв",
+        "description": "Выберите две цели на близком расстоянии и проведите среднюю проверку Изначального. В случае успеха цели исцеляют 1 рану за каждый успех и 1 растяжение за каждый успех; шаман может воздействовать на дополнительные цели, тратя преимущества на каждую цель."
+      }
+    ],
+    "attacks": [
+      {
+        "name": "Топор",
+        "skill": "Melee (Light)",
+        "damage": "5",
+        "critical": "3",
+        "range": "Engaged",
+        "notes": "",
+        "qualities": [
+          {
+            "code": "vicious",
+            "nameRu": "Жестокое",
+            "rating": 1
+          }
+        ]
+      }
+    ],
+    "talents": [
+      "Adversary 1"
+    ],
+    "equipment": [
+      "Дубовый посох: добавляет +4 урона к магическим атакам; первый эффект дальности, добавленный к заклинанию, не увеличивает его сложность."
+    ],
+    "tags": [
+      "магия"
+    ]
+  },
+  {
+    "system": "RealmsOfTerrinoth",
+    "name": "Орк-Аутрайдер",
+    "nameEn": "Orc Outrider",
+    "kind": "Rival",
+    "role": "Brute",
+    "source": "Realms of Terrinoth",
+    "description": "",
+    "brawn": 4,
+    "agility": 3,
+    "intellect": 2,
+    "cunning": 2,
+    "willpower": 2,
+    "presence": 1,
+    "woundThreshold": 14,
+    "strainThreshold": null,
+    "soak": 5,
+    "meleeDefense": 0,
+    "rangedDefense": 0,
+    "silhouette": 1,
+    "tactics": "",
+    "skills": [
+      {
+        "name": "Melee (Light)",
+        "ranks": 2
+      },
+      {
+        "name": "Ranged",
+        "ranks": 2
+      },
+      {
+        "name": "Riding",
+        "ranks": 3
+      }
+    ],
+    "abilities": [
+      {
+        "name": "Жестокая тренировка",
+        "description": "Когда всадник орков управляет своим скакуном, скакун может выполнять действие и маневр и не ограничивается использованием своих маневров для перемещения."
+      }
+    ],
+    "attacks": [
+      {
+        "name": "Орк, бросающий копье",
+        "skill": "Ranged",
+        "damage": "7",
+        "critical": "3",
+        "range": "Short",
+        "notes": "",
+        "qualities": [
+          {
+            "code": "accurate",
+            "nameRu": "Точное",
+            "rating": 1
+          },
+          {
+            "code": "limited-ammo",
+            "nameRu": "Ограниченный боезапас",
+            "rating": 1
+          }
+        ]
+      },
+      {
+        "name": "Топор",
+        "skill": "Melee (Light)",
+        "damage": "7",
+        "critical": "3",
+        "range": "Engaged",
+        "notes": "",
+        "qualities": [
+          {
+            "code": "vicious",
+            "nameRu": "Жестокое",
+            "rating": 1
+          }
+        ]
+      }
+    ],
+    "talents": [
+      "Quick Draw"
+    ],
+    "equipment": [
+      "Кожаная броня: +1 впитывание.",
+      "Дополнительные копья.",
+      "Бронированный Гурак Тол"
+    ],
+    "tags": []
+  },
+  {
+    "system": "RealmsOfTerrinoth",
+    "name": "Орк-говорящий с духами",
+    "nameEn": "Orc Spiritspeaker",
+    "kind": "Nemesis",
+    "role": "Caster",
+    "source": "Realms of Terrinoth",
+    "description": "",
+    "brawn": 3,
+    "agility": 2,
+    "intellect": 2,
+    "cunning": 3,
+    "willpower": 3,
+    "presence": 3,
+    "woundThreshold": 15,
+    "strainThreshold": 17,
+    "soak": 3,
+    "meleeDefense": 1,
+    "rangedDefense": 1,
+    "silhouette": 1,
+    "tactics": "",
+    "skills": [
+      {
+        "name": "Cool",
+        "ranks": 2
+      },
+      {
+        "name": "Knowledge (Lore)",
+        "ranks": 3
+      },
+      {
+        "name": "Primal",
+        "ranks": 4
+      }
+    ],
+    "abilities": [
+      {
+        "name": "Духовный фокус",
+        "description": "Говорящий с духами добавляет :boost: к Первобытным проверкам, которые он совершает для каждого союзника-орка на близком расстоянии."
+      },
+      {
+        "name": "Заклинания (Природа)",
+        "description": ""
+      },
+      {
+        "name": "Заклинания: Ярость духов",
+        "description": "Говорящий с духами выбирает одну цель на коротком или среднем расстоянии и совершает проверку Изначального умения. Если проверка успешна, эта магическая атака наносит 7 повреждений, +1 урон за успех, с качествами Пронзающий 3 и Раскол."
+      },
+      {
+        "name": "Заклинания: Сила предков",
+        "description": "Говорящий с духами выбирает двух союзников на близком расстоянии и совершает сложную проверку Изначального. Если проверка успешна, говорящий с духами может воздействовать на дополнительные цели в радиусе действия, тратя удачу на каждую дополнительную цель. Цели, затронутые этим заклинанием, увеличивают эффективность проверок навыков, которые они совершают до конца следующего хода говорящего с духами, на одну. Говорящий с духами может поддерживать эффект этого заклинания, выполняя маневр концентрации."
+      }
+    ],
+    "attacks": [],
+    "talents": [
+      "Second Wind 5"
+    ],
+    "equipment": [
+      "Магический посох: добавьте +4 урона к магическим атакам; первый эффект дальности, добавленный к заклинанию, не увеличивает его сложность.",
+      "Одеяния из шкуры зверя: +1 защита."
+    ],
+    "tags": [
+      "магия"
+    ]
+  },
+  {
+    "system": "RealmsOfTerrinoth",
+    "name": "Оттенок",
+    "nameEn": "Shade",
+    "kind": "Minion",
+    "role": "Brute",
+    "source": "Realms of Terrinoth",
+    "description": "",
+    "brawn": 1,
+    "agility": 2,
+    "intellect": 2,
+    "cunning": 2,
+    "willpower": 3,
+    "presence": 2,
+    "woundThreshold": 6,
+    "strainThreshold": null,
+    "soak": 0,
+    "meleeDefense": 2,
+    "rangedDefense": 2,
+    "silhouette": 1,
+    "tactics": "",
+    "skills": [
+      {
+        "name": "Brawl",
+        "ranks": 0
+      },
+      {
+        "name": "Cool",
+        "ranks": 0
+      },
+      {
+        "name": "Discipline",
+        "ranks": 0
+      }
+    ],
+    "abilities": [
+      {
+        "name": "Ghostly",
+        "description": ""
+      },
+      {
+        "name": "Ужасающий 3",
+        "description": ""
+      }
+    ],
+    "attacks": [
+      {
+        "name": "Призрачные руки",
+        "skill": "Brawl",
+        "damage": "1",
+        "critical": "2",
+        "range": "Engaged",
+        "notes": "",
+        "qualities": [
+          {
+            "code": "breach",
+            "nameRu": "Пробивание",
+            "rating": 1
+          },
+          {
+            "code": "stun-damage",
+            "nameRu": "Оглушающий урон",
+            "rating": null
+          }
+        ]
+      }
+    ],
+    "talents": [],
+    "equipment": [],
+    "tags": [
+      "страх"
+    ]
+  },
+  {
+    "system": "RealmsOfTerrinoth",
+    "name": "Пират",
+    "nameEn": "Pirate",
+    "kind": "Minion",
+    "role": "Brute",
+    "source": "Realms of Terrinoth",
+    "description": "",
+    "brawn": 3,
+    "agility": 2,
+    "intellect": 2,
+    "cunning": 2,
+    "willpower": 2,
+    "presence": 2,
+    "woundThreshold": 5,
+    "strainThreshold": null,
+    "soak": 3,
+    "meleeDefense": 1,
+    "rangedDefense": 0,
+    "silhouette": 1,
+    "tactics": "",
+    "skills": [
+      {
+        "name": "Brawl",
+        "ranks": 0
+      },
+      {
+        "name": "Cool",
+        "ranks": 0
+      },
+      {
+        "name": "Coordination",
+        "ranks": 0
+      },
+      {
+        "name": "Melee (Light)",
+        "ranks": 0
+      }
+    ],
+    "abilities": [],
+    "attacks": [
+      {
+        "name": "абордажная сабля",
+        "skill": "Melee (Light)",
+        "damage": "6",
+        "critical": "2",
+        "range": "Engaged",
+        "notes": "",
+        "qualities": [
+          {
+            "code": "defensive",
+            "nameRu": "Оборонительное",
+            "rating": 1
+          }
+        ]
+      }
+    ],
+    "talents": [
+      "Quick Draw"
+    ],
+    "equipment": [],
+    "tags": []
+  },
+  {
+    "system": "RealmsOfTerrinoth",
+    "name": "Плотоядная Флора",
+    "nameEn": "Carnivorous Flora",
+    "kind": "Rival",
+    "role": "Brute",
+    "source": "Realms of Terrinoth",
+    "description": "",
+    "brawn": 2,
+    "agility": 2,
+    "intellect": 1,
+    "cunning": 1,
+    "willpower": 1,
+    "presence": 1,
+    "woundThreshold": 12,
+    "strainThreshold": null,
+    "soak": 2,
+    "meleeDefense": 0,
+    "rangedDefense": 0,
+    "silhouette": 2,
+    "tactics": "",
+    "skills": [
+      {
+        "name": "Brawl",
+        "ranks": 3
+      },
+      {
+        "name": "Resilience",
+        "ranks": 2
+      },
+      {
+        "name": "Stealth",
+        "ranks": 4
+      }
+    ],
+    "abilities": [
+      {
+        "name": "Тащить",
+        "description": "Плотоядная флора может использовать маневр, чтобы переместить цель, на которую действует свойство «Заманивание» ее колючих лоз, на дальность поражения."
+      },
+      {
+        "name": "Inconspicuous",
+        "description": ""
+      },
+      {
+        "name": "Укорененный",
+        "description": "Плотоядная флора не может совершать маневры по передвижению."
+      },
+      {
+        "name": "Неожиданная атака",
+        "description": "Плотоядная флора, которая еще не была идентифицирована как угроза, использует скрытность для определения инициативы."
+      }
+    ],
+    "attacks": [
+      {
+        "name": "Тернистые лозы",
+        "skill": "Brawl",
+        "damage": "4",
+        "critical": "4",
+        "range": "Short",
+        "notes": "",
+        "qualities": [
+          {
+            "code": "auto-fire",
+            "nameRu": "Auto-Fire",
+            "rating": null
+          },
+          {
+            "code": "ensnare",
+            "nameRu": "Сковывающее",
+            "rating": 3
+          }
+        ]
+      },
+      {
+        "name": "Щелкающие челюсти",
+        "skill": "Brawl",
+        "damage": "8",
+        "critical": "3",
+        "range": "Engaged",
+        "notes": "",
+        "qualities": [
+          {
+            "code": "vicious",
+            "nameRu": "Жестокое",
+            "rating": 2
+          }
+        ]
+      }
+    ],
+    "talents": [],
+    "equipment": [],
+    "tags": []
+  },
+  {
+    "system": "RealmsOfTerrinoth",
+    "name": "Порождение Аймхелина",
+    "nameEn": "Aymhelin Scion",
+    "kind": "Rival",
+    "role": "Brute",
+    "source": "Realms of Terrinoth",
+    "description": "",
+    "brawn": 4,
+    "agility": 3,
+    "intellect": 2,
+    "cunning": 3,
+    "willpower": 2,
+    "presence": 3,
+    "woundThreshold": 18,
+    "strainThreshold": null,
+    "soak": 5,
+    "meleeDefense": 0,
+    "rangedDefense": 0,
+    "silhouette": 2,
+    "tactics": "",
+    "skills": [
+      {
+        "name": "Cool",
+        "ranks": 2
+      },
+      {
+        "name": "Discipline",
+        "ranks": 2
+      },
+      {
+        "name": "Brawl",
+        "ranks": 3
+      },
+      {
+        "name": "Resilience",
+        "ranks": 4
+      }
+    ],
+    "abilities": [
+      {
+        "name": "Клетка корней",
+        "description": "Один раз за раунд после того, как персонаж переместился на среднюю дистанцию ​​от Отпрыска Аймхелин, Отпрыск Аймхелин может выполнить внеочередное действие, чтобы обездвижить этого персонажа на оставшуюся часть боя. В качестве действия обездвиженный персонаж может в свой ход попытаться пройти сложную проверку Атлетики, чтобы больше не быть обездвиженным."
+      }
+    ],
+    "attacks": [
+      {
+        "name": "Конечности",
+        "skill": "Brawl",
+        "damage": "8",
+        "critical": "4",
+        "range": "Engaged",
+        "notes": "",
+        "qualities": [
+          {
+            "code": "knockdown",
+            "nameRu": "Опрокидывание",
+            "rating": null
+          }
+        ]
+      }
+    ],
+    "talents": [
+      "Adversary 1",
+      "Swift"
+    ],
+    "equipment": [],
+    "tags": []
+  },
+  {
+    "system": "RealmsOfTerrinoth",
+    "name": "Потерянный рыцарь",
+    "nameEn": "Lost Knight",
+    "kind": "Rival",
+    "role": "Brute",
+    "source": "Realms of Terrinoth",
+    "description": "",
+    "brawn": 3,
+    "agility": 3,
+    "intellect": 2,
+    "cunning": 2,
+    "willpower": 4,
+    "presence": 3,
+    "woundThreshold": 15,
+    "strainThreshold": null,
+    "soak": 5,
+    "meleeDefense": 1,
+    "rangedDefense": 1,
+    "silhouette": 1,
+    "tactics": "",
+    "skills": [
+      {
+        "name": "Athletics",
+        "ranks": 2
+      },
+      {
+        "name": "Discipline",
+        "ranks": 2
+      },
+      {
+        "name": "Melee (Light)",
+        "ranks": 3
+      },
+      {
+        "name": "Resilience",
+        "ranks": 2
+      },
+      {
+        "name": "Survival",
+        "ranks": 1
+      }
+    ],
+    "abilities": [
+      {
+        "name": "Фаталистическая жестокость",
+        "description": "Потерянный рыцарь добавляет успехугроза ко всем совершаемым им боевым проверкам."
+      }
+    ],
+    "attacks": [
+      {
+        "name": "Древний меч",
+        "skill": "Melee (Light)",
+        "damage": "6",
+        "critical": "2",
+        "range": "Engaged",
+        "notes": "",
+        "qualities": [
+          {
+            "code": "defensive",
+            "nameRu": "Оборонительное",
+            "rating": 1
+          }
+        ]
+      }
+    ],
+    "talents": [],
+    "equipment": [
+      "Геральдический латный доспех (+2 впитывание, +1 защита)"
+    ],
+    "tags": []
+  },
+  {
+    "system": "RealmsOfTerrinoth",
+    "name": "Потрошитель плоти",
+    "nameEn": "Flesh Ripper",
+    "kind": "Minion",
+    "role": "Brute",
+    "source": "Realms of Terrinoth",
+    "description": "",
+    "brawn": 3,
+    "agility": 3,
+    "intellect": 1,
+    "cunning": 2,
+    "willpower": 1,
+    "presence": 1,
+    "woundThreshold": 6,
+    "strainThreshold": null,
+    "soak": 3,
+    "meleeDefense": 1,
+    "rangedDefense": 1,
+    "silhouette": 1,
+    "tactics": "",
+    "skills": [
+      {
+        "name": "Brawl",
+        "ranks": 0
+      },
+      {
+        "name": "Cool",
+        "ranks": 0
+      },
+      {
+        "name": "Resilience",
+        "ranks": 0
+      },
+      {
+        "name": "Vigilance",
+        "ranks": 0
+      }
+    ],
+    "abilities": [
+      {
+        "name": "Ужасающий 3",
+        "description": ""
+      }
+    ],
+    "attacks": [
+      {
+        "name": "Когти и клыки",
+        "skill": "Brawl",
+        "damage": "5",
+        "critical": "3",
+        "range": "Engaged",
+        "notes": "",
+        "qualities": [
+          {
+            "code": "vicious",
+            "nameRu": "Жестокое",
+            "rating": 1
+          }
+        ]
+      },
+      {
+        "name": "Шипастый хвост",
+        "skill": "Brawl",
+        "damage": "5",
+        "critical": "4",
+        "range": "Engaged",
+        "notes": "",
+        "qualities": [
+          {
+            "code": "ensnare",
+            "nameRu": "Сковывающее",
+            "rating": 1
+          }
+        ]
+      }
+    ],
+    "talents": [
+      "Swift"
+    ],
+    "equipment": [],
+    "tags": [
+      "страх"
+    ]
+  },
+  {
+    "system": "RealmsOfTerrinoth",
+    "name": "Призрак",
+    "nameEn": "Wraith",
+    "kind": "Rival",
+    "role": "Brute",
+    "source": "Realms of Terrinoth",
+    "description": "",
+    "brawn": 1,
+    "agility": 3,
+    "intellect": 2,
+    "cunning": 3,
+    "willpower": 3,
+    "presence": 1,
+    "woundThreshold": 19,
+    "strainThreshold": null,
+    "soak": 0,
+    "meleeDefense": 3,
+    "rangedDefense": 3,
+    "silhouette": 2,
+    "tactics": "",
+    "skills": [
+      {
+        "name": "Brawl",
+        "ranks": 3
+      },
+      {
+        "name": "Cool",
+        "ranks": 2
+      },
+      {
+        "name": "Discipline",
+        "ranks": 2
+      },
+      {
+        "name": "Ranged",
+        "ranks": 1
+      }
+    ],
+    "abilities": [
+      {
+        "name": "Ghostly",
+        "description": ""
+      },
+      {
+        "name": "Ужасающий 4",
+        "description": ""
+      },
+      {
+        "name": "Нежить",
+        "description": ""
+      }
+    ],
+    "attacks": [
+      {
+        "name": "Призрачные когти",
+        "skill": "Brawl",
+        "damage": "2",
+        "critical": "1",
+        "range": "Engaged",
+        "notes": "",
+        "qualities": [
+          {
+            "code": "breach",
+            "nameRu": "Пробивание",
+            "rating": 1
+          },
+          {
+            "code": "stun-damage",
+            "nameRu": "Оглушающий урон",
+            "rating": null
+          }
+        ]
+      },
+      {
+        "name": "Плач Крик",
+        "skill": "Ranged",
+        "damage": "2",
+        "critical": "5",
+        "range": "Medium",
+        "notes": "",
+        "qualities": [
+          {
+            "code": "breach",
+            "nameRu": "Пробивание",
+            "rating": 1
+          },
+          {
+            "code": "stun-damage",
+            "nameRu": "Оглушающий урон",
+            "rating": null
+          }
+        ]
+      }
+    ],
+    "talents": [],
+    "equipment": [],
+    "tags": [
+      "нежить",
+      "страх"
+    ]
+  },
+  {
+    "system": "RealmsOfTerrinoth",
+    "name": "Призрак предков гномов",
+    "nameEn": "Dwarf Ancestral Specter",
+    "kind": "Rival",
+    "role": "Brute",
+    "source": "Realms of Terrinoth",
+    "description": "",
+    "brawn": 3,
+    "agility": 3,
+    "intellect": 2,
+    "cunning": 3,
+    "willpower": 4,
+    "presence": 2,
+    "woundThreshold": 14,
+    "strainThreshold": null,
+    "soak": 4,
+    "meleeDefense": 3,
+    "rangedDefense": 2,
+    "silhouette": 1,
+    "tactics": "",
+    "skills": [
+      {
+        "name": "Discipline",
+        "ranks": 3
+      },
+      {
+        "name": "Melee (Light)",
+        "ranks": 3
+      }
+    ],
+    "abilities": [
+      {
+        "name": "Взгляд предков",
+        "description": "Находясь на небольшом расстоянии от Призрака предков гномов, живые гномы добавляют успех к своим боевым проверкам и триумфу, если противник - дракон."
+      },
+      {
+        "name": "призрачный",
+        "description": "Призраки предков гномов игнорируют эффекты местности и темноты."
+      },
+      {
+        "name": "Ужасающий 3",
+        "description": ""
+      },
+      {
+        "name": "Нежить",
+        "description": ""
+      }
+    ],
+    "attacks": [
+      {
+        "name": "Эфирный молот",
+        "skill": "Melee (Light)",
+        "damage": "7",
+        "critical": "2",
+        "range": "Engaged",
+        "notes": "",
+        "qualities": [
+          {
+            "code": "stun-damage",
+            "nameRu": "Оглушающий урон",
+            "rating": null
+          }
+        ]
+      }
+    ],
+    "talents": [],
+    "equipment": [],
+    "tags": [
+      "нежить",
+      "страх"
+    ]
+  },
+  {
+    "system": "RealmsOfTerrinoth",
+    "name": "Разбойник",
+    "nameEn": "Brigand",
+    "kind": "Minion",
+    "role": "Brute",
+    "source": "Realms of Terrinoth",
+    "description": "",
+    "brawn": 3,
+    "agility": 2,
+    "intellect": 1,
+    "cunning": 2,
+    "willpower": 1,
+    "presence": 1,
+    "woundThreshold": 4,
+    "strainThreshold": null,
+    "soak": 3,
+    "meleeDefense": 0,
+    "rangedDefense": 0,
+    "silhouette": 1,
+    "tactics": "",
+    "skills": [
+      {
+        "name": "Cool",
+        "ranks": 0
+      },
+      {
+        "name": "Melee (Light)",
+        "ranks": 0
+      },
+      {
+        "name": "Ranged",
+        "ranks": 0
+      }
+    ],
+    "abilities": [],
+    "attacks": [
+      {
+        "name": "Мейс",
+        "skill": "Melee (Light)",
+        "damage": "6",
+        "critical": "4",
+        "range": "Engaged",
+        "notes": "",
+        "qualities": []
+      }
+    ],
+    "talents": [],
+    "equipment": [],
+    "tags": []
+  },
+  {
+    "system": "RealmsOfTerrinoth",
+    "name": "Разбойник Лидер",
+    "nameEn": "Brigand Leader",
+    "kind": "Rival",
+    "role": "Leader",
+    "source": "Realms of Terrinoth",
+    "description": "",
+    "brawn": 3,
+    "agility": 3,
+    "intellect": 2,
+    "cunning": 2,
+    "willpower": 2,
+    "presence": 2,
+    "woundThreshold": 14,
+    "strainThreshold": null,
+    "soak": 4,
+    "meleeDefense": 1,
+    "rangedDefense": 1,
+    "silhouette": 1,
+    "tactics": "",
+    "skills": [
+      {
+        "name": "Cool",
+        "ranks": 2
+      },
+      {
+        "name": "Leadership",
+        "ranks": 1
+      },
+      {
+        "name": "Ranged",
+        "ranks": 2
+      },
+      {
+        "name": "Melee (Light)",
+        "ranks": 2
+      }
+    ],
+    "abilities": [],
+    "attacks": [
+      {
+        "name": "Топор",
+        "skill": "Melee (Light)",
+        "damage": "6",
+        "critical": "3",
+        "range": "Engaged",
+        "notes": "",
+        "qualities": [
+          {
+            "code": "vicious",
+            "nameRu": "Жестокое",
+            "rating": 1
+          }
+        ]
+      },
+      {
+        "name": "Лук",
+        "skill": "Ranged",
+        "damage": "7",
+        "critical": "3",
+        "range": "Medium",
+        "notes": "",
+        "qualities": [
+          {
+            "code": "unwieldy",
+            "nameRu": "Неуклюжее",
+            "rating": 2
+          }
+        ]
+      },
+      {
+        "name": "Щит",
+        "skill": "Melee (Light)",
+        "damage": "3",
+        "critical": "6",
+        "range": "Engaged",
+        "notes": "",
+        "qualities": [
+          {
+            "code": "defensive",
+            "nameRu": "Оборонительное",
+            "rating": 1
+          },
+          {
+            "code": "deflection",
+            "nameRu": "Отражающее",
+            "rating": 1
+          },
+          {
+            "code": "inaccurate",
+            "nameRu": "Неточное",
+            "rating": 2
+          },
+          {
+            "code": "knockdown",
+            "nameRu": "Опрокидывание",
+            "rating": null
+          }
+        ]
+      }
+    ],
+    "talents": [],
+    "equipment": [
+      "Мягкая броня: +1 впитывание"
+    ],
+    "tags": []
+  },
+  {
+    "system": "RealmsOfTerrinoth",
+    "name": "Реанимировать",
+    "nameEn": "Reanimate",
+    "kind": "Minion",
+    "role": "Brute",
+    "source": "Realms of Terrinoth",
+    "description": "",
+    "brawn": 2,
+    "agility": 2,
+    "intellect": 1,
+    "cunning": 2,
+    "willpower": 1,
+    "presence": 1,
+    "woundThreshold": 4,
+    "strainThreshold": null,
+    "soak": 3,
+    "meleeDefense": 1,
+    "rangedDefense": 1,
+    "silhouette": 1,
+    "tactics": "",
+    "skills": [
+      {
+        "name": "Melee (Light)",
+        "ranks": 0
+      },
+      {
+        "name": "Perception",
+        "ranks": 0
+      },
+      {
+        "name": "Ranged",
+        "ranks": 0
+      },
+      {
+        "name": "Resilience",
+        "ranks": 0
+      },
+      {
+        "name": "Vigilance",
+        "ranks": 0
+      }
+    ],
+    "abilities": [
+      {
+        "name": "Нежить",
+        "description": ""
+      },
+      {
+        "name": "Бессмертный",
+        "description": "Может потратить угрозуаугрозаугроза от любой проверки, сделанной персонажем, чтобы вернуть одного ранее побежденного Реаниматора в существующую группу миньонов, соответственно удаляя урон из группы. Потратьте крах, чтобы вернуть двух реаниматоров в группу миньонов."
+      }
+    ],
+    "attacks": [
+      {
+        "name": "Ржавый клинок",
+        "skill": "Melee",
+        "damage": "5",
+        "critical": "3",
+        "range": "Engaged",
+        "notes": "",
+        "qualities": []
+      },
+      {
+        "name": "Изношенный лук",
+        "skill": "Ranged",
+        "damage": "6",
+        "critical": "3",
+        "range": "Medium",
+        "notes": "",
+        "qualities": []
+      }
+    ],
+    "talents": [],
+    "equipment": [
+      "Античная кольчуга: +1 впитывание"
+    ],
+    "tags": [
+      "нежить"
+    ]
+  },
+  {
+    "system": "RealmsOfTerrinoth",
+    "name": "Рой скорпионов",
+    "nameEn": "Scorpion Swarm",
+    "kind": "Rival",
+    "role": "Monster",
+    "source": "Realms of Terrinoth",
+    "description": "",
+    "brawn": 1,
+    "agility": 3,
+    "intellect": 1,
+    "cunning": 1,
+    "willpower": 1,
+    "presence": 1,
+    "woundThreshold": 36,
+    "strainThreshold": null,
+    "soak": 1,
+    "meleeDefense": 0,
+    "rangedDefense": 0,
+    "silhouette": 2,
+    "tactics": "",
+    "skills": [
+      {
+        "name": "Brawl",
+        "ranks": 1
+      },
+      {
+        "name": "Coordination",
+        "ranks": 2
+      }
+    ],
+    "abilities": [
+      {
+        "name": "Swarm",
+        "description": ""
+      }
+    ],
+    "attacks": [
+      {
+        "name": "Когти и жала",
+        "skill": "Brawl",
+        "damage": "1",
+        "critical": "4",
+        "range": "Engaged",
+        "notes": "",
+        "qualities": [
+          {
+            "code": "pierce",
+            "nameRu": "Проникающее",
+            "rating": 3
+          }
+        ]
+      }
+    ],
+    "talents": [],
+    "equipment": [],
+    "tags": []
+  },
+  {
+    "system": "RealmsOfTerrinoth",
+    "name": "Рунический голем",
+    "nameEn": "Rune Golem",
+    "kind": "Nemesis",
+    "role": "Brute",
+    "source": "Realms of Terrinoth",
+    "description": "",
+    "brawn": 5,
+    "agility": 3,
+    "intellect": 2,
+    "cunning": 2,
+    "willpower": 3,
+    "presence": 2,
+    "woundThreshold": 25,
+    "strainThreshold": 22,
+    "soak": 7,
+    "meleeDefense": 0,
+    "rangedDefense": 0,
+    "silhouette": 2,
+    "tactics": "",
+    "skills": [
+      {
+        "name": "Cool",
+        "ranks": 2
+      },
+      {
+        "name": "Discipline",
+        "ranks": 2
+      },
+      {
+        "name": "Brawl",
+        "ranks": 3
+      },
+      {
+        "name": "Melee (Light)",
+        "ranks": 3
+      },
+      {
+        "name": "Resilience",
+        "ranks": 3
+      }
+    ],
+    "abilities": [
+      {
+        "name": "Multiattack",
+        "description": ""
+      },
+      {
+        "name": "Стихийные руны",
+        "description": "Каждый рунный голем приобретает разные черты в зависимости от оживляющей его руны. Выберите по одной руне для каждого отдельного голема. Огонь: добавьте успех к проверкам, которые рунный голем совершает для определения инициативы. Лед: улучшите сложность проверок социальных навыков, нацеленных на голема один раз. Молния: рунический голем может выполнить второй маневр, не испытывая напряжения. Камень: поглощение рунического голема увеличивается до 8. Остальные руны можно использовать по усмотрению ГМ."
+      }
+    ],
+    "attacks": [
+      {
+        "name": "Массивные мечи",
+        "skill": "Melee (Light)",
+        "damage": "9",
+        "critical": "2",
+        "range": "Engaged",
+        "notes": "",
+        "qualities": [
+          {
+            "code": "linked",
+            "nameRu": "Связанное",
+            "rating": 1
+          },
+          {
+            "code": "pierce",
+            "nameRu": "Проникающее",
+            "rating": 1
+          }
+        ]
+      },
+      {
+        "name": "Каменные кулаки",
+        "skill": "Brawl",
+        "damage": "7",
+        "critical": "4",
+        "range": "Engaged",
+        "notes": "",
+        "qualities": [
+          {
+            "code": "concussive",
+            "nameRu": "Оглушающее",
+            "rating": 1
+          },
+          {
+            "code": "disorient",
+            "nameRu": "Дезориентирующее",
+            "rating": 3
+          },
+          {
+            "code": "linked",
+            "nameRu": "Связанное",
+            "rating": 1
+          }
+        ]
+      }
+    ],
+    "talents": [
+      "Adversary 1"
+    ],
+    "equipment": [],
+    "tags": []
+  },
+  {
+    "system": "RealmsOfTerrinoth",
+    "name": "Рыцарь Смерти",
+    "nameEn": "Death Knight",
+    "kind": "Nemesis",
+    "role": "Brute",
+    "source": "Realms of Terrinoth",
+    "description": "",
+    "brawn": 3,
+    "agility": 3,
+    "intellect": 2,
+    "cunning": 3,
+    "willpower": 3,
+    "presence": 1,
+    "woundThreshold": 20,
+    "strainThreshold": 14,
+    "soak": 5,
+    "meleeDefense": 0,
+    "rangedDefense": 0,
+    "silhouette": 1,
+    "tactics": "",
+    "skills": [
+      {
+        "name": "Cool",
+        "ranks": 2
+      },
+      {
+        "name": "Discipline",
+        "ranks": 3
+      },
+      {
+        "name": "Melee (Heavy)",
+        "ranks": 3
+      },
+      {
+        "name": "Melee (Light)",
+        "ranks": 3
+      },
+      {
+        "name": "Resilience",
+        "ranks": 2
+      },
+      {
+        "name": "Riding",
+        "ranks": 3
+      }
+    ],
+    "abilities": [
+      {
+        "name": "Mounted Charge",
+        "description": "A mounted death knight adds :boost::boost: to its first melee attack after performing a maneuver to engage the target in the same turn."
+      },
+      {
+        "name": "Ужасающий 4",
+        "description": ""
+      },
+      {
+        "name": "Нежить",
+        "description": ""
+      }
+    ],
+    "attacks": [
+      {
+        "name": "Меч",
+        "skill": "Melee (Light)",
+        "damage": "8",
+        "critical": "2",
+        "range": "Engaged",
+        "notes": "",
+        "qualities": [
+          {
+            "code": "defensive",
+            "nameRu": "Оборонительное",
+            "rating": 1
+          }
+        ]
+      },
+      {
+        "name": "Цеп",
+        "skill": "Melee (Heavy)",
+        "damage": "9",
+        "critical": "3",
+        "range": "Engaged",
+        "notes": "",
+        "qualities": [
+          {
+            "code": "cumbersome",
+            "nameRu": "Громоздкое",
+            "rating": 3
+          },
+          {
+            "code": "linked",
+            "nameRu": "Связанное",
+            "rating": 1
+          },
+          {
+            "code": "unwieldy",
+            "nameRu": "Неуклюжее",
+            "rating": 3
+          }
+        ]
+      }
+    ],
+    "talents": [
+      "Adversary 1",
+      "Parry 3",
+      "Parry (Improved)"
+    ],
+    "equipment": [
+      "Потрепанная броня: +2 поглощение, +1 защита.",
+      "Боевой маунт (см. стр. 105 РоТ)"
+    ],
+    "tags": [
+      "нежить",
+      "страх"
+    ]
+  },
+  {
+    "system": "RealmsOfTerrinoth",
+    "name": "Саламандра",
+    "nameEn": "Salamander",
+    "kind": "Rival",
+    "role": "Brute",
+    "source": "Realms of Terrinoth",
+    "description": "",
+    "brawn": 3,
+    "agility": 3,
+    "intellect": 1,
+    "cunning": 3,
+    "willpower": 2,
+    "presence": 1,
+    "woundThreshold": 18,
+    "strainThreshold": null,
+    "soak": 5,
+    "meleeDefense": 0,
+    "rangedDefense": 0,
+    "silhouette": 1,
+    "tactics": "",
+    "skills": [
+      {
+        "name": "Brawl",
+        "ranks": 3
+      },
+      {
+        "name": "Resilience",
+        "ranks": 3
+      },
+      {
+        "name": "Survival",
+        "ranks": 2
+      },
+      {
+        "name": "Vigilance",
+        "ranks": 1
+      }
+    ],
+    "abilities": [
+      {
+        "name": "Огнерожденный",
+        "description": "Саламандра не получает урона от естественного тепла или пламени и удваивает свое поглощение, чтобы уменьшить урон от магического огня."
+      }
+    ],
+    "attacks": [
+      {
+        "name": "Пылающие клыки",
+        "skill": "Brawl",
+        "damage": "7",
+        "critical": "3",
+        "range": "Engaged",
+        "notes": "",
+        "qualities": [
+          {
+            "code": "burn",
+            "nameRu": "Горение",
+            "rating": 2
+          },
+          {
+            "code": "sunder",
+            "nameRu": "Разрушительное",
+            "rating": null
+          },
+          {
+            "code": "vicious",
+            "nameRu": "Жестокое",
+            "rating": 2
+          }
+        ]
+      }
+    ],
+    "talents": [],
+    "equipment": [],
+    "tags": []
+  },
+  {
+    "system": "RealmsOfTerrinoth",
+    "name": "Сингарский охотник",
+    "nameEn": "Singhara Hunter",
+    "kind": "Minion",
+    "role": "Brute",
+    "source": "Realms of Terrinoth",
+    "description": "",
+    "brawn": 3,
+    "agility": 3,
+    "intellect": 1,
+    "cunning": 3,
+    "willpower": 2,
+    "presence": 2,
+    "woundThreshold": 5,
+    "strainThreshold": null,
+    "soak": 3,
+    "meleeDefense": 0,
+    "rangedDefense": 0,
+    "silhouette": 1,
+    "tactics": "",
+    "skills": [
+      {
+        "name": "Cool",
+        "ranks": 0
+      },
+      {
+        "name": "Brawl",
+        "ranks": 0
+      },
+      {
+        "name": "Melee (Light)",
+        "ranks": 0
+      },
+      {
+        "name": "Ranged",
+        "ranks": 0
+      },
+      {
+        "name": "Survival",
+        "ranks": 0
+      },
+      {
+        "name": "Stealth",
+        "ranks": 0
+      }
+    ],
+    "abilities": [
+      {
+        "name": "Внезапно атаковать",
+        "description": "Может потратить преимущество от проверки инициативы, чтобы выполнить свободный маневр перед первым раундом боя."
+      }
+    ],
+    "attacks": [
+      {
+        "name": "Копье (ближний бой)",
+        "skill": "Melee (Light)",
+        "damage": "6",
+        "critical": "3",
+        "range": "Engaged",
+        "notes": "",
+        "qualities": [
+          {
+            "code": "accurate",
+            "nameRu": "Точное",
+            "rating": 1
+          }
+        ]
+      },
+      {
+        "name": "Когти и зубы",
+        "skill": "Brawl",
+        "damage": "5",
+        "critical": "3",
+        "range": "Engaged",
+        "notes": "",
+        "qualities": [
+          {
+            "code": "vicious",
+            "nameRu": "Жестокое",
+            "rating": 1
+          }
+        ]
+      }
+    ],
+    "talents": [
+      "Swift"
+    ],
+    "equipment": [],
+    "tags": []
+  },
+  {
+    "system": "RealmsOfTerrinoth",
+    "name": "Сингхарский Прайделорд",
+    "nameEn": "Singhara Pridelord",
+    "kind": "Nemesis",
+    "role": "Brute",
+    "source": "Realms of Terrinoth",
+    "description": "",
+    "brawn": 5,
+    "agility": 4,
+    "intellect": 2,
+    "cunning": 3,
+    "willpower": 3,
+    "presence": 4,
+    "woundThreshold": 20,
+    "strainThreshold": 16,
+    "soak": 5,
+    "meleeDefense": 3,
+    "rangedDefense": 3,
+    "silhouette": 1,
+    "tactics": "",
+    "skills": [
+      {
+        "name": "Cool",
+        "ranks": 2
+      },
+      {
+        "name": "Brawl",
+        "ranks": 4
+      },
+      {
+        "name": "Melee (Light)",
+        "ranks": 3
+      },
+      {
+        "name": "Ranged",
+        "ranks": 3
+      },
+      {
+        "name": "Survival",
+        "ranks": 3
+      },
+      {
+        "name": "Stealth",
+        "ranks": 3
+      }
+    ],
+    "abilities": [
+      {
+        "name": "Гордый рев",
+        "description": "В качестве маневра Прайделорд может издать гордый рев. Все остальные сингары в схватке удаляют :setback: из проверок до конца следующего хода Повелителя Прайдела. Кроме того, враги в пределах средней дистанции от Прайделорда должны совершить среднюю проверку страха согласно странице 243 Основной книги правил GENESYS."
+      }
+    ],
+    "attacks": [
+      {
+        "name": "Копье",
+        "skill": "Melee (Light)",
+        "damage": "8",
+        "critical": "3",
+        "range": "Engaged",
+        "notes": "",
+        "qualities": [
+          {
+            "code": "accurate",
+            "nameRu": "Точное",
+            "rating": 1
+          }
+        ]
+      },
+      {
+        "name": "Когти и зубы",
+        "skill": "Brawl",
+        "damage": "7",
+        "critical": "3",
+        "range": "Engaged",
+        "notes": "",
+        "qualities": [
+          {
+            "code": "vicious",
+            "nameRu": "Жестокое",
+            "rating": 1
+          }
+        ]
+      }
+    ],
+    "talents": [
+      "Adversary 2",
+      "Swift"
+    ],
+    "equipment": [],
+    "tags": []
+  },
+  {
+    "system": "RealmsOfTerrinoth",
+    "name": "Сирена",
+    "nameEn": "Siren",
+    "kind": "Rival",
+    "role": "Monster",
+    "source": "Realms of Terrinoth",
+    "description": "",
+    "brawn": 2,
+    "agility": 3,
+    "intellect": 2,
+    "cunning": 3,
+    "willpower": 2,
+    "presence": 4,
+    "woundThreshold": 12,
+    "strainThreshold": null,
+    "soak": 2,
+    "meleeDefense": 1,
+    "rangedDefense": 1,
+    "silhouette": 1,
+    "tactics": "",
+    "skills": [
+      {
+        "name": "Charm",
+        "ranks": 3
+      },
+      {
+        "name": "Cool",
+        "ranks": 2
+      },
+      {
+        "name": "Brawl",
+        "ranks": 2
+      },
+      {
+        "name": "Perception",
+        "ranks": 3
+      }
+    ],
+    "abilities": [
+      {
+        "name": "Смертельное отвлечение",
+        "description": "Сирена уменьшает сложность боевых проверок, которые она делает целью персонажа, обездвиженного или ошеломленного Неотразимой Песней, на одну единицу."
+      },
+      {
+        "name": "Летающий",
+        "description": ""
+      },
+      {
+        "name": "Неотразимая песня",
+        "description": "В качестве действия сирена может совершить среднюю проверку Очарования. Если проверка успешна, все персонажи на большом расстоянии, которые могут услышать песню сирены, получают 1 напряжение за каждый успех. Сирена может потратить преимуществопреимущество, чтобы обездвижить одного затронутого персонажа до конца следующего раунда, и потратить триумф, чтобы ошеломить одного затронутого персонажа до конца следующего раунда. Пока персонаж поражен «Неотразимой песней», он должен потратить все свои маневры, чтобы приблизиться к сирене."
+      }
+    ],
+    "attacks": [
+      {
+        "name": "Когти",
+        "skill": "Brawl",
+        "damage": "6",
+        "critical": "3",
+        "range": "Engaged",
+        "notes": "",
+        "qualities": [
+          {
+            "code": "vicious",
+            "nameRu": "Жестокое",
+            "rating": 1
+          }
+        ]
+      }
+    ],
+    "talents": [],
+    "equipment": [],
+    "tags": [
+      "летающий"
+    ]
+  },
+  {
+    "system": "RealmsOfTerrinoth",
+    "name": "Сплиг, король всех голбинов",
+    "nameEn": "Splig, King Of All Golbins",
+    "kind": "Nemesis",
+    "role": "Leader",
+    "source": "Realms of Terrinoth",
+    "description": "",
+    "brawn": 4,
+    "agility": 3,
+    "intellect": 2,
+    "cunning": 3,
+    "willpower": 2,
+    "presence": 2,
+    "woundThreshold": 20,
+    "strainThreshold": 11,
+    "soak": 5,
+    "meleeDefense": 0,
+    "rangedDefense": 0,
+    "silhouette": 1,
+    "tactics": "",
+    "skills": [
+      {
+        "name": "Coercion",
+        "ranks": 2
+      },
+      {
+        "name": "Cool",
+        "ranks": 2
+      },
+      {
+        "name": "Melee (Heavy)",
+        "ranks": 3
+      },
+      {
+        "name": "Leadership",
+        "ranks": 2
+      },
+      {
+        "name": "Resilience",
+        "ranks": 2
+      }
+    ],
+    "abilities": [
+      {
+        "name": "Король гоблинов!",
+        "description": "Увеличьте сложность боевых проверок, нацеленных на Сплига, один раз для каждой группы миньонов гоблинов в пределах короткой дистанции от него. Если проверка не удалась, один отдельный миньон побежден."
+      },
+      {
+        "name": "Удачный побег",
+        "description": "Если Сплиг потерпит поражение из-за превышения порога ранения или порога напряжения, или по какой-либо причине, он может потратить 1 очко истории, чтобы вместо этого сбежать удачливым и трусливым способом. Все остальные гоблины, участвовавшие в столкновении, немедленно побеждены."
+      }
+    ],
+    "attacks": [
+      {
+        "name": "Клуб всех гоблинов",
+        "skill": "Melee (Heavy)",
+        "damage": "8",
+        "critical": "3",
+        "range": "Engaged",
+        "notes": "",
+        "qualities": [
+          {
+            "code": "inaccurate",
+            "nameRu": "Неточное",
+            "rating": 1
+          },
+          {
+            "code": "knockdown",
+            "nameRu": "Опрокидывание",
+            "rating": null
+          },
+          {
+            "code": "vicious",
+            "nameRu": "Жестокое",
+            "rating": 2
+          }
+        ]
+      }
+    ],
+    "talents": [
+      "Whirlwind"
+    ],
+    "equipment": [
+      "Украденная лоскутная броня: +1 впитывание."
+    ],
+    "tags": []
+  },
+  {
+    "system": "RealmsOfTerrinoth",
+    "name": "Убийца",
+    "nameEn": "Assassin",
+    "kind": "Nemesis",
+    "role": "Brute",
+    "source": "Realms of Terrinoth",
+    "description": "",
+    "brawn": 2,
+    "agility": 4,
+    "intellect": 3,
+    "cunning": 4,
+    "willpower": 2,
+    "presence": 2,
+    "woundThreshold": 12,
+    "strainThreshold": 14,
+    "soak": 2,
+    "meleeDefense": 4,
+    "rangedDefense": 3,
+    "silhouette": 1,
+    "tactics": "",
+    "skills": [
+      {
+        "name": "Cool",
+        "ranks": 2
+      },
+      {
+        "name": "Coordination",
+        "ranks": 3
+      },
+      {
+        "name": "Deception",
+        "ranks": 3
+      },
+      {
+        "name": "Medicine",
+        "ranks": 2
+      },
+      {
+        "name": "Melee (Light)",
+        "ranks": 2
+      },
+      {
+        "name": "Perception",
+        "ranks": 2
+      },
+      {
+        "name": "Ranged",
+        "ranks": 2
+      },
+      {
+        "name": "Skulduggery",
+        "ranks": 3
+      },
+      {
+        "name": "Stealth",
+        "ranks": 4
+      },
+      {
+        "name": "Vigilance",
+        "ranks": 3
+      }
+    ],
+    "abilities": [
+      {
+        "name": "Молния",
+        "description": "Может вытащить или положить в ножны кинжал или подобное стрелковое оружие в качестве непредвиденного предмета; нет ограничений на количество оружия, которое убийца может подготовить таким образом за ход."
+      },
+      {
+        "name": "Отравитель",
+        "description": "Кстати, может применить яд ко всему оружию. Персонаж, раненый отравленным оружием, должен совершить сложную проверку Устойчивости как случайную внеходовую атаку или получить 4 дополнительных ранения, а также должен сделать проверку еще раз на следующем ходу, если проверка генерирует крах."
+      },
+      {
+        "name": "Исчезновение",
+        "description": "После выполнения проверки можно потратить преимуществопреимущество или триумф, чтобы спрятаться от всех других персонажей в столкновении."
+      }
+    ],
+    "attacks": [
+      {
+        "name": "Скимитар",
+        "skill": "Melee (Light)",
+        "damage": "6",
+        "critical": "2",
+        "range": "Engaged",
+        "notes": "",
+        "qualities": [
+          {
+            "code": "defensive",
+            "nameRu": "Оборонительное",
+            "rating": 1
+          }
+        ]
+      },
+      {
+        "name": "Две катара",
+        "skill": "Melee (Light)",
+        "damage": "5",
+        "critical": "2",
+        "range": "Engaged",
+        "notes": "",
+        "qualities": [
+          {
+            "code": "accurate",
+            "nameRu": "Точное",
+            "rating": 1
+          }
+        ]
+      },
+      {
+        "name": "Три кинжала",
+        "skill": "Ranged",
+        "damage": "5",
+        "critical": "3",
+        "range": "Short",
+        "notes": "",
+        "qualities": [
+          {
+            "code": "accurate",
+            "nameRu": "Точное",
+            "rating": 1
+          },
+          {
+            "code": "limited-ammo",
+            "nameRu": "Ограниченный боезапас",
+            "rating": 3
+          }
+        ]
+      },
+      {
+        "name": "Лук",
+        "skill": "Ranged",
+        "damage": "7",
+        "critical": "3",
+        "range": "Medium",
+        "notes": "",
+        "qualities": [
+          {
+            "code": "unwieldy",
+            "nameRu": "Неуклюжее",
+            "rating": 2
+          }
+        ]
+      }
+    ],
+    "talents": [
+      "Adversary 1",
+      "Backstab",
+      "Precision Strikes"
+    ],
+    "equipment": [
+      "Разнообразие маскирующих плащей"
+    ],
+    "tags": []
+  },
+  {
+    "system": "RealmsOfTerrinoth",
+    "name": "Феррокс",
+    "nameEn": "Ferrox",
+    "kind": "Rival",
+    "role": "Brute",
+    "source": "Realms of Terrinoth",
+    "description": "",
+    "brawn": 3,
+    "agility": 3,
+    "intellect": 1,
+    "cunning": 2,
+    "willpower": 2,
+    "presence": 1,
+    "woundThreshold": 13,
+    "strainThreshold": null,
+    "soak": 3,
+    "meleeDefense": 0,
+    "rangedDefense": 0,
+    "silhouette": 1,
+    "tactics": "",
+    "skills": [
+      {
+        "name": "Brawl",
+        "ranks": 2
+      },
+      {
+        "name": "Cool",
+        "ranks": 2
+      },
+      {
+        "name": "Coordination",
+        "ranks": 1
+      },
+      {
+        "name": "Resilience",
+        "ranks": 1
+      }
+    ],
+    "abilities": [
+      {
+        "name": "Кровожадность",
+        "description": "Когда феррокс наносит раны своими клыками, он исцеляет такое же количество ран."
+      },
+      {
+        "name": "Планер",
+        "description": "Феррокс может летать, но не может при этом увеличивать высоту; см. стр. 100 книги основных правил Genesys."
+      },
+      {
+        "name": "Дикий",
+        "description": "Феррокс увеличивает урон от своих атак на 2, когда нацелен на обездвиженного противника."
+      }
+    ],
+    "attacks": [
+      {
+        "name": "Крючковатые когти",
+        "skill": "Brawl",
+        "damage": "6",
+        "critical": "3",
+        "range": "Engaged",
+        "notes": "",
+        "qualities": [
+          {
+            "code": "ensnare",
+            "nameRu": "Сковывающее",
+            "rating": 1
+          }
+        ]
+      },
+      {
+        "name": "Клыки",
+        "skill": "Brawl",
+        "damage": "5",
+        "critical": "3",
+        "range": "Engaged",
+        "notes": "",
+        "qualities": [
+          {
+            "code": "vicious",
+            "nameRu": "Жестокое",
+            "rating": 1
+          }
+        ]
+      }
+    ],
+    "talents": [],
+    "equipment": [],
+    "tags": []
+  },
+  {
+    "system": "RealmsOfTerrinoth",
+    "name": "Шипастая молотилка",
+    "nameEn": "Spined Thresher",
+    "kind": "Nemesis",
+    "role": "Brute",
+    "source": "Realms of Terrinoth",
+    "description": "",
+    "brawn": 5,
+    "agility": 2,
+    "intellect": 1,
+    "cunning": 2,
+    "willpower": 3,
+    "presence": 3,
+    "woundThreshold": 25,
+    "strainThreshold": 18,
+    "soak": 7,
+    "meleeDefense": 0,
+    "rangedDefense": 0,
+    "silhouette": 3,
+    "tactics": "",
+    "skills": [
+      {
+        "name": "Athletics",
+        "ranks": 4
+      },
+      {
+        "name": "Brawl",
+        "ranks": 4
+      },
+      {
+        "name": "Resilience",
+        "ranks": 4
+      }
+    ],
+    "abilities": [
+      {
+        "name": "Позвоночник-букса",
+        "description": "Молотилка с шипами может использовать маневр, чтобы переместить цель, на которую влияет качество ее хвоста «Ловушка», на одну полосу дальности."
+      },
+      {
+        "name": "Ужасающий 3",
+        "description": ""
+      },
+      {
+        "name": "Слишком много ртов",
+        "description": "Игольчатая молотилка может совершить комбинированную проверку атаки любым количеством своего оружия, и ему нужно будет только потратить дополнительный урон для попадания каждым дополнительным оружием."
+      }
+    ],
+    "attacks": [
+      {
+        "name": "Два Клыкастых Когтя",
+        "skill": "Brawl",
+        "damage": "9",
+        "critical": "3",
+        "range": "Engaged",
+        "notes": "",
+        "qualities": [
+          {
+            "code": "knockdown",
+            "nameRu": "Опрокидывание",
+            "rating": null
+          },
+          {
+            "code": "vicious",
+            "nameRu": "Жестокое",
+            "rating": 2
+          }
+        ]
+      },
+      {
+        "name": "Рабовладеющая пасть",
+        "skill": "Brawl",
+        "damage": "7",
+        "critical": "3",
+        "range": "Engaged",
+        "notes": "",
+        "qualities": [
+          {
+            "code": "pierce",
+            "nameRu": "Проникающее",
+            "rating": 2
+          },
+          {
+            "code": "sunder",
+            "nameRu": "Разрушительное",
+            "rating": null
+          }
+        ]
+      },
+      {
+        "name": "Колючий хвост",
+        "skill": "Brawl",
+        "damage": "6",
+        "critical": "4",
+        "range": "Short",
+        "notes": "",
+        "qualities": [
+          {
+            "code": "ensnare",
+            "nameRu": "Сковывающее",
+            "rating": 2
+          },
+          {
+            "code": "vicious",
+            "nameRu": "Жестокое",
+            "rating": 1
+          }
+        ]
+      }
+    ],
+    "talents": [
+      "Swift"
+    ],
+    "equipment": [],
+    "tags": [
+      "страх"
+    ]
+  },
+  {
+    "system": "RealmsOfTerrinoth",
+    "name": "Штормовая волшебница",
+    "nameEn": "Storm Sorceress",
+    "kind": "Nemesis",
+    "role": "Caster",
+    "source": "Realms of Terrinoth",
+    "description": "",
+    "brawn": 2,
+    "agility": 3,
+    "intellect": 4,
+    "cunning": 3,
+    "willpower": 4,
+    "presence": 3,
+    "woundThreshold": 15,
+    "strainThreshold": 18,
+    "soak": 2,
+    "meleeDefense": 2,
+    "rangedDefense": 2,
+    "silhouette": 1,
+    "tactics": "",
+    "skills": [
+      {
+        "name": "Arcana",
+        "ranks": 3
+      },
+      {
+        "name": "Cool",
+        "ranks": 2
+      },
+      {
+        "name": "Discipline",
+        "ranks": 2
+      },
+      {
+        "name": "Knowledge (Lore)",
+        "ranks": 4
+      }
+    ],
+    "abilities": [
+      {
+        "name": "Мастерство стихий",
+        "description": "Первый эффект, который волшебница бури добавляет к заклинанию, не увеличивает сложность проверки Магии."
+      },
+      {
+        "name": "Заклинания (Магия)",
+        "description": ""
+      },
+      {
+        "name": "Заклинания: Метель",
+        "description": "Волшебница бури выбирает цель на большом расстоянии и совершает очень сложную проверку Магии. Если проверка успешна, эта магическая атака наносит 8 повреждений +1 урон за успех с качествами Взрыв 4, Дезориентация 4, Ловушка 4 и Нокдаун."
+      },
+      {
+        "name": "Заклинания: Громовой удар",
+        "description": "Волшебница бури выбирает цель на средней дистанции и совершает легкую проверку Магии. Если проверка успешна, эта магическая атака наносит 8 урона +1 урон за успех с качествами «Авто-огонь» и «Оглушение 4»."
+      },
+      {
+        "name": "Заклинания: Шквал",
+        "description": "Волшебница бури выбирает цель на средней дистанции и совершает легкую проверку Магии. Если проверка успешна, эта магическая атака наносит 8 повреждений +1 урон за каждый успех. Волшебница бури может потратить дополнительные средства на проверку, чтобы переместить цель или персонажа, сражающегося с целью, на одну полосу дальности в любом направлении."
+      }
+    ],
+    "attacks": [],
+    "talents": [
+      "Adversary 1"
+    ],
+    "equipment": [
+      "Магический посох: первый эффект дальности, добавленный к заклинанию, не увеличивает его сложность; увеличить урон атакующих заклинаний на +4",
+      "Мантии: +1 защита"
+    ],
+    "tags": [
+      "магия"
+    ]
+  },
+  {
+    "system": "RealmsOfTerrinoth",
+    "name": "Элементаль лавы",
+    "nameEn": "Lava Elemental",
+    "kind": "Rival",
+    "role": "Monster",
+    "source": "Realms of Terrinoth",
+    "description": "",
+    "brawn": 3,
+    "agility": 3,
+    "intellect": 1,
+    "cunning": 2,
+    "willpower": 3,
+    "presence": 1,
+    "woundThreshold": 13,
+    "strainThreshold": null,
+    "soak": 3,
+    "meleeDefense": 4,
+    "rangedDefense": 4,
+    "silhouette": 1,
+    "tactics": "",
+    "skills": [
+      {
+        "name": "Brawl",
+        "ranks": 2
+      },
+      {
+        "name": "Cool",
+        "ranks": 2
+      },
+      {
+        "name": "Vigilance",
+        "ranks": 2
+      }
+    ],
+    "abilities": [
+      {
+        "name": "Amorphous",
+        "description": ""
+      },
+      {
+        "name": "Inconspicuous",
+        "description": ""
+      }
+    ],
+    "attacks": [
+      {
+        "name": "Псевдоподии",
+        "skill": "Brawl",
+        "damage": "7",
+        "critical": "2",
+        "range": "Engaged",
+        "notes": "",
+        "qualities": [
+          {
+            "code": "burn",
+            "nameRu": "Горение",
+            "rating": 2
+          },
+          {
+            "code": "sunder",
+            "nameRu": "Разрушительное",
+            "rating": null
+          }
+        ]
+      },
+      {
+        "name": "Лавовый снаряд",
+        "skill": "Ranged",
+        "damage": "9",
+        "critical": "3",
+        "range": "Short",
+        "notes": "",
+        "qualities": [
+          {
+            "code": "blast",
+            "nameRu": "Взрыв",
+            "rating": 4
+          },
+          {
+            "code": "burn",
+            "nameRu": "Горение",
+            "rating": 2
+          },
+          {
+            "code": "concussive",
+            "nameRu": "Оглушающее",
+            "rating": 1
+          }
+        ]
+      }
+    ],
+    "talents": [],
+    "equipment": [],
+    "tags": []
+  },
+  {
+    "system": "RealmsOfTerrinoth",
+    "name": "Элиза Фэрроу",
+    "nameEn": "Eliza Farrow",
+    "kind": "Nemesis",
+    "role": "Caster",
+    "source": "Realms of Terrinoth",
+    "description": "",
+    "brawn": 4,
+    "agility": 4,
+    "intellect": 4,
+    "cunning": 4,
+    "willpower": 4,
+    "presence": 5,
+    "woundThreshold": 18,
+    "strainThreshold": 20,
+    "soak": 6,
+    "meleeDefense": 1,
+    "rangedDefense": 1,
+    "silhouette": 1,
+    "tactics": "",
+    "skills": [
+      {
+        "name": "Arcana",
+        "ranks": 3
+      },
+      {
+        "name": "Brawl",
+        "ranks": 2
+      },
+      {
+        "name": "Charm",
+        "ranks": 3
+      },
+      {
+        "name": "Cool",
+        "ranks": 3
+      },
+      {
+        "name": "Discipline",
+        "ranks": 3
+      },
+      {
+        "name": "Knowledge (Forbidden)",
+        "ranks": 4
+      },
+      {
+        "name": "Negotiation",
+        "ranks": 3
+      },
+      {
+        "name": "Ranged",
+        "ranks": 3
+      },
+      {
+        "name": "Riding",
+        "ranks": 2
+      },
+      {
+        "name": "Vigilance",
+        "ranks": 2
+      }
+    ],
+    "abilities": [
+      {
+        "name": "Кровавый зов",
+        "description": "Когда Элиза Фэрроу наносит урон цели своими клыками или магической атакой, она исцеляет раны, равные нанесенным ранам."
+      },
+      {
+        "name": "Кровавый туман",
+        "description": "Если Элиза Фэрроу получает урон, превышающий ее порог ранения, она не выводится из строя, а принимает форму облака кровавого тумана. В этой форме она может летать (см. стр. 100 Основного свода правил GENESYS) и не получает урона от физических атак. Если она получает дополнительный урон от магической атаки, она становится недееспособной, как обычно, и возобновляет телесную форму."
+      },
+      {
+        "name": "Доминировать",
+        "description": "Можно использовать действие «Доминирование» один раз за столкновение, совершая противоположную проверку Очарования против Дисциплины, нацеливаясь на одного персонажа на близком расстоянии; в случае успеха цель обездвиживается на 1 раунд за каждый неотмененный успех, и Элиза может потратить триумф, чтобы ошеломить цель на 1 раунд."
+      },
+      {
+        "name": "Чувствительность к солнечному свету",
+        "description": "Находясь под воздействием солнечного света, Элиза Фэрроу снижает все свои характеристики на 2 и вдвое уменьшает порог ранения и порог растяжения."
+      },
+      {
+        "name": "Нежить",
+        "description": "Не нуждается в дыхании, еде и питье (кроме крови) и может выжить под водой; невосприимчив к ядам и токсинам."
+      },
+      {
+        "name": "Вампирическая Магия",
+        "description": "Элиза Фэрроу снижает сложность всех проверок магических навыков на один шаг."
+      },
+      {
+        "name": "Заклинания (Магия)",
+        "description": ""
+      },
+      {
+        "name": "Заклинания: Кровавая воронка",
+        "description": "Выберите одну цель на близком расстоянии для атаки и совершите проверку Магии; Если боевая магическая проверка успешна, цель получает 4 повреждения + 1 повреждение за каждый неснятый успех с критическим рейтингом 2 и качествами Взрыв 4 и Яростность 4."
+      },
+      {
+        "name": "Заклинания: Проклятие ночи",
+        "description": "Выберите одну цель на небольшом расстоянии и совершите сложную проверку Магии; если проверка успешна, цель уменьшает способность любых проверок навыков, которые она совершает, на одну и уменьшает свои пороги растяжения и ранений на 4 до конца следующего хода Элизы Фэрроу; она может поддерживать эти эффекты, выполняя маневр «Концентрация»."
+      }
+    ],
+    "attacks": [
+      {
+        "name": "Клыки",
+        "skill": "Brawl",
+        "damage": "6",
+        "critical": "2",
+        "range": "Engaged",
+        "notes": "",
+        "qualities": [
+          {
+            "code": "ensnare",
+            "nameRu": "Сковывающее",
+            "rating": 1
+          },
+          {
+            "code": "vicious",
+            "nameRu": "Жестокое",
+            "rating": 2
+          }
+        ]
+      }
+    ],
+    "talents": [
+      "Adversary 2",
+      "Dark Insight"
+    ],
+    "equipment": [],
+    "tags": [
+      "нежить",
+      "магия"
+    ]
+  },
+  {
+    "system": "RealmsOfTerrinoth",
+    "name": "Danne Bulvert",
+    "nameEn": "Danne Bulvert",
+    "kind": "Rival",
+    "role": "Brute",
+    "source": "Realms of Terrinoth",
+    "description": "",
+    "brawn": 2,
+    "agility": 3,
+    "intellect": 2,
+    "cunning": 3,
+    "willpower": 1,
+    "presence": 2,
+    "woundThreshold": 12,
+    "strainThreshold": null,
+    "soak": 2,
+    "meleeDefense": 0,
+    "rangedDefense": 0,
+    "silhouette": 1,
+    "tactics": "",
+    "skills": [
+      {
+        "name": "Cool",
+        "ranks": 2
+      },
+      {
+        "name": "Coordination",
+        "ranks": 2
+      },
+      {
+        "name": "Deception",
+        "ranks": 2
+      },
+      {
+        "name": "Melee (Light)",
+        "ranks": 2
+      },
+      {
+        "name": "Skulduggery",
+        "ranks": 3
+      },
+      {
+        "name": "Stealth",
+        "ranks": 3
+      }
+    ],
+    "abilities": [],
+    "attacks": [
+      {
+        "name": "Кинжал",
+        "skill": "Melee (Light)",
+        "damage": "3",
+        "critical": "3",
+        "range": "Engaged",
+        "notes": "",
+        "qualities": [
+          {
+            "code": "accurate",
+            "nameRu": "Точное",
+            "rating": 1
+          }
+        ]
+      },
+      {
+        "name": "Блэкджек",
+        "skill": "Melee (Light)",
+        "damage": "5",
+        "critical": "5",
+        "range": "Engaged",
+        "notes": "",
+        "qualities": [
+          {
+            "code": "disorient",
+            "nameRu": "Дезориентирующее",
+            "rating": 2
+          },
+          {
+            "code": "stun-damage",
+            "nameRu": "Оглушающий урон",
+            "rating": null
+          }
+        ]
+      }
+    ],
+    "talents": [],
+    "equipment": [],
+    "tags": []
+  }
+]

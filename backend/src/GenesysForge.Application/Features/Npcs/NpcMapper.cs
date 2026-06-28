@@ -15,7 +15,7 @@ public static class NpcMapper
         npc.Brawn, npc.Agility, npc.Intellect, npc.Cunning, npc.Willpower, npc.Presence,
         npc.WoundThreshold, npc.StrainThreshold, npc.Soak, npc.MeleeDefense, npc.RangedDefense,
         npc.Silhouette, npc.Tactics,
-        npc.Visibility, npc.CampaignId, npc.OwnerUserId == userId,
+        npc.Visibility, npc.CampaignId, npc.OwnerUserId == userId, npc.IsBuiltIn,
         npc.Skills.OrderBy(s => s.Name).Select(s => new NpcSkillDto(s.Name, s.Ranks)).ToList(),
         npc.Abilities.Select(a => new NpcAbilityDto(a.Name, a.Description)).ToList(),
         npc.Attacks.Select(a => new NpcAttackDto(a.Name, a.SkillName, a.Damage, a.Critical, a.RangeBand, a.Notes,
@@ -27,7 +27,7 @@ public static class NpcMapper
 
     public static NpcListItemDto ToListItem(Npc npc, Guid userId) => new(
         npc.Id, npc.Name, npc.System, npc.Kind, npc.Role, npc.Soak, npc.WoundThreshold,
-        npc.StrainThreshold, npc.Visibility, npc.CampaignId, npc.OwnerUserId == userId,
+        npc.StrainThreshold, npc.Visibility, npc.CampaignId, npc.OwnerUserId == userId, npc.IsBuiltIn,
         npc.Skills.OrderBy(s => s.Name).Select(s => new NpcSkillDto(s.Name, s.Ranks)).ToList(),
         npc.Tags, npc.CreatedAt);
 
@@ -60,6 +60,7 @@ public static class NpcMapper
 
     public static async Task<bool> CanViewAsync(IAppDbContext db, Npc npc, Guid userId, CancellationToken ct)
     {
+        if (npc.IsBuiltIn) return true; // встроенный бестиарий — read-only, виден всем
         if (npc.OwnerUserId == userId) return true;
         if (npc.Visibility == NpcVisibility.CampaignVisible && npc.CampaignId is { } cid)
             return await db.CampaignCharacters.AnyAsync(cc => cc.CampaignId == cid && cc.PlayerUserId == userId, ct);

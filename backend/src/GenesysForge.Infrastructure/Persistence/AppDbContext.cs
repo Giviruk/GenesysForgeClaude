@@ -210,6 +210,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         {
             e.HasIndex(n => n.OwnerUserId);
             e.HasIndex(n => n.CampaignId);
+            e.HasIndex(n => n.IsBuiltIn);
             e.Property(n => n.Name).HasMaxLength(200);
             e.Property(n => n.Source).HasMaxLength(160);
             e.Property(n => n.Talents).HasMaxLength(2000);

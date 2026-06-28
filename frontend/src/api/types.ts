@@ -427,6 +427,7 @@ export interface NpcListItem {
   visibility: NpcVisibility
   campaignId: string | null
   isMine: boolean
+  isBuiltIn: boolean
   skills: NpcSkillEntry[]
   tags: string[]
   createdAt: string
@@ -456,6 +457,7 @@ export interface NpcDetail {
   visibility: NpcVisibility
   campaignId: string | null
   isMine: boolean
+  isBuiltIn: boolean
   skills: NpcSkillEntry[]
   abilities: NpcAbilityEntry[]
   attacks: NpcAttackEntry[]

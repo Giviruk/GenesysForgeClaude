@@ -43,6 +43,7 @@ export function NpcsPage({ openId, onOpen, onBack }: Props) {
   const [system, setSystem] = useState<GameSystem | ''>('')
   const [kind, setKind] = useState<NpcKind | ''>('')
   const [role, setRole] = useState<NpcRole | ''>('')
+  const [source, setSource] = useState<'' | 'mine' | 'builtin'>('')
   const [sort, setSort] = useState<'createdAt' | 'name'>('createdAt')
 
   const reload = useCallback(() => api.npcs({
@@ -56,6 +57,14 @@ export function NpcsPage({ openId, onOpen, onBack }: Props) {
 
   // Список всегда виден (master-detail) и перезагружается по фильтрам.
   useEffect(() => { void reload() }, [reload])
+
+  // Фильтр источника (мои / встроенный бестиарий) — клиентский поверх ответа сервера.
+  const shown = useMemo(() => {
+    if (!npcs) return npcs
+    if (source === 'mine') return npcs.filter(n => n.isMine)
+    if (source === 'builtin') return npcs.filter(n => n.isBuiltIn)
+    return npcs
+  }, [npcs, source])
 
   return (
     <div className="page npc-page">
@@ -87,6 +96,13 @@ export function NpcsPage({ openId, onOpen, onBack }: Props) {
                 <option value="">Все роли</option>
                 {NPC_ROLES.map(r => <option key={r} value={r}>{NPC_ROLE_LABELS[r]}</option>)}
               </select>
+              <select value={source} onChange={e => setSource(e.target.value as '' | 'mine' | 'builtin')}>
+                <option value="">Все источники</option>
+                <option value="mine">Мои</option>
+                <option value="builtin">Встроенные</option>
+              </select>
+            </div>
+            <div className="npc-filter-row">
               <select value={sort} onChange={e => setSort(e.target.value as 'createdAt' | 'name')}>
                 <option value="createdAt">Сначала новые</option>
                 <option value="name">По имени</option>
@@ -94,10 +110,10 @@ export function NpcsPage({ openId, onOpen, onBack }: Props) {
             </div>
           </div>
 
-          {npcs === null && <p className="muted bestiary-hint">Загрузка…</p>}
-          {npcs?.length === 0 && <p className="muted bestiary-hint">Ничего не найдено — создайте NPC или быстрый черновик.</p>}
+          {shown === null && <p className="muted bestiary-hint">Загрузка…</p>}
+          {shown?.length === 0 && <p className="muted bestiary-hint">Ничего не найдено — создайте NPC или быстрый черновик.</p>}
           <ul className="bestiary-items">
-            {npcs?.map(n => (
+            {shown?.map(n => (
               <li key={n.id}>
                 <button type="button" className={`bestiary-item${n.id === openId ? ' active' : ''}`}
                   onClick={() => onOpen(n.id)}>
@@ -108,7 +124,9 @@ export function NpcsPage({ openId, onOpen, onBack }: Props) {
                   <span className="bestiary-item-sub muted">
                     {NPC_KIND_LABELS[n.kind]} · {NPC_ROLE_LABELS[n.role]} · Soak {n.soak} · Раны {n.woundThreshold}
                   </span>
-                  {!n.isMine && <span className="bestiary-item-flag muted">из кампании</span>}
+                  {n.isBuiltIn
+                    ? <span className="bestiary-item-flag muted">встроенный</span>
+                    : !n.isMine && <span className="bestiary-item-flag muted">из кампании</span>}
                 </button>
               </li>
             ))}
@@ -225,6 +243,12 @@ function NpcDetailView({ npcId, reloadToken, onEdit, onDuplicated, onDeleted }: 
             Удалить
           </button>
         </>}
+        {n.isBuiltIn && (
+          <button className="primary" disabled={busy}
+            onClick={() => void action(async () => { const dup = await api.duplicateNpc(n.id); onDuplicated(dup.id) })}>
+            Клонировать в мою библиотеку
+          </button>
+        )}
       </div>
 
       <div className="npc-card">
@@ -232,6 +256,7 @@ function NpcDetailView({ npcId, reloadToken, onEdit, onDuplicated, onDeleted }: 
           <h3>{n.name}</h3>
           <span className="muted">
             {SYSTEM_LABELS[n.system]} · {NPC_KIND_LABELS[n.kind]} · {NPC_ROLE_LABELS[n.role]}
+            {n.isBuiltIn && <span className="badge builtin"> встроенный · только чтение</span>}
           </span>
         </div>
         {n.description && <p className="npc-desc">{n.description}</p>}
