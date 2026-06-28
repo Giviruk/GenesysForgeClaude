@@ -130,6 +130,56 @@ public class CampaignTests : IClassFixture<ApiFactory>
     }
 
     [Fact]
+    public async Task Gm_ViewsMemberSheet_ReadOnly()
+    {
+        var gm = await _factory.CreateAuthorizedClientAsync();
+        var campaign = await CreateCampaignAsync(gm);
+        var player = await _factory.CreateAuthorizedClientAsync();
+        var charId = await CreateCharacterAsync(player, "Бард");
+        await player.PostAsJsonAsync("/api/campaigns/join", new JoinCampaignRequest(campaign.JoinCode!, charId), Json.Options);
+
+        // GM открывает лист персонажа участника.
+        var resp = await gm.GetAsync($"/api/campaigns/{campaign.Id}/characters/{charId}/sheet");
+        Assert.Equal(HttpStatusCode.OK, resp.StatusCode);
+        var sheet = (await resp.Content.ReadFromJsonAsync<CharacterSheetDto>(Json.Options))!;
+        Assert.Equal(charId, sheet.Id);
+        Assert.Equal("Бард", sheet.Name);
+        Assert.NotEmpty(sheet.Skills); // полный лист, не заглушка
+    }
+
+    [Fact]
+    public async Task NonGm_CannotViewMemberSheet()
+    {
+        var gm = await _factory.CreateAuthorizedClientAsync();
+        var campaign = await CreateCampaignAsync(gm);
+        var player = await _factory.CreateAuthorizedClientAsync();
+        var charId = await CreateCharacterAsync(player, "Бард");
+        await player.PostAsJsonAsync("/api/campaigns/join", new JoinCampaignRequest(campaign.JoinCode!, charId), Json.Options);
+
+        // Игрок (не мастер) не может смотреть лист через GM-эндпоинт.
+        var asPlayer = await player.GetAsync($"/api/campaigns/{campaign.Id}/characters/{charId}/sheet");
+        Assert.Equal(HttpStatusCode.BadRequest, asPlayer.StatusCode);
+
+        // Посторонний тоже не может.
+        var stranger = await _factory.CreateAuthorizedClientAsync();
+        var asStranger = await stranger.GetAsync($"/api/campaigns/{campaign.Id}/characters/{charId}/sheet");
+        Assert.Equal(HttpStatusCode.BadRequest, asStranger.StatusCode);
+    }
+
+    [Fact]
+    public async Task Gm_CannotViewSheet_OfCharacterNotInCampaign()
+    {
+        var gm = await _factory.CreateAuthorizedClientAsync();
+        var campaign = await CreateCampaignAsync(gm);
+        // Персонаж существует, но в кампанию не добавлен.
+        var outsider = await _factory.CreateAuthorizedClientAsync();
+        var charId = await CreateCharacterAsync(outsider, "Странник");
+
+        var resp = await gm.GetAsync($"/api/campaigns/{campaign.Id}/characters/{charId}/sheet");
+        Assert.Equal(HttpStatusCode.BadRequest, resp.StatusCode); // не участник кампании
+    }
+
+    [Fact]
     public async Task Player_CanLeave_GmCanRemove()
     {
         var gm = await _factory.CreateAuthorizedClientAsync();

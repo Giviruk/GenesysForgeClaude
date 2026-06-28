@@ -221,6 +221,9 @@ export const api = {
     request<CampaignDetail>('POST', '/api/campaigns/join', { joinCode, characterId }),
   removeCampaignCharacter: (campaignId: string, characterId: string) =>
     request<void>('DELETE', `/api/campaigns/${campaignId}/characters/${characterId}`),
+  // GM открывает read-only лист персонажа участника своей кампании (U-20).
+  campaignMemberSheet: (campaignId: string, characterId: string) =>
+    request<CharacterSheet>('GET', `/api/campaigns/${campaignId}/characters/${characterId}/sheet`),
   createCampaignNote: (campaignId: string, note: { title: string; body: string; isPrivate: boolean }) =>
     request<CampaignNote>('POST', `/api/campaigns/${campaignId}/notes`, note),
   updateCampaignNote: (campaignId: string, noteId: string, note: { title: string; body: string; isPrivate: boolean }) =>
