@@ -210,7 +210,7 @@
 - **DoD:** простые активные эффекты применяются кнопкой; сложные — manual prompt; видно, что применилось автоматически.
 
 ## U-19 · Преднаполненный бестиарий Terrinoth
-- **Статус:** 🚧 In progress (PR #62)
+- **Статус:** ✅ Done (PR #62)
 - **Источник:** Аудит §3.2/§5 (НЕ в GF-плане)
 - **Детали:** `Npc.IsBuiltIn` + `OwnerUserId` nullable; встроенные существа видны всем read-only (`CanViewAsync`/`GetNpcsHandler`), правка/удаление закрыты, клонируются в свою библиотеку (`DuplicateNpc`). Импорт **86 официальных существ RoT** из `_books/_adversaries/genesys_fantasy_adversaries_ru.json` (генератор `gen-bestiary-catalog.mjs` → embedded `bestiary.catalog.json`, идемпотентный `SeedBestiary`). См. [u19-terrinoth-bestiary.md](tasks/u19-terrinoth-bestiary.md).
 - **Scope (D):** seed-набор существ RoT как built-in NPC (stat-блоки) поверх существующей модели NPC + U-14 атак.
