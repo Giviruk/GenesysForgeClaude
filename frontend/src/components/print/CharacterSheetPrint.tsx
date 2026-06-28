@@ -158,6 +158,28 @@ export function CharacterSheetPrint({ sheet, reference }: { sheet: CharacterShee
         })}
       </section>
 
+      {(sheet.desire || sheet.fear || sheet.strength || sheet.flaw || sheet.background) && (
+        <section className="sheet-section">
+          <h2>Образ персонажа</h2>
+          {([
+            ['Стремление', sheet.desire],
+            ['Страх', sheet.fear],
+            ['Сильная сторона', sheet.strength],
+            ['Слабость', sheet.flaw],
+          ] as const).filter(([, v]) => v).map(([label, value]) => (
+            <div key={label} className="sheet-entry">
+              <strong>{label}:</strong> <span className="sheet-meta">{value}</span>
+            </div>
+          ))}
+          {sheet.background && (
+            <div className="sheet-entry">
+              <strong>Предыстория</strong>
+              <div className="sheet-desc sheet-prewrap">{sheet.background}</div>
+            </div>
+          )}
+        </section>
+      )}
+
       {notes.length > 0 && (
         <section className="sheet-section">
           <h2>Заметки</h2>

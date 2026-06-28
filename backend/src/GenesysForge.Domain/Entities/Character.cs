@@ -34,6 +34,13 @@ public class Character
     /// <summary>Купленный ранг улучшения героической способности: 0 — базовая, 1 — Improved, 2 — Supreme.</summary>
     public int HeroicUpgradeRank { get; set; }
 
+    // Мотивации и предыстория (U-22). Все опциональны: пусто → null.
+    public string? Desire { get; set; }
+    public string? Fear { get; set; }
+    public string? Strength { get; set; }
+    public string? Flaw { get; set; }
+    public string? Background { get; set; }
+
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     public List<CharacterSkill> Skills { get; set; } = [];

@@ -232,8 +232,9 @@
 - **DoD:** пользователь видит/редактирует имя и аватар, меняет пароль в сессии.
 
 ## U-22 · Мотивации и предыстория персонажа
-- **Статус:** ⬜ Todo
+- **Статус:** 🚧 In progress (PR #TBD)
 - **Источник:** Аудит §2.1 (НЕ в GF-плане)
+- **Детали:** поля `Desire/Fear/Strength/Flaw` + `Background` в `Character` (миграция `AddCharacterMotivations`), в Create/Update-request + `CharacterSheetDto`. Вкладка «Образ» (`BioTab`) на листе + свёрнутый блок в создании + секция в печати. См. [u22-motivations-background.md](tasks/u22-motivations-background.md).
 - **Scope (B):** поля `Desire/Fear/Strength/Flaw` + `Background` в `Character` (миграция), в `CreateCharacterRequest`/`UpdateCharacterRequest`/`CharacterSheetDto`.
 - **Scope (F):** блок мотиваций и текст предыстории на листе/создании; выводить в печать (U-04).
 - **DoD:** мотивации и предыстория сохраняются, видны на листе и в печати.

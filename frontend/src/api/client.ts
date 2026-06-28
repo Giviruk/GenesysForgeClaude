@@ -1,7 +1,7 @@
 import type {
   Account,
   AuthResponse, AuthProviders, CampaignDetail, CampaignListItem, CampaignNote, CharacterListItem, CharacterNote,
-  ActivateAbilityResult, ActivateCharacterAbilityResult, AddParticipantRequest, CharacterSheet, CreatureTemplate, GameSession, GameSystem, HeroicAbility, InitiativeSlotType,
+  ActivateAbilityResult, ActivateCharacterAbilityResult, AddParticipantRequest, CharacterBio, CharacterSheet, CreatureTemplate, GameSession, GameSystem, HeroicAbility, InitiativeSlotType,
   ItemDef, ItemState, NpcDetail, NpcFilter, NpcInput, NpcListItem, QuickDraftRequest, Reference,
   SkillDef, Spell, TalentDef, UpdateParticipantRequest,
   AddEncounterParticipantRequest, EncounterDetail, EncounterFilter, EncounterInput, EncounterListItem,
@@ -128,15 +128,15 @@ export const api = {
   characters: () => request<CharacterListItem[]>('GET', '/api/characters/'),
   createCharacter: (name: string, system: GameSystem, archetypeId: string, careerId: string,
     freeCareerSkillNames: string[], archetypeSkillChoices: ArchetypeSkillChoice[] = [],
-    careerGearChoices: CareerGearChoice[] = []) =>
+    careerGearChoices: CareerGearChoice[] = [], bio: CharacterBio = {}) =>
     request<{ id: string }>('POST', '/api/characters/',
-      { name, system, archetypeId, careerId, freeCareerSkillNames, archetypeSkillChoices, careerGearChoices }),
+      { name, system, archetypeId, careerId, freeCareerSkillNames, archetypeSkillChoices, careerGearChoices, ...bio }),
   sheet: (id: string) => request<CharacterSheet>('GET', `/api/characters/${id}`),
   exportCharacter: (id: string) => request<CharacterExport>('GET', `/api/characters/${id}/export`),
   importCharacter: (payload: CharacterExport) => request<ImportResult>('POST', '/api/characters/import', payload),
   previewImport: (payload: CharacterExport) => request<ImportPreview>('POST', '/api/characters/import/preview', payload),
   deleteCharacter: (id: string) => request<void>('DELETE', `/api/characters/${id}`),
-  updateCharacter: (id: string, patch: { name?: string; totalXp?: number; woundsCurrent?: number; strainCurrent?: number; money?: number }) =>
+  updateCharacter: (id: string, patch: { name?: string; totalXp?: number; woundsCurrent?: number; strainCurrent?: number; money?: number } & CharacterBio) =>
     request<void>('PATCH', `/api/characters/${id}`, patch),
   completeCreation: (id: string) => request<void>('POST', `/api/characters/${id}/complete-creation`),
 

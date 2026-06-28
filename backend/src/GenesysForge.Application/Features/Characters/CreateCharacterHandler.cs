@@ -49,6 +49,11 @@ public partial class CreateCharacterHandler(IAppDbContext db) : ICommandHandler<
             Presence = archetype.Presence,
             TotalXp = archetype.StartingXp,
             Money = career.StartingMoneyFixed + RollDice(career.StartingMoneyDice),
+            Desire = Clean(req.Desire),
+            Fear = Clean(req.Fear),
+            Strength = Clean(req.Strength),
+            Flaw = Clean(req.Flaw),
+            Background = Clean(req.Background),
         };
 
         // Резолвер навыков системы: built-in приоритетнее одноимённого custom.
@@ -169,6 +174,13 @@ public partial class CreateCharacterHandler(IAppDbContext db) : ICommandHandler<
                 throw new DomainRuleException($"Неверный вариант стартового снаряжения для слота {group}.");
             foreach (var g in optionItems) AddItem(g.ItemCode, g.Quantity);
         }
+    }
+
+    /// <summary>Нормализует опциональное текстовое поле: trim, пустое → null.</summary>
+    private static string? Clean(string? value)
+    {
+        var trimmed = value?.Trim();
+        return string.IsNullOrEmpty(trimmed) ? null : trimmed;
     }
 
     /// <summary>Бросок стартовых денег формата <c>NdM</c> (например «1d100»). Пусто/некорректно → 0.</summary>

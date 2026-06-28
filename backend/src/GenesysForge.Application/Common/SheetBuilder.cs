@@ -81,6 +81,7 @@ public static class SheetBuilder
                         i.ItemDef.Encumbrance, i.Quantity)),
                     i.ItemDef.Description, i.ItemDef.Price,
                     i.ItemDef.SkillName, i.ItemDef.Damage, i.ItemDef.Crit, i.ItemDef.RangeBand, i.ItemDef.Properties))
-                .ToList());
+                .ToList(),
+            c.Desire, c.Fear, c.Strength, c.Flaw, c.Background);
     }
 }

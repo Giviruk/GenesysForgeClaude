@@ -151,6 +151,12 @@ export function CreateCharacterForm({ onCancel, onCreated }: { onCancel: () => v
   const [skillChoices, setSkillChoices] = useState<Record<string, string[]>>({})
   // Выборы стартового снаряжения карьеры: choiceGroup → индекс выбранного варианта.
   const [gearChoices, setGearChoices] = useState<Record<string, number>>({})
+  // Мотивации и предыстория (U-22) — все опциональны, можно заполнить позже на листе.
+  const [desire, setDesire] = useState('')
+  const [fear, setFear] = useState('')
+  const [strength, setStrength] = useState('')
+  const [flaw, setFlaw] = useState('')
+  const [background, setBackground] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
 
@@ -230,7 +236,8 @@ export function CreateCharacterForm({ onCancel, onCreated }: { onCancel: () => v
     try {
       const choices = choiceGroups.map(g => ({ choiceGroup: g.choiceGroup, skillNames: skillChoices[g.choiceGroup] ?? [] }))
       const gear = gearSlots.map(s => ({ choiceGroup: s.group, optionIndex: gearChoices[s.group] }))
-      const { id } = await api.createCharacter(name, system, archetypeId, careerId, freeSkills, choices, gear)
+      const { id } = await api.createCharacter(name, system, archetypeId, careerId, freeSkills, choices, gear,
+        { desire, fear, strength, flaw, background })
       onCreated(id)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Ошибка создания')
@@ -349,6 +356,26 @@ export function CreateCharacterForm({ onCancel, onCreated }: { onCancel: () => v
             {career.rules.map(r => <div key={r.code} className="hint">{r.description}</div>)}
           </div>
         )}
+
+        <details className="create-bio">
+          <summary>Мотивации и предыстория (необязательно)</summary>
+          <div className="hint">Можно заполнить позже на вкладке «Образ» листа персонажа.</div>
+          <label>Стремление
+            <input value={desire} onChange={e => setDesire(e.target.value)} maxLength={300} />
+          </label>
+          <label>Страх
+            <input value={fear} onChange={e => setFear(e.target.value)} maxLength={300} />
+          </label>
+          <label>Сильная сторона
+            <input value={strength} onChange={e => setStrength(e.target.value)} maxLength={300} />
+          </label>
+          <label>Слабость
+            <input value={flaw} onChange={e => setFlaw(e.target.value)} maxLength={300} />
+          </label>
+          <label>Предыстория
+            <textarea value={background} onChange={e => setBackground(e.target.value)} rows={4} maxLength={8000} />
+          </label>
+        </details>
 
         {error && <div className="error">{error}</div>}
         <div className="modal-actions">

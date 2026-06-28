@@ -36,7 +36,20 @@ public class UpdateCharacterHandler(IAppDbContext db) : ICommandHandler<UpdateCh
         if (req.StrainCurrent is not null) c.StrainCurrent = Math.Max(0, req.StrainCurrent.Value);
         if (req.Money is not null) c.Money = Math.Max(0, req.Money.Value);
 
+        // Мотивации/предыстория (U-22): null — не трогаем, пустая строка — очищаем в null.
+        if (req.Desire is not null) c.Desire = Clean(req.Desire);
+        if (req.Fear is not null) c.Fear = Clean(req.Fear);
+        if (req.Strength is not null) c.Strength = Clean(req.Strength);
+        if (req.Flaw is not null) c.Flaw = Clean(req.Flaw);
+        if (req.Background is not null) c.Background = Clean(req.Background);
+
         await db.SaveChangesAsync(ct);
         return Unit.Value;
+    }
+
+    private static string? Clean(string value)
+    {
+        var trimmed = value.Trim();
+        return string.IsNullOrEmpty(trimmed) ? null : trimmed;
     }
 }
