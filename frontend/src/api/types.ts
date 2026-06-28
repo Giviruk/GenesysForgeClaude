@@ -143,6 +143,13 @@ export interface ActivateAbilityResult {
   manual: string[]
 }
 
+export interface ActivateCharacterAbilityResult {
+  sheet: CharacterSheet
+  abilityName: string
+  applied: string[]
+  manual: string[]
+}
+
 export type SpellEntryKind = 'effect' | 'additionalEffect'
 
 export interface Spell {

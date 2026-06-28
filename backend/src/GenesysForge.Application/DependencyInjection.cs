@@ -59,6 +59,8 @@ public static class DependencyInjection
         services.AddScoped<ICommandHandler<SellItemCommand, Unit>, SellItemHandler>();
         services.AddScoped<IQueryHandler<GetCharacterAuditQuery, IReadOnlyList<CharacterAuditEntryDto>>, GetCharacterAuditHandler>();
         services.AddScoped<ICommandHandler<AwardXpCommand, Unit>, AwardXpHandler>();
+        services.AddScoped<ICommandHandler<ActivateCharacterAbilityCommand, ActivateCharacterAbilityResult>,
+            ActivateCharacterAbilityHandler>();
 
         // Custom content
         services.AddScoped<ICommandHandler<CreateCustomSkillCommand, SkillDefDto>, CreateCustomSkillHandler>();

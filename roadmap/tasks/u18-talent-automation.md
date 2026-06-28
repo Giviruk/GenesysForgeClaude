@@ -3,8 +3,8 @@
 - **Roadmap:** U-18 (см. [unified-roadmap.md](../unified-roadmap.md)); источник GF-012 / Аудит §2.2.
 - **Ветка:** `feature/u18-talent-automation` (от master после U-17).
 - **Базовая ветка:** `master`.
-- **PR:** Stage 1 — [#60](https://github.com/Giviruk/GenesysForgeClaude/pull/60); Stage 2 — _(позже)_
-- **Статус:** 🚧 In progress (Stage 1 в ревью)
+- **PR:** Stage 1 — [#60](https://github.com/Giviruk/GenesysForgeClaude/pull/60) (merged); Stage 2 — [#61](https://github.com/Giviruk/GenesysForgeClaude/pull/61)
+- **Статус:** 🚧 In progress (Stage 2 в ревью)
 
 ## Контекст
 
@@ -34,13 +34,20 @@
       показ applied/manual.
 - [x] Тесты: Domain `RuleEffectApplierTests` (4), Api `ActivateAbility...` (участник+лог). Domain 102 / Api 187 / front 92.
 
-## Stage 2 — лист персонажа (следующий PR)
-- Character: `WoundsCurrent`/`StrainCurrent` (+ миграция), отображение/правка на листе.
-- Активация талантов/героик на листе → применение + `CharacterAuditEntry` (U-09).
-- Boost/setback к следующей проверке (pending-модификатор), добор разметки активных талантов.
+## Stage 2 — лист персонажа  ✅ (PR #61)
+- [x] `Character` уже хранит `WoundsCurrent`/`StrainCurrent` (миграция не нужна); лист показывает current.
+- [x] `MutableCombatTarget` (ICombatTarget для листа); `POST /api/characters/{id}/activate-ability` активирует
+      героику персонажа: heal-эффекты персистятся в current, остальное (soak/защита/порог/boost) — на сцену/подсказка;
+      `CharacterAuditEntry` (action `AbilityActivated`, U-09).
+- [x] Frontend: кнопка «🎯 Активировать» у героики на листе (`SheetTab.HeroicAbilityCard`), показ applied/manual.
+- [x] Тесты: Api `CharacterActivationTests` (эффект+audit; без героики → 400). Domain 102 / Api 189 / front 92.
+- [~] Boost/setback к следующей проверке — показывается подсказкой (pending-модель — позже).
+- [~] Авторазметка активных **талантов** — отложена (модель `RuleEffectDef` готова, добавить `TalentDefId` + разметку
+      несложно; пока таланты = manual prompt). Эффекты-героики размечены и работают в обоих местах.
 
 ## DoD (вся U-18)
-- Простые активные эффекты применяются кнопкой (стол и лист); сложные — manual prompt; видно, что применилось.
+- [x] Простые активные эффекты применяются кнопкой (стол и лист); сложные — manual prompt; видно, что применилось.
+- Остаётся опциональным расширением: разметка эффектов талантов и pending boost-модификатор.
 
 ## Заметки / решения
 - Story points — пул сессии/партии (не на персонаже); в v1 spend story point = manual prompt (модель пула — позже).

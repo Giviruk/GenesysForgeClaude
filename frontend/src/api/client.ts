@@ -1,6 +1,6 @@
 import type {
   AuthResponse, AuthProviders, CampaignDetail, CampaignListItem, CampaignNote, CharacterListItem, CharacterNote,
-  ActivateAbilityResult, AddParticipantRequest, CharacterSheet, CreatureTemplate, GameSession, GameSystem, HeroicAbility, InitiativeSlotType,
+  ActivateAbilityResult, ActivateCharacterAbilityResult, AddParticipantRequest, CharacterSheet, CreatureTemplate, GameSession, GameSystem, HeroicAbility, InitiativeSlotType,
   ItemDef, ItemState, NpcDetail, NpcFilter, NpcInput, NpcListItem, QuickDraftRequest, Reference,
   SkillDef, Spell, TalentDef, UpdateParticipantRequest,
   AddEncounterParticipantRequest, EncounterDetail, EncounterFilter, EncounterInput, EncounterListItem,
@@ -161,6 +161,8 @@ export const api = {
     request<void>('PUT', `/api/characters/${id}/heroic-ability`, { heroicAbilityId }),
   setHeroicUpgradeRank: (id: string, rank: number) =>
     request<void>('PUT', `/api/characters/${id}/heroic-upgrade`, { rank }),
+  activateCharacterAbility: (id: string) =>
+    request<ActivateCharacterAbilityResult>('POST', `/api/characters/${id}/activate-ability`),
 
   // cost — сколько монет списать при покупке; не передавайте (или 0) для бесплатного добавления.
   addItem: (id: string, itemDefId: string, quantity: number, state: ItemState, cost?: number) =>
