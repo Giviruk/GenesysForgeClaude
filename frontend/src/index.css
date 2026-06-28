@@ -756,6 +756,7 @@ button.tiny { font-size: 0.75rem; padding: 0.05rem 0.4rem 0.15rem; }
 .sheet-entry { page-break-inside: avoid; break-inside: avoid; margin: 0.35rem 0; }
 .sheet-entry .sheet-meta { color: #555; font-size: 0.85rem; }
 .sheet-entry .sheet-desc { color: #222; font-size: 0.85rem; margin-top: 0.1rem; }
+.sheet-desc.sheet-prewrap { white-space: pre-wrap; }
 .sheet-inv-group { page-break-inside: avoid; break-inside: avoid; }
 .sheet-weapon-pool {
   display: flex; align-items: center; flex-wrap: wrap; gap: 0.35rem;

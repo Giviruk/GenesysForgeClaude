@@ -24,4 +24,9 @@ public record CharacterSheetDto(
     int HeroicUpgradeRank,
     int HeroicUpgradePointsTotal,
     int HeroicUpgradePointsSpent,
-    List<CharacterItemDto> Items);
+    List<CharacterItemDto> Items,
+    string? Desire = null,
+    string? Fear = null,
+    string? Strength = null,
+    string? Flaw = null,
+    string? Background = null);

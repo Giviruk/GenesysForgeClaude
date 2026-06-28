@@ -94,6 +94,11 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             e.HasMany(c => c.Talents).WithOne().HasForeignKey(t => t.CharacterId).OnDelete(DeleteBehavior.Cascade);
             e.HasMany(c => c.Items).WithOne().HasForeignKey(i => i.CharacterId).OnDelete(DeleteBehavior.Cascade);
             e.Ignore(c => c.Characteristics);
+            e.Property(c => c.Desire).HasMaxLength(300);
+            e.Property(c => c.Fear).HasMaxLength(300);
+            e.Property(c => c.Strength).HasMaxLength(300);
+            e.Property(c => c.Flaw).HasMaxLength(300);
+            e.Property(c => c.Background).HasMaxLength(8000);
         });
 
         b.Entity<CharacterSkill>(e =>

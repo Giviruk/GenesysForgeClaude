@@ -116,6 +116,43 @@ public class CharacterFlowTests : IClassFixture<ApiFactory>
     }
 
     [Fact]
+    public async Task Motivations_CreatedSaved_Updated_AndCleared()
+    {
+        // Создание с мотивациями/предысторией (U-22).
+        var client = await _factory.CreateAuthorizedClientAsync();
+        var reference = (await client.GetFromJsonAsync<ReferenceResponse>("/api/reference/GenesysCore", Json.Options))!;
+        var create = await client.PostAsJsonAsync("/api/characters/",
+            new CreateCharacterRequest("Бродяга", GameSystem.GenesysCore, reference.Archetypes[0].Id, reference.Careers[0].Id,
+                null, Desire: "  Найти дом  ", Fear: "Одиночество", Strength: "Верность", Flaw: "Гордыня",
+                Background: "Вырос в порту."));
+        Assert.Equal(HttpStatusCode.Created, create.StatusCode);
+        var id = (await create.Content.ReadFromJsonAsync<Dictionary<string, Guid>>(Json.Options))!["id"];
+
+        var sheet = await SheetAsync(client, id);
+        Assert.Equal("Найти дом", sheet.Desire); // trim
+        Assert.Equal("Одиночество", sheet.Fear);
+        Assert.Equal("Верность", sheet.Strength);
+        Assert.Equal("Гордыня", sheet.Flaw);
+        Assert.Equal("Вырос в порту.", sheet.Background);
+
+        // Частичное обновление: меняем страх и предысторию, остальное не трогаем (null).
+        await client.PatchAsJsonAsync($"/api/characters/{id}",
+            new UpdateCharacterRequest(null, null, null, null, Fear: "Высота", Background: "Перебрался в горы."), Json.Options);
+        var updated = await SheetAsync(client, id);
+        Assert.Equal("Найти дом", updated.Desire); // не изменилось
+        Assert.Equal("Высота", updated.Fear);
+        Assert.Equal("Перебрался в горы.", updated.Background);
+
+        // Очистка пустой строкой → null.
+        await client.PatchAsJsonAsync($"/api/characters/{id}",
+            new UpdateCharacterRequest(null, null, null, null, Desire: "", Background: "  "), Json.Options);
+        var cleared = await SheetAsync(client, id);
+        Assert.Null(cleared.Desire);
+        Assert.Null(cleared.Background);
+        Assert.Equal("Высота", cleared.Fear); // по-прежнему на месте
+    }
+
+    [Fact]
     public async Task BuySkillRank_SpendsXp_AndUpgradesDicePool()
     {
         var (client, _, id) = await CreateCharacterAsync(GameSystem.GenesysCore);

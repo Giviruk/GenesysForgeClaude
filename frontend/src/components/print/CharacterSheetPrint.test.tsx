@@ -84,6 +84,11 @@ const sheet = {
     rangeBand: 'Engaged',
     properties: '',
   }],
+  desire: 'Защитить деревню',
+  fear: null,
+  strength: null,
+  flaw: 'Вспыльчивость',
+  background: 'Родилась в лесу.',
 } as unknown as CharacterSheet
 
 const reference = {
@@ -108,5 +113,14 @@ describe('CharacterSheetPrint', () => {
     expect(screen.getByRole('heading', { name: 'Боевые' })).toBeTruthy()
     expect(container.querySelectorAll('.sheet-skill-column')).toHaveLength(2)
     await waitFor(() => expect(screen.queryByText('Заметки')).toBeNull())
+  })
+
+  it('печатает мотивации и предысторию (U-22), пропуская пустые', () => {
+    render(<CharacterSheetPrint sheet={sheet} reference={reference} />)
+    expect(screen.getByRole('heading', { name: 'Образ персонажа' })).toBeTruthy()
+    expect(screen.getByText('Защитить деревню')).toBeTruthy()
+    expect(screen.getByText('Вспыльчивость')).toBeTruthy()
+    expect(screen.getByText('Родилась в лесу.')).toBeTruthy()
+    expect(screen.queryByText('Страх:')).toBeNull() // пустое поле не выводится
   })
 })

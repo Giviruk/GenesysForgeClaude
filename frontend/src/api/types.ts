@@ -822,6 +822,21 @@ export interface CharacterSheet {
   heroicUpgradePointsTotal: number
   heroicUpgradePointsSpent: number
   items: SheetItem[]
+  // Мотивации и предыстория (U-22)
+  desire: string | null
+  fear: string | null
+  strength: string | null
+  flaw: string | null
+  background: string | null
+}
+
+/** Опциональные текстовые поля мотиваций/предыстории (U-22) для create/update. */
+export interface CharacterBio {
+  desire?: string
+  fear?: string
+  strength?: string
+  flaw?: string
+  background?: string
 }
 
 // ── История персонажа / audit log (U-09) ──
