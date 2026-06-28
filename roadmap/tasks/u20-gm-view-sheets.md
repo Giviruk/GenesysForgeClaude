@@ -1,6 +1,6 @@
 # U-20 · GM видит полные листы персонажей игроков
 
-**Статус:** 🚧 In progress · ветка `feature/u20-gm-view-sheets` (от master) · PR: _TBD_
+**Статус:** 🚧 In progress · ветка `feature/u20-gm-view-sheets` (от master) · PR #63
 **Roadmap:** [unified-roadmap.md](../unified-roadmap.md) U-20 · Источник: Аудит §6
 
 ## Зачем
