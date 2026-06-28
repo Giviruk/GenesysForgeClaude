@@ -16,4 +16,5 @@ public enum CharacterAuditAction
     HeroicAbilityChanged,
     CreationCompleted,
     ManualEdit,
+    AbilityActivated,
 }

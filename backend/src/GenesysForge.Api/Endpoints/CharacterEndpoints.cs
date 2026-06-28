@@ -79,6 +79,11 @@ public static class CharacterEndpoints
             return Results.NoContent();
         });
 
+        group.MapPost("/{id:guid}/activate-ability", async (Guid id, ClaimsPrincipal user,
+                ICommandHandler<ActivateCharacterAbilityCommand, ActivateCharacterAbilityResult> handler,
+                CancellationToken ct) =>
+            Results.Ok(await handler.Handle(new ActivateCharacterAbilityCommand(user.UserId(), id), ct)));
+
         group.MapPost("/{id:guid}/characteristics/{type}/buy", async (Guid id, string type,
             ClaimsPrincipal user, ICommandHandler<BuyCharacteristicCommand, Unit> handler, CancellationToken ct) =>
         {

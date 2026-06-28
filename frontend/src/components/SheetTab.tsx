@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { api } from '../api/client'
-import type { CharacterSheet, Reference, SkillKind } from '../api/types'
+import type { ActivateCharacterAbilityResult, CharacterSheet, Reference, SkillKind } from '../api/types'
 import { CHARACTERISTICS, CHARACTERISTIC_LABELS, CHARACTERISTIC_SHORT_LABELS, SKILL_KIND_LABELS } from '../utils/labels'
 import { DicePoolView } from './DicePoolView'
 import { DiceRoller } from './DiceRoller'
@@ -218,6 +218,11 @@ function HeroicAbilityCard({ sheet, run }: {
   const rank = sheet.heroicUpgradeRank
   const total = sheet.heroicUpgradePointsTotal
   const available = total - sheet.heroicUpgradePointsSpent
+  const [outcome, setOutcome] = useState<ActivateCharacterAbilityResult | null>(null)
+
+  async function activate() {
+    await run(async () => { setOutcome(await api.activateCharacterAbility(sheet.id)) })
+  }
   const meta: [string, string][] = [
     ['Активация', [h.activationCost, h.activation].filter(Boolean).join(' · ')],
     ['Длительность', h.duration],
@@ -271,6 +276,18 @@ function HeroicAbilityCard({ sheet, run }: {
               </div>
             )
           })}
+        </div>
+      )}
+
+      {h.effects.length > 0 && (
+        <div className="heroic-activate">
+          <button className="small primary" onClick={() => void activate()}>🎯 Активировать</button>
+          {outcome && (
+            <div className="heroic-activate-result small-text">
+              {outcome.applied.map((a, i) => <div key={`a${i}`}>{a}</div>)}
+              {outcome.manual.map((m, i) => <div key={`m${i}`} className="muted">{m}</div>)}
+            </div>
+          )}
         </div>
       )}
 
