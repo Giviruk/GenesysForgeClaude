@@ -3,7 +3,7 @@
 - **Roadmap:** U-24 — Клонирование и read-only шеринг персонажа (см. [unified-roadmap.md](../unified-roadmap.md))
 - **Ветка:** `feature/u24-character-clone-sharing`
 - **Базовая ветка:** `master`
-- **PR:** pending
+- **PR:** #68 — https://github.com/Giviruk/GenesysForgeClaude/pull/68
 - **Статус:** 🚧 In progress
 
 ## Контекст
@@ -27,11 +27,11 @@
 - [x] Реализовать frontend API методы и UI кнопки на листе/списке.
 - [x] Добавить/обновить xUnit и Vitest тесты.
 - [x] Запустить релевантные проверки.
-- [ ] Обновить план и открыть PR.
+- [x] Обновить план и открыть PR.
 
 ## Что осталось / блокеры
 
-- Нужно открыть PR после финального commit/push.
+- Ожидает review/merge PR #68.
 
 ## Заметки / решения
 
