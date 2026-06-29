@@ -210,6 +210,30 @@ Response: `204`.
 
 Protected. Deletes owned character. Response: `204`.
 
+### `POST /api/characters/{id}/duplicate`
+
+Protected. Creates a full owned copy of the character, including sheet state, inventory, critical injuries,
+motivation/background fields and notes. Response: `201 Created` with `{ "id": "..." }`.
+
+### `POST /api/characters/{id}/share`
+
+Protected. Creates an opaque public read-only share token for an owned character. The raw token is returned
+only in this response; the database stores only a SHA-256 hash.
+
+Response: `CharacterShareResponse`:
+
+- `token`
+- `path` — frontend path `/share/{token}`.
+
+### `DELETE /api/characters/{id}/share`
+
+Protected. Revokes all active public share links for the owned character. Response: `204`.
+
+### `GET /api/share/{token}`
+
+Public. Returns `CharacterSheetDto` for a valid non-revoked share token. No auth is required. The response is
+read-only from the frontend perspective; character notes are not exposed by this public endpoint.
+
 ### `POST /api/characters/{id}/complete-creation`
 
 Protected. Ends creation phase. Response: `204`.

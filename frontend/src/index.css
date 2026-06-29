@@ -142,6 +142,8 @@ h1.auth-brand { font-size: 2rem; margin: 0 0 0.2rem; }
   margin-left: auto;
 }
 .sheet-action-buttons { display: flex; justify-content: flex-end; gap: 0.5rem; flex-wrap: wrap; }
+.share-link { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; }
+.share-link input { min-width: min(32rem, 100%); flex: 1; }
 .xp-available { color: var(--accent); }
 .xp-input { width: 5rem; }
 
@@ -154,6 +156,7 @@ h1.auth-brand { font-size: 2rem; margin: 0 0 0.2rem; }
 .char-card:hover { border-color: var(--accent); }
 .char-card-head { display: flex; justify-content: space-between; gap: 0.5rem; align-items: baseline; flex-wrap: wrap; min-width: 0; }
 .char-card-head strong { min-width: 0; overflow-wrap: anywhere; }
+.card-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.75rem; }
 
 .badge {
   display: inline-flex; align-items: center; justify-content: center;

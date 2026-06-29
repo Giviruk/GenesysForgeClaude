@@ -27,6 +27,7 @@ public interface IAppDbContext
     DbSet<CharacterTalent> CharacterTalents { get; }
     DbSet<CharacterItem> CharacterItems { get; }
     DbSet<CharacterCriticalInjury> CharacterCriticalInjuries { get; }
+    DbSet<CharacterShareToken> CharacterShareTokens { get; }
     DbSet<CharacterNote> CharacterNotes { get; }
     DbSet<Campaign> Campaigns { get; }
     DbSet<CampaignCharacter> CampaignCharacters { get; }

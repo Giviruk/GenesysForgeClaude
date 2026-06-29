@@ -12,6 +12,7 @@ import { HistoryTab } from '../components/HistoryTab'
 import { MagicTab } from '../components/MagicTab'
 import { PrintPreview } from '../components/print/PrintPreview'
 import { CharacterSheetPrint } from '../components/print/CharacterSheetPrint'
+import { navigate } from '../router'
 
 interface Props {
   characterId: string
@@ -29,6 +30,8 @@ export function SheetPage({ characterId, printing, onOpenPrint, onClosePrint, on
   const [reference, setReference] = useState<Reference | null>(null)
   const [tab, setTab] = useState<Tab>('sheet')
   const [error, setError] = useState<string | null>(null)
+  const [notice, setNotice] = useState<string | null>(null)
+  const [shareUrl, setShareUrl] = useState<string | null>(null)
   const [xpEdit, setXpEdit] = useState<string | null>(null)
 
   const refresh = useCallback(
@@ -49,6 +52,12 @@ export function SheetPage({ characterId, printing, onOpenPrint, onClosePrint, on
     const timer = setTimeout(() => setError(null), 6000)
     return () => clearTimeout(timer)
   }, [error])
+
+  useEffect(() => {
+    if (!notice) return
+    const timer = setTimeout(() => setNotice(null), 6000)
+    return () => clearTimeout(timer)
+  }, [notice])
 
   if (!sheet || !reference) {
     return (
@@ -72,6 +81,48 @@ export function SheetPage({ characterId, printing, onOpenPrint, onClosePrint, on
       URL.revokeObjectURL(url)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Ошибка экспорта')
+    }
+  }
+
+  async function duplicateCurrent() {
+    if (!sheet) return
+    try {
+      const copy = await api.duplicateCharacter(sheet.id)
+      navigate(`/characters/${copy.id}`)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Ошибка клонирования')
+    }
+  }
+
+  async function shareCurrent() {
+    if (!sheet) return
+    try {
+      const share = await api.shareCharacter(sheet.id)
+      const url = `${window.location.origin}${share.path}`
+      setShareUrl(url)
+      if (navigator.clipboard?.writeText) {
+        try {
+          await navigator.clipboard.writeText(url)
+          setNotice('Ссылка скопирована в буфер обмена.')
+        } catch {
+          setNotice('Ссылка создана. Скопируйте её из поля ниже.')
+        }
+      } else {
+        setNotice('Ссылка создана. Скопируйте её из поля ниже.')
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Ошибка создания ссылки')
+    }
+  }
+
+  async function revokeShares() {
+    if (!sheet) return
+    try {
+      await api.revokeCharacterShares(sheet.id)
+      setShareUrl(null)
+      setNotice('Все публичные ссылки этого персонажа отозваны.')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Ошибка отзыва ссылки')
     }
   }
 
@@ -117,6 +168,18 @@ export function SheetPage({ characterId, printing, onOpenPrint, onClosePrint, on
               onClick={onOpenPrint}>
               Печать листа
             </button>
+            <button className="small" title="Создать копию персонажа"
+              onClick={() => void duplicateCurrent()}>
+              Клонировать
+            </button>
+            <button className="small" title="Создать публичную read-only ссылку"
+              onClick={() => void shareCurrent()}>
+              Поделиться
+            </button>
+            <button className="small" title="Отозвать все публичные ссылки этого персонажа"
+              onClick={() => void revokeShares()}>
+              Отозвать ссылки
+            </button>
             <button className="small" title="Скачать персонажа в JSON (бэкап / перенос между аккаунтами)"
               onClick={() => void exportJson()}>
               Экспорт JSON
@@ -132,6 +195,12 @@ export function SheetPage({ characterId, printing, onOpenPrint, onClosePrint, on
       </div>
 
       {error && <div className="error floating">{error}</div>}
+      {notice && <div className="notice">{notice}</div>}
+      {shareUrl && (
+        <div className="notice share-link">
+          Публичная ссылка: <input readOnly value={shareUrl} onFocus={e => e.currentTarget.select()} />
+        </div>
+      )}
 
       <div className="tabs main-tabs">
         <button className={tab === 'sheet' ? 'tab active' : 'tab'} onClick={() => setTab('sheet')}>Лист</button>

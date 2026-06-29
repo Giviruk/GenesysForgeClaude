@@ -197,6 +197,74 @@ public class CharacterFlowTests : IClassFixture<ApiFactory>
     }
 
     [Fact]
+    public async Task DuplicateCharacter_CopiesSheetState_Notes_AndOwnership()
+    {
+        var (client, reference, id) = await CreateCharacterAsync(GameSystem.GenesysCore);
+        var before = await SheetAsync(client, id);
+        var skill = before.Skills.First(s => s.IsCareer && s.Ranks == 0);
+        var item = reference.Items.First(i => i.Kind == ItemKind.Gear);
+
+        var buy = await client.PostAsync($"/api/characters/{id}/skills/{skill.SkillDefId}/buy-rank", null);
+        Assert.Equal(HttpStatusCode.NoContent, buy.StatusCode);
+        var addItem = await client.PostAsJsonAsync($"/api/characters/{id}/items",
+            new AddItemRequest(item.Id, 2, ItemState.Carried), Json.Options);
+        Assert.Equal(HttpStatusCode.Created, addItem.StatusCode);
+        var addNote = await client.PostAsJsonAsync($"/api/characters/{id}/notes/",
+            new SaveCharacterNoteRequest("Секрет", "Заметка копируется вместе с листом."), Json.Options);
+        Assert.Equal(HttpStatusCode.Created, addNote.StatusCode);
+
+        var duplicate = await client.PostAsync($"/api/characters/{id}/duplicate", null);
+        Assert.Equal(HttpStatusCode.Created, duplicate.StatusCode);
+        var body = (await duplicate.Content.ReadFromJsonAsync<Dictionary<string, Guid>>(Json.Options))!;
+        var copyId = body["id"];
+        Assert.NotEqual(id, copyId);
+
+        var copy = await SheetAsync(client, copyId);
+        Assert.Equal("Test Hero (копия)", copy.Name);
+        Assert.Equal(before.System, copy.System);
+        Assert.Equal(before.Archetype.Id, copy.Archetype.Id);
+        Assert.Equal(before.Career.Id, copy.Career.Id);
+        Assert.Equal(1, copy.Skills.First(s => s.SkillDefId == skill.SkillDefId).Ranks);
+        Assert.Contains(copy.Items, i => i.ItemDefId == item.Id && i.Quantity == 2 && i.State == ItemState.Carried);
+
+        var notes = (await client.GetFromJsonAsync<List<CharacterNoteDto>>($"/api/characters/{copyId}/notes/", Json.Options))!;
+        Assert.Single(notes);
+        Assert.Equal("Секрет", notes[0].Title);
+
+        var stranger = await _factory.CreateAuthorizedClientAsync();
+        var foreign = await stranger.PostAsync($"/api/characters/{id}/duplicate", null);
+        Assert.Equal(HttpStatusCode.BadRequest, foreign.StatusCode);
+    }
+
+    [Fact]
+    public async Task ShareCharacter_PublicSheet_Works_AndRevokeBlocksToken()
+    {
+        var (client, _, id) = await CreateCharacterAsync(GameSystem.RealmsOfTerrinoth);
+
+        var created = await client.PostAsync($"/api/characters/{id}/share", null);
+        Assert.Equal(HttpStatusCode.OK, created.StatusCode);
+        var share = (await created.Content.ReadFromJsonAsync<CharacterShareResponse>(Json.Options))!;
+        Assert.False(string.IsNullOrWhiteSpace(share.Token));
+        Assert.Equal($"/share/{share.Token}", share.Path);
+
+        var publicClient = _factory.CreateClient();
+        var publicSheet = await publicClient.GetAsync($"/api/share/{share.Token}");
+        Assert.Equal(HttpStatusCode.OK, publicSheet.StatusCode);
+        var sheet = (await publicSheet.Content.ReadFromJsonAsync<CharacterSheetDto>(Json.Options))!;
+        Assert.Equal(id, sheet.Id);
+        Assert.Equal("Test Hero", sheet.Name);
+
+        var stranger = await _factory.CreateAuthorizedClientAsync();
+        var foreignShare = await stranger.PostAsync($"/api/characters/{id}/share", null);
+        Assert.Equal(HttpStatusCode.BadRequest, foreignShare.StatusCode);
+
+        var revoke = await client.DeleteAsync($"/api/characters/{id}/share");
+        Assert.Equal(HttpStatusCode.NoContent, revoke.StatusCode);
+        var revoked = await publicClient.GetAsync($"/api/share/{share.Token}");
+        Assert.Equal(HttpStatusCode.BadRequest, revoked.StatusCode);
+    }
+
+    [Fact]
     public async Task BuySkillRank_SpendsXp_AndUpgradesDicePool()
     {
         var (client, _, id) = await CreateCharacterAsync(GameSystem.GenesysCore);

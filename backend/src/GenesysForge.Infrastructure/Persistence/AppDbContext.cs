@@ -27,6 +27,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<CharacterTalent> CharacterTalents => Set<CharacterTalent>();
     public DbSet<CharacterItem> CharacterItems => Set<CharacterItem>();
     public DbSet<CharacterCriticalInjury> CharacterCriticalInjuries => Set<CharacterCriticalInjury>();
+    public DbSet<CharacterShareToken> CharacterShareTokens => Set<CharacterShareToken>();
     public DbSet<CharacterNote> CharacterNotes => Set<CharacterNote>();
     public DbSet<Campaign> Campaigns => Set<Campaign>();
     public DbSet<CampaignCharacter> CampaignCharacters => Set<CampaignCharacter>();
@@ -123,6 +124,15 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             e.Property(ci => ci.NameRu).HasMaxLength(200);
             e.Property(ci => ci.Severity).HasMaxLength(40);
             e.Property(ci => ci.Notes).HasMaxLength(1000);
+        });
+
+        b.Entity<CharacterShareToken>(e =>
+        {
+            e.HasIndex(t => t.TokenHash).IsUnique();
+            e.HasIndex(t => new { t.CharacterId, t.RevokedAt });
+            e.Property(t => t.TokenHash).HasMaxLength(64);
+            e.HasOne(t => t.Character).WithMany()
+                .HasForeignKey(t => t.CharacterId).OnDelete(DeleteBehavior.Cascade);
         });
 
         b.Entity<CharacterNote>(e =>

@@ -20,19 +20,20 @@
 
 - [x] Создать ветку и plan-файл.
 - [x] Отметить U-23 как Done после merge PR #67 и U-24 как In progress.
-- [ ] Изучить текущие handlers/endpoints для персонажей, export/import и read-only просмотра листов.
-- [ ] Спроектировать минимальную модель шаринга: token, revoke, публичное чтение листа без auth.
-- [ ] Реализовать backend clone/share/revoke/public-sheet endpoints.
-- [ ] Добавить миграцию и обновить `docs/database.md`, если появится persistent model.
-- [ ] Реализовать frontend API методы и UI кнопки на листе/списке.
-- [ ] Добавить/обновить xUnit и Vitest тесты.
-- [ ] Запустить релевантные проверки.
+- [x] Изучить текущие handlers/endpoints для персонажей, export/import и read-only просмотра листов.
+- [x] Спроектировать минимальную модель шаринга: token, revoke, публичное чтение листа без auth.
+- [x] Реализовать backend clone/share/revoke/public-sheet endpoints.
+- [x] Добавить миграцию и обновить `docs/database.md`, если появится persistent model.
+- [x] Реализовать frontend API методы и UI кнопки на листе/списке.
+- [x] Добавить/обновить xUnit и Vitest тесты.
+- [x] Запустить релевантные проверки.
 - [ ] Обновить план и открыть PR.
 
 ## Что осталось / блокеры
 
-- Нужно выбрать точную модель токена после изучения текущего кода.
+- Нужно открыть PR после финального commit/push.
 
 ## Заметки / решения
 
-- Assumption: токен шаринга должен быть opaque/random, храниться сервером, иметь `RevokedAt`; публичный endpoint возвращает тот же read-only `CharacterSheetDto`, но без правок.
+- Assumption: токен шаринга opaque/random; raw token возвращается только при создании, в БД хранится SHA-256 hash + `RevokedAt`.
+- Assumption: публичный endpoint возвращает read-only `CharacterSheetDto`; приватные заметки персонажа не включаются в public view, потому что они остаются за auth-only notes endpoint.

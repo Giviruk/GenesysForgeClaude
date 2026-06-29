@@ -31,6 +31,17 @@ export function CharactersPage({ onOpen }: Props) {
     await reload()
   }
 
+  async function duplicate(id: string) {
+    setError(null)
+    try {
+      const copy = await api.duplicateCharacter(id)
+      await reload()
+      onOpen(copy.id)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Ошибка клонирования')
+    }
+  }
+
   async function onFile(e: ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     e.target.value = '' // позволяем повторно выбрать тот же файл
@@ -67,9 +78,14 @@ export function CharactersPage({ onOpen }: Props) {
             </div>
             <div className="muted">{c.archetype} · {c.career}</div>
             {c.isCreationPhase && <div className="badge creation">Создание</div>}
-            <button className="danger small" onClick={e => { e.stopPropagation(); void remove(c.id, c.name) }}>
-              Удалить
-            </button>
+            <div className="card-actions">
+              <button className="small" onClick={e => { e.stopPropagation(); void duplicate(c.id) }}>
+                Клонировать
+              </button>
+              <button className="danger small" onClick={e => { e.stopPropagation(); void remove(c.id, c.name) }}>
+                Удалить
+              </button>
+            </div>
           </div>
         ))}
       </div>

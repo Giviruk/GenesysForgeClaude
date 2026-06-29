@@ -44,9 +44,13 @@ public static class DependencyInjection
         // Characters
         services.AddScoped<IQueryHandler<GetCharactersQuery, List<CharacterListItemDto>>, GetCharactersHandler>();
         services.AddScoped<IQueryHandler<GetCharacterSheetQuery, CharacterSheetDto>, GetCharacterSheetHandler>();
+        services.AddScoped<IQueryHandler<GetSharedCharacterSheetQuery, CharacterSheetDto>, GetSharedCharacterSheetHandler>();
         services.AddScoped<IQueryHandler<ExportCharacterQuery, CharacterExportDto>, ExportCharacterHandler>();
         services.AddScoped<IQueryHandler<PreviewImportCharacterQuery, ImportPreviewDto>, PreviewImportCharacterHandler>();
         services.AddScoped<ICommandHandler<ImportCharacterCommand, ImportCharacterResult>, ImportCharacterHandler>();
+        services.AddScoped<ICommandHandler<DuplicateCharacterCommand, Guid>, DuplicateCharacterHandler>();
+        services.AddScoped<ICommandHandler<CreateCharacterShareCommand, CharacterShareResponse>, CreateCharacterShareHandler>();
+        services.AddScoped<ICommandHandler<RevokeCharacterSharesCommand, Unit>, RevokeCharacterSharesHandler>();
         services.AddScoped<ICommandHandler<CreateCharacterCommand, Guid>, CreateCharacterHandler>();
         services.AddScoped<ICommandHandler<UpdateCharacterCommand, Unit>, UpdateCharacterHandler>();
         services.AddScoped<ICommandHandler<DeleteCharacterCommand, Unit>, DeleteCharacterHandler>();

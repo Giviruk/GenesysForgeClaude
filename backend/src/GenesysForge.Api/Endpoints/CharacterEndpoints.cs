@@ -10,6 +10,10 @@ public static class CharacterEndpoints
 {
     public static void MapCharacters(this IEndpointRouteBuilder app)
     {
+        app.MapGet("/api/share/{token}", async (string token,
+                IQueryHandler<GetSharedCharacterSheetQuery, CharacterSheetDto> handler, CancellationToken ct) =>
+            Results.Ok(await handler.Handle(new GetSharedCharacterSheetQuery(token), ct)));
+
         var group = app.MapGroup("/api/characters").RequireAuthorization();
 
         group.MapGet("/", async (ClaimsPrincipal user,
@@ -26,6 +30,24 @@ public static class CharacterEndpoints
         group.MapGet("/{id:guid}", async (Guid id, ClaimsPrincipal user,
                 IQueryHandler<GetCharacterSheetQuery, CharacterSheetDto> handler, CancellationToken ct) =>
             Results.Ok(await handler.Handle(new GetCharacterSheetQuery(user.UserId(), id), ct)));
+
+        group.MapPost("/{id:guid}/duplicate", async (Guid id, ClaimsPrincipal user,
+            ICommandHandler<DuplicateCharacterCommand, Guid> handler, CancellationToken ct) =>
+        {
+            var copyId = await handler.Handle(new DuplicateCharacterCommand(user.UserId(), id), ct);
+            return Results.Created($"/api/characters/{copyId}", new { Id = copyId });
+        });
+
+        group.MapPost("/{id:guid}/share", async (Guid id, ClaimsPrincipal user,
+            ICommandHandler<CreateCharacterShareCommand, CharacterShareResponse> handler, CancellationToken ct) =>
+            Results.Ok(await handler.Handle(new CreateCharacterShareCommand(user.UserId(), id), ct)));
+
+        group.MapDelete("/{id:guid}/share", async (Guid id, ClaimsPrincipal user,
+            ICommandHandler<RevokeCharacterSharesCommand, Unit> handler, CancellationToken ct) =>
+        {
+            await handler.Handle(new RevokeCharacterSharesCommand(user.UserId(), id), ct);
+            return Results.NoContent();
+        });
 
         // Экспорт персонажа в переносимый JSON (формат genesysforge.character.v1).
         group.MapGet("/{id:guid}/export", async (Guid id, ClaimsPrincipal user,

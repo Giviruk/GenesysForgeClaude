@@ -42,7 +42,7 @@ export function usePath(): string {
   return path
 }
 
-export type AppArea = 'characters' | 'campaigns' | 'npcs' | 'magic' | 'reference' | 'about' | 'account'
+export type AppArea = 'characters' | 'campaigns' | 'npcs' | 'magic' | 'reference' | 'about' | 'account' | 'share'
 
 export interface AppRoute {
   area: AppArea
@@ -78,6 +78,7 @@ const base = (area: AppArea, id: string | null = null, unknown = false): AppRout
  *   /magic
  *   /reference
  *   /about
+ *   /share/:token                              → публичный read-only лист
  */
 export function parseRoute(pathname: string): AppRoute {
   const segments = pathname.replace(/^\/+|\/+$/g, '').split('/').filter(Boolean)
@@ -89,6 +90,7 @@ export function parseRoute(pathname: string): AppRoute {
   if (head === 'reference') return base('reference', null, segments.length > 1)
   if (head === 'about') return base('about', null, segments.length > 1)
   if (head === 'account') return base('account', null, segments.length > 1)
+  if (head === 'share') return base('share', second ?? null, segments.length !== 2)
   if (!ENTITY_AREAS.includes(head as AppArea)) return base('characters', null, true)
 
   const area = head as AppArea
