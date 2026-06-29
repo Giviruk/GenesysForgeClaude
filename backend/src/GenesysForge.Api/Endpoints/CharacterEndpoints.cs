@@ -172,5 +172,20 @@ public static class CharacterEndpoints
             await handler.Handle(new RemoveItemCommand(user.UserId(), id, itemId), ct);
             return Results.NoContent();
         });
+
+        // Критические ранения (U-23): добавление (из таблицы U-11 или вручную) и снятие.
+        group.MapPost("/{id:guid}/critical-injuries", async (Guid id, AddCriticalInjuryRequest req, ClaimsPrincipal user,
+            ICommandHandler<AddCriticalInjuryCommand, Guid> handler, CancellationToken ct) =>
+        {
+            var injuryId = await handler.Handle(new AddCriticalInjuryCommand(user.UserId(), id, req), ct);
+            return Results.Created($"/api/characters/{id}/critical-injuries/{injuryId}", new { Id = injuryId });
+        });
+
+        group.MapDelete("/{id:guid}/critical-injuries/{injuryId:guid}", async (Guid id, Guid injuryId,
+            ClaimsPrincipal user, ICommandHandler<RemoveCriticalInjuryCommand, Unit> handler, CancellationToken ct) =>
+        {
+            await handler.Handle(new RemoveCriticalInjuryCommand(user.UserId(), id, injuryId), ct);
+            return Results.NoContent();
+        });
     }
 }

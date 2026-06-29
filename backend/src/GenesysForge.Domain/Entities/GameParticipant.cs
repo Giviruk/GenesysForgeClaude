@@ -28,6 +28,9 @@ public class GameParticipant : ICombatTarget
     public int MeleeDefense { get; set; }
     public int RangedDefense { get; set; }
 
+    /// <summary>Счётчик активных критических ранений участника (U-23) для быстрого учёта за столом.</summary>
+    public int CriticalInjuries { get; set; }
+
     public bool IsActive { get; set; } = true;
     public bool IsDefeated { get; set; }
     public bool IsHiddenFromPlayers { get; set; }

@@ -1,6 +1,6 @@
 # U-22 · Мотивации и предыстория персонажа
 
-**Статус:** 🚧 In progress · ветка `feature/u22-motivations-background` (от master) · PR #65
+**Статус:** ✅ Done · ветка `feature/u22-motivations-background` (от master) · PR #65
 **Roadmap:** [unified-roadmap.md](../unified-roadmap.md) U-22 · Источник: Аудит §2.1
 
 ## Зачем

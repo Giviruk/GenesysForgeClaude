@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Http.Json;
 using GenesysForge.Application.Dtos;
 using GenesysForge.Domain;
+using GenesysForge.Domain.Entities;
 
 namespace GenesysForge.Api.Tests;
 
@@ -150,6 +151,49 @@ public class CharacterFlowTests : IClassFixture<ApiFactory>
         Assert.Null(cleared.Desire);
         Assert.Null(cleared.Background);
         Assert.Equal("Высота", cleared.Fear); // по-прежнему на месте
+    }
+
+    [Fact]
+    public async Task CriticalInjuries_AddFromTable_AddManual_AndRemove()
+    {
+        var (client, _, id) = await CreateCharacterAsync(GameSystem.GenesysCore);
+
+        // Из таблицы U-11: берём строку крит-ранений и добавляем по коду — название/тяжесть снимаются из справочника.
+        var rules = (await client.GetFromJsonAsync<RulesResponse>("/api/reference/rules", Json.Options))!;
+        var tableCrit = rules.Entries.First(e => e.Kind == RuleTableKind.CriticalInjury && e.RollRange.Length > 0);
+        var add = await client.PostAsJsonAsync($"/api/characters/{id}/critical-injuries",
+            new AddCriticalInjuryRequest(tableCrit.Code, null, null, 17, null));
+        Assert.Equal(HttpStatusCode.Created, add.StatusCode);
+
+        // Вручную: своё название.
+        var manual = await client.PostAsJsonAsync($"/api/characters/{id}/critical-injuries",
+            new AddCriticalInjuryRequest(null, "Сломанная рука", "Сложная", null, "В гипсе"));
+        Assert.Equal(HttpStatusCode.Created, manual.StatusCode);
+
+        var sheet = await SheetAsync(client, id);
+        Assert.Equal(2, sheet.CriticalInjuries!.Count);
+        var fromTable = sheet.CriticalInjuries.First(c => c.RuleCode == tableCrit.Code);
+        Assert.Equal(tableCrit.NameRu, fromTable.NameRu); // снимок из справочника
+        Assert.Equal(tableCrit.GroupRu, fromTable.Severity);
+        Assert.Equal(17, fromTable.RollResult);
+        Assert.Contains(sheet.CriticalInjuries, c => c.NameRu == "Сломанная рука" && c.Severity == "Сложная");
+
+        // Снятие.
+        var injuryId = fromTable.Id;
+        var del = await client.DeleteAsync($"/api/characters/{id}/critical-injuries/{injuryId}");
+        Assert.Equal(HttpStatusCode.NoContent, del.StatusCode);
+        var after = await SheetAsync(client, id);
+        Assert.Single(after.CriticalInjuries!);
+        Assert.DoesNotContain(after.CriticalInjuries!, c => c.Id == injuryId);
+    }
+
+    [Fact]
+    public async Task CriticalInjury_UnknownRuleCode_Rejected()
+    {
+        var (client, _, id) = await CreateCharacterAsync(GameSystem.GenesysCore);
+        var bad = await client.PostAsJsonAsync($"/api/characters/{id}/critical-injuries",
+            new AddCriticalInjuryRequest("crit-does-not-exist", null, null, null, null));
+        Assert.Equal(HttpStatusCode.BadRequest, bad.StatusCode);
     }
 
     [Fact]

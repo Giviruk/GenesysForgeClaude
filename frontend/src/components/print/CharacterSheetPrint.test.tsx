@@ -89,6 +89,9 @@ const sheet = {
   strength: null,
   flaw: 'Вспыльчивость',
   background: 'Родилась в лесу.',
+  criticalInjuries: [
+    { id: 'ci-1', ruleCode: 'crit-ci_001_005', nameRu: 'Небольшая царапина', severity: 'Лёгкая', rollResult: 3, notes: null },
+  ],
 } as unknown as CharacterSheet
 
 const reference = {
@@ -113,6 +116,12 @@ describe('CharacterSheetPrint', () => {
     expect(screen.getByRole('heading', { name: 'Боевые' })).toBeTruthy()
     expect(container.querySelectorAll('.sheet-skill-column')).toHaveLength(2)
     await waitFor(() => expect(screen.queryByText('Заметки')).toBeNull())
+  })
+
+  it('печатает критические ранения (U-23)', () => {
+    render(<CharacterSheetPrint sheet={sheet} reference={reference} />)
+    expect(screen.getByRole('heading', { name: 'Критические ранения' })).toBeTruthy()
+    expect(screen.getByText('Небольшая царапина')).toBeTruthy()
   })
 
   it('печатает мотивации и предысторию (U-22), пропуская пустые', () => {
