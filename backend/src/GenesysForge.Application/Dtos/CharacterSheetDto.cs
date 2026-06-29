@@ -29,4 +29,9 @@ public record CharacterSheetDto(
     string? Fear = null,
     string? Strength = null,
     string? Flaw = null,
-    string? Background = null);
+    string? Background = null,
+    List<CharacterCriticalInjuryDto>? CriticalInjuries = null);
+
+/// <summary>Критическое ранение персонажа (U-23).</summary>
+public record CharacterCriticalInjuryDto(
+    Guid Id, string? RuleCode, string NameRu, string? Severity, int? RollResult, string? Notes);

@@ -35,8 +35,8 @@ public static class GameTableMapper
             .Select(p => new GameParticipantDto(
                 p.Id, p.CharacterId, p.NpcId, p.DisplayName, p.ParticipantType, p.InitiativeSlotType,
                 p.Count, p.WoundsCurrent, p.WoundsThreshold, p.StrainCurrent, p.StrainThreshold,
-                p.Soak, p.MeleeDefense, p.RangedDefense, p.IsActive, p.IsDefeated, p.IsHiddenFromPlayers,
-                isGm ? p.Notes : "", p.Order))
+                p.Soak, p.MeleeDefense, p.RangedDefense, p.CriticalInjuries, p.IsActive, p.IsDefeated,
+                p.IsHiddenFromPlayers, isGm ? p.Notes : "", p.Order))
             .ToList();
 
         var slots = s.Slots

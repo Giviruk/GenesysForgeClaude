@@ -256,6 +256,18 @@ function ParticipantCard({ p, isGm, allowPlayerEdits, onRun, campaignId, abiliti
       <div className="pc-stats muted small-text">
         Soak {p.soak} · Бл.защ {p.meleeDefense} · Дал.защ {p.rangedDefense}{p.count > 1 ? ` · ×${p.count}` : ''}
       </div>
+      <div className="pc-crits small-text">
+        <span className={p.criticalInjuries > 0 ? 'crit-count warn' : 'crit-count muted'}>
+          Криты: <b>{p.criticalInjuries}</b>
+        </span>
+        {canEditVitals && (
+          <span className="crit-buttons">
+            <button className="tiny" disabled={p.criticalInjuries === 0}
+              onClick={() => patch({ criticalInjuries: Math.max(0, p.criticalInjuries - 1) })}>−</button>
+            <button className="tiny" onClick={() => patch({ criticalInjuries: p.criticalInjuries + 1 })}>+</button>
+          </span>
+        )}
+      </div>
 
       {canEditVitals && abilities.length > 0 && (
         <div className="pc-activate">
