@@ -1,6 +1,6 @@
 # U-23 · Критические ранения
 
-**Статус:** 🚧 In progress · ветка `feature/u23-critical-injuries` (стек поверх U-22 / PR #65) · PR #66
+**Статус:** 🚧 In progress · ветка `feature/u23-critical-injuries` (rebased на master после merge U-22) · PR pending
 **Roadmap:** [unified-roadmap.md](../unified-roadmap.md) U-23 · Источник: Аудит §2.2 + §8
 
 ## Зачем

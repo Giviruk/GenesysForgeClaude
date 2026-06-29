@@ -232,7 +232,7 @@
 - **DoD:** пользователь видит/редактирует имя и аватар, меняет пароль в сессии.
 
 ## U-22 · Мотивации и предыстория персонажа
-- **Статус:** 🚧 In progress (PR #65)
+- **Статус:** ✅ Done (PR #65)
 - **Источник:** Аудит §2.1 (НЕ в GF-плане)
 - **Детали:** поля `Desire/Fear/Strength/Flaw` + `Background` в `Character` (миграция `AddCharacterMotivations`), в Create/Update-request + `CharacterSheetDto`. Вкладка «Образ» (`BioTab`) на листе + свёрнутый блок в создании + секция в печати. См. [u22-motivations-background.md](tasks/u22-motivations-background.md).
 - **Scope (B):** поля `Desire/Fear/Strength/Flaw` + `Background` в `Character` (миграция), в `CreateCharacterRequest`/`UpdateCharacterRequest`/`CharacterSheetDto`.
@@ -240,7 +240,7 @@
 - **DoD:** мотивации и предыстория сохраняются, видны на листе и в печати.
 
 ## U-23 · Критические ранения
-- **Статус:** 🚧 In progress (PR #66)
+- **Статус:** 🚧 In progress
 - **Источник:** Аудит §2.2 + §8 (НЕ в GF-плане)
 - **Детали:** `CharacterCriticalInjury` (снимок + `RuleCode` → таблица U-11) с add/remove на листе; счётчик `GameParticipant.CriticalInjuries` за столом (засев из листа). Миграция `AddCriticalInjuries`. Секция на листе/в печати + крит-счётчик на карточке участника. См. [u23-critical-injuries.md](tasks/u23-critical-injuries.md).
 - **Scope (B):** `CharacterCriticalInjury` (severity/result/notes) на персонаже; для участников стола — счётчик/список критов. Связать с таблицей крит-ранений из U-11.
