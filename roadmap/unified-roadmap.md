@@ -240,7 +240,7 @@
 - **DoD:** мотивации и предыстория сохраняются, видны на листе и в печати.
 
 ## U-23 · Критические ранения
-- **Статус:** 🚧 In progress (PR #67)
+- **Статус:** ✅ Done (PR #67)
 - **Источник:** Аудит §2.2 + §8 (НЕ в GF-плане)
 - **Детали:** `CharacterCriticalInjury` (снимок + `RuleCode` → таблица U-11) с add/remove на листе; счётчик `GameParticipant.CriticalInjuries` за столом (засев из листа). Миграция `AddCriticalInjuries`. Секция на листе/в печати + крит-счётчик на карточке участника. См. [u23-critical-injuries.md](tasks/u23-critical-injuries.md).
 - **Scope (B):** `CharacterCriticalInjury` (severity/result/notes) на персонаже; для участников стола — счётчик/список критов. Связать с таблицей крит-ранений из U-11.
@@ -248,7 +248,7 @@
 - **DoD:** криты добавляются/снимаются; видны на листе и за столом; ссылаются на таблицу.
 
 ## U-24 · Клонирование и read-only шеринг персонажа
-- **Статус:** ⬜ Todo
+- **Статус:** 🚧 In progress
 - **Источник:** Аудит §2.4 (НЕ в GF-плане)
 - **Scope (B):** `POST /api/characters/{id}/duplicate` (по образцу `DuplicateNpc`); шеринг — `POST /api/characters/{id}/share` (генерит токен) + публичный `GET /api/share/{token}` (read-only sheet, без auth).
 - **Scope (F):** кнопки «Клонировать» и «Поделиться (ссылка)» на листе/списке.
