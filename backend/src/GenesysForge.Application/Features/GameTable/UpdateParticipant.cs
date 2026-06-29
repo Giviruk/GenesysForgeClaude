@@ -58,5 +58,6 @@ public class UpdateParticipantHandler(IAppDbContext db) : ICommandHandler<Update
     {
         if (r.WoundsCurrent is { } w) p.WoundsCurrent = Math.Max(0, w);
         if (r.StrainCurrent is { } s) p.StrainCurrent = Math.Max(0, s);
+        if (r.CriticalInjuries is { } ci) p.CriticalInjuries = Math.Max(0, ci);
     }
 }

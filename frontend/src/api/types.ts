@@ -549,6 +549,7 @@ export interface GameParticipant {
   soak: number
   meleeDefense: number
   rangedDefense: number
+  criticalInjuries: number
   isActive: boolean
   isDefeated: boolean
   isHiddenFromPlayers: boolean
@@ -628,6 +629,7 @@ export interface UpdateParticipantRequest {
   soak?: number | null
   meleeDefense?: number | null
   rangedDefense?: number | null
+  criticalInjuries?: number | null
   isActive?: boolean | null
   isDefeated?: boolean | null
   isHiddenFromPlayers?: boolean | null
@@ -828,6 +830,18 @@ export interface CharacterSheet {
   strength: string | null
   flaw: string | null
   background: string | null
+  // Критические ранения (U-23)
+  criticalInjuries: CriticalInjury[]
+}
+
+/** Критическое ранение персонажа (U-23). */
+export interface CriticalInjury {
+  id: string
+  ruleCode: string | null
+  nameRu: string
+  severity: string | null
+  rollResult: number | null
+  notes: string | null
 }
 
 /** Опциональные текстовые поля мотиваций/предыстории (U-22) для create/update. */

@@ -82,6 +82,11 @@ public static class SheetBuilder
                     i.ItemDef.Description, i.ItemDef.Price,
                     i.ItemDef.SkillName, i.ItemDef.Damage, i.ItemDef.Crit, i.ItemDef.RangeBand, i.ItemDef.Properties))
                 .ToList(),
-            c.Desire, c.Fear, c.Strength, c.Flaw, c.Background);
+            c.Desire, c.Fear, c.Strength, c.Flaw, c.Background,
+            c.CriticalInjuries
+                .OrderBy(ci => ci.RollResult ?? int.MaxValue).ThenBy(ci => ci.CreatedAt)
+                .Select(ci => new CharacterCriticalInjuryDto(
+                    ci.Id, ci.RuleCode, ci.NameRu, ci.Severity, ci.RollResult, ci.Notes))
+                .ToList());
     }
 }

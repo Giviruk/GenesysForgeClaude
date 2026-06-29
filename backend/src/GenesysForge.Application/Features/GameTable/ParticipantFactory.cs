@@ -46,6 +46,7 @@ public static class ParticipantFactory
             Soak = derived.Soak,
             MeleeDefense = derived.MeleeDefense,
             RangedDefense = derived.RangedDefense,
+            CriticalInjuries = c.CriticalInjuries.Count,
         };
     }
 
@@ -109,6 +110,7 @@ public static class ParticipantFactory
             .Include(c => c.Career)
             .Include(c => c.Talents).ThenInclude(t => t.TalentDef)
             .Include(c => c.Items).ThenInclude(i => i.ItemDef)
+            .Include(c => c.CriticalInjuries)
             .AsNoTracking()
             .FirstOrDefaultAsync(c => c.Id == characterId, ct)
             ?? throw new DomainRuleException("Персонаж не найден.");

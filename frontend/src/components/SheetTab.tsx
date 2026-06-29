@@ -4,6 +4,7 @@ import type { ActivateCharacterAbilityResult, CharacterSheet, Reference, SkillKi
 import { CHARACTERISTICS, CHARACTERISTIC_LABELS, CHARACTERISTIC_SHORT_LABELS, SKILL_KIND_LABELS } from '../utils/labels'
 import { DicePoolView } from './DicePoolView'
 import { DiceRoller } from './DiceRoller'
+import { CriticalInjuriesSection } from './CriticalInjuriesSection'
 
 interface Props {
   sheet: CharacterSheet
@@ -72,6 +73,8 @@ export function SheetTab({ sheet, reference, onError, refresh }: Props) {
         <DerivedBox label="Переносимый вес" value={`${d.encumbranceLoad} / ${d.encumbranceThreshold}`}
           warning={d.encumbered ? 'Перегружен!' : undefined} />
       </section>
+
+      <CriticalInjuriesSection sheet={sheet} onError={onError} refresh={refresh} />
 
       {sheet.system === 'realmsOfTerrinoth' && (
         <section className="panel">

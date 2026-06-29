@@ -361,6 +361,18 @@ table.ref-table td.ref-cost { white-space: nowrap; color: var(--accent); }
 .note-actions { display: flex; gap: 0.4rem; flex-shrink: 0; flex-wrap: wrap; }
 .note-body { margin: 0.4rem 0; font-size: 0.88rem; white-space: pre-wrap; }
 
+/* ---------- Критические ранения (U-23) ---------- */
+.crit-list { display: flex; flex-direction: column; gap: 0.4rem; margin: 0.5rem 0; }
+.crit-item { display: flex; justify-content: space-between; align-items: flex-start; gap: 0.6rem;
+  background: var(--panel-2); border: 1px solid var(--border); border-radius: 8px; padding: 0.45rem 0.7rem; }
+.crit-item-main { min-width: 0; }
+.crit-form { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; margin-top: 0.5rem; }
+.crit-form .crit-roll { width: 4.5rem; }
+.crit-form .grow { flex: 1; min-width: 8rem; }
+.pc-crits { display: flex; align-items: center; gap: 0.5rem; margin-top: 0.25rem; }
+.pc-crits .crit-count.warn { color: var(--danger, #d9534f); font-weight: 600; }
+.crit-buttons { display: inline-flex; gap: 0.25rem; }
+
 /* ---------- Campaigns ---------- */
 .topnav { display: flex; gap: 0.4rem; margin-right: auto; margin-left: 1.5rem; flex-wrap: wrap; min-width: 0; }
 .campaign-forms { display: grid; grid-template-columns: repeat(auto-fit, minmax(20rem, 1fr)); gap: 1rem; margin: 1rem 0; }

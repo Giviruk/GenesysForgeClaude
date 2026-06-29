@@ -26,6 +26,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<CharacterSkill> CharacterSkills => Set<CharacterSkill>();
     public DbSet<CharacterTalent> CharacterTalents => Set<CharacterTalent>();
     public DbSet<CharacterItem> CharacterItems => Set<CharacterItem>();
+    public DbSet<CharacterCriticalInjury> CharacterCriticalInjuries => Set<CharacterCriticalInjury>();
     public DbSet<CharacterNote> CharacterNotes => Set<CharacterNote>();
     public DbSet<Campaign> Campaigns => Set<Campaign>();
     public DbSet<CampaignCharacter> CampaignCharacters => Set<CampaignCharacter>();
@@ -93,6 +94,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             e.HasMany(c => c.Skills).WithOne().HasForeignKey(s => s.CharacterId).OnDelete(DeleteBehavior.Cascade);
             e.HasMany(c => c.Talents).WithOne().HasForeignKey(t => t.CharacterId).OnDelete(DeleteBehavior.Cascade);
             e.HasMany(c => c.Items).WithOne().HasForeignKey(i => i.CharacterId).OnDelete(DeleteBehavior.Cascade);
+            e.HasMany(c => c.CriticalInjuries).WithOne().HasForeignKey(ci => ci.CharacterId).OnDelete(DeleteBehavior.Cascade);
             e.Ignore(c => c.Characteristics);
             e.Property(c => c.Desire).HasMaxLength(300);
             e.Property(c => c.Fear).HasMaxLength(300);
@@ -113,6 +115,15 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         });
         b.Entity<CharacterItem>()
             .HasOne(i => i.ItemDef).WithMany().OnDelete(DeleteBehavior.Cascade);
+
+        b.Entity<CharacterCriticalInjury>(e =>
+        {
+            e.HasIndex(ci => ci.CharacterId);
+            e.Property(ci => ci.RuleCode).HasMaxLength(80);
+            e.Property(ci => ci.NameRu).HasMaxLength(200);
+            e.Property(ci => ci.Severity).HasMaxLength(40);
+            e.Property(ci => ci.Notes).HasMaxLength(1000);
+        });
 
         b.Entity<CharacterNote>(e =>
         {

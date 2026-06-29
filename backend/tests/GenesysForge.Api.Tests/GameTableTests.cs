@@ -192,17 +192,40 @@ public class GameTableTests : IClassFixture<ApiFactory>
 
         // по умолчанию запрещено
         var denied = await player.PatchAsJsonAsync($"/api/campaigns/{campaignId}/session/participants/{pid}",
-            new UpdateParticipantRequest(null, 3, null, null, null, null, null, null, null, null, null, null, null), Json.Options);
+            new UpdateParticipantRequest(null, 3, null, null, null, null, null, null, null, null, null, null, null, null), Json.Options);
         Assert.Equal(HttpStatusCode.BadRequest, denied.StatusCode);
 
         // GM разрешает
         await gm.PatchAsJsonAsync($"/api/campaigns/{campaignId}/session",
             new UpdateSessionRequest(null, null, null, null, null, null, true), Json.Options);
         var ok = await player.PatchAsJsonAsync($"/api/campaigns/{campaignId}/session/participants/{pid}",
-            new UpdateParticipantRequest(null, 3, null, null, null, null, null, null, null, null, null, null, null), Json.Options);
+            new UpdateParticipantRequest(null, 3, null, null, null, null, null, null, null, null, null, null, null, null), Json.Options);
         Assert.Equal(HttpStatusCode.OK, ok.StatusCode);
         var updated = (await ok.Content.ReadFromJsonAsync<GameSessionDto>(Json.Options))!;
         Assert.Equal(3, updated.Participants.First(p => p.Id == pid).WoundsCurrent);
+    }
+
+    [Fact]
+    public async Task ParticipantCritCounter_SeedsFromCharacter_AndEditable()
+    {
+        var (gm, player, campaignId, charId) = await SetupCampaignWithPlayerAsync(_factory);
+
+        // Игрок получает крит-ранение на свой лист (U-23).
+        await player.PostAsJsonAsync($"/api/characters/{charId}/critical-injuries",
+            new AddCriticalInjuryRequest(null, "Ушиб", null, null, null), Json.Options);
+
+        await CreateSessionAsync(gm, campaignId);
+        var addResp = await gm.PostAsJsonAsync($"/api/campaigns/{campaignId}/session/participants",
+            new AddParticipantRequest(charId, null, null, null, null, null, null, null, null, null, null), Json.Options);
+        var s = (await addResp.Content.ReadFromJsonAsync<GameSessionDto>(Json.Options))!;
+        var p = s.Participants.First(x => x.CharacterId == charId);
+        Assert.Equal(1, p.CriticalInjuries); // счётчик засеян из листа персонажа
+
+        // GM меняет счётчик критов за столом (позиция 9 — CriticalInjuries).
+        var ok = await gm.PatchAsJsonAsync($"/api/campaigns/{campaignId}/session/participants/{p.Id}",
+            new UpdateParticipantRequest(null, null, null, null, null, null, null, null, 3, null, null, null, null, null), Json.Options);
+        var updated = (await ok.Content.ReadFromJsonAsync<GameSessionDto>(Json.Options))!;
+        Assert.Equal(3, updated.Participants.First(x => x.Id == p.Id).CriticalInjuries);
     }
 
     [Fact]
@@ -215,7 +238,7 @@ public class GameTableTests : IClassFixture<ApiFactory>
         var s = (await addResp.Content.ReadFromJsonAsync<GameSessionDto>(Json.Options))!;
         var pid = s.Participants[0].Id;
         await gm.PatchAsJsonAsync($"/api/campaigns/{campaignId}/session/participants/{pid}",
-            new UpdateParticipantRequest(null, null, null, null, null, null, null, null, null, null, IsHiddenFromPlayers: true, null, null), Json.Options);
+            new UpdateParticipantRequest(null, null, null, null, null, null, null, null, null, null, null, true, null, null), Json.Options);
 
         var playerView = (await player.GetFromJsonAsync<GameSessionDto>($"/api/campaigns/{campaignId}/session", Json.Options))!;
         Assert.DoesNotContain(playerView.Participants, p => p.Id == pid);

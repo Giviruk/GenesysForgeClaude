@@ -158,6 +158,22 @@ export function CharacterSheetPrint({ sheet, reference }: { sheet: CharacterShee
         })}
       </section>
 
+      {sheet.criticalInjuries.length > 0 && (
+        <section className="sheet-section">
+          <h2>Критические ранения</h2>
+          {sheet.criticalInjuries.map(ci => (
+            <div key={ci.id} className="sheet-entry">
+              <strong>{ci.nameRu}</strong>
+              <span className="sheet-meta">
+                {ci.severity ? ` · ${ci.severity}` : ''}
+                {ci.rollResult != null ? ` · бросок ${ci.rollResult}` : ''}
+              </span>
+              {ci.notes && <div className="sheet-desc">{ci.notes}</div>}
+            </div>
+          ))}
+        </section>
+      )}
+
       {(sheet.desire || sheet.fear || sheet.strength || sheet.flaw || sheet.background) && (
         <section className="sheet-section">
           <h2>Образ персонажа</h2>

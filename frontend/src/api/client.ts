@@ -175,6 +175,12 @@ export const api = {
   removeItem: (id: string, itemId: string) =>
     request<void>('DELETE', `/api/characters/${id}/items/${itemId}`),
 
+  // Критические ранения (U-23): из таблицы U-11 (ruleCode) или вручную (nameRu).
+  addCriticalInjury: (id: string, body: { ruleCode?: string; nameRu?: string; severity?: string; rollResult?: number; notes?: string }) =>
+    request<{ id: string }>('POST', `/api/characters/${id}/critical-injuries`, body),
+  removeCriticalInjury: (id: string, injuryId: string) =>
+    request<void>('DELETE', `/api/characters/${id}/critical-injuries/${injuryId}`),
+
   createCustomSkill: (skill: { system: GameSystem; name: string; characteristic: string; kind: string }) =>
     request<SkillDef>('POST', '/api/custom/skills', skill),
   createCustomTalent: (talent: {
