@@ -46,6 +46,7 @@ public class Character
     public List<CharacterSkill> Skills { get; set; } = [];
     public List<CharacterTalent> Talents { get; set; } = [];
     public List<CharacterItem> Items { get; set; } = [];
+    public List<CharacterCriticalInjury> CriticalInjuries { get; set; } = [];
 
     public CharacteristicsSet Characteristics => new(Brawn, Agility, Intellect, Cunning, Willpower, Presence);
 
