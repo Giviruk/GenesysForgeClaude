@@ -259,14 +259,14 @@
 # P2 — Глубина homebrew
 
 ## U-25 · Кастомные архетип/раса и карьера
-- **Статус:** 🚧 In progress
+- **Статус:** ✅ Done (PR #69)
 - **Источник:** Аудит §4.1 (боль сообщества #1, НЕ в GF-плане)
 - **Scope (B):** расширить [CustomContentEndpoints.cs](../backend/src/GenesysForge.Api/Endpoints/CustomContentEndpoints.cs): CRUD кастомного архетипа (характеристики/пороги/XP/способность) и кастомной карьеры (карьерные навыки). Использовать `OwnerUserId` как у прочего homebrew; учесть структурные модели U-12/U-13.
 - **Scope (F):** формы в [CustomTab.tsx](../frontend/src/components/CustomTab.tsx); доступность в создании персонажа.
 - **DoD:** пользователь создаёт свой вид/карьеру и собирает на них персонажа без правки кода.
 
 ## U-26 · Импорт homebrew из JSON + шеринг + per-character toggle
-- **Статус:** ⬜ Todo
+- **Статус:** 🚧 In progress
 - **Источник:** Аудит §4.2 (НЕ в GF-плане)
 - **Scope (B):** импорт набора homebrew (skills/talents/items/heroics/archetypes/careers) из JSON (совместимый формат, маппинг по Code); публикация набора другим пользователям (отдельно от campaign Content Packs, которые остаются справочными); флаг включения homebrew-набора на персонажа/кампанию.
 - **DoD:** homebrew переносится через JSON; можно расшарить набор; персонаж может включать/выключать наборы.
