@@ -275,6 +275,11 @@ export interface CharacterListItem {
   createdAt: string
 }
 
+export interface CharacterShareResponse {
+  token: string
+  path: string
+}
+
 export interface DicePool {
   ability: number
   proficiency: number

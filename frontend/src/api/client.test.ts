@@ -49,4 +49,24 @@ describe('api client — обработка 401', () => {
     expect(url).toBe('/api/spells/RealmsOfTerrinoth')
     expect((init?.headers as Record<string, string>).Authorization).toBe('Bearer ok-token')
   })
+
+  it('character clone/share methods use the expected endpoints', async () => {
+    const fetchMock = vi.spyOn(globalThis, 'fetch')
+      .mockResolvedValueOnce(new Response(JSON.stringify({ id: 'copy-id' }), { status: 200 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ token: 'raw', path: '/share/raw' }), { status: 200 }))
+      .mockResolvedValueOnce(new Response(null, { status: 204 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ id: 'character-id' }), { status: 200 }))
+
+    await api.duplicateCharacter('c1')
+    await api.shareCharacter('c1')
+    await api.revokeCharacterShares('c1')
+    await api.sharedSheet('raw_token')
+
+    expect(fetchMock.mock.calls.map(([url, init]) => [url, init?.method])).toEqual([
+      ['/api/characters/c1/duplicate', 'POST'],
+      ['/api/characters/c1/share', 'POST'],
+      ['/api/characters/c1/share', 'DELETE'],
+      ['/api/share/raw_token', 'GET'],
+    ])
+  })
 })

@@ -11,15 +11,22 @@ const ITEM_STATE_ORDER: ItemState[] = ['equipped', 'carried', 'backpack']
 const SKILL_KIND_ORDER: SkillKind[] = ['general', 'combat', 'social', 'knowledge', 'magic']
 
 /** Полный печатный лист персонажа для PrintPreview (→ браузерная печать / сохранение в PDF). */
-export function CharacterSheetPrint({ sheet, reference }: { sheet: CharacterSheet; reference: Reference }) {
+export function CharacterSheetPrint({ sheet, reference, loadNotes = true }: {
+  sheet: CharacterSheet
+  reference?: Reference
+  /** false для публичного share-листа: заметки закрыты auth-endpoint и не входят в публичный DTO. */
+  loadNotes?: boolean
+}) {
   const [notes, setNotes] = useState<CharacterNote[]>([])
   useEffect(() => {
+    if (!loadNotes) return
     // Заметки лежат в отдельном endpoint; для печати не критичны — ошибку игнорируем.
     api.notes(sheet.id).then(setNotes).catch(() => { /* пусто */ })
-  }, [sheet.id])
+  }, [loadNotes, sheet.id])
 
-  const skillRu = new Map(reference.skills.map(s => [s.id, s.nameRu]))
-  const itemRu = new Map(reference.items.map(i => [i.id, i.nameRu]))
+  const printableNotes = loadNotes ? notes : []
+  const skillRu = new Map((reference?.skills ?? []).map(s => [s.id, s.nameRu]))
+  const itemRu = new Map((reference?.items ?? []).map(i => [i.id, i.nameRu]))
   const skillNames = sheet.skills.map(s => s.name)
   const skillsByName = new Map(sheet.skills.map(s => [s.name, s]))
   const skillGroups = SKILL_KIND_ORDER
@@ -196,10 +203,10 @@ export function CharacterSheetPrint({ sheet, reference }: { sheet: CharacterShee
         </section>
       )}
 
-      {notes.length > 0 && (
+      {printableNotes.length > 0 && (
         <section className="sheet-section">
           <h2>Заметки</h2>
-          {notes.map(n => (
+          {printableNotes.map(n => (
             <div key={n.id} className="sheet-entry">
               <strong>{n.title}</strong>
               {n.body && <div className="sheet-desc">{n.body}</div>}

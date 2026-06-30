@@ -27,6 +27,12 @@ describe('parseRoute', () => {
     expect(parseRoute('/about')).toEqual(route({ area: 'about' }))
   })
 
+  it('parses public share links with a token', () => {
+    expect(parseRoute('/share/raw-token')).toEqual(route({ area: 'share', id: 'raw-token' }))
+    expect(parseRoute('/share')).toEqual(route({ area: 'share', unknown: true }))
+    expect(parseRoute('/share/raw-token/extra')).toEqual(route({ area: 'share', id: 'raw-token', unknown: true }))
+  })
+
   it('flags trailing segments on idless areas as unknown', () => {
     expect(parseRoute('/about/extra')).toEqual(route({ area: 'about', unknown: true }))
     expect(parseRoute('/magic/extra')).toEqual(route({ area: 'magic', unknown: true }))

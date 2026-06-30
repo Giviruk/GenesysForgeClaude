@@ -21,6 +21,7 @@ DbSets:
 - `CareerStartingGears`
 - `CareerRules`
 - `Characters`
+- `CharacterShareTokens`
 - `CharacterSkills`
 - `CharacterTalents`
 - `CharacterItems`
@@ -136,6 +137,22 @@ Relationships:
 - `Career` restrict delete.
 - `HeroicAbility` set null on delete.
 - skills/talents/items cascade delete from character.
+
+### CharacterShareTokens
+
+Opaque tokens for public read-only character-sheet sharing (U-24). The raw token is returned only once by
+`POST /api/characters/{id}/share`; the database stores only its SHA-256 hex hash.
+
+Fields: `Id`, `CharacterId`, `TokenHash`, `CreatedAt`, `RevokedAt`.
+
+Indexes:
+
+- unique `TokenHash`.
+- non-unique `(CharacterId, RevokedAt)` for revoking active links.
+
+Relationships:
+
+- FK to `Characters` with cascade delete.
 
 ### CharacterSkills
 
@@ -259,6 +276,7 @@ Found migrations:
 - `20260627084602_AddNpcSilhouetteAndTactics` — adds `Silhouette` (`int`, existing rows default `1`) and `Tactics` (`varchar(2000)`) to `Npcs` for adversary creation rules (U-15). Non-destructive (`AddColumn`).
 - `20260627153450_AddNpcAttackSourceWeapon` — adds `SourceWeapon` (`varchar(160)`) to `NpcAttacks` to link weapon-derived attacks to inventory weapons (auto-create/sync). Non-destructive (`AddColumn`).
 - `20260627224610_AddRuleEffectDefs` — creates `RuleEffectDefs` (cascade FK to `HeroicAbilityDefs`) for structural activation effects (U-18). Non-destructive (only `CreateTable`). New seeds carry effect markup; existing DBs get effects only on reseed of heroics.
+- `20260629215609_AddCharacterShareTokens` — creates `CharacterShareTokens` for public read-only character sheet links (U-24), with unique `TokenHash`, `(CharacterId, RevokedAt)` index and cascade FK to `Characters`. Non-destructive (only `CreateTable`).
 
 Startup behavior:
 
@@ -299,6 +317,7 @@ Legal risk:
 - Character references to archetype/career use restrict delete.
 - Character reference to heroic ability uses set null.
 - Character child collections cascade delete.
+- Character share tokens cascade delete.
 - Character skill `(CharacterId, SkillDefId)` unique.
 - Character talent `(CharacterId, TalentDefId)` unique.
 

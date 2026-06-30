@@ -9,6 +9,7 @@ import { MagicPage } from './pages/MagicPage'
 import { ReferencePage } from './pages/ReferencePage'
 import { AboutPage } from './pages/AboutPage'
 import { ProfilePage } from './pages/ProfilePage'
+import { SharedSheetPage } from './pages/SharedSheetPage'
 import { Footer } from './components/Footer'
 import { navigate, parseRoute, usePath, type AppArea } from './router'
 import type { CampaignView } from './pages/CampaignsPage'
@@ -24,6 +25,12 @@ function Shell() {
 
   // «О проекте» доступна публично — до проверки токена (виден дисклеймер до входа).
   if (route.area === 'about') return <AboutPage loggedIn={!!token} />
+  // Публичный read-only лист по share-token не требует логина.
+  if (route.area === 'share') {
+    return route.unknown || !route.id
+      ? <NotFound />
+      : <SharedSheetPage token={route.id} loggedIn={!!token} />
+  }
 
   if (!token) return <AuthPage />
 
