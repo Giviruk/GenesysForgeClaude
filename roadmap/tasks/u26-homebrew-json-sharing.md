@@ -3,7 +3,7 @@
 - **Roadmap:** U-26 — Импорт homebrew из JSON + шеринг + per-character toggle (см. [unified-roadmap.md](../unified-roadmap.md))
 - **Ветка:** `feature/u26-homebrew-json-sharing`
 - **Базовая ветка:** `master`
-- **PR:** pending
+- **PR:** [#70](https://github.com/Giviruk/GenesysForgeClaude/pull/70)
 - **Статус:** 🚧 In progress
 
 ## Контекст
@@ -31,11 +31,11 @@
 - [x] Создать миграцию и обновить `docs/database.md`, если меняется persistent model.
 - [x] Обновить `docs/api.md` и task plan.
 - [x] Запустить релевантные проверки.
-- [ ] Открыть PR.
+- [x] Открыть PR.
 
 ## Что осталось / блокеры
 
-- Остались commit/push/PR.
+- Ожидается review/merge PR #70.
 
 ## Заметки / решения
 
