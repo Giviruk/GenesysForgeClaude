@@ -353,6 +353,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
 
         b.Entity<ArchetypeDef>(e =>
         {
+            e.HasIndex(a => a.OwnerUserId);
             e.HasMany(a => a.Abilities).WithOne()
                 .HasForeignKey(x => x.ArchetypeId).OnDelete(DeleteBehavior.Cascade);
             e.HasMany(a => a.StartingSkills).WithOne()
@@ -376,6 +377,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
 
         b.Entity<CareerDef>(e =>
         {
+            e.HasIndex(c => c.OwnerUserId);
             e.Property(c => c.StartingMoneyDice).HasMaxLength(20);
             e.HasMany(c => c.StartingGear).WithOne()
                 .HasForeignKey(x => x.CareerId).OnDelete(DeleteBehavior.Cascade);

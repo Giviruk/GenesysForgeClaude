@@ -27,6 +27,14 @@ public static class CustomContentEndpoints
                 ICommandHandler<CreateCustomHeroicAbilityCommand, HeroicAbilityDto> handler, CancellationToken ct) =>
             Results.Ok(await handler.Handle(new CreateCustomHeroicAbilityCommand(user.UserId(), req), ct)));
 
+        group.MapPost("/archetypes", async (CreateCustomArchetypeRequest req, ClaimsPrincipal user,
+                ICommandHandler<CreateCustomArchetypeCommand, ArchetypeDto> handler, CancellationToken ct) =>
+            Results.Ok(await handler.Handle(new CreateCustomArchetypeCommand(user.UserId(), req), ct)));
+
+        group.MapPost("/careers", async (CreateCustomCareerRequest req, ClaimsPrincipal user,
+                ICommandHandler<CreateCustomCareerCommand, CareerDto> handler, CancellationToken ct) =>
+            Results.Ok(await handler.Handle(new CreateCustomCareerCommand(user.UserId(), req), ct)));
+
         // ---- Редактирование ----
         group.MapPut("/skills/{id:guid}", async (Guid id, CreateCustomSkillRequest req, ClaimsPrincipal user,
                 ICommandHandler<UpdateCustomSkillCommand, SkillDefDto> handler, CancellationToken ct) =>
@@ -43,6 +51,14 @@ public static class CustomContentEndpoints
         group.MapPut("/heroic-abilities/{id:guid}", async (Guid id, CreateCustomHeroicAbilityRequest req, ClaimsPrincipal user,
                 ICommandHandler<UpdateCustomHeroicAbilityCommand, HeroicAbilityDto> handler, CancellationToken ct) =>
             Results.Ok(await handler.Handle(new UpdateCustomHeroicAbilityCommand(user.UserId(), id, req), ct)));
+
+        group.MapPut("/archetypes/{id:guid}", async (Guid id, CreateCustomArchetypeRequest req, ClaimsPrincipal user,
+                ICommandHandler<UpdateCustomArchetypeCommand, ArchetypeDto> handler, CancellationToken ct) =>
+            Results.Ok(await handler.Handle(new UpdateCustomArchetypeCommand(user.UserId(), id, req), ct)));
+
+        group.MapPut("/careers/{id:guid}", async (Guid id, CreateCustomCareerRequest req, ClaimsPrincipal user,
+                ICommandHandler<UpdateCustomCareerCommand, CareerDto> handler, CancellationToken ct) =>
+            Results.Ok(await handler.Handle(new UpdateCustomCareerCommand(user.UserId(), id, req), ct)));
 
         // ---- Удаление (блокируется, если контент используется персонажем) ----
         group.MapDelete("/skills/{id:guid}", async (Guid id, ClaimsPrincipal user,
@@ -70,6 +86,20 @@ public static class CustomContentEndpoints
             ICommandHandler<DeleteCustomHeroicAbilityCommand, Unit> handler, CancellationToken ct) =>
         {
             await handler.Handle(new DeleteCustomHeroicAbilityCommand(user.UserId(), id), ct);
+            return Results.NoContent();
+        });
+
+        group.MapDelete("/archetypes/{id:guid}", async (Guid id, ClaimsPrincipal user,
+            ICommandHandler<DeleteCustomArchetypeCommand, Unit> handler, CancellationToken ct) =>
+        {
+            await handler.Handle(new DeleteCustomArchetypeCommand(user.UserId(), id), ct);
+            return Results.NoContent();
+        });
+
+        group.MapDelete("/careers/{id:guid}", async (Guid id, ClaimsPrincipal user,
+            ICommandHandler<DeleteCustomCareerCommand, Unit> handler, CancellationToken ct) =>
+        {
+            await handler.Handle(new DeleteCustomCareerCommand(user.UserId(), id), ct);
             return Results.NoContent();
         });
     }

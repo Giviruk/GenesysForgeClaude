@@ -1,6 +1,9 @@
 import { useState, type FormEvent } from 'react'
 import { api } from '../api/client'
-import type { CharacterSheet, HeroicAbility, ItemDef, Quality, Reference, SkillDef, TalentDef } from '../api/types'
+import type {
+  Archetype, Career, CharacterSheet, CustomArchetypeInput, CustomCareerInput,
+  HeroicAbility, ItemDef, Quality, Reference, SkillDef, TalentDef,
+} from '../api/types'
 import { CHARACTERISTICS, CHARACTERISTIC_LABELS, ITEM_KIND_LABELS, SKILL_KIND_LABELS } from '../utils/labels'
 
 interface Props {
@@ -10,7 +13,7 @@ interface Props {
   refresh: () => Promise<void>
 }
 
-type Section = 'skill' | 'talent' | 'item' | 'heroic'
+type Section = 'skill' | 'talent' | 'item' | 'heroic' | 'archetype' | 'career'
 
 export function CustomTab({ sheet, reference, onError, refresh }: Props) {
   const [section, setSection] = useState<Section>('skill')
@@ -20,6 +23,8 @@ export function CustomTab({ sheet, reference, onError, refresh }: Props) {
   const [editingTalent, setEditingTalent] = useState<TalentDef | null>(null)
   const [editingItem, setEditingItem] = useState<ItemDef | null>(null)
   const [editingHeroic, setEditingHeroic] = useState<HeroicAbility | null>(null)
+  const [editingArchetype, setEditingArchetype] = useState<Archetype | null>(null)
+  const [editingCareer, setEditingCareer] = useState<Career | null>(null)
 
   async function run(action: () => Promise<unknown>, successMessage: string) {
     setNotice(null)
@@ -36,6 +41,8 @@ export function CustomTab({ sheet, reference, onError, refresh }: Props) {
   const customTalents = reference.talents.filter(t => t.isCustom)
   const customItems = reference.items.filter(i => i.isCustom)
   const customHeroics = reference.heroicAbilities.filter(h => h.isCustom)
+  const customArchetypes = reference.archetypes.filter(a => a.isCustom)
+  const customCareers = reference.careers.filter(c => c.isCustom)
 
   return (
     <div>
@@ -50,6 +57,8 @@ export function CustomTab({ sheet, reference, onError, refresh }: Props) {
           <button className={section === 'skill' ? 'tab active' : 'tab'} onClick={() => setSection('skill')}>Навыки</button>
           <button className={section === 'talent' ? 'tab active' : 'tab'} onClick={() => setSection('talent')}>Таланты</button>
           <button className={section === 'item' ? 'tab active' : 'tab'} onClick={() => setSection('item')}>Предметы</button>
+          <button className={section === 'archetype' ? 'tab active' : 'tab'} onClick={() => setSection('archetype')}>Архетипы</button>
+          <button className={section === 'career' ? 'tab active' : 'tab'} onClick={() => setSection('career')}>Карьеры</button>
           {sheet.system === 'realmsOfTerrinoth' && (
             <button className={section === 'heroic' ? 'tab active' : 'tab'} onClick={() => setSection('heroic')}>Героич. способности</button>
           )}
@@ -90,6 +99,24 @@ export function CustomTab({ sheet, reference, onError, refresh }: Props) {
             <CustomList items={customHeroics.map(h => ({ id: h.id, label: h.name }))}
               onEdit={id => setEditingHeroic(customHeroics.find(h => h.id === id)!)}
               onDelete={id => run(() => api.deleteCustomHeroicAbility(id), 'Способность удалена.')} />
+          </>
+        )}
+        {section === 'archetype' && (
+          <>
+            <ArchetypeForm key={editingArchetype?.id ?? 'new'} sheet={sheet} run={run}
+              editing={editingArchetype} onDone={() => setEditingArchetype(null)} />
+            <CustomList items={customArchetypes.map(a => ({ id: a.id, label: `${a.nameRu || a.name} · XP ${a.startingXp}` }))}
+              onEdit={id => setEditingArchetype(customArchetypes.find(a => a.id === id)!)}
+              onDelete={id => run(() => api.deleteCustomArchetype(id), 'Архетип удалён.')} />
+          </>
+        )}
+        {section === 'career' && (
+          <>
+            <CareerForm key={editingCareer?.id ?? 'new'} sheet={sheet} reference={reference} run={run}
+              editing={editingCareer} onDone={() => setEditingCareer(null)} />
+            <CustomList items={customCareers.map(c => ({ id: c.id, label: `${c.nameRu || c.name} · ${c.careerSkillNames.length} навыков` }))}
+              onEdit={id => setEditingCareer(customCareers.find(c => c.id === id)!)}
+              onDelete={id => run(() => api.deleteCustomCareer(id), 'Карьера удалена.')} />
           </>
         )}
       </section>
@@ -371,6 +398,146 @@ function QualityPicker({ qualities, onAdd }: { qualities: Quality[]; onAdd: (tok
       )}
       <button type="button" className="small" onClick={add} disabled={!selected}>+ свойство</button>
     </div>
+  )
+}
+
+function ArchetypeForm({ sheet, run, editing, onDone }: {
+  sheet: CharacterSheet
+  run: Run
+  editing: Archetype | null
+  onDone: () => void
+}) {
+  const [name, setName] = useState(editing?.name ?? '')
+  const [nameRu, setNameRu] = useState(editing?.nameRu ?? '')
+  const [description, setDescription] = useState(editing?.safeDescription || editing?.description || '')
+  const [abilityNameRu, setAbilityNameRu] = useState(editing?.abilities[0]?.nameRu ?? '')
+  const [abilityDescription, setAbilityDescription] = useState(editing?.abilities[0]?.safeDescription ?? '')
+  const [stats, setStats] = useState({
+    brawn: editing?.brawn ?? 2,
+    agility: editing?.agility ?? 2,
+    intellect: editing?.intellect ?? 2,
+    cunning: editing?.cunning ?? 2,
+    willpower: editing?.willpower ?? 2,
+    presence: editing?.presence ?? 2,
+    woundBase: editing?.woundBase ?? 10,
+    strainBase: editing?.strainBase ?? 10,
+    startingXp: editing?.startingXp ?? 100,
+  })
+
+  function submit(e: FormEvent) {
+    e.preventDefault()
+    const payload: CustomArchetypeInput = { system: sheet.system, name, nameRu, description, abilityNameRu, abilityDescription, ...stats }
+    if (editing) {
+      void run(() => api.updateCustomArchetype(editing.id, payload), `Архетип «${nameRu || name}» обновлён.`)
+      onDone()
+    } else {
+      void run(() => api.createCustomArchetype(payload), `Архетип «${nameRu || name}» создан — он доступен при создании персонажа.`)
+      setName(''); setNameRu(''); setDescription(''); setAbilityNameRu(''); setAbilityDescription('')
+    }
+  }
+
+  const statFields: [keyof typeof stats, string, number, number][] = [
+    ['brawn', 'Мощь', 1, 5],
+    ['agility', 'Ловкость', 1, 5],
+    ['intellect', 'Интеллект', 1, 5],
+    ['cunning', 'Хитрость', 1, 5],
+    ['willpower', 'Воля', 1, 5],
+    ['presence', 'Присутствие', 1, 5],
+    ['woundBase', 'База ран', 1, 30],
+    ['strainBase', 'База стрейна', 1, 30],
+    ['startingXp', 'Стартовый XP', 0, 500],
+  ]
+
+  return (
+    <form className="custom-form" onSubmit={submit}>
+      {editing && <div className="editing-banner">Редактирование: {editing.nameRu || editing.name}</div>}
+      <label>Название EN/кодовое<input value={name} onChange={e => setName(e.target.value)} required /></label>
+      <label>Название RU<input value={nameRu} onChange={e => setNameRu(e.target.value)} /></label>
+      <div className="bonus-grid">
+        {statFields.map(([key, label, min, max]) => (
+          <label key={key}>{label}
+            <input type="number" min={min} max={max} value={stats[key]}
+              onChange={e => setStats(s => ({ ...s, [key]: Number(e.target.value) }))} />
+          </label>
+        ))}
+      </div>
+      <label>Краткое описание<textarea value={description} onChange={e => setDescription(e.target.value)} rows={2} /></label>
+      <label>Способность вида — название<input value={abilityNameRu} onChange={e => setAbilityNameRu(e.target.value)} /></label>
+      <label>Способность вида — описание<textarea value={abilityDescription} onChange={e => setAbilityDescription(e.target.value)} rows={3} /></label>
+      <div className="form-actions">
+        <button className="primary" type="submit">{editing ? 'Сохранить' : 'Создать архетип'}</button>
+        {editing && <button type="button" onClick={onDone}>Отмена</button>}
+      </div>
+    </form>
+  )
+}
+
+function CareerForm({ sheet, reference, run, editing, onDone }: {
+  sheet: CharacterSheet
+  reference: Reference
+  run: Run
+  editing: Career | null
+  onDone: () => void
+}) {
+  const [name, setName] = useState(editing?.name ?? '')
+  const [nameRu, setNameRu] = useState(editing?.nameRu ?? '')
+  const [description, setDescription] = useState(editing?.safeDescription || editing?.description || '')
+  const [startingMoneyFixed, setStartingMoneyFixed] = useState(editing?.startingMoneyFixed ?? 0)
+  const [startingMoneyDice, setStartingMoneyDice] = useState(editing?.startingMoneyDice ?? '')
+  const [careerSkillNames, setCareerSkillNames] = useState<string[]>(editing?.careerSkillNames ?? [])
+  const skills = reference.skills.filter(s => s.kind !== 'magic' || sheet.system === 'realmsOfTerrinoth' || s.name !== 'Verse')
+
+  function toggleSkill(skillName: string) {
+    setCareerSkillNames(prev => prev.includes(skillName)
+      ? prev.filter(s => s !== skillName)
+      : [...prev, skillName])
+  }
+
+  function submit(e: FormEvent) {
+    e.preventDefault()
+    const payload: CustomCareerInput = {
+      system: sheet.system, name, nameRu, description,
+      careerSkillNames, startingMoneyFixed, startingMoneyDice,
+    }
+    if (editing) {
+      void run(() => api.updateCustomCareer(editing.id, payload), `Карьера «${nameRu || name}» обновлена.`)
+      onDone()
+    } else {
+      void run(() => api.createCustomCareer(payload), `Карьера «${nameRu || name}» создана — она доступна при создании персонажа.`)
+      setName(''); setNameRu(''); setDescription(''); setStartingMoneyFixed(0); setStartingMoneyDice(''); setCareerSkillNames([])
+    }
+  }
+
+  return (
+    <form className="custom-form" onSubmit={submit}>
+      {editing && <div className="editing-banner">Редактирование: {editing.nameRu || editing.name}</div>}
+      <label>Название EN/кодовое<input value={name} onChange={e => setName(e.target.value)} required /></label>
+      <label>Название RU<input value={nameRu} onChange={e => setNameRu(e.target.value)} /></label>
+      <label>Описание<textarea value={description} onChange={e => setDescription(e.target.value)} rows={2} /></label>
+      <div className="bonus-grid">
+        <label>Стартовые деньги фикс.
+          <input type="number" min={0} value={startingMoneyFixed} onChange={e => setStartingMoneyFixed(Number(e.target.value))} />
+        </label>
+        <label>Бросок денег (например 1d100)
+          <input value={startingMoneyDice} onChange={e => setStartingMoneyDice(e.target.value)} />
+        </label>
+      </div>
+      <div className="label-line">Карьерные навыки ({careerSkillNames.length}):</div>
+      <div className="chips">
+        {skills.map(s => (
+          <button key={s.id} type="button" className={careerSkillNames.includes(s.name) ? 'chip active' : 'chip'}
+            onClick={() => toggleSkill(s.name)}>
+            {s.nameRu || s.name}
+          </button>
+        ))}
+      </div>
+      <div className="form-actions">
+        <button className="primary" type="submit" disabled={careerSkillNames.length === 0}>
+          {editing ? 'Сохранить' : 'Создать карьеру'}
+        </button>
+        {editing && <button type="button" onClick={onDone}>Отмена</button>}
+      </div>
+    </form>
   )
 }
 

@@ -306,6 +306,7 @@ public static class SeedData
         var existing = db.ArchetypeDefs
             .Include(a => a.Abilities)
             .Include(a => a.StartingSkills)
+            .Where(a => a.OwnerUserId == null)
             .ToList();
         var byCode = existing.ToDictionary(a => a.Code);
         var catalogCodes = catalog.Select(a => a.Code).ToHashSet();
@@ -397,6 +398,7 @@ public static class SeedData
         var careers = db.CareerDefs
             .Include(c => c.StartingGear)
             .Include(c => c.Rules)
+            .Where(c => c.OwnerUserId == null)
             .ToList()
             .ToDictionary(c => c.Code);
         var changed = false;
@@ -484,6 +486,8 @@ public static class SeedData
         SkillDef s => s.OwnerUserId == null,
         TalentDef t => t.OwnerUserId == null,
         ItemDef i => i.OwnerUserId == null,
+        ArchetypeDef a => a.OwnerUserId == null,
+        CareerDef c => c.OwnerUserId == null,
         HeroicAbilityDef h => h.OwnerUserId == null,
         SpellDef sp => sp.OwnerUserId == null,
         _ => true, // архетипы и карьеры всегда встроенные

@@ -71,7 +71,7 @@ public class GlobalSearchHandler(IAppDbContext db) : IQueryHandler<GlobalSearchQ
 
         // 6. Архетипы / виды
         hits.AddRange(await db.ArchetypeDefs.AsNoTracking()
-            .Where(a => a.System == system
+            .Where(a => a.System == system && !a.Retired && (a.OwnerUserId == null || a.OwnerUserId == userId)
                 && (a.NameRu.ToLower().Contains(needle) || a.Name.ToLower().Contains(needle)))
             .OrderBy(a => a.NameRu).Take(PerSource)
             .Select(a => new SearchHitDto("archetype", "Архетипы", a.NameRu, a.Name, a.SafeDescription, "/reference"))
@@ -79,7 +79,7 @@ public class GlobalSearchHandler(IAppDbContext db) : IQueryHandler<GlobalSearchQ
 
         // 7. Карьеры
         hits.AddRange(await db.CareerDefs.AsNoTracking()
-            .Where(c => c.System == system
+            .Where(c => c.System == system && (c.OwnerUserId == null || c.OwnerUserId == userId)
                 && (c.NameRu.ToLower().Contains(needle) || c.Name.ToLower().Contains(needle)))
             .OrderBy(c => c.NameRu).Take(PerSource)
             .Select(c => new SearchHitDto("career", "Карьеры", c.NameRu, c.Name, c.SafeDescription, "/reference"))

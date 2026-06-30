@@ -79,14 +79,20 @@ public static class DependencyInjection
         services.AddScoped<ICommandHandler<CreateCustomTalentCommand, TalentDefDto>, CreateCustomTalentHandler>();
         services.AddScoped<ICommandHandler<CreateCustomItemCommand, ItemDefDto>, CreateCustomItemHandler>();
         services.AddScoped<ICommandHandler<CreateCustomHeroicAbilityCommand, HeroicAbilityDto>, CreateCustomHeroicAbilityHandler>();
+        services.AddScoped<ICommandHandler<CreateCustomArchetypeCommand, ArchetypeDto>, CreateCustomArchetypeHandler>();
+        services.AddScoped<ICommandHandler<CreateCustomCareerCommand, CareerDto>, CreateCustomCareerHandler>();
         services.AddScoped<ICommandHandler<UpdateCustomSkillCommand, SkillDefDto>, UpdateCustomSkillHandler>();
         services.AddScoped<ICommandHandler<UpdateCustomTalentCommand, TalentDefDto>, UpdateCustomTalentHandler>();
         services.AddScoped<ICommandHandler<UpdateCustomItemCommand, ItemDefDto>, UpdateCustomItemHandler>();
         services.AddScoped<ICommandHandler<UpdateCustomHeroicAbilityCommand, HeroicAbilityDto>, UpdateCustomHeroicAbilityHandler>();
+        services.AddScoped<ICommandHandler<UpdateCustomArchetypeCommand, ArchetypeDto>, UpdateCustomArchetypeHandler>();
+        services.AddScoped<ICommandHandler<UpdateCustomCareerCommand, CareerDto>, UpdateCustomCareerHandler>();
         services.AddScoped<ICommandHandler<DeleteCustomSkillCommand, Unit>, DeleteCustomSkillHandler>();
         services.AddScoped<ICommandHandler<DeleteCustomTalentCommand, Unit>, DeleteCustomTalentHandler>();
         services.AddScoped<ICommandHandler<DeleteCustomItemCommand, Unit>, DeleteCustomItemHandler>();
         services.AddScoped<ICommandHandler<DeleteCustomHeroicAbilityCommand, Unit>, DeleteCustomHeroicAbilityHandler>();
+        services.AddScoped<ICommandHandler<DeleteCustomArchetypeCommand, Unit>, DeleteCustomArchetypeHandler>();
+        services.AddScoped<ICommandHandler<DeleteCustomCareerCommand, Unit>, DeleteCustomCareerHandler>();
 
         // Notes
         services.AddScoped<IQueryHandler<GetCharacterNotesQuery, List<CharacterNoteDto>>, GetCharacterNotesHandler>();

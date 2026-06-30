@@ -22,19 +22,20 @@
 
 - [x] Создать ветку и plan-файл.
 - [x] Отметить U-24 как Done после merge PR #68 и U-25 как In progress.
-- [ ] Изучить текущие модели `ArchetypeDef`/`CareerDef`, custom endpoints, reference filtering и creation flow.
-- [ ] Спроектировать минимальный API/DTO для custom archetype/career CRUD без изменения copyright/seed policy.
-- [ ] Реализовать backend CRUD и валидацию ownership/visibility.
-- [ ] Реализовать frontend API методы и формы в `CustomTab.tsx`.
-- [ ] Убедиться, что кастомные архетипы/карьеры доступны в создании персонажа.
-- [ ] Добавить/обновить xUnit и Vitest тесты.
-- [ ] Запустить релевантные проверки.
+- [x] Изучить текущие модели `ArchetypeDef`/`CareerDef`, custom endpoints, reference filtering и creation flow.
+- [x] Спроектировать минимальный API/DTO для custom archetype/career CRUD без изменения copyright/seed policy.
+- [x] Реализовать backend CRUD и валидацию ownership/visibility.
+- [x] Реализовать frontend API методы и формы в `CustomTab.tsx`.
+- [x] Убедиться, что кастомные архетипы/карьеры доступны в создании персонажа.
+- [x] Добавить/обновить xUnit и Vitest тесты.
+- [x] Запустить релевантные проверки.
 - [ ] Обновить docs/plan и открыть PR.
 
 ## Что осталось / блокеры
 
-- Нужно подтвердить по коду, какие поля structural U-12/U-13 должны быть в v1 формы, чтобы не раздувать scope.
+- Остались commit/push/PR.
 
 ## Заметки / решения
 
 - Assumption: v1 должен покрыть создание playable archetype/career для собственного аккаунта; built-in seed и official text не меняются.
+- Решение: v1 архетипа поддерживает одну manual ability и не добавляет стартовые skill choices; v1 карьеры поддерживает career skills и стартовые деньги, без стартового снаряжения/правил. Это держит scope U-25 минимальным и совместимым с U-12/U-13.
