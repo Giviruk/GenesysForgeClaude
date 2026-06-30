@@ -17,14 +17,16 @@ public class GetReferenceHandler(IAppDbContext db) : IQueryHandler<GetReferenceQ
         var archetypeDefs = await db.ArchetypeDefs.AsNoTracking()
             .Include(a => a.Abilities)
             .Include(a => a.StartingSkills)
-            .Where(a => a.System == system && !a.Retired).OrderBy(a => a.NameRu)
+            .Where(a => a.System == system && !a.Retired && (a.OwnerUserId == null || a.OwnerUserId == userId))
+            .OrderBy(a => a.NameRu)
             .ToListAsync(ct);
         var archetypes = archetypeDefs.Select(a => a.ToDto()).ToList();
 
         var careerDefs = await db.CareerDefs.AsNoTracking()
             .Include(c => c.StartingGear)
             .Include(c => c.Rules)
-            .Where(c => c.System == system).OrderBy(c => c.NameRu)
+            .Where(c => c.System == system && (c.OwnerUserId == null || c.OwnerUserId == userId))
+            .OrderBy(c => c.NameRu)
             .ToListAsync(ct);
         var careers = careerDefs.Select(c => c.ToDto()).ToList();
 

@@ -17,11 +17,13 @@ public partial class CreateCharacterHandler(IAppDbContext db) : ICommandHandler<
 
         var archetype = await db.ArchetypeDefs
                 .Include(a => a.StartingSkills)
-                .FirstOrDefaultAsync(a => a.Id == req.ArchetypeId && a.System == req.System, ct)
+                .FirstOrDefaultAsync(a => a.Id == req.ArchetypeId && a.System == req.System
+                    && !a.Retired && (a.OwnerUserId == null || a.OwnerUserId == userId), ct)
             ?? throw new DomainRuleException("Архетип не найден или принадлежит другой системе.");
         var career = await db.CareerDefs
                 .Include(c => c.StartingGear)
-                .FirstOrDefaultAsync(c => c.Id == req.CareerId && c.System == req.System, ct)
+                .FirstOrDefaultAsync(c => c.Id == req.CareerId && c.System == req.System
+                    && (c.OwnerUserId == null || c.OwnerUserId == userId), ct)
             ?? throw new DomainRuleException("Карьера не найдена или принадлежит другой системе.");
         if (string.IsNullOrWhiteSpace(req.Name))
             throw new DomainRuleException("Имя персонажа не может быть пустым.");

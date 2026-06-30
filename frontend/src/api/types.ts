@@ -215,6 +215,7 @@ export interface Archetype {
   description: string
   safeDescription: string
   source: string
+  isCustom: boolean
   abilities: ArchetypeAbility[]
   startingSkills: ArchetypeStartingSkill[]
 }
@@ -248,6 +249,7 @@ export interface Career {
   description: string
   safeDescription: string
   source: string
+  isCustom: boolean
   careerSkillNames: string[]
   startingMoneyFixed: number
   startingMoneyDice: string
@@ -263,6 +265,34 @@ export interface Reference {
   items: ItemDef[]
   heroicAbilities: HeroicAbility[]
   qualities: Quality[]
+}
+
+export interface CustomArchetypeInput {
+  system: GameSystem
+  name: string
+  nameRu?: string | null
+  brawn: number
+  agility: number
+  intellect: number
+  cunning: number
+  willpower: number
+  presence: number
+  woundBase: number
+  strainBase: number
+  startingXp: number
+  description?: string | null
+  abilityNameRu?: string | null
+  abilityDescription?: string | null
+}
+
+export interface CustomCareerInput {
+  system: GameSystem
+  name: string
+  nameRu?: string | null
+  description?: string | null
+  careerSkillNames: string[]
+  startingMoneyFixed: number
+  startingMoneyDice?: string | null
 }
 
 export interface CharacterListItem {

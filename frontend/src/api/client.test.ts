@@ -69,4 +69,57 @@ describe('api client — обработка 401', () => {
       ['/api/share/raw_token', 'GET'],
     ])
   })
+
+  it('custom archetype/career methods use the expected endpoints', async () => {
+    const fetchMock = vi.spyOn(globalThis, 'fetch')
+      .mockResolvedValueOnce(new Response(JSON.stringify({ id: 'archetype-id' }), { status: 200 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ id: 'career-id' }), { status: 200 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ id: 'archetype-id' }), { status: 200 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ id: 'career-id' }), { status: 200 }))
+      .mockResolvedValueOnce(new Response(null, { status: 204 }))
+      .mockResolvedValueOnce(new Response(null, { status: 204 }))
+
+    const archetypePayload = {
+      system: 'genesysCore' as const,
+      name: 'Custom Species',
+      nameRu: '',
+      brawn: 2,
+      agility: 2,
+      intellect: 2,
+      cunning: 2,
+      willpower: 2,
+      presence: 2,
+      woundBase: 10,
+      strainBase: 10,
+      startingXp: 100,
+      description: '',
+      abilityNameRu: '',
+      abilityDescription: '',
+    }
+    const careerPayload = {
+      system: 'genesysCore' as const,
+      name: 'Custom Career',
+      nameRu: '',
+      description: '',
+      careerSkillNames: ['Athletics'],
+      startingMoneyFixed: 0,
+      startingMoneyDice: '',
+    }
+
+    await api.createCustomArchetype(archetypePayload)
+    await api.createCustomCareer(careerPayload)
+    await api.updateCustomArchetype('a1', archetypePayload)
+    await api.updateCustomCareer('c1', careerPayload)
+    await api.deleteCustomArchetype('a1')
+    await api.deleteCustomCareer('c1')
+
+    expect(fetchMock.mock.calls.map(([url, init]) => [url, init?.method])).toEqual([
+      ['/api/custom/archetypes', 'POST'],
+      ['/api/custom/careers', 'POST'],
+      ['/api/custom/archetypes/a1', 'PUT'],
+      ['/api/custom/careers/c1', 'PUT'],
+      ['/api/custom/archetypes/a1', 'DELETE'],
+      ['/api/custom/careers/c1', 'DELETE'],
+    ])
+  })
 })

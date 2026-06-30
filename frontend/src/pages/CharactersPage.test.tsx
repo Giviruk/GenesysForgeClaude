@@ -7,7 +7,7 @@ function archetype(over: Partial<Archetype>): Archetype {
   return {
     id: 'a', name: 'A', nameRu: 'А', brawn: 2, agility: 2, intellect: 2, cunning: 2, willpower: 2, presence: 2,
     woundBase: 10, strainBase: 10, startingXp: 100, description: '', safeDescription: '', source: '',
-    abilities: [], startingSkills: [], ...over,
+    isCustom: false, abilities: [], startingSkills: [], ...over,
   }
 }
 
@@ -26,10 +26,10 @@ const reference: Reference = {
   ],
   careers: [
     { id: 'career-soldier', name: 'Soldier', nameRu: 'Солдат', description: 'desc',
-      safeDescription: '', source: '', careerSkillNames: ['Athletics', 'Cool'],
+      safeDescription: '', source: '', isCustom: false, careerSkillNames: ['Athletics', 'Cool'],
       startingMoneyFixed: 0, startingMoneyDice: '', startingGear: [], rules: [] },
     { id: 'career-warrior', name: 'Warrior', nameRu: 'Воин', description: 'боец',
-      safeDescription: '', source: '', careerSkillNames: ['Athletics'],
+      safeDescription: '', source: '', isCustom: false, careerSkillNames: ['Athletics'],
       startingMoneyFixed: 0, startingMoneyDice: '1d100',
       startingGear: [
         { itemCode: 'leather', itemNameRu: 'кожаная броня', quantity: 1, isChoice: false, choiceGroup: '', choiceOption: 0 },

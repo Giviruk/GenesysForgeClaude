@@ -3,7 +3,7 @@ using GenesysForge.Domain.Entities;
 namespace GenesysForge.Application.Dtos;
 
 public record CareerDto(Guid Id, string Name, string NameRu, string Description, string SafeDescription,
-    string Source, List<string> CareerSkillNames,
+    string Source, bool IsCustom, List<string> CareerSkillNames,
     int StartingMoneyFixed, string StartingMoneyDice,
     IReadOnlyList<CareerStartingGearDto> StartingGear, IReadOnlyList<CareerRuleDto> Rules);
 

@@ -2,7 +2,7 @@ import type {
   Account,
   AuthResponse, AuthProviders, CampaignDetail, CampaignListItem, CampaignNote, CharacterListItem, CharacterNote,
   ActivateAbilityResult, ActivateCharacterAbilityResult, AddParticipantRequest, CharacterBio, CharacterSheet, CharacterShareResponse, CreatureTemplate, GameSession, GameSystem, HeroicAbility, InitiativeSlotType,
-  ItemDef, ItemState, NpcDetail, NpcFilter, NpcInput, NpcListItem, QuickDraftRequest, Reference,
+  Archetype, Career, CustomArchetypeInput, CustomCareerInput, ItemDef, ItemState, NpcDetail, NpcFilter, NpcInput, NpcListItem, QuickDraftRequest, Reference,
   SkillDef, Spell, TalentDef, UpdateParticipantRequest,
   AddEncounterParticipantRequest, EncounterDetail, EncounterFilter, EncounterInput, EncounterListItem,
   SendToTableMode, UpdateEncounterParticipantRequest,
@@ -199,6 +199,10 @@ export const api = {
   }) => request<ItemDef>('POST', '/api/custom/items', item),
   createCustomHeroicAbility: (ability: { name: string; description: string }) =>
     request<HeroicAbility>('POST', '/api/custom/heroic-abilities', ability),
+  createCustomArchetype: (archetype: CustomArchetypeInput) =>
+    request<Archetype>('POST', '/api/custom/archetypes', archetype),
+  createCustomCareer: (career: CustomCareerInput) =>
+    request<Career>('POST', '/api/custom/careers', career),
 
   updateCustomSkill: (id: string, skill: { system: GameSystem; name: string; characteristic: string; kind: string }) =>
     request<SkillDef>('PUT', `/api/custom/skills/${id}`, skill),
@@ -214,6 +218,10 @@ export const api = {
   }) => request<ItemDef>('PUT', `/api/custom/items/${id}`, item),
   updateCustomHeroicAbility: (id: string, ability: { name: string; description: string }) =>
     request<HeroicAbility>('PUT', `/api/custom/heroic-abilities/${id}`, ability),
+  updateCustomArchetype: (id: string, archetype: CustomArchetypeInput) =>
+    request<Archetype>('PUT', `/api/custom/archetypes/${id}`, archetype),
+  updateCustomCareer: (id: string, career: CustomCareerInput) =>
+    request<Career>('PUT', `/api/custom/careers/${id}`, career),
 
   notes: (characterId: string) =>
     request<CharacterNote[]>('GET', `/api/characters/${characterId}/notes/`),
@@ -354,4 +362,6 @@ export const api = {
   deleteCustomTalent: (id: string) => request<void>('DELETE', `/api/custom/talents/${id}`),
   deleteCustomItem: (id: string) => request<void>('DELETE', `/api/custom/items/${id}`),
   deleteCustomHeroicAbility: (id: string) => request<void>('DELETE', `/api/custom/heroic-abilities/${id}`),
+  deleteCustomArchetype: (id: string) => request<void>('DELETE', `/api/custom/archetypes/${id}`),
+  deleteCustomCareer: (id: string) => request<void>('DELETE', `/api/custom/careers/${id}`),
 }

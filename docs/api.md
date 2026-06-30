@@ -375,11 +375,24 @@ DELETE /api/custom/items/{id}
 POST   /api/custom/heroic-abilities
 PUT    /api/custom/heroic-abilities/{id}
 DELETE /api/custom/heroic-abilities/{id}
+
+POST   /api/custom/archetypes
+PUT    /api/custom/archetypes/{id}
+DELETE /api/custom/archetypes/{id}
+
+POST   /api/custom/careers
+PUT    /api/custom/careers/{id}
+DELETE /api/custom/careers/{id}
 ```
 
 Create/update responses return the created/updated DTO. Delete responses return `204`.
 
 Known limitation: delete is blocked by handlers when content is used by a character.
+
+Custom archetypes use `CreateCustomArchetypeRequest`: system, names, six characteristics, wound/strain bases,
+starting XP, copyright-safe description and one optional manual archetype ability. Custom careers use
+`CreateCustomCareerRequest`: system, names, description, career skill names and optional starting money. Both are
+scoped to `OwnerUserId`; only the owner sees them in reference data and can create characters from them.
 
 ## Campaigns
 

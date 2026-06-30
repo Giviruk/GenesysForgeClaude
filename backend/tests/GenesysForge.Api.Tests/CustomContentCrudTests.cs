@@ -133,4 +133,91 @@ public class CustomContentCrudTests : IClassFixture<ApiFactory>
         var del = await client.DeleteAsync($"/api/custom/heroic-abilities/{ability.Id}");
         Assert.Equal(HttpStatusCode.NoContent, del.StatusCode);
     }
+
+    [Fact]
+    public async Task ArchetypeAndCareer_Create_ArePrivate_AndCanCreateCharacter()
+    {
+        var client = await _factory.CreateAuthorizedClientAsync();
+        var reference = (await client.GetFromJsonAsync<ReferenceResponse>("/api/reference/GenesysCore", Json.Options))!;
+        var careerSkills = reference.Skills.Take(4).Select(s => s.Name).ToList();
+
+        var archetypeResponse = await client.PostAsJsonAsync("/api/custom/archetypes",
+            new CreateCustomArchetypeRequest(GameSystem.GenesysCore, "Clockwork Folk", "Заводной народ",
+                2, 3, 2, 2, 2, 1, 11, 9, 95, "Искусственный народ.", "Заводной механизм", "Не нуждается во сне."),
+            Json.Options);
+        Assert.Equal(HttpStatusCode.OK, archetypeResponse.StatusCode);
+        var archetype = (await archetypeResponse.Content.ReadFromJsonAsync<ArchetypeDto>(Json.Options))!;
+        Assert.True(archetype.IsCustom);
+        Assert.Single(archetype.Abilities);
+
+        var careerResponse = await client.PostAsJsonAsync("/api/custom/careers",
+            new CreateCustomCareerRequest(GameSystem.GenesysCore, "Chronist", "Хронист",
+                "Исследует прошлое.", careerSkills, 25, ""),
+            Json.Options);
+        Assert.Equal(HttpStatusCode.OK, careerResponse.StatusCode);
+        var career = (await careerResponse.Content.ReadFromJsonAsync<CareerDto>(Json.Options))!;
+        Assert.True(career.IsCustom);
+        Assert.Equal(careerSkills, career.CareerSkillNames);
+
+        var ownerRef = (await client.GetFromJsonAsync<ReferenceResponse>("/api/reference/GenesysCore", Json.Options))!;
+        Assert.Contains(ownerRef.Archetypes, a => a.Id == archetype.Id && a.IsCustom);
+        Assert.Contains(ownerRef.Careers, c => c.Id == career.Id && c.IsCustom);
+
+        var stranger = await _factory.CreateAuthorizedClientAsync();
+        var strangerRef = (await stranger.GetFromJsonAsync<ReferenceResponse>("/api/reference/GenesysCore", Json.Options))!;
+        Assert.DoesNotContain(strangerRef.Archetypes, a => a.Id == archetype.Id);
+        Assert.DoesNotContain(strangerRef.Careers, c => c.Id == career.Id);
+
+        var created = await client.PostAsJsonAsync("/api/characters/",
+            new CreateCharacterRequest("Homebrew Hero", GameSystem.GenesysCore, archetype.Id, career.Id,
+                [.. careerSkills.Take(2)]), Json.Options);
+        Assert.Equal(HttpStatusCode.Created, created.StatusCode);
+        var characterId = (await created.Content.ReadFromJsonAsync<Dictionary<string, Guid>>(Json.Options))!["id"];
+        var sheet = (await client.GetFromJsonAsync<CharacterSheetDto>($"/api/characters/{characterId}", Json.Options))!;
+        Assert.Equal("Clockwork Folk", sheet.Archetype.Name);
+        Assert.Equal(3, sheet.Characteristics["agility"]);
+        Assert.Equal(95, sheet.TotalXp);
+        Assert.Equal(25, sheet.Money);
+        foreach (var skill in careerSkills)
+            Assert.Contains(sheet.Skills, s => s.Name == skill && s.IsCareer);
+
+        var foreignCreate = await stranger.PostAsJsonAsync("/api/characters/",
+            new CreateCharacterRequest("Hacker", GameSystem.GenesysCore, archetype.Id, career.Id, null), Json.Options);
+        Assert.Equal(HttpStatusCode.BadRequest, foreignCreate.StatusCode);
+
+        Assert.Equal(HttpStatusCode.BadRequest, (await client.DeleteAsync($"/api/custom/archetypes/{archetype.Id}")).StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, (await client.DeleteAsync($"/api/custom/careers/{career.Id}")).StatusCode);
+    }
+
+    [Fact]
+    public async Task ArchetypeAndCareer_Update_And_Delete_WhenUnused()
+    {
+        var client = await _factory.CreateAuthorizedClientAsync();
+        var reference = (await client.GetFromJsonAsync<ReferenceResponse>("/api/reference/GenesysCore", Json.Options))!;
+        var skillNames = reference.Skills.Take(2).Select(s => s.Name).ToList();
+
+        var archetype = (await (await client.PostAsJsonAsync("/api/custom/archetypes",
+            new CreateCustomArchetypeRequest(GameSystem.GenesysCore, "Old Species", null,
+                2, 2, 2, 2, 2, 2, 10, 10, 100, "", "", ""),
+            Json.Options)).Content.ReadFromJsonAsync<ArchetypeDto>(Json.Options))!;
+        var career = (await (await client.PostAsJsonAsync("/api/custom/careers",
+            new CreateCustomCareerRequest(GameSystem.GenesysCore, "Old Career", null, "", skillNames, 0, ""),
+            Json.Options)).Content.ReadFromJsonAsync<CareerDto>(Json.Options))!;
+
+        var updatedArchetype = await client.PutAsJsonAsync($"/api/custom/archetypes/{archetype.Id}",
+            new CreateCustomArchetypeRequest(GameSystem.GenesysCore, "New Species", "Новый вид",
+                1, 2, 3, 2, 2, 2, 9, 11, 110, "new", "Черта", "описание"),
+            Json.Options);
+        Assert.Equal(HttpStatusCode.OK, updatedArchetype.StatusCode);
+        Assert.Equal("New Species", (await updatedArchetype.Content.ReadFromJsonAsync<ArchetypeDto>(Json.Options))!.Name);
+
+        var updatedCareer = await client.PutAsJsonAsync($"/api/custom/careers/{career.Id}",
+            new CreateCustomCareerRequest(GameSystem.GenesysCore, "New Career", "Новая карьера", "new", [skillNames[0]], 10, "1d10"),
+            Json.Options);
+        Assert.Equal(HttpStatusCode.OK, updatedCareer.StatusCode);
+        Assert.Equal("New Career", (await updatedCareer.Content.ReadFromJsonAsync<CareerDto>(Json.Options))!.Name);
+
+        Assert.Equal(HttpStatusCode.NoContent, (await client.DeleteAsync($"/api/custom/archetypes/{archetype.Id}")).StatusCode);
+        Assert.Equal(HttpStatusCode.NoContent, (await client.DeleteAsync($"/api/custom/careers/{career.Id}")).StatusCode);
+    }
 }
