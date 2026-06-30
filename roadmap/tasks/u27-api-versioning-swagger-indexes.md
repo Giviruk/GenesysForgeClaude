@@ -21,20 +21,22 @@ Roadmap scope:
 
 - [x] Создать ветку и plan-файл.
 - [x] Отметить U-26 как Done после merge PR #70 и U-27 как In progress.
-- [ ] Изучить текущий `Program.cs`, endpoint mappings, OpenAPI setup и EF indexes.
-- [ ] Выбрать безопасную стратегию `/api/v1` без поломки существующих frontend/API tests.
-- [ ] Подключить Scalar/Swagger UI поверх OpenAPI.
-- [ ] Добавить EF индексы и миграцию.
-- [ ] Обновить docs/api.md и docs/database.md.
-- [ ] Добавить/обновить backend/frontend тесты по изменённому API contract.
-- [ ] Запустить релевантные проверки.
+- [x] Изучить текущий `Program.cs`, endpoint mappings, OpenAPI setup и EF indexes.
+- [x] Выбрать безопасную стратегию `/api/v1` без поломки существующих frontend/API tests.
+- [x] Подключить Scalar/Swagger UI поверх OpenAPI.
+- [x] Добавить EF индексы и миграцию.
+- [x] Обновить docs/api.md и docs/database.md.
+- [x] Добавить/обновить backend/frontend тесты по изменённому API contract.
+- [x] Запустить релевантные проверки.
 - [ ] Открыть PR.
 
 ## Что осталось / блокеры
 
-- Нужно проверить, можно ли добавить `/api/v1` без массового переписывания всех endpoint route templates.
+- Открыть PR после финального просмотра diff.
 
 ## Заметки / решения
 
 - Assumption: для совместимости v1 можно добавить как новый публичный alias, не удаляя legacy `/api/*` в этом PR.
+- OpenAPI документ намеренно показывает `/api/v1/*`; legacy `/api/*` остаётся рабочим, но не является документируемым контрактом v1.
+- Проверки: `dotnet test backend/GenesysForge.slnx --no-restore`; `dotnet ef migrations script --project backend/src/GenesysForge.Infrastructure --startup-project backend/src/GenesysForge.Api --no-build`.
 - Copyright: задача инфраструктурная; seed/private content не должен меняться.

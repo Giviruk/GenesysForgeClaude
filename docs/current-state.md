@@ -73,7 +73,7 @@
 - Frontend routing: top-level areas and entity detail are URL-backed (History API), but not every sub-view has a deep link yet (e.g. the printable sheet, Game Table and encounter sub-routes are still reached from within the campaign/character view).
 - Password reset: end-to-end (endpoints, hashed single-use tokens, session revoke, frontend forgot/reset screens) with a pluggable e-mail provider — SMTP via MailKit when `Email:Provider=Smtp`, otherwise a log stub for dev.
 - State management: implemented with React state/context, no external store.
-- API documentation: OpenAPI is enabled; hand-written docs cover the main routes but should be kept in sync after endpoint changes.
+- API documentation: OpenAPI is enabled at `/openapi/v1.json`; Scalar UI opens at `/api/docs`. The documented REST contract is path-versioned under `/api/v1/*`, with legacy `/api/*` aliases kept for compatibility.
 - Validation: domain/application validation exists; frontend validation is basic HTML/form/state validation.
 - Copyright policy: documented now, but current seed still contains paraphrased descriptions that should be reviewed manually for legal safety.
 - Frontend tests: utilities and API client are tested; broad component/flow coverage is limited.

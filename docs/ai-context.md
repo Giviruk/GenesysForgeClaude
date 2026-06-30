@@ -40,7 +40,7 @@ Heroic abilities are for Realms of Terrinoth characters; Genesys Core assignment
 
 ## API
 
-Public: `POST /api/auth/register`, `/login`, `/google`, `/password-reset/request`, `/password-reset/confirm`, `/refresh`, `/logout`, `GET /api/auth/providers`, `GET /api/health`. Protected: `GET /api/reference/{system}`, `/api/spells/{system}`, `/api/characters/*`, `/api/custom/*`, `/api/campaigns/*`, `/api/npcs/*`, `/api/encounters/*`, `/api/content-packs/*`. Real-time: SignalR hub `/hubs/campaign` (JWT-authenticated, campaign-scoped). Error body: `{ "message": "..." }`. Known exception mapping: `DomainRuleException -> 400`, `ConflictException -> 409`, `UnauthorizedException -> 401`. API is unversioned. Full reference: [api.md](api.md).
+Public: `POST /api/v1/auth/register`, `/login`, `/google`, `/password-reset/request`, `/password-reset/confirm`, `/refresh`, `/logout`, `GET /api/v1/auth/providers`, `GET /api/v1/health`. Protected: `GET /api/v1/reference/{system}`, `/api/v1/spells/{system}`, `/api/v1/characters/*`, `/api/v1/custom/*`, `/api/v1/campaigns/*`, `/api/v1/npcs/*`, `/api/v1/encounters/*`, `/api/v1/content-packs/*`. Legacy `/api/*` aliases still work for compatibility. OpenAPI: `/openapi/v1.json`; Scalar UI: `/api/docs`. Real-time: SignalR hub `/hubs/campaign` (JWT-authenticated, campaign-scoped). Error body: `{ "message": "..." }`. Known exception mapping: `DomainRuleException -> 400`, `ConflictException -> 409`, `UnauthorizedException -> 401`. Full reference: [api.md](api.md).
 
 ## Commands
 
