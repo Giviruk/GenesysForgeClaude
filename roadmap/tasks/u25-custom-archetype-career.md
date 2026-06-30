@@ -3,7 +3,7 @@
 - **Roadmap:** U-25 — Кастомные архетип/раса и карьера (см. [unified-roadmap.md](../unified-roadmap.md))
 - **Ветка:** `feature/u25-custom-archetype-career`
 - **Базовая ветка:** `master`
-- **PR:** pending
+- **PR:** [#69](https://github.com/Giviruk/GenesysForgeClaude/pull/69)
 - **Статус:** 🚧 In progress
 
 ## Контекст
@@ -29,11 +29,11 @@
 - [x] Убедиться, что кастомные архетипы/карьеры доступны в создании персонажа.
 - [x] Добавить/обновить xUnit и Vitest тесты.
 - [x] Запустить релевантные проверки.
-- [ ] Обновить docs/plan и открыть PR.
+- [x] Обновить docs/plan и открыть PR.
 
 ## Что осталось / блокеры
 
-- Остались commit/push/PR.
+- Ожидается review/merge PR #69.
 
 ## Заметки / решения
 
