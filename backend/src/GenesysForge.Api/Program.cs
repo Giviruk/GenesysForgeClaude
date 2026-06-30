@@ -12,6 +12,7 @@ using GenesysForge.Infrastructure.Auth;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
+using Scalar.AspNetCore;
 using Serilog;
 using Serilog.Events;
 using Serilog.Formatting.Compact;
@@ -93,13 +94,54 @@ builder.Services.ConfigureHttpJsonOptions(options =>
     options.SerializerOptions.DictionaryKeyPolicy = null; // ключи словарей (тиры талантов) — как есть
 });
 
-builder.Services.AddOpenApi();
+builder.Services.AddOpenApi(options =>
+{
+    options.AddDocumentTransformer((document, _, _) =>
+    {
+        var apiPaths = document.Paths
+            .Where(path => path.Key.StartsWith("/api/", StringComparison.OrdinalIgnoreCase))
+            .ToList();
+
+        foreach (var (path, item) in apiPaths)
+        {
+            document.Paths.Remove(path);
+            document.Paths[$"/api/v1{path[4..]}"] = item;
+        }
+
+        document.Info.Title = "GenesysForge API";
+        document.Info.Version = "v1";
+        return Task.CompletedTask;
+    });
+});
 
 var app = builder.Build();
 
 app.Services.InitializeDatabase();
 
 app.UseForwardedHeaders();
+// Backwards-compatible API versioning: expose every existing /api/* route under /api/v1/*
+// without removing legacy paths used by the current frontend and existing clients.
+app.Use(async (context, next) =>
+{
+    if (context.Request.Path.StartsWithSegments("/api/v1", out var remainingPath))
+    {
+        var originalPath = context.Request.Path;
+        context.Request.Path = new PathString("/api").Add(remainingPath);
+        try
+        {
+            await next(context);
+        }
+        finally
+        {
+            context.Request.Path = originalPath;
+        }
+
+        return;
+    }
+
+    await next(context);
+});
+app.UseRouting();
 // Одна структурная запись на запрос (метод, путь, статус, длительность) + traceId/remoteIp.
 app.UseSerilogRequestLogging(options =>
 {
@@ -140,6 +182,11 @@ app.Use(async (context, next) =>
 });
 
 app.MapOpenApi();
+app.MapScalarApiReference("/api/docs", options =>
+{
+    options.Title = "GenesysForge API";
+    options.OpenApiRoutePattern = "/openapi/{documentName}.json";
+});
 app.MapAuth();
 app.MapAccount();
 app.MapReference();

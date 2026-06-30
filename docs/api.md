@@ -1,6 +1,8 @@
 # API
 
-Current API is an ASP.NET Core Minimal API under `/api`. Authentication uses JWT Bearer except for auth and health endpoints.
+Current API is an ASP.NET Core Minimal API. The documented contract is available under `/api/v1`; legacy `/api/*` routes remain as a backwards-compatible alias for the current frontend and existing clients. Route headings below keep the existing `/api/...` templates for readability; each listed `/api/...` route is also available as `/api/v1/...` and OpenAPI emits the versioned form. Authentication uses JWT Bearer except for auth and health endpoints.
+
+OpenAPI is available at `/openapi/v1.json`. Interactive Scalar API docs are available at `/api/docs`.
 
 ## Auth
 
@@ -552,5 +554,5 @@ Error response DTO:
 
 ## Versioning
 
-Not implemented yet. Current API is unversioned.
+API v1 is path-versioned under `/api/v1/*`. Existing `/api/*` endpoints are still served for backwards compatibility, but new integrations should use `/api/v1/*`. The OpenAPI document intentionally emits versioned paths only.
 

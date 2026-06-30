@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Range Band Tracker — Genesys Forge</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#16131c;--panel:#1f1a28;--p2:#292235;--border:#3a3148;
+  --text:#d7d2e0;--muted:#8d85a0;--accent:#c8a24a;--adark:#8d6f2c;
+  --green:#41a356;--yellow:#e0b62c;--red:#c75050;--core:#4a7bc8;--rot:#7b4ac8;
+}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;font-size:0.9rem;line-height:1.45;}
+
+.gf{
+  display:grid;
+  grid-template-columns:180px 1fr;
+  grid-template-rows:46px 1fr;
+  min-height:100vh;
+}
+
+/* ── Topbar ── */
+.topbar{
+  grid-column:1/-1;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 1rem;border-bottom:1px solid var(--border);background:var(--panel);
+}
+.logo{font-family:Georgia,serif;color:var(--accent);letter-spacing:.05em;font-size:1.15rem;white-space:nowrap;min-width:180px;padding-left:1rem;cursor:pointer;}
+.subtabs{display:flex;gap:0.3rem;flex:1;padding:0 1rem;}
+.stab{background:transparent;color:var(--muted);border:none;border-bottom:2px solid transparent;padding:0 0.7rem;cursor:pointer;font-size:0.85rem;font-family:inherit;height:46px;}
+.stab.active{color:var(--accent);border-bottom-color:var(--accent);}
+.stab:hover:not(.active){color:var(--text);}
+.topbar-right{display:flex;align-items:center;gap:0.4rem;flex-shrink:0;}
+.btn{background:var(--p2);color:var(--text);border:1px solid var(--border);border-radius:6px;padding:0.25rem 0.7rem 0.35rem;cursor:pointer;font-size:0.8rem;font-family:inherit;white-space:nowrap;}
+.btn:hover{border-color:var(--accent);}
+.btn.primary{background:var(--adark);border-color:var(--accent);color:#fff;}
+.btn.small{padding:0.1rem 0.5rem 0.2rem;font-size:0.78rem;}
+.btn.danger{border-color:var(--red);color:var(--red);}
+
+/* ── Sidebar ── */
+.sidebar{border-right:1px solid var(--border);background:var(--panel);display:flex;flex-direction:column;padding:0.6rem 0;}
+.sb-item{display:flex;align-items:center;gap:0.5rem;padding:0.5rem 1rem;cursor:pointer;font-size:0.85rem;color:var(--muted);border-left:2px solid transparent;background:none;border-top:none;border-right:none;border-bottom:none;border-radius:0;font-family:inherit;text-align:left;width:100%;}
+.sb-item:hover{color:var(--text);}
+.sb-item.active{color:var(--accent);border-left-color:var(--accent);background:rgba(200,162,74,.07);}
+.sb-divider{height:1px;background:var(--border);margin:0.4rem 0;}
+
+/* ── Main ── */
+.main{padding:0.8rem 1rem;overflow-y:auto;display:flex;flex-direction:column;gap:0.75rem;}
+
+.page-head{display:flex;justify-content:space-between;align-items:flex-start;gap:0.5rem;flex-wrap:wrap;}
+.page-head h2{margin:0;color:#efeaf6;font-size:1rem;font-weight:600;}
+.page-head .sub{font-size:0.78rem;color:var(--muted);margin-top:2px;}
+.head-actions{display:flex;gap:0.4rem;align-items:center;}
+.badge{display:inline-flex;align-items:center;font-size:0.65rem;padding:0.1rem 0.4rem;border-radius:999px;border:1px solid var(--border);color:var(--muted);}
+.badge.rot{border-color:var(--rot);color:#c2a4ef;}
+.section-label{font-size:0.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;font-weight:500;}
+
+/* ── Range Bands ── */
+.bands-wrap{display:flex;flex-direction:column;gap:0;}
+.band{
+  display:grid;
+  grid-template-columns:110px 1fr;
+  border:1px solid var(--border);
+  background:var(--panel);
+  min-height:90px;
+  transition:background .15s;
+}
+.band:first-child{border-radius:8px 8px 0 0;}
+.band:last-child{border-radius:0 0 8px 8px;}
+.band+.band{border-top:none;}
+.band.drag-over{background:rgba(200,162,74,.08);border-color:var(--accent);}
+
+.band-label{
+  display:flex;flex-direction:column;justify-content:center;
+  padding:0.6rem 0.8rem;
+  border-right:1px solid var(--border);
+  user-select:none;
+}
+.band-name{font-size:0.88rem;font-weight:600;color:#efeaf6;}
+.band-range{font-size:0.72rem;color:var(--muted);margin-top:2px;}
+.band-hint{font-size:0.68rem;color:var(--muted);margin-top:4px;font-style:italic;}
+
+.band[data-zone="engaged"] .band-label{border-left:3px solid var(--red);}
+.band[data-zone="short"]   .band-label{border-left:3px solid var(--yellow);}
+.band[data-zone="medium"]  .band-label{border-left:3px solid var(--accent);}
+.band[data-zone="long"]    .band-label{border-left:3px solid var(--core);}
+.band[data-zone="extreme"] .band-label{border-left:3px solid var(--rot);}
+
+.band-tokens{
+  display:flex;flex-wrap:wrap;align-content:flex-start;
+  gap:0.4rem;padding:0.5rem 0.7rem;
+  min-height:88px;
+}
+
+/* ── Token ── */
+.token{
+  display:flex;flex-direction:column;align-items:center;
+  background:var(--p2);border:1px solid var(--border);border-radius:8px;
+  padding:0.35rem 0.5rem;cursor:grab;width:88px;
+  user-select:none;transition:border-color .15s,opacity .15s;
+}
+.token:hover{border-color:var(--accent);}
+.token.dragging{opacity:.4;cursor:grabbing;}
+.token.pc-token{border-color:rgba(74,123,200,.5);}
+.token.npc-token{border-color:rgba(199,80,80,.4);}
+
+.token-avatar{
+  width:28px;height:28px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:10px;font-weight:600;margin-bottom:3px;flex-shrink:0;
+}
+.av-pc{background:rgba(74,123,200,.25);color:#9db9e8;}
+.av-npc{background:rgba(199,80,80,.25);color:#e89d9d;}
+.av-npc2{background:rgba(123,74,200,.25);color:#c2a4ef;}
+
+.token-name{font-size:0.68rem;font-weight:600;color:#efeaf6;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:76px;text-align:center;}
+.token-bars{width:100%;display:flex;flex-direction:column;gap:2px;margin-top:3px;}
+.token-bar{height:2px;background:var(--border);border-radius:1px;overflow:hidden;}
+.tb-w{height:100%;border-radius:1px;background:var(--red);}
+.tb-s{height:100%;border-radius:1px;background:var(--core);}
+.token-vals{display:flex;justify-content:space-between;font-size:0.6rem;color:var(--muted);margin-top:1px;}
+.token-vals .crit{color:var(--red);}
+
+/* ── Bottom panels ── */
+.bottom-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:0.6rem;}
+.block{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:0.7rem 0.85rem;display:flex;flex-direction:column;gap:0.5rem;}
+.block h4{font-size:0.82rem;color:#efeaf6;font-weight:600;margin:0;}
+
+.move-log{display:flex;flex-direction:column;gap:0.3rem;}
+.log-entry{font-size:0.75rem;color:var(--muted);padding:0.2rem 0;border-bottom:1px solid rgba(58,49,72,.4);}
+.log-entry:last-child{border-bottom:none;}
+.log-entry b{color:var(--text);}
+.log-entry .acc{color:var(--accent);}
+
+.quick-actions{display:flex;flex-direction:column;gap:0.4rem;}
+.qa-row{display:flex;gap:0.4rem;}
+.qa-row .btn{flex:1;font-size:0.75rem;}
+
+.legend{display:flex;flex-direction:column;gap:0.35rem;}
+.legend-row{display:grid;grid-template-columns:12px 1fr auto;align-items:center;gap:0.5rem;font-size:0.75rem;}
+.legend-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+.legend-range{color:var(--muted);font-size:0.7rem;text-align:right;}
+</style>
+</head>
+<body>
+<div class="gf">
+
+  <div class="topbar">
+    <span class="logo">Genesys Forge</span>
+    <div class="subtabs">
+      <button class="stab">Обзор</button>
+      <button class="stab">Энкаунтеры</button>
+      <button class="stab active">Game Table</button>
+      <button class="stab">Бестиарий</button>
+    </div>
+    <div class="topbar-right">
+      <button class="btn small">Профиль</button>
+      <button class="btn small">Выйти</button>
+    </div>
+  </div>
+
+  <div class="sidebar">
+    <button class="sb-item">Персонажи</button>
+    <button class="sb-item active">Кампании</button>
+    <div class="sb-divider"></div>
+    <button class="sb-item">Бестиарий</button>
+    <button class="sb-item">Магия</button>
+    <button class="sb-item">Справочник</button>
+  </div>
+
+  <div class="main">
+
+    <div class="page-head">
+      <div>
+        <h2>Засада в портовом квартале <span class="badge rot">Раунд 2</span></h2>
+        <div class="sub">Shadows over Mennara · Game Table · Range Band Tracker</div>
+      </div>
+      <div class="head-actions">
+        <button class="btn small">← GM Dashboard</button>
+        <button class="btn small">+ Участник</button>
+        <button class="btn primary small">→ Следующий ход</button>
+      </div>
+    </div>
+
+    <div class="section-label">Зоны дистанции — перетащи токен в нужную зону</div>
+
+    <div class="bands-wrap" id="bands">
+
+      <div class="band" data-zone="engaged">
+        <div class="band-label">
+          <div class="band-name">Engaged</div>
+          <div class="band-range">В упор</div>
+          <div class="band-hint">Ближний бой без штрафа</div>
+        </div>
+        <div class="band-tokens" data-zone="engaged">
+          <div class="token pc-token" draggable="true" data-id="karath">
+            <div class="token-avatar av-pc">KD</div>
+            <div class="token-name">Karath Dur</div>
+            <div class="token-bars">
+              <div class="token-bar"><div class="tb-w" style="width:57%"></div></div>
+              <div class="token-bar"><div class="tb-s" style="width:82%"></div></div>
+            </div>
+            <div class="token-vals"><span>8/14</span><span>9/11</span></div>
+          </div>
+          <div class="token npc-token" draggable="true" data-id="captain">
+            <div class="token-avatar av-npc">КС</div>
+            <div class="token-name">Капитан</div>
+            <div class="token-bars">
+              <div class="token-bar"><div class="tb-w" style="width:65%"></div></div>
+              <div class="token-bar"><div class="tb-s" style="width:0%"></div></div>
+            </div>
+            <div class="token-vals"><span>13/20</span><span>—</span></div>
+          </div>
+          <div class="token npc-token" draggable="true" data-id="minions">
+            <div class="token-avatar av-npc">НМ</div>
+            <div class="token-name">Наёмник ×1</div>
+            <div class="token-bars">
+              <div class="token-bar"><div class="tb-w" style="width:33%"></div></div>
+              <div class="token-bar"><div class="tb-s" style="width:0%"></div></div>
+            </div>
+            <div class="token-vals"><span class="crit">1/3</span><span>—</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="band" data-zone="short">
+        <div class="band-label">
+          <div class="band-name">Short</div>
+          <div class="band-range">Ближняя</div>
+          <div class="band-hint">+1 сложность дальнобойного</div>
+        </div>
+        <div class="band-tokens" data-zone="short">
+          <div class="token pc-token" draggable="true" data-id="lyra">
+            <div class="token-avatar av-pc">LV</div>
+            <div class="token-name">Lyra Voss</div>
+            <div class="token-bars">
+              <div class="token-bar"><div class="tb-w" style="width:92%"></div></div>
+              <div class="token-bar"><div class="tb-s" style="width:31%"></div></div>
+            </div>
+            <div class="token-vals"><span class="crit">11/12</span><span>4/13</span></div>
+          </div>
+          <div class="token pc-token" draggable="true" data-id="torin">
+            <div class="token-avatar av-pc">TM</div>
+            <div class="token-name">Torin Mael</div>
+            <div class="token-bars">
+              <div class="token-bar"><div class="tb-w" style="width:18%"></div></div>
+              <div class="token-bar"><div class="tb-s" style="width:25%"></div></div>
+            </div>
+            <div class="token-vals"><span>2/11</span><span>3/12</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="band" data-zone="medium">
+        <div class="band-label">
+          <div class="band-name">Medium</div>
+          <div class="band-range">Средняя</div>
+          <div class="band-hint">+2 сложность дальнобойного</div>
+        </div>
+        <div class="band-tokens" data-zone="medium">
+          <div class="token pc-token" draggable="true" data-id="eira">
+            <div class="token-avatar av-pc">ES</div>
+            <div class="token-name">Eira Solen</div>
+            <div class="token-bars">
+              <div class="token-bar"><div class="tb-w" style="width:30%"></div></div>
+              <div class="token-bar"><div class="tb-s" style="width:36%"></div></div>
+            </div>
+            <div class="token-vals"><span>3/10</span><span>5/14</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="band" data-zone="long">
+        <div class="band-label">
+          <div class="band-name">Long</div>
+          <div class="band-range">Дальняя</div>
+          <div class="band-hint">+3 сложность дальнобойного</div>
+        </div>
+        <div class="band-tokens" data-zone="long">
+          <div class="token npc-token" draggable="true" data-id="mage">
+            <div class="token-avatar av-npc2">ТМ</div>
+            <div class="token-name">Теневой маг</div>
+            <div class="token-bars">
+              <div class="token-bar"><div class="tb-w" style="width:88%"></div></div>
+              <div class="token-bar"><div class="tb-s" style="width:0%"></div></div>
+            </div>
+            <div class="token-vals"><span>24/27</span><span>—</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="band" data-zone="extreme">
+        <div class="band-label">
+          <div class="band-name">Extreme</div>
+          <div class="band-range">Предельная</div>
+          <div class="band-hint">Только снайперское оружие</div>
+        </div>
+        <div class="band-tokens" data-zone="extreme"></div>
+      </div>
+
+    </div>
+
+    <div class="bottom-row">
+
+      <div class="block">
+        <h4>Лог перемещений</h4>
+        <div class="move-log" id="move-log">
+          <div class="log-entry">Раунд 2: <b>Karath Dur</b> — <span class="acc">Short → Engaged</span></div>
+          <div class="log-entry">Раунд 2: <b>Теневой маг</b> — <span class="acc">Medium → Long</span></div>
+          <div class="log-entry">Раунд 1: <b>Lyra Voss</b> — <span class="acc">Medium → Short</span></div>
+        </div>
+      </div>
+
+      <div class="block">
+        <h4>Быстрые действия</h4>
+        <div class="quick-actions">
+          <div class="qa-row">
+            <button class="btn small">⚔ Атака</button>
+            <button class="btn small">🏃 Сближение</button>
+          </div>
+          <div class="qa-row">
+            <button class="btn small">↩ Отступление</button>
+            <button class="btn small">✦ Способность</button>
+          </div>
+          <div class="qa-row">
+            <button class="btn small danger">💀 Вывести</button>
+            <button class="btn small">📋 Заметка</button>
+          </div>
+          <div style="margin-top:0.2rem;border-top:1px solid var(--border);padding-top:0.5rem;">
+            <div style="font-size:0.72rem;color:var(--muted);margin-bottom:0.3rem;">Текущий ход</div>
+            <div style="font-size:0.85rem;color:var(--accent);font-weight:600;">Karath Dur</div>
+            <div style="font-size:0.72rem;color:var(--muted);">PC · Warrior · Engaged</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="block">
+        <h4>Легенда зон</h4>
+        <div class="legend">
+          <div class="legend-row">
+            <div class="legend-dot" style="background:var(--red)"></div>
+            <span>Engaged — ближний бой</span>
+            <span class="legend-range">упор</span>
+          </div>
+          <div class="legend-row">
+            <div class="legend-dot" style="background:var(--yellow)"></div>
+            <span>Short — лёгкие дальнобойные</span>
+            <span class="legend-range">+1 ✦</span>
+          </div>
+          <div class="legend-row">
+            <div class="legend-dot" style="background:var(--accent)"></div>
+            <span>Medium — дальнобойные</span>
+            <span class="legend-range">+2 ✦</span>
+          </div>
+          <div class="legend-row">
+            <div class="legend-dot" style="background:var(--core)"></div>
+            <span>Long — тяжёлые дальнобойные</span>
+            <span class="legend-range">+3 ✦</span>
+          </div>
+          <div class="legend-row">
+            <div class="legend-dot" style="background:var(--rot)"></div>
+            <span>Extreme — снайперские</span>
+            <span class="legend-range">спец.</span>
+          </div>
+          <div style="margin-top:0.4rem;padding-top:0.4rem;border-top:1px solid var(--border);font-size:0.7rem;color:var(--muted);">
+            Перемещение между зонами — манёвр (Minor Action).<br>
+            Forced move — свободное действие противника.
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+</div>
+
+<script>
+(function(){
+  var dragged = null;
+  var NAMES = {
+    karath:'Karath Dur', lyra:'Lyra Voss', eira:'Eira Solen',
+    torin:'Torin Mael', captain:'Капитан', minions:'Наёмник ×1', mage:'Теневой маг'
+  };
+  var ZONE_NAMES = {
+    engaged:'Engaged', short:'Short', medium:'Medium', long:'Long', extreme:'Extreme'
+  };
+
+  document.querySelectorAll('.token').forEach(function(tok){
+    tok.addEventListener('dragstart', function(e){
+      dragged = tok;
+      setTimeout(function(){ tok.classList.add('dragging'); }, 0);
+      e.dataTransfer.effectAllowed = 'move';
+    });
+    tok.addEventListener('dragend', function(){
+      tok.classList.remove('dragging');
+      dragged = null;
+      document.querySelectorAll('.band').forEach(function(b){ b.classList.remove('drag-over'); });
+    });
+  });
+
+  document.querySelectorAll('.band-tokens').forEach(function(zone){
+    zone.addEventListener('dragover', function(e){
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      zone.closest('.band').classList.add('drag-over');
+    });
+    zone.addEventListener('dragleave', function(e){
+      if(!zone.contains(e.relatedTarget)){
+        zone.closest('.band').classList.remove('drag-over');
+      }
+    });
+    zone.addEventListener('drop', function(e){
+      e.preventDefault();
+      if(!dragged) return;
+      var fromBand = dragged.closest('.band-tokens');
+      var fromZone = fromBand ? fromBand.dataset.zone : '?';
+      var toZone = zone.dataset.zone;
+      if(fromZone === toZone){ zone.closest('.band').classList.remove('drag-over'); return; }
+      zone.appendChild(dragged);
+      zone.closest('.band').classList.remove('drag-over');
+      var log = document.getElementById('move-log');
+      var entry = document.createElement('div');
+      entry.className = 'log-entry';
+      entry.innerHTML = 'Раунд 2: <b>' + (NAMES[dragged.dataset.id]||dragged.dataset.id) + '</b> — <span class="acc">' + (ZONE_NAMES[fromZone]||fromZone) + ' → ' + (ZONE_NAMES[toZone]||toZone) + '</span>';
+      log.insertBefore(entry, log.firstChild);
+    });
+  });
+})();
+</script>
+</body>
+</html>

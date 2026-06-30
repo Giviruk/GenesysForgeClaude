@@ -64,6 +64,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         {
             e.HasIndex(t => t.TokenHash);
             e.HasIndex(t => t.UserId);
+            e.HasIndex(t => new { t.UserId, t.ExpiresAt, t.UsedAt });
             e.Property(t => t.TokenHash).HasMaxLength(64);
             e.HasOne<User>().WithMany().HasForeignKey(t => t.UserId).OnDelete(DeleteBehavior.Cascade);
         });
@@ -83,6 +84,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             e.HasIndex(t => t.TokenHash).IsUnique();
             e.HasIndex(t => t.FamilyId);
             e.HasIndex(t => t.UserId);
+            e.HasIndex(t => new { t.UserId, t.ExpiresAt, t.RevokedAt });
             e.Property(t => t.TokenHash).HasMaxLength(64);
             e.Property(t => t.UserAgent).HasMaxLength(400);
             e.Property(t => t.CreatedByIp).HasMaxLength(64);
@@ -133,6 +135,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         {
             e.HasIndex(t => t.TokenHash).IsUnique();
             e.HasIndex(t => new { t.CharacterId, t.RevokedAt });
+            e.HasIndex(t => new { t.CharacterId, t.CreatedAt });
             e.Property(t => t.TokenHash).HasMaxLength(64);
             e.HasOne(t => t.Character).WithMany()
                 .HasForeignKey(t => t.CharacterId).OnDelete(DeleteBehavior.Cascade);
@@ -165,6 +168,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         b.Entity<SpellDef>(e =>
         {
             e.HasIndex(s => new { s.System, s.MagicSkill, s.Kind });
+            e.HasIndex(s => new { s.System, s.OwnerUserId });
             e.Property(s => s.MagicSkill).HasMaxLength(40);
             e.Property(s => s.ParentEffect).HasMaxLength(120);
             e.Property(s => s.NameRu).HasMaxLength(120);
@@ -241,6 +245,9 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             e.HasIndex(n => n.OwnerUserId);
             e.HasIndex(n => n.CampaignId);
             e.HasIndex(n => n.IsBuiltIn);
+            e.HasIndex(n => new { n.System, n.Kind, n.Role });
+            e.HasIndex(n => new { n.System, n.OwnerUserId });
+            e.HasIndex(n => new { n.System, n.Visibility });
             e.Property(n => n.Name).HasMaxLength(200);
             e.Property(n => n.Source).HasMaxLength(160);
             e.Property(n => n.Talents).HasMaxLength(2000);
@@ -434,9 +441,15 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         ConfigureContent<QualityDef>(b);
 
         b.Entity<SkillDef>().HasIndex(s => s.HomebrewPackId);
+        b.Entity<SkillDef>().HasIndex(s => new { s.System, s.OwnerUserId });
         b.Entity<TalentDef>().HasIndex(t => t.HomebrewPackId);
+        b.Entity<TalentDef>().HasIndex(t => new { t.System, t.OwnerUserId });
         b.Entity<ItemDef>().HasIndex(i => i.HomebrewPackId);
+        b.Entity<ItemDef>().HasIndex(i => new { i.System, i.OwnerUserId });
         b.Entity<HeroicAbilityDef>().HasIndex(h => h.HomebrewPackId);
+        b.Entity<HeroicAbilityDef>().HasIndex(h => h.OwnerUserId);
+        b.Entity<ArchetypeDef>().HasIndex(a => new { a.System, a.OwnerUserId });
+        b.Entity<CareerDef>().HasIndex(c => new { c.System, c.OwnerUserId });
     }
 
     private static void ConfigureContent<T>(ModelBuilder b) where T : class, IContentDef
