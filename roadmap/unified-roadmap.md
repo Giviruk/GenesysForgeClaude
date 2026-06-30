@@ -248,7 +248,7 @@
 - **DoD:** криты добавляются/снимаются; видны на листе и за столом; ссылаются на таблицу.
 
 ## U-24 · Клонирование и read-only шеринг персонажа
-- **Статус:** 🚧 In progress
+- **Статус:** ✅ Done (PR #68)
 - **Источник:** Аудит §2.4 (НЕ в GF-плане)
 - **Scope (B):** `POST /api/characters/{id}/duplicate` (по образцу `DuplicateNpc`); шеринг — `POST /api/characters/{id}/share` (генерит токен) + публичный `GET /api/share/{token}` (read-only sheet, без auth).
 - **Scope (F):** кнопки «Клонировать» и «Поделиться (ссылка)» на листе/списке.
@@ -259,7 +259,7 @@
 # P2 — Глубина homebrew
 
 ## U-25 · Кастомные архетип/раса и карьера
-- **Статус:** ⬜ Todo
+- **Статус:** 🚧 In progress
 - **Источник:** Аудит §4.1 (боль сообщества #1, НЕ в GF-плане)
 - **Scope (B):** расширить [CustomContentEndpoints.cs](../backend/src/GenesysForge.Api/Endpoints/CustomContentEndpoints.cs): CRUD кастомного архетипа (характеристики/пороги/XP/способность) и кастомной карьеры (карьерные навыки). Использовать `OwnerUserId` как у прочего homebrew; учесть структурные модели U-12/U-13.
 - **Scope (F):** формы в [CustomTab.tsx](../frontend/src/components/CustomTab.tsx); доступность в создании персонажа.
