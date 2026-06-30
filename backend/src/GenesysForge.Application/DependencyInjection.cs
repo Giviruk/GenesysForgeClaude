@@ -8,6 +8,7 @@ using GenesysForge.Application.Features.ContentPacks;
 using GenesysForge.Application.Features.CustomContent;
 using GenesysForge.Application.Features.Encounters;
 using GenesysForge.Application.Features.GameTable;
+using GenesysForge.Application.Features.HomebrewPacks;
 using GenesysForge.Application.Features.Notes;
 using GenesysForge.Application.Features.Npcs;
 using GenesysForge.Application.Features.Reference;
@@ -162,6 +163,16 @@ public static class DependencyInjection
         services.AddScoped<ICommandHandler<AddContentPackEntryCommand, ContentPackDetailDto>, AddContentPackEntryHandler>();
         services.AddScoped<ICommandHandler<UpdateContentPackEntryCommand, ContentPackDetailDto>, UpdateContentPackEntryHandler>();
         services.AddScoped<ICommandHandler<RemoveContentPackEntryCommand, Unit>, RemoveContentPackEntryHandler>();
+
+        // Homebrew JSON packs
+        services.AddScoped<IQueryHandler<GetHomebrewPacksQuery, List<HomebrewPackListItemDto>>, GetHomebrewPacksHandler>();
+        services.AddScoped<IQueryHandler<ExportHomebrewPackQuery, HomebrewPackExportDto>, ExportHomebrewPackHandler>();
+        services.AddScoped<ICommandHandler<ImportHomebrewPackCommand, HomebrewPackImportResult>, ImportHomebrewPackHandler>();
+        services.AddScoped<ICommandHandler<ShareHomebrewPackCommand, HomebrewPackShareDto>, ShareHomebrewPackHandler>();
+        services.AddScoped<ICommandHandler<ImportSharedHomebrewPackCommand, HomebrewPackImportResult>, ImportSharedHomebrewPackHandler>();
+        services.AddScoped<ICommandHandler<SetHomebrewPackDefaultCommand, Unit>, SetHomebrewPackDefaultHandler>();
+        services.AddScoped<ICommandHandler<SetCharacterHomebrewPackCommand, Unit>, SetCharacterHomebrewPackHandler>();
+        services.AddScoped<ICommandHandler<SetCampaignHomebrewPackCommand, Unit>, SetCampaignHomebrewPackHandler>();
 
         return services;
     }

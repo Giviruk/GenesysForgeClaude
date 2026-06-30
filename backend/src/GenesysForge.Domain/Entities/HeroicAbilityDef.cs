@@ -30,6 +30,7 @@ public class HeroicAbilityDef : IContentDef
     public string Notes { get; set; } = "";
 
     public Guid? OwnerUserId { get; set; }
+    public Guid? HomebrewPackId { get; set; }
 
     /// <summary>Доступные улучшения способности (Improved/Supreme). У кастома — пусто.</summary>
     public List<HeroicAbilityUpgradeDef> Upgrades { get; set; } = [];

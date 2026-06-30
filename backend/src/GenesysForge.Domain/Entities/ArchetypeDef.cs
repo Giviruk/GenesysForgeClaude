@@ -27,6 +27,7 @@ public class ArchetypeDef : IContentDef
     public string Source { get; set; } = "";
     /// <summary>Null для встроенного контента, UserId для пользовательского homebrew.</summary>
     public Guid? OwnerUserId { get; set; }
+    public Guid? HomebrewPackId { get; set; }
     /// <summary>
     /// Устаревший встроенный вид: не предлагается при создании персонажа, но остаётся в БД ради
     /// уже созданных персонажей (FK). Выставляется сидом для built-in видов, которых больше нет в каталоге.

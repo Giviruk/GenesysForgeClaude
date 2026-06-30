@@ -13,13 +13,17 @@ public class SetHeroicAbilityHandler(IAppDbContext db) : ICommandHandler<SetHero
         var c = await db.GetOwnedAsync(command.UserId, command.CharacterId, ct: ct);
         if (c.System != GameSystem.RealmsOfTerrinoth)
             throw new DomainRuleException("Героические способности доступны только в Realms of Terrinoth.");
+        var visiblePackIds = await HomebrewVisibility.GetVisiblePackIdsAsync(
+            db, command.UserId, c.System, command.CharacterId, ct: ct);
 
         string? abilityName = null;
         if (command.HeroicAbilityId is not null)
         {
             var ability = await db.HeroicAbilityDefs.FirstOrDefaultAsync(h =>
                 h.Id == command.HeroicAbilityId
-                && (h.OwnerUserId == null || h.OwnerUserId == command.UserId), ct);
+                && (h.OwnerUserId == null
+                    || (h.OwnerUserId == command.UserId
+                        && (h.HomebrewPackId == null || visiblePackIds.Contains(h.HomebrewPackId.Value)))), ct);
             if (ability is null) throw new DomainRuleException("Героическая способность не найдена.");
             abilityName = ability.Name;
         }

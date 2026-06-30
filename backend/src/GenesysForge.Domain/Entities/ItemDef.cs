@@ -41,4 +41,5 @@ public class ItemDef : IContentDef
     public List<ItemQualityValue> Qualities { get; set; } = [];
 
     public Guid? OwnerUserId { get; set; }
+    public Guid? HomebrewPackId { get; set; }
 }

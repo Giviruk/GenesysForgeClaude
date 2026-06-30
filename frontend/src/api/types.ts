@@ -836,6 +836,41 @@ export interface ContentPackEntryInput {
   tags?: string[]
 }
 
+export interface HomebrewPackListItem {
+  id: string
+  name: string
+  description: string
+  system: GameSystem
+  isShared: boolean
+  isEnabledByDefault: boolean
+  entryCount: number
+  updatedAt: string
+}
+
+export interface HomebrewPackShare {
+  token: string
+  path: string
+}
+
+export interface HomebrewPackImportResult {
+  id: string
+  name: string
+  entryCount: number
+}
+
+export interface HomebrewPackDocument {
+  format: 'genesysforge.homebrew-pack.v1'
+  name: string
+  description?: string | null
+  system: GameSystem
+  skills?: unknown[] | null
+  talents?: unknown[] | null
+  items?: unknown[] | null
+  heroicAbilities?: unknown[] | null
+  archetypes?: unknown[] | null
+  careers?: unknown[] | null
+}
+
 export interface CharacterSheet {
   id: string
   name: string

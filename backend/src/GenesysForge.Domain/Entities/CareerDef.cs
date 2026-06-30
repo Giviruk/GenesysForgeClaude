@@ -18,6 +18,7 @@ public class CareerDef : IContentDef
     public string Source { get; set; } = "";
     /// <summary>Null для встроенного контента, UserId для пользовательского homebrew.</summary>
     public Guid? OwnerUserId { get; set; }
+    public Guid? HomebrewPackId { get; set; }
     public List<string> CareerSkillNames { get; set; } = [];
 
     /// <summary>Фиксированная часть стартовых денег (серебро).</summary>

@@ -145,6 +145,7 @@ app.MapAccount();
 app.MapReference();
 app.MapSearch();
 app.MapCustomContent();
+app.MapHomebrewPacks();
 app.MapCharacters();
 app.MapNotes();
 app.MapCampaigns();

@@ -27,9 +27,14 @@ public static class SheetBuilder
         var derived = SheetCalculator.ComputeDerived(
             ch, c.Archetype!.WoundBase, c.Archetype.StrainBase, talentInputs, itemInputs);
 
-        // Все навыки системы (встроенные + кастомные владельца), объединённые со строками персонажа.
+        var visiblePackIds = await HomebrewVisibility.GetVisiblePackIdsAsync(db, userId, c.System, c.Id, ct: ct);
+
+        // Все навыки системы (встроенные + видимые кастомные владельца), объединённые со строками персонажа.
         var systemSkills = await db.SkillDefs.AsNoTracking()
-            .Where(s => s.System == c.System && (s.OwnerUserId == null || s.OwnerUserId == userId))
+            .Where(s => s.System == c.System
+                && (s.OwnerUserId == null
+                    || (s.OwnerUserId == userId
+                        && (s.HomebrewPackId == null || visiblePackIds.Contains(s.HomebrewPackId.Value)))))
             .OrderBy(s => s.Kind).ThenBy(s => s.Name)
             .ToListAsync(ct);
         var rows = c.Skills.ToDictionary(s => s.SkillDefId);

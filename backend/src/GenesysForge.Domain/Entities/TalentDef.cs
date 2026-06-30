@@ -33,4 +33,5 @@ public class TalentDef : IContentDef
     public int MeleeDefenseBonus { get; set; }
     public int RangedDefenseBonus { get; set; }
     public Guid? OwnerUserId { get; set; }
+    public Guid? HomebrewPackId { get; set; }
 }

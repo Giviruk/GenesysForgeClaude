@@ -7,6 +7,7 @@ import type {
   AddEncounterParticipantRequest, EncounterDetail, EncounterFilter, EncounterInput, EncounterListItem,
   SendToTableMode, UpdateEncounterParticipantRequest,
   ContentPackDetail, ContentPackEntryInput, ContentPackListItem,
+  HomebrewPackDocument, HomebrewPackImportResult, HomebrewPackListItem, HomebrewPackShare,
   CharacterExport, ImportPreview, ImportResult,
   RollLogEntry, CreateRollRequest,
   CharacterAuditEntry,
@@ -112,8 +113,13 @@ export const api = {
   // Выход: сервер отзывает семейство refresh-токенов и чистит cookie.
   logout: () => request<void>('POST', '/api/auth/logout'),
 
-  reference: (system: GameSystem) =>
-    request<Reference>('GET', `/api/reference/${system === 'genesysCore' ? 'GenesysCore' : 'RealmsOfTerrinoth'}`),
+  reference: (system: GameSystem, context?: { characterId?: string; campaignId?: string }) => {
+    const params = new URLSearchParams()
+    if (context?.characterId) params.set('characterId', context.characterId)
+    if (context?.campaignId) params.set('campaignId', context.campaignId)
+    const qs = params.size ? `?${params}` : ''
+    return request<Reference>('GET', `/api/reference/${system === 'genesysCore' ? 'GenesysCore' : 'RealmsOfTerrinoth'}${qs}`)
+  },
 
   // Справочные таблицы правил (U-11). Системо-независимы; опц. q — фильтр по подстроке.
   rules: (q?: string) =>
@@ -357,6 +363,20 @@ export const api = {
     request<ContentPackDetail>('PUT', `/api/content-packs/${id}/entries/${entryId}`, input),
   removeContentPackEntry: (id: string, entryId: string) =>
     request<void>('DELETE', `/api/content-packs/${id}/entries/${entryId}`),
+
+  homebrewPacks: () => request<HomebrewPackListItem[]>('GET', '/api/homebrew-packs/'),
+  exportHomebrewPack: (id: string) => request<HomebrewPackDocument>('GET', `/api/homebrew-packs/${id}/export`),
+  importHomebrewPack: (document: HomebrewPackDocument) =>
+    request<HomebrewPackImportResult>('POST', '/api/homebrew-packs/import', document),
+  shareHomebrewPack: (id: string) => request<HomebrewPackShare>('POST', `/api/homebrew-packs/${id}/share`),
+  importSharedHomebrewPack: (token: string) =>
+    request<HomebrewPackImportResult>('POST', `/api/homebrew-packs/shared/${encodeURIComponent(token)}/import`),
+  setHomebrewPackDefault: (id: string, isEnabled: boolean) =>
+    request<void>('PUT', `/api/homebrew-packs/${id}/default`, { isEnabled }),
+  setCharacterHomebrewPack: (characterId: string, packId: string, isEnabled: boolean) =>
+    request<void>('PUT', `/api/characters/${characterId}/homebrew-packs/${packId}`, { isEnabled }),
+  setCampaignHomebrewPack: (campaignId: string, packId: string, isEnabled: boolean) =>
+    request<void>('PUT', `/api/campaigns/${campaignId}/homebrew-packs/${packId}`, { isEnabled }),
 
   deleteCustomSkill: (id: string) => request<void>('DELETE', `/api/custom/skills/${id}`),
   deleteCustomTalent: (id: string) => request<void>('DELETE', `/api/custom/talents/${id}`),

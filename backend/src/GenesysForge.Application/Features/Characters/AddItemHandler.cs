@@ -12,9 +12,13 @@ public class AddItemHandler(IAppDbContext db) : ICommandHandler<AddItemCommand, 
     {
         var req = command.Request;
         var c = await db.GetOwnedAsync(command.UserId, command.CharacterId, ct: ct);
+        var visiblePackIds = await HomebrewVisibility.GetVisiblePackIdsAsync(
+            db, command.UserId, c.System, command.CharacterId, ct: ct);
         var itemDef = await db.ItemDefs.FirstOrDefaultAsync(i =>
                 i.Id == req.ItemDefId && i.System == c.System
-                && (i.OwnerUserId == null || i.OwnerUserId == command.UserId), ct)
+                && (i.OwnerUserId == null
+                    || (i.OwnerUserId == command.UserId
+                        && (i.HomebrewPackId == null || visiblePackIds.Contains(i.HomebrewPackId.Value)))), ct)
             ?? throw new DomainRuleException("Предмет не найден.");
         if (req.Quantity < 1) throw new DomainRuleException("Количество должно быть не меньше 1.");
 

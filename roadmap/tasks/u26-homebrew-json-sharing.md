@@ -22,22 +22,25 @@
 
 - [x] Создать ветку и plan-файл.
 - [x] Отметить U-25 как Done после merge PR #69 и U-26 как In progress.
-- [ ] Изучить текущие модели custom content, ContentPack, character/campaign reference filtering.
-- [ ] Спроектировать минимальную модель homebrew-набора и JSON DTO без копирования official text.
-- [ ] Реализовать backend импорт/экспорт/шеринг набора и ownership/visibility.
-- [ ] Реализовать per-character и per-campaign enable/disable набора.
-- [ ] Обновить frontend API client и UI.
-- [ ] Добавить/обновить xUnit и Vitest тесты.
-- [ ] Создать миграцию и обновить `docs/database.md`, если меняется persistent model.
-- [ ] Обновить `docs/api.md` и task plan.
-- [ ] Запустить релевантные проверки.
+- [x] Изучить текущие модели custom content, ContentPack, character/campaign reference filtering.
+- [x] Спроектировать минимальную модель homebrew-набора и JSON DTO без копирования official text.
+- [x] Реализовать backend импорт/экспорт/шеринг набора и ownership/visibility.
+- [x] Реализовать per-character и per-campaign enable/disable набора.
+- [x] Обновить frontend API client и UI.
+- [x] Добавить/обновить xUnit и Vitest тесты.
+- [x] Создать миграцию и обновить `docs/database.md`, если меняется persistent model.
+- [x] Обновить `docs/api.md` и task plan.
+- [x] Запустить релевантные проверки.
 - [ ] Открыть PR.
 
 ## Что осталось / блокеры
 
-- Нужно уточнить фактическую архитектуру существующих Content Packs и custom content перед финальным выбором модели.
+- Остались commit/push/PR.
 
 ## Заметки / решения
 
 - Assumption: U-26 должен использовать собственную сущность homebrew-набора или расширение существующих Content Packs только если это не смешает campaign reference packs с user-shared homebrew imports.
+- Решение: добавлен отдельный `HomebrewPack`, существующие campaign `ContentPacks` остаются handbook/справочником кампании.
+- Решение: импорт pack создаёт user-owned custom defs с `HomebrewPackId`; shared import копирует pack в аккаунт получателя.
+- Решение: `GET /api/reference/{system}` принимает optional `characterId`/`campaignId` и применяет default/target toggles.
 - Copyright: JSON импорт должен принимать пользовательский контент; seed/private official text не добавлять.
