@@ -3,7 +3,7 @@
 - **Roadmap:** U-28 — PWA / офлайн (см. [unified-roadmap.md](../unified-roadmap.md))
 - **Ветка:** `feature/u28-pwa-offline`
 - **Базовая ветка:** `master`
-- **PR:** pending
+- **PR:** https://github.com/Giviruk/GenesysForgeClaude/pull/72
 - **Статус:** 🚧 In progress
 
 ## Контекст
@@ -26,11 +26,11 @@ Roadmap scope:
 - [x] Добавить минимальные PWA assets.
 - [x] Обновить документацию по frontend/current-state.
 - [x] Запустить релевантные frontend проверки.
-- [ ] Открыть PR.
+- [x] Открыть PR.
 
 ## Что осталось / блокеры
 
-- Открыть PR после финального просмотра diff.
+- Ожидается review/merge PR #72.
 - Полный `npm audit` показывает high advisory в dev dependency path `jsdom -> undici@7.27.2`; `npm audit --omit=dev` чистый. `npm audit fix` не выполнен: требует отдельного явного одобрения, так как может менять dependency tree шире U-28.
 
 ## Заметки / решения
