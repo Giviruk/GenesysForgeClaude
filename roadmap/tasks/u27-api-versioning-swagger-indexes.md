@@ -3,7 +3,7 @@
 - **Roadmap:** U-27 — API versioning + Swagger/Scalar UI + индексы БД (см. [unified-roadmap.md](../unified-roadmap.md))
 - **Ветка:** `feature/u27-api-versioning-swagger-indexes`
 - **Базовая ветка:** `master`
-- **PR:** pending
+- **PR:** https://github.com/Giviruk/GenesysForgeClaude/pull/71
 - **Статус:** 🚧 In progress
 
 ## Контекст
@@ -28,11 +28,11 @@ Roadmap scope:
 - [x] Обновить docs/api.md и docs/database.md.
 - [x] Добавить/обновить backend/frontend тесты по изменённому API contract.
 - [x] Запустить релевантные проверки.
-- [ ] Открыть PR.
+- [x] Открыть PR.
 
 ## Что осталось / блокеры
 
-- Открыть PR после финального просмотра diff.
+- Ожидается review/merge PR #71.
 
 ## Заметки / решения
 
