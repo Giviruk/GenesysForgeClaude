@@ -90,6 +90,21 @@ The client handles:
 
 `AuthProvider` reads token from local storage, exposes `login`, `register`, `logout` and resets session on unauthorized callback. `AuthPage` calls context methods and renders forgot/reset-password screens plus a Google sign-in button when `GET /api/auth/providers` reports a configured client. A `401` with an existing token clears it and shows a session-expired message while preserving the intended route. Access tokens are silently refreshed via the `gf_refresh` cookie (`POST /api/auth/refresh`); logout revokes the refresh-token family.
 
+## PWA / offline
+
+The Vite build uses `vite-plugin-pwa` in `frontend/vite.config.ts`.
+
+- `manifest.webmanifest` is generated at build time with standalone display metadata and `frontend/public/pwa-icon.svg`.
+- `frontend/src/pwa.ts` registers the generated service worker with auto-update enabled.
+- Static build assets are precached by Workbox.
+- Read-only reference endpoints are cached with `NetworkFirst` in cache `genesysforge-reference-v1`:
+  - `/api/reference/*`
+  - `/api/v1/reference/*`
+  - `/api/spells/*`
+  - `/api/v1/spells/*`
+
+Offline reference access works after the user has previously loaded the same reference data online. Mutating API calls, auth refresh and realtime SignalR traffic are intentionally not cached.
+
 ## State management
 
 - React context for auth.
