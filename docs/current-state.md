@@ -74,6 +74,7 @@
 - Password reset: end-to-end (endpoints, hashed single-use tokens, session revoke, frontend forgot/reset screens) with a pluggable e-mail provider — SMTP via MailKit when `Email:Provider=Smtp`, otherwise a log stub for dev.
 - State management: implemented with React state/context, no external store.
 - API documentation: OpenAPI is enabled at `/openapi/v1.json`; Scalar UI opens at `/api/docs`. The documented REST contract is path-versioned under `/api/v1/*`, with legacy `/api/*` aliases kept for compatibility.
+- PWA/offline: Vite generates a web app manifest and service worker; static assets are precached, and read-only reference/spell endpoints are cached with NetworkFirst for offline reuse after first online load.
 - Validation: domain/application validation exists; frontend validation is basic HTML/form/state validation.
 - Copyright policy: documented now, but current seed still contains paraphrased descriptions that should be reviewed manually for legal safety.
 - Frontend tests: utilities and API client are tested; broad component/flow coverage is limited.
