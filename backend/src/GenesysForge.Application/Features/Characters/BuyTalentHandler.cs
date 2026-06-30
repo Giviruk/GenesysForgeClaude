@@ -11,9 +11,13 @@ public class BuyTalentHandler(IAppDbContext db) : ICommandHandler<BuyTalentComma
     public async Task<Unit> Handle(BuyTalentCommand command, CancellationToken ct = default)
     {
         var c = await db.GetOwnedAsync(command.UserId, command.CharacterId, ct: ct);
+        var visiblePackIds = await HomebrewVisibility.GetVisiblePackIdsAsync(
+            db, command.UserId, c.System, command.CharacterId, ct: ct);
         var talentDef = await db.TalentDefs.FirstOrDefaultAsync(t =>
                 t.Id == command.TalentDefId && t.System == c.System
-                && (t.OwnerUserId == null || t.OwnerUserId == command.UserId), ct)
+                && (t.OwnerUserId == null
+                    || (t.OwnerUserId == command.UserId
+                        && (t.HomebrewPackId == null || visiblePackIds.Contains(t.HomebrewPackId.Value)))), ct)
             ?? throw new DomainRuleException("Талант не найден.");
 
         var row = c.Talents.FirstOrDefault(t => t.TalentDefId == command.TalentDefId);

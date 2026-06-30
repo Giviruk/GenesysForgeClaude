@@ -122,4 +122,36 @@ describe('api client — обработка 401', () => {
       ['/api/custom/careers/c1', 'DELETE'],
     ])
   })
+
+  it('homebrew pack methods use the expected endpoints', async () => {
+    const fetchMock = vi.spyOn(globalThis, 'fetch')
+      .mockResolvedValueOnce(new Response(JSON.stringify([]), { status: 200 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ format: 'genesysforge.homebrew-pack.v1' }), { status: 200 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ id: 'p1' }), { status: 201 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ token: 'raw', path: '/homebrew/import/raw' }), { status: 200 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ id: 'p2' }), { status: 201 }))
+      .mockResolvedValueOnce(new Response(null, { status: 204 }))
+      .mockResolvedValueOnce(new Response(null, { status: 204 }))
+      .mockResolvedValueOnce(new Response(null, { status: 204 }))
+
+    await api.homebrewPacks()
+    await api.exportHomebrewPack('p1')
+    await api.importHomebrewPack({ format: 'genesysforge.homebrew-pack.v1', name: 'Pack', system: 'genesysCore' })
+    await api.shareHomebrewPack('p1')
+    await api.importSharedHomebrewPack('raw token')
+    await api.setHomebrewPackDefault('p1', false)
+    await api.setCharacterHomebrewPack('c1', 'p1', true)
+    await api.setCampaignHomebrewPack('g1', 'p1', true)
+
+    expect(fetchMock.mock.calls.map(([url, init]) => [url, init?.method])).toEqual([
+      ['/api/homebrew-packs/', 'GET'],
+      ['/api/homebrew-packs/p1/export', 'GET'],
+      ['/api/homebrew-packs/import', 'POST'],
+      ['/api/homebrew-packs/p1/share', 'POST'],
+      ['/api/homebrew-packs/shared/raw%20token/import', 'POST'],
+      ['/api/homebrew-packs/p1/default', 'PUT'],
+      ['/api/characters/c1/homebrew-packs/p1', 'PUT'],
+      ['/api/campaigns/g1/homebrew-packs/p1', 'PUT'],
+    ])
+  })
 })

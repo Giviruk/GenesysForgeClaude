@@ -43,6 +43,9 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<EncounterParticipant> EncounterParticipants => Set<EncounterParticipant>();
     public DbSet<ContentPack> ContentPacks => Set<ContentPack>();
     public DbSet<ContentPackEntry> ContentPackEntries => Set<ContentPackEntry>();
+    public DbSet<HomebrewPack> HomebrewPacks => Set<HomebrewPack>();
+    public DbSet<HomebrewPackCharacter> HomebrewPackCharacters => Set<HomebrewPackCharacter>();
+    public DbSet<HomebrewPackCampaign> HomebrewPackCampaigns => Set<HomebrewPackCampaign>();
     public DbSet<RollLogEntry> RollLogEntries => Set<RollLogEntry>();
     public DbSet<CharacterAuditEntry> CharacterAuditEntries => Set<CharacterAuditEntry>();
     public DbSet<QualityDef> QualityDefs => Set<QualityDef>();
@@ -333,6 +336,27 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             e.Property(en => en.Tags).HasMaxLength(1000);
         });
 
+        b.Entity<HomebrewPack>(e =>
+        {
+            e.HasIndex(p => p.OwnerUserId);
+            e.HasIndex(p => p.ShareTokenHash).IsUnique();
+            e.Property(p => p.Name).HasMaxLength(200);
+            e.Property(p => p.Description).HasMaxLength(2000);
+            e.Property(p => p.ShareTokenHash).HasMaxLength(64);
+        });
+        b.Entity<HomebrewPackCharacter>(e =>
+        {
+            e.HasIndex(x => new { x.HomebrewPackId, x.CharacterId }).IsUnique();
+            e.HasOne<HomebrewPack>().WithMany().HasForeignKey(x => x.HomebrewPackId).OnDelete(DeleteBehavior.Cascade);
+            e.HasOne<Character>().WithMany().HasForeignKey(x => x.CharacterId).OnDelete(DeleteBehavior.Cascade);
+        });
+        b.Entity<HomebrewPackCampaign>(e =>
+        {
+            e.HasIndex(x => new { x.HomebrewPackId, x.CampaignId }).IsUnique();
+            e.HasOne<HomebrewPack>().WithMany().HasForeignKey(x => x.HomebrewPackId).OnDelete(DeleteBehavior.Cascade);
+            e.HasOne<Campaign>().WithMany().HasForeignKey(x => x.CampaignId).OnDelete(DeleteBehavior.Cascade);
+        });
+
         b.Entity<CharacterAuditEntry>(e =>
         {
             e.HasIndex(a => new { a.CharacterId, a.CreatedAt });
@@ -354,6 +378,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         b.Entity<ArchetypeDef>(e =>
         {
             e.HasIndex(a => a.OwnerUserId);
+            e.HasIndex(a => a.HomebrewPackId);
             e.HasMany(a => a.Abilities).WithOne()
                 .HasForeignKey(x => x.ArchetypeId).OnDelete(DeleteBehavior.Cascade);
             e.HasMany(a => a.StartingSkills).WithOne()
@@ -378,6 +403,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         b.Entity<CareerDef>(e =>
         {
             e.HasIndex(c => c.OwnerUserId);
+            e.HasIndex(c => c.HomebrewPackId);
             e.Property(c => c.StartingMoneyDice).HasMaxLength(20);
             e.HasMany(c => c.StartingGear).WithOne()
                 .HasForeignKey(x => x.CareerId).OnDelete(DeleteBehavior.Cascade);
@@ -406,6 +432,11 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         ConfigureContent<CareerDef>(b);
         ConfigureContent<HeroicAbilityDef>(b);
         ConfigureContent<QualityDef>(b);
+
+        b.Entity<SkillDef>().HasIndex(s => s.HomebrewPackId);
+        b.Entity<TalentDef>().HasIndex(t => t.HomebrewPackId);
+        b.Entity<ItemDef>().HasIndex(i => i.HomebrewPackId);
+        b.Entity<HeroicAbilityDef>().HasIndex(h => h.HomebrewPackId);
     }
 
     private static void ConfigureContent<T>(ModelBuilder b) where T : class, IContentDef

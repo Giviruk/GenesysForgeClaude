@@ -2,7 +2,7 @@ import { useState, type FormEvent } from 'react'
 import { api } from '../api/client'
 import type {
   Archetype, Career, CharacterSheet, CustomArchetypeInput, CustomCareerInput,
-  HeroicAbility, ItemDef, Quality, Reference, SkillDef, TalentDef,
+  HeroicAbility, HomebrewPackDocument, HomebrewPackListItem, ItemDef, Quality, Reference, SkillDef, TalentDef,
 } from '../api/types'
 import { CHARACTERISTICS, CHARACTERISTIC_LABELS, ITEM_KIND_LABELS, SKILL_KIND_LABELS } from '../utils/labels'
 
@@ -13,7 +13,7 @@ interface Props {
   refresh: () => Promise<void>
 }
 
-type Section = 'skill' | 'talent' | 'item' | 'heroic' | 'archetype' | 'career'
+type Section = 'skill' | 'talent' | 'item' | 'heroic' | 'archetype' | 'career' | 'packs'
 
 export function CustomTab({ sheet, reference, onError, refresh }: Props) {
   const [section, setSection] = useState<Section>('skill')
@@ -59,6 +59,7 @@ export function CustomTab({ sheet, reference, onError, refresh }: Props) {
           <button className={section === 'item' ? 'tab active' : 'tab'} onClick={() => setSection('item')}>Предметы</button>
           <button className={section === 'archetype' ? 'tab active' : 'tab'} onClick={() => setSection('archetype')}>Архетипы</button>
           <button className={section === 'career' ? 'tab active' : 'tab'} onClick={() => setSection('career')}>Карьеры</button>
+          <button className={section === 'packs' ? 'tab active' : 'tab'} onClick={() => setSection('packs')}>Наборы JSON</button>
           {sheet.system === 'realmsOfTerrinoth' && (
             <button className={section === 'heroic' ? 'tab active' : 'tab'} onClick={() => setSection('heroic')}>Героич. способности</button>
           )}
@@ -119,12 +120,112 @@ export function CustomTab({ sheet, reference, onError, refresh }: Props) {
               onDelete={id => run(() => api.deleteCustomCareer(id), 'Карьера удалена.')} />
           </>
         )}
+        {section === 'packs' && (
+          <HomebrewPackPanel sheet={sheet} onError={onError} refresh={refresh} />
+        )}
       </section>
     </div>
   )
 }
 
 type Run = (action: () => Promise<unknown>, successMessage: string) => Promise<void>
+
+function HomebrewPackPanel({ sheet, onError, refresh }: {
+  sheet: CharacterSheet
+  onError: (message: string) => void
+  refresh: () => Promise<void>
+}) {
+  const [packs, setPacks] = useState<HomebrewPackListItem[]>([])
+  const [jsonText, setJsonText] = useState('')
+  const [shareText, setShareText] = useState('')
+  const [exportText, setExportText] = useState('')
+  const [busy, setBusy] = useState(false)
+
+  async function load() {
+    setPacks((await api.homebrewPacks()).filter(p => p.system === sheet.system))
+  }
+
+  async function act(fn: () => Promise<void>) {
+    setBusy(true)
+    setShareText('')
+    try {
+      await fn()
+      await load()
+      await refresh()
+    } catch (err) {
+      onError(err instanceof Error ? err.message : 'Ошибка')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  async function importJson() {
+    const parsed = JSON.parse(jsonText) as HomebrewPackDocument
+    await api.importHomebrewPack(parsed)
+    setJsonText('')
+  }
+
+  async function exportPack(id: string) {
+    const doc = await api.exportHomebrewPack(id)
+    setExportText(JSON.stringify(doc, null, 2))
+  }
+
+  async function sharePack(id: string) {
+    const share = await api.shareHomebrewPack(id)
+    setShareText(`Токен: ${share.token}\nПуть: ${share.path}`)
+  }
+
+  return (
+    <div className="custom-form">
+      <p className="hint">
+        Импортируйте переносимый JSON `genesysforge.homebrew-pack.v1`. Контент набора можно включать по умолчанию
+        или отдельно для текущего персонажа.
+      </p>
+      <label>JSON набора
+        <textarea value={jsonText} onChange={e => setJsonText(e.target.value)} rows={8}
+          placeholder='{"format":"genesysforge.homebrew-pack.v1","name":"...","system":"genesysCore"}' />
+      </label>
+      <div className="form-actions">
+        <button className="primary" type="button" disabled={busy || !jsonText.trim()} onClick={() => void act(importJson)}>
+          Импортировать JSON
+        </button>
+        <button type="button" disabled={busy} onClick={() => void act(load)}>Обновить список</button>
+      </div>
+
+      <div className="custom-list">
+        <div className="label-line">Ваши наборы ({packs.length}):</div>
+        {packs.length === 0 && <p className="hint">Пока нет импортированных наборов для этой системы.</p>}
+        {packs.map(pack => (
+          <div key={pack.id} className="custom-list-row">
+            <span>{pack.name} · {pack.entryCount} записей · {pack.isEnabledByDefault ? 'включён по умолчанию' : 'выключен по умолчанию'}</span>
+            <span className="custom-list-actions">
+              <button className="small" disabled={busy}
+                onClick={() => void act(() => api.setHomebrewPackDefault(pack.id, !pack.isEnabledByDefault))}>
+                {pack.isEnabledByDefault ? 'Выключить' : 'Включить'}
+              </button>
+              <button className="small" disabled={busy}
+                onClick={() => void act(() => api.setCharacterHomebrewPack(sheet.id, pack.id, true))}>
+                Для персонажа: вкл.
+              </button>
+              <button className="small" disabled={busy}
+                onClick={() => void act(() => api.setCharacterHomebrewPack(sheet.id, pack.id, false))}>
+                Для персонажа: выкл.
+              </button>
+              <button className="small" disabled={busy} onClick={() => void act(() => exportPack(pack.id))}>Export</button>
+              <button className="small" disabled={busy} onClick={() => void act(() => sharePack(pack.id))}>Share</button>
+            </span>
+          </div>
+        ))}
+      </div>
+      {shareText && <pre className="code-block">{shareText}</pre>}
+      {exportText && (
+        <label>Экспортированный JSON
+          <textarea value={exportText} readOnly rows={8} />
+        </label>
+      )}
+    </div>
+  )
+}
 
 function CustomList({ items, onEdit, onDelete }: {
   items: { id: string; label: string }[]

@@ -43,6 +43,9 @@ public interface IAppDbContext
     DbSet<EncounterParticipant> EncounterParticipants { get; }
     DbSet<ContentPack> ContentPacks { get; }
     DbSet<ContentPackEntry> ContentPackEntries { get; }
+    DbSet<HomebrewPack> HomebrewPacks { get; }
+    DbSet<HomebrewPackCharacter> HomebrewPackCharacters { get; }
+    DbSet<HomebrewPackCampaign> HomebrewPackCampaigns { get; }
     DbSet<RollLogEntry> RollLogEntries { get; }
     DbSet<CharacterAuditEntry> CharacterAuditEntries { get; }
     DbSet<QualityDef> QualityDefs { get; }

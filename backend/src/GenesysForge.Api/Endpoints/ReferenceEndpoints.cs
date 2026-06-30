@@ -13,13 +13,13 @@ public static class ReferenceEndpoints
         var group = app.MapGroup("/api/reference").RequireAuthorization();
 
         // Справочник системы: встроенный контент + кастомный контент текущего пользователя.
-        group.MapGet("/{system}", async (string system, ClaimsPrincipal user,
+        group.MapGet("/{system}", async (string system, Guid? characterId, Guid? campaignId, ClaimsPrincipal user,
             IQueryHandler<GetReferenceQuery, ReferenceResponse> handler, CancellationToken ct) =>
         {
             // Биндинг enum из маршрута чувствителен к регистру — разбираем сами.
             if (!Enum.TryParse<GameSystem>(system, ignoreCase: true, out var gameSystem))
                 throw new DomainRuleException($"Неизвестная система: «{system}».");
-            return Results.Ok(await handler.Handle(new GetReferenceQuery(user.UserId(), gameSystem), ct));
+            return Results.Ok(await handler.Handle(new GetReferenceQuery(user.UserId(), gameSystem, characterId, campaignId), ct));
         });
 
         // Справочные таблицы правил (системо-независимы; опц. ?q= для фильтра по подстроке).

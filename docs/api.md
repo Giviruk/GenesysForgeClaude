@@ -113,6 +113,10 @@ REST stays the source of truth; events only tell clients what to refetch.
 ### `GET /api/reference/{system}`
 
 Protected. `system` is parsed case-insensitively into `GameSystem`.
+Optional query params:
+
+- `characterId` — include/omit homebrew packs according to this character's pack toggles.
+- `campaignId` — include/omit homebrew packs according to this campaign's pack toggles.
 
 Response: `ReferenceResponse`:
 
@@ -123,7 +127,9 @@ Response: `ReferenceResponse`:
 - `items`
 - `heroicAbilities`
 
-The response includes built-in content plus custom content owned by the current user.
+The response includes built-in content plus visible custom content owned by the current user. Imported
+homebrew-pack content is visible when the pack is enabled by default or enabled for the supplied
+`characterId`/`campaignId`.
 
 Known errors:
 
@@ -393,6 +399,38 @@ Custom archetypes use `CreateCustomArchetypeRequest`: system, names, six charact
 starting XP, copyright-safe description and one optional manual archetype ability. Custom careers use
 `CreateCustomCareerRequest`: system, names, description, career skill names and optional starting money. Both are
 scoped to `OwnerUserId`; only the owner sees them in reference data and can create characters from them.
+
+## Homebrew JSON packs
+
+All routes are protected. Packs are user-owned and separate from campaign Content Packs.
+
+```text
+GET  /api/homebrew-packs/
+GET  /api/homebrew-packs/{id}/export
+POST /api/homebrew-packs/import
+POST /api/homebrew-packs/{id}/share
+POST /api/homebrew-packs/shared/{token}/import
+PUT  /api/homebrew-packs/{id}/default
+PUT  /api/characters/{characterId}/homebrew-packs/{packId}
+PUT  /api/campaigns/{campaignId}/homebrew-packs/{packId}
+```
+
+Import/export format is `genesysforge.homebrew-pack.v1`. The JSON document contains a pack header
+(`name`, `description`, `system`) and optional arrays: `skills`, `talents`, `items`, `heroicAbilities`,
+`archetypes`, `careers`. Entries use stable `code` fields where supplied; missing codes are generated
+from type/name.
+
+`POST /share` returns a raw token once. `POST /shared/{token}/import` copies the shared pack into the
+current user's account; it does not grant edit access to the original pack.
+
+Toggle routes use `HomebrewPackToggleRequest`:
+
+```json
+{ "isEnabled": true }
+```
+
+Default toggle controls visibility without a reference context. Character/campaign toggles override
+visibility for `GET /api/reference/{system}?characterId=...` / `?campaignId=...`.
 
 ## Campaigns
 

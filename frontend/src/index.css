@@ -363,6 +363,7 @@ table.ref-table td.ref-cost { white-space: nowrap; color: var(--accent); }
 .note-card-head { display: flex; justify-content: space-between; align-items: baseline; gap: 0.6rem; flex-wrap: wrap; }
 .note-actions { display: flex; gap: 0.4rem; flex-shrink: 0; flex-wrap: wrap; }
 .note-body { margin: 0.4rem 0; font-size: 0.88rem; white-space: pre-wrap; }
+.code-block { white-space: pre-wrap; background: rgba(15, 23, 42, 0.06); border: 1px solid var(--border); border-radius: 10px; padding: 0.75rem; overflow: auto; }
 
 /* ---------- Критические ранения (U-23) ---------- */
 .crit-list { display: flex; flex-direction: column; gap: 0.4rem; margin: 0.5rem 0; }

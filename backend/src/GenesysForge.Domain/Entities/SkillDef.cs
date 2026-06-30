@@ -20,4 +20,6 @@ public class SkillDef : IContentDef
     /// <summary>Ссылка на источник: книга/раздел/страница (без копирования текста). Доступна в обоих режимах.</summary>
     public string Source { get; set; } = "";
     public Guid? OwnerUserId { get; set; }
+    /// <summary>Набор homebrew, из которого импортирован пользовательский контент. Null — одиночный custom content.</summary>
+    public Guid? HomebrewPackId { get; set; }
 }

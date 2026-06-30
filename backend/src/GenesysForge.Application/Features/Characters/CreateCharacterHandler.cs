@@ -1,5 +1,6 @@
 using System.Text.RegularExpressions;
 using GenesysForge.Application.Abstractions;
+using GenesysForge.Application.Common;
 using GenesysForge.Application.Dtos;
 using GenesysForge.Domain;
 using GenesysForge.Domain.Entities;
@@ -14,16 +15,22 @@ public partial class CreateCharacterHandler(IAppDbContext db) : ICommandHandler<
     public async Task<Guid> Handle(CreateCharacterCommand command, CancellationToken ct = default)
     {
         var (userId, req) = (command.UserId, command.Request);
+        var visiblePackIds = await HomebrewVisibility.GetVisiblePackIdsAsync(db, userId, req.System, ct: ct);
 
         var archetype = await db.ArchetypeDefs
                 .Include(a => a.StartingSkills)
                 .FirstOrDefaultAsync(a => a.Id == req.ArchetypeId && a.System == req.System
-                    && !a.Retired && (a.OwnerUserId == null || a.OwnerUserId == userId), ct)
+                    && !a.Retired
+                    && (a.OwnerUserId == null
+                        || (a.OwnerUserId == userId
+                            && (a.HomebrewPackId == null || visiblePackIds.Contains(a.HomebrewPackId.Value)))), ct)
             ?? throw new DomainRuleException("Архетип не найден или принадлежит другой системе.");
         var career = await db.CareerDefs
                 .Include(c => c.StartingGear)
                 .FirstOrDefaultAsync(c => c.Id == req.CareerId && c.System == req.System
-                    && (c.OwnerUserId == null || c.OwnerUserId == userId), ct)
+                    && (c.OwnerUserId == null
+                        || (c.OwnerUserId == userId
+                            && (c.HomebrewPackId == null || visiblePackIds.Contains(c.HomebrewPackId.Value)))), ct)
             ?? throw new DomainRuleException("Карьера не найдена или принадлежит другой системе.");
         if (string.IsNullOrWhiteSpace(req.Name))
             throw new DomainRuleException("Имя персонажа не может быть пустым.");
@@ -60,7 +67,10 @@ public partial class CreateCharacterHandler(IAppDbContext db) : ICommandHandler<
 
         // Резолвер навыков системы: built-in приоритетнее одноимённого custom.
         var systemSkills = await db.SkillDefs
-            .Where(s => s.System == req.System && (s.OwnerUserId == null || s.OwnerUserId == userId))
+            .Where(s => s.System == req.System
+                && (s.OwnerUserId == null
+                    || (s.OwnerUserId == userId
+                        && (s.HomebrewPackId == null || visiblePackIds.Contains(s.HomebrewPackId.Value)))))
             .ToListAsync(ct);
         var skillByName = systemSkills
             .OrderBy(s => s.OwnerUserId == null ? 0 : 1)

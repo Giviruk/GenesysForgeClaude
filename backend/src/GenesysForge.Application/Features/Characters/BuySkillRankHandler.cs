@@ -11,9 +11,13 @@ public class BuySkillRankHandler(IAppDbContext db) : ICommandHandler<BuySkillRan
     public async Task<Unit> Handle(BuySkillRankCommand command, CancellationToken ct = default)
     {
         var c = await db.GetOwnedAsync(command.UserId, command.CharacterId, ct: ct);
+        var visiblePackIds = await HomebrewVisibility.GetVisiblePackIdsAsync(
+            db, command.UserId, c.System, command.CharacterId, ct: ct);
         var skillDef = await db.SkillDefs.FirstOrDefaultAsync(s =>
                 s.Id == command.SkillDefId && s.System == c.System
-                && (s.OwnerUserId == null || s.OwnerUserId == command.UserId), ct)
+                && (s.OwnerUserId == null
+                    || (s.OwnerUserId == command.UserId
+                        && (s.HomebrewPackId == null || visiblePackIds.Contains(s.HomebrewPackId.Value)))), ct)
             ?? throw new DomainRuleException("Навык не найден.");
 
         var row = c.Skills.FirstOrDefault(s => s.SkillDefId == command.SkillDefId);
