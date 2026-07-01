@@ -2,6 +2,9 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
+import { fileURLToPath, URL } from 'node:url'
+
+const docsDir = fileURLToPath(new URL('../docs', import.meta.url))
 
 export default defineConfig({
   plugins: [
@@ -55,6 +58,9 @@ export default defineConfig({
   ],
   server: {
     port: Number(process.env.PORT) || 5173,
+    fs: {
+      allow: [docsDir],
+    },
     proxy: {
       '/api': 'http://localhost:5080',
       // SignalR-хаб: проксируем с поддержкой WebSocket.

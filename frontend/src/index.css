@@ -930,6 +930,41 @@ button.tiny { font-size: 0.75rem; padding: 0.05rem 0.4rem 0.15rem; }
 .about-page li { margin: 0.25rem 0; }
 .about-page h3 { margin: 1.1rem 0 0.3rem; }
 
+/* ---------- User guide / help ---------- */
+.help-layout {
+  display: grid;
+  grid-template-columns: minmax(11rem, 14rem) minmax(0, 1fr);
+  gap: 1.5rem;
+  align-items: start;
+  margin-top: 1rem;
+}
+.help-toc {
+  position: sticky;
+  top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 0.85rem;
+}
+.help-toc h3 { margin: 0 0 0.25rem; }
+.help-toc a { color: var(--text); text-decoration: none; font-size: 0.9rem; }
+.help-toc a:hover { color: var(--accent); text-decoration: underline; }
+.help-content { min-width: 0; }
+.help-content h2 { margin: 0 0 0.6rem; }
+.help-content h3 { margin: 1.5rem 0 0.4rem; color: var(--accent); }
+.help-content h4 { margin: 1rem 0 0.3rem; }
+.help-content p { margin: 0.45rem 0 0.8rem; }
+.help-content ul { margin: 0.4rem 0 0.95rem 1.2rem; padding: 0; }
+.help-content li { margin: 0.3rem 0; }
+
+@media (max-width: 48rem) {
+  .help-layout { grid-template-columns: 1fr; }
+  .help-toc { position: static; }
+}
+
 /* ── Dice roller (U-08) ───────────────────────────────────────────── */
 .dice-roller { display: flex; flex-direction: column; gap: 0.7rem; }
 .dr-pool { display: flex; flex-wrap: wrap; gap: 0.5rem; }

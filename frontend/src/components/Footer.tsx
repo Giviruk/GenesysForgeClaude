@@ -8,6 +8,7 @@ export function Footer() {
   return (
     <footer className="app-footer">
       <nav className="footer-links">
+        <button className="linklike" type="button" onClick={() => navigate('/help')}>Справка</button>
         <button className="linklike" type="button" onClick={() => navigate('/about')}>О проекте</button>
         <a className="linklike" href={CHANGELOG_URL} target="_blank" rel="noreferrer">Changelog</a>
         <a className="linklike" href={REPO_URL} target="_blank" rel="noreferrer">Исходный код</a>
