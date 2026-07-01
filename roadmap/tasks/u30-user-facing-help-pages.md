@@ -3,7 +3,7 @@
 - **Roadmap:** U-30 — User-facing help pages (см. [unified-roadmap.md](../unified-roadmap.md))
 - **Ветка:** `feature/u30-user-facing-help-pages`
 - **Базовая ветка:** `master`
-- **PR:** TBD
+- **PR:** #75 — https://github.com/Giviruk/GenesysForgeClaude/pull/75
 - **Статус:** 🚧 In progress
 
 ## Контекст
@@ -31,11 +31,11 @@ Roadmap U-30 требует пользовательскую справку: Mar
 - [x] Добавить ссылки «Справка» в UI.
 - [x] Обновить router tests и добавить UI smoke test для HelpPage.
 - [x] Запустить релевантные проверки локально.
-- [ ] Открыть PR.
+- [x] Открыть PR.
 
 ## Что осталось / блокеры
 
-Нужно открыть PR. Полный E2E не запускался локально, потому задача не меняет основные backend/full-stack flow; Playwright discovery выполнен.
+Ожидаются CI checks PR #75. Полный E2E не запускался локально, потому задача не меняет основные backend/full-stack flow; Playwright discovery выполнен.
 
 ## Заметки / решения
 
