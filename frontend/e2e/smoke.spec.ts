@@ -156,6 +156,7 @@ test.describe('U-29 smoke E2E', () => {
     expect(sheet.derived.soak).toBeGreaterThan(soakBefore)
 
     await page.reload()
+    await page.getByRole('button', { name: 'Инвентарь' }).click()
     await expect(page.getByText(armor!.nameRu || armor!.name).first()).toBeVisible()
   })
 
@@ -240,7 +241,7 @@ test.describe('U-29 smoke E2E', () => {
     await openAs(page, gm.token, `/campaigns/${campaign.id}/table`)
     await expect(page.getByRole('button', { name: 'Game Table' })).toBeVisible()
     await expect(page.getByText(encounterName)).toBeVisible()
-    await expect(page.getByText(characterName)).toBeVisible()
+    await expect(page.getByText(characterName).first()).toBeVisible()
   })
 
   test('magic builder plus character export/import smoke', async ({ page, request }) => {
