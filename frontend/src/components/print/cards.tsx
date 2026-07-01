@@ -4,7 +4,7 @@ import type {
 import {
   CHARACTERISTIC_LABELS, ENCOUNTER_TYPE_LABELS, ITEM_KIND_LABELS, NPC_KIND_LABELS, NPC_ROLE_LABELS,
   PARTICIPANT_TYPE_LABELS, SLOT_TYPE_LABELS, SYSTEM_LABELS, THREAT_LEVEL_LABELS, difficultyLabel,
-  magicSkillLabel,
+  localizedName, magicSkillLabel,
 } from '../../utils/labels'
 import type { PrintVersion } from './PrintPreview'
 
@@ -38,9 +38,9 @@ export function AdversaryCard({ npc, version }: { npc: NpcDetail; version: Print
             {CHARS.map(c => <span key={c}><b>{npc[c]}</b> {CHARACTERISTIC_LABELS[c]}</span>)}
           </div>
           <div className="pcard-line">
-            <span><b>Soak</b> {npc.soak}</span>
+            <span><b>Поглощение</b> {npc.soak}</span>
             <span><b>Раны</b> {npc.woundThreshold}</span>
-            {npc.strainThreshold != null && <span><b>Стрейн</b> {npc.strainThreshold}</span>}
+            {npc.strainThreshold != null && <span><b>Усталость</b> {npc.strainThreshold}</span>}
             <span><b>Бл.защ</b> {npc.meleeDefense}</span>
             <span><b>Дал.защ</b> {npc.rangedDefense}</span>
             {npc.silhouette !== 1 && <span><b>Силуэт</b> {npc.silhouette}</span>}
@@ -97,7 +97,7 @@ export function EncounterSheet({ enc, version }: { enc: EncounterDetail; version
                 {p.displayName}{p.quantity > 1 ? ` ×${p.quantity}` : ''} — {PARTICIPANT_TYPE_LABELS[p.participantType]}
                 {gm && ` · ${SLOT_TYPE_LABELS[p.initiativeSide]}`}
                 {gm && p.startsHidden && ' · скрыт'}
-                {gm && '   ⟶ Раны ___ / Стрейн ___'}
+                {gm && '   ⟶ Раны ___ / Усталость ___'}
               </li>
             ))}
           </ul>
@@ -146,11 +146,11 @@ export function MagicActionCard({ data }: { data: MagicCardData }) {
 }
 
 /** Карточка предмета (§3.4). */
-export function ItemCard({ item }: { item: SheetItem }) {
+export function ItemCard({ item, skillLabel }: { item: SheetItem; skillLabel?: string | null }) {
   return (
     <article className="print-card">
       <header className="pcard-head">
-        <h3>{item.name}</h3>
+        <h3>{localizedName(item)}</h3>
         <span className="pcard-sub">{ITEM_KIND_LABELS[item.kind]}</span>
       </header>
       <div className="pcard-line">
@@ -159,7 +159,7 @@ export function ItemCard({ item }: { item: SheetItem }) {
       </div>
       {item.kind === 'weapon' && (
         <div className="pcard-line">
-          {item.skillName && <span><b>Навык</b> {item.skillName}</span>}
+          {item.skillName && <span><b>Навык</b> {skillLabel || item.skillName}</span>}
           {item.damage && <span><b>Урон</b> {item.damage}</span>}
           {item.crit && <span><b>Крит</b> {item.crit}</span>}
           {item.rangeBand && <span><b>Дистанция</b> {item.rangeBand}</span>}
@@ -167,7 +167,7 @@ export function ItemCard({ item }: { item: SheetItem }) {
       )}
       {item.kind === 'armor' && (
         <div className="pcard-line">
-          <span><b>Soak</b> +{item.soakBonus}</span>
+          <span><b>Поглощение</b> +{item.soakBonus}</span>
           <span><b>Бл.защ</b> +{item.meleeDefense}</span>
           <span><b>Дал.защ</b> +{item.rangedDefense}</span>
         </div>

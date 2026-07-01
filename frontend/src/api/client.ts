@@ -284,7 +284,7 @@ export const api = {
   applyNpcTemplate: (input: NpcInput, template: CreatureTemplate) =>
     request<NpcDetail>('POST', '/api/npcs/apply-template', { input, template }),
 
-  // Game Table / GM Cockpit (сцена кампании). GET возвращает 204 → null, если активной сцены нет.
+  // Игровой стол / GM Cockpit (сцена кампании). GET возвращает 204 → null, если активной сцены нет.
   session: async (campaignId: string): Promise<GameSession | null> => {
     const r = await request<GameSession | undefined>('GET', `/api/campaigns/${campaignId}/session/`)
     return r ?? null

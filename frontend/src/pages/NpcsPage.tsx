@@ -122,7 +122,7 @@ export function NpcsPage({ openId, onOpen, onBack }: Props) {
                     <span className={`badge ${n.system}`}>{SYSTEM_LABELS[n.system]}</span>
                   </span>
                   <span className="bestiary-item-sub muted">
-                    {NPC_KIND_LABELS[n.kind]} · {NPC_ROLE_LABELS[n.role]} · Soak {n.soak} · Раны {n.woundThreshold}
+                    {NPC_KIND_LABELS[n.kind]} · {NPC_ROLE_LABELS[n.role]} · Поглощение {n.soak} · Раны {n.woundThreshold}
                   </span>
                   {n.isBuiltIn
                     ? <span className="bestiary-item-flag muted">встроенный</span>
@@ -271,9 +271,9 @@ function NpcDetailView({ npcId, reloadToken, onEdit, onDuplicated, onDeleted }: 
         </div>
 
         <div className="npc-derived">
-          <span><b>Soak</b> {n.soak}</span>
+          <span><b>Поглощение</b> {n.soak}</span>
           <span><b>Раны</b> {n.woundThreshold}</span>
-          {n.strainThreshold != null && <span><b>Стрейн</b> {n.strainThreshold}</span>}
+          {n.strainThreshold != null && <span><b>Усталость</b> {n.strainThreshold}</span>}
           <span><b>Бл. защита</b> {n.meleeDefense}</span>
           <span><b>Дал. защита</b> {n.rangedDefense}</span>
           {n.silhouette !== 1 && <span><b>Силуэт</b> {n.silhouette}</span>}
@@ -452,7 +452,7 @@ function NpcEditor({ initial, onCancel, onSaved }: {
   }, [form.system])
   const reference = loaded?.system === form.system ? loaded.data : null
 
-  // Миньон обычно без стрейна; немезида обязан иметь.
+  // Миньон обычно без усталости; немезида обязан иметь.
   const minion = form.kind === 'minion'
 
   // Оружие каталога по подписи — источник производных атак из снаряжения.
@@ -550,10 +550,10 @@ function NpcEditor({ initial, onCancel, onSaved }: {
         <div className="form-row chars-row npc-derived-grid">
           <label className="char-input">Раны<input type="number" min={1} value={form.woundThreshold}
             onChange={e => set('woundThreshold', Math.max(1, +e.target.value))} /></label>
-          <label className="char-input">Стрейн<input type="number" min={0} value={form.strainThreshold ?? ''}
+          <label className="char-input">Усталость<input type="number" min={0} value={form.strainThreshold ?? ''}
             disabled={minion} placeholder={minion ? '—' : ''}
             onChange={e => set('strainThreshold', e.target.value === '' ? null : Math.max(0, +e.target.value))} /></label>
-          <label className="char-input">Soak<input type="number" min={0} value={form.soak}
+          <label className="char-input">Поглощение<input type="number" min={0} value={form.soak}
             onChange={e => set('soak', Math.max(0, +e.target.value))} /></label>
           <label className="char-input">Бл. защита<input type="number" min={0} value={form.meleeDefense}
             onChange={e => set('meleeDefense', Math.max(0, +e.target.value))} /></label>

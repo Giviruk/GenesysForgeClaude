@@ -109,9 +109,9 @@ public class CharacterFlowTests : IClassFixture<ApiFactory>
         // Бесплатные ранги без траты XP: два карьерных + фиксированные стартовые навыки вида
         Assert.Equal(0, sheet.SpentXp);
         foreach (var n in reference.Careers[0].CareerSkillNames.Take(2))
-            Assert.Contains(sheet.Skills, s => s.Name == n && s.FreeRanks >= 1);
+            Assert.Contains(sheet.Skills, s => s.Name == n && s.NameRu.Length > 0 && s.FreeRanks >= 1);
         foreach (var ss in reference.Archetypes[0].StartingSkills.Where(s => !s.IsChoice && s.SkillName.Length > 0))
-            Assert.Contains(sheet.Skills, s => s.Name == ss.SkillName && s.FreeRanks >= ss.FreeRanks);
+            Assert.Contains(sheet.Skills, s => s.Name == ss.SkillName && s.NameRu.Length > 0 && s.FreeRanks >= ss.FreeRanks);
         // Карьерные навыки помечены
         Assert.Equal(8, sheet.Skills.Count(s => s.IsCareer));
     }
@@ -366,6 +366,7 @@ public class CharacterFlowTests : IClassFixture<ApiFactory>
             new AddItemRequest(plate.Id, 1, ItemState.Backpack));
         Assert.Equal(HttpStatusCode.Created, add.StatusCode);
         var inBackpack = await SheetAsync(client, id);
+        Assert.Contains(inBackpack.Items, i => i.ItemDefId == plate.Id && i.NameRu == plate.NameRu);
         // Дельты относительно стартового снаряжения карьеры (RoT-карьеры выдают экипировку при создании).
         Assert.Equal(before.Derived.Soak, inBackpack.Derived.Soak);
         Assert.Equal(before.Derived.EncumbranceLoad + plate.Encumbrance, inBackpack.Derived.EncumbranceLoad);

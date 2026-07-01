@@ -35,7 +35,7 @@ public static class SheetBuilder
                 && (s.OwnerUserId == null
                     || (s.OwnerUserId == userId
                         && (s.HomebrewPackId == null || visiblePackIds.Contains(s.HomebrewPackId.Value)))))
-            .OrderBy(s => s.Kind).ThenBy(s => s.Name)
+            .OrderBy(s => s.Kind).ThenBy(s => s.NameRu)
             .ToListAsync(ct);
         var rows = c.Skills.ToDictionary(s => s.SkillDefId);
         var skills = systemSkills.Select(def =>
@@ -44,7 +44,7 @@ public static class SheetBuilder
             var ranks = row?.Ranks ?? 0;
             var isCareer = row?.IsCareer ?? c.Career!.CareerSkillNames.Contains(def.Name);
             var pool = GenesysRules.BuildDicePool(ch.Get(def.Characteristic), ranks);
-            return new CharacterSkillDto(def.Id, def.Name, def.Kind, def.Characteristic, ranks, isCareer,
+            return new CharacterSkillDto(def.Id, def.Name, def.NameRu, def.Kind, def.Characteristic, ranks, isCareer,
                 new DicePoolDto(pool.Ability, pool.Proficiency),
                 ranks < GenesysRules.MaxSkillRank ? GenesysRules.SkillRankCost(ranks + 1, isCareer) : 0,
                 row?.FreeRanks ?? 0);
@@ -78,8 +78,8 @@ public static class SheetBuilder
             c.HeroicUpgradePointsTotal,
             c.HeroicUpgradePointsSpent,
             c.Items
-                .OrderBy(i => i.ItemDef!.Kind).ThenBy(i => i.ItemDef!.Name)
-                .Select(i => new CharacterItemDto(i.Id, i.ItemDefId, i.ItemDef!.Name, i.ItemDef.Kind, i.State,
+                .OrderBy(i => i.ItemDef!.Kind).ThenBy(i => i.ItemDef!.NameRu)
+                .Select(i => new CharacterItemDto(i.Id, i.ItemDefId, i.ItemDef!.Name, i.ItemDef.NameRu, i.ItemDef.Kind, i.State,
                     i.Quantity, i.ItemDef.Encumbrance, i.ItemDef.SoakBonus, i.ItemDef.MeleeDefense,
                     i.ItemDef.RangedDefense, i.ItemDef.EncumbranceThresholdBonus,
                     SheetCalculator.ItemLoad(new ItemInput(i.ItemDef.Name, i.ItemDef.Kind, i.State,

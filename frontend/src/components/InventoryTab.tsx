@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react'
 import { api } from '../api/client'
 import type { CharacterSheet, ItemDef, ItemKind, ItemState, Reference, SheetItem } from '../api/types'
 import {
-  CURRENCY_LABEL, ITEM_KIND_LABELS, ITEM_STATE_LABELS, resolveWeaponSkillName,
+  CURRENCY_LABEL, ITEM_KIND_LABELS, ITEM_STATE_LABELS, localizedName, resolveWeaponSkillName,
 } from '../utils/labels'
 import { itemTags } from '../data/itemQualities'
 import { DicePoolView } from './DicePoolView'
@@ -228,12 +228,12 @@ function MoneyPanel({ sheet, run, d }: { sheet: CharacterSheet; run: Run; d: Cha
 function ShopRow({ item, money, run, sheetId, open, onToggle }: {
   item: ItemDef; money: number; run: Run; sheetId: string; open: boolean; onToggle: () => void
 }) {
+  const itemLabel = localizedName(item)
   return (
     <div className="shop-row">
       <div className="shop-row-head">
         <div className="shop-row-info">
-          <strong>{item.nameRu}</strong>
-          {item.nameRu !== item.name && <span className="muted small-text"> · {item.name}</span>}
+          <strong>{itemLabel}</strong>
           <div className="muted small-text">
             {ITEM_KIND_LABELS[item.kind]} · цена {item.price} · редкость {item.rarity}
             {item.isCustom && ' · кастом'}
@@ -266,11 +266,15 @@ function InventoryCard({ item, sheet, skillNames, run, reference, sellOpen, onTo
 }) {
   const hasBonus = item.soakBonus > 0 || item.meleeDefense > 0 || item.rangedDefense > 0 || item.encumbranceThresholdBonus > 0
   const [printing, setPrinting] = useState(false)
+  const itemLabel = localizedName(item)
+  const skillName = resolveWeaponSkillName(item.skillName, skillNames)
+  const skill = skillName ? sheet.skills.find(s => s.name === skillName) ?? null : null
+  const skillLabel = skill ? localizedName(skill) : item.skillName
 
   if (printing) {
     return (
-      <PrintPreview title={`Предмет — ${item.name}`} onClose={() => setPrinting(false)}>
-        {() => <ItemCard item={item} />}
+      <PrintPreview title={`Предмет — ${itemLabel}`} onClose={() => setPrinting(false)}>
+        {() => <ItemCard item={item} skillLabel={skillLabel} />}
       </PrintPreview>
     )
   }
@@ -279,7 +283,7 @@ function InventoryCard({ item, sheet, skillNames, run, reference, sellOpen, onTo
     <div className={`inv-card${item.state === 'equipped' ? ' equipped' : ''}`}>
       <div className="inv-card-head">
         <div className="inv-card-title">
-          <strong>{item.name}</strong>
+          <strong>{itemLabel}</strong>
           <span className="muted small-text"> · {ITEM_KIND_LABELS[item.kind]}{item.price > 0 && ` · ${item.price} 🪙`}</span>
         </div>
         <div className="inv-card-qty">
@@ -291,7 +295,7 @@ function InventoryCard({ item, sheet, skillNames, run, reference, sellOpen, onTo
         </div>
       </div>
 
-      {item.kind === 'weapon' && <WeaponLine item={item} sheet={sheet} skillNames={skillNames} reference={reference} />}
+      {item.kind === 'weapon' && <WeaponLine item={item} sheet={sheet} skill={skill} skillLabel={skillLabel} reference={reference} />}
 
       {item.kind !== 'weapon' && item.properties && (
         <PropertyTags properties={item.properties} className="small-text" />
@@ -338,12 +342,11 @@ function InventoryCard({ item, sheet, skillNames, run, reference, sellOpen, onTo
   )
 }
 
-function WeaponLine({ item, sheet, skillNames, reference }: {
-  item: SheetItem; sheet: CharacterSheet; skillNames: string[]; reference: Reference
+function WeaponLine({ item, sheet, skill, skillLabel, reference }: {
+  item: SheetItem; sheet: CharacterSheet; skill: CharacterSheet['skills'][number] | null; skillLabel: string; reference: Reference
 }) {
   const [rolling, setRolling] = useState(false)
-  const skillName = resolveWeaponSkillName(item.skillName, skillNames)
-  const skill = skillName ? sheet.skills.find(s => s.name === skillName) : null
+  const itemLabel = localizedName(item)
   // Урон «+N» в ближнем бою — это прибавка к Мощи; абсолютное число — итоговый урон оружия.
   const dmg = item.damage.trim()
   let damageText = dmg
@@ -357,19 +360,19 @@ function WeaponLine({ item, sheet, skillNames, reference }: {
       {item.crit && <span className="weapon-stat">Крит <strong>{item.crit}</strong></span>}
       {item.rangeBand && <span className="weapon-stat">{item.rangeBand}</span>}
       {skill ? (
-        <span className="weapon-pool" title={`Бросок: ${skill.name}`}>
-          <DicePoolView pool={skill.pool} /> <span className="muted small-text">{skill.name}</span>
+        <span className="weapon-pool" title={`Бросок: ${skillLabel}`}>
+          <DicePoolView pool={skill.pool} /> <span className="muted small-text">{skillLabel}</span>
         </span>
       ) : item.skillName ? (
-        <span className="muted small-text">навык {item.skillName} не освоен</span>
+        <span className="muted small-text">навык {skillLabel} не освоен</span>
       ) : null}
       {item.properties && <PropertyTags properties={item.properties} className="weapon-props" />}
       <button type="button" className="small no-print" onClick={() => setRolling(true)}>🎲 Атаковать</button>
 
       {rolling && (
         <CombatRoller
-          title={item.name}
-          skillLabel={skill?.name ?? null}
+          title={itemLabel}
+          skillLabel={skill ? skillLabel : null}
           basePool={skill ? { ability: skill.pool.ability, proficiency: skill.pool.proficiency } : {}}
           damage={item.damage}
           brawn={sheet.characteristics.brawn}

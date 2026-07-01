@@ -11,7 +11,7 @@ describe('talentBonusSummary', () => {
   })
 
   it('один ранг — без множителя', () => {
-    expect(talentBonusSummary({ ...none, strainBonus: 1 }, 1)).toEqual(['+1 к порогу стрейна'])
+    expect(talentBonusSummary({ ...none, strainBonus: 1 }, 1)).toEqual(['+1 к порогу усталости'])
   })
 
   it('несколько рангов — сумма и расшифровка', () => {

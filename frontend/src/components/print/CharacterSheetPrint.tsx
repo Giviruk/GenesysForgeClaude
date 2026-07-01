@@ -3,7 +3,7 @@ import { api } from '../../api/client'
 import type { CharacterNote, CharacterSheet, ItemState, Reference, SheetSkill, SkillKind } from '../../api/types'
 import {
   CHARACTERISTICS, CHARACTERISTIC_LABELS, ITEM_STATE_LABELS, resolveWeaponSkillName, SKILL_KIND_LABELS,
-  SYSTEM_LABELS,
+  SYSTEM_LABELS, localizedName,
 } from '../../utils/labels'
 import { DicePoolView } from '../DicePoolView'
 
@@ -11,7 +11,7 @@ const ITEM_STATE_ORDER: ItemState[] = ['equipped', 'carried', 'backpack']
 const SKILL_KIND_ORDER: SkillKind[] = ['general', 'combat', 'social', 'knowledge', 'magic']
 
 /** Полный печатный лист персонажа для PrintPreview (→ браузерная печать / сохранение в PDF). */
-export function CharacterSheetPrint({ sheet, reference, loadNotes = true }: {
+export function CharacterSheetPrint({ sheet, loadNotes = true }: {
   sheet: CharacterSheet
   reference?: Reference
   /** false для публичного share-листа: заметки закрыты auth-endpoint и не входят в публичный DTO. */
@@ -25,8 +25,6 @@ export function CharacterSheetPrint({ sheet, reference, loadNotes = true }: {
   }, [loadNotes, sheet.id])
 
   const printableNotes = loadNotes ? notes : []
-  const skillRu = new Map((reference?.skills ?? []).map(s => [s.id, s.nameRu]))
-  const itemRu = new Map((reference?.items ?? []).map(i => [i.id, i.nameRu]))
   const skillNames = sheet.skills.map(s => s.name)
   const skillsByName = new Map(sheet.skills.map(s => [s.name, s]))
   const skillGroups = SKILL_KIND_ORDER
@@ -41,7 +39,7 @@ export function CharacterSheetPrint({ sheet, reference, loadNotes = true }: {
       <header className="sheet-head">
         <h1>{sheet.name}</h1>
         <div className="sheet-sub">
-          {SYSTEM_LABELS[sheet.system]} · {sheet.archetype.name} · {sheet.career.name}
+          {SYSTEM_LABELS[sheet.system]} · {localizedName(sheet.archetype)} · {localizedName(sheet.career)}
           {sheet.isCreationPhase && ' · фаза создания'}
         </div>
         <div className="sheet-xp">
@@ -61,7 +59,7 @@ export function CharacterSheetPrint({ sheet, reference, loadNotes = true }: {
         </div>
         <div className="sheet-stat-grid sheet-derived-grid">
           <DerivedStat value={`${sheet.woundsCurrent} / ${d.woundThreshold}`} label="Раны" />
-          <DerivedStat value={`${sheet.strainCurrent} / ${d.strainThreshold}`} label="Стрейн" />
+          <DerivedStat value={`${sheet.strainCurrent} / ${d.strainThreshold}`} label="Усталость" />
           <DerivedStat value={d.soak} label="Поглощение" />
           <DerivedStat value={d.meleeDefense} label="Ближняя защита" />
           <DerivedStat value={d.rangedDefense} label="Дальняя защита" />
@@ -76,7 +74,7 @@ export function CharacterSheetPrint({ sheet, reference, loadNotes = true }: {
           {skillColumns.map((column, index) => (
             <div key={index} className="sheet-skill-column">
               {column.map(group => (
-                <SkillGroup key={group.kind} kind={group.kind} skills={group.skills} skillRu={skillRu} />
+                <SkillGroup key={group.kind} kind={group.kind} skills={group.skills} />
               ))}
             </div>
           ))}
@@ -111,7 +109,7 @@ export function CharacterSheetPrint({ sheet, reference, loadNotes = true }: {
             {h.description && <div className="sheet-desc">{h.description}</div>}
             {h.upgrades.filter(u => u.level <= sheet.heroicUpgradeRank).map(u => (
               <div key={u.level} className="sheet-desc">
-                ↑ {u.level === 1 ? 'Improved' : 'Supreme'}: {u.description}
+                ↑ {u.level === 1 ? 'Улучшенная' : 'Высшая'}: {u.description}
               </div>
             ))}
           </div>
@@ -128,12 +126,13 @@ export function CharacterSheetPrint({ sheet, reference, loadNotes = true }: {
             <div key={state} className="sheet-inv-group">
               <h3>{ITEM_STATE_LABELS[state]}</h3>
               {items.map(i => {
-                const ru = itemRu.get(i.itemDefId) || ''
+                const itemLabel = localizedName(i)
                 const weaponSkillName = i.kind === 'weapon'
                   ? resolveWeaponSkillName(i.skillName, skillNames)
                   : null
                 const weaponSkill = weaponSkillName ? skillsByName.get(weaponSkillName) : null
-                const combat = [i.damage && `урон ${i.damage}`, i.crit && `крит ${i.crit}`, i.rangeBand, i.skillName]
+                const weaponSkillLabel = weaponSkill ? localizedName(weaponSkill) : ''
+                const combat = [i.damage && `урон ${i.damage}`, i.crit && `крит ${i.crit}`, i.rangeBand, weaponSkillLabel]
                   .filter(Boolean).join(', ')
                 const armor = [
                   i.soakBonus ? `поглощение +${i.soakBonus}` : '',
@@ -142,7 +141,7 @@ export function CharacterSheetPrint({ sheet, reference, loadNotes = true }: {
                 ].filter(Boolean).join(', ')
                 return (
                   <div key={i.id} className="sheet-entry">
-                    <strong>{ru ? `${ru} (${i.name})` : i.name}</strong>
+                    <strong>{itemLabel}</strong>
                     <span className="sheet-meta">
                       {' '}×{i.quantity} · нагрузка {i.encumbrance}
                       {combat ? ` · ${combat}` : ''}
@@ -153,7 +152,7 @@ export function CharacterSheetPrint({ sheet, reference, loadNotes = true }: {
                       <div className="sheet-weapon-pool">
                         <span className="sheet-weapon-pool-label">Пул</span>
                         {weaponSkill
-                          ? <><DicePoolView pool={weaponSkill.pool} /><span>{weaponSkill.name}</span></>
+                          ? <><DicePoolView pool={weaponSkill.pool} /><span>{localizedName(weaponSkill)}</span></>
                           : <span className="muted">—{i.skillName ? ` навык ${i.skillName} не найден` : ''}</span>}
                       </div>
                     )}
@@ -252,7 +251,7 @@ function balanceSkillGroups(groups: SkillGroupData[]): SkillGroupData[][] {
   return [groups.slice(0, splitAt), groups.slice(splitAt)]
 }
 
-function SkillGroup({ kind, skills, skillRu }: SkillGroupData & { skillRu: Map<string, string> }) {
+function SkillGroup({ kind, skills }: SkillGroupData) {
   return (
     <section className="sheet-skill-group">
       <h3>{SKILL_KIND_LABELS[kind]}</h3>
@@ -261,18 +260,15 @@ function SkillGroup({ kind, skills, skillRu }: SkillGroupData & { skillRu: Map<s
           <tr><th>Навык</th><th>Хар.</th><th>Кар.</th><th>Ранг</th><th>Пул</th></tr>
         </thead>
         <tbody>
-          {skills.map(skill => {
-            const ru = skillRu.get(skill.skillDefId) || ''
-            return (
-              <tr key={skill.skillDefId}>
-                <td>{ru ? `${ru} (${skill.name})` : skill.name}</td>
-                <td>{CHARACTERISTIC_LABELS[skill.characteristic]}</td>
-                <td>{skill.isCareer ? '✓' : ''}</td>
-                <td>{skill.ranks}</td>
-                <td><DicePoolView pool={skill.pool} /></td>
-              </tr>
-            )
-          })}
+          {skills.map(skill => (
+            <tr key={skill.skillDefId}>
+              <td>{localizedName(skill)}</td>
+              <td>{CHARACTERISTIC_LABELS[skill.characteristic]}</td>
+              <td>{skill.isCareer ? '✓' : ''}</td>
+              <td>{skill.ranks}</td>
+              <td><DicePoolView pool={skill.pool} /></td>
+            </tr>
+          ))}
         </tbody>
       </table>
     </section>

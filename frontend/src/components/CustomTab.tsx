@@ -4,7 +4,9 @@ import type {
   Archetype, Career, CharacterSheet, CustomArchetypeInput, CustomCareerInput,
   HeroicAbility, HomebrewPackDocument, HomebrewPackListItem, ItemDef, Quality, Reference, SkillDef, TalentDef,
 } from '../api/types'
-import { CHARACTERISTICS, CHARACTERISTIC_LABELS, ITEM_KIND_LABELS, SKILL_KIND_LABELS } from '../utils/labels'
+import {
+  CHARACTERISTICS, CHARACTERISTIC_LABELS, ITEM_KIND_LABELS, SKILL_KIND_LABELS, localizedName,
+} from '../utils/labels'
 
 interface Props {
   sheet: CharacterSheet
@@ -211,8 +213,8 @@ function HomebrewPackPanel({ sheet, onError, refresh }: {
                 onClick={() => void act(() => api.setCharacterHomebrewPack(sheet.id, pack.id, false))}>
                 Для персонажа: выкл.
               </button>
-              <button className="small" disabled={busy} onClick={() => void act(() => exportPack(pack.id))}>Export</button>
-              <button className="small" disabled={busy} onClick={() => void act(() => sharePack(pack.id))}>Share</button>
+              <button className="small" disabled={busy} onClick={() => void act(() => exportPack(pack.id))}>Экспорт</button>
+              <button className="small" disabled={busy} onClick={() => void act(() => sharePack(pack.id))}>Поделиться</button>
             </span>
           </div>
         ))}
@@ -320,7 +322,7 @@ function TalentForm({ sheet, run, editing, onDone }: { sheet: CharacterSheet; ru
 
   const bonusFields: [keyof typeof bonuses, string][] = [
     ['woundBonus', 'Порог ран / ранг'],
-    ['strainBonus', 'Порог стрейна / ранг'],
+    ['strainBonus', 'Порог усталости / ранг'],
     ['soakBonus', 'Поглощение / ранг'],
     ['meleeDefenseBonus', 'Защита ближ. / ранг'],
     ['rangedDefenseBonus', 'Защита дальн. / ранг'],
@@ -424,7 +426,7 @@ function ItemForm({ sheet, reference, run, editing, onDone }: { sheet: Character
             <select value={weapon.skillName} onChange={e => setWeapon(w => ({ ...w, skillName: e.target.value }))}>
               <option value="">— не задан —</option>
               {sheet.skills.filter(s => s.kind === 'combat').map(s => (
-                <option key={s.skillDefId} value={s.name}>{s.name}</option>
+                <option key={s.skillDefId} value={s.name}>{localizedName(s)}</option>
               ))}
             </select>
           </label>
@@ -545,7 +547,7 @@ function ArchetypeForm({ sheet, run, editing, onDone }: {
     ['willpower', 'Воля', 1, 5],
     ['presence', 'Присутствие', 1, 5],
     ['woundBase', 'База ран', 1, 30],
-    ['strainBase', 'База стрейна', 1, 30],
+    ['strainBase', 'База усталости', 1, 30],
     ['startingXp', 'Стартовый XP', 0, 500],
   ]
 

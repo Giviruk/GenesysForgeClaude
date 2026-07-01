@@ -37,6 +37,7 @@ const sheet = {
     {
       skillDefId: 'skill-athletics',
       name: 'Athletics',
+      nameRu: 'Атлетика',
       kind: 'general',
       characteristic: 'brawn',
       ranks: 1,
@@ -48,6 +49,7 @@ const sheet = {
     {
       skillDefId: 'skill-melee',
       name: 'Melee',
+      nameRu: 'Ближний бой',
       kind: 'combat',
       characteristic: 'brawn',
       ranks: 2,
@@ -67,6 +69,7 @@ const sheet = {
     id: 'item-1',
     itemDefId: 'weapon-1',
     name: 'Sword',
+    nameRu: 'Меч',
     kind: 'weapon',
     state: 'equipped',
     quantity: 1,
@@ -103,12 +106,14 @@ const reference = {
 } as unknown as Reference
 
 describe('CharacterSheetPrint', () => {
-  it('показывает compact stat-блок и dice pool оружия', async () => {
+  it('показывает компактный стат-блок и пул кубов оружия', async () => {
     const { container } = render(<CharacterSheetPrint sheet={sheet} reference={reference} />)
 
     expect(screen.getByText('12 / 14')).toBeTruthy()
     expect(screen.getByText('5 / 9')).toBeTruthy()
-    expect(screen.getByText('Меч (Sword)')).toBeTruthy()
+    expect(screen.getByText('Меч')).toBeTruthy()
+    expect(screen.getAllByText('Ближний бой').length).toBeGreaterThan(0)
+    expect(screen.queryByText('Меч (Sword)')).toBeNull()
     expect(container.querySelector('.sheet-weapon-pool .dice-pool')
       ?.getAttribute('title')).toBe('2 мастерства + 0 способности')
     expect(container.querySelectorAll('.sheet-stat')).toHaveLength(12)

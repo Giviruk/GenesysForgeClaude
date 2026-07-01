@@ -13,7 +13,7 @@ export interface TalentBonuses {
 export function talentBonusSummary(bonuses: TalentBonuses, ranks: number): string[] {
   const fields: [number, string][] = [
     [bonuses.woundBonus, 'к порогу ран'],
-    [bonuses.strainBonus, 'к порогу стрейна'],
+    [bonuses.strainBonus, 'к порогу усталости'],
     [bonuses.soakBonus, 'к поглощению'],
     [bonuses.meleeDefenseBonus, 'к защите (ближней)'],
     [bonuses.rangedDefenseBonus, 'к защите (дальней)'],

@@ -372,7 +372,7 @@ function SendToTableSection({ enc, onRun, onSentToTable }: {
   }
   return (
     <section className="panel">
-      <h4>Отправить в Game Table</h4>
+      <h4>Отправить на игровой стол</h4>
       <p className="hint">Если активной сцены нет — создаётся новая. Если есть — выберите режим.</p>
       <div className="form-row">
         <button className="primary" onClick={() => send('replace')}>Заменить активную сцену</button>
