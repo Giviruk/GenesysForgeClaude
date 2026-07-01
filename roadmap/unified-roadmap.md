@@ -282,13 +282,13 @@
 - **DoD:** версия в путях; UI документации открывается; миграция с индексами применена.
 
 ## U-28 · PWA / офлайн (можно отложить)
-- **Статус:** 🚧 In progress
+- **Статус:** ✅ Done (PR #72)
 - **Источник:** Аудит §9.2 (в GF-плане отложено)
 - **Scope (F):** manifest + service worker (vite-plugin-pwa), кеш статики и справочника read-only.
 - **DoD:** установка как PWA; справочник доступен офлайн. *(низкий приоритет, после Beta)*
 
 ## U-29 · E2E smoke tests
-- **Статус:** ⬜ Todo
+- **Статус:** 🚧 In progress
 - **Источник:** GF-015
 - **Scope:** Playwright — 10 сценариев из GF-015 (register→sheet, buy/refund skill+talent, equip→derived, campaign join, NPC duplicate→encounter, encounter→table, magic builder, export→import, reset screen). Job `e2e` в CI или отдельный workflow.
 - **DoD:** smoke-покрытие главных flow; запускается локально и в CI.
