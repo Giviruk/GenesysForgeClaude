@@ -160,7 +160,7 @@ test.describe('U-29 smoke E2E', () => {
     await expect(page.getByText(armor!.nameRu || armor!.name).first()).toBeVisible()
   })
 
-  test('campaign, player join, NPC duplicate, encounter and Game Table smoke', async ({ page, request }) => {
+  test('campaign, player join, NPC duplicate, encounter and game table smoke', async ({ page, request }) => {
     const gm = await register(request, 'gm')
     const player = await register(request, 'player')
     const characterName = unique('E2E Player')
@@ -239,7 +239,7 @@ test.describe('U-29 smoke E2E', () => {
     await apiPost<void>(request, gm.token, `/api/encounters/${encounter.id}/send-to-table`, { mode: 'replace' })
 
     await openAs(page, gm.token, `/campaigns/${campaign.id}/table`)
-    await expect(page.getByRole('button', { name: 'Game Table' })).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Игровой стол' })).toBeVisible()
     await expect(page.getByText(encounterName)).toBeVisible()
     await expect(page.getByText(characterName).first()).toBeVisible()
   })
