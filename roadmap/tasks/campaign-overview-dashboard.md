@@ -3,7 +3,7 @@
 - **Roadmap:** вне unified roadmap — UI redesign
 - **Ветка:** `feature/campaign-overview-dashboard`
 - **Базовая ветка:** `master`
-- **PR:** #<номер> (после создания)
+- **PR:** #79
 - **Статус:** 🚧 In progress
 
 ## Контекст
@@ -20,11 +20,11 @@
 - [x] Адаптировать responsive-раскладку и состояния пустых данных.
 - [x] Обновить/добавить frontend tests.
 - [x] Запустить frontend проверки.
-- [ ] Открыть PR.
+- [x] Открыть PR.
 
 ## Что осталось / блокеры
 
-Открыть PR.
+Нет.
 
 Визуальная проверка через e2e не запускалась: существующий Playwright smoke ожидает поднятый full-stack на `localhost:8080`.
 
