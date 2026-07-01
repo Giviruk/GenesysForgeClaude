@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react'
 import { api } from '../api/client'
-import type { CampaignDetail, CampaignListItem, CharacterListItem, CharacterSheet, Reference } from '../api/types'
-import { SYSTEM_LABELS } from '../utils/labels'
+import type {
+  CampaignDetail, CampaignListItem, CampaignMember, CharacterListItem, CharacterSheet, GameSession, Reference,
+} from '../api/types'
+import { PARTICIPANT_TYPE_LABELS, SLOT_TYPE_LABELS, SYSTEM_LABELS } from '../utils/labels'
 import { GameTableTab } from '../components/GameTableTab'
 import { EncountersTab } from '../components/EncountersTab'
 import { HandbookTab } from '../components/HandbookTab'
@@ -140,6 +142,9 @@ function CampaignDetailView({ campaignId, view, openEncounterId, onBack, onView,
   const [hubStatus, setHubStatus] = useState<CampaignHubStatus>('connecting')
   // GM открыл read-only лист персонажа участника (U-20).
   const [memberSheet, setMemberSheet] = useState<{ name: string; sheet: CharacterSheet; reference: Reference } | null>(null)
+  const [memberSheets, setMemberSheets] = useState<Record<string, CharacterSheet>>({})
+  const [session, setSession] = useState<GameSession | null>(null)
+  const [sessionLoaded, setSessionLoaded] = useState(false)
 
   async function openMemberSheet(characterId: string, name: string) {
     try {
@@ -155,6 +160,35 @@ function CampaignDetailView({ campaignId, view, openEncounterId, onBack, onView,
     [campaignId])
   useEffect(() => { void reload() }, [reload])
 
+  const reloadSession = useCallback(
+    () => api.session(campaignId)
+      .then(s => { setSession(s); setSessionLoaded(true) })
+      .catch(() => { setSession(null); setSessionLoaded(true) }),
+    [campaignId])
+
+  useEffect(() => {
+    if (view === 'overview') void reloadSession()
+  }, [view, reloadSession, liveSignal])
+
+  useEffect(() => {
+    let cancelled = false
+    if (!c?.isGm || view !== 'overview' || c.members.length === 0) return () => { cancelled = true }
+
+    Promise.all(c.members.map(async m => {
+      try {
+        const sheet = await api.campaignMemberSheet(campaignId, m.characterId)
+        return [m.characterId, sheet] as const
+      } catch {
+        return null
+      }
+    })).then(rows => {
+      if (cancelled) return
+      setMemberSheets(Object.fromEntries(rows.filter((row): row is readonly [string, CharacterSheet] => row !== null)))
+    })
+
+    return () => { cancelled = true }
+  }, [c, campaignId, view, liveSignal])
+
   // Подписка на события кампании на время открытой карточки.
   useCampaignHub(campaignId, {
     onGameTableChanged: () => setLiveSignal(v => v + 1),
@@ -166,6 +200,15 @@ function CampaignDetailView({ campaignId, view, openEncounterId, onBack, onView,
   async function run(action: () => Promise<unknown>) {
     try { await action(); await reload() }
     catch (err) { setError(err instanceof Error ? err.message : 'Ошибка') }
+  }
+
+  async function runSession(action: () => Promise<unknown>) {
+    try {
+      const result = await action()
+      if (result && typeof result === 'object' && 'participants' in result) setSession(result as GameSession)
+      else await reloadSession()
+      setError(null)
+    } catch (err) { setError(err instanceof Error ? err.message : 'Ошибка') }
   }
 
   if (!c) {
@@ -205,43 +248,17 @@ function CampaignDetailView({ campaignId, view, openEncounterId, onBack, onView,
           openEncounterId={openEncounterId} onOpenEncounter={onOpenEncounter} onCloseEncounter={onCloseEncounter}
           onSentToTable={() => onView('table')} />
       ) : (
-        <>
-          {c.description && <p className="muted">{c.description}</p>}
-
-          {c.isGm && c.joinCode && (
-            <div className="panel">
-              <strong>Код присоединения:</strong> <code className="join-code">{c.joinCode}</code>
-              <span className="hint"> — передайте игрокам, чтобы они добавили своих персонажей.</span>
-            </div>
-          )}
-
-          <section className="panel">
-            <h3>Персонажи кампании ({c.members.length})</h3>
-            {c.members.length === 0 && <p className="muted">Пока никто не присоединился.</p>}
-            <table className="skills">
-              <tbody>
-                {c.members.map(m => (
-                  <tr key={m.characterId}>
-                    <td><strong>{m.characterName}</strong>{m.isMine && <span className="badge custom">мой</span>}</td>
-                    <td className="muted">{SYSTEM_LABELS[m.system]} · {m.archetype} · {m.career}</td>
-                    <td className="right">
-                      {c.isGm && (
-                        <button className="small" title="Открыть лист персонажа (только чтение)"
-                          onClick={() => void openMemberSheet(m.characterId, m.characterName)}>Лист</button>
-                      )}
-                      {(c.isGm || m.isMine) && (
-                        <button className="danger small"
-                          onClick={() => run(() => api.removeCampaignCharacter(c.id, m.characterId))}>Убрать</button>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </section>
-
-          <CampaignNotesSection campaign={c} onRun={run} />
-        </>
+        <CampaignOverview
+          campaign={c}
+          session={session}
+          sessionLoaded={sessionLoaded}
+          memberSheets={memberSheets}
+          onView={onView}
+          onOpenMemberSheet={openMemberSheet}
+          onRemoveMember={characterId => run(() => api.removeCampaignCharacter(c.id, characterId))}
+          onCampaignRun={run}
+          onSessionRun={runSession}
+        />
       )}
 
       {memberSheet && (
@@ -253,7 +270,260 @@ function CampaignDetailView({ campaignId, view, openEncounterId, onBack, onView,
   )
 }
 
-function CampaignNotesSection({ campaign, onRun }: { campaign: CampaignDetail; onRun: (a: () => Promise<unknown>) => Promise<void> }) {
+function CampaignOverview({ campaign, session, sessionLoaded, memberSheets, onView, onOpenMemberSheet,
+  onRemoveMember, onCampaignRun, onSessionRun }: {
+  campaign: CampaignDetail
+  session: GameSession | null
+  sessionLoaded: boolean
+  memberSheets: Record<string, CharacterSheet>
+  onView: (view: CampaignView) => void
+  onOpenMemberSheet: (characterId: string, name: string) => Promise<void>
+  onRemoveMember: (characterId: string) => Promise<void>
+  onCampaignRun: (a: () => Promise<unknown>) => Promise<void>
+  onSessionRun: (a: () => Promise<unknown>) => Promise<void>
+}) {
+  const sheets = campaign.members
+    .map(m => memberSheets[m.characterId])
+    .filter((s): s is CharacterSheet => Boolean(s))
+  const totalXp = sheets.reduce((sum, s) => sum + s.totalXp, 0)
+  const availableXp = sheets.reduce((sum, s) => sum + s.availableXp, 0)
+  const woundRatios = sheets
+    .map(s => ratio(s.woundsCurrent, s.derived.woundThreshold))
+    .filter(n => Number.isFinite(n))
+  const avgWounds = woundRatios.length > 0
+    ? Math.round(woundRatios.reduce((sum, n) => sum + n, 0) / woundRatios.length * 100)
+    : null
+  const critical = campaign.members
+    .map(m => ({ member: m, sheet: memberSheets[m.characterId] }))
+    .find(x => x.sheet && ratio(x.sheet.woundsCurrent, x.sheet.derived.woundThreshold) >= 0.9)
+
+  return (
+    <div className="campaign-dashboard">
+      {critical?.sheet && (
+        <div className="campaign-alert">
+          <strong>{critical.member.characterName}</strong> почти на пороге ран —
+          {` ${critical.sheet.woundsCurrent}/${critical.sheet.derived.woundThreshold}`}. Проверьте критические ранения.
+        </div>
+      )}
+
+      <div className="campaign-dash-head">
+        <div className="campaign-dash-title">
+          <h3>{campaign.description || 'Кампания без описания'}</h3>
+          <div className="campaign-sub">
+            {campaign.isGm && campaign.joinCode
+              ? <>Код: <code className="join-code compact">{campaign.joinCode}</code> · </>
+              : null}
+            {campaign.members.length} участник(ов)
+            {session ? ` · Раунд ${session.currentRound}` : ''}
+          </div>
+        </div>
+        <div className="head-actions">
+          <button className="small" onClick={() => onView('encounters')}>Энкаунтеры</button>
+          <button className="primary small" onClick={() => onView('table')}>→ Игровой стол</button>
+        </div>
+      </div>
+
+      <div className="campaign-section-label">Персонажи группы</div>
+      <div className="campaign-players-grid">
+        {campaign.members.length === 0 && <div className="campaign-empty">Пока никто не присоединился.</div>}
+        {campaign.members.map(m => (
+          <CampaignMemberCard key={m.characterId} member={m} sheet={memberSheets[m.characterId]}
+            isGm={campaign.isGm} onOpenSheet={onOpenMemberSheet} onRemove={onRemoveMember} />
+        ))}
+      </div>
+
+      <div className="campaign-bottom-grid">
+        <CurrentSceneBlock session={session} sessionLoaded={sessionLoaded} onView={onView} />
+        <StoryPointsBlock session={session} isGm={campaign.isGm} onSessionRun={onSessionRun} />
+        <InitiativeBlock session={session} isGm={campaign.isGm} onView={onView} onSessionRun={onSessionRun} />
+      </div>
+
+      <div className="campaign-wide-grid">
+        <CampaignNotesSection campaign={campaign} onRun={onCampaignRun} variant="dashboard" />
+        <div className="campaign-dash-block">
+          <h4>Статистика группы</h4>
+          <div className="campaign-stats-grid">
+            <div className="campaign-stat"><div className="campaign-stat-val">{sheets.length > 0 ? totalXp : '—'}</div><div className="campaign-stat-lbl">суммарный XP</div></div>
+            <div className="campaign-stat"><div className="campaign-stat-val">{sheets.length > 0 ? availableXp : '—'}</div><div className="campaign-stat-lbl">свободный XP</div></div>
+            <div className="campaign-stat"><div className={avgWounds !== null && avgWounds >= 70 ? 'campaign-stat-val red' : 'campaign-stat-val'}>{avgWounds !== null ? `${avgWounds}%` : '—'}</div><div className="campaign-stat-lbl">сред. раны</div></div>
+            <div className="campaign-stat"><div className="campaign-stat-val">{session?.currentRound ?? '—'}</div><div className="campaign-stat-lbl">текущий раунд</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function CampaignMemberCard({ member, sheet, isGm, onOpenSheet, onRemove }: {
+  member: CampaignMember
+  sheet?: CharacterSheet
+  isGm: boolean
+  onOpenSheet: (characterId: string, name: string) => Promise<void>
+  onRemove: (characterId: string) => Promise<void>
+}) {
+  const woundRatio = sheet ? ratio(sheet.woundsCurrent, sheet.derived.woundThreshold) : 0
+  const strainRatio = sheet ? ratio(sheet.strainCurrent, sheet.derived.strainThreshold) : 0
+  const cardClass = woundRatio >= 0.9 ? 'campaign-pc-card crit' : woundRatio >= 0.7 || strainRatio >= 0.75 ? 'campaign-pc-card warn' : 'campaign-pc-card'
+  return (
+    <div className={cardClass}>
+      <div className="campaign-pc-name">{member.characterName}{member.isMine && <span className="badge custom">мой</span>}</div>
+      <div className="campaign-pc-role">{member.career} · {member.archetype}</div>
+      {sheet ? (
+        <div className="campaign-bars">
+          <CampaignBar label="Раны" value={sheet.woundsCurrent} max={sheet.derived.woundThreshold} tone="wound" />
+          <CampaignBar label="Стресс" value={sheet.strainCurrent} max={sheet.derived.strainThreshold} tone="strain" />
+        </div>
+      ) : (
+        <div className="campaign-pc-fallback">{SYSTEM_LABELS[member.system]}</div>
+      )}
+      <div className="campaign-pc-foot">
+        <span>Свободно XP: <b>{sheet?.availableXp ?? '—'}</b></span>
+        <span className="campaign-pc-actions">
+          {isGm && <button className="small" onClick={() => void onOpenSheet(member.characterId, member.characterName)}>Лист</button>}
+          {(isGm || member.isMine) && <button className="danger small" onClick={() => void onRemove(member.characterId)}>Убрать</button>}
+        </span>
+      </div>
+    </div>
+  )
+}
+
+function CampaignBar({ label, value, max, tone }: { label: string; value: number; max: number; tone: 'wound' | 'strain' }) {
+  return (
+    <div className="campaign-bar-row">
+      <div className="campaign-bar-meta"><span>{label}</span><b>{value}/{max}</b></div>
+      <div className="campaign-bar-track"><div className={`campaign-bar-fill ${tone}`} style={{ width: `${Math.round(ratio(value, max) * 100)}%` }} /></div>
+    </div>
+  )
+}
+
+function CurrentSceneBlock({ session, sessionLoaded, onView }: {
+  session: GameSession | null
+  sessionLoaded: boolean
+  onView: (view: CampaignView) => void
+}) {
+  const npcs = session?.participants.filter(p => p.participantType !== 'playerCharacter') ?? []
+  return (
+    <div className="campaign-dash-block">
+      <div className="campaign-block-head">
+        <h4>Текущая сцена</h4>
+        <button className="small" onClick={() => onView('table')}>→ Открыть</button>
+      </div>
+      {!sessionLoaded ? (
+        <p className="muted">Загрузка сцены…</p>
+      ) : !session ? (
+        <p className="muted">Активная сцена не запущена.</p>
+      ) : (
+        <>
+          <div className="campaign-scene-sub">{session.name} · <span>Раунд {session.currentRound}</span></div>
+          <div className="campaign-npc-list">
+            {npcs.length === 0 && <p className="muted">НПС и угрозы ещё не добавлены.</p>}
+            {npcs.slice(0, 4).map(p => <ParticipantMiniRow key={p.id} participant={p} />)}
+          </div>
+        </>
+      )}
+    </div>
+  )
+}
+
+function ParticipantMiniRow({ participant }: { participant: GameSession['participants'][number] }) {
+  const hpMax = participant.woundsThreshold || 1
+  const hp = Math.max(0, hpMax - participant.woundsCurrent)
+  const participantTypeLabel = participant.participantType === 'npc' ? 'НПС' : PARTICIPANT_TYPE_LABELS[participant.participantType]
+  const label = participant.count > 1 ? `×${participant.count} группа` : participantTypeLabel
+  return (
+    <div className="campaign-npc-row">
+      <div>
+        <div className="campaign-npc-name">{participant.displayName}</div>
+        <div className="campaign-npc-sub">{label}</div>
+      </div>
+      <div className="campaign-hp-row">
+        <div className="campaign-hp-track"><div className="campaign-hp-fill" style={{ width: `${Math.round(ratio(hp, hpMax) * 100)}%` }} /></div>
+        <span>{hp}/{hpMax}</span>
+      </div>
+      <span className="badge danger-badge">{participantTypeLabel}</span>
+    </div>
+  )
+}
+
+function StoryPointsBlock({ session, isGm, onSessionRun }: {
+  session: GameSession | null
+  isGm: boolean
+  onSessionRun: (a: () => Promise<unknown>) => Promise<void>
+}) {
+  const player = session?.playerStoryPoints ?? 0
+  const gm = session?.gmStoryPoints ?? 0
+  const total = Math.max(6, player + gm)
+  const set = (patch: { playerStoryPoints?: number; gmStoryPoints?: number }) =>
+    session && onSessionRun(() => api.updateSession(session.campaignId, patch))
+
+  return (
+    <div className="campaign-dash-block">
+      <h4>Сюжетные очки</h4>
+      <div className="campaign-story-head">
+        <div className="campaign-story-count"><b>{player}</b>игроки</div>
+        <div className="campaign-pips">
+          {Array.from({ length: total }, (_, i) => (
+            <span key={i} className={i < player ? 'campaign-pip player' : i < player + gm ? 'campaign-pip gm' : 'campaign-pip empty'} />
+          ))}
+        </div>
+        <div className="campaign-story-count right"><b>{gm}</b>мастер</div>
+      </div>
+      {session && isGm ? (
+        <div className="campaign-story-actions">
+          <button className="small" onClick={() => set({ playerStoryPoints: player + 1 })}>+ Игроки</button>
+          <button className="small" onClick={() => set({ gmStoryPoints: gm + 1 })}>+ Мастер</button>
+          <button className="small" disabled={player <= 0} onClick={() => set({ playerStoryPoints: player - 1 })}>− Игроки</button>
+          <button className="small" disabled={gm <= 0} onClick={() => set({ gmStoryPoints: gm - 1 })}>− Мастер</button>
+          <button className="small wide" disabled={player <= 0} onClick={() => set({ playerStoryPoints: player - 1, gmStoryPoints: gm + 1 })}>⇄ Мастеру</button>
+        </div>
+      ) : (
+        <p className="muted">Сюжетные очки появятся после запуска сцены.</p>
+      )}
+    </div>
+  )
+}
+
+function InitiativeBlock({ session, isGm, onView, onSessionRun }: {
+  session: GameSession | null
+  isGm: boolean
+  onView: (view: CampaignView) => void
+  onSessionRun: (a: () => Promise<unknown>) => Promise<void>
+}) {
+  const nameOf = (participantId: string | null) =>
+    session?.participants.find(p => p.id === participantId)?.displayName ?? '— абстрактный —'
+  return (
+    <div className="campaign-dash-block">
+      <h4>Инициатива</h4>
+      {!session || session.slots.length === 0 ? (
+        <p className="muted">Слотов инициативы пока нет.</p>
+      ) : (
+        <div className="campaign-init-list">
+          {session.slots.slice(0, 5).map((slot, i) => (
+            <div key={slot.id} className={i === session.currentTurnIndex ? 'campaign-init-slot current' : 'campaign-init-slot'}>
+              <span className="campaign-init-num">{i + 1}</span>
+              <span className="campaign-init-name">{nameOf(slot.assignedParticipantId)}</span>
+              <span className={`badge slot-${slot.slotType}`}>{slot.slotType === 'npc' ? 'НПС' : SLOT_TYPE_LABELS[slot.slotType]}</span>
+            </div>
+          ))}
+        </div>
+      )}
+      {session && isGm
+        ? <button className="small campaign-init-next" onClick={() => onSessionRun(() => api.nextTurn(session.campaignId))}>→ Следующий ход</button>
+        : <button className="small campaign-init-next" onClick={() => onView('table')}>Игровой стол</button>}
+    </div>
+  )
+}
+
+function ratio(value: number, max: number): number {
+  if (!Number.isFinite(value) || !Number.isFinite(max) || max <= 0) return 0
+  return Math.max(0, Math.min(1, value / max))
+}
+
+function CampaignNotesSection({ campaign, onRun, variant = 'panel' }: {
+  campaign: CampaignDetail
+  onRun: (a: () => Promise<unknown>) => Promise<void>
+  variant?: 'panel' | 'dashboard'
+}) {
   const [title, setTitle] = useState('')
   const [body, setBody] = useState('')
   const [isPrivate, setIsPrivate] = useState(true)
@@ -261,7 +531,7 @@ function CampaignNotesSection({ campaign, onRun }: { campaign: CampaignDetail; o
   const fmt = (iso: string) => new Date(iso).toLocaleString('ru-RU', { dateStyle: 'short', timeStyle: 'short' })
 
   return (
-    <section className="panel">
+    <section className={variant === 'dashboard' ? 'campaign-dash-block campaign-notes-dash' : 'panel'}>
       <h3>Заметки кампании</h3>
       {!campaign.isGm && <p className="hint">Здесь видны только общие заметки мастера.</p>}
       {campaign.isGm && (
