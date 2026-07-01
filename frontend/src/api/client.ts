@@ -3,7 +3,7 @@ import type {
   AuthResponse, AuthProviders, CampaignDetail, CampaignListItem, CampaignNote, CharacterListItem, CharacterNote,
   ActivateAbilityResult, ActivateCharacterAbilityResult, AddParticipantRequest, CharacterBio, CharacterSheet, CharacterShareResponse, CreatureTemplate, GameSession, GameSystem, HeroicAbility, InitiativeSlotType,
   Archetype, Career, CustomArchetypeInput, CustomCareerInput, ItemDef, ItemState, NpcDetail, NpcFilter, NpcInput, NpcListItem, QuickDraftRequest, Reference,
-  SkillDef, Spell, TalentDef, UpdateParticipantRequest,
+  SkillDef, Spell, TalentCategory, TalentDef, UpdateParticipantRequest,
   AddEncounterParticipantRequest, EncounterDetail, EncounterFilter, EncounterInput, EncounterListItem,
   SendToTableMode, UpdateEncounterParticipantRequest,
   ContentPackDetail, ContentPackEntryInput, ContentPackListItem,
@@ -194,7 +194,7 @@ export const api = {
   createCustomSkill: (skill: { system: GameSystem; name: string; characteristic: string; kind: string }) =>
     request<SkillDef>('POST', '/api/custom/skills', skill),
   createCustomTalent: (talent: {
-    system: GameSystem; name: string; tier: number; isRanked: boolean; activation: string; description: string
+    system: GameSystem; name: string; tier: number; isRanked: boolean; category: TalentCategory; activation: string; description: string
     woundBonus: number; strainBonus: number; soakBonus: number; meleeDefenseBonus: number; rangedDefenseBonus: number
   }) => request<TalentDef>('POST', '/api/custom/talents', talent),
   createCustomItem: (item: {
@@ -213,7 +213,7 @@ export const api = {
   updateCustomSkill: (id: string, skill: { system: GameSystem; name: string; characteristic: string; kind: string }) =>
     request<SkillDef>('PUT', `/api/custom/skills/${id}`, skill),
   updateCustomTalent: (id: string, talent: {
-    system: GameSystem; name: string; tier: number; isRanked: boolean; activation: string; description: string
+    system: GameSystem; name: string; tier: number; isRanked: boolean; category: TalentCategory; activation: string; description: string
     woundBonus: number; strainBonus: number; soakBonus: number; meleeDefenseBonus: number; rangedDefenseBonus: number
   }) => request<TalentDef>('PUT', `/api/custom/talents/${id}`, talent),
   updateCustomItem: (id: string, item: {

@@ -132,6 +132,10 @@ public class ContentSeedTests
         Assert.All(db.TalentDefs, t => Assert.False(string.IsNullOrWhiteSpace(t.NameRu)));
         Assert.All(db.TalentDefs, t => Assert.False(string.IsNullOrWhiteSpace(t.Activation)));
         Assert.All(db.TalentDefs, t => Assert.False(string.IsNullOrWhiteSpace(t.SafeDescription)));
+        Assert.All(db.TalentDefs, t => Assert.True(Enum.IsDefined(t.Category)));
+
+        var categories = db.TalentDefs.Select(t => t.Category).Distinct().OrderBy(c => c).ToList();
+        Assert.Equal(Enum.GetValues<TalentCategory>().OrderBy(c => c).ToList(), categories);
     }
 
     [Fact]

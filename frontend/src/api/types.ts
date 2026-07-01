@@ -1,6 +1,7 @@
 export type GameSystem = 'genesysCore' | 'realmsOfTerrinoth'
 export type Characteristic = 'brawn' | 'agility' | 'intellect' | 'cunning' | 'willpower' | 'presence'
 export type SkillKind = 'general' | 'combat' | 'social' | 'knowledge' | 'magic'
+export type TalentCategory = 'general' | 'social' | 'combat' | 'magic'
 export type ItemKind = 'weapon' | 'armor' | 'gear'
 export type ItemState = 'equipped' | 'carried' | 'backpack'
 
@@ -42,6 +43,7 @@ export interface TalentDef {
   nameRu: string
   tier: number
   isRanked: boolean
+  category: TalentCategory
   setting: string
   activation: string
   description: string

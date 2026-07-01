@@ -13,6 +13,10 @@ dist/
 *.local
 .vite/
 
+# Playwright
+frontend/test-results/
+frontend/playwright-report/
+
 # Env / secrets
 .env
 appsettings.*.local.json

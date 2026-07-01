@@ -24,6 +24,7 @@ public class UpdateCustomTalentHandler(IAppDbContext db) : ICommandHandler<Updat
         def.Name = req.Name.Trim();
         def.Tier = req.Tier;
         def.IsRanked = req.IsRanked;
+        def.Category = req.Category;
         def.Activation = string.IsNullOrWhiteSpace(req.Activation) ? "Пассивный" : req.Activation.Trim();
         def.Description = req.Description ?? "";
         def.WoundBonus = req.WoundBonus;

@@ -21,7 +21,7 @@ public static class Mappers
     public static SkillDefDto ToDto(this SkillDef s) =>
         new(s.Id, s.Name, s.NameRu, s.Characteristic, s.Kind, s.SafeDescription, s.Source, s.OwnerUserId != null);
 
-    public static TalentDefDto ToDto(this TalentDef t) => new(t.Id, t.Name, t.NameRu, t.Tier, t.IsRanked, t.Setting,
+    public static TalentDefDto ToDto(this TalentDef t) => new(t.Id, t.Name, t.NameRu, t.Tier, t.IsRanked, t.Category, t.Setting,
         t.Activation, t.Description, t.SafeDescription, t.Source,
         t.WoundBonus, t.StrainBonus, t.SoakBonus, t.MeleeDefenseBonus, t.RangedDefenseBonus, t.OwnerUserId != null,
         t.GrantsCharacteristic);

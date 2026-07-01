@@ -54,7 +54,8 @@ public record HomebrewTalentDto(
     int StrainBonus,
     int SoakBonus,
     int MeleeDefenseBonus,
-    int RangedDefenseBonus);
+    int RangedDefenseBonus,
+    TalentCategory Category = TalentCategory.General);
 
 public record HomebrewItemDto(
     string? Code,

@@ -186,7 +186,8 @@ internal static class HomebrewPackMapper
         var talents = await db.TalentDefs.AsNoTracking()
             .Where(t => t.HomebrewPackId == pack.Id)
             .Select(t => new HomebrewTalentDto(t.Code, t.Name, t.NameRu, t.Tier, t.IsRanked, t.Activation, t.Description,
-                t.SafeDescription, t.Source, t.WoundBonus, t.StrainBonus, t.SoakBonus, t.MeleeDefenseBonus, t.RangedDefenseBonus))
+                t.SafeDescription, t.Source, t.WoundBonus, t.StrainBonus, t.SoakBonus, t.MeleeDefenseBonus,
+                t.RangedDefenseBonus, t.Category))
             .ToListAsync(ct);
         var items = await db.ItemDefs.AsNoTracking()
             .Where(i => i.HomebrewPackId == pack.Id)
@@ -256,6 +257,7 @@ internal static partial class HomebrewPackImporter
             {
                 Id = Guid.NewGuid(), System = doc.System, Code = Code(t.Code, "talent", t.Name), Name = t.Name.Trim(),
                 NameRu = Clean(t.NameRu), Tier = t.Tier, IsRanked = t.IsRanked,
+                Category = t.Category,
                 Activation = string.IsNullOrWhiteSpace(t.Activation) ? "Пассивный" : t.Activation.Trim(),
                 Description = Clean(t.Description), SafeDescription = Clean(t.SafeDescription), Source = Clean(t.Source),
                 WoundBonus = t.WoundBonus, StrainBonus = t.StrainBonus, SoakBonus = t.SoakBonus,

@@ -99,13 +99,15 @@ Indexes include non-unique `HomebrewPackId` and `(System, OwnerUserId)` for buil
 
 Built-in and custom talent definitions.
 
-Fields include `System`, content-model fields, `Tier`, `IsRanked`, `Setting`, `Activation`, passive bonus fields, `OwnerUserId`, `HomebrewPackId`.
+Fields include `System`, content-model fields, `Tier`, `IsRanked`, `Category`, `Setting`, `Activation`, passive bonus fields, `OwnerUserId`, `HomebrewPackId`.
 
 Indexes include non-unique `HomebrewPackId` and `(System, OwnerUserId)` for built-in/custom reference visibility lookups.
 
 `Setting` is a `[Flags] GenesysSetting` (`Any`, `Fantasy`, `Steampunk`, `WeirdWar`, `ModernDay`, `ScienceFiction`, `SpaceOpera`) controlling which game systems list the talent: Genesys Core shows only `Any`; Realms of Terrinoth shows `Any` + `Fantasy`. Custom talents (owned) are always visible to their owner regardless of setting.
 
-Built-in talents are not hand-written in `SeedData`; they are loaded from the embedded catalog `Persistence/SeedContent/talents.catalog.json` (see `TalentCatalog`). The catalog is generated from the source CSVs (structure + reworked Russian descriptions, not book text). Each catalog entry is expanded into `TalentDef` rows per system by its setting (`Any` → both systems, `Fantasy` → Realms of Terrinoth only).
+`Category` is a `TalentCategory` enum (`General`, `Social`, `Combat`, `Magic`) used by the frontend talent filter. It does not affect XP cost, pyramid validation or purchase rules.
+
+Built-in talents are not hand-written in `SeedData`; they are loaded from the embedded catalog `Persistence/SeedContent/talents.catalog.json` (see `TalentCatalog`). The catalog is generated from the source CSVs (structure + reworked Russian descriptions, not book text). Each catalog entry is expanded into `TalentDef` rows per system by its setting (`Any` → both systems, `Fantasy` → Realms of Terrinoth only) and carries a structural `category` tag.
 
 ### ItemDefs
 
@@ -368,6 +370,7 @@ Found migrations:
 - `20260630115739_AddCustomArchetypeCareerOwnership` — adds nullable `OwnerUserId` plus indexes to `ArchetypeDefs` and `CareerDefs` so user-owned homebrew archetypes/careers can coexist with built-ins. Non-destructive (`AddColumn` + `CreateIndex`).
 - `20260630123634_AddHomebrewPacks` — creates `HomebrewPacks`, `HomebrewPackCharacters`, `HomebrewPackCampaigns`, and adds nullable `HomebrewPackId` indexes to custom-capable reference tables for imported JSON packs. Non-destructive (`CreateTable` + nullable `AddColumn` + `CreateIndex`).
 - `20260630182613_AddApiV1Indexes` — adds hot-path indexes for U-27: NPC filters (`System/Kind/Role`, scoped visibility, GIN `Tags`), reference content visibility (`System/OwnerUserId`), and token cleanup/lookups. Non-destructive (`CreateIndex` only).
+- `20260701151637_AddTalentCategory` — adds `Category` (`int`, default `0` = `General`) to `TalentDefs` for UI filtering by common/social/combat/magic tags. Non-destructive (`AddColumn` only); built-in category values are provided by the next idempotent seed run from `talents.catalog.json`.
 
 Startup behavior:
 
