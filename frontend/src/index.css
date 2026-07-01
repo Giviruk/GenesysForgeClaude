@@ -382,6 +382,112 @@ table.ref-table td.ref-cost { white-space: nowrap; color: var(--accent); }
 .campaign-forms { display: grid; grid-template-columns: repeat(auto-fit, minmax(20rem, 1fr)); gap: 1rem; margin: 1rem 0; }
 .campaign-forms .panel { margin: 0; }
 .join-code { background: var(--panel-2); border: 1px solid var(--accent); border-radius: 6px; padding: 0.1rem 0.5rem; color: var(--accent); letter-spacing: 0.15em; font-size: 1.05rem; }
+.join-code.compact { font-size: 0.8rem; padding: 0.02rem 0.35rem 0.08rem; }
+.campaign-dashboard { display: flex; flex-direction: column; gap: 0.75rem; margin-top: 0.6rem; }
+.campaign-alert {
+  color: #ffb1b1; background: rgba(199, 80, 80, 0.14); border: 1px solid var(--red);
+  border-radius: 6px; padding: 0.35rem 0.65rem; font-size: 0.82rem;
+}
+.campaign-dash-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 0.8rem; flex-wrap: wrap; }
+.campaign-dash-title { min-width: 0; }
+.campaign-dash-title h3 { margin: 0; font-size: 1rem; overflow-wrap: anywhere; }
+.campaign-sub { font-size: 0.78rem; color: var(--muted); margin-top: 0.15rem; }
+.campaign-section-label {
+  font-size: 0.72rem; color: var(--muted); text-transform: uppercase;
+  letter-spacing: 0.05em; font-weight: 600;
+}
+.campaign-players-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0.6rem; }
+.campaign-empty {
+  grid-column: 1 / -1; border: 1px dashed var(--border); border-radius: 8px;
+  padding: 0.8rem; color: var(--muted); text-align: center;
+}
+.campaign-pc-card {
+  background: var(--panel-2); border: 1px solid var(--border); border-radius: 8px;
+  padding: 0.6rem 0.7rem; display: flex; flex-direction: column; min-width: 0;
+}
+.campaign-pc-card.crit { border-color: var(--red); }
+.campaign-pc-card.warn { border-color: var(--yellow); }
+.campaign-pc-name {
+  display: flex; align-items: center; gap: 0.25rem; min-width: 0;
+  font-weight: 600; color: #efeaf6; font-size: 0.86rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.campaign-pc-name .badge { flex-shrink: 0; }
+.campaign-pc-role { font-size: 0.72rem; color: var(--muted); margin: 0.05rem 0 0.45rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.campaign-bars { display: flex; flex-direction: column; gap: 0.3rem; flex: 1; }
+.campaign-bar-row { display: flex; flex-direction: column; gap: 2px; }
+.campaign-bar-meta { display: flex; justify-content: space-between; font-size: 0.7rem; color: var(--muted); }
+.campaign-bar-meta b { color: var(--text); font-weight: 500; }
+.campaign-bar-track { height: 3px; background: var(--border); border-radius: 2px; overflow: hidden; }
+.campaign-bar-fill { height: 100%; border-radius: 2px; }
+.campaign-bar-fill.wound { background: var(--red); }
+.campaign-bar-fill.strain { background: var(--core); }
+.campaign-pc-fallback {
+  flex: 1; display: flex; align-items: center; min-height: 2.4rem;
+  color: var(--muted); font-size: 0.78rem;
+}
+.campaign-pc-foot {
+  display: flex; justify-content: space-between; align-items: center; gap: 0.4rem;
+  margin-top: 0.45rem; padding-top: 0.35rem; border-top: 1px solid var(--border);
+  font-size: 0.7rem; color: var(--muted);
+}
+.campaign-pc-foot b { color: var(--accent); font-weight: 600; }
+.campaign-pc-actions { display: inline-flex; gap: 0.25rem; flex-wrap: wrap; justify-content: flex-end; }
+.campaign-bottom-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.6rem; align-items: stretch; }
+.campaign-wide-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(18rem, 1fr); gap: 0.6rem; align-items: stretch; }
+.campaign-dash-block {
+  background: var(--panel); border: 1px solid var(--border); border-radius: 8px;
+  padding: 0.7rem 0.85rem; display: flex; flex-direction: column; gap: 0.5rem; min-width: 0;
+}
+.campaign-dash-block h3, .campaign-dash-block h4 { margin: 0; font-size: 0.86rem; }
+.campaign-block-head { display: flex; justify-content: space-between; align-items: baseline; gap: 0.5rem; }
+.campaign-scene-sub { font-size: 0.75rem; color: var(--muted); }
+.campaign-scene-sub span { color: var(--accent); }
+.campaign-npc-list { display: flex; flex-direction: column; gap: 0.3rem; }
+.campaign-npc-row {
+  display: grid; grid-template-columns: minmax(0, 1fr) minmax(4.8rem, 5.8rem) auto;
+  align-items: center; gap: 0.5rem; padding: 0.3rem 0;
+  border-bottom: 1px solid rgba(58, 49, 72, 0.5);
+}
+.campaign-npc-row:last-child { border-bottom: none; }
+.campaign-npc-name { font-size: 0.82rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.campaign-npc-sub { font-size: 0.7rem; color: var(--muted); }
+.campaign-hp-row { display: flex; align-items: center; gap: 0.25rem; font-size: 0.7rem; color: var(--muted); white-space: nowrap; }
+.campaign-hp-track { flex: 1; min-width: 2.2rem; height: 3px; background: var(--border); border-radius: 2px; overflow: hidden; }
+.campaign-hp-fill { height: 100%; border-radius: 2px; background: var(--red); }
+.campaign-story-head { display: grid; grid-template-columns: auto 1fr auto; align-items: end; gap: 0.45rem; }
+.campaign-story-count { font-size: 0.72rem; color: var(--muted); }
+.campaign-story-count b { display: block; color: var(--accent); font-size: 1.05rem; line-height: 1.1; }
+.campaign-story-count.right { text-align: right; }
+.campaign-pips { display: flex; flex-wrap: wrap; justify-content: center; gap: 3px; }
+.campaign-pip {
+  width: 18px; height: 18px; border-radius: 50%; border: 1.5px solid var(--border);
+  background: transparent; flex-shrink: 0;
+}
+.campaign-pip.player { border-color: var(--green); background: rgba(65, 163, 86, 0.22); }
+.campaign-pip.gm { border-color: var(--accent-dark); background: rgba(141, 111, 44, 0.25); }
+.campaign-story-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 0.3rem; }
+.campaign-story-actions .wide { grid-column: 1 / -1; }
+.campaign-init-list { display: flex; flex-direction: column; gap: 0.3rem; }
+.campaign-init-slot {
+  display: grid; grid-template-columns: 1.1rem minmax(0, 1fr) auto; align-items: center; gap: 0.4rem;
+  padding: 0.3rem 0.5rem; border: 1px solid var(--border); border-radius: 6px; font-size: 0.8rem;
+}
+.campaign-init-slot.current { border-color: var(--accent); background: rgba(200, 162, 74, 0.1); }
+.campaign-init-num { color: var(--muted); font-size: 0.72rem; text-align: right; }
+.campaign-init-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.campaign-init-next { margin-top: auto; width: 100%; }
+.campaign-notes-dash .custom-form { max-width: none; }
+.campaign-notes-dash .notes-list { grid-template-columns: 1fr; gap: 0.45rem; }
+.campaign-notes-dash .note-card { padding: 0.5rem 0.65rem; }
+.campaign-notes-dash textarea { min-height: 4.5rem; }
+.campaign-stats-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.5rem; flex: 1; }
+.campaign-stat {
+  background: var(--panel-2); border: 1px solid var(--border); border-radius: 8px;
+  padding: 0.5rem 0.7rem; text-align: center; min-width: 0;
+}
+.campaign-stat-val { font-size: 1.25rem; color: #efeaf6; font-weight: 500; }
+.campaign-stat-val.red { color: var(--red); }
+.campaign-stat-lbl { font-size: 0.7rem; color: var(--muted); margin-top: 0.1rem; }
 .bonus-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr)); gap: 0.4rem 0.8rem; }
 .chips { display: flex; gap: 0.35rem; flex-wrap: wrap; }
 
@@ -897,6 +1003,14 @@ button.tiny { font-size: 0.75rem; padding: 0.05rem 0.4rem 0.15rem; }
   .shop-row-head { flex-wrap: wrap; }
   .shop-row-actions { flex-direction: row; flex-wrap: wrap; width: 100%; }
   .shop-row-actions button { flex: 1 1 8rem; }
+  .campaign-players-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .campaign-bottom-grid, .campaign-wide-grid { grid-template-columns: 1fr; }
+  .campaign-dash-head .head-actions { width: 100%; }
+  .campaign-dash-head .head-actions button { flex: 1 1 8rem; }
+  .campaign-pc-foot { align-items: flex-start; flex-direction: column; }
+  .campaign-pc-actions { justify-content: flex-start; }
+  .campaign-npc-row { grid-template-columns: minmax(0, 1fr); align-items: stretch; }
+  .campaign-hp-row { width: 100%; }
 }
 
 @media (max-width: 28rem) {
@@ -905,6 +1019,11 @@ button.tiny { font-size: 0.75rem; padding: 0.05rem 0.4rem 0.15rem; }
   .modal.wide .npc-derived-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   /* На узких экранах 6 колонок характеристик не помещаются — раскладываем 3×2 */
   .npc-char-row { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .campaign-players-grid { grid-template-columns: 1fr; }
+  .campaign-story-head { grid-template-columns: 1fr; text-align: left; }
+  .campaign-story-count.right { text-align: left; }
+  .campaign-pips { justify-content: flex-start; }
+  .campaign-stats-grid { grid-template-columns: 1fr; }
 }
 
 /* Группа кнопок справа в шапке страницы (напр. Импорт + Новый персонаж) */
