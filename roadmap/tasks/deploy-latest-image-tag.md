@@ -3,8 +3,8 @@
 - **Roadmap:** вне roadmap — production deploy maintenance
 - **Ветка:** `feature/deploy-latest-image-tag`
 - **Базовая ветка:** `master`
-- **PR:** TBD
-- **Статус:** 🚧 In progress
+- **PR:** #73
+- **Статус:** ✅ Done
 
 ## Контекст
 
@@ -22,11 +22,11 @@
 - [x] Переключить production compose на явный `:latest`.
 - [x] Заменить dangling-only prune на удаление всех неиспользуемых images после успешного `up -d`.
 - [x] Проверить diff и YAML/compose синтаксис.
-- [ ] Открыть PR.
+- [x] Открыть PR.
 
 ## Что осталось / блокеры
 
-Нужно проверить итоговый diff и открыть PR после подтверждения.
+PR открыт: #73.
 
 ## Заметки / решения
 
