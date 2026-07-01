@@ -38,7 +38,7 @@ services:
     mem_limit: 256m
 
   api:
-    image: ghcr.io/${GHCR_OWNER}/genesysforge-api:${IMAGE_TAG:-latest}
+    image: ghcr.io/${GHCR_OWNER}/genesysforge-api:latest
     container_name: genesysforge-api
     environment:
       ASPNETCORE_ENVIRONMENT: Production
@@ -75,7 +75,7 @@ services:
     mem_limit: 320m
 
   api-public:
-    image: ghcr.io/${GHCR_OWNER}/genesysforge-api-public:${IMAGE_TAG:-latest}
+    image: ghcr.io/${GHCR_OWNER}/genesysforge-api-public:latest
     container_name: genesysforge-api-public
     environment:
       ASPNETCORE_ENVIRONMENT: Production
@@ -109,7 +109,7 @@ services:
     mem_limit: 320m
 
   web:
-    image: ghcr.io/${GHCR_OWNER}/genesysforge-web:${IMAGE_TAG:-latest}
+    image: ghcr.io/${GHCR_OWNER}/genesysforge-web:latest
     container_name: genesysforge-web
     depends_on:
       - api
@@ -117,7 +117,7 @@ services:
     mem_limit: 64m
 
   web-public:
-    image: ghcr.io/${GHCR_OWNER}/genesysforge-web:${IMAGE_TAG:-latest}
+    image: ghcr.io/${GHCR_OWNER}/genesysforge-web:latest
     container_name: genesysforge-web-public
     environment:
       API_UPSTREAM: api-public
