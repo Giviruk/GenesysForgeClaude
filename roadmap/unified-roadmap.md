@@ -294,7 +294,7 @@
 - **DoD:** smoke-покрытие главных flow; запускается локально и в CI.
 
 ## U-30 · User-facing help pages
-- **Статус:** 🚧 In progress
+- **Статус:** ✅ Done (PR #75)
 - **Источник:** GF-017
 - **Scope:** `docs/user-guide/` (Markdown) → отрисовка в UI: создание персонажа, карьерные навыки, покупка навыков/талантов, инвентарь, магия, NPC, encounter, Game Table, PublicSafe/PrivateFull. Без текста книг.
 - **DoD:** новичок понимает базовый flow без README; ссылка «Справка» в UI.

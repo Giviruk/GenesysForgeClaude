@@ -4,7 +4,7 @@
 - **Ветка:** `feature/u30-user-facing-help-pages`
 - **Базовая ветка:** `master`
 - **PR:** #75 — https://github.com/Giviruk/GenesysForgeClaude/pull/75
-- **Статус:** 🚧 In progress
+- **Статус:** ✅ Done (PR #75)
 
 ## Контекст
 
@@ -36,7 +36,7 @@ Roadmap U-30 требует пользовательскую справку: Mar
 
 ## Что осталось / блокеры
 
-Ожидаются CI checks PR #75. Полный E2E не запускался локально, потому задача не меняет основные backend/full-stack flow; Playwright discovery выполнен.
+Ничего не осталось. PR #75 слит; CI checks прошли. Полный E2E не запускался локально, потому задача не меняет основные backend/full-stack flow; Playwright discovery выполнен.
 
 ## Заметки / решения
 
