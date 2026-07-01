@@ -42,7 +42,7 @@ export function usePath(): string {
   return path
 }
 
-export type AppArea = 'characters' | 'campaigns' | 'npcs' | 'magic' | 'reference' | 'about' | 'account' | 'share'
+export type AppArea = 'characters' | 'campaigns' | 'npcs' | 'magic' | 'reference' | 'help' | 'about' | 'account' | 'share'
 
 export interface AppRoute {
   area: AppArea
@@ -77,6 +77,7 @@ const base = (area: AppArea, id: string | null = null, unknown = false): AppRout
  *   /npcs[/:id]
  *   /magic
  *   /reference
+ *   /help
  *   /about
  *   /share/:token                              → публичный read-only лист
  */
@@ -88,6 +89,7 @@ export function parseRoute(pathname: string): AppRoute {
   if (head === 'login' || head === 'register') return base('characters')
   if (head === 'magic') return base('magic', null, segments.length > 1)
   if (head === 'reference') return base('reference', null, segments.length > 1)
+  if (head === 'help') return base('help', null, segments.length > 1)
   if (head === 'about') return base('about', null, segments.length > 1)
   if (head === 'account') return base('account', null, segments.length > 1)
   if (head === 'share') return base('share', second ?? null, segments.length !== 2)

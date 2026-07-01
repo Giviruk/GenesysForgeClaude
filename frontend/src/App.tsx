@@ -8,6 +8,7 @@ import { SheetPage } from './pages/SheetPage'
 import { MagicPage } from './pages/MagicPage'
 import { ReferencePage } from './pages/ReferencePage'
 import { AboutPage } from './pages/AboutPage'
+import { HelpPage } from './pages/HelpPage'
 import { ProfilePage } from './pages/ProfilePage'
 import { SharedSheetPage } from './pages/SharedSheetPage'
 import { Footer } from './components/Footer'
@@ -31,6 +32,8 @@ function Shell() {
       ? <NotFound />
       : <SharedSheetPage token={route.id} loggedIn={!!token} />
   }
+  // Справка доступна публично, чтобы новый пользователь мог разобраться до регистрации.
+  if (route.area === 'help' && !token) return <HelpPage loggedIn={false} />
 
   if (!token) return <AuthPage />
 
@@ -48,6 +51,7 @@ function Shell() {
           <button className={route.area === 'npcs' ? 'tab active' : 'tab'} onClick={() => go('npcs')}>Бестиарий</button>
           <button className={route.area === 'magic' ? 'tab active' : 'tab'} onClick={() => go('magic')}>Магия</button>
           <button className={route.area === 'reference' ? 'tab active' : 'tab'} onClick={() => go('reference')}>Справочник</button>
+          <button className={route.area === 'help' ? 'tab active' : 'tab'} onClick={() => go('help')}>Справка</button>
         </nav>
         <button className={route.area === 'account' ? 'tab active' : 'tab'} onClick={() => go('account')}>Профиль</button>
         <button className="small" onClick={() => { logout(); navigate('/login') }}>Выйти</button>
@@ -74,8 +78,10 @@ function Shell() {
                   onOpen={id => navigate(`/npcs/${id}`)} onBack={() => navigate('/npcs')} />
               : route.area === 'magic'
                 ? <MagicPage />
-                : route.area === 'account'
-                  ? <ProfilePage onBack={() => navigate('/characters')} />
+              : route.area === 'account'
+                ? <ProfilePage onBack={() => navigate('/characters')} />
+                : route.area === 'help'
+                  ? <HelpPage loggedIn showFooter={false} />
                   : <ReferencePage onNavigate={navigate} />}
       <Footer />
     </div>
