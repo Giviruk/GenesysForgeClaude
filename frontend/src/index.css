@@ -124,11 +124,65 @@ h1.auth-brand { font-size: 2rem; margin: 0 0 0.2rem; }
 .main-tabs { border-bottom: 1px solid var(--border); padding-bottom: 0; }
 
 /* ---------- Layout ---------- */
-.shell { max-width: 70rem; margin: 0 auto; padding: 0 1rem 3rem; }
+.app-shell {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 14.5rem minmax(0, 1fr);
+}
+.app-sidebar {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1rem 0.8rem;
+  background: rgba(31, 26, 40, 0.96);
+  border-right: 1px solid var(--border);
+}
+.app-brand {
+  width: 100%;
+  justify-content: flex-start;
+  min-height: 2.6rem;
+  background: transparent;
+  border-color: transparent;
+  color: var(--accent);
+  font-family: Georgia, serif;
+  font-size: 1.08rem;
+  letter-spacing: 0.05em;
+}
+.app-brand:hover:not(:disabled) { border-color: var(--border); }
+.side-nav, .side-nav-footer {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+.side-nav-footer { margin-top: auto; }
+.side-nav-item {
+  width: 100%;
+  justify-content: flex-start;
+  min-height: 2.25rem;
+  border-radius: 8px;
+  background: transparent;
+  border-color: transparent;
+  color: var(--text);
+  font-size: 0.9rem;
+}
+.side-nav-item:hover:not(:disabled) {
+  background: var(--panel-2);
+  border-color: var(--border);
+}
+.side-nav-item.active {
+  background: rgba(200, 162, 74, 0.16);
+  border-color: var(--accent);
+  color: #fff;
+}
+.shell { max-width: 76rem; width: 100%; margin: 0 auto; padding: 0 1rem 3rem; }
 .topbar {
   display: flex; justify-content: space-between; align-items: center; gap: 0.75rem; flex-wrap: wrap;
   padding: 0.8rem 0; border-bottom: 1px solid var(--border); margin-bottom: 1rem;
 }
+.app-topbar h1 { margin: 0; font-size: 1.22rem; line-height: 1.15; }
 .topbar .logo { font-size: 1.3rem; }
 .topbar > .small { margin-left: auto; }
 .page-head { display: flex; justify-content: space-between; align-items: center; gap: 0.75rem 1rem; flex-wrap: wrap; }
@@ -955,11 +1009,23 @@ button.tiny { font-size: 0.75rem; padding: 0.05rem 0.4rem 0.15rem; }
 .badge.danger-badge { color: var(--red); border-color: var(--red); }
 
 @media (max-width: 48rem) {
+  .app-shell { display: block; }
+  .app-sidebar {
+    position: static;
+    height: auto;
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+  }
+  .side-nav, .side-nav-footer {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+  .side-nav-footer { margin-top: 0; }
+  .side-nav-item { flex: 1 1 9rem; }
+  .app-brand { justify-content: center; }
   .shell { padding-inline: 0.75rem; }
   .topbar { align-items: flex-start; }
-  .topbar .logo { flex: 1 1 100%; }
-  .topnav { margin: 0; flex: 1 1 100%; }
-  .topnav .tab { flex: 1 1 8.5rem; }
+  .app-topbar > button { flex: 1 1 10rem; }
   .topbar > .small { margin-left: 0; }
   .page-head { align-items: flex-start; }
   .page-head > .sheet-head-controls { flex: 1 1 100%; align-items: flex-end; }
@@ -1085,6 +1151,35 @@ button.tiny { font-size: 0.75rem; padding: 0.05rem 0.4rem 0.15rem; }
 }
 
 /* ── Dice roller (U-08) ───────────────────────────────────────────── */
+.dice-drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 70;
+  width: min(24rem, calc(100vw - 1rem));
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1rem;
+  overflow-y: auto;
+  background: var(--panel);
+  border-left: 1px solid var(--border);
+  box-shadow: -0.8rem 0 2rem rgba(0, 0, 0, 0.35);
+}
+.dice-drawer-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding-bottom: 0.65rem;
+  border-bottom: 1px solid var(--border);
+}
+.dice-drawer-head h3 { margin: 0; font-size: 1rem; }
+.dice-drawer-head p { margin: 0.15rem 0 0; }
+@media (max-width: 28rem) {
+  .dice-drawer { width: 100vw; }
+}
 .dice-roller { display: flex; flex-direction: column; gap: 0.7rem; }
 .dr-pool { display: flex; flex-wrap: wrap; gap: 0.5rem; }
 .dr-die {

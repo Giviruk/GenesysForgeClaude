@@ -6,11 +6,11 @@ import {
 } from '../utils/labels'
 import { itemTags } from '../data/itemQualities'
 import { DicePoolView } from './DicePoolView'
-import { CombatRoller } from './CombatRoller'
 import { qualitiesFromProperties } from '../utils/combat'
 import { PropertyTags } from './PropertyTags'
 import { PrintPreview } from './print/PrintPreview'
 import { ItemCard } from './print/cards'
+import { useDiceRoller } from '../dice-roller-store'
 
 interface Props {
   sheet: CharacterSheet
@@ -345,7 +345,7 @@ function InventoryCard({ item, sheet, skillNames, run, reference, sellOpen, onTo
 function WeaponLine({ item, sheet, skill, skillLabel, reference }: {
   item: SheetItem; sheet: CharacterSheet; skill: CharacterSheet['skills'][number] | null; skillLabel: string; reference: Reference
 }) {
-  const [rolling, setRolling] = useState(false)
+  const { openRoller } = useDiceRoller()
   const itemLabel = localizedName(item)
   // Урон «+N» в ближнем бою — это прибавка к Мощи; абсолютное число — итоговый урон оружия.
   const dmg = item.damage.trim()
@@ -367,21 +367,18 @@ function WeaponLine({ item, sheet, skill, skillLabel, reference }: {
         <span className="muted small-text">навык {skillLabel} не освоен</span>
       ) : null}
       {item.properties && <PropertyTags properties={item.properties} className="weapon-props" />}
-      <button type="button" className="small no-print" onClick={() => setRolling(true)}>🎲 Атаковать</button>
+      <button type="button" className="small no-print" onClick={() => openRoller({
+        kind: 'combat',
+        title: itemLabel,
+        skillLabel: skill ? skillLabel : null,
+        basePool: skill ? { ability: skill.pool.ability, proficiency: skill.pool.proficiency } : {},
+        damage: item.damage,
+        brawn: sheet.characteristics.brawn,
+        crit: item.crit,
+        rangeBand: item.rangeBand,
+        qualities: qualitiesFromProperties(item.properties, reference),
+      })}>🎲 Атаковать</button>
 
-      {rolling && (
-        <CombatRoller
-          title={itemLabel}
-          skillLabel={skill ? skillLabel : null}
-          basePool={skill ? { ability: skill.pool.ability, proficiency: skill.pool.proficiency } : {}}
-          damage={item.damage}
-          brawn={sheet.characteristics.brawn}
-          crit={item.crit}
-          rangeBand={item.rangeBand}
-          qualities={qualitiesFromProperties(item.properties, reference)}
-          onClose={() => setRolling(false)}
-        />
-      )}
     </div>
   )
 }
