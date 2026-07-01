@@ -13,6 +13,7 @@ Roadmap U-30 требует пользовательскую справку: Mar
 Затрагиваемые файлы:
 
 - `docs/user-guide/index.md`
+- `frontend/src/content/user-guide.md`
 - `frontend/src/pages/HelpPage.tsx`
 - `frontend/src/App.tsx`
 - `frontend/src/router.ts`
@@ -41,5 +42,6 @@ Roadmap U-30 требует пользовательскую справку: Mar
 
 - Assumption: для U-30 достаточно одного markdown-файла `docs/user-guide/index.md`, потому roadmap требует `docs/user-guide/` как источник, а не отдельный файл на каждый раздел.
 - Markdown рендерится собственным минимальным parser’ом (headings, paragraphs, lists, links), чтобы не добавлять dependency ради статичной справки.
+- UI импортирует Markdown из `frontend/src/content/user-guide.md`, потому Docker build context для web — `frontend/`. Основной пользовательский документ остаётся в `docs/user-guide/index.md`; frontend-файл — build-safe mirror.
 - Локальные проверки: `npm run lint`, `npm test`, `npm run build`, `npm run test:e2e -- --list`.
 - Copyright: официальный текст книг не добавлялся; guide содержит только собственные инструкции по использованию приложения.

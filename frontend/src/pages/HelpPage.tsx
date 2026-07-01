@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react'
 import { Footer } from '../components/Footer'
 import { navigate } from '../router'
-import guideMarkdown from '../../../docs/user-guide/index.md?raw'
+import guideMarkdown from '../content/user-guide.md?raw'
 
 type GuideBlock =
   | { kind: 'heading'; level: 1 | 2 | 3; text: string; id: string }
