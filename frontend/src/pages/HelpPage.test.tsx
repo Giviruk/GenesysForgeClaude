@@ -8,7 +8,7 @@ describe('HelpPage', () => {
 
     expect(screen.getByRole('heading', { name: 'Справка' })).toBeTruthy()
     expect(screen.getByRole('heading', { name: 'Быстрый маршрут игрока' })).toBeTruthy()
-    expect(screen.getByRole('heading', { name: 'Энкаунтеры и Game Table' })).toBeTruthy()
+    expect(screen.getByRole('heading', { name: 'Энкаунтеры и игровой стол' })).toBeTruthy()
     expect(screen.getAllByText(/PublicSafe/i).length).toBeGreaterThan(0)
     expect(screen.getByRole('button', { name: /Назад/i })).toBeTruthy()
   })

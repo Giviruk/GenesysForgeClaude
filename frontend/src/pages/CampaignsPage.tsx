@@ -191,9 +191,9 @@ function CampaignDetailView({ campaignId, view, openEncounterId, onBack, onView,
 
       <div className="system-switch campaign-tabs">
         <button className={view === 'overview' ? 'tab active' : 'tab'} onClick={() => onView('overview')}>Обзор</button>
-        <button className={view === 'handbook' ? 'tab active' : 'tab'} onClick={() => onView('handbook')}>Handbook</button>
+        <button className={view === 'handbook' ? 'tab active' : 'tab'} onClick={() => onView('handbook')}>Материалы</button>
         <button className={view === 'encounters' ? 'tab active' : 'tab'} onClick={() => onView('encounters')}>Энкаунтеры</button>
-        <button className={view === 'table' ? 'tab active' : 'tab'} onClick={() => onView('table')}>Game Table</button>
+        <button className={view === 'table' ? 'tab active' : 'tab'} onClick={() => onView('table')}>Игровой стол</button>
       </div>
 
       {view === 'table' ? (

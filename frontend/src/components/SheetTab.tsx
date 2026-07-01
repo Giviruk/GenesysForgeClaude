@@ -1,7 +1,9 @@
 import { useState } from 'react'
 import { api } from '../api/client'
 import type { ActivateCharacterAbilityResult, CharacterSheet, Reference, SkillKind } from '../api/types'
-import { CHARACTERISTICS, CHARACTERISTIC_LABELS, CHARACTERISTIC_SHORT_LABELS, SKILL_KIND_LABELS } from '../utils/labels'
+import {
+  CHARACTERISTICS, CHARACTERISTIC_LABELS, CHARACTERISTIC_SHORT_LABELS, localizedName, SKILL_KIND_LABELS,
+} from '../utils/labels'
 import { DicePoolView } from './DicePoolView'
 import { DiceRoller } from './DiceRoller'
 import { CriticalInjuriesSection } from './CriticalInjuriesSection'
@@ -23,7 +25,7 @@ const SKILL_COLUMNS: SkillKind[][] = [
 export function SheetTab({ sheet, reference, onError, refresh }: Props) {
   const [heroicPick, setHeroicPick] = useState('')
   // Локальный нарративный бросок по навыку (без записи в лог — лист вне контекста стола).
-  const [rollSkill, setRollSkill] = useState<{ name: string; ability: number; proficiency: number } | null>(null)
+  const [rollSkill, setRollSkill] = useState<{ label: string; ability: number; proficiency: number } | null>(null)
 
   async function run(action: () => Promise<unknown>) {
     try {
@@ -62,10 +64,10 @@ export function SheetTab({ sheet, reference, onError, refresh }: Props) {
       </section>
 
       <section className="stat-row derived">
-        <DerivedBox label="Раны (HP)" value={`${sheet.woundsCurrent} / ${d.woundThreshold}`}
+        <DerivedBox label="Раны" value={`${sheet.woundsCurrent} / ${d.woundThreshold}`}
           onMinus={() => run(() => api.updateCharacter(sheet.id, { woundsCurrent: sheet.woundsCurrent - 1 }))}
           onPlus={() => run(() => api.updateCharacter(sheet.id, { woundsCurrent: sheet.woundsCurrent + 1 }))} />
-        <DerivedBox label="Стрейн (стамина)" value={`${sheet.strainCurrent} / ${d.strainThreshold}`}
+        <DerivedBox label="Усталость" value={`${sheet.strainCurrent} / ${d.strainThreshold}`}
           onMinus={() => run(() => api.updateCharacter(sheet.id, { strainCurrent: sheet.strainCurrent - 1 }))}
           onPlus={() => run(() => api.updateCharacter(sheet.id, { strainCurrent: sheet.strainCurrent + 1 }))} />
         <DerivedBox label="Поглощение" value={String(d.soak)} />
@@ -128,42 +130,45 @@ export function SheetTab({ sheet, reference, onError, refresh }: Props) {
                           <th>Хар-ка</th>
                           <th className="centered" title="Карьерный навык">Карьерн.</th>
                           <th>Ранги</th>
-                          <th>Дайс-пул</th>
+                          <th>Пул кубов</th>
                           <th></th>
                         </tr>
                       </thead>
                       <tbody>
-                        {skills.map(s => (
-                          <tr key={s.skillDefId}>
-                            <td className="ellipsis" title={s.name}>{s.name}</td>
-                            <td className="muted" title={CHARACTERISTIC_LABELS[s.characteristic]}>
-                              {CHARACTERISTIC_SHORT_LABELS[s.characteristic]}
-                            </td>
-                            <td className="centered">{s.isCareer ? '✓' : ''}</td>
-                            <td>{'●'.repeat(s.ranks)}{'○'.repeat(Math.max(0, 5 - s.ranks))}</td>
-                            <td><DicePoolView pool={s.pool} /></td>
-                            <td className="right">
-                              <button className="small" title={`Бросить пул навыка «${s.name}»`}
-                                onClick={() => setRollSkill({ name: s.name, ability: s.pool.ability, proficiency: s.pool.proficiency })}>
-                                🎲
-                              </button>
-                              {sheet.isCreationPhase && s.ranks > s.freeRanks && (
-                                <button className="small"
-                                  title={`Вернуть ранг ${s.ranks} (+${s.ranks * 5 + (s.isCareer ? 0 : 5)} XP)`}
-                                  onClick={() => run(() => api.refundSkillRank(sheet.id, s.skillDefId))}>
-                                  −
+                        {skills.map(s => {
+                          const label = localizedName(s)
+                          return (
+                            <tr key={s.skillDefId}>
+                              <td className="ellipsis" title={label}>{label}</td>
+                              <td className="muted" title={CHARACTERISTIC_LABELS[s.characteristic]}>
+                                {CHARACTERISTIC_SHORT_LABELS[s.characteristic]}
+                              </td>
+                              <td className="centered">{s.isCareer ? '✓' : ''}</td>
+                              <td>{'●'.repeat(s.ranks)}{'○'.repeat(Math.max(0, 5 - s.ranks))}</td>
+                              <td><DicePoolView pool={s.pool} /></td>
+                              <td className="right">
+                                <button className="small" title={`Бросить пул навыка «${label}»`}
+                                  onClick={() => setRollSkill({ label, ability: s.pool.ability, proficiency: s.pool.proficiency })}>
+                                  🎲
                                 </button>
-                              )}
-                              {s.ranks < 5 && (
-                                <button className="small" disabled={s.nextRankCost > sheet.availableXp}
-                                  title={s.nextRankCost > sheet.availableXp ? 'Недостаточно XP' : `Купить ранг ${s.ranks + 1}`}
-                                  onClick={() => run(() => api.buySkillRank(sheet.id, s.skillDefId))}>
-                                  +{s.nextRankCost} XP
-                                </button>
-                              )}
-                            </td>
-                          </tr>
-                        ))}
+                                {sheet.isCreationPhase && s.ranks > s.freeRanks && (
+                                  <button className="small"
+                                    title={`Вернуть ранг ${s.ranks} (+${s.ranks * 5 + (s.isCareer ? 0 : 5)} XP)`}
+                                    onClick={() => run(() => api.refundSkillRank(sheet.id, s.skillDefId))}>
+                                    −
+                                  </button>
+                                )}
+                                {s.ranks < 5 && (
+                                  <button className="small" disabled={s.nextRankCost > sheet.availableXp}
+                                    title={s.nextRankCost > sheet.availableXp ? 'Недостаточно XP' : `Купить ранг ${s.ranks + 1}`}
+                                    onClick={() => run(() => api.buySkillRank(sheet.id, s.skillDefId))}>
+                                    +{s.nextRankCost} XP
+                                  </button>
+                                )}
+                              </td>
+                            </tr>
+                          )
+                        })}
                       </tbody>
                     </table>
                   </div>
@@ -178,12 +183,12 @@ export function SheetTab({ sheet, reference, onError, refresh }: Props) {
         <div className="modal-overlay" onClick={() => setRollSkill(null)}>
           <div className="modal-card" onClick={e => e.stopPropagation()}>
             <div className="modal-head">
-              <h3 className="inline-title">Бросок: {rollSkill.name}</h3>
+              <h3 className="inline-title">Бросок: {rollSkill.label}</h3>
               <button className="small" onClick={() => setRollSkill(null)}>Закрыть</button>
             </div>
             <p className="muted small-text">Базовый пул из навыка. Добавьте сложность/бонусы/помехи под бросок.</p>
             <DiceRoller initialPool={{ ability: rollSkill.ability, proficiency: rollSkill.proficiency }}
-              label={rollSkill.name} />
+              label={rollSkill.label} />
           </div>
         </div>
       )}
@@ -211,7 +216,7 @@ function DerivedBox({ label, value, warning, onMinus, onPlus }: {
   )
 }
 
-const UPGRADE_LABELS: Record<number, string> = { 1: 'Improved · улучшенная', 2: 'Supreme · высшая' }
+const UPGRADE_LABELS: Record<number, string> = { 1: 'Улучшенная', 2: 'Высшая' }
 
 function HeroicAbilityCard({ sheet, run }: {
   sheet: CharacterSheet

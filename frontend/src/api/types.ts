@@ -109,7 +109,7 @@ export interface Quality {
 }
 
 export interface HeroicAbilityUpgrade {
-  level: number // 1 — Improved, 2 — Supreme
+  level: number // 1 — улучшенная, 2 — высшая
   cost: number
   description: string
   notes: string
@@ -318,6 +318,7 @@ export interface DicePool {
 export interface SheetSkill {
   skillDefId: string
   name: string
+  nameRu: string
   kind: SkillKind
   characteristic: Characteristic
   ranks: number
@@ -349,6 +350,7 @@ export interface SheetItem {
   id: string
   itemDefId: string
   name: string
+  nameRu: string
   kind: ItemKind
   state: ItemState
   quantity: number

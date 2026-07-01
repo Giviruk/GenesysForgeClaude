@@ -14,7 +14,7 @@ export function adversaryMarkdown(npc: NpcDetail, version: PrintVersion): string
   if (npc.description) lines.push('', npc.description)
   if (version === 'gm') {
     lines.push('', `**Характеристики:** ${CHARS.map(c => `${CHARACTERISTIC_LABELS[c]} ${npc[c]}`).join(', ')}`)
-    lines.push(`**Soak** ${npc.soak} · **Раны** ${npc.woundThreshold}${npc.strainThreshold != null ? ` · **Стрейн** ${npc.strainThreshold}` : ''} · **Бл.защ** ${npc.meleeDefense} · **Дал.защ** ${npc.rangedDefense}${npc.silhouette !== 1 ? ` · **Силуэт** ${npc.silhouette}` : ''}`)
+    lines.push(`**Поглощение** ${npc.soak} · **Раны** ${npc.woundThreshold}${npc.strainThreshold != null ? ` · **Усталость** ${npc.strainThreshold}` : ''} · **Бл.защ** ${npc.meleeDefense} · **Дал.защ** ${npc.rangedDefense}${npc.silhouette !== 1 ? ` · **Силуэт** ${npc.silhouette}` : ''}`)
     if (npc.skills.length) lines.push(`**Навыки:** ${npc.skills.map(s => `${s.name} ${s.ranks}`).join(', ')}`)
     if (npc.attacks.length) {
       lines.push('', '**Атаки:**')

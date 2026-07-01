@@ -295,7 +295,7 @@ export function CreateCharacterForm({ onCancel, onCreated }: { onCancel: () => v
         {archetype && (
           <div className="hint">
             {CHARACTERISTICS.map(c => `${CHARACTERISTIC_LABELS[c]} ${archetype[c]}`).join(' · ')}
-            <br />Раны {archetype.woundBase}+Мощь · Стрейн {archetype.strainBase}+Воля · Старт. XP {archetype.startingXp}
+            <br />Раны {archetype.woundBase}+Мощь · Усталость {archetype.strainBase}+Воля · Старт. XP {archetype.startingXp}
             {fixedStartingSkills.length > 0 && (
               <><br />Стартовые навыки: {fixedStartingSkills
                 .map(s => `${s.nameRu || skillRu(s.skillName)}${s.freeRanks > 1 ? ` ${s.freeRanks}` : ''}`)

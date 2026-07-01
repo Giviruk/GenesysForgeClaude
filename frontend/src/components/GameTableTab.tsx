@@ -122,8 +122,8 @@ function CreateSessionForm({ onCreate }: { onCreate: (b: { name: string; descrip
       <label>Название<input value={name} onChange={e => setName(e.target.value)} required /></label>
       <label>Описание<textarea value={description} onChange={e => setDescription(e.target.value)} rows={2} /></label>
       <div className="form-row">
-        <label className="char-input">Story points игроков<input type="number" min={0} value={psp} onChange={e => setPsp(Math.max(0, +e.target.value))} /></label>
-        <label className="char-input">Story points мастера<input type="number" min={0} value={gsp} onChange={e => setGsp(Math.max(0, +e.target.value))} /></label>
+        <label className="char-input">Сюжетные очки игроков<input type="number" min={0} value={psp} onChange={e => setPsp(Math.max(0, +e.target.value))} /></label>
+        <label className="char-input">Сюжетные очки мастера<input type="number" min={0} value={gsp} onChange={e => setGsp(Math.max(0, +e.target.value))} /></label>
       </div>
       <button className="primary" type="submit" disabled={!name.trim()}>Запустить сцену</button>
     </form>
@@ -135,7 +135,7 @@ function StoryPoints({ session, isGm, onRun, campaignId }: BlockProps) {
   return (
     <section className="panel gt-story">
       <div className="story-counter">
-        <span className="story-label">Story Points — Игроки</span>
+        <span className="story-label">Сюжетные очки — игроки</span>
         <div className="story-val">
           {isGm && <button className="small" onClick={() => set({ playerStoryPoints: session.playerStoryPoints - 1 })}>−</button>}
           <strong>{session.playerStoryPoints}</strong>
@@ -146,14 +146,14 @@ function StoryPoints({ session, isGm, onRun, campaignId }: BlockProps) {
         <div className="story-flip">
           <button className="small" title="Перевернуть игрокам → мастеру"
             onClick={() => set({ playerStoryPoints: session.playerStoryPoints - 1, gmStoryPoints: session.gmStoryPoints + 1 })}
-            disabled={session.playerStoryPoints <= 0}>→ GM</button>
+            disabled={session.playerStoryPoints <= 0}>→ Мастеру</button>
           <button className="small" title="Перевернуть мастеру → игрокам"
             onClick={() => set({ gmStoryPoints: session.gmStoryPoints - 1, playerStoryPoints: session.playerStoryPoints + 1 })}
             disabled={session.gmStoryPoints <= 0}>← Игрокам</button>
         </div>
       )}
       <div className="story-counter">
-        <span className="story-label">Story Points — Мастер</span>
+        <span className="story-label">Сюжетные очки — мастер</span>
         <div className="story-val">
           {isGm && <button className="small" onClick={() => set({ gmStoryPoints: session.gmStoryPoints - 1 })}>−</button>}
           <strong>{session.gmStoryPoints}</strong>
@@ -249,12 +249,12 @@ function ParticipantCard({ p, isGm, allowPlayerEdits, onRun, campaignId, abiliti
         <Vital label="Раны" cur={p.woundsCurrent} max={p.woundsThreshold} editable={canEditVitals}
           onChange={v => patch({ woundsCurrent: v })} danger />
         {p.strainThreshold != null && (
-          <Vital label="Стрейн" cur={p.strainCurrent} max={p.strainThreshold} editable={canEditVitals}
+          <Vital label="Усталость" cur={p.strainCurrent} max={p.strainThreshold} editable={canEditVitals}
             onChange={v => patch({ strainCurrent: v })} />
         )}
       </div>
       <div className="pc-stats muted small-text">
-        Soak {p.soak} · Бл.защ {p.meleeDefense} · Дал.защ {p.rangedDefense}{p.count > 1 ? ` · ×${p.count}` : ''}
+        Поглощение {p.soak} · Бл.защ {p.meleeDefense} · Дал.защ {p.rangedDefense}{p.count > 1 ? ` · ×${p.count}` : ''}
       </div>
       <div className="pc-crits small-text">
         <span className={p.criticalInjuries > 0 ? 'crit-count warn' : 'crit-count muted'}>
@@ -394,7 +394,7 @@ function NotesBlock({ session, isGm, onRun, campaignId }: BlockProps) {
         <label className="checkbox">
           <input type="checkbox" checked={session.allowPlayerEdits}
             onChange={e => onRun(() => api.updateSession(campaignId, { allowPlayerEdits: e.target.checked }))} />
-          Разрешить игрокам менять раны/стрейн своих персонажей
+          Разрешить игрокам менять раны/усталость своих персонажей
         </label>
       )}
     </section>

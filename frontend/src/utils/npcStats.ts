@@ -48,7 +48,7 @@ export function weaponsByLabel(reference: Reference | null): Map<string, ItemDef
 }
 
 /**
- * Дайс-пул проверки навыка: большее из (характеристика, ранги) кубов,
+ * Пул кубов проверки навыка: большее из (характеристика, ранги) кубов,
  * из них min(хар, ранги) улучшаются до жёлтых Proficiency. Зеркалит
  * серверную GenesysRules.BuildDicePool, чтобы NPC считались как персонажи.
  */

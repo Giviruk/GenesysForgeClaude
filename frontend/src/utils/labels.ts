@@ -56,6 +56,9 @@ export const ITEM_STATE_LABELS: Record<ItemState, string> = {
 export const CURRENCY_LABEL = 'монеты'
 export const CURRENCY_SHORT = 'мон.'
 
+export const localizedName = (value: { name: string; nameRu?: string | null }) =>
+  value.nameRu?.trim() || value.name
+
 /**
  * Подбирает навык листа для броска оружием. Оружие хранит англ. имя навыка
  * (например, «Melee (Light)»), но в Genesys Core навык называется просто «Melee» —
