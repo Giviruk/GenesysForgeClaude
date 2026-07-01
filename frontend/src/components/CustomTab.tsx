@@ -3,9 +3,11 @@ import { api } from '../api/client'
 import type {
   Archetype, Career, CharacterSheet, CustomArchetypeInput, CustomCareerInput,
   HeroicAbility, HomebrewPackDocument, HomebrewPackListItem, ItemDef, Quality, Reference, SkillDef, TalentDef,
+  TalentCategory,
 } from '../api/types'
 import {
   CHARACTERISTICS, CHARACTERISTIC_LABELS, ITEM_KIND_LABELS, SKILL_KIND_LABELS, localizedName,
+  TALENT_CATEGORIES, TALENT_CATEGORY_LABELS,
 } from '../utils/labels'
 
 interface Props {
@@ -81,7 +83,10 @@ export function CustomTab({ sheet, reference, onError, refresh }: Props) {
           <>
             <TalentForm key={editingTalent?.id ?? 'new'} sheet={sheet} run={run} editing={editingTalent}
               onDone={() => setEditingTalent(null)} />
-            <CustomList items={customTalents.map(t => ({ id: t.id, label: `${t.name} · Тир ${t.tier}${t.isRanked ? ' · ранговый' : ''}` }))}
+            <CustomList items={customTalents.map(t => ({
+              id: t.id,
+              label: `${t.name} · ${TALENT_CATEGORY_LABELS[t.category]} · Тир ${t.tier}${t.isRanked ? ' · ранговый' : ''}`,
+            }))}
               onEdit={id => setEditingTalent(customTalents.find(t => t.id === id)!)}
               onDelete={id => run(() => api.deleteCustomTalent(id), 'Талант удалён.')} />
           </>
@@ -298,6 +303,7 @@ function TalentForm({ sheet, run, editing, onDone }: { sheet: CharacterSheet; ru
   const [name, setName] = useState(editing?.name ?? '')
   const [tier, setTier] = useState(editing?.tier ?? 1)
   const [isRanked, setIsRanked] = useState(editing?.isRanked ?? false)
+  const [category, setCategory] = useState<TalentCategory>(editing?.category ?? 'general')
   const [activation, setActivation] = useState(editing?.activation ?? 'Пассивный')
   const [description, setDescription] = useState(editing?.description ?? '')
   const [bonuses, setBonuses] = useState({
@@ -310,7 +316,7 @@ function TalentForm({ sheet, run, editing, onDone }: { sheet: CharacterSheet; ru
 
   function submit(e: FormEvent) {
     e.preventDefault()
-    const payload = { system: sheet.system, name, tier, isRanked, activation, description, ...bonuses }
+    const payload = { system: sheet.system, name, tier, isRanked, category, activation, description, ...bonuses }
     if (editing) {
       void run(() => api.updateCustomTalent(editing.id, payload), `Талант «${name}» обновлён.`)
       onDone()
@@ -338,6 +344,11 @@ function TalentForm({ sheet, run, editing, onDone }: { sheet: CharacterSheet; ru
       <label className="checkbox">
         <input type="checkbox" checked={isRanked} onChange={e => setIsRanked(e.target.checked)} />
         Ранговый (можно покупать несколько раз, каждый ранг — на тир выше)
+      </label>
+      <label>Категория
+        <select value={category} onChange={e => setCategory(e.target.value as TalentCategory)}>
+          {TALENT_CATEGORIES.map(c => <option key={c} value={c}>{TALENT_CATEGORY_LABELS[c]}</option>)}
+        </select>
       </label>
       <label>Активация
         <select value={activation} onChange={e => setActivation(e.target.value)}>

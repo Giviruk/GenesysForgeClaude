@@ -12,6 +12,8 @@ public class TalentDef : IContentDef
     public string NameRu { get; set; } = "";
     public int Tier { get; set; }
     public bool IsRanked { get; set; }
+    /// <summary>UI-категория таланта для фильтрации: общий, социальный, боевой или магический.</summary>
+    public TalentCategory Category { get; set; } = TalentCategory.General;
     /// <summary>Пригодность к сеттингам (флаги). Определяет, в каких системах талант доступен.</summary>
     public GenesysSetting Setting { get; set; } = GenesysSetting.Any;
     /// <summary>Полное (private) описание-парафраз. Отдаётся в режиме ContentMode.PrivateFull.</summary>

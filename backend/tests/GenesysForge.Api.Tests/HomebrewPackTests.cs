@@ -21,25 +21,31 @@ public class HomebrewPackTests : IClassFixture<ApiFactory>
             GameSystem.GenesysCore,
             [new HomebrewSkillDto("airships.skill.sky-sailing", "Sky Sailing", "Небесное мореходство",
                 CharacteristicType.Agility, SkillKind.General, "Operate airships.", "Operate airships.", "User")],
-            null, null, null, null, null);
+            [new HomebrewTalentDto("airships.talent.sky-captain", "Sky Captain", "Небесный капитан", 2, false,
+                "Пассивный", "Lead an airship crew.", "Lead an airship crew.", "User", 0, 1, 0, 0, 0, TalentCategory.Social)],
+            null, null, null, null);
 
         var importedResponse = await owner.PostAsJsonAsync("/api/homebrew-packs/import", document, Json.Options);
         Assert.Equal(HttpStatusCode.Created, importedResponse.StatusCode);
         var imported = (await importedResponse.Content.ReadFromJsonAsync<HomebrewPackImportResult>(Json.Options))!;
-        Assert.Equal(1, imported.EntryCount);
+        Assert.Equal(2, imported.EntryCount);
 
         var reference = (await owner.GetFromJsonAsync<ReferenceResponse>("/api/reference/GenesysCore", Json.Options))!;
         var skill = Assert.Single(reference.Skills, s => s.Name == "Sky Sailing");
+        var talent = Assert.Single(reference.Talents, t => t.Name == "Sky Captain");
+        Assert.Equal(TalentCategory.Social, talent.Category);
 
         var exported = (await owner.GetFromJsonAsync<HomebrewPackExportDto>($"/api/homebrew-packs/{imported.Id}/export", Json.Options))!;
         Assert.Equal("genesysforge.homebrew-pack.v1", exported.Format);
         Assert.Equal("airships.skill.sky-sailing", exported.Skills![0].Code);
+        Assert.Equal(TalentCategory.Social, exported.Talents![0].Category);
 
         Assert.Equal(HttpStatusCode.NoContent,
             (await owner.PutAsJsonAsync($"/api/homebrew-packs/{imported.Id}/default",
                 new HomebrewPackToggleRequest(false), Json.Options)).StatusCode);
         var hidden = (await owner.GetFromJsonAsync<ReferenceResponse>("/api/reference/GenesysCore", Json.Options))!;
         Assert.DoesNotContain(hidden.Skills, s => s.Id == skill.Id);
+        Assert.DoesNotContain(hidden.Talents, t => t.Id == talent.Id);
 
         var builtIn = hidden;
         var created = await owner.PostAsJsonAsync("/api/characters/",

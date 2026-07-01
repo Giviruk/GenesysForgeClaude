@@ -67,16 +67,20 @@ public class CustomContentCrudTests : IClassFixture<ApiFactory>
     {
         var client = await _factory.CreateAuthorizedClientAsync();
         var talent = (await (await client.PostAsJsonAsync("/api/custom/talents",
-            new CreateCustomTalentRequest(GameSystem.GenesysCore, "Lucky", 1, true, "Пассивный", "desc", 0, 1, 0, 0, 0),
+            new CreateCustomTalentRequest(GameSystem.GenesysCore, "Lucky", 1, true, "Пассивный", "desc", 0, 1, 0, 0, 0,
+                TalentCategory.General),
             Json.Options)).Content.ReadFromJsonAsync<TalentDefDto>(Json.Options))!;
+        Assert.Equal(TalentCategory.General, talent.Category);
 
         var update = await client.PutAsJsonAsync($"/api/custom/talents/{talent.Id}",
-            new CreateCustomTalentRequest(GameSystem.GenesysCore, "Very Lucky", 2, true, "Инцидент", "better", 0, 2, 0, 0, 0),
+            new CreateCustomTalentRequest(GameSystem.GenesysCore, "Very Lucky", 2, true, "Инцидент", "better", 0, 2, 0, 0, 0,
+                TalentCategory.Social),
             Json.Options);
         Assert.Equal(HttpStatusCode.OK, update.StatusCode);
         var updated = (await update.Content.ReadFromJsonAsync<TalentDefDto>(Json.Options))!;
         Assert.Equal("Very Lucky", updated.Name);
         Assert.Equal(2, updated.Tier);
+        Assert.Equal(TalentCategory.Social, updated.Category);
         Assert.Equal(2, updated.StrainBonus);
 
         var del = await client.DeleteAsync($"/api/custom/talents/{talent.Id}");

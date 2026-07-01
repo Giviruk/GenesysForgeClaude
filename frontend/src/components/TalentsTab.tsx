@@ -1,7 +1,9 @@
 import { useState } from 'react'
 import { api } from '../api/client'
-import type { Characteristic, CharacterSheet, Reference, SheetTalent, TalentDef } from '../api/types'
-import { CHARACTERISTICS, CHARACTERISTIC_LABELS, nextRankTier, talentCost } from '../utils/labels'
+import type { Characteristic, CharacterSheet, Reference, SheetTalent, TalentCategory, TalentDef } from '../api/types'
+import {
+  CHARACTERISTICS, CHARACTERISTIC_LABELS, nextRankTier, TALENT_CATEGORIES, TALENT_CATEGORY_LABELS, talentCost,
+} from '../utils/labels'
 import { canPurchaseTier, canRemoveTier } from '../utils/pyramid'
 import { talentBonusSummary } from '../utils/talentBonuses'
 import { PrintPreview } from './print/PrintPreview'
@@ -20,6 +22,7 @@ const TALENT_CHARACTERISTIC_MAX = 5
 
 export function TalentsTab({ sheet, reference, onError, refresh }: Props) {
   const [activeTier, setActiveTier] = useState<number>(1)
+  const [categoryFilter, setCategoryFilter] = useState<TalentCategory | 'all'>('all')
   // Талант, для которого открыт выбор характеристики (Dedication).
   const [pickFor, setPickFor] = useState<TalentDef | null>(null)
   // Купленный талант, открытый на печать.
@@ -89,7 +92,8 @@ export function TalentsTab({ sheet, reference, onError, refresh }: Props) {
     }
   }
 
-  const tierTalents = reference.talents.filter(t => t.tier === activeTier)
+  const matchesCategory = (talent: TalentDef) => categoryFilter === 'all' || talent.category === categoryFilter
+  const tierTalents = reference.talents.filter(t => t.tier === activeTier && matchesCategory(t))
 
   if (printTalent) {
     return (
@@ -154,8 +158,23 @@ export function TalentsTab({ sheet, reference, onError, refresh }: Props) {
       <section className="panel">
         <h3>Доступные таланты</h3>
         <div className="tabs">
+          <button className={categoryFilter === 'all' ? 'tab active' : 'tab'} onClick={() => setCategoryFilter('all')}>
+            Все <span className="muted">({reference.talents.length})</span>
+          </button>
+          {TALENT_CATEGORIES.map(category => {
+            const count = reference.talents.filter(t => t.category === category).length
+            return (
+              <button key={category}
+                className={categoryFilter === category ? 'tab active' : 'tab'}
+                onClick={() => setCategoryFilter(category)}>
+                {TALENT_CATEGORY_LABELS[category]} <span className="muted">({count})</span>
+              </button>
+            )
+          })}
+        </div>
+        <div className="tabs">
           {TIERS.map(tier => {
-            const count = reference.talents.filter(t => t.tier === tier).length
+            const count = reference.talents.filter(t => t.tier === tier && matchesCategory(t)).length
             return (
               <button key={tier}
                 className={activeTier === tier ? 'tab active' : 'tab'}
@@ -167,7 +186,7 @@ export function TalentsTab({ sheet, reference, onError, refresh }: Props) {
         </div>
         <div className="talent-list">
           {tierTalents.length === 0 && (
-            <p className="muted">Нет талантов этого тира.</p>
+            <p className="muted">Нет талантов этого тира в выбранной категории.</p>
           )}
           {tierTalents.map(t => {
             const ownedRow = owned.get(t.id)
@@ -188,6 +207,7 @@ export function TalentsTab({ sheet, reference, onError, refresh }: Props) {
                 <div className="talent-info">
                   <strong>
                     {t.nameRu || t.name} <span className="badge tier">Тир {t.tier}</span>
+                    <span className="badge">{TALENT_CATEGORY_LABELS[t.category]}</span>
                     {t.isRanked && <span className="badge">Ранговый{ranksOwned > 0 ? `: ${ranksOwned}` : ''}</span>}
                     {t.isCustom && <span className="badge custom">Кастом</span>}
                     <span className="muted"> · {t.activation}</span>

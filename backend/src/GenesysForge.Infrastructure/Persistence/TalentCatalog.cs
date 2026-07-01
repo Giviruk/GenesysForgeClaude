@@ -15,7 +15,7 @@ public static class TalentCatalog
 {
     private sealed record Entry(
         string Code, string Name, string NameRu, int Tier, bool Ranked,
-        string[] Setting, string Activation, string Desc,
+        string[] Setting, string Activation, string Desc, string? Category,
         int Wt, int St, int Soak, int Mdef, int Rdef,
         bool GrantsCharacteristic = false);
 
@@ -54,6 +54,7 @@ public static class TalentCatalog
                     NameRu = string.IsNullOrWhiteSpace(e.NameRu) ? e.Name : e.NameRu,
                     Tier = e.Tier,
                     IsRanked = e.Ranked,
+                    Category = ParseCategory(e.Category),
                     Setting = setting,
                     Activation = e.Activation,
                     GrantsCharacteristic = e.GrantsCharacteristic,
@@ -73,4 +74,9 @@ public static class TalentCatalog
                 result |= v;
         return result == GenesysSetting.None ? GenesysSetting.Any : result;
     }
+
+    private static TalentCategory ParseCategory(string? value) =>
+        Enum.TryParse<TalentCategory>(value, ignoreCase: true, out var category)
+            ? category
+            : TalentCategory.General;
 }

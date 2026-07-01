@@ -3,6 +3,7 @@
   "code": "bystroe-reagirovanie",
   "name": "Быстрое реагирование",
   "nameRu": "Быстрое реагирование",
+  "category": "combat",
   "tier": 1,
   "ranked": true,
   "setting": [
@@ -21,6 +22,7 @@
   "code": "bystryy",
   "name": "Быстрый",
   "nameRu": "Быстрый",
+  "category": "general",
   "tier": 1,
   "ranked": false,
   "setting": [
@@ -39,6 +41,7 @@
   "code": "bystryy-udar",
   "name": "Быстрый удар",
   "nameRu": "Быстрый удар",
+  "category": "combat",
   "tier": 1,
   "ranked": true,
   "setting": [
@@ -57,6 +60,7 @@
   "code": "vtoroe-dyhanie",
   "name": "Второе дыхание",
   "nameRu": "Второе дыхание",
+  "category": "general",
   "tier": 1,
   "ranked": true,
   "setting": [
@@ -75,6 +79,7 @@
   "code": "vyhvatyvanie",
   "name": "Выхватывание",
   "nameRu": "Выхватывание",
+  "category": "combat",
   "tier": 1,
   "ranked": false,
   "setting": [
@@ -93,6 +98,7 @@
   "code": "dobytchik",
   "name": "Добытчик",
   "nameRu": "Добытчик",
+  "category": "general",
   "tier": 1,
   "ranked": false,
   "setting": [
@@ -111,6 +117,7 @@
   "code": "duelyant",
   "name": "Дуэлянт",
   "nameRu": "Дуэлянт",
+  "category": "combat",
   "tier": 1,
   "ranked": false,
   "setting": [
@@ -129,6 +136,7 @@
   "code": "edinenie-s-prirodoy",
   "name": "Единение с природой",
   "nameRu": "Единение с природой",
+  "category": "general",
   "tier": 1,
   "ranked": false,
   "setting": [
@@ -147,6 +155,7 @@
   "code": "zakalennyy",
   "name": "Закалённый",
   "nameRu": "Закалённый",
+  "category": "general",
   "tier": 1,
   "ranked": true,
   "setting": [
@@ -165,6 +174,7 @@
   "code": "kvalifikatsiya",
   "name": "Квалификация",
   "nameRu": "Квалификация",
+  "category": "general",
   "tier": 1,
   "ranked": true,
   "setting": [
@@ -183,6 +193,7 @@
   "code": "krepost",
   "name": "Крепость",
   "nameRu": "Крепость",
+  "category": "general",
   "tier": 1,
   "ranked": true,
   "setting": [
@@ -201,6 +212,7 @@
   "code": "neprimetnyy",
   "name": "Неприметный",
   "nameRu": "Неприметный",
+  "category": "general",
   "tier": 1,
   "ranked": false,
   "setting": [
@@ -219,6 +231,7 @@
   "code": "obezdvizhivayuschiy-vystrel",
   "name": "Обездвиживающий выстрел",
   "nameRu": "Обездвиживающий выстрел",
+  "category": "combat",
   "tier": 1,
   "ranked": false,
   "setting": [
@@ -237,6 +250,7 @@
   "code": "ostroumnyy-otvet",
   "name": "Остроумный ответ",
   "nameRu": "Остроумный ответ",
+  "category": "social",
   "tier": 1,
   "ranked": false,
   "setting": [
@@ -255,6 +269,7 @@
   "code": "otchayannoe-vosstanovlenie",
   "name": "Отчаянное восстановление",
   "nameRu": "Отчаянное восстановление",
+  "category": "general",
   "tier": 1,
   "ranked": false,
   "setting": [
@@ -273,6 +288,7 @@
   "code": "parirovanie",
   "name": "Парирование",
   "nameRu": "Парирование",
+  "category": "combat",
   "tier": 1,
   "ranked": true,
   "setting": [
@@ -291,6 +307,7 @@
   "code": "podskok",
   "name": "Подскок",
   "nameRu": "Подскок",
+  "category": "general",
   "tier": 1,
   "ranked": false,
   "setting": [
@@ -309,6 +326,7 @@
   "code": "poehali",
   "name": "Поехали",
   "nameRu": "Поехали",
+  "category": "general",
   "tier": 1,
   "ranked": false,
   "setting": [
@@ -327,6 +345,7 @@
   "code": "pokupka-informatsii",
   "name": "Покупка информации",
   "nameRu": "Покупка информации",
+  "category": "social",
   "tier": 1,
   "ranked": false,
   "setting": [
@@ -345,6 +364,7 @@
   "code": "pristoynoe-povedenie",
   "name": "Пристойное поведение",
   "nameRu": "Пристойное поведение",
+  "category": "social",
   "tier": 1,
   "ranked": true,
   "setting": [
@@ -363,6 +383,7 @@
   "code": "torgovye-svyazi",
   "name": "Торговые связи",
   "nameRu": "Торговые связи",
+  "category": "social",
   "tier": 1,
   "ranked": true,
   "setting": [
@@ -381,6 +402,7 @@
   "code": "uporstvo",
   "name": "Упорство",
   "nameRu": "Упорство",
+  "category": "general",
   "tier": 1,
   "ranked": true,
   "setting": [
@@ -399,6 +421,7 @@
   "code": "hirurg",
   "name": "Хирург",
   "nameRu": "Хирург",
+  "category": "general",
   "tier": 1,
   "ranked": true,
   "setting": [
@@ -417,6 +440,7 @@
   "code": "berserk",
   "name": "Берсерк",
   "nameRu": "Берсерк",
+  "category": "combat",
   "tier": 2,
   "ranked": false,
   "setting": [
@@ -436,6 +460,7 @@
   "code": "voodushevlyayuschaya-rech",
   "name": "Воодушевляющая речь",
   "nameRu": "Воодушевляющая речь",
+  "category": "social",
   "tier": 2,
   "ranked": false,
   "setting": [
@@ -454,6 +479,7 @@
   "code": "vstrechnoe-predlozhenie",
   "name": "Встречное предложение",
   "nameRu": "Встречное предложение",
+  "category": "social",
   "tier": 2,
   "ranked": false,
   "setting": [
@@ -472,6 +498,7 @@
   "code": "izobretatel",
   "name": "Изобретатель",
   "nameRu": "Изобретатель",
+  "category": "general",
   "tier": 2,
   "ranked": true,
   "setting": [
@@ -490,6 +517,7 @@
   "code": "oboerukiy",
   "name": "Обоерукий",
   "nameRu": "Обоерукий",
+  "category": "combat",
   "tier": 2,
   "ranked": false,
   "setting": [
@@ -508,6 +536,7 @@
   "code": "oboronitelnaya-taktika",
   "name": "Оборонительная тактика",
   "nameRu": "Оборонительная тактика",
+  "category": "combat",
   "tier": 2,
   "ranked": true,
   "setting": [
@@ -526,6 +555,7 @@
   "code": "povyshennoe-vnimanie",
   "name": "Повышенное внимание",
   "nameRu": "Повышенное внимание",
+  "category": "general",
   "tier": 2,
   "ranked": false,
   "setting": [
@@ -544,6 +574,7 @@
   "code": "skoordinirovannaya-ataka",
   "name": "Скоординированная атака",
   "nameRu": "Скоординированная атака",
+  "category": "combat",
   "tier": 2,
   "ranked": true,
   "setting": [
@@ -562,6 +593,7 @@
   "code": "schastlivoe-popadanie",
   "name": "Счастливое попадание",
   "nameRu": "Счастливое попадание",
+  "category": "combat",
   "tier": 2,
   "ranked": false,
   "setting": [
@@ -580,6 +612,7 @@
   "code": "hlestkaya-fraza",
   "name": "Хлёсткая фраза",
   "nameRu": "Хлёсткая фраза",
+  "category": "social",
   "tier": 2,
   "ranked": false,
   "setting": [
@@ -598,6 +631,7 @@
   "code": "shag-v-storonu",
   "name": "Шаг в сторону",
   "nameRu": "Шаг в сторону",
+  "category": "combat",
   "tier": 2,
   "ranked": true,
   "setting": [
@@ -616,6 +650,7 @@
   "code": "bystraya-strelba-iz-luka",
   "name": "Быстрая стрельба из лука",
   "nameRu": "Быстрая стрельба из лука",
+  "category": "combat",
   "tier": 3,
   "ranked": false,
   "setting": [
@@ -634,6 +669,7 @@
   "code": "voodushevlyayuschaya-rech-uluchshennyyj",
   "name": "ВООДУШЕВЛЯЮЩАЯ РЕЧЬ (улучшенный)",
   "nameRu": "ВООДУШЕВЛЯЮЩАЯ РЕЧЬ (улучшенный)",
+  "category": "social",
   "tier": 3,
   "ranked": false,
   "setting": [
@@ -652,6 +688,7 @@
   "code": "geroicheskaya-volya",
   "name": "Героическая воля",
   "nameRu": "Героическая воля",
+  "category": "general",
   "tier": 3,
   "ranked": false,
   "setting": [
@@ -670,6 +707,7 @@
   "code": "zhivotnoe-sputnik",
   "name": "Животное-спутник",
   "nameRu": "Животное-спутник",
+  "category": "general",
   "tier": 3,
   "ranked": true,
   "setting": [
@@ -688,6 +726,7 @@
   "code": "znatok-boleutolyayuschih",
   "name": "Знаток болеутоляющих",
   "nameRu": "Знаток болеутоляющих",
+  "category": "general",
   "tier": 3,
   "ranked": true,
   "setting": [
@@ -706,6 +745,7 @@
   "code": "odarennost",
   "name": "Одарённость",
   "nameRu": "Одарённость",
+  "category": "general",
   "tier": 3,
   "ranked": false,
   "setting": [
@@ -724,6 +764,7 @@
   "code": "orlinyy-glaz",
   "name": "Орлиный глаз",
   "nameRu": "Орлиный глаз",
+  "category": "combat",
   "tier": 3,
   "ranked": false,
   "setting": [
@@ -742,6 +783,7 @@
   "code": "parirovanie-u-luchshennyy",
   "name": "ПАРИРОВАНИЕ (улучшенный)",
   "nameRu": "ПАРИРОВАНИЕ (улучшенный)",
+  "category": "combat",
   "tier": 3,
   "ranked": false,
   "setting": [
@@ -760,6 +802,7 @@
   "code": "polevoy-komandir",
   "name": "Полевой командир",
   "nameRu": "Полевой командир",
+  "category": "combat",
   "tier": 3,
   "ranked": false,
   "setting": [
@@ -778,6 +821,7 @@
   "code": "uklonenie",
   "name": "Уклонение",
   "nameRu": "Уклонение",
+  "category": "combat",
   "tier": 3,
   "ranked": true,
   "setting": [
@@ -796,6 +840,7 @@
   "code": "hlestkaya-fraza-uluchshennyy",
   "name": "ХЛЁСТКАЯ ФРАЗА (улучшенный)",
   "nameRu": "ХЛЁСТКАЯ ФРАЗА (улучшенный)",
+  "category": "social",
   "tier": 3,
   "ranked": false,
   "setting": [
@@ -814,6 +859,7 @@
   "code": "voodushevlyayuschaya-rech-masterskiyj",
   "name": "ВООДУШЕВЛЯЮЩАЯ РЕЧЬ (мастерский)",
   "nameRu": "ВООДУШЕВЛЯЮЩАЯ РЕЧЬ (мастерский)",
+  "category": "social",
   "tier": 4,
   "ranked": false,
   "setting": [
@@ -832,6 +878,7 @@
   "code": "vynoslivost",
   "name": "Выносливость",
   "nameRu": "Выносливость",
+  "category": "general",
   "tier": 4,
   "ranked": true,
   "setting": [
@@ -850,6 +897,7 @@
   "code": "kak-vovremya",
   "name": "Как вовремя!",
   "nameRu": "Как вовремя!",
+  "category": "general",
   "tier": 4,
   "ranked": false,
   "setting": [
@@ -868,6 +916,7 @@
   "code": "metkiy-glaz",
   "name": "Меткий глаз",
   "nameRu": "Меткий глаз",
+  "category": "combat",
   "tier": 4,
   "ranked": false,
   "setting": [
@@ -886,6 +935,7 @@
   "code": "mozhet-obsudim-eto",
   "name": "Может, обсудим это?",
   "nameRu": "Может, обсудим это?",
+  "category": "social",
   "tier": 4,
   "ranked": false,
   "setting": [
@@ -904,6 +954,7 @@
   "code": "oborona",
   "name": "Оборона",
   "nameRu": "Оборона",
+  "category": "combat",
   "tier": 4,
   "ranked": true,
   "setting": [
@@ -922,6 +973,7 @@
   "code": "polevoy-komandir-uluchshennyyj",
   "name": "ПОЛЕВОЙ КОМАНДИР (улучшенный)",
   "nameRu": "ПОЛЕВОЙ КОМАНДИР (улучшенный)",
+  "category": "combat",
   "tier": 4,
   "ranked": false,
   "setting": [
@@ -940,6 +992,7 @@
   "code": "hlestkaya-fraza-masterskiy",
   "name": "ХЛЁСТКАЯ ФРАЗА (мастерский)",
   "nameRu": "ХЛЁСТКАЯ ФРАЗА (мастерский)",
+  "category": "social",
   "tier": 4,
   "ranked": false,
   "setting": [
@@ -958,6 +1011,7 @@
   "code": "master",
   "name": "Мастер",
   "nameRu": "Мастер",
+  "category": "general",
   "tier": 5,
   "ranked": false,
   "setting": [
@@ -976,6 +1030,7 @@
   "code": "neukrotimyy",
   "name": "Неукротимый",
   "nameRu": "Неукротимый",
+  "category": "general",
   "tier": 5,
   "ranked": false,
   "setting": [
@@ -994,6 +1049,7 @@
   "code": "povyshenie",
   "name": "Повышение",
   "nameRu": "Повышение",
+  "category": "general",
   "tier": 5,
   "ranked": true,
   "setting": [
@@ -1001,18 +1057,19 @@
   ],
   "activation": "Пассивный",
   "needsTranslation": false,
-  "grantsCharacteristic": true,
   "wt": 0,
   "st": 0,
   "soak": 0,
   "mdef": 0,
   "rdef": 0,
+  "grantsCharacteristic": true,
   "desc": "За каждый ранг таланта одна из характеристик персо нажа увеличивается на 1. Талант не позволяет увели чить рейтинг характеристики выше 5. Вы не можете дважды увеличить этим талантом одну и ту же харак теристику."
  },
  {
   "code": "ubiystvennaya-kolkost",
   "name": "Убийственная колкость",
   "nameRu": "Убийственная колкость",
+  "category": "social",
   "tier": 5,
   "ranked": false,
   "setting": [
@@ -1031,6 +1088,7 @@
   "code": "attuned",
   "name": "Attuned",
   "nameRu": "Созвучие",
+  "category": "magic",
   "tier": 1,
   "ranked": true,
   "setting": [
@@ -1049,6 +1107,7 @@
   "code": "conduit",
   "name": "Conduit",
   "nameRu": "Проводник",
+  "category": "magic",
   "tier": 2,
   "ranked": true,
   "setting": [
@@ -1067,6 +1126,7 @@
   "code": "counterspell",
   "name": "Counterspell",
   "nameRu": "Контрзаклинание",
+  "category": "magic",
   "tier": 3,
   "ranked": false,
   "setting": [
@@ -1085,6 +1145,7 @@
   "code": "empowered-casting",
   "name": "Empowered Casting",
   "nameRu": "Усиленное колдовство",
+  "category": "magic",
   "tier": 4,
   "ranked": false,
   "setting": [
@@ -1103,6 +1164,7 @@
   "code": "signature-spell",
   "name": "Signature Spell",
   "nameRu": "Коронное заклинание",
+  "category": "magic",
   "tier": 5,
   "ranked": false,
   "setting": [
@@ -1121,6 +1183,7 @@
   "code": "apothecary",
   "name": "Apothecary",
   "nameRu": "Аптекарь",
+  "category": "general",
   "tier": 1,
   "ranked": false,
   "setting": [
@@ -1139,6 +1202,7 @@
   "code": "bullrush",
   "name": "Bullrush",
   "nameRu": "Натиск",
+  "category": "combat",
   "tier": 1,
   "ranked": false,
   "setting": [
@@ -1157,6 +1221,7 @@
   "code": "dark-insight",
   "name": "Dark Insight",
   "nameRu": "Тёмное прозрение",
+  "category": "magic",
   "tier": 1,
   "ranked": false,
   "setting": [
@@ -1175,6 +1240,7 @@
   "code": "dungeoneer",
   "name": "Dungeoneer",
   "nameRu": "Исследователь подземелий",
+  "category": "general",
   "tier": 1,
   "ranked": false,
   "setting": [
@@ -1193,6 +1259,7 @@
   "code": "finesse",
   "name": "Finesse",
   "nameRu": "Изящество",
+  "category": "combat",
   "tier": 1,
   "ranked": false,
   "setting": [
@@ -1211,6 +1278,7 @@
   "code": "painful-blow",
   "name": "Painful Blow",
   "nameRu": "Болезненный удар",
+  "category": "combat",
   "tier": 1,
   "ranked": false,
   "setting": [
@@ -1229,6 +1297,7 @@
   "code": "precision",
   "name": "Precision",
   "nameRu": "Точность",
+  "category": "combat",
   "tier": 1,
   "ranked": false,
   "setting": [
@@ -1247,6 +1316,7 @@
   "code": "shapeshifter",
   "name": "Shapeshifter",
   "nameRu": "Оборотень",
+  "category": "magic",
   "tier": 1,
   "ranked": false,
   "setting": [
@@ -1265,6 +1335,7 @@
   "code": "shield-slam",
   "name": "Shield Slam",
   "nameRu": "Удар щитом",
+  "category": "combat",
   "tier": 1,
   "ranked": false,
   "setting": [
@@ -1283,6 +1354,7 @@
   "code": "tavern-brawler",
   "name": "Tavern Brawler",
   "nameRu": "Трактирный буян",
+  "category": "combat",
   "tier": 1,
   "ranked": false,
   "setting": [
@@ -1301,6 +1373,7 @@
   "code": "templar",
   "name": "Templar",
   "nameRu": "Храмовник",
+  "category": "magic",
   "tier": 1,
   "ranked": false,
   "setting": [
@@ -1319,6 +1392,7 @@
   "code": "tumble",
   "name": "Tumble",
   "nameRu": "Кувырок",
+  "category": "general",
   "tier": 1,
   "ranked": false,
   "setting": [
@@ -1337,6 +1411,7 @@
   "code": "adventurer",
   "name": "Adventurer",
   "nameRu": "Искатель приключений",
+  "category": "general",
   "tier": 2,
   "ranked": false,
   "setting": [
@@ -1355,6 +1430,7 @@
   "code": "bard",
   "name": "Bard",
   "nameRu": "Бард",
+  "category": "magic",
   "tier": 2,
   "ranked": false,
   "setting": [
@@ -1373,6 +1449,7 @@
   "code": "block",
   "name": "Block",
   "nameRu": "Блокирование",
+  "category": "combat",
   "tier": 2,
   "ranked": false,
   "setting": [
@@ -1391,6 +1468,7 @@
   "code": "blood-sacrifice",
   "name": "Blood Sacrifice",
   "nameRu": "Кровавая жертва",
+  "category": "magic",
   "tier": 2,
   "ranked": false,
   "setting": [
@@ -1409,6 +1487,7 @@
   "code": "bulwark",
   "name": "Bulwark",
   "nameRu": "Оплот",
+  "category": "combat",
   "tier": 2,
   "ranked": false,
   "setting": [
@@ -1427,6 +1506,7 @@
   "code": "chill-of-nordros",
   "name": "Chill Of Nordros",
   "nameRu": "Холод Нордроса",
+  "category": "magic",
   "tier": 2,
   "ranked": false,
   "setting": [
@@ -1445,6 +1525,7 @@
   "code": "dirty-tricks",
   "name": "Dirty Tricks",
   "nameRu": "Грязные приёмы",
+  "category": "combat",
   "tier": 2,
   "ranked": false,
   "setting": [
@@ -1463,6 +1544,7 @@
   "code": "dominion-of-the-dimora",
   "name": "Dominion Of The Dimora",
   "nameRu": "Власть Диморы",
+  "category": "magic",
   "tier": 2,
   "ranked": false,
   "setting": [
@@ -1481,6 +1563,7 @@
   "code": "encouraging-song",
   "name": "Encouraging Song",
   "nameRu": "Воодушевляющая песнь",
+  "category": "magic",
   "tier": 2,
   "ranked": false,
   "setting": [
@@ -1499,6 +1582,7 @@
   "code": "exploit",
   "name": "Exploit",
   "nameRu": "Использование слабости",
+  "category": "combat",
   "tier": 2,
   "ranked": false,
   "setting": [
@@ -1517,6 +1601,7 @@
   "code": "favor-of-the-fae",
   "name": "Favor Of The Fae",
   "nameRu": "Благосклонность фей",
+  "category": "magic",
   "tier": 2,
   "ranked": false,
   "setting": [
@@ -1535,6 +1620,7 @@
   "code": "flames-of-kellos",
   "name": "Flames Of Kellos",
   "nameRu": "Пламя Келлоса",
+  "category": "magic",
   "tier": 2,
   "ranked": false,
   "setting": [
@@ -1553,6 +1639,7 @@
   "code": "flash-of-insight",
   "name": "Flash Of Insight",
   "nameRu": "Вспышка озарения",
+  "category": "general",
   "tier": 2,
   "ranked": false,
   "setting": [
@@ -1571,6 +1658,7 @@
   "code": "grapple",
   "name": "Grapple",
   "nameRu": "Захват",
+  "category": "combat",
   "tier": 2,
   "ranked": false,
   "setting": [
@@ -1589,6 +1677,7 @@
   "code": "heroic-recovery",
   "name": "Heroic Recovery",
   "nameRu": "Героическое восстановление",
+  "category": "general",
   "tier": 2,
   "ranked": false,
   "setting": [
@@ -1607,6 +1696,7 @@
   "code": "hunter",
   "name": "Hunter",
   "nameRu": "Охотник",
+  "category": "general",
   "tier": 2,
   "ranked": false,
   "setting": [
@@ -1625,6 +1715,7 @@
   "code": "impaling-strike",
   "name": "Impaling Strike",
   "nameRu": "Пронзающий удар",
+  "category": "combat",
   "tier": 2,
   "ranked": false,
   "setting": [
@@ -1643,6 +1734,7 @@
   "code": "natural-communion",
   "name": "Natural Communion",
   "nameRu": "Природное единение",
+  "category": "magic",
   "tier": 2,
   "ranked": false,
   "setting": [
@@ -1661,6 +1753,7 @@
   "code": "reckless-charge",
   "name": "Reckless Charge",
   "nameRu": "Безрассудный натиск",
+  "category": "combat",
   "tier": 2,
   "ranked": false,
   "setting": [
@@ -1679,6 +1772,7 @@
   "code": "runic-lore",
   "name": "Runic Lore",
   "nameRu": "Рунические знания",
+  "category": "magic",
   "tier": 2,
   "ranked": false,
   "setting": [
@@ -1697,6 +1791,7 @@
   "code": "shapeshifter-improved",
   "name": "Shapeshifter (Improved)",
   "nameRu": "Оборотень (улучшенный)",
+  "category": "magic",
   "tier": 2,
   "ranked": false,
   "setting": [
@@ -1715,6 +1810,7 @@
   "code": "templar-improved",
   "name": "Templar (Improved)",
   "nameRu": "Храмовник (улучшенный)",
+  "category": "magic",
   "tier": 2,
   "ranked": false,
   "setting": [
@@ -1733,6 +1829,7 @@
   "code": "threaten",
   "name": "Threaten",
   "nameRu": "Запугивание",
+  "category": "social",
   "tier": 2,
   "ranked": false,
   "setting": [
@@ -1751,6 +1848,7 @@
   "code": "well-traveled",
   "name": "Well-Traveled",
   "nameRu": "Бывалый путешественник",
+  "category": "general",
   "tier": 2,
   "ranked": false,
   "setting": [
@@ -1769,6 +1867,7 @@
   "code": "wraithbane",
   "name": "Wraithbane",
   "nameRu": "Гроза призраков",
+  "category": "combat",
   "tier": 2,
   "ranked": false,
   "setting": [
@@ -1787,6 +1886,7 @@
   "code": "backstab",
   "name": "Backstab",
   "nameRu": "Удар в спину",
+  "category": "combat",
   "tier": 3,
   "ranked": false,
   "setting": [
@@ -1805,6 +1905,7 @@
   "code": "battle-casting",
   "name": "Battle Casting",
   "nameRu": "Боевое колдовство",
+  "category": "magic",
   "tier": 3,
   "ranked": false,
   "setting": [
@@ -1823,6 +1924,7 @@
   "code": "body-guard",
   "name": "Body Guard",
   "nameRu": "Телохранитель",
+  "category": "combat",
   "tier": 3,
   "ranked": false,
   "setting": [
@@ -1841,6 +1943,7 @@
   "code": "cavalier",
   "name": "Cavalier",
   "nameRu": "Кавалерист",
+  "category": "combat",
   "tier": 3,
   "ranked": false,
   "setting": [
@@ -1859,6 +1962,7 @@
   "code": "counterattack",
   "name": "Counterattack",
   "nameRu": "Контратака",
+  "category": "combat",
   "tier": 3,
   "ranked": false,
   "setting": [
@@ -1877,6 +1981,7 @@
   "code": "dissonance",
   "name": "Dissonance",
   "nameRu": "Диссонанс",
+  "category": "magic",
   "tier": 3,
   "ranked": false,
   "setting": [
@@ -1895,6 +2000,7 @@
   "code": "dual-strike",
   "name": "Dual Strike",
   "nameRu": "Двойной удар",
+  "category": "combat",
   "tier": 3,
   "ranked": false,
   "setting": [
@@ -1913,6 +2019,7 @@
   "code": "easy-prey",
   "name": "Easy Prey",
   "nameRu": "Лёгкая добыча",
+  "category": "combat",
   "tier": 3,
   "ranked": false,
   "setting": [
@@ -1931,6 +2038,7 @@
   "code": "justice-of-the-citadel",
   "name": "Justice Of The Citadel",
   "nameRu": "Правосудие Цитадели",
+  "category": "combat",
   "tier": 3,
   "ranked": false,
   "setting": [
@@ -1949,6 +2057,7 @@
   "code": "potent-concoctions",
   "name": "Potent Concoctions",
   "nameRu": "Сильнодействующие зелья",
+  "category": "magic",
   "tier": 3,
   "ranked": false,
   "setting": [
@@ -1967,6 +2076,7 @@
   "code": "precise-archery",
   "name": "Precise Archery",
   "nameRu": "Точная стрельба",
+  "category": "combat",
   "tier": 3,
   "ranked": false,
   "setting": [
@@ -1985,6 +2095,7 @@
   "code": "pressure-point",
   "name": "Pressure Point",
   "nameRu": "Болевая точка",
+  "category": "combat",
   "tier": 3,
   "ranked": false,
   "setting": [
@@ -2003,6 +2114,7 @@
   "code": "shockwave",
   "name": "Shockwave",
   "nameRu": "Ударная волна",
+  "category": "combat",
   "tier": 3,
   "ranked": false,
   "setting": [
@@ -2021,6 +2133,7 @@
   "code": "back-to-back",
   "name": "Back-To-Back",
   "nameRu": "Спина к спине",
+  "category": "combat",
   "tier": 4,
   "ranked": false,
   "setting": [
@@ -2039,6 +2152,7 @@
   "code": "death-rage",
   "name": "Death Rage",
   "nameRu": "Смертельная ярость",
+  "category": "combat",
   "tier": 4,
   "ranked": false,
   "setting": [
@@ -2057,6 +2171,7 @@
   "code": "venom-soaked-blade",
   "name": "Venom Soaked Blade",
   "nameRu": "Отравленный клинок",
+  "category": "combat",
   "tier": 4,
   "ranked": false,
   "setting": [
@@ -2075,6 +2190,7 @@
   "code": "signature-spell-improved",
   "name": "Signature Spell (Improved)",
   "nameRu": "Коронное заклинание (улучшенное)",
+  "category": "magic",
   "tier": 4,
   "ranked": false,
   "setting": [
@@ -2093,6 +2209,7 @@
   "code": "unrelenting",
   "name": "Unrelenting",
   "nameRu": "Неумолимый",
+  "category": "combat",
   "tier": 4,
   "ranked": false,
   "setting": [
@@ -2111,6 +2228,7 @@
   "code": "crushing-blow",
   "name": "Crushing Blow",
   "nameRu": "Сокрушительный удар",
+  "category": "combat",
   "tier": 5,
   "ranked": false,
   "setting": [
@@ -2129,6 +2247,7 @@
   "code": "whirlwind",
   "name": "Whirlwind",
   "nameRu": "Вихрь клинков",
+  "category": "combat",
   "tier": 5,
   "ranked": false,
   "setting": [
@@ -2147,6 +2266,7 @@
   "code": "zealous-fire",
   "name": "Zealous Fire",
   "nameRu": "Пламя рвения",
+  "category": "general",
   "tier": 5,
   "ranked": false,
   "setting": [

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { difficultyLabel, magicSkillLabel, parseDifficulty } from './labels'
+import { difficultyLabel, magicSkillLabel, parseDifficulty, TALENT_CATEGORY_LABELS } from './labels'
 
 describe('magicSkillLabel', () => {
   it('переводит известные магические навыки', () => {
@@ -40,5 +40,14 @@ describe('difficultyLabel', () => {
   it('ограничивает диапазон 0..5', () => {
     expect(difficultyLabel(7)).toBe('Грозная')
     expect(difficultyLabel(-1)).toBe('Простая')
+  })
+})
+
+describe('TALENT_CATEGORY_LABELS', () => {
+  it('подписывает категории талантов по-русски', () => {
+    expect(TALENT_CATEGORY_LABELS.general).toBe('Общие')
+    expect(TALENT_CATEGORY_LABELS.social).toBe('Социальные')
+    expect(TALENT_CATEGORY_LABELS.combat).toBe('Боевые')
+    expect(TALENT_CATEGORY_LABELS.magic).toBe('Магические')
   })
 })

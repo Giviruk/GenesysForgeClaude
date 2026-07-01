@@ -20,6 +20,7 @@ public class CreateCustomTalentHandler(IAppDbContext db) : ICommandHandler<Creat
         {
             Id = Guid.NewGuid(), System = req.System, Name = req.Name.Trim(), Tier = req.Tier,
             IsRanked = req.IsRanked,
+            Category = req.Category,
             Activation = string.IsNullOrWhiteSpace(req.Activation) ? "Пассивный" : req.Activation.Trim(),
             Description = req.Description ?? "",
             WoundBonus = req.WoundBonus, StrainBonus = req.StrainBonus, SoakBonus = req.SoakBonus,

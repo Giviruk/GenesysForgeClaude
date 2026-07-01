@@ -1,7 +1,7 @@
 import type {
   AllowedState, Characteristic, ContentEntryType, CreatureTemplate, EncounterType, GameSystem, HouseRuleCategory,
   InitiativeSlotType, ItemKind, ItemState, NpcCombatStyle, NpcKind, NpcPowerLevel, NpcRole,
-  NpcVisibility, ParticipantType, SkillKind, ThreatLevel,
+  NpcVisibility, ParticipantType, SkillKind, TalentCategory, ThreatLevel,
 } from '../api/types'
 
 export const SYSTEM_LABELS: Record<GameSystem, string> = {
@@ -39,6 +39,15 @@ export const SKILL_KIND_LABELS: Record<SkillKind, string> = {
   knowledge: 'Знания',
   magic: 'Магия',
 }
+
+export const TALENT_CATEGORY_LABELS: Record<TalentCategory, string> = {
+  general: 'Общие',
+  social: 'Социальные',
+  combat: 'Боевые',
+  magic: 'Магические',
+}
+
+export const TALENT_CATEGORIES: TalentCategory[] = ['general', 'social', 'combat', 'magic']
 
 export const ITEM_KIND_LABELS: Record<ItemKind, string> = {
   weapon: 'Оружие',
