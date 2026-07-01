@@ -14,12 +14,34 @@ import { SharedSheetPage } from './pages/SharedSheetPage'
 import { Footer } from './components/Footer'
 import { navigate, parseRoute, usePath, type AppArea } from './router'
 import type { CampaignView } from './pages/CampaignsPage'
+import { DiceRollerProvider } from './dice-roller-context'
+import { useDiceRoller } from './dice-roller-store'
 
 const campaignView = (sub: string | null): CampaignView =>
   sub === 'table' || sub === 'handbook' || sub === 'encounters' ? sub : 'overview'
 
+const NAV_ITEMS: Array<{ area: AppArea; label: string; path: string }> = [
+  { area: 'characters', label: 'Персонажи', path: '/characters' },
+  { area: 'campaigns', label: 'Кампании', path: '/campaigns' },
+  { area: 'npcs', label: 'Бестиарий', path: '/npcs' },
+  { area: 'magic', label: 'Магия', path: '/magic' },
+  { area: 'reference', label: 'Справочник', path: '/reference' },
+  { area: 'help', label: 'Справка', path: '/help' },
+]
+
+const AREA_TITLES: Partial<Record<AppArea, string>> = {
+  characters: 'Персонажи',
+  campaigns: 'Кампании',
+  npcs: 'Бестиарий',
+  magic: 'Магия',
+  reference: 'Справочник',
+  help: 'Справка',
+  account: 'Профиль',
+}
+
 function Shell() {
   const { token, logout } = useAuth()
+  const { openRoller } = useDiceRoller()
   const path = usePath()
 
   const route = parseRoute(path)
@@ -37,53 +59,65 @@ function Shell() {
 
   if (!token) return <AuthPage />
 
-  function go(area: AppArea) {
-    navigate(`/${area}`)
-  }
+  const currentTitle = AREA_TITLES[route.area] ?? 'Genesys Forge'
 
   return (
-    <div className="shell">
-      <header className="topbar">
-        <span className="logo" onClick={() => go('characters')}>Genesys Forge</span>
-        <nav className="topnav">
-          <button className={route.area === 'characters' ? 'tab active' : 'tab'} onClick={() => go('characters')}>Персонажи</button>
-          <button className={route.area === 'campaigns' ? 'tab active' : 'tab'} onClick={() => go('campaigns')}>Кампании</button>
-          <button className={route.area === 'npcs' ? 'tab active' : 'tab'} onClick={() => go('npcs')}>Бестиарий</button>
-          <button className={route.area === 'magic' ? 'tab active' : 'tab'} onClick={() => go('magic')}>Магия</button>
-          <button className={route.area === 'reference' ? 'tab active' : 'tab'} onClick={() => go('reference')}>Справочник</button>
-          <button className={route.area === 'help' ? 'tab active' : 'tab'} onClick={() => go('help')}>Справка</button>
+    <div className="app-shell">
+      <aside className="app-sidebar no-print" aria-label="Основная навигация">
+        <button type="button" className="app-brand" onClick={() => navigate('/characters')}>Genesys Forge</button>
+        <nav className="side-nav">
+          {NAV_ITEMS.map(item => (
+            <button key={item.area} type="button"
+              className={route.area === item.area ? 'side-nav-item active' : 'side-nav-item'}
+              onClick={() => navigate(item.path)}>
+              {item.label}
+            </button>
+          ))}
         </nav>
-        <button className={route.area === 'account' ? 'tab active' : 'tab'} onClick={() => go('account')}>Профиль</button>
-        <button className="small" onClick={() => { logout(); navigate('/login') }}>Выйти</button>
-      </header>
-      {route.unknown
-        ? <NotFound />
-        : route.area === 'characters'
-          ? (route.id
-              ? <SheetPage characterId={route.id}
-                  printing={route.sub === 'print'}
-                  onOpenPrint={() => navigate(`/characters/${route.id}/print`)}
-                  onClosePrint={() => navigate(`/characters/${route.id}`)}
-                  onBack={() => navigate('/characters')} />
-              : <CharactersPage onOpen={id => navigate(`/characters/${id}`)} />)
-          : route.area === 'campaigns'
-            ? <CampaignsPage openId={route.id}
-                view={campaignView(route.sub)} openEncounterId={route.subId}
-                onOpen={id => navigate(`/campaigns/${id}`)} onBack={() => navigate('/campaigns')}
-                onView={view => navigate(view === 'overview' ? `/campaigns/${route.id}` : `/campaigns/${route.id}/${view}`)}
-                onOpenEncounter={eid => navigate(`/campaigns/${route.id}/encounters/${eid}`)}
-                onCloseEncounter={() => navigate(`/campaigns/${route.id}/encounters`)} />
-            : route.area === 'npcs'
-              ? <NpcsPage openId={route.id}
-                  onOpen={id => navigate(`/npcs/${id}`)} onBack={() => navigate('/npcs')} />
-              : route.area === 'magic'
-                ? <MagicPage />
-              : route.area === 'account'
-                ? <ProfilePage onBack={() => navigate('/characters')} />
-                : route.area === 'help'
-                  ? <HelpPage loggedIn showFooter={false} />
-                  : <ReferencePage onNavigate={navigate} />}
-      <Footer />
+        <div className="side-nav-footer">
+          <button type="button" className={route.area === 'account' ? 'side-nav-item active' : 'side-nav-item'}
+            onClick={() => navigate('/account')}>Профиль</button>
+          <button type="button" className="side-nav-item" onClick={() => { logout(); navigate('/login') }}>Выйти</button>
+        </div>
+      </aside>
+
+      <div className="shell">
+        <header className="topbar app-topbar">
+          <div>
+            <div className="muted small-text">Раздел</div>
+            <h1>{currentTitle}</h1>
+          </div>
+          <button type="button" className="primary" onClick={() => openRoller()}>Дайсроллер</button>
+        </header>
+        {route.unknown
+          ? <NotFound />
+          : route.area === 'characters'
+            ? (route.id
+                ? <SheetPage characterId={route.id}
+                    printing={route.sub === 'print'}
+                    onOpenPrint={() => navigate(`/characters/${route.id}/print`)}
+                    onClosePrint={() => navigate(`/characters/${route.id}`)}
+                    onBack={() => navigate('/characters')} />
+                : <CharactersPage onOpen={id => navigate(`/characters/${id}`)} />)
+            : route.area === 'campaigns'
+              ? <CampaignsPage openId={route.id}
+                  view={campaignView(route.sub)} openEncounterId={route.subId}
+                  onOpen={id => navigate(`/campaigns/${id}`)} onBack={() => navigate('/campaigns')}
+                  onView={view => navigate(view === 'overview' ? `/campaigns/${route.id}` : `/campaigns/${route.id}/${view}`)}
+                  onOpenEncounter={eid => navigate(`/campaigns/${route.id}/encounters/${eid}`)}
+                  onCloseEncounter={() => navigate(`/campaigns/${route.id}/encounters`)} />
+              : route.area === 'npcs'
+                ? <NpcsPage openId={route.id}
+                    onOpen={id => navigate(`/npcs/${id}`)} onBack={() => navigate('/npcs')} />
+                : route.area === 'magic'
+                  ? <MagicPage />
+                : route.area === 'account'
+                  ? <ProfilePage onBack={() => navigate('/characters')} />
+                  : route.area === 'help'
+                    ? <HelpPage loggedIn showFooter={false} />
+                    : <ReferencePage onNavigate={navigate} />}
+        <Footer />
+      </div>
     </div>
   )
 }
@@ -103,7 +137,9 @@ function NotFound() {
 export default function App() {
   return (
     <AuthProvider>
-      <Shell />
+      <DiceRollerProvider>
+        <Shell />
+      </DiceRollerProvider>
     </AuthProvider>
   )
 }

@@ -5,8 +5,9 @@ import type {
   InitiativeSlotType, NpcListItem, RollLogEntry,
 } from '../api/types'
 import { PARTICIPANT_TYPE_LABELS, SLOT_TYPE_LABELS } from '../utils/labels'
-import { DiceRoller, RollSymbolsView } from './DiceRoller'
+import { RollSymbolsView } from './DiceRoller'
 import type { RollSymbols } from '../utils/diceRoller'
+import { useDiceRoller } from '../dice-roller-store'
 
 interface Props {
   campaignId: string
@@ -404,6 +405,7 @@ function NotesBlock({ session, isGm, onRun, campaignId }: BlockProps) {
 function RollSection({ campaignId, isGm, refreshSignal }: { campaignId: string; isGm: boolean; refreshSignal?: number }) {
   const [rolls, setRolls] = useState<RollLogEntry[]>([])
   const [error, setError] = useState<string | null>(null)
+  const { openRoller } = useDiceRoller()
 
   const reload = useCallback(() =>
     api.rolls(campaignId).then(setRolls).catch(() => { /* лог не критичен */ }),
@@ -425,7 +427,14 @@ function RollSection({ campaignId, isGm, refreshSignal }: { campaignId: string; 
     <section className="panel gt-rolls">
       <h3>Броски кубов</h3>
       {error && <div className="error">{error}</div>}
-      <DiceRoller onLog={log} canSecret={isGm} />
+      <button type="button" className="primary" onClick={() => openRoller({
+        kind: 'roll',
+        title: 'Бросок стола',
+        onLog: log,
+        canSecret: isGm,
+      })}>
+        Открыть дайсроллер
+      </button>
 
       <div className="roll-log">
         {rolls.length === 0 && <p className="muted">Бросков пока нет.</p>}

@@ -5,8 +5,8 @@ import {
   CHARACTERISTICS, CHARACTERISTIC_LABELS, CHARACTERISTIC_SHORT_LABELS, localizedName, SKILL_KIND_LABELS,
 } from '../utils/labels'
 import { DicePoolView } from './DicePoolView'
-import { DiceRoller } from './DiceRoller'
 import { CriticalInjuriesSection } from './CriticalInjuriesSection'
+import { useDiceRoller } from '../dice-roller-store'
 
 interface Props {
   sheet: CharacterSheet
@@ -24,8 +24,7 @@ const SKILL_COLUMNS: SkillKind[][] = [
 
 export function SheetTab({ sheet, reference, onError, refresh }: Props) {
   const [heroicPick, setHeroicPick] = useState('')
-  // Локальный нарративный бросок по навыку (без записи в лог — лист вне контекста стола).
-  const [rollSkill, setRollSkill] = useState<{ label: string; ability: number; proficiency: number } | null>(null)
+  const { openRoller } = useDiceRoller()
 
   async function run(action: () => Promise<unknown>) {
     try {
@@ -148,7 +147,12 @@ export function SheetTab({ sheet, reference, onError, refresh }: Props) {
                               <td><DicePoolView pool={s.pool} /></td>
                               <td className="right">
                                 <button className="small" title={`Бросить пул навыка «${label}»`}
-                                  onClick={() => setRollSkill({ label, ability: s.pool.ability, proficiency: s.pool.proficiency })}>
+                                  onClick={() => openRoller({
+                                    kind: 'roll',
+                                    title: 'Бросок навыка',
+                                    label,
+                                    initialPool: { ability: s.pool.ability, proficiency: s.pool.proficiency },
+                                  })}>
                                   🎲
                                 </button>
                                 {sheet.isCreationPhase && s.ranks > s.freeRanks && (
@@ -179,19 +183,6 @@ export function SheetTab({ sheet, reference, onError, refresh }: Props) {
         </div>
       </section>
 
-      {rollSkill && (
-        <div className="modal-overlay" onClick={() => setRollSkill(null)}>
-          <div className="modal-card" onClick={e => e.stopPropagation()}>
-            <div className="modal-head">
-              <h3 className="inline-title">Бросок: {rollSkill.label}</h3>
-              <button className="small" onClick={() => setRollSkill(null)}>Закрыть</button>
-            </div>
-            <p className="muted small-text">Базовый пул из навыка. Добавьте сложность/бонусы/помехи под бросок.</p>
-            <DiceRoller initialPool={{ ability: rollSkill.ability, proficiency: rollSkill.proficiency }}
-              label={rollSkill.label} />
-          </div>
-        </div>
-      )}
     </div>
   )
 }
