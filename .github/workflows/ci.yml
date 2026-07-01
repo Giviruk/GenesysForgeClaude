@@ -90,6 +90,18 @@ jobs:
       - name: Start full stack
         run: docker compose up -d --build
 
+      - name: Wait for full stack
+        run: |
+          for i in {1..60}; do
+            if curl --fail --silent --show-error http://localhost:8080/api/auth/providers > /dev/null; then
+              echo "Full stack is ready"
+              exit 0
+            fi
+            sleep 2
+          done
+          docker compose logs --no-color --tail=200
+          exit 1
+
       - name: Run E2E smoke tests
         working-directory: frontend
         env:
