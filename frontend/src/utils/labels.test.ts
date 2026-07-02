@@ -1,5 +1,44 @@
 import { describe, expect, it } from 'vitest'
-import { difficultyLabel, magicSkillLabel, parseDifficulty, TALENT_CATEGORY_LABELS } from './labels'
+import {
+  difficultyLabel, dualName, magicSkillLabel, MAX_SPELL_DIFFICULTY, parseDifficulty, secondaryName,
+  spellDifficulty, TALENT_CATEGORY_LABELS, wouldExceedSpellCap,
+} from './labels'
+
+describe('RU/ENG отображение (secondaryName / dualName)', () => {
+  it('показывает английское название вторичным, когда оно отличается', () => {
+    const skill = { name: 'Melee', nameRu: 'Ближний бой' }
+    expect(secondaryName(skill)).toBe('Melee')
+    expect(dualName(skill)).toBe('Ближний бой / Melee')
+  })
+
+  it('не дублирует название, когда русского нет или оно совпадает', () => {
+    expect(secondaryName({ name: 'Melee', nameRu: '' })).toBe('')
+    expect(dualName({ name: 'Melee', nameRu: '' })).toBe('Melee')
+    expect(secondaryName({ name: 'Заклинание', nameRu: 'Заклинание' })).toBe('')
+  })
+
+  it('игнорирует регистр и пробелы при сравнении', () => {
+    expect(secondaryName({ name: ' melee ', nameRu: 'Melee' })).toBe('')
+  })
+})
+
+describe('spellDifficulty / wouldExceedSpellCap (потолок 5)', () => {
+  it('складывает базовую сложность и доп. эффекты', () => {
+    expect(spellDifficulty('2 (Average)', [])).toBe(2)
+    expect(spellDifficulty('2 (Average)', ['+1', '+2'])).toBe(5)
+  })
+
+  it('блокирует эффект, превышающий потолок 5', () => {
+    expect(wouldExceedSpellCap('2 (Average)', ['+1', '+2'], '+1')).toBe(true)
+    expect(wouldExceedSpellCap('2 (Average)', ['+1'], '+2')).toBe(false)
+    expect(wouldExceedSpellCap('3 (Hard)', [], '+2')).toBe(false)
+    expect(wouldExceedSpellCap('3 (Hard)', ['+2'], '+1')).toBe(true)
+  })
+
+  it('потолок равен 5', () => {
+    expect(MAX_SPELL_DIFFICULTY).toBe(5)
+  })
+})
 
 describe('magicSkillLabel', () => {
   it('переводит известные магические навыки', () => {

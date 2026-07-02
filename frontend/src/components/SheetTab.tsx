@@ -2,7 +2,8 @@ import { useState } from 'react'
 import { api } from '../api/client'
 import type { ActivateCharacterAbilityResult, CharacterSheet, Reference, SkillKind } from '../api/types'
 import {
-  CHARACTERISTICS, CHARACTERISTIC_LABELS, CHARACTERISTIC_SHORT_LABELS, localizedName, SKILL_KIND_LABELS,
+  CHARACTERISTICS, CHARACTERISTIC_LABELS, CHARACTERISTIC_SHORT_LABELS, localizedName, secondaryName,
+  SKILL_KIND_LABELS,
 } from '../utils/labels'
 import { DicePoolView } from './DicePoolView'
 import { CriticalInjuriesSection } from './CriticalInjuriesSection'
@@ -136,9 +137,13 @@ export function SheetTab({ sheet, reference, onError, refresh }: Props) {
                       <tbody>
                         {skills.map(s => {
                           const label = localizedName(s)
+                          const original = secondaryName(s)
                           return (
                             <tr key={s.skillDefId}>
-                              <td className="ellipsis" title={label}>{label}</td>
+                              <td className="ellipsis" title={original ? `${label} / ${original}` : label}>
+                                {label}
+                                {original && <span className="muted small-text name-secondary"> · {original}</span>}
+                              </td>
                               <td className="muted" title={CHARACTERISTIC_LABELS[s.characteristic]}>
                                 {CHARACTERISTIC_SHORT_LABELS[s.characteristic]}
                               </td>

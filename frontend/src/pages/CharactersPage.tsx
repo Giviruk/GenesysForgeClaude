@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState, type ChangeEvent, type FormEvent } from 'react'
 import { api } from '../api/client'
 import type { CharacterExport, CharacterListItem, GameSystem, ImportPreview, Reference } from '../api/types'
-import { CHARACTERISTICS, CHARACTERISTIC_LABELS, SYSTEM_LABELS } from '../utils/labels'
+import { CHARACTERISTICS, CHARACTERISTIC_LABELS, dualName, SYSTEM_LABELS } from '../utils/labels'
 
 interface Props {
   onOpen: (id: string) => void
@@ -199,8 +199,11 @@ export function CreateCharacterForm({ onCancel, onCreated }: { onCancel: () => v
 
   const archetype = reference?.archetypes.find(a => a.id === archetypeId)
   const career = reference?.careers.find(c => c.id === careerId)
-  // EN-имя навыка → RU для подписей чипов (значение для бэкенда остаётся английским).
-  const skillRu = (name: string) => reference?.skills.find(s => s.name === name)?.nameRu || name
+  // EN-имя навыка → RU/ENG подпись чипа (значение для бэкенда остаётся английским).
+  const skillRu = (name: string) => {
+    const def = reference?.skills.find(s => s.name === name)
+    return def ? dualName(def) : name
+  }
 
   const fixedStartingSkills = (archetype?.startingSkills ?? []).filter(s => !s.isChoice && s.skillName)
   const choiceGroups = (archetype?.startingSkills ?? []).filter(s => s.isChoice)
@@ -319,7 +322,7 @@ export function CreateCharacterForm({ onCancel, onCreated }: { onCancel: () => v
                   <button key={s.id} type="button"
                     className={picked.includes(s.name) ? 'chip active' : 'chip'}
                     onClick={() => toggleChoiceSkill(g.choiceGroup, s.name, g.choiceCount)}>
-                    {s.nameRu || s.name}
+                    {dualName(s)}
                   </button>
                 ))}
               </div>
