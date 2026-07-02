@@ -84,8 +84,8 @@ function Shell() {
       <div className="shell">
         <header className="topbar app-topbar">
           <div>
-            <div className="muted small-text">Раздел</div>
             <h1>{currentTitle}</h1>
+            <div className="page-sub">Рабочая область</div>
           </div>
           <button type="button" className="primary" onClick={() => openRoller()}>Дайсроллер</button>
         </header>
