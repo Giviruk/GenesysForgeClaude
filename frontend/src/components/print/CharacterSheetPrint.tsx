@@ -2,8 +2,8 @@ import { useEffect, useState } from 'react'
 import { api } from '../../api/client'
 import type { CharacterNote, CharacterSheet, ItemState, Reference, SheetSkill, SkillKind } from '../../api/types'
 import {
-  CHARACTERISTICS, CHARACTERISTIC_LABELS, ITEM_STATE_LABELS, resolveWeaponSkillName, SKILL_KIND_LABELS,
-  SYSTEM_LABELS, localizedName,
+  CHARACTERISTICS, CHARACTERISTIC_LABELS, ITEM_STATE_LABELS, resolveWeaponSkillName, secondaryName,
+  SKILL_KIND_LABELS, SYSTEM_LABELS, localizedName,
 } from '../../utils/labels'
 import { DicePoolView } from '../DicePoolView'
 
@@ -139,9 +139,11 @@ export function CharacterSheetPrint({ sheet, loadNotes = true }: {
                   i.meleeDefense ? `защ. ближ. +${i.meleeDefense}` : '',
                   i.rangedDefense ? `защ. дальн. +${i.rangedDefense}` : '',
                 ].filter(Boolean).join(', ')
+                const itemOriginal = secondaryName(i)
                 return (
                   <div key={i.id} className="sheet-entry">
                     <strong>{itemLabel}</strong>
+                    {itemOriginal && <span className="sheet-meta"> · {itemOriginal}</span>}
                     <span className="sheet-meta">
                       {' '}×{i.quantity} · нагрузка {i.encumbrance}
                       {combat ? ` · ${combat}` : ''}
@@ -262,7 +264,10 @@ function SkillGroup({ kind, skills }: SkillGroupData) {
         <tbody>
           {skills.map(skill => (
             <tr key={skill.skillDefId}>
-              <td>{localizedName(skill)}</td>
+              <td>
+                {localizedName(skill)}
+                {secondaryName(skill) && <span className="sheet-meta"> · {secondaryName(skill)}</span>}
+              </td>
               <td>{CHARACTERISTIC_LABELS[skill.characteristic]}</td>
               <td>{skill.isCareer ? '✓' : ''}</td>
               <td>{skill.ranks}</td>

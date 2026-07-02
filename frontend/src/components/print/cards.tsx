@@ -4,7 +4,7 @@ import type {
 import {
   CHARACTERISTIC_LABELS, ENCOUNTER_TYPE_LABELS, ITEM_KIND_LABELS, NPC_KIND_LABELS, NPC_ROLE_LABELS,
   PARTICIPANT_TYPE_LABELS, SLOT_TYPE_LABELS, SYSTEM_LABELS, THREAT_LEVEL_LABELS, difficultyLabel,
-  localizedName, magicSkillLabel,
+  localizedName, magicSkillLabel, secondaryName,
 } from '../../utils/labels'
 import type { PrintVersion } from './PrintPreview'
 
@@ -151,7 +151,9 @@ export function ItemCard({ item, skillLabel }: { item: SheetItem; skillLabel?: s
     <article className="print-card">
       <header className="pcard-head">
         <h3>{localizedName(item)}</h3>
-        <span className="pcard-sub">{ITEM_KIND_LABELS[item.kind]}</span>
+        <span className="pcard-sub">
+          {secondaryName(item) && `${secondaryName(item)} · `}{ITEM_KIND_LABELS[item.kind]}
+        </span>
       </header>
       <div className="pcard-line">
         <span><b>Габариты</b> {item.encumbrance}</span>

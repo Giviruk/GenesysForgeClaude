@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react'
 import { api } from '../api/client'
 import type { CharacterSheet, ItemDef, ItemKind, ItemState, Reference, SheetItem } from '../api/types'
 import {
-  CURRENCY_LABEL, ITEM_KIND_LABELS, ITEM_STATE_LABELS, localizedName, resolveWeaponSkillName,
+  CURRENCY_LABEL, ITEM_KIND_LABELS, ITEM_STATE_LABELS, localizedName, resolveWeaponSkillName, secondaryName,
 } from '../utils/labels'
 import { itemTags } from '../data/itemQualities'
 import { DicePoolView } from './DicePoolView'
@@ -229,11 +229,13 @@ function ShopRow({ item, money, run, sheetId, open, onToggle }: {
   item: ItemDef; money: number; run: Run; sheetId: string; open: boolean; onToggle: () => void
 }) {
   const itemLabel = localizedName(item)
+  const itemOriginal = secondaryName(item)
   return (
     <div className="shop-row">
       <div className="shop-row-head">
         <div className="shop-row-info">
           <strong>{itemLabel}</strong>
+          {itemOriginal && <span className="muted small-text name-secondary"> · {itemOriginal}</span>}
           <div className="muted small-text">
             {ITEM_KIND_LABELS[item.kind]} · цена {item.price} · редкость {item.rarity}
             {item.isCustom && ' · кастом'}
@@ -284,7 +286,10 @@ function InventoryCard({ item, sheet, skillNames, run, reference, sellOpen, onTo
       <div className="inv-card-head">
         <div className="inv-card-title">
           <strong>{itemLabel}</strong>
-          <span className="muted small-text"> · {ITEM_KIND_LABELS[item.kind]}{item.price > 0 && ` · ${item.price} 🪙`}</span>
+          <span className="muted small-text">
+            {secondaryName(item) && ` · ${secondaryName(item)}`}
+            {` · ${ITEM_KIND_LABELS[item.kind]}`}{item.price > 0 && ` · ${item.price} 🪙`}
+          </span>
         </div>
         <div className="inv-card-qty">
           <button className="tiny" onClick={() => item.quantity > 1 &&

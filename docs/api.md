@@ -461,12 +461,13 @@ GET    /api/npcs/
 GET    /api/npcs/{id}
 POST   /api/npcs/
 POST   /api/npcs/quick-draft
+POST   /api/npcs/quick-draft/preview
 POST   /api/npcs/{id}/duplicate
 PUT    /api/npcs/{id}
 DELETE /api/npcs/{id}
 ```
 
-List supports optional query filters used by the frontend: `search`, `system`, `kind`, `role`, `campaignId`, `tag`, `sort`. Create/update use `NpcInput`. Quick draft uses `QuickDraftRequest` and is deterministic for the same request.
+List supports optional query filters used by the frontend: `search`, `system`, `kind`, `role`, `campaignId`, `tag`, `sort`. Create/update use `NpcInput`. Quick draft uses `QuickDraftRequest` and is deterministic for the same request. `quick-draft/preview` runs the same generator and returns the resulting `NpcDetail` without persisting anything — the quick draft form uses it for live preview.
 
 ## Game Table
 

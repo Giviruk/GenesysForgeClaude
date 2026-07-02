@@ -289,9 +289,20 @@ function RuleTable({ kind, entries, showCost = true }:
         <tbody>
           {entries.map(e => (
             <tr key={e.code}>
-              <td className="ref-first">{firstValue(e)}</td>
+              <td className="ref-first">
+                {firstValue(e)}
+                {kind !== 'symbolSpend' && kind !== 'criticalInjury' && e.nameEn && e.nameEn !== e.nameRu && (
+                  <span className="muted small-text name-secondary"> · {e.nameEn}</span>
+                )}
+              </td>
               {kind === 'criticalInjury' && (
-                <td>{e.nameRu}{e.groupRu && <span className="muted"> · {e.groupRu}</span>}</td>
+                <td>
+                  {e.nameRu}
+                  {e.nameEn && e.nameEn !== e.nameRu && (
+                    <span className="muted small-text name-secondary"> · {e.nameEn}</span>
+                  )}
+                  {e.groupRu && <span className="muted"> · {e.groupRu}</span>}
+                </td>
               )}
               {showCost && <td className="ref-cost">{e.symbolCost}</td>}
               <td>

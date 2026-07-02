@@ -12,8 +12,20 @@ public partial class QuickDraftNpcHandler(IAppDbContext db) : ICommandHandler<Qu
 {
     public async Task<NpcDetailDto> Handle(QuickDraftNpcCommand command, CancellationToken ct = default)
     {
-        var r = command.Request;
-        var npc = NpcDraftGenerator.Generate(command.UserId,
+        var npc = await BuildDraftAsync(db, command.UserId, command.Request, ct);
+
+        db.Npcs.Add(npc);
+        await db.SaveChangesAsync(ct);
+        return NpcMapper.ToDetail(npc, command.UserId);
+    }
+
+    /// <summary>
+    /// Собирает валидированный черновик NPC без сохранения. Общий код для создания
+    /// (QuickDraftNpcCommand) и live preview (PreviewQuickDraftNpcQuery).
+    /// </summary>
+    internal static async Task<Npc> BuildDraftAsync(IAppDbContext db, Guid userId, QuickDraftRequest r, CancellationToken ct)
+    {
+        var npc = NpcDraftGenerator.Generate(userId,
             new NpcDraftRequest(r.System, r.Kind, r.Role, r.PowerLevel, r.PrimaryCharacteristic, r.CombatStyle,
                 r.Name, r.Template, r.MagicSkill, r.Environment));
 
@@ -21,20 +33,17 @@ public partial class QuickDraftNpcHandler(IAppDbContext db) : ICommandHandler<Qu
         // вторичные навыки — чтобы у черновика сразу были пулы кубов, видимый доспех и
         // согласованное с ним поглощение/защита.
         var skills = await db.SkillDefs.AsNoTracking()
-            .Where(s => s.System == r.System && (s.OwnerUserId == null || s.OwnerUserId == command.UserId))
+            .Where(s => s.System == r.System && (s.OwnerUserId == null || s.OwnerUserId == userId))
             .ToListAsync(ct);
         var items = await db.ItemDefs.AsNoTracking()
             .Include(i => i.Qualities).ThenInclude(q => q.QualityDef)
             .Where(i => i.System == r.System && (i.Kind == ItemKind.Weapon || i.Kind == ItemKind.Armor)
-                && (i.OwnerUserId == null || i.OwnerUserId == command.UserId))
+                && (i.OwnerUserId == null || i.OwnerUserId == userId))
             .ToListAsync(ct);
         ApplyCatalogLoadout(npc, r, skills, items);
 
         NpcValidator.ValidateAndThrow(npc);
-
-        db.Npcs.Add(npc);
-        await db.SaveChangesAsync(ct);
-        return NpcMapper.ToDetail(npc, command.UserId);
+        return npc;
     }
 
     /// <summary>

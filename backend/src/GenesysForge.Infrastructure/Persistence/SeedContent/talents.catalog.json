@@ -155,7 +155,7 @@
   "code": "zakalennyy",
   "name": "Закалённый",
   "nameRu": "Закалённый",
-  "category": "general",
+  "category": "combat",
   "tier": 1,
   "ranked": true,
   "setting": [
@@ -193,7 +193,7 @@
   "code": "krepost",
   "name": "Крепость",
   "nameRu": "Крепость",
-  "category": "general",
+  "category": "combat",
   "tier": 1,
   "ranked": true,
   "setting": [
@@ -307,7 +307,7 @@
   "code": "podskok",
   "name": "Подскок",
   "nameRu": "Подскок",
-  "category": "general",
+  "category": "combat",
   "tier": 1,
   "ranked": false,
   "setting": [
@@ -688,7 +688,7 @@
   "code": "geroicheskaya-volya",
   "name": "Героическая воля",
   "nameRu": "Героическая воля",
-  "category": "general",
+  "category": "combat",
   "tier": 3,
   "ranked": false,
   "setting": [
@@ -878,7 +878,7 @@
   "code": "vynoslivost",
   "name": "Выносливость",
   "nameRu": "Выносливость",
-  "category": "general",
+  "category": "combat",
   "tier": 4,
   "ranked": true,
   "setting": [
@@ -1030,7 +1030,7 @@
   "code": "neukrotimyy",
   "name": "Неукротимый",
   "nameRu": "Неукротимый",
-  "category": "general",
+  "category": "combat",
   "tier": 5,
   "ranked": false,
   "setting": [
@@ -1392,7 +1392,7 @@
   "code": "tumble",
   "name": "Tumble",
   "nameRu": "Кувырок",
-  "category": "general",
+  "category": "combat",
   "tier": 1,
   "ranked": false,
   "setting": [

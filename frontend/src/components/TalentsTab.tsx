@@ -2,7 +2,8 @@ import { useState } from 'react'
 import { api } from '../api/client'
 import type { Characteristic, CharacterSheet, Reference, SheetTalent, TalentCategory, TalentDef } from '../api/types'
 import {
-  CHARACTERISTICS, CHARACTERISTIC_LABELS, nextRankTier, TALENT_CATEGORIES, TALENT_CATEGORY_LABELS, talentCost,
+  CHARACTERISTICS, CHARACTERISTIC_LABELS, localizedName, nextRankTier, secondaryName,
+  TALENT_CATEGORIES, TALENT_CATEGORY_LABELS, talentCost,
 } from '../utils/labels'
 import { canPurchaseTier, canRemoveTier } from '../utils/pyramid'
 import { talentBonusSummary } from '../utils/talentBonuses'
@@ -79,7 +80,7 @@ export function TalentsTab({ sheet, reference, onError, refresh }: Props) {
       const tier = Math.min(base + r, 5)
       cardsByTier.get(tier)!.push({
         key: `${t.talentDefId}-${r}`,
-        name: t.nameRu || t.name,
+        name: localizedName(t),
         description: t.description,
         activation: t.activation,
         isRanked: t.isRanked,
@@ -206,7 +207,9 @@ export function TalentsTab({ sheet, reference, onError, refresh }: Props) {
               <div key={t.id} className="talent-row">
                 <div className="talent-info">
                   <strong>
-                    {t.nameRu || t.name} <span className="badge tier">Тир {t.tier}</span>
+                    {localizedName(t)}
+                    {secondaryName(t) && <span className="muted small-text name-secondary"> · {secondaryName(t)}</span>}
+                    {' '}<span className="badge tier">Тир {t.tier}</span>
                     <span className="badge">{TALENT_CATEGORY_LABELS[t.category]}</span>
                     {t.isRanked && <span className="badge">Ранговый{ranksOwned > 0 ? `: ${ranksOwned}` : ''}</span>}
                     {t.isCustom && <span className="badge custom">Кастом</span>}
@@ -246,7 +249,7 @@ export function TalentsTab({ sheet, reference, onError, refresh }: Props) {
       {pickFor && (
         <div className="modal-backdrop" onClick={() => setPickFor(null)}>
           <div className="modal" onClick={e => e.stopPropagation()}>
-            <h3>{pickFor.nameRu || pickFor.name}: выбор характеристики</h3>
+            <h3>{localizedName(pickFor)}: выбор характеристики</h3>
             <p className="hint">Талант увеличивает выбранную характеристику на 1 (не выше {TALENT_CHARACTERISTIC_MAX}).</p>
             <div className="chips">
               {grantableCharacteristics(pickFor).map(c => (

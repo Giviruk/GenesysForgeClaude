@@ -118,6 +118,28 @@ public class ContentSeedTests
     }
 
     [Fact]
+    public void TalentCategories_SyncFromCatalog_OnReseed()
+    {
+        using var db = NewDb();
+        SeedData.Apply(db, ContentMode.PrivateFull);
+
+        // Талант выживаемости в бою категоризирован осмысленно (combat), а не по умолчанию.
+        var toughened = db.TalentDefs.First(t => t.Code == "rot.talent.zakalennyy");
+        Assert.Equal(TalentCategory.Combat, toughened.Category);
+
+        // Смена категории в каталоге подхватывается повторным сидом на существующей БД
+        // (SeedMissing аддитивен — категорию обновляет SyncTalentCategories).
+        toughened.Category = TalentCategory.General;
+        db.SaveChanges();
+        SeedData.Apply(db, ContentMode.PrivateFull);
+        Assert.Equal(TalentCategory.Combat,
+            db.TalentDefs.First(t => t.Code == "rot.talent.zakalennyy").Category);
+
+        // Custom-таланты синхронизация не трогает.
+        Assert.All(db.TalentDefs.Where(t => t.OwnerUserId != null), t => Assert.True(Enum.IsDefined(t.Category)));
+    }
+
+    [Fact]
     public void TalentCatalog_SeedsBothSystems_WithRussianNames()
     {
         using var db = NewDb();

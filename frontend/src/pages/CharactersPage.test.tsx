@@ -85,9 +85,10 @@ describe('CreateCharacterForm — стартовые навыки вида (U-12
     expect(screen.getByText(/выберите 2 разных некарьерных/)).toBeTruthy()
     expect(screen.getByRole('button', { name: 'Создать' })).toHaveProperty('disabled', true)
 
-    // карьерные навыки (Атлетика/Хладнокровие) не предлагаются как некарьерный выбор
-    fireEvent.click(screen.getByRole('button', { name: 'Скрытность' }))
-    fireEvent.click(screen.getByRole('button', { name: 'Координация' }))
+    // карьерные навыки (Атлетика/Хладнокровие) не предлагаются как некарьерный выбор;
+    // чипы показывают RU/ENG подпись
+    fireEvent.click(screen.getByRole('button', { name: 'Скрытность / Stealth' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Координация / Coordination' }))
 
     const submit = screen.getByRole('button', { name: 'Создать' })
     expect(submit).toHaveProperty('disabled', false)

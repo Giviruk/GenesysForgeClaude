@@ -69,6 +69,25 @@ export const localizedName = (value: { name: string; nameRu?: string | null }) =
   value.nameRu?.trim() || value.name
 
 /**
+ * Вторичное (оригинальное/английское) название для RU/ENG отображения.
+ * Пустая строка, если оно совпадает с основным (нечего дублировать) или отсутствует.
+ */
+export const secondaryName = (value: { name: string; nameRu?: string | null }): string => {
+  const primary = localizedName(value).trim()
+  const original = value.name.trim()
+  return original && original.toLowerCase() !== primary.toLowerCase() ? original : ''
+}
+
+/**
+ * Однострочный RU/ENG формат для option/плоского текста: «Ближний бой / Melee».
+ * Для разметки со стилями используйте пару localizedName + secondaryName.
+ */
+export const dualName = (value: { name: string; nameRu?: string | null }): string => {
+  const original = secondaryName(value)
+  return original ? `${localizedName(value)} / ${original}` : localizedName(value)
+}
+
+/**
  * Подбирает навык листа для броска оружием. Оружие хранит англ. имя навыка
  * (например, «Melee (Light)»), но в Genesys Core навык называется просто «Melee» —
  * поэтому при отсутствии точного совпадения пробуем базовое имя без скобок.
@@ -114,6 +133,20 @@ export const parseDifficulty = (raw: string): number => {
   const m = raw.match(/-?\d+/)
   return m ? parseInt(m[0], 10) : 0
 }
+
+/** Потолок итоговой сложности магического действия по правилам Genesys. */
+export const MAX_SPELL_DIFFICULTY = 5
+
+/**
+ * Итоговая сложность магического действия без потолка: базовый эффект + сумма
+ * выбранных дополнительных эффектов. Строки «2 (Average)» и «+1» считаются parseDifficulty.
+ */
+export const spellDifficulty = (baseDifficulty: string, additional: string[]): number =>
+  parseDifficulty(baseDifficulty) + additional.reduce((sum, d) => sum + parseDifficulty(d), 0)
+
+/** true, если добавление эффекта с данной сложностью превысит потолок 5. */
+export const wouldExceedSpellCap = (baseDifficulty: string, chosen: string[], candidate: string): boolean =>
+  spellDifficulty(baseDifficulty, chosen) + parseDifficulty(candidate) > MAX_SPELL_DIFFICULTY
 
 export const NPC_KIND_LABELS: Record<NpcKind, string> = {
   minion: 'Миньон',

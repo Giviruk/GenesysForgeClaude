@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { api } from '../api/client'
 import type { DicePool, GameSystem, Spell } from '../api/types'
-import { difficultyLabel, magicSkillLabel, parseDifficulty } from '../utils/labels'
+import {
+  difficultyLabel, magicSkillLabel, MAX_SPELL_DIFFICULTY, parseDifficulty, wouldExceedSpellCap,
+} from '../utils/labels'
 import { DicePoolView } from './DicePoolView'
 import { PrintPreview } from './print/PrintPreview'
 import { MagicActionCard, type MagicCardData } from './print/cards'
@@ -56,17 +58,27 @@ export function MagicBuilder({ system, characterSkills, onError }: Props) {
     [spells, activeEffectCode])
 
   const chosen = additional.filter(a => selectedIds.has(a.id))
+  const chosenDifficulties = chosen.map(a => a.difficulty)
   const baseDifficulty = selectedEffect ? parseDifficulty(selectedEffect.difficulty) : 0
   const added = chosen.reduce((sum, a) => sum + parseDifficulty(a.difficulty), 0)
-  const totalDifficulty = Math.min(5, baseDifficulty + added) // потолок сложности Genesys — 5
+  // Добавление эффектов сверх потолка блокируется, поэтому сумма не превышает 5; min — страховка отображения.
+  const totalDifficulty = Math.min(MAX_SPELL_DIFFICULTY, baseDifficulty + added)
+  const capReached = baseDifficulty + added >= MAX_SPELL_DIFFICULTY
 
   // Пул кубов персонажа для выбранного направления (если передан лист).
   const charPool = characterSkills?.find(s => s.name === activeSkill)?.pool ?? null
 
-  const toggle = (id: string) => {
+  // Снять эффект можно всегда; добавить — только пока итоговая сложность не превысит потолок 5.
+  const toggle = (effect: Spell) => {
     setSelectedIds(prev => {
       const next = new Set(prev)
-      if (next.has(id)) next.delete(id); else next.add(id)
+      if (next.has(effect.id)) {
+        next.delete(effect.id)
+        return next
+      }
+      if (selectedEffect && wouldExceedSpellCap(selectedEffect.difficulty, chosenDifficulties, effect.difficulty))
+        return prev
+      next.add(effect.id)
       return next
     })
   }
@@ -150,6 +162,21 @@ export function MagicBuilder({ system, characterSkills, onError }: Props) {
             {totalDifficulty === 0 && <span className="muted">— (простая проверка)</span>}
           </div>
           {added > 0 && <div className="muted small-text">Базовая {baseDifficulty} + дополнительные {added}</div>}
+          {capReached && (
+            <div className="muted small-text cap-note">
+              Достигнут потолок сложности {MAX_SPELL_DIFFICULTY} — новые эффекты добавить нельзя.
+            </div>
+          )}
+          {chosen.length > 0 && (
+            <div className="chips effect-summary">
+              {chosen.map(a => (
+                <span key={a.id} className="chip active removable" title={a.safeDescription || a.description}>
+                  {a.nameRu} <span className="effect-chip-diff">{a.difficulty}</span>
+                  <button type="button" aria-label={`Убрать эффект «${a.nameRu}»`} onClick={() => toggle(a)}>×</button>
+                </span>
+              ))}
+            </div>
+          )}
           <p>{selectedEffect.description || selectedEffect.safeDescription}</p>
           <div className="muted small-text">Источник: {selectedEffect.source}</div>
           <div className="card-actions">
@@ -160,26 +187,54 @@ export function MagicBuilder({ system, characterSkills, onError }: Props) {
       )}
 
       <section className="panel">
-        <h3>Дополнительные эффекты {additional.length ? `(выбрано ${chosen.length} из ${additional.length})` : ''}</h3>
-        <p className="hint">Каждый эффект повышает сложность; описание содержит траты преимуществ/угроз при активации.</p>
+        <div className="spells-head">
+          <h3>Дополнительные эффекты {additional.length ? `(выбрано ${chosen.length} из ${additional.length})` : ''}</h3>
+          {capReached && additional.length > 0 && (
+            <span className="difficulty-badge cap">потолок {MAX_SPELL_DIFFICULTY} достигнут</span>
+          )}
+        </div>
+        <p className="hint">
+          Каждый эффект повышает сложность на «+N». Итоговая сложность не может превышать {MAX_SPELL_DIFFICULTY} —
+          недоступные эффекты подсвечены и не добавляются.
+        </p>
         {additional.length === 0
           ? <p className="muted">У этого базового эффекта нет дополнительных эффектов.</p>
           : (
-            <div className="effect-list">
-              {additional.map(a => {
-                const on = selectedIds.has(a.id)
-                return (
-                  <label key={a.id} className={on ? 'effect-row on' : 'effect-row'}>
-                    <input type="checkbox" checked={on} onChange={() => toggle(a.id)} />
-                    <span className="effect-main">
-                      <strong>{a.nameRu}</strong> <span className="muted small-text">{a.nameEn}</span>
-                      <span className="difficulty-badge">{a.difficulty}</span>
+            <>
+              <div className="chips effect-chips">
+                {additional.map(a => {
+                  const on = selectedIds.has(a.id)
+                  const blocked = !on && selectedEffect != null
+                    && wouldExceedSpellCap(selectedEffect.difficulty, chosenDifficulties, a.difficulty)
+                  const description = a.safeDescription || a.description
+                  const title = blocked
+                    ? `Недоступно: базовая ${baseDifficulty} + выбранные ${added} + ${a.difficulty} превысит потолок ${MAX_SPELL_DIFFICULTY}`
+                    : `${a.nameEn} · ${a.difficulty}${description ? ` — ${description}` : ''}`
+                  return (
+                    <button key={a.id} type="button"
+                      className={`chip effect-chip${on ? ' active' : ''}${blocked ? ' blocked' : ''}`}
+                      disabled={blocked}
+                      aria-pressed={on}
+                      title={title}
+                      onClick={() => toggle(a)}>
+                      {a.nameRu} <span className="effect-chip-diff">{a.difficulty}</span>
+                    </button>
+                  )
+                })}
+              </div>
+              <details className="effect-descriptions">
+                <summary>Описания эффектов ({additional.length})</summary>
+                <ul>
+                  {additional.map(a => (
+                    <li key={a.id}>
+                      <strong>{a.nameRu}</strong> <span className="muted small-text">{a.nameEn}</span>{' '}
+                      <span className="effect-chip-diff">{a.difficulty}</span>
                       <div className="small-text">{a.safeDescription || a.description}</div>
-                    </span>
-                  </label>
-                )
-              })}
-            </div>
+                    </li>
+                  ))}
+                </ul>
+              </details>
+            </>
           )}
       </section>
     </div>

@@ -474,7 +474,10 @@ function StoryPointsBlock({ session, isGm, onSessionRun }: {
           <button className="small" onClick={() => set({ gmStoryPoints: gm + 1 })}>+ Мастер</button>
           <button className="small" disabled={player <= 0} onClick={() => set({ playerStoryPoints: player - 1 })}>− Игроки</button>
           <button className="small" disabled={gm <= 0} onClick={() => set({ gmStoryPoints: gm - 1 })}>− Мастер</button>
-          <button className="small wide" disabled={player <= 0} onClick={() => set({ playerStoryPoints: player - 1, gmStoryPoints: gm + 1 })}>⇄ Мастеру</button>
+          <button className="small" disabled={player <= 0} title="Игроки → мастер"
+            onClick={() => set({ playerStoryPoints: player - 1, gmStoryPoints: gm + 1 })}>⇄ Мастеру</button>
+          <button className="small" disabled={gm <= 0} title="Мастер → игроки"
+            onClick={() => set({ gmStoryPoints: gm - 1, playerStoryPoints: player + 1 })}>⇄ Игрокам</button>
         </div>
       ) : (
         <p className="muted">Сюжетные очки появятся после запуска сцены.</p>

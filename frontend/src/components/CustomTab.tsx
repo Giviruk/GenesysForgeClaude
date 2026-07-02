@@ -6,7 +6,7 @@ import type {
   TalentCategory,
 } from '../api/types'
 import {
-  CHARACTERISTICS, CHARACTERISTIC_LABELS, ITEM_KIND_LABELS, SKILL_KIND_LABELS, localizedName,
+  CHARACTERISTICS, CHARACTERISTIC_LABELS, dualName, ITEM_KIND_LABELS, SKILL_KIND_LABELS,
   TALENT_CATEGORIES, TALENT_CATEGORY_LABELS,
 } from '../utils/labels'
 
@@ -55,7 +55,8 @@ export function CustomTab({ sheet, reference, onError, refresh }: Props) {
         <p className="hint">
           Создавайте и редактируйте собственные навыки, таланты, предметы и героические способности для системы
           «{sheet.system === 'genesysCore' ? 'Genesys Core' : 'Realms of Terrinoth'}».
-          Они видны только вам и подчиняются всем правилам системы. Удаление недоступно, пока контент используется персонажем.
+          Кастом привязан к вашему аккаунту, а не к этому персонажу: он виден только вам, но доступен
+          во всех ваших персонажах и NPC этой системы. Удаление недоступно, пока контент используется персонажем.
         </p>
         <div className="tabs">
           <button className={section === 'skill' ? 'tab active' : 'tab'} onClick={() => setSection('skill')}>Навыки</button>
@@ -437,7 +438,7 @@ function ItemForm({ sheet, reference, run, editing, onDone }: { sheet: Character
             <select value={weapon.skillName} onChange={e => setWeapon(w => ({ ...w, skillName: e.target.value }))}>
               <option value="">— не задан —</option>
               {sheet.skills.filter(s => s.kind === 'combat').map(s => (
-                <option key={s.skillDefId} value={s.name}>{localizedName(s)}</option>
+                <option key={s.skillDefId} value={s.name}>{dualName(s)}</option>
               ))}
             </select>
           </label>
@@ -641,7 +642,7 @@ function CareerForm({ sheet, reference, run, editing, onDone }: {
         {skills.map(s => (
           <button key={s.id} type="button" className={careerSkillNames.includes(s.name) ? 'chip active' : 'chip'}
             onClick={() => toggleSkill(s.name)}>
-            {s.nameRu || s.name}
+            {dualName(s)}
           </button>
         ))}
       </div>

@@ -281,6 +281,8 @@ export const api = {
   deleteNpc: (id: string) => request<void>('DELETE', `/api/npcs/${id}`),
   duplicateNpc: (id: string) => request<NpcDetail>('POST', `/api/npcs/${id}/duplicate`),
   quickDraftNpc: (req: QuickDraftRequest) => request<NpcDetail>('POST', '/api/npcs/quick-draft', req),
+  // Live preview черновика: генерация тем же кодом, что и создание, но без сохранения.
+  previewQuickDraftNpc: (req: QuickDraftRequest) => request<NpcDetail>('POST', '/api/npcs/quick-draft/preview', req),
   applyNpcTemplate: (input: NpcInput, template: CreatureTemplate) =>
     request<NpcDetail>('POST', '/api/npcs/apply-template', { input, template }),
 

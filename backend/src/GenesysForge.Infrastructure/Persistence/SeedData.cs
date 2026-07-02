@@ -66,6 +66,9 @@ public static class SeedData
 
         if (added) db.SaveChanges();
 
+        // Категории встроенных талантов синхронизируются с каталогом (аддитивный SeedMissing строки не обновляет).
+        SyncTalentCategories(db, talents);
+
         // Стартовое снаряжение/деньги/правила карьер из каталога extras (идемпотентно, поверх засиженных карьер).
         SeedCareerExtras(db);
 
@@ -294,6 +297,29 @@ public static class SeedData
             changed = true;
         }
         return changed;
+    }
+
+    /// <summary>
+    /// Идемпотентно синхронизирует категорию встроенных талантов с каталогом по стабильному Code.
+    /// Категория — данные отображения/фильтра и не влияет на цену, ранги и пирамиду, поэтому
+    /// обновляется на существующих БД без миграции. Custom-таланты (OwnerUserId != null) не трогаются.
+    /// </summary>
+    private static void SyncTalentCategories(AppDbContext db, IReadOnlyList<TalentDef> catalog)
+    {
+        var wanted = new Dictionary<string, TalentCategory>();
+        foreach (var def in catalog)
+            if (!string.IsNullOrEmpty(def.Code))
+                wanted[def.Code] = def.Category;
+
+        var changed = false;
+        foreach (var row in db.TalentDefs.Where(t => t.OwnerUserId == null && t.Code != "").ToList())
+            if (wanted.TryGetValue(row.Code, out var category) && row.Category != category)
+            {
+                row.Category = category;
+                changed = true;
+            }
+
+        if (changed) db.SaveChanges();
     }
 
     /// <summary>
