@@ -44,12 +44,12 @@
 - [x] Миграция НЕ требуется (persistent model не меняется) → `docs/database.md` без изменений; `docs/api.md` дополнен preview-endpoint
 - [x] Copyright-проверка: тексты талантов/эффектов не менялись, только структурное поле category; новые UI-строки — собственные
 - [x] `dotnet test` (318 passed), `npm run lint` (чисто), `npm test` (121 passed), `npm run build` (ок)
-- [ ] Browser QA desktop/mobile (см. «Что осталось»)
-- [ ] PR открыт
+- [x] Browser QA desktop/mobile (docker compose + vite dev): магия (cap 5, chips, summary, блокировка с причиной), quick draft (live preview, роль→стиль/магшкола/способность, RU/ENG), NPC editor (секции, сводка, live card), энкаунтеры (strip/фильтры/copy-grid/быстрая сборка), game table (pips, обе стороны переноса, range tracker + лог перемещений), справочник (nameEn). Горизонтального overflow нет на 375px и desktop; консоль без ошибок
+- [x] PR открыт
 
 ## Что осталось / блокеры
 
-(заполняется по ходу)
+- Локальный Docker-том pgdata был несовместим с текущим кодом (архетипы с пустым Code от старой схемы валили `SeedOrUpdateArchetypes` на старте — воспроизводится и на master). Перед пересозданием тома снят дамп: `%LOCALAPPDATA%\Temp\claude\H--repos-GenesysForveClaude\1c7b0849-d81c-41c0-b382-4014a415ce46\scratchpad\genesysforge-backup.dump` (pg_dump -F c). Свежий сид отрабатывает.
 
 ## Заметки / решения
 
