@@ -73,6 +73,9 @@ export function GameTableTab({ campaignId, isGm, members, refreshSignal }: Props
   }
 
   const currentSlot = session.slots[session.currentTurnIndex]
+  const currentActor = currentSlot?.assignedParticipantId
+    ? session.participants.find(p => p.id === currentSlot.assignedParticipantId) ?? null
+    : null
 
   return (
     <div className="game-table">
@@ -85,7 +88,10 @@ export function GameTableTab({ campaignId, isGm, members, refreshSignal }: Props
           <div className="gt-round">
             Раунд <strong>{session.currentRound}</strong>
             {session.slots.length > 0 && currentSlot && (
-              <> · Ход: <span className={`badge slot-${currentSlot.slotType}`}>{SLOT_TYPE_LABELS[currentSlot.slotType]}</span></>
+              <>
+                {' · '}Ход: <span className={`badge slot-${currentSlot.slotType}`}>{SLOT_TYPE_LABELS[currentSlot.slotType]}</span>
+                {currentActor && <strong className="gt-current-actor"> {currentActor.displayName}</strong>}
+              </>
             )}
           </div>
         </div>
@@ -101,6 +107,8 @@ export function GameTableTab({ campaignId, isGm, members, refreshSignal }: Props
       <StoryPoints session={session} isGm={isGm} onRun={run} campaignId={campaignId} />
 
       <InitiativeTracker session={session} isGm={isGm} onRun={run} campaignId={campaignId} />
+
+      <RangeBandTracker session={session} isGm={isGm} />
 
       <ParticipantsBlock session={session} isGm={isGm} members={members} onRun={run} campaignId={campaignId}
         abilities={abilities} onActivate={activate} />
@@ -131,36 +139,163 @@ function CreateSessionForm({ onCreate }: { onCreate: (b: { name: string; descrip
   )
 }
 
+/**
+ * Сюжетные очки сцены в формате «пипсов» (как на обзорной вкладке): сразу видно,
+ * сколько очков у игроков (солнце) и у мастера (луна), с переносом в обе стороны.
+ */
 function StoryPoints({ session, isGm, onRun, campaignId }: BlockProps) {
+  const player = session.playerStoryPoints
+  const gm = session.gmStoryPoints
+  const total = Math.max(6, player + gm)
   const set = (patch: { playerStoryPoints?: number; gmStoryPoints?: number }) => onRun(() => api.updateSession(campaignId, patch))
   return (
     <section className="panel gt-story">
-      <div className="story-counter">
-        <span className="story-label">Сюжетные очки — игроки</span>
-        <div className="story-val">
-          {isGm && <button className="small" onClick={() => set({ playerStoryPoints: session.playerStoryPoints - 1 })}>−</button>}
-          <strong>{session.playerStoryPoints}</strong>
-          {isGm && <button className="small" onClick={() => set({ playerStoryPoints: session.playerStoryPoints + 1 })}>+</button>}
+      <h3>Сюжетные очки</h3>
+      <div className="campaign-story-head">
+        <div className="campaign-story-count"><b>{player}</b>игроки</div>
+        <div className="campaign-pips" aria-label={`Игроки ${player}, мастер ${gm}`}>
+          {Array.from({ length: total }, (_, i) => (
+            <span key={i} className={i < player ? 'campaign-pip player' : i < player + gm ? 'campaign-pip gm' : 'campaign-pip empty'} />
+          ))}
         </div>
+        <div className="campaign-story-count right"><b>{gm}</b>мастер</div>
       </div>
       {isGm && (
-        <div className="story-flip">
-          <button className="small" title="Перевернуть игрокам → мастеру"
-            onClick={() => set({ playerStoryPoints: session.playerStoryPoints - 1, gmStoryPoints: session.gmStoryPoints + 1 })}
-            disabled={session.playerStoryPoints <= 0}>→ Мастеру</button>
-          <button className="small" title="Перевернуть мастеру → игрокам"
-            onClick={() => set({ gmStoryPoints: session.gmStoryPoints - 1, playerStoryPoints: session.playerStoryPoints + 1 })}
-            disabled={session.gmStoryPoints <= 0}>← Игрокам</button>
+        <div className="campaign-story-actions">
+          <button className="small" onClick={() => set({ playerStoryPoints: player + 1 })}>+ Игроки</button>
+          <button className="small" onClick={() => set({ gmStoryPoints: gm + 1 })}>+ Мастер</button>
+          <button className="small" disabled={player <= 0} onClick={() => set({ playerStoryPoints: player - 1 })}>− Игроки</button>
+          <button className="small" disabled={gm <= 0} onClick={() => set({ gmStoryPoints: gm - 1 })}>− Мастер</button>
+          <button className="small" disabled={player <= 0} title="Игроки → мастер"
+            onClick={() => set({ playerStoryPoints: player - 1, gmStoryPoints: gm + 1 })}>⇄ Мастеру</button>
+          <button className="small" disabled={gm <= 0} title="Мастер → игроки"
+            onClick={() => set({ gmStoryPoints: gm - 1, playerStoryPoints: player + 1 })}>⇄ Игрокам</button>
         </div>
       )}
-      <div className="story-counter">
-        <span className="story-label">Сюжетные очки — мастер</span>
-        <div className="story-val">
-          {isGm && <button className="small" onClick={() => set({ gmStoryPoints: session.gmStoryPoints - 1 })}>−</button>}
-          <strong>{session.gmStoryPoints}</strong>
-          {isGm && <button className="small" onClick={() => set({ gmStoryPoints: session.gmStoryPoints + 1 })}>+</button>}
-        </div>
+    </section>
+  )
+}
+
+// ── Range Band Tracker (локальный инструмент мастера, без серверного состояния) ──
+
+type RangeZone = 'engaged' | 'short' | 'medium' | 'long' | 'extreme'
+
+const RANGE_ZONES: { id: RangeZone; nameEn: string; nameRu: string; hint: string }[] = [
+  { id: 'engaged', nameEn: 'Engaged', nameRu: 'Вплотную', hint: 'ближний бой' },
+  { id: 'short', nameEn: 'Short', nameRu: 'Ближняя', hint: 'лёгкие дальнобойные · 1 манёвр' },
+  { id: 'medium', nameEn: 'Medium', nameRu: 'Средняя', hint: 'дальнобойные · 1 манёвр' },
+  { id: 'long', nameEn: 'Long', nameRu: 'Дальняя', hint: 'тяжёлые дальнобойные · 2 манёвра' },
+  { id: 'extreme', nameEn: 'Extreme', nameRu: 'Предельная', hint: 'предел дистанции · 2 манёвра' },
+]
+
+const ZONE_INDEX: Record<RangeZone, number> = { engaged: 0, short: 1, medium: 2, long: 3, extreme: 4 }
+
+/** Стартовая зона участника: персонажи игроков — ближняя, противники — средняя. */
+const defaultZone = (p: GameParticipant): RangeZone =>
+  p.participantType === 'playerCharacter' ? 'short' : 'medium'
+
+/**
+ * Трекер дистанций по прототипу range-band-tracker: зоны Engaged…Extreme, токены участников
+ * сцены, перемещение перетаскиванием или кнопками, локальный лог перемещений.
+ * Позиции — локальный UI state (persistence зон в модели кампании нет), поэтому трекер
+ * не синхронизируется между устройствами и сбрасывается при перезагрузке.
+ */
+function RangeBandTracker({ session, isGm }: { session: GameSession; isGm: boolean }) {
+  const [zones, setZones] = useState<Record<string, RangeZone>>({})
+  const [log, setLog] = useState<string[]>([])
+  const [dragId, setDragId] = useState<string | null>(null)
+  const [open, setOpen] = useState(isGm)
+
+  const participants = session.participants.filter(p => !p.isDefeated)
+  const zoneOf = (p: GameParticipant): RangeZone => zones[p.id] ?? defaultZone(p)
+
+  const move = (p: GameParticipant, to: RangeZone) => {
+    const from = zoneOf(p)
+    if (from === to) return
+    setZones(prev => ({ ...prev, [p.id]: to }))
+    const fromZone = RANGE_ZONES[ZONE_INDEX[from]]
+    const toZone = RANGE_ZONES[ZONE_INDEX[to]]
+    setLog(prev => [
+      `Раунд ${session.currentRound}: ${p.displayName} — ${fromZone.nameRu} → ${toZone.nameRu}`,
+      ...prev,
+    ].slice(0, 8))
+  }
+
+  const shift = (p: GameParticipant, delta: 1 | -1) => {
+    const next = RANGE_ZONES[ZONE_INDEX[zoneOf(p)] + delta]
+    if (next) move(p, next.id)
+  }
+
+  if (participants.length === 0) return null
+
+  return (
+    <section className="panel rb-tracker">
+      <div className="rb-head">
+        <h3>Дистанции</h3>
+        <span className="muted small-text">локальный трекер — не синхронизируется с другими участниками</span>
+        <button type="button" className="small" onClick={() => setOpen(o => !o)}>
+          {open ? 'Свернуть' : 'Развернуть'}
+        </button>
       </div>
+      {open && (
+        <>
+          <div className="rb-bands">
+            {RANGE_ZONES.map(zone => (
+              <div key={zone.id} className={`rb-band rb-${zone.id}${dragId ? ' droppable' : ''}`}
+                onDragOver={e => { e.preventDefault(); e.dataTransfer.dropEffect = 'move' }}
+                onDrop={e => {
+                  e.preventDefault()
+                  const p = participants.find(x => x.id === dragId)
+                  if (p) move(p, zone.id)
+                  setDragId(null)
+                }}>
+                <div className="rb-band-label">
+                  <div className="rb-band-name">{zone.nameRu}</div>
+                  <div className="rb-band-sub">{zone.nameEn}</div>
+                  <div className="rb-band-hint">{zone.hint}</div>
+                </div>
+                <div className="rb-band-tokens">
+                  {participants.filter(p => zoneOf(p) === zone.id).map(p => {
+                    const pc = p.participantType === 'playerCharacter'
+                    const zi = ZONE_INDEX[zone.id]
+                    return (
+                      <div key={p.id}
+                        className={`rb-token${pc ? ' pc' : ' npc'}${p.isHiddenFromPlayers ? ' hidden-token' : ''}`}
+                        draggable
+                        onDragStart={e => { setDragId(p.id); e.dataTransfer.effectAllowed = 'move' }}
+                        onDragEnd={() => setDragId(null)}>
+                        <div className="rb-token-name" title={p.displayName}>
+                          {p.displayName}{p.count > 1 ? ` ×${p.count}` : ''}
+                        </div>
+                        <div className="rb-token-meta muted small-text">
+                          {p.woundsThreshold > 0 && `${Math.max(0, p.woundsThreshold - p.woundsCurrent)}/${p.woundsThreshold}`}
+                          {p.strainThreshold != null && ` · ус. ${p.strainCurrent}/${p.strainThreshold}`}
+                          {p.isHiddenFromPlayers && ' · скрыт'}
+                        </div>
+                        <div className="rb-token-move">
+                          <button type="button" className="tiny" disabled={zi === 0}
+                            title="Ближе (зона выше)" onClick={() => shift(p, -1)}>▲</button>
+                          <button type="button" className="tiny" disabled={zi === RANGE_ZONES.length - 1}
+                            title="Дальше (зона ниже)" onClick={() => shift(p, 1)}>▼</button>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+            ))}
+          </div>
+          {log.length > 0 && (
+            <div className="rb-log">
+              {log.map((entry, i) => <div key={i} className="rb-log-entry muted small-text">{entry}</div>)}
+            </div>
+          )}
+          <p className="hint">
+            Перемещение между соседними зонами — манёвр; через зону — два манёвра. Перетащите токен
+            в зону или используйте ▲/▼.
+          </p>
+        </>
+      )}
     </section>
   )
 }

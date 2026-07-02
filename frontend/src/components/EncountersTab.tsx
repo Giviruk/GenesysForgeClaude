@@ -1,12 +1,12 @@
-import { useCallback, useEffect, useState, type FormEvent } from 'react'
+import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react'
 import { api } from '../api/client'
 import type {
   CampaignMember, EncounterDetail, EncounterInput, EncounterListItem, EncounterParticipant,
   EncounterType, GameSystem, NpcListItem, ParticipantType, SendToTableMode, ThreatLevel,
 } from '../api/types'
 import {
-  ENCOUNTER_TYPE_LABELS, ENCOUNTER_TYPES, PARTICIPANT_TYPE_LABELS, SLOT_TYPE_LABELS,
-  SYSTEM_LABELS, THREAT_LEVEL_LABELS, THREAT_LEVELS,
+  ENCOUNTER_TYPE_LABELS, ENCOUNTER_TYPES, NPC_KIND_LABELS, NPC_ROLE_LABELS, PARTICIPANT_TYPE_LABELS,
+  SLOT_TYPE_LABELS, SYSTEM_LABELS, THREAT_LEVEL_LABELS, THREAT_LEVELS,
 } from '../utils/labels'
 import { PrintPreview } from './print/PrintPreview'
 import { EncounterSheet } from './print/cards'
@@ -30,12 +30,24 @@ const blankInput = (system: GameSystem): EncounterInput => ({
   isVisibleToPlayers: false, tags: [],
 })
 
+type VisibilityFilter = '' | 'visible' | 'hidden'
+
+/**
+ * Вкладка «Энкаунтеры» кампании по прототипу campaign-encounters: полоса состояния,
+ * тулбар с поиском/фильтрами и master-detail «очередь сцен + рабочая область».
+ */
 export function EncountersTab({
   campaignId, isGm, members, openEncounterId, onOpenEncounter, onCloseEncounter, onSentToTable,
 }: Props) {
   const [list, setList] = useState<EncounterListItem[] | null>(null)
   const [creating, setCreating] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  // Фильтры очереди — клиентские поверх загруженного списка.
+  const [search, setSearch] = useState('')
+  const [typeFilter, setTypeFilter] = useState<EncounterType | ''>('')
+  const [threatFilter, setThreatFilter] = useState<ThreatLevel | ''>('')
+  const [visibilityFilter, setVisibilityFilter] = useState<VisibilityFilter>('')
 
   const reload = useCallback(() =>
     api.encounters(campaignId)
@@ -45,17 +57,55 @@ export function EncountersTab({
 
   useEffect(() => { void reload() }, [reload])
 
-  if (openEncounterId) {
-    return <EncounterEditor encounterId={openEncounterId} isGm={isGm} members={members}
-      onBack={() => { onCloseEncounter(); void reload() }} onSentToTable={onSentToTable} />
-  }
+  const filtered = useMemo(() => {
+    if (!list) return null
+    const q = search.trim().toLowerCase()
+    return list.filter(e =>
+      (!q || e.name.toLowerCase().includes(q) || e.tags.some(t => t.toLowerCase().includes(q)))
+      && (!typeFilter || e.type === typeFilter)
+      && (!threatFilter || e.threatLevel === threatFilter)
+      && (visibilityFilter === '' || (visibilityFilter === 'visible') === e.isVisibleToPlayers))
+  }, [list, search, typeFilter, threatFilter, visibilityFilter])
+
+  const stats = useMemo(() => ({
+    total: list?.length ?? 0,
+    ready: list?.filter(e => e.participantCount > 0).length ?? 0,
+    visible: list?.filter(e => e.isVisibleToPlayers).length ?? 0,
+    participants: list?.reduce((sum, e) => sum + e.participantCount, 0) ?? 0,
+  }), [list])
 
   return (
     <div className="encounters">
       {error && <div className="error">{error}</div>}
-      <div className="page-head">
-        <h3 className="inline-title">Энкаунтеры</h3>
-        {isGm && <button className="primary" onClick={() => setCreating(v => !v)}>{creating ? 'Отмена' : '+ Создать энкаунтер'}</button>}
+
+      <div className="enc-strip" aria-label="Состояние энкаунтеров">
+        <div className="enc-strip-card"><b>{stats.total}</b><span>всего сцен</span></div>
+        <div className="enc-strip-card"><b>{stats.ready}</b><span>с участниками</span></div>
+        <div className="enc-strip-card"><b>{stats.visible}</b><span>видны игрокам</span></div>
+        <div className="enc-strip-card"><b>{stats.participants}</b><span>участников в подготовке</span></div>
+      </div>
+
+      <div className="enc-toolbar">
+        <input type="search" placeholder="Поиск по названию или тегу…" value={search}
+          onChange={e => setSearch(e.target.value)} aria-label="Поиск энкаунтеров" />
+        <select value={typeFilter} onChange={e => setTypeFilter(e.target.value as EncounterType | '')} aria-label="Тип">
+          <option value="">Все типы</option>
+          {ENCOUNTER_TYPES.map(t => <option key={t} value={t}>{ENCOUNTER_TYPE_LABELS[t]}</option>)}
+        </select>
+        <select value={threatFilter} onChange={e => setThreatFilter(e.target.value as ThreatLevel | '')} aria-label="Сложность">
+          <option value="">Любая сложность</option>
+          {THREAT_LEVELS.map(t => <option key={t} value={t}>{THREAT_LEVEL_LABELS[t]}</option>)}
+        </select>
+        <select value={visibilityFilter} onChange={e => setVisibilityFilter(e.target.value as VisibilityFilter)} aria-label="Видимость">
+          <option value="">Все</option>
+          <option value="hidden">Скрытые</option>
+          <option value="visible">Видны игрокам</option>
+        </select>
+        {isGm && (
+          <button className="primary" onClick={() => setCreating(v => !v)}>
+            {creating ? 'Отмена' : '+ Энкаунтер'}
+          </button>
+        )}
       </div>
 
       {creating && isGm && (
@@ -69,22 +119,49 @@ export function EncountersTab({
         }} />
       )}
 
-      {list === null && <p className="muted">Загрузка…</p>}
-      {list?.length === 0 && <p className="muted">Энкаунтеров пока нет.{isGm && ' Создайте первую сцену.'}</p>}
-      <div className="card-grid">
-        {list?.map(e => (
-          <div key={e.id} className="char-card" onClick={() => onOpenEncounter(e.id)}>
-            <div className="char-card-head">
-              <strong>{e.name}</strong>
-              <span className="badge">{ENCOUNTER_TYPE_LABELS[e.type]}</span>
-            </div>
-            <div className="muted small-text">
-              {THREAT_LEVEL_LABELS[e.threatLevel]} · участников: {e.participantCount}
-              {' · '}{e.isVisibleToPlayers ? 'виден игрокам' : 'скрыт'}
-            </div>
-            {e.tags.length > 0 && <div className="tag-row">{e.tags.map(t => <span key={t} className="badge custom">{t}</span>)}</div>}
+      <div className="enc-workbench">
+        <aside className="panel enc-queue" aria-label="Очередь сцен">
+          <h4>Очередь сцен {filtered ? `(${filtered.length})` : ''}</h4>
+          {filtered === null && <p className="muted">Загрузка…</p>}
+          {filtered?.length === 0 && (
+            <p className="muted">
+              {list?.length === 0 ? <>Энкаунтеров пока нет.{isGm && ' Создайте первую сцену.'}</> : 'Ничего не найдено по фильтрам.'}
+            </p>
+          )}
+          <div className="enc-queue-list">
+            {filtered?.map(e => (
+              <button type="button" key={e.id}
+                className={`enc-row${e.id === openEncounterId ? ' active' : ''}`}
+                onClick={() => onOpenEncounter(e.id)}>
+                <span className="enc-row-main">
+                  <span className="enc-row-title">{e.name}</span>
+                  <span className="enc-row-meta muted">
+                    {ENCOUNTER_TYPE_LABELS[e.type]} · {THREAT_LEVEL_LABELS[e.threatLevel]} · участников: {e.participantCount}
+                  </span>
+                  {(e.tags.length > 0 || !e.isVisibleToPlayers) && (
+                    <span className="tag-row">
+                      {!e.isVisibleToPlayers && <span className="badge">скрыт</span>}
+                      {e.tags.map(t => <span key={t} className="badge custom">{t}</span>)}
+                    </span>
+                  )}
+                </span>
+                <span className={`enc-status-dot${e.participantCount > 0 ? ' ready' : ''}`}
+                  title={e.participantCount > 0 ? 'Участники добавлены' : 'Без участников'} />
+              </button>
+            ))}
           </div>
-        ))}
+        </aside>
+
+        <section className="enc-detail">
+          {openEncounterId
+            ? <EncounterEditor key={openEncounterId} encounterId={openEncounterId} isGm={isGm} members={members}
+                onBack={() => { onCloseEncounter(); void reload() }}
+                onChanged={() => void reload()}
+                onSentToTable={onSentToTable} />
+            : <div className="panel enc-empty">
+                <p className="muted">← Выберите сцену из очереди или создайте новую.</p>
+              </div>}
+        </section>
       </div>
     </div>
   )
@@ -124,8 +201,9 @@ function CreateEncounterForm({ onCreate }: { onCreate: (input: EncounterInput) =
   )
 }
 
-function EncounterEditor({ encounterId, isGm, members, onBack, onSentToTable }: {
-  encounterId: string; isGm: boolean; members: CampaignMember[]; onBack: () => void; onSentToTable?: () => void
+function EncounterEditor({ encounterId, isGm, members, onBack, onChanged, onSentToTable }: {
+  encounterId: string; isGm: boolean; members: CampaignMember[]
+  onBack: () => void; onChanged: () => void; onSentToTable?: () => void
 }) {
   const [enc, setEnc] = useState<EncounterDetail | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -143,11 +221,12 @@ function EncounterEditor({ encounterId, isGm, members, onBack, onSentToTable }: 
       if (r && typeof r === 'object' && 'participants' in r && 'threatLevel' in r) setEnc(r as EncounterDetail)
       else await reload()
       setError(null)
+      onChanged()
     } catch (e) { setError(e instanceof Error ? e.message : 'Ошибка') }
-  }, [reload])
+  }, [reload, onChanged])
 
   if (!enc) {
-    return <div><button onClick={onBack}>← К списку</button>{error && <div className="error">{error}</div>}</div>
+    return <div className="panel enc-empty"><button onClick={onBack}>← К списку</button>{error && <div className="error">{error}</div>}</div>
   }
 
   if (printing) {
@@ -162,31 +241,45 @@ function EncounterEditor({ encounterId, isGm, members, onBack, onSentToTable }: 
 
   return (
     <div className="encounter-editor">
-      <div className="page-head">
-        <div>
-          <button onClick={onBack}>← К списку</button>
+      <div className="panel enc-scene-head">
+        <div className="enc-scene-title">
+          <button className="small" onClick={onBack}>←</button>
           <h3 className="inline-title">{enc.name}</h3>
           <span className="badge">{ENCOUNTER_TYPE_LABELS[enc.type]}</span>
           <span className="badge tier">{THREAT_LEVEL_LABELS[enc.threatLevel]}</span>
           {!enc.isVisibleToPlayers && <span className="badge">скрыт</span>}
         </div>
-        <div className="head-actions">
-          <button onClick={() => setPrinting(true)}>🖨 Печать</button>
+        <div className="row-actions">
+          <button className="small" onClick={() => setPrinting(true)}>🖨 Печать</button>
         </div>
       </div>
       {error && <div className="error floating">{error}</div>}
 
-      {isGm
-        ? <EncounterMeta key={enc.updatedAt} enc={enc} onRun={run} />
-        : <PlayerEncounterView enc={enc} />}
-
-      <ParticipantsSection enc={enc} isGm={isGm} members={members} onRun={run} />
-
-      {isGm && <SendToTableSection enc={enc} onRun={run} onSentToTable={onSentToTable} />}
+      {isGm ? (
+        <>
+          <EncounterMeta key={enc.updatedAt} enc={enc} onRun={run} />
+          <div className="enc-detail-grid">
+            <ParticipantsSection enc={enc} isGm={isGm} members={members} onRun={run} />
+            <div className="enc-side-panels">
+              <SendToTableSection enc={enc} onRun={run} onSentToTable={onSentToTable} />
+              <QuickBuildPanel enc={enc} onRun={run} />
+            </div>
+          </div>
+        </>
+      ) : (
+        <>
+          <PlayerEncounterView enc={enc} />
+          <ParticipantsSection enc={enc} isGm={isGm} members={members} onRun={run} />
+        </>
+      )}
     </div>
   )
 }
 
+/**
+ * Содержание сцены по прототипу: база (тип/сложность/локация) + copy-grid
+ * «Игрокам / Мастеру / Цели игроков / Цели NPC» + заметки (осложнения/награды).
+ */
 function EncounterMeta({ enc, onRun }: { enc: EncounterDetail; onRun: (a: () => Promise<unknown>) => Promise<void> }) {
   // Локальная копия формы; компонент перемонтируется по key=updatedAt после сохранения,
   // поэтому начального состояния из props достаточно (без синхронизации через эффект).
@@ -200,16 +293,19 @@ function EncounterMeta({ enc, onRun }: { enc: EncounterDetail; onRun: (a: () => 
   }))
 
   return (
-    <section className="panel custom-form">
-      <h4>Основная информация</h4>
-      <label>Название<input value={f.name} onChange={e => set('name', e.target.value)} /></label>
+    <section className="panel custom-form enc-meta">
+      <div className="panel-head-row">
+        <h4>Содержание сцены</h4>
+        <button className="primary small" onClick={save}>Сохранить</button>
+      </div>
       <div className="form-row">
-        <label className="grow">Тип
+        <label className="grow">Название<input value={f.name} onChange={e => set('name', e.target.value)} /></label>
+        <label>Тип
           <select value={f.type} onChange={e => set('type', e.target.value as EncounterType)}>
             {ENCOUNTER_TYPES.map(t => <option key={t} value={t}>{ENCOUNTER_TYPE_LABELS[t]}</option>)}
           </select>
         </label>
-        <label className="grow">Сложность
+        <label>Сложность
           <select value={f.threatLevel} onChange={e => set('threatLevel', e.target.value as ThreatLevel)}>
             {THREAT_LEVELS.map(t => <option key={t} value={t}>{THREAT_LEVEL_LABELS[t]}</option>)}
           </select>
@@ -220,27 +316,34 @@ function EncounterMeta({ enc, onRun }: { enc: EncounterDetail; onRun: (a: () => 
         <label className="grow">Окружение<input value={f.environment} onChange={e => set('environment', e.target.value)} /></label>
       </div>
 
-      <h4>Описание для мастера</h4>
-      <textarea rows={2} value={f.gmDescription} onChange={e => set('gmDescription', e.target.value)} />
-      <h4>Описание для игроков</h4>
-      <textarea rows={2} value={f.playerDescription} onChange={e => set('playerDescription', e.target.value)} />
+      <div className="copy-grid">
+        <label className="copy-box">Игрокам
+          <textarea rows={3} value={f.playerDescription} onChange={e => set('playerDescription', e.target.value)} />
+        </label>
+        <label className="copy-box private">Мастеру (приватно)
+          <textarea rows={3} value={f.gmDescription} onChange={e => set('gmDescription', e.target.value)} />
+        </label>
+        <label className="copy-box">Цели игроков
+          <textarea rows={2} value={f.playerGoals} onChange={e => set('playerGoals', e.target.value)} />
+        </label>
+        <label className="copy-box private">Цели NPC (приватно)
+          <textarea rows={2} value={f.npcGoals} onChange={e => set('npcGoals', e.target.value)} />
+        </label>
+        <label className="copy-box private">Осложнения (приватно)
+          <textarea rows={2} value={f.complications} onChange={e => set('complications', e.target.value)} />
+        </label>
+        <label className="copy-box">Награды
+          <textarea rows={2} value={f.rewards} onChange={e => set('rewards', e.target.value)} />
+        </label>
+      </div>
 
       <div className="form-row">
-        <label className="grow">Цели игроков<textarea rows={2} value={f.playerGoals} onChange={e => set('playerGoals', e.target.value)} /></label>
-        <label className="grow">Цели NPC (приватно)<textarea rows={2} value={f.npcGoals} onChange={e => set('npcGoals', e.target.value)} /></label>
+        <label className="grow">Теги (через запятую)<input value={tagsText} onChange={e => setTagsText(e.target.value)} /></label>
+        <label className="checkbox">
+          <input type="checkbox" checked={f.isVisibleToPlayers} onChange={e => set('isVisibleToPlayers', e.target.checked)} />
+          Видно игрокам
+        </label>
       </div>
-      <div className="form-row">
-        <label className="grow">Осложнения (приватно)<textarea rows={2} value={f.complications} onChange={e => set('complications', e.target.value)} /></label>
-        <label className="grow">Награды<textarea rows={2} value={f.rewards} onChange={e => set('rewards', e.target.value)} /></label>
-      </div>
-
-      <label>Теги (через запятую)<input value={tagsText} onChange={e => setTagsText(e.target.value)} /></label>
-      <label className="checkbox">
-        <input type="checkbox" checked={f.isVisibleToPlayers} onChange={e => set('isVisibleToPlayers', e.target.checked)} />
-        Видно игрокам (открыть публичную часть)
-      </label>
-
-      <button className="primary" onClick={save}>Сохранить</button>
     </section>
   )
 }
@@ -256,88 +359,98 @@ function PlayerEncounterView({ enc }: { enc: EncounterDetail }) {
   )
 }
 
+/** Плотная таблица участников сцены (по прототипу): имя, тип, сторона, старт, действия. */
 function ParticipantsSection({ enc, isGm, members, onRun }: {
   enc: EncounterDetail; isGm: boolean; members: CampaignMember[]; onRun: (a: () => Promise<unknown>) => Promise<void>
 }) {
   return (
-    <section className="panel">
-      <h4>Участники ({enc.participants.length})</h4>
-      {enc.participants.length === 0 && <p className="muted">Участников пока нет.</p>}
-      <div className="participant-grid">
-        {enc.participants.map(p => (
-          <EncounterParticipantCard key={p.id} enc={enc} p={p} isGm={isGm} onRun={onRun} />
-        ))}
+    <section className="panel enc-participants">
+      <div className="panel-head-row">
+        <h4>Участники ({enc.participants.length})</h4>
+        {isGm && (
+          <button className="small" onClick={() => onRun(() => api.addEncounterCharacters(enc.id, null))}>+ Все PC</button>
+        )}
       </div>
+      {enc.participants.length === 0 && <p className="muted">Участников пока нет.</p>}
+      {enc.participants.length > 0 && (
+        <div className="table-wrap">
+          <table className="participant-table">
+            <thead>
+              <tr>
+                <th>Имя</th>
+                <th>Тип</th>
+                <th>Сторона</th>
+                <th className="nowrap">Старт</th>
+                {isGm && <th className="right">Действия</th>}
+              </tr>
+            </thead>
+            <tbody>
+              {enc.participants.map(p => (
+                <ParticipantRow key={p.id} enc={enc} p={p} isGm={isGm} onRun={onRun} />
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
       {isGm && <AddEncounterParticipant enc={enc} members={members} onRun={onRun} />}
     </section>
   )
 }
 
-function EncounterParticipantCard({ enc, p, isGm, onRun }: {
+function ParticipantRow({ enc, p, isGm, onRun }: {
   enc: EncounterDetail; p: EncounterParticipant; isGm: boolean; onRun: (a: () => Promise<unknown>) => Promise<void>
 }) {
   const patch = (body: Parameters<typeof api.updateEncounterParticipant>[2]) =>
     onRun(() => api.updateEncounterParticipant(enc.id, p.id, body))
+  const start = p.startsDefeated ? 'повержен' : p.startsHidden ? 'скрыт' : 'активен'
   return (
-    <div className={`participant-card${p.startsDefeated ? ' defeated' : ''}`}>
-      <div className="pc-head">
-        <strong>{p.displayName}{p.quantity > 1 ? ` ×${p.quantity}` : ''}</strong>
-        <span className="badge">{PARTICIPANT_TYPE_LABELS[p.participantType]}</span>
-        {p.startsHidden && <span className="badge tier">скрыт</span>}
-      </div>
-      <div className="muted small-text">Сторона: {SLOT_TYPE_LABELS[p.initiativeSide]}</div>
-      {isGm && p.notes && <div className="pc-notes small-text">{p.notes}</div>}
+    <tr className={p.startsDefeated ? 'defeated' : undefined}>
+      <td>
+        <div className="participant-name">{p.displayName}{p.quantity > 1 ? ` ×${p.quantity}` : ''}</div>
+        {isGm && p.notes && <div className="participant-note muted small-text">{p.notes}</div>}
+      </td>
+      <td><span className="badge">{PARTICIPANT_TYPE_LABELS[p.participantType]}</span></td>
+      <td>{SLOT_TYPE_LABELS[p.initiativeSide]}</td>
+      <td className="nowrap">{start}</td>
       {isGm && (
-        <div className="card-actions">
-          <button className="small" onClick={() => patch({ startsHidden: !p.startsHidden })}>{p.startsHidden ? 'Показать' : 'Скрыть в начале'}</button>
-          <button className="small" onClick={() => patch({ startsDefeated: !p.startsDefeated })}>{p.startsDefeated ? 'Активен' : 'Повержен в начале'}</button>
-          <button className="danger small" onClick={() => { if (confirm(`Убрать «${p.displayName}»?`)) void onRun(() => api.removeEncounterParticipant(enc.id, p.id)) }}>Убрать</button>
-        </div>
+        <td className="right nowrap">
+          <button className="small" title={p.startsHidden ? 'Показать в начале' : 'Скрыть в начале'}
+            onClick={() => patch({ startsHidden: !p.startsHidden })}>{p.startsHidden ? 'Показать' : 'Скрыть'}</button>
+          <button className="small" title={p.startsDefeated ? 'Сделать активным' : 'Повержен в начале'}
+            onClick={() => patch({ startsDefeated: !p.startsDefeated })}>{p.startsDefeated ? 'Активен' : 'Повержен'}</button>
+          <button className="danger small"
+            onClick={() => { if (confirm(`Убрать «${p.displayName}»?`)) void onRun(() => api.removeEncounterParticipant(enc.id, p.id)) }}>×</button>
+        </td>
       )}
-    </div>
+    </tr>
   )
 }
 
 function AddEncounterParticipant({ enc, members, onRun }: {
   enc: EncounterDetail; members: CampaignMember[]; onRun: (a: () => Promise<unknown>) => Promise<void>
 }) {
-  const [mode, setMode] = useState<'npc' | 'character' | 'manual'>('npc')
-  const [npcs, setNpcs] = useState<NpcListItem[]>([])
-  const [npcId, setNpcId] = useState('')
-  const [quantity, setQuantity] = useState(1)
+  const [mode, setMode] = useState<'character' | 'manual'>('character')
   const [characterId, setCharacterId] = useState('')
   const [manualName, setManualName] = useState('')
   const [manualType, setManualType] = useState<ParticipantType>('hazard')
 
-  useEffect(() => { api.npcs().then(setNpcs).catch(() => { /* список NPC не критичен */ }) }, [])
-
   const add = () => {
-    if (mode === 'npc' && npcId) void onRun(() => api.addEncounterParticipant(enc.id, { npcId, quantity }))
-    else if (mode === 'character' && characterId) void onRun(() => api.addEncounterParticipant(enc.id, { characterId }))
+    if (mode === 'character' && characterId) void onRun(() => api.addEncounterParticipant(enc.id, { characterId }))
     else if (mode === 'manual' && manualName.trim())
       void onRun(() => api.addEncounterParticipant(enc.id, { displayName: manualName.trim(), participantType: manualType }))
   }
 
   return (
     <div className="add-participant">
-      <div className="label-line">Добавить участника</div>
+      <div className="label-line">Добавить участника (NPC — через быструю сборку)</div>
       <div className="system-switch">
-        {(['npc', 'character', 'manual'] as const).map(m => (
+        {(['character', 'manual'] as const).map(m => (
           <button key={m} type="button" className={mode === m ? 'tab active' : 'tab'} onClick={() => setMode(m)}>
-            {m === 'npc' ? 'NPC' : m === 'character' ? 'Персонаж' : 'Вручную'}
+            {m === 'character' ? 'Персонаж' : 'Вручную'}
           </button>
         ))}
       </div>
       <div className="form-row">
-        {mode === 'npc' && (
-          <>
-            <select className="grow" value={npcId} onChange={e => setNpcId(e.target.value)}>
-              <option value="">— выберите NPC —</option>
-              {npcs.map(n => <option key={n.id} value={n.id}>{n.name}</option>)}
-            </select>
-            <input className="ranks-input" type="number" min={1} value={quantity} onChange={e => setQuantity(Math.max(1, +e.target.value))} title="Количество (группа миньонов)" />
-          </>
-        )}
         {mode === 'character' && (
           <select className="grow" value={characterId} onChange={e => setCharacterId(e.target.value)}>
             <option value="">— выберите персонажа —</option>
@@ -354,10 +467,67 @@ function AddEncounterParticipant({ enc, members, onRun }: {
         )}
         <button className="primary small" onClick={add}>Добавить</button>
       </div>
-      <div className="form-row">
-        <button className="small" onClick={() => onRun(() => api.addEncounterCharacters(enc.id, null))}>+ Добавить всех PC</button>
-      </div>
     </div>
+  )
+}
+
+/** Быстрая сборка сцены из бестиария: поиск NPC + источник + добавление в один клик. */
+function QuickBuildPanel({ enc, onRun }: {
+  enc: EncounterDetail; onRun: (a: () => Promise<unknown>) => Promise<void>
+}) {
+  const [npcs, setNpcs] = useState<NpcListItem[]>([])
+  const [search, setSearch] = useState('')
+  const [source, setSource] = useState<'' | 'mine' | 'builtin'>('')
+  const [quantity, setQuantity] = useState(1)
+
+  useEffect(() => { api.npcs().then(setNpcs).catch(() => { /* список NPC не критичен */ }) }, [])
+
+  const shown = useMemo(() => {
+    const q = search.trim().toLowerCase()
+    return npcs
+      .filter(n => n.system === enc.system)
+      .filter(n => !q || n.name.toLowerCase().includes(q) || n.tags.some(t => t.toLowerCase().includes(q)))
+      .filter(n => source === '' || (source === 'mine' ? n.isMine : n.isBuiltIn))
+      .slice(0, 8)
+  }, [npcs, search, source, enc.system])
+
+  return (
+    <section className="panel enc-quick-build">
+      <h4>Быстрая сборка</h4>
+      <div className="form-row">
+        <input className="grow" type="search" placeholder="Поиск NPC…" value={search}
+          onChange={e => setSearch(e.target.value)} aria-label="Поиск NPC" />
+        <select value={source} onChange={e => setSource(e.target.value as '' | 'mine' | 'builtin')} aria-label="Источник">
+          <option value="">Все источники</option>
+          <option value="builtin">Встроенный бестиарий</option>
+          <option value="mine">Свои NPC</option>
+        </select>
+      </div>
+      <div className="form-row">
+        <label className="inline-label">Количество (для группы миньонов)
+          <input className="ranks-input" type="number" min={1} value={quantity}
+            onChange={e => setQuantity(Math.max(1, +e.target.value))} />
+        </label>
+      </div>
+      <div className="enc-library-list">
+        {shown.length === 0 && <p className="muted small-text">Ничего не найдено.</p>}
+        {shown.map(n => (
+          <div key={n.id} className="enc-library-row">
+            <div className="enc-library-info">
+              <div className="enc-library-title">{n.name}</div>
+              <div className="muted small-text">
+                {NPC_KIND_LABELS[n.kind]} · {NPC_ROLE_LABELS[n.role]}
+                {n.isBuiltIn ? ' · встроенный' : n.isMine ? ' · мой' : ''}
+              </div>
+            </div>
+            <button className="small" title="Добавить в сцену"
+              onClick={() => void onRun(() => api.addEncounterParticipant(enc.id, { npcId: n.id, quantity }))}>
+              +
+            </button>
+          </div>
+        ))}
+      </div>
+    </section>
   )
 }
 
@@ -371,10 +541,10 @@ function SendToTableSection({ enc, onRun, onSentToTable }: {
     })
   }
   return (
-    <section className="panel">
-      <h4>Отправить на игровой стол</h4>
+    <section className="panel enc-run">
+      <h4>Запуск</h4>
       <p className="hint">Если активной сцены нет — создаётся новая. Если есть — выберите режим.</p>
-      <div className="form-row">
+      <div className="quick-run">
         <button className="primary" onClick={() => send('replace')}>Заменить активную сцену</button>
         <button onClick={() => send('append')}>Добавить в активную</button>
       </div>
