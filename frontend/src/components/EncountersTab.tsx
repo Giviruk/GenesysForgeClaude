@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react
 import { api } from '../api/client'
 import type {
   CampaignMember, EncounterDetail, EncounterInput, EncounterListItem, EncounterParticipant,
-  EncounterType, GameSystem, NpcListItem, ParticipantType, SendToTableMode, ThreatLevel,
+  EncounterType, GameSystem, NpcListItem, ParticipantType, ThreatLevel,
 } from '../api/types'
 import {
   ENCOUNTER_TYPE_LABELS, ENCOUNTER_TYPES, NPC_KIND_LABELS, NPC_ROLE_LABELS, PARTICIPANT_TYPE_LABELS,
@@ -241,25 +241,14 @@ function EncounterEditor({ encounterId, isGm, members, onBack, onChanged, onSent
 
   return (
     <div className="encounter-editor">
-      <div className="panel enc-scene-head">
-        <div className="enc-scene-title">
-          <button className="small" onClick={onBack}>←</button>
-          <h3 className="inline-title">{enc.name}</h3>
-          <span className="badge">{ENCOUNTER_TYPE_LABELS[enc.type]}</span>
-          <span className="badge tier">{THREAT_LEVEL_LABELS[enc.threatLevel]}</span>
-          {!enc.isVisibleToPlayers && <span className="badge">скрыт</span>}
-        </div>
-        <div className="row-actions">
-          <button className="small" onClick={() => setPrinting(true)}>🖨 Печать</button>
-        </div>
-      </div>
+      <EncounterSceneHead enc={enc} isGm={isGm} onBack={onBack} onRun={run}
+        onPrint={() => setPrinting(true)} onSentToTable={onSentToTable} />
       {error && <div className="error floating">{error}</div>}
 
       {isGm ? (
         <>
           <div className="enc-stage-grid">
             <EncounterMeta key={`meta-${enc.updatedAt}`} enc={enc} onRun={run} />
-            <SendToTableSection enc={enc} onRun={run} onSentToTable={onSentToTable} />
             <ParticipantsSection enc={enc} isGm={isGm} members={members} onRun={run} />
             <InitiativePreview enc={enc} />
           </div>
@@ -278,6 +267,75 @@ function EncounterEditor({ encounterId, isGm, members, onBack, onChanged, onSent
   )
 }
 
+function EncounterSceneHead({ enc, isGm, onBack, onRun, onPrint, onSentToTable }: {
+  enc: EncounterDetail
+  isGm: boolean
+  onBack: () => void
+  onRun: (a: () => Promise<unknown>) => Promise<void>
+  onPrint: () => void
+  onSentToTable?: () => void
+}) {
+  const [name, setName] = useState(enc.name)
+  const [type, setType] = useState(enc.type)
+  const [threatLevel, setThreatLevel] = useState(enc.threatLevel)
+
+  const dirty = name !== enc.name || type !== enc.type || threatLevel !== enc.threatLevel
+  const save = () => onRun(() => api.updateEncounter(enc.id, {
+    ...toInput(enc),
+    name: name.trim(),
+    type,
+    threatLevel,
+  }))
+  const send = async () => {
+    await onRun(async () => {
+      if (dirty) {
+        await api.updateEncounter(enc.id, {
+          ...toInput(enc),
+          name: name.trim(),
+          type,
+          threatLevel,
+        })
+      }
+      await api.sendEncounterToTable(enc.id, 'replace')
+      onSentToTable?.()
+    })
+  }
+
+  return (
+    <div className="panel enc-scene-head">
+      <div className="enc-scene-title">
+        <button className="small" onClick={onBack}>←</button>
+        {isGm ? (
+          <>
+            <input className="enc-head-name" aria-label="Название энкаунтера" value={name}
+              onChange={e => setName(e.target.value)} />
+            <select className="enc-head-select" value={type} onChange={e => setType(e.target.value as EncounterType)}
+              aria-label="Тип энкаунтера">
+              {ENCOUNTER_TYPES.map(t => <option key={t} value={t}>{ENCOUNTER_TYPE_LABELS[t]}</option>)}
+            </select>
+            <select className="enc-head-select" value={threatLevel}
+              onChange={e => setThreatLevel(e.target.value as ThreatLevel)} aria-label="Сложность энкаунтера">
+              {THREAT_LEVELS.map(t => <option key={t} value={t}>{THREAT_LEVEL_LABELS[t]}</option>)}
+            </select>
+          </>
+        ) : (
+          <>
+            <h3 className="inline-title">{enc.name}</h3>
+            <span className="badge">{ENCOUNTER_TYPE_LABELS[enc.type]}</span>
+            <span className="badge tier">{THREAT_LEVEL_LABELS[enc.threatLevel]}</span>
+          </>
+        )}
+        {!enc.isVisibleToPlayers && <span className="badge">скрыт</span>}
+        {isGm && dirty && <button className="primary small" onClick={save} disabled={!name.trim()}>Сохранить</button>}
+      </div>
+      <div className="row-actions enc-head-actions">
+        {isGm && <button className="primary small" onClick={send} disabled={!name.trim()}>Запустить</button>}
+        <button className="small" onClick={onPrint}>🖨 Печать</button>
+      </div>
+    </div>
+  )
+}
+
 /**
  * Содержание сцены по прототипу: база (тип/сложность/локация) + copy-grid
  * «Игрокам / Мастеру / Цели игроков / Цели NPC» + заметки (осложнения/награды).
@@ -286,9 +344,6 @@ function EncounterMeta({ enc, onRun }: { enc: EncounterDetail; onRun: (a: () => 
   // Локальная копия формы; компонент перемонтируется по key=updatedAt после сохранения,
   // поэтому начального состояния из props достаточно (без синхронизации через эффект).
   const [f, setF] = useState({
-    name: enc.name,
-    type: enc.type,
-    threatLevel: enc.threatLevel,
     location: enc.location,
     environment: enc.environment,
     playerDescription: enc.playerDescription,
@@ -308,19 +363,6 @@ function EncounterMeta({ enc, onRun }: { enc: EncounterDetail; onRun: (a: () => 
       <div className="panel-head-row">
         <h4>Содержание сцены</h4>
         <button className="primary small" onClick={save}>Сохранить</button>
-      </div>
-      <div className="form-row">
-        <label className="grow">Название<input value={f.name} onChange={e => set('name', e.target.value)} /></label>
-        <label>Тип
-          <select value={f.type} onChange={e => set('type', e.target.value as EncounterType)}>
-            {ENCOUNTER_TYPES.map(t => <option key={t} value={t}>{ENCOUNTER_TYPE_LABELS[t]}</option>)}
-          </select>
-        </label>
-        <label>Сложность
-          <select value={f.threatLevel} onChange={e => set('threatLevel', e.target.value as ThreatLevel)}>
-            {THREAT_LEVELS.map(t => <option key={t} value={t}>{THREAT_LEVEL_LABELS[t]}</option>)}
-          </select>
-        </label>
       </div>
       <div className="form-row">
         <label className="grow">Локация<input value={f.location} onChange={e => set('location', e.target.value)} /></label>
@@ -596,27 +638,6 @@ function QuickBuildPanel({ enc, onRun }: {
             </button>
           </div>
         ))}
-      </div>
-    </section>
-  )
-}
-
-function SendToTableSection({ enc, onRun, onSentToTable }: {
-  enc: EncounterDetail; onRun: (a: () => Promise<unknown>) => Promise<void>; onSentToTable?: () => void
-}) {
-  const send = async (mode: SendToTableMode) => {
-    await onRun(async () => {
-      await api.sendEncounterToTable(enc.id, mode)
-      onSentToTable?.()
-    })
-  }
-  return (
-    <section className="panel enc-run">
-      <h4>Запуск</h4>
-      <p className="hint">Если активной сцены нет — создаётся новая. Если есть — выберите режим.</p>
-      <div className="quick-run">
-        <button className="primary" onClick={() => send('replace')}>Заменить активную сцену</button>
-        <button onClick={() => send('append')}>Добавить в активную</button>
       </div>
     </section>
   )
