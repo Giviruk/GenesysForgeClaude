@@ -3,7 +3,7 @@
 - **Roadmap:** вне U-нумерации — итерация по brief [docs/claude-fable-5-iteration-brief.md](../../docs/claude-fable-5-iteration-brief.md)
 - **Ветка:** `feature/content-npc-magic-ux-polish`
 - **Базовая ветка:** `master` (открытых PR нет)
-- **PR:** #<номер> (после создания)
+- **PR:** [#81](https://github.com/Giviruk/GenesysForgeClaude/pull/81)
 - **Статус:** 🚧 In progress
 
 ## Контекст
