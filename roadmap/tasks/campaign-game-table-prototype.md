@@ -33,6 +33,8 @@
 ## Заметки / решения
 
 - Не меняем backend/API и persistent model: позиции дистанций остаются локальным UI state, как в текущем `RangeBandTracker`.
-- Browser/IAB tool недоступен в текущем окружении; визуальная проверка будет выполнена Playwright fallback на Vite dev server с моками API.
+- Browser/IAB runtime подключается, но для стабильной проверки экрана кампании нужен API route mocking; визуальная проверка выполнена Playwright fallback на Vite dev server с моками API.
 - Реализован встроенный пул кубиков в правой панели через существующий `DiceRoller`, чтобы поведение записи в лог не расходилось с сайдбаром.
 - Playwright QA: desktop 1440px и mobile 390px без horizontal overflow; desktop grid `288px 480px 384px`; `.participants-strip` один ряд со скроллом; inline dice pool найден.
+- Follow-up UI polish: уменьшены вертикальные отступы, `Инициатива` зафиксирована на 5 видимых слотов со скроллом, `Броски` получили фиксированную высоту, карточки участников выровнены для персонажей/NPC без strain.
+- Follow-up QA: desktop 1440px и mobile 390px без horizontal overflow; `.rb-log-entry` показывает 3 строки, история открывается в модальном окне, `.gt-rolls` стабилен 362px до/после броска, карточки участников одинаковой высоты.

@@ -284,6 +284,7 @@ function RangeBandTracker({ session, isGm }: { session: GameSession; isGm: boole
   const [zones, setZones] = useState<Record<string, RangeZone>>({})
   const [log, setLog] = useState<string[]>([])
   const [dragId, setDragId] = useState<string | null>(null)
+  const [showLog, setShowLog] = useState(false)
 
   const participants = session.participants.filter(p => !p.isDefeated)
   const zoneOf = (p: GameParticipant): RangeZone => zones[p.id] ?? defaultZone(p)
@@ -297,7 +298,7 @@ function RangeBandTracker({ session, isGm }: { session: GameSession; isGm: boole
     setLog(prev => [
       `Раунд ${session.currentRound}: ${p.displayName} — ${fromZone.nameRu} → ${toZone.nameRu}`,
       ...prev,
-    ].slice(0, 8))
+    ].slice(0, 20))
   }
 
   const shift = (p: GameParticipant, delta: 1 | -1) => {
@@ -362,7 +363,29 @@ function RangeBandTracker({ session, isGm }: { session: GameSession; isGm: boole
       </div>
       {log.length > 0 && (
         <div className="rb-log">
-          {log.map((entry, i) => <div key={i} className="rb-log-entry muted small-text">{entry}</div>)}
+          <div className="rb-log-head">
+            <span className="muted small-text">Последние перемещения</span>
+            {log.length > 3 && (
+              <button type="button" className="tiny" onClick={() => setShowLog(true)}>
+                Вся история
+              </button>
+            )}
+          </div>
+          {log.slice(0, 3).map((entry, i) => <div key={i} className="rb-log-entry muted small-text">{entry}</div>)}
+        </div>
+      )}
+      {showLog && (
+        <div className="modal-backdrop" role="presentation" onClick={() => setShowLog(false)}>
+          <div className="modal range-log-modal" role="dialog" aria-modal="true" aria-label="История перемещений"
+            onClick={e => e.stopPropagation()}>
+            <div className="modal-head">
+              <h3>История перемещений</h3>
+              <button type="button" className="small" onClick={() => setShowLog(false)}>Закрыть</button>
+            </div>
+            <div className="range-log-list">
+              {log.map((entry, i) => <div key={i} className="note-row small-text">{entry}</div>)}
+            </div>
+          </div>
         </div>
       )}
     </section>
@@ -374,7 +397,7 @@ function InitiativeTracker({ session, isGm, onRun, campaignId }: BlockProps) {
   const nameOf = (pid: string | null) => session.participants.find(p => p.id === pid)?.displayName
 
   return (
-    <section className="panel">
+    <section className="panel initiative-panel">
       <div className="panel-head">
         <h3>Инициатива</h3>
         {isGm && <button className="small" onClick={() => onRun(() => api.addSlot(campaignId, { slotType }))}>+ Слот</button>}
@@ -439,8 +462,10 @@ function CompactParticipantCard({ p }: {
       </div>
       <div className="bar-stack">
         <div className="bar"><span className="wounds" style={{ width: `${ratio(p.woundsCurrent, p.woundsThreshold) * 100}%` }} /></div>
-        {p.strainThreshold != null && (
+        {p.strainThreshold != null ? (
           <div className="bar"><span className="strain" style={{ width: `${ratio(p.strainCurrent, p.strainThreshold) * 100}%` }} /></div>
+        ) : (
+          <div className="bar empty-bar" aria-hidden="true"><span /></div>
         )}
       </div>
       <div className="gt-card-flags">
