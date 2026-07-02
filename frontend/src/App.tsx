@@ -39,6 +39,12 @@ const AREA_TITLES: Partial<Record<AppArea, string>> = {
   account: 'Профиль',
 }
 
+const areaSubtitle = (area: AppArea, sub: string | null): string => {
+  if (area === 'campaigns' && campaignView(sub) === 'table') return 'Игровой стол мастера'
+  if (area === 'campaigns' && campaignView(sub) === 'encounters') return 'Рабочая область мастера'
+  return 'Рабочая область'
+}
+
 function Shell() {
   const { token, logout } = useAuth()
   const { openRoller } = useDiceRoller()
@@ -60,6 +66,7 @@ function Shell() {
   if (!token) return <AuthPage />
 
   const currentTitle = AREA_TITLES[route.area] ?? 'Genesys Forge'
+  const currentSubtitle = areaSubtitle(route.area, route.sub)
 
   return (
     <div className="app-shell">
@@ -85,7 +92,7 @@ function Shell() {
         <header className="topbar app-topbar">
           <div>
             <h1>{currentTitle}</h1>
-            <div className="page-sub">Рабочая область</div>
+            <div className="page-sub">{currentSubtitle}</div>
           </div>
           <button type="button" className="primary" onClick={() => openRoller()}>Дайсроллер</button>
         </header>
