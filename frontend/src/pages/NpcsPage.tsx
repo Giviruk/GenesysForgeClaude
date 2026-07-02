@@ -5,9 +5,9 @@ import type {
   NpcKind, NpcListItem, NpcPowerLevel, NpcRole, NpcVisibility, Quality, QuickDraftRequest, Reference, SkillDef,
 } from '../api/types'
 import {
-  CHARACTERISTICS, CHARACTERISTIC_LABELS, CREATURE_TEMPLATE_LABELS, CREATURE_TEMPLATES, ITEM_KIND_LABELS,
-  NPC_COMBAT_STYLE_LABELS, NPC_KIND_LABELS, NPC_KINDS, NPC_POWER_LABELS, NPC_ROLE_LABELS, NPC_ROLES,
-  NPC_VISIBILITY_LABELS, SYSTEM_LABELS,
+  CHARACTERISTICS, CHARACTERISTIC_LABELS, CREATURE_TEMPLATE_LABELS, CREATURE_TEMPLATES, dualName,
+  ITEM_KIND_LABELS, NPC_COMBAT_STYLE_LABELS, NPC_KIND_LABELS, NPC_KINDS, NPC_POWER_LABELS, NPC_ROLE_LABELS,
+  NPC_ROLES, NPC_VISIBILITY_LABELS, secondaryName, SYSTEM_LABELS,
 } from '../utils/labels'
 import {
   npcAttackViews, npcGearViews, npcSkillViews, skillIndex, syncAttacksWithEquipment, weaponsByLabel,
@@ -293,7 +293,14 @@ function NpcDetailView({ npcId, reloadToken, onEdit, onDuplicated, onDeleted }: 
               {skills.map((s, i) => (
                 <li key={i} className="npc-skill-row">
                   <span className="npc-skill-name">
-                    {s.name} {n.kind !== 'minion' && <span className="muted">{s.ranks}</span>}
+                    {s.name}
+                    {(() => {
+                      const original = index.get(s.name) ? secondaryName(index.get(s.name)!) : ''
+                      return original && original !== s.name
+                        ? <span className="muted small-text name-secondary"> · {original}</span>
+                        : null
+                    })()}
+                    {' '}{n.kind !== 'minion' && <span className="muted">{s.ranks}</span>}
                     {s.characteristic && (
                       <span className="muted small-text"> · {CHARACTERISTIC_LABELS[s.characteristic]}</span>
                     )}
@@ -400,6 +407,7 @@ function NpcGearRow({ gear }: { gear: NpcGearView }) {
     <li className="npc-gear">
       <div className="npc-gear-head">
         <strong>{name}</strong>
+        {item && secondaryName(item) && <span className="muted small-text name-secondary">· {secondaryName(item)}</span>}
         {item && <span className="muted small-text">{ITEM_KIND_LABELS[item.kind]}</span>}
         {bonuses.length > 0 && <span className="npc-gear-bonus">{bonuses.join(' · ')}</span>}
       </div>
@@ -488,94 +496,183 @@ function NpcEditor({ initial, onCancel, onSaved }: {
 
   return (
     <div className="modal-backdrop" onClick={onCancel}>
-      <form className="modal wide" onClick={e => e.stopPropagation()} onSubmit={submit}>
+      <form className="modal wide xwide npc-editor" onClick={e => e.stopPropagation()} onSubmit={submit}>
         <h3>{initial ? 'Редактировать NPC' : 'Новый NPC'}</h3>
 
-        <div className="form-row npc-main-grid">
-          <label className="grow">Имя<input value={form.name} onChange={e => set('name', e.target.value)} required /></label>
-          <label>Система
-            <select value={form.system} onChange={e => set('system', e.target.value as GameSystem)}>
-              {SYSTEMS.map(s => <option key={s} value={s}>{SYSTEM_LABELS[s]}</option>)}
-            </select>
-          </label>
-        </div>
+        <div className="npc-editor-grid">
+          <div className="npc-editor-form">
+            <section className="npc-editor-section">
+              <h4>Основа</h4>
+              <div className="form-row npc-main-grid">
+                <label className="grow">Имя<input value={form.name} onChange={e => set('name', e.target.value)} required /></label>
+                <label>Система
+                  <select value={form.system} onChange={e => set('system', e.target.value as GameSystem)}>
+                    {SYSTEMS.map(s => <option key={s} value={s}>{SYSTEM_LABELS[s]}</option>)}
+                  </select>
+                </label>
+              </div>
 
-        <div className="form-row npc-meta-grid">
-          <label>Тип
-            <select value={form.kind} onChange={e => set('kind', e.target.value as NpcKind)}>
-              {NPC_KINDS.map(k => <option key={k} value={k}>{NPC_KIND_LABELS[k]}</option>)}
-            </select>
-          </label>
-          <label>Роль
-            <select value={form.role} onChange={e => set('role', e.target.value as NpcRole)}>
-              {NPC_ROLES.map(r => <option key={r} value={r}>{NPC_ROLE_LABELS[r]}</option>)}
-            </select>
-          </label>
-          <label>Видимость
-            <select value={form.visibility} onChange={e => set('visibility', e.target.value as NpcVisibility)}>
-              {(['private', 'campaignVisible', 'publicTemplate'] as NpcVisibility[]).map(v =>
-                <option key={v} value={v}>{NPC_VISIBILITY_LABELS[v]}</option>)}
-            </select>
-          </label>
-        </div>
+              <div className="form-row npc-meta-grid">
+                <label>Тип
+                  <select value={form.kind} onChange={e => set('kind', e.target.value as NpcKind)}>
+                    {NPC_KINDS.map(k => <option key={k} value={k}>{NPC_KIND_LABELS[k]}</option>)}
+                  </select>
+                </label>
+                <label>Роль
+                  <select value={form.role} onChange={e => set('role', e.target.value as NpcRole)}>
+                    {NPC_ROLES.map(r => <option key={r} value={r}>{NPC_ROLE_LABELS[r]}</option>)}
+                  </select>
+                </label>
+                <label>Видимость
+                  <select value={form.visibility} onChange={e => set('visibility', e.target.value as NpcVisibility)}>
+                    {(['private', 'campaignVisible', 'publicTemplate'] as NpcVisibility[]).map(v =>
+                      <option key={v} value={v}>{NPC_VISIBILITY_LABELS[v]}</option>)}
+                  </select>
+                </label>
+              </div>
 
-        <label>Описание<textarea value={form.description} onChange={e => set('description', e.target.value)} rows={2} /></label>
+              <label>Описание<textarea value={form.description} onChange={e => set('description', e.target.value)} rows={2} /></label>
 
-        <div className="list-editor">
-          <div className="label-line">Тип существа (шаблон)</div>
-          <div className="muted small-text">Добавит к NPC теги, способности и природную атаку выбранного типа. Шаблон не хранится — после применения всё редактируемо.</div>
-          <div className="form-row">
-            <select className="grow" value={template} onChange={e => setTemplate(e.target.value as CreatureTemplate)}>
-              {CREATURE_TEMPLATES.map(t => <option key={t} value={t}>{CREATURE_TEMPLATE_LABELS[t]}</option>)}
-            </select>
-            <button type="button" className="small" disabled={template === 'none' || applying}
-              onClick={() => void applyTemplate()}>Применить шаблон</button>
+              <div className="list-editor">
+                <div className="label-line">Тип существа (шаблон)</div>
+                <div className="muted small-text">Добавит к NPC теги, способности и природную атаку выбранного типа. Шаблон не хранится — после применения всё редактируемо.</div>
+                <div className="form-row">
+                  <select className="grow" value={template} onChange={e => setTemplate(e.target.value as CreatureTemplate)}>
+                    {CREATURE_TEMPLATES.map(t => <option key={t} value={t}>{CREATURE_TEMPLATE_LABELS[t]}</option>)}
+                  </select>
+                  <button type="button" className="small" disabled={template === 'none' || applying}
+                    onClick={() => void applyTemplate()}>Применить шаблон</button>
+                </div>
+              </div>
+            </section>
+
+            <section className="npc-editor-section">
+              <h4>Характеристики и пороги</h4>
+              <div className="label-line">Характеристики (1–6)</div>
+              <div className="form-row chars-row npc-stat-grid">
+                {CHARACTERISTICS.map(c => (
+                  <label key={c} className="char-input">{CHARACTERISTIC_LABELS[c]}
+                    <input type="number" min={1} max={6} value={form[c]}
+                      onChange={e => set(c, clamp(+e.target.value, 1, 6))} />
+                  </label>
+                ))}
+              </div>
+
+              <div className="label-line">Производные параметры</div>
+              <div className="form-row chars-row npc-derived-grid">
+                <label className="char-input">Раны<input type="number" min={1} value={form.woundThreshold}
+                  onChange={e => set('woundThreshold', Math.max(1, +e.target.value))} /></label>
+                <label className="char-input">Усталость<input type="number" min={0} value={form.strainThreshold ?? ''}
+                  disabled={minion} placeholder={minion ? '—' : ''}
+                  onChange={e => set('strainThreshold', e.target.value === '' ? null : Math.max(0, +e.target.value))} /></label>
+                <label className="char-input">Поглощение<input type="number" min={0} value={form.soak}
+                  onChange={e => set('soak', Math.max(0, +e.target.value))} /></label>
+                <label className="char-input">Бл. защита<input type="number" min={0} value={form.meleeDefense}
+                  onChange={e => set('meleeDefense', Math.max(0, +e.target.value))} /></label>
+                <label className="char-input">Дал. защита<input type="number" min={0} value={form.rangedDefense}
+                  onChange={e => set('rangedDefense', Math.max(0, +e.target.value))} /></label>
+                <label className="char-input">Силуэт<input type="number" min={0} max={10} value={form.silhouette}
+                  onChange={e => set('silhouette', clamp(+e.target.value, 0, 10))} /></label>
+              </div>
+              {minion && <div className="muted small-text">Для миньона усталость считается ранами — поле отключено.</div>}
+            </section>
+
+            <section className="npc-editor-section">
+              <h4>Навыки и атаки</h4>
+              <SkillsEditor skills={form.skills} available={reference?.skills ?? []} groupSkills={minion}
+                onChange={s => set('skills', s)} />
+              <AttacksEditor attacks={form.attacks} skills={reference?.skills ?? []} qualities={reference?.qualities ?? []}
+                onChange={a => set('attacks', a)} />
+            </section>
+
+            <section className="npc-editor-section">
+              <h4>Контент и заметки</h4>
+              <AbilitiesEditor abilities={form.abilities} onChange={a => set('abilities', a)} />
+              <PickListEditor label="Таланты" values={form.talents} options={reference?.talents ?? []}
+                onChange={v => set('talents', v)} placeholder="Выберите талант из списка" />
+              <PickListEditor label="Снаряжение" values={form.equipment} options={reference?.items ?? []}
+                onChange={setEquipment} placeholder="Выберите предмет из списка" />
+              <StringListEditor label="Теги" values={form.tags} onChange={v => set('tags', v)} placeholder="Тег" />
+
+              <label>Тактика (1–3 раунда)<textarea value={form.tactics} rows={2}
+                onChange={e => set('tactics', e.target.value)} placeholder="Что NPC делает в бою" /></label>
+
+              <div className="form-row">
+                <label className="grow">Источник<input value={form.source} onChange={e => set('source', e.target.value)} /></label>
+              </div>
+            </section>
           </div>
-        </div>
 
-        <div className="label-line">Характеристики (1–6)</div>
-        <div className="form-row chars-row npc-stat-grid">
-          {CHARACTERISTICS.map(c => (
-            <label key={c} className="char-input">{CHARACTERISTIC_LABELS[c]}
-              <input type="number" min={1} max={6} value={form[c]}
-                onChange={e => set(c, clamp(+e.target.value, 1, 6))} />
-            </label>
-          ))}
-        </div>
+          <aside className="npc-editor-summary">
+            <div className="label-line">Сводка</div>
+            <div className="qd-summary-rail vertical">
+              <div className="summary-tile"><b>{form.skills.length}</b><span className="muted small-text">навыков</span></div>
+              <div className="summary-tile"><b>{form.attacks.length}</b><span className="muted small-text">атак</span></div>
+              <div className="summary-tile"><b>{form.abilities.length}</b><span className="muted small-text">способностей</span></div>
+              <div className="summary-tile"><b>{form.equipment.length}</b><span className="muted small-text">предметов</span></div>
+            </div>
 
-        <div className="label-line">Производные параметры</div>
-        <div className="form-row chars-row npc-derived-grid">
-          <label className="char-input">Раны<input type="number" min={1} value={form.woundThreshold}
-            onChange={e => set('woundThreshold', Math.max(1, +e.target.value))} /></label>
-          <label className="char-input">Усталость<input type="number" min={0} value={form.strainThreshold ?? ''}
-            disabled={minion} placeholder={minion ? '—' : ''}
-            onChange={e => set('strainThreshold', e.target.value === '' ? null : Math.max(0, +e.target.value))} /></label>
-          <label className="char-input">Поглощение<input type="number" min={0} value={form.soak}
-            onChange={e => set('soak', Math.max(0, +e.target.value))} /></label>
-          <label className="char-input">Бл. защита<input type="number" min={0} value={form.meleeDefense}
-            onChange={e => set('meleeDefense', Math.max(0, +e.target.value))} /></label>
-          <label className="char-input">Дал. защита<input type="number" min={0} value={form.rangedDefense}
-            onChange={e => set('rangedDefense', Math.max(0, +e.target.value))} /></label>
-          <label className="char-input">Силуэт<input type="number" min={0} max={10} value={form.silhouette}
-            onChange={e => set('silhouette', clamp(+e.target.value, 0, 10))} /></label>
-        </div>
-
-        <SkillsEditor skills={form.skills} available={reference?.skills ?? []} groupSkills={minion}
-          onChange={s => set('skills', s)} />
-        <AttacksEditor attacks={form.attacks} skills={reference?.skills ?? []} qualities={reference?.qualities ?? []}
-          onChange={a => set('attacks', a)} />
-        <AbilitiesEditor abilities={form.abilities} onChange={a => set('abilities', a)} />
-        <PickListEditor label="Таланты" values={form.talents} options={reference?.talents ?? []}
-          onChange={v => set('talents', v)} placeholder="Выберите талант из списка" />
-        <PickListEditor label="Снаряжение" values={form.equipment} options={reference?.items ?? []}
-          onChange={setEquipment} placeholder="Выберите предмет из списка" />
-        <StringListEditor label="Теги" values={form.tags} onChange={v => set('tags', v)} placeholder="Тег" />
-
-        <label>Тактика (1–3 раунда)<textarea value={form.tactics} rows={2}
-          onChange={e => set('tactics', e.target.value)} placeholder="Что NPC делает в бою" /></label>
-
-        <div className="form-row">
-          <label className="grow">Источник<input value={form.source} onChange={e => set('source', e.target.value)} /></label>
+            <div className="npc-card qd-preview-card">
+              <div className="npc-card-head">
+                <h3>{form.name.trim() || 'Без имени'}</h3>
+                <span className="muted small-text">
+                  {NPC_KIND_LABELS[form.kind]} · {NPC_ROLE_LABELS[form.role]} · {NPC_VISIBILITY_LABELS[form.visibility]}
+                </span>
+              </div>
+              <div className="npc-char-row">
+                {CHARACTERISTICS.map(c => (
+                  <div key={c} className="npc-char">
+                    <span className="npc-char-val">{form[c]}</span>
+                    <span className="npc-char-label">{CHARACTERISTIC_LABELS[c]}</span>
+                  </div>
+                ))}
+              </div>
+              <div className="npc-derived">
+                <span><b>Раны</b> {form.woundThreshold}</span>
+                {!minion && form.strainThreshold != null && <span><b>Усталость</b> {form.strainThreshold}</span>}
+                <span><b>Погл.</b> {form.soak}</span>
+                <span><b>Защита</b> {form.meleeDefense}/{form.rangedDefense}</span>
+              </div>
+              {form.skills.filter(s => s.name).length > 0 && (
+                <div className="npc-section">
+                  <h4>Навыки</h4>
+                  <ul className="npc-skill-list">
+                    {form.skills.filter(s => s.name).map((s, i) => (
+                      <li key={i} className="npc-skill-row">
+                        <span className="npc-skill-name">{s.name}{!minion && <span className="muted"> {s.ranks}</span>}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              {form.attacks.filter(a => a.name).length > 0 && (
+                <div className="npc-section">
+                  <h4>Атаки</h4>
+                  <ul className="npc-weapon-list">
+                    {form.attacks.filter(a => a.name).map((a, i) => (
+                      <li key={i} className="npc-weapon">
+                        <div className="npc-weapon-stats">
+                          <strong>{a.name}</strong>
+                          {a.damage && <span className="weapon-stat">урон {a.damage}</span>}
+                          {a.critical && <span className="weapon-stat">крит {a.critical}</span>}
+                          {a.rangeBand && <span className="weapon-stat">{a.rangeBand}</span>}
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              {form.equipment.length > 0 && (
+                <div className="npc-section">
+                  <h4>Снаряжение</h4>
+                  <div className="chips">{form.equipment.map((g, i) => <span key={i} className="chip">{g}</span>)}</div>
+                </div>
+              )}
+              {form.tags.length > 0 && (
+                <div className="chips">{form.tags.map((t, i) => <span key={i} className="chip">{t}</span>)}</div>
+              )}
+            </div>
+          </aside>
         </div>
 
         {error && <div className="error">{error}</div>}
@@ -610,7 +707,7 @@ function SkillsEditor({ skills, available, groupSkills = false, onChange }: {
               onChange={e => onChange(skills.map((x, j) => j === i ? { ...x, name: e.target.value } : x))}>
               <option value="">— выберите навык —</option>
               {orphan && <option value={s.name}>{s.name} (вне справочника)</option>}
-              {available.map(sk => <option key={sk.name} value={refLabel(sk)}>{refLabel(sk)}</option>)}
+              {available.map(sk => <option key={sk.name} value={refLabel(sk)}>{dualName(sk)}</option>)}
             </select>
             {!groupSkills && <input type="number" min={0} max={5} className="ranks-input" value={s.ranks}
               onChange={e => onChange(skills.map((x, j) => j === i ? { ...x, ranks: clamp(+e.target.value, 0, 5) } : x))} />}
@@ -648,7 +745,7 @@ function PickListEditor({ label, values, options, onChange, placeholder }: {
           {options.length === 0 ? 'Справочник загружается…'
             : remaining.length === 0 ? 'Все доступные уже добавлены' : placeholder}
         </option>
-        {remaining.map(o => <option key={o.name} value={refLabel(o)}>{refLabel(o)}</option>)}
+        {remaining.map(o => <option key={o.name} value={refLabel(o)}>{dualName(o)}</option>)}
       </select>
     </div>
   )
@@ -706,7 +803,7 @@ function AttacksEditor({ attacks, skills, qualities, onChange }: {
                 {a.skillName !== '' && !skills.some(s => s.name === a.skillName) &&
                   <option value={a.skillName}>{a.skillName} (вне справочника)</option>}
                 {skills.filter(s => s.kind === 'combat' || s.kind === 'magic').map(s => (
-                  <option key={s.name} value={s.name}>{refLabel(s)}</option>
+                  <option key={s.name} value={s.name}>{dualName(s)}</option>
                 ))}
               </select>
             </div>
@@ -774,6 +871,33 @@ function StringListEditor({ label, values, onChange, placeholder }: {
   )
 }
 
+/** Подсказки ролевых профилей: чем занята роль и какой боевой стиль ей соответствует. */
+const ROLE_HINTS: Record<NpcRole, { sub: string; style: NpcCombatStyle }> = {
+  brute: { sub: 'ближний бой, давление, живучесть', style: 'melee' },
+  skirmisher: { sub: 'мобильность, фланги, защита', style: 'melee' },
+  archer: { sub: 'дистанция, укрытие, фокус', style: 'ranged' },
+  caster: { sub: 'заклинания, воля, дальняя угроза', style: 'magic' },
+  leader: { sub: 'лидерство, приказы, координация', style: 'melee' },
+  social: { sub: 'обман, переговоры, влияние', style: 'social' },
+  support: { sub: 'лечение, поддержка, помощь', style: 'magic' },
+  monster: { sub: 'природные атаки, шаблон существа', style: 'melee' },
+  custom: { sub: 'свой профиль — настройте вручную', style: 'melee' },
+}
+
+// Приоритет характеристик роли — зеркалит NpcDraftGenerator.PrimaryOf/SecondaryOf для подписи профиля.
+const ROLE_PRIMARY: Record<NpcRole, Characteristic> = {
+  brute: 'brawn', monster: 'brawn', skirmisher: 'agility', archer: 'agility',
+  caster: 'willpower', support: 'willpower', leader: 'presence', social: 'presence', custom: 'brawn',
+}
+const ROLE_SECONDARY: Record<NpcRole, Characteristic> = {
+  brute: 'agility', monster: 'agility', skirmisher: 'cunning', archer: 'cunning',
+  caster: 'intellect', support: 'intellect', leader: 'cunning', social: 'cunning', custom: 'agility',
+}
+
+/**
+ * Быстрый черновик NPC по прототипу npc-quick-draft: ролевые карточки с профилем,
+ * параметры генерации и live preview результата (что именно будет создано и почему).
+ */
 function QuickDraftForm({ onCancel, onCreated }: { onCancel: () => void; onCreated: (n: NpcDetail) => void }) {
   const [req, setReq] = useState<QuickDraftRequest>({
     system: 'realmsOfTerrinoth', kind: 'rival', role: 'brute', powerLevel: 'standard',
@@ -786,7 +910,10 @@ function QuickDraftForm({ onCancel, onCreated }: { onCancel: () => void; onCreat
   const set = <K extends keyof QuickDraftRequest>(k: K, v: QuickDraftRequest[K]) => setReq(r => ({ ...r, [k]: v }))
   const powerLevels = useMemo<NpcPowerLevel[]>(() => ['weak', 'standard', 'strong', 'elite'], [])
 
-  // Справочник системы — для выбора магшколы (магические навыки RoT/Core).
+  // Выбор роли автоматически согласует боевой стиль профиля (можно переопределить ниже).
+  const pickRole = (role: NpcRole) => setReq(r => ({ ...r, role, combatStyle: ROLE_HINTS[role].style }))
+
+  // Справочник системы — для магшкол и RU/ENG подписей навыков/предметов в preview.
   const [loaded, setLoaded] = useState<{ system: GameSystem; data: Reference } | null>(null)
   useEffect(() => {
     let cancelled = false
@@ -795,7 +922,28 @@ function QuickDraftForm({ onCancel, onCreated }: { onCancel: () => void; onCreat
       .catch(() => { /* без справочника список магшкол будет пуст */ })
     return () => { cancelled = true }
   }, [req.system])
-  const magicSkills = (loaded?.system === req.system ? loaded.data.skills : []).filter(s => s.kind === 'magic')
+  const reference = loaded?.system === req.system ? loaded.data : null
+  const magicSkills = (reference?.skills ?? []).filter(s => s.kind === 'magic')
+
+  // Live preview: генератор без сохранения, с дебаунсом по параметрам.
+  const [preview, setPreview] = useState<NpcDetail | null>(null)
+  const [previewBusy, setPreviewBusy] = useState(false)
+  useEffect(() => {
+    let cancelled = false
+    const t = setTimeout(() => {
+      setPreviewBusy(true)
+      api.previewQuickDraftNpc({ ...req, name: name.trim() || null })
+        .then(p => { if (!cancelled) { setPreview(p); setError(null) } })
+        .catch((e: unknown) => { if (!cancelled) setError(e instanceof Error ? e.message : 'Ошибка предпросмотра') })
+        .finally(() => { if (!cancelled) setPreviewBusy(false) })
+    }, 300)
+    return () => { cancelled = true; clearTimeout(t) }
+  }, [req, name])
+
+  const index = useMemo(() => skillIndex(reference), [reference])
+  const previewSkills = useMemo(() => (preview ? npcSkillViews(preview, index) : []), [preview, index])
+  const previewAttacks = useMemo(() => (preview ? npcAttackViews(preview, reference) : []), [preview, reference])
+  const previewGear = useMemo(() => (preview ? npcGearViews(preview, reference) : []), [preview, reference])
 
   async function submit(e: FormEvent) {
     e.preventDefault()
@@ -809,76 +957,228 @@ function QuickDraftForm({ onCancel, onCreated }: { onCancel: () => void; onCreat
     }
   }
 
+  const chars: [Characteristic, number][] = preview ? [
+    ['brawn', preview.brawn], ['agility', preview.agility], ['intellect', preview.intellect],
+    ['cunning', preview.cunning], ['willpower', preview.willpower], ['presence', preview.presence],
+  ] : []
+
   return (
     <div className="modal-backdrop" onClick={onCancel}>
-      <form className="modal" onClick={e => e.stopPropagation()} onSubmit={submit}>
+      <form className="modal wide xwide quick-draft" onClick={e => e.stopPropagation()} onSubmit={submit}>
         <h3>⚡ Быстрый черновик NPC</h3>
-        <p className="hint">Детерминированный генератор соберёт заготовку статблока — затем вы её отредактируете.</p>
+        <p className="hint">
+          Ролевой профиль задаёт характеристики, стиль боя, ключевые навыки, снаряжение и способности.
+          Справа — предпросмотр того, что будет создано; после создания всё можно править.
+        </p>
 
-        <label>Имя (необязательно)<input value={name} onChange={e => setName(e.target.value)} placeholder="Сгенерируется автоматически" /></label>
-        <div className="form-row">
-          <label>Система
-            <select value={req.system} onChange={e => set('system', e.target.value as GameSystem)}>
-              {SYSTEMS.map(s => <option key={s} value={s}>{SYSTEM_LABELS[s]}</option>)}
-            </select>
-          </label>
-          <label>Тип
-            <select value={req.kind} onChange={e => set('kind', e.target.value as NpcKind)}>
-              {NPC_KINDS.map(k => <option key={k} value={k}>{NPC_KIND_LABELS[k]}</option>)}
-            </select>
-          </label>
-        </div>
-        <div className="form-row">
-          <label>Роль
-            <select value={req.role} onChange={e => set('role', e.target.value as NpcRole)}>
-              {NPC_ROLES.map(r => <option key={r} value={r}>{NPC_ROLE_LABELS[r]}</option>)}
-            </select>
-          </label>
-          <label>Уровень силы
-            <select value={req.powerLevel} onChange={e => set('powerLevel', e.target.value as NpcPowerLevel)}>
-              {powerLevels.map(p => <option key={p} value={p}>{NPC_POWER_LABELS[p]}</option>)}
-            </select>
-          </label>
-        </div>
-        <div className="form-row">
-          <label>Боевой стиль
-            <select value={req.combatStyle} onChange={e => set('combatStyle', e.target.value as NpcCombatStyle)}>
-              {(['melee', 'ranged', 'magic', 'social'] as NpcCombatStyle[]).map(s =>
-                <option key={s} value={s}>{NPC_COMBAT_STYLE_LABELS[s]}</option>)}
-            </select>
-          </label>
-          <label>Основная характеристика
-            <select value={req.primaryCharacteristic ?? ''}
-              onChange={e => set('primaryCharacteristic', (e.target.value || null) as Characteristic | null)}>
-              <option value="">По роли</option>
-              {CHARACTERISTICS.map(c => <option key={c} value={c}>{CHARACTERISTIC_LABELS[c]}</option>)}
-            </select>
-          </label>
-        </div>
-        <div className="form-row">
-          <label>Тип существа
-            <select value={req.template ?? 'none'} onChange={e => set('template', e.target.value as CreatureTemplate)}>
-              {CREATURE_TEMPLATES.map(t => <option key={t} value={t}>{CREATURE_TEMPLATE_LABELS[t]}</option>)}
-            </select>
-          </label>
-          {req.combatStyle === 'magic' && (
-            <label>Магшкола
-              <select value={req.magicSkill ?? ''} onChange={e => set('magicSkill', e.target.value || null)}>
-                <option value="">По умолчанию</option>
-                {magicSkills.map(s => <option key={s.name} value={refLabel(s)}>{refLabel(s)}</option>)}
+        <div className="quick-draft-grid">
+          <aside className="qd-roles">
+            <div className="label-line">Ролевой профиль</div>
+            <div className="role-list">
+              {NPC_ROLES.map(r => (
+                <button key={r} type="button" className={`role-card${req.role === r ? ' active' : ''}`}
+                  onClick={() => pickRole(r)}>
+                  <span className="role-name">{NPC_ROLE_LABELS[r]}</span>
+                  <span className="role-sub muted small-text">{ROLE_HINTS[r].sub}</span>
+                </button>
+              ))}
+            </div>
+            <div className="qd-profile">
+              <div className="label-line">Профиль: {NPC_ROLE_LABELS[req.role]}</div>
+              <div className="small-text">
+                <div><b>Стиль:</b> {NPC_COMBAT_STYLE_LABELS[req.combatStyle]}</div>
+                <div><b>Приоритет:</b> {CHARACTERISTIC_LABELS[req.primaryCharacteristic ?? ROLE_PRIMARY[req.role]]}, {CHARACTERISTIC_LABELS[ROLE_SECONDARY[req.role]]}</div>
+              </div>
+            </div>
+          </aside>
+
+          <section className="qd-params">
+            <label>Имя (необязательно)
+              <input value={name} onChange={e => setName(e.target.value)} placeholder="Сгенерируется автоматически" />
+            </label>
+            <label>Система
+              <select value={req.system} onChange={e => set('system', e.target.value as GameSystem)}>
+                {SYSTEMS.map(s => <option key={s} value={s}>{SYSTEM_LABELS[s]}</option>)}
               </select>
             </label>
-          )}
+
+            <div className="label-line">Тип и сила</div>
+            <div className="qd-choice-grid">
+              {NPC_KINDS.map(k => (
+                <button key={k} type="button" className={`choice${req.kind === k ? ' active' : ''}`}
+                  onClick={() => set('kind', k)}>
+                  <strong>{NPC_KIND_LABELS[k]}</strong>
+                  <span className="muted small-text">
+                    {k === 'minion' ? 'группа, без усталости' : k === 'rival' ? 'одиночный противник' : 'босс, усталость'}
+                  </span>
+                </button>
+              ))}
+            </div>
+            <div className="qd-choice-grid">
+              {powerLevels.map(p => (
+                <button key={p} type="button" className={`choice${req.powerLevel === p ? ' active' : ''}`}
+                  onClick={() => set('powerLevel', p)}>
+                  <strong>{NPC_POWER_LABELS[p]}</strong>
+                </button>
+              ))}
+            </div>
+
+            <div className="form-row">
+              <label className="grow">Боевой стиль
+                <select value={req.combatStyle} onChange={e => set('combatStyle', e.target.value as NpcCombatStyle)}>
+                  {(['melee', 'ranged', 'magic', 'social'] as NpcCombatStyle[]).map(s =>
+                    <option key={s} value={s}>{NPC_COMBAT_STYLE_LABELS[s]}</option>)}
+                </select>
+              </label>
+              {req.combatStyle === 'magic' && (
+                <label className="grow">Магшкола
+                  <select value={req.magicSkill ?? ''} onChange={e => set('magicSkill', e.target.value || null)}>
+                    <option value="">По умолчанию</option>
+                    {magicSkills.map(s => <option key={s.name} value={refLabel(s)}>{dualName(s)}</option>)}
+                  </select>
+                </label>
+              )}
+            </div>
+            <div className="form-row">
+              <label className="grow">Основная характеристика
+                <select value={req.primaryCharacteristic ?? ''}
+                  onChange={e => set('primaryCharacteristic', (e.target.value || null) as Characteristic | null)}>
+                  <option value="">По роли: {CHARACTERISTIC_LABELS[ROLE_PRIMARY[req.role]]}</option>
+                  {CHARACTERISTICS.map(c => <option key={c} value={c}>{CHARACTERISTIC_LABELS[c]}</option>)}
+                </select>
+              </label>
+              <label className="grow">Тип существа
+                <select value={req.template ?? 'none'} onChange={e => set('template', e.target.value as CreatureTemplate)}>
+                  {CREATURE_TEMPLATES.map(t => <option key={t} value={t}>{CREATURE_TEMPLATE_LABELS[t]}</option>)}
+                </select>
+              </label>
+            </div>
+            <label>Окружение / тег (необязательно)
+              <input value={req.environment ?? ''} onChange={e => set('environment', e.target.value || null)}
+                placeholder="например, лес, подземелье" />
+            </label>
+
+            {preview && (
+              <>
+                <div className="label-line">Будет добавлено ролью и стилем</div>
+                <div className="qd-summary-rail">
+                  <div className="summary-tile">
+                    <b>{preview.skills.length} нав.</b>
+                    <span className="muted small-text">{previewSkills.map(s => s.name).join(', ') || '—'}</span>
+                  </div>
+                  <div className="summary-tile">
+                    <b>{preview.equipment.length} предм.</b>
+                    <span className="muted small-text">{preview.equipment.join(', ') || '—'}</span>
+                  </div>
+                  <div className="summary-tile">
+                    <b>{preview.abilities.length} способн.</b>
+                    <span className="muted small-text">{preview.abilities.map(a => a.name).join(', ') || '—'}</span>
+                  </div>
+                </div>
+              </>
+            )}
+          </section>
+
+          <aside className="qd-preview">
+            <div className="label-line">
+              Предпросмотр {previewBusy && <span className="muted small-text">обновляется…</span>}
+            </div>
+            {!preview && <p className="muted">Предпросмотр загружается…</p>}
+            {preview && (
+              <div className="npc-card qd-preview-card">
+                <div className="npc-card-head">
+                  <h3>{preview.name}</h3>
+                  <span className="muted small-text">
+                    {NPC_KIND_LABELS[preview.kind]} · {NPC_ROLE_LABELS[preview.role]} · {SYSTEM_LABELS[preview.system]}
+                  </span>
+                </div>
+                <div className="npc-char-row">
+                  {chars.map(([c, v]) => (
+                    <div key={c} className="npc-char">
+                      <span className="npc-char-val">{v}</span>
+                      <span className="npc-char-label">{CHARACTERISTIC_LABELS[c]}</span>
+                    </div>
+                  ))}
+                </div>
+                <div className="npc-derived">
+                  <span><b>Раны</b> {preview.woundThreshold}</span>
+                  {preview.strainThreshold != null && <span><b>Усталость</b> {preview.strainThreshold}</span>}
+                  <span><b>Погл.</b> {preview.soak}</span>
+                  <span><b>Защита</b> {preview.meleeDefense}/{preview.rangedDefense}</span>
+                </div>
+                {previewSkills.length > 0 && (
+                  <div className="npc-section">
+                    <h4>Навыки</h4>
+                    <ul className="npc-skill-list">
+                      {previewSkills.map((s, i) => {
+                        const def = index.get(s.name)
+                        const original = def ? secondaryName(def) : ''
+                        return (
+                          <li key={i} className="npc-skill-row">
+                            <span className="npc-skill-name">
+                              {s.name}
+                              {original && original !== s.name && <span className="muted small-text name-secondary"> · {original}</span>}
+                              {' '}{preview.kind !== 'minion' && <span className="muted">{s.ranks}</span>}
+                            </span>
+                            {s.pool && <DicePoolView pool={s.pool} />}
+                          </li>
+                        )
+                      })}
+                    </ul>
+                  </div>
+                )}
+                {previewAttacks.length > 0 && (
+                  <div className="npc-section">
+                    <h4>Атаки</h4>
+                    <ul className="npc-weapon-list">
+                      {previewAttacks.map((w, i) => (
+                        <li key={i} className="npc-weapon">
+                          <div className="npc-weapon-head"><strong>{w.name}</strong>
+                            {w.pool && <DicePoolView pool={w.pool} />}
+                          </div>
+                          <div className="npc-weapon-stats">
+                            <span className="weapon-stat">Урон <strong>{w.damageText}</strong></span>
+                            {w.crit && <span className="weapon-stat">Крит <strong>{w.crit}</strong></span>}
+                            {w.rangeBand && <span className="weapon-stat">{w.rangeBand}</span>}
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                {previewGear.length > 0 && (
+                  <div className="npc-section">
+                    <h4>Снаряжение</h4>
+                    <ul className="npc-gear-list">
+                      {previewGear.map((g, i) => (
+                        <li key={i} className="npc-gear">
+                          <strong>{g.name}</strong>
+                          {g.item && secondaryName(g.item) && (
+                            <span className="muted small-text name-secondary"> · {secondaryName(g.item)}</span>
+                          )}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                {preview.abilities.length > 0 && (
+                  <div className="npc-section">
+                    <h4>Способности</h4>
+                    <ul>{preview.abilities.map((a, i) => <li key={i} className="small-text"><b>{a.name}.</b> {a.description}</li>)}</ul>
+                  </div>
+                )}
+                {preview.tags.length > 0 && (
+                  <div className="chips">{preview.tags.map(t => <span key={t} className="chip">{t}</span>)}</div>
+                )}
+              </div>
+            )}
+          </aside>
         </div>
-        <label>Окружение / тег (необязательно)
-          <input value={req.environment ?? ''} onChange={e => set('environment', e.target.value || null)}
-            placeholder="например, лес, подземелье" />
-        </label>
 
         {error && <div className="error">{error}</div>}
         <div className="modal-actions">
           <button type="button" onClick={onCancel}>Отмена</button>
-          <button className="primary" type="submit" disabled={busy}>Сгенерировать</button>
+          <button className="primary" type="submit" disabled={busy}>Создать черновик</button>
         </div>
       </form>
     </div>

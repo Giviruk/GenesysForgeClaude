@@ -52,6 +52,31 @@ public class NpcTests : IClassFixture<ApiFactory>
     }
 
     [Fact]
+    public async Task QuickDraftPreview_ReturnsDraft_WithoutPersisting()
+    {
+        var gm = await _factory.CreateAuthorizedClientAsync();
+        var req = new QuickDraftRequest(GameSystem.RealmsOfTerrinoth, NpcKind.Rival, NpcRole.Caster,
+            NpcPowerLevel.Standard, null, NpcCombatStyle.Magic, "Превью-маг");
+
+        var before = (await gm.GetFromJsonAsync<List<NpcListItemDto>>("/api/npcs/", Json.Options))!.Count;
+
+        var resp = await gm.PostAsJsonAsync("/api/npcs/quick-draft/preview", req, Json.Options);
+        Assert.Equal(HttpStatusCode.OK, resp.StatusCode);
+        var preview = (await resp.Content.ReadFromJsonAsync<NpcDetailDto>(Json.Options))!;
+
+        // Preview собран той же логикой, что и создание: имя, роль и ролевая выдача на месте.
+        Assert.Equal("Превью-маг", preview.Name);
+        Assert.NotEmpty(preview.Skills);
+        Assert.Contains(preview.Abilities, a => a.Name == "Заклинания");
+
+        // Но ничего не сохранено: библиотека не выросла, а карточка по id не открывается.
+        var after = (await gm.GetFromJsonAsync<List<NpcListItemDto>>("/api/npcs/", Json.Options))!.Count;
+        Assert.Equal(before, after);
+        var get = await gm.GetAsync($"/api/npcs/{preview.Id}");
+        Assert.NotEqual(HttpStatusCode.OK, get.StatusCode);
+    }
+
+    [Fact]
     public async Task QuickDraft_IsDeterministic_AndValid()
     {
         var gm = await _factory.CreateAuthorizedClientAsync();

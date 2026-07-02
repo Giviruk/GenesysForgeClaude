@@ -43,6 +43,11 @@ public static class NpcEndpoints
             return Results.Created($"/api/npcs/{npc.Id}", npc);
         });
 
+        // Live preview быстрого черновика: тот же генератор, но без сохранения.
+        group.MapPost("/quick-draft/preview", async (QuickDraftRequest req, ClaimsPrincipal user,
+                IQueryHandler<PreviewQuickDraftNpcQuery, NpcDetailDto> handler, CancellationToken ct) =>
+            Results.Ok(await handler.Handle(new PreviewQuickDraftNpcQuery(user.UserId(), req), ct)));
+
         group.MapPost("/apply-template", async (ApplyTemplateRequest req, ClaimsPrincipal user,
             ICommandHandler<ApplyNpcTemplateCommand, NpcDetailDto> handler, CancellationToken ct) =>
             Results.Ok(await handler.Handle(new ApplyNpcTemplateCommand(user.UserId(), req), ct)));
