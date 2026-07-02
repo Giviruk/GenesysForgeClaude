@@ -1,0 +1,1015 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NPC Quick Draft — Genesys Forge Prototype</title>
+<style>
+:root {
+  --bg: #16131c;
+  --panel: #1f1a28;
+  --panel-2: #292235;
+  --border: #3a3148;
+  --text: #d7d2e0;
+  --muted: #8d85a0;
+  --accent: #c8a24a;
+  --accent-dark: #8d6f2c;
+  --green: #41a356;
+  --yellow: #e0b62c;
+  --red: #c75050;
+  --core: #4a7bc8;
+  --terrinoth: #7b4ac8;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: "Segoe UI", system-ui, sans-serif;
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+button, input, select, textarea { font: inherit; }
+button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.15rem;
+  padding: 0.38rem 0.9rem 0.52rem;
+  color: var(--text);
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  cursor: pointer;
+  line-height: 1.2;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+button:hover { border-color: var(--accent); }
+button.primary { background: var(--accent-dark); border-color: var(--accent); color: #fff; }
+button.danger { border-color: var(--red); color: #f2a3a3; }
+button.small { min-height: 1.8rem; padding: 0.1rem 0.55rem 0.3rem; font-size: 0.8rem; }
+button.icon { width: 2.15rem; padding-inline: 0; }
+input, select, textarea {
+  width: 100%;
+  padding: 0.45rem 0.6rem;
+  color: var(--text);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+textarea { min-height: 4.3rem; resize: vertical; }
+input:focus, select:focus, textarea:focus { outline: none; border-color: var(--accent); }
+h1, h2, h3, h4, p { margin-top: 0; }
+h1, h2, h3, h4 { color: #efeaf6; font-weight: 600; }
+.muted { color: var(--muted); }
+.small-text { font-size: 0.78rem; }
+
+.app-shell {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 14.5rem minmax(0, 1fr);
+}
+.app-sidebar {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1rem 0.8rem;
+  background: rgba(31, 26, 40, 0.96);
+  border-right: 1px solid var(--border);
+}
+.app-brand {
+  width: 100%;
+  justify-content: flex-start;
+  min-height: 2.6rem;
+  background: transparent;
+  border-color: transparent;
+  color: var(--accent);
+  font-family: Georgia, serif;
+  font-size: 1.08rem;
+  letter-spacing: 0.05em;
+}
+.side-nav, .side-nav-footer { display: flex; flex-direction: column; gap: 0.35rem; }
+.side-nav-footer { margin-top: auto; }
+.side-nav-item {
+  width: 100%;
+  justify-content: flex-start;
+  min-height: 2.25rem;
+  border-radius: 8px;
+  background: transparent;
+  border-color: transparent;
+  color: var(--text);
+}
+.side-nav-item:hover { background: var(--panel-2); border-color: var(--border); }
+.side-nav-item.active {
+  background: rgba(200, 162, 74, 0.16);
+  border-color: var(--accent);
+  color: #fff;
+}
+.shell {
+  width: 100%;
+  max-width: 96rem;
+  margin: 0 auto;
+  padding: 0 1rem 3rem;
+}
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  padding: 0.8rem 0;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 1rem;
+}
+.topbar h1 { margin: 0; font-size: 1.22rem; line-height: 1.15; }
+.topbar-actions, .head-actions, .row-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+.page-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.75rem 1rem;
+  flex-wrap: wrap;
+}
+.page-title h2 { margin: 0; font-size: 1.15rem; }
+.page-sub { margin-top: 0.15rem; color: var(--muted); font-size: 0.8rem; }
+.badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 0.3rem;
+  padding: 0.15rem 0.5rem 0.27rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--muted);
+  font-size: 0.7rem;
+  line-height: 1;
+  vertical-align: middle;
+}
+.badge.core { border-color: var(--core); color: #9db9e8; }
+.badge.rot { border-color: var(--terrinoth); color: #c2a4ef; }
+.badge.tier { border-color: var(--accent); color: var(--accent); }
+.badge.custom { border-color: var(--green); color: #a7e3b3; }
+.badge.warn { border-color: var(--yellow); color: var(--yellow); }
+.badge.danger { border-color: var(--red); color: #e89d9d; }
+.badge.clean { border-color: var(--border); color: var(--text); }
+.panel {
+  min-width: 0;
+  padding: 0.85rem 1rem;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+.panel-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.6rem;
+  margin-bottom: 0.6rem;
+}
+.panel h3, .panel h4 { margin: 0; font-size: 0.9rem; }
+.section-label {
+  margin: 0.8rem 0 0.35rem;
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.bestiary-layout {
+  display: grid;
+  grid-template-columns: minmax(16rem, 22rem) minmax(0, 1fr);
+  gap: 1rem;
+  align-items: start;
+  margin-top: 1rem;
+}
+.bestiary-list {
+  position: sticky;
+  top: 1rem;
+  max-height: calc(100vh - 7rem);
+  display: flex;
+  flex-direction: column;
+  padding: 0.8rem;
+}
+.npc-filters { display: flex; flex-direction: column; gap: 0.5rem; }
+.npc-filter-row { display: flex; gap: 0.5rem; }
+.npc-filter-row select { min-width: 0; }
+.bestiary-items {
+  list-style: none;
+  margin: 0.6rem 0 0;
+  padding: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+.bestiary-item {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.12rem;
+  min-height: auto;
+  padding: 0.55rem 0.65rem;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  text-align: left;
+}
+.bestiary-item.active {
+  border-color: var(--accent);
+  background: rgba(200, 162, 74, 0.1);
+}
+.bestiary-item-main {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.4rem;
+}
+.bestiary-item-main strong {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.bestiary-item-sub { color: var(--muted); font-size: 0.76rem; }
+
+.prototype-overlay {
+  position: relative;
+  min-height: 38rem;
+}
+.quick-modal {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 18px 60px rgba(0, 0, 0, 0.35);
+  overflow: hidden;
+}
+.quick-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 1rem;
+  align-items: start;
+  padding: 0.9rem 1rem;
+  border-bottom: 1px solid var(--border);
+}
+.quick-title h3 {
+  margin: 0;
+  font-size: 1.05rem;
+}
+.quick-title .page-sub { margin-top: 0.18rem; }
+.stepper {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.35rem;
+  padding: 0.65rem 1rem;
+  background: rgba(22, 19, 28, 0.52);
+  border-bottom: 1px solid var(--border);
+}
+.step {
+  min-width: 0;
+  padding: 0.45rem 0.55rem;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+.step.active {
+  border-color: var(--accent);
+  background: rgba(200, 162, 74, 0.14);
+}
+.step-num {
+  color: var(--accent);
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+.step-label {
+  margin-top: 0.05rem;
+  overflow: hidden;
+  color: #efeaf6;
+  font-size: 0.78rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.quick-grid {
+  display: grid;
+  grid-template-columns: minmax(17rem, 22rem) minmax(22rem, 1fr) minmax(18rem, 24rem);
+  gap: 0.75rem;
+  padding: 0.85rem 1rem 1rem;
+  align-items: start;
+}
+.role-list {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.42rem;
+}
+.role-card {
+  width: 100%;
+  min-height: auto;
+  display: grid;
+  grid-template-columns: 2rem minmax(0, 1fr) auto;
+  gap: 0.55rem;
+  align-items: center;
+  justify-content: stretch;
+  padding: 0.52rem 0.6rem;
+  text-align: left;
+  background: var(--panel-2);
+  border-radius: 8px;
+}
+.role-card.active {
+  border-color: var(--accent);
+  background: rgba(200, 162, 74, 0.12);
+}
+.role-mark {
+  width: 1.7rem;
+  height: 1.7rem;
+  display: inline-grid;
+  place-items: center;
+  color: var(--accent);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-weight: 600;
+}
+.role-main { min-width: 0; }
+.role-name {
+  display: block;
+  color: #efeaf6;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.role-sub {
+  display: block;
+  color: var(--muted);
+  font-size: 0.72rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.role-mini {
+  color: var(--muted);
+  font-size: 0.72rem;
+  white-space: nowrap;
+}
+.profile-card {
+  margin-top: 0.65rem;
+  padding: 0.65rem 0.7rem;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+.profile-card h4 { margin-bottom: 0.4rem; color: var(--accent); }
+.profile-lines {
+  display: grid;
+  gap: 0.35rem;
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+.profile-lines b { color: var(--text); font-weight: 600; }
+
+.draft-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.55rem;
+}
+label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  color: var(--muted);
+  font-size: 0.75rem;
+}
+label span {
+  color: var(--muted);
+}
+.name-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(9rem, 12rem);
+  gap: 0.55rem;
+}
+.profile-sync {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.7rem;
+  align-items: center;
+  padding: 0.65rem 0.75rem;
+  background: rgba(200, 162, 74, 0.09);
+  border: 1px solid rgba(200, 162, 74, 0.45);
+  border-radius: 8px;
+}
+.sync-title {
+  color: #efeaf6;
+  font-weight: 600;
+}
+.sync-text {
+  margin-top: 0.12rem;
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+.choice-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.45rem;
+}
+.choice {
+  min-height: 4.2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 0.55rem 0.65rem;
+  background: var(--panel-2);
+  border-radius: 8px;
+  text-align: left;
+}
+.choice.active {
+  border-color: var(--accent);
+  background: rgba(200, 162, 74, 0.12);
+}
+.choice strong {
+  color: #efeaf6;
+  font-size: 0.82rem;
+}
+.choice span {
+  color: var(--muted);
+  font-size: 0.72rem;
+}
+.details-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 0.55rem;
+}
+.tag-input {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.45rem;
+  align-items: end;
+}
+.chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.32rem;
+}
+.chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.17rem 0.45rem 0.25rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--text);
+  background: var(--panel-2);
+  font-size: 0.72rem;
+}
+.chip.accent { border-color: var(--accent); color: var(--accent); }
+.chip.green { border-color: var(--green); color: #a7e3b3; }
+.chip.red { border-color: var(--red); color: #e89d9d; }
+.chip.blue { border-color: var(--core); color: #9db9e8; }
+
+.preview-card {
+  position: sticky;
+  top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+.npc-card {
+  padding: 0.85rem 0.9rem;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+.npc-card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.6rem;
+}
+.npc-card h3 {
+  margin: 0;
+  font-size: 1rem;
+}
+.npc-char-row {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 0.35rem;
+  margin: 0.75rem 0;
+}
+.npc-char {
+  min-width: 0;
+  padding: 0.4rem 0.3rem;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  text-align: center;
+}
+.npc-char-val {
+  display: block;
+  color: var(--accent);
+  font-size: 1.08rem;
+  font-weight: 600;
+  line-height: 1;
+}
+.npc-char-label {
+  display: block;
+  margin-top: 0.2rem;
+  color: var(--muted);
+  font-size: 0.65rem;
+}
+.npc-derived {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.35rem;
+}
+.derived-box {
+  padding: 0.38rem 0.42rem;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  color: var(--muted);
+  font-size: 0.7rem;
+}
+.derived-box b { display: block; color: var(--text); font-size: 0.86rem; }
+.preview-section {
+  padding-top: 0.55rem;
+  border-top: 1px solid var(--border);
+}
+.preview-section h4 {
+  margin: 0 0 0.35rem;
+  color: var(--accent);
+  font-size: 0.78rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.skill-list, .gear-list, .ability-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.28rem;
+}
+.skill-list li, .gear-list li, .ability-list li {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.35rem 0.45rem;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  font-size: 0.78rem;
+}
+.ability-list li {
+  display: block;
+}
+.ability-list b { color: #efeaf6; }
+.attack-box {
+  padding: 0.52rem 0.58rem;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+.attack-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  color: #efeaf6;
+  font-weight: 600;
+}
+.attack-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin-top: 0.32rem;
+  color: var(--muted);
+  font-size: 0.75rem;
+}
+.summary-rail {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+.summary-tile {
+  padding: 0.55rem 0.6rem;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+.summary-tile b {
+  display: block;
+  color: #efeaf6;
+  font-size: 0.92rem;
+}
+.summary-tile span {
+  color: var(--muted);
+  font-size: 0.72rem;
+}
+.quick-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.55rem;
+  flex-wrap: wrap;
+  padding: 0.85rem 1rem;
+  border-top: 1px solid var(--border);
+  background: rgba(22, 19, 28, 0.45);
+}
+
+@media (max-width: 100rem) {
+  .quick-grid {
+    grid-template-columns: minmax(17rem, 22rem) minmax(0, 1fr);
+  }
+  .preview-card {
+    position: static;
+    grid-column: 1 / -1;
+  }
+  .summary-rail { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (max-width: 64rem) {
+  .app-shell { display: block; }
+  .app-sidebar {
+    position: static;
+    height: auto;
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+  }
+  .side-nav, .side-nav-footer {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+  .side-nav-footer { margin-top: 0; }
+  .side-nav-item { flex: 1 1 9rem; }
+  .app-brand { justify-content: center; }
+  .bestiary-layout, .quick-grid { grid-template-columns: 1fr; }
+  .bestiary-list { position: static; max-height: none; }
+  .stepper, .choice-grid, .form-grid, .details-grid, .name-row, .summary-rail { grid-template-columns: 1fr; }
+  .quick-head { grid-template-columns: 1fr; }
+}
+@media (max-width: 38rem) {
+  .shell { padding-inline: 0.75rem; }
+  .npc-char-row { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .npc-derived { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .quick-actions > button { flex: 1 1 9rem; }
+}
+</style>
+</head>
+<body>
+<div class="app-shell">
+  <aside class="app-sidebar" aria-label="Основная навигация">
+    <button class="app-brand">Genesys Forge</button>
+    <nav class="side-nav">
+      <button class="side-nav-item">Персонажи</button>
+      <button class="side-nav-item">Кампании</button>
+      <button class="side-nav-item active">Бестиарий</button>
+      <button class="side-nav-item">Магия</button>
+      <button class="side-nav-item">Справочник</button>
+    </nav>
+    <nav class="side-nav-footer">
+      <button class="side-nav-item">Справка</button>
+      <button class="side-nav-item">Профиль</button>
+    </nav>
+  </aside>
+
+  <main class="shell">
+    <header class="topbar">
+      <div>
+        <h1>NPC / Бестиарий</h1>
+        <div class="page-sub">Библиотека противников, союзников и существ</div>
+      </div>
+      <div class="topbar-actions">
+        <button class="small">Дайсроллер</button>
+        <button class="small">Выйти</button>
+      </div>
+    </header>
+
+    <section class="page-head">
+      <div class="page-title">
+        <h2>Моя библиотека <span class="badge rot">Realms of Terrinoth</span></h2>
+        <div class="page-sub">24 NPC · 8 встроенных шаблонов · 6 моих черновиков</div>
+      </div>
+      <div class="head-actions">
+        <button class="primary small">Быстрый черновик</button>
+        <button class="small">+ Создать NPC</button>
+      </div>
+    </section>
+
+    <div class="bestiary-layout">
+      <aside class="bestiary-list panel">
+        <div class="npc-filters">
+          <input value="маг" aria-label="Поиск NPC">
+          <div class="npc-filter-row">
+            <select aria-label="Система">
+              <option>Все системы</option>
+              <option selected>Realms of Terrinoth</option>
+            </select>
+            <select aria-label="Тип">
+              <option>Все типы</option>
+              <option>Ривал</option>
+              <option>Немезида</option>
+            </select>
+          </div>
+          <div class="npc-filter-row">
+            <select aria-label="Роль">
+              <option>Все роли</option>
+              <option selected>Маг</option>
+            </select>
+            <select aria-label="Источник">
+              <option>Все источники</option>
+              <option>Мои</option>
+            </select>
+          </div>
+        </div>
+
+        <ul class="bestiary-items">
+          <li>
+            <button class="bestiary-item active">
+              <span class="bestiary-item-main"><strong>Теневой маг</strong><span class="badge danger">NPC</span></span>
+              <span class="bestiary-item-sub">Немезида · Маг · раны 27 · поглощение 3</span>
+            </button>
+          </li>
+          <li>
+            <button class="bestiary-item">
+              <span class="bestiary-item-main"><strong>Рунный адепт</strong><span class="badge custom">мой</span></span>
+              <span class="bestiary-item-sub">Ривал · Маг · руны · башня</span>
+            </button>
+          </li>
+          <li>
+            <button class="bestiary-item">
+              <span class="bestiary-item-main"><strong>Жрец-помощник</strong><span class="badge clean">шаблон</span></span>
+              <span class="bestiary-item-sub">Ривал · Поддержка · лечение</span>
+            </button>
+          </li>
+        </ul>
+      </aside>
+
+      <section class="prototype-overlay">
+        <div class="quick-modal" role="dialog" aria-label="Быстрый черновик NPC">
+          <div class="quick-head">
+            <div class="quick-title">
+              <h3>Быстрый черновик NPC</h3>
+              <div class="page-sub">Ролевой профиль задаёт стиль боя, ключевые навыки, снаряжение и способности</div>
+            </div>
+            <div class="row-actions">
+              <button class="small">Сбросить</button>
+              <button class="icon small" aria-label="Закрыть">×</button>
+            </div>
+          </div>
+
+          <div class="stepper" aria-label="Этапы создания">
+            <div class="step active"><div class="step-num">1</div><div class="step-label">Профиль роли</div></div>
+            <div class="step"><div class="step-num">2</div><div class="step-label">Сила и тип</div></div>
+            <div class="step"><div class="step-num">3</div><div class="step-label">Детали</div></div>
+            <div class="step"><div class="step-num">4</div><div class="step-label">Предпросмотр</div></div>
+          </div>
+
+          <div class="quick-grid">
+            <aside class="panel">
+              <div class="panel-head">
+                <h3>Ролевой профиль</h3>
+                <span class="badge tier">выбран</span>
+              </div>
+              <div class="role-list">
+                <button class="role-card">
+                  <span class="role-mark">Г</span>
+                  <span class="role-main"><span class="role-name">Громила</span><span class="role-sub">ближний бой, броня, давление</span></span>
+                  <span class="role-mini">melee</span>
+                </button>
+                <button class="role-card">
+                  <span class="role-mark">С</span>
+                  <span class="role-main"><span class="role-name">Стрелок</span><span class="role-sub">дистанция, укрытие, фокус</span></span>
+                  <span class="role-mini">ranged</span>
+                </button>
+                <button class="role-card active">
+                  <span class="role-mark">М</span>
+                  <span class="role-main"><span class="role-name">Маг</span><span class="role-sub">заклинания, воля, дистанция</span></span>
+                  <span class="role-mini">magic</span>
+                </button>
+                <button class="role-card">
+                  <span class="role-mark">П</span>
+                  <span class="role-main"><span class="role-name">Поддержка</span><span class="role-sub">лечение, баффы, помощь</span></span>
+                  <span class="role-mini">magic</span>
+                </button>
+                <button class="role-card">
+                  <span class="role-mark">К</span>
+                  <span class="role-main"><span class="role-name">Командир</span><span class="role-sub">лидерство, защита, приказ</span></span>
+                  <span class="role-mini">social</span>
+                </button>
+                <button class="role-card">
+                  <span class="role-mark">И</span>
+                  <span class="role-main"><span class="role-name">Интриган</span><span class="role-sub">обман, переговоры, влияние</span></span>
+                  <span class="role-mini">social</span>
+                </button>
+                <button class="role-card">
+                  <span class="role-mark">Ч</span>
+                  <span class="role-main"><span class="role-name">Монстр</span><span class="role-sub">природные атаки, шаблон</span></span>
+                  <span class="role-mini">template</span>
+                </button>
+              </div>
+
+              <div class="profile-card">
+                <h4>Профиль: Маг</h4>
+                <div class="profile-lines">
+                  <div><b>Основной стиль:</b> магия</div>
+                  <div><b>Приоритет навыков:</b> Воля, Интеллект</div>
+                  <div><b>Старт:</b> магшкола, заклинания, посох</div>
+                  <div><b>Теги:</b> маг, дальняя угроза</div>
+                </div>
+              </div>
+            </aside>
+
+            <section class="panel draft-form">
+              <div class="panel-head">
+                <h3>Параметры черновика</h3>
+                <span class="badge custom">автосогласовано</span>
+              </div>
+
+              <div class="profile-sync">
+                <div>
+                  <div class="sync-title">Роль и боевой стиль совпадают</div>
+                  <div class="sync-text">Маг использует магический стиль, магшколу и способность «Заклинания».</div>
+                </div>
+                <button class="small">Настроить вручную</button>
+              </div>
+
+              <div class="name-row">
+                <label><span>Имя</span><input value="Теневой маг"></label>
+                <label><span>Система</span>
+                  <select>
+                    <option>Genesys Core</option>
+                    <option selected>Realms of Terrinoth</option>
+                  </select>
+                </label>
+              </div>
+
+              <div>
+                <div class="section-label">Тип и сила</div>
+                <div class="choice-grid">
+                  <button class="choice"><strong>Миньон</strong><span>группа, без усталости</span></button>
+                  <button class="choice active"><strong>Ривал</strong><span>одиночный противник</span></button>
+                  <button class="choice"><strong>Немезида</strong><span>босс, усталость</span></button>
+                  <button class="choice"><strong>Элитный</strong><span>+ статы, броня, навыки</span></button>
+                </div>
+              </div>
+
+              <div class="form-grid">
+                <label><span>Боевой стиль</span>
+                  <select>
+                    <option>Ближний бой</option>
+                    <option>Дальний бой</option>
+                    <option selected>Магия</option>
+                    <option>Социальный</option>
+                  </select>
+                </label>
+                <label><span>Магшкола</span>
+                  <select>
+                    <option>По умолчанию</option>
+                    <option selected>Руны</option>
+                    <option>Божественная</option>
+                    <option>Природная</option>
+                  </select>
+                </label>
+                <label><span>Основная характеристика</span>
+                  <select>
+                    <option selected>По роли: Воля</option>
+                    <option>Мощь</option>
+                    <option>Ловкость</option>
+                    <option>Интеллект</option>
+                    <option>Харизма</option>
+                  </select>
+                </label>
+              </div>
+
+              <div class="details-grid">
+                <label><span>Шаблон существа</span>
+                  <select>
+                    <option selected>Без шаблона</option>
+                    <option>Нежить</option>
+                    <option>Зверь</option>
+                    <option>Дракон</option>
+                    <option>Демон</option>
+                    <option>Конструкт</option>
+                  </select>
+                </label>
+                <label><span>Окружение</span><input value="башня, тень"></label>
+              </div>
+
+              <div>
+                <div class="section-label">Будет добавлено</div>
+                <div class="summary-rail">
+                  <div class="summary-tile"><b>3 навыка</b><span>Руны, Бдительность, Знание</span></div>
+                  <div class="summary-tile"><b>2 предмета</b><span>Посох, защитная роба</span></div>
+                  <div class="summary-tile"><b>1 способность</b><span>Заклинания</span></div>
+                </div>
+              </div>
+
+              <div class="tag-input">
+                <label><span>Теги</span><input value="маг, башня, тень"></label>
+                <button class="small">+ Тег</button>
+              </div>
+              <div class="chip-row">
+                <span class="chip accent">маг</span>
+                <span class="chip blue">дальняя угроза</span>
+                <span class="chip green">башня</span>
+                <span class="chip">тень</span>
+              </div>
+            </section>
+
+            <aside class="preview-card">
+              <section class="npc-card">
+                <div class="npc-card-head">
+                  <div>
+                    <h3>Теневой маг</h3>
+                    <div class="page-sub">Ривал · Маг · Realms of Terrinoth</div>
+                  </div>
+                  <span class="badge rot">черновик</span>
+                </div>
+
+                <div class="npc-char-row">
+                  <div class="npc-char"><span class="npc-char-val">2</span><span class="npc-char-label">Мощь</span></div>
+                  <div class="npc-char"><span class="npc-char-val">2</span><span class="npc-char-label">Лов</span></div>
+                  <div class="npc-char"><span class="npc-char-val">3</span><span class="npc-char-label">Инт</span></div>
+                  <div class="npc-char"><span class="npc-char-val">2</span><span class="npc-char-label">Хит</span></div>
+                  <div class="npc-char"><span class="npc-char-val">4</span><span class="npc-char-label">Воля</span></div>
+                  <div class="npc-char"><span class="npc-char-val">2</span><span class="npc-char-label">Хар</span></div>
+                </div>
+
+                <div class="npc-derived">
+                  <div class="derived-box"><b>12</b>Раны</div>
+                  <div class="derived-box"><b>3</b>Поглощение</div>
+                  <div class="derived-box"><b>0 / 1</b>Защита</div>
+                </div>
+
+                <div class="preview-section">
+                  <h4>Навыки</h4>
+                  <ul class="skill-list">
+                    <li><span>Руны</span><b>2</b></li>
+                    <li><span>Бдительность</span><b>1</b></li>
+                    <li><span>Знание</span><b>1</b></li>
+                  </ul>
+                </div>
+
+                <div class="preview-section">
+                  <h4>Атаки</h4>
+                  <div class="attack-box">
+                    <div class="attack-head"><span>Посох</span><span>Руны</span></div>
+                    <div class="attack-stats">
+                      <span>Урон +1</span>
+                      <span>Крит 4</span>
+                      <span>Вплотную</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="preview-section">
+                  <h4>Снаряжение</h4>
+                  <ul class="gear-list">
+                    <li><span>Посох</span><span class="muted">оружие</span></li>
+                    <li><span>Защитная роба</span><span class="muted">броня +1</span></li>
+                  </ul>
+                </div>
+
+                <div class="preview-section">
+                  <h4>Способности</h4>
+                  <ul class="ability-list">
+                    <li><b>Заклинания.</b> Творит заклинания выбранной магшколой.</li>
+                  </ul>
+                </div>
+
+                <div class="preview-section">
+                  <div class="chip-row">
+                    <span class="chip accent">маг</span>
+                    <span class="chip blue">руны</span>
+                    <span class="chip green">башня</span>
+                    <span class="chip">тень</span>
+                  </div>
+                </div>
+              </section>
+            </aside>
+          </div>
+
+          <div class="quick-actions">
+            <button>Отмена</button>
+            <button>Создать и продолжить</button>
+            <button class="primary">Создать черновик</button>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+</div>
+</body>
+</html>

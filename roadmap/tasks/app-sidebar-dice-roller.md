@@ -3,7 +3,7 @@
 - **Roadmap:** вне unified roadmap — UI/navigation improvement
 - **Ветка:** `feature/app-sidebar-dice-roller`
 - **Базовая ветка:** `master`
-- **PR:** #<номер> (после создания)
+- **PR:** #80
 - **Статус:** 🚧 In progress
 
 ## Контекст
@@ -24,11 +24,11 @@
 - [x] Подключить открытие right sidebar из действий броска.
 - [x] Проверить существующие frontend tests; новых тестов не потребовалось.
 - [x] Запустить frontend проверки.
-- [ ] Открыть PR.
+- [x] Открыть PR.
 
 ## Что осталось / блокеры
 
-Открыть PR.
+Нет.
 
 Визуальная проверка выполнена на собранном `frontend/dist` через локальный static server:
 - desktop screenshot: `.tmp/sidebar-dice-desktop.png`

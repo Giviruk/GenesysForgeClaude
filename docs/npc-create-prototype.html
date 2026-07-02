@@ -1,0 +1,920 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NPC Create — Genesys Forge Prototype</title>
+<style>
+:root {
+  --bg: #16131c;
+  --panel: #1f1a28;
+  --panel-2: #292235;
+  --border: #3a3148;
+  --text: #d7d2e0;
+  --muted: #8d85a0;
+  --accent: #c8a24a;
+  --accent-dark: #8d6f2c;
+  --green: #41a356;
+  --yellow: #e0b62c;
+  --red: #c75050;
+  --core: #4a7bc8;
+  --terrinoth: #7b4ac8;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: "Segoe UI", system-ui, sans-serif;
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+button, input, select, textarea { font: inherit; }
+button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.15rem;
+  padding: 0.38rem 0.9rem 0.52rem;
+  color: var(--text);
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  cursor: pointer;
+  line-height: 1.2;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+button:hover { border-color: var(--accent); }
+button.primary { background: var(--accent-dark); border-color: var(--accent); color: #fff; }
+button.danger { border-color: var(--red); color: #f2a3a3; }
+button.small { min-height: 1.8rem; padding: 0.1rem 0.55rem 0.3rem; font-size: 0.8rem; }
+button.icon { width: 2.15rem; padding-inline: 0; }
+input, select, textarea {
+  width: 100%;
+  min-width: 0;
+  padding: 0.45rem 0.6rem;
+  color: var(--text);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  line-height: 1.25;
+}
+select {
+  appearance: none;
+  padding-right: 2rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--muted) 50%),
+    linear-gradient(135deg, var(--muted) 50%, transparent 50%);
+  background-position: calc(100% - 14px) 50%, calc(100% - 9px) 50%;
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
+}
+select::-ms-expand { display: none; }
+textarea { min-height: 4.4rem; resize: vertical; }
+input:focus, select:focus, textarea:focus { outline: none; border-color: var(--accent); }
+h1, h2, h3, h4, p { margin-top: 0; }
+h1, h2, h3, h4 { color: #efeaf6; font-weight: 600; }
+.muted { color: var(--muted); }
+.small-text { font-size: 0.78rem; }
+
+.app-shell {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 14.5rem minmax(0, 1fr);
+}
+.app-sidebar {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1rem 0.8rem;
+  background: rgba(31, 26, 40, 0.96);
+  border-right: 1px solid var(--border);
+}
+.app-brand {
+  width: 100%;
+  justify-content: flex-start;
+  min-height: 2.6rem;
+  background: transparent;
+  border-color: transparent;
+  color: var(--accent);
+  font-family: Georgia, serif;
+  font-size: 1.08rem;
+  letter-spacing: 0.05em;
+}
+.side-nav, .side-nav-footer { display: flex; flex-direction: column; gap: 0.35rem; }
+.side-nav-footer { margin-top: auto; }
+.side-nav-item {
+  width: 100%;
+  justify-content: flex-start;
+  min-height: 2.25rem;
+  border-radius: 8px;
+  background: transparent;
+  border-color: transparent;
+  color: var(--text);
+}
+.side-nav-item:hover { background: var(--panel-2); border-color: var(--border); }
+.side-nav-item.active {
+  background: rgba(200, 162, 74, 0.16);
+  border-color: var(--accent);
+  color: #fff;
+}
+.shell {
+  width: 100%;
+  max-width: 98rem;
+  margin: 0 auto;
+  padding: 0 1rem 3rem;
+}
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  padding: 0.8rem 0;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 1rem;
+}
+.topbar h1 { margin: 0; font-size: 1.22rem; line-height: 1.15; }
+.topbar-actions, .head-actions, .row-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+.page-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.75rem 1rem;
+  flex-wrap: wrap;
+}
+.page-title h2 { margin: 0; font-size: 1.15rem; }
+.page-sub { margin-top: 0.15rem; color: var(--muted); font-size: 0.8rem; }
+.badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 0.3rem;
+  padding: 0.15rem 0.5rem 0.27rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--muted);
+  font-size: 0.7rem;
+  line-height: 1;
+  vertical-align: middle;
+}
+.badge.core { border-color: var(--core); color: #9db9e8; }
+.badge.rot { border-color: var(--terrinoth); color: #c2a4ef; }
+.badge.tier { border-color: var(--accent); color: var(--accent); }
+.badge.custom { border-color: var(--green); color: #a7e3b3; }
+.badge.warn { border-color: var(--yellow); color: var(--yellow); }
+.badge.danger { border-color: var(--red); color: #e89d9d; }
+.badge.clean { border-color: var(--border); color: var(--text); }
+.panel {
+  min-width: 0;
+  padding: 0.85rem 1rem;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+.panel-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.6rem;
+  margin-bottom: 0.6rem;
+}
+.panel h3, .panel h4 { margin: 0; font-size: 0.9rem; }
+.section-label {
+  margin: 0.8rem 0 0.35rem;
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.workspace {
+  display: grid;
+  grid-template-columns: minmax(15rem, 19rem) minmax(0, 1fr) minmax(18rem, 22rem);
+  gap: 0.85rem;
+  align-items: start;
+  margin-top: 1rem;
+}
+.create-shell {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 18px 60px rgba(0, 0, 0, 0.28);
+}
+.create-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 1rem;
+  align-items: start;
+  padding: 0.9rem 1rem;
+  border-bottom: 1px solid var(--border);
+}
+.create-head h3 { margin: 0; font-size: 1.05rem; }
+.mode-tabs {
+  display: flex;
+  gap: 0.35rem;
+  padding: 0.65rem 1rem;
+  background: rgba(22, 19, 28, 0.48);
+  border-bottom: 1px solid var(--border);
+  overflow-x: auto;
+}
+.mode-tab {
+  min-height: 1.9rem;
+  padding: 0.1rem 0.7rem 0.28rem;
+  white-space: nowrap;
+}
+.mode-tab.active {
+  background: var(--accent-dark);
+  border-color: var(--accent);
+  color: #fff;
+}
+.create-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.85rem;
+  padding: 0.85rem 1rem 1rem;
+  align-items: start;
+}
+.form-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.55rem;
+}
+.form-grid.two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.form-grid.four { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  color: var(--muted);
+  font-size: 0.75rem;
+}
+.identity-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(10rem, 0.8fr);
+  gap: 0.55rem;
+}
+.template-callout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.6rem;
+  align-items: center;
+  padding: 0.65rem 0.75rem;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+.callout-title { color: #efeaf6; font-weight: 600; }
+.callout-copy { margin-top: 0.12rem; color: var(--muted); font-size: 0.78rem; }
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 0.45rem;
+}
+.stat-box {
+  padding: 0.48rem 0.45rem;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+.stat-box label { gap: 0.35rem; color: var(--text); text-align: center; }
+.stat-box input { text-align: center; color: var(--accent); font-weight: 600; }
+.derived-grid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 0.45rem;
+}
+.inline-note {
+  margin-top: 0.65rem;
+  padding: 0.5rem 0.65rem;
+  background: rgba(224, 182, 44, 0.1);
+  border: 1px solid rgba(224, 182, 44, 0.45);
+  border-radius: 8px;
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+.editor-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 0.65rem;
+}
+.list-box {
+  min-width: 0;
+  padding: 0.65rem;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+.list-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+.list-head h4 { color: var(--accent); font-size: 0.82rem; }
+.table-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+.edit-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: 0.35rem;
+  align-items: center;
+}
+.edit-row.wide {
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+.rank-input {
+  width: 3.1rem;
+  text-align: center;
+}
+.attack-card {
+  padding: 0.55rem 0.6rem;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+.attack-card + .attack-card { margin-top: 0.45rem; }
+.attack-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(8rem, 0.8fr);
+  gap: 0.45rem;
+}
+.attack-mini {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 0.35rem;
+  margin-top: 0.45rem;
+}
+.chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.32rem;
+}
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.17rem 0.45rem 0.25rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--text);
+  background: var(--panel-2);
+  font-size: 0.72rem;
+}
+.chip.accent { border-color: var(--accent); color: var(--accent); }
+.chip.green { border-color: var(--green); color: #a7e3b3; }
+.chip.red { border-color: var(--red); color: #e89d9d; }
+.chip.blue { border-color: var(--core); color: #9db9e8; }
+.mini-toolbar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.45rem;
+  align-items: end;
+}
+.side-panel {
+  position: sticky;
+  top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+.rail-summary {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.45rem;
+}
+.summary-tile {
+  padding: 0.55rem 0.6rem;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+.summary-tile b {
+  display: block;
+  color: #efeaf6;
+  font-size: 0.95rem;
+}
+.summary-tile span { color: var(--muted); font-size: 0.72rem; }
+.rule-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+.rule-list li {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0.45rem;
+  align-items: start;
+  padding: 0.42rem 0.5rem;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+.rule-dot {
+  width: 0.55rem;
+  height: 0.55rem;
+  margin-top: 0.28rem;
+  background: var(--green);
+  border-radius: 50%;
+}
+.rule-dot.warn { background: var(--yellow); }
+.rule-dot.red { background: var(--red); }
+.npc-card {
+  padding: 0.85rem 0.9rem;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+.npc-card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.6rem;
+}
+.npc-card h3 {
+  margin: 0;
+  font-size: 1rem;
+}
+.npc-char-row {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 0.35rem;
+  margin: 0.75rem 0;
+}
+.npc-char {
+  min-width: 0;
+  padding: 0.4rem 0.3rem;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  text-align: center;
+}
+.npc-char-val {
+  display: block;
+  color: var(--accent);
+  font-size: 1.08rem;
+  font-weight: 600;
+  line-height: 1;
+}
+.npc-char-label {
+  display: block;
+  margin-top: 0.2rem;
+  color: var(--muted);
+  font-size: 0.65rem;
+}
+.npc-derived {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.35rem;
+}
+.derived-box {
+  padding: 0.38rem 0.42rem;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  color: var(--muted);
+  font-size: 0.7rem;
+}
+.derived-box b { display: block; color: var(--text); font-size: 0.86rem; }
+.preview-section {
+  padding-top: 0.55rem;
+  border-top: 1px solid var(--border);
+}
+.preview-section h4 {
+  margin: 0 0 0.35rem;
+  color: var(--accent);
+  font-size: 0.78rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.preview-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.28rem;
+}
+.preview-list li {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.35rem 0.45rem;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  font-size: 0.78rem;
+}
+.create-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.55rem;
+  flex-wrap: wrap;
+  padding: 0.85rem 1rem;
+  border-top: 1px solid var(--border);
+  background: rgba(22, 19, 28, 0.45);
+}
+
+@media (max-width: 84rem) {
+  .workspace {
+    grid-template-columns: minmax(16rem, 21rem) minmax(0, 1fr);
+  }
+  .side-panel {
+    position: static;
+    grid-column: 1 / -1;
+  }
+}
+@media (max-width: 72rem) {
+  .workspace, .create-body { grid-template-columns: 1fr; }
+  .create-head { grid-template-columns: 1fr; }
+  .form-grid, .form-grid.two, .form-grid.four, .identity-grid, .editor-grid, .derived-grid { grid-template-columns: 1fr; }
+  .stat-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (max-width: 48rem) {
+  .app-shell { display: block; }
+  .app-sidebar {
+    position: static;
+    height: auto;
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+  }
+  .side-nav, .side-nav-footer {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+  .side-nav-footer { margin-top: 0; }
+  .side-nav-item { flex: 1 1 9rem; }
+  .app-brand { justify-content: center; }
+  .shell { padding-inline: 0.75rem; }
+  .mode-tabs { padding-inline: 0.75rem; }
+  .npc-char-row { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .npc-derived, .rail-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .attack-grid, .attack-mini, .mini-toolbar { grid-template-columns: 1fr; }
+  .create-actions > button { flex: 1 1 9rem; }
+}
+</style>
+</head>
+<body>
+<div class="app-shell">
+  <aside class="app-sidebar" aria-label="Основная навигация">
+    <button class="app-brand">Genesys Forge</button>
+    <nav class="side-nav">
+      <button class="side-nav-item">Персонажи</button>
+      <button class="side-nav-item">Кампании</button>
+      <button class="side-nav-item active">Бестиарий</button>
+      <button class="side-nav-item">Магия</button>
+      <button class="side-nav-item">Справочник</button>
+    </nav>
+    <nav class="side-nav-footer">
+      <button class="side-nav-item">Справка</button>
+      <button class="side-nav-item">Профиль</button>
+    </nav>
+  </aside>
+
+  <main class="shell">
+    <header class="topbar">
+      <div>
+        <h1>NPC / Бестиарий</h1>
+        <div class="page-sub">Создание и ведение статблоков</div>
+      </div>
+      <div class="topbar-actions">
+        <button class="small">Дайсроллер</button>
+        <button class="small">Выйти</button>
+      </div>
+    </header>
+
+    <section class="page-head">
+      <div class="page-title">
+        <h2>Новый NPC <span class="badge rot">Realms of Terrinoth</span></h2>
+        <div class="page-sub">Ручное создание полного статблока с проверками и предпросмотром</div>
+      </div>
+      <div class="head-actions">
+        <button class="small">Быстрый черновик</button>
+        <button class="primary small">Создать вручную</button>
+      </div>
+    </section>
+
+    <section class="workspace">
+      <aside class="panel">
+        <div class="panel-head">
+          <h3>Навигация формы</h3>
+          <span class="badge warn">3 замечания</span>
+        </div>
+        <ul class="rule-list">
+          <li><span class="rule-dot"></span><span>Основа заполнена: имя, система, тип, роль и видимость.</span></li>
+          <li><span class="rule-dot warn"></span><span>У ривала усталость будет считаться ранами, поле можно оставить пустым.</span></li>
+          <li><span class="rule-dot"></span><span>Оружие из снаряжения создаёт связанную атаку автоматически.</span></li>
+          <li><span class="rule-dot red"></span><span>Нет источника или пометки homebrew для пользовательской карточки.</span></li>
+        </ul>
+
+        <div class="section-label">Быстрые шаблоны</div>
+        <div class="table-list">
+          <button class="role-row small">Гуманоид ближнего боя</button>
+          <button class="role-row small">Социальный NPC</button>
+          <button class="role-row small">Маг поддержки</button>
+          <button class="role-row small">Зверь с природной атакой</button>
+        </div>
+
+        <div class="section-label">Тип существа</div>
+        <div class="template-callout">
+          <div>
+            <div class="callout-title">Шаблон: без шаблона</div>
+            <div class="callout-copy">Можно применить нежить, зверя, дракона, демона или конструкта.</div>
+          </div>
+          <button class="small">Применить</button>
+        </div>
+      </aside>
+
+      <form class="create-shell">
+        <div class="create-head">
+          <div>
+            <h3>Создание NPC</h3>
+            <div class="page-sub">Сначала задайте основу, затем заполните боевую часть и справочные списки</div>
+          </div>
+          <div class="row-actions">
+            <button class="small" type="button">Сбросить</button>
+            <button class="icon small" type="button" aria-label="Закрыть">×</button>
+          </div>
+        </div>
+
+        <div class="mode-tabs" aria-label="Разделы создания NPC">
+          <button class="mode-tab active" type="button">Основа</button>
+          <button class="mode-tab" type="button">Статы</button>
+          <button class="mode-tab" type="button">Навыки</button>
+          <button class="mode-tab" type="button">Атаки</button>
+          <button class="mode-tab" type="button">Контент</button>
+          <button class="mode-tab" type="button">Предпросмотр</button>
+        </div>
+
+        <div class="create-body">
+          <div class="form-stack">
+            <section class="panel">
+              <div class="panel-head">
+                <h3>Основа карточки</h3>
+                <span class="badge custom">ручной режим</span>
+              </div>
+              <div class="identity-grid">
+                <label>Имя<input value="Капитан городской стражи"></label>
+                <label>Система
+                  <select>
+                    <option>Genesys Core</option>
+                    <option selected>Realms of Terrinoth</option>
+                  </select>
+                </label>
+              </div>
+              <div class="form-grid">
+                <label>Тип
+                  <select>
+                    <option>Миньон</option>
+                    <option selected>Ривал</option>
+                    <option>Немезида</option>
+                  </select>
+                </label>
+                <label>Роль
+                  <select>
+                    <option>Громила</option>
+                    <option>Застрельщик</option>
+                    <option>Стрелок</option>
+                    <option>Маг</option>
+                    <option selected>Командир</option>
+                    <option>Интриган</option>
+                    <option>Поддержка</option>
+                  </select>
+                </label>
+                <label>Видимость
+                  <select>
+                    <option selected>Приватный</option>
+                    <option>Виден в кампании</option>
+                    <option>Публичный шаблон</option>
+                  </select>
+                </label>
+              </div>
+              <label>Описание
+                <textarea>Опытный офицер городской стражи, который держит строй и прикрывает подчинённых.</textarea>
+              </label>
+            </section>
+
+            <section class="panel">
+              <div class="panel-head">
+                <h3>Характеристики</h3>
+                <button class="small" type="button">Рассчитать по роли</button>
+              </div>
+              <div class="stat-grid">
+                <div class="stat-box"><label>Мощь<input value="3"></label></div>
+                <div class="stat-box"><label>Ловкость<input value="2"></label></div>
+                <div class="stat-box"><label>Интеллект<input value="3"></label></div>
+                <div class="stat-box"><label>Хитрость<input value="2"></label></div>
+                <div class="stat-box"><label>Воля<input value="3"></label></div>
+                <div class="stat-box"><label>Харизма<input value="3"></label></div>
+              </div>
+
+              <div class="section-label">Производные параметры</div>
+              <div class="derived-grid">
+                <label>Раны<input value="11"></label>
+                <label>Усталость<input value=""></label>
+                <label>Поглощение<input value="5"></label>
+                <label>Бл. защита<input value="1"></label>
+                <label>Дал. защита<input value="0"></label>
+                <label>Силуэт<input value="1"></label>
+              </div>
+              <div class="inline-note">Для ривала усталость обычно не заполняется. Поглощение уже учитывает броню из снаряжения.</div>
+            </section>
+
+            <section class="panel">
+              <div class="panel-head">
+                <h3>Навыки и атаки</h3>
+                <span class="badge tier">боевой минимум заполнен</span>
+              </div>
+              <div class="editor-grid">
+                <div class="list-box">
+                  <div class="list-head">
+                    <h4>Навыки</h4>
+                    <button class="small" type="button">+ Навык</button>
+                  </div>
+                  <div class="table-list">
+                    <div class="edit-row"><select><option>Лидерство</option></select><input class="rank-input" value="2"><button class="icon small" type="button">×</button></div>
+                    <div class="edit-row"><select><option>Ближний бой</option></select><input class="rank-input" value="2"><button class="icon small" type="button">×</button></div>
+                    <div class="edit-row"><select><option>Бдительность</option></select><input class="rank-input" value="1"><button class="icon small" type="button">×</button></div>
+                    <div class="edit-row"><select><option>Стойкость</option></select><input class="rank-input" value="1"><button class="icon small" type="button">×</button></div>
+                  </div>
+                </div>
+
+                <div class="list-box">
+                  <div class="list-head">
+                    <h4>Атаки</h4>
+                    <button class="small" type="button">+ Атака</button>
+                  </div>
+                  <div class="attack-card">
+                    <div class="attack-grid">
+                      <label>Название<input value="Длинный меч"></label>
+                      <label>Навык<select><option>Ближний бой</option></select></label>
+                    </div>
+                    <div class="attack-mini">
+                      <label>Урон<input value="+3"></label>
+                      <label>Крит<input value="2"></label>
+                      <label>Дистанция<input value="Вплотную"></label>
+                    </div>
+                    <div class="section-label">Качества</div>
+                    <div class="chip-row">
+                      <span class="chip accent">Точный 1</span>
+                      <span class="chip">Защитный 1</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <section class="panel">
+              <div class="panel-head">
+                <h3>Контент и заметки</h3>
+                <button class="small" type="button">Открыть справочник</button>
+              </div>
+              <div class="editor-grid">
+                <div class="list-box">
+                  <div class="list-head">
+                    <h4>Способности</h4>
+                    <button class="small" type="button">+ Способность</button>
+                  </div>
+                  <label>Название<input value="Командный приказ"></label>
+                  <label>Описание<textarea>Союзник на короткой дистанции получает бонус к следующей проверке боя или дисциплины.</textarea></label>
+                </div>
+                <div class="list-box">
+                  <div class="list-head">
+                    <h4>Таланты и снаряжение</h4>
+                    <button class="small" type="button">+ Добавить</button>
+                  </div>
+                  <div class="chip-row">
+                    <span class="chip accent">Командир</span>
+                    <span class="chip green">Длинный меч</span>
+                    <span class="chip green">Кольчуга</span>
+                    <span class="chip">Свисток стражи</span>
+                  </div>
+                  <div class="section-label">Теги</div>
+                  <div class="chip-row">
+                    <span class="chip blue">стража</span>
+                    <span class="chip accent">командир</span>
+                    <span class="chip">порт</span>
+                  </div>
+                </div>
+              </div>
+              <div class="form-grid two">
+                <label>Тактика<textarea>Держит строй, прикрывает стрелков, первым тратит манёвр на позицию и командует миньонами.</textarea></label>
+                <label>Источник<input value="homebrew"></label>
+              </div>
+            </section>
+          </div>
+
+        </div>
+
+        <div class="create-actions">
+          <button type="button">Отмена</button>
+          <button type="button">Сохранить и дублировать</button>
+          <button type="button">Сохранить и открыть</button>
+          <button class="primary" type="button">Создать NPC</button>
+        </div>
+      </form>
+
+      <aside class="side-panel">
+        <section class="panel">
+          <div class="panel-head">
+            <h3>Сводка</h3>
+            <span class="badge warn">проверить</span>
+          </div>
+          <div class="rail-summary">
+            <div class="summary-tile"><b>4</b><span>навыка</span></div>
+            <div class="summary-tile"><b>1</b><span>атака</span></div>
+            <div class="summary-tile"><b>1</b><span>способность</span></div>
+            <div class="summary-tile"><b>3</b><span>предмета</span></div>
+          </div>
+        </section>
+
+        <section class="npc-card">
+          <div class="npc-card-head">
+            <div>
+              <h3>Капитан городской стражи</h3>
+              <div class="page-sub">Ривал · Командир · приватный</div>
+            </div>
+            <span class="badge rot">NPC</span>
+          </div>
+
+          <div class="npc-char-row">
+            <div class="npc-char"><span class="npc-char-val">3</span><span class="npc-char-label">Мощь</span></div>
+            <div class="npc-char"><span class="npc-char-val">2</span><span class="npc-char-label">Лов</span></div>
+            <div class="npc-char"><span class="npc-char-val">3</span><span class="npc-char-label">Инт</span></div>
+            <div class="npc-char"><span class="npc-char-val">2</span><span class="npc-char-label">Хит</span></div>
+            <div class="npc-char"><span class="npc-char-val">3</span><span class="npc-char-label">Воля</span></div>
+            <div class="npc-char"><span class="npc-char-val">3</span><span class="npc-char-label">Хар</span></div>
+          </div>
+
+          <div class="npc-derived">
+            <div class="derived-box"><b>11</b>Раны</div>
+            <div class="derived-box"><b>5</b>Поглощение</div>
+            <div class="derived-box"><b>1 / 0</b>Защита</div>
+          </div>
+
+          <div class="preview-section">
+            <h4>Навыки</h4>
+            <ul class="preview-list">
+              <li><span>Лидерство</span><b>2</b></li>
+              <li><span>Ближний бой</span><b>2</b></li>
+              <li><span>Бдительность</span><b>1</b></li>
+            </ul>
+          </div>
+
+          <div class="preview-section">
+            <h4>Атаки</h4>
+            <ul class="preview-list">
+              <li><span>Длинный меч</span><span>+3 · крит 2</span></li>
+            </ul>
+          </div>
+
+          <div class="preview-section">
+            <h4>Снаряжение</h4>
+            <ul class="preview-list">
+              <li><span>Кольчуга</span><span>погл. +2</span></li>
+              <li><span>Свисток стражи</span><span>снаряжение</span></li>
+            </ul>
+          </div>
+
+          <div class="preview-section">
+            <div class="chip-row">
+              <span class="chip accent">командир</span>
+              <span class="chip blue">стража</span>
+              <span class="chip">порт</span>
+            </div>
+          </div>
+        </section>
+      </aside>
+    </section>
+  </main>
+</div>
+</body>
+</html>

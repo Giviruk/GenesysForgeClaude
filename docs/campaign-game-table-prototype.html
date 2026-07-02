@@ -1,0 +1,1075 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Campaign Game Table — Genesys Forge Prototype</title>
+<style>
+:root {
+  --bg: #16131c;
+  --panel: #1f1a28;
+  --panel-2: #292235;
+  --border: #3a3148;
+  --text: #d7d2e0;
+  --muted: #8d85a0;
+  --accent: #c8a24a;
+  --accent-dark: #8d6f2c;
+  --green: #41a356;
+  --yellow: #e0b62c;
+  --red: #c75050;
+  --core: #4a7bc8;
+  --terrinoth: #7b4ac8;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: "Segoe UI", system-ui, sans-serif;
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+button, input, select, textarea { font: inherit; }
+button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.15rem;
+  padding: 0.38rem 0.9rem 0.52rem;
+  color: var(--text);
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  cursor: pointer;
+  line-height: 1.2;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+button:hover { border-color: var(--accent); }
+button.primary { background: var(--accent-dark); border-color: var(--accent); color: #fff; }
+button.danger { border-color: var(--red); color: #f2a3a3; }
+button.small { min-height: 1.8rem; padding: 0.1rem 0.55rem 0.3rem; font-size: 0.8rem; }
+button.tiny { min-height: 1.45rem; padding: 0.05rem 0.45rem 0.15rem; font-size: 0.8rem; }
+button.icon { width: 2.15rem; padding-inline: 0; }
+input, select, textarea {
+  width: 100%;
+  padding: 0.45rem 0.6rem;
+  color: var(--text);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+textarea { min-height: 5rem; resize: vertical; }
+h1, h2, h3, h4, p { margin-top: 0; }
+h1, h2, h3, h4 { color: #efeaf6; font-weight: 600; }
+.muted { color: var(--muted); }
+.small-text { font-size: 0.78rem; }
+.nowrap { white-space: nowrap; }
+
+.app-shell {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 14.5rem minmax(0, 1fr);
+}
+.app-sidebar {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1rem 0.8rem;
+  background: rgba(31, 26, 40, 0.96);
+  border-right: 1px solid var(--border);
+}
+.app-brand {
+  width: 100%;
+  justify-content: flex-start;
+  min-height: 2.6rem;
+  background: transparent;
+  border-color: transparent;
+  color: var(--accent);
+  font-family: Georgia, serif;
+  font-size: 1.08rem;
+  letter-spacing: 0.05em;
+}
+.side-nav, .side-nav-footer { display: flex; flex-direction: column; gap: 0.35rem; }
+.side-nav-footer { margin-top: auto; }
+.side-nav-item {
+  width: 100%;
+  justify-content: flex-start;
+  min-height: 2.25rem;
+  border-radius: 8px;
+  background: transparent;
+  border-color: transparent;
+  color: var(--text);
+}
+.side-nav-item:hover { background: var(--panel-2); border-color: var(--border); }
+.side-nav-item.active {
+  background: rgba(200, 162, 74, 0.16);
+  border-color: var(--accent);
+  color: #fff;
+}
+.shell {
+  width: 100%;
+  max-width: 92rem;
+  margin: 0 auto;
+  padding: 0 1rem 3rem;
+}
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  padding: 0.8rem 0;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 1rem;
+}
+.topbar h1 { margin: 0; font-size: 1.22rem; line-height: 1.15; }
+.page-sub { margin-top: 0.15rem; color: var(--muted); font-size: 0.8rem; }
+.topbar-actions, .head-actions, .row-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+.page-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.75rem 1rem;
+  flex-wrap: wrap;
+}
+.page-title h2 { margin: 0; font-size: 1.15rem; }
+.tabs {
+  display: flex;
+  gap: 0.4rem;
+  margin: 0.8rem 0;
+  flex-wrap: wrap;
+  align-items: stretch;
+  border-bottom: 1px solid var(--border);
+}
+.tab {
+  min-height: 2rem;
+  border-radius: 6px 6px 0 0;
+  padding-inline: 0.75rem;
+}
+.tab.active { background: var(--accent-dark); color: #fff; border-color: var(--accent); }
+.badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 0.3rem;
+  padding: 0.15rem 0.5rem 0.27rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--muted);
+  font-size: 0.7rem;
+  line-height: 1;
+  vertical-align: middle;
+}
+.badge.core { border-color: var(--core); color: #9db9e8; }
+.badge.rot { border-color: var(--terrinoth); color: #c2a4ef; }
+.badge.tier { border-color: var(--accent); color: var(--accent); }
+.badge.custom { border-color: var(--green); color: #a7e3b3; }
+.badge.warn { border-color: var(--yellow); color: var(--yellow); }
+.badge.danger { border-color: var(--red); color: #e89d9d; }
+.panel {
+  min-width: 0;
+  padding: 0.85rem 1rem;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+.panel-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.6rem;
+  margin-bottom: 0.6rem;
+}
+.panel h3, .panel h4 { margin: 0; font-size: 0.9rem; }
+.section-label {
+  margin: 0.8rem 0 0.35rem;
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.table-shell {
+  display: grid;
+  grid-template-columns: minmax(15rem, 18rem) minmax(0, 1fr) minmax(19rem, 24rem);
+  grid-template-rows: auto minmax(31rem, auto) auto;
+  gap: 0.75rem;
+  align-items: stretch;
+}
+.command-panel {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(21rem, 26rem);
+  gap: 0.75rem;
+  align-items: center;
+}
+.scene-now h3 {
+  margin: 0;
+  font-size: 1rem;
+  overflow-wrap: anywhere;
+}
+.scene-now .page-sub { margin-top: 0.2rem; }
+.round-box {
+  display: grid;
+  grid-template-columns: auto auto;
+  gap: 0.5rem;
+  align-items: center;
+  padding: 0.45rem 0.65rem;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+.round-value {
+  color: var(--accent);
+  font-size: 1.25rem;
+  font-weight: 600;
+  line-height: 1;
+}
+.story-panel {
+  padding: 0.5rem 0.6rem;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+.story-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.6rem;
+  margin-bottom: 0.45rem;
+  color: #efeaf6;
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+.story-title span {
+  color: var(--muted);
+  font-size: 0.7rem;
+  font-weight: 400;
+}
+.story-controls {
+  display: grid;
+  grid-template-columns: minmax(4.7rem, auto) minmax(8.5rem, 1fr) minmax(4.7rem, auto);
+  gap: 0.45rem;
+  align-items: stretch;
+}
+.story-side {
+  display: grid;
+  grid-template-columns: auto auto;
+  grid-template-rows: auto auto;
+  gap: 0.2rem 0.35rem;
+  align-items: center;
+  padding: 0.35rem 0.45rem;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  text-align: center;
+}
+.story-side b {
+  grid-column: 1 / -1;
+  color: var(--accent);
+  font-size: 1.2rem;
+  line-height: 1;
+}
+.story-side span {
+  grid-column: 1 / -1;
+  color: var(--muted);
+  font-size: 0.7rem;
+}
+.story-side button {
+  min-height: 1.45rem;
+  padding: 0.05rem 0.45rem 0.15rem;
+  font-size: 0.78rem;
+}
+.story-transfer {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.3rem;
+}
+.story-transfer button {
+  width: 100%;
+  min-height: 1.7rem;
+  padding: 0.1rem 0.45rem 0.28rem;
+  font-size: 0.76rem;
+}
+
+.left-rail, .right-rail, .center-stage {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  min-width: 0;
+}
+.left-rail { grid-column: 1; grid-row: 2; }
+.center-stage { grid-column: 2; grid-row: 2; }
+.right-rail { grid-column: 3; grid-row: 2; }
+.bottom-row {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(19rem, 24rem);
+  gap: 0.75rem;
+  align-items: start;
+}
+
+.active-turn {
+  border-color: var(--accent);
+  background: rgba(200, 162, 74, 0.08);
+}
+.active-name { color: #efeaf6; font-weight: 600; }
+.active-role { margin-top: 0.12rem; color: var(--muted); font-size: 0.78rem; }
+.turn-actions {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.4rem;
+  margin-top: 0.65rem;
+}
+.initiative-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+.init-row {
+  display: grid;
+  grid-template-columns: 1.55rem minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.38rem 0.5rem;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+.init-row.current { border-color: var(--accent); background: rgba(200, 162, 74, 0.12); }
+.init-num { color: var(--muted); text-align: right; font-size: 0.75rem; }
+.init-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.conditions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.4rem;
+}
+.condition-box {
+  padding: 0.45rem 0.5rem;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  text-align: center;
+}
+.condition-box b { display: block; color: #efeaf6; font-size: 1rem; }
+.condition-box span { color: var(--muted); font-size: 0.7rem; }
+
+.range-board {
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  overflow: hidden;
+}
+.range-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 0.9rem;
+  border-bottom: 1px solid var(--border);
+}
+.range-head h3 { margin: 0; font-size: 0.95rem; }
+.band {
+  display: grid;
+  grid-template-columns: 6.5rem minmax(0, 1fr);
+  min-height: 5.3rem;
+  border-bottom: 1px solid var(--border);
+  background: var(--panel);
+}
+.band:last-child { border-bottom: none; }
+.band-label {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.1rem;
+  padding: 0.55rem 0.7rem;
+  border-right: 1px solid var(--border);
+}
+.band[data-zone="engaged"] .band-label { border-left: 3px solid var(--red); }
+.band[data-zone="short"] .band-label { border-left: 3px solid var(--yellow); }
+.band[data-zone="medium"] .band-label { border-left: 3px solid var(--accent); }
+.band[data-zone="long"] .band-label { border-left: 3px solid var(--core); }
+.band[data-zone="extreme"] .band-label { border-left: 3px solid var(--terrinoth); }
+.band-title { color: #efeaf6; font-weight: 600; font-size: 0.84rem; }
+.band-sub { color: var(--muted); font-size: 0.7rem; }
+.token-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-content: flex-start;
+  gap: 0.45rem;
+  padding: 0.55rem 0.7rem;
+}
+.token {
+  width: 7.4rem;
+  min-width: 0;
+  padding: 0.42rem 0.5rem;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+.token.pc { border-color: rgba(74, 123, 200, 0.6); }
+.token.npc { border-color: rgba(199, 80, 80, 0.55); }
+.token.hidden { opacity: 0.58; border-style: dashed; }
+.token-name {
+  color: #efeaf6;
+  font-weight: 600;
+  font-size: 0.76rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.token-meta { margin-top: 0.1rem; color: var(--muted); font-size: 0.68rem; white-space: nowrap; }
+.bar-stack { display: flex; flex-direction: column; gap: 2px; margin-top: 0.32rem; }
+.bar {
+  height: 3px;
+  background: var(--border);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.bar > span { display: block; height: 100%; border-radius: 2px; }
+.bar .wounds { background: var(--red); }
+.bar .strain { background: var(--core); }
+
+.participants-strip {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.55rem;
+}
+.pc-card {
+  min-width: 0;
+  padding: 0.58rem 0.65rem;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+.pc-card.crit { border-color: var(--red); }
+.pc-card.warn { border-color: var(--yellow); }
+.pc-card.defeated { opacity: 0.55; }
+.pc-name {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.35rem;
+  color: #efeaf6;
+  font-weight: 600;
+  font-size: 0.8rem;
+}
+.pc-name span:first-child {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.pc-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.35rem;
+  margin-top: 0.45rem;
+}
+.mini-stat {
+  padding: 0.25rem 0.35rem;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--muted);
+  font-size: 0.7rem;
+}
+.mini-stat b { color: var(--text); font-weight: 600; }
+
+.roll-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+.dice-roller { display: flex; flex-direction: column; gap: 0.7rem; }
+.dr-pool { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.dr-die {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-height: 2.1rem;
+  padding: 0.3rem 0.5rem;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+.dr-die-glyph { font-size: 1.1rem; line-height: 1; }
+.dr-die-count { min-width: 1ch; text-align: center; font-weight: 600; color: #efeaf6; }
+.dr-die-btns { display: inline-flex; gap: 0.2rem; }
+.dr-ability .dr-die-glyph { color: var(--green); }
+.dr-proficiency .dr-die-glyph { color: var(--yellow); }
+.dr-difficulty .dr-die-glyph { color: #a06cd5; }
+.dr-challenge .dr-die-glyph { color: var(--red); }
+.dr-boost .dr-die-glyph { color: var(--core); }
+.dr-setback .dr-die-glyph { color: var(--muted); }
+.dr-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem;
+}
+.dr-secret { margin-left: auto; }
+.checkbox { display: inline-flex; align-items: center; gap: 0.4rem; color: var(--muted); font-size: 0.82rem; }
+.checkbox input { width: auto; }
+.dr-result { display: flex; flex-wrap: wrap; align-items: center; gap: 0.6rem; }
+.dr-summary { color: var(--muted); }
+.roll-result {
+  padding: 0.55rem 0.65rem;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+.dr-symbols { display: inline-flex; flex-wrap: wrap; gap: 0.4rem; }
+.roll-sym {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.05rem 0.4rem;
+  font-size: 0.85rem;
+  white-space: nowrap;
+}
+.roll-success { color: var(--green); border-color: var(--green); }
+.roll-failure { color: var(--red); border-color: var(--red); }
+.roll-advantage { color: #6fb3e8; border-color: var(--core); }
+.roll-threat { color: #e8a36f; border-color: var(--accent-dark); }
+.roll-triumph { color: var(--yellow); border-color: var(--yellow); }
+.roll-despair { color: #d36f6f; border-color: var(--red); }
+.roll-log {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  max-height: 14rem;
+  overflow: auto;
+}
+.roll-entry {
+  padding: 0.4rem 0.5rem;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+.roll-entry-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  color: #efeaf6;
+  font-size: 0.8rem;
+}
+.roll-entry p { margin: 0.2rem 0 0; color: var(--muted); font-size: 0.74rem; }
+
+.note-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+.note-row {
+  padding: 0.5rem 0.6rem;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+.note-row strong { color: #efeaf6; }
+.note-row p { margin: 0.2rem 0 0; color: var(--muted); font-size: 0.78rem; }
+.timeline-actions {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.4rem;
+  margin-top: 0.55rem;
+}
+
+@media (max-width: 78rem) {
+  .table-shell {
+    grid-template-columns: minmax(15rem, 18rem) minmax(0, 1fr);
+    grid-template-rows: auto auto auto auto;
+  }
+  .command-panel { grid-template-columns: 1fr; }
+  .left-rail { grid-column: 1; grid-row: 2; }
+  .center-stage { grid-column: 2; grid-row: 2; }
+  .right-rail { grid-column: 1 / -1; grid-row: 3; display: grid; grid-template-columns: 1fr 1fr; }
+  .bottom-row { grid-column: 1 / -1; grid-row: 4; }
+  .participants-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 48rem) {
+  .app-shell { display: block; }
+  .app-sidebar {
+    position: static;
+    height: auto;
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+  }
+  .side-nav, .side-nav-footer {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+  .side-nav-footer { margin-top: 0; }
+  .side-nav-item { flex: 1 1 9rem; }
+  .app-brand { justify-content: center; }
+  .shell { padding-inline: 0.75rem; }
+  .table-shell, .bottom-row, .right-rail { display: flex; flex-direction: column; }
+  .band { grid-template-columns: 1fr; }
+  .band-label { border-right: none; border-bottom: 1px solid var(--border); }
+  .participants-strip { grid-template-columns: 1fr; }
+  .story-controls, .timeline-actions { grid-template-columns: 1fr; }
+  .story-transfer { grid-template-columns: 1fr 1fr; }
+}
+</style>
+</head>
+<body>
+<div class="app-shell">
+  <aside class="app-sidebar" aria-label="Основная навигация">
+    <button class="app-brand">Genesys Forge</button>
+    <nav class="side-nav">
+      <button class="side-nav-item">Персонажи</button>
+      <button class="side-nav-item active">Кампании</button>
+      <button class="side-nav-item">Бестиарий</button>
+      <button class="side-nav-item">Магия</button>
+      <button class="side-nav-item">Справочник</button>
+    </nav>
+    <nav class="side-nav-footer">
+      <button class="side-nav-item">Справка</button>
+      <button class="side-nav-item">Профиль</button>
+    </nav>
+  </aside>
+
+  <main class="shell">
+    <header class="topbar">
+      <div>
+        <h1>Кампании</h1>
+        <div class="page-sub">Игровой стол мастера</div>
+      </div>
+      <div class="topbar-actions">
+        <button class="small">Дайсроллер</button>
+        <button class="small">Выйти</button>
+      </div>
+    </header>
+
+    <section class="page-head">
+      <div class="page-title">
+        <h2>Shadows over Mennara <span class="badge rot">Realms of Terrinoth</span></h2>
+        <div class="page-sub">Сессия #14 · код MENN7 · 4 участника · realtime включён</div>
+      </div>
+      <div class="head-actions">
+        <button class="small">К обзору</button>
+        <button class="small">Энкаунтеры</button>
+        <button class="danger small">Завершить сцену</button>
+      </div>
+    </section>
+
+    <nav class="tabs" aria-label="Разделы кампании">
+      <button class="tab">Обзор</button>
+      <button class="tab">Справочник кампании</button>
+      <button class="tab">Энкаунтеры</button>
+      <button class="tab active">Игровой стол</button>
+    </nav>
+
+    <section class="table-shell">
+      <div class="panel command-panel">
+        <div class="scene-now">
+          <h3>Засада в портовом квартале <span class="badge danger">активная сцена</span></h3>
+          <div class="page-sub">Дождь, узкие улицы, толпа у причала · текущий слот: <span class="badge core">Игроки</span></div>
+        </div>
+        <div class="round-box" aria-label="Раунд и ход">
+          <div>
+            <div class="small-text muted">Раунд</div>
+            <div class="round-value">2</div>
+          </div>
+          <div>
+            <div class="small-text muted">Ход</div>
+            <div class="round-value">1</div>
+          </div>
+        </div>
+        <div class="story-panel" aria-label="Сюжетные очки">
+          <div class="story-title">Сюжетные очки <span>пул сцены</span></div>
+          <div class="story-controls">
+            <div class="story-side">
+              <b>2</b>
+              <span>игроки</span>
+              <button class="tiny">−</button>
+              <button class="tiny">+</button>
+            </div>
+            <div class="story-transfer">
+              <button class="small">Игроки → Мастер</button>
+              <button class="small">Мастер → Игроки</button>
+            </div>
+            <div class="story-side">
+              <b>3</b>
+              <span>мастер</span>
+              <button class="tiny">−</button>
+              <button class="tiny">+</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <aside class="left-rail">
+        <section class="panel active-turn">
+          <div class="panel-head">
+            <h3>Текущий ход</h3>
+            <span class="badge core">PC</span>
+          </div>
+          <div class="active-name">Karath Dur</div>
+          <div class="active-role">В упор · рядом с капитаном стражи · раны 8/14</div>
+          <div class="turn-actions">
+            <button class="primary">Следующий ход</button>
+            <button>Открыть лист</button>
+            <button>Бросок атаки</button>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head">
+            <h3>Инициатива</h3>
+            <button class="small">+ Слот</button>
+          </div>
+          <div class="initiative-list">
+            <div class="init-row current">
+              <span class="init-num">1</span>
+              <span class="init-name">Karath Dur</span>
+              <span class="badge core">PC</span>
+            </div>
+            <div class="init-row">
+              <span class="init-num">2</span>
+              <span class="init-name">Теневой маг</span>
+              <span class="badge danger">NPC</span>
+            </div>
+            <div class="init-row">
+              <span class="init-num">3</span>
+              <span class="init-name">Lyra Voss</span>
+              <span class="badge core">PC</span>
+            </div>
+            <div class="init-row">
+              <span class="init-num">4</span>
+              <span class="init-name">Eira Solen</span>
+              <span class="badge core">PC</span>
+            </div>
+            <div class="init-row">
+              <span class="init-num">5</span>
+              <span class="init-name">Наёмник ×3</span>
+              <span class="badge danger">NPC</span>
+            </div>
+          </div>
+          <div class="timeline-actions">
+            <button class="small">Пересобрать</button>
+            <button class="small">Сбросить</button>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head">
+            <h3>Состояние сцены</h3>
+            <button class="small">Править</button>
+          </div>
+          <div class="conditions">
+            <div class="condition-box"><b>5</b><span>активных</span></div>
+            <div class="condition-box"><b>2</b><span>скрытых</span></div>
+            <div class="condition-box"><b>1</b><span>критический</span></div>
+            <div class="condition-box"><b>0</b><span>повержены</span></div>
+          </div>
+        </section>
+      </aside>
+
+      <section class="center-stage">
+        <section class="panel range-board">
+          <div class="range-head">
+            <h3>Дистанции и позиции</h3>
+            <div class="row-actions">
+              <button class="small">+ Участник</button>
+              <button class="small">Лог</button>
+            </div>
+          </div>
+
+          <div class="band" data-zone="engaged">
+            <div class="band-label">
+              <div class="band-title">Вплотную</div>
+              <div class="band-sub">ближний бой</div>
+            </div>
+            <div class="token-row">
+              <article class="token pc">
+                <div class="token-name">Karath Dur</div>
+                <div class="token-meta">PC · 8/14 · стресс 9/11</div>
+                <div class="bar-stack">
+                  <div class="bar"><span class="wounds" style="width:57%"></span></div>
+                  <div class="bar"><span class="strain" style="width:82%"></span></div>
+                </div>
+              </article>
+              <article class="token npc">
+                <div class="token-name">Капитан стражи</div>
+                <div class="token-meta">Rival · 13/20</div>
+                <div class="bar-stack">
+                  <div class="bar"><span class="wounds" style="width:65%"></span></div>
+                </div>
+              </article>
+            </div>
+          </div>
+
+          <div class="band" data-zone="short">
+            <div class="band-label">
+              <div class="band-title">Ближняя</div>
+              <div class="band-sub">один манёвр</div>
+            </div>
+            <div class="token-row">
+              <article class="token pc">
+                <div class="token-name">Lyra Voss</div>
+                <div class="token-meta">PC · 11/12 · крит риск</div>
+                <div class="bar-stack">
+                  <div class="bar"><span class="wounds" style="width:92%"></span></div>
+                  <div class="bar"><span class="strain" style="width:31%"></span></div>
+                </div>
+              </article>
+              <article class="token pc">
+                <div class="token-name">Torin Mael</div>
+                <div class="token-meta">PC · 2/11</div>
+                <div class="bar-stack">
+                  <div class="bar"><span class="wounds" style="width:18%"></span></div>
+                  <div class="bar"><span class="strain" style="width:25%"></span></div>
+                </div>
+              </article>
+              <article class="token npc">
+                <div class="token-name">Наёмник ×3</div>
+                <div class="token-meta">Minion · 1/3</div>
+                <div class="bar-stack">
+                  <div class="bar"><span class="wounds" style="width:33%"></span></div>
+                </div>
+              </article>
+            </div>
+          </div>
+
+          <div class="band" data-zone="medium">
+            <div class="band-label">
+              <div class="band-title">Средняя</div>
+              <div class="band-sub">дальнобойная</div>
+            </div>
+            <div class="token-row">
+              <article class="token pc">
+                <div class="token-name">Eira Solen</div>
+                <div class="token-meta">PC · 3/10 · поддержка</div>
+                <div class="bar-stack">
+                  <div class="bar"><span class="wounds" style="width:30%"></span></div>
+                  <div class="bar"><span class="strain" style="width:36%"></span></div>
+                </div>
+              </article>
+            </div>
+          </div>
+
+          <div class="band" data-zone="long">
+            <div class="band-label">
+              <div class="band-title">Дальняя</div>
+              <div class="band-sub">угроза магии</div>
+            </div>
+            <div class="token-row">
+              <article class="token npc hidden">
+                <div class="token-name">Теневой маг</div>
+                <div class="token-meta">Nemesis · скрыт · 24/27</div>
+                <div class="bar-stack">
+                  <div class="bar"><span class="wounds" style="width:88%"></span></div>
+                </div>
+              </article>
+            </div>
+          </div>
+
+          <div class="band" data-zone="extreme">
+            <div class="band-label">
+              <div class="band-title">Предельная</div>
+              <div class="band-sub">пусто</div>
+            </div>
+            <div class="token-row"></div>
+          </div>
+        </section>
+
+        <section class="participants-strip">
+          <article class="pc-card warn">
+            <div class="pc-name"><span>Karath Dur</span><span class="badge core">PC</span></div>
+            <div class="pc-stats">
+              <div class="mini-stat">Раны <b>8/14</b></div>
+              <div class="mini-stat">Стресс <b>9/11</b></div>
+              <div class="mini-stat">Погл. <b>5</b></div>
+              <div class="mini-stat">Защ. <b>1/0</b></div>
+            </div>
+          </article>
+          <article class="pc-card crit">
+            <div class="pc-name"><span>Lyra Voss</span><span class="badge core">PC</span></div>
+            <div class="pc-stats">
+              <div class="mini-stat">Раны <b>11/12</b></div>
+              <div class="mini-stat">Стресс <b>4/13</b></div>
+              <div class="mini-stat">Погл. <b>2</b></div>
+              <div class="mini-stat">Криты <b>1</b></div>
+            </div>
+          </article>
+          <article class="pc-card">
+            <div class="pc-name"><span>Теневой маг</span><span class="badge danger">NPC</span></div>
+            <div class="pc-stats">
+              <div class="mini-stat">Раны <b>24/27</b></div>
+              <div class="mini-stat">Скрыт <b>да</b></div>
+              <div class="mini-stat">Погл. <b>3</b></div>
+              <div class="mini-stat">Защ. <b>0/1</b></div>
+            </div>
+          </article>
+          <article class="pc-card">
+            <div class="pc-name"><span>Наёмник ×3</span><span class="badge danger">NPC</span></div>
+            <div class="pc-stats">
+              <div class="mini-stat">Группа <b>1/3</b></div>
+              <div class="mini-stat">Статус <b>активен</b></div>
+              <div class="mini-stat">Погл. <b>3</b></div>
+              <div class="mini-stat">Защ. <b>0/0</b></div>
+            </div>
+          </article>
+        </section>
+      </section>
+
+      <aside class="right-rail">
+        <section class="panel roll-panel">
+          <div class="panel-head">
+            <h3>Броски</h3>
+            <button class="small">Открыть справа</button>
+          </div>
+          <div class="dice-roller">
+            <div class="dr-pool" aria-label="Пул кубов">
+              <div class="dr-die dr-ability" title="Способности (зел. d8)">
+                <span class="dr-die-glyph">◆</span>
+                <span class="dr-die-count">2</span>
+                <span class="dr-die-btns">
+                  <button type="button" class="tiny">+</button>
+                  <button type="button" class="tiny">−</button>
+                </span>
+              </div>
+              <div class="dr-die dr-proficiency" title="Мастерство (жёлт. d12)">
+                <span class="dr-die-glyph">⬣</span>
+                <span class="dr-die-count">1</span>
+                <span class="dr-die-btns">
+                  <button type="button" class="tiny">+</button>
+                  <button type="button" class="tiny">−</button>
+                </span>
+              </div>
+              <div class="dr-die dr-difficulty" title="Сложность (фиол. d8)">
+                <span class="dr-die-glyph">◆</span>
+                <span class="dr-die-count">2</span>
+                <span class="dr-die-btns">
+                  <button type="button" class="tiny">+</button>
+                  <button type="button" class="tiny">−</button>
+                </span>
+              </div>
+              <div class="dr-die dr-challenge" title="Вызов (красн. d12)">
+                <span class="dr-die-glyph">⬣</span>
+                <span class="dr-die-count">0</span>
+                <span class="dr-die-btns">
+                  <button type="button" class="tiny">+</button>
+                  <button type="button" class="tiny">−</button>
+                </span>
+              </div>
+              <div class="dr-die dr-boost" title="Бонус (син. d6)">
+                <span class="dr-die-glyph">◻</span>
+                <span class="dr-die-count">1</span>
+                <span class="dr-die-btns">
+                  <button type="button" class="tiny">+</button>
+                  <button type="button" class="tiny">−</button>
+                </span>
+              </div>
+              <div class="dr-die dr-setback" title="Помеха (чёрн. d6)">
+                <span class="dr-die-glyph">◻</span>
+                <span class="dr-die-count">1</span>
+                <span class="dr-die-btns">
+                  <button type="button" class="tiny">+</button>
+                  <button type="button" class="tiny">−</button>
+                </span>
+              </div>
+            </div>
+
+            <div class="dr-actions">
+              <button type="button" class="primary">🎲 Бросить (7)</button>
+              <button type="button" class="small">Сброс</button>
+              <label class="checkbox dr-secret" title="Виден только мастеру">
+                <input type="checkbox"> Секретно
+              </label>
+            </div>
+
+            <div class="roll-result">
+              <strong>Karath Dur · атака</strong>
+              <div class="dr-result">
+                <span class="dr-symbols">
+                  <span class="roll-sym roll-success">✶ 2</span>
+                  <span class="roll-sym roll-advantage">▲ 1</span>
+                  <span class="roll-sym roll-threat">▼ 1</span>
+                </span>
+                <span class="dr-summary">2 успеха, 1 преимущество, 1 угроза</span>
+              </div>
+            </div>
+          </div>
+          <div class="roll-log">
+            <article class="roll-entry">
+              <div class="roll-entry-head"><strong>Karath Dur</strong><span>только что</span></div>
+              <p>Атака по капитану: 2 успеха, 1 преимущество, 1 угроза.</p>
+            </article>
+            <article class="roll-entry">
+              <div class="roll-entry-head"><strong>Теневой маг</strong><span>секретно</span></div>
+              <p>Проверка магии: результат скрыт от игроков.</p>
+            </article>
+            <article class="roll-entry">
+              <div class="roll-entry-head"><strong>Lyra Voss</strong><span>раунд 1</span></div>
+              <p>Лечение: 1 успех, 2 преимущества.</p>
+            </article>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head">
+            <h3>Заметки</h3>
+            <button class="small">+ Заметка</button>
+          </div>
+          <div class="note-list">
+            <article class="note-row">
+              <strong>Публично</strong>
+              <p>Толпа мешает дальним атакам и может перекрыть путь к складу.</p>
+            </article>
+            <article class="note-row">
+              <strong>Мастеру</strong>
+              <p>Маг должен уйти, если капитан падает или появляется третий крит у NPC.</p>
+            </article>
+          </div>
+        </section>
+      </aside>
+
+      <section class="bottom-row">
+        <section class="panel">
+          <div class="panel-head">
+            <h3>Быстрые действия сцены</h3>
+            <button class="small">Настроить</button>
+          </div>
+          <div class="row-actions">
+            <button>Добавить участника</button>
+            <button>Скрыть NPC</button>
+            <button>Отметить поверженным</button>
+            <button>Выдать крит</button>
+            <button>Показать игрокам</button>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head">
+            <h3>Изменения</h3>
+            <button class="small">Очистить</button>
+          </div>
+          <div class="note-list">
+            <article class="note-row">
+              <strong>Раунд 2</strong>
+              <p>Karath Dur: ближняя → вплотную. Lyra получила критическое ранение.</p>
+            </article>
+          </div>
+        </section>
+      </section>
+    </section>
+  </main>
+</div>
+</body>
+</html>
