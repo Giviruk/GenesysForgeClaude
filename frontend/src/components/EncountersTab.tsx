@@ -257,13 +257,15 @@ function EncounterEditor({ encounterId, isGm, members, onBack, onChanged, onSent
 
       {isGm ? (
         <>
-          <EncounterMeta key={enc.updatedAt} enc={enc} onRun={run} />
-          <div className="enc-detail-grid">
+          <div className="enc-stage-grid">
+            <EncounterMeta key={`meta-${enc.updatedAt}`} enc={enc} onRun={run} />
+            <SendToTableSection enc={enc} onRun={run} onSentToTable={onSentToTable} />
             <ParticipantsSection enc={enc} isGm={isGm} members={members} onRun={run} />
-            <div className="enc-side-panels">
-              <SendToTableSection enc={enc} onRun={run} onSentToTable={onSentToTable} />
-              <QuickBuildPanel enc={enc} onRun={run} />
-            </div>
+            <InitiativePreview enc={enc} />
+          </div>
+          <div className="enc-builder-row">
+            <QuickBuildPanel enc={enc} onRun={run} />
+            <EncounterNotesPanel key={`notes-${enc.updatedAt}`} enc={enc} onRun={run} />
           </div>
         </>
       ) : (
@@ -283,17 +285,26 @@ function EncounterEditor({ encounterId, isGm, members, onBack, onChanged, onSent
 function EncounterMeta({ enc, onRun }: { enc: EncounterDetail; onRun: (a: () => Promise<unknown>) => Promise<void> }) {
   // Локальная копия формы; компонент перемонтируется по key=updatedAt после сохранения,
   // поэтому начального состояния из props достаточно (без синхронизации через эффект).
-  const [f, setF] = useState<EncounterInput>(toInput(enc))
-  const [tagsText, setTagsText] = useState(enc.tags.join(', '))
-  const set = <K extends keyof EncounterInput>(k: K, v: EncounterInput[K]) => setF(prev => ({ ...prev, [k]: v }))
+  const [f, setF] = useState({
+    name: enc.name,
+    type: enc.type,
+    threatLevel: enc.threatLevel,
+    location: enc.location,
+    environment: enc.environment,
+    playerDescription: enc.playerDescription,
+    gmDescription: enc.gmDescription ?? '',
+    playerGoals: enc.playerGoals,
+    npcGoals: enc.npcGoals ?? '',
+  })
+  const set = <K extends keyof typeof f>(k: K, v: (typeof f)[K]) => setF(prev => ({ ...prev, [k]: v }))
 
   const save = () => onRun(() => api.updateEncounter(enc.id, {
+    ...toInput(enc),
     ...f,
-    tags: tagsText.split(',').map(t => t.trim()).filter(Boolean),
   }))
 
   return (
-    <section className="panel custom-form enc-meta">
+    <section className="panel custom-form enc-meta enc-scene-content">
       <div className="panel-head-row">
         <h4>Содержание сцены</h4>
         <button className="primary small" onClick={save}>Сохранить</button>
@@ -329,21 +340,78 @@ function EncounterMeta({ enc, onRun }: { enc: EncounterDetail; onRun: (a: () => 
         <label className="copy-box private">Цели NPC (приватно)
           <textarea rows={2} value={f.npcGoals} onChange={e => set('npcGoals', e.target.value)} />
         </label>
-        <label className="copy-box private">Осложнения (приватно)
-          <textarea rows={2} value={f.complications} onChange={e => set('complications', e.target.value)} />
+      </div>
+    </section>
+  )
+}
+
+function EncounterNotesPanel({ enc, onRun }: { enc: EncounterDetail; onRun: (a: () => Promise<unknown>) => Promise<void> }) {
+  const [complications, setComplications] = useState(enc.complications ?? '')
+  const [rewards, setRewards] = useState(enc.rewards)
+  const [tagsText, setTagsText] = useState(enc.tags.join(', '))
+  const [isVisibleToPlayers, setIsVisibleToPlayers] = useState(enc.isVisibleToPlayers)
+
+  const save = () => onRun(() => api.updateEncounter(enc.id, {
+    ...toInput(enc),
+    complications,
+    rewards,
+    tags: tagsText.split(',').map(t => t.trim()).filter(Boolean),
+    isVisibleToPlayers,
+  }))
+
+  return (
+    <section className="panel custom-form enc-notes-panel">
+      <div className="panel-head-row">
+        <h4>Заметки</h4>
+        <button className="primary small" onClick={save}>Сохранить</button>
+      </div>
+      <div className="enc-notes-grid">
+        <label className="copy-box private">Осложнения
+          <textarea rows={3} value={complications} onChange={e => setComplications(e.target.value)} />
         </label>
         <label className="copy-box">Награды
-          <textarea rows={2} value={f.rewards} onChange={e => set('rewards', e.target.value)} />
+          <textarea rows={3} value={rewards} onChange={e => setRewards(e.target.value)} />
         </label>
       </div>
-
       <div className="form-row">
         <label className="grow">Теги (через запятую)<input value={tagsText} onChange={e => setTagsText(e.target.value)} /></label>
         <label className="checkbox">
-          <input type="checkbox" checked={f.isVisibleToPlayers} onChange={e => set('isVisibleToPlayers', e.target.checked)} />
+          <input type="checkbox" checked={isVisibleToPlayers} onChange={e => setIsVisibleToPlayers(e.target.checked)} />
           Видно игрокам
         </label>
       </div>
+    </section>
+  )
+}
+
+function InitiativePreview({ enc }: { enc: EncounterDetail }) {
+  const participants = [...enc.participants].sort((a, b) => a.order - b.order)
+  const pcCount = participants.filter(p => p.initiativeSide === 'player').length
+  const npcCount = participants.filter(p => p.initiativeSide === 'npc').length
+
+  return (
+    <section className="panel enc-initiative-preview">
+      <div className="panel-head-row">
+        <h4>Инициатива</h4>
+        <span className="badge">{pcCount} PC / {npcCount} NPC</span>
+      </div>
+      {participants.length === 0 ? (
+        <p className="muted">Добавьте участников, чтобы увидеть порядок стартовых слотов.</p>
+      ) : (
+        <div className="enc-init-list">
+          {participants.map((p, index) => (
+            <div key={p.id} className={`enc-init-row${p.startsDefeated ? ' defeated' : ''}`}>
+              <span className="enc-init-num">{index + 1}</span>
+              <span className="enc-init-name">
+                {p.displayName}{p.quantity > 1 ? ` ×${p.quantity}` : ''}
+                {p.startsHidden && <span className="muted small-text"> · скрыт</span>}
+              </span>
+              <span className="badge">{SLOT_TYPE_LABELS[p.initiativeSide]}</span>
+            </div>
+          ))}
+        </div>
+      )}
+      <p className="hint">Полное управление ходами остается в игровом столе после запуска сцены.</p>
     </section>
   )
 }
@@ -415,9 +483,11 @@ function ParticipantRow({ enc, p, isGm, onRun }: {
       {isGm && (
         <td className="right nowrap">
           <button className="small" title={p.startsHidden ? 'Показать в начале' : 'Скрыть в начале'}
-            onClick={() => patch({ startsHidden: !p.startsHidden })}>{p.startsHidden ? 'Показать' : 'Скрыть'}</button>
+            aria-label={p.startsHidden ? 'Показать в начале' : 'Скрыть в начале'}
+            onClick={() => patch({ startsHidden: !p.startsHidden })}>{p.startsHidden ? 'Показ.' : 'Скрыть'}</button>
           <button className="small" title={p.startsDefeated ? 'Сделать активным' : 'Повержен в начале'}
-            onClick={() => patch({ startsDefeated: !p.startsDefeated })}>{p.startsDefeated ? 'Активен' : 'Повержен'}</button>
+            aria-label={p.startsDefeated ? 'Сделать активным' : 'Повержен в начале'}
+            onClick={() => patch({ startsDefeated: !p.startsDefeated })}>{p.startsDefeated ? 'Актив.' : 'Поверж.'}</button>
           <button className="danger small"
             onClick={() => { if (confirm(`Убрать «${p.displayName}»?`)) void onRun(() => api.removeEncounterParticipant(enc.id, p.id)) }}>×</button>
         </td>
