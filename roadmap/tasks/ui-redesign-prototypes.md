@@ -3,7 +3,7 @@
 - **Roadmap:** вне U-нумерации — глобальная доработка UI по HTML/PNG-прототипам
 - **Ветка:** `feature/ui-redesign-prototypes`
 - **Базовая ветка:** `master`
-- **PR:** #<номер> (после создания)
+- **PR:** #88
 - **Статус:** 🚧 In progress
 
 ## Контекст
@@ -43,7 +43,7 @@
 - [x] Запустить `dotnet test backend/GenesysForge.slnx`, `npm run lint`, `npm test`, `npm run build`
 - [x] Выполнить browser/Playwright визуальную проверку desktop/mobile против прототипов
 - [x] Copyright-проверка: seed/official book text не менялись
-- [ ] Открыть PR в `master`
+- [x] Открыть PR в `master`
 
 ## Что осталось / блокеры
 
