@@ -117,6 +117,22 @@ public class CharacterFlowTests : IClassFixture<ApiFactory>
     }
 
     [Fact]
+    public async Task CharacterList_IncludesCardVitalsAndAvailableXp()
+    {
+        var (client, _, id) = await CreateCharacterAsync(GameSystem.GenesysCore);
+        var sheet = await SheetAsync(client, id);
+
+        var list = (await client.GetFromJsonAsync<List<CharacterListItemDto>>("/api/characters/", Json.Options))!;
+        var item = Assert.Single(list, c => c.Id == id);
+
+        Assert.Equal(sheet.AvailableXp, item.AvailableXp);
+        Assert.Equal(sheet.WoundsCurrent, item.WoundsCurrent);
+        Assert.Equal(sheet.Derived.WoundThreshold, item.WoundThreshold);
+        Assert.Equal(sheet.StrainCurrent, item.StrainCurrent);
+        Assert.Equal(sheet.Derived.StrainThreshold, item.StrainThreshold);
+    }
+
+    [Fact]
     public async Task Motivations_CreatedSaved_Updated_AndCleared()
     {
         // Создание с мотивациями/предысторией (U-22).

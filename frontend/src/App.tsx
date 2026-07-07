@@ -12,42 +12,29 @@ import { HelpPage } from './pages/HelpPage'
 import { ProfilePage } from './pages/ProfilePage'
 import { SharedSheetPage } from './pages/SharedSheetPage'
 import { Footer } from './components/Footer'
+import { Icon, type IconName } from './components/Icon'
 import { navigate, parseRoute, usePath, type AppArea } from './router'
 import type { CampaignView } from './pages/CampaignsPage'
 import { DiceRollerProvider } from './dice-roller-context'
-import { useDiceRoller } from './dice-roller-store'
 
 const campaignView = (sub: string | null): CampaignView =>
   sub === 'table' || sub === 'handbook' || sub === 'encounters' ? sub : 'overview'
 
-const NAV_ITEMS: Array<{ area: AppArea; label: string; path: string }> = [
-  { area: 'characters', label: 'Персонажи', path: '/characters' },
-  { area: 'campaigns', label: 'Кампании', path: '/campaigns' },
-  { area: 'npcs', label: 'Бестиарий', path: '/npcs' },
-  { area: 'magic', label: 'Магия', path: '/magic' },
-  { area: 'reference', label: 'Справочник', path: '/reference' },
-  { area: 'help', label: 'Справка', path: '/help' },
+const NAV_ITEMS: Array<{ area: AppArea; label: string; path: string; icon: IconName }> = [
+  { area: 'characters', label: 'Персонажи', path: '/characters', icon: 'users' },
+  { area: 'npcs', label: 'Бестиарий', path: '/npcs', icon: 'skull' },
+  { area: 'campaigns', label: 'Кампании', path: '/campaigns', icon: 'map' },
+  { area: 'magic', label: 'Магия', path: '/magic', icon: 'flame' },
 ]
 
-const AREA_TITLES: Partial<Record<AppArea, string>> = {
-  characters: 'Персонажи',
-  campaigns: 'Кампании',
-  npcs: 'Бестиарий',
-  magic: 'Магия',
-  reference: 'Справочник',
-  help: 'Справка',
-  account: 'Профиль',
-}
-
-const areaSubtitle = (area: AppArea, sub: string | null): string => {
-  if (area === 'campaigns' && campaignView(sub) === 'table') return 'Игровой стол мастера'
-  if (area === 'campaigns' && campaignView(sub) === 'encounters') return 'Рабочая область мастера'
-  return 'Рабочая область'
-}
+const FOOTER_NAV_ITEMS: Array<{ area: AppArea; label: string; path: string; icon: IconName }> = [
+  { area: 'reference', label: 'Справочник', path: '/reference', icon: 'book' },
+  { area: 'account', label: 'Профиль', path: '/account', icon: 'user' },
+  { area: 'help', label: 'Справка', path: '/help', icon: 'help' },
+]
 
 function Shell() {
   const { token, logout } = useAuth()
-  const { openRoller } = useDiceRoller()
   const path = usePath()
 
   const route = parseRoute(path)
@@ -65,37 +52,37 @@ function Shell() {
 
   if (!token) return <AuthPage />
 
-  const currentTitle = AREA_TITLES[route.area] ?? 'Genesys Forge'
-  const currentSubtitle = areaSubtitle(route.area, route.sub)
-
   return (
     <div className="app-shell">
       <aside className="app-sidebar no-print" aria-label="Основная навигация">
-        <button type="button" className="app-brand" onClick={() => navigate('/characters')}>Genesys Forge</button>
+        <button type="button" className="app-brand" onClick={() => navigate('/characters')}>GENESYSFORGE</button>
         <nav className="side-nav">
           {NAV_ITEMS.map(item => (
             <button key={item.area} type="button"
               className={route.area === item.area ? 'side-nav-item active' : 'side-nav-item'}
               onClick={() => navigate(item.path)}>
+              <Icon name={item.icon} className="side-nav-icon" />
               {item.label}
             </button>
           ))}
         </nav>
         <div className="side-nav-footer">
-          <button type="button" className={route.area === 'account' ? 'side-nav-item active' : 'side-nav-item'}
-            onClick={() => navigate('/account')}>Профиль</button>
-          <button type="button" className="side-nav-item" onClick={() => { logout(); navigate('/login') }}>Выйти</button>
+          {FOOTER_NAV_ITEMS.map(item => (
+            <button key={item.area} type="button"
+              className={route.area === item.area ? 'side-nav-item active' : 'side-nav-item'}
+              onClick={() => navigate(item.path)}>
+              <Icon name={item.icon} className="side-nav-icon" />
+              {item.label}
+            </button>
+          ))}
+          <button type="button" className="side-nav-item" onClick={() => { logout(); navigate('/login') }}>
+            <Icon name="logout" className="side-nav-icon" />
+            Выйти
+          </button>
         </div>
       </aside>
 
       <div className="shell">
-        <header className="topbar app-topbar">
-          <div>
-            <h1>{currentTitle}</h1>
-            <div className="page-sub">{currentSubtitle}</div>
-          </div>
-          <button type="button" className="primary" onClick={() => openRoller()}>Дайсроллер</button>
-        </header>
         {route.unknown
           ? <NotFound />
           : route.area === 'characters'
