@@ -12,6 +12,7 @@ import { HistoryTab } from '../components/HistoryTab'
 import { MagicTab } from '../components/MagicTab'
 import { PrintPreview } from '../components/print/PrintPreview'
 import { CharacterSheetPrint } from '../components/print/CharacterSheetPrint'
+import { Icon } from '../components/Icon'
 import { navigate } from '../router'
 
 interface Props {
@@ -143,10 +144,15 @@ export function SheetPage({ characterId, printing, onOpenPrint, onClosePrint, on
     <div className="page">
       <div className="page-head">
         <div>
-          <button onClick={onBack}>← Персонажи</button>
-          <h2 className="inline-title">{sheet.name}</h2>
-          <span className={`badge ${sheet.system}`}>{SYSTEM_LABELS[sheet.system]}</span>
-          <span className="muted"> {sheet.archetype.name} · {sheet.career.name}</span>
+          <button className="back-link" onClick={onBack}>
+            <Icon name="arrow-left" className="button-icon" />
+            Персонажи
+          </button>
+          <div className="sheet-title-row">
+            <h2>{sheet.name}</h2>
+            <span className={`badge ${sheet.system}`}>{SYSTEM_LABELS[sheet.system]}</span>
+          </div>
+          <div className="page-sub">{sheet.archetype.name} · {sheet.career.name}</div>
         </div>
         <div className="sheet-head-controls">
           <div className="xp-block">
@@ -166,15 +172,18 @@ export function SheetPage({ characterId, printing, onOpenPrint, onClosePrint, on
           <div className="sheet-action-buttons">
             <button className="small" title="Печать листа персонажа / сохранение в PDF"
               onClick={onOpenPrint}>
-              Печать листа
+              <Icon name="printer" className="button-icon" />
+              Печать
             </button>
             <button className="small" title="Создать копию персонажа"
               onClick={() => void duplicateCurrent()}>
+              <Icon name="copy" className="button-icon" />
               Клонировать
             </button>
             <button className="small" title="Создать публичную read-only ссылку"
               onClick={() => void shareCurrent()}>
-              Поделиться
+              <Icon name="share" className="button-icon" />
+              Ссылка
             </button>
             <button className="small" title="Отозвать все публичные ссылки этого персонажа"
               onClick={() => void revokeShares()}>
@@ -182,6 +191,7 @@ export function SheetPage({ characterId, printing, onOpenPrint, onClosePrint, on
             </button>
             <button className="small" title="Скачать персонажа в JSON (бэкап / перенос между аккаунтами)"
               onClick={() => void exportJson()}>
+              <Icon name="file-import" className="button-icon" />
               Экспорт JSON
             </button>
             {sheet.isCreationPhase && (

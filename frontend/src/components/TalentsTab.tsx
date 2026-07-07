@@ -7,6 +7,7 @@ import {
 } from '../utils/labels'
 import { canPurchaseTier, canRemoveTier } from '../utils/pyramid'
 import { talentBonusSummary } from '../utils/talentBonuses'
+import { Icon } from './Icon'
 import { PrintPreview } from './print/PrintPreview'
 import { TalentCard } from './print/cards'
 
@@ -22,7 +23,7 @@ const TIERS = [1, 2, 3, 4, 5] as const
 const TALENT_CHARACTERISTIC_MAX = 5
 
 export function TalentsTab({ sheet, reference, onError, refresh }: Props) {
-  const [activeTier, setActiveTier] = useState<number>(1)
+  const [activeTier, setActiveTier] = useState<number | 'all'>('all')
   const [categoryFilter, setCategoryFilter] = useState<TalentCategory | 'all'>('all')
   // Талант, для которого открыт выбор характеристики (Dedication).
   const [pickFor, setPickFor] = useState<TalentDef | null>(null)
@@ -94,7 +95,30 @@ export function TalentsTab({ sheet, reference, onError, refresh }: Props) {
   }
 
   const matchesCategory = (talent: TalentDef) => categoryFilter === 'all' || talent.category === categoryFilter
-  const tierTalents = reference.talents.filter(t => t.tier === activeTier && matchesCategory(t))
+  const matchesTier = (talent: TalentDef) => activeTier === 'all' || talent.tier === activeTier
+  const visibleTalents = reference.talents
+    .filter(t => matchesCategory(t) && matchesTier(t))
+    .toSorted((a, b) => {
+      const byCategory = TALENT_CATEGORIES.indexOf(a.category) - TALENT_CATEGORIES.indexOf(b.category)
+      if (byCategory !== 0) return byCategory
+      if (a.tier !== b.tier) return a.tier - b.tier
+      return localizedName(a).localeCompare(localizedName(b), 'ru')
+    })
+
+  const talentGroups = visibleTalents.reduce<Array<{ key: string; label: string; talents: TalentDef[] }>>((groups, talent) => {
+    const key = `${talent.category}-${talent.tier}`
+    const last = groups[groups.length - 1]
+    if (last?.key === key) {
+      last.talents.push(talent)
+      return groups
+    }
+    groups.push({
+      key,
+      label: `${TALENT_CATEGORY_LABELS[talent.category]} · Тир ${talent.tier}`,
+      talents: [talent],
+    })
+    return groups
+  }, [])
 
   if (printTalent) {
     return (
@@ -107,7 +131,9 @@ export function TalentsTab({ sheet, reference, onError, refresh }: Props) {
   return (
     <div>
       <section className="panel">
-        <h3>Пирамида талантов</h3>
+        <div className="section-title-line">
+          <h3>Пирамида талантов</h3>
+        </div>
         <p className="hint">
           Талантов каждого тира должно быть строго больше, чем талантов тира выше.
           Стоимость — тир × 5 XP. Ранговые таланты: каждый следующий ранг покупается на тир выше.
@@ -157,7 +183,42 @@ export function TalentsTab({ sheet, reference, onError, refresh }: Props) {
       </section>
 
       <section className="panel">
-        <h3>Доступные таланты</h3>
+        <div className="section-title-line">
+          <h3>Купленные таланты</h3>
+        </div>
+        {sheet.talents.length === 0 ? (
+          <p className="muted">Купленных талантов пока нет.</p>
+        ) : (
+          <div className="owned-talents">
+            {sheet.talents
+              .toSorted((a, b) => a.tier - b.tier || localizedName(a).localeCompare(localizedName(b), 'ru'))
+              .map(t => {
+                const isPassive = t.activation.toLowerCase().startsWith('пассив')
+                const bonuses = talentBonusSummary(t, t.ranks)
+                return (
+                  <div key={t.talentDefId} className="owned-talent">
+                    <div className="owned-talent-head">
+                      <strong>{localizedName(t)}</strong>
+                      <span className="badge tier">Тир {t.tier}</span>
+                      {t.isRanked && <span className="badge">Ранги: {t.ranks}</span>}
+                      <span className={isPassive ? 'badge passive' : 'badge active'}>
+                        {isPassive ? 'Пассивный' : t.activation}
+                      </span>
+                    </div>
+                    <p className="owned-talent-desc muted">{t.description}</p>
+                    {bonuses.length > 0 && <div className="bonus-line">{bonuses.join(' · ')}</div>}
+                  </div>
+                )
+              })}
+          </div>
+        )}
+      </section>
+
+      <section className="panel">
+        <div className="section-title-line">
+          <h3>Доступные таланты</h3>
+          <span className="section-count">{visibleTalents.length} из {reference.talents.length}</span>
+        </div>
         <div className="tabs">
           <button className={categoryFilter === 'all' ? 'tab active' : 'tab'} onClick={() => setCategoryFilter('all')}>
             Все <span className="muted">({reference.talents.length})</span>
@@ -174,6 +235,11 @@ export function TalentsTab({ sheet, reference, onError, refresh }: Props) {
           })}
         </div>
         <div className="tabs">
+          <button
+            className={activeTier === 'all' ? 'tab active' : 'tab'}
+            onClick={() => setActiveTier('all')}>
+            Все тиры <span className="muted">({reference.talents.filter(matchesCategory).length})</span>
+          </button>
           {TIERS.map(tier => {
             const count = reference.talents.filter(t => t.tier === tier && matchesCategory(t)).length
             return (
@@ -185,64 +251,73 @@ export function TalentsTab({ sheet, reference, onError, refresh }: Props) {
             )
           })}
         </div>
-        <div className="talent-list">
-          {tierTalents.length === 0 && (
-            <p className="muted">Нет талантов этого тира в выбранной категории.</p>
+        <div className="talent-list grouped">
+          {visibleTalents.length === 0 && (
+            <p className="muted">Нет талантов в выбранной категории и тире.</p>
           )}
-          {tierTalents.map(t => {
-            const ownedRow = owned.get(t.id)
-            const ranksOwned = ownedRow?.ranks ?? 0
-            const maxedOut = ownedRow && !t.isRanked
-            const effectiveTier = nextRankTier(t.tier, ranksOwned)
-            const cost = talentCost(effectiveTier)
-            const pyramidOk = canPurchaseTier(sheet.talentTierCounts, effectiveTier)
-            const affordable = cost <= sheet.availableXp
-            const noGrantsLeft = t.grantsCharacteristic && grantableCharacteristics(t).length === 0
-            const reason = maxedOut ? 'Уже куплен'
-              : !pyramidOk ? 'Нарушит пирамиду'
-              : !affordable ? 'Недостаточно XP'
-              : noGrantsLeft ? 'Нет характеристик для увеличения'
-              : null
-            return (
-              <div key={t.id} className="talent-row">
-                <div className="talent-info">
-                  <strong>
-                    {localizedName(t)}
-                    {secondaryName(t) && <span className="muted small-text name-secondary"> · {secondaryName(t)}</span>}
-                    {' '}<span className="badge tier">Тир {t.tier}</span>
-                    <span className="badge">{TALENT_CATEGORY_LABELS[t.category]}</span>
-                    {t.isRanked && <span className="badge">Ранговый{ranksOwned > 0 ? `: ${ranksOwned}` : ''}</span>}
-                    {t.isCustom && <span className="badge custom">Кастом</span>}
-                    <span className="muted"> · {t.activation}</span>
-                  </strong>
-                  <p className="muted">{t.description}</p>
-                </div>
-                <div className="talent-actions">
-                  {sheet.isCreationPhase && ranksOwned > 0 && (() => {
-                    const lastTier = nextRankTier(t.tier, ranksOwned - 1)
-                    const removable = canRemoveTier(sheet.talentTierCounts, lastTier)
-                    return (
-                      <button className="small" disabled={!removable}
-                        title={removable
-                          ? `Вернуть ${t.isRanked ? `ранг ${ranksOwned}` : 'талант'} (+${talentCost(lastTier)} XP)`
-                          : 'Нельзя вернуть: нарушится пирамида'}
-                        onClick={() => refund(t)}>
-                        Вернуть
+          {talentGroups.map(group => (
+            <div key={group.key} className="talent-group">
+              <div className="talent-group-title">{group.label}</div>
+              {group.talents.map(t => {
+                const ownedRow = owned.get(t.id)
+                const ranksOwned = ownedRow?.ranks ?? 0
+                const maxedOut = ownedRow && !t.isRanked
+                const effectiveTier = nextRankTier(t.tier, ranksOwned)
+                const cost = talentCost(effectiveTier)
+                const pyramidOk = canPurchaseTier(sheet.talentTierCounts, effectiveTier)
+                const affordable = cost <= sheet.availableXp
+                const noGrantsLeft = t.grantsCharacteristic && grantableCharacteristics(t).length === 0
+                const reason = maxedOut ? 'Уже куплен'
+                  : !pyramidOk ? 'Нарушит пирамиду'
+                  : !affordable ? 'Недостаточно XP'
+                  : noGrantsLeft ? 'Нет характеристик для увеличения'
+                  : null
+                return (
+                  <div key={t.id} className="talent-row">
+                    <div className="talent-info">
+                      <strong>
+                        {localizedName(t)}
+                        {secondaryName(t) && <span className="muted small-text name-secondary"> · {secondaryName(t)}</span>}
+                      </strong>
+                      <div className="tag-row compact">
+                        <span className="badge tier">Тир {t.tier}</span>
+                        <span className="badge">{TALENT_CATEGORY_LABELS[t.category]}</span>
+                        {t.isRanked && <span className="badge">Ранговый{ranksOwned > 0 ? `: ${ranksOwned}` : ''}</span>}
+                        {t.isCustom && <span className="badge custom">Кастом</span>}
+                        <span className="badge">{t.activation}</span>
+                      </div>
+                      <p className="muted">{t.description}</p>
+                    </div>
+                    <div className="talent-actions">
+                      {sheet.isCreationPhase && ranksOwned > 0 && (() => {
+                        const lastTier = nextRankTier(t.tier, ranksOwned - 1)
+                        const removable = canRemoveTier(sheet.talentTierCounts, lastTier)
+                        return (
+                          <button className="small" disabled={!removable}
+                            title={removable
+                              ? `Вернуть ${t.isRanked ? `ранг ${ranksOwned}` : 'талант'} (+${talentCost(lastTier)} XP)`
+                              : 'Нельзя вернуть: нарушится пирамида'}
+                            onClick={() => refund(t)}>
+                            Вернуть
+                          </button>
+                        )
+                      })()}
+                      <button className="small" disabled={!!reason} title={reason ?? ''}
+                        onClick={() => (t.grantsCharacteristic ? setPickFor(t) : buy(t))}>
+                        {maxedOut ? 'Куплен' : `Купить (${cost} XP${t.isRanked && ranksOwned > 0 ? `, тир ${effectiveTier}` : ''})`}
                       </button>
-                    )
-                  })()}
-                  <button className="small" disabled={!!reason} title={reason ?? ''}
-                    onClick={() => (t.grantsCharacteristic ? setPickFor(t) : buy(t))}>
-                    {maxedOut ? 'Куплен' : `Купить (${cost} XP${t.isRanked && ranksOwned > 0 ? `, тир ${effectiveTier}` : ''})`}
-                  </button>
-                  {ownedRow && (
-                    <button className="small" title="Печать карточки таланта"
-                      onClick={() => setPrintTalent(ownedRow)}>🖨</button>
-                  )}
-                </div>
-              </div>
-            )
-          })}
+                      {ownedRow && (
+                        <button className="small" title="Печать карточки таланта"
+                          onClick={() => setPrintTalent(ownedRow)}>
+                          <Icon name="printer" className="button-icon" />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          ))}
         </div>
       </section>
 

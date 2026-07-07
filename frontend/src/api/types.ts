@@ -305,6 +305,11 @@ export interface CharacterListItem {
   career: string
   isCreationPhase: boolean
   createdAt: string
+  availableXp: number
+  woundsCurrent: number
+  woundThreshold: number
+  strainCurrent: number
+  strainThreshold: number
 }
 
 export interface CharacterShareResponse {

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState, type ChangeEvent, type FormEvent } from 'react'
 import { api } from '../api/client'
 import type { CharacterExport, CharacterListItem, GameSystem, ImportPreview, Reference } from '../api/types'
+import { Icon } from '../components/Icon'
 import { CHARACTERISTICS, CHARACTERISTIC_LABELS, dualName, SYSTEM_LABELS } from '../utils/labels'
 
 interface Props {
@@ -56,33 +57,87 @@ export function CharactersPage({ onOpen }: Props) {
     }
   }
 
+  const isLoading = characters === null && !error
+  const isEmpty = characters?.length === 0 && !creating
+
   return (
     <div className="page">
       <div className="page-head">
-        <h2>Мои персонажи</h2>
+        <div>
+          <h2>Ваши персонажи</h2>
+          <div className="page-sub">Genesys Core и Realms of Terrinoth в одном месте</div>
+        </div>
         <div className="head-actions">
-          <button onClick={() => fileRef.current?.click()}>Импорт JSON</button>
-          <button className="primary" onClick={() => setCreating(true)}>+ Новый персонаж</button>
+          <button onClick={() => fileRef.current?.click()}>
+            <Icon name="file-import" className="button-icon" />
+            Импорт JSON
+          </button>
+          <button className="primary" onClick={() => setCreating(true)}>
+            <Icon name="plus" className="button-icon" />
+            Новый персонаж
+          </button>
           <input ref={fileRef} type="file" accept="application/json,.json" hidden onChange={onFile} />
         </div>
       </div>
-      {error && <div className="error">{error}</div>}
-      {characters === null && <p className="muted">Загрузка…</p>}
-      {characters?.length === 0 && !creating && <p className="muted">Пока нет персонажей — создайте первого!</p>}
+
+      {isLoading && (
+        <div className="card-grid character-grid">
+          {[0, 1, 2].map(i => <div key={i} className="char-card skeleton-card" />)}
+        </div>
+      )}
+
+      {error && (
+        <div className="state-panel error-state">
+          <Icon name="alert" className="state-icon" />
+          <h3>Не удалось загрузить персонажей</h3>
+          <p>Проверьте соединение и попробуйте снова. Если ошибка повторяется, обратитесь в поддержку.</p>
+          <button onClick={() => { setError(null); void reload() }}>Повторить</button>
+          <div className="small-text muted">{error}</div>
+        </div>
+      )}
+
+      {isEmpty && (
+        <div className="state-panel empty-state">
+          <Icon name="user-plus" className="state-icon" />
+          <h3>Персонажей пока нет</h3>
+          <p>Создайте первого героя или импортируйте готовый лист в формате JSON.</p>
+          <div className="head-actions">
+            <button className="primary" onClick={() => setCreating(true)}>
+              <Icon name="plus" className="button-icon" />
+              Новый персонаж
+            </button>
+            <button onClick={() => fileRef.current?.click()}>Импорт JSON</button>
+          </div>
+        </div>
+      )}
+
       <div className="card-grid">
         {characters?.map(c => (
           <div key={c.id} className="char-card" onClick={() => onOpen(c.id)}>
-            <div className="char-card-head">
-              <strong>{c.name}</strong>
-              <span className={`badge ${c.system}`}>{SYSTEM_LABELS[c.system]}</span>
+            <div className="char-card-identity">
+              <div className="char-portrait">{initials(c.name)}</div>
+              <div className="char-title-block">
+                <strong>{c.name}</strong>
+                <div className="muted">{c.archetype} · {c.career}</div>
+              </div>
             </div>
-            <div className="muted">{c.archetype} · {c.career}</div>
-            {c.isCreationPhase && <div className="badge creation">Создание</div>}
+            <div className="tag-row compact">
+              <span className={`badge ${c.system}`}>{SYSTEM_LABELS[c.system]}</span>
+              {c.isCreationPhase && <span className="badge creation">Создание</span>}
+            </div>
+            <VitalBar label="Раны" current={c.woundsCurrent} threshold={c.woundThreshold} tone="wound" />
+            <VitalBar label="Стресс" current={c.strainCurrent} threshold={c.strainThreshold} tone="strain" />
+            <div className="char-xp-row">
+              <span>Доступно XP</span>
+              <b>{c.availableXp}</b>
+            </div>
             <div className="card-actions">
               <button className="small" onClick={e => { e.stopPropagation(); void duplicate(c.id) }}>
+                <Icon name="copy" className="button-icon" />
                 Клонировать
               </button>
               <button className="danger small" onClick={e => { e.stopPropagation(); void remove(c.id, c.name) }}>
+                <Icon name="trash" className="button-icon" />
                 Удалить
               </button>
             </div>
@@ -103,6 +158,34 @@ export function CharactersPage({ onOpen }: Props) {
           onImported={id => { setImportState(null); onOpen(id) }}
         />
       )}
+    </div>
+  )
+}
+
+function pct(current: number, threshold: number) {
+  if (threshold <= 0) return 0
+  return Math.max(0, Math.min(100, Math.round((current / threshold) * 100)))
+}
+
+function initials(name: string) {
+  return name.trim().split(/\s+/).slice(0, 2).map(part => part[0]?.toUpperCase() ?? '').join('') || 'PC'
+}
+
+function VitalBar({ label, current, threshold, tone }: {
+  label: string
+  current: number
+  threshold: number
+  tone: 'wound' | 'strain'
+}) {
+  return (
+    <div className="vital-bar">
+      <div className="vital-meta">
+        <span>{label}</span>
+        <b>{current}/{threshold}</b>
+      </div>
+      <div className="vital-track">
+        <div className={`vital-fill ${tone}`} style={{ width: `${pct(current, threshold)}%` }} />
+      </div>
     </div>
   )
 }
