@@ -310,6 +310,7 @@ export interface CharacterListItem {
   woundThreshold: number
   strainCurrent: number
   strainThreshold: number
+  portraitUrl: string | null
 }
 
 export interface CharacterShareResponse {
@@ -911,6 +912,7 @@ export interface CharacterSheet {
   background: string | null
   // Критические ранения (U-23)
   criticalInjuries: CriticalInjury[]
+  portraitUrl: string | null
 }
 
 /** Критическое ранение персонажа (U-23). */

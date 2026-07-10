@@ -56,13 +56,15 @@ function tryRefresh(): Promise<boolean> {
 
 async function rawFetch(method: string, url: string, body: unknown): Promise<Response> {
   const headers: Record<string, string> = {}
-  if (body !== undefined) headers['Content-Type'] = 'application/json'
+  // Blob (файл) уходит сырым телом — сервер определяет формат по содержимому, не по Content-Type.
+  const isBlob = typeof Blob !== 'undefined' && body instanceof Blob
+  if (body !== undefined && !isBlob) headers['Content-Type'] = 'application/json'
   const token = tokenStorage.get()
   if (token) headers.Authorization = `Bearer ${token}`
   return fetch(url, {
     method,
     headers,
-    body: body !== undefined ? JSON.stringify(body) : undefined,
+    body: body === undefined ? undefined : isBlob ? body : JSON.stringify(body),
     credentials: 'include', // отправлять/принимать refresh-cookie
   })
 }
@@ -140,6 +142,9 @@ export const api = {
   sheet: (id: string) => request<CharacterSheet>('GET', `/api/characters/${id}`),
   sharedSheet: (token: string) => request<CharacterSheet>('GET', `/api/share/${encodeURIComponent(token)}`),
   duplicateCharacter: (id: string) => request<{ id: string }>('POST', `/api/characters/${id}/duplicate`),
+  // Файл уходит сырым телом; формат (JPEG/PNG/WebP) и размер сервер проверяет по содержимому.
+  uploadCharacterPortrait: (id: string, file: Blob) =>
+    request<{ portraitUrl: string }>('POST', `/api/characters/${id}/portrait`, file),
   shareCharacter: (id: string) => request<CharacterShareResponse>('POST', `/api/characters/${id}/share`),
   revokeCharacterShares: (id: string) => request<void>('DELETE', `/api/characters/${id}/share`),
   exportCharacter: (id: string) => request<CharacterExport>('GET', `/api/characters/${id}/export`),
@@ -242,6 +247,8 @@ export const api = {
   account: () => request<Account>('GET', '/api/account/'),
   updateAccount: (data: { displayName?: string; avatarUrl?: string }) =>
     request<Account>('PATCH', '/api/account/', data),
+  // Файл уходит сырым телом; формат (JPEG/PNG/WebP) и размер сервер проверяет по содержимому.
+  uploadAvatar: (file: Blob) => request<Account>('POST', '/api/account/avatar', file),
   changePassword: (currentPassword: string, newPassword: string) =>
     request<void>('POST', '/api/account/change-password', { currentPassword, newPassword }),
 

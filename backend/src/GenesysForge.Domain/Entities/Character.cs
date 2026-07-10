@@ -5,6 +5,8 @@ public class Character
     public Guid Id { get; set; }
     public Guid OwnerUserId { get; set; }
     public required string Name { get; set; }
+    /// <summary>URL портрета (необязательно). Пусто → клиент показывает заглушку.</summary>
+    public string? PortraitUrl { get; set; }
     public GameSystem System { get; set; }
     public Guid ArchetypeId { get; set; }
     public ArchetypeDef? Archetype { get; set; }

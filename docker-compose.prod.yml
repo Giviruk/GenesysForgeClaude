@@ -68,6 +68,15 @@ services:
       Email__Smtp__Username: ${EMAIL_SMTP_USERNAME:-}
       Email__Smtp__Password: ${EMAIL_SMTP_PASSWORD:-}
       Email__Smtp__UseStartTls: ${EMAIL_SMTP_USE_STARTTLS:-true}
+      # Хранилище картинок (аватары, портреты). None — загрузка выключена.
+      # Бакет общий с другими проектами: каждый стек пишет строго под своим префиксом.
+      Storage__Provider: ${STORAGE_PROVIDER:-None}
+      Storage__S3__ServiceUrl: ${S3_SERVICE_URL:-}
+      Storage__S3__Bucket: ${S3_BUCKET:-}
+      Storage__S3__AccessKey: ${S3_ACCESS_KEY:-}
+      Storage__S3__SecretKey: ${S3_SECRET_KEY:-}
+      Storage__S3__Region: ${S3_REGION:-ru1}
+      Storage__S3__Prefix: genesysforge/uploads/private
     depends_on:
       postgres:
         condition: service_healthy
@@ -102,6 +111,14 @@ services:
       Email__Smtp__Username: ${EMAIL_SMTP_USERNAME:-}
       Email__Smtp__Password: ${EMAIL_SMTP_PASSWORD:-}
       Email__Smtp__UseStartTls: ${EMAIL_SMTP_USE_STARTTLS:-true}
+      # Хранилище картинок: тот же бакет, но свой префикс — стеки не пересекаются.
+      Storage__Provider: ${STORAGE_PROVIDER:-None}
+      Storage__S3__ServiceUrl: ${S3_SERVICE_URL:-}
+      Storage__S3__Bucket: ${S3_BUCKET:-}
+      Storage__S3__AccessKey: ${S3_ACCESS_KEY:-}
+      Storage__S3__SecretKey: ${S3_SECRET_KEY:-}
+      Storage__S3__Region: ${S3_REGION:-ru1}
+      Storage__S3__Prefix: genesysforge/uploads/public
     depends_on:
       postgres-public:
         condition: service_healthy

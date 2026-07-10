@@ -14,4 +14,5 @@ public record CharacterListItemDto(
     int WoundsCurrent,
     int WoundThreshold,
     int StrainCurrent,
-    int StrainThreshold);
+    int StrainThreshold,
+    string? PortraitUrl = null);

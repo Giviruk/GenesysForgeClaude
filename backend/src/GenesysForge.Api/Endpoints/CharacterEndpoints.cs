@@ -38,6 +38,16 @@ public static class CharacterEndpoints
             return Results.Created($"/api/characters/{copyId}", new { Id = copyId });
         });
 
+        // Портрет загружается сырым телом запроса; формат и размер проверяются по содержимому.
+        // Под rate limit, чтобы загрузками нельзя было забить хранилище.
+        group.MapPost("/{id:guid}/portrait", async (Guid id, HttpRequest request, ClaimsPrincipal user,
+            ICommandHandler<UploadCharacterPortraitCommand, string> handler, CancellationToken ct) =>
+        {
+            var content = await UploadBody.ReadImageAsync(request, ct);
+            var url = await handler.Handle(new UploadCharacterPortraitCommand(user.UserId(), id, content), ct);
+            return Results.Ok(new { PortraitUrl = url });
+        }).RequireRateLimiting(AuthRateLimiting.SessionPolicy);
+
         group.MapPost("/{id:guid}/share", async (Guid id, ClaimsPrincipal user,
             ICommandHandler<CreateCharacterShareCommand, CharacterShareResponse> handler, CancellationToken ct) =>
             Results.Ok(await handler.Handle(new CreateCharacterShareCommand(user.UserId(), id), ct)));

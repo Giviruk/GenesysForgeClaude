@@ -10,11 +10,13 @@ const account: Account = {
 const accountMock = vi.fn()
 const updateMock = vi.fn()
 const changePasswordMock = vi.fn()
+const uploadAvatarMock = vi.fn()
 vi.mock('../api/client', () => ({
   api: {
     account: () => accountMock(),
     updateAccount: (...a: unknown[]) => updateMock(...a),
     changePassword: (...a: unknown[]) => changePasswordMock(...a),
+    uploadAvatar: (...a: unknown[]) => uploadAvatarMock(...a),
   },
 }))
 
@@ -23,6 +25,8 @@ describe('ProfilePage (U-21)', () => {
     accountMock.mockResolvedValue(account)
     updateMock.mockResolvedValue({ ...account, displayName: 'Новый' })
     changePasswordMock.mockResolvedValue(undefined)
+    uploadAvatarMock.mockClear()
+    uploadAvatarMock.mockResolvedValue({ ...account, avatarUrl: 'https://storage.test/avatars/u1/x.png' })
   })
 
   it('показывает профиль и сохраняет имя/аватар', async () => {
@@ -62,5 +66,30 @@ describe('ProfilePage (U-21)', () => {
 
     await waitFor(() => expect(changePasswordMock).toHaveBeenCalledWith('old123', 'newpass1'))
     await waitFor(() => expect(screen.getByText('Пароль изменён.')).toBeTruthy())
+  })
+
+  it('загружает файл аватара и показывает новый URL', async () => {
+    render(<ProfilePage onBack={() => {}} />)
+    await waitFor(() => expect(screen.getByText('gm@test.local')).toBeTruthy())
+
+    const file = new File([new Uint8Array([0x89, 0x50, 0x4e, 0x47])], 'a.png', { type: 'image/png' })
+    fireEvent.change(screen.getByTestId('avatar-file'), { target: { files: [file] } })
+
+    await waitFor(() => expect(uploadAvatarMock).toHaveBeenCalledWith(file))
+    await waitFor(() => expect((screen.getByLabelText(/URL аватара/) as HTMLInputElement).value)
+      .toBe('https://storage.test/avatars/u1/x.png'))
+    expect(screen.getByText('Сохранено.')).toBeTruthy()
+  })
+
+  it('отклоняет файл больше 5 МБ без запроса', async () => {
+    render(<ProfilePage onBack={() => {}} />)
+    await waitFor(() => expect(screen.getByText('gm@test.local')).toBeTruthy())
+
+    const big = new File(['x'], 'big.png', { type: 'image/png' })
+    Object.defineProperty(big, 'size', { value: 5 * 1024 * 1024 + 1 }) // jsdom не считает size из ArrayBuffer
+    fireEvent.change(screen.getByTestId('avatar-file'), { target: { files: [big] } })
+
+    await waitFor(() => expect(screen.getByText('Файл больше 5 МБ.')).toBeTruthy())
+    expect(uploadAvatarMock).not.toHaveBeenCalled()
   })
 })

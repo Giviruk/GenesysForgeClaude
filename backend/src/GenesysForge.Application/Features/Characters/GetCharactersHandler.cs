@@ -56,7 +56,8 @@ public class GetCharactersHandler(IAppDbContext db) : IQueryHandler<GetCharacter
                 c.WoundsCurrent,
                 derived.WoundThreshold,
                 c.StrainCurrent,
-                derived.StrainThreshold);
+                derived.StrainThreshold,
+                c.PortraitUrl);
         }).ToList();
     }
 }

@@ -1,6 +1,9 @@
-import { useEffect, useState, type FormEvent } from 'react'
+import { useEffect, useRef, useState, type ChangeEvent, type FormEvent } from 'react'
 import { api } from '../api/client'
 import type { Account } from '../api/types'
+
+/** Лимит размера изображения — зеркало серверного (5 МБ), для быстрой ошибки без запроса. */
+export const MAX_IMAGE_BYTES = 5 * 1024 * 1024
 
 interface Props {
   onBack: () => void
@@ -52,6 +55,7 @@ function ProfileForm({ account, onSaved }: { account: Account; onSaved: (a: Acco
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [saved, setSaved] = useState(false)
+  const fileRef = useRef<HTMLInputElement>(null)
 
   async function submit(e: FormEvent) {
     e.preventDefault()
@@ -62,6 +66,22 @@ function ProfileForm({ account, onSaved }: { account: Account; onSaved: (a: Acco
       setSaved(true)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Ошибка сохранения')
+    } finally { setBusy(false) }
+  }
+
+  async function uploadFile(e: ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    e.target.value = '' // повторный выбор того же файла снова вызывает onChange
+    if (!file) return
+    if (file.size > MAX_IMAGE_BYTES) { setError('Файл больше 5 МБ.'); return }
+    setBusy(true); setError(null); setSaved(false)
+    try {
+      const next = await api.uploadAvatar(file)
+      setAvatarUrl(next.avatarUrl ?? '')
+      onSaved(next)
+      setSaved(true)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Ошибка загрузки файла')
     } finally { setBusy(false) }
   }
 
@@ -82,6 +102,11 @@ function ProfileForm({ account, onSaved }: { account: Account; onSaved: (a: Acco
         <input value={avatarUrl} onChange={e => setAvatarUrl(e.target.value)}
           placeholder="https://… (пусто — показываются инициалы)" />
       </label>
+      <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp" hidden
+        data-testid="avatar-file" onChange={uploadFile} />
+      <button type="button" disabled={busy} onClick={() => fileRef.current?.click()}>
+        Загрузить файл (JPEG/PNG/WebP, до 5 МБ)
+      </button>
       {error && <div className="error">{error}</div>}
       {saved && <div className="hint">Сохранено.</div>}
       <button className="primary" type="submit" disabled={busy || !displayName.trim()}>Сохранить</button>
