@@ -74,14 +74,16 @@ cd frontend; npm test
 Деплой идёт сам при пуше в `master`: workflow [deploy.yml](.github/workflows/deploy.yml) после успешного CI
 собирает private/public API и web-образы, публикует их в **GHCR**
 и разворачивает на VPS по SSH прод-стек [docker-compose.prod.yml](docker-compose.prod.yml):
-два PostgreSQL + два API/web стека + **Caddy** с автоматическим HTTPS. Наружу публикуется только
+два PostgreSQL + два API/web стека + **Caddy** с TLS через **Cloudflare Origin Certificate**
+(режим SSL «Full (strict)», без ACME/Let's Encrypt). Наружу публикуется только
 Caddy (80/443). `PRIVATE_HOSTNAME` работает в `PrivateFull`, `PUBLIC_HOSTNAME` — в `PublicSafe`;
 public API image собирается без embedded `private-content`.
 
 ### Конфигурация — только через GitHub Secrets/Variables (в репозитории секретов нет)
 
 Secrets: `SSH_HOST`, `SSH_USER`, `SSH_PORT`, `SSH_PRIVATE_KEY`, `POSTGRES_PASSWORD`, `JWT_KEY`,
-`GHCR_USERNAME`, `GHCR_TOKEN` (с правом `write:packages`), `LETSENCRYPT_EMAIL`, `PRIVATE_OWNER_PASSWORD`.
+`GHCR_USERNAME`, `GHCR_TOKEN` (с правом `write:packages`), `CADDY_ORIGIN_CERT`, `CADDY_ORIGIN_KEY`
+(Cloudflare Origin cert и private key в PEM), `PRIVATE_OWNER_PASSWORD`.
 Variables: `DEPLOY_PATH` (`/opt/genesysforge`), `PRIVATE_HOSTNAME`, `PUBLIC_HOSTNAME`,
 `JWT_ACCESS_LIFETIME_MINUTES`, backup/rate-limit параметры и Google client id.
 
@@ -90,7 +92,8 @@ Variables: `DEPLOY_PATH` (`/opt/genesysforge`), `PRIVATE_HOSTNAME`, `PUBLIC_HOST
 - Docker Engine + compose-plugin (`curl -fsSL https://get.docker.com | sh`).
 - `SSH_USER` имеет доступ на запись в `DEPLOY_PATH`; для swap желателен passwordless `sudo` (иначе шаг swap пропускается).
 - Свободны порты `80` и `443` (их займёт Caddy).
-- DNS/sslip.io хосты указывают на IP сервера.
+- Домен на Cloudflare: A-записи `PRIVATE_HOSTNAME`/`PUBLIC_HOSTNAME` (proxied) указывают на IP сервера,
+  SSL/TLS в режиме **Full (strict)**, Origin cert выпущен на оба хоста.
 
 ### Первый запуск
 
