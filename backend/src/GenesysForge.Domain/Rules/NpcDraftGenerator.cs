@@ -99,6 +99,10 @@ public static class NpcDraftGenerator
                 Description = $"Творит заклинания навыком «{primarySkill}».",
             });
 
+        // Таланты и сигнатурная способность по правилам создания adversary: соперник/главарь получают
+        // талант Adversary и роль-специфичные таланты, главарь — ещё и сигнатурное действие «каждый ход».
+        ApplyTalentsAndSignature(npc, req, level);
+
         // Тип существа (нежить/зверь/дракон/…): теги, способности, природные атаки, terror/иммунитеты.
         ApplyTemplate(npc, req.Template, level);
 
@@ -162,6 +166,86 @@ public static class NpcDraftGenerator
                 break;
         }
     }
+
+    /// <summary>
+    /// Выдаёт таланты и сигнатурную способность по типу/роли/уровню (правила создания adversary):
+    /// <list type="bullet">
+    ///   <item>Adversary: у главаря 1–2 (по уровню), у боевого соперника — 1; миньоны без талантов.</item>
+    ///   <item>Роль-специфичные таланты: соперник (Strong/Elite) — 1, главарь — 1–2.</item>
+    ///   <item>Сигнатурная способность главаря — чтобы он «делал что-то интересное каждый ход».</item>
+    /// </list>
+    /// Талант Adversary записывается строкой «Adversary N» (единый формат с бестиарием).
+    /// </summary>
+    private static void ApplyTalentsAndSignature(Npc npc, NpcDraftRequest req, int level)
+    {
+        var adversary = req.Kind switch
+        {
+            NpcKind.Nemesis => level >= 2 ? 2 : 1,     // 1–2 (3+ только для эпических — вручную)
+            NpcKind.Rival => IsCombat(req) ? 1 : 0,    // Adversary 1 для опасного боевого соперника
+            _ => 0,                                     // миньоны — без талантов
+        };
+        if (adversary > 0)
+            npc.Talents.Add($"Adversary {adversary}");
+
+        var roleTalentCount = req.Kind switch
+        {
+            NpcKind.Nemesis => level >= 2 ? 2 : 1,
+            NpcKind.Rival => level >= 2 ? 1 : 0,
+            _ => 0,
+        };
+        foreach (var talent in RoleTalents(req.Role).Take(roleTalentCount))
+            if (!npc.Talents.Contains(talent))
+                npc.Talents.Add(talent);
+
+        // Сигнатурное действие главаря (у соперника/миньона его нет — они проще).
+        if (req.Kind == NpcKind.Nemesis)
+        {
+            var (name, desc) = SignatureAbility(req.Role);
+            if (npc.Abilities.All(a => a.Name != name))
+                Ability(npc, name, desc);
+        }
+    }
+
+    /// <summary>Боевой NPC: боевой стиль (не социальный) и не чисто социальная роль.</summary>
+    private static bool IsCombat(NpcDraftRequest req) =>
+        req.CombatStyle != NpcCombatStyle.Social && req.Role != NpcRole.Social;
+
+    /// <summary>Приоритетные роль-специфичные таланты (берётся нужное число сверху). Формат — имя-строка.</summary>
+    private static IReadOnlyList<string> RoleTalents(NpcRole role) => role switch
+    {
+        NpcRole.Brute => ["Яростная атака", "Выносливость"],
+        NpcRole.Skirmisher => ["Быстрый удар", "Уклонение"],
+        NpcRole.Archer => ["Точный прицел", "Стрельба в упор"],
+        NpcRole.Caster => ["Могущественная магия", "Железная воля"],
+        NpcRole.Leader => ["Полевой командир", "Согласованная атака"],
+        NpcRole.Social => ["Меня не проведёшь", "Прирождённый лжец"],
+        NpcRole.Support => ["Опытный целитель", "Воодушевление"],
+        NpcRole.Monster => ["Свирепая сила", "Смертельные удары"],
+        _ => [],
+    };
+
+    /// <summary>Сигнатурное действие главаря по роли — «что-то интересное каждый ход».</summary>
+    private static (string Name, string Desc) SignatureAbility(NpcRole role) => role switch
+    {
+        NpcRole.Brute => ("Сокрушительный натиск",
+            "Один раз за ход при попадании в ближнем бою наносит +1 урон за каждый успех сверх первого."),
+        NpcRole.Skirmisher => ("Стремительный выпад",
+            "Один раз за встречу совершает манёвр перемещения и атаку ближнего боя как одно действие."),
+        NpcRole.Archer => ("Прицельный выстрел",
+            "Один раз за ход тратит ⬥⬥ преимущество для автоматической критической травмы при дальней атаке."),
+        NpcRole.Caster => ("Всплеск силы",
+            "Один раз за встречу творит заклинание без увеличения сложности за дополнительные эффекты."),
+        NpcRole.Leader => ("Тактический приказ",
+            "Действием даёт союзнику в пределах средней дистанции немедленный бесплатный манёвр."),
+        NpcRole.Social => ("Манипулятор",
+            "Действием проводит противоборствующую проверку Обмана, чтобы навязать цели ложное убеждение до конца сцены."),
+        NpcRole.Support => ("Экстренная помощь",
+            "Действием восстанавливает союзнику раны, равные значению Воли NPC; один раз за встречу."),
+        NpcRole.Monster => ("Дикая ярость",
+            "Один раз за ход, будучи раненым, добавляет ▲ к своей следующей атаке ближнего боя."),
+        _ => ("Инициатива главаря",
+            "Один раз за встречу совершает дополнительный манёвр в свой ход."),
+    };
 
     private static void Ability(Npc npc, string name, string description) =>
         npc.Abilities.Add(new NpcAbility { NpcId = npc.Id, Name = name, Description = description });

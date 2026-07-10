@@ -105,6 +105,45 @@ public class NpcDraftGeneratorTests
         Assert.Contains(n.Abilities, a => a.Name == "Заклинания");
     }
 
+    [Theory]
+    [InlineData(NpcPowerLevel.Weak, "Adversary 1")]
+    [InlineData(NpcPowerLevel.Standard, "Adversary 1")]
+    [InlineData(NpcPowerLevel.Strong, "Adversary 2")]
+    [InlineData(NpcPowerLevel.Elite, "Adversary 2")]
+    public void Nemesis_GetsAdversaryTalent_ScaledByPowerLevel(NpcPowerLevel level, string expected)
+    {
+        var n = Draft(NpcKind.Nemesis, NpcRole.Brute, level);
+        Assert.Contains(expected, n.Talents);
+    }
+
+    [Fact]
+    public void Nemesis_GetsRoleTalent_AndSignatureAbility()
+    {
+        var n = Draft(NpcKind.Nemesis, NpcRole.Brute);
+        Assert.Contains(n.Talents, t => t.StartsWith("Adversary"));
+        Assert.Contains("Яростная атака", n.Talents);          // роль-специфичный талант
+        Assert.Contains(n.Abilities, a => a.Name == "Сокрушительный натиск"); // сигнатурное действие
+    }
+
+    [Fact]
+    public void CombatRival_GetsAdversary1_ButSocialRivalDoesNot()
+    {
+        var combat = Draft(NpcKind.Rival, NpcRole.Brute);
+        Assert.Contains("Adversary 1", combat.Talents);
+
+        var social = NpcDraftGenerator.Generate(Guid.NewGuid(),
+            new NpcDraftRequest(GameSystem.RealmsOfTerrinoth, NpcKind.Rival, NpcRole.Social,
+                NpcPowerLevel.Standard, null, NpcCombatStyle.Social, null));
+        Assert.DoesNotContain(social.Talents, t => t.StartsWith("Adversary"));
+    }
+
+    [Fact]
+    public void Minion_HasNoTalents()
+    {
+        var n = Draft(NpcKind.Minion, NpcRole.Brute, NpcPowerLevel.Elite);
+        Assert.Empty(n.Talents);
+    }
+
     [Fact]
     public void Environment_AddsTag()
     {

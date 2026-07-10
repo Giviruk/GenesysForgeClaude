@@ -9,6 +9,13 @@ once it reaches a tagged 1.0 release. The project is currently pre-1.0; the
 
 ## [Unreleased]
 
+### Fixed
+- NPC quick-draft generator now grants **talents** automatically per the adversary
+  creation rules: the **Adversary** talent (Nemesis 1–2 by power level; combat
+  Rival 1), role-specific talents, and a signature per-round ability for Nemeses.
+  Previously generated NPCs (including Nemeses) had an empty talent list — e.g. a
+  Nemesis had no `Adversary` talent.
+
 ### Added
 - `LICENSE` (Apache-2.0) covering the project source code.
 - `NOTICE` with the content & trademark disclaimer (independent fan project,
