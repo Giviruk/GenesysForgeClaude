@@ -92,6 +92,7 @@ public static class SheetBuilder
                 .OrderBy(ci => ci.RollResult ?? int.MaxValue).ThenBy(ci => ci.CreatedAt)
                 .Select(ci => new CharacterCriticalInjuryDto(
                     ci.Id, ci.RuleCode, ci.NameRu, ci.Severity, ci.RollResult, ci.Notes))
-                .ToList());
+                .ToList(),
+            c.PortraitUrl);
     }
 }

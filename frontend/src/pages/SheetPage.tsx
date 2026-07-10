@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState, type ChangeEvent } from 'react'
 import { api } from '../api/client'
 import type { CharacterSheet, Reference } from '../api/types'
 import { SYSTEM_LABELS } from '../utils/labels'
@@ -34,6 +34,7 @@ export function SheetPage({ characterId, printing, onOpenPrint, onClosePrint, on
   const [notice, setNotice] = useState<string | null>(null)
   const [shareUrl, setShareUrl] = useState<string | null>(null)
   const [xpEdit, setXpEdit] = useState<string | null>(null)
+  const portraitFileRef = useRef<HTMLInputElement>(null)
 
   const refresh = useCallback(
     () => api.sheet(characterId).then(next =>
@@ -95,6 +96,20 @@ export function SheetPage({ characterId, printing, onOpenPrint, onClosePrint, on
     }
   }
 
+  async function uploadPortrait(e: ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    e.target.value = '' // повторный выбор того же файла снова вызывает onChange
+    if (!file || !sheet) return
+    if (file.size > 5 * 1024 * 1024) { setError('Файл больше 5 МБ.'); return }
+    try {
+      const { portraitUrl } = await api.uploadCharacterPortrait(sheet.id, file)
+      setSheet({ ...sheet, portraitUrl })
+      setNotice('Портрет обновлён.')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Ошибка загрузки портрета')
+    }
+  }
+
   async function shareCurrent() {
     if (!sheet) return
     try {
@@ -149,6 +164,14 @@ export function SheetPage({ characterId, printing, onOpenPrint, onClosePrint, on
             Персонажи
           </button>
           <div className="sheet-title-row">
+            <button type="button" className="sheet-portrait" title="Загрузить портрет (JPEG/PNG/WebP, до 5 МБ)"
+              onClick={() => portraitFileRef.current?.click()}>
+              {sheet.portraitUrl
+                ? <img src={sheet.portraitUrl} alt={`Портрет: ${sheet.name}`} />
+                : <Icon name="user" className="sheet-portrait-placeholder" />}
+            </button>
+            <input ref={portraitFileRef} type="file" accept="image/jpeg,image/png,image/webp" hidden
+              data-testid="portrait-file" onChange={e => void uploadPortrait(e)} />
             <h2>{sheet.name}</h2>
             <span className={`badge ${sheet.system}`}>{SYSTEM_LABELS[sheet.system]}</span>
           </div>

@@ -94,6 +94,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
 
         b.Entity<Character>(e =>
         {
+            e.Property(c => c.PortraitUrl).HasMaxLength(1000);
             e.HasOne(c => c.Archetype).WithMany().OnDelete(DeleteBehavior.Restrict);
             e.HasOne(c => c.Career).WithMany().OnDelete(DeleteBehavior.Restrict);
             e.HasOne(c => c.HeroicAbility).WithMany().OnDelete(DeleteBehavior.SetNull);

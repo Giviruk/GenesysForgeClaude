@@ -20,6 +20,15 @@ public static class AccountEndpoints
                 ICommandHandler<UpdateAccountCommand, AccountDto> handler, CancellationToken ct) =>
             Results.Ok(await handler.Handle(new UpdateAccountCommand(user.UserId(), req), ct)));
 
+        // Аватар загружается сырым телом запроса; формат и размер проверяются по содержимому.
+        // Под rate limit, чтобы загрузками нельзя было забить хранилище.
+        group.MapPost("/avatar", async (HttpRequest request, ClaimsPrincipal user,
+            ICommandHandler<UploadAvatarCommand, AccountDto> handler, CancellationToken ct) =>
+        {
+            var content = await UploadBody.ReadImageAsync(request, ct);
+            return Results.Ok(await handler.Handle(new UploadAvatarCommand(user.UserId(), content), ct));
+        }).RequireRateLimiting(AuthRateLimiting.SessionPolicy);
+
         // Смена пароля отзывает все сессии; текущему устройству выдаём свежий refresh-cookie,
         // чтобы пользователь остался в сессии. Чувствительная операция — под rate limit.
         group.MapPost("/change-password", async (ChangePasswordRequest req, HttpContext ctx, ClaimsPrincipal user,

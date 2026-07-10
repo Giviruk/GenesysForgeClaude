@@ -249,7 +249,7 @@ h1.auth-brand { font-size: 2rem; margin: 0 0 0.2rem; }
 .back-link:hover:not(:disabled) { color: var(--accent-2); border-color: transparent; }
 .sheet-title-row {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   gap: 0.6rem;
   flex-wrap: wrap;
 }
@@ -258,6 +258,16 @@ h1.auth-brand { font-size: 2rem; margin: 0 0 0.2rem; }
   font-size: 1.5rem;
   line-height: 1.15;
 }
+/* Портрет персонажа в шапке листа: кнопка-картинка, клик открывает выбор файла. */
+.sheet-portrait {
+  width: 48px; height: 48px; padding: 0; flex-shrink: 0;
+  border: 1px solid var(--border); border-radius: 10px; overflow: hidden;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: var(--panel); cursor: pointer;
+}
+.sheet-portrait:hover { border-color: var(--accent); }
+.sheet-portrait img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.sheet-portrait-placeholder { width: 22px; height: 22px; color: var(--muted); }
 .share-link { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; }
 .share-link input { min-width: min(32rem, 100%); flex: 1; }
 .xp-available { color: var(--accent); }

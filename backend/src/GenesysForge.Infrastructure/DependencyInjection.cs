@@ -2,6 +2,7 @@ using GenesysForge.Application.Abstractions;
 using GenesysForge.Domain;
 using GenesysForge.Infrastructure.Auth;
 using GenesysForge.Infrastructure.Persistence;
+using GenesysForge.Infrastructure.Storage;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -38,6 +39,14 @@ public static class DependencyInjection
             services.AddSingleton<IEmailSender, SmtpEmailSender>();
         else
             services.AddSingleton<IEmailSender, LoggingEmailSender>();
+
+        // Хранилище картинок: при Storage:Provider=S3 — S3-совместимое, иначе загрузка выключена.
+        var storageSection = config.GetSection(StorageOptions.SectionName);
+        services.Configure<StorageOptions>(storageSection);
+        if (string.Equals(storageSection["Provider"], "S3", StringComparison.OrdinalIgnoreCase))
+            services.AddSingleton<IObjectStorage, S3ObjectStorage>();
+        else
+            services.AddSingleton<IObjectStorage, DisabledObjectStorage>();
 
         return services;
     }

@@ -34,6 +34,7 @@ public static class DependencyInjection
         services.AddScoped<IQueryHandler<GetAccountQuery, AccountDto>, GetAccountHandler>();
         services.AddScoped<ICommandHandler<UpdateAccountCommand, AccountDto>, UpdateAccountHandler>();
         services.AddScoped<ICommandHandler<ChangePasswordCommand, Unit>, ChangePasswordHandler>();
+        services.AddScoped<ICommandHandler<UploadAvatarCommand, AccountDto>, UploadAvatarHandler>();
 
         // Reference
         services.AddScoped<IQueryHandler<GetReferenceQuery, ReferenceResponse>, GetReferenceHandler>();
@@ -43,6 +44,7 @@ public static class DependencyInjection
         services.AddScoped<IQueryHandler<GlobalSearchQuery, SearchResponse>, GlobalSearchHandler>();
 
         // Characters
+        services.AddScoped<ICommandHandler<UploadCharacterPortraitCommand, string>, UploadCharacterPortraitHandler>();
         services.AddScoped<IQueryHandler<GetCharactersQuery, List<CharacterListItemDto>>, GetCharactersHandler>();
         services.AddScoped<IQueryHandler<GetCharacterSheetQuery, CharacterSheetDto>, GetCharacterSheetHandler>();
         services.AddScoped<IQueryHandler<GetSharedCharacterSheetQuery, CharacterSheetDto>, GetSharedCharacterSheetHandler>();

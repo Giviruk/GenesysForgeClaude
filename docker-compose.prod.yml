@@ -68,6 +68,15 @@ services:
       Email__Smtp__Username: ${EMAIL_SMTP_USERNAME:-}
       Email__Smtp__Password: ${EMAIL_SMTP_PASSWORD:-}
       Email__Smtp__UseStartTls: ${EMAIL_SMTP_USE_STARTTLS:-true}
+      # Хранилище картинок (аватары, портреты). None — загрузка выключена.
+      # Бакет общий с другими проектами: каждый стек пишет строго под своим префиксом.
+      Storage__Provider: ${STORAGE_PROVIDER:-None}
+      Storage__S3__ServiceUrl: ${S3_SERVICE_URL:-}
+      Storage__S3__Bucket: ${S3_BUCKET:-}
+      Storage__S3__AccessKey: ${S3_ACCESS_KEY:-}
+      Storage__S3__SecretKey: ${S3_SECRET_KEY:-}
+      Storage__S3__Region: ${S3_REGION:-ru1}
+      Storage__S3__Prefix: genesysforge/uploads/private
     depends_on:
       postgres:
         condition: service_healthy
@@ -102,6 +111,14 @@ services:
       Email__Smtp__Username: ${EMAIL_SMTP_USERNAME:-}
       Email__Smtp__Password: ${EMAIL_SMTP_PASSWORD:-}
       Email__Smtp__UseStartTls: ${EMAIL_SMTP_USE_STARTTLS:-true}
+      # Хранилище картинок: тот же бакет, но свой префикс — стеки не пересекаются.
+      Storage__Provider: ${STORAGE_PROVIDER:-None}
+      Storage__S3__ServiceUrl: ${S3_SERVICE_URL:-}
+      Storage__S3__Bucket: ${S3_BUCKET:-}
+      Storage__S3__AccessKey: ${S3_ACCESS_KEY:-}
+      Storage__S3__SecretKey: ${S3_SECRET_KEY:-}
+      Storage__S3__Region: ${S3_REGION:-ru1}
+      Storage__S3__Prefix: genesysforge/uploads/public
     depends_on:
       postgres-public:
         condition: service_healthy
@@ -132,14 +149,36 @@ services:
     environment:
       PGPASSWORD: ${POSTGRES_PASSWORD}
       BACKUP_RETENTION_DAYS: ${BACKUP_RETENTION_DAYS:-14}
+      # Оффсайт-копия дампов в ОТДЕЛЬНЫЙ бакет со своим ключом: у API-контейнеров этого ключа нет,
+      # утечка ключа картинок не открывает доступ к дампам. Пустой BACKUP_S3_BUCKET — выгрузка выключена.
+      # Удаление старых дампов в S3 делает lifecycle-правило бакета (4 дня), не контейнер.
+      BACKUP_S3_SERVICE_URL: ${S3_SERVICE_URL:-}
+      BACKUP_S3_BUCKET: ${BACKUP_S3_BUCKET:-}
+      BACKUP_S3_REGION: ${S3_REGION:-ru1}
+      BACKUP_S3_ACCESS_KEY: ${BACKUP_S3_ACCESS_KEY:-}
+      BACKUP_S3_SECRET_KEY: ${BACKUP_S3_SECRET_KEY:-}
     command:
       - /bin/sh
       - -ec
       - |
+        if [ -n "$${BACKUP_S3_BUCKET}" ]; then
+          apk add --no-cache curl >/dev/null 2>&1 || echo "curl install failed — S3 upload disabled"
+        fi
         while true; do
           timestamp="$$(date -u +%Y%m%dT%H%M%SZ)"
           pg_dump -h postgres -U genesys -d genesysforge -Fc -f "/backups/private-$${timestamp}.dump"
           pg_dump -h postgres-public -U genesys -d genesysforge_public -Fc -f "/backups/public-$${timestamp}.dump"
+          if [ -n "$${BACKUP_S3_BUCKET}" ] && command -v curl >/dev/null; then
+            for name in "private-$${timestamp}" "public-$${timestamp}"; do
+              curl -fsS -o /dev/null -X PUT \
+                --aws-sigv4 "aws:amz:$${BACKUP_S3_REGION}:s3" \
+                -u "$${BACKUP_S3_ACCESS_KEY}:$${BACKUP_S3_SECRET_KEY}" \
+                --upload-file "/backups/$${name}.dump" \
+                "$${BACKUP_S3_SERVICE_URL}/$${BACKUP_S3_BUCKET}/genesysforge/backups/$${name}.dump" \
+                && echo "uploaded $${name}.dump to S3" \
+                || echo "S3 upload failed for $${name}.dump (local copy kept)"
+            done
+          fi
           find /backups -type f -name '*.dump' -mtime "+$${BACKUP_RETENTION_DAYS}" -delete
           sleep 86400
         done

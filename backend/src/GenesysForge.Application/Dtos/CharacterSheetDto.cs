@@ -30,7 +30,8 @@ public record CharacterSheetDto(
     string? Strength = null,
     string? Flaw = null,
     string? Background = null,
-    List<CharacterCriticalInjuryDto>? CriticalInjuries = null);
+    List<CharacterCriticalInjuryDto>? CriticalInjuries = null,
+    string? PortraitUrl = null);
 
 /// <summary>Критическое ранение персонажа (U-23).</summary>
 public record CharacterCriticalInjuryDto(
