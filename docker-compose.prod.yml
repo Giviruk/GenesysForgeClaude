@@ -205,6 +205,8 @@ services:
       - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
       # Cloudflare Origin cert/key — записывается deploy-workflow'ом из GitHub Secrets
       - ./deploy/certs:/etc/caddy/certs:ro
+      # Серверные vhosts вне репозитория (см. import в Caddyfile)
+      - ./deploy/conf.d:/etc/caddy/conf.d:ro
       - caddy_data:/data
       - caddy_config:/config
     depends_on:
@@ -212,6 +214,11 @@ services:
       - web-public
     restart: unless-stopped
     mem_limit: 64m
+    networks:
+      - default
+      # Общая сеть с мониторинг-стеком (/opt/monitoring): Caddy проксирует status-дашборд.
+      # Сеть создаёт deploy-workflow (docker network create monitoring).
+      - monitoring
 
 volumes:
   pgdata:
@@ -219,3 +226,8 @@ volumes:
   pgbackups:
   caddy_data:
   caddy_config:
+
+networks:
+  default:
+  monitoring:
+    external: true

@@ -20,3 +20,8 @@
 	tls /etc/caddy/certs/origin.crt /etc/caddy/certs/origin.key
 	reverse_proxy web-public:80
 }
+
+# Дополнительные серверные vhosts (например, status-дашборд мониторинга): файлы кладутся
+# на сервер вручную и деплоем не перезаписываются — в публичном репо им не место
+# (хэши паролей). Glob без совпадений — не ошибка, на чистом сервере блок просто пуст.
+import /etc/caddy/conf.d/*.caddy
