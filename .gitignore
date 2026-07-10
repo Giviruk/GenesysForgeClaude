@@ -20,6 +20,9 @@ frontend/playwright-report/
 # Env / secrets
 .env
 appsettings.*.local.json
+beget.data.md
+# Cloudflare Origin cert/key — записывается deploy-workflow'ом из GitHub Secrets, в репо не хранится
+deploy/certs/
 
 # OS / IDE
 .DS_Store

@@ -100,7 +100,9 @@ jobs:
           GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
           POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
           JWT_KEY: ${{ secrets.JWT_KEY }}
-          LETSENCRYPT_EMAIL: ${{ secrets.LETSENCRYPT_EMAIL }}
+          # Cloudflare Origin Certificate (режим SSL Full strict) — PEM cert и private key
+          CADDY_ORIGIN_CERT: ${{ secrets.CADDY_ORIGIN_CERT }}
+          CADDY_ORIGIN_KEY: ${{ secrets.CADDY_ORIGIN_KEY }}
           PRIVATE_HOSTNAME: ${{ vars.PRIVATE_HOSTNAME }}
           PUBLIC_HOSTNAME: ${{ vars.PUBLIC_HOSTNAME }}
           DEPLOY_PATH: ${{ vars.DEPLOY_PATH }}
@@ -117,7 +119,7 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: ${{ secrets.SSH_PORT }}
-          envs: GHCR_OWNER,GHCR_USERNAME,GHCR_TOKEN,POSTGRES_PASSWORD,JWT_KEY,LETSENCRYPT_EMAIL,PRIVATE_HOSTNAME,PUBLIC_HOSTNAME,DEPLOY_PATH,GOOGLE_CLIENT_ID,JWT_ACCESS_LIFETIME_MINUTES,BACKUP_RETENTION_DAYS,AUTH_SENSITIVE_PERMIT_LIMIT,AUTH_SESSION_PERMIT_LIMIT,AUTH_PUBLIC_PERMIT_LIMIT,AUTH_RATE_WINDOW_SECONDS
+          envs: GHCR_OWNER,GHCR_USERNAME,GHCR_TOKEN,POSTGRES_PASSWORD,JWT_KEY,CADDY_ORIGIN_CERT,CADDY_ORIGIN_KEY,PRIVATE_HOSTNAME,PUBLIC_HOSTNAME,DEPLOY_PATH,GOOGLE_CLIENT_ID,JWT_ACCESS_LIFETIME_MINUTES,BACKUP_RETENTION_DAYS,AUTH_SENSITIVE_PERMIT_LIMIT,AUTH_SESSION_PERMIT_LIMIT,AUTH_PUBLIC_PERMIT_LIMIT,AUTH_RATE_WINDOW_SECONDS
           script: |
             set -euo pipefail
             cd "${DEPLOY_PATH}"
@@ -136,7 +138,6 @@ jobs:
             GHCR_OWNER=${GHCR_OWNER}
             POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
             JWT_KEY=${JWT_KEY}
-            LETSENCRYPT_EMAIL=${LETSENCRYPT_EMAIL}
             PRIVATE_HOSTNAME=${PRIVATE_HOSTNAME}
             PUBLIC_HOSTNAME=${PUBLIC_HOSTNAME:-public-disabled.localhost}
             GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
@@ -147,6 +148,12 @@ jobs:
             AUTH_PUBLIC_PERMIT_LIMIT=${AUTH_PUBLIC_PERMIT_LIMIT:-60}
             AUTH_RATE_WINDOW_SECONDS=${AUTH_RATE_WINDOW_SECONDS:-60}
             EOF
+
+            # Cloudflare Origin cert/key для Caddy (Full strict). Пишем из secrets, не логируем.
+            mkdir -p deploy/certs
+            printf '%s\n' "${CADDY_ORIGIN_CERT}" > deploy/certs/origin.crt
+            printf '%s\n' "${CADDY_ORIGIN_KEY}" > deploy/certs/origin.key
+            chmod 600 deploy/certs/origin.key deploy/certs/origin.crt
 
             echo "${GHCR_TOKEN}" | docker login ghcr.io -u "${GHCR_USERNAME}" --password-stdin
             docker compose -f docker-compose.prod.yml pull

@@ -162,9 +162,10 @@ services:
     environment:
       PRIVATE_HOSTNAME: ${PRIVATE_HOSTNAME}
       PUBLIC_HOSTNAME: ${PUBLIC_HOSTNAME:-public-disabled.localhost}
-      LETSENCRYPT_EMAIL: ${LETSENCRYPT_EMAIL}
     volumes:
       - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      # Cloudflare Origin cert/key — записывается deploy-workflow'ом из GitHub Secrets
+      - ./deploy/certs:/etc/caddy/certs:ro
       - caddy_data:/data
       - caddy_config:/config
     depends_on:
