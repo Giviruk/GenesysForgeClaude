@@ -1,0 +1,23 @@
+# GenesysForge
+
+> Бесплатный онлайн-лист персонажа и инструменты мастера для настольных ролевых систем Genesys и Realms of Terrinoth. Free web-based character sheet and GM tools for the Genesys RPG system and Realms of Terrinoth.
+
+Возможности / Features:
+- Интерактивный лист персонажа: характеристики, навыки с дайс-пулами, раны, стрейн, защита (interactive character sheet with dice pools)
+- Пирамида талантов с покупкой по правилам Genesys (talent pyramid with XP costs)
+- Инвентарь с автопересчётом поглощения и переносимого веса (inventory with encumbrance)
+- Кампании с join-кодом, общим игровым столом в реальном времени, энкаунтерами и хендбуком (campaigns with real-time game table)
+- Бестиарий и NPC, конструктор магических действий, печать карточек (bestiary, magic action builder, printable cards)
+- Кастомный контент: свои навыки, таланты, предметы (custom content)
+- Публичные share-ссылки на листы персонажей (shareable character sheets)
+
+Языки: русский интерфейс, контент систем — русский и английский.
+Цена: бесплатно, регистрация по email или через Google.
+
+## Основные страницы
+- [Главная](https://genesys-forge.com/): вход и создание персонажа
+- [О проекте](https://genesys-forge.com/about): что это и дисклеймер
+- [Справка](https://genesys-forge.com/help): как пользоваться
+
+## Исходный код
+Проект с открытым исходным кодом: .NET 10 + React 19.

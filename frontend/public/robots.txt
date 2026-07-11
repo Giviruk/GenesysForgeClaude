@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /account
+Disallow: /share/
+
+Sitemap: https://genesys-forge.com/sitemap.xml
