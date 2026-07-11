@@ -14,6 +14,7 @@ import { SharedSheetPage } from './pages/SharedSheetPage'
 import { Footer } from './components/Footer'
 import { Icon, type IconName } from './components/Icon'
 import { navigate, parseRoute, usePath, type AppArea } from './router'
+import { useSeo } from './seo'
 import type { CampaignView } from './pages/CampaignsPage'
 import { DiceRollerProvider } from './dice-roller-context'
 
@@ -38,6 +39,7 @@ function Shell() {
   const path = usePath()
 
   const route = parseRoute(path)
+  useSeo(route, path)
 
   // «О проекте» доступна публично — до проверки токена (виден дисклеймер до входа).
   if (route.area === 'about') return <AboutPage loggedIn={!!token} />
