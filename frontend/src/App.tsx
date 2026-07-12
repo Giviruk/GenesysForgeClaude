@@ -14,6 +14,7 @@ import { SharedSheetPage } from './pages/SharedSheetPage'
 import { Footer } from './components/Footer'
 import { Icon, type IconName } from './components/Icon'
 import { navigate, parseRoute, usePath, type AppArea } from './router'
+import { t, useLang } from './i18n'
 import { useSeo } from './seo'
 import type { CampaignView } from './pages/CampaignsPage'
 import { DiceRollerProvider } from './dice-roller-context'
@@ -22,20 +23,21 @@ const campaignView = (sub: string | null): CampaignView =>
   sub === 'table' || sub === 'handbook' || sub === 'encounters' ? sub : 'overview'
 
 const NAV_ITEMS: Array<{ area: AppArea; label: string; path: string; icon: IconName }> = [
-  { area: 'characters', label: 'Персонажи', path: '/characters', icon: 'users' },
-  { area: 'npcs', label: 'Бестиарий', path: '/npcs', icon: 'skull' },
-  { area: 'campaigns', label: 'Кампании', path: '/campaigns', icon: 'map' },
-  { area: 'magic', label: 'Магия', path: '/magic', icon: 'flame' },
+  { area: 'characters', label: t('Персонажи', 'Characters'), path: '/characters', icon: 'users' },
+  { area: 'npcs', label: t('Бестиарий', 'Bestiary'), path: '/npcs', icon: 'skull' },
+  { area: 'campaigns', label: t('Кампании', 'Campaigns'), path: '/campaigns', icon: 'map' },
+  { area: 'magic', label: t('Магия', 'Magic'), path: '/magic', icon: 'flame' },
 ]
 
 const FOOTER_NAV_ITEMS: Array<{ area: AppArea; label: string; path: string; icon: IconName }> = [
-  { area: 'reference', label: 'Справочник', path: '/reference', icon: 'book' },
-  { area: 'account', label: 'Профиль', path: '/account', icon: 'user' },
-  { area: 'help', label: 'Справка', path: '/help', icon: 'help' },
+  { area: 'reference', label: t('Справочник', 'Reference'), path: '/reference', icon: 'book' },
+  { area: 'account', label: t('Профиль', 'Profile'), path: '/account', icon: 'user' },
+  { area: 'help', label: t('Справка', 'Help'), path: '/help', icon: 'help' },
 ]
 
 function Shell() {
   const { token, logout } = useAuth()
+  const [lang, setLang] = useLang()
   const path = usePath()
 
   const route = parseRoute(path)
@@ -56,7 +58,7 @@ function Shell() {
 
   return (
     <div className="app-shell">
-      <aside className="app-sidebar no-print" aria-label="Основная навигация">
+      <aside className="app-sidebar no-print" aria-label={t('Основная навигация', 'Main navigation')}>
         <button type="button" className="app-brand" onClick={() => navigate('/characters')}>GENESYSFORGE</button>
         <nav className="side-nav">
           {NAV_ITEMS.map(item => (
@@ -77,9 +79,14 @@ function Shell() {
               {item.label}
             </button>
           ))}
+          <button type="button" className="side-nav-item"
+            onClick={() => setLang(lang === 'ru' ? 'en' : 'ru')}>
+            <Icon name="globe" className="side-nav-icon" />
+            {lang === 'ru' ? 'English' : 'Русский'}
+          </button>
           <button type="button" className="side-nav-item" onClick={() => { logout(); navigate('/login') }}>
             <Icon name="logout" className="side-nav-icon" />
-            Выйти
+            {t('Выйти', 'Sign out')}
           </button>
         </div>
       </aside>
@@ -122,9 +129,9 @@ function NotFound() {
   return (
     <div className="page">
       <div className="panel">
-        <h2>Страница не найдена</h2>
-        <p className="muted">Такого адреса нет. Вернитесь к списку персонажей.</p>
-        <button className="primary" onClick={() => navigate('/characters')}>← К персонажам</button>
+        <h2>{t('Страница не найдена', 'Page not found')}</h2>
+        <p className="muted">{t('Такого адреса нет. Вернитесь к списку персонажей.', 'This address does not exist. Return to the character list.')}</p>
+        <button className="primary" onClick={() => navigate('/characters')}>{t('← К персонажам', '← Back to characters')}</button>
       </div>
     </div>
   )

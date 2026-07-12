@@ -1,6 +1,8 @@
 // Нарративный dice roller Genesys: бросок пула кубов и нетто-итог символами.
 // Результат считается на клиенте (v1); за столом он логируется через REST (см. client.ts).
 
+import { t } from '../i18n'
+
 export type DieKind = 'ability' | 'proficiency' | 'difficulty' | 'challenge' | 'boost' | 'setback'
 export type DieSymbol = 'success' | 'failure' | 'advantage' | 'threat' | 'triumph' | 'despair'
 
@@ -97,14 +99,21 @@ export function netSymbols(raw: RollSymbols): RollSymbols {
   return net
 }
 
-const SYMBOL_LABELS: Record<DieSymbol, [one: string, many: string]> = {
+const SYMBOL_LABELS: Record<DieSymbol, [one: string, many: string]> = t({
   success: ['успех', 'успеха'],
   failure: ['провал', 'провала'],
   advantage: ['преимущество', 'преимущества'],
   threat: ['угроза', 'угрозы'],
   triumph: ['триумф', 'триумфа'],
   despair: ['отчаяние', 'отчаяния'],
-}
+}, {
+  success: ['success', 'successes'],
+  failure: ['failure', 'failures'],
+  advantage: ['advantage', 'advantages'],
+  threat: ['threat', 'threats'],
+  triumph: ['triumph', 'triumphs'],
+  despair: ['despair', 'despairs'],
+})
 
 function plural(n: number, sym: DieSymbol): string {
   const [one, many] = SYMBOL_LABELS[sym]
@@ -116,7 +125,7 @@ export function summarize(net: RollSymbols): string {
   const parts: string[] = []
   if (net.success > 0) parts.push(plural(net.success, 'success'))
   else if (net.failure > 0) parts.push(plural(net.failure, 'failure'))
-  else parts.push('ничья')
+  else parts.push(t('ничья', 'wash'))
 
   if (net.advantage > 0) parts.push(plural(net.advantage, 'advantage'))
   else if (net.threat > 0) parts.push(plural(net.threat, 'threat'))

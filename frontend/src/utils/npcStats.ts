@@ -1,10 +1,19 @@
 import type {
   Characteristic, DicePool, ItemDef, NpcAttackEntry, NpcDetail, Reference, SkillDef,
 } from '../api/types'
-import { resolveWeaponSkillName } from './labels'
+import { localizedName, resolveWeaponSkillName } from './labels'
+import { t } from '../i18n'
 
-/** Отображаемое имя справочной записи: русское, с откатом на оригинальное. */
-const refLabel = (o: { name: string; nameRu: string }) => o.nameRu || o.name
+/** Отображаемое имя справочной записи на языке интерфейса. */
+const refLabel = (o: { name: string; nameRu: string }) => localizedName(o)
+
+/**
+ * Совпадает ли сохранённое имя (снаряжение/навык NPC) со справочной записью.
+ * Сохранённые строки могли быть записаны и по-русски, и по-английски —
+ * сверяем с обоими именами независимо от текущего языка интерфейса.
+ */
+const matchesRef = (o: { name: string; nameRu: string }, saved: string) =>
+  saved === o.name || (!!o.nameRu && saved === o.nameRu)
 
 /** Структурная атака из оружия каталога: навык/урон/крит/дистанция/качества переносятся из предмета. */
 export function attackFromItem(item: ItemDef): NpcAttackEntry {
@@ -43,7 +52,12 @@ export function syncAttacksWithEquipment(
 /** Карта «подпись оружия → предмет каталога» из справочника (для синхронизации атак со снаряжением). */
 export function weaponsByLabel(reference: Reference | null): Map<string, ItemDef> {
   const m = new Map<string, ItemDef>()
-  for (const it of reference?.items ?? []) if (it.kind === 'weapon') m.set(refLabel(it), it)
+  for (const it of reference?.items ?? []) {
+    if (it.kind !== 'weapon') continue
+    // Регистрируем оба имени: сохранённое снаряжение могло быть записано на любом языке.
+    m.set(it.name, it)
+    if (it.nameRu) m.set(it.nameRu, it)
+  }
   return m
 }
 
@@ -65,8 +79,8 @@ export function skillIndex(reference: Reference | null): Map<string, SkillDef> {
   const m = new Map<string, SkillDef>()
   if (!reference) return m
   for (const s of reference.skills) {
-    m.set(refLabel(s), s)
     m.set(s.name, s)
+    if (s.nameRu) m.set(s.nameRu, s)
   }
   return m
 }
@@ -114,7 +128,7 @@ export interface NpcWeaponView {
  */
 export function npcWeaponView(equipmentName: string, npc: NpcDetail, reference: Reference | null): NpcWeaponView | null {
   if (!reference) return null
-  const item = reference.items.find(i => refLabel(i) === equipmentName || i.name === equipmentName)
+  const item = reference.items.find(i => matchesRef(i, equipmentName))
   if (!item || item.kind !== 'weapon') return null
 
   // Навык оружия хранится по-английски («Melee», «Ranged (Light)»); ищем его в справочнике.
@@ -126,7 +140,7 @@ export function npcWeaponView(equipmentName: string, npc: NpcDetail, reference: 
   if (skillDef) {
     skillLabel = refLabel(skillDef)
     // Ранги NPC в навыке оружия (0, если навык не прокачан) — атака всё равно катится по характеристике.
-    const ranks = npc.skills.find(s => s.name === skillLabel || s.name === skillDef.name)?.ranks ?? 0
+    const ranks = npc.skills.find(s => matchesRef(skillDef, s.name))?.ranks ?? 0
     pool = buildPool(npc[skillDef.characteristic], ranks)
   }
 
@@ -135,7 +149,7 @@ export function npcWeaponView(equipmentName: string, npc: NpcDetail, reference: 
   let damageText = dmg
   if (dmg.startsWith('+')) {
     const bonus = Number(dmg.slice(1))
-    if (Number.isFinite(bonus)) damageText = `${npc.brawn + bonus} (Мощь ${dmg})`
+    if (Number.isFinite(bonus)) damageText = `${npc.brawn + bonus} ${t(`(Мощь ${dmg})`, `(Brawn ${dmg})`)}`
   }
 
   return {
@@ -181,7 +195,7 @@ export function npcAttackViews(npc: NpcDetail, reference: Reference | null): Npc
       const skillDef = skillName ? reference.skills.find(s => s.name === skillName) ?? null : null
       if (skillDef) {
         skillLabel = refLabel(skillDef)
-        const ranks = npc.skills.find(s => s.name === skillLabel || s.name === skillDef.name)?.ranks ?? 0
+        const ranks = npc.skills.find(s => matchesRef(skillDef, s.name))?.ranks ?? 0
         pool = buildPool(npc[skillDef.characteristic], ranks)
       }
     }
@@ -190,7 +204,7 @@ export function npcAttackViews(npc: NpcDetail, reference: Reference | null): Npc
     let damageText = dmg
     if (dmg.startsWith('+')) {
       const bonus = Number(dmg.slice(1))
-      if (Number.isFinite(bonus)) damageText = `${npc.brawn + bonus} (Мощь ${dmg})`
+      if (Number.isFinite(bonus)) damageText = `${npc.brawn + bonus} ${t(`(Мощь ${dmg})`, `(Brawn ${dmg})`)}`
     }
 
     const qualities = a.qualities.map(q => {
@@ -206,7 +220,7 @@ export function npcAttackViews(npc: NpcDetail, reference: Reference | null): Npc
 export function npcGearViews(npc: NpcDetail, reference: Reference | null): NpcGearView[] {
   return npc.equipment.map(name => ({
     name,
-    item: reference?.items.find(i => (i.nameRu || i.name) === name || i.name === name) ?? null,
+    item: reference?.items.find(i => matchesRef(i, name)) ?? null,
   }))
 }
 
@@ -228,7 +242,7 @@ export function splitEquipment(npc: NpcDetail, reference: Reference | null): {
   for (const name of npc.equipment) {
     const w = npcWeaponView(name, npc, reference)
     if (w) { weapons.push(w); continue }
-    const item = reference?.items.find(i => (i.nameRu || i.name) === name || i.name === name) ?? null
+    const item = reference?.items.find(i => matchesRef(i, name)) ?? null
     gear.push({ name, item })
   }
   return { weapons, gear }

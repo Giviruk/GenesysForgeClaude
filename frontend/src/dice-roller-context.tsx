@@ -2,6 +2,7 @@ import { useMemo, useRef, useState, type ReactNode } from 'react'
 import type { RollOutcome } from './utils/diceRoller'
 import { combatTotal, expandDamage } from './utils/combat'
 import { DiceRoller, RollSymbolsView } from './components/DiceRoller'
+import { t } from './i18n'
 import {
   DiceRollerContext, type DiceRollerContextValue, type DiceRollerRequest,
 } from './dice-roller-store'
@@ -10,7 +11,7 @@ type DrawerState = DiceRollerRequest & { id: number }
 
 const DEFAULT_REQUEST: DiceRollerRequest = {
   kind: 'roll',
-  title: 'Дайсроллер',
+  title: t('Дайсроллер', 'Dice roller'),
 }
 
 export function DiceRollerProvider({ children }: { children: ReactNode }) {
@@ -36,13 +37,13 @@ function DiceRollerDrawer({ drawer, onClose }: { drawer: DrawerState | null; onC
   if (!drawer) return null
 
   return (
-    <aside className="dice-drawer no-print" aria-label="Дайсроллер">
+    <aside className="dice-drawer no-print" aria-label={t('Дайсроллер', 'Dice roller')}>
       <div className="dice-drawer-head">
         <div>
-          <h3>{drawer.kind === 'combat' ? `Атака — ${drawer.title}` : drawer.title ?? 'Дайсроллер'}</h3>
-          {drawer.kind === 'roll' && drawer.label && <p className="muted small-text">Бросок: {drawer.label}</p>}
+          <h3>{drawer.kind === 'combat' ? t(`Атака — ${drawer.title}`, `Attack — ${drawer.title}`) : drawer.title ?? t('Дайсроллер', 'Dice roller')}</h3>
+          {drawer.kind === 'roll' && drawer.label && <p className="muted small-text">{t('Бросок:', 'Roll:')} {drawer.label}</p>}
         </div>
-        <button type="button" className="small" onClick={onClose}>Закрыть</button>
+        <button type="button" className="small" onClick={onClose}>{t('Закрыть', 'Close')}</button>
       </div>
 
       {drawer.kind === 'combat' ? (
@@ -52,7 +53,7 @@ function DiceRollerDrawer({ drawer, onClose }: { drawer: DrawerState | null; onC
         />
       ) : (
         <>
-          <p className="hint">Соберите пул, добавьте сложность/бонусы/помехи и бросьте. Основной экран остаётся доступным.</p>
+          <p className="hint">{t('Соберите пул, добавьте сложность/бонусы/помехи и бросьте. Основной экран остаётся доступным.', 'Build the pool, add difficulty/boosts/setbacks and roll. The main screen stays available.')}</p>
           <DiceRoller
             key={drawer.id}
             initialPool={drawer.initialPool}
@@ -77,10 +78,10 @@ function CombatRollerContent({ request }: {
   return (
     <>
       <div className="combat-roller-head">
-        {request.skillLabel && <span className="muted">Навык: {request.skillLabel}</span>}
+        {request.skillLabel && <span className="muted">{t('Навык:', 'Skill:')} {request.skillLabel}</span>}
         <div className="npc-weapon-stats">
-          <span className="weapon-stat">Урон <strong>{dmg.text}</strong></span>
-          {request.crit && <span className="weapon-stat">Крит <strong>{request.crit}</strong></span>}
+          <span className="weapon-stat">{t('Урон', 'Damage')} <strong>{dmg.text}</strong></span>
+          {request.crit && <span className="weapon-stat">{t('Крит', 'Crit')} <strong>{request.crit}</strong></span>}
           {request.rangeBand && <span className="weapon-stat">{request.rangeBand}</span>}
         </div>
         {request.qualities.length > 0 && (
@@ -95,7 +96,7 @@ function CombatRollerContent({ request }: {
         )}
       </div>
 
-      <p className="hint">Базовый пул собран по навыку. Добавьте сложность/бонусы/помехи и бросьте — урон не решает за вас.</p>
+      <p className="hint">{t('Базовый пул собран по навыку. Добавьте сложность/бонусы/помехи и бросьте — урон не решает за вас.', 'The base pool is built from the skill. Add difficulty/boosts/setbacks and roll — damage is not applied automatically.')}</p>
       <DiceRoller
         initialPool={request.basePool}
         label={request.title}
@@ -109,10 +110,10 @@ function CombatRollerContent({ request }: {
           <RollSymbolsView symbols={outcome.net} />
           {total != null
             ? <div className="combat-damage-calc">
-                Урон: <strong>{dmg.base}</strong> + успехов <strong>{netSuccess}</strong> = <strong>{total}</strong>
-                {netSuccess === 0 && outcome.net.failure > 0 && <span className="muted small-text"> (промах — нет успехов)</span>}
+                {t('Урон:', 'Damage:')} <strong>{dmg.base}</strong> {t('+ успехов', '+ successes')} <strong>{netSuccess}</strong> = <strong>{total}</strong>
+                {netSuccess === 0 && outcome.net.failure > 0 && <span className="muted small-text"> {t('(промах — нет успехов)', '(miss — no successes)')}</span>}
               </div>
-            : <div className="muted small-text">Урон оружия задан текстом — посчитайте вручную.</div>}
+            : <div className="muted small-text">{t('Урон оружия задан текстом — посчитайте вручную.', 'Weapon damage is text-only — calculate it manually.')}</div>}
         </div>
       )}
     </>

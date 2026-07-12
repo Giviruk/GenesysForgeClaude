@@ -14,6 +14,7 @@ import type {
   RulesResponse, SearchResponse,
   ArchetypeSkillChoice, CareerGearChoice,
 } from './types'
+import { t } from '../i18n'
 
 const TOKEN_KEY = 'genesysforge.token'
 
@@ -85,7 +86,7 @@ async function request<T>(method: string, url: string, body?: unknown, retried =
         onUnauthorized?.()
       }
     }
-    let message = `Ошибка ${response.status}`
+    let message = t(`Ошибка ${response.status}`, `Error ${response.status}`)
     try {
       const data = await response.json()
       if (data?.message) message = data.message

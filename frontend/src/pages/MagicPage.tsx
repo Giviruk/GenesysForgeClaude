@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import type { GameSystem } from '../api/types'
 import { SYSTEM_LABELS } from '../utils/labels'
+import { t } from '../i18n'
 import { MagicBuilder } from '../components/MagicBuilder'
 
 /**
@@ -14,7 +15,7 @@ export function MagicPage() {
   return (
     <div className="page">
       <div className="page-head">
-        <h2>Сборка магии</h2>
+        <h2>{t('Сборка магии', 'Magic builder')}</h2>
         <div className="system-switch">
           {(['realmsOfTerrinoth', 'genesysCore'] as GameSystem[]).map(s => (
             <button key={s} className={system === s ? 'tab active' : 'tab'} onClick={() => setSystem(s)}>

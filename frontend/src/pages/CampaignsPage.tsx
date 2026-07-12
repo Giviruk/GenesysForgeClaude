@@ -10,6 +10,7 @@ import { HandbookTab } from '../components/HandbookTab'
 import { PrintPreview } from '../components/print/PrintPreview'
 import { CharacterSheetPrint } from '../components/print/CharacterSheetPrint'
 import { useCampaignHub, type CampaignHubStatus } from '../useCampaignHub'
+import { lang, t } from '../i18n'
 
 export type CampaignView = 'overview' | 'handbook' | 'encounters' | 'table'
 
@@ -32,7 +33,7 @@ export function CampaignsPage({
 
   const reload = useCallback(
     () => api.campaigns().then(setCampaigns).catch((e: unknown) =>
-      setError(e instanceof Error ? e.message : 'Ошибка загрузки')),
+      setError(e instanceof Error ? e.message : t('Ошибка загрузки', 'Failed to load'))),
     [])
 
   // Перезагружаем список при показе (в т.ч. при возврате из карточки кампании).
@@ -44,7 +45,7 @@ export function CampaignsPage({
   return (
     <div className="page">
       <div className="page-head">
-        <h2>Кампании</h2>
+        <h2>{t('Кампании', 'Campaigns')}</h2>
       </div>
       {error && <div className="error">{error}</div>}
 
@@ -53,16 +54,16 @@ export function CampaignsPage({
         <JoinCampaignForm onDone={reload} onError={setError} />
       </div>
 
-      {campaigns === null && <p className="muted">Загрузка…</p>}
-      {campaigns?.length === 0 && <p className="muted">Пока нет кампаний — создайте свою или присоединитесь по коду.</p>}
+      {campaigns === null && <p className="muted">{t('Загрузка…', 'Loading…')}</p>}
+      {campaigns?.length === 0 && <p className="muted">{t('Пока нет кампаний — создайте свою или присоединитесь по коду.', 'No campaigns yet — create your own or join with a code.')}</p>}
       <div className="card-grid">
         {campaigns?.map(c => (
           <div key={c.id} className="char-card" onClick={() => onOpen(c.id)}>
             <div className="char-card-head">
               <strong>{c.name}</strong>
-              <span className={c.isGm ? 'badge tier' : 'badge'}>{c.isGm ? 'Мастер' : 'Игрок'}</span>
+              <span className={c.isGm ? 'badge tier' : 'badge'}>{c.isGm ? t('Мастер', 'GM') : t('Игрок', 'Player')}</span>
             </div>
-            <div className="muted">Персонажей: {c.characterCount}</div>
+            <div className="muted">{t('Персонажей:', 'Characters:')} {c.characterCount}</div>
           </div>
         ))}
       </div>
@@ -80,15 +81,15 @@ function CreateCampaignForm({ onDone, onError }: { onDone: () => void; onError: 
       await api.createCampaign(name, description)
       setName(''); setDescription('')
       onDone()
-    } catch (err) { onError(err instanceof Error ? err.message : 'Ошибка') }
+    } catch (err) { onError(err instanceof Error ? err.message : t('Ошибка', 'Error')) }
   }
 
   return (
     <form className="panel custom-form" onSubmit={submit}>
-      <h3>Создать кампанию (вы — мастер)</h3>
-      <label>Название<input value={name} onChange={e => setName(e.target.value)} required /></label>
-      <label>Описание<textarea value={description} onChange={e => setDescription(e.target.value)} rows={2} /></label>
-      <button className="primary" type="submit">Создать</button>
+      <h3>{t('Создать кампанию (вы — мастер)', 'Create a campaign (you are the GM)')}</h3>
+      <label>{t('Название', 'Name')}<input value={name} onChange={e => setName(e.target.value)} required /></label>
+      <label>{t('Описание', 'Description')}<textarea value={description} onChange={e => setDescription(e.target.value)} rows={2} /></label>
+      <button className="primary" type="submit">{t('Создать', 'Create')}</button>
     </form>
   )
 }
@@ -108,20 +109,20 @@ function JoinCampaignForm({ onDone, onError }: { onDone: () => void; onError: (m
       await api.joinCampaign(code, characterId)
       setCode(''); setCharacterId('')
       onDone()
-    } catch (err) { onError(err instanceof Error ? err.message : 'Ошибка') }
+    } catch (err) { onError(err instanceof Error ? err.message : t('Ошибка', 'Error')) }
   }
 
   return (
     <form className="panel custom-form" onSubmit={submit}>
-      <h3>Присоединиться по коду (своим персонажем)</h3>
-      <label>Код кампании<input value={code} onChange={e => setCode(e.target.value)} required /></label>
-      <label>Мой персонаж
+      <h3>{t('Присоединиться по коду (своим персонажем)', 'Join with a code (using your character)')}</h3>
+      <label>{t('Код кампании', 'Campaign code')}<input value={code} onChange={e => setCode(e.target.value)} required /></label>
+      <label>{t('Мой персонаж', 'My character')}
         <select value={characterId} onChange={e => setCharacterId(e.target.value)} required>
-          <option value="" disabled>— выберите —</option>
+          <option value="" disabled>{t('— выберите —', '— select —')}</option>
           {characters.map(c => <option key={c.id} value={c.id}>{c.name} ({SYSTEM_LABELS[c.system]})</option>)}
         </select>
       </label>
-      <button className="primary" type="submit" disabled={!characterId}>Присоединиться</button>
+      <button className="primary" type="submit" disabled={!characterId}>{t('Присоединиться', 'Join')}</button>
     </form>
   )
 }
@@ -151,12 +152,12 @@ function CampaignDetailView({ campaignId, view, openEncounterId, onBack, onView,
       const sheet = await api.campaignMemberSheet(campaignId, characterId)
       const reference = await api.reference(sheet.system)
       setMemberSheet({ name, sheet, reference })
-    } catch (err) { setError(err instanceof Error ? err.message : 'Не удалось открыть лист') }
+    } catch (err) { setError(err instanceof Error ? err.message : t('Не удалось открыть лист', 'Could not open the sheet')) }
   }
 
   const reload = useCallback(
     () => api.campaign(campaignId).then(setC).catch((e: unknown) =>
-      setError(e instanceof Error ? e.message : 'Ошибка загрузки')),
+      setError(e instanceof Error ? e.message : t('Ошибка загрузки', 'Failed to load'))),
     [campaignId])
   useEffect(() => { void reload() }, [reload])
 
@@ -199,7 +200,7 @@ function CampaignDetailView({ campaignId, view, openEncounterId, onBack, onView,
 
   async function run(action: () => Promise<unknown>) {
     try { await action(); await reload() }
-    catch (err) { setError(err instanceof Error ? err.message : 'Ошибка') }
+    catch (err) { setError(err instanceof Error ? err.message : t('Ошибка', 'Error')) }
   }
 
   async function runSession(action: () => Promise<unknown>) {
@@ -208,24 +209,24 @@ function CampaignDetailView({ campaignId, view, openEncounterId, onBack, onView,
       if (result && typeof result === 'object' && 'participants' in result) setSession(result as GameSession)
       else await reloadSession()
       setError(null)
-    } catch (err) { setError(err instanceof Error ? err.message : 'Ошибка') }
+    } catch (err) { setError(err instanceof Error ? err.message : t('Ошибка', 'Error')) }
   }
 
   if (!c) {
-    return <div className="page"><button onClick={onBack}>← Кампании</button>{error && <div className="error">{error}</div>}</div>
+    return <div className="page"><button onClick={onBack}>{t('← Кампании', '← Campaigns')}</button>{error && <div className="error">{error}</div>}</div>
   }
 
   return (
     <div className="page">
       <div className="page-head">
         <div>
-          <button onClick={onBack}>← Кампании</button>
+          <button onClick={onBack}>{t('← Кампании', '← Campaigns')}</button>
           <h2 className="inline-title">{c.name}</h2>
-          <span className={c.isGm ? 'badge tier' : 'badge'}>{c.isGm ? 'Мастер' : 'Игрок'}</span>
+          <span className={c.isGm ? 'badge tier' : 'badge'}>{c.isGm ? t('Мастер', 'GM') : t('Игрок', 'Player')}</span>
           {/* Состояние связи показываем, только когда оно влияет на ожидания (нет live-обновлений). */}
           {hubStatus !== 'connected' && (
-            <span className="badge warn live-badge" title="Обновления в реальном времени недоступны — обновите вручную">
-              {hubStatus === 'connecting' ? 'подключение…' : 'офлайн'}
+            <span className="badge warn live-badge" title={t('Обновления в реальном времени недоступны — обновите вручную', 'Live updates are unavailable — refresh manually')}>
+              {hubStatus === 'connecting' ? t('подключение…', 'connecting…') : t('офлайн', 'offline')}
             </span>
           )}
         </div>
@@ -233,10 +234,10 @@ function CampaignDetailView({ campaignId, view, openEncounterId, onBack, onView,
       {error && <div className="error floating">{error}</div>}
 
       <div className="system-switch campaign-tabs">
-        <button className={view === 'overview' ? 'tab active' : 'tab'} onClick={() => onView('overview')}>Обзор</button>
-        <button className={view === 'handbook' ? 'tab active' : 'tab'} onClick={() => onView('handbook')}>Материалы</button>
-        <button className={view === 'encounters' ? 'tab active' : 'tab'} onClick={() => onView('encounters')}>Энкаунтеры</button>
-        <button className={view === 'table' ? 'tab active' : 'tab'} onClick={() => onView('table')}>Игровой стол</button>
+        <button className={view === 'overview' ? 'tab active' : 'tab'} onClick={() => onView('overview')}>{t('Обзор', 'Overview')}</button>
+        <button className={view === 'handbook' ? 'tab active' : 'tab'} onClick={() => onView('handbook')}>{t('Материалы', 'Handbook')}</button>
+        <button className={view === 'encounters' ? 'tab active' : 'tab'} onClick={() => onView('encounters')}>{t('Энкаунтеры', 'Encounters')}</button>
+        <button className={view === 'table' ? 'tab active' : 'tab'} onClick={() => onView('table')}>{t('Игровой стол', 'Game table')}</button>
       </div>
 
       {view === 'table' ? (
@@ -262,7 +263,7 @@ function CampaignDetailView({ campaignId, view, openEncounterId, onBack, onView,
       )}
 
       {memberSheet && (
-        <PrintPreview title={`Лист персонажа — ${memberSheet.name}`} onClose={() => setMemberSheet(null)}>
+        <PrintPreview title={t(`Лист персонажа — ${memberSheet.name}`, `Character sheet — ${memberSheet.name}`)} onClose={() => setMemberSheet(null)}>
           {() => <CharacterSheetPrint sheet={memberSheet.sheet} reference={memberSheet.reference} />}
         </PrintPreview>
       )}
@@ -301,31 +302,31 @@ function CampaignOverview({ campaign, session, sessionLoaded, memberSheets, onVi
     <div className="campaign-dashboard">
       {critical?.sheet && (
         <div className="campaign-alert">
-          <strong>{critical.member.characterName}</strong> почти на пороге ран —
-          {` ${critical.sheet.woundsCurrent}/${critical.sheet.derived.woundThreshold}`}. Проверьте критические ранения.
+          <strong>{critical.member.characterName}</strong>{t(' почти на пороге ран —', ' is close to the wound threshold —')}
+          {` ${critical.sheet.woundsCurrent}/${critical.sheet.derived.woundThreshold}`}. {t('Проверьте критические ранения.', 'Check for critical injuries.')}
         </div>
       )}
 
       <div className="campaign-dash-head">
         <div className="campaign-dash-title">
-          <h3>{campaign.description || 'Кампания без описания'}</h3>
+          <h3>{campaign.description || t('Кампания без описания', 'Campaign without a description')}</h3>
           <div className="campaign-sub">
             {campaign.isGm && campaign.joinCode
-              ? <>Код: <code className="join-code compact">{campaign.joinCode}</code> · </>
+              ? <>{t('Код:', 'Code:')} <code className="join-code compact">{campaign.joinCode}</code> · </>
               : null}
-            {campaign.members.length} участник(ов)
-            {session ? ` · Раунд ${session.currentRound}` : ''}
+            {campaign.members.length} {t('участник(ов)', 'member(s)')}
+            {session ? t(` · Раунд ${session.currentRound}`, ` · Round ${session.currentRound}`) : ''}
           </div>
         </div>
         <div className="head-actions">
-          <button className="small" onClick={() => onView('encounters')}>Энкаунтеры</button>
-          <button className="primary small" onClick={() => onView('table')}>→ Игровой стол</button>
+          <button className="small" onClick={() => onView('encounters')}>{t('Энкаунтеры', 'Encounters')}</button>
+          <button className="primary small" onClick={() => onView('table')}>{t('→ Игровой стол', '→ Game table')}</button>
         </div>
       </div>
 
-      <div className="campaign-section-label">Персонажи группы</div>
+      <div className="campaign-section-label">{t('Персонажи группы', 'Party characters')}</div>
       <div className="campaign-players-grid">
-        {campaign.members.length === 0 && <div className="campaign-empty">Пока никто не присоединился.</div>}
+        {campaign.members.length === 0 && <div className="campaign-empty">{t('Пока никто не присоединился.', 'Nobody has joined yet.')}</div>}
         {campaign.members.map(m => (
           <CampaignMemberCard key={m.characterId} member={m} sheet={memberSheets[m.characterId]}
             isGm={campaign.isGm} onOpenSheet={onOpenMemberSheet} onRemove={onRemoveMember} />
@@ -341,12 +342,12 @@ function CampaignOverview({ campaign, session, sessionLoaded, memberSheets, onVi
       <div className="campaign-wide-grid">
         <CampaignNotesSection campaign={campaign} onRun={onCampaignRun} variant="dashboard" />
         <div className="campaign-dash-block">
-          <h4>Статистика группы</h4>
+          <h4>{t('Статистика группы', 'Party stats')}</h4>
           <div className="campaign-stats-grid">
-            <div className="campaign-stat"><div className="campaign-stat-val">{sheets.length > 0 ? totalXp : '—'}</div><div className="campaign-stat-lbl">суммарный XP</div></div>
-            <div className="campaign-stat"><div className="campaign-stat-val">{sheets.length > 0 ? availableXp : '—'}</div><div className="campaign-stat-lbl">свободный XP</div></div>
-            <div className="campaign-stat"><div className={avgWounds !== null && avgWounds >= 70 ? 'campaign-stat-val red' : 'campaign-stat-val'}>{avgWounds !== null ? `${avgWounds}%` : '—'}</div><div className="campaign-stat-lbl">сред. раны</div></div>
-            <div className="campaign-stat"><div className="campaign-stat-val">{session?.currentRound ?? '—'}</div><div className="campaign-stat-lbl">текущий раунд</div></div>
+            <div className="campaign-stat"><div className="campaign-stat-val">{sheets.length > 0 ? totalXp : '—'}</div><div className="campaign-stat-lbl">{t('суммарный XP', 'total XP')}</div></div>
+            <div className="campaign-stat"><div className="campaign-stat-val">{sheets.length > 0 ? availableXp : '—'}</div><div className="campaign-stat-lbl">{t('свободный XP', 'available XP')}</div></div>
+            <div className="campaign-stat"><div className={avgWounds !== null && avgWounds >= 70 ? 'campaign-stat-val red' : 'campaign-stat-val'}>{avgWounds !== null ? `${avgWounds}%` : '—'}</div><div className="campaign-stat-lbl">{t('сред. раны', 'avg. wounds')}</div></div>
+            <div className="campaign-stat"><div className="campaign-stat-val">{session?.currentRound ?? '—'}</div><div className="campaign-stat-lbl">{t('текущий раунд', 'current round')}</div></div>
           </div>
         </div>
       </div>
@@ -366,21 +367,21 @@ function CampaignMemberCard({ member, sheet, isGm, onOpenSheet, onRemove }: {
   const cardClass = woundRatio >= 0.9 ? 'campaign-pc-card crit' : woundRatio >= 0.7 || strainRatio >= 0.75 ? 'campaign-pc-card warn' : 'campaign-pc-card'
   return (
     <div className={cardClass}>
-      <div className="campaign-pc-name">{member.characterName}{member.isMine && <span className="badge custom">мой</span>}</div>
+      <div className="campaign-pc-name">{member.characterName}{member.isMine && <span className="badge custom">{t('мой', 'mine')}</span>}</div>
       <div className="campaign-pc-role">{member.career} · {member.archetype}</div>
       {sheet ? (
         <div className="campaign-bars">
-          <CampaignBar label="Раны" value={sheet.woundsCurrent} max={sheet.derived.woundThreshold} tone="wound" />
-          <CampaignBar label="Стресс" value={sheet.strainCurrent} max={sheet.derived.strainThreshold} tone="strain" />
+          <CampaignBar label={t('Раны', 'Wounds')} value={sheet.woundsCurrent} max={sheet.derived.woundThreshold} tone="wound" />
+          <CampaignBar label={t('Стресс', 'Strain')} value={sheet.strainCurrent} max={sheet.derived.strainThreshold} tone="strain" />
         </div>
       ) : (
         <div className="campaign-pc-fallback">{SYSTEM_LABELS[member.system]}</div>
       )}
       <div className="campaign-pc-foot">
-        <span>Свободно XP: <b>{sheet?.availableXp ?? '—'}</b></span>
+        <span>{t('Свободно XP:', 'Available XP:')} <b>{sheet?.availableXp ?? '—'}</b></span>
         <span className="campaign-pc-actions">
-          {isGm && <button className="small" onClick={() => void onOpenSheet(member.characterId, member.characterName)}>Лист</button>}
-          {(isGm || member.isMine) && <button className="danger small" onClick={() => void onRemove(member.characterId)}>Убрать</button>}
+          {isGm && <button className="small" onClick={() => void onOpenSheet(member.characterId, member.characterName)}>{t('Лист', 'Sheet')}</button>}
+          {(isGm || member.isMine) && <button className="danger small" onClick={() => void onRemove(member.characterId)}>{t('Убрать', 'Remove')}</button>}
         </span>
       </div>
     </div>
@@ -405,18 +406,18 @@ function CurrentSceneBlock({ session, sessionLoaded, onView }: {
   return (
     <div className="campaign-dash-block">
       <div className="campaign-block-head">
-        <h4>Текущая сцена</h4>
-        <button className="small" onClick={() => onView('table')}>→ Открыть</button>
+        <h4>{t('Текущая сцена', 'Current scene')}</h4>
+        <button className="small" onClick={() => onView('table')}>{t('→ Открыть', '→ Open')}</button>
       </div>
       {!sessionLoaded ? (
-        <p className="muted">Загрузка сцены…</p>
+        <p className="muted">{t('Загрузка сцены…', 'Loading scene…')}</p>
       ) : !session ? (
-        <p className="muted">Активная сцена не запущена.</p>
+        <p className="muted">{t('Активная сцена не запущена.', 'No active scene running.')}</p>
       ) : (
         <>
-          <div className="campaign-scene-sub">{session.name} · <span>Раунд {session.currentRound}</span></div>
+          <div className="campaign-scene-sub">{session.name} · <span>{t('Раунд', 'Round')} {session.currentRound}</span></div>
           <div className="campaign-npc-list">
-            {npcs.length === 0 && <p className="muted">НПС и угрозы ещё не добавлены.</p>}
+            {npcs.length === 0 && <p className="muted">{t('НПС и угрозы ещё не добавлены.', 'No NPCs or threats added yet.')}</p>}
             {npcs.slice(0, 4).map(p => <ParticipantMiniRow key={p.id} participant={p} />)}
           </div>
         </>
@@ -428,8 +429,8 @@ function CurrentSceneBlock({ session, sessionLoaded, onView }: {
 function ParticipantMiniRow({ participant }: { participant: GameSession['participants'][number] }) {
   const hpMax = participant.woundsThreshold || 1
   const hp = Math.max(0, hpMax - participant.woundsCurrent)
-  const participantTypeLabel = participant.participantType === 'npc' ? 'НПС' : PARTICIPANT_TYPE_LABELS[participant.participantType]
-  const label = participant.count > 1 ? `×${participant.count} группа` : participantTypeLabel
+  const participantTypeLabel = participant.participantType === 'npc' ? t('НПС', 'NPC') : PARTICIPANT_TYPE_LABELS[participant.participantType]
+  const label = participant.count > 1 ? t(`×${participant.count} группа`, `×${participant.count} group`) : participantTypeLabel
   return (
     <div className="campaign-npc-row">
       <div>
@@ -458,29 +459,29 @@ function StoryPointsBlock({ session, isGm, onSessionRun }: {
 
   return (
     <div className="campaign-dash-block">
-      <h4>Сюжетные очки</h4>
+      <h4>{t('Сюжетные очки', 'Story points')}</h4>
       <div className="campaign-story-head">
-        <div className="campaign-story-count"><b>{player}</b>игроки</div>
+        <div className="campaign-story-count"><b>{player}</b>{t('игроки', 'players')}</div>
         <div className="campaign-pips">
           {Array.from({ length: total }, (_, i) => (
             <span key={i} className={i < player ? 'campaign-pip player' : i < player + gm ? 'campaign-pip gm' : 'campaign-pip empty'} />
           ))}
         </div>
-        <div className="campaign-story-count right"><b>{gm}</b>мастер</div>
+        <div className="campaign-story-count right"><b>{gm}</b>{t('мастер', 'GM')}</div>
       </div>
       {session && isGm ? (
         <div className="campaign-story-actions">
-          <button className="small" onClick={() => set({ playerStoryPoints: player + 1 })}>+ Игроки</button>
-          <button className="small" onClick={() => set({ gmStoryPoints: gm + 1 })}>+ Мастер</button>
-          <button className="small" disabled={player <= 0} onClick={() => set({ playerStoryPoints: player - 1 })}>− Игроки</button>
-          <button className="small" disabled={gm <= 0} onClick={() => set({ gmStoryPoints: gm - 1 })}>− Мастер</button>
-          <button className="small" disabled={player <= 0} title="Игроки → мастер"
-            onClick={() => set({ playerStoryPoints: player - 1, gmStoryPoints: gm + 1 })}>⇄ Мастеру</button>
-          <button className="small" disabled={gm <= 0} title="Мастер → игроки"
-            onClick={() => set({ gmStoryPoints: gm - 1, playerStoryPoints: player + 1 })}>⇄ Игрокам</button>
+          <button className="small" onClick={() => set({ playerStoryPoints: player + 1 })}>{t('+ Игроки', '+ Players')}</button>
+          <button className="small" onClick={() => set({ gmStoryPoints: gm + 1 })}>{t('+ Мастер', '+ GM')}</button>
+          <button className="small" disabled={player <= 0} onClick={() => set({ playerStoryPoints: player - 1 })}>{t('− Игроки', '− Players')}</button>
+          <button className="small" disabled={gm <= 0} onClick={() => set({ gmStoryPoints: gm - 1 })}>{t('− Мастер', '− GM')}</button>
+          <button className="small" disabled={player <= 0} title={t('Игроки → мастер', 'Players → GM')}
+            onClick={() => set({ playerStoryPoints: player - 1, gmStoryPoints: gm + 1 })}>{t('⇄ Мастеру', '⇄ To GM')}</button>
+          <button className="small" disabled={gm <= 0} title={t('Мастер → игроки', 'GM → players')}
+            onClick={() => set({ gmStoryPoints: gm - 1, playerStoryPoints: player + 1 })}>{t('⇄ Игрокам', '⇄ To players')}</button>
         </div>
       ) : (
-        <p className="muted">Сюжетные очки появятся после запуска сцены.</p>
+        <p className="muted">{t('Сюжетные очки появятся после запуска сцены.', 'Story points appear once a scene is running.')}</p>
       )}
     </div>
   )
@@ -493,26 +494,26 @@ function InitiativeBlock({ session, isGm, onView, onSessionRun }: {
   onSessionRun: (a: () => Promise<unknown>) => Promise<void>
 }) {
   const nameOf = (participantId: string | null) =>
-    session?.participants.find(p => p.id === participantId)?.displayName ?? '— абстрактный —'
+    session?.participants.find(p => p.id === participantId)?.displayName ?? t('— абстрактный —', '— unassigned —')
   return (
     <div className="campaign-dash-block">
-      <h4>Инициатива</h4>
+      <h4>{t('Инициатива', 'Initiative')}</h4>
       {!session || session.slots.length === 0 ? (
-        <p className="muted">Слотов инициативы пока нет.</p>
+        <p className="muted">{t('Слотов инициативы пока нет.', 'No initiative slots yet.')}</p>
       ) : (
         <div className="campaign-init-list">
           {session.slots.slice(0, 5).map((slot, i) => (
             <div key={slot.id} className={i === session.currentTurnIndex ? 'campaign-init-slot current' : 'campaign-init-slot'}>
               <span className="campaign-init-num">{i + 1}</span>
               <span className="campaign-init-name">{nameOf(slot.assignedParticipantId)}</span>
-              <span className={`badge slot-${slot.slotType}`}>{slot.slotType === 'npc' ? 'НПС' : SLOT_TYPE_LABELS[slot.slotType]}</span>
+              <span className={`badge slot-${slot.slotType}`}>{slot.slotType === 'npc' ? t('НПС', 'NPC') : SLOT_TYPE_LABELS[slot.slotType]}</span>
             </div>
           ))}
         </div>
       )}
       {session && isGm
-        ? <button className="small campaign-init-next" onClick={() => onSessionRun(() => api.nextTurn(session.campaignId))}>→ Следующий ход</button>
-        : <button className="small campaign-init-next" onClick={() => onView('table')}>Игровой стол</button>}
+        ? <button className="small campaign-init-next" onClick={() => onSessionRun(() => api.nextTurn(session.campaignId))}>{t('→ Следующий ход', '→ Next turn')}</button>
+        : <button className="small campaign-init-next" onClick={() => onView('table')}>{t('Игровой стол', 'Game table')}</button>}
     </div>
   )
 }
@@ -531,24 +532,24 @@ function CampaignNotesSection({ campaign, onRun, variant = 'panel' }: {
   const [body, setBody] = useState('')
   const [isPrivate, setIsPrivate] = useState(true)
 
-  const fmt = (iso: string) => new Date(iso).toLocaleString('ru-RU', { dateStyle: 'short', timeStyle: 'short' })
+  const fmt = (iso: string) => new Date(iso).toLocaleString(lang === 'ru' ? 'ru-RU' : 'en-US', { dateStyle: 'short', timeStyle: 'short' })
 
   return (
     <section className={variant === 'dashboard' ? 'campaign-dash-block campaign-notes-dash' : 'panel'}>
-      <h3>Заметки кампании</h3>
-      {!campaign.isGm && <p className="hint">Здесь видны только общие заметки мастера.</p>}
+      <h3>{t('Заметки кампании', 'Campaign notes')}</h3>
+      {!campaign.isGm && <p className="hint">{t('Здесь видны только общие заметки мастера.', 'Only the GM’s shared notes are visible here.')}</p>}
       {campaign.isGm && (
         <form className="custom-form" onSubmit={e => {
           e.preventDefault()
           void onRun(async () => { await api.createCampaignNote(campaign.id, { title, body, isPrivate }); setTitle(''); setBody('') })
         }}>
-          <label>Заголовок<input value={title} onChange={e => setTitle(e.target.value)} required /></label>
-          <label>Текст<textarea value={body} onChange={e => setBody(e.target.value)} rows={3} /></label>
+          <label>{t('Заголовок', 'Title')}<input value={title} onChange={e => setTitle(e.target.value)} required /></label>
+          <label>{t('Текст', 'Text')}<textarea value={body} onChange={e => setBody(e.target.value)} rows={3} /></label>
           <label className="checkbox">
             <input type="checkbox" checked={isPrivate} onChange={e => setIsPrivate(e.target.checked)} />
-            Приватная (видна только мастеру)
+            {t('Приватная (видна только мастеру)', 'Private (visible only to the GM)')}
           </label>
-          <button className="primary" type="submit">Добавить заметку</button>
+          <button className="primary" type="submit">{t('Добавить заметку', 'Add note')}</button>
         </form>
       )}
       <div className="notes-list">
@@ -558,21 +559,21 @@ function CampaignNotesSection({ campaign, onRun, variant = 'panel' }: {
               <strong>{n.title}</strong>
               <span className="note-actions">
                 {n.isPrivate
-                  ? <span className="badge tier">приватная</span>
-                  : <span className="badge custom">общая</span>}
+                  ? <span className="badge tier">{t('приватная', 'private')}</span>
+                  : <span className="badge custom">{t('общая', 'shared')}</span>}
                 {campaign.isGm && (
                   <button className="danger small"
-                    onClick={() => { if (confirm('Удалить заметку?')) void onRun(() => api.deleteCampaignNote(campaign.id, n.id)) }}>
-                    Удалить
+                    onClick={() => { if (confirm(t('Удалить заметку?', 'Delete this note?'))) void onRun(() => api.deleteCampaignNote(campaign.id, n.id)) }}>
+                    {t('Удалить', 'Delete')}
                   </button>
                 )}
               </span>
             </div>
             {n.body && <p className="note-body">{n.body}</p>}
-            <div className="muted small-text">обновлено {fmt(n.updatedAt)}</div>
+            <div className="muted small-text">{t('обновлено', 'updated')} {fmt(n.updatedAt)}</div>
           </div>
         ))}
-        {campaign.notes.length === 0 && <p className="muted">Заметок пока нет.</p>}
+        {campaign.notes.length === 0 && <p className="muted">{t('Заметок пока нет.', 'No notes yet.')}</p>}
       </div>
     </section>
   )

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { api } from '../api/client'
 import type { GameSystem, RuleTableEntry, RuleTableKind, SearchHit } from '../api/types'
 import { SYSTEM_LABELS } from '../utils/labels'
+import { t } from '../i18n'
 
 /**
  * Справочник правил (U-11): таблицы сложностей / трат символов / дистанций / критических ранений
@@ -10,25 +11,38 @@ import { SYSTEM_LABELS } from '../utils/labels'
 
 const KIND_ORDER: RuleTableKind[] = ['difficulty', 'symbolSpend', 'rangeBand', 'criticalInjury']
 
-const KIND_LABELS: Record<RuleTableKind, string> = {
+const KIND_LABELS: Record<RuleTableKind, string> = t({
   difficulty: 'Сложности',
   symbolSpend: 'Траты символов',
   rangeBand: 'Дистанции',
   criticalInjury: 'Критические ранения (d100)',
-}
+}, {
+  difficulty: 'Difficulties',
+  symbolSpend: 'Spending symbols',
+  rangeBand: 'Range bands',
+  criticalInjury: 'Critical injuries (d100)',
+})
 
 // Короткие подписи для переключателя разделов.
-const KIND_TAB_LABELS: Record<RuleTableKind, string> = {
+const KIND_TAB_LABELS: Record<RuleTableKind, string> = t({
   difficulty: 'Сложности',
   symbolSpend: 'Траты',
   rangeBand: 'Дистанции',
   criticalInjury: 'Криты',
-}
+}, {
+  difficulty: 'Difficulties',
+  symbolSpend: 'Spends',
+  rangeBand: 'Ranges',
+  criticalInjury: 'Crits',
+})
 
 type Section = RuleTableKind | 'all'
 type Polarity = 'all' | 'positive' | 'negative'
 
+// Значения совпадают с groupRu серверных данных; подписи для показа — через rangeSubLabel.
 const RANGE_SUBS = ['Общая информация', 'Перемещение'] as const
+const rangeSubLabel = (sub: string) =>
+  t(sub, sub === 'Перемещение' ? 'Movement' : 'General information')
 type RangeSub = (typeof RANGE_SUBS)[number]
 
 // Полярность траты определяем по символам в стоимости (Threat/Despair → негатив).
@@ -138,7 +152,7 @@ export function ReferencePage({ onNavigate }: { onNavigate: (to: string) => void
   return (
     <div className="page">
       <div className="page-head">
-        <h2>Справочник правил</h2>
+        <h2>{t('Справочник правил', 'Rules reference')}</h2>
         <div className="system-switch">
           {(['realmsOfTerrinoth', 'genesysCore'] as GameSystem[]).map(s => (
             <button key={s} className={system === s ? 'tab active' : 'tab'} onClick={() => setSystem(s)}>
@@ -154,13 +168,13 @@ export function ReferencePage({ onNavigate }: { onNavigate: (to: string) => void
         <input
           className="search"
           type="search"
-          placeholder="Глобальный поиск: правила, навыки, таланты, предметы, NPC, персонажи…"
+          placeholder={t('Глобальный поиск: правила, навыки, таланты, предметы, NPC, персонажи…', 'Global search: rules, skills, talents, items, NPCs, characters…')}
           value={query}
           onChange={e => setQuery(e.target.value)}
         />
-        {searching && <p className="muted">Поиск…</p>}
+        {searching && <p className="muted">{t('Поиск…', 'Searching…')}</p>}
         {hits && !searching && hits.length === 0 && (
-          <p className="muted">Ничего не найдено по запросу «{query.trim()}».</p>
+          <p className="muted">{t(`Ничего не найдено по запросу «${query.trim()}».`, `Nothing found for "${query.trim()}".`)}</p>
         )}
         {hits && hits.length > 0 && (
           <div className="search-results">
@@ -189,7 +203,7 @@ export function ReferencePage({ onNavigate }: { onNavigate: (to: string) => void
           <div className="section-switch" role="tablist">
             <button role="tab" aria-selected={section === 'all'}
                     className={section === 'all' ? 'tab active' : 'tab'} onClick={() => setSection('all')}>
-              Все <span className="muted">({rules.length})</span>
+              {t('Все', 'All')} <span className="muted">({rules.length})</span>
             </button>
             {KIND_ORDER.map(kind => {
               const count = kindCounts.get(kind) ?? 0
@@ -205,52 +219,52 @@ export function ReferencePage({ onNavigate }: { onNavigate: (to: string) => void
         )}
         {section === 'symbolSpend' && (
           <>
-            <div className="section-switch" role="tablist" aria-label="Ситуация">
+            <div className="section-switch" role="tablist" aria-label={t('Ситуация', 'Situation')}>
               <button role="tab" aria-selected={spendSituation === 'all'}
                       className={spendSituation === 'all' ? 'tab active' : 'tab'}
-                      onClick={() => setSpendSituation('all')}>Все ситуации</button>
+                      onClick={() => setSpendSituation('all')}>{t('Все ситуации', 'All situations')}</button>
               {spendSituations.map(s => (
                 <button key={s} role="tab" aria-selected={spendSituation === s}
                         className={spendSituation === s ? 'tab active' : 'tab'}
                         onClick={() => setSpendSituation(s)}>{s}</button>
               ))}
             </div>
-            <div className="section-switch" role="tablist" aria-label="Символы">
+            <div className="section-switch" role="tablist" aria-label={t('Символы', 'Symbols')}>
               <button role="tab" aria-selected={spendPolarity === 'all'}
                       className={spendPolarity === 'all' ? 'tab active' : 'tab'}
-                      onClick={() => setSpendPolarity('all')}>Любые символы</button>
+                      onClick={() => setSpendPolarity('all')}>{t('Любые символы', 'Any symbols')}</button>
               <button role="tab" aria-selected={spendPolarity === 'positive'}
                       className={spendPolarity === 'positive' ? 'tab active' : 'tab'}
-                      onClick={() => setSpendPolarity('positive')}>Преимущества и триумфы</button>
+                      onClick={() => setSpendPolarity('positive')}>{t('Преимущества и триумфы', 'Advantages and Triumphs')}</button>
               <button role="tab" aria-selected={spendPolarity === 'negative'}
                       className={spendPolarity === 'negative' ? 'tab active' : 'tab'}
-                      onClick={() => setSpendPolarity('negative')}>Угрозы и крахи</button>
+                      onClick={() => setSpendPolarity('negative')}>{t('Угрозы и крахи', 'Threats and Despairs')}</button>
             </div>
           </>
         )}
         {section === 'rangeBand' && (
-          <div className="section-switch" role="tablist" aria-label="Раздел дистанций">
+          <div className="section-switch" role="tablist" aria-label={t('Раздел дистанций', 'Range section')}>
             {RANGE_SUBS.map(sub => (
               <button key={sub} role="tab" aria-selected={rangeSub === sub}
                       className={rangeSub === sub ? 'tab active' : 'tab'}
-                      onClick={() => setRangeSub(sub)}>{sub}</button>
+                      onClick={() => setRangeSub(sub)}>{rangeSubLabel(sub)}</button>
             ))}
           </div>
         )}
         <input
           className="search"
           type="search"
-          placeholder="Фильтр по таблицам правил…"
+          placeholder={t('Фильтр по таблицам правил…', 'Filter the rule tables…')}
           value={filter}
           onChange={e => setFilter(e.target.value)}
         />
-        {rules.length === 0 && !error && <p className="muted">Загрузка таблиц…</p>}
+        {rules.length === 0 && !error && <p className="muted">{t('Загрузка таблиц…', 'Loading tables…')}</p>}
         {tables.map(t => (
           <RuleTable key={t.kind} kind={t.kind} entries={t.entries} showCost={t.showCost} />
         ))}
         {rules.length > 0 && renderedCount === 0 && (
           <p className="muted">
-            {filter.trim() ? `Нет строк по фильтру «${filter.trim()}».` : 'В этом разделе нет строк.'}
+            {filter.trim() ? t(`Нет строк по фильтру «${filter.trim()}».`, `No rows match "${filter.trim()}".`) : t('В этом разделе нет строк.', 'This section has no rows.')}
           </p>
         )}
       </div>
@@ -261,18 +275,22 @@ export function ReferencePage({ onNavigate }: { onNavigate: (to: string) => void
 function RuleTable({ kind, entries, showCost = true }:
   { kind: RuleTableKind; entries: RuleTableEntry[]; showCost?: boolean }) {
   // Заголовок первой колонки зависит от вида таблицы.
-  const firstCol = kind === 'criticalInjury' ? 'Бросок'
-    : kind === 'symbolSpend' ? 'Ситуация'
-    : kind === 'difficulty' ? 'Сложность'
-    : kind === 'rangeBand' ? 'Название' : 'Диапазон'
-  const costCol = kind === 'criticalInjury' ? 'Сложность'
-    : kind === 'difficulty' ? 'Кубы'
-    : kind === 'rangeBand' ? 'Манёвры' : 'Стоимость'
+  const firstCol = kind === 'criticalInjury' ? t('Бросок', 'Roll')
+    : kind === 'symbolSpend' ? t('Ситуация', 'Situation')
+    : kind === 'difficulty' ? t('Сложность', 'Difficulty')
+    : kind === 'rangeBand' ? t('Название', 'Name') : t('Диапазон', 'Range')
+  const costCol = kind === 'criticalInjury' ? t('Сложность', 'Difficulty')
+    : kind === 'difficulty' ? t('Кубы', 'Dice')
+    : kind === 'rangeBand' ? t('Манёвры', 'Maneuvers') : t('Стоимость', 'Cost')
 
+  // Основное имя — на языке интерфейса, второе имя показывается рядом серым.
+  const entryName = (e: RuleTableEntry) => t(e.nameRu, e.nameEn || e.nameRu)
+  const entrySecondary = (e: RuleTableEntry) =>
+    e.nameEn && e.nameEn !== e.nameRu ? t(e.nameEn, e.nameRu) : ''
   const firstValue = (e: RuleTableEntry) =>
     kind === 'criticalInjury' ? e.rollRange
     : kind === 'symbolSpend' ? e.groupRu
-    : e.nameRu
+    : entryName(e)
 
   return (
     <section className="rule-table">
@@ -281,9 +299,9 @@ function RuleTable({ kind, entries, showCost = true }:
         <thead>
           <tr>
             <th>{firstCol}</th>
-            {kind === 'criticalInjury' && <th>Название</th>}
+            {kind === 'criticalInjury' && <th>{t('Название', 'Name')}</th>}
             {showCost && <th>{costCol}</th>}
-            <th>Описание</th>
+            <th>{t('Описание', 'Description')}</th>
           </tr>
         </thead>
         <tbody>
@@ -291,15 +309,15 @@ function RuleTable({ kind, entries, showCost = true }:
             <tr key={e.code}>
               <td className="ref-first">
                 {firstValue(e)}
-                {kind !== 'symbolSpend' && kind !== 'criticalInjury' && e.nameEn && e.nameEn !== e.nameRu && (
-                  <span className="muted small-text name-secondary"> · {e.nameEn}</span>
+                {kind !== 'symbolSpend' && kind !== 'criticalInjury' && entrySecondary(e) && (
+                  <span className="muted small-text name-secondary"> · {entrySecondary(e)}</span>
                 )}
               </td>
               {kind === 'criticalInjury' && (
                 <td>
-                  {e.nameRu}
-                  {e.nameEn && e.nameEn !== e.nameRu && (
-                    <span className="muted small-text name-secondary"> · {e.nameEn}</span>
+                  {entryName(e)}
+                  {entrySecondary(e) && (
+                    <span className="muted small-text name-secondary"> · {entrySecondary(e)}</span>
                   )}
                   {e.groupRu && <span className="muted"> · {e.groupRu}</span>}
                 </td>
@@ -308,7 +326,7 @@ function RuleTable({ kind, entries, showCost = true }:
               <td>
                 {e.body}
                 {e.notes && <div className="muted ref-notes">{e.notes}</div>}
-                {e.source && <div className="muted ref-source">{e.source}{e.sourcePage && `, с. ${e.sourcePage}`}</div>}
+                {e.source && <div className="muted ref-source">{e.source}{e.sourcePage && t(`, с. ${e.sourcePage}`, `, p. ${e.sourcePage}`)}</div>}
               </td>
             </tr>
           ))}

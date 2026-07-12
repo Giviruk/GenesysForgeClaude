@@ -7,15 +7,16 @@ import {
   localizedName, magicSkillLabel, secondaryName,
 } from '../../utils/labels'
 import type { PrintVersion } from './PrintPreview'
+import { t } from '../../i18n'
 
 const CHARS: Characteristic[] = ['brawn', 'agility', 'intellect', 'cunning', 'willpower', 'presence']
 
 /** Однострочный статблок атаки NPC для печати: имя [навык], Урон/Крит/Дистанция, качества. */
 function attackLine(a: NpcDetail['attacks'][number]): string {
   const stats = [
-    a.skillName && `навык ${a.skillName}`,
-    a.damage && `Урон ${a.damage}`,
-    a.critical && `Крит ${a.critical}`,
+    a.skillName && t(`навык ${a.skillName}`, `skill ${a.skillName}`),
+    a.damage && t(`Урон ${a.damage}`, `Damage ${a.damage}`),
+    a.critical && t(`Крит ${a.critical}`, `Crit ${a.critical}`),
     a.rangeBand,
     ...a.qualities.map(q => (q.nameRu || q.qualityCode) + (q.rating != null ? ` ${q.rating}` : '')),
   ].filter(Boolean)
@@ -38,35 +39,35 @@ export function AdversaryCard({ npc, version }: { npc: NpcDetail; version: Print
             {CHARS.map(c => <span key={c}><b>{npc[c]}</b> {CHARACTERISTIC_LABELS[c]}</span>)}
           </div>
           <div className="pcard-line">
-            <span><b>Поглощение</b> {npc.soak}</span>
-            <span><b>Раны</b> {npc.woundThreshold}</span>
-            {npc.strainThreshold != null && <span><b>Усталость</b> {npc.strainThreshold}</span>}
-            <span><b>Бл.защ</b> {npc.meleeDefense}</span>
-            <span><b>Дал.защ</b> {npc.rangedDefense}</span>
-            {npc.silhouette !== 1 && <span><b>Силуэт</b> {npc.silhouette}</span>}
+            <span><b>{t('Поглощение', 'Soak')}</b> {npc.soak}</span>
+            <span><b>{t('Раны', 'Wounds')}</b> {npc.woundThreshold}</span>
+            {npc.strainThreshold != null && <span><b>{t('Усталость', 'Strain')}</b> {npc.strainThreshold}</span>}
+            <span><b>{t('Бл.защ', 'M.Def')}</b> {npc.meleeDefense}</span>
+            <span><b>{t('Дал.защ', 'R.Def')}</b> {npc.rangedDefense}</span>
+            {npc.silhouette !== 1 && <span><b>{t('Силуэт', 'Silhouette')}</b> {npc.silhouette}</span>}
           </div>
-          {npc.skills.length > 0 && <p><b>Навыки:</b> {npc.skills.map(s => `${s.name} ${s.ranks}`).join(' · ')}</p>}
+          {npc.skills.length > 0 && <p><b>{t('Навыки:', 'Skills:')}</b> {npc.skills.map(s => `${s.name} ${s.ranks}`).join(' · ')}</p>}
           {npc.attacks.length > 0 && (
             <div>
-              <b>Атаки:</b>
+              <b>{t('Атаки:', 'Attacks:')}</b>
               <ul>{npc.attacks.map((a, i) => <li key={i}>{attackLine(a)}</li>)}</ul>
             </div>
           )}
           {npc.abilities.length > 0 && (
             <div>
-              <b>Способности:</b>
+              <b>{t('Способности:', 'Abilities:')}</b>
               <ul>{npc.abilities.map((a, i) => <li key={i}>{a.name}{a.description && ` — ${a.description}`}</li>)}</ul>
             </div>
           )}
-          {npc.talents.length > 0 && <p><b>Таланты:</b> {npc.talents.join(' · ')}</p>}
-          {npc.equipment.length > 0 && <p><b>Снаряжение:</b> {npc.equipment.join(' · ')}</p>}
-          {npc.tactics && <p><b>Тактика:</b> {npc.tactics}</p>}
+          {npc.talents.length > 0 && <p><b>{t('Таланты:', 'Talents:')}</b> {npc.talents.join(' · ')}</p>}
+          {npc.equipment.length > 0 && <p><b>{t('Снаряжение:', 'Gear:')}</b> {npc.equipment.join(' · ')}</p>}
+          {npc.tactics && <p><b>{t('Тактика:', 'Tactics:')}</b> {npc.tactics}</p>}
           {npc.tags.length > 0 && <p className="pcard-tags">{npc.tags.join(' · ')}</p>}
         </>
       ) : (
-        <p className="pcard-muted">Подробные характеристики скрыты мастером.</p>
+        <p className="pcard-muted">{t('Подробные характеристики скрыты мастером.', 'Detailed stats are hidden by the GM.')}</p>
       )}
-      {npc.source && <footer className="pcard-src">Источник: {npc.source}</footer>}
+      {npc.source && <footer className="pcard-src">{t('Источник:', 'Source:')} {npc.source}</footer>}
     </article>
   )
 }
@@ -81,23 +82,23 @@ export function EncounterSheet({ enc, version }: { enc: EncounterDetail; version
         <h3>{enc.name}</h3>
         <span className="pcard-sub">{ENCOUNTER_TYPE_LABELS[enc.type]} · {THREAT_LEVEL_LABELS[enc.threatLevel]}</span>
       </header>
-      {gm && enc.gmDescription && <p><b>Для мастера:</b> {enc.gmDescription}</p>}
-      {enc.playerDescription && <p><b>Для игроков:</b> {enc.playerDescription}</p>}
-      {enc.location && <p><b>Локация:</b> {enc.location}{enc.environment && ` · ${enc.environment}`}</p>}
-      {enc.playerGoals && <p><b>Цели игроков:</b> {enc.playerGoals}</p>}
-      {gm && enc.npcGoals && <p><b>Цели NPC:</b> {enc.npcGoals}</p>}
-      {gm && enc.complications && <p><b>Осложнения:</b> {enc.complications}</p>}
-      {enc.rewards && <p><b>Награды:</b> {enc.rewards}</p>}
+      {gm && enc.gmDescription && <p><b>{t('Для мастера:', 'For the GM:')}</b> {enc.gmDescription}</p>}
+      {enc.playerDescription && <p><b>{t('Для игроков:', 'For players:')}</b> {enc.playerDescription}</p>}
+      {enc.location && <p><b>{t('Локация:', 'Location:')}</b> {enc.location}{enc.environment && ` · ${enc.environment}`}</p>}
+      {enc.playerGoals && <p><b>{t('Цели игроков:', 'Player goals:')}</b> {enc.playerGoals}</p>}
+      {gm && enc.npcGoals && <p><b>{t('Цели NPC:', 'NPC goals:')}</b> {enc.npcGoals}</p>}
+      {gm && enc.complications && <p><b>{t('Осложнения:', 'Complications:')}</b> {enc.complications}</p>}
+      {enc.rewards && <p><b>{t('Награды:', 'Rewards:')}</b> {enc.rewards}</p>}
       {participants.length > 0 && (
         <div>
-          <b>Участники:</b>
+          <b>{t('Участники:', 'Participants:')}</b>
           <ul>
             {participants.map(p => (
               <li key={p.id}>
                 {p.displayName}{p.quantity > 1 ? ` ×${p.quantity}` : ''} — {PARTICIPANT_TYPE_LABELS[p.participantType]}
                 {gm && ` · ${SLOT_TYPE_LABELS[p.initiativeSide]}`}
-                {gm && p.startsHidden && ' · скрыт'}
-                {gm && '   ⟶ Раны ___ / Усталость ___'}
+                {gm && p.startsHidden && t(' · скрыт', ' · hidden')}
+                {gm && t('   ⟶ Раны ___ / Усталость ___', '   ⟶ Wounds ___ / Strain ___')}
               </li>
             ))}
           </ul>
@@ -125,22 +126,22 @@ export function MagicActionCard({ data }: { data: MagicCardData }) {
   return (
     <article className="print-card">
       <header className="pcard-head">
-        <h3>{data.baseEffectRu}</h3>
-        <span className="pcard-sub">{magicSkillLabel(data.skill)} · {data.baseEffectEn}</span>
+        <h3>{t(data.baseEffectRu, data.baseEffectEn)}</h3>
+        <span className="pcard-sub">{magicSkillLabel(data.skill)} · {t(data.baseEffectEn, data.baseEffectRu)}</span>
       </header>
       <p className="pcard-diff">
-        Сложность: <b>{data.totalDifficulty}</b> ({difficultyLabel(data.totalDifficulty)})
-        {data.totalDifficulty !== data.baseDifficulty && <> — базовая {data.baseDifficulty}</>}
+        {t('Сложность:', 'Difficulty:')} <b>{data.totalDifficulty}</b> ({difficultyLabel(data.totalDifficulty)})
+        {data.totalDifficulty !== data.baseDifficulty && <> {t('— базовая', '— base')} {data.baseDifficulty}</>}
       </p>
-      {data.pool && <p>Пул: {data.pool.proficiency}⬣ + {data.pool.ability}◆</p>}
+      {data.pool && <p>{t('Пул:', 'Pool:')} {data.pool.proficiency}⬣ + {data.pool.ability}◆</p>}
       {data.description && <p>{data.description}</p>}
       {data.effects.length > 0 && (
         <div>
-          <b>Дополнительные эффекты:</b>
-          <ul>{data.effects.map((e, i) => <li key={i}>{e.ru} ({e.en}) {e.difficulty} — {e.summary}</li>)}</ul>
+          <b>{t('Дополнительные эффекты:', 'Additional effects:')}</b>
+          <ul>{data.effects.map((e, i) => <li key={i}>{t(e.ru, e.en)} ({t(e.en, e.ru)}) {e.difficulty} — {e.summary}</li>)}</ul>
         </div>
       )}
-      {data.sources.length > 0 && <footer className="pcard-src">Источники: {data.sources.join('; ')}</footer>}
+      {data.sources.length > 0 && <footer className="pcard-src">{t('Источники:', 'Sources:')} {data.sources.join('; ')}</footer>}
     </article>
   )
 }
@@ -156,25 +157,25 @@ export function ItemCard({ item, skillLabel }: { item: SheetItem; skillLabel?: s
         </span>
       </header>
       <div className="pcard-line">
-        <span><b>Габариты</b> {item.encumbrance}</span>
-        {item.price > 0 && <span><b>Цена</b> {item.price}</span>}
+        <span><b>{t('Габариты', 'Encumbrance')}</b> {item.encumbrance}</span>
+        {item.price > 0 && <span><b>{t('Цена', 'Price')}</b> {item.price}</span>}
       </div>
       {item.kind === 'weapon' && (
         <div className="pcard-line">
-          {item.skillName && <span><b>Навык</b> {skillLabel || item.skillName}</span>}
-          {item.damage && <span><b>Урон</b> {item.damage}</span>}
-          {item.crit && <span><b>Крит</b> {item.crit}</span>}
-          {item.rangeBand && <span><b>Дистанция</b> {item.rangeBand}</span>}
+          {item.skillName && <span><b>{t('Навык', 'Skill')}</b> {skillLabel || item.skillName}</span>}
+          {item.damage && <span><b>{t('Урон', 'Damage')}</b> {item.damage}</span>}
+          {item.crit && <span><b>{t('Крит', 'Crit')}</b> {item.crit}</span>}
+          {item.rangeBand && <span><b>{t('Дистанция', 'Range')}</b> {item.rangeBand}</span>}
         </div>
       )}
       {item.kind === 'armor' && (
         <div className="pcard-line">
-          <span><b>Поглощение</b> +{item.soakBonus}</span>
-          <span><b>Бл.защ</b> +{item.meleeDefense}</span>
-          <span><b>Дал.защ</b> +{item.rangedDefense}</span>
+          <span><b>{t('Поглощение', 'Soak')}</b> +{item.soakBonus}</span>
+          <span><b>{t('Бл.защ', 'M.Def')}</b> +{item.meleeDefense}</span>
+          <span><b>{t('Дал.защ', 'R.Def')}</b> +{item.rangedDefense}</span>
         </div>
       )}
-      {item.properties && <p><b>Свойства:</b> {item.properties}</p>}
+      {item.properties && <p><b>{t('Свойства:', 'Properties:')}</b> {item.properties}</p>}
       {item.description && <p>{item.description}</p>}
     </article>
   )
@@ -187,7 +188,7 @@ export function TalentCard({ talent }: { talent: SheetTalent }) {
       <header className="pcard-head">
         <h3>{talent.name}</h3>
         <span className="pcard-sub">
-          Тир {talent.tier} · {talent.isRanked ? `ранговый (ранг ${talent.ranks})` : 'неранговый'}
+          {t('Тир', 'Tier')} {talent.tier} · {talent.isRanked ? t(`ранговый (ранг ${talent.ranks})`, `ranked (rank ${talent.ranks})`) : t('неранговый', 'not ranked')}
           {talent.activation && ` · ${talent.activation}`}
         </span>
       </header>

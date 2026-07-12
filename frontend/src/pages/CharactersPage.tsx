@@ -2,7 +2,8 @@ import { useCallback, useEffect, useRef, useState, type ChangeEvent, type FormEv
 import { api } from '../api/client'
 import type { CharacterExport, CharacterListItem, GameSystem, ImportPreview, Reference } from '../api/types'
 import { Icon } from '../components/Icon'
-import { CHARACTERISTICS, CHARACTERISTIC_LABELS, dualName, SYSTEM_LABELS } from '../utils/labels'
+import { CHARACTERISTICS, CHARACTERISTIC_LABELS, dualName, localizedName, SYSTEM_LABELS } from '../utils/labels'
+import { t } from '../i18n'
 
 interface Props {
   onOpen: (id: string) => void
@@ -18,7 +19,7 @@ export function CharactersPage({ onOpen }: Props) {
   const reload = useCallback(
     () => api.characters()
       .then(setCharacters)
-      .catch((err: unknown) => setError(err instanceof Error ? err.message : 'Ошибка загрузки')),
+      .catch((err: unknown) => setError(err instanceof Error ? err.message : t('Ошибка загрузки', 'Failed to load'))),
     [],
   )
 
@@ -27,7 +28,7 @@ export function CharactersPage({ onOpen }: Props) {
   }, [reload])
 
   async function remove(id: string, name: string) {
-    if (!confirm(`Удалить персонажа «${name}»?`)) return
+    if (!confirm(t(`Удалить персонажа «${name}»?`, `Delete character "${name}"?`))) return
     await api.deleteCharacter(id)
     await reload()
   }
@@ -39,7 +40,7 @@ export function CharactersPage({ onOpen }: Props) {
       await reload()
       onOpen(copy.id)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Ошибка клонирования')
+      setError(err instanceof Error ? err.message : t('Ошибка клонирования', 'Failed to duplicate'))
     }
   }
 
@@ -53,7 +54,7 @@ export function CharactersPage({ onOpen }: Props) {
       const preview = await api.previewImport(payload)
       setImportState({ payload, preview })
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Не удалось прочитать файл персонажа')
+      setError(err instanceof Error ? err.message : t('Не удалось прочитать файл персонажа', 'Could not read the character file'))
     }
   }
 
@@ -64,17 +65,17 @@ export function CharactersPage({ onOpen }: Props) {
     <div className="page">
       <div className="page-head">
         <div>
-          <h2>Ваши персонажи</h2>
-          <div className="page-sub">Genesys Core и Realms of Terrinoth в одном месте</div>
+          <h2>{t('Ваши персонажи', 'Your characters')}</h2>
+          <div className="page-sub">{t('Genesys Core и Realms of Terrinoth в одном месте', 'Genesys Core and Realms of Terrinoth in one place')}</div>
         </div>
         <div className="head-actions">
           <button onClick={() => fileRef.current?.click()}>
             <Icon name="file-import" className="button-icon" />
-            Импорт JSON
+            {t('Импорт JSON', 'Import JSON')}
           </button>
           <button className="primary" onClick={() => setCreating(true)}>
             <Icon name="plus" className="button-icon" />
-            Новый персонаж
+            {t('Новый персонаж', 'New character')}
           </button>
           <input ref={fileRef} type="file" accept="application/json,.json" hidden onChange={onFile} />
         </div>
@@ -89,9 +90,9 @@ export function CharactersPage({ onOpen }: Props) {
       {error && (
         <div className="state-panel error-state">
           <Icon name="alert" className="state-icon" />
-          <h3>Не удалось загрузить персонажей</h3>
-          <p>Проверьте соединение и попробуйте снова. Если ошибка повторяется, обратитесь в поддержку.</p>
-          <button onClick={() => { setError(null); void reload() }}>Повторить</button>
+          <h3>{t('Не удалось загрузить персонажей', 'Failed to load characters')}</h3>
+          <p>{t('Проверьте соединение и попробуйте снова. Если ошибка повторяется, обратитесь в поддержку.', 'Check your connection and try again. If the error persists, contact support.')}</p>
+          <button onClick={() => { setError(null); void reload() }}>{t('Повторить', 'Retry')}</button>
           <div className="small-text muted">{error}</div>
         </div>
       )}
@@ -99,14 +100,14 @@ export function CharactersPage({ onOpen }: Props) {
       {isEmpty && (
         <div className="state-panel empty-state">
           <Icon name="user-plus" className="state-icon" />
-          <h3>Персонажей пока нет</h3>
-          <p>Создайте первого героя или импортируйте готовый лист в формате JSON.</p>
+          <h3>{t('Персонажей пока нет', 'No characters yet')}</h3>
+          <p>{t('Создайте первого героя или импортируйте готовый лист в формате JSON.', 'Create your first hero or import an existing sheet from JSON.')}</p>
           <div className="head-actions">
             <button className="primary" onClick={() => setCreating(true)}>
               <Icon name="plus" className="button-icon" />
-              Новый персонаж
+              {t('Новый персонаж', 'New character')}
             </button>
-            <button onClick={() => fileRef.current?.click()}>Импорт JSON</button>
+            <button onClick={() => fileRef.current?.click()}>{t('Импорт JSON', 'Import JSON')}</button>
           </div>
         </div>
       )}
@@ -123,22 +124,22 @@ export function CharactersPage({ onOpen }: Props) {
             </div>
             <div className="tag-row compact">
               <span className={`badge ${c.system}`}>{SYSTEM_LABELS[c.system]}</span>
-              {c.isCreationPhase && <span className="badge creation">Создание</span>}
+              {c.isCreationPhase && <span className="badge creation">{t('Создание', 'Creation')}</span>}
             </div>
-            <VitalBar label="Раны" current={c.woundsCurrent} threshold={c.woundThreshold} tone="wound" />
-            <VitalBar label="Стресс" current={c.strainCurrent} threshold={c.strainThreshold} tone="strain" />
+            <VitalBar label={t('Раны', 'Wounds')} current={c.woundsCurrent} threshold={c.woundThreshold} tone="wound" />
+            <VitalBar label={t('Стресс', 'Strain')} current={c.strainCurrent} threshold={c.strainThreshold} tone="strain" />
             <div className="char-xp-row">
-              <span>Доступно XP</span>
+              <span>{t('Доступно XP', 'Available XP')}</span>
               <b>{c.availableXp}</b>
             </div>
             <div className="card-actions">
               <button className="small" onClick={e => { e.stopPropagation(); void duplicate(c.id) }}>
                 <Icon name="copy" className="button-icon" />
-                Клонировать
+                {t('Клонировать', 'Duplicate')}
               </button>
               <button className="danger small" onClick={e => { e.stopPropagation(); void remove(c.id, c.name) }}>
                 <Icon name="trash" className="button-icon" />
-                Удалить
+                {t('Удалить', 'Delete')}
               </button>
             </div>
           </div>
@@ -207,7 +208,7 @@ function ImportCharacterModal({ payload, preview, onCancel, onImported }: {
       const result = await api.importCharacter(payload)
       onImported(result.characterId)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Ошибка импорта')
+      setError(err instanceof Error ? err.message : t('Ошибка импорта', 'Import failed'))
       setBusy(false)
     }
   }
@@ -215,24 +216,27 @@ function ImportCharacterModal({ payload, preview, onCancel, onImported }: {
   return (
     <div className="modal-backdrop" onClick={onCancel}>
       <form className="modal" onClick={e => e.stopPropagation()} onSubmit={doImport}>
-        <h3>Импорт персонажа</h3>
+        <h3>{t('Импорт персонажа', 'Import character')}</h3>
         <div className="hint">
           <strong>{preview.name}</strong> · <span className={`badge ${preview.system}`}>{SYSTEM_LABELS[preview.system]}</span>
           <br />{preview.archetypeName} · {preview.careerName}
-          <br />XP: {preview.totalXp} (потрачено {preview.spentXp})
-          <br />Навыков {preview.skillCount} · талантов {preview.talentCount} · предметов {preview.itemCount} · заметок {preview.noteCount}
+          <br />{t(`XP: ${preview.totalXp} (потрачено ${preview.spentXp})`, `XP: ${preview.totalXp} (${preview.spentXp} spent)`)}
+          <br />{t(
+            `Навыков ${preview.skillCount} · талантов ${preview.talentCount} · предметов ${preview.itemCount} · заметок ${preview.noteCount}`,
+            `${preview.skillCount} skills · ${preview.talentCount} talents · ${preview.itemCount} items · ${preview.noteCount} notes`,
+          )}
         </div>
         {preview.warnings.length > 0 && (
           <div className="notice warn">
-            <strong>Предупреждения:</strong>
+            <strong>{t('Предупреждения:', 'Warnings:')}</strong>
             <ul>{preview.warnings.map((w, i) => <li key={i}>{w}</li>)}</ul>
           </div>
         )}
-        <p className="muted small-text">Будет создан новый персонаж; существующие не изменятся.</p>
+        <p className="muted small-text">{t('Будет создан новый персонаж; существующие не изменятся.', 'A new character will be created; existing ones will not change.')}</p>
         {error && <div className="error">{error}</div>}
         <div className="modal-actions">
-          <button type="button" onClick={onCancel}>Отмена</button>
-          <button className="primary" type="submit" disabled={busy}>Импортировать</button>
+          <button type="button" onClick={onCancel}>{t('Отмена', 'Cancel')}</button>
+          <button className="primary" type="submit" disabled={busy}>{t('Импортировать', 'Import')}</button>
         </div>
       </form>
     </div>
@@ -275,7 +279,7 @@ export function CreateCharacterForm({ onCancel, onCreated }: { onCancel: () => v
         setGearChoices({})
       })
       .catch((err: unknown) => {
-        if (!cancelled) setError(err instanceof Error ? err.message : 'Ошибка загрузки')
+        if (!cancelled) setError(err instanceof Error ? err.message : t('Ошибка загрузки', 'Failed to load'))
       })
     return () => { cancelled = true }
   }, [system])
@@ -342,7 +346,7 @@ export function CreateCharacterForm({ onCancel, onCreated }: { onCancel: () => v
         { desire, fear, strength, flaw, background })
       onCreated(id)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Ошибка создания')
+      setError(err instanceof Error ? err.message : t('Ошибка создания', 'Failed to create'))
       setBusy(false)
     }
   }
@@ -350,10 +354,10 @@ export function CreateCharacterForm({ onCancel, onCreated }: { onCancel: () => v
   return (
     <div className="modal-backdrop" onClick={onCancel}>
       <form className="modal" onClick={e => e.stopPropagation()} onSubmit={submit}>
-        <h3>Новый персонаж</h3>
+        <h3>{t('Новый персонаж', 'New character')}</h3>
 
         <label>
-          Система
+          {t('Система', 'System')}
           <div className="system-switch">
             {(['genesysCore', 'realmsOfTerrinoth'] as GameSystem[]).map(s => (
               <button key={s} type="button"
@@ -366,25 +370,28 @@ export function CreateCharacterForm({ onCancel, onCreated }: { onCancel: () => v
         </label>
 
         <label>
-          Имя персонажа
+          {t('Имя персонажа', 'Character name')}
           <input value={name} onChange={e => setName(e.target.value)} required />
         </label>
 
         <label>
-          {system === 'realmsOfTerrinoth' ? 'Раса (архетип)' : 'Архетип'}
+          {system === 'realmsOfTerrinoth' ? t('Раса (архетип)', 'Species (archetype)') : t('Архетип', 'Archetype')}
           <select value={archetypeId}
             onChange={e => { setArchetypeId(e.target.value); setSkillChoices({}) }} required>
-            <option value="" disabled>— выберите —</option>
-            {reference?.archetypes.map(a => <option key={a.id} value={a.id}>{a.nameRu || a.name}</option>)}
+            <option value="" disabled>{t('— выберите —', '— select —')}</option>
+            {reference?.archetypes.map(a => <option key={a.id} value={a.id}>{localizedName(a)}</option>)}
           </select>
         </label>
         {archetype && (
           <div className="hint">
             {CHARACTERISTICS.map(c => `${CHARACTERISTIC_LABELS[c]} ${archetype[c]}`).join(' · ')}
-            <br />Раны {archetype.woundBase}+Мощь · Усталость {archetype.strainBase}+Воля · Старт. XP {archetype.startingXp}
+            <br />{t(
+              `Раны ${archetype.woundBase}+Мощь · Усталость ${archetype.strainBase}+Воля · Старт. XP ${archetype.startingXp}`,
+              `Wounds ${archetype.woundBase}+Brawn · Strain ${archetype.strainBase}+Willpower · Starting XP ${archetype.startingXp}`,
+            )}
             {fixedStartingSkills.length > 0 && (
-              <><br />Стартовые навыки: {fixedStartingSkills
-                .map(s => `${s.nameRu || skillRu(s.skillName)}${s.freeRanks > 1 ? ` ${s.freeRanks}` : ''}`)
+              <><br />{t('Стартовые навыки:', 'Starting skills:')} {fixedStartingSkills
+                .map(s => `${t(s.nameRu || skillRu(s.skillName), skillRu(s.skillName))}${s.freeRanks > 1 ? ` ${s.freeRanks}` : ''}`)
                 .join(', ')}</>
             )}
             {archetype.abilities.map(ab => (
@@ -397,9 +404,12 @@ export function CreateCharacterForm({ onCancel, onCreated }: { onCancel: () => v
           return (
             <div key={g.choiceGroup}>
               <div className="label-line">
-                Стартовые навыки вида — выберите {g.choiceCount} разных некарьерных ({picked.length}/{g.choiceCount}):
+                {t(
+                  `Стартовые навыки вида — выберите ${g.choiceCount} разных некарьерных (${picked.length}/${g.choiceCount}):`,
+                  `Species starting skills — pick ${g.choiceCount} different non-career skills (${picked.length}/${g.choiceCount}):`,
+                )}
               </div>
-              {g.choiceGroup === 'any-noncareer' && !career && <div className="hint">Сначала выберите карьеру.</div>}
+              {g.choiceGroup === 'any-noncareer' && !career && <div className="hint">{t('Сначала выберите карьеру.', 'Pick a career first.')}</div>}
               <div className="chips">
                 {choiceCandidates(g.choiceGroup).map(s => (
                   <button key={s.id} type="button"
@@ -414,17 +424,20 @@ export function CreateCharacterForm({ onCancel, onCreated }: { onCancel: () => v
         })}
 
         <label>
-          Карьера
+          {t('Карьера', 'Career')}
           <select value={careerId} onChange={e => { setCareerId(e.target.value); setGearChoices({}) }} required>
-            <option value="" disabled>— выберите —</option>
-            {reference?.careers.map(c => <option key={c.id} value={c.id}>{c.nameRu || c.name}</option>)}
+            <option value="" disabled>{t('— выберите —', '— select —')}</option>
+            {reference?.careers.map(c => <option key={c.id} value={c.id}>{localizedName(c)}</option>)}
           </select>
         </label>
 
         {career && (
           <div>
             <div className="hint">{career.description}</div>
-            <div className="label-line">Карьерные навыки — отметьте до 4 для бесплатного ранга ({freeSkills.length}/4):</div>
+            <div className="label-line">{t(
+              `Карьерные навыки — отметьте до 4 для бесплатного ранга (${freeSkills.length}/4):`,
+              `Career skills — mark up to 4 for a free rank (${freeSkills.length}/4):`,
+            )}</div>
             <div className="chips">
               {career.careerSkillNames.map(s => (
                 <button key={s} type="button"
@@ -439,11 +452,11 @@ export function CreateCharacterForm({ onCancel, onCreated }: { onCancel: () => v
 
         {career && career.startingGear.length > 0 && (
           <div>
-            {moneyLabel && <div className="hint">Стартовые деньги: {moneyLabel} серебра</div>}
-            {fixedGear.length > 0 && <div className="hint">Снаряжение: {fixedGear.map(gearLabel).join(', ')}</div>}
+            {moneyLabel && <div className="hint">{t(`Стартовые деньги: ${moneyLabel} серебра`, `Starting money: ${moneyLabel} silver`)}</div>}
+            {fixedGear.length > 0 && <div className="hint">{t('Снаряжение:', 'Gear:')} {fixedGear.map(gearLabel).join(', ')}</div>}
             {gearSlots.map(slot => (
               <div key={slot.group}>
-                <div className="label-line">Снаряжение — выберите вариант:</div>
+                <div className="label-line">{t('Снаряжение — выберите вариант:', 'Gear — pick an option:')}</div>
                 <div className="chips">
                   {slot.options.map(o => (
                     <button key={o.index} type="button"
@@ -460,29 +473,29 @@ export function CreateCharacterForm({ onCancel, onCreated }: { onCancel: () => v
         )}
 
         <details className="create-bio">
-          <summary>Мотивации и предыстория (необязательно)</summary>
-          <div className="hint">Можно заполнить позже на вкладке «Образ» листа персонажа.</div>
-          <label>Стремление
+          <summary>{t('Мотивации и предыстория (необязательно)', 'Motivations and background (optional)')}</summary>
+          <div className="hint">{t('Можно заполнить позже на вкладке «Образ» листа персонажа.', 'You can fill this in later on the sheet’s "Bio" tab.')}</div>
+          <label>{t('Стремление', 'Desire')}
             <input value={desire} onChange={e => setDesire(e.target.value)} maxLength={300} />
           </label>
-          <label>Страх
+          <label>{t('Страх', 'Fear')}
             <input value={fear} onChange={e => setFear(e.target.value)} maxLength={300} />
           </label>
-          <label>Сильная сторона
+          <label>{t('Сильная сторона', 'Strength')}
             <input value={strength} onChange={e => setStrength(e.target.value)} maxLength={300} />
           </label>
-          <label>Слабость
+          <label>{t('Слабость', 'Flaw')}
             <input value={flaw} onChange={e => setFlaw(e.target.value)} maxLength={300} />
           </label>
-          <label>Предыстория
+          <label>{t('Предыстория', 'Background')}
             <textarea value={background} onChange={e => setBackground(e.target.value)} rows={4} maxLength={8000} />
           </label>
         </details>
 
         {error && <div className="error">{error}</div>}
         <div className="modal-actions">
-          <button type="button" onClick={onCancel}>Отмена</button>
-          <button className="primary" type="submit" disabled={busy || !archetypeId || !careerId || !choicesComplete || !gearComplete}>Создать</button>
+          <button type="button" onClick={onCancel}>{t('Отмена', 'Cancel')}</button>
+          <button className="primary" type="submit" disabled={busy || !archetypeId || !careerId || !choicesComplete || !gearComplete}>{t('Создать', 'Create')}</button>
         </div>
       </form>
     </div>

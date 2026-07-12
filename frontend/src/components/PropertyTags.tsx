@@ -1,5 +1,6 @@
 import { useEffect, useId, useRef, useState } from 'react'
-import { parseProperties, type ParsedProperty } from '../data/itemQualities'
+import { parseProperties, qualityName, type ParsedProperty } from '../data/itemQualities'
+import { t } from '../i18n'
 
 /**
  * Рендерит строку свойств предмета («Точное 1, Оборонительное 2») как набор тегов.
@@ -68,9 +69,9 @@ function PropertyTag({ property }: { property: ParsedProperty }) {
       {open && (
         <span id={tipId} role="tooltip" className="prop-tooltip" onClick={e => e.stopPropagation()}>
           <span className="prop-tooltip-title">
-            {quality.nameRu}
-            {quality.nameRu !== quality.nameEn && <span className="prop-tooltip-en"> · {quality.nameEn}</span>}
-            {quality.rated && <span className="prop-tooltip-en"> · рейтинг</span>}
+            {qualityName(quality)}
+            {quality.nameRu !== quality.nameEn && <span className="prop-tooltip-en"> · {t(quality.nameEn, quality.nameRu)}</span>}
+            {quality.rated && <span className="prop-tooltip-en"> · {t('рейтинг', 'rated')}</span>}
           </span>
           <span className="prop-tooltip-body">{quality.description}</span>
         </span>

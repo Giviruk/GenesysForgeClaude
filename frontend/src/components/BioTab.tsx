@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { api } from '../api/client'
 import type { CharacterSheet } from '../api/types'
+import { t } from '../i18n'
 
 interface Props {
   sheet: CharacterSheet
@@ -9,12 +10,17 @@ interface Props {
 }
 
 // Мотивации Genesys + свободная предыстория (U-22). Поля опциональны.
-const MOTIVATIONS = [
+const MOTIVATIONS = t([
   { key: 'desire', label: 'Стремление', hint: 'Чего персонаж хочет добиться, к чему стремится' },
   { key: 'fear', label: 'Страх', hint: 'Чего персонаж боится или избегает' },
   { key: 'strength', label: 'Сильная сторона', hint: 'Положительная черта характера' },
   { key: 'flaw', label: 'Слабость', hint: 'Недостаток или порок' },
-] as const
+] as const, [
+  { key: 'desire', label: 'Desire', hint: 'What the character wants to achieve or strives for' },
+  { key: 'fear', label: 'Fear', hint: 'What the character fears or avoids' },
+  { key: 'strength', label: 'Strength', hint: 'A positive character trait' },
+  { key: 'flaw', label: 'Flaw', hint: 'A shortcoming or vice' },
+] as const)
 
 export function BioTab({ sheet, onError, refresh }: Props) {
   const [desire, setDesire] = useState(sheet.desire ?? '')
@@ -44,7 +50,7 @@ export function BioTab({ sheet, onError, refresh }: Props) {
       await refresh()
       setSaved(true)
     } catch (err) {
-      onError(err instanceof Error ? err.message : 'Ошибка сохранения')
+      onError(err instanceof Error ? err.message : t('Ошибка сохранения', 'Failed to save'))
     } finally {
       setBusy(false)
     }
@@ -53,9 +59,9 @@ export function BioTab({ sheet, onError, refresh }: Props) {
   return (
     <form onSubmit={submit}>
       <section className="panel">
-        <h3>Мотивации</h3>
+        <h3>{t('Мотивации', 'Motivations')}</h3>
         <p className="muted small-text">
-          Стремления, страхи, сильные и слабые стороны персонажа. Помогают отыгрышу и решениям мастера.
+          {t('Стремления, страхи, сильные и слабые стороны персонажа. Помогают отыгрышу и решениям мастера.', 'The character’s desires, fears, strengths and flaws. They help roleplay and GM decisions.')}
         </p>
         <div className="custom-form">
           {MOTIVATIONS.map(m => (
@@ -68,15 +74,15 @@ export function BioTab({ sheet, onError, refresh }: Props) {
       </section>
 
       <section className="panel">
-        <h3>Предыстория</h3>
-        <textarea aria-label="Предыстория" value={background}
+        <h3>{t('Предыстория', 'Background')}</h3>
+        <textarea aria-label={t('Предыстория', 'Background')} value={background}
           onChange={e => { setSaved(false); setBackground(e.target.value) }}
-          rows={10} maxLength={8000} placeholder="История персонажа: происхождение, важные события, связи, цели…" />
+          rows={10} maxLength={8000} placeholder={t('История персонажа: происхождение, важные события, связи, цели…', 'The character’s story: origin, key events, connections, goals…')} />
       </section>
 
       <div className="form-actions">
-        <button className="primary" type="submit" disabled={busy || !dirty}>Сохранить</button>
-        {saved && !dirty && <span className="muted small-text">Сохранено</span>}
+        <button className="primary" type="submit" disabled={busy || !dirty}>{t('Сохранить', 'Save')}</button>
+        {saved && !dirty && <span className="muted small-text">{t('Сохранено', 'Saved')}</span>}
       </div>
     </form>
   )

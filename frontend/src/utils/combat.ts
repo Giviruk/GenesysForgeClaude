@@ -1,5 +1,6 @@
 // Боевой расчёт (U-17): раскрытие урона оружия и итог с учётом нетто-успехов.
 import type { Quality } from '../api/types'
+import { t } from '../i18n'
 
 /** Качество боя для отображения: подпись + цена активации (если есть). */
 export interface CombatQuality {
@@ -16,7 +17,7 @@ export function expandDamage(damage: string, brawn: number): { base: number | nu
   if (dmg === '') return { base: null, text: '—' }
   if (dmg.startsWith('+')) {
     const bonus = Number(dmg.slice(1))
-    if (Number.isFinite(bonus)) return { base: brawn + bonus, text: `${brawn + bonus} (Мощь ${dmg})` }
+    if (Number.isFinite(bonus)) return { base: brawn + bonus, text: `${brawn + bonus} ${t(`(Мощь ${dmg})`, `(Brawn ${dmg})`)}` }
     return { base: null, text: dmg }
   }
   const abs = Number(dmg)
@@ -43,7 +44,9 @@ export function resolveQualityCosts(
 ): CombatQuality[] {
   const qs = reference?.qualities ?? []
   const byCode = new Map(qs.map(q => [q.code, q]))
-  const byName = new Map(qs.map(q => [normQuality(q.nameRu || q.nameEn), q]))
+  // Строки свойств могли быть сохранены на любом языке — регистрируем оба имени.
+  const byName = new Map(qs.flatMap(q =>
+    [q.nameRu, q.nameEn].filter(Boolean).map(n => [normQuality(n), q] as const)))
   return source.map(s => {
     const q = (s.code ? byCode.get(s.code) : undefined) ?? byName.get(normQuality(s.label))
     const ratingSuffix = s.rating != null ? ` ${s.rating}` : ''

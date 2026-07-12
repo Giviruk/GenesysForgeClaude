@@ -1,7 +1,11 @@
 import type { ReactNode } from 'react'
 import { Footer } from '../components/Footer'
 import { navigate } from '../router'
-import guideMarkdown from '../content/user-guide.md?raw'
+import { t } from '../i18n'
+import guideMarkdownRu from '../content/user-guide.md?raw'
+import guideMarkdownEn from '../content/user-guide.en.md?raw'
+
+const guideMarkdown = t(guideMarkdownRu, guideMarkdownEn)
 
 type GuideBlock =
   | { kind: 'heading'; level: 1 | 2 | 3; text: string; id: string }
@@ -86,17 +90,17 @@ export function HelpPage({ loggedIn, showFooter = true }: { loggedIn: boolean; s
       <div className="panel">
         <div className="page-head">
           <div>
-            <h2>Справка</h2>
-            <p className="muted">Короткий пользовательский маршрут по основным возможностям GenesysForge.</p>
+            <h2>{t('Справка', 'Help')}</h2>
+            <p className="muted">{t('Короткий пользовательский маршрут по основным возможностям GenesysForge.', 'A short walkthrough of the main GenesysForge features.')}</p>
           </div>
           <button className="small" onClick={() => navigate(loggedIn ? '/characters' : '/login')}>
-            ← Назад
+            {t('← Назад', '← Back')}
           </button>
         </div>
 
         <div className="help-layout">
-          <aside className="help-toc" aria-label="Разделы справки">
-            <h3>Разделы</h3>
+          <aside className="help-toc" aria-label={t('Разделы справки', 'Help sections')}>
+            <h3>{t('Разделы', 'Sections')}</h3>
             {GUIDE_SECTIONS.map(section => (
               <a key={section.id} href={`#${section.id}`}>{section.text}</a>
             ))}

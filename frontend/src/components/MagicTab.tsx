@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import type { CharacterSheet } from '../api/types'
 import { SpellsTab } from './SpellsTab'
+import { t } from '../i18n'
 import { MagicBuilder, type MagicSkillPool } from './MagicBuilder'
 
 /**
@@ -17,8 +18,8 @@ export function MagicTab({ sheet, onError }: { sheet: CharacterSheet; onError: (
   return (
     <div>
       <div className="system-switch">
-        <button className={mode === 'builder' ? 'tab active' : 'tab'} onClick={() => setMode('builder')}>Сборка действия</button>
-        <button className={mode === 'reference' ? 'tab active' : 'tab'} onClick={() => setMode('reference')}>Справочник</button>
+        <button className={mode === 'builder' ? 'tab active' : 'tab'} onClick={() => setMode('builder')}>{t('Сборка действия', 'Build action')}</button>
+        <button className={mode === 'reference' ? 'tab active' : 'tab'} onClick={() => setMode('reference')}>{t('Справочник', 'Reference')}</button>
       </div>
       {mode === 'builder'
         ? <MagicBuilder system={sheet.system} characterSkills={magicSkills} onError={onError} />
