@@ -6,8 +6,8 @@ import type {
 } from '../api/types'
 import {
   CHARACTERISTICS, CHARACTERISTIC_LABELS, CREATURE_TEMPLATE_LABELS, CREATURE_TEMPLATES, dualName,
-  ITEM_KIND_LABELS, NPC_COMBAT_STYLE_LABELS, NPC_KIND_LABELS, NPC_KINDS, NPC_POWER_LABELS, NPC_ROLE_LABELS,
-  NPC_ROLES, NPC_VISIBILITY_LABELS, secondaryName, SYSTEM_LABELS,
+  ITEM_KIND_LABELS, localizedDescription, NPC_COMBAT_STYLE_LABELS, NPC_KIND_LABELS, NPC_KINDS, NPC_POWER_LABELS,
+  NPC_ROLE_LABELS, NPC_ROLES, NPC_VISIBILITY_LABELS, secondaryName, SYSTEM_LABELS,
 } from '../utils/labels'
 import {
   npcAttackViews, npcGearViews, npcSkillViews, skillIndex, syncAttacksWithEquipment, weaponsByLabel,
@@ -403,7 +403,7 @@ function NpcGearRow({ gear }: { gear: NpcGearView }) {
     item.rangedDefense > 0 && t(`Дал. защита +${item.rangedDefense}`, `Ranged def. +${item.rangedDefense}`),
     item.encumbranceThresholdBonus > 0 && t(`Порог веса +${item.encumbranceThresholdBonus}`, `Encumbrance +${item.encumbranceThresholdBonus}`),
   ].filter(Boolean) as string[] : []
-  const description = item ? (item.description || item.safeDescription) : ''
+  const description = item ? localizedDescription(item) : ''
   return (
     <li className="npc-gear">
       <div className="npc-gear-head">

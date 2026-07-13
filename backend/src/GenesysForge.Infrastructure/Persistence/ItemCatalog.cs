@@ -18,7 +18,8 @@ public static class ItemCatalog
         string Code, string Name, string NameRu, string Kind, string Setting,
         int Enc, int Soak, int Def, int Rdef, int EncBonus, int Price, int Rarity,
         string Desc, string Source,
-        string? SkillEn, string? Damage, string? Crit, string? RangeRu, string? Properties);
+        string? SkillEn, string? Damage, string? Crit, string? RangeRu, string? Properties,
+        string DescEn = "");
 
     private static readonly JsonSerializerOptions JsonOptions = new() { PropertyNameCaseInsensitive = true };
 
@@ -59,6 +60,7 @@ public static class ItemCatalog
                     Price = e.Price,
                     Rarity = e.Rarity,
                     SafeDescription = e.Desc,
+                    DescriptionEn = e.DescEn,
                     Source = e.Source,
                     SkillName = e.SkillEn ?? "",
                     Damage = e.Damage ?? "",

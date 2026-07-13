@@ -108,11 +108,17 @@ export function ReferencePage({ onNavigate }: { onNavigate: (to: string) => void
     return m
   }, [rules])
 
-  // Список ситуаций для под-фильтра «Траты» (по данным, чтобы подписи совпадали с groupRu).
+  // Список ситуаций для под-фильтра «Траты» (по данным, чтобы значения совпадали с groupRu).
   const spendSituations = useMemo(() => {
     const s = new Set<string>()
     for (const e of rules) if (e.kind === 'symbolSpend' && e.groupRu) s.add(e.groupRu)
     return [...s]
+  }, [rules])
+  // Подпись ситуации на языке интерфейса (по groupEn первой записи с этой группой).
+  const situationLabel = useMemo(() => {
+    const m = new Map<string, string>()
+    for (const e of rules) if (e.groupRu && e.groupEn && !m.has(e.groupRu)) m.set(e.groupRu, e.groupEn)
+    return (ru: string) => t(ru, m.get(ru) || ru)
   }, [rules])
 
   // Итоговые таблицы с учётом активного раздела и под-фильтров (траты/дистанции).
@@ -226,7 +232,7 @@ export function ReferencePage({ onNavigate }: { onNavigate: (to: string) => void
               {spendSituations.map(s => (
                 <button key={s} role="tab" aria-selected={spendSituation === s}
                         className={spendSituation === s ? 'tab active' : 'tab'}
-                        onClick={() => setSpendSituation(s)}>{s}</button>
+                        onClick={() => setSpendSituation(s)}>{situationLabel(s)}</button>
               ))}
             </div>
             <div className="section-switch" role="tablist" aria-label={t('Символы', 'Symbols')}>
@@ -285,11 +291,12 @@ function RuleTable({ kind, entries, showCost = true }:
 
   // Основное имя — на языке интерфейса, второе имя показывается рядом серым.
   const entryName = (e: RuleTableEntry) => t(e.nameRu, e.nameEn || e.nameRu)
+  const entryGroup = (e: RuleTableEntry) => t(e.groupRu, e.groupEn || e.groupRu)
   const entrySecondary = (e: RuleTableEntry) =>
     e.nameEn && e.nameEn !== e.nameRu ? t(e.nameEn, e.nameRu) : ''
   const firstValue = (e: RuleTableEntry) =>
     kind === 'criticalInjury' ? e.rollRange
-    : kind === 'symbolSpend' ? e.groupRu
+    : kind === 'symbolSpend' ? entryGroup(e)
     : entryName(e)
 
   return (
@@ -319,13 +326,13 @@ function RuleTable({ kind, entries, showCost = true }:
                   {entrySecondary(e) && (
                     <span className="muted small-text name-secondary"> · {entrySecondary(e)}</span>
                   )}
-                  {e.groupRu && <span className="muted"> · {e.groupRu}</span>}
+                  {e.groupRu && <span className="muted"> · {entryGroup(e)}</span>}
                 </td>
               )}
               {showCost && <td className="ref-cost">{e.symbolCost}</td>}
               <td>
-                {e.body}
-                {e.notes && <div className="muted ref-notes">{e.notes}</div>}
+                {t(e.body, e.bodyEn || e.body)}
+                {e.notes && <div className="muted ref-notes">{t(e.notes, e.notesEn || e.notes)}</div>}
                 {e.source && <div className="muted ref-source">{e.source}{e.sourcePage && t(`, с. ${e.sourcePage}`, `, p. ${e.sourcePage}`)}</div>}
               </td>
             </tr>

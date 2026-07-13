@@ -16,5 +16,7 @@ public class ArchetypeAbilityDef
     public string NameEn { get; set; } = "";
     /// <summary>Copyright-safe краткое описание-парафраз.</summary>
     public string SafeDescription { get; set; } = "";
+    /// <summary>Английское описание — собственный copyright-safe парафраз. Используется в обоих режимах контента.</summary>
+    public string DescriptionEn { get; set; } = "";
     public ArchetypeAbilityAutomationKind AutomationKind { get; set; } = ArchetypeAbilityAutomationKind.Manual;
 }

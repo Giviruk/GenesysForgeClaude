@@ -1,717 +1,758 @@
 [
-  {
-    "system": "GenesysCore",
-    "code": "gc.archetype.average-human",
-    "name": "Average Human",
-    "nameRu": "Обыватель",
-    "brawn": 2,
-    "agility": 2,
-    "intellect": 2,
-    "cunning": 2,
-    "willpower": 2,
-    "presence": 2,
-    "woundBase": 10,
-    "strainBase": 10,
-    "startingXp": 110,
-    "safe": "Базовый гибкий архетип человека. Способность — Готов ко всему: 1 раз за встречу, свободным действием вне хода, перемещает 1 очко сюжета из пула ведущего в пул игроков. Стартовые навыки: 1 ранг в двух разных некарьерных навыках.",
-    "abilities": [
-      {
-        "code": "gc.archetype.average-human.ability.1",
-        "nameRu": "Готов ко всему",
-        "nameEn": "",
-        "safe": "Готов ко всему: 1 раз за встречу, свободным действием вне хода, перемещает 1 очко сюжета из пула ведущего в пул игроков.",
-        "automationKind": "Manual"
-      }
-    ],
-    "startingSkills": [
-      {
-        "skillName": "",
-        "nameRu": "",
-        "freeRanks": 1,
-        "isChoice": true,
-        "choiceGroup": "any-noncareer",
-        "choiceCount": 2
-      }
-    ],
-    "source": "Genesys Core Rulebook, с. 36"
-  },
-  {
-    "system": "GenesysCore",
-    "code": "gc.archetype.laborer",
-    "name": "Laborer",
-    "nameRu": "Трудяга",
-    "brawn": 3,
-    "agility": 2,
-    "intellect": 2,
-    "cunning": 2,
-    "willpower": 1,
-    "presence": 2,
-    "woundBase": 12,
-    "strainBase": 8,
-    "startingXp": 100,
-    "safe": "Сильный и выносливый архетип для физического труда и ближнего боя. Способность — Крепкий орешек: 1 раз за встречу после получения критической травмы можно потратить 1 очко сюжета, чтобы считать результат броска критической травмы равным 01. Стартовые навыки: Атлетика 1.",
-    "abilities": [
-      {
-        "code": "gc.archetype.laborer.ability.1",
-        "nameRu": "Крепкий орешек",
-        "nameEn": "",
-        "safe": "Крепкий орешек: 1 раз за встречу после получения критической травмы можно потратить 1 очко сюжета, чтобы считать результат броска критической травмы равным 01.",
-        "automationKind": "Manual"
-      }
-    ],
-    "startingSkills": [
-      {
-        "skillName": "Athletics",
-        "nameRu": "Атлетика",
-        "freeRanks": 1,
-        "isChoice": false,
-        "choiceGroup": "",
-        "choiceCount": 0
-      }
-    ],
-    "source": "Genesys Core Rulebook, с. 37"
-  },
-  {
-    "system": "GenesysCore",
-    "code": "gc.archetype.intellectual",
-    "name": "Intellectual",
-    "nameRu": "Интеллектуал",
-    "brawn": 2,
-    "agility": 1,
-    "intellect": 3,
-    "cunning": 2,
-    "willpower": 2,
-    "presence": 2,
-    "woundBase": 8,
-    "strainBase": 12,
-    "startingXp": 100,
-    "safe": "Архетип учёного, врача, преподавателя, мага или другого умственного труда. Способность — Гениальность: 1 раз за встречу, свободным действием, потратить 1 очко сюжета; в следующей проверке в этом ходу ранг навыка считается равным Интеллекту. Стартовые навыки: Знание 1.",
-    "abilities": [
-      {
-        "code": "gc.archetype.intellectual.ability.1",
-        "nameRu": "Гениальность",
-        "nameEn": "",
-        "safe": "Гениальность: 1 раз за встречу, свободным действием, потратить 1 очко сюжета; в следующей проверке в этом ходу ранг навыка считается равным Интеллекту.",
-        "automationKind": "Manual"
-      }
-    ],
-    "startingSkills": [
-      {
-        "skillName": "Knowledge",
-        "nameRu": "Знание",
-        "freeRanks": 1,
-        "isChoice": false,
-        "choiceGroup": "",
-        "choiceCount": 0
-      }
-    ],
-    "source": "Genesys Core Rulebook, с. 38"
-  },
-  {
-    "system": "GenesysCore",
-    "code": "gc.archetype.aristocrat",
-    "name": "Aristocrat",
-    "nameRu": "Аристократ",
-    "brawn": 1,
-    "agility": 2,
-    "intellect": 2,
-    "cunning": 2,
-    "willpower": 2,
-    "presence": 3,
-    "woundBase": 10,
-    "strainBase": 10,
-    "startingXp": 100,
-    "safe": "Социальный архетип для дворянина, политика, барда, торговца или переговорщика. Способность — Сильная личность: 1 раз за встречу, свободным действием, потратить 1 очко сюжета; следующая проверка навыка в этом ходу удваивает причиняемую или исцеляемую усталость. Стартовые навыки: Хладнокровие 1.",
-    "abilities": [
-      {
-        "code": "gc.archetype.aristocrat.ability.1",
-        "nameRu": "Сильная личность",
-        "nameEn": "",
-        "safe": "Сильная личность: 1 раз за встречу, свободным действием, потратить 1 очко сюжета; следующая проверка навыка в этом ходу удваивает причиняемую или исцеляемую усталость.",
-        "automationKind": "Manual"
-      }
-    ],
-    "startingSkills": [
-      {
-        "skillName": "Cool",
-        "nameRu": "Хладнокровие",
-        "freeRanks": 1,
-        "isChoice": false,
-        "choiceGroup": "",
-        "choiceCount": 0
-      }
-    ],
-    "source": "Genesys Core Rulebook, с. 39"
-  },
-  {
-    "system": "RealmsOfTerrinoth",
-    "code": "rot.archetype.human",
-    "name": "Human",
-    "nameRu": "Человек",
-    "brawn": 2,
-    "agility": 2,
-    "intellect": 2,
-    "cunning": 2,
-    "willpower": 2,
-    "presence": 2,
-    "woundBase": 10,
-    "strainBase": 10,
-    "startingXp": 110,
-    "safe": "В RoT люди не делятся на подвиды с отдельными правилами; навыки можно выбрать по происхождению. Способность — Готов к приключениям: 1 раз за сессию свободным действием вне хода перемещает 1 очко сюжета из пула ведущего в пул игроков. Стартовые навыки: 1 ранг в двух разных некарьерных навыках.",
-    "abilities": [
-      {
-        "code": "rot.archetype.human.ability.1",
-        "nameRu": "Готов к приключениям",
-        "nameEn": "",
-        "safe": "Готов к приключениям: 1 раз за сессию свободным действием вне хода перемещает 1 очко сюжета из пула ведущего в пул игроков.",
-        "automationKind": "Manual"
-      }
-    ],
-    "startingSkills": [
-      {
-        "skillName": "",
-        "nameRu": "",
-        "freeRanks": 1,
-        "isChoice": true,
-        "choiceGroup": "any-noncareer",
-        "choiceCount": 2
-      }
-    ],
-    "source": "Realms of Terrinoth, с. 61"
-  },
-  {
-    "system": "RealmsOfTerrinoth",
-    "code": "rot.archetype.deep-elf",
-    "name": "Deep Elf",
-    "nameRu": "Глубинный эльф",
-    "brawn": 2,
-    "agility": 3,
-    "intellect": 2,
-    "cunning": 2,
-    "willpower": 1,
-    "presence": 2,
-    "woundBase": 9,
-    "strainBase": 10,
-    "startingXp": 90,
-    "safe": "Эльфы, посвятившие себя охоте на силы Инфернаэля. Способность — Знание Инфернаэля: получает Знание (запретное) как карьерный навык и начинает с 2 рангами в нём. Стартовые навыки: Выдержка 1; Знание (запретное) 2.",
-    "abilities": [
-      {
-        "code": "rot.archetype.deep-elf.ability.1",
-        "nameRu": "Знание Инфернаэля",
-        "nameEn": "",
-        "safe": "Знание Инфернаэля: получает Знание (запретное) как карьерный навык и начинает с 2 рангами в нём.",
-        "automationKind": "Manual"
-      }
-    ],
-    "startingSkills": [
-      {
-        "skillName": "Discipline",
-        "nameRu": "Выдержка",
-        "freeRanks": 1,
-        "isChoice": false,
-        "choiceGroup": "",
-        "choiceCount": 0
-      },
-      {
-        "skillName": "Knowledge (Forbidden)",
-        "nameRu": "Знание (запретное)",
-        "freeRanks": 2,
-        "isChoice": false,
-        "choiceGroup": "",
-        "choiceCount": 0
-      }
-    ],
-    "source": "Realms of Terrinoth, с. 63"
-  },
-  {
-    "system": "RealmsOfTerrinoth",
-    "code": "rot.archetype.free-cities-elf",
-    "name": "Free Cities Elf",
-    "nameRu": "Эльф Свободных городов",
-    "brawn": 2,
-    "agility": 3,
-    "intellect": 2,
-    "cunning": 2,
-    "willpower": 1,
-    "presence": 2,
-    "woundBase": 9,
-    "strainBase": 10,
-    "startingXp": 90,
-    "safe": "Эльфы, отказавшиеся от племенной иерархии и живущие среди короткоживущих народов. Способность — Проворство: ближняя и дальняя защита 1. Стартовые навыки: Уличная интуиция 1.",
-    "abilities": [
-      {
-        "code": "rot.archetype.free-cities-elf.ability.1",
-        "nameRu": "Проворство",
-        "nameEn": "",
-        "safe": "Проворство: ближняя и дальняя защита 1.",
-        "automationKind": "Manual"
-      }
-    ],
-    "startingSkills": [
-      {
-        "skillName": "Streetwise",
-        "nameRu": "Уличная интуиция",
-        "freeRanks": 1,
-        "isChoice": false,
-        "choiceGroup": "",
-        "choiceCount": 0
-      }
-    ],
-    "source": "Realms of Terrinoth, с. 63"
-  },
-  {
-    "system": "RealmsOfTerrinoth",
-    "code": "rot.archetype.highborn-elf",
-    "name": "Highborn Elf",
-    "nameRu": "Высокородный эльф",
-    "brawn": 2,
-    "agility": 3,
-    "intellect": 2,
-    "cunning": 2,
-    "willpower": 1,
-    "presence": 2,
-    "woundBase": 9,
-    "strainBase": 10,
-    "startingXp": 90,
-    "safe": "Эльфийская знать с сильной связью с древним наследием. Способность — Эмпирейская магия: получает Веру как карьерный навык и начинает с 1 рангом в Вере. Стартовые навыки: Переговоры 1; Вера 1.",
-    "abilities": [
-      {
-        "code": "rot.archetype.highborn-elf.ability.1",
-        "nameRu": "Эмпирейская магия",
-        "nameEn": "",
-        "safe": "Эмпирейская магия: получает Веру как карьерный навык и начинает с 1 рангом в Вере.",
-        "automationKind": "Manual"
-      }
-    ],
-    "startingSkills": [
-      {
-        "skillName": "Negotiation",
-        "nameRu": "Переговоры",
-        "freeRanks": 1,
-        "isChoice": false,
-        "choiceGroup": "",
-        "choiceCount": 0
-      },
-      {
-        "skillName": "Divine",
-        "nameRu": "Вера",
-        "freeRanks": 1,
-        "isChoice": false,
-        "choiceGroup": "",
-        "choiceCount": 0
-      }
-    ],
-    "source": "Realms of Terrinoth, с. 63"
-  },
-  {
-    "system": "RealmsOfTerrinoth",
-    "code": "rot.archetype.lowborn-elf",
-    "name": "Lowborn Elf",
-    "nameRu": "Низкородный эльф",
-    "brawn": 2,
-    "agility": 3,
-    "intellect": 2,
-    "cunning": 2,
-    "willpower": 1,
-    "presence": 2,
-    "woundBase": 9,
-    "strainBase": 10,
-    "startingXp": 90,
-    "safe": "Практичные лесные эльфы, охотники, воины и защитники дикой природы. Способность — Проворство: ближняя и дальняя защита 1. Стартовые навыки: Выживание 1.",
-    "abilities": [
-      {
-        "code": "rot.archetype.lowborn-elf.ability.1",
-        "nameRu": "Проворство",
-        "nameEn": "",
-        "safe": "Проворство: ближняя и дальняя защита 1.",
-        "automationKind": "Manual"
-      }
-    ],
-    "startingSkills": [
-      {
-        "skillName": "Survival",
-        "nameRu": "Выживание",
-        "freeRanks": 1,
-        "isChoice": false,
-        "choiceGroup": "",
-        "choiceCount": 0
-      }
-    ],
-    "source": "Realms of Terrinoth, с. 63"
-  },
-  {
-    "system": "RealmsOfTerrinoth",
-    "code": "rot.archetype.dunwarr-dwarf",
-    "name": "Dunwarr Dwarf",
-    "nameRu": "Дунваррский дварф",
-    "brawn": 2,
-    "agility": 1,
-    "intellect": 2,
-    "cunning": 2,
-    "willpower": 3,
-    "presence": 2,
-    "woundBase": 11,
-    "strainBase": 10,
-    "startingXp": 90,
-    "safe": "Подземные дварфы Дунварра, наследники древней горной культуры. Способность — Ночное зрение: убирает до 2 штрафных кубов от темноты. Крепкий орешек: 1 раз за сессию после критической травмы потратить очко сюжета и считать результат 01. Стартовые навыки: Стойкость 1.",
-    "abilities": [
-      {
-        "code": "rot.archetype.dunwarr-dwarf.ability.1",
-        "nameRu": "Ночное зрение",
-        "nameEn": "",
-        "safe": "Ночное зрение: убирает до 2 штрафных кубов от темноты.",
-        "automationKind": "Manual"
-      },
-      {
-        "code": "rot.archetype.dunwarr-dwarf.ability.2",
-        "nameRu": "Крепкий орешек",
-        "nameEn": "",
-        "safe": "Крепкий орешек: 1 раз за сессию после критической травмы потратить очко сюжета и считать результат 01.",
-        "automationKind": "Manual"
-      }
-    ],
-    "startingSkills": [
-      {
-        "skillName": "Resilience",
-        "nameRu": "Стойкость",
-        "freeRanks": 1,
-        "isChoice": false,
-        "choiceGroup": "",
-        "choiceCount": 0
-      }
-    ],
-    "source": "Realms of Terrinoth, с. 65"
-  },
-  {
-    "system": "RealmsOfTerrinoth",
-    "code": "rot.archetype.forge-dwarf",
-    "name": "Forge Dwarf",
-    "nameRu": "Дварф Кузни",
-    "brawn": 2,
-    "agility": 1,
-    "intellect": 2,
-    "cunning": 2,
-    "willpower": 3,
-    "presence": 2,
-    "woundBase": 11,
-    "strainBase": 10,
-    "startingXp": 90,
-    "safe": "Дварфы, живущие в городах и торговых поселениях среди других народов. Способность — Упрямство: добавляет штрафной куб к социальным проверкам, направленным против него. Крепкий орешек: как у дварфов. Стартовые навыки: Переговоры 1.",
-    "abilities": [
-      {
-        "code": "rot.archetype.forge-dwarf.ability.1",
-        "nameRu": "Упрямство",
-        "nameEn": "",
-        "safe": "Упрямство: добавляет штрафной куб к социальным проверкам, направленным против него.",
-        "automationKind": "Manual"
-      },
-      {
-        "code": "rot.archetype.forge-dwarf.ability.2",
-        "nameRu": "Крепкий орешек",
-        "nameEn": "",
-        "safe": "Крепкий орешек: как у дварфов.",
-        "automationKind": "Manual"
-      }
-    ],
-    "startingSkills": [
-      {
-        "skillName": "Negotiation",
-        "nameRu": "Переговоры",
-        "freeRanks": 1,
-        "isChoice": false,
-        "choiceGroup": "",
-        "choiceCount": 0
-      }
-    ],
-    "source": "Realms of Terrinoth, с. 65"
-  },
-  {
-    "system": "RealmsOfTerrinoth",
-    "code": "rot.archetype.broken-plains-orc",
-    "name": "Broken Plains Orc",
-    "nameRu": "Орк Разбитых равнин",
-    "brawn": 3,
-    "agility": 2,
-    "intellect": 2,
-    "cunning": 2,
-    "willpower": 2,
-    "presence": 1,
-    "woundBase": 12,
-    "strainBase": 8,
-    "startingXp": 100,
-    "safe": "Кочевые охотники и воины Разбитых равнин. Способность — Боевая ярость: при атаке в ближнем бою может добавить штрафной куб к проверке, чтобы дать +2 урона одному попаданию. Стартовые навыки: Запугивание 1.",
-    "abilities": [
-      {
-        "code": "rot.archetype.broken-plains-orc.ability.1",
-        "nameRu": "Боевая ярость",
-        "nameEn": "",
-        "safe": "Боевая ярость: при атаке в ближнем бою может добавить штрафной куб к проверке, чтобы дать +2 урона одному попаданию.",
-        "automationKind": "Manual"
-      }
-    ],
-    "startingSkills": [
-      {
-        "skillName": "Coercion",
-        "nameRu": "Запугивание",
-        "freeRanks": 1,
-        "isChoice": false,
-        "choiceGroup": "",
-        "choiceCount": 0
-      }
-    ],
-    "source": "Realms of Terrinoth, с. 67"
-  },
-  {
-    "system": "RealmsOfTerrinoth",
-    "code": "rot.archetype.stone-dweller-orc",
-    "name": "Stone-Dweller Orc",
-    "nameRu": "Орк-каменножитель",
-    "brawn": 3,
-    "agility": 2,
-    "intellect": 2,
-    "cunning": 2,
-    "willpower": 2,
-    "presence": 1,
-    "woundBase": 12,
-    "strainBase": 8,
-    "startingXp": 100,
-    "safe": "Городские орки, часто живущие как наёмники, стражники, солдаты или преступники. Способность — Горячий нрав: когда текущая усталость выше половины порога усталости, добавляет 2 штрафных куба к социальным проверкам и +1 урон одному попаданию каждой атаки ближнего боя. Стартовые навыки: Хладнокровие 1.",
-    "abilities": [
-      {
-        "code": "rot.archetype.stone-dweller-orc.ability.1",
-        "nameRu": "Горячий нрав",
-        "nameEn": "",
-        "safe": "Горячий нрав: когда текущая усталость выше половины порога усталости, добавляет 2 штрафных куба к социальным проверкам и +1 урон одному попаданию каждой атаки ближнего боя.",
-        "automationKind": "Manual"
-      }
-    ],
-    "startingSkills": [
-      {
-        "skillName": "Cool",
-        "nameRu": "Хладнокровие",
-        "freeRanks": 1,
-        "isChoice": false,
-        "choiceGroup": "",
-        "choiceCount": 0
-      }
-    ],
-    "source": "Realms of Terrinoth, с. 67"
-  },
-  {
-    "system": "RealmsOfTerrinoth",
-    "code": "rot.archetype.sunderlands-orc",
-    "name": "Sunderlands Orc",
-    "nameRu": "Орк Сандерлендов",
-    "brawn": 3,
-    "agility": 2,
-    "intellect": 2,
-    "cunning": 2,
-    "willpower": 2,
-    "presence": 1,
-    "woundBase": 12,
-    "strainBase": 8,
-    "startingXp": 100,
-    "safe": "Скрытные орки пустынь Аль-Калима, известные алхимией и медициной. Способность — Упорство: после успешного попадания по цели добавляет бонусный куб к боевым проверкам против той же цели до конца встречи. Стартовые навыки: Алхимия 1.",
-    "abilities": [
-      {
-        "code": "rot.archetype.sunderlands-orc.ability.1",
-        "nameRu": "Упорство",
-        "nameEn": "",
-        "safe": "Упорство: после успешного попадания по цели добавляет бонусный куб к боевым проверкам против той же цели до конца встречи.",
-        "automationKind": "Manual"
-      }
-    ],
-    "startingSkills": [
-      {
-        "skillName": "Alchemy",
-        "nameRu": "Алхимия",
-        "freeRanks": 1,
-        "isChoice": false,
-        "choiceGroup": "",
-        "choiceCount": 0
-      }
-    ],
-    "source": "Realms of Terrinoth, с. 67"
-  },
-  {
-    "system": "RealmsOfTerrinoth",
-    "code": "rot.archetype.catfolk",
-    "name": "Catfolk",
-    "nameRu": "Котолюд",
-    "brawn": 2,
-    "agility": 2,
-    "intellect": 1,
-    "cunning": 3,
-    "willpower": 2,
-    "presence": 2,
-    "woundBase": 9,
-    "strainBase": 8,
-    "startingXp": 90,
-    "safe": "Охотники и следопыты с кошачьими чертами. Способность — Когти: может атаковать когтями (Грубая сила; урон +1; крит. 3; вплотную; Злобное 1). Быстрые лапы: второй манёвр движения не требует усталости; лимит двух манёвров за ход сохраняется. Стартовые навыки: Внимание 1.",
-    "abilities": [
-      {
-        "code": "rot.archetype.catfolk.ability.1",
-        "nameRu": "Когти",
-        "nameEn": "",
-        "safe": "Когти: может атаковать когтями (Грубая сила; урон +1; крит. 3; вплотную; Злобное 1).",
-        "automationKind": "Manual"
-      },
-      {
-        "code": "rot.archetype.catfolk.ability.2",
-        "nameRu": "Быстрые лапы",
-        "nameEn": "",
-        "safe": "Быстрые лапы: второй манёвр движения не требует усталости; лимит двух манёвров за ход сохраняется.",
-        "automationKind": "Manual"
-      }
-    ],
-    "startingSkills": [
-      {
-        "skillName": "Perception",
-        "nameRu": "Внимание",
-        "freeRanks": 1,
-        "isChoice": false,
-        "choiceGroup": "",
-        "choiceCount": 0
-      }
-    ],
-    "source": "Realms of Terrinoth, с. 68"
-  },
-  {
-    "system": "RealmsOfTerrinoth",
-    "code": "rot.archetype.half-catfolk",
-    "name": "Half-Catfolk",
-    "nameRu": "Полукотолюд",
-    "brawn": 2,
-    "agility": 2,
-    "intellect": 2,
-    "cunning": 2,
-    "willpower": 2,
-    "presence": 2,
-    "woundBase": 10,
-    "strainBase": 9,
-    "startingXp": 100,
-    "safe": "Потомки котолюдов и представителей других народов. Способность — Кошачья кровь: выбирает либо Когти, либо Быстрые лапы из способностей котолюдов. Стартовые навыки: Хладнокровие 1.",
-    "abilities": [
-      {
-        "code": "rot.archetype.half-catfolk.ability.1",
-        "nameRu": "Кошачья кровь",
-        "nameEn": "",
-        "safe": "Кошачья кровь: выбирает либо Когти, либо Быстрые лапы из способностей котолюдов.",
-        "automationKind": "Manual"
-      }
-    ],
-    "startingSkills": [
-      {
-        "skillName": "Cool",
-        "nameRu": "Хладнокровие",
-        "freeRanks": 1,
-        "isChoice": false,
-        "choiceGroup": "",
-        "choiceCount": 0
-      }
-    ],
-    "source": "Realms of Terrinoth, с. 68"
-  },
-  {
-    "system": "RealmsOfTerrinoth",
-    "code": "rot.archetype.burrow-gnome",
-    "name": "Burrow Gnome",
-    "nameRu": "Норный гном",
-    "brawn": 1,
-    "agility": 2,
-    "intellect": 2,
-    "cunning": 3,
-    "willpower": 1,
-    "presence": 3,
-    "woundBase": 6,
-    "strainBase": 11,
-    "startingXp": 90,
-    "safe": "Оседлые гномы из нор и туннелей, ориентированные на общину и защиту дома. Способность — Малый: силуэт 0. Обучение ополчения: добавляет бонусный куб к боевым проверкам против целей с большим силуэтом. Стартовые навыки: Обаяние 1; Стойкость 1.",
-    "abilities": [
-      {
-        "code": "rot.archetype.burrow-gnome.ability.1",
-        "nameRu": "Малый",
-        "nameEn": "",
-        "safe": "Малый: силуэт 0.",
-        "automationKind": "Manual"
-      },
-      {
-        "code": "rot.archetype.burrow-gnome.ability.2",
-        "nameRu": "Обучение ополчения",
-        "nameEn": "",
-        "safe": "Обучение ополчения: добавляет бонусный куб к боевым проверкам против целей с большим силуэтом.",
-        "automationKind": "Manual"
-      }
-    ],
-    "startingSkills": [
-      {
-        "skillName": "Charm",
-        "nameRu": "Обаяние",
-        "freeRanks": 1,
-        "isChoice": false,
-        "choiceGroup": "",
-        "choiceCount": 0
-      },
-      {
-        "skillName": "Resilience",
-        "nameRu": "Стойкость",
-        "freeRanks": 1,
-        "isChoice": false,
-        "choiceGroup": "",
-        "choiceCount": 0
-      }
-    ],
-    "source": "Realms of Terrinoth, с. 69"
-  },
-  {
-    "system": "RealmsOfTerrinoth",
-    "code": "rot.archetype.wanderer-gnome",
-    "name": "Wanderer Gnome",
-    "nameRu": "Бродячий гном",
-    "brawn": 1,
-    "agility": 2,
-    "intellect": 2,
-    "cunning": 3,
-    "willpower": 1,
-    "presence": 3,
-    "woundBase": 6,
-    "strainBase": 11,
-    "startingXp": 90,
-    "safe": "Кочевые гномы-торговцы, артисты и странники. Способность — Малый: силуэт 0. Хитрец: 1 раз за встречу в свой ход может потратить очко сюжета, чтобы достать ранее не указанный небольшой предмет с нагрузкой 1 или меньше и редкостью не выше 4. Стартовые навыки: Обаяние 1; Скрытность 1.",
-    "abilities": [
-      {
-        "code": "rot.archetype.wanderer-gnome.ability.1",
-        "nameRu": "Малый",
-        "nameEn": "",
-        "safe": "Малый: силуэт 0.",
-        "automationKind": "Manual"
-      },
-      {
-        "code": "rot.archetype.wanderer-gnome.ability.2",
-        "nameRu": "Хитрец",
-        "nameEn": "",
-        "safe": "Хитрец: 1 раз за встречу в свой ход может потратить очко сюжета, чтобы достать ранее не указанный небольшой предмет с нагрузкой 1 или меньше и редкостью не выше 4.",
-        "automationKind": "Manual"
-      }
-    ],
-    "startingSkills": [
-      {
-        "skillName": "Charm",
-        "nameRu": "Обаяние",
-        "freeRanks": 1,
-        "isChoice": false,
-        "choiceGroup": "",
-        "choiceCount": 0
-      },
-      {
-        "skillName": "Stealth",
-        "nameRu": "Скрытность",
-        "freeRanks": 1,
-        "isChoice": false,
-        "choiceGroup": "",
-        "choiceCount": 0
-      }
-    ],
-    "source": "Realms of Terrinoth, с. 69"
-  }
+ {
+  "system": "GenesysCore",
+  "code": "gc.archetype.average-human",
+  "name": "Average Human",
+  "nameRu": "Обыватель",
+  "brawn": 2,
+  "agility": 2,
+  "intellect": 2,
+  "cunning": 2,
+  "willpower": 2,
+  "presence": 2,
+  "woundBase": 10,
+  "strainBase": 10,
+  "startingXp": 110,
+  "safe": "Базовый гибкий архетип человека. Способность — Готов ко всему: 1 раз за встречу, свободным действием вне хода, перемещает 1 очко сюжета из пула ведущего в пул игроков. Стартовые навыки: 1 ранг в двух разных некарьерных навыках.",
+  "abilities": [
+   {
+    "code": "gc.archetype.average-human.ability.1",
+    "nameRu": "Готов ко всему",
+    "nameEn": "",
+    "safe": "Готов ко всему: 1 раз за встречу, свободным действием вне хода, перемещает 1 очко сюжета из пула ведущего в пул игроков.",
+    "automationKind": "Manual",
+    "safeEn": "Ready for Anything: once per encounter, as an out-of-turn incidental, move 1 story point from the GM's pool to the players' pool."
+   }
+  ],
+  "startingSkills": [
+   {
+    "skillName": "",
+    "nameRu": "",
+    "freeRanks": 1,
+    "isChoice": true,
+    "choiceGroup": "any-noncareer",
+    "choiceCount": 2
+   }
+  ],
+  "source": "Genesys Core Rulebook, с. 36",
+  "safeEn": "A flexible baseline human archetype. Ability — Ready for Anything: once per encounter, as an out-of-turn incidental, move 1 story point from the GM's pool to the players' pool. Starting skills: 1 rank in each of two different non-career skills."
+ },
+ {
+  "system": "GenesysCore",
+  "code": "gc.archetype.laborer",
+  "name": "Laborer",
+  "nameRu": "Трудяга",
+  "brawn": 3,
+  "agility": 2,
+  "intellect": 2,
+  "cunning": 2,
+  "willpower": 1,
+  "presence": 2,
+  "woundBase": 12,
+  "strainBase": 8,
+  "startingXp": 100,
+  "safe": "Сильный и выносливый архетип для физического труда и ближнего боя. Способность — Крепкий орешек: 1 раз за встречу после получения критической травмы можно потратить 1 очко сюжета, чтобы считать результат броска критической травмы равным 01. Стартовые навыки: Атлетика 1.",
+  "abilities": [
+   {
+    "code": "gc.archetype.laborer.ability.1",
+    "nameRu": "Крепкий орешек",
+    "nameEn": "",
+    "safe": "Крепкий орешек: 1 раз за встречу после получения критической травмы можно потратить 1 очко сюжета, чтобы считать результат броска критической травмы равным 01.",
+    "automationKind": "Manual",
+    "safeEn": "Tough as Nails: once per encounter after suffering a critical injury, spend 1 story point to count the critical injury roll as 01."
+   }
+  ],
+  "startingSkills": [
+   {
+    "skillName": "Athletics",
+    "nameRu": "Атлетика",
+    "freeRanks": 1,
+    "isChoice": false,
+    "choiceGroup": "",
+    "choiceCount": 0
+   }
+  ],
+  "source": "Genesys Core Rulebook, с. 37",
+  "safeEn": "A strong and hardy archetype for physical work and melee combat. Ability — Tough as Nails: once per encounter after suffering a critical injury, spend 1 story point to count the critical injury roll as 01. Starting skills: Athletics 1."
+ },
+ {
+  "system": "GenesysCore",
+  "code": "gc.archetype.intellectual",
+  "name": "Intellectual",
+  "nameRu": "Интеллектуал",
+  "brawn": 2,
+  "agility": 1,
+  "intellect": 3,
+  "cunning": 2,
+  "willpower": 2,
+  "presence": 2,
+  "woundBase": 8,
+  "strainBase": 12,
+  "startingXp": 100,
+  "safe": "Архетип учёного, врача, преподавателя, мага или другого умственного труда. Способность — Гениальность: 1 раз за встречу, свободным действием, потратить 1 очко сюжета; в следующей проверке в этом ходу ранг навыка считается равным Интеллекту. Стартовые навыки: Знание 1.",
+  "abilities": [
+   {
+    "code": "gc.archetype.intellectual.ability.1",
+    "nameRu": "Гениальность",
+    "nameEn": "",
+    "safe": "Гениальность: 1 раз за встречу, свободным действием, потратить 1 очко сюжета; в следующей проверке в этом ходу ранг навыка считается равным Интеллекту.",
+    "automationKind": "Manual",
+    "safeEn": "Brilliant: once per encounter, as an incidental, spend 1 story point; for the next check this turn, the skill's ranks count as equal to Intellect."
+   }
+  ],
+  "startingSkills": [
+   {
+    "skillName": "Knowledge",
+    "nameRu": "Знание",
+    "freeRanks": 1,
+    "isChoice": false,
+    "choiceGroup": "",
+    "choiceCount": 0
+   }
+  ],
+  "source": "Genesys Core Rulebook, с. 38",
+  "safeEn": "An archetype for a scientist, doctor, teacher, mage or other intellectual profession. Ability — Brilliant: once per encounter, as an incidental, spend 1 story point; for the next check this turn, the skill's ranks count as equal to Intellect. Starting skills: Knowledge 1."
+ },
+ {
+  "system": "GenesysCore",
+  "code": "gc.archetype.aristocrat",
+  "name": "Aristocrat",
+  "nameRu": "Аристократ",
+  "brawn": 1,
+  "agility": 2,
+  "intellect": 2,
+  "cunning": 2,
+  "willpower": 2,
+  "presence": 3,
+  "woundBase": 10,
+  "strainBase": 10,
+  "startingXp": 100,
+  "safe": "Социальный архетип для дворянина, политика, барда, торговца или переговорщика. Способность — Сильная личность: 1 раз за встречу, свободным действием, потратить 1 очко сюжета; следующая проверка навыка в этом ходу удваивает причиняемую или исцеляемую усталость. Стартовые навыки: Хладнокровие 1.",
+  "abilities": [
+   {
+    "code": "gc.archetype.aristocrat.ability.1",
+    "nameRu": "Сильная личность",
+    "nameEn": "",
+    "safe": "Сильная личность: 1 раз за встречу, свободным действием, потратить 1 очко сюжета; следующая проверка навыка в этом ходу удваивает причиняемую или исцеляемую усталость.",
+    "automationKind": "Manual",
+    "safeEn": "Forceful Personality: once per encounter, as an incidental, spend 1 story point; the next skill check this turn doubles the strain it inflicts or heals."
+   }
+  ],
+  "startingSkills": [
+   {
+    "skillName": "Cool",
+    "nameRu": "Хладнокровие",
+    "freeRanks": 1,
+    "isChoice": false,
+    "choiceGroup": "",
+    "choiceCount": 0
+   }
+  ],
+  "source": "Genesys Core Rulebook, с. 39",
+  "safeEn": "A social archetype for a noble, politician, bard, merchant or negotiator. Ability — Forceful Personality: once per encounter, as an incidental, spend 1 story point; the next skill check this turn doubles the strain it inflicts or heals. Starting skills: Cool 1."
+ },
+ {
+  "system": "RealmsOfTerrinoth",
+  "code": "rot.archetype.human",
+  "name": "Human",
+  "nameRu": "Человек",
+  "brawn": 2,
+  "agility": 2,
+  "intellect": 2,
+  "cunning": 2,
+  "willpower": 2,
+  "presence": 2,
+  "woundBase": 10,
+  "strainBase": 10,
+  "startingXp": 110,
+  "safe": "В RoT люди не делятся на подвиды с отдельными правилами; навыки можно выбрать по происхождению. Способность — Готов к приключениям: 1 раз за сессию свободным действием вне хода перемещает 1 очко сюжета из пула ведущего в пул игроков. Стартовые навыки: 1 ранг в двух разных некарьерных навыках.",
+  "abilities": [
+   {
+    "code": "rot.archetype.human.ability.1",
+    "nameRu": "Готов к приключениям",
+    "nameEn": "",
+    "safe": "Готов к приключениям: 1 раз за сессию свободным действием вне хода перемещает 1 очко сюжета из пула ведущего в пул игроков.",
+    "automationKind": "Manual",
+    "safeEn": "Ready for Adventure: once per session, as an out-of-turn incidental, move 1 story point from the GM's pool to the players' pool."
+   }
+  ],
+  "startingSkills": [
+   {
+    "skillName": "",
+    "nameRu": "",
+    "freeRanks": 1,
+    "isChoice": true,
+    "choiceGroup": "any-noncareer",
+    "choiceCount": 2
+   }
+  ],
+  "source": "Realms of Terrinoth, с. 61",
+  "safeEn": "In RoT humans are not split into subspecies with separate rules; skills can be chosen by background. Ability — Ready for Adventure: once per session, as an out-of-turn incidental, move 1 story point from the GM's pool to the players' pool. Starting skills: 1 rank in each of two different non-career skills."
+ },
+ {
+  "system": "RealmsOfTerrinoth",
+  "code": "rot.archetype.deep-elf",
+  "name": "Deep Elf",
+  "nameRu": "Глубинный эльф",
+  "brawn": 2,
+  "agility": 3,
+  "intellect": 2,
+  "cunning": 2,
+  "willpower": 1,
+  "presence": 2,
+  "woundBase": 9,
+  "strainBase": 10,
+  "startingXp": 90,
+  "safe": "Эльфы, посвятившие себя охоте на силы Инфернаэля. Способность — Знание Инфернаэля: получает Знание (запретное) как карьерный навык и начинает с 2 рангами в нём. Стартовые навыки: Выдержка 1; Знание (запретное) 2.",
+  "abilities": [
+   {
+    "code": "rot.archetype.deep-elf.ability.1",
+    "nameRu": "Знание Инфернаэля",
+    "nameEn": "",
+    "safe": "Знание Инфернаэля: получает Знание (запретное) как карьерный навык и начинает с 2 рангами в нём.",
+    "automationKind": "Manual",
+    "safeEn": "Ynfernael Lore: gains Knowledge (Forbidden) as a career skill and starts with 2 ranks in it."
+   }
+  ],
+  "startingSkills": [
+   {
+    "skillName": "Discipline",
+    "nameRu": "Выдержка",
+    "freeRanks": 1,
+    "isChoice": false,
+    "choiceGroup": "",
+    "choiceCount": 0
+   },
+   {
+    "skillName": "Knowledge (Forbidden)",
+    "nameRu": "Знание (запретное)",
+    "freeRanks": 2,
+    "isChoice": false,
+    "choiceGroup": "",
+    "choiceCount": 0
+   }
+  ],
+  "source": "Realms of Terrinoth, с. 63",
+  "safeEn": "Elves devoted to hunting the forces of the Ynfernael. Ability — Ynfernael Lore: gains Knowledge (Forbidden) as a career skill and starts with 2 ranks in it. Starting skills: Discipline 1; Knowledge (Forbidden) 2."
+ },
+ {
+  "system": "RealmsOfTerrinoth",
+  "code": "rot.archetype.free-cities-elf",
+  "name": "Free Cities Elf",
+  "nameRu": "Эльф Свободных городов",
+  "brawn": 2,
+  "agility": 3,
+  "intellect": 2,
+  "cunning": 2,
+  "willpower": 1,
+  "presence": 2,
+  "woundBase": 9,
+  "strainBase": 10,
+  "startingXp": 90,
+  "safe": "Эльфы, отказавшиеся от племенной иерархии и живущие среди короткоживущих народов. Способность — Проворство: ближняя и дальняя защита 1. Стартовые навыки: Уличная интуиция 1.",
+  "abilities": [
+   {
+    "code": "rot.archetype.free-cities-elf.ability.1",
+    "nameRu": "Проворство",
+    "nameEn": "",
+    "safe": "Проворство: ближняя и дальняя защита 1.",
+    "automationKind": "Manual",
+    "safeEn": "Nimble: melee and ranged defense 1."
+   }
+  ],
+  "startingSkills": [
+   {
+    "skillName": "Streetwise",
+    "nameRu": "Уличная интуиция",
+    "freeRanks": 1,
+    "isChoice": false,
+    "choiceGroup": "",
+    "choiceCount": 0
+   }
+  ],
+  "source": "Realms of Terrinoth, с. 63",
+  "safeEn": "Elves who abandoned tribal hierarchy to live among short-lived peoples. Ability — Nimble: melee and ranged defense 1. Starting skills: Streetwise 1."
+ },
+ {
+  "system": "RealmsOfTerrinoth",
+  "code": "rot.archetype.highborn-elf",
+  "name": "Highborn Elf",
+  "nameRu": "Высокородный эльф",
+  "brawn": 2,
+  "agility": 3,
+  "intellect": 2,
+  "cunning": 2,
+  "willpower": 1,
+  "presence": 2,
+  "woundBase": 9,
+  "strainBase": 10,
+  "startingXp": 90,
+  "safe": "Эльфийская знать с сильной связью с древним наследием. Способность — Эмпирейская магия: получает Веру как карьерный навык и начинает с 1 рангом в Вере. Стартовые навыки: Переговоры 1; Вера 1.",
+  "abilities": [
+   {
+    "code": "rot.archetype.highborn-elf.ability.1",
+    "nameRu": "Эмпирейская магия",
+    "nameEn": "",
+    "safe": "Эмпирейская магия: получает Веру как карьерный навык и начинает с 1 рангом в Вере.",
+    "automationKind": "Manual",
+    "safeEn": "Empyrean Magic: gains Divine as a career skill and starts with 1 rank in it."
+   }
+  ],
+  "startingSkills": [
+   {
+    "skillName": "Negotiation",
+    "nameRu": "Переговоры",
+    "freeRanks": 1,
+    "isChoice": false,
+    "choiceGroup": "",
+    "choiceCount": 0
+   },
+   {
+    "skillName": "Divine",
+    "nameRu": "Вера",
+    "freeRanks": 1,
+    "isChoice": false,
+    "choiceGroup": "",
+    "choiceCount": 0
+   }
+  ],
+  "source": "Realms of Terrinoth, с. 63",
+  "safeEn": "Elven nobility with a strong bond to their ancient heritage. Ability — Empyrean Magic: gains Divine as a career skill and starts with 1 rank in it. Starting skills: Negotiation 1; Divine 1."
+ },
+ {
+  "system": "RealmsOfTerrinoth",
+  "code": "rot.archetype.lowborn-elf",
+  "name": "Lowborn Elf",
+  "nameRu": "Низкородный эльф",
+  "brawn": 2,
+  "agility": 3,
+  "intellect": 2,
+  "cunning": 2,
+  "willpower": 1,
+  "presence": 2,
+  "woundBase": 9,
+  "strainBase": 10,
+  "startingXp": 90,
+  "safe": "Практичные лесные эльфы, охотники, воины и защитники дикой природы. Способность — Проворство: ближняя и дальняя защита 1. Стартовые навыки: Выживание 1.",
+  "abilities": [
+   {
+    "code": "rot.archetype.lowborn-elf.ability.1",
+    "nameRu": "Проворство",
+    "nameEn": "",
+    "safe": "Проворство: ближняя и дальняя защита 1.",
+    "automationKind": "Manual",
+    "safeEn": "Nimble: melee and ranged defense 1."
+   }
+  ],
+  "startingSkills": [
+   {
+    "skillName": "Survival",
+    "nameRu": "Выживание",
+    "freeRanks": 1,
+    "isChoice": false,
+    "choiceGroup": "",
+    "choiceCount": 0
+   }
+  ],
+  "source": "Realms of Terrinoth, с. 63",
+  "safeEn": "Practical forest elves — hunters, warriors and wardens of the wild. Ability — Nimble: melee and ranged defense 1. Starting skills: Survival 1."
+ },
+ {
+  "system": "RealmsOfTerrinoth",
+  "code": "rot.archetype.dunwarr-dwarf",
+  "name": "Dunwarr Dwarf",
+  "nameRu": "Дунваррский дварф",
+  "brawn": 2,
+  "agility": 1,
+  "intellect": 2,
+  "cunning": 2,
+  "willpower": 3,
+  "presence": 2,
+  "woundBase": 11,
+  "strainBase": 10,
+  "startingXp": 90,
+  "safe": "Подземные дварфы Дунварра, наследники древней горной культуры. Способность — Ночное зрение: убирает до 2 штрафных кубов от темноты. Крепкий орешек: 1 раз за сессию после критической травмы потратить очко сюжета и считать результат 01. Стартовые навыки: Стойкость 1.",
+  "abilities": [
+   {
+    "code": "rot.archetype.dunwarr-dwarf.ability.1",
+    "nameRu": "Ночное зрение",
+    "nameEn": "",
+    "safe": "Ночное зрение: убирает до 2 штрафных кубов от темноты.",
+    "automationKind": "Manual",
+    "safeEn": "Dark Vision: removes up to 2 setback dice imposed by darkness."
+   },
+   {
+    "code": "rot.archetype.dunwarr-dwarf.ability.2",
+    "nameRu": "Крепкий орешек",
+    "nameEn": "",
+    "safe": "Крепкий орешек: 1 раз за сессию после критической травмы потратить очко сюжета и считать результат 01.",
+    "automationKind": "Manual",
+    "safeEn": "Tough as Nails: once per session after a critical injury, spend a story point to count the result as 01."
+   }
+  ],
+  "startingSkills": [
+   {
+    "skillName": "Resilience",
+    "nameRu": "Стойкость",
+    "freeRanks": 1,
+    "isChoice": false,
+    "choiceGroup": "",
+    "choiceCount": 0
+   }
+  ],
+  "source": "Realms of Terrinoth, с. 65",
+  "safeEn": "The deep dwarves of Dunwarr, heirs of an ancient mountain culture. Ability — Dark Vision: removes up to 2 setback dice imposed by darkness. Tough as Nails: once per session after a critical injury, spend a story point to count the result as 01. Starting skills: Resilience 1."
+ },
+ {
+  "system": "RealmsOfTerrinoth",
+  "code": "rot.archetype.forge-dwarf",
+  "name": "Forge Dwarf",
+  "nameRu": "Дварф Кузни",
+  "brawn": 2,
+  "agility": 1,
+  "intellect": 2,
+  "cunning": 2,
+  "willpower": 3,
+  "presence": 2,
+  "woundBase": 11,
+  "strainBase": 10,
+  "startingXp": 90,
+  "safe": "Дварфы, живущие в городах и торговых поселениях среди других народов. Способность — Упрямство: добавляет штрафной куб к социальным проверкам, направленным против него. Крепкий орешек: как у дварфов. Стартовые навыки: Переговоры 1.",
+  "abilities": [
+   {
+    "code": "rot.archetype.forge-dwarf.ability.1",
+    "nameRu": "Упрямство",
+    "nameEn": "",
+    "safe": "Упрямство: добавляет штрафной куб к социальным проверкам, направленным против него.",
+    "automationKind": "Manual",
+    "safeEn": "Stubborn: adds a setback die to social checks targeting them."
+   },
+   {
+    "code": "rot.archetype.forge-dwarf.ability.2",
+    "nameRu": "Крепкий орешек",
+    "nameEn": "",
+    "safe": "Крепкий орешек: как у дварфов.",
+    "automationKind": "Manual",
+    "safeEn": "Tough as Nails: as other dwarves."
+   }
+  ],
+  "startingSkills": [
+   {
+    "skillName": "Negotiation",
+    "nameRu": "Переговоры",
+    "freeRanks": 1,
+    "isChoice": false,
+    "choiceGroup": "",
+    "choiceCount": 0
+   }
+  ],
+  "source": "Realms of Terrinoth, с. 65",
+  "safeEn": "Dwarves living in cities and trade settlements among other peoples. Ability — Stubborn: adds a setback die to social checks targeting them. Tough as Nails: as other dwarves. Starting skills: Negotiation 1."
+ },
+ {
+  "system": "RealmsOfTerrinoth",
+  "code": "rot.archetype.broken-plains-orc",
+  "name": "Broken Plains Orc",
+  "nameRu": "Орк Разбитых равнин",
+  "brawn": 3,
+  "agility": 2,
+  "intellect": 2,
+  "cunning": 2,
+  "willpower": 2,
+  "presence": 1,
+  "woundBase": 12,
+  "strainBase": 8,
+  "startingXp": 100,
+  "safe": "Кочевые охотники и воины Разбитых равнин. Способность — Боевая ярость: при атаке в ближнем бою может добавить штрафной куб к проверке, чтобы дать +2 урона одному попаданию. Стартовые навыки: Запугивание 1.",
+  "abilities": [
+   {
+    "code": "rot.archetype.broken-plains-orc.ability.1",
+    "nameRu": "Боевая ярость",
+    "nameEn": "",
+    "safe": "Боевая ярость: при атаке в ближнем бою может добавить штрафной куб к проверке, чтобы дать +2 урона одному попаданию.",
+    "automationKind": "Manual",
+    "safeEn": "Battle Fury: when attacking in melee, may add a setback die to the check to grant +2 damage to one hit."
+   }
+  ],
+  "startingSkills": [
+   {
+    "skillName": "Coercion",
+    "nameRu": "Запугивание",
+    "freeRanks": 1,
+    "isChoice": false,
+    "choiceGroup": "",
+    "choiceCount": 0
+   }
+  ],
+  "source": "Realms of Terrinoth, с. 67",
+  "safeEn": "Nomadic hunters and warriors of the Broken Plains. Ability — Battle Fury: when attacking in melee, may add a setback die to the check to grant +2 damage to one hit. Starting skills: Coercion 1."
+ },
+ {
+  "system": "RealmsOfTerrinoth",
+  "code": "rot.archetype.stone-dweller-orc",
+  "name": "Stone-Dweller Orc",
+  "nameRu": "Орк-каменножитель",
+  "brawn": 3,
+  "agility": 2,
+  "intellect": 2,
+  "cunning": 2,
+  "willpower": 2,
+  "presence": 1,
+  "woundBase": 12,
+  "strainBase": 8,
+  "startingXp": 100,
+  "safe": "Городские орки, часто живущие как наёмники, стражники, солдаты или преступники. Способность — Горячий нрав: когда текущая усталость выше половины порога усталости, добавляет 2 штрафных куба к социальным проверкам и +1 урон одному попаданию каждой атаки ближнего боя. Стартовые навыки: Хладнокровие 1.",
+  "abilities": [
+   {
+    "code": "rot.archetype.stone-dweller-orc.ability.1",
+    "nameRu": "Горячий нрав",
+    "nameEn": "",
+    "safe": "Горячий нрав: когда текущая усталость выше половины порога усталости, добавляет 2 штрафных куба к социальным проверкам и +1 урон одному попаданию каждой атаки ближнего боя.",
+    "automationKind": "Manual",
+    "safeEn": "Hot Temper: while current strain is above half the strain threshold, adds 2 setback dice to social checks and +1 damage to one hit of every melee attack."
+   }
+  ],
+  "startingSkills": [
+   {
+    "skillName": "Cool",
+    "nameRu": "Хладнокровие",
+    "freeRanks": 1,
+    "isChoice": false,
+    "choiceGroup": "",
+    "choiceCount": 0
+   }
+  ],
+  "source": "Realms of Terrinoth, с. 67",
+  "safeEn": "City orcs, often living as mercenaries, guards, soldiers or criminals. Ability — Hot Temper: while current strain is above half the strain threshold, adds 2 setback dice to social checks and +1 damage to one hit of every melee attack. Starting skills: Cool 1."
+ },
+ {
+  "system": "RealmsOfTerrinoth",
+  "code": "rot.archetype.sunderlands-orc",
+  "name": "Sunderlands Orc",
+  "nameRu": "Орк Сандерлендов",
+  "brawn": 3,
+  "agility": 2,
+  "intellect": 2,
+  "cunning": 2,
+  "willpower": 2,
+  "presence": 1,
+  "woundBase": 12,
+  "strainBase": 8,
+  "startingXp": 100,
+  "safe": "Скрытные орки пустынь Аль-Калима, известные алхимией и медициной. Способность — Упорство: после успешного попадания по цели добавляет бонусный куб к боевым проверкам против той же цели до конца встречи. Стартовые навыки: Алхимия 1.",
+  "abilities": [
+   {
+    "code": "rot.archetype.sunderlands-orc.ability.1",
+    "nameRu": "Упорство",
+    "nameEn": "",
+    "safe": "Упорство: после успешного попадания по цели добавляет бонусный куб к боевым проверкам против той же цели до конца встречи.",
+    "automationKind": "Manual",
+    "safeEn": "Tenacity: after successfully hitting a target, adds a boost die to combat checks against that target until the end of the encounter."
+   }
+  ],
+  "startingSkills": [
+   {
+    "skillName": "Alchemy",
+    "nameRu": "Алхимия",
+    "freeRanks": 1,
+    "isChoice": false,
+    "choiceGroup": "",
+    "choiceCount": 0
+   }
+  ],
+  "source": "Realms of Terrinoth, с. 67",
+  "safeEn": "Secretive orcs of the Al-Kalim deserts, known for alchemy and medicine. Ability — Tenacity: after successfully hitting a target, adds a boost die to combat checks against that target until the end of the encounter. Starting skills: Alchemy 1."
+ },
+ {
+  "system": "RealmsOfTerrinoth",
+  "code": "rot.archetype.catfolk",
+  "name": "Catfolk",
+  "nameRu": "Котолюд",
+  "brawn": 2,
+  "agility": 2,
+  "intellect": 1,
+  "cunning": 3,
+  "willpower": 2,
+  "presence": 2,
+  "woundBase": 9,
+  "strainBase": 8,
+  "startingXp": 90,
+  "safe": "Охотники и следопыты с кошачьими чертами. Способность — Когти: может атаковать когтями (Грубая сила; урон +1; крит. 3; вплотную; Злобное 1). Быстрые лапы: второй манёвр движения не требует усталости; лимит двух манёвров за ход сохраняется. Стартовые навыки: Внимание 1.",
+  "abilities": [
+   {
+    "code": "rot.archetype.catfolk.ability.1",
+    "nameRu": "Когти",
+    "nameEn": "",
+    "safe": "Когти: может атаковать когтями (Грубая сила; урон +1; крит. 3; вплотную; Злобное 1).",
+    "automationKind": "Manual",
+    "safeEn": "Claws: may attack with claws (Brawl; damage +1; crit 3; engaged; Vicious 1)."
+   },
+   {
+    "code": "rot.archetype.catfolk.ability.2",
+    "nameRu": "Быстрые лапы",
+    "nameEn": "",
+    "safe": "Быстрые лапы: второй манёвр движения не требует усталости; лимит двух манёвров за ход сохраняется.",
+    "automationKind": "Manual",
+    "safeEn": "Fleet-Footed: a second movement maneuver costs no strain; the two-maneuver-per-turn limit still applies."
+   }
+  ],
+  "startingSkills": [
+   {
+    "skillName": "Perception",
+    "nameRu": "Внимание",
+    "freeRanks": 1,
+    "isChoice": false,
+    "choiceGroup": "",
+    "choiceCount": 0
+   }
+  ],
+  "source": "Realms of Terrinoth, с. 68",
+  "safeEn": "Hunters and trackers with feline features. Ability — Claws: may attack with claws (Brawl; damage +1; crit 3; engaged; Vicious 1). Fleet-Footed: a second movement maneuver costs no strain; the two-maneuver-per-turn limit still applies. Starting skills: Perception 1."
+ },
+ {
+  "system": "RealmsOfTerrinoth",
+  "code": "rot.archetype.half-catfolk",
+  "name": "Half-Catfolk",
+  "nameRu": "Полукотолюд",
+  "brawn": 2,
+  "agility": 2,
+  "intellect": 2,
+  "cunning": 2,
+  "willpower": 2,
+  "presence": 2,
+  "woundBase": 10,
+  "strainBase": 9,
+  "startingXp": 100,
+  "safe": "Потомки котолюдов и представителей других народов. Способность — Кошачья кровь: выбирает либо Когти, либо Быстрые лапы из способностей котолюдов. Стартовые навыки: Хладнокровие 1.",
+  "abilities": [
+   {
+    "code": "rot.archetype.half-catfolk.ability.1",
+    "nameRu": "Кошачья кровь",
+    "nameEn": "",
+    "safe": "Кошачья кровь: выбирает либо Когти, либо Быстрые лапы из способностей котолюдов.",
+    "automationKind": "Manual",
+    "safeEn": "Feline Blood: choose either Claws or Fleet-Footed from the catfolk abilities."
+   }
+  ],
+  "startingSkills": [
+   {
+    "skillName": "Cool",
+    "nameRu": "Хладнокровие",
+    "freeRanks": 1,
+    "isChoice": false,
+    "choiceGroup": "",
+    "choiceCount": 0
+   }
+  ],
+  "source": "Realms of Terrinoth, с. 68",
+  "safeEn": "Descendants of catfolk and other peoples. Ability — Feline Blood: choose either Claws or Fleet-Footed from the catfolk abilities. Starting skills: Cool 1."
+ },
+ {
+  "system": "RealmsOfTerrinoth",
+  "code": "rot.archetype.burrow-gnome",
+  "name": "Burrow Gnome",
+  "nameRu": "Норный гном",
+  "brawn": 1,
+  "agility": 2,
+  "intellect": 2,
+  "cunning": 3,
+  "willpower": 1,
+  "presence": 3,
+  "woundBase": 6,
+  "strainBase": 11,
+  "startingXp": 90,
+  "safe": "Оседлые гномы из нор и туннелей, ориентированные на общину и защиту дома. Способность — Малый: силуэт 0. Обучение ополчения: добавляет бонусный куб к боевым проверкам против целей с большим силуэтом. Стартовые навыки: Обаяние 1; Стойкость 1.",
+  "abilities": [
+   {
+    "code": "rot.archetype.burrow-gnome.ability.1",
+    "nameRu": "Малый",
+    "nameEn": "",
+    "safe": "Малый: силуэт 0.",
+    "automationKind": "Manual",
+    "safeEn": "Small: silhouette 0."
+   },
+   {
+    "code": "rot.archetype.burrow-gnome.ability.2",
+    "nameRu": "Обучение ополчения",
+    "nameEn": "",
+    "safe": "Обучение ополчения: добавляет бонусный куб к боевым проверкам против целей с большим силуэтом.",
+    "automationKind": "Manual",
+    "safeEn": "Militia Training: adds a boost die to combat checks against targets of larger silhouette."
+   }
+  ],
+  "startingSkills": [
+   {
+    "skillName": "Charm",
+    "nameRu": "Обаяние",
+    "freeRanks": 1,
+    "isChoice": false,
+    "choiceGroup": "",
+    "choiceCount": 0
+   },
+   {
+    "skillName": "Resilience",
+    "nameRu": "Стойкость",
+    "freeRanks": 1,
+    "isChoice": false,
+    "choiceGroup": "",
+    "choiceCount": 0
+   }
+  ],
+  "source": "Realms of Terrinoth, с. 69",
+  "safeEn": "Settled gnomes of burrows and tunnels, focused on community and defending their homes. Ability — Small: silhouette 0. Militia Training: adds a boost die to combat checks against targets of larger silhouette. Starting skills: Charm 1; Resilience 1."
+ },
+ {
+  "system": "RealmsOfTerrinoth",
+  "code": "rot.archetype.wanderer-gnome",
+  "name": "Wanderer Gnome",
+  "nameRu": "Бродячий гном",
+  "brawn": 1,
+  "agility": 2,
+  "intellect": 2,
+  "cunning": 3,
+  "willpower": 1,
+  "presence": 3,
+  "woundBase": 6,
+  "strainBase": 11,
+  "startingXp": 90,
+  "safe": "Кочевые гномы-торговцы, артисты и странники. Способность — Малый: силуэт 0. Хитрец: 1 раз за встречу в свой ход может потратить очко сюжета, чтобы достать ранее не указанный небольшой предмет с нагрузкой 1 или меньше и редкостью не выше 4. Стартовые навыки: Обаяние 1; Скрытность 1.",
+  "abilities": [
+   {
+    "code": "rot.archetype.wanderer-gnome.ability.1",
+    "nameRu": "Малый",
+    "nameEn": "",
+    "safe": "Малый: силуэт 0.",
+    "automationKind": "Manual",
+    "safeEn": "Small: silhouette 0."
+   },
+   {
+    "code": "rot.archetype.wanderer-gnome.ability.2",
+    "nameRu": "Хитрец",
+    "nameEn": "",
+    "safe": "Хитрец: 1 раз за встречу в свой ход может потратить очко сюжета, чтобы достать ранее не указанный небольшой предмет с нагрузкой 1 или меньше и редкостью не выше 4.",
+    "automationKind": "Manual",
+    "safeEn": "Trickster: once per encounter on their turn, may spend a story point to produce a previously undeclared small item of encumbrance 1 or less and rarity 4 or lower."
+   }
+  ],
+  "startingSkills": [
+   {
+    "skillName": "Charm",
+    "nameRu": "Обаяние",
+    "freeRanks": 1,
+    "isChoice": false,
+    "choiceGroup": "",
+    "choiceCount": 0
+   },
+   {
+    "skillName": "Stealth",
+    "nameRu": "Скрытность",
+    "freeRanks": 1,
+    "isChoice": false,
+    "choiceGroup": "",
+    "choiceCount": 0
+   }
+  ],
+  "source": "Realms of Terrinoth, с. 69",
+  "safeEn": "Nomadic gnome traders, performers and wanderers. Ability — Small: silhouette 0. Trickster: once per encounter on their turn, may spend a story point to produce a previously undeclared small item of encumbrance 1 or less and rarity 4 or lower. Starting skills: Charm 1; Stealth 1."
+ }
 ]

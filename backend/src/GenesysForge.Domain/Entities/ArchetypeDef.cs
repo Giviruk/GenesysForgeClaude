@@ -23,6 +23,8 @@ public class ArchetypeDef : IContentDef
     public string Description { get; set; } = "";
     /// <summary>Copyright-safe краткое описание для публичной версии (ContentMode.PublicSafe).</summary>
     public string SafeDescription { get; set; } = "";
+    /// <summary>Английское описание — собственный copyright-safe парафраз. Используется в обоих режимах контента.</summary>
+    public string DescriptionEn { get; set; } = "";
     /// <summary>Ссылка на источник: книга/раздел/страница. Доступна в обоих режимах.</summary>
     public string Source { get; set; } = "";
     /// <summary>Null для встроенного контента, UserId для пользовательского homebrew.</summary>

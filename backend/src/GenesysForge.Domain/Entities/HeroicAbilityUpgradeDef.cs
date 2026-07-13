@@ -14,6 +14,8 @@ public class HeroicAbilityUpgradeDef
     public int Cost { get; set; }
     /// <summary>Эффект улучшения (RU-переработка).</summary>
     public string Description { get; set; } = "";
+    /// <summary>Английское описание — собственный copyright-safe парафраз. Используется в обоих режимах контента.</summary>
+    public string DescriptionEn { get; set; } = "";
     /// <summary>Особые условия/заметки улучшения.</summary>
     public string Notes { get; set; } = "";
 }

@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { api } from '../api/client'
 import type { DicePool, GameSystem, Spell } from '../api/types'
 import {
-  difficultyLabel, magicSkillLabel, MAX_SPELL_DIFFICULTY, parseDifficulty, wouldExceedSpellCap,
+  difficultyLabel, localizedDescription, magicSkillLabel, MAX_SPELL_DIFFICULTY, parseDifficulty, wouldExceedSpellCap,
 } from '../utils/labels'
 import { DicePoolView } from './DicePoolView'
 import { PrintPreview } from './print/PrintPreview'
@@ -94,7 +94,7 @@ export function MagicBuilder({ system, characterSkills, onError }: Props) {
     ]
     if (chosen.length) {
       lines.push(t('Доп. эффекты:', 'Additional effects:'))
-      for (const a of chosen) lines.push(t(`  • ${a.nameRu} (${a.nameEn}) ${a.difficulty} — ${a.safeDescription || a.description}`, `  • ${a.nameEn} (${a.nameRu}) ${a.difficulty} — ${a.safeDescription || a.description}`))
+      for (const a of chosen) lines.push(t(`  • ${a.nameRu} (${a.nameEn}) ${a.difficulty} — ${localizedDescription(a)}`, `  • ${a.nameEn} (${a.nameRu}) ${a.difficulty} — ${localizedDescription(a)}`))
     }
     const sources = [...new Set([selectedEffect.source, ...chosen.map(a => a.source)].filter(Boolean))]
     if (sources.length) lines.push(t(`Источники: ${sources.join('; ')}`, `Sources: ${sources.join('; ')}`))
@@ -107,8 +107,8 @@ export function MagicBuilder({ system, characterSkills, onError }: Props) {
     baseEffectEn: selectedEffect?.nameEn ?? '',
     baseDifficulty,
     totalDifficulty,
-    effects: chosen.map(a => ({ ru: a.nameRu, en: a.nameEn, difficulty: a.difficulty, summary: a.safeDescription || a.description })),
-    description: selectedEffect ? (selectedEffect.description || selectedEffect.safeDescription) : '',
+    effects: chosen.map(a => ({ ru: a.nameRu, en: a.nameEn, difficulty: a.difficulty, summary: localizedDescription(a) })),
+    description: selectedEffect ? localizedDescription(selectedEffect) : '',
     sources: selectedEffect ? [...new Set([selectedEffect.source, ...chosen.map(a => a.source)].filter(Boolean))] : [],
     pool: charPool,
   }
@@ -171,14 +171,14 @@ export function MagicBuilder({ system, characterSkills, onError }: Props) {
           {chosen.length > 0 && (
             <div className="chips effect-summary">
               {chosen.map(a => (
-                <span key={a.id} className="chip active removable" title={a.safeDescription || a.description}>
+                <span key={a.id} className="chip active removable" title={localizedDescription(a)}>
                   {t(a.nameRu, a.nameEn)} <span className="effect-chip-diff">{a.difficulty}</span>
                   <button type="button" aria-label={t(`Убрать эффект «${a.nameRu}»`, `Remove effect “${a.nameEn}”`)} onClick={() => toggle(a)}>×</button>
                 </span>
               ))}
             </div>
           )}
-          <p>{selectedEffect.description || selectedEffect.safeDescription}</p>
+          <p>{localizedDescription(selectedEffect)}</p>
           <div className="muted small-text">{t('Источник:', 'Source:')} {selectedEffect.source}</div>
           <div className="card-actions">
             <CopyButton key={buildText()} text={buildText()} onError={onError} />
@@ -209,7 +209,7 @@ export function MagicBuilder({ system, characterSkills, onError }: Props) {
                   const on = selectedIds.has(a.id)
                   const blocked = !on && selectedEffect != null
                     && wouldExceedSpellCap(selectedEffect.difficulty, chosenDifficulties, a.difficulty)
-                  const description = a.safeDescription || a.description
+                  const description = localizedDescription(a)
                   const title = blocked
                     ? t(`Недоступно: базовая ${baseDifficulty} + выбранные ${added} + ${a.difficulty} превысит потолок ${MAX_SPELL_DIFFICULTY}`,
                         `Unavailable: base ${baseDifficulty} + selected ${added} + ${a.difficulty} would exceed the cap of ${MAX_SPELL_DIFFICULTY}`)
@@ -233,7 +233,7 @@ export function MagicBuilder({ system, characterSkills, onError }: Props) {
                     <li key={a.id}>
                       <strong>{t(a.nameRu, a.nameEn)}</strong> <span className="muted small-text">{t(a.nameEn, a.nameRu)}</span>{' '}
                       <span className="effect-chip-diff">{a.difficulty}</span>
-                      <div className="small-text">{a.safeDescription || a.description}</div>
+                      <div className="small-text">{localizedDescription(a)}</div>
                     </li>
                   ))}
                 </ul>

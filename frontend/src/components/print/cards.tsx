@@ -4,7 +4,7 @@ import type {
 import {
   CHARACTERISTIC_LABELS, ENCOUNTER_TYPE_LABELS, ITEM_KIND_LABELS, NPC_KIND_LABELS, NPC_ROLE_LABELS,
   PARTICIPANT_TYPE_LABELS, SLOT_TYPE_LABELS, SYSTEM_LABELS, THREAT_LEVEL_LABELS, difficultyLabel,
-  localizedName, magicSkillLabel, secondaryName,
+  localizedDescription, localizedName, magicSkillLabel, secondaryName,
 } from '../../utils/labels'
 import type { PrintVersion } from './PrintPreview'
 import { t } from '../../i18n'
@@ -176,7 +176,7 @@ export function ItemCard({ item, skillLabel }: { item: SheetItem; skillLabel?: s
         </div>
       )}
       {item.properties && <p><b>{t('Свойства:', 'Properties:')}</b> {item.properties}</p>}
-      {item.description && <p>{item.description}</p>}
+      {localizedDescription(item) && <p>{localizedDescription(item)}</p>}
     </article>
   )
 }
@@ -192,7 +192,7 @@ export function TalentCard({ talent }: { talent: SheetTalent }) {
           {talent.activation && ` · ${talent.activation}`}
         </span>
       </header>
-      {talent.description && <p>{talent.description}</p>}
+      {localizedDescription(talent) && <p>{localizedDescription(talent)}</p>}
     </article>
   )
 }

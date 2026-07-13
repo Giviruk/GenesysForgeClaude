@@ -70,7 +70,7 @@ public static class SheetBuilder
                     t.TalentDef.IsRanked, t.Ranks, t.TalentDef.Activation, t.TalentDef.Description,
                     t.TalentDef.WoundBonus, t.TalentDef.StrainBonus, t.TalentDef.SoakBonus,
                     t.TalentDef.MeleeDefenseBonus, t.TalentDef.RangedDefenseBonus,
-                    t.TalentDef.GrantsCharacteristic, t.ParseGrants()))
+                    t.TalentDef.GrantsCharacteristic, t.ParseGrants(), t.TalentDef.DescriptionEn))
                 .ToList(),
             TalentTierCounter.Count(c.Talents),
             c.HeroicAbility?.ToDto(),
@@ -85,7 +85,8 @@ public static class SheetBuilder
                     SheetCalculator.ItemLoad(new ItemInput(i.ItemDef.Name, i.ItemDef.Kind, i.State,
                         i.ItemDef.Encumbrance, i.Quantity)),
                     i.ItemDef.Description, i.ItemDef.Price,
-                    i.ItemDef.SkillName, i.ItemDef.Damage, i.ItemDef.Crit, i.ItemDef.RangeBand, i.ItemDef.Properties))
+                    i.ItemDef.SkillName, i.ItemDef.Damage, i.ItemDef.Crit, i.ItemDef.RangeBand, i.ItemDef.Properties,
+                    i.ItemDef.DescriptionEn))
                 .ToList(),
             c.Desire, c.Fear, c.Strength, c.Flaw, c.Background,
             c.CriticalInjuries

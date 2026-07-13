@@ -16,6 +16,61 @@ public class ContentSeedTests
             .UseInMemoryDatabase($"content-{Guid.NewGuid():N}").Options);
 
     [Fact]
+    public void BuiltInContent_HasEnglishDescriptions_InBothModes()
+    {
+        foreach (var mode in new[] { ContentMode.PrivateFull, ContentMode.PublicSafe })
+        {
+            using var db = NewDb();
+            SeedData.Apply(db, mode);
+
+            // EN-парафразы встроенного контента присутствуют независимо от режима.
+            Assert.All(db.TalentDefs, t => Assert.False(string.IsNullOrWhiteSpace(t.DescriptionEn)));
+            Assert.All(db.ItemDefs, i => Assert.False(string.IsNullOrWhiteSpace(i.DescriptionEn)));
+            Assert.All(db.QualityDefs, q => Assert.False(string.IsNullOrWhiteSpace(q.DescriptionEn)));
+            Assert.All(db.ArchetypeDefs, a => Assert.False(string.IsNullOrWhiteSpace(a.DescriptionEn)));
+            Assert.All(db.CareerDefs, c => Assert.False(string.IsNullOrWhiteSpace(c.DescriptionEn)));
+            Assert.All(db.HeroicAbilityDefs, h => Assert.False(string.IsNullOrWhiteSpace(h.DescriptionEn)));
+            Assert.All(db.SpellDefs, sp => Assert.False(string.IsNullOrWhiteSpace(sp.DescriptionEn)));
+            // Таблицы правил переведены целиком (body; notes — там, где есть русские notes).
+            Assert.All(db.RuleTableEntries, r => Assert.False(string.IsNullOrWhiteSpace(r.BodyEn)));
+            Assert.All(db.RuleTableEntries, r => Assert.True(r.Notes == "" || r.NotesEn != ""));
+        }
+    }
+
+    [Fact]
+    public void BuiltInTalents_HaveLatinNames()
+    {
+        using var db = NewDb();
+        SeedData.Apply(db, ContentMode.PublicSafe);
+
+        // Оригинальное имя встроенного таланта — английское (кириллица не допускается).
+        Assert.All(db.TalentDefs.Where(t => t.OwnerUserId == null), t =>
+            Assert.DoesNotContain(t.Name, ch => ch >= 'А' && ch <= 'я'));
+    }
+
+    [Fact]
+    public void Sync_UpdatesExistingRows_WithEnglishContent()
+    {
+        using var db = NewDb();
+        SeedData.Apply(db, ContentMode.PublicSafe);
+
+        // Существующая БД со старым (например, русским) именем и без EN-описания
+        // обновляется повторным сидом по стабильному Code без создания дубликатов.
+        var grit = db.TalentDefs.First(t => t.Code == "gc.talent.uporstvo");
+        grit.Name = "Упорство";
+        grit.DescriptionEn = "";
+        db.SaveChanges();
+        var totalBefore = db.TalentDefs.Count();
+
+        SeedData.Apply(db, ContentMode.PublicSafe);
+
+        var after = db.TalentDefs.First(t => t.Code == "gc.talent.uporstvo");
+        Assert.Equal("Grit", after.Name);
+        Assert.False(string.IsNullOrWhiteSpace(after.DescriptionEn));
+        Assert.Equal(totalBefore, db.TalentDefs.Count());
+    }
+
+    [Fact]
     public void PrivateFull_BuiltInContent_HasFullDescriptions()
     {
         using var db = NewDb();
@@ -179,8 +234,8 @@ public class ContentSeedTests
         Assert.DoesNotContain(core.Talents, t => t.Setting.HasFlag(GenesysSetting.Fantasy));
         Assert.Contains(terr.Talents, t => t.Setting.HasFlag(GenesysSetting.Fantasy));
 
-        // Общий талант «для любого сеттинга» (Упорство) виден в обеих системах.
-        Assert.Contains(core.Talents, t => t.Name == "Упорство");
-        Assert.Contains(terr.Talents, t => t.Name == "Упорство");
+        // Общий талант «для любого сеттинга» (Grit / «Упорство») виден в обеих системах.
+        Assert.Contains(core.Talents, t => t.Name == "Grit");
+        Assert.Contains(terr.Talents, t => t.Name == "Grit");
     }
 }

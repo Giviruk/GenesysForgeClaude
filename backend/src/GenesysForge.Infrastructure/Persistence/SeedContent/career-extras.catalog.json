@@ -1,576 +1,577 @@
 [
-  {
-    "code": "rot.career.disciple",
-    "moneyFixed": 0,
-    "moneyDice": "1d100",
-    "gear": [
-      {
-        "itemCode": "mace",
-        "itemNameFallback": "Булава",
-        "quantity": 1,
-        "isChoice": false,
-        "choiceGroup": "",
-        "choiceOption": 0
-      },
-      {
-        "itemCode": "holy-icon",
-        "itemNameFallback": "святой символ",
-        "quantity": 1,
-        "isChoice": true,
-        "choiceGroup": "slot-2",
-        "choiceOption": 0
-      },
-      {
-        "itemCode": "shield",
-        "itemNameFallback": "щит",
-        "quantity": 1,
-        "isChoice": true,
-        "choiceGroup": "slot-2",
-        "choiceOption": 1
-      },
-      {
-        "itemCode": "leather",
-        "itemNameFallback": "кожаная броня",
-        "quantity": 1,
-        "isChoice": true,
-        "choiceGroup": "slot-2",
-        "choiceOption": 1
-      },
-      {
-        "itemCode": "lantern",
-        "itemNameFallback": "фонарь",
-        "quantity": 1,
-        "isChoice": true,
-        "choiceGroup": "slot-3",
-        "choiceOption": 0
-      },
-      {
-        "itemCode": "herbs-of-healing",
-        "itemNameFallback": "целебные травы",
-        "quantity": 2,
-        "isChoice": true,
-        "choiceGroup": "slot-3",
-        "choiceOption": 0
-      },
-      {
-        "itemCode": "adventuring-pack",
-        "itemNameFallback": "дорожный набор",
-        "quantity": 1,
-        "isChoice": true,
-        "choiceGroup": "slot-3",
-        "choiceOption": 1
-      }
-    ],
-    "rules": []
-  },
-  {
-    "code": "rot.career.envoy",
-    "moneyFixed": 200,
-    "moneyDice": "1d100",
-    "gear": [
-      {
-        "itemCode": "dagger",
-        "itemNameFallback": "Кинжал",
-        "quantity": 1,
-        "isChoice": false,
-        "choiceGroup": "",
-        "choiceOption": 0
-      },
-      {
-        "itemCode": "sword",
-        "itemNameFallback": "меч",
-        "quantity": 1,
-        "isChoice": true,
-        "choiceGroup": "slot-2",
-        "choiceOption": 0
-      },
-      {
-        "itemCode": "musical-instrument",
-        "itemNameFallback": "музыкальный инструмент",
-        "quantity": 1,
-        "isChoice": true,
-        "choiceGroup": "slot-2",
-        "choiceOption": 1
-      },
-      {
-        "itemCode": "fine-cloak",
-        "itemNameFallback": "хороший плащ",
-        "quantity": 1,
-        "isChoice": true,
-        "choiceGroup": "slot-3",
-        "choiceOption": 0
-      },
-      {
-        "itemCode": "adventuring-pack",
-        "itemNameFallback": "дорожный набор",
-        "quantity": 1,
-        "isChoice": true,
-        "choiceGroup": "slot-3",
-        "choiceOption": 1
-      },
-      {
-        "itemCode": "padded",
-        "itemNameFallback": "стёганая броня",
-        "quantity": 1,
-        "isChoice": false,
-        "choiceGroup": "",
-        "choiceOption": 0
-      }
-    ],
-    "rules": []
-  },
-  {
-    "code": "rot.career.mage",
-    "moneyFixed": 0,
-    "moneyDice": "1d100",
-    "gear": [
-      {
-        "itemCode": "magic-staff",
-        "itemNameFallback": "Магический посох",
-        "quantity": 1,
-        "isChoice": true,
-        "choiceGroup": "slot-1",
-        "choiceOption": 0
-      },
-      {
-        "itemCode": "magic-wand",
-        "itemNameFallback": "магическая палочка",
-        "quantity": 1,
-        "isChoice": true,
-        "choiceGroup": "slot-1",
-        "choiceOption": 1
-      },
-      {
-        "itemCode": "dagger",
-        "itemNameFallback": "кинжал",
-        "quantity": 1,
-        "isChoice": true,
-        "choiceGroup": "slot-2",
-        "choiceOption": 0
-      },
-      {
-        "itemCode": "sling",
-        "itemNameFallback": "праща",
-        "quantity": 1,
-        "isChoice": true,
-        "choiceGroup": "slot-2",
-        "choiceOption": 1
-      },
-      {
-        "itemCode": "heavy-robes",
-        "itemNameFallback": "тяжёлые одежды",
-        "quantity": 1,
-        "isChoice": true,
-        "choiceGroup": "slot-3",
-        "choiceOption": 0
-      },
-      {
-        "itemCode": "stamina-elixir",
-        "itemNameFallback": "эликсир выносливости",
-        "quantity": 1,
-        "isChoice": true,
-        "choiceGroup": "slot-3",
-        "choiceOption": 1
-      }
-    ],
-    "rules": []
-  },
-  {
-    "code": "rot.career.runemaster",
-    "moneyFixed": 0,
-    "moneyDice": "1d100",
-    "gear": [
-      {
-        "itemCode": "lesser-rune",
-        "itemNameFallback": "малая руна",
-        "quantity": 1,
-        "isChoice": false,
-        "choiceGroup": "",
-        "choiceOption": 0
-      },
-      {
-        "itemCode": "dagger",
-        "itemNameFallback": "кинжал",
-        "quantity": 1,
-        "isChoice": true,
-        "choiceGroup": "slot-2",
-        "choiceOption": 0
-      },
-      {
-        "itemCode": "sling",
-        "itemNameFallback": "праща",
-        "quantity": 1,
-        "isChoice": true,
-        "choiceGroup": "slot-2",
-        "choiceOption": 1
-      },
-      {
-        "itemCode": "heavy-robes",
-        "itemNameFallback": "тяжёлые одежды",
-        "quantity": 1,
-        "isChoice": true,
-        "choiceGroup": "slot-3",
-        "choiceOption": 0
-      },
-      {
-        "itemCode": "stamina-elixir",
-        "itemNameFallback": "эликсир выносливости",
-        "quantity": 1,
-        "isChoice": true,
-        "choiceGroup": "slot-3",
-        "choiceOption": 1
-      }
-    ],
-    "rules": [
-      {
-        "code": "rot.career.runemaster.rule.1",
-        "kind": "Advisory",
-        "description": "Вариант карьеры Mage: Runes вместо Arcana."
-      }
-    ]
-  },
-  {
-    "code": "rot.career.primalist",
-    "moneyFixed": 0,
-    "moneyDice": "1d100",
-    "gear": [
-      {
-        "itemCode": "staff",
-        "itemNameFallback": "Посох",
-        "quantity": 1,
-        "isChoice": true,
-        "choiceGroup": "slot-1",
-        "choiceOption": 0
-      },
-      {
-        "itemCode": "greataxe",
-        "itemNameFallback": "секира",
-        "quantity": 1,
-        "isChoice": true,
-        "choiceGroup": "slot-1",
-        "choiceOption": 1
-      },
-      {
-        "itemCode": "leather",
-        "itemNameFallback": "кожаная броня",
-        "quantity": 1,
-        "isChoice": true,
-        "choiceGroup": "slot-1",
-        "choiceOption": 1
-      },
-      {
-        "itemCode": "apothecarys-kit",
-        "itemNameFallback": "набор аптекаря",
-        "quantity": 1,
-        "isChoice": true,
-        "choiceGroup": "slot-2",
-        "choiceOption": 0
-      },
-      {
-        "itemCode": "adventuring-pack",
-        "itemNameFallback": "дорожный набор",
-        "quantity": 1,
-        "isChoice": true,
-        "choiceGroup": "slot-2",
-        "choiceOption": 1
-      }
-    ],
-    "rules": []
-  },
-  {
-    "code": "rot.career.scholar",
-    "moneyFixed": 0,
-    "moneyDice": "1d100",
-    "gear": [
-      {
-        "itemCode": "dagger",
-        "itemNameFallback": "Кинжал",
-        "quantity": 1,
-        "isChoice": false,
-        "choiceGroup": "",
-        "choiceOption": 0
-      },
-      {
-        "itemCode": "alchemists-kit",
-        "itemNameFallback": "набор алхимика",
-        "quantity": 1,
-        "isChoice": true,
-        "choiceGroup": "slot-2",
-        "choiceOption": 0
-      },
-      {
-        "itemCode": "sword",
-        "itemNameFallback": "меч",
-        "quantity": 1,
-        "isChoice": true,
-        "choiceGroup": "slot-2",
-        "choiceOption": 1
-      },
-      {
-        "itemCode": "lantern",
-        "itemNameFallback": "фонарь",
-        "quantity": 1,
-        "isChoice": true,
-        "choiceGroup": "slot-3",
-        "choiceOption": 0
-      },
-      {
-        "itemCode": "herbs-of-healing",
-        "itemNameFallback": "целебные травы",
-        "quantity": 1,
-        "isChoice": true,
-        "choiceGroup": "slot-3",
-        "choiceOption": 1
-      },
-      {
-        "itemCode": "fine-cloak",
-        "itemNameFallback": "хороший плащ",
-        "quantity": 1,
-        "isChoice": true,
-        "choiceGroup": "slot-4",
-        "choiceOption": 0
-      },
-      {
-        "itemCode": "adventuring-pack",
-        "itemNameFallback": "дорожный набор",
-        "quantity": 1,
-        "isChoice": true,
-        "choiceGroup": "slot-4",
-        "choiceOption": 1
-      }
-    ],
-    "rules": []
-  },
-  {
-    "code": "rot.career.scoundrel",
-    "moneyFixed": 0,
-    "moneyDice": "1d100",
-    "gear": [
-      {
-        "itemCode": "dagger",
-        "itemNameFallback": "Кинжал",
-        "quantity": 1,
-        "isChoice": true,
-        "choiceGroup": "slot-1",
-        "choiceOption": 0
-      },
-      {
-        "itemCode": "cestus",
-        "itemNameFallback": "цестус",
-        "quantity": 1,
-        "isChoice": true,
-        "choiceGroup": "slot-1",
-        "choiceOption": 1
-      },
-      {
-        "itemCode": "sword",
-        "itemNameFallback": "меч",
-        "quantity": 1,
-        "isChoice": true,
-        "choiceGroup": "slot-2",
-        "choiceOption": 0
-      },
-      {
-        "itemCode": "dagger",
-        "itemNameFallback": "кинжал",
-        "quantity": 1,
-        "isChoice": true,
-        "choiceGroup": "slot-2",
-        "choiceOption": 0
-      },
-      {
-        "itemCode": "bow",
-        "itemNameFallback": "лук",
-        "quantity": 1,
-        "isChoice": true,
-        "choiceGroup": "slot-2",
-        "choiceOption": 1
-      },
-      {
-        "itemCode": "fine-cloak",
-        "itemNameFallback": "хороший плащ",
-        "quantity": 1,
-        "isChoice": true,
-        "choiceGroup": "slot-3",
-        "choiceOption": 0
-      },
-      {
-        "itemCode": "thieves-tools",
-        "itemNameFallback": "воровские инструменты",
-        "quantity": 1,
-        "isChoice": true,
-        "choiceGroup": "slot-3",
-        "choiceOption": 1
-      },
-      {
-        "itemCode": "adventuring-pack",
-        "itemNameFallback": "дорожный набор",
-        "quantity": 1,
-        "isChoice": false,
-        "choiceGroup": "",
-        "choiceOption": 0
-      }
-    ],
-    "rules": []
-  },
-  {
-    "code": "rot.career.scout",
-    "moneyFixed": 0,
-    "moneyDice": "1d100",
-    "gear": [
-      {
-        "itemCode": "bow",
-        "itemNameFallback": "Лук",
-        "quantity": 1,
-        "isChoice": true,
-        "choiceGroup": "slot-1",
-        "choiceOption": 0
-      },
-      {
-        "itemCode": "spear-light",
-        "itemNameFallback": "лёгкое копьё",
-        "quantity": 1,
-        "isChoice": true,
-        "choiceGroup": "slot-1",
-        "choiceOption": 1
-      },
-      {
-        "itemCode": "leather",
-        "itemNameFallback": "кожаная броня",
-        "quantity": 1,
-        "isChoice": true,
-        "choiceGroup": "slot-1",
-        "choiceOption": 1
-      },
-      {
-        "itemCode": "dagger",
-        "itemNameFallback": "кинжал",
-        "quantity": 1,
-        "isChoice": true,
-        "choiceGroup": "slot-2",
-        "choiceOption": 0
-      },
-      {
-        "itemCode": "health-elixir",
-        "itemNameFallback": "целебных эликсира",
-        "quantity": 2,
-        "isChoice": true,
-        "choiceGroup": "slot-2",
-        "choiceOption": 1
-      },
-      {
-        "itemCode": "leather",
-        "itemNameFallback": "кожаная броня",
-        "quantity": 1,
-        "isChoice": false,
-        "choiceGroup": "",
-        "choiceOption": 0
-      },
-      {
-        "itemCode": "herbs-of-healing",
-        "itemNameFallback": "целебные травы",
-        "quantity": 1,
-        "isChoice": true,
-        "choiceGroup": "slot-4",
-        "choiceOption": 0
-      },
-      {
-        "itemCode": "climbing-gear",
-        "itemNameFallback": "снаряжение для лазания",
-        "quantity": 1,
-        "isChoice": true,
-        "choiceGroup": "slot-4",
-        "choiceOption": 0
-      },
-      {
-        "itemCode": "winter-clothing",
-        "itemNameFallback": "зимняя одежда",
-        "quantity": 1,
-        "isChoice": true,
-        "choiceGroup": "slot-4",
-        "choiceOption": 1
-      },
-      {
-        "itemCode": "adventuring-pack",
-        "itemNameFallback": "дорожный набор",
-        "quantity": 1,
-        "isChoice": false,
-        "choiceGroup": "",
-        "choiceOption": 0
-      }
-    ],
-    "rules": []
-  },
-  {
-    "code": "rot.career.warrior",
-    "moneyFixed": 0,
-    "moneyDice": "1d100",
-    "gear": [
-      {
-        "itemCode": "sword",
-        "itemNameFallback": "Меч",
-        "quantity": 1,
-        "isChoice": true,
-        "choiceGroup": "slot-1",
-        "choiceOption": 0
-      },
-      {
-        "itemCode": "shield",
-        "itemNameFallback": "щит",
-        "quantity": 1,
-        "isChoice": true,
-        "choiceGroup": "slot-1",
-        "choiceOption": 0
-      },
-      {
-        "itemCode": "axe",
-        "itemNameFallback": "топор",
-        "quantity": 1,
-        "isChoice": true,
-        "choiceGroup": "slot-1",
-        "choiceOption": 1
-      },
-      {
-        "itemCode": "shield",
-        "itemNameFallback": "щит",
-        "quantity": 1,
-        "isChoice": true,
-        "choiceGroup": "slot-1",
-        "choiceOption": 1
-      },
-      {
-        "itemCode": "halberd",
-        "itemNameFallback": "алебарда",
-        "quantity": 1,
-        "isChoice": true,
-        "choiceGroup": "slot-1",
-        "choiceOption": 2
-      },
-      {
-        "itemCode": "leather",
-        "itemNameFallback": "кожаная броня",
-        "quantity": 1,
-        "isChoice": false,
-        "choiceGroup": "",
-        "choiceOption": 0
-      },
-      {
-        "itemCode": "health-elixir",
-        "itemNameFallback": "целебных эликсира",
-        "quantity": 2,
-        "isChoice": false,
-        "choiceGroup": "",
-        "choiceOption": 0
-      },
-      {
-        "itemCode": "adventuring-pack",
-        "itemNameFallback": "дорожный набор",
-        "quantity": 1,
-        "isChoice": false,
-        "choiceGroup": "",
-        "choiceOption": 0
-      }
-    ],
-    "rules": []
-  }
+ {
+  "code": "rot.career.disciple",
+  "moneyFixed": 0,
+  "moneyDice": "1d100",
+  "gear": [
+   {
+    "itemCode": "mace",
+    "itemNameFallback": "Булава",
+    "quantity": 1,
+    "isChoice": false,
+    "choiceGroup": "",
+    "choiceOption": 0
+   },
+   {
+    "itemCode": "holy-icon",
+    "itemNameFallback": "святой символ",
+    "quantity": 1,
+    "isChoice": true,
+    "choiceGroup": "slot-2",
+    "choiceOption": 0
+   },
+   {
+    "itemCode": "shield",
+    "itemNameFallback": "щит",
+    "quantity": 1,
+    "isChoice": true,
+    "choiceGroup": "slot-2",
+    "choiceOption": 1
+   },
+   {
+    "itemCode": "leather",
+    "itemNameFallback": "кожаная броня",
+    "quantity": 1,
+    "isChoice": true,
+    "choiceGroup": "slot-2",
+    "choiceOption": 1
+   },
+   {
+    "itemCode": "lantern",
+    "itemNameFallback": "фонарь",
+    "quantity": 1,
+    "isChoice": true,
+    "choiceGroup": "slot-3",
+    "choiceOption": 0
+   },
+   {
+    "itemCode": "herbs-of-healing",
+    "itemNameFallback": "целебные травы",
+    "quantity": 2,
+    "isChoice": true,
+    "choiceGroup": "slot-3",
+    "choiceOption": 0
+   },
+   {
+    "itemCode": "adventuring-pack",
+    "itemNameFallback": "дорожный набор",
+    "quantity": 1,
+    "isChoice": true,
+    "choiceGroup": "slot-3",
+    "choiceOption": 1
+   }
+  ],
+  "rules": []
+ },
+ {
+  "code": "rot.career.envoy",
+  "moneyFixed": 200,
+  "moneyDice": "1d100",
+  "gear": [
+   {
+    "itemCode": "dagger",
+    "itemNameFallback": "Кинжал",
+    "quantity": 1,
+    "isChoice": false,
+    "choiceGroup": "",
+    "choiceOption": 0
+   },
+   {
+    "itemCode": "sword",
+    "itemNameFallback": "меч",
+    "quantity": 1,
+    "isChoice": true,
+    "choiceGroup": "slot-2",
+    "choiceOption": 0
+   },
+   {
+    "itemCode": "musical-instrument",
+    "itemNameFallback": "музыкальный инструмент",
+    "quantity": 1,
+    "isChoice": true,
+    "choiceGroup": "slot-2",
+    "choiceOption": 1
+   },
+   {
+    "itemCode": "fine-cloak",
+    "itemNameFallback": "хороший плащ",
+    "quantity": 1,
+    "isChoice": true,
+    "choiceGroup": "slot-3",
+    "choiceOption": 0
+   },
+   {
+    "itemCode": "adventuring-pack",
+    "itemNameFallback": "дорожный набор",
+    "quantity": 1,
+    "isChoice": true,
+    "choiceGroup": "slot-3",
+    "choiceOption": 1
+   },
+   {
+    "itemCode": "padded",
+    "itemNameFallback": "стёганая броня",
+    "quantity": 1,
+    "isChoice": false,
+    "choiceGroup": "",
+    "choiceOption": 0
+   }
+  ],
+  "rules": []
+ },
+ {
+  "code": "rot.career.mage",
+  "moneyFixed": 0,
+  "moneyDice": "1d100",
+  "gear": [
+   {
+    "itemCode": "magic-staff",
+    "itemNameFallback": "Магический посох",
+    "quantity": 1,
+    "isChoice": true,
+    "choiceGroup": "slot-1",
+    "choiceOption": 0
+   },
+   {
+    "itemCode": "magic-wand",
+    "itemNameFallback": "магическая палочка",
+    "quantity": 1,
+    "isChoice": true,
+    "choiceGroup": "slot-1",
+    "choiceOption": 1
+   },
+   {
+    "itemCode": "dagger",
+    "itemNameFallback": "кинжал",
+    "quantity": 1,
+    "isChoice": true,
+    "choiceGroup": "slot-2",
+    "choiceOption": 0
+   },
+   {
+    "itemCode": "sling",
+    "itemNameFallback": "праща",
+    "quantity": 1,
+    "isChoice": true,
+    "choiceGroup": "slot-2",
+    "choiceOption": 1
+   },
+   {
+    "itemCode": "heavy-robes",
+    "itemNameFallback": "тяжёлые одежды",
+    "quantity": 1,
+    "isChoice": true,
+    "choiceGroup": "slot-3",
+    "choiceOption": 0
+   },
+   {
+    "itemCode": "stamina-elixir",
+    "itemNameFallback": "эликсир выносливости",
+    "quantity": 1,
+    "isChoice": true,
+    "choiceGroup": "slot-3",
+    "choiceOption": 1
+   }
+  ],
+  "rules": []
+ },
+ {
+  "code": "rot.career.runemaster",
+  "moneyFixed": 0,
+  "moneyDice": "1d100",
+  "gear": [
+   {
+    "itemCode": "lesser-rune",
+    "itemNameFallback": "малая руна",
+    "quantity": 1,
+    "isChoice": false,
+    "choiceGroup": "",
+    "choiceOption": 0
+   },
+   {
+    "itemCode": "dagger",
+    "itemNameFallback": "кинжал",
+    "quantity": 1,
+    "isChoice": true,
+    "choiceGroup": "slot-2",
+    "choiceOption": 0
+   },
+   {
+    "itemCode": "sling",
+    "itemNameFallback": "праща",
+    "quantity": 1,
+    "isChoice": true,
+    "choiceGroup": "slot-2",
+    "choiceOption": 1
+   },
+   {
+    "itemCode": "heavy-robes",
+    "itemNameFallback": "тяжёлые одежды",
+    "quantity": 1,
+    "isChoice": true,
+    "choiceGroup": "slot-3",
+    "choiceOption": 0
+   },
+   {
+    "itemCode": "stamina-elixir",
+    "itemNameFallback": "эликсир выносливости",
+    "quantity": 1,
+    "isChoice": true,
+    "choiceGroup": "slot-3",
+    "choiceOption": 1
+   }
+  ],
+  "rules": [
+   {
+    "code": "rot.career.runemaster.rule.1",
+    "kind": "Advisory",
+    "description": "Вариант карьеры Mage: Runes вместо Arcana.",
+    "descriptionEn": "A variant of the Mage career: Runes instead of Arcana."
+   }
+  ]
+ },
+ {
+  "code": "rot.career.primalist",
+  "moneyFixed": 0,
+  "moneyDice": "1d100",
+  "gear": [
+   {
+    "itemCode": "staff",
+    "itemNameFallback": "Посох",
+    "quantity": 1,
+    "isChoice": true,
+    "choiceGroup": "slot-1",
+    "choiceOption": 0
+   },
+   {
+    "itemCode": "greataxe",
+    "itemNameFallback": "секира",
+    "quantity": 1,
+    "isChoice": true,
+    "choiceGroup": "slot-1",
+    "choiceOption": 1
+   },
+   {
+    "itemCode": "leather",
+    "itemNameFallback": "кожаная броня",
+    "quantity": 1,
+    "isChoice": true,
+    "choiceGroup": "slot-1",
+    "choiceOption": 1
+   },
+   {
+    "itemCode": "apothecarys-kit",
+    "itemNameFallback": "набор аптекаря",
+    "quantity": 1,
+    "isChoice": true,
+    "choiceGroup": "slot-2",
+    "choiceOption": 0
+   },
+   {
+    "itemCode": "adventuring-pack",
+    "itemNameFallback": "дорожный набор",
+    "quantity": 1,
+    "isChoice": true,
+    "choiceGroup": "slot-2",
+    "choiceOption": 1
+   }
+  ],
+  "rules": []
+ },
+ {
+  "code": "rot.career.scholar",
+  "moneyFixed": 0,
+  "moneyDice": "1d100",
+  "gear": [
+   {
+    "itemCode": "dagger",
+    "itemNameFallback": "Кинжал",
+    "quantity": 1,
+    "isChoice": false,
+    "choiceGroup": "",
+    "choiceOption": 0
+   },
+   {
+    "itemCode": "alchemists-kit",
+    "itemNameFallback": "набор алхимика",
+    "quantity": 1,
+    "isChoice": true,
+    "choiceGroup": "slot-2",
+    "choiceOption": 0
+   },
+   {
+    "itemCode": "sword",
+    "itemNameFallback": "меч",
+    "quantity": 1,
+    "isChoice": true,
+    "choiceGroup": "slot-2",
+    "choiceOption": 1
+   },
+   {
+    "itemCode": "lantern",
+    "itemNameFallback": "фонарь",
+    "quantity": 1,
+    "isChoice": true,
+    "choiceGroup": "slot-3",
+    "choiceOption": 0
+   },
+   {
+    "itemCode": "herbs-of-healing",
+    "itemNameFallback": "целебные травы",
+    "quantity": 1,
+    "isChoice": true,
+    "choiceGroup": "slot-3",
+    "choiceOption": 1
+   },
+   {
+    "itemCode": "fine-cloak",
+    "itemNameFallback": "хороший плащ",
+    "quantity": 1,
+    "isChoice": true,
+    "choiceGroup": "slot-4",
+    "choiceOption": 0
+   },
+   {
+    "itemCode": "adventuring-pack",
+    "itemNameFallback": "дорожный набор",
+    "quantity": 1,
+    "isChoice": true,
+    "choiceGroup": "slot-4",
+    "choiceOption": 1
+   }
+  ],
+  "rules": []
+ },
+ {
+  "code": "rot.career.scoundrel",
+  "moneyFixed": 0,
+  "moneyDice": "1d100",
+  "gear": [
+   {
+    "itemCode": "dagger",
+    "itemNameFallback": "Кинжал",
+    "quantity": 1,
+    "isChoice": true,
+    "choiceGroup": "slot-1",
+    "choiceOption": 0
+   },
+   {
+    "itemCode": "cestus",
+    "itemNameFallback": "цестус",
+    "quantity": 1,
+    "isChoice": true,
+    "choiceGroup": "slot-1",
+    "choiceOption": 1
+   },
+   {
+    "itemCode": "sword",
+    "itemNameFallback": "меч",
+    "quantity": 1,
+    "isChoice": true,
+    "choiceGroup": "slot-2",
+    "choiceOption": 0
+   },
+   {
+    "itemCode": "dagger",
+    "itemNameFallback": "кинжал",
+    "quantity": 1,
+    "isChoice": true,
+    "choiceGroup": "slot-2",
+    "choiceOption": 0
+   },
+   {
+    "itemCode": "bow",
+    "itemNameFallback": "лук",
+    "quantity": 1,
+    "isChoice": true,
+    "choiceGroup": "slot-2",
+    "choiceOption": 1
+   },
+   {
+    "itemCode": "fine-cloak",
+    "itemNameFallback": "хороший плащ",
+    "quantity": 1,
+    "isChoice": true,
+    "choiceGroup": "slot-3",
+    "choiceOption": 0
+   },
+   {
+    "itemCode": "thieves-tools",
+    "itemNameFallback": "воровские инструменты",
+    "quantity": 1,
+    "isChoice": true,
+    "choiceGroup": "slot-3",
+    "choiceOption": 1
+   },
+   {
+    "itemCode": "adventuring-pack",
+    "itemNameFallback": "дорожный набор",
+    "quantity": 1,
+    "isChoice": false,
+    "choiceGroup": "",
+    "choiceOption": 0
+   }
+  ],
+  "rules": []
+ },
+ {
+  "code": "rot.career.scout",
+  "moneyFixed": 0,
+  "moneyDice": "1d100",
+  "gear": [
+   {
+    "itemCode": "bow",
+    "itemNameFallback": "Лук",
+    "quantity": 1,
+    "isChoice": true,
+    "choiceGroup": "slot-1",
+    "choiceOption": 0
+   },
+   {
+    "itemCode": "spear-light",
+    "itemNameFallback": "лёгкое копьё",
+    "quantity": 1,
+    "isChoice": true,
+    "choiceGroup": "slot-1",
+    "choiceOption": 1
+   },
+   {
+    "itemCode": "leather",
+    "itemNameFallback": "кожаная броня",
+    "quantity": 1,
+    "isChoice": true,
+    "choiceGroup": "slot-1",
+    "choiceOption": 1
+   },
+   {
+    "itemCode": "dagger",
+    "itemNameFallback": "кинжал",
+    "quantity": 1,
+    "isChoice": true,
+    "choiceGroup": "slot-2",
+    "choiceOption": 0
+   },
+   {
+    "itemCode": "health-elixir",
+    "itemNameFallback": "целебных эликсира",
+    "quantity": 2,
+    "isChoice": true,
+    "choiceGroup": "slot-2",
+    "choiceOption": 1
+   },
+   {
+    "itemCode": "leather",
+    "itemNameFallback": "кожаная броня",
+    "quantity": 1,
+    "isChoice": false,
+    "choiceGroup": "",
+    "choiceOption": 0
+   },
+   {
+    "itemCode": "herbs-of-healing",
+    "itemNameFallback": "целебные травы",
+    "quantity": 1,
+    "isChoice": true,
+    "choiceGroup": "slot-4",
+    "choiceOption": 0
+   },
+   {
+    "itemCode": "climbing-gear",
+    "itemNameFallback": "снаряжение для лазания",
+    "quantity": 1,
+    "isChoice": true,
+    "choiceGroup": "slot-4",
+    "choiceOption": 0
+   },
+   {
+    "itemCode": "winter-clothing",
+    "itemNameFallback": "зимняя одежда",
+    "quantity": 1,
+    "isChoice": true,
+    "choiceGroup": "slot-4",
+    "choiceOption": 1
+   },
+   {
+    "itemCode": "adventuring-pack",
+    "itemNameFallback": "дорожный набор",
+    "quantity": 1,
+    "isChoice": false,
+    "choiceGroup": "",
+    "choiceOption": 0
+   }
+  ],
+  "rules": []
+ },
+ {
+  "code": "rot.career.warrior",
+  "moneyFixed": 0,
+  "moneyDice": "1d100",
+  "gear": [
+   {
+    "itemCode": "sword",
+    "itemNameFallback": "Меч",
+    "quantity": 1,
+    "isChoice": true,
+    "choiceGroup": "slot-1",
+    "choiceOption": 0
+   },
+   {
+    "itemCode": "shield",
+    "itemNameFallback": "щит",
+    "quantity": 1,
+    "isChoice": true,
+    "choiceGroup": "slot-1",
+    "choiceOption": 0
+   },
+   {
+    "itemCode": "axe",
+    "itemNameFallback": "топор",
+    "quantity": 1,
+    "isChoice": true,
+    "choiceGroup": "slot-1",
+    "choiceOption": 1
+   },
+   {
+    "itemCode": "shield",
+    "itemNameFallback": "щит",
+    "quantity": 1,
+    "isChoice": true,
+    "choiceGroup": "slot-1",
+    "choiceOption": 1
+   },
+   {
+    "itemCode": "halberd",
+    "itemNameFallback": "алебарда",
+    "quantity": 1,
+    "isChoice": true,
+    "choiceGroup": "slot-1",
+    "choiceOption": 2
+   },
+   {
+    "itemCode": "leather",
+    "itemNameFallback": "кожаная броня",
+    "quantity": 1,
+    "isChoice": false,
+    "choiceGroup": "",
+    "choiceOption": 0
+   },
+   {
+    "itemCode": "health-elixir",
+    "itemNameFallback": "целебных эликсира",
+    "quantity": 2,
+    "isChoice": false,
+    "choiceGroup": "",
+    "choiceOption": 0
+   },
+   {
+    "itemCode": "adventuring-pack",
+    "itemNameFallback": "дорожный набор",
+    "quantity": 1,
+    "isChoice": false,
+    "choiceGroup": "",
+    "choiceOption": 0
+   }
+  ],
+  "rules": []
+ }
 ]

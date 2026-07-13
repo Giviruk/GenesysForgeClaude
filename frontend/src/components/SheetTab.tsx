@@ -2,8 +2,8 @@ import { useState } from 'react'
 import { api } from '../api/client'
 import type { ActivateCharacterAbilityResult, CharacterSheet, Reference, SkillKind } from '../api/types'
 import {
-  CHARACTERISTICS, CHARACTERISTIC_LABELS, CHARACTERISTIC_SHORT_LABELS, localizedName, secondaryName,
-  SKILL_KIND_LABELS,
+  CHARACTERISTICS, CHARACTERISTIC_LABELS, CHARACTERISTIC_SHORT_LABELS, localizedDescription, localizedName,
+  secondaryName, SKILL_KIND_LABELS,
 } from '../utils/labels'
 import { DicePoolView } from './DicePoolView'
 import { CriticalInjuriesSection } from './CriticalInjuriesSection'
@@ -99,7 +99,7 @@ export function SheetTab({ sheet, reference, onError, refresh }: Props) {
             </div>
           )}
           {heroicPick && !sheet.heroicAbility && (
-            <p className="hint">{reference.heroicAbilities.find(h => h.id === heroicPick)?.description}</p>
+            <p className="hint">{(() => { const h = reference.heroicAbilities.find(x => x.id === heroicPick); return h ? localizedDescription(h) : '' })()}</p>
           )}
         </section>
       )}
@@ -238,7 +238,7 @@ function HeroicAbilityCard({ sheet, run }: {
   return (
     <div className="heroic">
       <strong>{localizedName(h)}</strong>
-      <p>{h.description}</p>
+      <p>{localizedDescription(h)}</p>
       {meta.filter(([, v]) => v).map(([k, v]) => (
         <div key={k} className="hint small-text"><b>{k}:</b> {v}</div>
       ))}
@@ -276,7 +276,7 @@ function HeroicAbilityCard({ sheet, run }: {
                     </button>
                   )}
                 </div>
-                <p>{u.description}</p>
+                <p>{localizedDescription(u)}</p>
                 {u.notes && <p className="hint small-text">{u.notes}</p>}
               </div>
             )

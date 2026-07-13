@@ -33,6 +33,8 @@ export interface SkillDef {
   characteristic: Characteristic
   kind: SkillKind
   safeDescription: string
+  /** Английское описание (собственный copyright-safe парафраз); пусто, если не переведено. */
+  descriptionEn?: string
   source: string
   isCustom: boolean
 }
@@ -48,6 +50,8 @@ export interface TalentDef {
   activation: string
   description: string
   safeDescription: string
+  /** Английское описание (собственный copyright-safe парафраз); пусто, если не переведено. */
+  descriptionEn?: string
   source: string
   woundBonus: number
   strainBonus: number
@@ -70,6 +74,8 @@ export interface ItemDef {
   encumbranceThresholdBonus: number
   description: string
   safeDescription: string
+  /** Английское описание (собственный copyright-safe парафраз); пусто, если не переведено. */
+  descriptionEn?: string
   source: string
   price: number
   rarity: number
@@ -107,6 +113,8 @@ export interface Quality {
   category: string
   description: string
   safeDescription: string
+  /** Английское описание (собственный copyright-safe парафраз); пусто, если не переведено. */
+  descriptionEn?: string
   source: string
 }
 
@@ -114,6 +122,8 @@ export interface HeroicAbilityUpgrade {
   level: number // 1 — улучшенная, 2 — высшая
   cost: number
   description: string
+  /** Английское описание; пусто, если не переведено. */
+  descriptionEn?: string
   notes: string
 }
 
@@ -135,6 +145,8 @@ export interface HeroicAbility {
   nameRu: string
   description: string
   safeDescription: string
+  /** Английское описание (собственный copyright-safe парафраз); пусто, если не переведено. */
+  descriptionEn?: string
   source: string
   isCustom: boolean
   requirement: string
@@ -173,6 +185,8 @@ export interface Spell {
   difficulty: string
   description: string
   safeDescription: string
+  /** Английское описание (собственный copyright-safe парафраз); пусто, если не переведено. */
+  descriptionEn?: string
   source: string
   isCustom: boolean
 }
@@ -184,6 +198,8 @@ export interface ArchetypeAbility {
   nameRu: string
   nameEn: string
   safeDescription: string
+  /** Английское описание (собственный copyright-safe парафраз); пусто, если не переведено. */
+  descriptionEn?: string
   automationKind: ArchetypeAbilityAutomationKind
 }
 
@@ -216,6 +232,8 @@ export interface Archetype {
   startingXp: number
   description: string
   safeDescription: string
+  /** Английское описание (собственный copyright-safe парафраз); пусто, если не переведено. */
+  descriptionEn?: string
   source: string
   isCustom: boolean
   abilities: ArchetypeAbility[]
@@ -237,6 +255,8 @@ export interface CareerRule {
   code: string
   kind: CareerRuleKind
   description: string
+  /** Английское описание; пусто, если не переведено. */
+  descriptionEn?: string
 }
 
 export interface CareerGearChoice {
@@ -250,6 +270,8 @@ export interface Career {
   nameRu: string
   description: string
   safeDescription: string
+  /** Английское описание (собственный copyright-safe парафраз); пусто, если не переведено. */
+  descriptionEn?: string
   source: string
   isCustom: boolean
   careerSkillNames: string[]
@@ -345,6 +367,8 @@ export interface SheetTalent {
   ranks: number
   activation: string
   description: string
+  /** Английское описание; пусто, если не переведено. */
+  descriptionEn?: string
   woundBonus: number
   strainBonus: number
   soakBonus: number
@@ -369,6 +393,8 @@ export interface SheetItem {
   encumbranceThresholdBonus: number
   load: number
   description: string
+  /** Английское описание; пусто, если не переведено. */
+  descriptionEn?: string
   price: number
   skillName: string
   damage: string
@@ -991,11 +1017,17 @@ export interface RuleTableEntry {
   nameRu: string
   nameEn: string
   groupRu: string
+  /** Английское имя группы; пусто → используем groupRu. */
+  groupEn?: string
   sortOrder: number
   rollRange: string
   symbolCost: string
   body: string
+  /** Английский парафраз body; пусто, если не переведено. */
+  bodyEn?: string
   notes: string
+  /** Английский парафраз notes; пусто, если не переведено. */
+  notesEn?: string
   source: string
   sourcePage: string
 }

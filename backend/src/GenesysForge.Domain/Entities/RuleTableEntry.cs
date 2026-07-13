@@ -19,6 +19,8 @@ public class RuleTableEntry
 
     /// <summary>Группа внутри таблицы: тяжесть (криты), ситуация (траты), иначе пусто.</summary>
     public string GroupRu { get; set; } = "";
+    /// <summary>Английское имя группы (может быть пустым — тогда GroupRu).</summary>
+    public string GroupEn { get; set; } = "";
     /// <summary>Порядок сортировки внутри Kind.</summary>
     public int SortOrder { get; set; }
 
@@ -28,8 +30,12 @@ public class RuleTableEntry
     public string SymbolCost { get; set; } = "";
     /// <summary>Основной парафраз-текст эффекта/описания.</summary>
     public string Body { get; set; } = "";
+    /// <summary>Английский парафраз Body (собственный, copyright-safe); может быть пустым.</summary>
+    public string BodyEn { get; set; } = "";
     /// <summary>Доп. примечания (механика/GM), может быть пустым.</summary>
     public string Notes { get; set; } = "";
+    /// <summary>Английский парафраз Notes; может быть пустым.</summary>
+    public string NotesEn { get; set; } = "";
 
     public string Source { get; set; } = "";
     public string SourcePage { get; set; } = "";

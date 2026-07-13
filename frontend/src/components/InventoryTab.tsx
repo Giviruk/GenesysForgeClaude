@@ -2,7 +2,8 @@ import { useMemo, useState } from 'react'
 import { api } from '../api/client'
 import type { CharacterSheet, ItemDef, ItemKind, ItemState, Reference, SheetItem } from '../api/types'
 import {
-  CURRENCY_LABEL, ITEM_KIND_LABELS, ITEM_STATE_LABELS, localizedName, resolveWeaponSkillName, secondaryName,
+  CURRENCY_LABEL, ITEM_KIND_LABELS, ITEM_STATE_LABELS, localizedDescription, localizedName, resolveWeaponSkillName,
+  secondaryName,
 } from '../utils/labels'
 import { itemTags } from '../data/itemQualities'
 import { DicePoolView } from './DicePoolView'
@@ -246,8 +247,8 @@ function ShopRow({ item, money, run, sheetId, open, onToggle }: {
             {item.isCustom && t(' · кастом', ' · custom')}
             {item.kind === 'weapon' && item.damage && t(` · урон ${item.damage}, крит ${item.crit}`, ` · damage ${item.damage}, crit ${item.crit}`)}
           </div>
-          {(item.description || item.safeDescription) &&
-            <div className="muted small-text shop-desc">{item.description || item.safeDescription}</div>}
+          {localizedDescription(item) &&
+            <div className="muted small-text shop-desc">{localizedDescription(item)}</div>}
           {item.properties && <PropertyTags properties={item.properties} className="shop-props small-text" />}
         </div>
         <div className="shop-row-actions">
@@ -321,7 +322,7 @@ function InventoryCard({ item, sheet, skillNames, run, reference, sellOpen, onTo
         </div>
       )}
 
-      {item.description && <div className="inv-card-desc">{item.description}</div>}
+      {localizedDescription(item) && <div className="inv-card-desc">{localizedDescription(item)}</div>}
 
       <div className="inv-card-foot">
         <div className="state-switch">

@@ -30,5 +30,7 @@ public class QualityDef : IContentDef
     public string Description { get; set; } = "";
     /// <summary>Copyright-safe краткое описание.</summary>
     public string SafeDescription { get; set; } = "";
+    /// <summary>Английское описание — собственный copyright-safe парафраз. Используется в обоих режимах контента.</summary>
+    public string DescriptionEn { get; set; } = "";
     public string Source { get; set; } = "";
 }

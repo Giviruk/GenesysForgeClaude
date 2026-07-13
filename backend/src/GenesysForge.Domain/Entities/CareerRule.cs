@@ -11,4 +11,6 @@ public class CareerRule
     public string Code { get; set; } = "";
     public CareerRuleKind Kind { get; set; } = CareerRuleKind.Advisory;
     public string Description { get; set; } = "";
+    /// <summary>Английское описание — собственный copyright-safe парафраз. Используется в обоих режимах контента.</summary>
+    public string DescriptionEn { get; set; } = "";
 }

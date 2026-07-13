@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { api } from '../api/client'
 import type { GameSystem, Spell } from '../api/types'
-import { localizedName, magicSkillLabel } from '../utils/labels'
+import { localizedDescription, localizedName, magicSkillLabel } from '../utils/labels'
 import { t } from '../i18n'
 
 interface Props {
@@ -89,7 +89,7 @@ export function SpellsTab({ system, onError }: Props) {
             <h3>{t(selectedEffect.nameRu, selectedEffect.nameEn)} <span className="muted">· {t(selectedEffect.nameEn, selectedEffect.nameRu)}</span></h3>
             <span className="difficulty-badge">{t('Сложность:', 'Difficulty:')} {selectedEffect.difficulty}</span>
           </div>
-          <p>{selectedEffect.description || selectedEffect.safeDescription}</p>
+          <p>{localizedDescription(selectedEffect)}</p>
           <div className="muted small-text">{t('Источник:', 'Source:')} {selectedEffect.source}</div>
         </section>
       )}
@@ -117,7 +117,7 @@ export function SpellsTab({ system, onError }: Props) {
                         <div className="muted small-text">{t(m.nameEn, m.nameRu)}{m.isCustom && t(' · кастом', ' · custom')}</div>
                       </td>
                       <td className="nowrap">{m.difficulty}</td>
-                      <td>{m.description || m.safeDescription}</td>
+                      <td>{localizedDescription(m)}</td>
                       <td className="muted small-text">{m.source}</td>
                     </tr>
                   ))}

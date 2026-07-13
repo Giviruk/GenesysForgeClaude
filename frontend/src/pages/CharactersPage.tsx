@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState, type ChangeEvent, type FormEv
 import { api } from '../api/client'
 import type { CharacterExport, CharacterListItem, GameSystem, ImportPreview, Reference } from '../api/types'
 import { Icon } from '../components/Icon'
-import { CHARACTERISTICS, CHARACTERISTIC_LABELS, dualName, localizedName, SYSTEM_LABELS } from '../utils/labels'
+import { CHARACTERISTICS, CHARACTERISTIC_LABELS, dualName, localizedDescription, localizedName, SYSTEM_LABELS } from '../utils/labels'
 import { t } from '../i18n'
 
 interface Props {
@@ -394,9 +394,11 @@ export function CreateCharacterForm({ onCancel, onCreated }: { onCancel: () => v
                 .map(s => `${t(s.nameRu || skillRu(s.skillName), skillRu(s.skillName))}${s.freeRanks > 1 ? ` ${s.freeRanks}` : ''}`)
                 .join(', ')}</>
             )}
-            {archetype.abilities.map(ab => (
-              <div key={ab.code}><strong>{ab.nameRu}</strong>{ab.safeDescription ? `: ${ab.safeDescription.replace(new RegExp(`^${ab.nameRu}:\\s*`), '')}` : ''}</div>
-            ))}
+            {archetype.abilities.map(ab => {
+              const desc = localizedDescription({ safeDescription: ab.safeDescription, descriptionEn: ab.descriptionEn })
+              const abilityName = t(ab.nameRu, ab.nameEn || ab.nameRu)
+              return <div key={ab.code}><strong>{abilityName}</strong>{desc ? `: ${desc.replace(new RegExp(`^${abilityName}:\\s*`), '')}` : ''}</div>
+            })}
           </div>
         )}
         {archetype && choiceGroups.map(g => {
@@ -433,7 +435,7 @@ export function CreateCharacterForm({ onCancel, onCreated }: { onCancel: () => v
 
         {career && (
           <div>
-            <div className="hint">{career.description}</div>
+            <div className="hint">{localizedDescription(career)}</div>
             <div className="label-line">{t(
               `Карьерные навыки — отметьте до 4 для бесплатного ранга (${freeSkills.length}/4):`,
               `Career skills — mark up to 4 for a free rank (${freeSkills.length}/4):`,
@@ -468,7 +470,7 @@ export function CreateCharacterForm({ onCancel, onCreated }: { onCancel: () => v
                 </div>
               </div>
             ))}
-            {career.rules.map(r => <div key={r.code} className="hint">{r.description}</div>)}
+            {career.rules.map(r => <div key={r.code} className="hint">{localizedDescription(r)}</div>)}
           </div>
         )}
 

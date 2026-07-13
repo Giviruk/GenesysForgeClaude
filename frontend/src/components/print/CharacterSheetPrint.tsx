@@ -2,8 +2,8 @@ import { useEffect, useState } from 'react'
 import { api } from '../../api/client'
 import type { CharacterNote, CharacterSheet, ItemState, Reference, SheetSkill, SkillKind } from '../../api/types'
 import {
-  CHARACTERISTICS, CHARACTERISTIC_LABELS, ITEM_STATE_LABELS, resolveWeaponSkillName, secondaryName,
-  SKILL_KIND_LABELS, SYSTEM_LABELS, localizedName,
+  CHARACTERISTICS, CHARACTERISTIC_LABELS, ITEM_STATE_LABELS, localizedDescription, localizedName,
+  resolveWeaponSkillName, secondaryName, SKILL_KIND_LABELS, SYSTEM_LABELS,
 } from '../../utils/labels'
 import { DicePoolView } from '../DicePoolView'
 import { t } from '../../i18n'
@@ -93,7 +93,7 @@ export function CharacterSheetPrint({ sheet, loadNotes = true }: {
                 {' · '}{t('уровень', 'tier')} {tal.tier}{tal.isRanked ? t(` · рангов ${tal.ranks}`, ` · ranks ${tal.ranks}`) : ''}
                 {tal.activation ? ` · ${tal.activation}` : ''}
               </span>
-              {tal.description && <div className="sheet-desc">{tal.description}</div>}
+              {localizedDescription(tal) && <div className="sheet-desc">{localizedDescription(tal)}</div>}
             </div>
           ))}
         </section>
@@ -108,10 +108,10 @@ export function CharacterSheetPrint({ sheet, loadNotes = true }: {
               {[h.activation, h.duration, h.frequency].filter(Boolean).map(x => ` · ${x}`).join('')}
               {sheet.heroicUpgradeRank > 0 && t(` · улучшение ${sheet.heroicUpgradeRank}`, ` · upgrade ${sheet.heroicUpgradeRank}`)}
             </span>
-            {h.description && <div className="sheet-desc">{h.description}</div>}
+            {localizedDescription(h) && <div className="sheet-desc">{localizedDescription(h)}</div>}
             {h.upgrades.filter(u => u.level <= sheet.heroicUpgradeRank).map(u => (
               <div key={u.level} className="sheet-desc">
-                ↑ {u.level === 1 ? t('Улучшенная', 'Improved') : t('Высшая', 'Supreme')}: {u.description}
+                ↑ {u.level === 1 ? t('Улучшенная', 'Improved') : t('Высшая', 'Supreme')}: {localizedDescription(u)}
               </div>
             ))}
           </div>

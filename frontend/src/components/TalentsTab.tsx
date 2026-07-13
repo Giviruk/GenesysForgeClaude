@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { api } from '../api/client'
 import type { Characteristic, CharacterSheet, Reference, SheetTalent, TalentCategory, TalentDef } from '../api/types'
 import {
-  CHARACTERISTICS, CHARACTERISTIC_LABELS, localizedName, nextRankTier, secondaryName,
+  CHARACTERISTICS, CHARACTERISTIC_LABELS, localizedDescription, localizedName, nextRankTier, secondaryName,
   TALENT_CATEGORIES, TALENT_CATEGORY_LABELS, talentCost,
 } from '../utils/labels'
 import { canPurchaseTier, canRemoveTier } from '../utils/pyramid'
@@ -88,7 +88,7 @@ export function TalentsTab({ sheet, reference, onError, refresh }: Props) {
       cardsByTier.get(tier)!.push({
         key: `${t.talentDefId}-${r}`,
         name: localizedName(t),
-        description: t.description,
+        description: localizedDescription(t),
         activation: t.activation,
         isRanked: t.isRanked,
         rankNo: t.isRanked ? r + 1 : undefined,
@@ -215,7 +215,7 @@ export function TalentsTab({ sheet, reference, onError, refresh }: Props) {
                         {isPassive ? t('Пассивный', 'Passive') : tal.activation}
                       </span>
                     </div>
-                    <p className="owned-talent-desc muted">{tal.description}</p>
+                    <p className="owned-talent-desc muted">{localizedDescription(tal)}</p>
                     {bonuses.length > 0 && <div className="bonus-line">{bonuses.join(' · ')}</div>}
                   </div>
                 )
@@ -296,7 +296,7 @@ export function TalentsTab({ sheet, reference, onError, refresh }: Props) {
                         {tal.isCustom && <span className="badge custom">{t('Кастом', 'Custom')}</span>}
                         <span className="badge">{tal.activation}</span>
                       </div>
-                      <p className="muted">{tal.description}</p>
+                      <p className="muted">{localizedDescription(tal)}</p>
                     </div>
                     <div className="talent-actions">
                       {sheet.isCreationPhase && ranksOwned > 0 && (() => {

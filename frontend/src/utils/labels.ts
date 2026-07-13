@@ -104,6 +104,19 @@ export const localizedName = (value: { name: string; nameRu?: string | null }) =
   t(value.nameRu?.trim() || value.name, value.name.trim() || value.nameRu?.trim() || '')
 
 /**
+ * Описание контента на языке интерфейса: в EN-режиме — английский парафраз (descriptionEn),
+ * с откатом на русский (полное описание или safe-парафраз), если перевода нет.
+ */
+export const localizedDescription = (value: {
+  description?: string | null
+  safeDescription?: string | null
+  descriptionEn?: string | null
+}): string => {
+  const ru = value.description?.trim() || value.safeDescription?.trim() || ''
+  return t(ru, value.descriptionEn?.trim() || ru)
+}
+
+/**
  * Вторичное (оригинальное/английское) название для RU/ENG отображения.
  * Пустая строка, если оно совпадает с основным (нечего дублировать) или отсутствует.
  */

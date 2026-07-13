@@ -26,11 +26,11 @@ export function CriticalInjuriesSection({ sheet, onError, refresh }: Props) {
       .catch(() => { /* таблица не критична для отображения списка */ })
   }, [])
 
-  // Группировка строк таблицы по тяжести для optgroup'ов.
+  // Группировка строк таблицы по тяжести для optgroup'ов (подпись — на языке интерфейса).
   const groups = useMemo(() => {
     const map = new Map<string, RuleTableEntry[]>()
     for (const e of table) {
-      const g = e.groupRu || t('Прочее', 'Other')
+      const g = (e.groupRu ? t(e.groupRu, e.groupEn || e.groupRu) : t('Прочее', 'Other'))
       const list = map.get(g) ?? []
       list.push(e)
       map.set(g, list)
@@ -103,7 +103,7 @@ export function CriticalInjuriesSection({ sheet, onError, refresh }: Props) {
           {groups.map(([group, entries]) => (
             <optgroup key={group} label={group}>
               {entries.map(e => (
-                <option key={e.code} value={e.code}>{e.rollRange} · {e.nameRu}</option>
+                <option key={e.code} value={e.code}>{e.rollRange} · {t(e.nameRu, e.nameEn || e.nameRu)}</option>
               ))}
             </optgroup>
           ))}
@@ -119,7 +119,7 @@ export function CriticalInjuriesSection({ sheet, onError, refresh }: Props) {
           maxLength={1000} placeholder={t('Заметки (необязательно)', 'Notes (optional)')} aria-label={t('Заметки', 'Notes')} />
         <button className="primary small" type="submit" disabled={busy || !code}>{t('Добавить', 'Add')}</button>
       </form>
-      {selected?.body && <p className="hint small-text">{selected.body}</p>}
+      {selected?.body && <p className="hint small-text">{t(selected.body, selected.bodyEn || selected.body)}</p>}
     </section>
   )
 }

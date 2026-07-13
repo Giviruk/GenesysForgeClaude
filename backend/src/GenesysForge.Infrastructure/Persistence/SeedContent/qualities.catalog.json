@@ -9,6 +9,7 @@
     "category": "Оружие дальнего боя",
     "desc": "Позволяет вести непрерывный огонь и поражать одну цель несколько раз или несколько заранее объявленных целей. При использовании свойства сложность боевой проверки увеличивается на 1. При успехе каждое срабатывание даёт дополнительное попадание с базовым уроном оружия + неотменённые успехи.",
     "safe": "Позволяет вести непрерывный огонь и поражать одну цель несколько раз или несколько заранее объявленных целей.",
+    "safeEn": "Allows continuous fire, hitting one target several times or several pre-declared targets.",
     "source": "Genesys Core Rulebook RUS, с. 86"
   },
   {
@@ -21,6 +22,7 @@
     "category": "Магия / Атака (Attack)",
     "desc": "Позволяет выбрать целью персонажа, находящегося вплотную с заклинателем.",
     "safe": "Позволяет выбрать целью персонажа, находящегося вплотную с заклинателем.",
+    "safeEn": "Allows targeting a character engaged with the caster.",
     "source": "Genesys Corebook RUS - Vector.pdf, с. 215"
   },
   {
@@ -33,6 +35,7 @@
     "category": "Магия / Усиление (Augment)",
     "desc": "Цель увеличивает порог ран на число, равное рангу Знания заклинателя, на время действия заклинания.",
     "safe": "Цель увеличивает порог ран на число, равное рангу Знания заклинателя, на время действия заклинания.",
+    "safeEn": "The target increases their wound threshold by the caster's Knowledge ranks for the duration of the spell.",
     "source": "Genesys Corebook RUS - Vector.pdf, с. 218"
   },
   {
@@ -45,6 +48,7 @@
     "category": "Оружие / транспортное оружие",
     "desc": "Попадание игнорирует броню транспорта: 1 пункт брони за каждый ранг свойства. В персональном масштабе каждый ранг обычно игнорирует 10 пунктов поглощения.",
     "safe": "Попадание игнорирует броню транспорта: 1 пункт брони за каждый ранг свойства.",
+    "safeEn": "A hit ignores vehicle armor: 1 point of armor per rank of the quality.",
     "source": "Genesys Core Rulebook RUS, с. 86"
   },
   {
@@ -57,6 +61,7 @@
     "category": "Магия / Усиление (Augment)",
     "desc": "Цели игнорируют эффекты пересечённой местности и не могут быть обездвижены.",
     "safe": "Цели игнорируют эффекты пересечённой местности и не могут быть обездвижены.",
+    "safeEn": "Targets ignore the effects of difficult terrain and cannot be immobilized.",
     "source": "Genesys Corebook RUS - Vector.pdf, с. 218"
   },
   {
@@ -69,6 +74,7 @@
     "category": "Магия / Призыв (Conjure)",
     "desc": "Позволяет призвать соперника силуэта не больше 3.",
     "safe": "Позволяет призвать соперника силуэта не больше 3.",
+    "safeEn": "Allows summoning a rival of silhouette 3 or smaller.",
     "source": "Genesys Corebook RUS - Vector.pdf, с. 217"
   },
   {
@@ -81,6 +87,7 @@
     "category": "3 преимущества при промахе\"",
     "desc": "Оружие по области",
     "safe": "Оружие по области",
+    "safeEn": "An area weapon: on activation, characters engaged with the original target also suffer a hit; on a miss, 3 Advantage can still trigger the area damage.",
     "source": "Genesys Core Rulebook RUS, с. 86-87"
   },
   {
@@ -93,6 +100,7 @@
     "category": "Магия / Лечение (Heal)",
     "desc": "\"Позволяет выбрать цель, умершую в текущей сцене",
     "safe": "\"Позволяет выбрать цель, умершую в текущей сцене",
+    "safeEn": "Allows choosing a target that died in the current scene.",
     "source": "Genesys Corebook RUS - Vector.pdf, с. 216"
   },
   {
@@ -105,6 +113,7 @@
     "category": "Магия / Лечение (Heal)",
     "desc": "Завершает один длительный эффект состояния, действующий на цель.",
     "safe": "Завершает один длительный эффект состояния, действующий на цель.",
+    "safeEn": "Ends one lasting condition effect affecting the target.",
     "source": "Genesys Corebook RUS - Vector.pdf, с. 216"
   },
   {
@@ -117,6 +126,7 @@
     "category": "Магия / Предсказание (Predict)",
     "desc": "Помимо вопроса, один раз до конца текущей сцены персонаж может добавить 1 бонусную кость к одной своей проверке, а также один раз добавить 1 штрафную кость к проверке, нацеленной на него. После наложения можно потратить 3 преимущества, чтобы вместо обычной выгоды добавить 2 бонусные кости к своей проверке и 2 штрафные кости к проверке против персонажа.",
     "safe": "Помимо вопроса, один раз до конца текущей сцены персонаж может добавить 1 бонусную кость к одной своей проверке, а также один раз добавить 1 штрафную кость к проверке, нацеленной на него.",
+    "safeEn": "Besides the question, once before the end of the current scene the character may add 1 boost die to one of their checks, and once add 1 setback die to a check targeting them.",
     "source": "Expanded Player's Guide, с. 101"
   },
   {
@@ -129,6 +139,7 @@
     "category": "Оружие",
     "desc": "При нанесении критической травмы или критического попадания добавляет +10 к броску по таблице критов за каждый ранг свойства.",
     "safe": "При нанесении критической травмы или критического попадания добавляет +10 к броску по таблице критов за каждый ранг свойства.",
+    "safeEn": "When a critical injury or critical hit is inflicted, adds +10 to the roll on the crit table per rank of the quality.",
     "source": "Genesys Core Rulebook RUS, с. 87"
   },
   {
@@ -141,6 +152,7 @@
     "category": "Оружие",
     "desc": "Для нормального использования нужна Сила не ниже рейтинга свойства. За каждый пункт Силы ниже рейтинга владелец увеличивает сложность всех проверок с этим оружием на 1.",
     "safe": "Для нормального использования нужна Сила не ниже рейтинга свойства.",
+    "safeEn": "Requires Brawn no lower than the quality's rating to use properly.",
     "source": "Genesys Core Rulebook RUS, с. 87"
   },
   {
@@ -153,6 +165,7 @@
     "category": "Магия / Атака (Attack)",
     "desc": "Если атака попадает, можно потратить 1 преимущество, чтобы переместить цель на один диапазон дистанции в любом направлении.",
     "safe": "Если атака попадает, можно потратить 1 преимущество, чтобы переместить цель на один диапазон дистанции в любом направлении.",
+    "safeEn": "If the attack hits, 1 Advantage may be spent to move the target one range band in any direction.",
     "source": "Genesys Corebook RUS - Vector.pdf, с. 215"
   },
   {
@@ -165,6 +178,7 @@
     "category": "Оружие / контроль",
     "desc": "Одна цель, по которой попала атака, становится дезориентированной на число раундов, равное рейтингу свойства. Дезориентированная цель добавляет штрафную кость к проверкам.",
     "safe": "Одна цель, по которой попала атака, становится дезориентированной на число раундов, равное рейтингу свойства.",
+    "safeEn": "One target hit by the attack becomes disoriented for a number of rounds equal to the quality's rating.",
     "source": "Genesys Core Rulebook RUS, с. 87"
   },
   {
@@ -177,6 +191,7 @@
     "category": "Магия / Атака (Attack)",
     "desc": "\"Увеличивает дистанцию заклинания на одну категорию",
     "safe": "\"Увеличивает дистанцию заклинания на одну категорию",
+    "safeEn": "Increases the spell's range by one range band.",
     "source": "Genesys Corebook RUS - Vector.pdf, с. 215"
   },
   {
@@ -189,6 +204,7 @@
     "category": "Магия / Барьер (Barrier)",
     "desc": "Цели получают ближнюю и дальнюю защиту, равную рангу Знания заклинателя.",
     "safe": "Цели получают ближнюю и дальнюю защиту, равную рангу Знания заклинателя.",
+    "safeEn": "Targets gain melee and ranged defense equal to the caster's Knowledge ranks.",
     "source": "Genesys Corebook RUS - Vector.pdf, с. 216"
   },
   {
@@ -201,6 +217,7 @@
     "category": "можно повторять.\"",
     "desc": "Магия / Маска (Mask)",
     "safe": "Магия / Маска (Mask)",
+    "safeEn": "Creates one additional illusion; can be repeated.",
     "source": "Expanded Player's Guide, с. 100"
   },
   {
@@ -213,6 +230,7 @@
     "category": "можно повторять.\"",
     "desc": "Магия / Барьер (Barrier)",
     "safe": "Магия / Барьер (Barrier)",
+    "safeEn": "Affects one additional target; can be repeated.",
     "source": "Genesys Corebook RUS - Vector.pdf, с. 216"
   },
   {
@@ -225,6 +243,7 @@
     "category": "можно повторять.\"",
     "desc": "Магия / Предсказание (Predict)",
     "safe": "Магия / Предсказание (Predict)",
+    "safeEn": "Allows asking one additional question; can be repeated.",
     "source": "Expanded Player's Guide, с. 101"
   },
   {
@@ -237,6 +256,7 @@
     "category": "можно повторять.\"",
     "desc": "Магия / Призыв (Conjure)",
     "safe": "Магия / Призыв (Conjure)",
+    "safeEn": "Summons one additional creature; can be repeated.",
     "source": "Genesys Corebook RUS - Vector.pdf, с. 217"
   },
   {
@@ -249,6 +269,7 @@
     "category": "Оружие / продолжающийся урон",
     "desc": "\"Цель загорается или получает продолжающийся вред. В начале каждого своего хода в течение числа раундов, равного рейтингу, цель получает базовый урон оружия",
     "safe": "\"Цель загорается или получает продолжающийся вред.",
+    "safeEn": "The target catches fire or suffers ongoing harm.",
     "source": "Genesys Core Rulebook RUS, с. 87"
   },
   {
@@ -261,6 +282,7 @@
     "category": "Оружие",
     "desc": "Оружие способно наносить несколько попаданий по одной и той же цели. При успешной атаке каждое срабатывание даёт дополнительное попадание по исходной цели с базовым уроном оружия + неотменённые успехи.",
     "safe": "Оружие способно наносить несколько попаданий по одной и той же цели.",
+    "safeEn": "The weapon can score multiple hits on the same target.",
     "source": "Genesys Core Rulebook RUS, с. 87"
   },
   {
@@ -273,6 +295,7 @@
     "category": "Оружие / транспорт / контроль",
     "desc": "Оружие удерживает цель лучом, полем или иным захватом. Транспортная цель не может перемещаться, пока пилот или управляющий не совершит успешную проверку управления с трудностью, зависящей от рейтинга Захвата. Если цель не транспорт, а персонаж, он становится обездвиженным на время действия эффекта.",
     "safe": "Оружие удерживает цель лучом, полем или иным захватом.",
+    "safeEn": "The weapon holds the target with a beam, field or other grip.",
     "source": "Genesys Core Rulebook RUS, с. 87"
   },
   {
@@ -285,6 +308,7 @@
     "category": "Магия / Маска (Mask)",
     "desc": "Если заклинание нацелено на персонажа, оно создаёт несколько копий, которые двигаются вместе с ним. Пока эффект действует, можно потратить 3 угрозы или 1 крах из любой боевой проверки, нацеленной на персонажа, чтобы атака безвредно попала в зеркальный образ вместо настоящей цели.",
     "safe": "Если заклинание нацелено на персонажа, оно создаёт несколько копий, которые двигаются вместе с ним.",
+    "safeEn": "If the spell targets a character, it creates several copies that move along with them.",
     "source": "Expanded Player's Guide, с. 100"
   },
   {
@@ -297,6 +321,7 @@
     "category": "можно активировать несколько раз для разных целей при нескольких попаданиях.\"",
     "desc": "Магия / Атака (Attack)",
     "safe": "Магия / Атака (Attack)",
+    "safeEn": "The attack gains the Ensnare quality; can be activated several times for different targets on multiple hits.",
     "source": "Genesys Corebook RUS - Vector.pdf, с. 215"
   },
   {
@@ -309,6 +334,7 @@
     "category": "Магия / Лечение (Heal)",
     "desc": "Выбранная критическая травма цели излечивается при успешном заклинании.",
     "safe": "Выбранная критическая травма цели излечивается при успешном заклинании.",
+    "safeEn": "A chosen critical injury of the target is healed on a successful spell.",
     "source": "Genesys Corebook RUS - Vector.pdf, с. 216"
   },
   {
@@ -321,6 +347,7 @@
     "category": "Оружие",
     "desc": "После выстрела оружию нужно время на перезарядку, охлаждение или подготовку. Рейтинг показывает, сколько раундов должно пройти, прежде чем оружие можно использовать снова.",
     "safe": "После выстрела оружию нужно время на перезарядку, охлаждение или подготовку.",
+    "safeEn": "After firing, the weapon needs time to recharge, cool down or reset.",
     "source": "Genesys Core Rulebook RUS, с. 87"
   },
   {
@@ -333,6 +360,7 @@
     "category": "Магия / Предсказание (Predict)",
     "desc": "Вместо вопроса о событиях персонаж добавляет бонусы к проверкам инициативы в следующей структурированной сцене.",
     "safe": "Вместо вопроса о событиях персонаж добавляет бонусы к проверкам инициативы в следующей структурированной сцене.",
+    "safeEn": "Instead of a question about events, the character adds bonuses to initiative checks in the next structured scene.",
     "source": "Expanded Player's Guide, с. 101"
   },
   {
@@ -345,6 +373,7 @@
     "category": "2 преимущества — активировать «Автоматическое» для одного дополнительного попадания после успешной атаки.\"",
     "desc": "Магия / Атака (Attack)",
     "safe": "Магия / Атака (Attack)",
+    "safeEn": "The attack gains Auto-fire: 2 Advantage trigger one additional hit after a successful attack.",
     "source": "Genesys Corebook RUS - Vector.pdf, с. 215"
   },
   {
@@ -357,6 +386,7 @@
     "category": "Оружие / самонаведение",
     "desc": "Если атака промахнулась, свойство можно активировать: снаряд продолжает отслеживать цель. В конце раунда он совершает повторную боевую проверку свободным действием вне хода, используя кости способности по рейтингу Наведения вместо обычного набора.",
     "safe": "Если атака промахнулась, свойство можно активировать: снаряд продолжает отслеживать цель.",
+    "safeEn": "If the attack misses, the quality can be activated: the projectile keeps tracking the target.",
     "source": "Genesys Core Rulebook RUS, с. 87"
   },
   {
@@ -369,6 +399,7 @@
     "category": "Магия / Маска (Mask)",
     "desc": "Если цель - персонаж, заклинание делает его невидимым для зрения вместо изменения внешности.",
     "safe": "Если цель - персонаж, заклинание делает его невидимым для зрения вместо изменения внешности.",
+    "safeEn": "If the target is a character, the spell makes them invisible to sight instead of changing their appearance.",
     "source": "Expanded Player's Guide, с. 100"
   },
   {
@@ -381,6 +412,7 @@
     "category": "Магия / Атака (Attack)",
     "desc": "Атака получает свойство «Оглушающий урон»: наносит урон усталостью вместо ран. Отдельная активация преимуществами не требуется.",
     "safe": "Атака получает свойство «Оглушающий урон»: наносит урон усталостью вместо ран.",
+    "safeEn": "The attack gains the Stun Damage quality: it deals strain instead of wounds.",
     "source": "Genesys Corebook RUS - Vector.pdf, с. 215"
   },
   {
@@ -393,6 +425,7 @@
     "category": "Оружие",
     "desc": "При атаке этим оружием добавляется штрафная кость за каждый ранг свойства.",
     "safe": "При атаке этим оружием добавляется штрафная кость за каждый ранг свойства.",
+    "safeEn": "Attacks with this weapon add a setback die per rank of the quality.",
     "source": "Genesys Core Rulebook RUS, с. 88"
   },
   {
@@ -405,6 +438,7 @@
     "category": "Магия / Проклятье (Curse)",
     "desc": "После проверки цели можно изменить один результат так, чтобы ухудшить её успех.",
     "safe": "После проверки цели можно изменить один результат так, чтобы ухудшить её успех.",
+    "safeEn": "After the target's check, one die result can be changed to worsen their success.",
     "source": "Genesys Corebook RUS - Vector.pdf, с. 217"
   },
   {
@@ -417,6 +451,7 @@
     "category": "Оружие / предмет",
     "desc": "Предмет низкого качества. При всех проверках с использованием такого оружия или предмета автоматически добавляется 1 угроза к результату.",
     "safe": "Предмет низкого качества.",
+    "safeEn": "A low-quality item.",
     "source": "Genesys Core Rulebook RUS, с. 88"
   },
   {
@@ -429,6 +464,7 @@
     "category": "Оружие / контроль",
     "desc": "При активации одна цель, по которой попала атака, становится распластанной.",
     "safe": "При активации одна цель, по которой попала атака, становится распластанной.",
+    "safeEn": "On activation, one target hit by the attack is knocked prone.",
     "source": "Genesys Core Rulebook RUS, с. 88"
   },
   {
@@ -441,6 +477,7 @@
     "category": "Магия / Предсказание (Predict)",
     "desc": "Помимо вопроса, персонаж предвидит возможную гибель в ближайшие 24 часа. Один раз до конца текущей сессии, когда персонаж иначе был бы выведен из строя или убит, можно потратить 1 очко сюжета: персонаж получает раны и усталость до своих порогов, но не превышает их, и выживает.",
     "safe": "Помимо вопроса, персонаж предвидит возможную гибель в ближайшие 24 часа.",
+    "safeEn": "Besides the question, the character foresees a possible death within the next 24 hours.",
     "source": "Expanded Player's Guide, с. 101"
   },
   {
@@ -453,6 +490,7 @@
     "category": "Оружие / щиты / предметы защиты",
     "desc": "Предмет увеличивает ближнюю защиту владельца на значение рейтинга свойства.",
     "safe": "Предмет увеличивает ближнюю защиту владельца на значение рейтинга свойства.",
+    "safeEn": "The item increases the wielder's melee defense by the quality's rating.",
     "source": "Genesys Core Rulebook RUS, с. 88"
   },
   {
@@ -465,6 +503,7 @@
     "category": "Оружие",
     "desc": "Оружие наносит урон усталости вместо ран. Поскольку это именно урон, он уменьшается поглощением цели.",
     "safe": "Оружие наносит урон усталости вместо ран.",
+    "safeEn": "The weapon deals strain instead of wounds.",
     "source": "Genesys Core Rulebook RUS, с. 88"
   },
   {
@@ -477,6 +516,7 @@
     "category": "Оружие / усталость",
     "desc": "При активации цель получает усталость, равную рейтингу свойства. Это не урон усталости, поэтому поглощение цели не применяется.",
     "safe": "При активации цель получает усталость, равную рейтингу свойства.",
+    "safeEn": "On activation the target suffers strain equal to the quality's rating.",
     "source": "Genesys Core Rulebook RUS, с. 88"
   },
   {
@@ -489,6 +529,7 @@
     "category": "Магия / Атака (Attack)",
     "desc": "Атака получает свойство «Жжение» с рейтингом, равным рангу Знания заклинателя. Чтобы поджечь цель, после успешного попадания нужно активировать свойство: обычно 2 преимущества.",
     "safe": "Атака получает свойство «Жжение» с рейтингом, равным рангу Знания заклинателя.",
+    "safeEn": "The attack gains the Burn quality with a rating equal to the caster's Knowledge ranks.",
     "source": "Genesys Corebook RUS - Vector.pdf, с. 215"
   },
   {
@@ -501,6 +542,7 @@
     "category": "Оружие / боеприпасы",
     "desc": "Оружие можно использовать ограниченное число раз, равное рейтингу свойства, после чего требуется манёвр для перезарядки и наличие подходящих боеприпасов. Для одноразового оружия вроде гранат рейтинг 1 означает расход предмета.",
     "safe": "Оружие можно использовать ограниченное число раз, равное рейтингу свойства, после чего требуется манёвр для перезарядки и наличие подходящих боеприпасов.",
+    "safeEn": "The weapon can be used a limited number of times equal to the rating, after which it needs a reload maneuver and suitable ammunition.",
     "source": "Genesys Core Rulebook RUS, с. 88"
   },
   {
@@ -513,6 +555,7 @@
     "category": "Магия / Лечение (Heal)",
     "desc": "Позволяет выбирать целями персонажей, выведенных из строя.",
     "safe": "Позволяет выбирать целями персонажей, выведенных из строя.",
+    "safeEn": "Allows targeting incapacitated characters.",
     "source": "Genesys Corebook RUS - Vector.pdf, с. 216"
   },
   {
@@ -525,6 +568,7 @@
     "category": "Магия / Проклятье (Curse)",
     "desc": "Когда цель получает усталость по любой причине, она получает на 1 усталость больше.",
     "safe": "Когда цель получает усталость по любой причине, она получает на 1 усталость больше.",
+    "safeEn": "Whenever the target suffers strain for any reason, they suffer 1 additional strain.",
     "source": "Genesys Corebook RUS - Vector.pdf, с. 217"
   },
   {
@@ -537,6 +581,7 @@
     "category": "Оружие / щиты / предметы защиты",
     "desc": "Предмет увеличивает дальнюю защиту владельца на значение рейтинга свойства.",
     "safe": "Предмет увеличивает дальнюю защиту владельца на значение рейтинга свойства.",
+    "safeEn": "The item increases the wielder's ranged defense by the quality's rating.",
     "source": "Genesys Core Rulebook RUS, с. 88"
   },
   {
@@ -549,6 +594,7 @@
     "category": "Магия / Барьер (Barrier)",
     "desc": "Если противник совершает магическую атаку по цели под этим барьером и на своей проверке получает 3 угрозы или 1 крах, после проверки он сам получает попадание, наносящее урон, равный итоговому урону его атаки.",
     "safe": "Если противник совершает магическую атаку по цели под этим барьером и на своей проверке получает 3 угрозы или 1 крах, после проверки он сам получает попадание, наносящее урон, равный итоговому урону его атаки.",
+    "safeEn": "If an opponent makes a magic attack against a target under this barrier and rolls 3 Threat or 1 Despair, after the check they suffer a hit dealing damage equal to the total damage of their attack.",
     "source": "Genesys Corebook RUS - Vector.pdf, с. 216"
   },
   {
@@ -561,6 +607,7 @@
     "category": "Магия / Проклятье (Curse)",
     "desc": "Пороги ран и усталости цели уменьшаются на ранг Знания заклинателя.",
     "safe": "Пороги ран и усталости цели уменьшаются на ранг Знания заклинателя.",
+    "safeEn": "The target's wound and strain thresholds are reduced by the caster's Knowledge ranks.",
     "source": "Genesys Corebook RUS - Vector.pdf, с. 217"
   },
   {
@@ -573,6 +620,7 @@
     "category": "Оружие / контроль",
     "desc": "При активации одна цель, по которой попала атака, становится ошеломлённой/в замешательстве на число раундов, равное рейтингу свойства. Такая цель не может совершать действия.",
     "safe": "При активации одна цель, по которой попала атака, становится ошеломлённой/в замешательстве на число раундов, равное рейтингу свойства.",
+    "safeEn": "On activation, one target hit by the attack is staggered for a number of rounds equal to the quality's rating.",
     "source": "Genesys Core Rulebook RUS, с. 88"
   },
   {
@@ -585,6 +633,7 @@
     "category": "Магия / Проклятье (Curse)",
     "desc": "Цель становится ошеломлённой на время действия заклинания.",
     "safe": "Цель становится ошеломлённой на время действия заклинания.",
+    "safeEn": "The target is staggered for the duration of the spell.",
     "source": "Genesys Corebook RUS - Vector.pdf, с. 217"
   },
   {
@@ -597,6 +646,7 @@
     "category": "Оружие / повреждение предметов",
     "desc": "\"Атакующий выбирает открыто используемый предмет цели. Этот предмет получает повреждение на одну ступень: целый -> слабое -> среднее -> сильное",
     "safe": "\"Атакующий выбирает открыто используемый предмет цели.",
+    "safeEn": "The attacker picks an item the target is openly using; it is damaged one step.",
     "source": "Genesys Core Rulebook RUS, с. 88"
   },
   {
@@ -609,6 +659,7 @@
     "category": "Оружие / предмет",
     "desc": "Перед использованием предмета нужно потратить число манёвров, равное рейтингу свойства. Для оружия использование означает атаку этим оружием.",
     "safe": "Перед использованием предмета нужно потратить число манёвров, равное рейтингу свойства.",
+    "safeEn": "Before using the item, a number of maneuvers equal to the quality's rating must be spent.",
     "source": "Genesys Core Rulebook RUS, с. 88"
   },
   {
@@ -621,6 +672,7 @@
     "category": "Оружие / предмет высокого качества",
     "desc": "Оружие высокого качества. При всех проверках с использованием такого оружия автоматически добавляется 1 преимущество к результату.",
     "safe": "Оружие высокого качества.",
+    "safeEn": "A high-quality weapon.",
     "source": "Genesys Core Rulebook RUS, с. 88"
   },
   {
@@ -633,6 +685,7 @@
     "category": "Магия / Призыв (Conjure)",
     "desc": "\"Призванное существо дружественно к персонажу и подчиняется его командам",
     "safe": "\"Призванное существо дружественно к персонажу и подчиняется его командам",
+    "safeEn": "The summoned creature is friendly to the character and obeys their commands.",
     "source": "Genesys Corebook RUS - Vector.pdf, с. 217"
   },
   {
@@ -645,6 +698,7 @@
     "category": "Магия / Усиление (Augment)",
     "desc": "\"Цель добавляет к безоружным боевым проверкам дополнительный урон, равный рангу Знания",
     "safe": "\"Цель добавляет к безоружным боевым проверкам дополнительный урон, равный рангу Знания",
+    "safeEn": "The target adds extra damage equal to the Knowledge ranks to unarmed combat checks.",
     "source": "Genesys Corebook RUS - Vector.pdf, с. 218"
   },
   {
@@ -657,6 +711,7 @@
     "category": "Магия / Трансформация (Transform)",
     "desc": "Вместо себя персонаж превращает одну цель на короткой дистанции в животное силуэта 0 по своему выбору.",
     "safe": "Вместо себя персонаж превращает одну цель на короткой дистанции в животное силуэта 0 по своему выбору.",
+    "safeEn": "Instead of themselves, the character transforms one target at short range into a silhouette 0 animal of their choice.",
     "source": "Expanded Player's Guide, с. 101"
   },
   {
@@ -669,6 +724,7 @@
     "category": "Оружие",
     "desc": "Попадание игнорирует поглощение цели в размере, равном рейтингу свойства. Если рейтинг выше поглощения цели, лишнее значение не даёт дополнительного эффекта.",
     "safe": "Попадание игнорирует поглощение цели в размере, равном рейтингу свойства.",
+    "safeEn": "A hit ignores the target's soak up to the quality's rating.",
     "source": "Genesys Core Rulebook RUS, с. 88"
   },
   {
@@ -681,6 +737,7 @@
     "category": "Магия / Маска (Mask)",
     "desc": "\"Увеличивает силуэт создаваемой иллюзии или размер маскируемой цели на 1",
     "safe": "\"Увеличивает силуэт создаваемой иллюзии или размер маскируемой цели на 1",
+    "safeEn": "Increases the silhouette of the created illusion or the size of the disguised target by 1.",
     "source": "Expanded Player's Guide, с. 100"
   },
   {
@@ -693,6 +750,7 @@
     "category": "Магия / Маска (Mask)",
     "desc": "\"Если цель - персонаж, её форма размывается",
     "safe": "\"Если цель - персонаж, её форма размывается",
+    "safeEn": "If the target is a character, their form blurs, making them harder to hit.",
     "source": "Expanded Player's Guide, с. 100"
   },
   {
@@ -705,6 +763,7 @@
     "category": "можно активировать несколько раз по одному и тому же предмету.\"",
     "desc": "Магия / Атака (Attack)",
     "safe": "Магия / Атака (Attack)",
+    "safeEn": "The attack gains the Sunder quality; can be activated several times against the same item.",
     "source": "Genesys Corebook RUS - Vector.pdf, с. 215"
   },
   {
@@ -717,6 +776,7 @@
     "category": "можно повторять.\"",
     "desc": "Магия / Маска (Mask)",
     "safe": "Магия / Маска (Mask)",
+    "safeEn": "The illusion becomes more convincing; can be repeated.",
     "source": "Expanded Player's Guide, с. 100"
   },
   {
@@ -729,6 +789,7 @@
     "category": "Магия / Проклятье (Curse)",
     "desc": "После проверки цели можно повернуть одну любую кость в наборе, не показывающую Триумф или Крах, на другую грань.",
     "safe": "После проверки цели можно повернуть одну любую кость в наборе, не показывающую Триумф или Крах, на другую грань.",
+    "safeEn": "After the target's check, one die in the pool not showing a Triumph or Despair can be turned to a different face.",
     "source": "Genesys Corebook RUS - Vector.pdf, с. 217"
   },
   {
@@ -741,6 +802,7 @@
     "category": "Магия / Барьер (Barrier)",
     "desc": "Враги веры или божества заклинателя автоматически перестают быть вплотную с целью и не могут снова войти вплотную до конца барьера.",
     "safe": "Враги веры или божества заклинателя автоматически перестают быть вплотную с целью и не могут снова войти вплотную до конца барьера.",
+    "safeEn": "Enemies of the caster's faith or deity automatically cease to be engaged with the target and cannot become engaged again until the barrier ends.",
     "source": "Genesys Corebook RUS - Vector.pdf, с. 216"
   },
   {
@@ -753,6 +815,7 @@
     "category": "Магия / Атака (Attack)",
     "desc": "Против целей, признанных врагами веры или божества заклинателя, каждый неотменённый успех даёт +2 урона вместо +1.",
     "safe": "Против целей, признанных врагами веры или божества заклинателя, каждый неотменённый успех даёт +2 урона вместо +1.",
+    "safeEn": "Against targets deemed enemies of the caster's faith or deity, each uncancelled success adds +2 damage instead of +1.",
     "source": "Genesys Corebook RUS - Vector.pdf, с. 215"
   },
   {
@@ -765,6 +828,7 @@
     "category": "Оружие / контроль",
     "desc": "При активации одна цель, по которой попала атака, становится обездвиженной на число раундов, равное рейтингу свойства. Обездвиженная цель не может совершать манёвры.",
     "safe": "При активации одна цель, по которой попала атака, становится обездвиженной на число раундов, равное рейтингу свойства.",
+    "safeEn": "On activation, one target hit by the attack is immobilized for a number of rounds equal to the quality's rating.",
     "source": "Genesys Core Rulebook RUS, с. 89"
   },
   {
@@ -777,6 +841,7 @@
     "category": "Магия / Атака (Attack)",
     "desc": "Атака получает критическое значение 2 и свойство «Высококритичное» с рейтингом, равным рангу Знания. После успешного попадания критическая травма обычно стоит 2 преимущества или 1 триумф.",
     "safe": "Атака получает критическое значение 2 и свойство «Высококритичное» с рейтингом, равным рангу Знания.",
+    "safeEn": "The attack gains a critical rating of 2 and the Vicious quality with a rating equal to the Knowledge ranks.",
     "source": "Genesys Corebook RUS - Vector.pdf, с. 215"
   },
   {
@@ -789,6 +854,7 @@
     "category": "Оружие",
     "desc": "Для нормального использования нужна Ловкость не ниже рейтинга свойства. За каждый пункт Ловкости ниже рейтинга владелец увеличивает сложность всех проверок с этим оружием на 1.",
     "safe": "Для нормального использования нужна Ловкость не ниже рейтинга свойства.",
+    "safeEn": "Requires Agility no lower than the quality's rating to use properly.",
     "source": "Genesys Core Rulebook RUS, с. 89"
   },
   {
@@ -801,6 +867,7 @@
     "category": "Магия / Трансформация (Transform)",
     "desc": "В форме животного персонаж сохраняет собственные Интеллект и Волю вместо характеристик существа.",
     "safe": "В форме животного персонаж сохраняет собственные Интеллект и Волю вместо характеристик существа.",
+    "safeEn": "In animal form the character keeps their own Intellect and Willpower instead of the creature's characteristics.",
     "source": "Expanded Player's Guide, с. 101"
   },
   {
@@ -813,6 +880,7 @@
     "category": "Магия / Призыв (Conjure)",
     "desc": "Позволяет призвать более сложный инструмент с движущимися частями, соперника силуэта не больше 1 или двуручное оружие ближнего боя.",
     "safe": "Позволяет призвать более сложный инструмент с движущимися частями, соперника силуэта не больше 1 или двуручное оружие ближнего боя.",
+    "safeEn": "Allows summoning a more complex tool with moving parts, a rival of silhouette 1 or smaller, or a two-handed melee weapon.",
     "source": "Genesys Corebook RUS - Vector.pdf, с. 217"
   },
   {
@@ -825,6 +893,7 @@
     "category": "Оружие",
     "desc": "Оружием проще целиться. За каждый ранг свойства атакующий добавляет 1 бонусную кость к боевым проверкам с использованием этого оружия.",
     "safe": "Оружием проще целиться.",
+    "safeEn": "The weapon is easier to aim.",
     "source": "Genesys Core Rulebook RUS, с. 89"
   },
   {
@@ -837,6 +906,7 @@
     "category": "Магия / Трансформация (Transform)",
     "desc": "Надетое и удерживаемое снаряжение превращается в естественные отметины на теле животного и возвращается при обратном превращении.",
     "safe": "Надетое и удерживаемое снаряжение превращается в естественные отметины на теле животного и возвращается при обратном превращении.",
+    "safeEn": "Worn and held gear turns into natural markings on the animal's body and returns when the transformation is reversed.",
     "source": "Expanded Player's Guide, с. 101"
   },
   {
@@ -849,6 +919,7 @@
     "category": "Магия / Трансформация (Transform)",
     "desc": "\"Позволяет превратиться в животное на один силуэт крупнее",
     "safe": "\"Позволяет превратиться в животное на один силуэт крупнее",
+    "safeEn": "Allows transforming into an animal one silhouette larger.",
     "source": "Expanded Player's Guide, с. 101"
   },
   {
@@ -861,6 +932,7 @@
     "category": "Магия / Атака (Attack)",
     "desc": "\"Атака получает «Нокдаун» и «Дезориентацию» с рейтингом, равным рангу Знания. Нокдаун активируется за 1 преимущество плюс 1 преимущество за каждый пункт силуэта цели выше 1",
     "safe": "\"Атака получает «Нокдаун» и «Дезориентацию» с рейтингом, равным рангу Знания.",
+    "safeEn": "The attack gains Knockdown and Disorient with a rating equal to the Knowledge ranks.",
     "source": "Genesys Corebook RUS - Vector.pdf, с. 215"
   },
   {
@@ -873,6 +945,7 @@
     "category": "Магия / Маска (Mask)",
     "desc": "\"Иллюзия пугает тех, кто не знает, что она ненастоящая. Когда такой персонаж видит иллюзию, он совершает сложную проверку Discipline/страха",
     "safe": "\"Иллюзия пугает тех, кто не знает, что она ненастоящая.",
+    "safeEn": "The illusion frightens those who do not know it is not real.",
     "source": "Expanded Player's Guide, с. 100"
   },
   {
@@ -885,6 +958,7 @@
     "category": "Магия / Трансформация (Transform)",
     "desc": "Персонаж принимает усиленную версию животного: больше урон оружия, поглощение, порог ран и силуэт.",
     "safe": "Персонаж принимает усиленную версию животного: больше урон оружия, поглощение, порог ран и силуэт.",
+    "safeEn": "The character assumes an empowered version of the animal: higher weapon damage, soak, wound threshold and silhouette.",
     "source": "Expanded Player's Guide, с. 101"
   },
   {
@@ -897,6 +971,7 @@
     "category": "Оружие / броня / предмет",
     "desc": "Оружие или предмет со свойством Укреплённое невосприимчивы к Повреждению. Броня с этим свойством невосприимчива к Бронебойному и Проникающему.",
     "safe": "Оружие или предмет со свойством Укреплённое невосприимчивы к Повреждению.",
+    "safeEn": "A weapon or item with Reinforced is immune to Sunder.",
     "source": "Genesys Core Rulebook RUS, с. 89"
   },
   {
@@ -909,6 +984,7 @@
     "category": "Магия / Атака (Attack)",
     "desc": "Если атака попадает, можно потратить 1 преимущество, чтобы переместить цель на один диапазон дистанции в любом направлении.",
     "safe": "Если атака попадает, можно потратить 1 преимущество, чтобы переместить цель на один диапазон дистанции в любом направлении.",
+    "safeEn": "If the attack hits, 1 Advantage may be spent to move the target one range band in any direction.",
     "source": "Genesys Corebook RUS - Vector.pdf, с. 215"
   },
   {
@@ -921,6 +997,7 @@
     "category": "Магия / Атака (Attack)",
     "desc": "\"Базовый урон атаки равен удвоенному рейтингу характеристики магического навыка",
     "safe": "\"Базовый урон атаки равен удвоенному рейтингу характеристики магического навыка",
+    "safeEn": "The attack's base damage equals twice the rating of the magic skill's characteristic.",
     "source": "Genesys Corebook RUS - Vector.pdf, с. 215"
   },
   {
@@ -933,6 +1010,7 @@
     "category": "Магия / Усиление (Augment)",
     "desc": "\"Цели всегда могут совершать второй манёвр в свой ход без получения усталости",
     "safe": "\"Цели всегда могут совершать второй манёвр в свой ход без получения усталости",
+    "safeEn": "Targets can always perform a second maneuver on their turn without suffering strain.",
     "source": "Genesys Corebook RUS - Vector.pdf, с. 218"
   },
   {
@@ -945,6 +1023,7 @@
     "category": "Магия / Атака (Attack)",
     "desc": "\"Если атака наносит урон, цель немедленно совершает сложную проверку Стойкости. При провале цель получает раны и усталость, каждое значение равно рангу Знания заклинателя. Это считается действием яда",
     "safe": "\"Если атака наносит урон, цель немедленно совершает сложную проверку Стойкости.",
+    "safeEn": "If the attack deals damage, the target immediately makes a Hard Resilience check.",
     "source": "Genesys Corebook RUS - Vector.pdf, с. 215"
   },
   {
@@ -957,6 +1036,7 @@
     "category": "Магия / Предсказание (Predict)",
     "desc": "Вместо вопроса позволяет узнать местоположение одного предмета силуэта 0 в пределах дальней дистанции, если персонаж заранее знает, что ищет.",
     "safe": "Вместо вопроса позволяет узнать местоположение одного предмета силуэта 0 в пределах дальней дистанции, если персонаж заранее знает, что ищет.",
+    "safeEn": "Instead of a question, allows learning the location of one silhouette 0 item within long range, if the character knows in advance what they are looking for.",
     "source": "Expanded Player's Guide, с. 101"
   }
 ]
