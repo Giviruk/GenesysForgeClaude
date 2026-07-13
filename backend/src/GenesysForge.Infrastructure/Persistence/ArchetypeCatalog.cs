@@ -17,9 +17,9 @@ public static class ArchetypeCatalog
         string System, string Code, string Name, string NameRu,
         int Brawn, int Agility, int Intellect, int Cunning, int Willpower, int Presence,
         int WoundBase, int StrainBase, int StartingXp, string Safe, string Source,
-        List<AbilityEntry>? Abilities, List<StartingSkillEntry>? StartingSkills);
+        List<AbilityEntry>? Abilities, List<StartingSkillEntry>? StartingSkills, string SafeEn = "");
 
-    private sealed record AbilityEntry(string Code, string NameRu, string NameEn, string Safe, string AutomationKind);
+    private sealed record AbilityEntry(string Code, string NameRu, string NameEn, string Safe, string AutomationKind, string SafeEn = "");
 
     private sealed record StartingSkillEntry(
         string SkillName, string NameRu, int FreeRanks, bool IsChoice, string ChoiceGroup, int ChoiceCount);
@@ -46,11 +46,12 @@ public static class ArchetypeCatalog
                 Brawn = e.Brawn, Agility = e.Agility, Intellect = e.Intellect,
                 Cunning = e.Cunning, Willpower = e.Willpower, Presence = e.Presence,
                 WoundBase = e.WoundBase, StrainBase = e.StrainBase, StartingXp = e.StartingXp,
-                SafeDescription = e.Safe, Source = e.Source,
+                SafeDescription = e.Safe, DescriptionEn = e.SafeEn, Source = e.Source,
                 Abilities = (e.Abilities ?? []).Select(a => new ArchetypeAbilityDef
                 {
                     Id = Guid.NewGuid(), Code = a.Code, NameRu = a.NameRu, NameEn = a.NameEn,
                     SafeDescription = a.Safe,
+                    DescriptionEn = a.SafeEn,
                     AutomationKind = Enum.TryParse<ArchetypeAbilityAutomationKind>(a.AutomationKind, ignoreCase: true, out var k)
                         ? k : ArchetypeAbilityAutomationKind.Manual,
                 }).ToList(),

@@ -14,6 +14,8 @@ public interface IContentDef
     string Description { get; set; }
     /// <summary>Copyright-safe описание для публичной версии.</summary>
     string SafeDescription { get; set; }
+    /// <summary>Английское описание — собственный copyright-safe парафраз (в обоих режимах).</summary>
+    string DescriptionEn { get; set; }
     /// <summary>Ссылка на источник (доступна в обоих режимах).</summary>
     string Source { get; set; }
 }

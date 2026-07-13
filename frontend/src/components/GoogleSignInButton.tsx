@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react'
+import { t } from '../i18n'
 
 const GIS_SRC = 'https://accounts.google.com/gsi/client'
 
@@ -18,7 +19,7 @@ function loadGis(): Promise<void> {
     const existing = document.querySelector<HTMLScriptElement>(`script[src="${GIS_SRC}"]`)
     if (existing) {
       existing.addEventListener('load', () => resolve())
-      existing.addEventListener('error', () => reject(new Error('Не удалось загрузить Google Identity Services')))
+      existing.addEventListener('error', () => reject(new Error(t('Не удалось загрузить Google Identity Services', 'Failed to load Google Identity Services'))))
       return
     }
     const s = document.createElement('script')
@@ -26,7 +27,7 @@ function loadGis(): Promise<void> {
     s.async = true
     s.defer = true
     s.onload = () => resolve()
-    s.onerror = () => reject(new Error('Не удалось загрузить Google Identity Services'))
+    s.onerror = () => reject(new Error(t('Не удалось загрузить Google Identity Services', 'Failed to load Google Identity Services')))
     document.head.appendChild(s)
   })
 }
@@ -53,7 +54,7 @@ export function GoogleSignInButton({ clientId, onCredential, onError }: {
         })
         window.google.accounts.id.renderButton(ref.current, { theme: 'outline', size: 'large', width: 280 })
       })
-      .catch((e: unknown) => onError(e instanceof Error ? e.message : 'Ошибка Google'))
+      .catch((e: unknown) => onError(e instanceof Error ? e.message : t('Ошибка Google', 'Google error')))
     return () => { cancelled = true }
   }, [clientId, onCredential, onError])
 

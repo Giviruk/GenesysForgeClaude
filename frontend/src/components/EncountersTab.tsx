@@ -11,6 +11,7 @@ import {
 import { PrintPreview } from './print/PrintPreview'
 import { EncounterSheet } from './print/cards'
 import { encounterMarkdown } from './print/markdown'
+import { t } from '../i18n'
 
 interface Props {
   campaignId: string
@@ -52,7 +53,7 @@ export function EncountersTab({
   const reload = useCallback(() =>
     api.encounters(campaignId)
       .then(setList)
-      .catch((e: unknown) => setError(e instanceof Error ? e.message : 'Ошибка загрузки')),
+      .catch((e: unknown) => setError(e instanceof Error ? e.message : t('Ошибка загрузки', 'Failed to load'))),
     [campaignId])
 
   useEffect(() => { void reload() }, [reload])
@@ -78,32 +79,32 @@ export function EncountersTab({
     <div className="encounters">
       {error && <div className="error">{error}</div>}
 
-      <div className="enc-strip" aria-label="Состояние энкаунтеров">
-        <div className="enc-strip-card"><b>{stats.total}</b><span>всего сцен</span></div>
-        <div className="enc-strip-card"><b>{stats.ready}</b><span>с участниками</span></div>
-        <div className="enc-strip-card"><b>{stats.visible}</b><span>видны игрокам</span></div>
-        <div className="enc-strip-card"><b>{stats.participants}</b><span>участников в подготовке</span></div>
+      <div className="enc-strip" aria-label={t('Состояние энкаунтеров', 'Encounter status')}>
+        <div className="enc-strip-card"><b>{stats.total}</b><span>{t('всего сцен', 'total scenes')}</span></div>
+        <div className="enc-strip-card"><b>{stats.ready}</b><span>{t('с участниками', 'with participants')}</span></div>
+        <div className="enc-strip-card"><b>{stats.visible}</b><span>{t('видны игрокам', 'visible to players')}</span></div>
+        <div className="enc-strip-card"><b>{stats.participants}</b><span>{t('участников в подготовке', 'participants in prep')}</span></div>
       </div>
 
       <div className="enc-toolbar">
-        <input type="search" placeholder="Поиск по названию или тегу…" value={search}
-          onChange={e => setSearch(e.target.value)} aria-label="Поиск энкаунтеров" />
-        <select value={typeFilter} onChange={e => setTypeFilter(e.target.value as EncounterType | '')} aria-label="Тип">
-          <option value="">Все типы</option>
+        <input type="search" placeholder={t('Поиск по названию или тегу…', 'Search by name or tag…')} value={search}
+          onChange={e => setSearch(e.target.value)} aria-label={t('Поиск энкаунтеров', 'Search encounters')} />
+        <select value={typeFilter} onChange={e => setTypeFilter(e.target.value as EncounterType | '')} aria-label={t('Тип', 'Type')}>
+          <option value="">{t('Все типы', 'All types')}</option>
           {ENCOUNTER_TYPES.map(t => <option key={t} value={t}>{ENCOUNTER_TYPE_LABELS[t]}</option>)}
         </select>
-        <select value={threatFilter} onChange={e => setThreatFilter(e.target.value as ThreatLevel | '')} aria-label="Сложность">
-          <option value="">Любая сложность</option>
+        <select value={threatFilter} onChange={e => setThreatFilter(e.target.value as ThreatLevel | '')} aria-label={t('Сложность', 'Threat')}>
+          <option value="">{t('Любая сложность', 'Any threat')}</option>
           {THREAT_LEVELS.map(t => <option key={t} value={t}>{THREAT_LEVEL_LABELS[t]}</option>)}
         </select>
-        <select value={visibilityFilter} onChange={e => setVisibilityFilter(e.target.value as VisibilityFilter)} aria-label="Видимость">
-          <option value="">Все</option>
-          <option value="hidden">Скрытые</option>
-          <option value="visible">Видны игрокам</option>
+        <select value={visibilityFilter} onChange={e => setVisibilityFilter(e.target.value as VisibilityFilter)} aria-label={t('Видимость', 'Visibility')}>
+          <option value="">{t('Все', 'All')}</option>
+          <option value="hidden">{t('Скрытые', 'Hidden')}</option>
+          <option value="visible">{t('Видны игрокам', 'Visible to players')}</option>
         </select>
         {isGm && (
           <button className="primary" onClick={() => setCreating(v => !v)}>
-            {creating ? 'Отмена' : '+ Энкаунтер'}
+            {creating ? t('Отмена', 'Cancel') : t('+ Энкаунтер', '+ Encounter')}
           </button>
         )}
       </div>
@@ -115,17 +116,17 @@ export function EncountersTab({
             setCreating(false)
             await reload()
             onOpenEncounter(e.id)
-          } catch (err) { setError(err instanceof Error ? err.message : 'Ошибка') }
+          } catch (err) { setError(err instanceof Error ? err.message : t('Ошибка', 'Error')) }
         }} />
       )}
 
       <div className="enc-workbench">
-        <aside className="panel enc-queue" aria-label="Очередь сцен">
-          <h4>Очередь сцен {filtered ? `(${filtered.length})` : ''}</h4>
-          {filtered === null && <p className="muted">Загрузка…</p>}
+        <aside className="panel enc-queue" aria-label={t('Очередь сцен', 'Scene queue')}>
+          <h4>{t('Очередь сцен', 'Scene queue')} {filtered ? `(${filtered.length})` : ''}</h4>
+          {filtered === null && <p className="muted">{t('Загрузка…', 'Loading…')}</p>}
           {filtered?.length === 0 && (
             <p className="muted">
-              {list?.length === 0 ? <>Энкаунтеров пока нет.{isGm && ' Создайте первую сцену.'}</> : 'Ничего не найдено по фильтрам.'}
+              {list?.length === 0 ? <>{t('Энкаунтеров пока нет.', 'No encounters yet.')}{isGm && t(' Создайте первую сцену.', ' Create the first scene.')}</> : t('Ничего не найдено по фильтрам.', 'Nothing matches the filters.')}
             </p>
           )}
           <div className="enc-queue-list">
@@ -136,17 +137,17 @@ export function EncountersTab({
                 <span className="enc-row-main">
                   <span className="enc-row-title">{e.name}</span>
                   <span className="enc-row-meta muted">
-                    {ENCOUNTER_TYPE_LABELS[e.type]} · {THREAT_LEVEL_LABELS[e.threatLevel]} · участников: {e.participantCount}
+                    {ENCOUNTER_TYPE_LABELS[e.type]} · {THREAT_LEVEL_LABELS[e.threatLevel]} · {t('участников:', 'participants:')} {e.participantCount}
                   </span>
                   {(e.tags.length > 0 || !e.isVisibleToPlayers) && (
                     <span className="tag-row">
-                      {!e.isVisibleToPlayers && <span className="badge">скрыт</span>}
+                      {!e.isVisibleToPlayers && <span className="badge">{t('скрыт', 'hidden')}</span>}
                       {e.tags.map(t => <span key={t} className="badge custom">{t}</span>)}
                     </span>
                   )}
                 </span>
                 <span className={`enc-status-dot${e.participantCount > 0 ? ' ready' : ''}`}
-                  title={e.participantCount > 0 ? 'Участники добавлены' : 'Без участников'} />
+                  title={e.participantCount > 0 ? t('Участники добавлены', 'Participants added') : t('Без участников', 'No participants')} />
               </button>
             ))}
           </div>
@@ -159,7 +160,7 @@ export function EncountersTab({
                 onChanged={() => void reload()}
                 onSentToTable={onSentToTable} />
             : <div className="panel enc-empty">
-                <p className="muted">← Выберите сцену из очереди или создайте новую.</p>
+                <p className="muted">{t('← Выберите сцену из очереди или создайте новую.', '← Pick a scene from the queue or create a new one.')}</p>
               </div>}
         </section>
       </div>
@@ -178,25 +179,25 @@ function CreateEncounterForm({ onCreate }: { onCreate: (input: EncounterInput) =
       e.preventDefault()
       onCreate({ ...blankInput(system), name: name.trim(), type, threatLevel })
     }}>
-      <label>Название<input value={name} onChange={e => setName(e.target.value)} required /></label>
+      <label>{t('Название', 'Name')}<input value={name} onChange={e => setName(e.target.value)} required /></label>
       <div className="form-row">
-        <label className="grow">Система
+        <label className="grow">{t('Система', 'System')}
           <select value={system} onChange={e => setSystem(e.target.value as GameSystem)}>
             {(['realmsOfTerrinoth', 'genesysCore'] as GameSystem[]).map(s => <option key={s} value={s}>{SYSTEM_LABELS[s]}</option>)}
           </select>
         </label>
-        <label className="grow">Тип
+        <label className="grow">{t('Тип', 'Type')}
           <select value={type} onChange={e => setType(e.target.value as EncounterType)}>
             {ENCOUNTER_TYPES.map(t => <option key={t} value={t}>{ENCOUNTER_TYPE_LABELS[t]}</option>)}
           </select>
         </label>
-        <label className="grow">Сложность
+        <label className="grow">{t('Сложность', 'Threat')}
           <select value={threatLevel} onChange={e => setThreatLevel(e.target.value as ThreatLevel)}>
             {THREAT_LEVELS.map(t => <option key={t} value={t}>{THREAT_LEVEL_LABELS[t]}</option>)}
           </select>
         </label>
       </div>
-      <button className="primary" type="submit" disabled={!name.trim()}>Создать и открыть</button>
+      <button className="primary" type="submit" disabled={!name.trim()}>{t('Создать и открыть', 'Create and open')}</button>
     </form>
   )
 }
@@ -211,7 +212,7 @@ function EncounterEditor({ encounterId, isGm, members, onBack, onChanged, onSent
 
   const reload = useCallback(() =>
     api.encounter(encounterId).then(setEnc).catch((e: unknown) =>
-      setError(e instanceof Error ? e.message : 'Ошибка загрузки')),
+      setError(e instanceof Error ? e.message : t('Ошибка загрузки', 'Failed to load'))),
     [encounterId])
   useEffect(() => { void reload() }, [reload])
 
@@ -222,17 +223,17 @@ function EncounterEditor({ encounterId, isGm, members, onBack, onChanged, onSent
       else await reload()
       setError(null)
       onChanged()
-    } catch (e) { setError(e instanceof Error ? e.message : 'Ошибка') }
+    } catch (e) { setError(e instanceof Error ? e.message : t('Ошибка', 'Error')) }
   }, [reload, onChanged])
 
   if (!enc) {
-    return <div className="panel enc-empty"><button onClick={onBack}>← К списку</button>{error && <div className="error">{error}</div>}</div>
+    return <div className="panel enc-empty"><button onClick={onBack}>{t('← К списку', '← Back to list')}</button>{error && <div className="error">{error}</div>}</div>
   }
 
   if (printing) {
     const versions: ('gm' | 'player')[] = isGm ? ['gm', 'player'] : ['player']
     return (
-      <PrintPreview title={`Энкаунтер — ${enc.name}`} versions={versions}
+      <PrintPreview title={t(`Энкаунтер — ${enc.name}`, `Encounter — ${enc.name}`)} versions={versions}
         markdown={(v) => encounterMarkdown(enc, v)} onClose={() => setPrinting(false)}>
         {(v) => <EncounterSheet enc={enc} version={v} />}
       </PrintPreview>
@@ -307,14 +308,14 @@ function EncounterSceneHead({ enc, isGm, onBack, onRun, onPrint, onSentToTable }
         <button className="small" onClick={onBack}>←</button>
         {isGm ? (
           <>
-            <input className="enc-head-name" aria-label="Название энкаунтера" value={name}
+            <input className="enc-head-name" aria-label={t('Название энкаунтера', 'Encounter name')} value={name}
               onChange={e => setName(e.target.value)} />
             <select className="enc-head-select" value={type} onChange={e => setType(e.target.value as EncounterType)}
-              aria-label="Тип энкаунтера">
+              aria-label={t('Тип энкаунтера', 'Encounter type')}>
               {ENCOUNTER_TYPES.map(t => <option key={t} value={t}>{ENCOUNTER_TYPE_LABELS[t]}</option>)}
             </select>
             <select className="enc-head-select" value={threatLevel}
-              onChange={e => setThreatLevel(e.target.value as ThreatLevel)} aria-label="Сложность энкаунтера">
+              onChange={e => setThreatLevel(e.target.value as ThreatLevel)} aria-label={t('Сложность энкаунтера', 'Encounter threat')}>
               {THREAT_LEVELS.map(t => <option key={t} value={t}>{THREAT_LEVEL_LABELS[t]}</option>)}
             </select>
           </>
@@ -325,12 +326,12 @@ function EncounterSceneHead({ enc, isGm, onBack, onRun, onPrint, onSentToTable }
             <span className="badge tier">{THREAT_LEVEL_LABELS[enc.threatLevel]}</span>
           </>
         )}
-        {!enc.isVisibleToPlayers && <span className="badge">скрыт</span>}
-        {isGm && dirty && <button className="primary small" onClick={save} disabled={!name.trim()}>Сохранить</button>}
+        {!enc.isVisibleToPlayers && <span className="badge">{t('скрыт', 'hidden')}</span>}
+        {isGm && dirty && <button className="primary small" onClick={save} disabled={!name.trim()}>{t('Сохранить', 'Save')}</button>}
       </div>
       <div className="row-actions enc-head-actions">
-        {isGm && <button className="primary small" onClick={send} disabled={!name.trim()}>Запустить</button>}
-        <button className="small" onClick={onPrint}>🖨 Печать</button>
+        {isGm && <button className="primary small" onClick={send} disabled={!name.trim()}>{t('Запустить', 'Launch')}</button>}
+        <button className="small" onClick={onPrint}>{t('🖨 Печать', '🖨 Print')}</button>
       </div>
     </div>
   )
@@ -361,25 +362,25 @@ function EncounterMeta({ enc, onRun }: { enc: EncounterDetail; onRun: (a: () => 
   return (
     <section className="panel custom-form enc-meta enc-scene-content">
       <div className="panel-head-row">
-        <h4>Содержание сцены</h4>
-        <button className="primary small" onClick={save}>Сохранить</button>
+        <h4>{t('Содержание сцены', 'Scene content')}</h4>
+        <button className="primary small" onClick={save}>{t('Сохранить', 'Save')}</button>
       </div>
       <div className="form-row">
-        <label className="grow">Локация<input value={f.location} onChange={e => set('location', e.target.value)} /></label>
-        <label className="grow">Окружение<input value={f.environment} onChange={e => set('environment', e.target.value)} /></label>
+        <label className="grow">{t('Локация', 'Location')}<input value={f.location} onChange={e => set('location', e.target.value)} /></label>
+        <label className="grow">{t('Окружение', 'Environment')}<input value={f.environment} onChange={e => set('environment', e.target.value)} /></label>
       </div>
 
       <div className="copy-grid">
-        <label className="copy-box">Игрокам
+        <label className="copy-box">{t('Игрокам', 'For players')}
           <textarea rows={3} value={f.playerDescription} onChange={e => set('playerDescription', e.target.value)} />
         </label>
-        <label className="copy-box private">Мастеру (приватно)
+        <label className="copy-box private">{t('Мастеру (приватно)', 'For the GM (private)')}
           <textarea rows={3} value={f.gmDescription} onChange={e => set('gmDescription', e.target.value)} />
         </label>
-        <label className="copy-box">Цели игроков
+        <label className="copy-box">{t('Цели игроков', 'Player goals')}
           <textarea rows={2} value={f.playerGoals} onChange={e => set('playerGoals', e.target.value)} />
         </label>
-        <label className="copy-box private">Цели NPC (приватно)
+        <label className="copy-box private">{t('Цели NPC (приватно)', 'NPC goals (private)')}
           <textarea rows={2} value={f.npcGoals} onChange={e => set('npcGoals', e.target.value)} />
         </label>
       </div>
@@ -404,22 +405,22 @@ function EncounterNotesPanel({ enc, onRun }: { enc: EncounterDetail; onRun: (a: 
   return (
     <section className="panel custom-form enc-notes-panel">
       <div className="panel-head-row">
-        <h4>Заметки</h4>
-        <button className="primary small" onClick={save}>Сохранить</button>
+        <h4>{t('Заметки', 'Notes')}</h4>
+        <button className="primary small" onClick={save}>{t('Сохранить', 'Save')}</button>
       </div>
       <div className="enc-notes-grid">
-        <label className="copy-box private">Осложнения
+        <label className="copy-box private">{t('Осложнения', 'Complications')}
           <textarea rows={3} value={complications} onChange={e => setComplications(e.target.value)} />
         </label>
-        <label className="copy-box">Награды
+        <label className="copy-box">{t('Награды', 'Rewards')}
           <textarea rows={3} value={rewards} onChange={e => setRewards(e.target.value)} />
         </label>
       </div>
       <div className="form-row">
-        <label className="grow">Теги (через запятую)<input value={tagsText} onChange={e => setTagsText(e.target.value)} /></label>
+        <label className="grow">{t('Теги (через запятую)', 'Tags (comma-separated)')}<input value={tagsText} onChange={e => setTagsText(e.target.value)} /></label>
         <label className="checkbox">
           <input type="checkbox" checked={isVisibleToPlayers} onChange={e => setIsVisibleToPlayers(e.target.checked)} />
-          Видно игрокам
+          {t('Видно игрокам', 'Visible to players')}
         </label>
       </div>
     </section>
@@ -434,11 +435,11 @@ function InitiativePreview({ enc }: { enc: EncounterDetail }) {
   return (
     <section className="panel enc-initiative-preview">
       <div className="panel-head-row">
-        <h4>Инициатива</h4>
+        <h4>{t('Инициатива', 'Initiative')}</h4>
         <span className="badge">{pcCount} PC / {npcCount} NPC</span>
       </div>
       {participants.length === 0 ? (
-        <p className="muted">Добавьте участников, чтобы увидеть порядок стартовых слотов.</p>
+        <p className="muted">{t('Добавьте участников, чтобы увидеть порядок стартовых слотов.', 'Add participants to see the starting slot order.')}</p>
       ) : (
         <div className="enc-init-list">
           {participants.map((p, index) => (
@@ -446,14 +447,14 @@ function InitiativePreview({ enc }: { enc: EncounterDetail }) {
               <span className="enc-init-num">{index + 1}</span>
               <span className="enc-init-name">
                 {p.displayName}{p.quantity > 1 ? ` ×${p.quantity}` : ''}
-                {p.startsHidden && <span className="muted small-text"> · скрыт</span>}
+                {p.startsHidden && <span className="muted small-text"> · {t('скрыт', 'hidden')}</span>}
               </span>
               <span className="badge">{SLOT_TYPE_LABELS[p.initiativeSide]}</span>
             </div>
           ))}
         </div>
       )}
-      <p className="hint">Полное управление ходами остается в игровом столе после запуска сцены.</p>
+      <p className="hint">{t('Полное управление ходами остается в игровом столе после запуска сцены.', 'Full turn management stays in the game table once the scene is launched.')}</p>
     </section>
   )
 }
@@ -462,9 +463,9 @@ function PlayerEncounterView({ enc }: { enc: EncounterDetail }) {
   return (
     <section className="panel">
       {enc.playerDescription && <p>{enc.playerDescription}</p>}
-      {enc.location && <div className="muted">Локация: {enc.location}</div>}
-      {enc.playerGoals && <><h4>Цели</h4><p className="note-body">{enc.playerGoals}</p></>}
-      {enc.rewards && <><h4>Награды</h4><p className="note-body">{enc.rewards}</p></>}
+      {enc.location && <div className="muted">{t('Локация:', 'Location:')} {enc.location}</div>}
+      {enc.playerGoals && <><h4>{t('Цели', 'Goals')}</h4><p className="note-body">{enc.playerGoals}</p></>}
+      {enc.rewards && <><h4>{t('Награды', 'Rewards')}</h4><p className="note-body">{enc.rewards}</p></>}
     </section>
   )
 }
@@ -476,22 +477,22 @@ function ParticipantsSection({ enc, isGm, members, onRun }: {
   return (
     <section className="panel enc-participants">
       <div className="panel-head-row">
-        <h4>Участники ({enc.participants.length})</h4>
+        <h4>{t('Участники', 'Participants')} ({enc.participants.length})</h4>
         {isGm && (
-          <button className="small" onClick={() => onRun(() => api.addEncounterCharacters(enc.id, null))}>+ Все PC</button>
+          <button className="small" onClick={() => onRun(() => api.addEncounterCharacters(enc.id, null))}>{t('+ Все PC', '+ All PCs')}</button>
         )}
       </div>
-      {enc.participants.length === 0 && <p className="muted">Участников пока нет.</p>}
+      {enc.participants.length === 0 && <p className="muted">{t('Участников пока нет.', 'No participants yet.')}</p>}
       {enc.participants.length > 0 && (
         <div className="table-wrap">
           <table className="participant-table">
             <thead>
               <tr>
-                <th>Имя</th>
-                <th>Тип</th>
-                <th>Сторона</th>
-                <th className="nowrap">Старт</th>
-                {isGm && <th className="right">Действия</th>}
+                <th>{t('Имя', 'Name')}</th>
+                <th>{t('Тип', 'Type')}</th>
+                <th>{t('Сторона', 'Side')}</th>
+                <th className="nowrap">{t('Старт', 'Start')}</th>
+                {isGm && <th className="right">{t('Действия', 'Actions')}</th>}
               </tr>
             </thead>
             <tbody>
@@ -512,7 +513,7 @@ function ParticipantRow({ enc, p, isGm, onRun }: {
 }) {
   const patch = (body: Parameters<typeof api.updateEncounterParticipant>[2]) =>
     onRun(() => api.updateEncounterParticipant(enc.id, p.id, body))
-  const start = p.startsDefeated ? 'повержен' : p.startsHidden ? 'скрыт' : 'активен'
+  const start = p.startsDefeated ? t('повержен', 'defeated') : p.startsHidden ? t('скрыт', 'hidden') : t('активен', 'active')
   return (
     <tr className={p.startsDefeated ? 'defeated' : undefined}>
       <td>
@@ -524,14 +525,14 @@ function ParticipantRow({ enc, p, isGm, onRun }: {
       <td className="nowrap">{start}</td>
       {isGm && (
         <td className="right nowrap">
-          <button className="small" title={p.startsHidden ? 'Показать в начале' : 'Скрыть в начале'}
-            aria-label={p.startsHidden ? 'Показать в начале' : 'Скрыть в начале'}
-            onClick={() => patch({ startsHidden: !p.startsHidden })}>{p.startsHidden ? 'Показ.' : 'Скрыть'}</button>
-          <button className="small" title={p.startsDefeated ? 'Сделать активным' : 'Повержен в начале'}
-            aria-label={p.startsDefeated ? 'Сделать активным' : 'Повержен в начале'}
-            onClick={() => patch({ startsDefeated: !p.startsDefeated })}>{p.startsDefeated ? 'Актив.' : 'Поверж.'}</button>
+          <button className="small" title={p.startsHidden ? t('Показать в начале', 'Reveal at start') : t('Скрыть в начале', 'Hide at start')}
+            aria-label={p.startsHidden ? t('Показать в начале', 'Reveal at start') : t('Скрыть в начале', 'Hide at start')}
+            onClick={() => patch({ startsHidden: !p.startsHidden })}>{p.startsHidden ? t('Показ.', 'Reveal') : t('Скрыть', 'Hide')}</button>
+          <button className="small" title={p.startsDefeated ? t('Сделать активным', 'Make active') : t('Повержен в начале', 'Defeated at start')}
+            aria-label={p.startsDefeated ? t('Сделать активным', 'Make active') : t('Повержен в начале', 'Defeated at start')}
+            onClick={() => patch({ startsDefeated: !p.startsDefeated })}>{p.startsDefeated ? t('Актив.', 'Active') : t('Поверж.', 'Defeat')}</button>
           <button className="danger small"
-            onClick={() => { if (confirm(`Убрать «${p.displayName}»?`)) void onRun(() => api.removeEncounterParticipant(enc.id, p.id)) }}>×</button>
+            onClick={() => { if (confirm(t(`Убрать «${p.displayName}»?`, `Remove "${p.displayName}"?`))) void onRun(() => api.removeEncounterParticipant(enc.id, p.id)) }}>×</button>
         </td>
       )}
     </tr>
@@ -554,30 +555,30 @@ function AddEncounterParticipant({ enc, members, onRun }: {
 
   return (
     <div className="add-participant">
-      <div className="label-line">Добавить участника (NPC — через быструю сборку)</div>
+      <div className="label-line">{t('Добавить участника (NPC — через быструю сборку)', 'Add participant (NPCs — via quick build)')}</div>
       <div className="system-switch">
         {(['character', 'manual'] as const).map(m => (
           <button key={m} type="button" className={mode === m ? 'tab active' : 'tab'} onClick={() => setMode(m)}>
-            {m === 'character' ? 'Персонаж' : 'Вручную'}
+            {m === 'character' ? t('Персонаж', 'Character') : t('Вручную', 'Manual')}
           </button>
         ))}
       </div>
       <div className="form-row">
         {mode === 'character' && (
           <select className="grow" value={characterId} onChange={e => setCharacterId(e.target.value)}>
-            <option value="">— выберите персонажа —</option>
+            <option value="">{t('— выберите персонажа —', '— pick a character —')}</option>
             {members.map(m => <option key={m.characterId} value={m.characterId}>{m.characterName}</option>)}
           </select>
         )}
         {mode === 'manual' && (
           <>
-            <input className="grow" placeholder="Название" value={manualName} onChange={e => setManualName(e.target.value)} />
+            <input className="grow" placeholder={t('Название', 'Name')} value={manualName} onChange={e => setManualName(e.target.value)} />
             <select value={manualType} onChange={e => setManualType(e.target.value as ParticipantType)}>
               {(['hazard', 'npc'] as ParticipantType[]).map(t => <option key={t} value={t}>{PARTICIPANT_TYPE_LABELS[t]}</option>)}
             </select>
           </>
         )}
-        <button className="primary small" onClick={add}>Добавить</button>
+        <button className="primary small" onClick={add}>{t('Добавить', 'Add')}</button>
       </div>
     </div>
   )
@@ -605,34 +606,34 @@ function QuickBuildPanel({ enc, onRun }: {
 
   return (
     <section className="panel enc-quick-build">
-      <h4>Быстрая сборка</h4>
+      <h4>{t('Быстрая сборка', 'Quick build')}</h4>
       <div className="form-row">
-        <input className="grow" type="search" placeholder="Поиск NPC…" value={search}
-          onChange={e => setSearch(e.target.value)} aria-label="Поиск NPC" />
-        <select value={source} onChange={e => setSource(e.target.value as '' | 'mine' | 'builtin')} aria-label="Источник">
-          <option value="">Все источники</option>
-          <option value="builtin">Встроенный бестиарий</option>
-          <option value="mine">Свои NPC</option>
+        <input className="grow" type="search" placeholder={t('Поиск NPC…', 'Search NPCs…')} value={search}
+          onChange={e => setSearch(e.target.value)} aria-label={t('Поиск NPC', 'Search NPCs')} />
+        <select value={source} onChange={e => setSource(e.target.value as '' | 'mine' | 'builtin')} aria-label={t('Источник', 'Source')}>
+          <option value="">{t('Все источники', 'All sources')}</option>
+          <option value="builtin">{t('Встроенный бестиарий', 'Built-in bestiary')}</option>
+          <option value="mine">{t('Свои NPC', 'My NPCs')}</option>
         </select>
       </div>
       <div className="form-row">
-        <label className="inline-label">Количество (для группы миньонов)
+        <label className="inline-label">{t('Количество (для группы миньонов)', 'Count (for a minion group)')}
           <input className="ranks-input" type="number" min={1} value={quantity}
             onChange={e => setQuantity(Math.max(1, +e.target.value))} />
         </label>
       </div>
       <div className="enc-library-list">
-        {shown.length === 0 && <p className="muted small-text">Ничего не найдено.</p>}
+        {shown.length === 0 && <p className="muted small-text">{t('Ничего не найдено.', 'Nothing found.')}</p>}
         {shown.map(n => (
           <div key={n.id} className="enc-library-row">
             <div className="enc-library-info">
               <div className="enc-library-title">{n.name}</div>
               <div className="muted small-text">
                 {NPC_KIND_LABELS[n.kind]} · {NPC_ROLE_LABELS[n.role]}
-                {n.isBuiltIn ? ' · встроенный' : n.isMine ? ' · мой' : ''}
+                {n.isBuiltIn ? t(' · встроенный', ' · built-in') : n.isMine ? t(' · мой', ' · mine') : ''}
               </div>
             </div>
-            <button className="small" title="Добавить в сцену"
+            <button className="small" title={t('Добавить в сцену', 'Add to scene')}
               onClick={() => void onRun(() => api.addEncounterParticipant(enc.id, { npcId: n.id, quantity }))}>
               +
             </button>

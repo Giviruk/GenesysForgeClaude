@@ -12,4 +12,4 @@ public record ReferenceResponse(
 public record QualityDto(
     Guid Id, string Code, string NameEn, string NameRu, GenesysForge.Domain.Entities.QualityKind Kind,
     bool IsActive, bool HasRating, string ActivationCost, string Category,
-    string Description, string SafeDescription, string Source);
+    string Description, string SafeDescription, string Source, string DescriptionEn = "");

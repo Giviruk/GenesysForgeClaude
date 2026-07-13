@@ -275,3 +275,21 @@ test.describe('U-29 smoke E2E', () => {
     await expect(page.locator('.notice')).toBeVisible()
   })
 })
+
+// Английская локаль: браузер en-US → интерфейс на английском; переключатель в футере
+// возвращает русский и переживает перезагрузку (выбор хранится в localStorage).
+test.describe('i18n smoke E2E', () => {
+  test.use({ locale: 'en-US' })
+
+  test('english UI by browser locale and switch back to Russian', async ({ page }) => {
+    await page.goto('/login')
+    await expect(page.getByRole('button', { name: 'Sign in with e-mail' })).toBeVisible()
+    await expect(page.getByText('Character sheets for Genesys Core and Realms of Terrinoth')).toBeVisible()
+
+    await page.getByRole('button', { name: 'Русский' }).click()
+    await expect(page.getByRole('button', { name: 'Войти по e-mail' })).toBeVisible()
+
+    await page.reload()
+    await expect(page.getByRole('button', { name: 'Войти по e-mail' })).toBeVisible()
+  })
+})

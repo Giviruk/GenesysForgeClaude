@@ -14,12 +14,12 @@ namespace GenesysForge.Infrastructure.Persistence;
 /// </summary>
 public static class HeroicCatalog
 {
-    private sealed record UpgradeEntry(string Level, int Cost, string Desc, string Notes);
+    private sealed record UpgradeEntry(string Level, int Cost, string Desc, string Notes, string DescEn = "");
 
     private sealed record Entry(
         string Code, string Name, string NameRu,
         string Requirement, string ActivationCost, string Activation, string Duration, string Frequency,
-        string Desc, string Notes, string Source, string Page, List<UpgradeEntry> Upgrades);
+        string Desc, string Notes, string Source, string Page, List<UpgradeEntry> Upgrades, string DescEn = "");
 
     private static readonly JsonSerializerOptions JsonOptions = new() { PropertyNameCaseInsensitive = true };
 
@@ -47,6 +47,7 @@ public static class HeroicCatalog
                 Name = e.Name,
                 NameRu = string.IsNullOrWhiteSpace(e.NameRu) ? e.Name : e.NameRu,
                 SafeDescription = e.Desc,
+                DescriptionEn = e.DescEn,
                 Requirement = e.Requirement,
                 ActivationCost = e.ActivationCost,
                 Activation = e.Activation,
@@ -60,6 +61,7 @@ public static class HeroicCatalog
                     Level = ParseLevel(u.Level),
                     Cost = u.Cost,
                     Description = u.Desc,
+                    DescriptionEn = u.DescEn,
                     Notes = u.Notes,
                 }).ToList(),
                 Effects = EffectsFor(e.Code),

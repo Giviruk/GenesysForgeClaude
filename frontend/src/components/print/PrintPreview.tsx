@@ -1,4 +1,5 @@
 import { useEffect, useState, type ReactNode } from 'react'
+import { t } from '../../i18n'
 
 export type PrintVersion = 'gm' | 'player'
 
@@ -35,20 +36,20 @@ export function PrintPreview({ title, versions, defaultVersion, markdown, onClos
   return (
     <div className="print-overlay">
       <div className="print-toolbar no-print">
-        <button onClick={onClose}>← Назад</button>
+        <button onClick={onClose}>{t('← Назад', '← Back')}</button>
         <strong>{title}</strong>
         <span className="spacer" />
         {versions && versions.length > 1 && (
           <div className="system-switch">
             {versions.map(v => (
               <button key={v} className={version === v ? 'tab active' : 'tab'} onClick={() => { setVersion(v); setCopied(false) }}>
-                {v === 'gm' ? 'Версия мастера' : 'Версия игрока'}
+                {v === 'gm' ? t('Версия мастера', 'GM version') : t('Версия игрока', 'Player version')}
               </button>
             ))}
           </div>
         )}
-        {markdown && <button onClick={copy}>{copied ? 'Скопировано ✓' : 'Скопировать как Markdown'}</button>}
-        <button className="primary" onClick={() => window.print()}>🖨 Печать</button>
+        {markdown && <button onClick={copy}>{copied ? t('Скопировано ✓', 'Copied ✓') : t('Скопировать как Markdown', 'Copy as Markdown')}</button>}
+        <button className="primary" onClick={() => window.print()}>{t('🖨 Печать', '🖨 Print')}</button>
       </div>
       <div className="print-area">{children(version)}</div>
     </div>

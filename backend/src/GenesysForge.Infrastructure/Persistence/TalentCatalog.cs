@@ -17,7 +17,7 @@ public static class TalentCatalog
         string Code, string Name, string NameRu, int Tier, bool Ranked,
         string[] Setting, string Activation, string Desc, string? Category,
         int Wt, int St, int Soak, int Mdef, int Rdef,
-        bool GrantsCharacteristic = false);
+        bool GrantsCharacteristic = false, string DescEn = "", string ActivationEn = "");
 
     private static readonly JsonSerializerOptions JsonOptions = new() { PropertyNameCaseInsensitive = true };
 
@@ -59,6 +59,7 @@ public static class TalentCatalog
                     Activation = e.Activation,
                     GrantsCharacteristic = e.GrantsCharacteristic,
                     SafeDescription = e.Desc,
+                    DescriptionEn = e.DescEn,
                     WoundBonus = e.Wt, StrainBonus = e.St, SoakBonus = e.Soak,
                     MeleeDefenseBonus = e.Mdef, RangedDefenseBonus = e.Rdef,
                     Source = source,

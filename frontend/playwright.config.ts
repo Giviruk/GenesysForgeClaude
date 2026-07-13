@@ -15,6 +15,9 @@ export default defineConfig({
     : 'list',
   use: {
     baseURL,
+    // Смоук написан против русского UI; язык приложения определяется по navigator.language,
+    // поэтому фиксируем локаль браузера (EN-путь проверяется отдельным тестом с locale-override).
+    locale: 'ru-RU',
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
   },

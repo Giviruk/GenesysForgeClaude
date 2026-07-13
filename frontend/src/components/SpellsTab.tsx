@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { api } from '../api/client'
 import type { GameSystem, Spell } from '../api/types'
-import { magicSkillLabel } from '../utils/labels'
+import { localizedDescription, localizedName, magicSkillLabel } from '../utils/labels'
+import { t } from '../i18n'
 
 interface Props {
   system: GameSystem
@@ -21,7 +22,7 @@ export function SpellsTab({ system, onError }: Props) {
   const reload = useCallback(
     () => api.spells(system)
       .then(setSpells)
-      .catch((err: unknown) => onError(err instanceof Error ? err.message : 'Ошибка загрузки магии')),
+      .catch((err: unknown) => onError(err instanceof Error ? err.message : t('Ошибка загрузки магии', 'Failed to load magic'))),
     [system, onError])
 
   useEffect(() => { void reload() }, [reload])
@@ -52,67 +53,71 @@ export function SpellsTab({ system, onError }: Props) {
     () => spells?.filter(s => s.kind === 'additionalEffect' && s.parentEffect === activeEffectCode) ?? [],
     [spells, activeEffectCode])
 
-  if (spells === null) return <p className="muted">Загрузка…</p>
+  if (spells === null) return <p className="muted">{t('Загрузка…', 'Loading…')}</p>
 
   return (
     <div>
       <section className="panel">
         <div className="spells-head">
-          <h3>Магия</h3>
+          <h3>{t('Магия', 'Magic')}</h3>
           <div className="spells-selectors">
-            <label className="inline-label">Направление
+            <label className="inline-label">{t('Направление', 'School')}
               <select value={activeSkill} onChange={e => setSkill(e.target.value)}>
                 {skills.map(s => <option key={s} value={s}>{magicSkillLabel(s)}</option>)}
               </select>
             </label>
-            <label className="inline-label">Базовый эффект
+            <label className="inline-label">{t('Базовый эффект', 'Base effect')}
               <select value={activeEffectCode} onChange={e => setEffectCode(e.target.value)}>
-                {baseEffects.map(e => <option key={e.id} value={e.nameEn}>{e.nameRu}</option>)}
+                {baseEffects.map(e => <option key={e.id} value={e.nameEn}>{localizedName({ name: e.nameEn, nameRu: e.nameRu })}</option>)}
               </select>
             </label>
           </div>
         </div>
         <p className="muted small-text">
-          Заклинание = базовый эффект выбранного направления + при желании дополнительные эффекты,
-          каждый из которых повышает сложность проверки.
+          {t(
+            'Заклинание = базовый эффект выбранного направления + при желании дополнительные эффекты, ' +
+            'каждый из которых повышает сложность проверки.',
+            'A spell = the base effect of the chosen school, plus optional additional effects, ' +
+            'each of which increases the check difficulty.',
+          )}
         </p>
       </section>
 
       {selectedEffect && (
         <section className="panel">
           <div className="spell-detail-head">
-            <h3>{selectedEffect.nameRu} <span className="muted">· {selectedEffect.nameEn}</span></h3>
-            <span className="difficulty-badge">Сложность: {selectedEffect.difficulty}</span>
+            <h3>{t(selectedEffect.nameRu, selectedEffect.nameEn)} <span className="muted">· {t(selectedEffect.nameEn, selectedEffect.nameRu)}</span></h3>
+            <span className="difficulty-badge">{t('Сложность:', 'Difficulty:')} {selectedEffect.difficulty}</span>
           </div>
-          <p>{selectedEffect.description || selectedEffect.safeDescription}</p>
-          <div className="muted small-text">Источник: {selectedEffect.source}</div>
+          <p>{localizedDescription(selectedEffect)}</p>
+          <div className="muted small-text">{t('Источник:', 'Source:')} {selectedEffect.source}</div>
         </section>
       )}
 
       <section className="panel">
-        <h3>Дополнительные эффекты {additional.length ? `(${additional.length})` : ''}</h3>
+        <h3>{t('Дополнительные эффекты', 'Additional effects')} {additional.length ? `(${additional.length})` : ''}</h3>
         {additional.length === 0
-          ? <p className="muted">У этого базового эффекта нет дополнительных эффектов.</p>
+          ? <p className="muted">{t('У этого базового эффекта нет дополнительных эффектов.', 'This base effect has no additional effects.')}</p>
           : (
             <div className="table-wrap">
               <table className="skills">
                 <thead>
                   <tr>
-                    <th>Название</th>
-                    <th>Сложность (+)</th>
-                    <th>Описание</th>
-                    <th>Источник</th>
+                    <th>{t('Название', 'Name')}</th>
+                    <th>{t('Сложность (+)', 'Difficulty (+)')}</th>
+                    <th>{t('Описание', 'Description')}</th>
+                    <th>{t('Источник', 'Source')}</th>
                   </tr>
                 </thead>
                 <tbody>
                   {additional.map(m => (
                     <tr key={m.id}>
                       <td>
-                        <strong>{m.nameRu}</strong>
-                        <div className="muted small-text">{m.nameEn}{m.isCustom && ' · кастом'}</div>
+                        <strong>{t(m.nameRu, m.nameEn)}</strong>
+                        <div className="muted small-text">{t(m.nameEn, m.nameRu)}{m.isCustom && t(' · кастом', ' · custom')}</div>
                       </td>
                       <td className="nowrap">{m.difficulty}</td>
-                      <td>{m.description || m.safeDescription}</td>
+                      <td>{localizedDescription(m)}</td>
                       <td className="muted small-text">{m.source}</td>
                     </tr>
                   ))}

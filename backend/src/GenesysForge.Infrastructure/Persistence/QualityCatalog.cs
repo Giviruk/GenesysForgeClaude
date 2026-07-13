@@ -13,7 +13,7 @@ public static class QualityCatalog
 {
     private sealed record Entry(
         string Code, string NameEn, string NameRu, bool Active, bool HasRating,
-        string ActivationCost, string Category, string Desc, string Safe, string Source);
+        string ActivationCost, string Category, string Desc, string Safe, string Source, string SafeEn = "");
 
     private static readonly JsonSerializerOptions JsonOptions = new() { PropertyNameCaseInsensitive = true };
 
@@ -41,6 +41,7 @@ public static class QualityCatalog
                 Category = e.Category,
                 Description = e.Desc,
                 SafeDescription = e.Safe,
+                DescriptionEn = e.SafeEn,
                 Source = e.Source,
             };
     }

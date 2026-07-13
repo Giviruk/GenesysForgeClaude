@@ -9,6 +9,7 @@ import {
   CHARACTERISTICS, CHARACTERISTIC_LABELS, dualName, ITEM_KIND_LABELS, SKILL_KIND_LABELS,
   TALENT_CATEGORIES, TALENT_CATEGORY_LABELS,
 } from '../utils/labels'
+import { t } from '../i18n'
 
 interface Props {
   sheet: CharacterSheet
@@ -37,7 +38,7 @@ export function CustomTab({ sheet, reference, onError, refresh }: Props) {
       await refresh()
       setNotice(successMessage)
     } catch (err) {
-      onError(err instanceof Error ? err.message : 'Ошибка')
+      onError(err instanceof Error ? err.message : t('Ошибка', 'Error'))
     }
   }
 
@@ -51,22 +52,26 @@ export function CustomTab({ sheet, reference, onError, refresh }: Props) {
   return (
     <div>
       <section className="panel">
-        <h3>Кастомный контент</h3>
+        <h3>{t('Кастомный контент', 'Custom content')}</h3>
         <p className="hint">
-          Создавайте и редактируйте собственные навыки, таланты, предметы и героические способности для системы
-          «{sheet.system === 'genesysCore' ? 'Genesys Core' : 'Realms of Terrinoth'}».
-          Кастом привязан к вашему аккаунту, а не к этому персонажу: он виден только вам, но доступен
-          во всех ваших персонажах и NPC этой системы. Удаление недоступно, пока контент используется персонажем.
+          {t(
+            `Создавайте и редактируйте собственные навыки, таланты, предметы и героические способности для системы «${sheet.system === 'genesysCore' ? 'Genesys Core' : 'Realms of Terrinoth'}». ` +
+            'Кастом привязан к вашему аккаунту, а не к этому персонажу: он виден только вам, но доступен ' +
+            'во всех ваших персонажах и NPC этой системы. Удаление недоступно, пока контент используется персонажем.',
+            `Create and edit your own skills, talents, items and heroic abilities for the “${sheet.system === 'genesysCore' ? 'Genesys Core' : 'Realms of Terrinoth'}” system. ` +
+            'Custom content belongs to your account, not to this character: only you can see it, but it is available ' +
+            'to all your characters and NPCs of this system. Deletion is unavailable while the content is in use by a character.',
+          )}
         </p>
         <div className="tabs">
-          <button className={section === 'skill' ? 'tab active' : 'tab'} onClick={() => setSection('skill')}>Навыки</button>
-          <button className={section === 'talent' ? 'tab active' : 'tab'} onClick={() => setSection('talent')}>Таланты</button>
-          <button className={section === 'item' ? 'tab active' : 'tab'} onClick={() => setSection('item')}>Предметы</button>
-          <button className={section === 'archetype' ? 'tab active' : 'tab'} onClick={() => setSection('archetype')}>Архетипы</button>
-          <button className={section === 'career' ? 'tab active' : 'tab'} onClick={() => setSection('career')}>Карьеры</button>
-          <button className={section === 'packs' ? 'tab active' : 'tab'} onClick={() => setSection('packs')}>Наборы JSON</button>
+          <button className={section === 'skill' ? 'tab active' : 'tab'} onClick={() => setSection('skill')}>{t('Навыки', 'Skills')}</button>
+          <button className={section === 'talent' ? 'tab active' : 'tab'} onClick={() => setSection('talent')}>{t('Таланты', 'Talents')}</button>
+          <button className={section === 'item' ? 'tab active' : 'tab'} onClick={() => setSection('item')}>{t('Предметы', 'Items')}</button>
+          <button className={section === 'archetype' ? 'tab active' : 'tab'} onClick={() => setSection('archetype')}>{t('Архетипы', 'Archetypes')}</button>
+          <button className={section === 'career' ? 'tab active' : 'tab'} onClick={() => setSection('career')}>{t('Карьеры', 'Careers')}</button>
+          <button className={section === 'packs' ? 'tab active' : 'tab'} onClick={() => setSection('packs')}>{t('Наборы JSON', 'JSON packs')}</button>
           {sheet.system === 'realmsOfTerrinoth' && (
-            <button className={section === 'heroic' ? 'tab active' : 'tab'} onClick={() => setSection('heroic')}>Героич. способности</button>
+            <button className={section === 'heroic' ? 'tab active' : 'tab'} onClick={() => setSection('heroic')}>{t('Героич. способности', 'Heroic abilities')}</button>
           )}
         </div>
         {notice && <div className="notice">{notice}</div>}
@@ -77,28 +82,28 @@ export function CustomTab({ sheet, reference, onError, refresh }: Props) {
               onDone={() => setEditingSkill(null)} />
             <CustomList items={customSkills.map(s => ({ id: s.id, label: `${s.name} · ${CHARACTERISTIC_LABELS[s.characteristic]} · ${SKILL_KIND_LABELS[s.kind]}` }))}
               onEdit={id => setEditingSkill(customSkills.find(s => s.id === id)!)}
-              onDelete={id => run(() => api.deleteCustomSkill(id), 'Навык удалён.')} />
+              onDelete={id => run(() => api.deleteCustomSkill(id), t('Навык удалён.', 'Skill deleted.'))} />
           </>
         )}
         {section === 'talent' && (
           <>
             <TalentForm key={editingTalent?.id ?? 'new'} sheet={sheet} run={run} editing={editingTalent}
               onDone={() => setEditingTalent(null)} />
-            <CustomList items={customTalents.map(t => ({
-              id: t.id,
-              label: `${t.name} · ${TALENT_CATEGORY_LABELS[t.category]} · Тир ${t.tier}${t.isRanked ? ' · ранговый' : ''}`,
+            <CustomList items={customTalents.map(tal => ({
+              id: tal.id,
+              label: `${tal.name} · ${TALENT_CATEGORY_LABELS[tal.category]} · ${t('Тир', 'Tier')} ${tal.tier}${tal.isRanked ? t(' · ранговый', ' · ranked') : ''}`,
             }))}
-              onEdit={id => setEditingTalent(customTalents.find(t => t.id === id)!)}
-              onDelete={id => run(() => api.deleteCustomTalent(id), 'Талант удалён.')} />
+              onEdit={id => setEditingTalent(customTalents.find(tal => tal.id === id)!)}
+              onDelete={id => run(() => api.deleteCustomTalent(id), t('Талант удалён.', 'Talent deleted.'))} />
           </>
         )}
         {section === 'item' && (
           <>
             <ItemForm key={editingItem?.id ?? 'new'} sheet={sheet} reference={reference} run={run} editing={editingItem}
               onDone={() => setEditingItem(null)} />
-            <CustomList items={customItems.map(i => ({ id: i.id, label: `${i.name} · ${ITEM_KIND_LABELS[i.kind]} · вес ${i.encumbrance}` }))}
+            <CustomList items={customItems.map(i => ({ id: i.id, label: `${i.name} · ${ITEM_KIND_LABELS[i.kind]} · ${t('вес', 'enc.')} ${i.encumbrance}` }))}
               onEdit={id => setEditingItem(customItems.find(i => i.id === id)!)}
-              onDelete={id => run(() => api.deleteCustomItem(id), 'Предмет удалён.')} />
+              onDelete={id => run(() => api.deleteCustomItem(id), t('Предмет удалён.', 'Item deleted.'))} />
           </>
         )}
         {section === 'heroic' && sheet.system === 'realmsOfTerrinoth' && (
@@ -107,7 +112,7 @@ export function CustomTab({ sheet, reference, onError, refresh }: Props) {
               onDone={() => setEditingHeroic(null)} />
             <CustomList items={customHeroics.map(h => ({ id: h.id, label: h.name }))}
               onEdit={id => setEditingHeroic(customHeroics.find(h => h.id === id)!)}
-              onDelete={id => run(() => api.deleteCustomHeroicAbility(id), 'Способность удалена.')} />
+              onDelete={id => run(() => api.deleteCustomHeroicAbility(id), t('Способность удалена.', 'Ability deleted.'))} />
           </>
         )}
         {section === 'archetype' && (
@@ -116,16 +121,16 @@ export function CustomTab({ sheet, reference, onError, refresh }: Props) {
               editing={editingArchetype} onDone={() => setEditingArchetype(null)} />
             <CustomList items={customArchetypes.map(a => ({ id: a.id, label: `${a.nameRu || a.name} · XP ${a.startingXp}` }))}
               onEdit={id => setEditingArchetype(customArchetypes.find(a => a.id === id)!)}
-              onDelete={id => run(() => api.deleteCustomArchetype(id), 'Архетип удалён.')} />
+              onDelete={id => run(() => api.deleteCustomArchetype(id), t('Архетип удалён.', 'Archetype deleted.'))} />
           </>
         )}
         {section === 'career' && (
           <>
             <CareerForm key={editingCareer?.id ?? 'new'} sheet={sheet} reference={reference} run={run}
               editing={editingCareer} onDone={() => setEditingCareer(null)} />
-            <CustomList items={customCareers.map(c => ({ id: c.id, label: `${c.nameRu || c.name} · ${c.careerSkillNames.length} навыков` }))}
+            <CustomList items={customCareers.map(c => ({ id: c.id, label: `${c.nameRu || c.name} · ${c.careerSkillNames.length} ${t('навыков', 'skills')}` }))}
               onEdit={id => setEditingCareer(customCareers.find(c => c.id === id)!)}
-              onDelete={id => run(() => api.deleteCustomCareer(id), 'Карьера удалена.')} />
+              onDelete={id => run(() => api.deleteCustomCareer(id), t('Карьера удалена.', 'Career deleted.'))} />
           </>
         )}
         {section === 'packs' && (
@@ -161,7 +166,7 @@ function HomebrewPackPanel({ sheet, onError, refresh }: {
       await load()
       await refresh()
     } catch (err) {
-      onError(err instanceof Error ? err.message : 'Ошибка')
+      onError(err instanceof Error ? err.message : t('Ошибка', 'Error'))
     } finally {
       setBusy(false)
     }
@@ -180,54 +185,58 @@ function HomebrewPackPanel({ sheet, onError, refresh }: {
 
   async function sharePack(id: string) {
     const share = await api.shareHomebrewPack(id)
-    setShareText(`Токен: ${share.token}\nПуть: ${share.path}`)
+    setShareText(t(`Токен: ${share.token}\nПуть: ${share.path}`, `Token: ${share.token}\nPath: ${share.path}`))
   }
 
   return (
     <div className="custom-form">
       <p className="hint">
-        Импортируйте переносимый JSON `genesysforge.homebrew-pack.v1`. Контент набора можно включать по умолчанию
-        или отдельно для текущего персонажа.
+        {t(
+          'Импортируйте переносимый JSON `genesysforge.homebrew-pack.v1`. Контент набора можно включать по умолчанию ' +
+          'или отдельно для текущего персонажа.',
+          'Import a portable `genesysforge.homebrew-pack.v1` JSON. Pack content can be enabled by default ' +
+          'or individually for the current character.',
+        )}
       </p>
-      <label>JSON набора
+      <label>{t('JSON набора', 'Pack JSON')}
         <textarea value={jsonText} onChange={e => setJsonText(e.target.value)} rows={8}
           placeholder='{"format":"genesysforge.homebrew-pack.v1","name":"...","system":"genesysCore"}' />
       </label>
       <div className="form-actions">
         <button className="primary" type="button" disabled={busy || !jsonText.trim()} onClick={() => void act(importJson)}>
-          Импортировать JSON
+          {t('Импортировать JSON', 'Import JSON')}
         </button>
-        <button type="button" disabled={busy} onClick={() => void act(load)}>Обновить список</button>
+        <button type="button" disabled={busy} onClick={() => void act(load)}>{t('Обновить список', 'Refresh list')}</button>
       </div>
 
       <div className="custom-list">
-        <div className="label-line">Ваши наборы ({packs.length}):</div>
-        {packs.length === 0 && <p className="hint">Пока нет импортированных наборов для этой системы.</p>}
+        <div className="label-line">{t('Ваши наборы', 'Your packs')} ({packs.length}):</div>
+        {packs.length === 0 && <p className="hint">{t('Пока нет импортированных наборов для этой системы.', 'No imported packs for this system yet.')}</p>}
         {packs.map(pack => (
           <div key={pack.id} className="custom-list-row">
-            <span>{pack.name} · {pack.entryCount} записей · {pack.isEnabledByDefault ? 'включён по умолчанию' : 'выключен по умолчанию'}</span>
+            <span>{pack.name} · {pack.entryCount} {t('записей', 'entries')} · {pack.isEnabledByDefault ? t('включён по умолчанию', 'enabled by default') : t('выключен по умолчанию', 'disabled by default')}</span>
             <span className="custom-list-actions">
               <button className="small" disabled={busy}
                 onClick={() => void act(() => api.setHomebrewPackDefault(pack.id, !pack.isEnabledByDefault))}>
-                {pack.isEnabledByDefault ? 'Выключить' : 'Включить'}
+                {pack.isEnabledByDefault ? t('Выключить', 'Disable') : t('Включить', 'Enable')}
               </button>
               <button className="small" disabled={busy}
                 onClick={() => void act(() => api.setCharacterHomebrewPack(sheet.id, pack.id, true))}>
-                Для персонажа: вкл.
+                {t('Для персонажа: вкл.', 'For character: on')}
               </button>
               <button className="small" disabled={busy}
                 onClick={() => void act(() => api.setCharacterHomebrewPack(sheet.id, pack.id, false))}>
-                Для персонажа: выкл.
+                {t('Для персонажа: выкл.', 'For character: off')}
               </button>
-              <button className="small" disabled={busy} onClick={() => void act(() => exportPack(pack.id))}>Экспорт</button>
-              <button className="small" disabled={busy} onClick={() => void act(() => sharePack(pack.id))}>Поделиться</button>
+              <button className="small" disabled={busy} onClick={() => void act(() => exportPack(pack.id))}>{t('Экспорт', 'Export')}</button>
+              <button className="small" disabled={busy} onClick={() => void act(() => sharePack(pack.id))}>{t('Поделиться', 'Share')}</button>
             </span>
           </div>
         ))}
       </div>
       {shareText && <pre className="code-block">{shareText}</pre>}
       {exportText && (
-        <label>Экспортированный JSON
+        <label>{t('Экспортированный JSON', 'Exported JSON')}
           <textarea value={exportText} readOnly rows={8} />
         </label>
       )}
@@ -240,16 +249,16 @@ function CustomList({ items, onEdit, onDelete }: {
   onEdit: (id: string) => void
   onDelete: (id: string) => void
 }) {
-  if (items.length === 0) return <p className="hint">Пока нет своего контента в этом разделе.</p>
+  if (items.length === 0) return <p className="hint">{t('Пока нет своего контента в этом разделе.', 'No custom content in this section yet.')}</p>
   return (
     <div className="custom-list">
-      <div className="label-line">Ваш контент ({items.length}):</div>
+      <div className="label-line">{t('Ваш контент', 'Your content')} ({items.length}):</div>
       {items.map(it => (
         <div key={it.id} className="custom-list-row">
           <span>{it.label}</span>
           <span className="custom-list-actions">
-            <button className="small" onClick={() => onEdit(it.id)}>Изменить</button>
-            <button className="danger small" onClick={() => { if (confirm(`Удалить «${it.label}»?`)) onDelete(it.id) }}>Удалить</button>
+            <button className="small" onClick={() => onEdit(it.id)}>{t('Изменить', 'Edit')}</button>
+            <button className="danger small" onClick={() => { if (confirm(t(`Удалить «${it.label}»?`, `Delete "${it.label}"?`))) onDelete(it.id) }}>{t('Удалить', 'Delete')}</button>
           </span>
         </div>
       ))}
@@ -266,35 +275,35 @@ function SkillForm({ sheet, run, editing, onDone }: { sheet: CharacterSheet; run
     e.preventDefault()
     const payload = { system: sheet.system, name, characteristic, kind }
     if (editing) {
-      void run(() => api.updateCustomSkill(editing.id, payload), `Навык «${name}» обновлён.`)
+      void run(() => api.updateCustomSkill(editing.id, payload), t(`Навык «${name}» обновлён.`, `Skill "${name}" updated.`))
       onDone()
     } else {
-      void run(() => api.createCustomSkill(payload), `Навык «${name}» создан — он появился в списке навыков листа.`)
+      void run(() => api.createCustomSkill(payload), t(`Навык «${name}» создан — он появился в списке навыков листа.`, `Skill "${name}" created — it now appears in the sheet's skill list.`))
       setName('')
     }
   }
 
   return (
     <form className="custom-form" onSubmit={submit}>
-      {editing && <div className="editing-banner">Редактирование: {editing.name}</div>}
-      <label>Название<input value={name} onChange={e => setName(e.target.value)} required /></label>
-      <label>Характеристика
+      {editing && <div className="editing-banner">{t('Редактирование:', 'Editing:')} {editing.name}</div>}
+      <label>{t('Название', 'Name')}<input value={name} onChange={e => setName(e.target.value)} required /></label>
+      <label>{t('Характеристика', 'Characteristic')}
         <select value={characteristic} onChange={e => setCharacteristic(e.target.value)}>
           {CHARACTERISTICS.map(c => <option key={c} value={c}>{CHARACTERISTIC_LABELS[c]}</option>)}
         </select>
       </label>
-      <label>Категория
+      <label>{t('Категория', 'Category')}
         <select value={kind} onChange={e => setKind(e.target.value)}>
-          <option value="general">Общий</option>
-          <option value="combat">Боевой</option>
-          <option value="social">Социальный</option>
-          <option value="knowledge">Знание</option>
-          <option value="magic">Магия</option>
+          <option value="general">{t('Общий', 'General')}</option>
+          <option value="combat">{t('Боевой', 'Combat')}</option>
+          <option value="social">{t('Социальный', 'Social')}</option>
+          <option value="knowledge">{t('Знание', 'Knowledge')}</option>
+          <option value="magic">{t('Магия', 'Magic')}</option>
         </select>
       </label>
       <div className="form-actions">
-        <button className="primary" type="submit">{editing ? 'Сохранить' : 'Создать навык'}</button>
-        {editing && <button type="button" onClick={onDone}>Отмена</button>}
+        <button className="primary" type="submit">{editing ? t('Сохранить', 'Save') : t('Создать навык', 'Create skill')}</button>
+        {editing && <button type="button" onClick={onDone}>{t('Отмена', 'Cancel')}</button>}
       </div>
     </form>
   )
@@ -305,7 +314,7 @@ function TalentForm({ sheet, run, editing, onDone }: { sheet: CharacterSheet; ru
   const [tier, setTier] = useState(editing?.tier ?? 1)
   const [isRanked, setIsRanked] = useState(editing?.isRanked ?? false)
   const [category, setCategory] = useState<TalentCategory>(editing?.category ?? 'general')
-  const [activation, setActivation] = useState(editing?.activation ?? 'Пассивный')
+  const [activation, setActivation] = useState(editing?.activation ?? t('Пассивный', 'Passive'))
   const [description, setDescription] = useState(editing?.description ?? '')
   const [bonuses, setBonuses] = useState({
     woundBonus: editing?.woundBonus ?? 0,
@@ -319,48 +328,48 @@ function TalentForm({ sheet, run, editing, onDone }: { sheet: CharacterSheet; ru
     e.preventDefault()
     const payload = { system: sheet.system, name, tier, isRanked, category, activation, description, ...bonuses }
     if (editing) {
-      void run(() => api.updateCustomTalent(editing.id, payload), `Талант «${name}» обновлён.`)
+      void run(() => api.updateCustomTalent(editing.id, payload), t(`Талант «${name}» обновлён.`, `Talent "${name}" updated.`))
       onDone()
     } else {
-      void run(() => api.createCustomTalent(payload), `Талант «${name}» (тир ${tier}) создан — его можно купить на вкладке «Таланты».`)
+      void run(() => api.createCustomTalent(payload), t(`Талант «${name}» (тир ${tier}) создан — его можно купить на вкладке «Таланты».`, `Talent "${name}" (tier ${tier}) created — you can buy it on the "Talents" tab.`))
       setName(''); setDescription('')
     }
   }
 
   const bonusFields: [keyof typeof bonuses, string][] = [
-    ['woundBonus', 'Порог ран / ранг'],
-    ['strainBonus', 'Порог усталости / ранг'],
-    ['soakBonus', 'Поглощение / ранг'],
-    ['meleeDefenseBonus', 'Защита ближ. / ранг'],
-    ['rangedDefenseBonus', 'Защита дальн. / ранг'],
+    ['woundBonus', t('Порог ран / ранг', 'Wound threshold / rank')],
+    ['strainBonus', t('Порог усталости / ранг', 'Strain threshold / rank')],
+    ['soakBonus', t('Поглощение / ранг', 'Soak / rank')],
+    ['meleeDefenseBonus', t('Защита ближ. / ранг', 'Melee defense / rank')],
+    ['rangedDefenseBonus', t('Защита дальн. / ранг', 'Ranged defense / rank')],
   ]
 
   return (
     <form className="custom-form" onSubmit={submit}>
-      {editing && <div className="editing-banner">Редактирование: {editing.name}</div>}
-      <label>Название<input value={name} onChange={e => setName(e.target.value)} required /></label>
-      <label>Тир (1–5)
+      {editing && <div className="editing-banner">{t('Редактирование:', 'Editing:')} {editing.name}</div>}
+      <label>{t('Название', 'Name')}<input value={name} onChange={e => setName(e.target.value)} required /></label>
+      <label>{t('Тир (1–5)', 'Tier (1–5)')}
         <input type="number" min={1} max={5} value={tier} onChange={e => setTier(Number(e.target.value))} />
       </label>
       <label className="checkbox">
         <input type="checkbox" checked={isRanked} onChange={e => setIsRanked(e.target.checked)} />
-        Ранговый (можно покупать несколько раз, каждый ранг — на тир выше)
+        {t('Ранговый (можно покупать несколько раз, каждый ранг — на тир выше)', 'Ranked (can be bought multiple times, each rank one tier higher)')}
       </label>
-      <label>Категория
+      <label>{t('Категория', 'Category')}
         <select value={category} onChange={e => setCategory(e.target.value as TalentCategory)}>
           {TALENT_CATEGORIES.map(c => <option key={c} value={c}>{TALENT_CATEGORY_LABELS[c]}</option>)}
         </select>
       </label>
-      <label>Активация
+      <label>{t('Активация', 'Activation')}
         <select value={activation} onChange={e => setActivation(e.target.value)}>
-          <option>Пассивный</option>
-          <option>Действие</option>
-          <option>Манёвр</option>
-          <option>Инцидент</option>
+          <option>{t('Пассивный', 'Passive')}</option>
+          <option>{t('Действие', 'Action')}</option>
+          <option>{t('Манёвр', 'Maneuver')}</option>
+          <option>{t('Инцидент', 'Incidental')}</option>
         </select>
       </label>
-      <label>Описание<textarea value={description} onChange={e => setDescription(e.target.value)} rows={3} /></label>
-      <div className="label-line">Пассивные бонусы (применяются автоматически):</div>
+      <label>{t('Описание', 'Description')}<textarea value={description} onChange={e => setDescription(e.target.value)} rows={3} /></label>
+      <div className="label-line">{t('Пассивные бонусы (применяются автоматически):', 'Passive bonuses (applied automatically):')}</div>
       <div className="bonus-grid">
         {bonusFields.map(([key, label]) => (
           <label key={key}>{label}
@@ -370,8 +379,8 @@ function TalentForm({ sheet, run, editing, onDone }: { sheet: CharacterSheet; ru
         ))}
       </div>
       <div className="form-actions">
-        <button className="primary" type="submit">{editing ? 'Сохранить' : 'Создать талант'}</button>
-        {editing && <button type="button" onClick={onDone}>Отмена</button>}
+        <button className="primary" type="submit">{editing ? t('Сохранить', 'Save') : t('Создать талант', 'Create talent')}</button>
+        {editing && <button type="button" onClick={onDone}>{t('Отмена', 'Cancel')}</button>}
       </div>
     </form>
   )
@@ -402,61 +411,61 @@ function ItemForm({ sheet, reference, run, editing, onDone }: { sheet: Character
     e.preventDefault()
     const payload = { system: sheet.system, name, kind, description, ...numbers, ...(kind === 'weapon' ? weapon : {}) }
     if (editing) {
-      void run(() => api.updateCustomItem(editing.id, payload), `Предмет «${name}» обновлён.`)
+      void run(() => api.updateCustomItem(editing.id, payload), t(`Предмет «${name}» обновлён.`, `Item "${name}" updated.`))
       onDone()
     } else {
-      void run(() => api.createCustomItem(payload), `Предмет «${name}» создан — его можно добавить в инвентарь.`)
+      void run(() => api.createCustomItem(payload), t(`Предмет «${name}» создан — его можно добавить в инвентарь.`, `Item "${name}" created — it can be added to the inventory.`))
       setName(''); setDescription('')
     }
   }
 
   const numberFields: [keyof typeof numbers, string][] = [
-    ['encumbrance', 'Вес (encumbrance)'],
-    ['soakBonus', 'Поглощение (надет)'],
-    ['meleeDefense', 'Защита ближ. (надет)'],
-    ['rangedDefense', 'Защита дальн. (надет)'],
-    ['encumbranceThresholdBonus', 'Бонус порога веса (надет)'],
-    ['price', 'Цена'],
-    ['rarity', 'Редкость'],
+    ['encumbrance', t('Вес (encumbrance)', 'Encumbrance')],
+    ['soakBonus', t('Поглощение (надет)', 'Soak (equipped)')],
+    ['meleeDefense', t('Защита ближ. (надет)', 'Melee defense (equipped)')],
+    ['rangedDefense', t('Защита дальн. (надет)', 'Ranged defense (equipped)')],
+    ['encumbranceThresholdBonus', t('Бонус порога веса (надет)', 'Encumbrance threshold bonus (equipped)')],
+    ['price', t('Цена', 'Price')],
+    ['rarity', t('Редкость', 'Rarity')],
   ]
 
   return (
     <form className="custom-form" onSubmit={submit}>
-      {editing && <div className="editing-banner">Редактирование: {editing.name}</div>}
-      <label>Название<input value={name} onChange={e => setName(e.target.value)} required /></label>
-      <label>Тип
+      {editing && <div className="editing-banner">{t('Редактирование:', 'Editing:')} {editing.name}</div>}
+      <label>{t('Название', 'Name')}<input value={name} onChange={e => setName(e.target.value)} required /></label>
+      <label>{t('Тип', 'Type')}
         <select value={kind} onChange={e => setKind(e.target.value)}>
-          <option value="weapon">Оружие</option>
-          <option value="armor">Броня</option>
-          <option value="gear">Снаряжение</option>
+          <option value="weapon">{t('Оружие', 'Weapon')}</option>
+          <option value="armor">{t('Броня', 'Armor')}</option>
+          <option value="gear">{t('Снаряжение', 'Gear')}</option>
         </select>
       </label>
       {kind === 'weapon' && (
         <>
-          <div className="label-line">Боевые характеристики оружия:</div>
-          <label>Навык броска
+          <div className="label-line">{t('Боевые характеристики оружия:', 'Weapon combat stats:')}</div>
+          <label>{t('Навык броска', 'Roll skill')}
             <select value={weapon.skillName} onChange={e => setWeapon(w => ({ ...w, skillName: e.target.value }))}>
-              <option value="">— не задан —</option>
+              <option value="">{t('— не задан —', '— not set —')}</option>
               {sheet.skills.filter(s => s.kind === 'combat').map(s => (
                 <option key={s.skillDefId} value={s.name}>{dualName(s)}</option>
               ))}
             </select>
           </label>
           <div className="bonus-grid">
-            <label>Урон (например «+3» или «7»)
+            <label>{t('Урон (например «+3» или «7»)', 'Damage (e.g. "+3" or "7")')}
               <input value={weapon.damage} onChange={e => setWeapon(w => ({ ...w, damage: e.target.value }))} /></label>
-            <label>Крит
+            <label>{t('Крит', 'Crit')}
               <input value={weapon.crit} onChange={e => setWeapon(w => ({ ...w, crit: e.target.value }))} /></label>
-            <label>Дистанция
+            <label>{t('Дистанция', 'Range')}
               <input value={weapon.rangeBand} onChange={e => setWeapon(w => ({ ...w, rangeBand: e.target.value }))} /></label>
           </div>
-          <label>Свойства
+          <label>{t('Свойства', 'Properties')}
             <input value={weapon.properties} onChange={e => setWeapon(w => ({ ...w, properties: e.target.value }))} /></label>
           <QualityPicker qualities={reference.qualities}
             onAdd={token => setWeapon(w => ({ ...w, properties: appendProperty(w.properties, token) }))} />
         </>
       )}
-      <label>Описание<textarea value={description} onChange={e => setDescription(e.target.value)} rows={2} /></label>
+      <label>{t('Описание', 'Description')}<textarea value={description} onChange={e => setDescription(e.target.value)} rows={2} /></label>
       <div className="bonus-grid">
         {numberFields.map(([key, label]) => (
           <label key={key}>{label}
@@ -466,8 +475,8 @@ function ItemForm({ sheet, reference, run, editing, onDone }: { sheet: Character
         ))}
       </div>
       <div className="form-actions">
-        <button className="primary" type="submit">{editing ? 'Сохранить' : 'Создать предмет'}</button>
-        {editing && <button type="button" onClick={onDone}>Отмена</button>}
+        <button className="primary" type="submit">{editing ? t('Сохранить', 'Save') : t('Создать предмет', 'Create item')}</button>
+        {editing && <button type="button" onClick={onDone}>{t('Отмена', 'Cancel')}</button>}
       </div>
     </form>
   )
@@ -490,7 +499,7 @@ function QualityPicker({ qualities, onAdd }: { qualities: Quality[]; onAdd: (tok
 
   function add() {
     if (!selected) return
-    const token = selected.hasRating ? `${selected.nameRu} ${rating}` : selected.nameRu
+    const token = selected.hasRating ? `${t(selected.nameRu, selected.nameEn || selected.nameRu)} ${rating}` : t(selected.nameRu, selected.nameEn || selected.nameRu)
     onAdd(token)
     setCode('')
     setRating(1)
@@ -500,18 +509,18 @@ function QualityPicker({ qualities, onAdd }: { qualities: Quality[]; onAdd: (tok
   return (
     <div className="form-row quality-picker">
       <select className="grow" value={code} onChange={e => setCode(e.target.value)}>
-        <option value="">— добавить свойство из справочника —</option>
+        <option value="">{t('— добавить свойство из справочника —', '— add a property from the reference —')}</option>
         {items.map(q => (
           <option key={q.code} value={q.code} title={q.safeDescription}>
-            {q.nameRu}{q.hasRating ? ' (рейтинг)' : ''}
+            {t(q.nameRu, q.nameEn || q.nameRu)}{q.hasRating ? t(' (рейтинг)', ' (rated)') : ''}
           </option>
         ))}
       </select>
       {selected?.hasRating && (
         <input className="ranks-input" type="number" min={1} value={rating}
-          onChange={e => setRating(Math.max(1, +e.target.value))} title="Рейтинг свойства" />
+          onChange={e => setRating(Math.max(1, +e.target.value))} title={t('Рейтинг свойства', 'Property rating')} />
       )}
-      <button type="button" className="small" onClick={add} disabled={!selected}>+ свойство</button>
+      <button type="button" className="small" onClick={add} disabled={!selected}>{t('+ свойство', '+ property')}</button>
     </div>
   )
 }
@@ -543,31 +552,31 @@ function ArchetypeForm({ sheet, run, editing, onDone }: {
     e.preventDefault()
     const payload: CustomArchetypeInput = { system: sheet.system, name, nameRu, description, abilityNameRu, abilityDescription, ...stats }
     if (editing) {
-      void run(() => api.updateCustomArchetype(editing.id, payload), `Архетип «${nameRu || name}» обновлён.`)
+      void run(() => api.updateCustomArchetype(editing.id, payload), t(`Архетип «${nameRu || name}» обновлён.`, `Archetype "${nameRu || name}" updated.`))
       onDone()
     } else {
-      void run(() => api.createCustomArchetype(payload), `Архетип «${nameRu || name}» создан — он доступен при создании персонажа.`)
+      void run(() => api.createCustomArchetype(payload), t(`Архетип «${nameRu || name}» создан — он доступен при создании персонажа.`, `Archetype "${nameRu || name}" created — it is available during character creation.`))
       setName(''); setNameRu(''); setDescription(''); setAbilityNameRu(''); setAbilityDescription('')
     }
   }
 
   const statFields: [keyof typeof stats, string, number, number][] = [
-    ['brawn', 'Мощь', 1, 5],
-    ['agility', 'Ловкость', 1, 5],
-    ['intellect', 'Интеллект', 1, 5],
-    ['cunning', 'Хитрость', 1, 5],
-    ['willpower', 'Воля', 1, 5],
-    ['presence', 'Присутствие', 1, 5],
-    ['woundBase', 'База ран', 1, 30],
-    ['strainBase', 'База усталости', 1, 30],
-    ['startingXp', 'Стартовый XP', 0, 500],
+    ['brawn', CHARACTERISTIC_LABELS.brawn, 1, 5],
+    ['agility', CHARACTERISTIC_LABELS.agility, 1, 5],
+    ['intellect', CHARACTERISTIC_LABELS.intellect, 1, 5],
+    ['cunning', CHARACTERISTIC_LABELS.cunning, 1, 5],
+    ['willpower', CHARACTERISTIC_LABELS.willpower, 1, 5],
+    ['presence', CHARACTERISTIC_LABELS.presence, 1, 5],
+    ['woundBase', t('База ран', 'Wound base'), 1, 30],
+    ['strainBase', t('База усталости', 'Strain base'), 1, 30],
+    ['startingXp', t('Стартовый XP', 'Starting XP'), 0, 500],
   ]
 
   return (
     <form className="custom-form" onSubmit={submit}>
-      {editing && <div className="editing-banner">Редактирование: {editing.nameRu || editing.name}</div>}
-      <label>Название EN/кодовое<input value={name} onChange={e => setName(e.target.value)} required /></label>
-      <label>Название RU<input value={nameRu} onChange={e => setNameRu(e.target.value)} /></label>
+      {editing && <div className="editing-banner">{t('Редактирование:', 'Editing:')} {editing.nameRu || editing.name}</div>}
+      <label>{t('Название EN/кодовое', 'Name EN/code')}<input value={name} onChange={e => setName(e.target.value)} required /></label>
+      <label>{t('Название RU', 'Name RU')}<input value={nameRu} onChange={e => setNameRu(e.target.value)} /></label>
       <div className="bonus-grid">
         {statFields.map(([key, label, min, max]) => (
           <label key={key}>{label}
@@ -576,12 +585,12 @@ function ArchetypeForm({ sheet, run, editing, onDone }: {
           </label>
         ))}
       </div>
-      <label>Краткое описание<textarea value={description} onChange={e => setDescription(e.target.value)} rows={2} /></label>
-      <label>Способность вида — название<input value={abilityNameRu} onChange={e => setAbilityNameRu(e.target.value)} /></label>
-      <label>Способность вида — описание<textarea value={abilityDescription} onChange={e => setAbilityDescription(e.target.value)} rows={3} /></label>
+      <label>{t('Краткое описание', 'Short description')}<textarea value={description} onChange={e => setDescription(e.target.value)} rows={2} /></label>
+      <label>{t('Способность вида — название', 'Species ability — name')}<input value={abilityNameRu} onChange={e => setAbilityNameRu(e.target.value)} /></label>
+      <label>{t('Способность вида — описание', 'Species ability — description')}<textarea value={abilityDescription} onChange={e => setAbilityDescription(e.target.value)} rows={3} /></label>
       <div className="form-actions">
-        <button className="primary" type="submit">{editing ? 'Сохранить' : 'Создать архетип'}</button>
-        {editing && <button type="button" onClick={onDone}>Отмена</button>}
+        <button className="primary" type="submit">{editing ? t('Сохранить', 'Save') : t('Создать архетип', 'Create archetype')}</button>
+        {editing && <button type="button" onClick={onDone}>{t('Отмена', 'Cancel')}</button>}
       </div>
     </form>
   )
@@ -615,29 +624,29 @@ function CareerForm({ sheet, reference, run, editing, onDone }: {
       careerSkillNames, startingMoneyFixed, startingMoneyDice,
     }
     if (editing) {
-      void run(() => api.updateCustomCareer(editing.id, payload), `Карьера «${nameRu || name}» обновлена.`)
+      void run(() => api.updateCustomCareer(editing.id, payload), t(`Карьера «${nameRu || name}» обновлена.`, `Career "${nameRu || name}" updated.`))
       onDone()
     } else {
-      void run(() => api.createCustomCareer(payload), `Карьера «${nameRu || name}» создана — она доступна при создании персонажа.`)
+      void run(() => api.createCustomCareer(payload), t(`Карьера «${nameRu || name}» создана — она доступна при создании персонажа.`, `Career "${nameRu || name}" created — it is available during character creation.`))
       setName(''); setNameRu(''); setDescription(''); setStartingMoneyFixed(0); setStartingMoneyDice(''); setCareerSkillNames([])
     }
   }
 
   return (
     <form className="custom-form" onSubmit={submit}>
-      {editing && <div className="editing-banner">Редактирование: {editing.nameRu || editing.name}</div>}
-      <label>Название EN/кодовое<input value={name} onChange={e => setName(e.target.value)} required /></label>
-      <label>Название RU<input value={nameRu} onChange={e => setNameRu(e.target.value)} /></label>
-      <label>Описание<textarea value={description} onChange={e => setDescription(e.target.value)} rows={2} /></label>
+      {editing && <div className="editing-banner">{t('Редактирование:', 'Editing:')} {editing.nameRu || editing.name}</div>}
+      <label>{t('Название EN/кодовое', 'Name EN/code')}<input value={name} onChange={e => setName(e.target.value)} required /></label>
+      <label>{t('Название RU', 'Name RU')}<input value={nameRu} onChange={e => setNameRu(e.target.value)} /></label>
+      <label>{t('Описание', 'Description')}<textarea value={description} onChange={e => setDescription(e.target.value)} rows={2} /></label>
       <div className="bonus-grid">
-        <label>Стартовые деньги фикс.
+        <label>{t('Стартовые деньги фикс.', 'Starting money (fixed)')}
           <input type="number" min={0} value={startingMoneyFixed} onChange={e => setStartingMoneyFixed(Number(e.target.value))} />
         </label>
-        <label>Бросок денег (например 1d100)
+        <label>{t('Бросок денег (например 1d100)', 'Money roll (e.g. 1d100)')}
           <input value={startingMoneyDice} onChange={e => setStartingMoneyDice(e.target.value)} />
         </label>
       </div>
-      <div className="label-line">Карьерные навыки ({careerSkillNames.length}):</div>
+      <div className="label-line">{t('Карьерные навыки', 'Career skills')} ({careerSkillNames.length}):</div>
       <div className="chips">
         {skills.map(s => (
           <button key={s.id} type="button" className={careerSkillNames.includes(s.name) ? 'chip active' : 'chip'}
@@ -648,9 +657,9 @@ function CareerForm({ sheet, reference, run, editing, onDone }: {
       </div>
       <div className="form-actions">
         <button className="primary" type="submit" disabled={careerSkillNames.length === 0}>
-          {editing ? 'Сохранить' : 'Создать карьеру'}
+          {editing ? t('Сохранить', 'Save') : t('Создать карьеру', 'Create career')}
         </button>
-        {editing && <button type="button" onClick={onDone}>Отмена</button>}
+        {editing && <button type="button" onClick={onDone}>{t('Отмена', 'Cancel')}</button>}
       </div>
     </form>
   )
@@ -664,24 +673,24 @@ function HeroicForm({ run, editing, onDone }: { run: Run; editing: HeroicAbility
     e.preventDefault()
     const payload = { name, description }
     if (editing) {
-      void run(() => api.updateCustomHeroicAbility(editing.id, payload), `Способность «${name}» обновлена.`)
+      void run(() => api.updateCustomHeroicAbility(editing.id, payload), t(`Способность «${name}» обновлена.`, `Ability "${name}" updated.`))
       onDone()
     } else {
-      void run(() => api.createCustomHeroicAbility(payload), `Героическая способность «${name}» создана — её можно выбрать на вкладке «Лист».`)
+      void run(() => api.createCustomHeroicAbility(payload), t(`Героическая способность «${name}» создана — её можно выбрать на вкладке «Лист».`, `Heroic ability "${name}" created — you can pick it on the "Sheet" tab.`))
       setName(''); setDescription('')
     }
   }
 
   return (
     <form className="custom-form" onSubmit={submit}>
-      {editing && <div className="editing-banner">Редактирование: {editing.name}</div>}
-      <label>Название<input value={name} onChange={e => setName(e.target.value)} required /></label>
-      <label>Описание (активация, эффект, улучшения за XP)
+      {editing && <div className="editing-banner">{t('Редактирование:', 'Editing:')} {editing.name}</div>}
+      <label>{t('Название', 'Name')}<input value={name} onChange={e => setName(e.target.value)} required /></label>
+      <label>{t('Описание (активация, эффект, улучшения за XP)', 'Description (activation, effect, XP upgrades)')}
         <textarea value={description} onChange={e => setDescription(e.target.value)} rows={4} />
       </label>
       <div className="form-actions">
-        <button className="primary" type="submit">{editing ? 'Сохранить' : 'Создать способность'}</button>
-        {editing && <button type="button" onClick={onDone}>Отмена</button>}
+        <button className="primary" type="submit">{editing ? t('Сохранить', 'Save') : t('Создать способность', 'Create ability')}</button>
+        {editing && <button type="button" onClick={onDone}>{t('Отмена', 'Cancel')}</button>}
       </div>
     </form>
   )

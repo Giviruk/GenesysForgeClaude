@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { api } from '../api/client'
 import type { CharacterAuditAction, CharacterAuditEntry } from '../api/types'
+import { lang, t } from '../i18n'
 
 interface Props {
   characterId: string
@@ -9,7 +10,7 @@ interface Props {
   refresh: () => Promise<void>
 }
 
-const ACTION_LABELS: Record<CharacterAuditAction, string> = {
+const ACTION_LABELS: Record<CharacterAuditAction, string> = t({
   xpAwarded: 'Выдача XP',
   characteristicBought: 'Характеристика',
   characteristicRefunded: 'Возврат хар-ки',
@@ -23,7 +24,21 @@ const ACTION_LABELS: Record<CharacterAuditAction, string> = {
   heroicAbilityChanged: 'Героика',
   creationCompleted: 'Создание',
   manualEdit: 'Правка',
-}
+}, {
+  xpAwarded: 'XP award',
+  characteristicBought: 'Characteristic',
+  characteristicRefunded: 'Char. refund',
+  skillRankBought: 'Skill',
+  skillRankRefunded: 'Skill refund',
+  talentBought: 'Talent',
+  talentRefunded: 'Talent refund',
+  itemBought: 'Item +',
+  itemSold: 'Sale',
+  itemRemoved: 'Item −',
+  heroicAbilityChanged: 'Heroic ability',
+  creationCompleted: 'Creation',
+  manualEdit: 'Edit',
+})
 
 export function HistoryTab({ characterId, onError, refresh }: Props) {
   const [entries, setEntries] = useState<CharacterAuditEntry[] | null>(null)
@@ -33,7 +48,7 @@ export function HistoryTab({ characterId, onError, refresh }: Props) {
   const reload = useCallback(() =>
     api.characterAudit(characterId)
       .then(setEntries)
-      .catch((e: unknown) => onError(e instanceof Error ? e.message : 'Ошибка загрузки истории')),
+      .catch((e: unknown) => onError(e instanceof Error ? e.message : t('Ошибка загрузки истории', 'Failed to load history'))),
     [characterId, onError])
 
   useEffect(() => { void reload() }, [reload])
@@ -48,45 +63,45 @@ export function HistoryTab({ characterId, onError, refresh }: Props) {
       await reload()
       await refresh()
     } catch (e) {
-      onError(e instanceof Error ? e.message : 'Ошибка выдачи XP')
+      onError(e instanceof Error ? e.message : t('Ошибка выдачи XP', 'Failed to award XP'))
     }
   }
 
   return (
     <div className="history-tab">
       <section className="panel award-xp">
-        <h3>Выдать XP</h3>
+        <h3>{t('Выдать XP', 'Award XP')}</h3>
         <div className="form-row">
           <input className="ranks-input" type="number" placeholder="±XP" value={amount}
-            onChange={e => setAmount(e.target.value)} title="Сколько XP выдать (можно отрицательное для коррекции)" />
-          <input className="grow" placeholder="Комментарий (необязательно)" value={note}
+            onChange={e => setAmount(e.target.value)} title={t('Сколько XP выдать (можно отрицательное для коррекции)', 'How much XP to award (negative values allowed for corrections)')} />
+          <input className="grow" placeholder={t('Комментарий (необязательно)', 'Comment (optional)')} value={note}
             onChange={e => setNote(e.target.value)} />
           <button className="primary small" onClick={() => void award()}
             disabled={!Number.isFinite(Number(amount)) || Math.trunc(Number(amount)) === 0}>
-            Выдать
+            {t('Выдать', 'Award')}
           </button>
         </div>
       </section>
 
       <section className="panel">
-        <h3>История изменений</h3>
-        {entries === null && <p className="muted">Загрузка…</p>}
-        {entries !== null && entries.length === 0 && <p className="muted">Записей пока нет.</p>}
+        <h3>{t('История изменений', 'Change history')}</h3>
+        {entries === null && <p className="muted">{t('Загрузка…', 'Loading…')}</p>}
+        {entries !== null && entries.length === 0 && <p className="muted">{t('Записей пока нет.', 'No entries yet.')}</p>}
         {entries !== null && entries.length > 0 && (
           <table className="audit-table">
             <thead>
               <tr>
-                <th>Дата</th>
-                <th>Тип</th>
-                <th>Описание</th>
+                <th>{t('Дата', 'Date')}</th>
+                <th>{t('Тип', 'Type')}</th>
+                <th>{t('Описание', 'Description')}</th>
                 <th className="right">ΔXP</th>
-                <th className="right" title="Доступно / Всего после операции">После</th>
+                <th className="right" title={t('Доступно / Всего после операции', 'Available / Total after the operation')}>{t('После', 'After')}</th>
               </tr>
             </thead>
             <tbody>
               {entries.map(e => (
                 <tr key={e.id}>
-                  <td className="muted small-text nowrap">{new Date(e.createdAt).toLocaleString('ru-RU')}</td>
+                  <td className="muted small-text nowrap">{new Date(e.createdAt).toLocaleString(lang === 'ru' ? 'ru-RU' : 'en-US')}</td>
                   <td><span className="badge">{ACTION_LABELS[e.action]}</span></td>
                   <td>{e.summary}</td>
                   <td className="right">

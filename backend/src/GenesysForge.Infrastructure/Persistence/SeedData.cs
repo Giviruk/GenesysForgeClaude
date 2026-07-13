@@ -52,6 +52,33 @@ public static class SeedData
         ProjectContent(qualities, mode, store);
         ProjectSpells(spells, mode);
 
+        // Синхронизация встроенных строк с каталогом по стабильному Code ДО SeedMissing:
+        // переименование (например, замена транслитерированных имён талантов на английские)
+        // обновляет существующие строки, чтобы аддитивный сид не создал дубликат по (System, Name).
+        SyncBuiltinByCode(db, db.TalentDefs.Where(t => t.OwnerUserId == null && t.Code != ""), talents,
+            (row, def) =>
+            {
+                var same = row.Name == def.Name && row.NameRu == def.NameRu && row.DescriptionEn == def.DescriptionEn
+                    && row.SafeDescription == def.SafeDescription;
+                if (same) return false;
+                row.Name = def.Name; row.NameRu = def.NameRu;
+                row.SafeDescription = def.SafeDescription; row.DescriptionEn = def.DescriptionEn;
+                return true;
+            });
+        SyncBuiltinByCode(db, db.SkillDefs.Where(x => x.OwnerUserId == null && x.Code != ""), skills,
+            (row, def) => Assign(row.DescriptionEn != def.DescriptionEn, () => row.DescriptionEn = def.DescriptionEn));
+        SyncBuiltinByCode(db, db.CareerDefs.Where(x => x.OwnerUserId == null && x.Code != ""), careers,
+            (row, def) => Assign(row.DescriptionEn != def.DescriptionEn || row.SafeDescription != def.SafeDescription,
+                () => { row.DescriptionEn = def.DescriptionEn; row.SafeDescription = def.SafeDescription; }));
+        SyncBuiltinByCode(db, db.ItemDefs.Where(x => x.OwnerUserId == null && x.Code != ""), items,
+            (row, def) => Assign(row.DescriptionEn != def.DescriptionEn || row.SafeDescription != def.SafeDescription,
+                () => { row.DescriptionEn = def.DescriptionEn; row.SafeDescription = def.SafeDescription; }));
+        SyncBuiltinByCode(db, db.QualityDefs.Where(x => x.Code != ""), qualities,
+            (row, def) => Assign(row.DescriptionEn != def.DescriptionEn || row.SafeDescription != def.SafeDescription,
+                () => { row.DescriptionEn = def.DescriptionEn; row.SafeDescription = def.SafeDescription; }));
+        SyncHeroics(db, heroics);
+        SyncSpells(db, spells);
+
         var added = false;
         added |= SeedMissing(db, db.SkillDefs, skills, d => (d.System, d.Name));
         added |= SeedOrUpdateArchetypes(db, archetypes);
@@ -285,14 +312,18 @@ public static class SeedData
             }
 
             if (row.Kind == def.Kind && row.NameRu == def.NameRu && row.NameEn == def.NameEn
-                && row.GroupRu == def.GroupRu && row.SortOrder == def.SortOrder && row.RollRange == def.RollRange
-                && row.SymbolCost == def.SymbolCost && row.Body == def.Body && row.Notes == def.Notes
+                && row.GroupRu == def.GroupRu && row.GroupEn == def.GroupEn
+                && row.SortOrder == def.SortOrder && row.RollRange == def.RollRange
+                && row.SymbolCost == def.SymbolCost && row.Body == def.Body && row.BodyEn == def.BodyEn
+                && row.Notes == def.Notes && row.NotesEn == def.NotesEn
                 && row.Source == def.Source && row.SourcePage == def.SourcePage && row.SearchText == def.SearchText)
                 continue;
 
             row.Kind = def.Kind; row.NameRu = def.NameRu; row.NameEn = def.NameEn;
-            row.GroupRu = def.GroupRu; row.SortOrder = def.SortOrder; row.RollRange = def.RollRange;
-            row.SymbolCost = def.SymbolCost; row.Body = def.Body; row.Notes = def.Notes;
+            row.GroupRu = def.GroupRu; row.GroupEn = def.GroupEn;
+            row.SortOrder = def.SortOrder; row.RollRange = def.RollRange;
+            row.SymbolCost = def.SymbolCost; row.Body = def.Body; row.BodyEn = def.BodyEn;
+            row.Notes = def.Notes; row.NotesEn = def.NotesEn;
             row.Source = def.Source; row.SourcePage = def.SourcePage; row.SearchText = def.SearchText;
             changed = true;
         }
@@ -352,7 +383,7 @@ public static class SeedData
                 && row.Cunning == def.Cunning && row.Willpower == def.Willpower && row.Presence == def.Presence
                 && row.WoundBase == def.WoundBase && row.StrainBase == def.StrainBase && row.StartingXp == def.StartingXp
                 && row.SafeDescription == def.SafeDescription && row.Description == def.Description
-                && row.Source == def.Source;
+                && row.DescriptionEn == def.DescriptionEn && row.Source == def.Source;
             var childrenSame = ArchetypeChildrenMatch(row, def);
             if (scalarSame && childrenSame) continue;
 
@@ -361,7 +392,8 @@ public static class SeedData
             row.Brawn = def.Brawn; row.Agility = def.Agility; row.Intellect = def.Intellect;
             row.Cunning = def.Cunning; row.Willpower = def.Willpower; row.Presence = def.Presence;
             row.WoundBase = def.WoundBase; row.StrainBase = def.StrainBase; row.StartingXp = def.StartingXp;
-            row.SafeDescription = def.SafeDescription; row.Description = def.Description; row.Source = def.Source;
+            row.SafeDescription = def.SafeDescription; row.Description = def.Description;
+            row.DescriptionEn = def.DescriptionEn; row.Source = def.Source;
 
             if (!childrenSame)
             {
@@ -397,7 +429,8 @@ public static class SeedData
         var da = def.Abilities.OrderBy(x => x.Code).ToList();
         for (var i = 0; i < ra.Count; i++)
             if (ra[i].Code != da[i].Code || ra[i].NameRu != da[i].NameRu || ra[i].NameEn != da[i].NameEn
-                || ra[i].SafeDescription != da[i].SafeDescription || ra[i].AutomationKind != da[i].AutomationKind)
+                || ra[i].SafeDescription != da[i].SafeDescription || ra[i].DescriptionEn != da[i].DescriptionEn
+                || ra[i].AutomationKind != da[i].AutomationKind)
                 return false;
 
         var rs = row.StartingSkills.OrderBy(x => x.SkillName).ThenBy(x => x.ChoiceGroup).ToList();
@@ -478,9 +511,68 @@ public static class SeedData
         var a = rows.OrderBy(x => x.Code).ToList();
         var b = cat.OrderBy(x => x.Code).ToList();
         for (var i = 0; i < a.Count; i++)
-            if (a[i].Code != b[i].Code || a[i].Kind != b[i].Kind || a[i].Description != b[i].Description)
+            if (a[i].Code != b[i].Code || a[i].Kind != b[i].Kind || a[i].Description != b[i].Description
+                || a[i].DescriptionEn != b[i].DescriptionEn)
                 return false;
         return true;
+    }
+
+    /// <summary>Возвращает true и выполняет мутацию, если условие расхождения истинно.</summary>
+    private static bool Assign(bool differs, Action apply)
+    {
+        if (differs) apply();
+        return differs;
+    }
+
+    /// <summary>
+    /// Синхронизирует существующие встроенные строки с каталогом по стабильному <c>Code</c>
+    /// (только правки полей; добавление новых строк остаётся за <see cref="SeedMissing{T}"/>).
+    /// Сохраняет сразу, чтобы последующий SeedMissing видел актуальные натуральные ключи.
+    /// </summary>
+    private static void SyncBuiltinByCode<T>(
+        AppDbContext db, IQueryable<T> rows, IReadOnlyList<T> catalog, Func<T, T, bool> apply)
+        where T : class, IContentDef
+    {
+        // Code не уникален между системами (gc./rot. префиксы делают его уникальным).
+        var wanted = catalog.Where(d => d.Code != "").ToDictionary(d => d.Code);
+        var changed = false;
+        foreach (var row in rows.ToList())
+            if (wanted.TryGetValue(row.Code, out var def))
+                changed |= apply(row, def);
+        if (changed) db.SaveChanges();
+    }
+
+    /// <summary>EN-описания героик и их улучшений (по Code способности + уровню улучшения).</summary>
+    private static void SyncHeroics(AppDbContext db, IReadOnlyList<HeroicAbilityDef> catalog)
+    {
+        var wanted = catalog.Where(h => h.Code != "").ToDictionary(h => h.Code);
+        var changed = false;
+        foreach (var row in db.HeroicAbilityDefs.Include(h => h.Upgrades)
+                     .Where(h => h.OwnerUserId == null && h.Code != "").ToList())
+        {
+            if (!wanted.TryGetValue(row.Code, out var def)) continue;
+            changed |= Assign(row.DescriptionEn != def.DescriptionEn, () => row.DescriptionEn = def.DescriptionEn);
+            foreach (var upgrade in row.Upgrades)
+            {
+                var u = def.Upgrades.FirstOrDefault(x => x.Level == upgrade.Level);
+                if (u == null) continue;
+                changed |= Assign(upgrade.DescriptionEn != u.DescriptionEn, () => upgrade.DescriptionEn = u.DescriptionEn);
+            }
+        }
+        if (changed) db.SaveChanges();
+    }
+
+    /// <summary>EN-описания заклинаний (по натуральному ключу сида).</summary>
+    private static void SyncSpells(AppDbContext db, IReadOnlyList<SpellDef> catalog)
+    {
+        static string Key(SpellDef d) => $"{d.System}:{d.MagicSkill}:{(int)d.Kind}:{d.ParentEffect}:{d.NameEn}";
+        var wanted = catalog.ToDictionary(Key);
+        var changed = false;
+        foreach (var row in db.SpellDefs.Where(x => x.OwnerUserId == null).ToList())
+            if (wanted.TryGetValue(Key(row), out var def))
+                changed |= Assign(row.DescriptionEn != def.DescriptionEn || row.SafeDescription != def.SafeDescription,
+                    () => { row.DescriptionEn = def.DescriptionEn; row.SafeDescription = def.SafeDescription; });
+        if (changed) db.SaveChanges();
     }
 
     /// <summary>Добавляет элементы, чьи ключи отсутствуют среди встроенных (OwnerUserId == null) записей.</summary>
@@ -660,11 +752,11 @@ public static class SeedData
 
     // ─────────────────────────── careers ───────────────────────────
 
-    private static CareerDef Career(GameSystem sys, string name, string nameRu, string safe, params string[] skills) =>
+    private static CareerDef Career(GameSystem sys, string name, string nameRu, string safe, string safeEn, params string[] skills) =>
         new()
         {
             Id = Guid.NewGuid(), System = sys, Code = Code(sys, "career", name),
-            Name = name, NameRu = nameRu, SafeDescription = safe, CareerSkillNames = [.. skills],
+            Name = name, NameRu = nameRu, SafeDescription = safe, DescriptionEn = safeEn, CareerSkillNames = [.. skills],
             Source = (sys == GameSystem.GenesysCore ? "Genesys Core Rulebook, гл. «Карьеры»" : "Realms of Terrinoth, гл. «Карьеры»"),
         };
 
@@ -674,37 +766,48 @@ public static class SeedData
     [
         Career(GameSystem.GenesysCore, "Entertainer", "Артист",
             "Исполнитель, актёр, музыкант или другой публичный персонаж, полезный в социальных сценах, обмане и скрытности.",
+            "A performer, actor, musician or other public figure, useful in social scenes, deception and stealth.",
             "Charm", "Coordination", "Deception", "Discipline", "Leadership", "Melee", "Skulduggery", "Stealth"),
         Career(GameSystem.GenesysCore, "Explorer", "Исследователь",
             "Следопыт, охотник или разведчик, хорошо чувствующий себя в дикой местности и дальнем бою.",
+            "A tracker, hunter or scout, at home in the wilderness and with ranged combat.",
             "Athletics", "Brawl", "Coordination", "Deception", "Perception", "Ranged (Light)", "Stealth", "Survival"),
         Career(GameSystem.GenesysCore, "Healer", "Лекарь",
             "Персонаж поддержки, лечащий союзников и сохраняющий хладнокровие в опасных условиях.",
+            "A support character who heals allies and keeps a cool head in dangerous conditions.",
             "Cool", "Discipline", "Knowledge", "Medicine", "Melee", "Resilience", "Survival", "Vigilance"),
         Career(GameSystem.GenesysCore, "Leader", "Лидер",
             "Командир, политик или руководитель, который направляет союзников и действует через социальное давление.",
+            "A commander, politician or executive who directs allies and works through social pressure.",
             "Charm", "Coercion", "Cool", "Discipline", "Leadership", "Melee", "Negotiation", "Perception"),
         Career(GameSystem.GenesysCore, "Scoundrel", "Мошенник",
             "Вор, аферист, карманник или шулер; мастер обмана, скрытности и городской среды.",
+            "A thief, con artist, pickpocket or card sharp; a master of deception, stealth and the urban environment.",
             "Charm", "Cool", "Coordination", "Deception", "Ranged (Light)", "Skulduggery", "Stealth", "Streetwise"),
         Career(GameSystem.GenesysCore, "Socialite", "Переговорщик",
             "Общительный персонаж, который умеет заводить связи, договариваться и извлекать выгоду из разговоров.",
+            "A sociable character skilled at making connections, negotiating and profiting from conversation.",
             "Charm", "Cool", "Deception", "Knowledge", "Negotiation", "Perception", "Streetwise", "Vigilance"),
         Career(GameSystem.GenesysCore, "Soldier", "Солдат",
             "Профессиональный боец, ориентированный на оружие, выживание и боевую готовность.",
+            "A professional fighter focused on weapons, survival and combat readiness.",
             "Athletics", "Brawl", "Coercion", "Melee", "Perception", "Ranged (Heavy)", "Survival", "Vigilance"),
         Career(GameSystem.GenesysCore, "Tradesperson", "Специалист",
             "Ремесленник, техник, механик или другой специалист ручного труда и практической подготовки.",
+            "An artisan, technician, mechanic or other specialist of manual work and practical training.",
             "Athletics", "Brawl", "Discipline", "Mechanics", "Negotiation", "Perception", "Resilience", "Streetwise"),
         // Сеттинговые карьеры «с магией» из Core (genesys_rot_core_careers_ru.csv) — фэнтези/магия.
         Career(GameSystem.GenesysCore, "Mage", "Волшебник",
             "Изучающий магию как дисциплину; направляет энергию через ритуалы, фокусы и заклинания.",
+            "A student of magic as a discipline; channels energy through rituals, focuses and spells.",
             "Arcana", "Coercion", "Discipline", "Knowledge", "Leadership", "Skulduggery", "Stealth", "Vigilance"),
         Career(GameSystem.GenesysCore, "Druid", "Друид",
             "Маг природы, отшельник или хранитель дикой земли, связанный с жизненными силами мира.",
+            "A nature mage, hermit or warden of the wild lands, bound to the life forces of the world.",
             "Athletics", "Brawl", "Coordination", "Melee", "Primal", "Resilience", "Survival", "Vigilance"),
         Career(GameSystem.GenesysCore, "Priest", "Жрец",
             "Священнослужитель, чьи молитвы и вера дают ощутимый магический эффект.",
+            "A cleric whose prayers and faith produce tangible magical effects.",
             "Charm", "Coercion", "Cool", "Discipline", "Divine", "Medicine", "Melee", "Negotiation"),
     ];
 
@@ -712,33 +815,43 @@ public static class SeedData
     [
         Career(GameSystem.RealmsOfTerrinoth, "Disciple", "Послушник",
             "Мистик и служитель, помогающий другим через веру, исцеление, наставление и оружие, благословлённое богами.",
+            "A mystic and servant who helps others through faith, healing, guidance and weapons blessed by the gods.",
             "Athletics", "Charm", "Discipline", "Divine", "Knowledge (Lore)", "Leadership", "Melee (Light)", "Resilience"),
         Career(GameSystem.RealmsOfTerrinoth, "Envoy", "Посланник",
             "Дипломат, бард, дворянин или представитель власти; голос группы в переговорах, интригах и убеждении.",
+            "A diplomat, bard, noble or representative of authority; the party's voice in negotiation, intrigue and persuasion.",
             "Charm", "Cool", "Deception", "Knowledge (Geography)", "Leadership", "Melee (Light)", "Negotiation", "Vigilance"),
         Career(GameSystem.RealmsOfTerrinoth, "Mage", "Маг",
             "Арканный заклинатель и исследователь тайн, способный уничтожать врагов и менять мир с помощью магии.",
+            "An arcane caster and researcher of mysteries, able to destroy enemies and reshape the world with magic.",
             "Alchemy", "Arcana", "Cool", "Discipline", "Knowledge (Adventuring)", "Knowledge (Forbidden)", "Knowledge (Lore)", "Perception"),
         Career(GameSystem.RealmsOfTerrinoth, "Runemaster", "Рунный мастер",
             "Вариант мага, сосредоточенный на рунах и рунических осколках вместо обычной арканной магии.",
+            "A variant of the mage focused on runes and runebound shards instead of ordinary arcane magic.",
             "Alchemy", "Cool", "Discipline", "Knowledge (Adventuring)", "Knowledge (Forbidden)", "Knowledge (Lore)", "Perception", "Runes"),
         Career(GameSystem.RealmsOfTerrinoth, "Primalist", "Первозданник",
             "Заклинатель природы, духов, бурь и живых богов; поддерживает союзников, управляет стихиями и дикой силой.",
+            "A caster of nature, spirits, storms and living gods; supports allies and commands the elements and wild power.",
             "Alchemy", "Brawl", "Discipline", "Knowledge (Lore)", "Medicine", "Melee (Heavy)", "Primal", "Survival"),
         Career(GameSystem.RealmsOfTerrinoth, "Scholar", "Учёный",
             "Исследователь истории, культур, алхимии, ремёсел и рун; верит, что знание само по себе является силой.",
+            "A researcher of history, cultures, alchemy, crafts and runes; believes that knowledge itself is power.",
             "Alchemy", "Knowledge (Forbidden)", "Knowledge (Geography)", "Knowledge (Lore)", "Mechanics", "Medicine", "Perception", "Runes"),
         Career(GameSystem.RealmsOfTerrinoth, "Scoundrel", "Проходимец",
             "Ловкий мошенник, вор, пират, убийца, торговец или авантюрист, выживающий за счёт ума и скорости.",
+            "A nimble rogue, thief, pirate, assassin, trader or adventurer surviving on wit and speed.",
             "Charm", "Cool", "Coordination", "Deception", "Ranged", "Skulduggery", "Stealth", "Streetwise"),
         Career(GameSystem.RealmsOfTerrinoth, "Scout", "Разведчик",
             "Следопыт, охотник, рейнджер или дозорный, одинаково хорошо охотящийся на зверей и людей.",
+            "A tracker, hunter, ranger or lookout, equally good at hunting beasts and people.",
             "Knowledge (Adventuring)", "Knowledge (Geography)", "Perception", "Ranged", "Riding", "Stealth", "Survival", "Vigilance"),
         Career(GameSystem.RealmsOfTerrinoth, "Warrior", "Воин",
             "Мастер оружия и битвы: рыцарь, берсерк, маршал, наёмник или странствующий чемпион.",
+            "A master of weapons and battle: a knight, berserker, marshal, mercenary or wandering champion.",
             "Brawl", "Coercion", "Leadership", "Melee (Heavy)", "Melee (Light)", "Resilience", "Riding", "Vigilance"),
         Career(GameSystem.RealmsOfTerrinoth, "Knight", "Рыцарь",
             "Знатный воин, обученный бою, верховой езде и исполнению обязанностей перед сюзереном.",
+            "A noble warrior trained in combat, riding and the duties owed to a liege.",
             "Athletics", "Discipline", "Leadership", "Melee (Heavy)", "Melee (Light)", "Resilience", "Riding", "Vigilance"),
     ];
 
@@ -757,11 +870,11 @@ public static class SeedData
     // ─────────────────────────── spells ───────────────────────────
 
     private static SpellDef Spell(GameSystem sys, string skill, SpellEntryKind kind, string parent, string ru,
-        string en, string difficulty, string desc, string safe, string source, int sort) => new()
+        string en, string difficulty, string desc, string safe, string safeEn, string source, int sort) => new()
     {
         Id = Guid.NewGuid(), System = sys, MagicSkill = skill, Kind = kind, ParentEffect = parent,
         NameRu = ru, NameEn = en, Difficulty = difficulty, Description = desc,
-        SafeDescription = safe, Source = source, SortOrder = sort,
+        SafeDescription = safe, DescriptionEn = safeEn, Source = source, SortOrder = sort,
     };
 
     /// <summary>
@@ -789,267 +902,344 @@ public static class SeedData
         // Базовые эффекты + навыки, которым они доступны (матрица доступности).
         // Skills: максимальный набор (для Terrinoth); Core фильтрует Runes/Verse.
         // SrcOverride: если null — используется skillSource(skill); иначе — указанный источник.
-        var effects = new (string En, string Ru, string Diff, string Desc, string Safe, string[] Skills, string? SrcOverride, int Sort)[]
+        var effects = new (string En, string Ru, string Diff, string Desc, string Safe, string SafeEn, string[] Skills, string? SrcOverride, int Sort)[]
         {
             ("Attack", "Атака", "1 (Easy)",
                 "Боевое магическое действие против одной цели на короткой дистанции: урон равен характеристике используемого магического навыка + 1 за каждый неотменённый успех. Базовая атака не имеет критического значения; критическую травму можно причинить только за триумф или через добавленный эффект с критическим значением.",
                 "Магическая атака цели на короткой дистанции.",
+                "A magic attack against a target within short range.",
                 ["Arcana", "Divine", "Primal", "Runes"], null, 1),
             ("Augment", "Усиление", "2 (Average)",
                 "Временно усиливает цель вплотную с заклинателем; базово повышает одну характеристику для всех проверок навыков.",
                 "Временно усиливает характеристику цели.",
+                "Temporarily boosts a characteristic of the target.",
                 ["Divine", "Primal", "Runes", "Verse"], null, 2),
             ("Barrier", "Барьер", "1 (Easy)",
                 "Создаёт магическую защиту для цели вплотную с заклинателем до конца следующего хода. Базово уменьшает урон от каждого попадания по цели на 1; при дополнительных успехах снижение урона может увеличиваться по правилам барьера.",
                 "Защищает цель, снижая получаемый урон.",
+                "Protects the target by reducing incoming damage.",
                 ["Arcana", "Divine", "Runes"], null, 3),
             ("Conjure", "Призыв", "1 (Easy)",
                 "Создаёт простой предмет, оружие ближнего боя без движущихся частей или временного приспешника силуэта не больше 1.",
                 "Создаёт предмет или приспешника.",
+                "Creates an item or a minion.",
                 ["Arcana", "Primal"], null, 4),
             ("Curse", "Проклятье", "2 (Average)",
                 "Накладывает на цель негативный боевой эффект; базово снижает способность проверок цели на 1.",
                 "Накладывает штраф на проверки цели.",
+                "Imposes a penalty on the target's checks.",
                 ["Arcana", "Divine", "Runes", "Verse"], null, 5),
             ("Dispel", "Рассеивание", "3 (Hard)",
                 "Пытается снять с цели магические эффекты; при успехе эффекты на цели немедленно заканчиваются.",
                 "Снимает активные магические эффекты.",
+                "Removes active magical effects.",
                 ["Arcana", "Verse"], null, 6),
             ("Heal", "Лечение", "1 (Easy)",
                 "Магическое лечение ран и усталости у цели вплотную, которая не выведена из строя. При успехе цель лечит 1 рану за каждый неотменённый успех и 1 усталость за каждое неотменённое преимущество.",
                 "Восстанавливает раны и усталость.",
+                "Restores wounds and strain.",
                 ["Divine", "Primal", "Verse"], null, 7),
             ("Utility", "Вспомогательная магия", "1 (Easy)",
                 "Малые и повествовательные магические эффекты: свет, звук, мелкое перемещение предметов, обнаружение магии и подобные фокусы.",
                 "Мелкие вспомогательные магические трюки.",
+                "Minor utility magic tricks.",
                 ["Arcana", "Divine", "Primal", "Runes", "Verse"], null, 8),
             // EPG
             ("Mask", "Маска", "1 (Easy)",
                 "Создаёт иллюзию существа или предмета силуэта 1 или меньше в пределах короткой дистанции либо меняет внешний вид заклинателя или цели вплотную.",
                 "Создаёт иллюзию или меняет внешний вид цели.",
+                "Creates an illusion or changes the target's appearance.",
                 ["Arcana"], epgSource, 9),
             ("Predict", "Предсказание", "2 (Average)",
                 "Позволяет задать вопрос о событиях ближайших 24 часов; ответ ведущего правдив, но может быть неоднозначным.",
                 "Задаёт вопрос о ближайших событиях.",
+                "Asks a question about upcoming events.",
                 ["Arcana", "Divine"], epgSource, 10),
             ("Transform", "Трансформация", "2 (Average)",
                 "Позволяет заклинателю принять форму природного животного силуэта 0, сохраняя свои навыки, таланты и порог усталости.",
                 "Превращает заклинателя в животное.",
+                "Transforms the caster into an animal.",
                 ["Primal"], epgSource, 11),
         };
 
         // Дополнительные эффекты, привязанные к базовому (Parent = En базового эффекта).
         // SrcOverride: если null — используется sysSource; для EPG-эффектов — epgSource.
-        var additional = new (string Parent, string Ru, string En, string Diff, string Desc, string Safe, string? SrcOverride, int Sort)[]
+        var additional = new (string Parent, string Ru, string En, string Diff, string Desc, string Safe, string SafeEn, string? SrcOverride, int Sort)[]
         {
             // Attack
             ("Attack", "Ближний бой", "Close Combat", "+1",
                 "Позволяет выбрать целью персонажа, находящегося вплотную с заклинателем.",
-                "Цель может быть вплотную с заклинателем.", null, 1),
+                "Цель может быть вплотную с заклинателем.",
+                "The target may be engaged with the caster.", null, 1),
             ("Attack", "Взрывной", "Blast", "+1",
                 "Атака получает свойство «Взрыв» с рейтингом, равным рангу Знания заклинателя. Чтобы нанести урон взрывом соседним целям, после успешного попадания нужно активировать свойство: обычно 2 преимущества за срабатывание.",
-                "Добавляет свойство «Взрыв» (активация: 2 преимущества).", null, 2),
+                "Добавляет свойство «Взрыв» (активация: 2 преимущества).",
+                "Adds the Blast quality (activation: 2 advantage).", null, 2),
             ("Attack", "Двигающий", "Move", "+1",
                 "Если атака попадает, можно потратить 1 преимущество, чтобы переместить цель на один диапазон дистанции в любом направлении. Только Магия/Arcana. В русском тексте эффект дублирует Управляющий; оставлен отдельной строкой как в таблице.",
-                "При попадании 1 преимущество → переместить цель (только Arcana).", null, 3),
+                "При попадании 1 преимущество → переместить цель (только Arcana).",
+                "On a hit, 1 advantage moves the target one range band (Arcana only).", null, 3),
             ("Attack", "Дистанционный", "Range", "+1",
                 "Увеличивает дистанцию заклинания на одну категорию; эффект можно добавлять несколько раз.",
-                "Увеличивает дальность заклинания.", null, 4),
+                "Увеличивает дальность заклинания.",
+                "Increases the spell's range.", null, 4),
             ("Attack", "Ледяной", "Ice", "+1",
                 "Атака получает свойство «Сковывание» с рейтингом, равным рангу Знания заклинателя. Чтобы обездвижить цель, после попадания нужно активировать свойство: обычно 2 преимущества.",
-                "Добавляет «Сковывание» (активация: 2 преимущества).", null, 5),
+                "Добавляет «Сковывание» (активация: 2 преимущества).",
+                "Adds Ensnare (activation: 2 advantage).", null, 5),
             ("Attack", "Молниеносный", "Lightning", "+1",
                 "Атака получает «Оглушение» с рейтингом, равным рангу Знания, и свойство «Автоматическое». Оглушение и дополнительные попадания от Автоматического требуют отдельной активации после броска: обычно 2 преимущества за каждое срабатывание. При использовании Автоматического свойства сложность увеличивается дополнительно по обычным правилам.",
-                "Добавляет «Оглушение» и «Автоматическое» (активация: 2 преимущества каждое).", null, 6),
+                "Добавляет «Оглушение» и «Автоматическое» (активация: 2 преимущества каждое).",
+                "Adds Stun and Auto-fire (activation: 2 advantage each).", null, 6),
             ("Attack", "Нелетальный", "Non-Lethal", "+1",
                 "Атака получает свойство «Оглушающий урон»: наносит урон усталостью вместо ран. Отдельная активация преимуществами не требуется. Только Природа/Primal.",
-                "Урон усталостью вместо ран, без активации (только Primal).", null, 7),
+                "Урон усталостью вместо ран, без активации (только Primal).",
+                "Deals strain instead of wounds, no activation (Primal only).", null, 7),
             ("Attack", "Огненный", "Fire", "+1",
                 "Атака получает свойство «Жжение» с рейтингом, равным рангу Знания заклинателя. Чтобы поджечь цель, после успешного попадания нужно активировать свойство: обычно 2 преимущества.",
-                "Добавляет «Жжение» (активация: 2 преимущества).", null, 8),
+                "Добавляет «Жжение» (активация: 2 преимущества).",
+                "Adds Burn (activation: 2 advantage).", null, 8),
             ("Attack", "Святой/нечестивый", "Holy/Unholy", "+1",
                 "Против целей, признанных врагами веры или божества заклинателя, каждый неотменённый успех даёт +2 урона вместо +1. Только Вера/Divine.",
-                "Усиленный урон против врагов веры (только Divine).", null, 9),
+                "Усиленный урон против врагов веры (только Divine).",
+                "Extra damage against enemies of the faith (Divine only).", null, 9),
             ("Attack", "Смертельный", "Deadly", "+1",
                 "Атака получает критическое значение 2 и свойство «Высококритичное» с рейтингом, равным рангу Знания. После успешного попадания критическая травма обычно стоит 2 преимущества или 1 триумф.",
-                "Крит. значение 2 и «Высококритичное» (крит: 2 преимущества или 1 триумф).", null, 10),
+                "Крит. значение 2 и «Высококритичное» (крит: 2 преимущества или 1 триумф).",
+                "Critical rating 2 and Vicious (crit: 2 advantage or 1 triumph).", null, 10),
             ("Attack", "Ударный", "Impact", "+1",
                 "Атака получает «Нокдаун» и «Дезориентацию» с рейтингом, равным рангу Знания. Нокдаун активируется за 1 преимущество плюс 1 преимущество за каждый пункт силуэта цели выше 1; Дезориентация обычно активируется за 2 преимущества.",
-                "«Нокдаун» и «Дезориентация» (активация раздельная).", null, 11),
+                "«Нокдаун» и «Дезориентация» (активация раздельная).",
+                "Knockdown and Disorient (activated separately).", null, 11),
             ("Attack", "Управляющий", "Manipulative", "+1",
                 "Если атака попадает, можно потратить 1 преимущество, чтобы переместить цель на один диапазон дистанции в любом направлении. Только Магия/Arcana.",
-                "При попадании 1 преимущество → переместить цель (только Arcana).", null, 12),
+                "При попадании 1 преимущество → переместить цель (только Arcana).",
+                "On a hit, 1 advantage moves the target one range band (Arcana only).", null, 12),
             ("Attack", "Разрушительный", "Destructive", "+2",
                 "Атака получает свойства «Повреждение» и «Проникающее» с рейтингом, равным рангу Знания. Проникающее действует пассивно, а Повреждение активируется за 1 преимущество и может быть активировано даже при промахе.",
-                "«Проникающее» пассивно; «Повреждение» за 1 преимущество (даже при промахе).", null, 13),
+                "«Проникающее» пассивно; «Повреждение» за 1 преимущество (даже при промахе).",
+                "Pierce is passive; Sunder costs 1 advantage (even on a miss).", null, 13),
             ("Attack", "Усиленный", "Empowered", "+2",
                 "Базовый урон атаки равен удвоенному рейтингу характеристики магического навыка; если есть Взрыв, он действует на всех в пределах короткой дистанции.",
-                "Удваивает базовый урон атаки.", null, 14),
+                "Удваивает базовый урон атаки.",
+                "Doubles the attack's base damage.", null, 14),
             ("Attack", "Ядовитый", "Poisonous", "+2",
                 "Если атака наносит урон, цель немедленно совершает сложную проверку Стойкости. При провале цель получает раны и усталость, каждое значение равно рангу Знания заклинателя. Считается действием яда; отдельная трата преимуществ не требуется.",
-                "При уроне — проверка Стойкости или раны + усталость (без активации).", null, 15),
+                "При уроне — проверка Стойкости или раны + усталость (без активации).",
+                "On damage, a Resilience check or wounds + strain (no activation).", null, 15),
             // Barrier
             ("Barrier", "Дистанционный", "Range", "+1",
                 "Увеличивает дистанцию заклинания на одну категорию; можно добавлять несколько раз.",
-                "Увеличивает дальность заклинания.", null, 1),
+                "Увеличивает дальность заклинания.",
+                "Increases the spell's range.", null, 1),
             ("Barrier", "Дополнительная цель", "Additional Target", "+1",
                 "Заклинание воздействует на одну дополнительную цель в пределах дистанции. После наложения можно потратить 1 преимущество, чтобы воздействовать ещё на одну дополнительную цель в пределах дистанции; это можно повторять, каждый раз тратя 1 преимущество.",
-                "Добавляет цель; после броска +1 цель за 1 преимущество.", null, 2),
+                "Добавляет цель; после броска +1 цель за 1 преимущество.",
+                "Adds a target; after the roll, +1 target per 1 advantage.", null, 2),
             ("Barrier", "Добавление защиты", "Add Defense", "+2",
                 "Цели получают ближнюю и дальнюю защиту, равную рангу Знания заклинателя.",
-                "Добавляет ближнюю и дальнюю защиту.", null, 3),
+                "Добавляет ближнюю и дальнюю защиту.",
+                "Adds melee and ranged defense.", null, 3),
             ("Barrier", "Отражающий", "Reflective", "+2",
                 "Если противник совершает магическую атаку по цели под этим барьером и на своей проверке получает 3 угрозы или 1 крах, после проверки он сам получает попадание, наносящее урон, равный итоговому урону его атаки. Только Магия/Arcana.",
-                "3 угрозы/1 крах атакующего → он получает свой урон обратно (только Arcana).", null, 4),
+                "3 угрозы/1 крах атакующего → он получает свой урон обратно (только Arcana).",
+                "Attacker's 3 threat/1 despair → they suffer their own damage back (Arcana only).", null, 4),
             ("Barrier", "Святилище", "Sanctuary", "+2",
                 "Враги веры или божества заклинателя автоматически перестают быть вплотную с целью и не могут снова войти вплотную до конца барьера. Только Вера/Divine.",
-                "Враги веры не могут приблизиться к цели (только Divine).", null, 5),
+                "Враги веры не могут приблизиться к цели (только Divine).",
+                "Enemies of the faith cannot approach the target (Divine only).", null, 5),
             ("Barrier", "Усиленный", "Empowered", "+2",
                 "Барьер уменьшает урон на количество неотменённых успехов вместо базового эффекта.",
-                "Урон снижается на число успехов.", null, 6),
+                "Урон снижается на число успехов.",
+                "Damage is reduced by the number of successes.", null, 6),
             // Heal
             ("Heal", "Восстанавливающий", "Restoration", "+1",
                 "Завершает один длительный эффект состояния, действующий на цель.",
-                "Снимает один длительный эффект состояния.", null, 1),
+                "Снимает один длительный эффект состояния.",
+                "Removes one lasting condition effect.", null, 1),
             ("Heal", "Дистанционный", "Range", "+1",
                 "Увеличивает дистанцию заклинания на одну категорию; можно добавлять несколько раз.",
-                "Увеличивает дальность заклинания.", null, 2),
+                "Увеличивает дальность заклинания.",
+                "Increases the spell's range.", null, 2),
             ("Heal", "Дополнительная цель", "Additional Target", "+1",
                 "Заклинание воздействует на одну дополнительную цель в пределах дистанции. После наложения можно потратить 1 преимущество, чтобы воздействовать ещё на одну дополнительную цель в пределах дистанции; это можно повторять, каждый раз тратя 1 преимущество.",
-                "Добавляет цель; после броска +1 цель за 1 преимущество.", null, 3),
+                "Добавляет цель; после броска +1 цель за 1 преимущество.",
+                "Adds a target; after the roll, +1 target per 1 advantage.", null, 3),
             ("Heal", "Лечение критических травм", "Heal Critical Injury", "+2",
                 "Выбранная критическая травма цели излечивается при успешном заклинании.",
-                "Излечивает критическую травму.", null, 4),
+                "Излечивает критическую травму.",
+                "Heals a critical injury.", null, 4),
             ("Heal", "Оживление выведенных из строя", "Revive Incapacitated", "+2",
                 "Позволяет выбирать целями персонажей, выведенных из строя.",
-                "Позволяет лечить выведенных из строя.", null, 5),
+                "Позволяет лечить выведенных из строя.",
+                "Allows healing incapacitated characters.", null, 5),
             ("Heal", "Воскрешение", "Resurrection", "+4",
                 "Позволяет выбрать цель, умершую в текущей сцене; при успехе цель оживает с ранами на уровне порога ран. При провале никто больше не может пытаться воскресить эту цель.",
-                "Воскрешает цель, умершую в текущей сцене.", null, 6),
+                "Воскрешает цель, умершую в текущей сцене.",
+                "Resurrects a target that died in the current scene.", null, 6),
             // Conjure
             ("Conjure", "Дистанционный", "Range", "+1",
                 "Увеличивает дистанцию между заклинателем и местом появления призванного предмета или существа; можно добавлять несколько раз.",
-                "Увеличивает дальность призыва.", null, 1),
+                "Увеличивает дальность призыва.",
+                "Increases the summoning range.", null, 1),
             ("Conjure", "Дополнительный призыв", "Additional Summon", "+1",
                 "Заклинание призывает один дополнительный предмет, оружие или существо. После наложения можно потратить 1 преимущество, чтобы призвать ещё один дополнительный предмет, оружие или существо; это можно повторять, каждый раз тратя 1 преимущество.",
-                "Добавляет призыв; после броска +1 призыв за 1 преимущество.", null, 2),
+                "Добавляет призыв; после броска +1 призыв за 1 преимущество.",
+                "Adds a summon; after the roll, +1 summon per 1 advantage.", null, 2),
             ("Conjure", "Призыв союзника", "Summon Ally", "+1",
                 "Призванное существо дружественно к персонажу и подчиняется его командам; персонаж может тратить манёвр, чтобы давать ему указания.",
-                "Существо дружественно и выполняет команды.", null, 3),
+                "Существо дружественно и выполняет команды.",
+                "The creature is friendly and obeys commands.", null, 3),
             ("Conjure", "Средний призыв", "Medium Summon", "+1",
                 "Позволяет призвать более сложный инструмент с движущимися частями, соперника силуэта не больше 1 или двуручное оружие ближнего боя.",
-                "Призывает более сложный предмет или соперника.", null, 4),
+                "Призывает более сложный предмет или соперника.",
+                "Summons a more complex item or a rival.", null, 4),
             ("Conjure", "Великий призыв", "Grand Summon", "+2",
                 "Позволяет призвать соперника силуэта не больше 3.",
-                "Призывает крупного соперника (силуэт ≤ 3).", null, 5),
+                "Призывает крупного соперника (силуэт ≤ 3).",
+                "Summons a large rival (silhouette ≤ 3).", null, 5),
             // Curse
             ("Curse", "Дистанционный", "Range", "+1",
                 "Увеличивает дистанцию заклинания на одну категорию; можно добавлять несколько раз.",
-                "Увеличивает дальность заклинания.", null, 1),
+                "Увеличивает дальность заклинания.",
+                "Increases the spell's range.", null, 1),
             ("Curse", "Неудача", "Misfortune", "+1",
                 "После проверки цели можно изменить один результат так, чтобы ухудшить её успех.",
-                "После проверки можно ухудшить один результат.", null, 2),
+                "После проверки можно ухудшить один результат.",
+                "After the target's check, one result can be worsened.", null, 2),
             ("Curse", "Ослабление", "Enervate", "+1",
                 "Когда цель получает усталость по любой причине, она получает на 1 усталость больше.",
-                "Цель получает +1 усталость при каждом получении усталости.", null, 3),
+                "Цель получает +1 усталость при каждом получении усталости.",
+                "The target suffers +1 strain whenever they suffer strain.", null, 3),
             ("Curse", "Дополнительная цель", "Additional Target", "+2",
                 "Заклинание воздействует на одну дополнительную цель в пределах дистанции. После наложения можно потратить 1 преимущество, чтобы воздействовать ещё на одну дополнительную цель в пределах дистанции; это можно повторять, каждый раз тратя 1 преимущество.",
-                "Добавляет цель; после броска +1 цель за 1 преимущество.", null, 4),
+                "Добавляет цель; после броска +1 цель за 1 преимущество.",
+                "Adds a target; after the roll, +1 target per 1 advantage.", null, 4),
             ("Curse", "Отчаяние", "Despair", "+2",
                 "Пороги ран и усталости цели уменьшаются на ранг Знания заклинателя. Только Вера/Divine. Нельзя сочетать с «Дополнительная цель».",
-                "Снижает пороги ран/усталости (только Divine).", null, 5),
+                "Снижает пороги ран/усталости (только Divine).",
+                "Reduces wound/strain thresholds (Divine only).", null, 5),
             ("Curse", "Рок", "Doom", "+2",
                 "После проверки цели можно повернуть одну любую кость в наборе, не показывающую Триумф или Крах, на другую грань. Только Магия/Arcana.",
-                "Можно изменить грань одной кости цели (только Arcana).", null, 6),
+                "Можно изменить грань одной кости цели (только Arcana).",
+                "One of the target's dice can be turned to another face (Arcana only).", null, 6),
             ("Curse", "Паралич", "Paralyzed", "+3",
                 "Цель становится ошеломлённой на время действия заклинания. Нельзя сочетать с «Дополнительная цель».",
-                "Цель ошеломлена на время заклинания.", null, 7),
+                "Цель ошеломлена на время заклинания.",
+                "The target is staggered for the duration of the spell.", null, 7),
             // Dispel
             ("Dispel", "Дистанционный", "Range", "+1",
                 "Увеличивает дистанцию заклинания на одну категорию; можно добавлять несколько раз.",
-                "Увеличивает дальность заклинания.", null, 1),
+                "Увеличивает дальность заклинания.",
+                "Increases the spell's range.", null, 1),
             ("Dispel", "Дополнительная цель", "Additional Target", "+2",
                 "Заклинание воздействует на одну дополнительную цель в пределах дистанции. После наложения можно потратить 1 преимущество, чтобы воздействовать ещё на одну дополнительную цель в пределах дистанции; это можно повторять, каждый раз тратя 1 преимущество.",
-                "Добавляет цель; после броска +1 цель за 1 преимущество.", null, 2),
+                "Добавляет цель; после броска +1 цель за 1 преимущество.",
+                "Adds a target; after the roll, +1 target per 1 advantage.", null, 2),
             // Augment
             ("Augment", "Божественное здоровье", "Divine Health", "+1",
                 "Цель увеличивает порог ран на число, равное рангу Знания заклинателя, на время действия заклинания. Только Вера/Divine.",
-                "Повышает порог ран цели (только Divine).", null, 1),
+                "Повышает порог ран цели (только Divine).",
+                "Raises the target's wound threshold (Divine only).", null, 1),
             ("Augment", "Быстрота", "Haste", "+1",
                 "Цели игнорируют эффекты пересечённой местности и не могут быть обездвижены.",
-                "Цель игнорирует пересечённую местность и обездвиживание.", null, 2),
+                "Цель игнорирует пересечённую местность и обездвиживание.",
+                "The target ignores difficult terrain and immobilization.", null, 2),
             ("Augment", "Дистанционный", "Range", "+1",
                 "Увеличивает дистанцию заклинания на одну категорию; можно добавлять несколько раз.",
-                "Увеличивает дальность заклинания.", null, 3),
+                "Увеличивает дальность заклинания.",
+                "Increases the spell's range.", null, 3),
             ("Augment", "Природная ярость", "Primal Fury", "+1",
                 "Цель добавляет к безоружным боевым проверкам дополнительный урон, равный рангу Знания; критическое значение таких проверок становится 3. Только Природа/Primal.",
-                "Усиливает безоружный бой цели (только Primal).", null, 4),
+                "Усиливает безоружный бой цели (только Primal).",
+                "Empowers the target's unarmed combat (Primal only).", null, 4),
             ("Augment", "Ускорение", "Swift", "+1",
                 "Цели всегда могут совершать второй манёвр в свой ход без получения усталости; обычный лимит двух манёвров сохраняется.",
-                "Второй манёвр без усталости.", null, 5),
+                "Второй манёвр без усталости.",
+                "A second maneuver without strain.", null, 5),
             ("Augment", "Дополнительная цель", "Additional Target", "+2",
                 "Заклинание воздействует на одну дополнительную цель в пределах дистанции. После наложения можно потратить 1 преимущество, чтобы воздействовать ещё на одну дополнительную цель в пределах дистанции; это можно повторять, каждый раз тратя 1 преимущество.",
-                "Добавляет цель; после броска +1 цель за 1 преимущество.", null, 6),
+                "Добавляет цель; после броска +1 цель за 1 преимущество.",
+                "Adds a target; after the roll, +1 target per 1 advantage.", null, 6),
             // Mask (EPG)
             ("Mask", "Размытие", "Blur", "+1",
                 "Если цель — персонаж, её форма размывается; до конца заклинания атаки по ней получают штраф к результатам.",
-                "Атаки по цели получают штраф.", epgSource, 1),
+                "Атаки по цели получают штраф.",
+                "Attacks against the target suffer a penalty.", epgSource, 1),
             ("Mask", "Зеркальные образы", "Mirror Image", "+1",
                 "Если заклинание нацелено на персонажа, оно создаёт несколько копий, которые двигаются вместе с ним. Пока эффект действует, можно потратить 3 угрозы или 1 крах из любой боевой проверки, нацеленной на персонажа, чтобы атака безвредно попала в зеркальный образ вместо настоящей цели.",
-                "3 угрозы/1 крах атакующего → атака попадает в копию.", epgSource, 2),
+                "3 угрозы/1 крах атакующего → атака попадает в копию.",
+                "Attacker's 3 threat/1 despair → the attack hits a mirror image.", epgSource, 2),
             ("Mask", "Дополнительная иллюзия", "Additional Illusion", "+1",
                 "Заклинание создаёт одну дополнительную иллюзию или маскирует одного дополнительного персонажа. После наложения можно потратить 2 преимущества, чтобы создать ещё одну иллюзию или замаскировать ещё одного персонажа; это можно повторять, каждый раз тратя 2 преимущества.",
-                "Добавляет иллюзию; после броска +1 иллюзия за 2 преимущества.", epgSource, 3),
+                "Добавляет иллюзию; после броска +1 иллюзия за 2 преимущества.",
+                "Adds an illusion; after the roll, +1 illusion per 2 advantage.", epgSource, 3),
             ("Mask", "Дистанционный", "Range", "+1",
                 "Увеличивает дистанцию заклинания на одну категорию; можно добавлять несколько раз.",
-                "Увеличивает дальность заклинания.", epgSource, 4),
+                "Увеличивает дальность заклинания.",
+                "Increases the spell's range.", epgSource, 4),
             ("Mask", "Размер", "Size", "+1",
                 "Увеличивает силуэт создаваемой иллюзии или размер маскируемой цели на 1; можно добавлять несколько раз.",
-                "Увеличивает силуэт иллюзии.", epgSource, 5),
+                "Увеличивает силуэт иллюзии.",
+                "Increases the illusion's silhouette.", epgSource, 5),
             ("Mask", "Реализм", "Realism", "+1",
                 "Увеличивает сложность проверок, чтобы распознать иллюзию, на 1. После наложения можно потратить 2 преимущества, чтобы увеличить эту сложность ещё на 1; можно повторять. Иллюзия также может обманывать дополнительные чувства, например запах, вкус или осязание.",
-                "Иллюзию труднее распознать; после броска +1 сложность за 2 преимущества.", epgSource, 6),
+                "Иллюзию труднее распознать; после броска +1 сложность за 2 преимущества.",
+                "The illusion is harder to see through; after the roll, +1 difficulty per 2 advantage.", epgSource, 6),
             ("Mask", "Ужас", "Terror", "+2",
                 "Иллюзия пугает тех, кто не знает, что она ненастоящая. Когда такой персонаж видит иллюзию, он совершает сложную проверку Дисциплины/страха; он получает 2 усталости за каждую угрозу на этой проверке, а при провале не может приблизиться к иллюзии.",
-                "Иллюзия пугает; жертва получает 2 усталости за каждую угрозу на проверке страха.", epgSource, 7),
+                "Иллюзия пугает; жертва получает 2 усталости за каждую угрозу на проверке страха.",
+                "The illusion frightens; the victim suffers 2 strain per threat on the fear check.", epgSource, 7),
             ("Mask", "Невидимость", "Invisibility", "+3",
                 "Если цель — персонаж, заклинание делает его невидимым для зрения вместо изменения внешности.",
-                "Делает цель невидимой.", epgSource, 8),
+                "Делает цель невидимой.",
+                "Makes the target invisible.", epgSource, 8),
             // Predict (EPG)
             ("Predict", "Молниеносные рефлексы", "Quicksilver Reflexes", "+0",
                 "Вместо вопроса о событиях персонаж добавляет бонусы к проверкам инициативы в следующей структурированной сцене.",
-                "Бонус к инициативе вместо вопроса.", epgSource, 1),
+                "Бонус к инициативе вместо вопроса.",
+                "An initiative bonus instead of a question.", epgSource, 1),
             ("Predict", "Ясновидение", "Scry", "+1",
                 "Вместо вопроса позволяет узнать местоположение одного предмета силуэта 0 в пределах дальней дистанции, если персонаж заранее знает, что ищет. Не раскрывает, как пройти через препятствия.",
-                "Определяет местоположение известного предмета.", epgSource, 2),
+                "Определяет местоположение известного предмета.",
+                "Locates a known item.", epgSource, 2),
             ("Predict", "Усиленный", "Empowered", "+1",
                 "Позволяет спрашивать о событиях в пределах ближайшего месяца вместо ближайших 24 часов.",
-                "Вопрос может охватывать до месяца.", epgSource, 3),
+                "Вопрос может охватывать до месяца.",
+                "The question may cover up to a month.", epgSource, 3),
             ("Predict", "Дополнительные вопросы", "Additional Questions", "+1",
                 "Позволяет задать один дополнительный вопрос о событиях. После наложения можно потратить 2 преимущества, чтобы задать ещё один дополнительный вопрос; это можно повторять, каждый раз тратя 2 преимущества.",
-                "Добавляет вопрос; после броска +1 вопрос за 2 преимущества.", epgSource, 4),
+                "Добавляет вопрос; после броска +1 вопрос за 2 преимущества.",
+                "Adds a question; after the roll, +1 question per 2 advantage.", epgSource, 4),
             ("Predict", "Вспышка предвидения", "Flash of Precognition", "+2",
                 "Помимо вопроса, один раз до конца текущей сцены персонаж может добавить 1 бонусную кость к одной своей проверке, а также один раз добавить 1 штрафную кость к проверке, нацеленной на него. После наложения можно потратить 3 преимущества, чтобы вместо обычной выгоды добавить 2 бонусные кости к своей проверке и 2 штрафные кости к проверке против персонажа.",
-                "+1 бонусная/штрафная кость; за 3 преимущества — по 2 кости.", epgSource, 5),
+                "+1 бонусная/штрафная кость; за 3 преимущества — по 2 кости.",
+                "+1 boost/setback die; for 3 advantage, 2 dice each.", epgSource, 5),
             ("Predict", "Обмануть смерть", "Cheat Death", "+2",
                 "Помимо вопроса, персонаж предвидит возможную гибель в ближайшие 24 часа. Один раз до конца текущей сессии, когда персонаж иначе был бы выведен из строя или убит, можно потратить 1 очко сюжета: персонаж получает раны и усталость до своих порогов, но не превышает их, и выживает.",
-                "1 очко сюжета → выжить, когда иначе был бы убит.", epgSource, 6),
+                "1 очко сюжета → выжить, когда иначе был бы убит.",
+                "1 story point → survive when you would otherwise be killed.", epgSource, 6),
             // Transform (EPG)
             ("Transform", "Увеличение силуэта", "Silhouette Increase", "+1",
                 "Позволяет превратиться в животное на один силуэт крупнее; можно добавлять несколько раз.",
-                "Превращение в более крупное животное.", epgSource, 1),
+                "Превращение в более крупное животное.",
+                "Transformation into a larger animal.", epgSource, 1),
             ("Transform", "Сохранение характеристик", "Characteristic Retention", "+1",
                 "В форме животного персонаж сохраняет собственные Интеллект и Волю вместо характеристик существа.",
-                "Сохраняет Интеллект и Волю в форме животного.", epgSource, 2),
+                "Сохраняет Интеллект и Волю в форме животного.",
+                "Keeps Intellect and Willpower in animal form.", epgSource, 2),
             ("Transform", "Трансформация снаряжения", "Transform Gear", "+1",
                 "Надетое и удерживаемое снаряжение превращается в естественные отметины на теле животного и возвращается при обратном превращении. Во время превращения снаряжение не даёт преимуществ.",
-                "Снаряжение сохраняется при превращении в виде отметин.", epgSource, 3),
+                "Снаряжение сохраняется при превращении в виде отметин.",
+                "Gear persists through the transformation as markings.", epgSource, 3),
             ("Transform", "Ужасная форма", "Dire Form", "+1",
                 "Персонаж принимает усиленную версию животного: больше урон оружия, поглощение, порог ран и силуэт.",
-                "Усиленная версия животной формы.", epgSource, 4),
+                "Усиленная версия животной формы.",
+                "An empowered version of the animal form.", epgSource, 4),
             ("Transform", "Проклятие дикой природы", "Curse of the Wild", "+3",
                 "Вместо себя персонаж превращает одну цель на короткой дистанции в животное силуэта 0 по своему выбору.",
-                "Превращает цель в животное силуэта 0.", epgSource, 5),
+                "Превращает цель в животное силуэта 0.",
+                "Transforms the target into a silhouette 0 animal.", epgSource, 5),
         };
 
         // Базовые эффекты: одна запись на (навык, эффект) для тех навыков системы, где эффект доступен.
@@ -1058,12 +1248,12 @@ public static class SeedData
             {
                 if (!systemSkills.Contains(skill)) continue; // в Genesys Core нет Runes/Verse
                 yield return Spell(sys, skill, SpellEntryKind.Effect, "",
-                    e.Ru, e.En, e.Diff, e.Desc, e.Safe, e.SrcOverride ?? skillSource(skill), e.Sort);
+                    e.Ru, e.En, e.Diff, e.Desc, e.Safe, e.SafeEn, e.SrcOverride ?? skillSource(skill), e.Sort);
             }
 
         // Дополнительные эффекты: одна запись на (система, базовый эффект), независимо от навыка.
         foreach (var m in additional)
             yield return Spell(sys, "", SpellEntryKind.AdditionalEffect, m.Parent,
-                m.Ru, m.En, m.Diff, m.Desc, m.Safe, m.SrcOverride ?? sysSource, m.Sort);
+                m.Ru, m.En, m.Diff, m.Desc, m.Safe, m.SafeEn, m.SrcOverride ?? sysSource, m.Sort);
     }
 }

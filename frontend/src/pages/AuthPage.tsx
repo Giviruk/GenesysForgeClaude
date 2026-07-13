@@ -4,6 +4,7 @@ import { api } from '../api/client'
 import { GoogleSignInButton } from '../components/GoogleSignInButton'
 import { Footer } from '../components/Footer'
 import { navigate, usePath } from '../router'
+import { t } from '../i18n'
 import { peekReturnTo } from '../session'
 
 type Mode = 'login' | 'register' | 'reset-request' | 'reset-confirm'
@@ -74,18 +75,18 @@ export function AuthPage() {
       } else if (mode === 'reset-request') {
         await api.requestPasswordReset(email)
         // Всегда одинаковый ответ — не раскрываем, есть ли такой аккаунт.
-        setInfo('Если аккаунт с таким e-mail существует, мы отправили ссылку для сброса пароля.')
+        setInfo(t('Если аккаунт с таким e-mail существует, мы отправили ссылку для сброса пароля.', 'If an account with this e-mail exists, we have sent a password reset link.'))
       } else {
         await api.confirmPasswordReset(resetToken!, password)
         // Убираем токен из адреса и возвращаем на вход.
         window.history.replaceState(null, '', window.location.pathname)
         setResetMode(null)
         setPassword('')
-        setInfo('Пароль обновлён — войдите с новым паролем.')
+        setInfo(t('Пароль обновлён — войдите с новым паролем.', 'Password updated — sign in with the new password.'))
         navigate('/login')
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Неизвестная ошибка')
+      setError(err instanceof Error ? err.message : t('Неизвестная ошибка', 'Unknown error'))
     } finally {
       setBusy(false)
     }
@@ -96,15 +97,15 @@ export function AuthPage() {
     try {
       await loginWithGoogle(idToken)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Не удалось войти через Google')
+      setError(err instanceof Error ? err.message : t('Не удалось войти через Google', 'Google sign-in failed'))
     }
   }, [loginWithGoogle])
 
   const submitLabel =
-    mode === 'login' ? 'Войти'
-      : mode === 'register' ? 'Создать аккаунт'
-        : mode === 'reset-request' ? 'Отправить ссылку'
-          : 'Сохранить пароль'
+    mode === 'login' ? t('Войти', 'Sign in')
+      : mode === 'register' ? t('Создать аккаунт', 'Create account')
+        : mode === 'reset-request' ? t('Отправить ссылку', 'Send link')
+          : t('Сохранить пароль', 'Save password')
 
   // ── Стартовый экран: бренд сверху, способы входа стопкой, подпись снизу. ──
   if (!showForm) {
@@ -112,10 +113,10 @@ export function AuthPage() {
       <div className="auth-page">
         <div className="auth-card auth-landing">
           <h1 className="logo auth-brand">Genesys Forge</h1>
-          <p className="muted auth-brand-sub">Листы персонажей для Genesys Core и Realms of Terrinoth</p>
+          <p className="muted auth-brand-sub">{t('Листы персонажей для Genesys Core и Realms of Terrinoth', 'Character sheets for Genesys Core and Realms of Terrinoth')}</p>
 
           {sessionExpired && (
-            <div className="notice warn">Сессия истекла — войдите снова.</div>
+            <div className="notice warn">{t('Сессия истекла — войдите снова.', 'Session expired — sign in again.')}</div>
           )}
           {error && <div className="error">{error}</div>}
 
@@ -125,15 +126,15 @@ export function AuthPage() {
                 onCredential={onGoogleCredential} onError={setError} />
             )}
             <button className="primary auth-method" type="button" onClick={() => openForm('/login')}>
-              Войти по e-mail
+              {t('Войти по e-mail', 'Sign in with e-mail')}
             </button>
             <button className="auth-method" type="button" onClick={() => openForm('/register')}>
-              Создать аккаунт
+              {t('Создать аккаунт', 'Create account')}
             </button>
           </div>
 
           <p className="auth-foot muted small-text">
-            Некоммерческий фанатский инструмент для Genesys от Fantasy Flight Games.
+            {t('Некоммерческий фанатский инструмент для Genesys от Fantasy Flight Games.', 'A non-commercial fan tool for Genesys by Fantasy Flight Games.')}
           </p>
         </div>
         <Footer />
@@ -146,30 +147,30 @@ export function AuthPage() {
     <div className="auth-page">
       <div className="auth-card">
         <h1 className="logo auth-brand">Genesys Forge</h1>
-        <p className="muted">Листы персонажей для Genesys Core и Realms of Terrinoth</p>
+        <p className="muted">{t('Листы персонажей для Genesys Core и Realms of Terrinoth', 'Character sheets for Genesys Core and Realms of Terrinoth')}</p>
 
         {sessionExpired && mode === 'login' && !info && (
           <div className="notice warn">
-            Сессия истекла — войдите снова.
-            {returnTo && ' После входа вернётесь на открытую страницу.'}
+            {t('Сессия истекла — войдите снова.', 'Session expired — sign in again.')}
+            {returnTo && t(' После входа вернётесь на открытую страницу.', ' After signing in you will return to the page you had open.')}
           </div>
         )}
         {info && <div className="notice">{info}</div>}
 
         {(mode === 'login' || mode === 'register') && (
           <div className="tabs">
-            <button className={mode === 'login' ? 'tab active' : 'tab'} onClick={() => goAuth('/login')}>Вход</button>
-            <button className={mode === 'register' ? 'tab active' : 'tab'} onClick={() => goAuth('/register')}>Регистрация</button>
+            <button className={mode === 'login' ? 'tab active' : 'tab'} onClick={() => goAuth('/login')}>{t('Вход', 'Sign in')}</button>
+            <button className={mode === 'register' ? 'tab active' : 'tab'} onClick={() => goAuth('/register')}>{t('Регистрация', 'Register')}</button>
           </div>
         )}
 
-        {mode === 'reset-request' && <h2 className="auth-title">Восстановление пароля</h2>}
-        {mode === 'reset-confirm' && <h2 className="auth-title">Новый пароль</h2>}
+        {mode === 'reset-request' && <h2 className="auth-title">{t('Восстановление пароля', 'Password recovery')}</h2>}
+        {mode === 'reset-confirm' && <h2 className="auth-title">{t('Новый пароль', 'New password')}</h2>}
 
         <form onSubmit={submit}>
           {mode === 'register' && (
             <label>
-              Имя пользователя
+              {t('Имя пользователя', 'Display name')}
               <input value={displayName} onChange={e => setDisplayName(e.target.value)} required minLength={1} />
             </label>
           )}
@@ -183,20 +184,20 @@ export function AuthPage() {
 
           {(mode === 'login' || mode === 'register') && (
             <label>
-              Пароль
+              {t('Пароль', 'Password')}
               <input type="password" value={password} onChange={e => setPassword(e.target.value)} required minLength={6} />
             </label>
           )}
 
           {mode === 'reset-confirm' && (
             <label>
-              Новый пароль
+              {t('Новый пароль', 'New password')}
               <input type="password" value={password} onChange={e => setPassword(e.target.value)} required minLength={6} />
             </label>
           )}
 
           {mode === 'reset-request' && (
-            <p className="hint">Введите e-mail аккаунта — мы пришлём ссылку для установки нового пароля.</p>
+            <p className="hint">{t('Введите e-mail аккаунта — мы пришлём ссылку для установки нового пароля.', 'Enter your account e-mail — we will send a link to set a new password.')}</p>
           )}
 
           {error && <div className="error">{error}</div>}
@@ -206,22 +207,22 @@ export function AuthPage() {
         <div className="auth-links">
           {mode === 'login' && (
             <button className="linklike" type="button" onClick={() => { setResetMode('reset-request'); setError(null); setInfo(null) }}>
-              Забыли пароль?
+              {t('Забыли пароль?', 'Forgot password?')}
             </button>
           )}
           {(mode === 'reset-request' || mode === 'reset-confirm') && (
             <button className="linklike" type="button" onClick={() => goAuth('/login')}>
-              ← Вернуться ко входу
+              {t('← Вернуться ко входу', '← Back to sign in')}
             </button>
           )}
           <button className="linklike" type="button" onClick={backToLanding}>
-            ← Все способы входа
+            {t('← Все способы входа', '← All sign-in options')}
           </button>
         </div>
 
         {googleClientId && (
           <div className="auth-divider-block">
-            <div className="auth-divider"><span>или</span></div>
+            <div className="auth-divider"><span>{t('или', 'or')}</span></div>
             <GoogleSignInButton clientId={googleClientId}
               onCredential={onGoogleCredential} onError={setError} />
           </div>

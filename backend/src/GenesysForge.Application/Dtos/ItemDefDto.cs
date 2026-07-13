@@ -6,7 +6,7 @@ public record ItemDefDto(Guid Id, string Name, string NameRu, ItemKind Kind, int
     int MeleeDefense, int RangedDefense, int EncumbranceThresholdBonus,
     string Description, string SafeDescription, string Source, int Price, int Rarity,
     string SkillName, string Damage, string Crit, string RangeBand, string Properties, bool IsCustom,
-    IReadOnlyList<ItemQualityRefDto> Qualities);
+    IReadOnlyList<ItemQualityRefDto> Qualities, string DescriptionEn = "");
 
 /// <summary>Структурное качество предмета: ссылка на справочник (по коду) + рейтинг.</summary>
 public record ItemQualityRefDto(

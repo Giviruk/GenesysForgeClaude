@@ -14,6 +14,7 @@ import { PrintPreview } from '../components/print/PrintPreview'
 import { CharacterSheetPrint } from '../components/print/CharacterSheetPrint'
 import { Icon } from '../components/Icon'
 import { navigate } from '../router'
+import { t } from '../i18n'
 
 interface Props {
   characterId: string
@@ -45,7 +46,7 @@ export function SheetPage({ characterId, printing, onOpenPrint, onClosePrint, on
     [characterId])
 
   useEffect(() => {
-    refresh().catch((err: unknown) => setError(err instanceof Error ? err.message : 'Ошибка загрузки'))
+    refresh().catch((err: unknown) => setError(err instanceof Error ? err.message : t('Ошибка загрузки', 'Failed to load')))
   }, [refresh])
 
   // Ошибка действия показывается и сама скрывается
@@ -64,8 +65,8 @@ export function SheetPage({ characterId, printing, onOpenPrint, onClosePrint, on
   if (!sheet || !reference) {
     return (
       <div className="page">
-        <button onClick={onBack}>← Назад</button>
-        {error ? <div className="error">{error}</div> : <p className="muted">Загрузка…</p>}
+        <button onClick={onBack}>{t('← Назад', '← Back')}</button>
+        {error ? <div className="error">{error}</div> : <p className="muted">{t('Загрузка…', 'Loading…')}</p>}
       </div>
     )
   }
@@ -82,7 +83,7 @@ export function SheetPage({ characterId, printing, onOpenPrint, onClosePrint, on
       a.click()
       URL.revokeObjectURL(url)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Ошибка экспорта')
+      setError(err instanceof Error ? err.message : t('Ошибка экспорта', 'Export failed'))
     }
   }
 
@@ -92,7 +93,7 @@ export function SheetPage({ characterId, printing, onOpenPrint, onClosePrint, on
       const copy = await api.duplicateCharacter(sheet.id)
       navigate(`/characters/${copy.id}`)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Ошибка клонирования')
+      setError(err instanceof Error ? err.message : t('Ошибка клонирования', 'Failed to duplicate'))
     }
   }
 
@@ -100,13 +101,13 @@ export function SheetPage({ characterId, printing, onOpenPrint, onClosePrint, on
     const file = e.target.files?.[0]
     e.target.value = '' // повторный выбор того же файла снова вызывает onChange
     if (!file || !sheet) return
-    if (file.size > 5 * 1024 * 1024) { setError('Файл больше 5 МБ.'); return }
+    if (file.size > 5 * 1024 * 1024) { setError(t('Файл больше 5 МБ.', 'File is larger than 5 MB.')); return }
     try {
       const { portraitUrl } = await api.uploadCharacterPortrait(sheet.id, file)
       setSheet({ ...sheet, portraitUrl })
-      setNotice('Портрет обновлён.')
+      setNotice(t('Портрет обновлён.', 'Portrait updated.'))
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Ошибка загрузки портрета')
+      setError(err instanceof Error ? err.message : t('Ошибка загрузки портрета', 'Portrait upload failed'))
     }
   }
 
@@ -119,15 +120,15 @@ export function SheetPage({ characterId, printing, onOpenPrint, onClosePrint, on
       if (navigator.clipboard?.writeText) {
         try {
           await navigator.clipboard.writeText(url)
-          setNotice('Ссылка скопирована в буфер обмена.')
+          setNotice(t('Ссылка скопирована в буфер обмена.', 'Link copied to clipboard.'))
         } catch {
-          setNotice('Ссылка создана. Скопируйте её из поля ниже.')
+          setNotice(t('Ссылка создана. Скопируйте её из поля ниже.', 'Link created. Copy it from the field below.'))
         }
       } else {
-        setNotice('Ссылка создана. Скопируйте её из поля ниже.')
+        setNotice(t('Ссылка создана. Скопируйте её из поля ниже.', 'Link created. Copy it from the field below.'))
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Ошибка создания ссылки')
+      setError(err instanceof Error ? err.message : t('Ошибка создания ссылки', 'Failed to create link'))
     }
   }
 
@@ -136,9 +137,9 @@ export function SheetPage({ characterId, printing, onOpenPrint, onClosePrint, on
     try {
       await api.revokeCharacterShares(sheet.id)
       setShareUrl(null)
-      setNotice('Все публичные ссылки этого персонажа отозваны.')
+      setNotice(t('Все публичные ссылки этого персонажа отозваны.', 'All public links for this character have been revoked.'))
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Ошибка отзыва ссылки')
+      setError(err instanceof Error ? err.message : t('Ошибка отзыва ссылки', 'Failed to revoke links'))
     }
   }
 
@@ -151,7 +152,7 @@ export function SheetPage({ characterId, printing, onOpenPrint, onClosePrint, on
       await api.updateCharacter(sheet.id, { totalXp: Math.trunc(value) })
       await refresh()
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Ошибка')
+      setError(err instanceof Error ? err.message : t('Ошибка', 'Error'))
     }
   }
 
@@ -161,13 +162,13 @@ export function SheetPage({ characterId, printing, onOpenPrint, onClosePrint, on
         <div>
           <button className="back-link" onClick={onBack}>
             <Icon name="arrow-left" className="button-icon" />
-            Персонажи
+            {t('Персонажи', 'Characters')}
           </button>
           <div className="sheet-title-row">
-            <button type="button" className="sheet-portrait" title="Загрузить портрет (JPEG/PNG/WebP, до 5 МБ)"
+            <button type="button" className="sheet-portrait" title={t('Загрузить портрет (JPEG/PNG/WebP, до 5 МБ)', 'Upload portrait (JPEG/PNG/WebP, up to 5 MB)')}
               onClick={() => portraitFileRef.current?.click()}>
               {sheet.portraitUrl
-                ? <img src={sheet.portraitUrl} alt={`Портрет: ${sheet.name}`} />
+                ? <img src={sheet.portraitUrl} alt={t(`Портрет: ${sheet.name}`, `Portrait: ${sheet.name}`)} />
                 : <Icon name="user" className="sheet-portrait-placeholder" />}
             </button>
             <input ref={portraitFileRef} type="file" accept="image/jpeg,image/png,image/webp" hidden
@@ -179,7 +180,7 @@ export function SheetPage({ characterId, printing, onOpenPrint, onClosePrint, on
         </div>
         <div className="sheet-head-controls">
           <div className="xp-block">
-            <span title="Суммарный опыт — кликните, чтобы изменить (награды ГМа)">
+            <span title={t('Суммарный опыт — кликните, чтобы изменить (награды ГМа)', 'Total XP — click to edit (GM awards)')}>
               XP: {xpEdit !== null ? (
                 <input autoFocus className="xp-input" value={xpEdit}
                   onChange={e => setXpEdit(e.target.value)}
@@ -189,38 +190,38 @@ export function SheetPage({ characterId, printing, onOpenPrint, onClosePrint, on
                 <button className="linklike" onClick={() => setXpEdit(String(sheet.totalXp))}>{sheet.totalXp}</button>
               )}
             </span>
-            <span className="muted"> потрачено {sheet.spentXp} · </span>
-            <strong className="xp-available">доступно {sheet.availableXp}</strong>
+            <span className="muted"> {t('потрачено', 'spent')} {sheet.spentXp} · </span>
+            <strong className="xp-available">{t('доступно', 'available')} {sheet.availableXp}</strong>
           </div>
           <div className="sheet-action-buttons">
-            <button className="small" title="Печать листа персонажа / сохранение в PDF"
+            <button className="small" title={t('Печать листа персонажа / сохранение в PDF', 'Print the character sheet / save as PDF')}
               onClick={onOpenPrint}>
               <Icon name="printer" className="button-icon" />
-              Печать
+              {t('Печать', 'Print')}
             </button>
-            <button className="small" title="Создать копию персонажа"
+            <button className="small" title={t('Создать копию персонажа', 'Create a copy of the character')}
               onClick={() => void duplicateCurrent()}>
               <Icon name="copy" className="button-icon" />
-              Клонировать
+              {t('Клонировать', 'Duplicate')}
             </button>
-            <button className="small" title="Создать публичную read-only ссылку"
+            <button className="small" title={t('Создать публичную read-only ссылку', 'Create a public read-only link')}
               onClick={() => void shareCurrent()}>
               <Icon name="share" className="button-icon" />
-              Ссылка
+              {t('Ссылка', 'Share link')}
             </button>
-            <button className="small" title="Отозвать все публичные ссылки этого персонажа"
+            <button className="small" title={t('Отозвать все публичные ссылки этого персонажа', 'Revoke all public links for this character')}
               onClick={() => void revokeShares()}>
-              Отозвать ссылки
+              {t('Отозвать ссылки', 'Revoke links')}
             </button>
-            <button className="small" title="Скачать персонажа в JSON (бэкап / перенос между аккаунтами)"
+            <button className="small" title={t('Скачать персонажа в JSON (бэкап / перенос между аккаунтами)', 'Download the character as JSON (backup / transfer between accounts)')}
               onClick={() => void exportJson()}>
               <Icon name="file-import" className="button-icon" />
-              Экспорт JSON
+              {t('Экспорт JSON', 'Export JSON')}
             </button>
             {sheet.isCreationPhase && (
-              <button className="small" title="Завершить создание: зафиксировать характеристики и снять лимит рангов"
+              <button className="small" title={t('Завершить создание: зафиксировать характеристики и снять лимит рангов', 'Complete creation: lock characteristics and lift the rank limit')}
                 onClick={async () => { await api.completeCreation(sheet.id); await refresh() }}>
-                Завершить создание
+                {t('Завершить создание', 'Complete creation')}
               </button>
             )}
           </div>
@@ -231,19 +232,19 @@ export function SheetPage({ characterId, printing, onOpenPrint, onClosePrint, on
       {notice && <div className="notice">{notice}</div>}
       {shareUrl && (
         <div className="notice share-link">
-          Публичная ссылка: <input readOnly value={shareUrl} onFocus={e => e.currentTarget.select()} />
+          {t('Публичная ссылка:', 'Public link:')} <input readOnly value={shareUrl} onFocus={e => e.currentTarget.select()} />
         </div>
       )}
 
       <div className="tabs main-tabs">
-        <button className={tab === 'sheet' ? 'tab active' : 'tab'} onClick={() => setTab('sheet')}>Лист</button>
-        <button className={tab === 'talents' ? 'tab active' : 'tab'} onClick={() => setTab('talents')}>Таланты</button>
-        <button className={tab === 'inventory' ? 'tab active' : 'tab'} onClick={() => setTab('inventory')}>Инвентарь</button>
-        <button className={tab === 'magic' ? 'tab active' : 'tab'} onClick={() => setTab('magic')}>Магия</button>
-        <button className={tab === 'bio' ? 'tab active' : 'tab'} onClick={() => setTab('bio')}>Образ</button>
-        <button className={tab === 'history' ? 'tab active' : 'tab'} onClick={() => setTab('history')}>История</button>
-        <button className={tab === 'notes' ? 'tab active' : 'tab'} onClick={() => setTab('notes')}>Заметки</button>
-        <button className={tab === 'custom' ? 'tab active' : 'tab'} onClick={() => setTab('custom')}>Кастом</button>
+        <button className={tab === 'sheet' ? 'tab active' : 'tab'} onClick={() => setTab('sheet')}>{t('Лист', 'Sheet')}</button>
+        <button className={tab === 'talents' ? 'tab active' : 'tab'} onClick={() => setTab('talents')}>{t('Таланты', 'Talents')}</button>
+        <button className={tab === 'inventory' ? 'tab active' : 'tab'} onClick={() => setTab('inventory')}>{t('Инвентарь', 'Inventory')}</button>
+        <button className={tab === 'magic' ? 'tab active' : 'tab'} onClick={() => setTab('magic')}>{t('Магия', 'Magic')}</button>
+        <button className={tab === 'bio' ? 'tab active' : 'tab'} onClick={() => setTab('bio')}>{t('Образ', 'Bio')}</button>
+        <button className={tab === 'history' ? 'tab active' : 'tab'} onClick={() => setTab('history')}>{t('История', 'History')}</button>
+        <button className={tab === 'notes' ? 'tab active' : 'tab'} onClick={() => setTab('notes')}>{t('Заметки', 'Notes')}</button>
+        <button className={tab === 'custom' ? 'tab active' : 'tab'} onClick={() => setTab('custom')}>{t('Кастом', 'Custom')}</button>
       </div>
 
       {tab === 'sheet' && <SheetTab sheet={sheet} reference={reference} onError={setError} refresh={refresh} />}
@@ -256,7 +257,7 @@ export function SheetPage({ characterId, printing, onOpenPrint, onClosePrint, on
       {tab === 'custom' && <CustomTab sheet={sheet} reference={reference} onError={setError} refresh={refresh} />}
 
       {printing && (
-        <PrintPreview title={`Лист персонажа — ${sheet.name}`} onClose={onClosePrint}>
+        <PrintPreview title={t(`Лист персонажа — ${sheet.name}`, `Character sheet — ${sheet.name}`)} onClose={onClosePrint}>
           {() => <CharacterSheetPrint sheet={sheet} reference={reference} />}
         </PrintPreview>
       )}

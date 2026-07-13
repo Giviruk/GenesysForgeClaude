@@ -2,12 +2,13 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { api } from '../api/client'
 import type { DicePool, GameSystem, Spell } from '../api/types'
 import {
-  difficultyLabel, magicSkillLabel, MAX_SPELL_DIFFICULTY, parseDifficulty, wouldExceedSpellCap,
+  difficultyLabel, localizedDescription, magicSkillLabel, MAX_SPELL_DIFFICULTY, parseDifficulty, wouldExceedSpellCap,
 } from '../utils/labels'
 import { DicePoolView } from './DicePoolView'
 import { PrintPreview } from './print/PrintPreview'
 import { MagicActionCard, type MagicCardData } from './print/cards'
 import { magicMarkdown } from './print/markdown'
+import { t } from '../i18n'
 
 export interface MagicSkillPool {
   name: string
@@ -36,7 +37,7 @@ export function MagicBuilder({ system, characterSkills, onError }: Props) {
   const reload = useCallback(
     () => api.spells(system)
       .then(setSpells)
-      .catch((err: unknown) => onError(err instanceof Error ? err.message : 'Ошибка загрузки магии')),
+      .catch((err: unknown) => onError(err instanceof Error ? err.message : t('Ошибка загрузки магии', 'Failed to load magic'))),
     [system, onError])
   useEffect(() => { void reload() }, [reload])
 
@@ -86,17 +87,17 @@ export function MagicBuilder({ system, characterSkills, onError }: Props) {
   const buildText = (): string => {
     if (!selectedEffect) return ''
     const lines = [
-      `Магическое действие — ${magicSkillLabel(activeSkill)}`,
-      `Базовый эффект: ${selectedEffect.nameRu} (${selectedEffect.nameEn})`,
-      `Сложность: ${totalDifficulty} (${difficultyLabel(totalDifficulty)})`
-        + (added > 0 ? ` — базовая ${baseDifficulty} + ${added}` : ''),
+      t(`Магическое действие — ${magicSkillLabel(activeSkill)}`, `Magic action — ${magicSkillLabel(activeSkill)}`),
+      t(`Базовый эффект: ${selectedEffect.nameRu} (${selectedEffect.nameEn})`, `Base effect: ${selectedEffect.nameEn} (${selectedEffect.nameRu})`),
+      t(`Сложность: ${totalDifficulty} (${difficultyLabel(totalDifficulty)})`, `Difficulty: ${totalDifficulty} (${difficultyLabel(totalDifficulty)})`)
+        + (added > 0 ? t(` — базовая ${baseDifficulty} + ${added}`, ` — base ${baseDifficulty} + ${added}`) : ''),
     ]
     if (chosen.length) {
-      lines.push('Доп. эффекты:')
-      for (const a of chosen) lines.push(`  • ${a.nameRu} (${a.nameEn}) ${a.difficulty} — ${a.safeDescription || a.description}`)
+      lines.push(t('Доп. эффекты:', 'Additional effects:'))
+      for (const a of chosen) lines.push(t(`  • ${a.nameRu} (${a.nameEn}) ${a.difficulty} — ${localizedDescription(a)}`, `  • ${a.nameEn} (${a.nameRu}) ${a.difficulty} — ${localizedDescription(a)}`))
     }
     const sources = [...new Set([selectedEffect.source, ...chosen.map(a => a.source)].filter(Boolean))]
-    if (sources.length) lines.push(`Источники: ${sources.join('; ')}`)
+    if (sources.length) lines.push(t(`Источники: ${sources.join('; ')}`, `Sources: ${sources.join('; ')}`))
     return lines.join('\n')
   }
 
@@ -106,18 +107,18 @@ export function MagicBuilder({ system, characterSkills, onError }: Props) {
     baseEffectEn: selectedEffect?.nameEn ?? '',
     baseDifficulty,
     totalDifficulty,
-    effects: chosen.map(a => ({ ru: a.nameRu, en: a.nameEn, difficulty: a.difficulty, summary: a.safeDescription || a.description })),
-    description: selectedEffect ? (selectedEffect.description || selectedEffect.safeDescription) : '',
+    effects: chosen.map(a => ({ ru: a.nameRu, en: a.nameEn, difficulty: a.difficulty, summary: localizedDescription(a) })),
+    description: selectedEffect ? localizedDescription(selectedEffect) : '',
     sources: selectedEffect ? [...new Set([selectedEffect.source, ...chosen.map(a => a.source)].filter(Boolean))] : [],
     pool: charPool,
   }
 
-  if (spells === null) return <p className="muted">Загрузка…</p>
-  if (skills.length === 0) return <p className="muted">Для этой системы нет магических направлений.</p>
+  if (spells === null) return <p className="muted">{t('Загрузка…', 'Loading…')}</p>
+  if (skills.length === 0) return <p className="muted">{t('Для этой системы нет магических направлений.', 'This system has no magic schools.')}</p>
 
   if (printing && selectedEffect) {
     return (
-      <PrintPreview title={`Магическое действие — ${selectedEffect.nameRu}`}
+      <PrintPreview title={t(`Магическое действие — ${selectedEffect.nameRu}`, `Magic action — ${selectedEffect.nameEn}`)}
         markdown={() => magicMarkdown(cardData)} onClose={() => setPrinting(false)}>
         {() => <MagicActionCard data={cardData} />}
       </PrintPreview>
@@ -128,23 +129,23 @@ export function MagicBuilder({ system, characterSkills, onError }: Props) {
     <div className="magic-builder">
       <section className="panel">
         <div className="spells-head">
-          <h3>Сборка магического действия</h3>
+          <h3>{t('Сборка магического действия', 'Build a magic action')}</h3>
           <div className="spells-selectors">
-            <label className="inline-label">Направление
+            <label className="inline-label">{t('Направление', 'School')}
               <select value={activeSkill} onChange={e => setSkill(e.target.value)}>
                 {skills.map(s => <option key={s} value={s}>{magicSkillLabel(s)}</option>)}
               </select>
             </label>
-            <label className="inline-label">Базовый эффект
+            <label className="inline-label">{t('Базовый эффект', 'Base effect')}
               <select value={activeEffectCode} onChange={e => setEffectCode(e.target.value)}>
-                {baseEffects.map(e => <option key={e.id} value={e.nameEn}>{e.nameRu}</option>)}
+                {baseEffects.map(e => <option key={e.id} value={e.nameEn}>{t(e.nameRu, e.nameEn)}</option>)}
               </select>
             </label>
           </div>
         </div>
         {charPool && (
           <div className="muted small-text">
-            Ваш пул для «{magicSkillLabel(activeSkill)}»: <DicePoolView pool={charPool} />
+            {t(`Ваш пул для «${magicSkillLabel(activeSkill)}»:`, `Your pool for “${magicSkillLabel(activeSkill)}”:`)} <DicePoolView pool={charPool} />
           </div>
         )}
       </section>
@@ -152,53 +153,55 @@ export function MagicBuilder({ system, characterSkills, onError }: Props) {
       {selectedEffect && (
         <section className="panel magic-result">
           <div className="spell-detail-head">
-            <h3>{selectedEffect.nameRu} <span className="muted">· {selectedEffect.nameEn}</span></h3>
+            <h3>{t(selectedEffect.nameRu, selectedEffect.nameEn)} <span className="muted">· {t(selectedEffect.nameEn, selectedEffect.nameRu)}</span></h3>
             <span className="difficulty-badge big">
-              Сложность: {totalDifficulty} · {difficultyLabel(totalDifficulty)}
+              {t('Сложность:', 'Difficulty:')} {totalDifficulty} · {difficultyLabel(totalDifficulty)}
             </span>
           </div>
-          <div className="difficulty-dice" aria-label={`${totalDifficulty} кубов сложности`}>
+          <div className="difficulty-dice" aria-label={t(`${totalDifficulty} кубов сложности`, `${totalDifficulty} difficulty dice`)}>
             {Array.from({ length: totalDifficulty }).map((_, i) => <span key={i} className="die difficulty">▲</span>)}
-            {totalDifficulty === 0 && <span className="muted">— (простая проверка)</span>}
+            {totalDifficulty === 0 && <span className="muted">{t('— (простая проверка)', '— (simple check)')}</span>}
           </div>
-          {added > 0 && <div className="muted small-text">Базовая {baseDifficulty} + дополнительные {added}</div>}
+          {added > 0 && <div className="muted small-text">{t('Базовая', 'Base')} {baseDifficulty} {t('+ дополнительные', '+ additional')} {added}</div>}
           {capReached && (
             <div className="muted small-text cap-note">
-              Достигнут потолок сложности {MAX_SPELL_DIFFICULTY} — новые эффекты добавить нельзя.
+              {t(`Достигнут потолок сложности ${MAX_SPELL_DIFFICULTY} — новые эффекты добавить нельзя.`, `The difficulty cap of ${MAX_SPELL_DIFFICULTY} is reached — no more effects can be added.`)}
             </div>
           )}
           {chosen.length > 0 && (
             <div className="chips effect-summary">
               {chosen.map(a => (
-                <span key={a.id} className="chip active removable" title={a.safeDescription || a.description}>
-                  {a.nameRu} <span className="effect-chip-diff">{a.difficulty}</span>
-                  <button type="button" aria-label={`Убрать эффект «${a.nameRu}»`} onClick={() => toggle(a)}>×</button>
+                <span key={a.id} className="chip active removable" title={localizedDescription(a)}>
+                  {t(a.nameRu, a.nameEn)} <span className="effect-chip-diff">{a.difficulty}</span>
+                  <button type="button" aria-label={t(`Убрать эффект «${a.nameRu}»`, `Remove effect “${a.nameEn}”`)} onClick={() => toggle(a)}>×</button>
                 </span>
               ))}
             </div>
           )}
-          <p>{selectedEffect.description || selectedEffect.safeDescription}</p>
-          <div className="muted small-text">Источник: {selectedEffect.source}</div>
+          <p>{localizedDescription(selectedEffect)}</p>
+          <div className="muted small-text">{t('Источник:', 'Source:')} {selectedEffect.source}</div>
           <div className="card-actions">
             <CopyButton key={buildText()} text={buildText()} onError={onError} />
-            <button className="small" onClick={() => setPrinting(true)}>🖨 Печать карточки</button>
+            <button className="small" onClick={() => setPrinting(true)}>{t('🖨 Печать карточки', '🖨 Print card')}</button>
           </div>
         </section>
       )}
 
       <section className="panel">
         <div className="spells-head">
-          <h3>Дополнительные эффекты {additional.length ? `(выбрано ${chosen.length} из ${additional.length})` : ''}</h3>
+          <h3>{t('Дополнительные эффекты', 'Additional effects')} {additional.length ? t(`(выбрано ${chosen.length} из ${additional.length})`, `(${chosen.length} of ${additional.length} selected)`) : ''}</h3>
           {capReached && additional.length > 0 && (
-            <span className="difficulty-badge cap">потолок {MAX_SPELL_DIFFICULTY} достигнут</span>
+            <span className="difficulty-badge cap">{t(`потолок ${MAX_SPELL_DIFFICULTY} достигнут`, `cap of ${MAX_SPELL_DIFFICULTY} reached`)}</span>
           )}
         </div>
         <p className="hint">
-          Каждый эффект повышает сложность на «+N». Итоговая сложность не может превышать {MAX_SPELL_DIFFICULTY} —
-          недоступные эффекты подсвечены и не добавляются.
+          {t(
+            `Каждый эффект повышает сложность на «+N». Итоговая сложность не может превышать ${MAX_SPELL_DIFFICULTY} — недоступные эффекты подсвечены и не добавляются.`,
+            `Each effect raises the difficulty by “+N”. The total difficulty cannot exceed ${MAX_SPELL_DIFFICULTY} — unavailable effects are highlighted and cannot be added.`,
+          )}
         </p>
         {additional.length === 0
-          ? <p className="muted">У этого базового эффекта нет дополнительных эффектов.</p>
+          ? <p className="muted">{t('У этого базового эффекта нет дополнительных эффектов.', 'This base effect has no additional effects.')}</p>
           : (
             <>
               <div className="chips effect-chips">
@@ -206,10 +209,11 @@ export function MagicBuilder({ system, characterSkills, onError }: Props) {
                   const on = selectedIds.has(a.id)
                   const blocked = !on && selectedEffect != null
                     && wouldExceedSpellCap(selectedEffect.difficulty, chosenDifficulties, a.difficulty)
-                  const description = a.safeDescription || a.description
+                  const description = localizedDescription(a)
                   const title = blocked
-                    ? `Недоступно: базовая ${baseDifficulty} + выбранные ${added} + ${a.difficulty} превысит потолок ${MAX_SPELL_DIFFICULTY}`
-                    : `${a.nameEn} · ${a.difficulty}${description ? ` — ${description}` : ''}`
+                    ? t(`Недоступно: базовая ${baseDifficulty} + выбранные ${added} + ${a.difficulty} превысит потолок ${MAX_SPELL_DIFFICULTY}`,
+                        `Unavailable: base ${baseDifficulty} + selected ${added} + ${a.difficulty} would exceed the cap of ${MAX_SPELL_DIFFICULTY}`)
+                    : `${t(a.nameEn, a.nameRu)} · ${a.difficulty}${description ? ` — ${description}` : ''}`
                   return (
                     <button key={a.id} type="button"
                       className={`chip effect-chip${on ? ' active' : ''}${blocked ? ' blocked' : ''}`}
@@ -217,19 +221,19 @@ export function MagicBuilder({ system, characterSkills, onError }: Props) {
                       aria-pressed={on}
                       title={title}
                       onClick={() => toggle(a)}>
-                      {a.nameRu} <span className="effect-chip-diff">{a.difficulty}</span>
+                      {t(a.nameRu, a.nameEn)} <span className="effect-chip-diff">{a.difficulty}</span>
                     </button>
                   )
                 })}
               </div>
               <details className="effect-descriptions">
-                <summary>Описания эффектов ({additional.length})</summary>
+                <summary>{t('Описания эффектов', 'Effect descriptions')} ({additional.length})</summary>
                 <ul>
                   {additional.map(a => (
                     <li key={a.id}>
-                      <strong>{a.nameRu}</strong> <span className="muted small-text">{a.nameEn}</span>{' '}
+                      <strong>{t(a.nameRu, a.nameEn)}</strong> <span className="muted small-text">{t(a.nameEn, a.nameRu)}</span>{' '}
                       <span className="effect-chip-diff">{a.difficulty}</span>
-                      <div className="small-text">{a.safeDescription || a.description}</div>
+                      <div className="small-text">{localizedDescription(a)}</div>
                     </li>
                   ))}
                 </ul>
@@ -249,8 +253,8 @@ function CopyButton({ text, onError }: { text: string; onError: (m: string) => v
       await navigator.clipboard.writeText(text)
       setCopied(true)
     } catch {
-      onError('Не удалось скопировать в буфер обмена.')
+      onError(t('Не удалось скопировать в буфер обмена.', 'Could not copy to the clipboard.'))
     }
   }
-  return <button className="primary small" onClick={copy}>{copied ? 'Скопировано ✓' : 'Скопировать карточку'}</button>
+  return <button className="primary small" onClick={copy}>{copied ? t('Скопировано ✓', 'Copied ✓') : t('Скопировать карточку', 'Copy card')}</button>
 }

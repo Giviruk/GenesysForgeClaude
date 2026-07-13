@@ -2,12 +2,13 @@ import { useState } from 'react'
 import { api } from '../api/client'
 import type { ActivateCharacterAbilityResult, CharacterSheet, Reference, SkillKind } from '../api/types'
 import {
-  CHARACTERISTICS, CHARACTERISTIC_LABELS, CHARACTERISTIC_SHORT_LABELS, localizedName, secondaryName,
-  SKILL_KIND_LABELS,
+  CHARACTERISTICS, CHARACTERISTIC_LABELS, CHARACTERISTIC_SHORT_LABELS, localizedDescription, localizedName,
+  secondaryName, SKILL_KIND_LABELS,
 } from '../utils/labels'
 import { DicePoolView } from './DicePoolView'
 import { CriticalInjuriesSection } from './CriticalInjuriesSection'
 import { useDiceRoller } from '../dice-roller-store'
+import { t } from '../i18n'
 
 interface Props {
   sheet: CharacterSheet
@@ -32,7 +33,7 @@ export function SheetTab({ sheet, reference, onError, refresh }: Props) {
       await action()
       await refresh()
     } catch (err) {
-      onError(err instanceof Error ? err.message : 'Ошибка')
+      onError(err instanceof Error ? err.message : t('Ошибка', 'Error'))
     }
   }
 
@@ -48,12 +49,12 @@ export function SheetTab({ sheet, reference, onError, refresh }: Props) {
             {sheet.isCreationPhase && (
               <div className="buy-row">
                 {sheet.characteristics[c] > sheet.archetype[c] && (
-                  <button className="small" title={`Вернуть ${sheet.characteristics[c] * 10} XP`}
+                  <button className="small" title={t(`Вернуть ${sheet.characteristics[c] * 10} XP`, `Refund ${sheet.characteristics[c] * 10} XP`)}
                     onClick={() => run(() => api.refundCharacteristic(sheet.id, c))}>
                     −
                   </button>
                 )}
-                <button className="small" title={`Повысить за ${(sheet.characteristics[c] + 1) * 10} XP`}
+                <button className="small" title={t(`Повысить за ${(sheet.characteristics[c] + 1) * 10} XP`, `Increase for ${(sheet.characteristics[c] + 1) * 10} XP`)}
                   onClick={() => run(() => api.buyCharacteristic(sheet.id, c))}>
                   +{(sheet.characteristics[c] + 1) * 10} XP
                 </button>
@@ -64,47 +65,47 @@ export function SheetTab({ sheet, reference, onError, refresh }: Props) {
       </section>
 
       <section className="stat-row derived">
-        <DerivedBox label="Раны" value={`${sheet.woundsCurrent} / ${d.woundThreshold}`}
+        <DerivedBox label={t('Раны', 'Wounds')} value={`${sheet.woundsCurrent} / ${d.woundThreshold}`}
           onMinus={() => run(() => api.updateCharacter(sheet.id, { woundsCurrent: sheet.woundsCurrent - 1 }))}
           onPlus={() => run(() => api.updateCharacter(sheet.id, { woundsCurrent: sheet.woundsCurrent + 1 }))} />
-        <DerivedBox label="Усталость" value={`${sheet.strainCurrent} / ${d.strainThreshold}`}
+        <DerivedBox label={t('Усталость', 'Strain')} value={`${sheet.strainCurrent} / ${d.strainThreshold}`}
           onMinus={() => run(() => api.updateCharacter(sheet.id, { strainCurrent: sheet.strainCurrent - 1 }))}
           onPlus={() => run(() => api.updateCharacter(sheet.id, { strainCurrent: sheet.strainCurrent + 1 }))} />
-        <DerivedBox label="Поглощение" value={String(d.soak)} />
-        <DerivedBox label="Защита (ближ/дальн)" value={`${d.meleeDefense} / ${d.rangedDefense}`} />
-        <DerivedBox label="Переносимый вес" value={`${d.encumbranceLoad} / ${d.encumbranceThreshold}`}
-          warning={d.encumbered ? 'Перегружен!' : undefined} />
+        <DerivedBox label={t('Поглощение', 'Soak')} value={String(d.soak)} />
+        <DerivedBox label={t('Защита (ближ/дальн)', 'Defense (melee/ranged)')} value={`${d.meleeDefense} / ${d.rangedDefense}`} />
+        <DerivedBox label={t('Переносимый вес', 'Encumbrance')} value={`${d.encumbranceLoad} / ${d.encumbranceThreshold}`}
+          warning={d.encumbered ? t('Перегружен!', 'Encumbered!') : undefined} />
       </section>
 
       <CriticalInjuriesSection sheet={sheet} onError={onError} refresh={refresh} />
 
       {sheet.system === 'realmsOfTerrinoth' && (
         <section className="panel">
-          <h3>Героическая способность</h3>
+          <h3>{t('Героическая способность', 'Heroic ability')}</h3>
           {sheet.heroicAbility ? (
             <HeroicAbilityCard sheet={sheet} run={run} />
           ) : (
             <div className="inline-form">
               <select value={heroicPick} onChange={e => setHeroicPick(e.target.value)}>
-                <option value="" disabled>— выберите способность —</option>
+                <option value="" disabled>{t('— выберите способность —', '— pick an ability —')}</option>
                 {reference.heroicAbilities.map(h => (
-                  <option key={h.id} value={h.id}>{h.nameRu || h.name}{h.isCustom ? ' (кастом)' : ''}</option>
+                  <option key={h.id} value={h.id}>{localizedName(h)}{h.isCustom ? t(' (кастом)', ' (custom)') : ''}</option>
                 ))}
               </select>
               <button className="primary" disabled={!heroicPick}
                 onClick={() => run(() => api.setHeroicAbility(sheet.id, heroicPick))}>
-                Выбрать
+                {t('Выбрать', 'Choose')}
               </button>
             </div>
           )}
           {heroicPick && !sheet.heroicAbility && (
-            <p className="hint">{reference.heroicAbilities.find(h => h.id === heroicPick)?.description}</p>
+            <p className="hint">{(() => { const h = reference.heroicAbilities.find(x => x.id === heroicPick); return h ? localizedDescription(h) : '' })()}</p>
           )}
         </section>
       )}
 
       <section className="panel">
-        <h3>Навыки</h3>
+        <h3>{t('Навыки', 'Skills')}</h3>
         <div className="skills-grid">
           {SKILL_COLUMNS.map((kinds, i) => (
             <div key={i} className="skill-column">
@@ -126,11 +127,11 @@ export function SheetTab({ sheet, reference, onError, refresh }: Props) {
                       </colgroup>
                       <thead>
                         <tr>
-                          <th>Навык</th>
-                          <th>Хар-ка</th>
-                          <th className="centered" title="Карьерный навык">Карьерн.</th>
-                          <th>Ранги</th>
-                          <th>Пул кубов</th>
+                          <th>{t('Навык', 'Skill')}</th>
+                          <th>{t('Хар-ка', 'Char.')}</th>
+                          <th className="centered" title={t('Карьерный навык', 'Career skill')}>{t('Карьерн.', 'Career')}</th>
+                          <th>{t('Ранги', 'Ranks')}</th>
+                          <th>{t('Пул кубов', 'Dice pool')}</th>
                           <th></th>
                         </tr>
                       </thead>
@@ -151,10 +152,10 @@ export function SheetTab({ sheet, reference, onError, refresh }: Props) {
                               <td>{'●'.repeat(s.ranks)}{'○'.repeat(Math.max(0, 5 - s.ranks))}</td>
                               <td><DicePoolView pool={s.pool} /></td>
                               <td className="right">
-                                <button className="small" title={`Бросить пул навыка «${label}»`}
+                                <button className="small" title={t(`Бросить пул навыка «${label}»`, `Roll the "${label}" skill pool`)}
                                   onClick={() => openRoller({
                                     kind: 'roll',
-                                    title: 'Бросок навыка',
+                                    title: t('Бросок навыка', 'Skill check'),
                                     label,
                                     initialPool: { ability: s.pool.ability, proficiency: s.pool.proficiency },
                                   })}>
@@ -162,14 +163,14 @@ export function SheetTab({ sheet, reference, onError, refresh }: Props) {
                                 </button>
                                 {sheet.isCreationPhase && s.ranks > s.freeRanks && (
                                   <button className="small"
-                                    title={`Вернуть ранг ${s.ranks} (+${s.ranks * 5 + (s.isCareer ? 0 : 5)} XP)`}
+                                    title={t(`Вернуть ранг ${s.ranks} (+${s.ranks * 5 + (s.isCareer ? 0 : 5)} XP)`, `Refund rank ${s.ranks} (+${s.ranks * 5 + (s.isCareer ? 0 : 5)} XP)`)}
                                     onClick={() => run(() => api.refundSkillRank(sheet.id, s.skillDefId))}>
                                     −
                                   </button>
                                 )}
                                 {s.ranks < 5 && (
                                   <button className="small" disabled={s.nextRankCost > sheet.availableXp}
-                                    title={s.nextRankCost > sheet.availableXp ? 'Недостаточно XP' : `Купить ранг ${s.ranks + 1}`}
+                                    title={s.nextRankCost > sheet.availableXp ? t('Недостаточно XP', 'Not enough XP') : t(`Купить ранг ${s.ranks + 1}`, `Buy rank ${s.ranks + 1}`)}
                                     onClick={() => run(() => api.buySkillRank(sheet.id, s.skillDefId))}>
                                     +{s.nextRankCost} XP
                                   </button>
@@ -212,7 +213,7 @@ function DerivedBox({ label, value, warning, onMinus, onPlus }: {
   )
 }
 
-const UPGRADE_LABELS: Record<number, string> = { 1: 'Улучшенная', 2: 'Высшая' }
+const UPGRADE_LABELS: Record<number, string> = t({ 1: 'Улучшенная', 2: 'Высшая' }, { 1: 'Improved', 2: 'Supreme' })
 
 function HeroicAbilityCard({ sheet, run }: {
   sheet: CharacterSheet
@@ -228,16 +229,16 @@ function HeroicAbilityCard({ sheet, run }: {
     await run(async () => { setOutcome(await api.activateCharacterAbility(sheet.id)) })
   }
   const meta: [string, string][] = [
-    ['Активация', [h.activationCost, h.activation].filter(Boolean).join(' · ')],
-    ['Длительность', h.duration],
-    ['Частота', h.frequency],
-    ['Требование', h.requirement && h.requirement !== '—' ? h.requirement : ''],
+    [t('Активация', 'Activation'), [h.activationCost, h.activation].filter(Boolean).join(' · ')],
+    [t('Длительность', 'Duration'), h.duration],
+    [t('Частота', 'Frequency'), h.frequency],
+    [t('Требование', 'Requirement'), h.requirement && h.requirement !== '—' ? h.requirement : ''],
   ]
 
   return (
     <div className="heroic">
-      <strong>{h.nameRu || h.name}</strong>
-      <p>{h.description}</p>
+      <strong>{localizedName(h)}</strong>
+      <p>{localizedDescription(h)}</p>
       {meta.filter(([, v]) => v).map(([k, v]) => (
         <div key={k} className="hint small-text"><b>{k}:</b> {v}</div>
       ))}
@@ -246,8 +247,8 @@ function HeroicAbilityCard({ sheet, run }: {
       {h.upgrades.length > 0 && (
         <div className="heroic-upgrades">
           <div className="label-line">
-            Улучшения · очков доступно: {available} из {total}
-            <span className="hint"> (1 стартовое + по 1 каждые 50 заработанного XP)</span>
+            {t(`Улучшения · очков доступно: ${available} из ${total}`, `Upgrades · points available: ${available} of ${total}`)}
+            <span className="hint"> {t('(1 стартовое + по 1 каждые 50 заработанного XP)', '(1 to start + 1 per 50 earned XP)')}</span>
           </div>
           {h.upgrades.map(u => {
             const purchased = rank >= u.level
@@ -257,25 +258,25 @@ function HeroicAbilityCard({ sheet, run }: {
             return (
               <div key={u.level} className={purchased ? 'heroic-upgrade bought' : 'heroic-upgrade'}>
                 <div className="heroic-upgrade-head">
-                  <strong>{UPGRADE_LABELS[u.level] ?? `Уровень ${u.level}`}</strong>
-                  <span className="hint"> · {u.cost} очк.</span>
-                  {purchased && <span className="badge"> куплено</span>}
+                  <strong>{UPGRADE_LABELS[u.level] ?? t(`Уровень ${u.level}`, `Level ${u.level}`)}</strong>
+                  <span className="hint"> · {u.cost} {t('очк.', 'pts')}</span>
+                  {purchased && <span className="badge"> {t('куплено', 'purchased')}</span>}
                   {!purchased && canBuy && (
                     <button className="small primary"
                       onClick={() => run(() => api.setHeroicUpgradeRank(sheet.id, u.level))}>
-                      Купить
+                      {t('Купить', 'Buy')}
                     </button>
                   )}
-                  {!purchased && isNext && !canBuy && <span className="hint"> — не хватает очков</span>}
-                  {!purchased && !isNext && <span className="hint"> — сначала купите предыдущее</span>}
+                  {!purchased && isNext && !canBuy && <span className="hint"> {t('— не хватает очков', '— not enough points')}</span>}
+                  {!purchased && !isNext && <span className="hint"> {t('— сначала купите предыдущее', '— buy the previous one first')}</span>}
                   {isTop && (
                     <button className="small"
                       onClick={() => run(() => api.setHeroicUpgradeRank(sheet.id, u.level - 1))}>
-                      Вернуть
+                      {t('Вернуть', 'Refund')}
                     </button>
                   )}
                 </div>
-                <p>{u.description}</p>
+                <p>{localizedDescription(u)}</p>
                 {u.notes && <p className="hint small-text">{u.notes}</p>}
               </div>
             )
@@ -285,7 +286,7 @@ function HeroicAbilityCard({ sheet, run }: {
 
       {h.effects.length > 0 && (
         <div className="heroic-activate">
-          <button className="small primary" onClick={() => void activate()}>🎯 Активировать</button>
+          <button className="small primary" onClick={() => void activate()}>{t('🎯 Активировать', '🎯 Activate')}</button>
           {outcome && (
             <div className="heroic-activate-result small-text">
               {outcome.applied.map((a, i) => <div key={`a${i}`}>{a}</div>)}
@@ -296,7 +297,7 @@ function HeroicAbilityCard({ sheet, run }: {
       )}
 
       <button className="small" onClick={() => run(() => api.setHeroicAbility(sheet.id, null))}>
-        Сбросить способность
+        {t('Сбросить способность', 'Reset ability')}
       </button>
     </div>
   )

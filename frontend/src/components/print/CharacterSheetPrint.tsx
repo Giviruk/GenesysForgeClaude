@@ -2,10 +2,11 @@ import { useEffect, useState } from 'react'
 import { api } from '../../api/client'
 import type { CharacterNote, CharacterSheet, ItemState, Reference, SheetSkill, SkillKind } from '../../api/types'
 import {
-  CHARACTERISTICS, CHARACTERISTIC_LABELS, ITEM_STATE_LABELS, resolveWeaponSkillName, secondaryName,
-  SKILL_KIND_LABELS, SYSTEM_LABELS, localizedName,
+  CHARACTERISTICS, CHARACTERISTIC_LABELS, ITEM_STATE_LABELS, localizedDescription, localizedName,
+  resolveWeaponSkillName, secondaryName, SKILL_KIND_LABELS, SYSTEM_LABELS,
 } from '../../utils/labels'
 import { DicePoolView } from '../DicePoolView'
+import { t } from '../../i18n'
 
 const ITEM_STATE_ORDER: ItemState[] = ['equipped', 'carried', 'backpack']
 const SKILL_KIND_ORDER: SkillKind[] = ['general', 'combat', 'social', 'knowledge', 'magic']
@@ -40,15 +41,16 @@ export function CharacterSheetPrint({ sheet, loadNotes = true }: {
         <h1>{sheet.name}</h1>
         <div className="sheet-sub">
           {SYSTEM_LABELS[sheet.system]} · {localizedName(sheet.archetype)} · {localizedName(sheet.career)}
-          {sheet.isCreationPhase && ' · фаза создания'}
+          {sheet.isCreationPhase && t(' · фаза создания', ' · creation phase')}
         </div>
         <div className="sheet-xp">
-          XP: всего {sheet.totalXp} · потрачено {sheet.spentXp} · доступно {sheet.availableXp}
-          {'   ·   '}Деньги: {sheet.money}
+          {t(`XP: всего ${sheet.totalXp} · потрачено ${sheet.spentXp} · доступно ${sheet.availableXp}`,
+             `XP: total ${sheet.totalXp} · spent ${sheet.spentXp} · available ${sheet.availableXp}`)}
+          {'   ·   '}{t('Деньги:', 'Money:')} {sheet.money}
         </div>
       </header>
 
-      <section className="sheet-stat-block" aria-label="Характеристики и производные показатели">
+      <section className="sheet-stat-block" aria-label={t('Характеристики и производные показатели', 'Characteristics and derived stats')}>
         <div className="sheet-stat-grid">
           {CHARACTERISTICS.map(c => (
             <div key={c} className="sheet-stat">
@@ -58,18 +60,18 @@ export function CharacterSheetPrint({ sheet, loadNotes = true }: {
           ))}
         </div>
         <div className="sheet-stat-grid sheet-derived-grid">
-          <DerivedStat value={`${sheet.woundsCurrent} / ${d.woundThreshold}`} label="Раны" />
-          <DerivedStat value={`${sheet.strainCurrent} / ${d.strainThreshold}`} label="Усталость" />
-          <DerivedStat value={d.soak} label="Поглощение" />
-          <DerivedStat value={d.meleeDefense} label="Ближняя защита" />
-          <DerivedStat value={d.rangedDefense} label="Дальняя защита" />
-          <DerivedStat value={`${d.encumbranceLoad} / ${d.encumbranceThreshold}`} label="Нагрузка"
+          <DerivedStat value={`${sheet.woundsCurrent} / ${d.woundThreshold}`} label={t('Раны', 'Wounds')} />
+          <DerivedStat value={`${sheet.strainCurrent} / ${d.strainThreshold}`} label={t('Усталость', 'Strain')} />
+          <DerivedStat value={d.soak} label={t('Поглощение', 'Soak')} />
+          <DerivedStat value={d.meleeDefense} label={t('Ближняя защита', 'Melee defense')} />
+          <DerivedStat value={d.rangedDefense} label={t('Дальняя защита', 'Ranged defense')} />
+          <DerivedStat value={`${d.encumbranceLoad} / ${d.encumbranceThreshold}`} label={t('Нагрузка', 'Encumbrance')}
             warning={d.encumbered} />
         </div>
       </section>
 
       <section className="sheet-section">
-        <h2>Навыки</h2>
+        <h2>{t('Навыки', 'Skills')}</h2>
         <div className="sheet-skill-columns">
           {skillColumns.map((column, index) => (
             <div key={index} className="sheet-skill-column">
@@ -83,15 +85,15 @@ export function CharacterSheetPrint({ sheet, loadNotes = true }: {
 
       {sheet.talents.length > 0 && (
         <section className="sheet-section">
-          <h2>Таланты</h2>
-          {sheet.talents.map(t => (
-            <div key={t.talentDefId} className="sheet-entry">
-              <strong>{t.nameRu || t.name}</strong>
+          <h2>{t('Таланты', 'Talents')}</h2>
+          {sheet.talents.map(tal => (
+            <div key={tal.talentDefId} className="sheet-entry">
+              <strong>{localizedName(tal)}</strong>
               <span className="sheet-meta">
-                {' · '}уровень {t.tier}{t.isRanked ? ` · рангов ${t.ranks}` : ''}
-                {t.activation ? ` · ${t.activation}` : ''}
+                {' · '}{t('уровень', 'tier')} {tal.tier}{tal.isRanked ? t(` · рангов ${tal.ranks}`, ` · ranks ${tal.ranks}`) : ''}
+                {tal.activation ? ` · ${tal.activation}` : ''}
               </span>
-              {t.description && <div className="sheet-desc">{t.description}</div>}
+              {localizedDescription(tal) && <div className="sheet-desc">{localizedDescription(tal)}</div>}
             </div>
           ))}
         </section>
@@ -99,17 +101,17 @@ export function CharacterSheetPrint({ sheet, loadNotes = true }: {
 
       {h && (
         <section className="sheet-section">
-          <h2>Героическая способность</h2>
+          <h2>{t('Героическая способность', 'Heroic ability')}</h2>
           <div className="sheet-entry">
-            <strong>{h.nameRu || h.name}</strong>
+            <strong>{localizedName(h)}</strong>
             <span className="sheet-meta">
               {[h.activation, h.duration, h.frequency].filter(Boolean).map(x => ` · ${x}`).join('')}
-              {sheet.heroicUpgradeRank > 0 && ` · улучшение ${sheet.heroicUpgradeRank}`}
+              {sheet.heroicUpgradeRank > 0 && t(` · улучшение ${sheet.heroicUpgradeRank}`, ` · upgrade ${sheet.heroicUpgradeRank}`)}
             </span>
-            {h.description && <div className="sheet-desc">{h.description}</div>}
+            {localizedDescription(h) && <div className="sheet-desc">{localizedDescription(h)}</div>}
             {h.upgrades.filter(u => u.level <= sheet.heroicUpgradeRank).map(u => (
               <div key={u.level} className="sheet-desc">
-                ↑ {u.level === 1 ? 'Улучшенная' : 'Высшая'}: {u.description}
+                ↑ {u.level === 1 ? t('Улучшенная', 'Improved') : t('Высшая', 'Supreme')}: {localizedDescription(u)}
               </div>
             ))}
           </div>
@@ -117,7 +119,7 @@ export function CharacterSheetPrint({ sheet, loadNotes = true }: {
       )}
 
       <section className="sheet-section">
-        <h2>Инвентарь</h2>
+        <h2>{t('Инвентарь', 'Inventory')}</h2>
         {sheet.items.length === 0 && <p className="muted">—</p>}
         {ITEM_STATE_ORDER.map(state => {
           const items = sheet.items.filter(i => i.state === state)
@@ -132,12 +134,12 @@ export function CharacterSheetPrint({ sheet, loadNotes = true }: {
                   : null
                 const weaponSkill = weaponSkillName ? skillsByName.get(weaponSkillName) : null
                 const weaponSkillLabel = weaponSkill ? localizedName(weaponSkill) : ''
-                const combat = [i.damage && `урон ${i.damage}`, i.crit && `крит ${i.crit}`, i.rangeBand, weaponSkillLabel]
+                const combat = [i.damage && t(`урон ${i.damage}`, `damage ${i.damage}`), i.crit && t(`крит ${i.crit}`, `crit ${i.crit}`), i.rangeBand, weaponSkillLabel]
                   .filter(Boolean).join(', ')
                 const armor = [
-                  i.soakBonus ? `поглощение +${i.soakBonus}` : '',
-                  i.meleeDefense ? `защ. ближ. +${i.meleeDefense}` : '',
-                  i.rangedDefense ? `защ. дальн. +${i.rangedDefense}` : '',
+                  i.soakBonus ? t(`поглощение +${i.soakBonus}`, `soak +${i.soakBonus}`) : '',
+                  i.meleeDefense ? t(`защ. ближ. +${i.meleeDefense}`, `melee def. +${i.meleeDefense}`) : '',
+                  i.rangedDefense ? t(`защ. дальн. +${i.rangedDefense}`, `ranged def. +${i.rangedDefense}`) : '',
                 ].filter(Boolean).join(', ')
                 const itemOriginal = secondaryName(i)
                 return (
@@ -145,17 +147,17 @@ export function CharacterSheetPrint({ sheet, loadNotes = true }: {
                     <strong>{itemLabel}</strong>
                     {itemOriginal && <span className="sheet-meta"> · {itemOriginal}</span>}
                     <span className="sheet-meta">
-                      {' '}×{i.quantity} · нагрузка {i.encumbrance}
+                      {' '}×{i.quantity} · {t('нагрузка', 'enc.')} {i.encumbrance}
                       {combat ? ` · ${combat}` : ''}
                       {armor ? ` · ${armor}` : ''}
                       {i.properties ? ` · ${i.properties}` : ''}
                     </span>
                     {i.kind === 'weapon' && (
                       <div className="sheet-weapon-pool">
-                        <span className="sheet-weapon-pool-label">Пул</span>
+                        <span className="sheet-weapon-pool-label">{t('Пул', 'Pool')}</span>
                         {weaponSkill
                           ? <><DicePoolView pool={weaponSkill.pool} /><span>{localizedName(weaponSkill)}</span></>
-                          : <span className="muted">—{i.skillName ? ` навык ${i.skillName} не найден` : ''}</span>}
+                          : <span className="muted">—{i.skillName ? t(` навык ${i.skillName} не найден`, ` skill ${i.skillName} not found`) : ''}</span>}
                       </div>
                     )}
                   </div>
@@ -168,13 +170,13 @@ export function CharacterSheetPrint({ sheet, loadNotes = true }: {
 
       {sheet.criticalInjuries.length > 0 && (
         <section className="sheet-section">
-          <h2>Критические ранения</h2>
+          <h2>{t('Критические ранения', 'Critical injuries')}</h2>
           {sheet.criticalInjuries.map(ci => (
             <div key={ci.id} className="sheet-entry">
               <strong>{ci.nameRu}</strong>
               <span className="sheet-meta">
                 {ci.severity ? ` · ${ci.severity}` : ''}
-                {ci.rollResult != null ? ` · бросок ${ci.rollResult}` : ''}
+                {ci.rollResult != null ? t(` · бросок ${ci.rollResult}`, ` · roll ${ci.rollResult}`) : ''}
               </span>
               {ci.notes && <div className="sheet-desc">{ci.notes}</div>}
             </div>
@@ -184,12 +186,12 @@ export function CharacterSheetPrint({ sheet, loadNotes = true }: {
 
       {(sheet.desire || sheet.fear || sheet.strength || sheet.flaw || sheet.background) && (
         <section className="sheet-section">
-          <h2>Образ персонажа</h2>
+          <h2>{t('Образ персонажа', 'Character bio')}</h2>
           {([
-            ['Стремление', sheet.desire],
-            ['Страх', sheet.fear],
-            ['Сильная сторона', sheet.strength],
-            ['Слабость', sheet.flaw],
+            [t('Стремление', 'Desire'), sheet.desire],
+            [t('Страх', 'Fear'), sheet.fear],
+            [t('Сильная сторона', 'Strength'), sheet.strength],
+            [t('Слабость', 'Flaw'), sheet.flaw],
           ] as const).filter(([, v]) => v).map(([label, value]) => (
             <div key={label} className="sheet-entry">
               <strong>{label}:</strong> <span className="sheet-meta">{value}</span>
@@ -197,7 +199,7 @@ export function CharacterSheetPrint({ sheet, loadNotes = true }: {
           ))}
           {sheet.background && (
             <div className="sheet-entry">
-              <strong>Предыстория</strong>
+              <strong>{t('Предыстория', 'Background')}</strong>
               <div className="sheet-desc sheet-prewrap">{sheet.background}</div>
             </div>
           )}
@@ -206,7 +208,7 @@ export function CharacterSheetPrint({ sheet, loadNotes = true }: {
 
       {printableNotes.length > 0 && (
         <section className="sheet-section">
-          <h2>Заметки</h2>
+          <h2>{t('Заметки', 'Notes')}</h2>
           {printableNotes.map(n => (
             <div key={n.id} className="sheet-entry">
               <strong>{n.title}</strong>
@@ -259,7 +261,7 @@ function SkillGroup({ kind, skills }: SkillGroupData) {
       <h3>{SKILL_KIND_LABELS[kind]}</h3>
       <table className="sheet-table">
         <thead>
-          <tr><th>Навык</th><th>Хар.</th><th>Кар.</th><th>Ранг</th><th>Пул</th></tr>
+          <tr><th>{t('Навык', 'Skill')}</th><th>{t('Хар.', 'Char.')}</th><th>{t('Кар.', 'Career')}</th><th>{t('Ранг', 'Rank')}</th><th>{t('Пул', 'Pool')}</th></tr>
         </thead>
         <tbody>
           {skills.map(skill => (

@@ -21,7 +21,7 @@ public static class CareerExtrasCatalog
     private sealed record GearEntry(string ItemCode, string ItemNameFallback, int Quantity,
         bool IsChoice, string ChoiceGroup, int ChoiceOption);
 
-    private sealed record RuleEntry(string Code, string Kind, string Description);
+    private sealed record RuleEntry(string Code, string Kind, string Description, string DescriptionEn = "");
 
     private static readonly JsonSerializerOptions JsonOptions = new() { PropertyNameCaseInsensitive = true };
 
@@ -45,7 +45,7 @@ public static class CareerExtrasCatalog
 
             var rules = (e.Rules ?? []).Select(r => new CareerRule
             {
-                Id = Guid.NewGuid(), Code = r.Code, Description = r.Description,
+                Id = Guid.NewGuid(), Code = r.Code, Description = r.Description, DescriptionEn = r.DescriptionEn,
                 Kind = Enum.TryParse<CareerRuleKind>(r.Kind, ignoreCase: true, out var k) ? k : CareerRuleKind.Advisory,
             }).ToList();
 

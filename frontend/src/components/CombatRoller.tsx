@@ -2,6 +2,7 @@ import { useState } from 'react'
 import type { RollOutcome, RollPool } from '../utils/diceRoller'
 import { combatTotal, expandDamage, type CombatQuality } from '../utils/combat'
 import { DiceRoller, RollSymbolsView, type RollLogRequest } from './DiceRoller'
+import { t } from '../i18n'
 
 interface Props {
   /** Имя атаки/оружия. */
@@ -38,12 +39,12 @@ export function CombatRoller({
   return (
     <div className="modal-backdrop" onClick={onClose}>
       <div className="modal" onClick={e => e.stopPropagation()}>
-        <h3>🎲 Атака — {title}</h3>
+        <h3>{t(`🎲 Атака — ${title}`, `🎲 Attack — ${title}`)}</h3>
         <div className="combat-roller-head">
-          {skillLabel && <span className="muted">Навык: {skillLabel}</span>}
+          {skillLabel && <span className="muted">{t('Навык:', 'Skill:')} {skillLabel}</span>}
           <div className="npc-weapon-stats">
-            <span className="weapon-stat">Урон <strong>{dmg.text}</strong></span>
-            {crit && <span className="weapon-stat">Крит <strong>{crit}</strong></span>}
+            <span className="weapon-stat">{t('Урон', 'Damage')} <strong>{dmg.text}</strong></span>
+            {crit && <span className="weapon-stat">{t('Крит', 'Crit')} <strong>{crit}</strong></span>}
             {rangeBand && <span className="weapon-stat">{rangeBand}</span>}
           </div>
           {qualities.length > 0 && (
@@ -58,7 +59,7 @@ export function CombatRoller({
           )}
         </div>
 
-        <p className="hint">Базовый пул собран по навыку. Добавьте сложность/бонусы/помехи и бросьте — урон не решает за вас.</p>
+        <p className="hint">{t('Базовый пул собран по навыку. Добавьте сложность/бонусы/помехи и бросьте — урон не решает за вас.', 'The base pool is built from the skill. Add difficulty/boosts/setbacks and roll — damage is not applied automatically.')}</p>
         <DiceRoller initialPool={basePool} label={title} onResult={setOutcome} onLog={onLog} canSecret={canSecret} />
 
         {outcome && (
@@ -66,15 +67,15 @@ export function CombatRoller({
             <RollSymbolsView symbols={outcome.net} />
             {total != null
               ? <div className="combat-damage-calc">
-                  Урон: <strong>{dmg.base}</strong> + успехов <strong>{netSuccess}</strong> = <strong>{total}</strong>
-                  {netSuccess === 0 && outcome.net.failure > 0 && <span className="muted small-text"> (промах — нет успехов)</span>}
+                  {t('Урон:', 'Damage:')} <strong>{dmg.base}</strong> {t('+ успехов', '+ successes')} <strong>{netSuccess}</strong> = <strong>{total}</strong>
+                  {netSuccess === 0 && outcome.net.failure > 0 && <span className="muted small-text"> {t('(промах — нет успехов)', '(miss — no successes)')}</span>}
                 </div>
-              : <div className="muted small-text">Урон оружия задан текстом — посчитайте вручную.</div>}
+              : <div className="muted small-text">{t('Урон оружия задан текстом — посчитайте вручную.', 'Weapon damage is text-only — calculate it manually.')}</div>}
           </div>
         )}
 
         <div className="modal-actions">
-          <button type="button" onClick={onClose}>Закрыть</button>
+          <button type="button" onClick={onClose}>{t('Закрыть', 'Close')}</button>
         </div>
       </div>
     </div>

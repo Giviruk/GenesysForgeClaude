@@ -1,310 +1,343 @@
 [
-  {
-    "code": "influential",
-    "name": "Influential",
-    "nameRu": "Влиятельный",
-    "requirement": "—",
-    "activationCost": "2 очка сюжета",
-    "activation": "Свободное действие / incidental",
-    "duration": "По умолчанию до конца следующего хода; может меняться улучшением Duration",
-    "frequency": "По умолчанию 1 раз за сессию; может меняться улучшением Frequency",
-    "desc": "Пока способность активна, в социальной сцене персонаж наносит дополнительную усталость, равную характеристике использованного социального навыка. Если сцена решается одной проверкой, вместо этого добавляет успехи в том же количестве.",
-    "notes": "Работает с социальными навыками и социальными сценами.",
-    "source": "Realms of Terrinoth",
-    "page": "76",
-    "upgrades": [
-      {
-        "level": "Improved",
-        "cost": 1,
-        "desc": "Пока способность активна, персонаж тратит 2 преимущества, чтобы вызвать “критическое замечание” и нанести цели 5 усталости; можно вызвать несколько раз одной проверкой.",
-        "notes": ""
-      },
-      {
-        "level": "Supreme",
-        "cost": 2,
-        "desc": "Пока способность активна в социальной сцене, персонаж уменьшает получаемую усталость на значение Харизмы или рангов Хладнокровия, что выше.",
-        "notes": "Снижает усталость от проверок, талантов и способностей, но не добровольно полученную усталость."
-      }
-    ]
-  },
-  {
-    "code": "all-the-facts",
-    "name": "All the Facts",
-    "nameRu": "Все факты",
-    "requirement": "—",
-    "activationCost": "2 очка сюжета",
-    "activation": "Свободное действие / incidental",
-    "duration": "По умолчанию до конца следующего хода; может меняться улучшением Duration",
-    "frequency": "По умолчанию 1 раз за сессию; может меняться улучшением Frequency",
-    "desc": "Пока способность активна, каждый свой ход персонаж узнаёт или вспоминает один важный факт о выбранной ситуации, существе, месте, предмете или персоне.",
-    "notes": "Тема должна быть наблюдаема персонажем или напрямую связана с текущей ситуацией.",
-    "source": "Realms of Terrinoth",
-    "page": "74-75",
-    "upgrades": [
-      {
-        "level": "Improved",
-        "cost": 1,
-        "desc": "Пока способность активна, персонаж один раз улучшает проверку, связанную с полученной информацией.",
-        "notes": ""
-      },
-      {
-        "level": "Supreme",
-        "cost": 2,
-        "desc": "За каждый факт, полученный через способность, группа получает временное очко сюжета до конца сессии.",
-        "notes": "Временное очко сюжета исчезает при трате и не переходит в пул ведущего; при трате нужно описать, как информация помогает группе."
-      }
-    ]
-  },
-  {
-    "code": "unleash",
-    "name": "Unleash",
-    "nameRu": "Высвобождение силы",
-    "requirement": "—",
-    "activationCost": "2 очка сюжета",
-    "activation": "Манёвр",
-    "duration": "По умолчанию до конца следующего хода; может меняться улучшением Duration",
-    "frequency": "По умолчанию 1 раз за сессию; может меняться улучшением Frequency",
-    "desc": "Пока способность активна, один раз в раунд в свой ход персонаж может немедленно победить одну группу приспешников на короткой дистанции.",
+ {
+  "code": "influential",
+  "name": "Influential",
+  "nameRu": "Влиятельный",
+  "requirement": "—",
+  "activationCost": "2 очка сюжета",
+  "activation": "Свободное действие / incidental",
+  "duration": "По умолчанию до конца следующего хода; может меняться улучшением Duration",
+  "frequency": "По умолчанию 1 раз за сессию; может меняться улучшением Frequency",
+  "desc": "Пока способность активна, в социальной сцене персонаж наносит дополнительную усталость, равную характеристике использованного социального навыка. Если сцена решается одной проверкой, вместо этого добавляет успехи в том же количестве.",
+  "notes": "Работает с социальными навыками и социальными сценами.",
+  "source": "Realms of Terrinoth",
+  "page": "76",
+  "upgrades": [
+   {
+    "level": "Improved",
+    "cost": 1,
+    "desc": "Пока способность активна, персонаж тратит 2 преимущества, чтобы вызвать “критическое замечание” и нанести цели 5 усталости; можно вызвать несколько раз одной проверкой.",
     "notes": "",
-    "source": "Realms of Terrinoth",
-    "page": "78",
-    "upgrades": [
-      {
-        "level": "Improved",
-        "cost": 1,
-        "desc": "Пока способность активна, персонаж делает то же самое свободным действием вместо манёвра.",
-        "notes": "Заменяет базовый способ применения."
-      },
-      {
-        "level": "Supreme",
-        "cost": 2,
-        "desc": "При активации способности персонаж немедленно побеждает всех приспешников на короткой дистанции.",
-        "notes": ""
-      }
-    ]
-  },
-  {
-    "code": "signature-weapon",
-    "name": "Signature Weapon",
-    "nameRu": "Именное оружие",
-    "requirement": "Нужно выбрать профиль оружия из таблицы Signature Weapons",
-    "activationCost": "2 очка сюжета",
-    "activation": "Свободное действие / incidental",
-    "duration": "По умолчанию до конца следующего хода; может меняться улучшением Duration",
-    "frequency": "По умолчанию 1 раз за сессию; может меняться улучшением Frequency",
-    "desc": "У персонажа есть особое оружие. Выбери одну модификацию, которой у него нет; при активации оружие получает её эффект на время способности без цены и без затрат hard points.",
-    "notes": "Форма оружия согласуется с ведущим и может ограничивать доступные модификации. Если оружие потеряно или уничтожено, оно возвращается или заменяется сюжетным образом; больше одного именного оружия быть не может.",
-    "source": "Realms of Terrinoth",
-    "page": "77-78",
-    "upgrades": [
-      {
-        "level": "Improved",
-        "cost": 1,
-        "desc": "Именное оружие получает качество Reinforced или раскрывается как предмет древней работы и получает соответствующее преимущество.",
-        "notes": "Выбирается один из вариантов: Reinforced или древняя работа."
-      },
-      {
-        "level": "Supreme",
-        "cost": 2,
-        "desc": "Именное оружие получает +2 hard points и одну бесплатную модификацию редкостью 9 или ниже.",
-        "notes": "Модификация всё ещё должна помещаться в итоговый лимит hard points."
-      }
-    ]
-  },
-  {
-    "code": "unbowed",
-    "name": "Unbowed",
-    "nameRu": "Несломленный",
-    "requirement": "—",
-    "activationCost": "2 очка сюжета",
-    "activation": "Свободное действие; можно вне хода при получении критической травмы",
-    "duration": "По умолчанию до конца следующего хода; может меняться улучшением Duration",
-    "frequency": "По умолчанию 1 раз за сессию; может меняться улучшением Frequency",
-    "desc": "При активации выбери одну критическую травму, кроме “смерти”; пока способность активна, персонаж игнорирует её эффекты, включая +10 к будущим броскам критических травм.",
+    "descEn": "While the ability is active, the character may spend 2 advantage to deliver a “critical remark”, inflicting 5 strain on the target; this can be triggered multiple times on one check."
+   },
+   {
+    "level": "Supreme",
+    "cost": 2,
+    "desc": "Пока способность активна в социальной сцене, персонаж уменьшает получаемую усталость на значение Харизмы или рангов Хладнокровия, что выше.",
+    "notes": "Снижает усталость от проверок, талантов и способностей, но не добровольно полученную усталость.",
+    "descEn": "While the ability is active in a social encounter, the character reduces incoming strain by their Presence or their Cool ranks, whichever is higher."
+   }
+  ],
+  "descEn": "While the ability is active, in a social encounter the character inflicts additional strain equal to the characteristic of the social skill used. If the scene is resolved with a single check, they add the same number of successes instead."
+ },
+ {
+  "code": "all-the-facts",
+  "name": "All the Facts",
+  "nameRu": "Все факты",
+  "requirement": "—",
+  "activationCost": "2 очка сюжета",
+  "activation": "Свободное действие / incidental",
+  "duration": "По умолчанию до конца следующего хода; может меняться улучшением Duration",
+  "frequency": "По умолчанию 1 раз за сессию; может меняться улучшением Frequency",
+  "desc": "Пока способность активна, каждый свой ход персонаж узнаёт или вспоминает один важный факт о выбранной ситуации, существе, месте, предмете или персоне.",
+  "notes": "Тема должна быть наблюдаема персонажем или напрямую связана с текущей ситуацией.",
+  "source": "Realms of Terrinoth",
+  "page": "74-75",
+  "upgrades": [
+   {
+    "level": "Improved",
+    "cost": 1,
+    "desc": "Пока способность активна, персонаж один раз улучшает проверку, связанную с полученной информацией.",
     "notes": "",
-    "source": "Realms of Terrinoth",
-    "page": "78",
-    "upgrades": [
-      {
-        "level": "Improved",
-        "cost": 1,
-        "desc": "Пока способность активна, персонаж игнорирует эффекты всех своих критических травм, кроме “смерти”.",
-        "notes": ""
-      },
-      {
-        "level": "Supreme",
-        "cost": 2,
-        "desc": "Пока способность активна, персонаж также игнорирует результат “смерть”.",
-        "notes": "Если к окончанию способности эта критическая травма не устранена, персонаж умирает."
-      }
-    ]
-  },
-  {
-    "code": "foretelling",
-    "name": "Foretelling",
-    "nameRu": "Предвидение",
-    "requirement": "—",
-    "activationCost": "2 очка сюжета",
-    "activation": "Свободное действие / incidental",
-    "duration": "По умолчанию до конца следующего хода; может меняться улучшением Duration",
-    "frequency": "По умолчанию 1 раз за сессию; может меняться улучшением Frequency",
-    "desc": "Каждый раунд, пока способность активна, игрок может задать ведущему один вопрос “да/нет” о том, чего персонаж не мог бы знать обычным способом; ведущий отвечает правдиво.",
-    "notes": "Знание приходит через подходящий мистический способ: знамения, пророчество, духи, сны, хрустальный шар и т.п.",
-    "source": "Realms of Terrinoth",
-    "page": "75",
-    "upgrades": [
-      {
-        "level": "Improved",
-        "cost": 1,
-        "desc": "Пока способность активна, персонаж может один раз перебросить проверку навыка, связанную с заданным вопросом.",
-        "notes": ""
-      },
-      {
-        "level": "Supreme",
-        "cost": 2,
-        "desc": "Один раз, пока способность активна, когда NPC совершает проверку, игрок может бросить такой же дайс-пул и заменить результат NPC своим результатом.",
-        "notes": ""
-      }
-    ]
-  },
-  {
-    "code": "connected",
-    "name": "Connected",
-    "nameRu": "Связи",
-    "requirement": "—",
-    "activationCost": "2 очка сюжета",
-    "activation": "Свободное действие / incidental",
-    "duration": "По умолчанию до конца следующего хода; может меняться улучшением Duration",
-    "frequency": "По умолчанию 1 раз за сессию; может меняться улучшением Frequency",
-    "desc": "При активации выбери одного NPC и объяви, что он должен персонажу услугу; детали связи согласуются с ведущим.",
-    "notes": "Если знакомство невозможно, способность не активируется и очки сюжета не тратятся. Услуга не обязана включать риск жизни, убийство или разрушение положения NPC.",
-    "source": "Realms of Terrinoth",
-    "page": "75",
-    "upgrades": [
-      {
-        "level": "Improved",
-        "cost": 1,
-        "desc": "Пока способность активна, персонаж один раз понижает сложность всех своих социальных проверок.",
-        "notes": ""
-      },
-      {
-        "level": "Supreme",
-        "cost": 2,
-        "desc": "Пока способность активна, когда разумный противник выбирает персонажа целью атаки, можно заставить его выбрать другую цель.",
-        "notes": "Работает только против разумного противника, когда он объявляет персонажа целью атаки."
-      }
-    ]
-  },
-  {
-    "code": "hard-to-kill",
-    "name": "Hard to Kill",
-    "nameRu": "Трудно убить",
-    "requirement": "—",
-    "activationCost": "2 очка сюжета",
-    "activation": "Свободное действие / incidental",
-    "duration": "По умолчанию до конца следующего хода; может меняться улучшением Duration",
-    "frequency": "По умолчанию 1 раз за сессию; может меняться улучшением Frequency",
-    "desc": "Пока способность активна, персонаж получает +4 к поглощению.",
+    "descEn": "While the ability is active, the character may once upgrade a check related to the information gained."
+   },
+   {
+    "level": "Supreme",
+    "cost": 2,
+    "desc": "За каждый факт, полученный через способность, группа получает временное очко сюжета до конца сессии.",
+    "notes": "Временное очко сюжета исчезает при трате и не переходит в пул ведущего; при трате нужно описать, как информация помогает группе.",
+    "descEn": "For each fact gained through the ability, the group receives a temporary story point until the end of the session."
+   }
+  ],
+  "descEn": "While the ability is active, each turn the character learns or recalls one important fact about a chosen situation, creature, place, item or person."
+ },
+ {
+  "code": "unleash",
+  "name": "Unleash",
+  "nameRu": "Высвобождение силы",
+  "requirement": "—",
+  "activationCost": "2 очка сюжета",
+  "activation": "Манёвр",
+  "duration": "По умолчанию до конца следующего хода; может меняться улучшением Duration",
+  "frequency": "По умолчанию 1 раз за сессию; может меняться улучшением Frequency",
+  "desc": "Пока способность активна, один раз в раунд в свой ход персонаж может немедленно победить одну группу приспешников на короткой дистанции.",
+  "notes": "",
+  "source": "Realms of Terrinoth",
+  "page": "78",
+  "upgrades": [
+   {
+    "level": "Improved",
+    "cost": 1,
+    "desc": "Пока способность активна, персонаж делает то же самое свободным действием вместо манёвра.",
+    "notes": "Заменяет базовый способ применения.",
+    "descEn": "While the ability is active, the character does the same as an incidental instead of a maneuver."
+   },
+   {
+    "level": "Supreme",
+    "cost": 2,
+    "desc": "При активации способности персонаж немедленно побеждает всех приспешников на короткой дистанции.",
     "notes": "",
-    "source": "Realms of Terrinoth",
-    "page": "76",
-    "upgrades": [
-      {
-        "level": "Improved",
-        "cost": 1,
-        "desc": "Пока способность активна, сложность боевых проверок по персонажу увеличивается на 1.",
-        "notes": ""
-      },
-      {
-        "level": "Supreme",
-        "cost": 2,
-        "desc": "Пока способность активна, весь получаемый персонажем урон снижается до 0.",
-        "notes": ""
-      }
-    ]
-  },
-  {
-    "code": "miraculous-recovery",
-    "name": "Miraculous Recovery",
-    "nameRu": "Чудесное восстановление",
-    "requirement": "—",
-    "activationCost": "2 очка сюжета",
-    "activation": "Свободное действие / incidental",
-    "duration": "По умолчанию до конца следующего хода; может меняться улучшением Duration",
-    "frequency": "По умолчанию 1 раз за сессию; может меняться улучшением Frequency",
-    "desc": "При активации и в начале каждого своего хода, пока способность активна, персонаж лечит 3 раны.",
+    "descEn": "When activating the ability, the character immediately defeats all minions within short range."
+   }
+  ],
+  "descEn": "While the ability is active, once per round on their turn the character may immediately defeat one minion group within short range."
+ },
+ {
+  "code": "signature-weapon",
+  "name": "Signature Weapon",
+  "nameRu": "Именное оружие",
+  "requirement": "Нужно выбрать профиль оружия из таблицы Signature Weapons",
+  "activationCost": "2 очка сюжета",
+  "activation": "Свободное действие / incidental",
+  "duration": "По умолчанию до конца следующего хода; может меняться улучшением Duration",
+  "frequency": "По умолчанию 1 раз за сессию; может меняться улучшением Frequency",
+  "desc": "У персонажа есть особое оружие. Выбери одну модификацию, которой у него нет; при активации оружие получает её эффект на время способности без цены и без затрат hard points.",
+  "notes": "Форма оружия согласуется с ведущим и может ограничивать доступные модификации. Если оружие потеряно или уничтожено, оно возвращается или заменяется сюжетным образом; больше одного именного оружия быть не может.",
+  "source": "Realms of Terrinoth",
+  "page": "77-78",
+  "upgrades": [
+   {
+    "level": "Improved",
+    "cost": 1,
+    "desc": "Именное оружие получает качество Reinforced или раскрывается как предмет древней работы и получает соответствующее преимущество.",
+    "notes": "Выбирается один из вариантов: Reinforced или древняя работа.",
+    "descEn": "The signature weapon gains the Reinforced quality or is revealed as an ancient masterwork, gaining a corresponding benefit."
+   },
+   {
+    "level": "Supreme",
+    "cost": 2,
+    "desc": "Именное оружие получает +2 hard points и одну бесплатную модификацию редкостью 9 или ниже.",
+    "notes": "Модификация всё ещё должна помещаться в итоговый лимит hard points.",
+    "descEn": "The signature weapon gains +2 hard points and one free attachment of rarity 9 or lower."
+   }
+  ],
+  "descEn": "The character owns a signature weapon. Pick one attachment it does not have; when activated, the weapon gains its effect for the ability's duration at no cost and without spending hard points."
+ },
+ {
+  "code": "unbowed",
+  "name": "Unbowed",
+  "nameRu": "Несломленный",
+  "requirement": "—",
+  "activationCost": "2 очка сюжета",
+  "activation": "Свободное действие; можно вне хода при получении критической травмы",
+  "duration": "По умолчанию до конца следующего хода; может меняться улучшением Duration",
+  "frequency": "По умолчанию 1 раз за сессию; может меняться улучшением Frequency",
+  "desc": "При активации выбери одну критическую травму, кроме “смерти”; пока способность активна, персонаж игнорирует её эффекты, включая +10 к будущим броскам критических травм.",
+  "notes": "",
+  "source": "Realms of Terrinoth",
+  "page": "78",
+  "upgrades": [
+   {
+    "level": "Improved",
+    "cost": 1,
+    "desc": "Пока способность активна, персонаж игнорирует эффекты всех своих критических травм, кроме “смерти”.",
     "notes": "",
-    "source": "Realms of Terrinoth",
-    "page": "76",
-    "upgrades": [
-      {
-        "level": "Improved",
-        "cost": 1,
-        "desc": "При активации персонаж лечит все текущие раны.",
-        "notes": ""
-      },
-      {
-        "level": "Supreme",
-        "cost": 2,
-        "desc": "При активации персонаж лечит одну критическую травму.",
-        "notes": ""
-      }
-    ]
-  },
-  {
-    "code": "sixth-sense",
-    "name": "Sixth Sense",
-    "nameRu": "Шестое чувство",
-    "requirement": "При выборе нужно согласовать тип сущностей/явлений с ведущим",
-    "activationCost": "2 очка сюжета",
-    "activation": "Свободное действие / incidental",
-    "duration": "По умолчанию до конца следующего хода; может меняться улучшением Duration",
-    "frequency": "По умолчанию 1 раз за сессию; может меняться улучшением Frequency",
-    "desc": "Пока способность активна, персонаж ограниченно общается с выбранным типом сущностей, получая эмоции и смутные впечатления; при активации получает одну важную информацию для текущей сцены.",
-    "notes": "Примеры: животные, мёртвые, чужие мысли, духи.",
-    "source": "Realms of Terrinoth",
-    "page": "77",
-    "upgrades": [
-      {
-        "level": "Improved",
-        "cost": 1,
-        "desc": "Пока способность активна, персонаж понимает и передаёт простые идеи; также получает ещё одну важную информацию, относящуюся к текущей сессии.",
-        "notes": ""
-      },
-      {
-        "level": "Supreme",
-        "cost": 2,
-        "desc": "Пока способность активна, персонаж может вести полноценные сложные разговоры через необычное восприятие; также получает ещё одну важную информацию об приключении или кампании.",
-        "notes": ""
-      }
-    ]
-  },
-  {
-    "code": "paragon",
-    "name": "Paragon",
-    "nameRu": "Эталон",
-    "requirement": "При выборе способности нужно выбрать один навык",
-    "activationCost": "2 очка сюжета",
-    "activation": "Свободное действие / incidental",
-    "duration": "По умолчанию до конца следующего хода; может меняться улучшением Duration",
-    "frequency": "По умолчанию 1 раз за сессию; может меняться улучшением Frequency",
-    "desc": "Пока способность активна, после броска проверки выбранного навыка, но до подсчёта результата, персонаж может убрать одну кость сложности из набора.",
-    "notes": "Игнорируются символы на убранной кости. Навык выбирается при выборе героической способности.",
-    "source": "Realms of Terrinoth",
-    "page": "76",
-    "upgrades": [
-      {
-        "level": "Improved",
-        "cost": 1,
-        "desc": "Пока способность активна, персонаж может убрать одну штрафную кость из результата проверки выбранного навыка.",
-        "notes": ""
-      },
-      {
-        "level": "Supreme",
-        "cost": 2,
-        "desc": "Пока способность активна, персонаж может убирать кость вызова вместо обычной кости сложности при проверках выбранного навыка.",
-        "notes": ""
-      }
-    ]
-  }
+    "descEn": "While the ability is active, the character ignores the effects of all their critical injuries except “death”."
+   },
+   {
+    "level": "Supreme",
+    "cost": 2,
+    "desc": "Пока способность активна, персонаж также игнорирует результат “смерть”.",
+    "notes": "Если к окончанию способности эта критическая травма не устранена, персонаж умирает.",
+    "descEn": "While the ability is active, the character also ignores the “death” result."
+   }
+  ],
+  "descEn": "On activation, pick one critical injury other than “death”; while the ability is active, the character ignores its effects, including the +10 to future critical injury rolls."
+ },
+ {
+  "code": "foretelling",
+  "name": "Foretelling",
+  "nameRu": "Предвидение",
+  "requirement": "—",
+  "activationCost": "2 очка сюжета",
+  "activation": "Свободное действие / incidental",
+  "duration": "По умолчанию до конца следующего хода; может меняться улучшением Duration",
+  "frequency": "По умолчанию 1 раз за сессию; может меняться улучшением Frequency",
+  "desc": "Каждый раунд, пока способность активна, игрок может задать ведущему один вопрос “да/нет” о том, чего персонаж не мог бы знать обычным способом; ведущий отвечает правдиво.",
+  "notes": "Знание приходит через подходящий мистический способ: знамения, пророчество, духи, сны, хрустальный шар и т.п.",
+  "source": "Realms of Terrinoth",
+  "page": "75",
+  "upgrades": [
+   {
+    "level": "Improved",
+    "cost": 1,
+    "desc": "Пока способность активна, персонаж может один раз перебросить проверку навыка, связанную с заданным вопросом.",
+    "notes": "",
+    "descEn": "While the ability is active, the character may once reroll a skill check related to a question asked."
+   },
+   {
+    "level": "Supreme",
+    "cost": 2,
+    "desc": "Один раз, пока способность активна, когда NPC совершает проверку, игрок может бросить такой же дайс-пул и заменить результат NPC своим результатом.",
+    "notes": "",
+    "descEn": "Once while the ability is active, when an NPC makes a check, the player may roll the same dice pool and replace the NPC's result with their own."
+   }
+  ],
+  "descEn": "Each round while the ability is active, the player may ask the GM one yes/no question about something the character could not know normally; the GM answers truthfully."
+ },
+ {
+  "code": "connected",
+  "name": "Connected",
+  "nameRu": "Связи",
+  "requirement": "—",
+  "activationCost": "2 очка сюжета",
+  "activation": "Свободное действие / incidental",
+  "duration": "По умолчанию до конца следующего хода; может меняться улучшением Duration",
+  "frequency": "По умолчанию 1 раз за сессию; может меняться улучшением Frequency",
+  "desc": "При активации выбери одного NPC и объяви, что он должен персонажу услугу; детали связи согласуются с ведущим.",
+  "notes": "Если знакомство невозможно, способность не активируется и очки сюжета не тратятся. Услуга не обязана включать риск жизни, убийство или разрушение положения NPC.",
+  "source": "Realms of Terrinoth",
+  "page": "75",
+  "upgrades": [
+   {
+    "level": "Improved",
+    "cost": 1,
+    "desc": "Пока способность активна, персонаж один раз понижает сложность всех своих социальных проверок.",
+    "notes": "",
+    "descEn": "While the ability is active, the character once decreases the difficulty of all their social checks."
+   },
+   {
+    "level": "Supreme",
+    "cost": 2,
+    "desc": "Пока способность активна, когда разумный противник выбирает персонажа целью атаки, можно заставить его выбрать другую цель.",
+    "notes": "Работает только против разумного противника, когда он объявляет персонажа целью атаки.",
+    "descEn": "While the ability is active, when a sentient opponent targets the character with an attack, they can be forced to pick another target."
+   }
+  ],
+  "descEn": "On activation, pick one NPC and declare that they owe the character a favor; the details of the connection are agreed with the GM."
+ },
+ {
+  "code": "hard-to-kill",
+  "name": "Hard to Kill",
+  "nameRu": "Трудно убить",
+  "requirement": "—",
+  "activationCost": "2 очка сюжета",
+  "activation": "Свободное действие / incidental",
+  "duration": "По умолчанию до конца следующего хода; может меняться улучшением Duration",
+  "frequency": "По умолчанию 1 раз за сессию; может меняться улучшением Frequency",
+  "desc": "Пока способность активна, персонаж получает +4 к поглощению.",
+  "notes": "",
+  "source": "Realms of Terrinoth",
+  "page": "76",
+  "upgrades": [
+   {
+    "level": "Improved",
+    "cost": 1,
+    "desc": "Пока способность активна, сложность боевых проверок по персонажу увеличивается на 1.",
+    "notes": "",
+    "descEn": "While the ability is active, the difficulty of combat checks against the character increases by 1."
+   },
+   {
+    "level": "Supreme",
+    "cost": 2,
+    "desc": "Пока способность активна, весь получаемый персонажем урон снижается до 0.",
+    "notes": "",
+    "descEn": "While the ability is active, all damage the character suffers is reduced to 0."
+   }
+  ],
+  "descEn": "While the ability is active, the character gains +4 soak."
+ },
+ {
+  "code": "miraculous-recovery",
+  "name": "Miraculous Recovery",
+  "nameRu": "Чудесное восстановление",
+  "requirement": "—",
+  "activationCost": "2 очка сюжета",
+  "activation": "Свободное действие / incidental",
+  "duration": "По умолчанию до конца следующего хода; может меняться улучшением Duration",
+  "frequency": "По умолчанию 1 раз за сессию; может меняться улучшением Frequency",
+  "desc": "При активации и в начале каждого своего хода, пока способность активна, персонаж лечит 3 раны.",
+  "notes": "",
+  "source": "Realms of Terrinoth",
+  "page": "76",
+  "upgrades": [
+   {
+    "level": "Improved",
+    "cost": 1,
+    "desc": "При активации персонаж лечит все текущие раны.",
+    "notes": "",
+    "descEn": "On activation, the character heals all current wounds."
+   },
+   {
+    "level": "Supreme",
+    "cost": 2,
+    "desc": "При активации персонаж лечит одну критическую травму.",
+    "notes": "",
+    "descEn": "On activation, the character heals one critical injury."
+   }
+  ],
+  "descEn": "On activation and at the start of each of their turns while the ability is active, the character heals 3 wounds."
+ },
+ {
+  "code": "sixth-sense",
+  "name": "Sixth Sense",
+  "nameRu": "Шестое чувство",
+  "requirement": "При выборе нужно согласовать тип сущностей/явлений с ведущим",
+  "activationCost": "2 очка сюжета",
+  "activation": "Свободное действие / incidental",
+  "duration": "По умолчанию до конца следующего хода; может меняться улучшением Duration",
+  "frequency": "По умолчанию 1 раз за сессию; может меняться улучшением Frequency",
+  "desc": "Пока способность активна, персонаж ограниченно общается с выбранным типом сущностей, получая эмоции и смутные впечатления; при активации получает одну важную информацию для текущей сцены.",
+  "notes": "Примеры: животные, мёртвые, чужие мысли, духи.",
+  "source": "Realms of Terrinoth",
+  "page": "77",
+  "upgrades": [
+   {
+    "level": "Improved",
+    "cost": 1,
+    "desc": "Пока способность активна, персонаж понимает и передаёт простые идеи; также получает ещё одну важную информацию, относящуюся к текущей сессии.",
+    "notes": "",
+    "descEn": "While the ability is active, the character understands and conveys simple ideas; they also gain one more piece of information relevant to the current session."
+   },
+   {
+    "level": "Supreme",
+    "cost": 2,
+    "desc": "Пока способность активна, персонаж может вести полноценные сложные разговоры через необычное восприятие; также получает ещё одну важную информацию об приключении или кампании.",
+    "notes": "",
+    "descEn": "While the ability is active, the character can hold full, complex conversations through their unusual perception; they also gain one more piece of information about the adventure or campaign."
+   }
+  ],
+  "descEn": "While the ability is active, the character communicates in a limited way with a chosen type of entity, receiving emotions and vague impressions; on activation they gain one piece of information important to the current scene."
+ },
+ {
+  "code": "paragon",
+  "name": "Paragon",
+  "nameRu": "Эталон",
+  "requirement": "При выборе способности нужно выбрать один навык",
+  "activationCost": "2 очка сюжета",
+  "activation": "Свободное действие / incidental",
+  "duration": "По умолчанию до конца следующего хода; может меняться улучшением Duration",
+  "frequency": "По умолчанию 1 раз за сессию; может меняться улучшением Frequency",
+  "desc": "Пока способность активна, после броска проверки выбранного навыка, но до подсчёта результата, персонаж может убрать одну кость сложности из набора.",
+  "notes": "Игнорируются символы на убранной кости. Навык выбирается при выборе героической способности.",
+  "source": "Realms of Terrinoth",
+  "page": "76",
+  "upgrades": [
+   {
+    "level": "Improved",
+    "cost": 1,
+    "desc": "Пока способность активна, персонаж может убрать одну штрафную кость из результата проверки выбранного навыка.",
+    "notes": "",
+    "descEn": "While the ability is active, the character may remove one setback die from the result of a check with the chosen skill."
+   },
+   {
+    "level": "Supreme",
+    "cost": 2,
+    "desc": "Пока способность активна, персонаж может убирать кость вызова вместо обычной кости сложности при проверках выбранного навыка.",
+    "notes": "",
+    "descEn": "While the ability is active, the character may remove a challenge die instead of a regular difficulty die on checks with the chosen skill."
+   }
+  ],
+  "descEn": "While the ability is active, after rolling a check with the chosen skill but before resolving it, the character may remove one difficulty die from the pool."
+ }
 ]
