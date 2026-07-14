@@ -764,6 +764,13 @@ table.ref-table td.ref-cost { white-space: nowrap; color: var(--accent); }
   padding: 1.5rem; width: 100%; max-width: 32rem; max-height: 90vh; overflow-y: auto;
 }
 .modal-actions { display: flex; justify-content: flex-end; gap: 0.6rem; margin-top: 1rem; flex-wrap: wrap; }
+.modal-header {
+  display: flex; align-items: center; justify-content: space-between; gap: 0.8rem;
+  position: sticky; top: -1.5rem; z-index: 1;
+  margin: -1.5rem -1.5rem 0.4rem; padding: 1.5rem 1.5rem 0.6rem;
+  background: var(--panel); border-bottom: 1px solid var(--border);
+}
+.modal-header > h3 { margin: 0; }
 .system-switch { display: flex; gap: 0.4rem; margin-top: 0.3rem; flex-wrap: wrap; }
 .heroic p { margin: 0.3rem 0; }
 .heroic-upgrades { margin: 0.6rem 0; display: flex; flex-direction: column; gap: 0.5rem; }
