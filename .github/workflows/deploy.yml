@@ -187,9 +187,11 @@ jobs:
             EMAIL_SMTP_USE_STARTTLS=${EMAIL_SMTP_USE_STARTTLS:-true}
             EOF
 
-            # Внешняя docker-сеть мониторинга (общая с /opt/monitoring) и каталог серверных vhosts —
-            # должны существовать до compose up; на живом сервере обе команды — no-op.
+            # Внешние docker-сети (monitoring — со стеком /opt/monitoring, edge — с beauty-study и
+            # travelmoney, которые Caddy проксирует по именам контейнеров) и каталог серверных
+            # vhosts должны существовать до compose up; на живом сервере команды — no-op.
             docker network create monitoring 2>/dev/null || true
+            docker network create edge 2>/dev/null || true
             mkdir -p deploy/conf.d
 
             # Cloudflare Origin cert/key для Caddy (Full strict). Пишем из secrets, не логируем.
