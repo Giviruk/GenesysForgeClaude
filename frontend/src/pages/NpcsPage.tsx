@@ -498,7 +498,10 @@ function NpcEditor({ initial, onCancel, onSaved }: {
   return (
     <div className="modal-backdrop" onClick={onCancel}>
       <form className="modal wide xwide npc-editor" onClick={e => e.stopPropagation()} onSubmit={submit}>
-        <h3>{initial ? t('Редактировать NPC', 'Edit NPC') : t('Новый NPC', 'New NPC')}</h3>
+        <div className="modal-header">
+          <h3>{initial ? t('Редактировать NPC', 'Edit NPC') : t('Новый NPC', 'New NPC')}</h3>
+          <button className="primary" type="submit" disabled={busy || !form.name.trim()}>{t('Сохранить', 'Save')}</button>
+        </div>
 
         <div className="npc-editor-grid">
           <div className="npc-editor-form">
@@ -679,7 +682,6 @@ function NpcEditor({ initial, onCancel, onSaved }: {
         {error && <div className="error">{error}</div>}
         <div className="modal-actions">
           <button type="button" onClick={onCancel}>{t('Отмена', 'Cancel')}</button>
-          <button className="primary" type="submit" disabled={busy || !form.name.trim()}>{t('Сохранить', 'Save')}</button>
         </div>
       </form>
     </div>
