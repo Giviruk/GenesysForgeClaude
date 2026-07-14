@@ -174,7 +174,7 @@ services:
                 --aws-sigv4 "aws:amz:$${BACKUP_S3_REGION}:s3" \
                 -u "$${BACKUP_S3_ACCESS_KEY}:$${BACKUP_S3_SECRET_KEY}" \
                 --upload-file "/backups/$${name}.dump" \
-                "$${BACKUP_S3_SERVICE_URL}/$${BACKUP_S3_BUCKET}/genesysforge/backups/$${name}.dump" \
+                "$${BACKUP_S3_SERVICE_URL}/$${BACKUP_S3_BUCKET}/backup/genesysforge/$${name}.dump" \
                 && echo "uploaded $${name}.dump to S3" \
                 || echo "S3 upload failed for $${name}.dump (local copy kept)"
             done
@@ -219,6 +219,9 @@ services:
       # Общая сеть с мониторинг-стеком (/opt/monitoring): Caddy проксирует status-дашборд.
       # Сеть создаёт deploy-workflow (docker network create monitoring).
       - monitoring
+      # Общая сеть с остальными проектами машины (beauty-study, travelmoney): Caddy — единственная
+      # точка входа для них, поэтому ходит к их контейнерам по именам, а не через порты хоста.
+      - edge
 
 volumes:
   pgdata:
@@ -230,4 +233,6 @@ volumes:
 networks:
   default:
   monitoring:
+    external: true
+  edge:
     external: true
