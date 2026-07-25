@@ -6,6 +6,7 @@ import { Footer } from '../components/Footer'
 import { navigate, usePath } from '../router'
 import { t } from '../i18n'
 import { peekReturnTo } from '../session'
+import { trackAriadne } from '../analytics/ariadne'
 
 type Mode = 'login' | 'register' | 'reset-request' | 'reset-confirm'
 
@@ -39,6 +40,11 @@ export function AuthPage() {
       .catch(() => { /* провайдеры не критичны — просто не показываем кнопку */ })
   }, [])
 
+  // Просмотр регистрации — первый шаг воронки «Ариадны» после визита.
+  useEffect(() => {
+    if (mode === 'register') trackAriadne('registration_viewed', { registration_type: 'email' })
+  }, [mode])
+
   // Возврат к входу/регистрации сбрасывает оверлей сброса и меняет URL.
   function goAuth(to: '/login' | '/register') {
     setResetMode(null)
@@ -71,6 +77,7 @@ export function AuthPage() {
       if (mode === 'login') {
         await login(email, password)
       } else if (mode === 'register') {
+        trackAriadne('registration_started', { registration_type: 'email' })
         await register(email, password, displayName)
       } else if (mode === 'reset-request') {
         await api.requestPasswordReset(email)
