@@ -85,14 +85,14 @@ jobs:
           port: ${{ secrets.SSH_PORT }}
           script: mkdir -p "${{ vars.DEPLOY_PATH }}/deploy"
 
-      - name: Copy compose and Caddyfile to VPS
+      - name: Copy compose and helper scripts to VPS
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: ${{ secrets.SSH_PORT }}
-          source: "docker-compose.prod.yml,deploy/Caddyfile,deploy/backup-now.sh,deploy/restore.sh,deploy/rollback.sh"
+          source: "docker-compose.prod.yml,deploy/backup-now.sh,deploy/restore.sh,deploy/rollback.sh"
           target: ${{ vars.DEPLOY_PATH }}
 
       - name: Deploy on VPS
@@ -104,8 +104,6 @@ jobs:
           POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
           JWT_KEY: ${{ secrets.JWT_KEY }}
           # Cloudflare Origin Certificate (режим SSL Full strict) — PEM cert и private key
-          CADDY_ORIGIN_CERT: ${{ secrets.CADDY_ORIGIN_CERT }}
-          CADDY_ORIGIN_KEY: ${{ secrets.CADDY_ORIGIN_KEY }}
           # S3-хранилище картинок (Beget Cloud Storage). Пустой STORAGE_PROVIDER — загрузка выключена.
           STORAGE_PROVIDER: ${{ vars.STORAGE_PROVIDER }}
           S3_SERVICE_URL: ${{ vars.S3_SERVICE_URL }}
@@ -147,7 +145,7 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: ${{ secrets.SSH_PORT }}
-          envs: GHCR_OWNER,GHCR_USERNAME,GHCR_TOKEN,POSTGRES_PASSWORD,JWT_KEY,CADDY_ORIGIN_CERT,CADDY_ORIGIN_KEY,STORAGE_PROVIDER,S3_SERVICE_URL,S3_BUCKET,S3_REGION,S3_ACCESS_KEY,S3_SECRET_KEY,BACKUP_S3_BUCKET,BACKUP_S3_ACCESS_KEY,BACKUP_S3_SECRET_KEY,EMAIL_PROVIDER,EMAIL_FROM,EMAIL_FROM_NAME,EMAIL_SMTP_HOST,EMAIL_SMTP_PORT,EMAIL_SMTP_USERNAME,EMAIL_SMTP_PASSWORD,EMAIL_SMTP_USE_STARTTLS,PRIVATE_HOSTNAME,PUBLIC_HOSTNAME,DEPLOY_PATH,GOOGLE_CLIENT_ID,JWT_ACCESS_LIFETIME_MINUTES,BACKUP_RETENTION_DAYS,AUTH_SENSITIVE_PERMIT_LIMIT,AUTH_SESSION_PERMIT_LIMIT,AUTH_PUBLIC_PERMIT_LIMIT,AUTH_RATE_WINDOW_SECONDS,ARIADNE_ENDPOINT,ARIADNE_SERVER_KEY
+          envs: GHCR_OWNER,GHCR_USERNAME,GHCR_TOKEN,POSTGRES_PASSWORD,JWT_KEY,STORAGE_PROVIDER,S3_SERVICE_URL,S3_BUCKET,S3_REGION,S3_ACCESS_KEY,S3_SECRET_KEY,BACKUP_S3_BUCKET,BACKUP_S3_ACCESS_KEY,BACKUP_S3_SECRET_KEY,EMAIL_PROVIDER,EMAIL_FROM,EMAIL_FROM_NAME,EMAIL_SMTP_HOST,EMAIL_SMTP_PORT,EMAIL_SMTP_USERNAME,EMAIL_SMTP_PASSWORD,EMAIL_SMTP_USE_STARTTLS,PRIVATE_HOSTNAME,PUBLIC_HOSTNAME,DEPLOY_PATH,GOOGLE_CLIENT_ID,JWT_ACCESS_LIFETIME_MINUTES,BACKUP_RETENTION_DAYS,AUTH_SENSITIVE_PERMIT_LIMIT,AUTH_SESSION_PERMIT_LIMIT,AUTH_PUBLIC_PERMIT_LIMIT,AUTH_RATE_WINDOW_SECONDS,ARIADNE_ENDPOINT,ARIADNE_SERVER_KEY
           script: |
             set -euo pipefail
             cd "${DEPLOY_PATH}"
@@ -194,18 +192,9 @@ jobs:
             EMAIL_SMTP_USE_STARTTLS=${EMAIL_SMTP_USE_STARTTLS:-true}
             EOF
 
-            # Внешние docker-сети (monitoring — со стеком /opt/monitoring, edge — с beauty-study и
-            # travelmoney, которые Caddy проксирует по именам контейнеров) и каталог серверных
-            # vhosts должны существовать до compose up; на живом сервере команды — no-op.
-            docker network create monitoring 2>/dev/null || true
+            # Сеть edge принадлежит стеку /opt/edge и создаётся его деплоем; здесь команда
+            # оставлена как страховка на случай раскатки с нуля — на живом сервере это no-op.
             docker network create edge 2>/dev/null || true
-            mkdir -p deploy/conf.d
-
-            # Cloudflare Origin cert/key для Caddy (Full strict). Пишем из secrets, не логируем.
-            mkdir -p deploy/certs
-            printf '%s\n' "${CADDY_ORIGIN_CERT}" > deploy/certs/origin.crt
-            printf '%s\n' "${CADDY_ORIGIN_KEY}" > deploy/certs/origin.key
-            chmod 600 deploy/certs/origin.key deploy/certs/origin.crt
 
             echo "${GHCR_TOKEN}" | docker login ghcr.io -u "${GHCR_USERNAME}" --password-stdin
             docker compose -f docker-compose.prod.yml pull
