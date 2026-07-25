@@ -15,6 +15,7 @@ import type {
   ArchetypeSkillChoice, CareerGearChoice,
 } from './types'
 import { t } from '../i18n'
+import { ariadneAnonymousId } from '../analytics/ariadne'
 
 const TOKEN_KEY = 'genesysforge.token'
 
@@ -62,6 +63,12 @@ async function rawFetch(method: string, url: string, body: unknown): Promise<Res
   if (body !== undefined && !isBlob) headers['Content-Type'] = 'application/json'
   const token = tokenStorage.get()
   if (token) headers.Authorization = `Bearer ${token}`
+  // Регистрация — единственный запрос, которому нужен анонимный ID визита: по нему «Ариадна»
+  // склеивает серверное registration_completed с браузерной частью воронки.
+  if (url === '/api/auth/register') {
+    const anonymousId = ariadneAnonymousId()
+    if (anonymousId) headers['X-Ariadne-Anonymous-Id'] = anonymousId
+  }
   return fetch(url, {
     method,
     headers,

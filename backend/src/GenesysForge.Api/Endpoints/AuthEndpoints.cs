@@ -2,6 +2,7 @@ using GenesysForge.Application.Abstractions;
 using GenesysForge.Application.Dtos;
 using GenesysForge.Application.Features.Auth;
 using GenesysForge.Api;
+using GenesysForge.Api.Analytics;
 using Microsoft.Extensions.Configuration;
 
 namespace GenesysForge.Api.Endpoints;
@@ -14,10 +15,12 @@ public static class AuthEndpoints
 
         group.MapPost("/register", async (RegisterRequest req, HttpContext ctx,
             ICommandHandler<RegisterUserCommand, AuthResponse> handler, IRefreshTokenService refresh,
-            CancellationToken ct) =>
+            AriadneAnalytics analytics, CancellationToken ct) =>
         {
             var auth = await handler.Handle(new RegisterUserCommand(req), ct);
             await IssueRefreshCookie(ctx, refresh, auth.UserId, ct);
+            // Регистрация уже зафиксирована; доставка события неблокирующая и не может её отменить.
+            analytics.TrackRegistrationCompleted(auth.UserId, ctx.AriadneAnonymousId(), "email");
             return Results.Ok(auth);
         }).RequireRateLimiting(AuthRateLimiting.SensitivePolicy);
 

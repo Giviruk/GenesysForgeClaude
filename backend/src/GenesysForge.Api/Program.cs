@@ -4,6 +4,7 @@ using GenesysForge.Application.Abstractions;
 using GenesysForge.Application.Dtos;
 using GenesysForge.Application.Exceptions;
 using GenesysForge.Api;
+using GenesysForge.Api.Analytics;
 using GenesysForge.Api.Endpoints;
 using GenesysForge.Api.Realtime;
 using GenesysForge.Domain;
@@ -45,6 +46,12 @@ builder.Services.AddAuthRateLimiting(builder.Configuration);
 
 builder.Services.AddSignalR();
 builder.Services.AddSingleton<ICampaignNotifier, SignalRCampaignNotifier>();
+
+// «Ариадна»: доставка серверных событий воронки. Без ARIADNE_ENDPOINT/ARIADNE_SERVER_KEY
+// сервис остаётся выключенным и ничего не отправляет.
+builder.Services.AddHttpClient();
+builder.Services.AddSingleton<AriadneAnalytics>();
+builder.Services.AddHostedService(sp => sp.GetRequiredService<AriadneAnalytics>());
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
