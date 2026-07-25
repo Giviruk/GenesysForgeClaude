@@ -1,5 +1,8 @@
-# Продакшен-стек для VPS: готовые образы из GHCR + Caddy (авто-HTTPS).
-# Наружу публикуется ТОЛЬКО Caddy (80/443); api/web/postgres — во внутренней сети.
+# Продакшен-стек для VPS: готовые образы из GHCR.
+# Наружу этот стек не публикует ничего: 80/443 держит Caddy, который живёт отдельным стеком
+# (/opt/edge, репозиторий vps-infra) и ходит к web/web-public по именам через сеть edge.
+# Раньше Caddy был частью этого файла, и релиз GenesysForge пересоздавал вход для всех шести
+# проектов машины — а его конфигурация не была под контролем версий.
 # Конфигурация приходит из .env, который deploy-workflow пишет на сервере из GitHub Secrets/Variables.
 # Запуск на VPS: docker compose -f docker-compose.prod.yml up -d
 services:
@@ -138,6 +141,10 @@ services:
       - api
     restart: unless-stopped
     mem_limit: 64m
+    networks:
+      - default
+      # Через неё Caddy из стека edge проксирует на этот контейнер.
+      - edge
 
   web-public:
     image: ghcr.io/${GHCR_OWNER}/genesysforge-web:latest
@@ -148,6 +155,10 @@ services:
       - api-public
     restart: unless-stopped
     mem_limit: 64m
+    networks:
+      - default
+      # Через неё Caddy из стека edge проксирует на этот контейнер.
+      - edge
 
   backup:
     image: postgres:17-alpine
@@ -198,47 +209,14 @@ services:
     restart: unless-stopped
     mem_limit: 64m
 
-  caddy:
-    image: caddy:2-alpine
-    container_name: genesysforge-caddy
-    ports:
-      - "80:80"
-      - "443:443"
-    environment:
-      PRIVATE_HOSTNAME: ${PRIVATE_HOSTNAME}
-      PUBLIC_HOSTNAME: ${PUBLIC_HOSTNAME:-public-disabled.localhost}
-    volumes:
-      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
-      # Cloudflare Origin cert/key — записывается deploy-workflow'ом из GitHub Secrets
-      - ./deploy/certs:/etc/caddy/certs:ro
-      # Серверные vhosts вне репозитория (см. import в Caddyfile)
-      - ./deploy/conf.d:/etc/caddy/conf.d:ro
-      - caddy_data:/data
-      - caddy_config:/config
-    depends_on:
-      - web
-      - web-public
-    restart: unless-stopped
-    mem_limit: 64m
-    networks:
-      - default
-      # Общая сеть с мониторинг-стеком (/opt/monitoring): Caddy проксирует status-дашборд.
-      # Сеть создаёт deploy-workflow (docker network create monitoring).
-      - monitoring
-      # Общая сеть с остальными проектами машины (beauty-study, travelmoney): Caddy — единственная
-      # точка входа для них, поэтому ходит к их контейнерам по именам, а не через порты хоста.
-      - edge
-
 volumes:
   pgdata:
   pgdata_public:
   pgbackups:
-  caddy_data:
-  caddy_config:
 
 networks:
   default:
-  monitoring:
-    external: true
+  # Сеть входа: Caddy живёт отдельным стеком (/opt/edge, репозиторий vps-infra) и ходит
+  # к web/web-public по именам контейнеров. Сеть создаёт деплой edge-слоя.
   edge:
     external: true
