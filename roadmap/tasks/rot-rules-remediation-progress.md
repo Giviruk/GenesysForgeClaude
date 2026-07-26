@@ -33,10 +33,10 @@
 
 ### 3. Таланты RoT
 
-- [ ] **ROT-TAL-01** — состав каталога и metadata
+- [x] **ROT-TAL-01** — состав каталога и metadata
 - [ ] **ROT-TAL-02** — prerequisites, взаимоисключения, покупка и refund
 - [ ] **ROT-TAL-03** — обязательные сохраняемые параметры талантов
-- [ ] **ROT-TAL-04** — карьерные навыки, выдаваемые талантами (+ cost stack для refund)
+- [~] **ROT-TAL-04** — данные выдач готовы и резолвер их учитывает; остался cost stack для refund
 - [ ] **ROT-TAL-05** — общий lifecycle активных талантов
 - [ ] **ROT-TAL-06** — исправить неверные исполняемые эффекты
 - [ ] **ROT-TAL-07** — полный PrivateFull и согласованный RU/EN
@@ -158,10 +158,28 @@
   Stubborn, Battle Rage, Hot Tempered, Tenacious, Militia Training.
 - Claws как virtual attack profile и структурированные manoeuvres для Fleet of Paw.
 
+### ROT-TAL-01 — состав каталога талантов
+
+- Манифест ТЗ разобран программно и сверен с каталогом: не хватало 3 талантов, 11 лишних были
+  ошибочно доступны в RoT, 19 записей имели неверные tier/ranked/имя.
+- Добавлены `Challenge!`, `Let’s Talk This Over`, `Retribution!` собственными парафразами.
+- Одиннадцать талантов помечены `retiredIn: RealmsOfTerrinoth`: из RoT они исчезли, в Genesys Core
+  остались активными, исторические владения не тронуты.
+- Исправлены ranked (Apothecary, Blood Sacrifice, Body Guard, Dungeoneer, Exploit, Threaten),
+  tier (Signature Spell 2, Signature Spell (Improved) 4, Conduit 4 unranked) и 11 канонических имён
+  при прежних stable codes.
+- `ActivationEn` + `CanUseOutOfTurn`: Out-of-turn Incidental стал отдельным таймингом;
+  у Shapeshifter (Improved) — только по его триггеру.
+- Сид перестал синхронизировать одни имена: tier, ranked, тайминг, out-of-turn, Retired и выдачи
+  карьерных навыков теперь тоже приезжают из каталога.
+- Данные ROT-TAL-04 (6 талантов, выдающих карьерные навыки) заполнены и уже учитываются
+  резолвером из ROT-CRE-01.
+
 ## Что осталось / блокеры
 
-- Следующий пункт — доделать активируемые способности ROT-SPECIES-01 (нужен check context и
-  счётчики сессии), затем раздел 3 (**ROT-TAL-01** …).
+- Следующий пункт — **ROT-TAL-02** (prerequisites, взаимоисключения, покупка и refund).
+- Незакрытая часть ROT-SPECIES-01 (активируемые способности) ждёт рантайма сессии/encounter.
+- Незакрытая часть ROT-TAL-04 — cost stack фактически уплаченных цен за ранги и repair-флоу.
 - ROT-TAL-04 требует cost stack покупок рангов (`CharacterSkillRankPurchase`) и repair-флоу для
   legacy без доказанной цены — крупнее остальных пунктов раздела 3, планировать отдельно.
 

@@ -109,6 +109,10 @@ Indexes include non-unique `HomebrewPackId` and `(System, OwnerUserId)` for buil
 
 Built-in talents are not hand-written in `SeedData`; they are loaded from the embedded catalog `Persistence/SeedContent/talents.catalog.json` (see `TalentCatalog`). The catalog is generated from the source CSVs (structure + reworked Russian descriptions, not book text). Each catalog entry is expanded into `TalentDef` rows per system by its setting (`Any` → both systems, `Fantasy` → Realms of Terrinoth only) and carries a structural `category` tag.
 
+ROT-TAL-01 makes the catalogue authoritative for talent metadata, not just for names: the seed also syncs `Tier`, `IsRanked`, `Activation`/`ActivationEn`, `CanUseOutOfTurn`, `Retired` and `CareerSkillNames` onto existing rows. The active RoT scope is exactly 112 talents. A catalogue entry may carry `retiredIn: ["RealmsOfTerrinoth"]`, which retires only the RoT row and leaves the Genesys Core one active — an entry wrongly attributed to the RoT PC catalogue is never deleted globally, and historical ownership keeps working because the row survives.
+
+`ActivationEn` holds the stable English timing and `CanUseOutOfTurn` marks `Out-of-turn Incidental` as its own timing rather than a plain Incidental. `Shapeshifter (Improved)` is out-of-turn only through its own trigger, so it carries `Triggered Incidental`. `CareerSkillNames` (ROT-TAL-04) lists the skills a talent turns into career skills while owned; `CareerSkillResolver` unions them with career and species grants.
+
 ### ItemDefs
 
 Built-in and custom item definitions.
@@ -455,6 +459,11 @@ Found migrations:
   characters — picking Claws or Fleet of Paw for a player is an irreversible decision, so the
   sheet reports `SpeciesChoiceIncomplete` and the ability simply stays unautomated until a human
   resolves it.
+- `20260726180958_RotTalentCatalogMetadata` — ROT-TAL-01/ROT-TAL-04 (data half). Adds `TalentDefs.ActivationEn`,
+  `CanUseOutOfTurn` and `CareerSkillNames`. Non-destructive (only `AddColumn`); the corrected
+  catalogue itself is applied by the idempotent talent seed, which now treats the catalogue as
+  authoritative for tier, ranked, activation timing, out-of-turn and `Retired` as well as names and
+  descriptions. No talent row is deleted — characters reference them.
 
 Startup behavior:
 

@@ -57,14 +57,24 @@ public static class SeedData
         // Синхронизация встроенных строк с каталогом по стабильному Code ДО SeedMissing:
         // переименование (например, замена транслитерированных имён талантов на английские)
         // обновляет существующие строки, чтобы аддитивный сид не создал дубликат по (System, Name).
+        // Каталог авторитетен для metadata таланта (ROT-TAL-01): tier, ranked, тайминг активации,
+        // out-of-turn и Retired синхронизируются, иначе исправления не доедут до уже засиженной БД.
         SyncBuiltinByCode(db, db.TalentDefs.Where(t => t.OwnerUserId == null && t.Code != ""), talents,
             (row, def) =>
             {
                 var same = row.Name == def.Name && row.NameRu == def.NameRu && row.DescriptionEn == def.DescriptionEn
-                    && row.SafeDescription == def.SafeDescription;
+                    && row.SafeDescription == def.SafeDescription
+                    && row.Tier == def.Tier && row.IsRanked == def.IsRanked
+                    && row.Activation == def.Activation && row.ActivationEn == def.ActivationEn
+                    && row.CanUseOutOfTurn == def.CanUseOutOfTurn && row.Retired == def.Retired
+                    && row.CareerSkillNames.SequenceEqual(def.CareerSkillNames);
                 if (same) return false;
                 row.Name = def.Name; row.NameRu = def.NameRu;
                 row.SafeDescription = def.SafeDescription; row.DescriptionEn = def.DescriptionEn;
+                row.Tier = def.Tier; row.IsRanked = def.IsRanked;
+                row.Activation = def.Activation; row.ActivationEn = def.ActivationEn;
+                row.CanUseOutOfTurn = def.CanUseOutOfTurn; row.Retired = def.Retired;
+                row.CareerSkillNames = [.. def.CareerSkillNames];
                 return true;
             });
         SyncBuiltinByCode(db, db.SkillDefs.Where(x => x.OwnerUserId == null && x.Code != ""), skills,

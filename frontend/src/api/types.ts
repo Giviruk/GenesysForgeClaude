@@ -60,6 +60,12 @@ export interface TalentDef {
   rangedDefenseBonus: number
   isCustom: boolean
   grantsCharacteristic: boolean
+  /** Английская подпись тайминга активации — стабильнее локализованной строки. */
+  activationEn: string
+  /** Талант применим вне своего хода (Out-of-turn Incidental, ROT-TAL-01). */
+  canUseOutOfTurn: boolean
+  /** Навыки, которые талант делает карьерными, пока принадлежит персонажу (ROT-TAL-04). */
+  careerSkillNames: string[]
 }
 
 export interface ItemDef {

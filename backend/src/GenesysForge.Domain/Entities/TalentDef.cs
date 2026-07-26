@@ -26,6 +26,16 @@ public class TalentDef : IContentDef
     public string Source { get; set; } = "";
     public string Activation { get; set; } = "Пассивный";
     /// <summary>
+    /// Английская подпись тайминга активации (<c>Passive</c>, <c>Incidental</c>,
+    /// <c>Out-of-turn Incidental</c> и т. п.). Стабильнее локализованной строки для сравнения.
+    /// </summary>
+    public string ActivationEn { get; set; } = "";
+    /// <summary>
+    /// Талант можно применять вне своего хода. <c>Out-of-turn Incidental</c> — отдельный тайминг,
+    /// а не обычный Incidental (ROT-TAL-01).
+    /// </summary>
+    public bool CanUseOutOfTurn { get; set; }
+    /// <summary>
     /// Талант увеличивает выбранную характеристику на 1 за каждый ранг (Dedication / «Повышение»).
     /// При покупке игрок выбирает характеристику; одну и ту же дважды этим талантом увеличить нельзя.
     /// </summary>
