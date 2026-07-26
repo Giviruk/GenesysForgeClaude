@@ -50,6 +50,9 @@ public static class SeedData
         ProjectContent(talents, mode, store);
         ProjectContent(items, mode, store);
         ProjectContent(heroics, mode, store);
+        // Улучшения Power не входят в content-model, но несут тот же полный текст правила.
+        if (mode == ContentMode.PublicSafe)
+            foreach (var upgrade in heroics.SelectMany(h => h.Upgrades)) upgrade.Description = "";
         ProjectContent(heroicSecondaryEffects, mode, store);
         ProjectContent(qualities, mode, store);
         ProjectSpells(spells, mode);
@@ -675,12 +678,31 @@ public static class SeedData
                      .Where(h => h.OwnerUserId == null && h.Code != "").ToList())
         {
             if (!wanted.TryGetValue(row.Code, out var def)) continue;
-            changed |= Assign(row.DescriptionEn != def.DescriptionEn, () => row.DescriptionEn = def.DescriptionEn);
+            // Каталог авторитетен и для текстов (ROT-HA-05 / ROT-HA-CONTENT): исправленная механика
+            // и разделение полного парафраза с safe-сводкой должны доезжать до существующих строк.
+            // Каталог уже спроецирован под режим, поэтому в PublicSafe сюда приходит пустой Description.
+            changed |= Assign(
+                row.DescriptionEn != def.DescriptionEn || row.Description != def.Description
+                || row.SafeDescription != def.SafeDescription,
+                () =>
+                {
+                    row.DescriptionEn = def.DescriptionEn;
+                    row.Description = def.Description;
+                    row.SafeDescription = def.SafeDescription;
+                });
             foreach (var upgrade in row.Upgrades)
             {
                 var u = def.Upgrades.FirstOrDefault(x => x.Level == upgrade.Level);
                 if (u == null) continue;
-                changed |= Assign(upgrade.DescriptionEn != u.DescriptionEn, () => upgrade.DescriptionEn = u.DescriptionEn);
+                changed |= Assign(
+                    upgrade.DescriptionEn != u.DescriptionEn || upgrade.Description != u.Description
+                    || upgrade.SafeDescription != u.SafeDescription,
+                    () =>
+                    {
+                        upgrade.DescriptionEn = u.DescriptionEn;
+                        upgrade.Description = u.Description;
+                        upgrade.SafeDescription = u.SafeDescription;
+                    });
             }
         }
         if (changed) db.SaveChanges();
