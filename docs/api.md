@@ -304,17 +304,31 @@ Protected. Request: `BuyTalentRequest` with `talentDefId`. Refunds one talent ra
 ### `PUT /api/characters/{id}/heroic-ability`
 
 Protected. Request: `SetHeroicAbilityRequest` with nullable `heroicAbilityId`. Changing or clearing the
-ability resets the purchased upgrade rank to 0.
+ability during creation resets every purchased upgrade. After creation the selected ability is immutable.
+Completing creation for a Realms of Terrinoth character without a selected Heroic Ability is rejected.
 
 Known limitation: heroic abilities are intended for Realms of Terrinoth; Genesys Core assignment is rejected by application rules.
 
 ### `PUT /api/characters/{id}/heroic-upgrade`
 
 Protected. Request: `SetHeroicUpgradeRankRequest` with `rank` (0/1/2). Sets the purchased upgrade rank of
-the selected ability. Validates that ranks are sequential (Supreme requires Improved) and that the
-cumulative cost fits the available ability points (1 starting + 1 per 50 XP earned after creation).
-Lowering the rank refunds points. The sheet DTO exposes `heroicUpgradeRank`, `heroicUpgradePointsTotal`
-and `heroicUpgradePointsSpent`.
+the selected ability's Power. This legacy-compatible endpoint validates the complete ability-point budget.
+
+### `PUT /api/characters/{id}/heroic-upgrades`
+
+Protected. Request: `SetHeroicUpgradesRequest`:
+`powerRank`, `durationRanks`, `frequencyRanks`, `story`, `secondaryEffectIds`.
+
+Validates the RoT costs (Power 1+2, Duration 1/rank, Frequency 2/rank, Story 1, Secondary Effect 1),
+at most two different secondary effects, and the available budget: one ability point per complete 50 XP
+above species starting XP, with no starting point. Reductions are allowed only during creation; later
+purchases are permanent.
+
+The sheet retains `heroicUpgradeRank` as a compatible Power alias and exposes
+`heroicUpgradePointsTotal`, `heroicUpgradePointsSpent`, plus structured `heroicUpgrades`.
+The reference response exposes the standard `heroicSecondaryEffects`.
+Game Table activation verifies that a PC uses its selected ability, spends/flips the effective Story
+Point cost, and enforces `1 + frequencyRanks` activations per session.
 
 ## Inventory
 
@@ -556,4 +570,3 @@ Error response DTO:
 ## Versioning
 
 API v1 is path-versioned under `/api/v1/*`. Existing `/api/*` endpoints are still served for backwards compatibility, but new integrations should use `/api/v1/*`. The OpenAPI document intentionally emits versioned paths only.
-

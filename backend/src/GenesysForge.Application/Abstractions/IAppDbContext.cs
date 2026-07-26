@@ -15,6 +15,7 @@ public interface IAppDbContext
     DbSet<ItemDef> ItemDefs { get; }
     DbSet<HeroicAbilityDef> HeroicAbilityDefs { get; }
     DbSet<HeroicAbilityUpgradeDef> HeroicAbilityUpgradeDefs { get; }
+    DbSet<HeroicSecondaryEffectDef> HeroicSecondaryEffectDefs { get; }
     DbSet<RuleEffectDef> RuleEffectDefs { get; }
     DbSet<ArchetypeDef> ArchetypeDefs { get; }
     DbSet<ArchetypeAbilityDef> ArchetypeAbilityDefs { get; }
@@ -27,6 +28,7 @@ public interface IAppDbContext
     DbSet<CharacterTalent> CharacterTalents { get; }
     DbSet<CharacterItem> CharacterItems { get; }
     DbSet<CharacterCriticalInjury> CharacterCriticalInjuries { get; }
+    DbSet<CharacterHeroicSecondaryEffect> CharacterHeroicSecondaryEffects { get; }
     DbSet<CharacterShareToken> CharacterShareTokens { get; }
     DbSet<CharacterNote> CharacterNotes { get; }
     DbSet<Campaign> Campaigns { get; }

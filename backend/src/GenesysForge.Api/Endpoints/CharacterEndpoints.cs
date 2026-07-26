@@ -177,6 +177,13 @@ public static class CharacterEndpoints
             return Results.NoContent();
         });
 
+        group.MapPut("/{id:guid}/heroic-upgrades", async (Guid id, SetHeroicUpgradesRequest req,
+            ClaimsPrincipal user, ICommandHandler<SetHeroicUpgradesCommand, Unit> handler, CancellationToken ct) =>
+        {
+            await handler.Handle(new SetHeroicUpgradesCommand(user.UserId(), id, req), ct);
+            return Results.NoContent();
+        });
+
         group.MapPost("/{id:guid}/items", async (Guid id, AddItemRequest req, ClaimsPrincipal user,
             ICommandHandler<AddItemCommand, Guid> handler, CancellationToken ct) =>
         {

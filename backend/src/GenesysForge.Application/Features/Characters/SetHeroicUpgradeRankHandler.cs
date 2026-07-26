@@ -6,8 +6,8 @@ namespace GenesysForge.Application.Features.Characters;
 
 /// <summary>
 /// Устанавливает купленный ранг улучшения героической способности (0 — базовая, 1 — Improved, 2 — Supreme).
-/// Очки улучшения: 1 стартовое + по 1 каждые 50 заработанного XP. Supreme требует Improved (ранги последовательны).
-/// Понижение ранга возвращает очки (рефанд), поэтому отдельной операции рефанда не нужно.
+/// Legacy endpoint только для Power. Очки начисляются по 1 за каждые 50 XP сверх стартового XP вида.
+/// Понижение ранга разрешено только до завершения создания.
 /// </summary>
 public class SetHeroicUpgradeRankHandler(IAppDbContext db) : ICommandHandler<SetHeroicUpgradeRankCommand, Unit>
 {
@@ -22,14 +22,18 @@ public class SetHeroicUpgradeRankHandler(IAppDbContext db) : ICommandHandler<Set
         var maxRank = c.HeroicAbility.Upgrades.Count;
         if (command.Rank < 0 || command.Rank > maxRank)
             throw new DomainRuleException($"Недопустимый ранг улучшения: {command.Rank}.");
+        if (command.Rank < c.HeroicUpgradeRank && !c.IsCreationPhase)
+            throw new DomainRuleException("После завершения создания улучшения героической способности постоянны.");
 
         // Стоимость достижения целевого ранга — сумма стоимостей улучшений с уровнем ≤ ранга.
         var cost = c.HeroicAbility.Upgrades
             .Where(u => (int)u.Level <= command.Rank)
             .Sum(u => u.Cost);
-        if (cost > c.HeroicUpgradePointsTotal)
+        var otherCost = c.HeroicDurationRanks + c.HeroicFrequencyRanks * 2
+            + (c.HeroicStoryUpgrade ? 1 : 0) + c.HeroicSecondaryEffects.Count;
+        if (cost + otherCost > c.HeroicUpgradePointsTotal)
             throw new DomainRuleException(
-                $"Недостаточно очков улучшения: нужно {cost}, доступно {c.HeroicUpgradePointsTotal}.");
+                $"Недостаточно ability points: нужно {cost + otherCost}, доступно {c.HeroicUpgradePointsTotal}.");
 
         c.HeroicUpgradeRank = command.Rank;
         await db.SaveChangesAsync(ct);

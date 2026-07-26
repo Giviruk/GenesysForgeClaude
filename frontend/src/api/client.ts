@@ -185,6 +185,13 @@ export const api = {
     request<void>('PUT', `/api/characters/${id}/heroic-ability`, { heroicAbilityId }),
   setHeroicUpgradeRank: (id: string, rank: number) =>
     request<void>('PUT', `/api/characters/${id}/heroic-upgrade`, { rank }),
+  setHeroicUpgrades: (id: string, body: {
+    powerRank: number
+    durationRanks: number
+    frequencyRanks: number
+    story: boolean
+    secondaryEffectIds: string[]
+  }) => request<void>('PUT', `/api/characters/${id}/heroic-upgrades`, body),
   activateCharacterAbility: (id: string) =>
     request<ActivateCharacterAbilityResult>('POST', `/api/characters/${id}/activate-ability`),
 

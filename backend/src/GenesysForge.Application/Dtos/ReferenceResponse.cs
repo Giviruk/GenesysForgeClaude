@@ -7,7 +7,12 @@ public record ReferenceResponse(
     List<TalentDefDto> Talents,
     List<ItemDefDto> Items,
     List<HeroicAbilityDto> HeroicAbilities,
-    List<QualityDto> Qualities);
+    List<QualityDto> Qualities,
+    List<HeroicSecondaryEffectDto> HeroicSecondaryEffects);
+
+public record HeroicSecondaryEffectDto(
+    Guid Id, string Code, string Name, string NameRu, string Description, string SafeDescription,
+    string Source, string DescriptionEn = "");
 
 public record QualityDto(
     Guid Id, string Code, string NameEn, string NameRu, GenesysForge.Domain.Entities.QualityKind Kind,

@@ -60,20 +60,31 @@ the activation card (`Requirement`, `ActivationCost`, `Activation`, `Duration`, 
 Built-in abilities (Realms of Terrinoth) are loaded from the embedded `heroics.catalog.json` catalog
 (`HeroicCatalog`), generated from the user CSV by `_books/_heroic_abilities/gen-heroics-catalog.mjs`.
 
-### HeroicAbilityUpgradeDef
+### Heroic Ability upgrades
 
-A purchasable upgrade of a heroic ability. Fields: `Id`, `HeroicAbilityDefId`, `Level`
+`HeroicAbilityUpgradeDef` stores the ability-specific **Power** upgrades. Fields: `Id`, `HeroicAbilityDefId`, `Level`
 (`HeroicUpgradeLevel`: `Improved`=1, `Supreme`=2), `Cost` (1 and 2 ability points), `Description`, `Notes`.
 
 Rules:
 
 - Assignable to Realms of Terrinoth characters; Genesys Core assignment is rejected.
-- Upgrades are bought with **ability points**: 1 starting point + 1 per 50 XP earned after creation
-  (`1 + max(0, TotalXp − archetype.StartingXp) / 50`).
-- Ranks are sequential and cumulative: `Supreme` requires `Improved` first; `HeroicUpgradeRank`
-  (0/1/2) on the character records the highest purchased level. Lowering the rank refunds points.
-- Changing or clearing the selected ability resets `HeroicUpgradeRank` to 0.
-- Custom abilities carry no upgrades.
+- A Realms of Terrinoth character cannot complete creation until a Heroic Ability is selected.
+- There is no free starting ability point. Total points are
+  `max(0, TotalXp − archetype.StartingXp) / 50`; additional XP granted to an experienced character
+  during creation therefore counts, while species starting XP does not.
+- Power is sequential and cumulative: Improved costs 1; Supreme requires Improved and costs 2 more.
+  `HeroicUpgradeRank` remains the persisted 0/1/2 Power rank for backward compatibility.
+- `HeroicDurationRanks` costs 1 per rank and adds one turn per rank; it is repeatable.
+- `HeroicFrequencyRanks` costs 2 per rank and adds one use per session per rank; it is repeatable.
+- `HeroicStoryUpgrade` costs 1, is purchased once, and reduces activation to one Story Point.
+- Up to two different `HeroicSecondaryEffectDef` rows can be selected through
+  `CharacterHeroicSecondaryEffect`; each costs 1.
+- Purchases can be corrected during `IsCreationPhase`. After creation they are permanent and can only
+  increase. The selected Heroic Ability also cannot be changed after creation.
+- Changing/clearing the ability during creation resets all its upgrades.
+- Custom primary abilities have no built-in Power definitions, but can use the universal upgrades.
+- On Game Table, PC activation spends 2 player Story Points (1 with Story), flips them to the GM pool,
+  and increments `GameParticipant.HeroicAbilityUses`; Frequency sets the session limit.
 
 ### SpellDef
 
@@ -112,7 +123,10 @@ Rules:
 
 ### Character
 
-Fields: `Id`, `OwnerUserId`, `Name`, `System`, `ArchetypeId`, `CareerId`, six characteristics, `TotalXp`, `SpentXp`, `IsCreationPhase`, `WoundsCurrent`, `StrainCurrent`, `Money`, `HeroicAbilityId`, `HeroicUpgradeRank`, `CreatedAt`, `Skills`, `Talents`, `Items`.
+Fields: `Id`, `OwnerUserId`, `Name`, `System`, `ArchetypeId`, `CareerId`, six characteristics,
+`TotalXp`, `SpentXp`, `IsCreationPhase`, `WoundsCurrent`, `StrainCurrent`, `Money`,
+`HeroicAbilityId`, Power/Duration/Frequency/Story upgrade state, selected secondary effects,
+`CreatedAt`, `Skills`, `Talents`, `Items`.
 
 Rules:
 
@@ -208,4 +222,3 @@ Rules:
 - Whether custom heroic abilities should be restricted to Terrinoth or can exist globally but only be assigned to Terrinoth characters.
 - Whether `CareerSkillNames` should be normalized into a table.
 - Whether database constraints should duplicate domain constraints.
-

@@ -30,6 +30,8 @@ public class GameParticipant : ICombatTarget
 
     /// <summary>Счётчик активных критических ранений участника (U-23) для быстрого учёта за столом.</summary>
     public int CriticalInjuries { get; set; }
+    /// <summary>Число активаций героической способности PC в текущей игровой сессии.</summary>
+    public int HeroicAbilityUses { get; set; }
 
     public bool IsActive { get; set; } = true;
     public bool IsDefeated { get; set; }

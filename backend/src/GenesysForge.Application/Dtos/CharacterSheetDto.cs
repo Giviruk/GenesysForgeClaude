@@ -24,6 +24,7 @@ public record CharacterSheetDto(
     int HeroicUpgradeRank,
     int HeroicUpgradePointsTotal,
     int HeroicUpgradePointsSpent,
+    HeroicUpgradeStateDto HeroicUpgrades,
     List<CharacterItemDto> Items,
     string? Desire = null,
     string? Fear = null,
@@ -32,6 +33,13 @@ public record CharacterSheetDto(
     string? Background = null,
     List<CharacterCriticalInjuryDto>? CriticalInjuries = null,
     string? PortraitUrl = null);
+
+public record HeroicUpgradeStateDto(
+    int PowerRank,
+    int DurationRanks,
+    int FrequencyRanks,
+    bool Story,
+    List<HeroicSecondaryEffectDto> SecondaryEffects);
 
 /// <summary>Критическое ранение персонажа (U-23).</summary>
 public record CharacterCriticalInjuryDto(

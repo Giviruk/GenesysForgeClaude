@@ -29,9 +29,15 @@ public class SetHeroicAbilityHandler(IAppDbContext db) : ICommandHandler<SetHero
         }
 
         if (c.HeroicAbilityId == command.HeroicAbilityId) return Unit.Value; // без изменений — не логируем
+        if (!c.IsCreationPhase)
+            throw new DomainRuleException("Героическая способность выбирается во время создания персонажа и затем не меняется.");
 
-        // Улучшения привязаны к конкретной способности — при смене/сбросе откатываем купленный ранг.
+        // До завершения создания смена допустима, но все привязанные к способности улучшения сбрасываются.
         c.HeroicUpgradeRank = 0;
+        c.HeroicDurationRanks = 0;
+        c.HeroicFrequencyRanks = 0;
+        c.HeroicStoryUpgrade = false;
+        db.CharacterHeroicSecondaryEffects.RemoveRange(c.HeroicSecondaryEffects);
         c.HeroicAbilityId = command.HeroicAbilityId;
 
         CharacterAudit.Record(db, c, command.UserId, CharacterAuditAction.HeroicAbilityChanged,

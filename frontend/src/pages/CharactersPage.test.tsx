@@ -45,7 +45,7 @@ const reference: Reference = {
     { id: 's3', name: 'Stealth', nameRu: 'Скрытность', characteristic: 'agility', kind: 'general', safeDescription: '', source: '', isCustom: false },
     { id: 's4', name: 'Coordination', nameRu: 'Координация', characteristic: 'agility', kind: 'general', safeDescription: '', source: '', isCustom: false },
   ],
-  talents: [], items: [], heroicAbilities: [], qualities: [],
+  talents: [], items: [], heroicAbilities: [], heroicSecondaryEffects: [], qualities: [],
 }
 
 const createCharacterMock = vi.fn().mockResolvedValue({ id: 'new-id' })

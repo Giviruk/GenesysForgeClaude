@@ -19,8 +19,13 @@ public class AwardXpHandler(IAppDbContext db) : ICommandHandler<AwardXpCommand, 
         var c = await db.GetOwnedAsync(command.UserId, command.CharacterId, ct: ct);
         if (c.TotalXp + amount < c.SpentXp)
             throw new DomainRuleException($"Суммарный XP не может стать меньше потраченного ({c.SpentXp}).");
+        var targetTotal = c.TotalXp + amount;
+        var heroicPointsAtTarget = Math.Max(0, targetTotal - (c.Archetype?.StartingXp ?? 0)) / 50;
+        if (heroicPointsAtTarget < c.HeroicUpgradePointsSpent)
+            throw new DomainRuleException(
+                $"Коррекция XP не может оставить меньше ability points, чем уже потрачено ({c.HeroicUpgradePointsSpent}).");
 
-        c.TotalXp += amount;
+        c.TotalXp = targetTotal;
 
         var note = command.Request.Note?.Trim();
         var sign = amount > 0 ? "+" : "";

@@ -35,6 +35,12 @@ public class Character
     public HeroicAbilityDef? HeroicAbility { get; set; }
     /// <summary>Купленный ранг улучшения героической способности: 0 — базовая, 1 — Improved, 2 — Supreme.</summary>
     public int HeroicUpgradeRank { get; set; }
+    /// <summary>Число покупок Duration: каждая добавляет один ход и стоит 1 ability point.</summary>
+    public int HeroicDurationRanks { get; set; }
+    /// <summary>Число покупок Frequency: каждая добавляет одно применение за сессию и стоит 2 ability points.</summary>
+    public int HeroicFrequencyRanks { get; set; }
+    /// <summary>Куплено ли улучшение Story, снижающее стоимость активации до 1 Story Point.</summary>
+    public bool HeroicStoryUpgrade { get; set; }
 
     // Мотивации и предыстория (U-22). Все опциональны: пусто → null.
     public string? Desire { get; set; }
@@ -49,6 +55,7 @@ public class Character
     public List<CharacterTalent> Talents { get; set; } = [];
     public List<CharacterItem> Items { get; set; } = [];
     public List<CharacterCriticalInjury> CriticalInjuries { get; set; } = [];
+    public List<CharacterHeroicSecondaryEffect> HeroicSecondaryEffects { get; set; } = [];
 
     public CharacteristicsSet Characteristics => new(Brawn, Agility, Intellect, Cunning, Willpower, Presence);
 
@@ -57,12 +64,16 @@ public class Character
     /// <summary>XP, заработанный после создания (сверх стартового XP архетипа).</summary>
     public int EarnedXp => Math.Max(0, TotalXp - (Archetype?.StartingXp ?? 0));
 
-    /// <summary>Всего очков улучшения героики: 1 стартовое + по 1 каждые 50 заработанного XP.</summary>
-    public int HeroicUpgradePointsTotal => 1 + EarnedXp / 50;
+    /// <summary>Всего ability points: по 1 за каждые полные 50 XP сверх стартового XP вида.</summary>
+    public int HeroicUpgradePointsTotal => EarnedXp / 50;
 
-    /// <summary>Очки улучшения, потраченные на купленные ранги выбранной способности.</summary>
+    /// <summary>Очки, потраченные на Power, Duration, Frequency, Story и Secondary Effects.</summary>
     public int HeroicUpgradePointsSpent =>
-        HeroicAbility?.Upgrades.Where(u => (int)u.Level <= HeroicUpgradeRank).Sum(u => u.Cost) ?? 0;
+        (HeroicAbility?.Upgrades.Where(u => (int)u.Level <= HeroicUpgradeRank).Sum(u => u.Cost) ?? 0)
+        + HeroicDurationRanks
+        + HeroicFrequencyRanks * 2
+        + (HeroicStoryUpgrade ? 1 : 0)
+        + HeroicSecondaryEffects.Count;
 
     public int GetCharacteristic(CharacteristicType type) => Characteristics.Get(type);
 

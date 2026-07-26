@@ -83,7 +83,7 @@ export function SheetTab({ sheet, reference, onError, refresh }: Props) {
         <section className="panel">
           <h3>{t('Героическая способность', 'Heroic ability')}</h3>
           {sheet.heroicAbility ? (
-            <HeroicAbilityCard sheet={sheet} run={run} />
+            <HeroicAbilityCard sheet={sheet} reference={reference} run={run} />
           ) : (
             <div className="inline-form">
               <select value={heroicPick} onChange={e => setHeroicPick(e.target.value)}>
@@ -215,23 +215,44 @@ function DerivedBox({ label, value, warning, onMinus, onPlus }: {
 
 const UPGRADE_LABELS: Record<number, string> = t({ 1: 'Улучшенная', 2: 'Высшая' }, { 1: 'Improved', 2: 'Supreme' })
 
-function HeroicAbilityCard({ sheet, run }: {
+function HeroicAbilityCard({ sheet, reference, run }: {
   sheet: CharacterSheet
+  reference: Reference
   run: (action: () => Promise<unknown>) => Promise<void>
 }) {
   const h = sheet.heroicAbility!
-  const rank = sheet.heroicUpgradeRank
+  const upgrades = sheet.heroicUpgrades
+  const rank = upgrades.powerRank
   const total = sheet.heroicUpgradePointsTotal
   const available = total - sheet.heroicUpgradePointsSpent
   const [outcome, setOutcome] = useState<ActivateCharacterAbilityResult | null>(null)
+  const selectedEffectIds = upgrades.secondaryEffects.map(x => x.id)
+
+  function save(patch: Partial<typeof upgrades>) {
+    const next = { ...upgrades, ...patch }
+    return api.setHeroicUpgrades(sheet.id, {
+      powerRank: next.powerRank,
+      durationRanks: next.durationRanks,
+      frequencyRanks: next.frequencyRanks,
+      story: next.story,
+      secondaryEffectIds: next.secondaryEffects.map(x => x.id),
+    })
+  }
 
   async function activate() {
     await run(async () => { setOutcome(await api.activateCharacterAbility(sheet.id)) })
   }
   const meta: [string, string][] = [
-    [t('Активация', 'Activation'), [h.activationCost, h.activation].filter(Boolean).join(' · ')],
-    [t('Длительность', 'Duration'), h.duration],
-    [t('Частота', 'Frequency'), h.frequency],
+    [t('Активация', 'Activation'), [
+      upgrades.story ? t('1 очко сюжета', '1 Story Point') : h.activationCost,
+      h.activation,
+    ].filter(Boolean).join(' · ')],
+    [t('Длительность', 'Duration'), upgrades.durationRanks > 0
+      ? t(`${h.duration} · +${upgrades.durationRanks} ход.`, `${h.duration} · +${upgrades.durationRanks} turn(s)`)
+      : h.duration],
+    [t('Частота', 'Frequency'), upgrades.frequencyRanks > 0
+      ? t(`${1 + upgrades.frequencyRanks} раз за сессию`, `${1 + upgrades.frequencyRanks} times per session`)
+      : h.frequency],
     [t('Требование', 'Requirement'), h.requirement && h.requirement !== '—' ? h.requirement : ''],
   ]
 
@@ -244,11 +265,10 @@ function HeroicAbilityCard({ sheet, run }: {
       ))}
       {h.notes && <p className="hint small-text">{h.notes}</p>}
 
-      {h.upgrades.length > 0 && (
-        <div className="heroic-upgrades">
+      <div className="heroic-upgrades">
           <div className="label-line">
             {t(`Улучшения · очков доступно: ${available} из ${total}`, `Upgrades · points available: ${available} of ${total}`)}
-            <span className="hint"> {t('(1 стартовое + по 1 каждые 50 заработанного XP)', '(1 to start + 1 per 50 earned XP)')}</span>
+            <span className="hint"> {t('(по 1 за каждые 50 XP сверх стартового XP вида)', '(1 per 50 XP above species starting XP)')}</span>
           </div>
           {h.upgrades.map(u => {
             const purchased = rank >= u.level
@@ -263,15 +283,15 @@ function HeroicAbilityCard({ sheet, run }: {
                   {purchased && <span className="badge"> {t('куплено', 'purchased')}</span>}
                   {!purchased && canBuy && (
                     <button className="small primary"
-                      onClick={() => run(() => api.setHeroicUpgradeRank(sheet.id, u.level))}>
+                      onClick={() => run(() => save({ powerRank: u.level }))}>
                       {t('Купить', 'Buy')}
                     </button>
                   )}
                   {!purchased && isNext && !canBuy && <span className="hint"> {t('— не хватает очков', '— not enough points')}</span>}
                   {!purchased && !isNext && <span className="hint"> {t('— сначала купите предыдущее', '— buy the previous one first')}</span>}
-                  {isTop && (
+                  {isTop && sheet.isCreationPhase && (
                     <button className="small"
-                      onClick={() => run(() => api.setHeroicUpgradeRank(sheet.id, u.level - 1))}>
+                      onClick={() => run(() => save({ powerRank: u.level - 1 }))}>
                       {t('Вернуть', 'Refund')}
                     </button>
                   )}
@@ -281,8 +301,56 @@ function HeroicAbilityCard({ sheet, run }: {
               </div>
             )
           })}
-        </div>
-      )}
+
+          <div className="heroic-upgrade">
+            <div className="heroic-upgrade-head">
+              <strong>{t('Длительность', 'Duration')}</strong>
+              <span className="hint"> · 1 {t('очк. за ранг', 'pt per rank')} · {t(`рангов: ${upgrades.durationRanks}`, `ranks: ${upgrades.durationRanks}`)}</span>
+              {available >= 1 && <button className="small primary" onClick={() => run(() => save({ durationRanks: upgrades.durationRanks + 1 }))}>{t('Купить', 'Buy')}</button>}
+              {sheet.isCreationPhase && upgrades.durationRanks > 0 && <button className="small" onClick={() => run(() => save({ durationRanks: upgrades.durationRanks - 1 }))}>{t('Вернуть', 'Refund')}</button>}
+            </div>
+            <p className="hint small-text">{t('Каждый ранг продлевает эффект ещё на один ход.', 'Each rank extends the effect by one turn.')}</p>
+          </div>
+
+          <div className="heroic-upgrade">
+            <div className="heroic-upgrade-head">
+              <strong>{t('Частота', 'Frequency')}</strong>
+              <span className="hint"> · 2 {t('очк. за ранг', 'pts per rank')} · {t(`рангов: ${upgrades.frequencyRanks}`, `ranks: ${upgrades.frequencyRanks}`)}</span>
+              {available >= 2 && <button className="small primary" onClick={() => run(() => save({ frequencyRanks: upgrades.frequencyRanks + 1 }))}>{t('Купить', 'Buy')}</button>}
+              {sheet.isCreationPhase && upgrades.frequencyRanks > 0 && <button className="small" onClick={() => run(() => save({ frequencyRanks: upgrades.frequencyRanks - 1 }))}>{t('Вернуть', 'Refund')}</button>}
+            </div>
+            <p className="hint small-text">{t('Каждый ранг даёт ещё одно применение за сессию.', 'Each rank grants one additional use per session.')}</p>
+          </div>
+
+          <div className={upgrades.story ? 'heroic-upgrade bought' : 'heroic-upgrade'}>
+            <div className="heroic-upgrade-head">
+              <strong>{t('Сюжет', 'Story')}</strong><span className="hint"> · 1 {t('очк.', 'pt')}</span>
+              {upgrades.story && <span className="badge">{t('куплено', 'purchased')}</span>}
+              {!upgrades.story && available >= 1 && <button className="small primary" onClick={() => run(() => save({ story: true }))}>{t('Купить', 'Buy')}</button>}
+              {sheet.isCreationPhase && upgrades.story && <button className="small" onClick={() => run(() => save({ story: false }))}>{t('Вернуть', 'Refund')}</button>}
+            </div>
+            <p className="hint small-text">{t('Снижает стоимость активации до одного очка сюжета.', 'Reduces activation cost to one Story Point.')}</p>
+          </div>
+
+          <div className="heroic-upgrade">
+            <strong>{t(`Вторичные эффекты (${upgrades.secondaryEffects.length}/2)`, `Secondary effects (${upgrades.secondaryEffects.length}/2)`)}</strong>
+            {reference.heroicSecondaryEffects.map(effect => {
+              const selected = selectedEffectIds.includes(effect.id)
+              const canBuy = !selected && upgrades.secondaryEffects.length < 2 && available >= 1
+              return (
+                <div key={effect.id} className={selected ? 'heroic-upgrade bought' : 'heroic-upgrade'}>
+                  <div className="heroic-upgrade-head">
+                    <strong>{localizedName(effect)}</strong><span className="hint"> · 1 {t('очк.', 'pt')}</span>
+                    {selected && <span className="badge">{t('куплено', 'purchased')}</span>}
+                    {canBuy && <button className="small primary" onClick={() => run(() => save({ secondaryEffects: [...upgrades.secondaryEffects, effect] }))}>{t('Купить', 'Buy')}</button>}
+                    {selected && sheet.isCreationPhase && <button className="small" onClick={() => run(() => save({ secondaryEffects: upgrades.secondaryEffects.filter(x => x.id !== effect.id) }))}>{t('Вернуть', 'Refund')}</button>}
+                  </div>
+                  <p>{localizedDescription(effect)}</p>
+                </div>
+              )
+            })}
+          </div>
+      </div>
 
       {h.effects.length > 0 && (
         <div className="heroic-activate">
@@ -296,9 +364,11 @@ function HeroicAbilityCard({ sheet, run }: {
         </div>
       )}
 
-      <button className="small" onClick={() => run(() => api.setHeroicAbility(sheet.id, null))}>
-        {t('Сбросить способность', 'Reset ability')}
-      </button>
+      {sheet.isCreationPhase && (
+        <button className="small" onClick={() => run(() => api.setHeroicAbility(sheet.id, null))}>
+          {t('Сбросить способность', 'Reset ability')}
+        </button>
+      )}
     </div>
   )
 }

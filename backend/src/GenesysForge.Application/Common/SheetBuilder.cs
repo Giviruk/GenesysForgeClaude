@@ -77,6 +77,16 @@ public static class SheetBuilder
             c.HeroicUpgradeRank,
             c.HeroicUpgradePointsTotal,
             c.HeroicUpgradePointsSpent,
+            new HeroicUpgradeStateDto(
+                c.HeroicUpgradeRank,
+                c.HeroicDurationRanks,
+                c.HeroicFrequencyRanks,
+                c.HeroicStoryUpgrade,
+                c.HeroicSecondaryEffects
+                    .Where(x => x.HeroicSecondaryEffectDef is not null)
+                    .Select(x => x.HeroicSecondaryEffectDef!.ToDto())
+                    .OrderBy(x => x.NameRu)
+                    .ToList()),
             c.Items
                 .OrderBy(i => i.ItemDef!.Kind).ThenBy(i => i.ItemDef!.NameRu)
                 .Select(i => new CharacterItemDto(i.Id, i.ItemDefId, i.ItemDef!.Name, i.ItemDef.NameRu, i.ItemDef.Kind, i.State,

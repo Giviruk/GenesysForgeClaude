@@ -54,4 +54,7 @@ public static class Mappers
                 .ToList(),
             h.Effects.Select(e => new RuleEffectDto(e.Kind, e.Amount, e.Duration, e.Description)).ToList(),
             h.DescriptionEn);
+
+    public static HeroicSecondaryEffectDto ToDto(this HeroicSecondaryEffectDef x) =>
+        new(x.Id, x.Code, x.Name, x.NameRu, x.Description, x.SafeDescription, x.Source, x.DescriptionEn);
 }

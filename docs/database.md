@@ -128,9 +128,15 @@ Indexes include non-unique `HomebrewPackId` and `OwnerUserId`.
 
 ### HeroicAbilityUpgradeDefs
 
-Purchasable upgrades (Improved/Supreme) of a heroic ability. Fields: `Id`, `HeroicAbilityDefId` (FK,
+Purchasable Power upgrades (Improved/Supreme) of a heroic ability. Fields: `Id`, `HeroicAbilityDefId` (FK,
 cascade delete), `Level`, `Cost`, `Description`, `Notes`. The character's `HeroicUpgradeRank` (0/1/2)
 records the highest purchased level.
+
+### HeroicSecondaryEffectDefs
+
+Standard universal secondary effects for RoT heroic abilities. Fields: content-model fields (`Code`,
+localized names, private/safe descriptions, source). `Code` is unique. PrivateFull descriptions are
+extended original paraphrases; PublicSafe clears `Description` and retains `SafeDescription`.
 
 ### ArchetypeDefs
 
@@ -172,14 +178,20 @@ Structured career rules/notes (U-13). Fields: `CareerId`, `Code`, `Kind` (`Advis
 
 Owned character sheets.
 
-Fields include owner, name, system, archetype, career, six characteristics, total/spent XP, creation phase, current wounds/strain, optional heroic ability and created timestamp.
+Fields include owner, name, system, archetype, career, six characteristics, total/spent XP, creation phase,
+current wounds/strain, optional heroic ability, `HeroicUpgradeRank` (Power), `HeroicDurationRanks`,
+`HeroicFrequencyRanks`, `HeroicStoryUpgrade`, and created timestamp.
 
 Relationships:
 
 - `Archetype` restrict delete.
 - `Career` restrict delete.
 - `HeroicAbility` set null on delete.
-- skills/talents/items cascade delete from character.
+- skills/talents/items/secondary heroic effects cascade delete from character.
+
+`CharacterHeroicSecondaryEffects` is the normalized selection table for up to two different standard
+secondary effects. It has a unique `(CharacterId, HeroicSecondaryEffectDefId)` index; the two-effect
+limit and point budget are application/domain rules.
 
 ### CharacterShareTokens
 
@@ -371,6 +383,12 @@ Found migrations:
 - `20260630123634_AddHomebrewPacks` — creates `HomebrewPacks`, `HomebrewPackCharacters`, `HomebrewPackCampaigns`, and adds nullable `HomebrewPackId` indexes to custom-capable reference tables for imported JSON packs. Non-destructive (`CreateTable` + nullable `AddColumn` + `CreateIndex`).
 - `20260630182613_AddApiV1Indexes` — adds hot-path indexes for U-27: NPC filters (`System/Kind/Role`, scoped visibility, GIN `Tags`), reference content visibility (`System/OwnerUserId`), and token cleanup/lookups. Non-destructive (`CreateIndex` only).
 - `20260701151637_AddTalentCategory` — adds `Category` (`int`, default `0` = `General`) to `TalentDefs` for UI filtering by common/social/combat/magic tags. Non-destructive (`AddColumn` only); built-in category values are provided by the next idempotent seed run from `talents.catalog.json`.
+- `20260726114049_CompleteHeroicAbilityProgression` — adds Duration/Frequency/Story state to `Characters`,
+  creates the standard secondary-effect catalog and character selection table, and corrects legacy
+  `HeroicUpgradeRank` values that depended on the erroneous free starting point. The correction can
+  lower an existing Power rank when the character lacks the required XP above species starting XP.
+- `20260726115105_TrackHeroicAbilityUses` — adds `HeroicAbilityUses` to Game Table participants so
+  once-per-session activation and repeatable Frequency upgrades are enforced for player characters.
 
 Startup behavior:
 
@@ -380,7 +398,14 @@ Startup behavior:
 
 ## Seed data and content modes
 
-`SeedData.cs` inserts built-in skills, archetypes, careers, talents, items, heroic abilities and spell/magic reference entries with the full content model (`Code`, `NameRu`, `SafeDescription`, `Source`). Talents (`talents.catalog.json` / `TalentCatalog`), items (`items.catalog.json` / `ItemCatalog`), heroic abilities with their upgrades (`heroics.catalog.json` / `HeroicCatalog`), qualities (`qualities.catalog.json`), rule tables (`rules.catalog.json`) and archetypes/species (`archetypes.catalog.json` / `ArchetypeCatalog`) are loaded from embedded catalogs; the rest (skills, careers, spells) are defined in `SeedData.cs`.
+`SeedData.cs` inserts built-in skills, archetypes, careers, talents, items, heroic abilities, standard
+heroic secondary effects and spell/magic reference entries with the full content model (`Code`, `NameRu`,
+`SafeDescription`, `Source`). Talents (`talents.catalog.json` / `TalentCatalog`), items
+(`items.catalog.json` / `ItemCatalog`), heroic abilities with their Power upgrades
+(`heroics.catalog.json` / `HeroicCatalog`), universal heroic secondary effects
+(`HeroicSecondaryEffectCatalog`), qualities (`qualities.catalog.json`), rule tables
+(`rules.catalog.json`) and archetypes/species (`archetypes.catalog.json` / `ArchetypeCatalog`) are loaded
+from embedded catalogs; the rest (skills, careers, spells) are defined in `SeedData.cs`.
 
 Two seed pipelines are selected by `ContentMode` (param of `SeedData.Apply`, from `Content:Mode` config):
 
@@ -420,4 +445,3 @@ Legal risk:
 
 - Explicit database check constraints for XP ranges, tier ranges, ranks and quantity.
 - Database-level ownership enforcement; ownership is application-level.
-

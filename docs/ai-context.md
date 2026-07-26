@@ -37,6 +37,9 @@ Talent cost = `5 * effectiveTier`. Ranked effective tier = `min(baseTier + ranks
 Derived stats: wounds = archetype wound base + Brawn + talent bonuses; strain = archetype strain base + Willpower + talent bonuses; soak = Brawn + equipped armor soak + talent bonuses; item defense does not stack, use max equipped item defense then add talent defense; encumbrance threshold = `5 + Brawn + equipped item threshold bonuses`; equipped armor load = `max(0, encumbrance - 3) * quantity`; encumbered when load > threshold.
 
 Heroic abilities are for Realms of Terrinoth characters; Genesys Core assignment is rejected.
+They start with 0 ability points and gain 1 per complete 50 XP above species starting XP. Supported
+upgrades are Power (1 then 2 points), repeatable Duration (1), repeatable Frequency (2), Story (1 once),
+and up to two different Secondary Effects (1 each). Purchases are permanent after creation.
 
 ## API
 
@@ -49,4 +52,3 @@ Full stack: `docker compose up -d --build`. Backend: `dotnet run --project backe
 ## Constraints
 
 Do not add copyrighted book text. Do not store original descriptions of talents, abilities, items, archetypes or careers. Use structural data, numeric parameters and original/paraphrased short descriptions only. For documentation-only tasks, do not change application code, migrations, dependencies, Docker or workflows. If information is absent from code, write `Not found in current codebase`; mark assumptions as `Assumption`.
-
