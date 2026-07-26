@@ -1,8 +1,8 @@
 namespace GenesysForge.Domain.Entities;
 
 /// <summary>
-/// Улучшение героической способности (Improved/Supreme). Покупается за «очки улучшения»:
-/// 1 стартовое + по 1 каждые 50 заработанного XP. Supreme требует предварительно купленного Improved.
+/// Улучшение Power героической способности (Improved/Supreme). Ability points начисляются
+/// по одному за каждые 50 XP сверх стартового XP вида. Supreme требует купленного Improved.
 /// </summary>
 public class HeroicAbilityUpgradeDef
 {

@@ -30,6 +30,7 @@ public class ContentSeedTests
             Assert.All(db.ArchetypeDefs, a => Assert.False(string.IsNullOrWhiteSpace(a.DescriptionEn)));
             Assert.All(db.CareerDefs, c => Assert.False(string.IsNullOrWhiteSpace(c.DescriptionEn)));
             Assert.All(db.HeroicAbilityDefs, h => Assert.False(string.IsNullOrWhiteSpace(h.DescriptionEn)));
+            Assert.All(db.HeroicSecondaryEffectDefs, h => Assert.False(string.IsNullOrWhiteSpace(h.DescriptionEn)));
             Assert.All(db.SpellDefs, sp => Assert.False(string.IsNullOrWhiteSpace(sp.DescriptionEn)));
             // Таблицы правил переведены целиком (body; notes — там, где есть русские notes).
             Assert.All(db.RuleTableEntries, r => Assert.False(string.IsNullOrWhiteSpace(r.BodyEn)));
@@ -79,6 +80,8 @@ public class ContentSeedTests
         // У всех встроенных талантов/архетипов есть полное описание (full content).
         Assert.All(db.TalentDefs, t => Assert.False(string.IsNullOrWhiteSpace(t.Description)));
         Assert.All(db.ArchetypeDefs, a => Assert.False(string.IsNullOrWhiteSpace(a.Description)));
+        Assert.All(db.HeroicAbilityDefs, h => Assert.False(string.IsNullOrWhiteSpace(h.Description)));
+        Assert.All(db.HeroicSecondaryEffectDefs, h => Assert.False(string.IsNullOrWhiteSpace(h.Description)));
         // Заклинания тоже отдают полное описание.
         Assert.All(db.SpellDefs, s => Assert.False(string.IsNullOrWhiteSpace(s.Description)));
     }
@@ -94,6 +97,8 @@ public class ContentSeedTests
         Assert.Contains("универсальный клинок", knife.Description);
         // safe-описание (механика) отличается от полного private-описания.
         Assert.NotEqual(knife.SafeDescription, knife.Description);
+        var devastating = db.HeroicSecondaryEffectDefs.Single(x => x.Code == "rot.heroic.secondary.devastating");
+        Assert.NotEqual(devastating.SafeDescription, devastating.Description);
     }
 
     [Fact]
@@ -114,6 +119,8 @@ public class ContentSeedTests
         Assert.All(db.TalentDefs, t => Assert.True(string.IsNullOrEmpty(t.Description)));
         Assert.All(db.ArchetypeDefs, a => Assert.True(string.IsNullOrEmpty(a.Description)));
         Assert.All(db.ItemDefs, i => Assert.True(string.IsNullOrEmpty(i.Description)));
+        Assert.All(db.HeroicAbilityDefs, h => Assert.True(string.IsNullOrEmpty(h.Description)));
+        Assert.All(db.HeroicSecondaryEffectDefs, h => Assert.True(string.IsNullOrEmpty(h.Description)));
         Assert.All(db.SpellDefs, s => Assert.True(string.IsNullOrEmpty(s.Description)));
     }
 
@@ -129,11 +136,13 @@ public class ContentSeedTests
         Assert.All(db.ItemDefs, i => Assert.False(string.IsNullOrWhiteSpace(i.Source)));
         Assert.All(db.SkillDefs, s => Assert.False(string.IsNullOrWhiteSpace(s.Source)));
         Assert.All(db.SpellDefs, s => Assert.False(string.IsNullOrWhiteSpace(s.Source)));
+        Assert.All(db.HeroicSecondaryEffectDefs, h => Assert.False(string.IsNullOrWhiteSpace(h.Source)));
 
         // Русские названия присутствуют, safe-описания у талантов заполнены.
         Assert.All(db.TalentDefs, t => Assert.False(string.IsNullOrWhiteSpace(t.NameRu)));
         Assert.All(db.TalentDefs, t => Assert.False(string.IsNullOrWhiteSpace(t.SafeDescription)));
         Assert.All(db.ArchetypeDefs, a => Assert.False(string.IsNullOrWhiteSpace(a.NameRu)));
+        Assert.All(db.HeroicSecondaryEffectDefs, h => Assert.False(string.IsNullOrWhiteSpace(h.SafeDescription)));
     }
 
     [Theory]
@@ -144,12 +153,14 @@ public class ContentSeedTests
         using var db = NewDb();
         SeedData.Apply(db, mode);
         var first = (db.SkillDefs.Count(), db.TalentDefs.Count(), db.ItemDefs.Count(),
-            db.ArchetypeDefs.Count(), db.CareerDefs.Count(), db.HeroicAbilityDefs.Count(), db.SpellDefs.Count());
+            db.ArchetypeDefs.Count(), db.CareerDefs.Count(), db.HeroicAbilityDefs.Count(),
+            db.HeroicSecondaryEffectDefs.Count(), db.SpellDefs.Count());
 
         SeedData.Apply(db, mode); // повторный сид того же режима не добавляет дублей
 
         var second = (db.SkillDefs.Count(), db.TalentDefs.Count(), db.ItemDefs.Count(),
-            db.ArchetypeDefs.Count(), db.CareerDefs.Count(), db.HeroicAbilityDefs.Count(), db.SpellDefs.Count());
+            db.ArchetypeDefs.Count(), db.CareerDefs.Count(), db.HeroicAbilityDefs.Count(),
+            db.HeroicSecondaryEffectDefs.Count(), db.SpellDefs.Count());
         Assert.Equal(first, second);
     }
 
@@ -165,6 +176,7 @@ public class ContentSeedTests
         Assert.Equal(priv.TalentDefs.Count(), pub.TalentDefs.Count());
         Assert.Equal(priv.SkillDefs.Count(), pub.SkillDefs.Count());
         Assert.Equal(priv.SpellDefs.Count(), pub.SpellDefs.Count());
+        Assert.Equal(priv.HeroicSecondaryEffectDefs.Count(), pub.HeroicSecondaryEffectDefs.Count());
 
         var privCodes = priv.TalentDefs.Select(t => t.Code).OrderBy(c => c).ToList();
         var pubCodes = pub.TalentDefs.Select(t => t.Code).OrderBy(c => c).ToList();

@@ -38,6 +38,7 @@ public static class SeedData
         var talents = TalentCatalog.Load().ToList();
         var items = ItemCatalog.Load().ToList();
         var heroics = HeroicCatalog.Load().ToList();
+        var heroicSecondaryEffects = HeroicSecondaryEffectCatalog.Load();
         var qualities = QualityCatalog.Load().ToList();
         var rules = RuleCatalog.Load().ToList();
         var spells = Spells(GameSystem.GenesysCore).Concat(Spells(GameSystem.RealmsOfTerrinoth)).ToList();
@@ -49,6 +50,7 @@ public static class SeedData
         ProjectContent(talents, mode, store);
         ProjectContent(items, mode, store);
         ProjectContent(heroics, mode, store);
+        ProjectContent(heroicSecondaryEffects, mode, store);
         ProjectContent(qualities, mode, store);
         ProjectSpells(spells, mode);
 
@@ -77,6 +79,20 @@ public static class SeedData
             (row, def) => Assign(row.DescriptionEn != def.DescriptionEn || row.SafeDescription != def.SafeDescription,
                 () => { row.DescriptionEn = def.DescriptionEn; row.SafeDescription = def.SafeDescription; }));
         SyncHeroics(db, heroics);
+        SyncBuiltinByCode(db,
+            db.HeroicSecondaryEffectDefs.Where(x => x.Code != ""),
+            heroicSecondaryEffects,
+            (row, def) =>
+            {
+                var same = row.Name == def.Name && row.NameRu == def.NameRu
+                    && row.Description == def.Description && row.SafeDescription == def.SafeDescription
+                    && row.DescriptionEn == def.DescriptionEn && row.Source == def.Source;
+                if (same) return false;
+                row.Name = def.Name; row.NameRu = def.NameRu;
+                row.Description = def.Description; row.SafeDescription = def.SafeDescription;
+                row.DescriptionEn = def.DescriptionEn; row.Source = def.Source;
+                return true;
+            });
         SyncSpells(db, spells);
 
         var added = false;
@@ -86,6 +102,8 @@ public static class SeedData
         added |= SeedMissing(db, db.TalentDefs, talents, d => (d.System, d.Name));
         added |= SeedMissing(db, db.ItemDefs, items, d => (d.System, d.Name));
         added |= SeedMissing(db, db.HeroicAbilityDefs, heroics, d => ((GameSystem)0, d.Name));
+        added |= SeedMissing(db, db.HeroicSecondaryEffectDefs, heroicSecondaryEffects,
+            d => ((GameSystem)0, d.Code));
         added |= SeedMissing(db, db.QualityDefs, qualities, d => ((GameSystem)0, d.NameEn));
         added |= SeedOrUpdateRules(db, rules);
         added |= SeedMissing(db, db.SpellDefs, spells,

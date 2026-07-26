@@ -159,6 +159,17 @@ export interface HeroicAbility {
   effects: RuleEffect[]
 }
 
+export interface HeroicSecondaryEffect {
+  id: string
+  code: string
+  name: string
+  nameRu: string
+  description: string
+  safeDescription: string
+  descriptionEn?: string
+  source: string
+}
+
 export interface ActivateAbilityResult {
   session: GameSession
   abilityName: string
@@ -288,6 +299,7 @@ export interface Reference {
   talents: TalentDef[]
   items: ItemDef[]
   heroicAbilities: HeroicAbility[]
+  heroicSecondaryEffects: HeroicSecondaryEffect[]
   qualities: Quality[]
 }
 
@@ -929,6 +941,13 @@ export interface CharacterSheet {
   heroicUpgradeRank: number
   heroicUpgradePointsTotal: number
   heroicUpgradePointsSpent: number
+  heroicUpgrades: {
+    powerRank: number
+    durationRanks: number
+    frequencyRanks: number
+    story: boolean
+    secondaryEffects: HeroicSecondaryEffect[]
+  }
   items: SheetItem[]
   // Мотивации и предыстория (U-22)
   desire: string | null

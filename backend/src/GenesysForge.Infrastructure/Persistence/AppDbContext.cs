@@ -15,6 +15,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<ItemDef> ItemDefs => Set<ItemDef>();
     public DbSet<HeroicAbilityDef> HeroicAbilityDefs => Set<HeroicAbilityDef>();
     public DbSet<HeroicAbilityUpgradeDef> HeroicAbilityUpgradeDefs => Set<HeroicAbilityUpgradeDef>();
+    public DbSet<HeroicSecondaryEffectDef> HeroicSecondaryEffectDefs => Set<HeroicSecondaryEffectDef>();
     public DbSet<RuleEffectDef> RuleEffectDefs => Set<RuleEffectDef>();
     public DbSet<ArchetypeDef> ArchetypeDefs => Set<ArchetypeDef>();
     public DbSet<ArchetypeAbilityDef> ArchetypeAbilityDefs => Set<ArchetypeAbilityDef>();
@@ -27,6 +28,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<CharacterTalent> CharacterTalents => Set<CharacterTalent>();
     public DbSet<CharacterItem> CharacterItems => Set<CharacterItem>();
     public DbSet<CharacterCriticalInjury> CharacterCriticalInjuries => Set<CharacterCriticalInjury>();
+    public DbSet<CharacterHeroicSecondaryEffect> CharacterHeroicSecondaryEffects => Set<CharacterHeroicSecondaryEffect>();
     public DbSet<CharacterShareToken> CharacterShareTokens => Set<CharacterShareToken>();
     public DbSet<CharacterNote> CharacterNotes => Set<CharacterNote>();
     public DbSet<Campaign> Campaigns => Set<Campaign>();
@@ -102,6 +104,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             e.HasMany(c => c.Talents).WithOne().HasForeignKey(t => t.CharacterId).OnDelete(DeleteBehavior.Cascade);
             e.HasMany(c => c.Items).WithOne().HasForeignKey(i => i.CharacterId).OnDelete(DeleteBehavior.Cascade);
             e.HasMany(c => c.CriticalInjuries).WithOne().HasForeignKey(ci => ci.CharacterId).OnDelete(DeleteBehavior.Cascade);
+            e.HasMany(c => c.HeroicSecondaryEffects).WithOne().HasForeignKey(x => x.CharacterId)
+                .OnDelete(DeleteBehavior.Cascade);
             e.Ignore(c => c.Characteristics);
             e.Property(c => c.Desire).HasMaxLength(300);
             e.Property(c => c.Fear).HasMaxLength(300);
@@ -130,6 +134,24 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             e.Property(ci => ci.NameRu).HasMaxLength(200);
             e.Property(ci => ci.Severity).HasMaxLength(40);
             e.Property(ci => ci.Notes).HasMaxLength(1000);
+        });
+
+        b.Entity<CharacterHeroicSecondaryEffect>(e =>
+        {
+            e.HasIndex(x => new { x.CharacterId, x.HeroicSecondaryEffectDefId }).IsUnique();
+            e.HasOne(x => x.HeroicSecondaryEffectDef).WithMany()
+                .HasForeignKey(x => x.HeroicSecondaryEffectDefId).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        b.Entity<HeroicSecondaryEffectDef>(e =>
+        {
+            e.HasIndex(x => x.Code).IsUnique();
+            e.Property(x => x.Code).HasMaxLength(80);
+            e.Property(x => x.Name).HasMaxLength(100);
+            e.Property(x => x.NameRu).HasMaxLength(100);
+            e.Property(x => x.Description).HasMaxLength(2000);
+            e.Property(x => x.SafeDescription).HasMaxLength(600);
+            e.Property(x => x.Source).HasMaxLength(160);
         });
 
         b.Entity<CharacterShareToken>(e =>

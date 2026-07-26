@@ -107,7 +107,46 @@ public static class CharacterImporter
             {
                 character.HeroicAbilityId = heroic.Id;
                 character.HeroicUpgradeRank = Math.Clamp(data.HeroicUpgradeRank, 0, 2);
+                character.HeroicDurationRanks = Math.Max(0, data.HeroicDurationRanks);
+                character.HeroicFrequencyRanks = Math.Max(0, data.HeroicFrequencyRanks);
+                character.HeroicStoryUpgrade = data.HeroicStoryUpgrade;
+
+                var effectCodes = (data.HeroicSecondaryEffectCodes ?? [])
+                    .Where(x => !string.IsNullOrWhiteSpace(x)).Distinct().Take(2).ToList();
+                var effectDefs = await db.HeroicSecondaryEffectDefs
+                    .Where(x => effectCodes.Contains(x.Code)).ToListAsync(ct);
+                foreach (var effect in effectDefs)
+                {
+                    character.HeroicSecondaryEffects.Add(new CharacterHeroicSecondaryEffect
+                    {
+                        Id = Guid.NewGuid(),
+                        CharacterId = characterId,
+                        HeroicSecondaryEffectDefId = effect.Id,
+                        HeroicSecondaryEffectDef = effect,
+                    });
+                }
+
+                var powerCost = heroic.Upgrades.Where(u => (int)u.Level <= character.HeroicUpgradeRank).Sum(u => u.Cost);
+                var importedCost = powerCost + character.HeroicDurationRanks + character.HeroicFrequencyRanks * 2
+                    + (character.HeroicStoryUpgrade ? 1 : 0) + character.HeroicSecondaryEffects.Count;
+                var points = Math.Max(0, character.TotalXp - archetype.StartingXp) / 50;
+                if (importedCost > points)
+                {
+                    warnings.Add("Улучшения героической способности превышают доступные ability points — сброшены.");
+                    character.HeroicUpgradeRank = 0;
+                    character.HeroicDurationRanks = 0;
+                    character.HeroicFrequencyRanks = 0;
+                    character.HeroicStoryUpgrade = false;
+                    character.HeroicSecondaryEffects.Clear();
+                }
             }
+        }
+        if (character.System == GameSystem.RealmsOfTerrinoth
+            && character.HeroicAbilityId is null
+            && !character.IsCreationPhase)
+        {
+            character.IsCreationPhase = true;
+            warnings.Add("У персонажа RoT нет героической способности — фаза создания оставлена открытой.");
         }
 
         var notes = (data.Notes ?? [])
@@ -189,9 +228,9 @@ public static class CharacterImporter
         // У HeroicAbilityDef нет System — матчим по Code, затем по Name в области видимости владельца.
         HeroicAbilityDef? def = null;
         if (!string.IsNullOrWhiteSpace(code))
-            def = await db.HeroicAbilityDefs.FirstOrDefaultAsync(h => h.Code == code, ct);
+            def = await db.HeroicAbilityDefs.Include(h => h.Upgrades).FirstOrDefaultAsync(h => h.Code == code, ct);
         if (def is null && !string.IsNullOrWhiteSpace(name))
-            def = await db.HeroicAbilityDefs.FirstOrDefaultAsync(
+            def = await db.HeroicAbilityDefs.Include(h => h.Upgrades).FirstOrDefaultAsync(
                 h => h.Name == name && (h.OwnerUserId == null || h.OwnerUserId == userId), ct);
         return def;
     }

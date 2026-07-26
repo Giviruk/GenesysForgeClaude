@@ -88,6 +88,12 @@ public class GetReferenceHandler(IAppDbContext db) : IQueryHandler<GetReferenceQ
             : [];
         var heroics = heroicDefs.Select(h => h.ToDto()).ToList();
 
-        return new ReferenceResponse(archetypes, careers, skills, talents, items, heroics, qualities);
+        var heroicSecondaryEffectDefs = system == GameSystem.RealmsOfTerrinoth
+            ? await db.HeroicSecondaryEffectDefs.AsNoTracking().OrderBy(x => x.NameRu).ToListAsync(ct)
+            : [];
+        var heroicSecondaryEffects = heroicSecondaryEffectDefs.Select(x => x.ToDto()).ToList();
+
+        return new ReferenceResponse(
+            archetypes, careers, skills, talents, items, heroics, qualities, heroicSecondaryEffects);
     }
 }

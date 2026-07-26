@@ -35,7 +35,11 @@ public record CharacterExportData(
     string? HeroicAbilityCode,
     string? HeroicAbilityName,
     int HeroicUpgradeRank,
-    List<CharacterNoteExport> Notes);
+    List<CharacterNoteExport> Notes,
+    int HeroicDurationRanks = 0,
+    int HeroicFrequencyRanks = 0,
+    bool HeroicStoryUpgrade = false,
+    List<string>? HeroicSecondaryEffectCodes = null);
 
 public record CharacterSkillExport(string Code, string Name, int Ranks, bool IsCareer, int FreeRanks);
 

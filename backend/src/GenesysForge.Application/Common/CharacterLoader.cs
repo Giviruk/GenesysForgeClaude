@@ -28,6 +28,7 @@ public static class CharacterLoader
             .Include(c => c.Archetype)
             .Include(c => c.Career)
             .Include(c => c.HeroicAbility).ThenInclude(h => h!.Upgrades)
+            .Include(c => c.HeroicSecondaryEffects).ThenInclude(x => x.HeroicSecondaryEffectDef)
             .Include(c => c.Skills).ThenInclude(s => s.SkillDef)
             .Include(c => c.Talents).ThenInclude(t => t.TalentDef)
             .Include(c => c.Items).ThenInclude(i => i.ItemDef)

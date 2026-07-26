@@ -1,4 +1,5 @@
 using GenesysForge.Application.Abstractions;
+using GenesysForge.Application.Common;
 using GenesysForge.Application.Dtos;
 using GenesysForge.Application.Features.Campaigns;
 using GenesysForge.Domain;
@@ -45,11 +46,53 @@ public class ActivateAbilityHandler(IAppDbContext db) : ICommandHandler<Activate
                 throw new DomainRuleException("Можно активировать только у своего персонажа.");
         }
 
-        var ability = await db.HeroicAbilityDefs.Include(h => h.Effects)
-            .FirstOrDefaultAsync(h => h.Code == command.Request.AbilityCode, ct)
-            ?? throw new DomainRuleException("Способность не найдена.");
+        HeroicAbilityDef ability;
+        Character? character = null;
+        if (p.CharacterId is { } characterId)
+        {
+            character = await db.Characters
+                .Include(c => c.HeroicAbility).ThenInclude(h => h!.Effects)
+                .Include(c => c.HeroicSecondaryEffects).ThenInclude(x => x.HeroicSecondaryEffectDef)
+                .FirstOrDefaultAsync(c => c.Id == characterId, ct)
+                ?? throw new DomainRuleException("Персонаж участника не найден.");
+            ability = character.HeroicAbility
+                ?? throw new DomainRuleException("У персонажа не выбрана героическая способность.");
+            if (ability.Code != command.Request.AbilityCode)
+                throw new DomainRuleException("Можно активировать только выбранную героическую способность персонажа.");
+
+            var maxUses = 1 + character.HeroicFrequencyRanks;
+            if (p.HeroicAbilityUses >= maxUses)
+                throw new DomainRuleException($"Героическая способность уже использована допустимое число раз ({maxUses}).");
+
+            var storyCost = character.HeroicStoryUpgrade ? 1 : 2;
+            if (session.PlayerStoryPoints < storyCost)
+                throw new DomainRuleException($"Для активации нужно {storyCost} очк. сюжета игроков.");
+            session.PlayerStoryPoints -= storyCost;
+            session.GmStoryPoints += storyCost;
+            p.HeroicAbilityUses++;
+        }
+        else
+        {
+            ability = await db.HeroicAbilityDefs.Include(h => h.Effects)
+                .FirstOrDefaultAsync(h => h.Code == command.Request.AbilityCode, ct)
+                ?? throw new DomainRuleException("Способность не найдена.");
+        }
 
         var result = RuleEffectApplier.Apply(ability.Effects, p);
+        if (character is not null)
+        {
+            HeroicSecondaryEffectApplier.Apply(
+                character.HeroicSecondaryEffects
+                    .Where(x => x.HeroicSecondaryEffectDef is not null)
+                    .Select(x => x.HeroicSecondaryEffectDef!),
+                p,
+                result);
+            result.Applied.Add(
+                $"Потрачено очков сюжета: {(character.HeroicStoryUpgrade ? 1 : 2)}; применений осталось: "
+                + $"{character.HeroicFrequencyRanks + 1 - p.HeroicAbilityUses}");
+            if (character.HeroicDurationRanks > 0)
+                result.Manual.Add($"Длительность увеличена на {character.HeroicDurationRanks} ход(а).");
+        }
         var name = string.IsNullOrWhiteSpace(ability.NameRu) ? ability.Name : ability.NameRu;
         session.UpdatedAt = DateTime.UtcNow;
 

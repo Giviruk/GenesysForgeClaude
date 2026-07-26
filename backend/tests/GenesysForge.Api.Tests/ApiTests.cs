@@ -415,6 +415,9 @@ public class CharacterFlowTests : IClassFixture<ApiFactory>
         Assert.NotEmpty(reference.HeroicAbilities);
         var ability = reference.HeroicAbilities[0];
 
+        var incomplete = await client.PostAsync($"/api/characters/{id}/complete-creation", null);
+        Assert.Equal(HttpStatusCode.BadRequest, incomplete.StatusCode);
+
         var set = await client.PutAsJsonAsync($"/api/characters/{id}/heroic-ability",
             new SetHeroicAbilityRequest(ability.Id));
         Assert.Equal(HttpStatusCode.NoContent, set.StatusCode);
@@ -441,29 +444,80 @@ public class CharacterFlowTests : IClassFixture<ApiFactory>
 
         await client.PutAsJsonAsync($"/api/characters/{id}/heroic-ability", new SetHeroicAbilityRequest(ability.Id));
 
-        // На создании доступно ровно 1 стартовое очко.
+        // Стартовый XP вида не даёт ability points.
         var sheet = await SheetAsync(client, id);
-        Assert.Equal(1, sheet.HeroicUpgradePointsTotal);
+        Assert.Equal(0, sheet.HeroicUpgradePointsTotal);
         Assert.Equal(0, sheet.HeroicUpgradeRank);
 
-        // Improved (стоимость 1) — по карману.
+        // Без 50 дополнительного XP нельзя купить даже Improved.
         var improved = await client.PutAsJsonAsync($"/api/characters/{id}/heroic-upgrade",
             new SetHeroicUpgradeRankRequest(1));
-        Assert.Equal(HttpStatusCode.NoContent, improved.StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, improved.StatusCode);
+
+        await client.PostAsJsonAsync($"/api/characters/{id}/xp-awards", new AwardXpRequest(49, null));
         sheet = await SheetAsync(client, id);
-        Assert.Equal(1, sheet.HeroicUpgradeRank);
-        Assert.Equal(1, sheet.HeroicUpgradePointsSpent);
+        Assert.Equal(0, sheet.HeroicUpgradePointsTotal);
 
-        // Supreme требует суммарно 3 очка — на создании нельзя.
-        var supreme = await client.PutAsJsonAsync($"/api/characters/{id}/heroic-upgrade",
-            new SetHeroicUpgradeRankRequest(2));
-        Assert.Equal(HttpStatusCode.BadRequest, supreme.StatusCode);
+        await client.PostAsJsonAsync($"/api/characters/{id}/xp-awards", new AwardXpRequest(301, null));
+        sheet = await SheetAsync(client, id);
+        Assert.Equal(7, sheet.HeroicUpgradePointsTotal);
 
-        // Смена способности обнуляет купленный ранг.
+        Assert.Equal(8, reference.HeroicSecondaryEffects.Count);
+        Assert.All(reference.HeroicSecondaryEffects, x =>
+        {
+            Assert.False(string.IsNullOrWhiteSpace(x.Description));
+            Assert.False(string.IsNullOrWhiteSpace(x.SafeDescription));
+        });
+        var secondary = reference.HeroicSecondaryEffects.Take(2).Select(x => x.Id).ToList();
+        var configure = await client.PutAsJsonAsync($"/api/characters/{id}/heroic-upgrades",
+            new SetHeroicUpgradesRequest(
+                PowerRank: 1,
+                DurationRanks: 1,
+                FrequencyRanks: 1,
+                Story: true,
+                SecondaryEffectIds: secondary));
+        Assert.Equal(HttpStatusCode.NoContent, configure.StatusCode);
+        sheet = await SheetAsync(client, id);
+        Assert.Equal(7, sheet.HeroicUpgradePointsSpent);
+        Assert.Equal(1, sheet.HeroicUpgrades.PowerRank);
+        Assert.Equal(1, sheet.HeroicUpgrades.DurationRanks);
+        Assert.Equal(1, sheet.HeroicUpgrades.FrequencyRanks);
+        Assert.True(sheet.HeroicUpgrades.Story);
+        Assert.Equal(2, sheet.HeroicUpgrades.SecondaryEffects.Count);
+
+        // До завершения создания смена способности обнуляет все покупки.
         var other = reference.HeroicAbilities.First(h => h.Id != ability.Id);
         await client.PutAsJsonAsync($"/api/characters/{id}/heroic-ability", new SetHeroicAbilityRequest(other.Id));
         sheet = await SheetAsync(client, id);
         Assert.Equal(0, sheet.HeroicUpgradeRank);
+        Assert.Equal(0, sheet.HeroicUpgradePointsSpent);
+        Assert.Empty(sheet.HeroicUpgrades.SecondaryEffects);
+    }
+
+    [Fact]
+    public async Task HeroicAbility_UpgradesArePermanentAfterCreation_AndXpCannotUndershoot()
+    {
+        var (client, reference, id) = await CreateCharacterAsync(GameSystem.RealmsOfTerrinoth);
+        var ability = reference.HeroicAbilities.First(h => h.Upgrades.Count == 2);
+        await client.PutAsJsonAsync($"/api/characters/{id}/heroic-ability", new SetHeroicAbilityRequest(ability.Id));
+        await client.PostAsJsonAsync($"/api/characters/{id}/xp-awards", new AwardXpRequest(50, null));
+
+        var buy = await client.PutAsJsonAsync($"/api/characters/{id}/heroic-upgrades",
+            new SetHeroicUpgradesRequest(1, 0, 0, false, []));
+        Assert.Equal(HttpStatusCode.NoContent, buy.StatusCode);
+        await client.PostAsync($"/api/characters/{id}/complete-creation", null);
+
+        var refund = await client.PutAsJsonAsync($"/api/characters/{id}/heroic-upgrades",
+            new SetHeroicUpgradesRequest(0, 0, 0, false, []));
+        Assert.Equal(HttpStatusCode.BadRequest, refund.StatusCode);
+
+        var change = await client.PutAsJsonAsync($"/api/characters/{id}/heroic-ability",
+            new SetHeroicAbilityRequest(reference.HeroicAbilities.First(h => h.Id != ability.Id).Id));
+        Assert.Equal(HttpStatusCode.BadRequest, change.StatusCode);
+
+        var reduceXp = await client.PostAsJsonAsync(
+            $"/api/characters/{id}/xp-awards", new AwardXpRequest(-1, "correction"));
+        Assert.Equal(HttpStatusCode.BadRequest, reduceXp.StatusCode);
     }
 
     [Fact]

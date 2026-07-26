@@ -22,6 +22,10 @@ public class UpdateCharacterHandler(IAppDbContext db) : ICommandHandler<UpdateCh
         {
             if (req.TotalXp < c.SpentXp)
                 throw new DomainRuleException($"Суммарный XP не может быть меньше потраченного ({c.SpentXp}).");
+            var heroicPointsAtTarget = Math.Max(0, req.TotalXp.Value - (c.Archetype?.StartingXp ?? 0)) / 50;
+            if (heroicPointsAtTarget < c.HeroicUpgradePointsSpent)
+                throw new DomainRuleException(
+                    $"Суммарный XP не может оставить меньше ability points, чем уже потрачено ({c.HeroicUpgradePointsSpent}).");
             var oldTotal = c.TotalXp;
             c.TotalXp = req.TotalXp.Value;
             if (c.TotalXp != oldTotal)

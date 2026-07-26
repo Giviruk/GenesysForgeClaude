@@ -20,7 +20,7 @@ function itemDef(p: Partial<ItemDef> & Pick<ItemDef, 'name' | 'nameRu' | 'kind'>
 }
 
 const reference: Reference = {
-  archetypes: [], careers: [], talents: [], heroicAbilities: [], qualities: [],
+  archetypes: [], careers: [], talents: [], heroicAbilities: [], heroicSecondaryEffects: [], qualities: [],
   skills: [
     skillDef({ name: 'Melee', nameRu: 'Ближний бой', characteristic: 'brawn' }),
     skillDef({ name: 'Ranged (Light)', nameRu: 'Дальний бой (лёгкое)', characteristic: 'agility' }),

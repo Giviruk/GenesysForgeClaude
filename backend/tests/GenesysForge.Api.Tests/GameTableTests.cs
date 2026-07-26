@@ -145,6 +145,52 @@ public class GameTableTests : IClassFixture<ApiFactory>
     }
 
     [Fact]
+    public async Task PcHeroicAbility_SpendsEffectiveStoryCost_AndHonorsFrequency()
+    {
+        var gm = await _factory.CreateAuthorizedClientAsync();
+        var campaign = await CreateCampaignAsync(gm);
+        var player = await _factory.CreateAuthorizedClientAsync();
+        var reference = (await player.GetFromJsonAsync<ReferenceResponse>(
+            "/api/reference/RealmsOfTerrinoth", Json.Options))!;
+        var created = await player.PostAsJsonAsync("/api/characters/",
+            new CreateCharacterRequest(
+                "Герой", GameSystem.RealmsOfTerrinoth,
+                reference.Archetypes[0].Id, reference.Careers[0].Id, null));
+        var characterId = (await created.Content.ReadFromJsonAsync<Dictionary<string, Guid>>(Json.Options))!["id"];
+        var ability = reference.HeroicAbilities.First(h => h.Code == "rot.heroic.hard-to-kill");
+        await player.PutAsJsonAsync($"/api/characters/{characterId}/heroic-ability",
+            new SetHeroicAbilityRequest(ability.Id), Json.Options);
+        await player.PostAsJsonAsync($"/api/characters/{characterId}/xp-awards",
+            new AwardXpRequest(150, null), Json.Options);
+        await player.PutAsJsonAsync($"/api/characters/{characterId}/heroic-upgrades",
+            new SetHeroicUpgradesRequest(0, 0, 1, true, []), Json.Options);
+        await player.PostAsJsonAsync("/api/campaigns/join",
+            new JoinCampaignRequest(campaign.JoinCode!, characterId), Json.Options);
+
+        await CreateSessionAsync(gm, campaign.Id);
+        var add = await gm.PostAsJsonAsync($"/api/campaigns/{campaign.Id}/session/participants",
+            new AddParticipantRequest(characterId, null, null, null, null, null, null, null, null, null, null), Json.Options);
+        var session = (await add.Content.ReadFromJsonAsync<GameSessionDto>(Json.Options))!;
+        var participantId = session.Participants.Single().Id;
+
+        for (var use = 0; use < 2; use++)
+        {
+            var response = await gm.PostAsJsonAsync(
+                $"/api/campaigns/{campaign.Id}/session/participants/{participantId}/activate",
+                new ActivateAbilityRequest(ability.Code), Json.Options);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            var result = (await response.Content.ReadFromJsonAsync<ActivateAbilityResult>(Json.Options))!;
+            Assert.Equal(1 - use, result.Session.PlayerStoryPoints);
+            Assert.Equal(2 + use, result.Session.GmStoryPoints);
+        }
+
+        var third = await gm.PostAsJsonAsync(
+            $"/api/campaigns/{campaign.Id}/session/participants/{participantId}/activate",
+            new ActivateAbilityRequest(ability.Code), Json.Options);
+        Assert.Equal(HttpStatusCode.BadRequest, third.StatusCode);
+    }
+
+    [Fact]
     public async Task StoryPoints_NeverNegative()
     {
         var gm = await _factory.CreateAuthorizedClientAsync();

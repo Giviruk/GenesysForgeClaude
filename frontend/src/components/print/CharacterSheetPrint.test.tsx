@@ -65,6 +65,7 @@ const sheet = {
   heroicUpgradeRank: 0,
   heroicUpgradePointsTotal: 0,
   heroicUpgradePointsSpent: 0,
+  heroicUpgrades: { powerRank: 0, durationRanks: 0, frequencyRanks: 0, story: false, secondaryEffects: [] },
   items: [{
     id: 'item-1',
     itemDefId: 'weapon-1',

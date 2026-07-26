@@ -105,13 +105,27 @@ export function CharacterSheetPrint({ sheet, loadNotes = true }: {
           <div className="sheet-entry">
             <strong>{localizedName(h)}</strong>
             <span className="sheet-meta">
-              {[h.activation, h.duration, h.frequency].filter(Boolean).map(x => ` · ${x}`).join('')}
+              {[
+                h.activation,
+                sheet.heroicUpgrades.story ? t('1 очко сюжета', '1 Story Point') : h.activationCost,
+                sheet.heroicUpgrades.durationRanks > 0
+                  ? t(`длительность +${sheet.heroicUpgrades.durationRanks} ход.`, `duration +${sheet.heroicUpgrades.durationRanks} turn(s)`)
+                  : h.duration,
+                sheet.heroicUpgrades.frequencyRanks > 0
+                  ? t(`${1 + sheet.heroicUpgrades.frequencyRanks} раз за сессию`, `${1 + sheet.heroicUpgrades.frequencyRanks} times per session`)
+                  : h.frequency,
+              ].filter(Boolean).map(x => ` · ${x}`).join('')}
               {sheet.heroicUpgradeRank > 0 && t(` · улучшение ${sheet.heroicUpgradeRank}`, ` · upgrade ${sheet.heroicUpgradeRank}`)}
             </span>
             {localizedDescription(h) && <div className="sheet-desc">{localizedDescription(h)}</div>}
             {h.upgrades.filter(u => u.level <= sheet.heroicUpgradeRank).map(u => (
               <div key={u.level} className="sheet-desc">
                 ↑ {u.level === 1 ? t('Улучшенная', 'Improved') : t('Высшая', 'Supreme')}: {localizedDescription(u)}
+              </div>
+            ))}
+            {sheet.heroicUpgrades.secondaryEffects.map(effect => (
+              <div key={effect.id} className="sheet-desc">
+                ↑ {localizedName(effect)}: {localizedDescription(effect)}
               </div>
             ))}
           </div>

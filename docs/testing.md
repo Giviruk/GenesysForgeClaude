@@ -57,7 +57,7 @@ API tests cover:
 - ranked talent passive bonuses;
 - Terrinoth-specific content;
 - inventory recalculation;
-- heroic ability restrictions;
+- heroic ability restrictions, 50-XP point thresholds, all upgrade-category costs and permanence;
 - characteristic purchase restriction after creation;
 - unknown characteristic error;
 - foreign character access;
@@ -97,4 +97,3 @@ Partially implemented:
 - Add PostgreSQL-backed integration check for migrations before 1.0.
 - For every domain bug, add a failing domain test first when feasible.
 - For every public API shape change, add or update API tests and frontend types.
-

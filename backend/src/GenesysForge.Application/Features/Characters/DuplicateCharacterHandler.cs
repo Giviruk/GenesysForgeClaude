@@ -34,6 +34,9 @@ public class DuplicateCharacterHandler(IAppDbContext db) : ICommandHandler<Dupli
             Money = src.Money,
             HeroicAbilityId = src.HeroicAbilityId,
             HeroicUpgradeRank = src.HeroicUpgradeRank,
+            HeroicDurationRanks = src.HeroicDurationRanks,
+            HeroicFrequencyRanks = src.HeroicFrequencyRanks,
+            HeroicStoryUpgrade = src.HeroicStoryUpgrade,
             Desire = src.Desire,
             Fear = src.Fear,
             Strength = src.Strength,
@@ -69,6 +72,11 @@ public class DuplicateCharacterHandler(IAppDbContext db) : ICommandHandler<Dupli
                 RollResult = ci.RollResult,
                 Notes = ci.Notes,
                 CreatedAt = now,
+            }).ToList(),
+            HeroicSecondaryEffects = src.HeroicSecondaryEffects.Select(x => new CharacterHeroicSecondaryEffect
+            {
+                Id = Guid.NewGuid(),
+                HeroicSecondaryEffectDefId = x.HeroicSecondaryEffectDefId,
             }).ToList(),
         };
 

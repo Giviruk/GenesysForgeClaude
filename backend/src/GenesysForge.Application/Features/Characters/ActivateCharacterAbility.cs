@@ -46,6 +46,17 @@ public class ActivateCharacterAbilityHandler(IAppDbContext db)
         };
 
         var result = RuleEffectApplier.Apply(effects, target);
+        HeroicSecondaryEffectApplier.Apply(
+            c.HeroicSecondaryEffects
+                .Where(x => x.HeroicSecondaryEffectDef is not null)
+                .Select(x => x.HeroicSecondaryEffectDef!),
+            target,
+            result);
+        result.Manual.Add(c.HeroicStoryUpgrade
+            ? "Стоимость активации: 1 очко сюжета."
+            : "Стоимость активации: 2 очка сюжета.");
+        if (c.HeroicDurationRanks > 0)
+            result.Manual.Add($"Длительность увеличена на {c.HeroicDurationRanks} ход(а).");
         // Персистим только current раны/усталость (пороги/soak у листа производные — на сцену учитываются вручную).
         c.WoundsCurrent = target.WoundsCurrent;
         c.StrainCurrent = target.StrainCurrent;

@@ -51,7 +51,14 @@ public class ExportCharacterHandler(IAppDbContext db) : IQueryHandler<ExportChar
             HeroicAbilityCode: c.HeroicAbility?.Code,
             HeroicAbilityName: c.HeroicAbility?.Name,
             HeroicUpgradeRank: c.HeroicUpgradeRank,
-            Notes: notes);
+            Notes: notes,
+            HeroicDurationRanks: c.HeroicDurationRanks,
+            HeroicFrequencyRanks: c.HeroicFrequencyRanks,
+            HeroicStoryUpgrade: c.HeroicStoryUpgrade,
+            HeroicSecondaryEffectCodes: c.HeroicSecondaryEffects
+                .Where(x => x.HeroicSecondaryEffectDef is not null)
+                .Select(x => x.HeroicSecondaryEffectDef!.Code)
+                .ToList());
 
         return new CharacterExportDto(CharacterExportDto.CurrentFormat, DateTime.UtcNow, data);
     }

@@ -29,6 +29,20 @@ Talents are bought by tier. Higher tiers require maintaining the pyramid: there 
 
 If a talent is ranked, buying it again counts as the next effective tier. If a talent is not ranked, it can only be bought once.
 
+## Realms of Terrinoth Heroic Abilities
+
+A Heroic Ability is required and selected while creating an RoT character. Species starting XP grants no upgrade
+points: the character gains one ability point for every complete 50 XP above the species starting value.
+
+- Power unlocks Improved for 1 point and then Supreme for 2 more.
+- Duration costs 1 per rank and extends the effect by one turn.
+- Frequency costs 2 per rank and grants one more use per session.
+- Story costs 1 and reduces activation to one Story Point.
+- A Secondary Effect costs 1; no more than two different effects can be selected.
+
+The configuration can be corrected while character creation remains open. After creation, the selected
+ability and purchased upgrades are permanent.
+
 ## Inventory and derived characteristics
 
 - Add items on the "Inventory" tab.
