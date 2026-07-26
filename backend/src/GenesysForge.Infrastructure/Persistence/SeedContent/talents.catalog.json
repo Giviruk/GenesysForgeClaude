@@ -509,8 +509,8 @@
   "soak": 0,
   "mdef": 0,
   "rdef": 0,
-  "desc": "Талант используется один раз за сцену. До конца сцены или пока не будет выведен из строя, персонаж получает * А А ко всем проверкам ближнего боя. Однако его противники добавляют * ко всем бое вым проверкам против него. Будучи берсерком, пер сонаж не может совершать проверки дальнего боя. В конце сцены (или когда будет выведен из строя) персонаж получает 6 усталости.",
-  "descEn": "Once per encounter, the character may use this talent. Until the end of the encounter or until they are incapacitated, they add successes and advantage to melee attacks but suffer a penalty to their defense and take strain when the rage ends.",
+  "desc": "Манёвром персонаж впадает в ярость до конца столкновения или до того, как будет выведен из строя. Пока ярость длится, его проверки ближнего боя получают один автоматический успех и два автоматических преимущества, а проверки противников против него — один автоматический успех. Проверки дальнего боя таланта не затрагивают. По окончании ярости персонаж получает 6 усталости.",
+  "descEn": "As a maneuver, the character goes berserk until the end of the encounter or until incapacitated. While it lasts, their melee checks gain one automatic success and two automatic advantages, and checks made against them gain one automatic success. Ranged checks are unaffected. When the rage ends the character suffers 6 strain.",
   "activationEn": "Maneuver"
  },
  {
@@ -723,8 +723,8 @@
   "soak": 0,
   "mdef": 0,
   "rdef": 0,
-  "desc": "Один раз за раунд персонаж может получить уста лость, величина которой не может превышать его ранг таланта. Сделав это, персонаж до конца своего следующего хода усиливает сложность всех проверок дальнего боя по нему столько раз, сколько усталости ОН получил.",
-  "descEn": "Once per round, the character may suffer strain no greater than their ranks in this talent; until the start of their next turn, upgrade the difficulty of all ranged combat checks targeting the character that many times.",
+  "desc": "Манёвром персонаж получает усталость числом не больше своих рангов таланта. До конца своего следующего хода сложность дальних атак по нему повышается столько же раз.",
+  "descEn": "As a maneuver, suffer strain up to the character’s ranks in the talent. Until the end of their next turn, the difficulty of ranged attacks against them is upgraded that many times.",
   "activationEn": "Maneuver"
  },
  {
@@ -744,8 +744,8 @@
   "soak": 0,
   "mdef": 0,
   "rdef": 0,
-  "desc": "Если персонаж вооружён луком (или другим подоб ным оружием по усмотрению ведущего), он может получить 2 усталости, чтобы использовать этот талант. В следующей проверке дальнего боя в этот ход лук получит свойство Залповое с рейтингом, равным рангу персонажа в Дальнем бою.",
-  "descEn": "If the character is armed with a bow (or a similar weapon at the GM's discretion), they may suffer 2 strain to fire an additional arrow as part of the attack, gaining an extra hit on the target.",
+  "desc": "Персонаж получает 2 усталости. Для следующей проверки дальнего боя лук получает свойство Linked с рейтингом, равным рангам персонажа в Дальнем бою. Дополнительное попадание автоматически не выдаётся — его ещё нужно оплатить преимуществами.",
+  "descEn": "Suffer 2 strain. For the next ranged check the bow gains Linked with a rating equal to the character’s ranks in Ranged. The extra hit is not granted automatically — it still has to be paid for with advantage.",
   "activationEn": "Maneuver",
   "strainCost": 2
  },
@@ -915,14 +915,14 @@
    "Any"
   ],
   "activation": "Действие",
-  "needsTranslation": true,
+  "needsTranslation": false,
   "wt": 0,
   "st": 0,
   "soak": 0,
   "mdef": 0,
   "rdef": 0,
-  "desc": "Описание уточняется.",
-  "descEn": "The character may make an Average Leadership check as an action. If successful, a number of allies equal to their Presence may immediately perform one free maneuver.",
+  "desc": "Действием персонаж совершает проверку Лидерства сложности «Средняя» (2). При успехе он выбирает союзников числом не больше своей Харизмы: каждый может получить 1 усталость и немедленно совершить манёвр вне своего хода.",
+  "descEn": "As an action, make an Average (2) Leadership check. On success, choose up to Presence allies: each may suffer 1 strain and immediately perform an out-of-turn maneuver.",
   "activationEn": "Action"
  },
  {
@@ -1117,8 +1117,8 @@
   "soak": 0,
   "mdef": 0,
   "rdef": 0,
-  "desc": "Прежде вы должны приобрести талант Полевой командир. Применяя талант Полевой командир, пер сонаж воздействует на число союзников, равное удво енному рейтингу его Харизмы. Кроме того, вы можете потратить @, чтобы дать возможность одному союз нику получить 1 усталость и выполнить действие вместо манёвра.",
-  "descEn": "Your character must have Field Commander to benefit from this talent. When using Field Commander, the character affects a number of allies equal to twice their Presence, and may suffer 1 strain to perform it as a maneuver.",
+  "desc": "Требуется Field Commander. Предел выбираемых союзников повышается до удвоенной Харизмы. За триумф один выбранный союзник вместо манёвра может получить 1 усталость и совершить действие. Тип активации остаётся действием.",
+  "descEn": "Requires Field Commander. The limit of chosen allies rises to twice Presence. On a triumph, one chosen ally may suffer 1 strain and perform an action instead of a maneuver. The activation type remains an action.",
   "activationEn": "Passive",
   "requiresTalent": "polevoy-komandir"
  },
@@ -1271,14 +1271,14 @@
    "Any"
   ],
   "activation": "Инцидент",
-  "needsTranslation": true,
+  "needsTranslation": false,
   "wt": 0,
   "st": 0,
   "soak": 0,
   "mdef": 0,
   "rdef": 0,
-  "desc": "Вы умеете проводить магическую энергию через себя. Один раз за раунд при сотворении заклинания можете уменьшить полученное напряжение на количество, равное вашим рангам Conduit.",
-  "descEn": "You know how to channel magical energy through yourself. Once per round when casting a spell, you may reduce the strain cost of the spell by 1.",
+  "desc": "Один раз за столкновение инцидентом персонаж тратит одно очко сюжета: следующее магическое действие он совершает как манёвр. Сама активация таланта манёвром не является.",
+  "descEn": "Once per encounter as an incidental, spend one Story Point: the character performs their next magic action as a maneuver instead. Activating the talent is not itself a maneuver.",
   "activationEn": "Incidental",
   "usesPerScope": 1,
   "useScope": "Encounter",
@@ -1341,14 +1341,14 @@
    "Any"
   ],
   "activation": "Пассивный",
-  "needsTranslation": true,
+  "needsTranslation": false,
   "wt": 0,
   "st": 0,
   "soak": 0,
   "mdef": 0,
   "rdef": 0,
-  "desc": "Выберите одно конкретное заклинание или его уникальную конфигурацию. При использовании этого заклинания один раз за сцену можете уменьшить его базовую сложность на одну ступень и снизить получаемое напряжение на 2.",
-  "descEn": "Choose one specific spell or a unique configuration of one. When casting that spell, once per round reduce its difficulty by 1 and its strain cost by 1.",
+  "desc": "Персонаж закрепляет одно магическое действие и точную конфигурацию его дополнительных эффектов. Итоговая сложность именно этой комбинации снижается на 1. Талант не отменяет 2 усталости за сотворение заклинания и не имеет предела применений.",
+  "descEn": "The character fixes one magic action together with the exact configuration of its additional effects. The final difficulty of that specific combination is reduced by 1. The talent does not cancel the 2 strain for casting and has no use limit.",
   "activationEn": "Passive"
  },
  {
@@ -1383,14 +1383,14 @@
    "Fantasy"
   ],
   "activation": "Инцидент",
-  "needsTranslation": true,
+  "needsTranslation": false,
   "wt": 0,
   "st": 0,
   "soak": 0,
   "mdef": 0,
   "rdef": 0,
-  "desc": "Когда персонаж совершает боевую проверку Рукопашного боя или Ближнего боя (лёгкого/тяжёлого) после манёвра сближения с целью, он может потратить 3 преимущества или 1 триумф, чтобы сбить цель с ног и отодвинуть её на одну дистанцию от себя.",
-  "descEn": "When the character makes a Brawl or Melee (Light/Heavy) combat check immediately after a maneuver to engage a target, they may knock the target prone and move it one range band away on a hit.",
+  "desc": "После манёвра, которым персонаж вошёл в сцепление, при проверке Рукопашного боя, Ближнего боя (лёгкого) или Ближнего боя (тяжёлого) он может потратить 3 преимущества или триумф: цель падает ничком и отталкивается не более чем на одну дистанцию. Условия обязательного попадания у правила нет.",
+  "descEn": "After a maneuver that brought the character into engagement, on a Brawl, Melee (Light) or Melee (Heavy) check spend 3 advantage or a triumph: the target falls prone and is pushed no more than one range band. The rule has no requirement that the attack hit.",
   "activationEn": "Incidental"
  },
  {
@@ -1531,14 +1531,14 @@
    "Fantasy"
   ],
   "activation": "Инцидент",
-  "needsTranslation": true,
+  "needsTranslation": false,
   "wt": 0,
   "st": 0,
   "soak": 0,
   "mdef": 0,
   "rdef": 0,
-  "desc": "Когда персонаж атакует щитом приспешника или соперника, он может потратить 4 преимущества или 1 триумф, чтобы ошеломить цель до конца её следующего хода.",
-  "descEn": "When the character hits a minion or rival with a shield attack, they may spend 4 advantage or 1 triumph to stagger the target until the end of its next turn.",
+  "desc": "При атаке щитом по приспешнику или сопернику персонаж может потратить 4 преимущества или триумф, чтобы ошеломить цель до конца её следующего хода. Условия обязательного попадания у правила нет.",
+  "descEn": "On a shield attack against a minion or rival, spend 4 advantage or a triumph to stagger the target until the end of its next turn. The rule has no requirement that the attack hit.",
   "activationEn": "Incidental"
  },
  {
@@ -1810,14 +1810,14 @@
    "Fantasy"
   ],
   "activation": "Действие",
-  "needsTranslation": true,
+  "needsTranslation": false,
   "wt": 0,
   "st": 0,
   "soak": 0,
   "mdef": 0,
   "rdef": 0,
-  "desc": "С музыкальным инструментом персонаж может совершить проверку Обаяния или Стиха (Average). За каждый успех один союзник в средней дистанции добавляет чёрный кубик к своей следующей проверке; за каждое преимущество один союзник, затронутый Воодушевляющей песнью, восстанавливает 1 напряжение.",
-  "descEn": "With a musical instrument, the character may make an Average Charm or Verse check. For each success, one ally within short range heals 1 strain; advantage grants boost dice to allies' next checks.",
+  "desc": "Требуется музыкальный инструмент. Действием персонаж совершает проверку Обаяния или Стиха сложности «Средняя» (2). За каждый успех выбирается один союзник на средней дистанции: он добавляет один бонус-кубик к своей следующей проверке. За каждое преимущество один из уже выбранных союзников исцеляет 1 усталость.",
+  "descEn": "Requires a musical instrument. As an action, make an Average (2) Charm or Verse check. For each success, choose one ally at medium range: they add one boost die to their next check. For each advantage, one already-chosen ally heals 1 strain.",
   "activationEn": "Action"
  },
  {
@@ -1901,14 +1901,14 @@
    "Fantasy"
   ],
   "activation": "Пассивный",
-  "needsTranslation": true,
+  "needsTranslation": false,
   "wt": 0,
   "st": 0,
   "soak": 0,
   "mdef": 0,
   "rdef": 0,
-  "desc": "Когда персонаж выбрасывает триумф на проверке навыка знания, бросьте два дополнительных кубика и добавьте результат к проверке — в дополнение к обычной трате триумфа.",
-  "descEn": "When the character rolls a triumph on a Knowledge skill check, roll two additional dice and add the results to the check.",
+  "desc": "При выпадении триумфа на проверке знания персонаж отдельно бросает два бонус-кубика и добавляет их результат к проверке. Исходный триумф при этом остаётся доступен для обычной траты.",
+  "descEn": "When a triumph is rolled on a knowledge check, separately roll two boost dice and add their result to the check. The original triumph remains available to spend as usual.",
   "activationEn": "Passive"
  },
  {
@@ -1993,14 +1993,14 @@
    "Fantasy"
   ],
   "activation": "Инцидент",
-  "needsTranslation": true,
+  "needsTranslation": false,
   "wt": 0,
   "st": 0,
   "soak": 0,
   "mdef": 0,
   "rdef": 0,
-  "desc": "Когда персонаж наносит критическую травму ближним оружием, до конца следующего хода цели он может обездвижить её (в дополнение к прочим эффектам критической травмы).",
-  "descEn": "When the character inflicts a critical injury with a melee weapon, they may immobilize the target until the end of its next turn.",
+  "desc": "Талант доступен только после того, как оружие ближнего боя действительно нанесло критическое ранение. Инцидентом без дополнительной цены персонаж обездвиживает ту же цель до конца её следующего хода — в дополнение к самому критическому ранению. При дальней атаке и без наложенного критического ранения талант недоступен.",
+  "descEn": "Available only after a melee weapon has actually inflicted a Critical Injury. As an incidental at no further cost, immobilize that same target until the end of its next turn, in addition to the Critical Injury itself. It is unavailable on a ranged attack or without an applied critical.",
   "activationEn": "Incidental",
   "trigger": "Оружие ближнего боя нанесло критическое ранение"
  },
@@ -2108,14 +2108,14 @@
    "Fantasy"
   ],
   "activation": "Пассивный",
-  "needsTranslation": true,
+  "needsTranslation": false,
   "wt": 0,
   "st": 0,
   "soak": 0,
   "mdef": 0,
   "rdef": 0,
-  "desc": "Персонаж должен иметь талант Храмовник. Когда он творит единственное за столкновение заклинание Божественного от Храмовника, он не добавляет чёрный кубик за тяжёлую броню (поглощение +2 и выше), щит или отсутствие хотя бы одной свободной руки.",
-  "descEn": "Your character must have Templar to benefit from this talent. When casting their single Divine spell of the encounter, reduce its difficulty by 1.",
+  "desc": "Требуется Templar. Для одного божественного заклинания, разрешённого Templar, персонаж игнорирует кубики помех за тяжёлую броню (поглощение +2), щит и отсутствие свободной руки. Сложность при этом не снижается.",
+  "descEn": "Requires Templar. For one Divine spell allowed by Templar, ignore setback dice from heavy armour (soak +2), a shield, or the lack of a free hand. The difficulty is not reduced.",
   "activationEn": "Passive",
   "requiresTalent": "templar"
  },
@@ -2222,14 +2222,14 @@
    "Fantasy"
   ],
   "activation": "Пассивный",
-  "needsTranslation": true,
+  "needsTranslation": false,
   "wt": 0,
   "st": 0,
   "soak": 0,
   "mdef": 0,
   "rdef": 0,
-  "desc": "Персонаж не добавляет чёрный кубик к магическим проверкам за ношение тяжёлой брони (поглощение +2 и выше), использование щита или отсутствие хотя бы одной свободной руки.",
-  "descEn": "The character does not add setback dice to magic checks for wearing heavy armor (soak +2 or higher), using a shield or wielding weapons.",
+  "desc": "Персонаж игнорирует кубики помех за сотворение заклинания в тяжёлой броне (поглощение +2), со щитом и с занятой рукой. Наличие оружия само по себе условием не является.",
+  "descEn": "The character ignores setback dice for casting in heavy armour (soak +2), with a shield, or with an occupied hand. Merely holding a weapon is not itself a condition.",
   "activationEn": "Passive"
  },
  {
@@ -2314,14 +2314,14 @@
    "Fantasy"
   ],
   "activation": "Действие",
-  "needsTranslation": true,
+  "needsTranslation": false,
   "wt": 0,
   "st": 0,
   "soak": 0,
   "mdef": 0,
   "rdef": 0,
-  "desc": "С музыкальным инструментом персонаж может совершить проверку Обаяния или Стиха (Average). За каждый успех один враг по выбору игрока в средней дистанции получает 1 рану; за каждое преимущество один затронутый Диссонансом враг получает 1 дополнительную рану.",
-  "descEn": "With a musical instrument, the character may make an Average Charm or Verse check. For each success, one enemy within short range suffers 1 strain; advantage adds setback dice to enemies' next checks.",
+  "desc": "Требуется музыкальный инструмент. Действием персонаж совершает проверку Обаяния или Стиха сложности «Средняя» (2). За каждый успех выбранный враг на средней дистанции получает 1 рану. За каждое преимущество один из уже затронутых врагов получает ещё 1 рану.",
+  "descEn": "Requires a musical instrument. As an action, make an Average (2) Charm or Verse check. For each success, a chosen enemy at medium range suffers 1 wound. For each advantage, one already-affected enemy suffers 1 more wound.",
   "activationEn": "Action"
  },
  {
@@ -2356,14 +2356,14 @@
    "Fantasy"
   ],
   "activation": "Манёвр",
-  "needsTranslation": true,
+  "needsTranslation": false,
   "wt": 0,
   "st": 0,
   "soak": 0,
   "mdef": 0,
   "rdef": 0,
-  "desc": "Персонаж может получить 3 напряжения. До начала следующего хода персонажа он и союзники в короткой дистанции добавляют два чёрных кубика к боевым проверкам по обездвиженным целям.",
-  "descEn": "The character may suffer 3 strain. Until the start of their next turn, the character and allies within short range add a boost die to combat checks against staggered or immobilized targets.",
+  "desc": "Манёвром персонаж получает 3 усталости. До начала своего следующего хода он и союзники на короткой дистанции добавляют два бонус-кубика к боевым проверкам, но только против обездвиженных целей. На ошеломлённые цели это не распространяется.",
+  "descEn": "As a maneuver, suffer 3 strain. Until the start of the character’s next turn, they and allies at short range add two boost dice to combat checks, but only against immobilized targets. Staggered targets are not affected.",
   "activationEn": "Maneuver",
   "strainCost": 3
  },
@@ -2402,14 +2402,14 @@
    "Fantasy"
   ],
   "activation": "Пассивный",
-  "needsTranslation": true,
+  "needsTranslation": false,
   "wt": 0,
   "st": 0,
   "soak": 0,
   "mdef": 0,
   "rdef": 0,
-  "desc": "Когда персонаж выбрасывает триумф на проверке Алхимии, бросьте дополнительный кубик и добавьте его результат к пулу — в дополнение к обычной трате триумфа. То же — при выпадении отчаяния. Каждый эффект срабатывает не более одного раза за проверку.",
-  "descEn": "When the character rolls a triumph on an Alchemy check, roll one additional die and add its result to the potency of the concoction.",
+  "desc": "При выпадении триумфа на проверке Алхимии персонаж бросает один кубик умения и добавляет его результат к проверке. То же самое отдельно происходит при выпадении отчаяния. Каждое из двух срабатываний применяется не больше одного раза за проверку.",
+  "descEn": "When a triumph is rolled on an Alchemy check, roll one proficiency die and add its result to the check. The same happens separately on a despair. Each of the two triggers applies at most once per check.",
   "activationEn": "Passive"
  },
  {
@@ -2423,14 +2423,14 @@
    "Fantasy"
   ],
   "activation": "Пассивный",
-  "needsTranslation": true,
+  "needsTranslation": false,
   "wt": 0,
   "st": 0,
   "soak": 0,
   "mdef": 0,
   "rdef": 0,
-  "desc": "При дальней боевой проверке по цели, сцепившейся с союзником персонажа, снизьте сложность проверки на одну ступень (нивелируя штраф за стрельбу по сцепившимся целям).",
-  "descEn": "When making a ranged combat check against a target engaged with the character's ally, decrease the difficulty added for the engaged ally by one step.",
+  "desc": "При дальней боевой проверке по цели, сцепленной с союзником персонажа, сложность проверки понижается один раз — это понижение ступени, а не снижение сложности.",
+  "descEn": "On a ranged combat check against a target engaged with an ally, downgrade the check’s difficulty once — this is a downgrade, not a reduction.",
   "activationEn": "Passive"
  },
  {
@@ -2465,14 +2465,14 @@
    "Fantasy"
   ],
   "activation": "Пассивный",
-  "needsTranslation": true,
+  "needsTranslation": false,
   "wt": 0,
   "st": 0,
   "soak": 0,
   "mdef": 0,
   "rdef": 0,
-  "desc": "Персонаж считает оружие Ближнего боя (тяжёлого) обладающим свойством Blast с рейтингом, равным его рангам в Ближнем бою (тяжёлом). Сам персонаж не получает урона от свойства Blast своего оружия (а союзники получают).",
-  "descEn": "The character treats Melee (Heavy) weapons as having the Blast quality with a rating equal to their ranks in Melee (Heavy).",
+  "desc": "Оружие Ближнего боя (тяжёлого) в руках персонажа обладает свойством Blast с рейтингом, равным его рангам в Ближнем бою (тяжёлом). Сам персонаж невосприимчив к Blast собственного оружия.",
+  "descEn": "A Melee (Heavy) weapon wielded by the character has Blast with a rating equal to their ranks in Melee (Heavy). The character is immune to their own weapon’s Blast.",
   "activationEn": "Passive"
  },
  {
@@ -2486,14 +2486,14 @@
    "Fantasy"
   ],
   "activation": "Пассивный",
-  "needsTranslation": true,
+  "needsTranslation": false,
   "wt": 0,
   "st": 0,
   "soak": 0,
   "mdef": 0,
   "rdef": 0,
-  "desc": "Сцепившись с одним или несколькими союзниками, персонаж и эти союзники добавляют чёрный кубик к боевым проверкам. Если у сцепившегося союзника тоже есть Спина к спине, эффекты складываются (максимум два чёрных кубика).",
-  "descEn": "While engaged with one or more allies, the character and those allies add a boost die to their combat checks.",
+  "desc": "Пока персонаж сцеплен хотя бы с одним союзником, он и такие союзники добавляют один бонус-кубик к боевым проверкам. Если сцепленный союзник тоже владеет этим талантом, совокупный максимум — два бонус-кубика.",
+  "descEn": "While the character is engaged with at least one ally, they and those allies add one boost die to combat checks. If an engaged ally also has this talent, the combined maximum is two boost dice.",
   "activationEn": "Passive"
  },
  {
@@ -2507,14 +2507,14 @@
    "Fantasy"
   ],
   "activation": "Пассивный",
-  "needsTranslation": true,
+  "needsTranslation": false,
   "wt": 0,
   "st": 0,
   "soak": 0,
   "mdef": 0,
   "rdef": 0,
-  "desc": "Персонаж наносит +2 урона ближними атаками за каждую критическую травму, которой он сейчас страдает. (Ведущий может налагать дополнительные штрафы на социальные проверки из-за неистового поведения.)",
-  "descEn": "The character deals +2 damage with melee attacks for each critical injury they are currently suffering. (The GM may cap this in long campaigns.)",
+  "desc": "Персонаж наносит +2 урона атаками ближнего боя за каждое критическое ранение, которым он страдает в данный момент. Верхнего предела у этой прибавки нет.",
+  "descEn": "The character deals +2 melee damage for each Critical Injury they currently suffer. There is no upper limit on this bonus.",
   "activationEn": "Passive"
  },
  {
@@ -2549,14 +2549,14 @@
    "Fantasy"
   ],
   "activation": "Пассивный",
-  "needsTranslation": true,
+  "needsTranslation": false,
   "wt": 0,
   "st": 0,
   "soak": 0,
   "mdef": 0,
   "rdef": 0,
-  "desc": "Персонаж должен иметь талант Коронное заклинание. При сотворении своего коронного заклинания снижайте сложность проверки на 2 вместо 1.",
-  "descEn": "Your character must have Signature Spell to benefit from this talent. When casting your signature spell, reduce its difficulty by 1 further, to a minimum of Easy.",
+  "desc": "Требуется Signature Spell. Снижение итоговой сложности закреплённой комбинации становится равным 2 — это замена прежней величины, а не прибавка к ней.",
+  "descEn": "Requires Signature Spell. The final-difficulty reduction for the fixed combination becomes 2 — it replaces the earlier value rather than adding to it.",
   "activationEn": "Passive",
   "requiresTalent": "signature-spell"
  },
@@ -2571,14 +2571,14 @@
    "Fantasy"
   ],
   "activation": "Инцидент",
-  "needsTranslation": true,
+  "needsTranslation": false,
   "wt": 0,
   "st": 0,
   "soak": 0,
   "mdef": 0,
   "rdef": 0,
-  "desc": "Раз за раунд после успешной проверки Рукопашного боя или Ближнего боя персонаж может получить 4 напряжения, чтобы совершить дополнительную ближнюю атаку как инцидент по той же цели. Повысьте сложность на 1, если атака другим оружием, или на 2, если тем же.",
-  "descEn": "Once per round after a successful Brawl or Melee combat check, the character may suffer 4 strain to immediately make one additional attack against the same target as an incidental.",
+  "desc": "После успешной атаки персонаж совершает вторую атаку по той же цели. Если она делается другим оружием, её сложность выше на 1; если тем же оружием — выше на 2.",
+  "descEn": "After a successful attack, make a second attack against the same target. If it uses a different weapon its difficulty is 1 higher; with the same weapon it is 2 higher.",
   "activationEn": "Incidental"
  },
  {
@@ -2617,14 +2617,14 @@
    "Fantasy"
   ],
   "activation": "Действие",
-  "needsTranslation": true,
+  "needsTranslation": false,
   "wt": 0,
   "st": 0,
   "soak": 0,
   "mdef": 0,
   "rdef": 0,
-  "desc": "Персонаж может получить 4 напряжения, чтобы совершить атаку Рукопашного боя или Ближнего боя по самому труднопоражаемому сцепившемуся противнику (по решению ведущего), повысив сложность на 1. При успехе каждый сцепившийся с персонажем противник получает одно попадание: базовый урон плюс урон, равный сумме успехов проверки.",
-  "descEn": "The character may suffer 4 strain to make a Brawl or Melee attack against the hardest-to-hit engaged opponent; if it hits, every other engaged opponent also suffers the weapon's base damage.",
+  "desc": "Действием персонаж атакует, используя самую высокую сложность среди сцепленных с ним противников, и затем повышает её ещё на 1. При успехе каждый сцепленный противник получает урон, равный базовому урону оружия плюс общее число успехов.",
+  "descEn": "As an action, attack using the highest difficulty among enemies engaged with the character, then increase it by 1. On success every engaged enemy suffers damage equal to the weapon’s base damage plus the total successes.",
   "activationEn": "Action"
  },
  {
