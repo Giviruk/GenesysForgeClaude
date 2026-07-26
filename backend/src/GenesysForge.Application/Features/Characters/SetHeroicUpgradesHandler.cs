@@ -16,6 +16,7 @@ public class SetHeroicUpgradesHandler(IAppDbContext db) : ICommandHandler<SetHer
             throw new DomainRuleException("Героические способности доступны только в Realms of Terrinoth.");
         if (c.HeroicAbility is null)
             throw new DomainRuleException("Сначала выберите героическую способность.");
+        HeroicIdentityGate.EnsureUpgradesAllowed(c);
 
         var req = command.Request;
         if (req.PowerRank is < 0 or > 2 || req.DurationRanks < 0 || req.FrequencyRanks < 0)

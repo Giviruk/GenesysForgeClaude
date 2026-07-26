@@ -1,15 +1,26 @@
 import { useEffect, useState } from 'react'
 import { api } from '../../api/client'
-import type { CharacterNote, CharacterSheet, ItemState, Reference, SheetSkill, SkillKind } from '../../api/types'
+import type {
+  CharacterNote, CharacterSheet, HeroicIdentity, HeroicOriginType, ItemState, Reference, SheetSkill, SkillKind,
+} from '../../api/types'
 import {
-  CHARACTERISTICS, CHARACTERISTIC_LABELS, ITEM_STATE_LABELS, localizedDescription, localizedName,
-  resolveWeaponSkillName, secondaryName, SKILL_KIND_LABELS, SYSTEM_LABELS,
+  CHARACTERISTICS, CHARACTERISTIC_LABELS, HEROIC_ORIGIN_LABELS, ITEM_STATE_LABELS, localizedDescription,
+  localizedName, resolveWeaponSkillName, secondaryName, SKILL_KIND_LABELS, SYSTEM_LABELS,
 } from '../../utils/labels'
 import { DicePoolView } from '../DicePoolView'
 import { t } from '../../i18n'
 
 const ITEM_STATE_ORDER: ItemState[] = ['equipped', 'carried', 'backpack']
 const SKILL_KIND_ORDER: SkillKind[] = ['general', 'combat', 'social', 'knowledge', 'magic']
+
+/** Происхождение героической способности для печати: категории таблицы либо собственный текст. */
+function heroicOriginPrintLabel(identity: HeroicIdentity): string {
+  if (identity.originMode === 'custom') return identity.originNarrative ?? ''
+  return [identity.originPrimary, identity.originSecondary]
+    .filter((x): x is HeroicOriginType => !!x)
+    .map(x => HEROIC_ORIGIN_LABELS[x])
+    .join(' / ')
+}
 
 /** Полный печатный лист персонажа для PrintPreview (→ браузерная печать / сохранение в PDF). */
 export function CharacterSheetPrint({ sheet, loadNotes = true }: {
@@ -103,8 +114,11 @@ export function CharacterSheetPrint({ sheet, loadNotes = true }: {
         <section className="sheet-section">
           <h2>{t('Героическая способность', 'Heroic ability')}</h2>
           <div className="sheet-entry">
-            <strong>{localizedName(h)}</strong>
+            {/* Личное название игрока и имя эффекта из каталога — разные вещи (ROT-HA-01). */}
+            <strong>{sheet.heroicIdentity?.customName || localizedName(h)}</strong>
             <span className="sheet-meta">
+              {sheet.heroicIdentity?.customName && ` · ${localizedName(h)}`}
+              {sheet.heroicIdentity?.complete && ` · ${heroicOriginPrintLabel(sheet.heroicIdentity)}`}
               {[
                 h.activation,
                 sheet.heroicUpgrades.story ? t('1 очко сюжета', '1 Story Point') : h.activationCost,

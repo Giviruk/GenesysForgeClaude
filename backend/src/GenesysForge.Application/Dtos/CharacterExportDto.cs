@@ -57,7 +57,15 @@ public record CharacterExportData(
     int StartingPurchaseBudget = 0,
     // v2: обязательный видовой выбор (Half-Catfolk). Пусто — вид выбора не требует либо
     // legacy-персонаж, которому выбор нужно сделать вручную (ROT-SPECIES-01).
-    string SpeciesAbilityChoiceCode = "");
+    string SpeciesAbilityChoiceCode = "",
+    // v2: личное название и происхождение героической способности (ROT-HA-01). Пусто у файлов v1
+    // и у legacy-персонажей — импорт предупреждает и оставляет личность незаполненной.
+    string? HeroicCustomName = null,
+    HeroicOriginMode? HeroicOriginMode = null,
+    HeroicOriginType? HeroicOriginPrimary = null,
+    HeroicOriginType? HeroicOriginSecondary = null,
+    string? HeroicOriginNarrative = null,
+    List<int>? HeroicOriginRolls = null);
 
 public record CharacterSkillExport(string Code, string Name, int Ranks, bool IsCareer, int FreeRanks);
 

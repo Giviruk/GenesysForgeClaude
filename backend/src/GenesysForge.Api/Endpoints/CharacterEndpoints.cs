@@ -170,6 +170,20 @@ public static class CharacterEndpoints
             return Results.NoContent();
         });
 
+        group.MapPut("/{id:guid}/heroic-identity", async (Guid id, SetHeroicIdentityRequest req,
+            ClaimsPrincipal user, ICommandHandler<SetHeroicIdentityCommand, Unit> handler, CancellationToken ct) =>
+        {
+            await handler.Handle(new SetHeroicIdentityCommand(user.UserId(), id, req), ct);
+            return Results.NoContent();
+        });
+
+        group.MapPost("/{id:guid}/heroic-identity/roll-origin", async (Guid id, ClaimsPrincipal user,
+            ICommandHandler<RollHeroicOriginCommand, HeroicOriginRollDto> handler, CancellationToken ct) =>
+        {
+            var result = await handler.Handle(new RollHeroicOriginCommand(user.UserId(), id), ct);
+            return Results.Ok(result);
+        });
+
         group.MapPut("/{id:guid}/heroic-upgrade", async (Guid id, SetHeroicUpgradeRankRequest req,
             ClaimsPrincipal user, ICommandHandler<SetHeroicUpgradeRankCommand, Unit> handler, CancellationToken ct) =>
         {

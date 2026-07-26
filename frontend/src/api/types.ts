@@ -193,6 +193,34 @@ export interface HeroicAbility {
   effects: RuleEffect[]
 }
 
+/** Как задано происхождение героической способности (ROT-HA-01). */
+export type HeroicOriginMode = 'standard' | 'doubleStandard' | 'custom'
+
+/** Категория происхождения из таблицы d10; порядок совпадает с гранями 1–9. */
+export type HeroicOriginType =
+  | 'bloodline' | 'destiny' | 'artifact' | 'patron' | 'purpose'
+  | 'lifeChangingEvent' | 'blessingOrCurse' | 'training' | 'wildMagic'
+
+/** Личное название и происхождение героической способности. */
+export interface HeroicIdentity {
+  customName: string | null
+  originMode: HeroicOriginMode | null
+  originPrimary: HeroicOriginType | null
+  originSecondary: HeroicOriginType | null
+  originNarrative: string | null
+  /** Фактические грани броска; 0 — специальный результат «бросить ещё дважды». */
+  originRolls: number[]
+  complete: boolean
+}
+
+/** Результат серверного броска по таблице происхождения. */
+export interface HeroicOriginRollResult {
+  rolls: number[]
+  originMode: HeroicOriginMode
+  originPrimary: HeroicOriginType
+  originSecondary: HeroicOriginType | null
+}
+
 export interface HeroicSecondaryEffect {
   id: string
   code: string
@@ -1025,6 +1053,10 @@ export interface CharacterSheet {
     story: boolean
     secondaryEffects: HeroicSecondaryEffect[]
   }
+  /** Личность героической способности; null, пока способность не выбрана (ROT-HA-01). */
+  heroicIdentity: HeroicIdentity | null
+  /** Способность выбрана, но личность не заполнена — улучшения заблокированы. */
+  heroicIdentityIncomplete: boolean
   items: SheetItem[]
   // Мотивации и предыстория (U-22)
   desire: string | null
@@ -1063,6 +1095,7 @@ export type CharacterAuditAction =
   | 'skillRankBought' | 'skillRankRefunded' | 'talentBought' | 'talentRefunded'
   | 'itemBought' | 'itemSold' | 'itemRemoved'
   | 'heroicAbilityChanged' | 'creationCompleted' | 'manualEdit'
+  | 'heroicIdentitySet' | 'heroicOriginRolled'
 
 export interface CharacterAuditEntry {
   id: string

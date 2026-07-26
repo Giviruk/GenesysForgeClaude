@@ -13,7 +13,11 @@ public class CompleteCreationHandler(IAppDbContext db) : ICommandHandler<Complet
         if (!c.IsCreationPhase) return Unit.Value; // идемпотентно: повторный вызов не плодит записи
         if (c.System == GameSystem.RealmsOfTerrinoth && c.HeroicAbilityId is null)
             throw new DomainRuleException(
-                "Для персонажа Realms of Terrinoth выберите героическую способность до завершения создания.");
+                "Для персонажа Realms of Terrinoth выберите героическую способность до завершения создания.",
+                "heroic.ability.required");
+        // Личное название и происхождение — обязательная часть способности (ROT-HA-01): после
+        // completion они неизменяемы, поэтому проверяются до фиксации порогов и смены фазы.
+        HeroicIdentityGate.EnsureComplete(c);
         // Пороги фиксируются в той же транзакции до переключения фазы; повторный вызов сюда не
         // доходит (idempotent-выход выше), поэтому snapshot делается ровно один раз.
         var (wound, strain) = CharacterDerived.CreationSnapshot(c);

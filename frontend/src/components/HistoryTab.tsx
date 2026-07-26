@@ -22,6 +22,8 @@ const ACTION_LABELS: Record<CharacterAuditAction, string> = t({
   itemSold: 'Продажа',
   itemRemoved: 'Предмет −',
   heroicAbilityChanged: 'Героика',
+  heroicIdentitySet: 'Имя героики',
+  heroicOriginRolled: 'Происхождение',
   creationCompleted: 'Создание',
   manualEdit: 'Правка',
 }, {
@@ -36,6 +38,8 @@ const ACTION_LABELS: Record<CharacterAuditAction, string> = t({
   itemSold: 'Sale',
   itemRemoved: 'Item −',
   heroicAbilityChanged: 'Heroic ability',
+  heroicIdentitySet: 'Heroic name',
+  heroicOriginRolled: 'Origin roll',
   creationCompleted: 'Creation',
   manualEdit: 'Edit',
 })

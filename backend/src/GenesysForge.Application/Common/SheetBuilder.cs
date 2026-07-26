@@ -111,6 +111,15 @@ public static class SheetBuilder
             c.RulesReviewRequired,
             c.SpeciesAbilityChoiceCode,
             SpeciesAbilityRules.ChoiceIncomplete(c.Archetype, c.SpeciesAbilityChoiceCode),
-            CharacterDerived.Silhouette(c));
+            CharacterDerived.Silhouette(c),
+            c.HeroicAbilityId is null ? null : new HeroicIdentityDto(
+                c.HeroicCustomName,
+                c.HeroicOriginMode,
+                c.HeroicOriginPrimary,
+                c.HeroicOriginSecondary,
+                c.HeroicOriginNarrative,
+                [.. HeroicIdentityRules.ParseRolls(c.HeroicOriginRolls)],
+                c.HeroicIdentityComplete),
+            c.HeroicIdentityIncomplete);
     }
 }

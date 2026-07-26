@@ -1,7 +1,7 @@
 import type {
   Account,
   AuthResponse, AuthProviders, CampaignDetail, CampaignListItem, CampaignNote, CharacterListItem, CharacterNote,
-  ActivateAbilityResult, ActivateCharacterAbilityResult, AddParticipantRequest, CharacterBio, CharacterSheet, CharacterShareResponse, CreatureTemplate, GameSession, GameSystem, HeroicAbility, InitiativeSlotType,
+  ActivateAbilityResult, ActivateCharacterAbilityResult, AddParticipantRequest, CharacterBio, CharacterSheet, CharacterShareResponse, CreatureTemplate, GameSession, GameSystem, HeroicAbility, HeroicOriginMode, HeroicOriginRollResult, HeroicOriginType, InitiativeSlotType,
   Archetype, Career, CustomArchetypeInput, CustomCareerInput, ItemDef, ItemState, NpcDetail, NpcFilter, NpcInput, NpcListItem, QuickDraftRequest, Reference,
   SkillDef, Spell, TalentCategory, TalentDef, UpdateParticipantRequest,
   AddEncounterParticipantRequest, EncounterDetail, EncounterFilter, EncounterInput, EncounterListItem,
@@ -186,6 +186,15 @@ export const api = {
     request<void>('POST', `/api/characters/${id}/talents/refund`, { talentDefId }),
   setHeroicAbility: (id: string, heroicAbilityId: string | null) =>
     request<void>('PUT', `/api/characters/${id}/heroic-ability`, { heroicAbilityId }),
+  setHeroicIdentity: (id: string, body: {
+    customName: string
+    originMode?: HeroicOriginMode | null
+    originPrimary?: HeroicOriginType | null
+    originSecondary?: HeroicOriginType | null
+    originNarrative?: string | null
+  }) => request<void>('PUT', `/api/characters/${id}/heroic-identity`, body),
+  rollHeroicOrigin: (id: string) =>
+    request<HeroicOriginRollResult>('POST', `/api/characters/${id}/heroic-identity/roll-origin`),
   setHeroicUpgradeRank: (id: string, rank: number) =>
     request<void>('PUT', `/api/characters/${id}/heroic-upgrade`, { rank }),
   setHeroicUpgrades: (id: string, body: {

@@ -1,6 +1,6 @@
 import type {
   AllowedState, Characteristic, ContentEntryType, CreatureTemplate, EncounterType, GameSystem, HouseRuleCategory,
-  InitiativeSlotType, ItemKind, ItemState, NpcCombatStyle, NpcKind, NpcPowerLevel, NpcRole,
+  HeroicOriginType, InitiativeSlotType, ItemKind, ItemState, NpcCombatStyle, NpcKind, NpcPowerLevel, NpcRole,
   NpcVisibility, ParticipantType, SkillKind, TalentCategory, ThreatLevel,
 } from '../api/types'
 import { t } from '../i18n'
@@ -436,3 +436,37 @@ export const talentCost = (tier: number) => tier * 5
 /** Эффективный тир следующего ранга рангового таланта (каждый ранг — на тир выше, максимум 5). */
 export const nextRankTier = (baseTier: number, ranksOwned: number) =>
   Math.min(baseTier + ranksOwned, 5)
+
+/**
+ * Категории происхождения героической способности (ROT-HA-01). Порядок совпадает
+ * с гранями d10 1–9, поэтому список можно показывать вместе с номером грани.
+ */
+export const HEROIC_ORIGIN_TYPES: HeroicOriginType[] = [
+  'bloodline', 'destiny', 'artifact', 'patron', 'purpose',
+  'lifeChangingEvent', 'blessingOrCurse', 'training', 'wildMagic',
+]
+
+export const HEROIC_ORIGIN_LABELS: Record<HeroicOriginType, string> = t({
+  bloodline: 'Наследственная сила или особая кровь',
+  destiny: 'Избранность судьбой или пророчеством',
+  artifact: 'Сила, связанная с артефактом',
+  patron: 'Покровительство невидимой сверхъестественной силы',
+  purpose: 'Исключительная внутренняя цель: долг, клятва или месть',
+  lifeChangingEvent: 'Единственный преобразивший жизнь опыт',
+  blessingOrCurse: 'Благословение либо проклятие',
+  training: 'Уникальная многолетняя подготовка',
+  wildMagic: 'Воздействие неконтролируемой магии',
+}, {
+  bloodline: 'Inherited power or special blood',
+  destiny: 'Chosen by fate or prophecy',
+  artifact: 'Power tied to an artifact',
+  patron: 'Patronage of an unseen supernatural power',
+  purpose: 'An exceptional inner purpose: duty, oath or revenge',
+  lifeChangingEvent: 'A single life-changing experience',
+  blessingOrCurse: 'A blessing or a curse',
+  training: 'Unique lifelong training',
+  wildMagic: 'Exposure to uncontrolled magic',
+})
+
+/** Грань d10, соответствующая категории: индекс в таблице + 1. */
+export const heroicOriginFace = (type: HeroicOriginType) => HEROIC_ORIGIN_TYPES.indexOf(type) + 1

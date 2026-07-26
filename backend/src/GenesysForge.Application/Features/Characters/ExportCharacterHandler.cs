@@ -1,6 +1,7 @@
 using GenesysForge.Application.Abstractions;
 using GenesysForge.Application.Common;
 using GenesysForge.Application.Dtos;
+using GenesysForge.Domain.Rules;
 using Microsoft.EntityFrameworkCore;
 
 namespace GenesysForge.Application.Features.Characters;
@@ -70,7 +71,13 @@ public class ExportCharacterHandler(IAppDbContext db) : IQueryHandler<ExportChar
             RulesReviewRequired: c.RulesReviewRequired,
             StartingEquipmentMode: c.StartingEquipmentMode,
             StartingPurchaseBudget: c.StartingPurchaseBudget,
-            SpeciesAbilityChoiceCode: c.SpeciesAbilityChoiceCode);
+            SpeciesAbilityChoiceCode: c.SpeciesAbilityChoiceCode,
+            HeroicCustomName: c.HeroicCustomName,
+            HeroicOriginMode: c.HeroicOriginMode,
+            HeroicOriginPrimary: c.HeroicOriginPrimary,
+            HeroicOriginSecondary: c.HeroicOriginSecondary,
+            HeroicOriginNarrative: c.HeroicOriginNarrative,
+            HeroicOriginRolls: [.. HeroicIdentityRules.ParseRolls(c.HeroicOriginRolls)]);
 
         return new CharacterExportDto(CharacterExportDto.CurrentFormat, DateTime.UtcNow, data);
     }

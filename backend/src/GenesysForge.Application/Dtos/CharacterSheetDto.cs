@@ -52,7 +52,14 @@ public record CharacterSheetDto(
     /// </summary>
     bool SpeciesChoiceIncomplete = false,
     /// <summary>Итоговый silhouette персонажа с учётом способности <c>Small</c>.</summary>
-    int Silhouette = 1);
+    int Silhouette = 1,
+    /// <summary>Личное название и происхождение героической способности (ROT-HA-01).</summary>
+    HeroicIdentityDto? HeroicIdentity = null,
+    /// <summary>
+    /// Способность выбрана, но её личное название и происхождение не заполнены. Улучшения
+    /// заблокированы, пока владелец не заполнит данные; сервер их не выдумывает.
+    /// </summary>
+    bool HeroicIdentityIncomplete = false);
 
 /// <summary>Один сохранённый выбор ранга таланта (ROT-TAL-03).</summary>
 public record CharacterTalentChoiceDto(int RankIndex, TalentChoiceKind Kind, string Value, string DisplayName);

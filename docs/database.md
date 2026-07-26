@@ -212,6 +212,23 @@ campaign and Game Table. `ThresholdSnapshotProvenance` records where the values 
 human check. Import of a pre-v2 export file computes the thresholds deterministically, marks them
 `LegacyEstimated` and returns a warning — it never stores a zero or a silent guess.
 
+Heroic identity (ROT-HA-01): a heroic ability has three separate notions — the catalogue primary
+effect, the player's own name for it, and its origin. `HeroicCustomName` (1–120 chars) stores the
+personal name and never falls back to the effect's display name. `HeroicOriginMode`
+(`Standard` / `DoubleStandard` / `Custom`) is stored explicitly so a lost second category cannot be
+mistaken for a single-category roll; `HeroicOriginPrimary` / `HeroicOriginSecondary` hold the d10
+table categories (enum value = printed face 1–9) and `HeroicOriginNarrative` (≤ 2000 chars) the
+player's own text, mandatory for `Custom`. `HeroicOriginRolls` keeps the actual faces as a
+comma-separated list (`0,0,4,7`), where `0` is the special "roll twice more" result — it is recorded
+for audit and never stored as a final origin. The roll itself is server-side, through the injected
+`IDiceRoller`, and is logged as `HeroicOriginRolled`; setting the identity is logged as
+`HeroicIdentitySet`. All columns are nullable so pre-ROT-HA-01 characters still load: such a
+character reports `HeroicIdentityIncomplete`, stays playable, but cannot buy or edit heroic upgrades
+until the owner fills the data in once. New RoT characters cannot complete creation without it, and
+after completion the identity is immutable. Duplicate, export v2 and import carry it over; an import
+whose identity fields are inconsistent (for example `Custom` together with a table category) drops
+the identity with a warning instead of inventing an origin.
+
 Starting equipment (ROT-CRE-03): `StartingEquipmentMode` (`StandardMoney` / `CareerPackage`) records
 the mutually exclusive mode chosen at creation, and `StartingPurchaseBudget` holds what is left of it.
 The modes never mix. `StandardMoney` gives a 500-silver purchase budget plus separate `1d100` pocket

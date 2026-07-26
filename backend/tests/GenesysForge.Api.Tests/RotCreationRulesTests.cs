@@ -271,6 +271,11 @@ public class RotCreationRulesTests(ApiFactory factory) : IClassFixture<ApiFactor
             new SetHeroicAbilityRequest(reference.HeroicAbilities[0].Id), Json.Options);
         Assert.Equal(HttpStatusCode.NoContent, setHeroic.StatusCode);
 
+        var setIdentity = await client.PutAsJsonAsync($"/api/characters/{id}/heroic-identity",
+            new SetHeroicIdentityRequest("Клинок рассвета", HeroicOriginMode.Standard,
+                HeroicOriginType.Destiny, null, null), Json.Options);
+        Assert.Equal(HttpStatusCode.NoContent, setIdentity.StatusCode);
+
         var complete = await client.PostAsync($"/api/characters/{id}/complete-creation", null);
         Assert.Equal(HttpStatusCode.NoContent, complete.StatusCode);
         return (id, reference);

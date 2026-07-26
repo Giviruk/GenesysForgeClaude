@@ -1,10 +1,12 @@
 import { useState } from 'react'
 import { api } from '../api/client'
 import type {
-  ActivateCharacterAbilityResult, CareerSkillSource, CharacterSheet, Reference, SkillKind,
+  ActivateCharacterAbilityResult, CareerSkillSource, CharacterSheet, HeroicIdentity, HeroicOriginType,
+  Reference, SkillKind,
 } from '../api/types'
 import {
-  CHARACTERISTICS, CHARACTERISTIC_LABELS, CHARACTERISTIC_SHORT_LABELS, localizedDescription, localizedName,
+  CHARACTERISTICS, CHARACTERISTIC_LABELS, CHARACTERISTIC_SHORT_LABELS, HEROIC_ORIGIN_LABELS,
+  HEROIC_ORIGIN_TYPES, heroicOriginFace, localizedDescription, localizedName,
   secondaryName, SKILL_KIND_LABELS,
 } from '../utils/labels'
 import { DicePoolView } from './DicePoolView'
@@ -273,18 +275,29 @@ function HeroicAbilityCard({ sheet, reference, run }: {
 
   return (
     <div className="heroic">
-      <strong>{localizedName(h)}</strong>
+      <strong>{sheet.heroicIdentity?.customName || localizedName(h)}</strong>
+      {sheet.heroicIdentity?.customName && (
+        <div className="hint small-text">{t('Эффект:', 'Effect:')} {localizedName(h)}</div>
+      )}
       <p>{localizedDescription(h)}</p>
       {meta.filter(([, v]) => v).map(([k, v]) => (
         <div key={k} className="hint small-text"><b>{k}:</b> {v}</div>
       ))}
       {h.notes && <p className="hint small-text">{h.notes}</p>}
 
+      <HeroicIdentitySection sheet={sheet} run={run} />
+
       <div className="heroic-upgrades">
           <div className="label-line">
             {t(`Улучшения · очков доступно: ${available} из ${total}`, `Upgrades · points available: ${available} of ${total}`)}
             <span className="hint"> {t('(по 1 за каждые 50 XP сверх стартового XP вида)', '(1 per 50 XP above species starting XP)')}</span>
           </div>
+          {sheet.heroicIdentityIncomplete && (
+            <p className="hint small-text">
+              {t('Улучшения заблокированы, пока не заполнены личное название и происхождение.',
+                'Upgrades are locked until the personal name and origin are filled in.')}
+            </p>
+          )}
           {h.upgrades.map(u => {
             const purchased = rank >= u.level
             const isNext = u.level === rank + 1
@@ -383,6 +396,132 @@ function HeroicAbilityCard({ sheet, reference, run }: {
         <button className="small" onClick={() => run(() => api.setHeroicAbility(sheet.id, null))}>
           {t('Сбросить способность', 'Reset ability')}
         </button>
+      )}
+    </div>
+  )
+}
+
+/** Как игрок задаёт происхождение: категория таблицы, собственный текст или бросок. */
+type OriginSource = 'table' | 'custom' | 'rolled'
+
+/** Категории и грани сохранённого происхождения одной строкой. */
+function originSummary(identity: HeroicIdentity): string {
+  if (identity.originMode === 'custom') return identity.originNarrative ?? ''
+  return [identity.originPrimary, identity.originSecondary]
+    .filter((x): x is HeroicOriginType => !!x)
+    .map(x => `${heroicOriginFace(x)} — ${HEROIC_ORIGIN_LABELS[x]}`)
+    .join(' · ')
+}
+
+/**
+ * Личное название и происхождение героической способности (ROT-HA-01). Заполняется при
+ * создании и после него неизменяемо; исключение — однократное заполнение старого персонажа,
+ * у которого этих данных ещё нет.
+ */
+export function HeroicIdentitySection({ sheet, run }: {
+  sheet: CharacterSheet
+  run: (action: () => Promise<unknown>) => Promise<void>
+}) {
+  const identity = sheet.heroicIdentity
+  const editable = sheet.isCreationPhase || sheet.heroicIdentityIncomplete
+
+  const [name, setName] = useState(identity?.customName ?? '')
+  const [source, setSource] = useState<OriginSource>(
+    identity?.originRolls.length ? 'rolled' : identity?.originMode === 'custom' ? 'custom' : 'table')
+  const [origin, setOrigin] = useState<HeroicOriginType | ''>(identity?.originPrimary ?? '')
+  const [narrative, setNarrative] = useState(identity?.originNarrative ?? '')
+
+  const hasRolledOrigin = (identity?.originRolls.length ?? 0) > 0
+  const canSave = name.trim().length > 0 && (
+    source === 'table' ? origin !== ''
+      : source === 'custom' ? narrative.trim().length > 0
+        : hasRolledOrigin)
+
+  function save() {
+    // Для брошенного происхождения режим не отправляется: сохранённые категории и грани
+    // остаются серверными, клиент меняет только личное название.
+    return api.setHeroicIdentity(sheet.id, source === 'rolled'
+      ? { customName: name.trim() }
+      : source === 'custom'
+        ? { customName: name.trim(), originMode: 'custom', originNarrative: narrative.trim() }
+        : { customName: name.trim(), originMode: 'standard', originPrimary: origin as HeroicOriginType })
+  }
+
+  return (
+    <div className="heroic-identity">
+      <div className="label-line">{t('Название и происхождение', 'Name and origin')}</div>
+
+      {identity?.complete && (
+        <div className="hint small-text">
+          <b>{t('Происхождение:', 'Origin:')}</b> {originSummary(identity)}
+          {identity.originRolls.length > 0 && (
+            <> · {t('броски d10:', 'd10 rolls:')} {identity.originRolls.join(', ')}
+              {identity.originRolls.includes(0)
+                && ` (${t('0 — бросить ещё дважды', '0 — roll twice more')})`}</>
+          )}
+        </div>
+      )}
+
+      {sheet.heroicIdentityIncomplete && (
+        <p className="hint small-text">
+          {sheet.isCreationPhase
+            ? t('Личное название и происхождение обязательны для завершения создания.',
+              'The personal name and origin are required to finish character creation.')
+            : t('Данные не заполнены: укажите их один раз — после этого они станут неизменяемыми.',
+              'These are missing: fill them in once — afterwards they become immutable.')}
+        </p>
+      )}
+
+      {editable && (
+        <div className="heroic-identity-form">
+          <input value={name} maxLength={120} placeholder={t('Личное название', 'Personal name')}
+            onChange={e => setName(e.target.value)} />
+
+          <div className="inline-form">
+            {(['table', 'custom', 'rolled'] as OriginSource[]).map(kind => (
+              <label key={kind}>
+                <input type="radio" name={`origin-source-${sheet.id}`} checked={source === kind}
+                  onChange={() => setSource(kind)} />
+                {kind === 'table' ? t(' выбрать', ' choose')
+                  : kind === 'custom' ? t(' описать', ' describe')
+                    : t(' бросить', ' roll')}
+              </label>
+            ))}
+          </div>
+
+          {source === 'table' && (
+            <select value={origin} onChange={e => setOrigin(e.target.value as HeroicOriginType)}>
+              <option value="" disabled>{t('— категория происхождения —', '— origin category —')}</option>
+              {HEROIC_ORIGIN_TYPES.map(x => (
+                <option key={x} value={x}>{heroicOriginFace(x)} — {HEROIC_ORIGIN_LABELS[x]}</option>
+              ))}
+            </select>
+          )}
+
+          {source === 'custom' && (
+            <textarea value={narrative} maxLength={2000} rows={3}
+              placeholder={t('Откуда взялась сила', 'Where the power came from')}
+              onChange={e => setNarrative(e.target.value)} />
+          )}
+
+          {source === 'rolled' && (
+            <div className="inline-form">
+              <button className="small" onClick={() => run(() => api.rollHeroicOrigin(sheet.id))}>
+                {t('🎲 Бросить d10', '🎲 Roll d10')}
+              </button>
+              {!hasRolledOrigin && (
+                <span className="hint small-text">
+                  {t('Специальный результат «0» даёт два происхождения.',
+                    'The special result “0” yields two origins.')}
+                </span>
+              )}
+            </div>
+          )}
+
+          <button className="small primary" disabled={!canSave} onClick={() => run(save)}>
+            {t('Сохранить', 'Save')}
+          </button>
+        </div>
       )}
     </div>
   )

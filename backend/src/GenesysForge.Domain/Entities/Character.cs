@@ -1,3 +1,5 @@
+using GenesysForge.Domain.Rules;
+
 namespace GenesysForge.Domain.Entities;
 
 public class Character
@@ -80,6 +82,31 @@ public class Character
     /// <summary>Куплено ли улучшение Story, снижающее стоимость активации до 1 Story Point.</summary>
     public bool HeroicStoryUpgrade { get; set; }
 
+    /// <summary>
+    /// Личное название героической способности, данное игроком (ROT-HA-01). Это не имя primary
+    /// effect из каталога: подменять одно другим нельзя. <c>null</c> — у старых персонажей,
+    /// созданных до появления требования.
+    /// </summary>
+    public string? HeroicCustomName { get; set; }
+
+    /// <summary>Способ задания происхождения: категории таблицы или собственный текст.</summary>
+    public HeroicOriginMode? HeroicOriginMode { get; set; }
+
+    /// <summary>Первая категория происхождения из таблицы d10.</summary>
+    public HeroicOriginType? HeroicOriginPrimary { get; set; }
+
+    /// <summary>Вторая категория происхождения — только после специального результата «0».</summary>
+    public HeroicOriginType? HeroicOriginSecondary { get; set; }
+
+    /// <summary>Собственный текст происхождения: обязателен в режиме Custom, иначе — заметка.</summary>
+    public string? HeroicOriginNarrative { get; set; }
+
+    /// <summary>
+    /// Фактические грани d10 через запятую, если происхождение было брошено («0,0,4,7»).
+    /// Хранятся ради аудита: специальный «0» виден, но финальным происхождением не является.
+    /// </summary>
+    public string HeroicOriginRolls { get; set; } = "";
+
     // Мотивации и предыстория (U-22). Все опциональны: пусто → null.
     public string? Desire { get; set; }
     public string? Fear { get; set; }
@@ -101,6 +128,18 @@ public class Character
 
     /// <summary>XP, заработанный после создания (сверх стартового XP архетипа).</summary>
     public int EarnedXp => Math.Max(0, TotalXp - (Archetype?.StartingXp ?? 0));
+
+    /// <summary>Личность героической способности заполнена целиком (ROT-HA-01).</summary>
+    public bool HeroicIdentityComplete => HeroicIdentityRules.IsComplete(
+        HeroicCustomName, HeroicOriginMode, HeroicOriginPrimary, HeroicOriginSecondary, HeroicOriginNarrative);
+
+    /// <summary>
+    /// Способность выбрана, но личное название и происхождение не заполнены. Такой персонаж
+    /// остаётся доступен, однако улучшения героической способности заблокированы до однократного
+    /// заполнения владельцем — выдумывать происхождение за игрока нельзя.
+    /// </summary>
+    public bool HeroicIdentityIncomplete =>
+        System == GameSystem.RealmsOfTerrinoth && HeroicAbilityId is not null && !HeroicIdentityComplete;
 
     /// <summary>Всего ability points: по 1 за каждые полные 50 XP сверх стартового XP вида.</summary>
     public int HeroicUpgradePointsTotal => EarnedXp / 50;

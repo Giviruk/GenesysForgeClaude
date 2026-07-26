@@ -505,6 +505,10 @@ public class CharacterFlowTests : IClassFixture<ApiFactory>
         var buy = await client.PutAsJsonAsync($"/api/characters/{id}/heroic-upgrades",
             new SetHeroicUpgradesRequest(1, 0, 0, false, []));
         Assert.Equal(HttpStatusCode.NoContent, buy.StatusCode);
+        // ROT-HA-01: без личного названия и происхождения создание не завершается.
+        await client.PutAsJsonAsync($"/api/characters/{id}/heroic-identity",
+            new SetHeroicIdentityRequest("Пламя рассвета", HeroicOriginMode.Standard,
+                HeroicOriginType.Destiny, null, null), Json.Options);
         await client.PostAsync($"/api/characters/{id}/complete-creation", null);
 
         var refund = await client.PutAsJsonAsync($"/api/characters/{id}/heroic-upgrades",

@@ -144,6 +144,32 @@ public static class CharacterImporter
                 character.HeroicFrequencyRanks = Math.Max(0, data.HeroicFrequencyRanks);
                 character.HeroicStoryUpgrade = data.HeroicStoryUpgrade;
 
+                // ROT-HA-01: личность переносится только целиком и только в валидном виде. Файл v1
+                // и подделанные поля дают предупреждение — достраивать происхождение за игрока нельзя.
+                if (data.HeroicOriginMode is not null)
+                {
+                    try
+                    {
+                        var identity = HeroicIdentityRules.Validate(
+                            data.HeroicCustomName,
+                            data.HeroicOriginMode.Value,
+                            data.HeroicOriginPrimary,
+                            data.HeroicOriginSecondary,
+                            data.HeroicOriginNarrative,
+                            [.. (data.HeroicOriginRolls ?? []).Where(f => f is >= 0 and <= 9)]);
+                        character.HeroicCustomName = identity.CustomName;
+                        character.HeroicOriginMode = identity.OriginMode;
+                        character.HeroicOriginPrimary = identity.OriginPrimary;
+                        character.HeroicOriginSecondary = identity.OriginSecondary;
+                        character.HeroicOriginNarrative = identity.OriginNarrative;
+                        character.HeroicOriginRolls = HeroicIdentityRules.FormatRolls(identity.OriginRolls);
+                    }
+                    catch (DomainRuleException ex)
+                    {
+                        warnings.Add($"Личность героической способности не перенесена: {ex.Message}");
+                    }
+                }
+
                 var effectCodes = (data.HeroicSecondaryEffectCodes ?? [])
                     .Where(x => !string.IsNullOrWhiteSpace(x)).Distinct().Take(2).ToList();
                 var effectDefs = await db.HeroicSecondaryEffectDefs
@@ -180,6 +206,12 @@ public static class CharacterImporter
         {
             character.IsCreationPhase = true;
             warnings.Add("У персонажа RoT нет героической способности — фаза создания оставлена открытой.");
+        }
+        if (character.HeroicIdentityIncomplete)
+        {
+            warnings.Add(
+                "Личное название и происхождение героической способности не заполнены — "
+                + "улучшения останутся заблокированы, пока владелец не заполнит их вручную.");
         }
 
         ApplyThresholdSnapshot(character, archetype, data, warnings);
