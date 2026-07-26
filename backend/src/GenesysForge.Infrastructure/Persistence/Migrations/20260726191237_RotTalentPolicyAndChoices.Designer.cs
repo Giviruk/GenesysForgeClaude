@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using GenesysForge.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -12,9 +13,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace GenesysForge.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260726191237_RotTalentPolicyAndChoices")]
+    partial class RotTalentPolicyAndChoices
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -2546,29 +2549,13 @@ namespace GenesysForge.Infrastructure.Persistence.Migrations
                         .HasMaxLength(160)
                         .HasColumnType("character varying(160)");
 
-                    b.Property<int>("StoryPointCost")
-                        .HasColumnType("integer");
-
                     b.Property<int>("StrainBonus")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("StrainCost")
                         .HasColumnType("integer");
 
                     b.Property<int>("System")
                         .HasColumnType("integer");
 
                     b.Property<int>("Tier")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("Trigger")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<int>("UseScope")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("UsesPerScope")
                         .HasColumnType("integer");
 
                     b.Property<int>("WoundBonus")

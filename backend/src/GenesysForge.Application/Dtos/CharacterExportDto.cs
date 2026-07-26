@@ -61,7 +61,11 @@ public record CharacterExportData(
 
 public record CharacterSkillExport(string Code, string Name, int Ranks, bool IsCareer, int FreeRanks);
 
-public record CharacterTalentExport(string Code, string Name, int Ranks, string GrantedCharacteristics);
+public record CharacterTalentExport(string Code, string Name, int Ranks, string GrantedCharacteristics,
+    // v2: общий формат выборов ранга (ROT-TAL-03); пусто у файлов v1.
+    List<CharacterTalentChoiceExport>? Choices = null, bool NeedsChoice = false);
+
+public record CharacterTalentChoiceExport(int RankIndex, TalentChoiceKind Kind, string Value, string DisplayName);
 
 public record CharacterItemExport(string Code, string Name, int Quantity, ItemState State,
     ItemProvenance Provenance = ItemProvenance.Purchased);

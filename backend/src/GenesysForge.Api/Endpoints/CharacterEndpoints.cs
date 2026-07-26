@@ -159,7 +159,7 @@ public static class CharacterEndpoints
         group.MapPost("/{id:guid}/talents/buy", async (Guid id, BuyTalentRequest req, ClaimsPrincipal user,
             ICommandHandler<BuyTalentCommand, Unit> handler, CancellationToken ct) =>
         {
-            await handler.Handle(new BuyTalentCommand(user.UserId(), id, req.TalentDefId, req.Characteristic), ct);
+            await handler.Handle(new BuyTalentCommand(user.UserId(), id, req.TalentDefId, req.Characteristic, req.Choices), ct);
             return Results.NoContent();
         });
 

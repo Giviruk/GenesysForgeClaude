@@ -31,7 +31,12 @@ public static class Mappers
         t.Activation, t.Description, t.SafeDescription, t.Source,
         t.WoundBonus, t.StrainBonus, t.SoakBonus, t.MeleeDefenseBonus, t.RangedDefenseBonus, t.OwnerUserId != null,
         t.GrantsCharacteristic, t.DescriptionEn,
-        t.ActivationEn, t.CanUseOutOfTurn, t.CareerSkillNames);
+        t.ActivationEn, t.CanUseOutOfTurn, t.CareerSkillNames,
+        TalentPurchasePolicy.BareCode(t.Code), t.RequiresTalentCode, t.ExcludesTalentCodes,
+        t.UsesPerScope, t.UseScope, t.StoryPointCost, t.StrainCost, t.Trigger,
+        TalentChoiceSchemas.For(t).Kind,
+        TalentChoiceSchemas.For(t).CountForFirstRank,
+        TalentChoiceSchemas.For(t).CountForNextRank);
 
     public static ItemDefDto ToDto(this ItemDef i) => new(i.Id, i.Name, i.NameRu, i.Kind, i.Encumbrance, i.SoakBonus,
         i.MeleeDefense, i.RangedDefense, i.EncumbranceThresholdBonus,

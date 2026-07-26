@@ -2,6 +2,7 @@ using GenesysForge.Application.Abstractions;
 using GenesysForge.Application.Dtos;
 using GenesysForge.Domain;
 using GenesysForge.Domain.Entities;
+using GenesysForge.Domain.Rules;
 using Microsoft.EntityFrameworkCore;
 
 namespace GenesysForge.Application.Common;
@@ -85,11 +86,33 @@ public static class CharacterImporter
         {
             var def = await ResolveTalentAsync(db, userId, system, t.Code, t.Name, ct);
             if (def is null) { warnings.Add($"Талант «{Display(t.Name, t.Code)}» не найден — пропущен."); continue; }
-            character.Talents.Add(new CharacterTalent
+            var talentId = Guid.NewGuid();
+            var imported = new CharacterTalent
             {
-                Id = Guid.NewGuid(), CharacterId = characterId, TalentDefId = def.Id,
+                Id = talentId, CharacterId = characterId, TalentDefId = def.Id,
                 Ranks = Math.Max(1, t.Ranks), GrantedCharacteristics = t.GrantedCharacteristics ?? "",
-            });
+                Choices = (t.Choices ?? [])
+                    .Where(x => !string.IsNullOrWhiteSpace(x.Value))
+                    .Select(x => new CharacterTalentChoice
+                    {
+                        Id = Guid.NewGuid(), CharacterTalentId = talentId,
+                        RankIndex = Math.Max(0, x.RankIndex), Kind = x.Kind,
+                        Value = x.Value, DisplayName = x.DisplayName ?? x.Value,
+                    })
+                    .ToList(),
+            };
+
+            // Файл без выборов у таланта, который их требует, не чинится молча: талант помечается
+            // как требующий ручного выбора, XP при этом повторно не списывается (ROT-TAL-03).
+            var schema = TalentChoiceSchemas.For(def);
+            if (schema.Required && imported.Choices.Count == 0)
+            {
+                imported.NeedsChoice = LegacyGrantsToChoices(imported, schema) == 0;
+                if (imported.NeedsChoice)
+                    warnings.Add($"У таланта «{def.Name}» не сохранён обязательный выбор — его нужно указать вручную.");
+            }
+
+            character.Talents.Add(imported);
         }
 
         foreach (var it in data.Items ?? [])
@@ -174,6 +197,30 @@ public static class CharacterImporter
             .ToList();
 
         return new ImportResolution(character, notes, Label(archetype.NameRu, archetype.Name), Label(career.NameRu, career.Name), warnings);
+    }
+
+    /// <summary>
+    /// Переносит legacy-поле <c>GrantedCharacteristics</c> в общий формат выборов (ROT-TAL-03).
+    /// Возвращает число созданных выборов; 0 — переносить было нечего.
+    /// </summary>
+    private static int LegacyGrantsToChoices(CharacterTalent talent, TalentChoiceSchema schema)
+    {
+        if (schema.Kind != TalentChoiceKind.Characteristic) return 0;
+
+        var grants = talent.ParseGrants();
+        for (var rank = 0; rank < grants.Count; rank++)
+        {
+            talent.Choices.Add(new CharacterTalentChoice
+            {
+                Id = Guid.NewGuid(),
+                CharacterTalentId = talent.Id,
+                RankIndex = rank,
+                Kind = TalentChoiceKind.Characteristic,
+                Value = grants[rank].ToString(),
+                DisplayName = grants[rank].ToString(),
+            });
+        }
+        return grants.Count;
     }
 
     /// <summary>

@@ -18,7 +18,10 @@ public static class TalentCatalog
         string[] Setting, string Activation, string Desc, string? Category,
         int Wt, int St, int Soak, int Mdef, int Rdef,
         bool GrantsCharacteristic = false, string DescEn = "", string ActivationEn = "",
-        bool CanUseOutOfTurn = false, string[]? RetiredIn = null, string[]? CareerSkillNames = null);
+        bool CanUseOutOfTurn = false, string[]? RetiredIn = null, string[]? CareerSkillNames = null,
+        string RequiresTalent = "", string[]? ExcludesTalents = null,
+        int UsesPerScope = 0, string UseScope = "None", int StoryPointCost = 0, int StrainCost = 0,
+        string Trigger = "");
 
     private static readonly JsonSerializerOptions JsonOptions = new() { PropertyNameCaseInsensitive = true };
 
@@ -69,6 +72,14 @@ public static class TalentCatalog
                     ActivationEn = e.ActivationEn,
                     CanUseOutOfTurn = e.CanUseOutOfTurn,
                     CareerSkillNames = [.. e.CareerSkillNames ?? []],
+                    RequiresTalentCode = e.RequiresTalent,
+                    ExcludesTalentCodes = [.. e.ExcludesTalents ?? []],
+                    UsesPerScope = e.UsesPerScope,
+                    UseScope = Enum.TryParse<AbilityUseScope>(e.UseScope, ignoreCase: true, out var scope)
+                        ? scope : AbilityUseScope.None,
+                    StoryPointCost = e.StoryPointCost,
+                    StrainCost = e.StrainCost,
+                    Trigger = e.Trigger,
                     Retired = retiredIn.Contains(sys),
                     GrantsCharacteristic = e.GrantsCharacteristic,
                     SafeDescription = e.Desc,

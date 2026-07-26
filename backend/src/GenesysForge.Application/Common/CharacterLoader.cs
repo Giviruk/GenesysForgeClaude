@@ -32,6 +32,7 @@ public static class CharacterLoader
             .Include(c => c.HeroicSecondaryEffects).ThenInclude(x => x.HeroicSecondaryEffectDef)
             .Include(c => c.Skills).ThenInclude(s => s.SkillDef)
             .Include(c => c.Talents).ThenInclude(t => t.TalentDef)
+            .Include(c => c.Talents).ThenInclude(t => t.Choices)
             .Include(c => c.Items).ThenInclude(i => i.ItemDef)
             .Include(c => c.CriticalInjuries);
         return await (tracking ? query : query.AsNoTracking())

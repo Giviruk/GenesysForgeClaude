@@ -294,7 +294,8 @@
   "desc": "Один раз за сцену персонаж может использовать этот талант, чтобы автоматически добавить О О к про верке социального навыка другого персонажа.",
   "descEn": "Once per encounter, the character may use this talent as an incidental to automatically add two threat to another character's social skill check.",
   "activationEn": "Out-of-turn Incidental",
-  "canUseOutOfTurn": true
+  "canUseOutOfTurn": true,
+  "trigger": "Кто-то оскорбил персонажа или его союзника"
  },
  {
   "code": "otchayannoe-vosstanovlenie",
@@ -337,7 +338,9 @@
   "desc": "Когда персонаж получает попадание в результате проверки ближнего боя, после подсчёта получаемого урона, но до применения поглощения (т. е. сразу после 3-го шага совершения боевой проверки, стр. 102), персонаж может получить 3 усталости, чтобы снизить урон от попадания на 2 плюс его ранг в Парировании. Талант можно использовать только раз за попадание, а персонаж должен использовать оружие ближнего боя.",
   "descEn": "When the character is hit by a melee combat check, after damage is calculated but before soak is applied, they may suffer 3 strain to reduce the damage by 2 plus their ranks in Parry.",
   "activationEn": "Out-of-turn Incidental",
-  "canUseOutOfTurn": true
+  "canUseOutOfTurn": true,
+  "strainCost": 3,
+  "trigger": "Персонаж получил попадание в ближнем бою"
  },
  {
   "code": "podskok",
@@ -676,7 +679,9 @@
   "rdef": 0,
   "desc": "Купив этот талант, выберите одну характеристику. После совершения успешной боевой проверки вы можете потратить одно очко сюжета, чтобы использовать этот талант и добавить урон, равный рейтингу этой характе ристики, к одному попаданию этой проверки.",
   "descEn": "When you purchase this talent, choose one characteristic. After making a successful combat check, you may spend a story point to add damage equal to that characteristic's rating.",
-  "activationEn": "Incidental"
+  "activationEn": "Incidental",
+  "storyPointCost": 1,
+  "trigger": "После успешной боевой проверки"
  },
  {
   "code": "hlestkaya-fraza",
@@ -741,7 +746,8 @@
   "rdef": 0,
   "desc": "Если персонаж вооружён луком (или другим подоб ным оружием по усмотрению ведущего), он может получить 2 усталости, чтобы использовать этот талант. В следующей проверке дальнего боя в этот ход лук получит свойство Залповое с рейтингом, равным рангу персонажа в Дальнем бою.",
   "descEn": "If the character is armed with a bow (or a similar weapon at the GM's discretion), they may suffer 2 strain to fire an additional arrow as part of the attack, gaining an extra hit on the target.",
-  "activationEn": "Maneuver"
+  "activationEn": "Maneuver",
+  "strainCost": 2
  },
  {
   "code": "voodushevlyayuschaya-rech-uluchshennyyj",
@@ -762,7 +768,8 @@
   "rdef": 0,
   "desc": "Прежде вы должны приобрести талант Воодушевля ющая речь. Союзники, на которых воздействует Воо душевляющая речь, добавляют О ко всем провер кам навыков в течение числа раундов, равного рангу Лидерства вашего персонажа.",
   "descEn": "Your character must have Inspiring Rhetoric to benefit from this talent. Allies affected by your Inspiring Rhetoric add a boost die to their skill checks for a number of rounds equal to your ranks in Leadership.",
-  "activationEn": "Passive"
+  "activationEn": "Passive",
+  "requiresTalent": "voodushevlyayuschaya-rech"
  },
  {
   "code": "geroicheskaya-volya",
@@ -784,7 +791,8 @@
   "desc": "Купив этот талант, выберите две характеристики. Вы можете потратить очко сюжета, чтобы до конца текущей сцены игнорировать эффекты от всех кри тических травм на проверки навыков, использую щих эти две характеристики (персонаж по-прежнему страдает от этих критических травм, просто игнори рует их эффекты. Смотрите стр. 114).",
   "descEn": "When you purchase this talent, choose two characteristics. You may spend a story point to ignore the effects of all critical injuries on checks based on those characteristics until the end of the current scene.",
   "activationEn": "Out-of-turn Incidental",
-  "canUseOutOfTurn": true
+  "canUseOutOfTurn": true,
+  "storyPointCost": 1
  },
  {
   "code": "zhivotnoe-sputnik",
@@ -847,7 +855,9 @@
   "rdef": 0,
   "desc": "Купив этот талант, выберите два навыка. Один раз за игровую встречу вы можете применить талант, чтобы перебросить одну проверку, использующую один из этих двух навыков.",
   "descEn": "When you purchase this talent, choose two skills. Once per session, you may use this talent to reroll one check using one of those skills.",
-  "activationEn": "Incidental"
+  "activationEn": "Incidental",
+  "usesPerScope": 1,
+  "useScope": "Session"
  },
  {
   "code": "orlinyy-glaz",
@@ -890,7 +900,9 @@
   "desc": "Прежде вы должны приобрести талант Парирование. Когда персонаж получает попадание атаки ближнего боя и использует Парирование для снижения урона от этого попадания, то после осуществления этой атаки персонаж может потратить 18, или О О О из результатов проверки противника для использо вания этого таланта. Тогда персонаж автоматически попадает по атакующему Грубой силой или оружием, используемым для навыка Ближний бой. Попадание наносит базовый урон оружия, а также любой урон от применимых в этой ситуации талантов или спо собностей. Персонаж не может использовать этот талант, если исходная атака вывела его из строя.",
   "descEn": "Your character must have Parry to benefit from this talent. When the character is hit by a melee attack and uses Parry, they may spend a despair or three threat from the attacker's check to hit the attacker back with their own weapon at base damage.",
   "activationEn": "Out-of-turn Incidental",
-  "canUseOutOfTurn": true
+  "canUseOutOfTurn": true,
+  "requiresTalent": "parirovanie",
+  "trigger": "Парирование снизило урон"
  },
  {
   "code": "polevoy-komandir",
@@ -933,7 +945,8 @@
   "desc": "Являясь целью боевой проверки (будь то ближний или дальний бой), персонаж может получить опре делённое количество усталости, чтобы усилить слож ность боевой проверки столько раз, сколько уста лости он получил. Количество усталости не может превышать ранг таланта.",
   "descEn": "When targeted by a combat check (melee or ranged), the character may suffer strain no greater than their ranks in Dodge to upgrade the difficulty of the check that many times.",
   "activationEn": "Out-of-turn Incidental",
-  "canUseOutOfTurn": true
+  "canUseOutOfTurn": true,
+  "trigger": "Персонаж стал целью боевой проверки"
  },
  {
   "code": "hlestkaya-fraza-uluchshennyy",
@@ -977,7 +990,8 @@
   "rdef": 0,
   "desc": "Прежде вы должны приобрести талант Воодушевля ющая речь. Персонаж может получить 1 усталость, чтобы применить Воодушевляющую речь не дей ствием, а манёвром.",
   "descEn": "Your character must have Inspiring Rhetoric to benefit from this talent. The character may suffer 1 strain to use Inspiring Rhetoric as a maneuver instead of an action.",
-  "activationEn": "Incidental"
+  "activationEn": "Incidental",
+  "requiresTalent": "voodushevlyayuschaya-rech"
  },
  {
   "code": "vynoslivost",
@@ -1105,7 +1119,8 @@
   "rdef": 0,
   "desc": "Прежде вы должны приобрести талант Полевой командир. Применяя талант Полевой командир, пер сонаж воздействует на число союзников, равное удво енному рейтингу его Харизмы. Кроме того, вы можете потратить @, чтобы дать возможность одному союз нику получить 1 усталость и выполнить действие вместо манёвра.",
   "descEn": "Your character must have Field Commander to benefit from this talent. When using Field Commander, the character affects a number of allies equal to twice their Presence, and may suffer 1 strain to perform it as a maneuver.",
-  "activationEn": "Passive"
+  "activationEn": "Passive",
+  "requiresTalent": "polevoy-komandir"
  },
  {
   "code": "hlestkaya-fraza-masterskiy",
@@ -1149,7 +1164,10 @@
   "rdef": 0,
   "desc": "Купив этот талант, выберите один навык. Один раз за раунд персонаж может получить 2 усталости, чтобы использовать этот талант и снизить сложность следующей проверки этого навыка на два, минимум до лёгкой ( ♦ ).",
   "descEn": "When you purchase this talent, choose one skill. Once per round, the character may suffer 2 strain to reduce the difficulty of their next check with that skill by 2, to a minimum of Easy.",
-  "activationEn": "Incidental"
+  "activationEn": "Incidental",
+  "usesPerScope": 1,
+  "useScope": "Round",
+  "strainCost": 2
  },
  {
   "code": "neukrotimyy",
@@ -1261,7 +1279,10 @@
   "rdef": 0,
   "desc": "Вы умеете проводить магическую энергию через себя. Один раз за раунд при сотворении заклинания можете уменьшить полученное напряжение на количество, равное вашим рангам Conduit.",
   "descEn": "You know how to channel magical energy through yourself. Once per round when casting a spell, you may reduce the strain cost of the spell by 1.",
-  "activationEn": "Incidental"
+  "activationEn": "Incidental",
+  "usesPerScope": 1,
+  "useScope": "Encounter",
+  "storyPointCost": 1
  },
  {
   "code": "counterspell",
@@ -1454,7 +1475,8 @@
   "rdef": 0,
   "desc": "При боевой проверке персонаж может добровольно повысить сложность на 1. Если цель получает хотя бы одну рану от этой атаки, она получает 2 напряжения каждый раз, когда совершает манёвр, до конца столкновения.",
   "descEn": "When making a combat check, the character may voluntarily increase its difficulty by 1. If the target suffers at least one wound from the attack, it suffers 2 additional strain each time it performs an action until the end of the encounter.",
-  "activationEn": "Incidental"
+  "activationEn": "Incidental",
+  "trigger": "Перед боевой проверкой"
  },
  {
   "code": "precision",
@@ -1655,7 +1677,10 @@
   "desc": "Персонаж должен иметь талант Парирование. Держа щит, персонаж может использовать Парирование, чтобы снижать урон и от дальних атак, а не только от ближних.",
   "descEn": "Your character must have Parry to benefit from this talent. While wielding a shield, the character may use Parry to reduce damage from ranged attacks as well.",
   "activationEn": "Out-of-turn Incidental",
-  "canUseOutOfTurn": true
+  "canUseOutOfTurn": true,
+  "requiresTalent": "parirovanie",
+  "strainCost": 3,
+  "trigger": "Персонаж получил попадание в ближнем бою"
  },
  {
   "code": "blood-sacrifice",
@@ -1676,7 +1701,9 @@
   "rdef": 0,
   "desc": "Персонаж должен иметь талант Тёмное прозрение. Перед магической проверкой персонаж может получить несколько ран, чтобы добавить столько же успехов к проверке. Их количество не может превышать его рангов в Кровавой жертве.",
   "descEn": "Your character must have Dark Insight to benefit from this talent. Before a magic check, the character may suffer several wounds to add an equal number of boost dice to the check.",
-  "activationEn": "Incidental"
+  "activationEn": "Incidental",
+  "requiresTalent": "dark-insight",
+  "trigger": "Перед магической проверкой"
  },
  {
   "code": "bulwark",
@@ -1698,7 +1725,10 @@
   "desc": "Персонаж должен иметь талант Парирование. С оружием со свойством Defensive персонаж может использовать Парирование, чтобы снизить урон атаки, нацеленной на сцепившегося с ним союзника.",
   "descEn": "Your character must have Parry to benefit from this talent. With a weapon that has the Defensive quality, the character may use Parry against attacks targeting an engaged ally, taking the reduced hit themselves.",
   "activationEn": "Out-of-turn Incidental",
-  "canUseOutOfTurn": true
+  "canUseOutOfTurn": true,
+  "requiresTalent": "parirovanie",
+  "strainCost": 3,
+  "trigger": "Союзник вплотную получил попадание в ближнем бою"
  },
  {
   "code": "chill-of-nordros",
@@ -1719,7 +1749,10 @@
   "rdef": 0,
   "desc": "Персонаж не может взять этот талант, если взял Пламя Келлоса. При сотворении атакующего заклинания персонаж может добавить эффект Лёд без повышения сложности. Он никогда не может добавить эффект Огонь.",
   "descEn": "The character cannot take this talent if they have Flames of Kellos. When casting an Attack spell, the character may add the Ensnare quality to it without increasing the difficulty.",
-  "activationEn": "Incidental"
+  "activationEn": "Incidental",
+  "excludesTalents": [
+   "flames-of-kellos"
+  ]
  },
  {
   "code": "dirty-tricks",
@@ -1761,7 +1794,10 @@
   "rdef": 0,
   "desc": "Персонаж не может взять этот талант, если взял Благосклонность фей. При сотворении атакующего заклинания персонаж может добавить эффект Удар (Impact) без повышения сложности. Он никогда не может добавить эффект Манипуляция.",
   "descEn": "The character cannot take this talent if they have Favor of the Fae. When casting an Attack spell, the character may add the Knockdown quality to it without increasing the difficulty.",
-  "activationEn": "Incidental"
+  "activationEn": "Incidental",
+  "excludesTalents": [
+   "favor-of-the-fae"
+  ]
  },
  {
   "code": "encouraging-song",
@@ -1803,7 +1839,8 @@
   "rdef": 0,
   "desc": "При боевой проверке Дальним боем или Ближним боем (лёгким) персонаж может получить 2 напряжения, чтобы добавить атаке свойство Ensnare с рейтингом, равным его рангам в Использовании слабости.",
   "descEn": "When making a Ranged or Melee (Light) combat check, the character may suffer 2 strain to add advantage to the results equal to their ranks in Skulduggery.",
-  "activationEn": "Incidental"
+  "activationEn": "Incidental",
+  "strainCost": 2
  },
  {
   "code": "favor-of-the-fae",
@@ -1824,7 +1861,10 @@
   "rdef": 0,
   "desc": "Персонаж не может взять этот талант, если взял Власть Диморы. При сотворении атакующего заклинания персонаж может добавить эффект Манипуляция без повышения сложности. Он никогда не может добавить эффект Удар (Impact).",
   "descEn": "The character cannot take this talent if they have Dominion of the Dimora. When casting an Attack spell, the character may add the Stun quality to it without increasing the difficulty.",
-  "activationEn": "Incidental"
+  "activationEn": "Incidental",
+  "excludesTalents": [
+   "dominion-of-the-dimora"
+  ]
  },
  {
   "code": "flames-of-kellos",
@@ -1845,7 +1885,10 @@
   "rdef": 0,
   "desc": "Персонаж не может взять этот талант, если взял Холод Нордроса. При сотворении атакующего заклинания персонаж может добавить эффект Огонь без повышения сложности. Он никогда не может добавить эффект Лёд.",
   "descEn": "The character cannot take this talent if they have Chill of Nordros. When casting an Attack spell, the character may add the Burn quality to it without increasing the difficulty.",
-  "activationEn": "Incidental"
+  "activationEn": "Incidental",
+  "excludesTalents": [
+   "chill-of-nordros"
+  ]
  },
  {
   "code": "flash-of-insight",
@@ -1908,7 +1951,10 @@
   "rdef": 0,
   "desc": "При получении этого таланта выберите характеристику. Раз за столкновение можно потратить Story Point, чтобы персонаж восстановил напряжение, равное значению выбранной характеристики.",
   "descEn": "When you acquire this talent, choose a characteristic. Once per encounter, you may spend a story point to heal strain equal to that characteristic's rating.",
-  "activationEn": "Incidental"
+  "activationEn": "Incidental",
+  "usesPerScope": 1,
+  "useScope": "Encounter",
+  "storyPointCost": 1
  },
  {
   "code": "hunter",
@@ -1955,7 +2001,8 @@
   "rdef": 0,
   "desc": "Когда персонаж наносит критическую травму ближним оружием, до конца следующего хода цели он может обездвижить её (в дополнение к прочим эффектам критической травмы).",
   "descEn": "When the character inflicts a critical injury with a melee weapon, they may immobilize the target until the end of its next turn.",
-  "activationEn": "Incidental"
+  "activationEn": "Incidental",
+  "trigger": "Оружие ближнего боя нанесло критическое ранение"
  },
  {
   "code": "natural-communion",
@@ -2044,7 +2091,11 @@
   "desc": "Раз за сессию персонаж может совершить проверку Дисциплины (Hard) внеходовым инцидентом, чтобы запустить Оборотня или, наоборот, не дать ему сработать при превышении порога напряжения.",
   "descEn": "Once per session, the character may make a Hard Discipline check as an out-of-turn incidental to trigger their transformation defensively and avoid an incoming hit.",
   "activationEn": "Triggered Incidental",
-  "canUseOutOfTurn": true
+  "canUseOutOfTurn": true,
+  "requiresTalent": "shapeshifter",
+  "usesPerScope": 1,
+  "useScope": "Session",
+  "trigger": "Обязательное превращение либо решение превратиться вручную"
  },
  {
   "code": "templar-improved",
@@ -2065,7 +2116,8 @@
   "rdef": 0,
   "desc": "Персонаж должен иметь талант Храмовник. Когда он творит единственное за столкновение заклинание Божественного от Храмовника, он не добавляет чёрный кубик за тяжёлую броню (поглощение +2 и выше), щит или отсутствие хотя бы одной свободной руки.",
   "descEn": "Your character must have Templar to benefit from this talent. When casting their single Divine spell of the encounter, reduce its difficulty by 1.",
-  "activationEn": "Passive"
+  "activationEn": "Passive",
+  "requiresTalent": "templar"
  },
  {
   "code": "threaten",
@@ -2087,7 +2139,9 @@
   "desc": "После того как противник в короткой дистанции наносит урон союзнику персонажа боевой проверкой, персонаж может получить 3 напряжения, чтобы нанести противнику напряжение, равное его рангам в Принуждении. Дальность таланта растёт на одну ступень за каждый ранг сверх первого.",
   "descEn": "After an opponent within short range deals damage to the character's ally with a combat check, the character may suffer 1 strain as an out-of-turn incidental to force that opponent to suffer strain equal to the character's ranks in Coercion.",
   "activationEn": "Out-of-turn Incidental",
-  "canUseOutOfTurn": true
+  "canUseOutOfTurn": true,
+  "strainCost": 3,
+  "trigger": "Проверка противника нанесла урон союзнику"
  },
  {
   "code": "well-traveled",
@@ -2197,7 +2251,9 @@
   "rdef": 0,
   "desc": "Раз за раунд персонаж может получить напряжение (не больше своих рангов в Телохранителе). Выберите союзника, сцепившегося с персонажем; до конца следующего хода персонажа повысьте сложность всех боевых проверок по этому союзнику столько раз, сколько получено напряжения.",
   "descEn": "Once per round, the character may suffer strain no greater than their ranks in Body Guard. Choose an engaged ally: upgrade the difficulty of all combat checks targeting that ally that many times until the start of the character's next turn.",
-  "activationEn": "Maneuver"
+  "activationEn": "Maneuver",
+  "usesPerScope": 1,
+  "useScope": "Round"
  },
  {
   "code": "cavalier",
@@ -2218,7 +2274,10 @@
   "rdef": 0,
   "desc": "Верхом на боевом скакуне (обычно боевой или летающий скакун) раз за раунд персонаж может приказать скакуну совершить действие.",
   "descEn": "While riding a war mount (typically a combat or flying mount), once per round the character may order the mount to perform one maneuver as an incidental.",
-  "activationEn": "Maneuver"
+  "activationEn": "Maneuver",
+  "usesPerScope": 1,
+  "useScope": "Round",
+  "trigger": "Верхом на боевом скакуне"
  },
  {
   "code": "counterattack",
@@ -2240,7 +2299,9 @@
   "desc": "Персонаж должен иметь талант Парирование (улучшенное). Когда персонаж бьёт атакующего с помощью Парирования (улучшенного), он также может активировать одно свойство использованного оружия, как если бы выбросил 2 преимущества боевой проверкой этим оружием.",
   "descEn": "Your character must have Parry (Improved) to benefit from this talent. When the character strikes an attacker using Parry (Improved), the hit also staggers the attacker until the end of its next turn.",
   "activationEn": "Out-of-turn Incidental",
-  "canUseOutOfTurn": true
+  "canUseOutOfTurn": true,
+  "requiresTalent": "parirovanie-u-luchshennyy",
+  "trigger": "Сработало контр-попадание парирования"
  },
  {
   "code": "dissonance",
@@ -2303,7 +2364,8 @@
   "rdef": 0,
   "desc": "Персонаж может получить 3 напряжения. До начала следующего хода персонажа он и союзники в короткой дистанции добавляют два чёрных кубика к боевым проверкам по обездвиженным целям.",
   "descEn": "The character may suffer 3 strain. Until the start of their next turn, the character and allies within short range add a boost die to combat checks against staggered or immobilized targets.",
-  "activationEn": "Maneuver"
+  "activationEn": "Maneuver",
+  "strainCost": 3
  },
  {
   "code": "justice-of-the-citadel",
@@ -2324,7 +2386,10 @@
   "rdef": 0,
   "desc": "Раз за раунд в свой ход персонаж может получить 3 напряжения, чтобы добавить урон, равный своим рангам в Дисциплине, к одному попаданию успешной ближней атаки.",
   "descEn": "Once per round on their turn, the character may suffer 3 strain to add damage equal to their ranks in Discipline to one hit of a successful combat check against an undead or demonic target.",
-  "activationEn": "Incidental"
+  "activationEn": "Incidental",
+  "usesPerScope": 1,
+  "useScope": "Round",
+  "strainCost": 3
  },
  {
   "code": "potent-concoctions",
@@ -2492,7 +2557,8 @@
   "rdef": 0,
   "desc": "Персонаж должен иметь талант Коронное заклинание. При сотворении своего коронного заклинания снижайте сложность проверки на 2 вместо 1.",
   "descEn": "Your character must have Signature Spell to benefit from this talent. When casting your signature spell, reduce its difficulty by 1 further, to a minimum of Easy.",
-  "activationEn": "Passive"
+  "activationEn": "Passive",
+  "requiresTalent": "signature-spell"
  },
  {
   "code": "unrelenting",
@@ -2534,7 +2600,11 @@
   "rdef": 0,
   "desc": "Раз за сессию после броска ближней атаки, но до разрешения проверки, персонаж может получить 4 напряжения. При разрешении проверки оружие получает свойства Breach 1 и Knockdown и уничтожает один предмет в руках цели без свойства Reinforced.",
   "descEn": "Once per session, after rolling a melee attack but before resolving the check, the character may suffer 4 strain. If the attack hits, it gains Knockdown, Sunder and +1 damage per success.",
-  "activationEn": "Incidental"
+  "activationEn": "Incidental",
+  "usesPerScope": 1,
+  "useScope": "Session",
+  "strainCost": 4,
+  "trigger": "После броска ближнего боя, до разрешения"
  },
  {
   "code": "whirlwind",
@@ -2597,7 +2667,9 @@
   "soak": 0,
   "mdef": 0,
   "rdef": 0,
-  "needsTranslation": false
+  "needsTranslation": false,
+  "usesPerScope": 1,
+  "useScope": "Encounter"
  },
  {
   "code": "lets-talk-this-over",
@@ -2619,7 +2691,10 @@
   "soak": 0,
   "mdef": 0,
   "rdef": 0,
-  "needsTranslation": false
+  "needsTranslation": false,
+  "usesPerScope": 1,
+  "useScope": "Session",
+  "trigger": "Перед началом боя с разумными существами"
  },
  {
   "code": "retribution",
@@ -2641,6 +2716,10 @@
   "soak": 0,
   "mdef": 0,
   "rdef": 0,
-  "needsTranslation": false
+  "needsTranslation": false,
+  "usesPerScope": 1,
+  "useScope": "Round",
+  "storyPointCost": 1,
+  "trigger": "Противник атакует союзника на средней дистанции"
  }
 ]

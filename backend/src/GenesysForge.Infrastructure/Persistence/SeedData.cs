@@ -67,7 +67,12 @@ public static class SeedData
                     && row.Tier == def.Tier && row.IsRanked == def.IsRanked
                     && row.Activation == def.Activation && row.ActivationEn == def.ActivationEn
                     && row.CanUseOutOfTurn == def.CanUseOutOfTurn && row.Retired == def.Retired
-                    && row.CareerSkillNames.SequenceEqual(def.CareerSkillNames);
+                    && row.CareerSkillNames.SequenceEqual(def.CareerSkillNames)
+                    && row.RequiresTalentCode == def.RequiresTalentCode
+                    && row.ExcludesTalentCodes.SequenceEqual(def.ExcludesTalentCodes)
+                    && row.UsesPerScope == def.UsesPerScope && row.UseScope == def.UseScope
+                    && row.StoryPointCost == def.StoryPointCost && row.StrainCost == def.StrainCost
+                    && row.Trigger == def.Trigger;
                 if (same) return false;
                 row.Name = def.Name; row.NameRu = def.NameRu;
                 row.SafeDescription = def.SafeDescription; row.DescriptionEn = def.DescriptionEn;
@@ -75,6 +80,11 @@ public static class SeedData
                 row.Activation = def.Activation; row.ActivationEn = def.ActivationEn;
                 row.CanUseOutOfTurn = def.CanUseOutOfTurn; row.Retired = def.Retired;
                 row.CareerSkillNames = [.. def.CareerSkillNames];
+                row.RequiresTalentCode = def.RequiresTalentCode;
+                row.ExcludesTalentCodes = [.. def.ExcludesTalentCodes];
+                row.UsesPerScope = def.UsesPerScope; row.UseScope = def.UseScope;
+                row.StoryPointCost = def.StoryPointCost; row.StrainCost = def.StrainCost;
+                row.Trigger = def.Trigger;
                 return true;
             });
         SyncBuiltinByCode(db, db.SkillDefs.Where(x => x.OwnerUserId == null && x.Code != ""), skills,

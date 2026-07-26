@@ -64,6 +64,15 @@ public class DuplicateCharacterHandler(IAppDbContext db) : ICommandHandler<Dupli
                 TalentDefId = t.TalentDefId,
                 Ranks = t.Ranks,
                 GrantedCharacteristics = t.GrantedCharacteristics,
+                NeedsChoice = t.NeedsChoice,
+                Choices = t.Choices.Select(x => new CharacterTalentChoice
+                {
+                    Id = Guid.NewGuid(),
+                    RankIndex = x.RankIndex,
+                    Kind = x.Kind,
+                    Value = x.Value,
+                    DisplayName = x.DisplayName,
+                }).ToList(),
             }).ToList(),
             Items = src.Items.Select(i => new CharacterItem
             {

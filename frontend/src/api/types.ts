@@ -66,6 +66,34 @@ export interface TalentDef {
   canUseOutOfTurn: boolean
   /** Навыки, которые талант делает карьерными, пока принадлежит персонажу (ROT-TAL-04). */
   careerSkillNames: string[]
+  /** Bare-slug код таланта — ключ связей prerequisite/exclusion, общий для обеих систем. */
+  linkCode: string
+  /** Обязательный талант-предусловие, bare-slug код; пусто — предусловий нет (ROT-TAL-02). */
+  requiresTalentCode: string
+  /** Коды несовместимых талантов; отношение симметрично. */
+  excludesTalentCodes: string[]
+  /** Лимит применений и область его сброса; стоимость активации (ROT-TAL-05). */
+  usesPerScope: number
+  useScope: AbilityUseScope
+  storyPointCost: number
+  strainCost: number
+  trigger: string
+  /** Схема обязательного выбора при покупке ранга (ROT-TAL-03). */
+  choiceKind: TalentChoiceKind
+  choiceCountFirstRank: number
+  choiceCountNextRank: number
+}
+
+/** Что выбирает игрок при покупке ранга таланта (ROT-TAL-03). */
+export type TalentChoiceKind =
+  | 'none' | 'characteristic' | 'skill' | 'spellConfiguration' | 'animalCompanion'
+
+/** Один сохранённый выбор ранга таланта. */
+export interface CharacterTalentChoice {
+  rankIndex: number
+  kind: TalentChoiceKind
+  value: string
+  displayName: string
 }
 
 export interface ItemDef {
@@ -218,7 +246,7 @@ export type SpeciesAbilityRuleKind =
   | 'freeSecondMoveManeuver' | 'setSilhouette' | 'boostAgainstLargerSilhouette'
   | 'conjureMinorItem' | 'chooseOneAbility' | 'skillGrantOnly'
 
-export type AbilityUseScope = 'none' | 'encounter' | 'session'
+export type AbilityUseScope = 'none' | 'encounter' | 'session' | 'round' | 'turn'
 
 export interface ArchetypeAbility {
   code: string
@@ -430,6 +458,13 @@ export interface SheetTalent {
   rangedDefenseBonus: number
   grantsCharacteristic: boolean
   grantedCharacteristics: Characteristic[]
+  /** Сохранённые выборы по рангам (ROT-TAL-03). */
+  choices: CharacterTalentChoice[]
+  /** Талант требует выбора, которого нет; эффект заблокирован до ручного исправления. */
+  needsChoice: boolean
+  /** Английский тайминг активации и возможность применения вне хода (ROT-TAL-01). */
+  activationEn: string
+  canUseOutOfTurn: boolean
 }
 
 export interface SheetItem {

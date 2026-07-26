@@ -43,7 +43,12 @@ public class ExportCharacterHandler(IAppDbContext db) : IQueryHandler<ExportChar
                 .Select(s => new CharacterSkillExport(s.SkillDef?.Code ?? "", s.SkillDef?.Name ?? "", s.Ranks, s.IsCareer, s.FreeRanks))
                 .ToList(),
             Talents: c.Talents
-                .Select(t => new CharacterTalentExport(t.TalentDef?.Code ?? "", t.TalentDef?.Name ?? "", t.Ranks, t.GrantedCharacteristics))
+                .Select(t => new CharacterTalentExport(t.TalentDef?.Code ?? "", t.TalentDef?.Name ?? "", t.Ranks,
+                    t.GrantedCharacteristics,
+                    t.Choices.OrderBy(x => x.RankIndex)
+                        .Select(x => new CharacterTalentChoiceExport(x.RankIndex, x.Kind, x.Value, x.DisplayName))
+                        .ToList(),
+                    t.NeedsChoice))
                 .ToList(),
             Items: c.Items
                 .Select(i => new CharacterItemExport(i.ItemDef?.Code ?? "", i.ItemDef?.Name ?? "", i.Quantity, i.State, i.Provenance))

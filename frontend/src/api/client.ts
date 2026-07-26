@@ -176,8 +176,8 @@ export const api = {
     request<void>('POST', `/api/characters/${id}/characteristics/${characteristic}/buy`),
   buySkillRank: (id: string, skillDefId: string) =>
     request<void>('POST', `/api/characters/${id}/skills/${skillDefId}/buy-rank`),
-  buyTalent: (id: string, talentDefId: string, characteristic?: string) =>
-    request<void>('POST', `/api/characters/${id}/talents/buy`, { talentDefId, characteristic }),
+  buyTalent: (id: string, talentDefId: string, characteristic?: string, choices?: string[]) =>
+    request<void>('POST', `/api/characters/${id}/talents/buy`, { talentDefId, characteristic, choices }),
   refundCharacteristic: (id: string, characteristic: string) =>
     request<void>('POST', `/api/characters/${id}/characteristics/${characteristic}/refund`),
   refundSkillRank: (id: string, skillDefId: string) =>

@@ -45,6 +45,39 @@ public class TalentDef : IContentDef
     /// Учитываются резолвером карьерных навыков, пока талант принадлежит персонажу.
     /// </summary>
     public List<string> CareerSkillNames { get; set; } = [];
+
+    /// <summary>
+    /// Bare-slug код таланта, обязательного для покупки этого (ROT-TAL-02). Пусто — предусловий нет.
+    /// Связь идёт по стабильному коду, а не по отображаемому имени.
+    /// </summary>
+    public string RequiresTalentCode { get; set; } = "";
+
+    /// <summary>
+    /// Bare-slug коды талантов, несовместимых с этим. Отношение симметрично: сид заполняет обе
+    /// стороны пары, поэтому проверять достаточно одну.
+    /// </summary>
+    public List<string> ExcludesTalentCodes { get; set; } = [];
+
+    /// <summary>
+    /// Сколько раз талант применим в пределах <see cref="UseScope"/>. 0 — предела нет
+    /// (ROT-TAL-05). Значение описательное: приложение показывает лимит, но не ведёт счётчик.
+    /// </summary>
+    public int UsesPerScope { get; set; }
+
+    /// <summary>Область сброса лимита применений: сессия, encounter, раунд или ход.</summary>
+    public AbilityUseScope UseScope { get; set; } = AbilityUseScope.None;
+
+    /// <summary>Стоимость активации в Story Point игроков. 0 — активация бесплатна.</summary>
+    public int StoryPointCost { get; set; }
+
+    /// <summary>Стоимость активации в усталости (strain). 0 — талант её не требует.</summary>
+    public int StrainCost { get; set; }
+
+    /// <summary>
+    /// Условие срабатывания для активных талантов: что именно должно произойти, чтобы талант
+    /// стал доступен. Пусто — талант не привязан к триггеру.
+    /// </summary>
+    public string Trigger { get; set; } = "";
     // Пассивные бонусы, применяемые автоматически за каждый ранг.
     public int WoundBonus { get; set; }
     public int StrainBonus { get; set; }

@@ -20,6 +20,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<ArchetypeDef> ArchetypeDefs => Set<ArchetypeDef>();
     public DbSet<ArchetypeAbilityDef> ArchetypeAbilityDefs => Set<ArchetypeAbilityDef>();
     public DbSet<ArchetypeStartingSkill> ArchetypeStartingSkills => Set<ArchetypeStartingSkill>();
+    public DbSet<CharacterTalentChoice> CharacterTalentChoices => Set<CharacterTalentChoice>();
     public DbSet<CareerDef> CareerDefs => Set<CareerDef>();
     public DbSet<CareerStartingGear> CareerStartingGears => Set<CareerStartingGear>();
     public DbSet<CareerRule> CareerRules => Set<CareerRule>();
@@ -123,6 +124,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         {
             e.HasOne(t => t.TalentDef).WithMany().OnDelete(DeleteBehavior.Cascade);
             e.HasIndex(t => new { t.CharacterId, t.TalentDefId }).IsUnique();
+            e.HasMany(t => t.Choices).WithOne()
+                .HasForeignKey(x => x.CharacterTalentId).OnDelete(DeleteBehavior.Cascade);
         });
         b.Entity<CharacterItem>()
             .HasOne(i => i.ItemDef).WithMany().OnDelete(DeleteBehavior.Cascade);
@@ -422,6 +425,13 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             e.Property(a => a.NameEn).HasMaxLength(160);
             e.Property(a => a.SafeDescription).HasMaxLength(2000);
         });
+        b.Entity<CharacterTalentChoice>(e =>
+        {
+            e.HasIndex(x => x.CharacterTalentId);
+            e.Property(x => x.Value).HasMaxLength(200);
+            e.Property(x => x.DisplayName).HasMaxLength(200);
+        });
+
         b.Entity<ArchetypeStartingSkill>(e =>
         {
             e.HasIndex(s => s.ArchetypeId);

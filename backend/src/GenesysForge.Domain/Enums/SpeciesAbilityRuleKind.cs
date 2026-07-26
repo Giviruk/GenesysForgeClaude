@@ -55,13 +55,21 @@ public enum SpeciesAbilityRuleKind
     SkillGrantOnly = 15,
 }
 
-/// <summary>Область, в которой сбрасывается счётчик использований способности.</summary>
+/// <summary>
+/// Область, в которой сбрасывается счётчик использований способности или таланта (ROT-TAL-05).
+/// Области различаются: once/session не сбрасывается новым encounter, once/encounter — только
+/// началом encounter, once/round — новым раундом.
+/// </summary>
 public enum AbilityUseScope
 {
-    /// <summary>Счётчик не ведётся — способность пассивная или без лимита.</summary>
+    /// <summary>Счётчик не ведётся — эффект пассивный или без лимита.</summary>
     None = 0,
     /// <summary>Сбрасывается в конце encounter.</summary>
     Encounter = 1,
     /// <summary>Сбрасывается в конце игровой сессии.</summary>
     Session = 2,
+    /// <summary>Сбрасывается с началом нового раунда.</summary>
+    Round = 3,
+    /// <summary>Сбрасывается с началом нового хода владельца.</summary>
+    Turn = 4,
 }

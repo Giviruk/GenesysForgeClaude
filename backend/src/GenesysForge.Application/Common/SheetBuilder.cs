@@ -66,7 +66,11 @@ public static class SheetBuilder
                     t.TalentDef.IsRanked, t.Ranks, t.TalentDef.Activation, t.TalentDef.Description,
                     t.TalentDef.WoundBonus, t.TalentDef.StrainBonus, t.TalentDef.SoakBonus,
                     t.TalentDef.MeleeDefenseBonus, t.TalentDef.RangedDefenseBonus,
-                    t.TalentDef.GrantsCharacteristic, t.ParseGrants(), t.TalentDef.DescriptionEn))
+                    t.TalentDef.GrantsCharacteristic, t.ParseGrants(), t.TalentDef.DescriptionEn,
+                    t.Choices.OrderBy(x => x.RankIndex).ThenBy(x => x.Value, StringComparer.Ordinal)
+                        .Select(x => new CharacterTalentChoiceDto(x.RankIndex, x.Kind, x.Value, x.DisplayName))
+                        .ToList(),
+                    t.NeedsChoice, t.TalentDef.ActivationEn, t.TalentDef.CanUseOutOfTurn))
                 .ToList(),
             TalentTierCounter.Count(c.Talents),
             c.HeroicAbility?.ToDto(),

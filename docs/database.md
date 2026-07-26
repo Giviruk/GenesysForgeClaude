@@ -263,6 +263,12 @@ Indexes:
 
 - unique `(CharacterId, SkillDefId)`.
 
+### CharacterTalentChoices
+
+Player choices saved per talent rank (ROT-TAL-03). Fields: `CharacterTalentId`, `RankIndex`, `Kind` (`Characteristic`/`Skill`/`SpellConfiguration`/`AnimalCompanion`), `Value`, `DisplayName`. Cascade delete from the talent; indexed by `CharacterTalentId`.
+
+`Value` is the stable identifier (a `CharacteristicType` name, a canonical skill name, a serialized spell configuration or a companion id) and `DisplayName` is only a snapshot for the sheet — renaming reference content must not change what was chosen. `TalentChoiceSchemas` defines cardinality per rank, cross-rank distinctness and allowed skill kinds, and validates everything before XP is spent. Refunding a rank removes that rank's choices in the same transaction. `CharacterTalents.NeedsChoice` marks a legacy talent whose required choice is missing: its effect is blocked until a human fixes it, without paying XP again.
+
 ### CharacterTalents
 
 Talent state for a character.

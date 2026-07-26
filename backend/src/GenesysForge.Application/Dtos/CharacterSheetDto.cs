@@ -54,6 +54,9 @@ public record CharacterSheetDto(
     /// <summary>Итоговый silhouette персонажа с учётом способности <c>Small</c>.</summary>
     int Silhouette = 1);
 
+/// <summary>Один сохранённый выбор ранга таланта (ROT-TAL-03).</summary>
+public record CharacterTalentChoiceDto(int RankIndex, TalentChoiceKind Kind, string Value, string DisplayName);
+
 public record HeroicUpgradeStateDto(
     int PowerRank,
     int DurationRanks,
