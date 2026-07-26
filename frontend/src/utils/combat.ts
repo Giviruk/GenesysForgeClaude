@@ -24,9 +24,20 @@ export function expandDamage(damage: string, brawn: number): { base: number | nu
   return Number.isFinite(abs) ? { base: abs, text: `${abs}` } : { base: null, text: dmg }
 }
 
-/** Итоговый урон: базовый + нетто-успехи (каждый успех = +1 урон). null base → null. */
+/**
+ * Итоговый урон попадания: базовый + нетто-успехи (каждый успех = +1 урон).
+ * Промах (успехов не осталось) обычного урона не наносит, поэтому возвращается `null`, а не
+ * базовый урон оружия — иначе интерфейс показывал бы урон там, где атака не попала (ROT-CMB-01).
+ * Итог остаётся подсказкой: авторитетное разрешение атаки делает сервер.
+ */
 export function combatTotal(base: number | null, netSuccess: number): number | null {
-  return base == null ? null : base + Math.max(0, netSuccess)
+  if (base == null || netSuccess <= 0) return null
+  return base + netSuccess
+}
+
+/** Попала ли атака: только положительные нетто-успехи. Оставшийся триумф промах не спасает. */
+export function isHit(netSuccess: number): boolean {
+  return netSuccess > 0
 }
 
 /** Нормализация имени качества для сопоставления по справочнику: нижний регистр, ё→е, без хвостового рейтинга. */

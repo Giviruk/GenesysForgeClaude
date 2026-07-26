@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import type { RollOutcome, RollPool } from '../utils/diceRoller'
-import { combatTotal, expandDamage, type CombatQuality } from '../utils/combat'
+import { combatTotal, expandDamage, isHit, type CombatQuality } from '../utils/combat'
 import { DiceRoller, RollSymbolsView, type RollLogRequest } from './DiceRoller'
 import { t } from '../i18n'
 
@@ -65,12 +65,16 @@ export function CombatRoller({
         {outcome && (
           <div className="combat-damage">
             <RollSymbolsView symbols={outcome.net} />
-            {total != null
+            {!isHit(netSuccess)
               ? <div className="combat-damage-calc">
-                  {t('Урон:', 'Damage:')} <strong>{dmg.base}</strong> {t('+ успехов', '+ successes')} <strong>{netSuccess}</strong> = <strong>{total}</strong>
-                  {netSuccess === 0 && outcome.net.failure > 0 && <span className="muted small-text"> {t('(промах — нет успехов)', '(miss — no successes)')}</span>}
+                  {t('Промах: обычный урон не применяется.', 'Miss: ordinary damage does not apply.')}
                 </div>
-              : <div className="muted small-text">{t('Урон оружия задан текстом — посчитайте вручную.', 'Weapon damage is text-only — calculate it manually.')}</div>}
+              : total != null
+                ? <div className="combat-damage-calc">
+                    {t('Урон:', 'Damage:')} <strong>{dmg.base}</strong> {t('+ успехов', '+ successes')} <strong>{netSuccess}</strong> = <strong>{total}</strong>
+                    <span className="muted small-text"> {t('(до поглощения цели)', '(before the target’s soak)')}</span>
+                  </div>
+                : <div className="muted small-text">{t('Урон оружия задан текстом — посчитайте вручную.', 'Weapon damage is text-only — calculate it manually.')}</div>}
           </div>
         )}
 

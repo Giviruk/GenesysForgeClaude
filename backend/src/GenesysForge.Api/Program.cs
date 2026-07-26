@@ -207,6 +207,7 @@ app.MapSpells();
 app.MapNpcs();
 app.MapGameTable();
 app.MapRolls();
+app.MapCombat();
 app.MapEncounters();
 app.MapContentPacks();
 app.MapHub<CampaignHub>("/hubs/campaign");
