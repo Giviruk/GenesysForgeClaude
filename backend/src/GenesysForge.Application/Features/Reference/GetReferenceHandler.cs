@@ -14,7 +14,8 @@ public class GetReferenceHandler(IAppDbContext db) : IQueryHandler<GetReferenceQ
         var visiblePackIds = await HomebrewVisibility.GetVisiblePackIdsAsync(
             db, userId, system, query.CharacterId, query.CampaignId, ct);
 
-        // Retired виды остаются в БД ради уже созданных персонажей, но не предлагаются при создании.
+        // Retired-записи остаются в БД ради уже созданных персонажей, NPC и экспортов, но не
+        // предлагаются при создании, покупке и поиске. Фильтр применяется ко всем справочникам.
         // Материализуем с дочерними коллекциями (способности/стартовые навыки) и маппим в памяти.
         var archetypeDefs = await db.ArchetypeDefs.AsNoTracking()
             .Include(a => a.Abilities)
@@ -30,7 +31,7 @@ public class GetReferenceHandler(IAppDbContext db) : IQueryHandler<GetReferenceQ
         var careerDefs = await db.CareerDefs.AsNoTracking()
             .Include(c => c.StartingGear)
             .Include(c => c.Rules)
-            .Where(c => c.System == system
+            .Where(c => c.System == system && !c.Retired
                 && (c.OwnerUserId == null
                     || (c.OwnerUserId == userId
                         && (c.HomebrewPackId == null || visiblePackIds.Contains(c.HomebrewPackId.Value)))))
@@ -39,7 +40,7 @@ public class GetReferenceHandler(IAppDbContext db) : IQueryHandler<GetReferenceQ
         var careers = careerDefs.Select(c => c.ToDto()).ToList();
 
         var skills = await db.SkillDefs.AsNoTracking()
-            .Where(s => s.System == system
+            .Where(s => s.System == system && !s.Retired
                 && (s.OwnerUserId == null
                     || (s.OwnerUserId == userId
                         && (s.HomebrewPackId == null || visiblePackIds.Contains(s.HomebrewPackId.Value)))))
@@ -53,7 +54,7 @@ public class GetReferenceHandler(IAppDbContext db) : IQueryHandler<GetReferenceQ
             : GenesysSetting.Any;
 
         var talents = await db.TalentDefs.AsNoTracking()
-            .Where(t => t.System == system
+            .Where(t => t.System == system && !t.Retired
                 && ((t.OwnerUserId == userId
                         && (t.HomebrewPackId == null || visiblePackIds.Contains(t.HomebrewPackId.Value)))
                     || (t.OwnerUserId == null && (t.Setting & settingMask) != 0)))
@@ -63,7 +64,7 @@ public class GetReferenceHandler(IAppDbContext db) : IQueryHandler<GetReferenceQ
         // Материализуем с навигацией Qualities → QualityDef, затем маппим в памяти (ToDto тянет навигацию).
         var itemDefs = await db.ItemDefs.AsNoTracking()
             .Include(i => i.Qualities).ThenInclude(v => v.QualityDef)
-            .Where(i => i.System == system
+            .Where(i => i.System == system && !i.Retired
                 && (i.OwnerUserId == null
                     || (i.OwnerUserId == userId
                         && (i.HomebrewPackId == null || visiblePackIds.Contains(i.HomebrewPackId.Value)))))
@@ -72,6 +73,7 @@ public class GetReferenceHandler(IAppDbContext db) : IQueryHandler<GetReferenceQ
         var items = itemDefs.Select(i => i.ToDto()).ToList();
 
         var qualities = await db.QualityDefs.AsNoTracking()
+            .Where(q => !q.Retired)
             .OrderBy(q => q.NameRu)
             .Select(q => q.ToDto()).ToListAsync(ct);
 
@@ -80,16 +82,17 @@ public class GetReferenceHandler(IAppDbContext db) : IQueryHandler<GetReferenceQ
             ? await db.HeroicAbilityDefs.AsNoTracking()
                 .Include(h => h.Upgrades)
                 .Include(h => h.Effects)
-                .Where(h => h.OwnerUserId == null
+                .Where(h => !h.Retired
+                    && (h.OwnerUserId == null
                     || (h.OwnerUserId == userId
-                        && (h.HomebrewPackId == null || visiblePackIds.Contains(h.HomebrewPackId.Value))))
+                        && (h.HomebrewPackId == null || visiblePackIds.Contains(h.HomebrewPackId.Value)))))
                 .OrderBy(h => h.NameRu)
                 .ToListAsync(ct)
             : [];
         var heroics = heroicDefs.Select(h => h.ToDto()).ToList();
 
         var heroicSecondaryEffectDefs = system == GameSystem.RealmsOfTerrinoth
-            ? await db.HeroicSecondaryEffectDefs.AsNoTracking().OrderBy(x => x.NameRu).ToListAsync(ct)
+            ? await db.HeroicSecondaryEffectDefs.AsNoTracking().Where(x => !x.Retired).OrderBy(x => x.NameRu).ToListAsync(ct)
             : [];
         var heroicSecondaryEffects = heroicSecondaryEffectDefs.Select(x => x.ToDto()).ToList();
 

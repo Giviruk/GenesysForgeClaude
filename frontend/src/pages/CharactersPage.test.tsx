@@ -153,21 +153,44 @@ describe('CreateCharacterForm — видовые карьерные навыки
   })
 })
 
-describe('CreateCharacterForm — стартовое снаряжение карьеры (U-13)', () => {
-  it('показывает деньги/снаряжение, гейтит выбор и передаёт его при создании', async () => {
+describe('CreateCharacterForm — стартовое снаряжение карьеры (U-13, ROT-CRE-03)', () => {
+  /** Выбирает Трудягу + Воина: у первого нет выборов навыков, у второго есть слот снаряжения. */
+  function pickWarrior() {
+    fireEvent.change(screen.getByLabelText('Имя персонажа'), { target: { value: 'Герой' } })
+    const [archetypeSelect, careerSelect] = screen.getAllByRole('combobox')
+    fireEvent.change(archetypeSelect, { target: { value: 'arch-fixed' } })
+    fireEvent.change(careerSelect, { target: { value: 'career-warrior' } })
+  }
+
+  it('по умолчанию использует стандартные деньги: комплект не выдаётся и выбор не гейтит', async () => {
     createCharacterMock.mockClear()
     render(<CreateCharacterForm onCancel={() => {}} onCreated={() => {}} />)
     await waitFor(() => expect(screen.getByRole('option', { name: 'Воин' })).toBeTruthy())
+    pickWarrior()
 
-    fireEvent.change(screen.getByLabelText('Имя персонажа'), { target: { value: 'Герой' } })
-    const [archetypeSelect, careerSelect] = screen.getAllByRole('combobox')
-    fireEvent.change(archetypeSelect, { target: { value: 'arch-fixed' } }) // без выборов навыков
-    fireEvent.change(careerSelect, { target: { value: 'career-warrior' } })
-
-    // деньги, фиксированное снаряжение и заметка карьеры
-    expect(screen.getByText(/1d100 серебра/)).toBeTruthy()
-    expect(screen.getByText(/Снаряжение: кожаная броня/)).toBeTruthy()
+    expect(screen.getByText(/Бюджет 500 серебра/)).toBeTruthy()
+    expect(screen.queryByRole('button', { name: 'алебарда' })).toBeNull() // слоты комплекта скрыты
     expect(screen.getByText(/Замена Melee/)).toBeTruthy()
+
+    const submit = screen.getByRole('button', { name: 'Создать' })
+    expect(submit).toHaveProperty('disabled', false) // выбор снаряжения не требуется
+    fireEvent.click(submit)
+
+    await waitFor(() => expect(createCharacterMock).toHaveBeenCalled())
+    expect(createCharacterMock.mock.calls[0][6]).toEqual([])          // package choices не отправляются
+    expect(createCharacterMock.mock.calls[0][8]).toBe('standardMoney')
+  })
+
+  it('в режиме комплекта показывает деньги/снаряжение, гейтит выбор и передаёт его', async () => {
+    createCharacterMock.mockClear()
+    render(<CreateCharacterForm onCancel={() => {}} onCreated={() => {}} />)
+    await waitFor(() => expect(screen.getByRole('option', { name: 'Воин' })).toBeTruthy())
+    pickWarrior()
+
+    fireEvent.click(screen.getByRole('button', { name: /Карьерный комплект/ }))
+
+    expect(screen.getByText(/1d100 серебра/)).toBeTruthy()
+    expect(screen.getByText(/Всегда входит: кожаная броня/)).toBeTruthy()
 
     // вариант снаряжения не выбран → «Создать» заблокирована
     expect(screen.getByRole('button', { name: 'Создать' })).toHaveProperty('disabled', true)
@@ -179,5 +202,22 @@ describe('CreateCharacterForm — стартовое снаряжение кар
 
     await waitFor(() => expect(createCharacterMock).toHaveBeenCalled())
     expect(createCharacterMock.mock.calls[0][6]).toEqual([{ choiceGroup: 'slot-1', optionIndex: 1 }])
+    expect(createCharacterMock.mock.calls[0][8]).toBe('careerPackage')
+  })
+
+  it('смена карьеры сбрасывает режим и устаревшие выборы', async () => {
+    render(<CreateCharacterForm onCancel={() => {}} onCreated={() => {}} />)
+    await waitFor(() => expect(screen.getByRole('option', { name: 'Воин' })).toBeTruthy())
+    pickWarrior()
+
+    fireEvent.click(screen.getByRole('button', { name: /Карьерный комплект/ }))
+    fireEvent.click(screen.getByRole('button', { name: 'алебарда' }))
+
+    const [, careerSelect] = screen.getAllByRole('combobox')
+    fireEvent.change(careerSelect, { target: { value: 'career-soldier' } })
+    fireEvent.change(careerSelect, { target: { value: 'career-warrior' } })
+
+    expect(screen.getByText(/Бюджет 500 серебра/)).toBeTruthy()      // режим сброшен
+    expect(screen.queryByRole('button', { name: 'алебарда' })).toBeNull()
   })
 })

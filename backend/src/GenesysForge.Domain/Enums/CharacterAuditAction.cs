@@ -17,4 +17,6 @@ public enum CharacterAuditAction
     CreationCompleted,
     ManualEdit,
     AbilityActivated,
+    /// <summary>Персонаж создан: режим стартового снаряжения, формула и фактический бросок денег.</summary>
+    CharacterCreated,
 }

@@ -32,7 +32,18 @@ public record CharacterSheetDto(
     string? Flaw = null,
     string? Background = null,
     List<CharacterCriticalInjuryDto>? CriticalInjuries = null,
-    string? PortraitUrl = null);
+    string? PortraitUrl = null,
+    /// <summary>Режим стартового снаряжения, выбранный при создании (ROT-CRE-03).</summary>
+    StartingEquipmentMode StartingEquipmentMode = StartingEquipmentMode.StandardMoney,
+    /// <summary>
+    /// Остаток бюджета стартовых покупок. Тратится раньше <see cref="Money"/> и только до
+    /// завершения создания; это отдельный счёт, а не часть кошелька.
+    /// </summary>
+    int StartingPurchaseBudget = 0,
+    /// <summary>Происхождение зафиксированных порогов ран/стрейна (ROT-CRE-02).</summary>
+    ThresholdSnapshotProvenance ThresholdSnapshotProvenance = ThresholdSnapshotProvenance.None,
+    /// <summary>Данные восстановлены неоднозначно и требуют ручной проверки владельцем/GM.</summary>
+    bool RulesReviewRequired = false);
 
 public record HeroicUpgradeStateDto(
     int PowerRank,

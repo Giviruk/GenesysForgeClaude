@@ -31,4 +31,9 @@ public class CareerDef : IContentDef
     public List<CareerStartingGear> StartingGear { get; set; } = [];
     /// <summary>Правила/заметки карьеры. См. <see cref="CareerRule"/>.</summary>
     public List<CareerRule> Rules { get; set; } = [];
+    /// <summary>
+    /// Запись исключена из новых выборов, но сохранена ради существующих ссылок
+    /// (см. <see cref="IContentDef.Retired"/>).
+    /// </summary>
+    public bool Retired { get; set; }
 }

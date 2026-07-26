@@ -51,12 +51,16 @@ public record CharacterExportData(
     int? CreationWoundThreshold = null,
     int? CreationStrainThreshold = null,
     ThresholdSnapshotProvenance ThresholdSnapshotProvenance = ThresholdSnapshotProvenance.None,
-    bool RulesReviewRequired = false);
+    bool RulesReviewRequired = false,
+    // v2: режим стартового снаряжения и остаток бюджета создания (ROT-CRE-03).
+    StartingEquipmentMode StartingEquipmentMode = StartingEquipmentMode.StandardMoney,
+    int StartingPurchaseBudget = 0);
 
 public record CharacterSkillExport(string Code, string Name, int Ranks, bool IsCareer, int FreeRanks);
 
 public record CharacterTalentExport(string Code, string Name, int Ranks, string GrantedCharacteristics);
 
-public record CharacterItemExport(string Code, string Name, int Quantity, ItemState State);
+public record CharacterItemExport(string Code, string Name, int Quantity, ItemState State,
+    ItemProvenance Provenance = ItemProvenance.Purchased);
 
 public record CharacterNoteExport(string Title, string Body);

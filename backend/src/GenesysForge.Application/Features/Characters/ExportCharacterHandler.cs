@@ -46,7 +46,7 @@ public class ExportCharacterHandler(IAppDbContext db) : IQueryHandler<ExportChar
                 .Select(t => new CharacterTalentExport(t.TalentDef?.Code ?? "", t.TalentDef?.Name ?? "", t.Ranks, t.GrantedCharacteristics))
                 .ToList(),
             Items: c.Items
-                .Select(i => new CharacterItemExport(i.ItemDef?.Code ?? "", i.ItemDef?.Name ?? "", i.Quantity, i.State))
+                .Select(i => new CharacterItemExport(i.ItemDef?.Code ?? "", i.ItemDef?.Name ?? "", i.Quantity, i.State, i.Provenance))
                 .ToList(),
             HeroicAbilityCode: c.HeroicAbility?.Code,
             HeroicAbilityName: c.HeroicAbility?.Name,
@@ -62,7 +62,9 @@ public class ExportCharacterHandler(IAppDbContext db) : IQueryHandler<ExportChar
             CreationWoundThreshold: c.CreationWoundThreshold,
             CreationStrainThreshold: c.CreationStrainThreshold,
             ThresholdSnapshotProvenance: c.ThresholdSnapshotProvenance,
-            RulesReviewRequired: c.RulesReviewRequired);
+            RulesReviewRequired: c.RulesReviewRequired,
+            StartingEquipmentMode: c.StartingEquipmentMode,
+            StartingPurchaseBudget: c.StartingPurchaseBudget);
 
         return new CharacterExportDto(CharacterExportDto.CurrentFormat, DateTime.UtcNow, data);
     }

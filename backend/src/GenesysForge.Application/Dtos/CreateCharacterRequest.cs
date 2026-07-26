@@ -6,7 +6,13 @@ public record CreateCharacterRequest(string Name, GameSystem System, Guid Archet
     List<string>? FreeCareerSkillNames, List<ArchetypeSkillChoice>? ArchetypeSkillChoices = null,
     List<CareerGearChoice>? CareerGearChoices = null,
     string? Desire = null, string? Fear = null, string? Strength = null, string? Flaw = null,
-    string? Background = null);
+    string? Background = null,
+    /// <summary>
+    /// Режим стартового снаряжения (ROT-CRE-03). Отсутствие поля у старого клиента трактуется
+    /// как <see cref="StartingEquipmentMode.StandardMoney"/>; в этом режиме
+    /// <see cref="CareerGearChoices"/> обязан быть пустым.
+    /// </summary>
+    StartingEquipmentMode? StartingEquipmentMode = null);
 
 /// <summary>Выбор игрока для группы стартовых навыков вида (например «any-noncareer» → 2 навыка).</summary>
 public record ArchetypeSkillChoice(string ChoiceGroup, List<string> SkillNames);

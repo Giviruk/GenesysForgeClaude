@@ -63,6 +63,9 @@ public static class CharacterImporter
             WoundsCurrent = Math.Max(0, data.WoundsCurrent),
             StrainCurrent = Math.Max(0, data.StrainCurrent),
             Money = Math.Max(0, data.Money),
+            StartingEquipmentMode = data.StartingEquipmentMode,
+            // Бюджет создания переносится только пока персонаж не завершил создание.
+            StartingPurchaseBudget = data.IsCreationPhase ? Math.Max(0, data.StartingPurchaseBudget) : 0,
             HeroicUpgradeRank = 0,
         };
 
@@ -96,6 +99,11 @@ public static class CharacterImporter
             {
                 Id = Guid.NewGuid(), CharacterId = characterId, ItemDefId = def.Id,
                 Quantity = Math.Max(1, it.Quantity), State = it.State,
+                // Комплект и стартовый бюджет сохраняются как провенанс; всё остальное — Imported,
+                // чтобы импорт не выглядел покупкой в истории нового персонажа.
+                Provenance = it.Provenance is ItemProvenance.CareerPackage or ItemProvenance.StartingBudget
+                    ? it.Provenance
+                    : ItemProvenance.Imported,
             });
         }
 

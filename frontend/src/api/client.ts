@@ -12,7 +12,7 @@ import type {
   RollLogEntry, CreateRollRequest,
   CharacterAuditEntry,
   RulesResponse, SearchResponse,
-  ArchetypeSkillChoice, CareerGearChoice,
+  ArchetypeSkillChoice, CareerGearChoice, StartingEquipmentMode,
 } from './types'
 import { t } from '../i18n'
 import { ariadneAnonymousId } from '../analytics/ariadne'
@@ -144,9 +144,11 @@ export const api = {
   characters: () => request<CharacterListItem[]>('GET', '/api/characters/'),
   createCharacter: (name: string, system: GameSystem, archetypeId: string, careerId: string,
     freeCareerSkillNames: string[], archetypeSkillChoices: ArchetypeSkillChoice[] = [],
-    careerGearChoices: CareerGearChoice[] = [], bio: CharacterBio = {}) =>
+    careerGearChoices: CareerGearChoice[] = [], bio: CharacterBio = {},
+    startingEquipmentMode: StartingEquipmentMode = 'standardMoney') =>
     request<{ id: string }>('POST', '/api/characters/',
-      { name, system, archetypeId, careerId, freeCareerSkillNames, archetypeSkillChoices, careerGearChoices, ...bio }),
+      { name, system, archetypeId, careerId, freeCareerSkillNames, archetypeSkillChoices, careerGearChoices,
+        startingEquipmentMode, ...bio }),
   sheet: (id: string) => request<CharacterSheet>('GET', `/api/characters/${id}`),
   sharedSheet: (token: string) => request<CharacterSheet>('GET', `/api/share/${encodeURIComponent(token)}`),
   duplicateCharacter: (id: string) => request<{ id: string }>('POST', `/api/characters/${id}/duplicate`),

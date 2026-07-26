@@ -43,4 +43,9 @@ public class TalentDef : IContentDef
     public int RangedDefenseBonus { get; set; }
     public Guid? OwnerUserId { get; set; }
     public Guid? HomebrewPackId { get; set; }
+    /// <summary>
+    /// Запись исключена из новых выборов, но сохранена ради существующих ссылок
+    /// (см. <see cref="IContentDef.Retired"/>).
+    /// </summary>
+    public bool Retired { get; set; }
 }

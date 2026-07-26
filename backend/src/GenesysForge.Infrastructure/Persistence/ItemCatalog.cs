@@ -19,7 +19,7 @@ public static class ItemCatalog
         int Enc, int Soak, int Def, int Rdef, int EncBonus, int Price, int Rarity,
         string Desc, string Source,
         string? SkillEn, string? Damage, string? Crit, string? RangeRu, string? Properties,
-        string DescEn = "");
+        string DescEn = "", bool Retired = false);
 
     private static readonly JsonSerializerOptions JsonOptions = new() { PropertyNameCaseInsensitive = true };
 
@@ -67,6 +67,7 @@ public static class ItemCatalog
                     Crit = e.Crit ?? "",
                     RangeBand = e.RangeRu ?? "",
                     Properties = e.Properties ?? "",
+                    Retired = e.Retired,
                 };
         }
     }

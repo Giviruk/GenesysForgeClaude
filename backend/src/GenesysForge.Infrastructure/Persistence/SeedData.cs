@@ -72,9 +72,17 @@ public static class SeedData
         SyncBuiltinByCode(db, db.CareerDefs.Where(x => x.OwnerUserId == null && x.Code != ""), careers,
             (row, def) => Assign(row.DescriptionEn != def.DescriptionEn || row.SafeDescription != def.SafeDescription,
                 () => { row.DescriptionEn = def.DescriptionEn; row.SafeDescription = def.SafeDescription; }));
+        // Retired синхронизируется из каталога: встроенная строка выводится из активных выборов,
+        // но не удаляется — на неё уже могут ссылаться инвентари, NPC и экспорты.
         SyncBuiltinByCode(db, db.ItemDefs.Where(x => x.OwnerUserId == null && x.Code != ""), items,
-            (row, def) => Assign(row.DescriptionEn != def.DescriptionEn || row.SafeDescription != def.SafeDescription,
-                () => { row.DescriptionEn = def.DescriptionEn; row.SafeDescription = def.SafeDescription; }));
+            (row, def) => Assign(
+                row.DescriptionEn != def.DescriptionEn || row.SafeDescription != def.SafeDescription
+                || row.Retired != def.Retired,
+                () =>
+                {
+                    row.DescriptionEn = def.DescriptionEn; row.SafeDescription = def.SafeDescription;
+                    row.Retired = def.Retired;
+                }));
         SyncBuiltinByCode(db, db.QualityDefs.Where(x => x.Code != ""), qualities,
             (row, def) => Assign(row.DescriptionEn != def.DescriptionEn || row.SafeDescription != def.SafeDescription,
                 () => { row.DescriptionEn = def.DescriptionEn; row.SafeDescription = def.SafeDescription; }));
@@ -125,6 +133,78 @@ public static class SeedData
 
         // Встроенный бестиарий Realms of Terrinoth (идемпотентно, по натуральному ключу System+Name).
         SeedBestiary(db);
+
+        // Раскладка выданного комплектом Adventuring Pack на Traveling Gear (идемпотентно).
+        ExpandLegacyAdventuringPacks(db);
+    }
+
+    /// <summary>Состав Traveling Gear: те же stable ItemDef, что продаются в магазине (ROT-CLEAN-3.7).</summary>
+    private static readonly (string Code, int Quantity)[] TravelingGear =
+    [
+        ("backpack", 1), ("bedroll", 1), ("rope", 1),
+        ("flint-and-steel", 1), ("torches-3", 1), ("waterskin-empty", 1),
+    ];
+
+    /// <summary>
+    /// Заменяет исторические строки выдуманного <c>Adventuring Pack</c> на явный состав
+    /// <c>Traveling Gear</c> (ROT-CLEAN-3.7). Раскладка выполняется только при одновременно
+    /// доказанных условиях: provenance — карьерный комплект, встроенный код, количество 1 и
+    /// стандартное состояние. Иначе строка остаётся read-only у retired-предмета и ждёт ручного
+    /// решения владельца/GM: молча трогать чужой инвентарь нельзя. Custom-предмет с тем же именем
+    /// не затрагивается — фильтр идёт по <c>OwnerUserId == null</c> и стабильному коду.
+    /// </summary>
+    private static void ExpandLegacyAdventuringPacks(AppDbContext db)
+    {
+        var packIds = db.ItemDefs
+            .Where(i => i.OwnerUserId == null && i.Code.EndsWith(".item.adventuring-pack"))
+            .Select(i => new { i.Id, i.System })
+            .ToList();
+        if (packIds.Count == 0) return;
+
+        var packIdSet = packIds.Select(p => p.Id).ToHashSet();
+        var rows = db.CharacterItems
+            .Where(ci => packIdSet.Contains(ci.ItemDefId)
+                && ci.Provenance == ItemProvenance.CareerPackage
+                && ci.Quantity == 1
+                && ci.State == ItemState.Carried)
+            .ToList();
+        if (rows.Count == 0) return;
+
+        var systemById = packIds.ToDictionary(p => p.Id, p => p.System);
+        var wantedCodes = new HashSet<string>(
+            systemById.Values.Distinct().SelectMany(sys => TravelingGear.Select(g =>
+                $"{(sys == GameSystem.GenesysCore ? "gc" : "rot")}.item.{g.Code}")));
+        var byCode = db.ItemDefs
+            .Where(i => i.OwnerUserId == null && wantedCodes.Contains(i.Code))
+            .ToDictionary(i => i.Code, i => i);
+
+        var changed = false;
+        foreach (var row in rows)
+        {
+            var system = systemById[row.ItemDefId];
+            var prefix = system == GameSystem.GenesysCore ? "gc" : "rot";
+            var replacements = TravelingGear
+                .Select(g => byCode.TryGetValue($"{prefix}.item.{g.Code}", out var def) ? (def, g.Quantity) : default)
+                .ToList();
+            // Неполный состав — не разбираем: частичная замена хуже, чем оставленный bundle.
+            if (replacements.Any(r => r.def is null)) continue;
+
+            foreach (var (def, quantity) in replacements)
+            {
+                db.CharacterItems.Add(new CharacterItem
+                {
+                    Id = Guid.NewGuid(),
+                    CharacterId = row.CharacterId,
+                    ItemDefId = def.Id,
+                    Quantity = quantity,
+                    State = ItemState.Carried,
+                    Provenance = ItemProvenance.CareerPackage,
+                });
+            }
+            db.CharacterItems.Remove(row);
+            changed = true;
+        }
+        if (changed) db.SaveChanges();
     }
 
     /// <summary>

@@ -24,4 +24,9 @@ public class SkillDef : IContentDef
     public Guid? OwnerUserId { get; set; }
     /// <summary>Набор homebrew, из которого импортирован пользовательский контент. Null — одиночный custom content.</summary>
     public Guid? HomebrewPackId { get; set; }
+    /// <summary>
+    /// Запись исключена из новых выборов, но сохранена ради существующих ссылок
+    /// (см. <see cref="IContentDef.Retired"/>).
+    /// </summary>
+    public bool Retired { get; set; }
 }

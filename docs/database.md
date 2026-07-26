@@ -172,6 +172,14 @@ Indexes include non-unique `OwnerUserId`, `HomebrewPackId`, and `(System, OwnerU
 
 Career starting equipment granted at character creation (U-13). Fields: `CareerId`, `ItemCode` (bare slug; matches the suffix of `ItemDef.Code` = `{sys}.item.{ItemCode}`), `ItemNameFallback` (RU label), `Quantity`, `IsChoice`, `ChoiceGroup`, `ChoiceOption`. Fixed rows are auto-added to inventory; choice slots group rows by `ChoiceGroup`, and one selectable bundle = all rows sharing a `ChoiceOption`. Cascade delete from career; indexed by `CareerId`.
 
+These rows are only granted in `CareerPackage` mode, and only as a whole: `CareerPackageResolver`
+requires exactly one valid option per group, rejects missing/unknown/duplicated groups with a machine
+`reasonCode`, and merges repeated item codes into one line (ROT-CRE-03). Two catalog corrections live
+here: Scout's first group is exactly `Bow` **or** `Light Spear` with `Leather Armor` as a separate
+fixed row, so neither branch yields two suits of armour (ROT-CRE-04); and `Traveling Gear` is stored
+as its six real items — Backpack, Bedroll, Rope, Flint and Steel, Torches (3), empty Waterskin —
+rather than the invented `Adventuring Pack` bundle, which is now `Retired` (ROT-CLEAN-3.7).
+
 ### CareerRule
 
 Structured career rules/notes (U-13). Fields: `CareerId`, `Code`, `Kind` (`Advisory`/`SkillSubstitution`), `Description`. Cascade delete from career; indexed by `CareerId`.
@@ -195,6 +203,19 @@ campaign and Game Table. `ThresholdSnapshotProvenance` records where the values 
 `LegacyEstimated`) and `RulesReviewRequired` flags a character whose values were estimated and need a
 human check. Import of a pre-v2 export file computes the thresholds deterministically, marks them
 `LegacyEstimated` and returns a warning — it never stores a zero or a silent guess.
+
+Starting equipment (ROT-CRE-03): `StartingEquipmentMode` (`StandardMoney` / `CareerPackage`) records
+the mutually exclusive mode chosen at creation, and `StartingPurchaseBudget` holds what is left of it.
+The modes never mix. `StandardMoney` gives a 500-silver purchase budget plus separate `1d100` pocket
+money in `Money`; the budget and the pocket money are deliberately two accounts, so 500 and the roll
+are never summed into one balance. `CareerPackage` gives the whole career package and the career's own
+money formula instead, with no budget. During the creation phase a purchase draws on the budget first
+and the wallet second, and a sale restores the budget before the wallet — otherwise buy-then-sell
+would launder the budget into spendable cash. The money roll goes through the injected `IDiceRoller`,
+and both the formula and the rolled result are written to the audit log as `CharacterCreated`.
+
+`CharacterItems.Provenance` (`Purchased`, `CareerPackage`, `StartingBudget`, `Imported`) keeps
+duplicate, audit and legacy repair from treating granted starting gear as an ordinary purchase.
 
 Relationships:
 
@@ -414,6 +435,14 @@ Found migrations:
   still in the creation phase get no snapshot and keep computing thresholds dynamically. The
   backfill can lower a displayed threshold for a character who raised Brawn/Willpower after
   creation — that is the rule being fixed, not a regression.
+- `20260726163445_RotStartingEquipmentModes` — ROT-CRE-03/04 and ROT-CLEAN-3.7. Adds
+  `Characters.StartingEquipmentMode` / `StartingPurchaseBudget`, `CharacterItems.Provenance`, and a
+  `Retired` flag to every remaining content table (`SkillDefs`, `TalentDefs`, `ItemDefs`,
+  `CareerDefs`, `HeroicAbilityDefs`, `HeroicSecondaryEffectDefs`, `QualityDefs`; `ArchetypeDefs`
+  already had one). Non-destructive (only `AddColumn`) and deliberately without a data backfill:
+  existing characters already received money under the old rule, so granting them a 500 budget
+  retroactively would invent funds, and starting gear cannot be told apart from purchases in
+  historical inventories — ROT-CRE-04 explicitly forbids rewriting them.
 
 Startup behavior:
 

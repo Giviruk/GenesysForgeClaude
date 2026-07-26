@@ -38,6 +38,8 @@ public class DuplicateCharacterHandler(IAppDbContext db) : ICommandHandler<Dupli
             ThresholdSnapshotProvenance = src.ThresholdSnapshotProvenance,
             RulesReviewRequired = src.RulesReviewRequired,
             Money = src.Money,
+            StartingEquipmentMode = src.StartingEquipmentMode,
+            StartingPurchaseBudget = src.StartingPurchaseBudget,
             HeroicAbilityId = src.HeroicAbilityId,
             HeroicUpgradeRank = src.HeroicUpgradeRank,
             HeroicDurationRanks = src.HeroicDurationRanks,
@@ -68,6 +70,7 @@ public class DuplicateCharacterHandler(IAppDbContext db) : ICommandHandler<Dupli
                 ItemDefId = i.ItemDefId,
                 Quantity = i.Quantity,
                 State = i.State,
+                Provenance = i.Provenance,
             }).ToList(),
             CriticalInjuries = src.CriticalInjuries.Select(ci => new CharacterCriticalInjury
             {

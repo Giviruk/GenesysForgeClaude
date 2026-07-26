@@ -1,4 +1,3 @@
-using System.Text.RegularExpressions;
 using GenesysForge.Application.Abstractions;
 using GenesysForge.Application.Common;
 using GenesysForge.Application.Dtos;
@@ -9,7 +8,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace GenesysForge.Application.Features.Characters;
 
-public partial class CreateCharacterHandler(IAppDbContext db) : ICommandHandler<CreateCharacterCommand, Guid>
+public class CreateCharacterHandler(IAppDbContext db, IDiceRoller dice)
+    : ICommandHandler<CreateCharacterCommand, Guid>
 {
     private const int MaxFreeCareerSkills = 4;
 
@@ -40,6 +40,10 @@ public partial class CreateCharacterHandler(IAppDbContext db) : ICommandHandler<
         if (freeSkills.Count > MaxFreeCareerSkills)
             throw new DomainRuleException($"При создании можно выбрать не более {MaxFreeCareerSkills} карьерных навыков для бесплатного ранга.");
 
+        // Режим стартового снаряжения: отсутствие поля у старого клиента — безопасный StandardMoney.
+        var mode = req.StartingEquipmentMode ?? StartingEquipmentMode.StandardMoney;
+        var startingGear = await ResolveStartingGearAsync(career, req, mode, ct);
+
         var character = new Character
         {
             Id = Guid.NewGuid(),
@@ -55,7 +59,10 @@ public partial class CreateCharacterHandler(IAppDbContext db) : ICommandHandler<
             Willpower = archetype.Willpower,
             Presence = archetype.Presence,
             TotalXp = archetype.StartingXp,
-            Money = career.StartingMoneyFixed + RollDice(career.StartingMoneyDice),
+            // Бюджет покупок и карманные деньги — два разных счёта; складывать их нельзя.
+            Money = startingGear.Money,
+            StartingEquipmentMode = mode,
+            StartingPurchaseBudget = startingGear.PurchaseBudget,
             Desire = Clean(req.Desire),
             Fear = Clean(req.Fear),
             Strength = Clean(req.Strength),
@@ -142,54 +149,99 @@ public partial class CreateCharacterHandler(IAppDbContext db) : ICommandHandler<
             });
         }
 
-        // Стартовое снаряжение карьеры: фиксированное — автоматически, выборы — по запросу (лениво).
-        await ApplyStartingGearAsync(character, career, req, ct);
+        // Снаряжение уже разрешено и провалидировано до создания сущности — здесь только материализация.
+        foreach (var line in startingGear.Items)
+        {
+            character.Items.Add(new CharacterItem
+            {
+                Id = Guid.NewGuid(),
+                CharacterId = character.Id,
+                ItemDefId = line.ItemDefId,
+                Quantity = line.Quantity,
+                Provenance = ItemProvenance.CareerPackage,
+            });
+        }
 
         db.Characters.Add(character);
+
+        CharacterAudit.Record(db, character, userId, CharacterAuditAction.CharacterCreated,
+            $"Персонаж создан: {startingGear.Summary}", null,
+            new
+            {
+                startingEquipmentMode = mode.ToString(),
+                moneyFormula = startingGear.MoneyFormula,
+                moneyRolled = startingGear.Money,
+                purchaseBudget = startingGear.PurchaseBudget,
+                packageItems = startingGear.Items.Count,
+            });
+
         await db.SaveChangesAsync(ct);
         return character.Id;
     }
 
-    private async Task ApplyStartingGearAsync(Character character, CareerDef career, CreateCharacterRequest req, CancellationToken ct)
-    {
-        if (career.StartingGear.Count == 0) return;
+    /// <summary>Разрешённое стартовое снаряжение: деньги, бюджет и позиции комплекта.</summary>
+    private sealed record StartingGearPlan(
+        int Money, int PurchaseBudget, string MoneyFormula, string Summary,
+        IReadOnlyList<(Guid ItemDefId, int Quantity)> Items);
 
+    /// <summary>
+    /// Полностью разрешает стартовое снаряжение до первой мутации (ROT-CRE-03). В режиме
+    /// стандартных денег комплект не выдаётся и любые package choices — ошибка. В режиме комплекта
+    /// требуется точное множество групп с ровно одной допустимой опцией каждая; бюджета 500 нет.
+    /// </summary>
+    private async Task<StartingGearPlan> ResolveStartingGearAsync(
+        CareerDef career, CreateCharacterRequest req, StartingEquipmentMode mode, CancellationToken ct)
+    {
+        var requested = req.CareerGearChoices ?? [];
+
+        if (mode == StartingEquipmentMode.StandardMoney)
+        {
+            if (requested.Count > 0)
+                throw new DomainRuleException(
+                    "В режиме стандартных денег карьерный комплект не выдаётся — выбор снаряжения недопустим.");
+
+            var pocket = StartingWallet.PocketMoneyFormula;
+            var rolled = pocket.Roll(dice.Roll);
+            return new StartingGearPlan(rolled, StartingWallet.StandardPurchaseBudget, pocket.Describe(),
+                $"бюджет {StartingWallet.StandardPurchaseBudget} и карманные {rolled} ({pocket.Describe()})",
+                []);
+        }
+
+        var duplicates = requested
+            .GroupBy(c => c.ChoiceGroup, StringComparer.Ordinal)
+            .Where(g => g.Count() > 1)
+            .Select(g => g.Key)
+            .ToList();
+        var picks = requested
+            .GroupBy(c => c.ChoiceGroup, StringComparer.Ordinal)
+            .ToDictionary(g => g.Key, g => g.First().OptionIndex, StringComparer.Ordinal);
+
+        var (lines, error) = CareerPackageResolver.Resolve(career.StartingGear, picks, duplicates);
+        if (error is not null) throw new DomainRuleException(error.Message, error.ReasonCode);
+
+        // Все ItemDef комплекта обязаны резолвиться: молча пропустить позицию значит выдать
+        // частичный комплект, что запрещено.
         var prefix = req.System == GameSystem.GenesysCore ? "gc" : "rot";
-        var codes = career.StartingGear.Where(g => g.ItemCode.Length > 0)
-            .Select(g => $"{prefix}.item.{g.ItemCode}").ToHashSet();
+        var codes = lines!.Select(l => $"{prefix}.item.{l.ItemCode}").ToHashSet(StringComparer.Ordinal);
         var itemsByCode = await db.ItemDefs
             .Where(i => i.System == req.System && i.OwnerUserId == null && codes.Contains(i.Code))
             .ToDictionaryAsync(i => i.Code, ct);
 
-        var charItems = new Dictionary<Guid, CharacterItem>();
-        void AddItem(string itemCode, int qty)
+        var resolved = new List<(Guid, int)>();
+        foreach (var line in lines)
         {
-            if (itemCode.Length == 0) return;
-            if (!itemsByCode.TryGetValue($"{prefix}.item.{itemCode}", out var def)) return; // нерезолвленный — пропускаем
-            if (!charItems.TryGetValue(def.Id, out var ci))
-            {
-                ci = new CharacterItem { Id = Guid.NewGuid(), CharacterId = character.Id, ItemDefId = def.Id, Quantity = 0 };
-                charItems[def.Id] = ci;
-                character.Items.Add(ci);
-            }
-            ci.Quantity += qty;
+            if (!itemsByCode.TryGetValue($"{prefix}.item.{line.ItemCode}", out var def))
+                throw new DomainRuleException(
+                    $"Предмет комплекта «{line.ItemNameFallback}» ({line.ItemCode}) не найден в каталоге системы.",
+                    "career.package.item_unresolved");
+            resolved.Add((def.Id, line.Quantity));
         }
 
-        foreach (var g in career.StartingGear.Where(g => !g.IsChoice))
-            AddItem(g.ItemCode, g.Quantity);
-
-        var picks = (req.CareerGearChoices ?? [])
-            .GroupBy(c => c.ChoiceGroup)
-            .ToDictionary(g => g.Key, g => g.Last().OptionIndex);
-        foreach (var group in career.StartingGear.Where(g => g.IsChoice).Select(g => g.ChoiceGroup).Distinct())
-        {
-            if (!picks.TryGetValue(group, out var optionIndex)) continue; // не выбран — снаряжение не обязательно
-            var optionItems = career.StartingGear
-                .Where(g => g.IsChoice && g.ChoiceGroup == group && g.ChoiceOption == optionIndex).ToList();
-            if (optionItems.Count == 0)
-                throw new DomainRuleException($"Неверный вариант стартового снаряжения для слота {group}.");
-            foreach (var g in optionItems) AddItem(g.ItemCode, g.Quantity);
-        }
+        var formula = MoneyFormula.Parse(career.StartingMoneyFixed, career.StartingMoneyDice);
+        var money = formula.Roll(dice.Roll);
+        return new StartingGearPlan(money, 0, formula.Describe(),
+            $"комплект карьеры {career.Name} ({resolved.Count} позиций) и {money} ({formula.Describe()})",
+            resolved);
     }
 
     /// <summary>Нормализует опциональное текстовое поле: trim, пустое → null.</summary>
@@ -199,18 +251,5 @@ public partial class CreateCharacterHandler(IAppDbContext db) : ICommandHandler<
         return string.IsNullOrEmpty(trimmed) ? null : trimmed;
     }
 
-    /// <summary>Бросок стартовых денег формата <c>NdM</c> (например «1d100»). Пусто/некорректно → 0.</summary>
-    private static int RollDice(string dice)
-    {
-        if (string.IsNullOrWhiteSpace(dice)) return 0;
-        var m = DiceRegex().Match(dice.Trim());
-        if (!m.Success) return 0;
-        var (count, sides) = (int.Parse(m.Groups[1].Value), int.Parse(m.Groups[2].Value));
-        var sum = 0;
-        for (var i = 0; i < count; i++) sum += Random.Shared.Next(1, sides + 1);
-        return sum;
-    }
 
-    [GeneratedRegex(@"^(\d+)d(\d+)$", RegexOptions.IgnoreCase)]
-    private static partial Regex DiceRegex();
 }

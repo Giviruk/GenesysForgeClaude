@@ -99,6 +99,10 @@ public static class SheetBuilder
                 .Select(ci => new CharacterCriticalInjuryDto(
                     ci.Id, ci.RuleCode, ci.NameRu, ci.Severity, ci.RollResult, ci.Notes))
                 .ToList(),
-            c.PortraitUrl);
+            c.PortraitUrl,
+            c.StartingEquipmentMode,
+            c.StartingPurchaseBudget,
+            c.ThresholdSnapshotProvenance,
+            c.RulesReviewRequired);
     }
 }

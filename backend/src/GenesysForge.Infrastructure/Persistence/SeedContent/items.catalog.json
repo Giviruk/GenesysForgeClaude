@@ -2878,8 +2878,9 @@
   "encBonus": 0,
   "price": 25,
   "rarity": 1,
-  "desc": "Базовый набор путешественника: верёвка, паёк, спальный мешок и мелкое походное снаряжение.",
-  "descEn": "A traveler's basic kit: rope, rations, a bedroll and small camping gear.",
-  "source": "Realms of Terrinoth, с. 102"
+  "desc": "Не является отдельным предметом RoT: карьерные комплекты выдают Traveling Gear отдельными позициями.",
+  "descEn": "Not a separate RoT item: career packages grant Traveling Gear as individual entries.",
+  "source": "Realms of Terrinoth, с. 102",
+  "retired": true
  }
 ]

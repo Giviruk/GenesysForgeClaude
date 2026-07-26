@@ -1,9 +1,11 @@
 import { useCallback, useEffect, useRef, useState, type ChangeEvent, type FormEvent } from 'react'
 import { api } from '../api/client'
-import type { CharacterExport, CharacterListItem, GameSystem, ImportPreview, Reference } from '../api/types'
+import type {
+  CharacterExport, CharacterListItem, GameSystem, ImportPreview, Reference, StartingEquipmentMode,
+} from '../api/types'
 import { Icon } from '../components/Icon'
 import { CHARACTERISTICS, CHARACTERISTIC_LABELS, dualName, localizedDescription, localizedName, SYSTEM_LABELS } from '../utils/labels'
-import { MAX_FREE_CAREER_SKILLS, MAX_SKILL_RANK_AT_CREATION } from '../utils/rules'
+import { MAX_FREE_CAREER_SKILLS, MAX_SKILL_RANK_AT_CREATION, MAX_STARTING_BUDGET } from '../utils/rules'
 import { t } from '../i18n'
 
 interface Props {
@@ -255,6 +257,8 @@ export function CreateCharacterForm({ onCancel, onCreated }: { onCancel: () => v
   const [skillChoices, setSkillChoices] = useState<Record<string, string[]>>({})
   // Выборы стартового снаряжения карьеры: choiceGroup → индекс выбранного варианта.
   const [gearChoices, setGearChoices] = useState<Record<string, number>>({})
+  // ROT-CRE-03: режимы взаимоисключающие, безопасный default — стандартные деньги.
+  const [equipmentMode, setEquipmentMode] = useState<StartingEquipmentMode>('standardMoney')
   // Мотивации и предыстория (U-22) — все опциональны, можно заполнить позже на листе.
   const [desire, setDesire] = useState('')
   const [fear, setFear] = useState('')
@@ -278,6 +282,7 @@ export function CreateCharacterForm({ onCancel, onCreated }: { onCancel: () => v
         setFreeSkills([])
         setSkillChoices({})
         setGearChoices({})
+        setEquipmentMode('standardMoney')
       })
       .catch((err: unknown) => {
         if (!cancelled) setError(err instanceof Error ? err.message : t('Ошибка загрузки', 'Failed to load'))
@@ -339,7 +344,8 @@ export function CreateCharacterForm({ onCancel, onCreated }: { onCancel: () => v
             .map(gearLabel).join(' + '),
         })),
     }))
-  const gearComplete = gearSlots.every(s => gearChoices[s.group] !== undefined)
+  // В режиме стандартных денег выбор снаряжения не нужен и не отправляется вовсе.
+  const gearComplete = equipmentMode !== 'careerPackage' || gearSlots.every(s => gearChoices[s.group] !== undefined)
   const moneyLabel = career
     ? [career.startingMoneyFixed || null, career.startingMoneyDice || null].filter(Boolean).join(' + ')
     : ''
@@ -366,9 +372,11 @@ export function CreateCharacterForm({ onCancel, onCreated }: { onCancel: () => v
     setBusy(true)
     try {
       const choices = choiceGroups.map(g => ({ choiceGroup: g.choiceGroup, skillNames: skillChoices[g.choiceGroup] ?? [] }))
-      const gear = gearSlots.map(s => ({ choiceGroup: s.group, optionIndex: gearChoices[s.group] }))
+      const gear = equipmentMode === 'careerPackage'
+        ? gearSlots.map(s => ({ choiceGroup: s.group, optionIndex: gearChoices[s.group] }))
+        : []
       const { id } = await api.createCharacter(name, system, archetypeId, careerId, freeSkills, choices, gear,
-        { desire, fear, strength, flaw, background })
+        { desire, fear, strength, flaw, background }, equipmentMode)
       onCreated(id)
     } catch (err) {
       setError(err instanceof Error ? err.message : t('Ошибка создания', 'Failed to create'))
@@ -452,7 +460,7 @@ export function CreateCharacterForm({ onCancel, onCreated }: { onCancel: () => v
 
         <label>
           {t('Карьера', 'Career')}
-          <select value={careerId} onChange={e => { setCareerId(e.target.value); setGearChoices({}) }} required>
+          <select value={careerId} onChange={e => { setCareerId(e.target.value); setGearChoices({}); setEquipmentMode('standardMoney') }} required>
             <option value="" disabled>{t('— выберите —', '— select —')}</option>
             {reference?.careers.map(c => <option key={c.id} value={c.id}>{localizedName(c)}</option>)}
           </select>
@@ -500,22 +508,52 @@ export function CreateCharacterForm({ onCancel, onCreated }: { onCancel: () => v
 
         {career && career.startingGear.length > 0 && (
           <div>
-            {moneyLabel && <div className="hint">{t(`Стартовые деньги: ${moneyLabel} серебра`, `Starting money: ${moneyLabel} silver`)}</div>}
-            {fixedGear.length > 0 && <div className="hint">{t('Снаряжение:', 'Gear:')} {fixedGear.map(gearLabel).join(', ')}</div>}
-            {gearSlots.map(slot => (
-              <div key={slot.group}>
-                <div className="label-line">{t('Снаряжение — выберите вариант:', 'Gear — pick an option:')}</div>
-                <div className="chips">
-                  {slot.options.map(o => (
-                    <button key={o.index} type="button"
-                      className={gearChoices[slot.group] === o.index ? 'chip active' : 'chip'}
-                      onClick={() => setGearChoices(prev => ({ ...prev, [slot.group]: o.index }))}>
-                      {o.label}
-                    </button>
-                  ))}
-                </div>
+            <div className="label-line">{t('Стартовое снаряжение — режимы взаимоисключающие:', 'Starting equipment — the modes are mutually exclusive:')}</div>
+            <div className="chips">
+              <button type="button"
+                className={equipmentMode === 'standardMoney' ? 'chip active' : 'chip'}
+                onClick={() => setEquipmentMode('standardMoney')}>
+                {t('Стандартные деньги', 'Standard money')}
+              </button>
+              <button type="button"
+                className={equipmentMode === 'careerPackage' ? 'chip active' : 'chip'}
+                onClick={() => setEquipmentMode('careerPackage')}>
+                {t('Карьерный комплект (с разрешения ведущего)', 'Career package (with GM permission)')}
+              </button>
+            </div>
+
+            {equipmentMode === 'standardMoney' ? (
+              <div className="hint">
+                {t(
+                  `Бюджет ${MAX_STARTING_BUDGET} серебра на стартовые покупки и отдельно карманные 1d100. Карьерный комплект не выдаётся.`,
+                  `A ${MAX_STARTING_BUDGET} silver budget for starting purchases plus separate 1d100 pocket money. No career package is granted.`,
+                )}
               </div>
-            ))}
+            ) : (
+              <>
+                <div className="hint">
+                  {t(
+                    `Вместо бюджета ${MAX_STARTING_BUDGET} — весь комплект карьеры и его деньги${moneyLabel ? `: ${moneyLabel} серебра` : ''}. Нужно выбрать вариант в каждой группе.`,
+                    `Instead of the ${MAX_STARTING_BUDGET} budget — the whole career package and its money${moneyLabel ? `: ${moneyLabel} silver` : ''}. One option must be picked in every group.`,
+                  )}
+                </div>
+                {fixedGear.length > 0 && <div className="hint">{t('Всегда входит:', 'Always included:')} {fixedGear.map(gearLabel).join(', ')}</div>}
+                {gearSlots.map(slot => (
+                  <div key={slot.group}>
+                    <div className="label-line">{t('Снаряжение — выберите вариант:', 'Gear — pick an option:')}</div>
+                    <div className="chips">
+                      {slot.options.map(o => (
+                        <button key={o.index} type="button"
+                          className={gearChoices[slot.group] === o.index ? 'chip active' : 'chip'}
+                          onClick={() => setGearChoices(prev => ({ ...prev, [slot.group]: o.index }))}>
+                          {o.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </>
+            )}
             {career.rules.map(r => <div key={r.code} className="hint">{localizedDescription(r)}</div>)}
           </div>
         )}

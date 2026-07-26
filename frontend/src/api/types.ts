@@ -359,6 +359,12 @@ export interface DicePool {
   proficiency: number
 }
 
+/** Взаимоисключающие режимы стартового снаряжения (ROT-CRE-03). */
+export type StartingEquipmentMode = 'standardMoney' | 'careerPackage'
+
+/** Откуда позиция инвентаря появилась у персонажа (ROT-CRE-03). */
+export type ItemProvenance = 'purchased' | 'careerPackage' | 'startingBudget' | 'imported'
+
 /** Источник карьерного статуса навыка (ROT-CRE-01). */
 export interface CareerSkillSource {
   source: 'Career' | 'Species' | 'Talent'
