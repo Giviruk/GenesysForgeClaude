@@ -22,7 +22,8 @@ public static class ArchetypeCatalog
     private sealed record AbilityEntry(string Code, string NameRu, string NameEn, string Safe, string AutomationKind, string SafeEn = "");
 
     private sealed record StartingSkillEntry(
-        string SkillName, string NameRu, int FreeRanks, bool IsChoice, string ChoiceGroup, int ChoiceCount);
+        string SkillName, string NameRu, int FreeRanks, bool IsChoice, string ChoiceGroup, int ChoiceCount,
+        bool GrantsCareerSkill = false);
 
     private static readonly JsonSerializerOptions JsonOptions = new() { PropertyNameCaseInsensitive = true };
 
@@ -59,6 +60,7 @@ public static class ArchetypeCatalog
                 {
                     Id = Guid.NewGuid(), SkillName = s.SkillName, NameRu = s.NameRu, FreeRanks = s.FreeRanks,
                     IsChoice = s.IsChoice, ChoiceGroup = s.ChoiceGroup, ChoiceCount = s.ChoiceCount,
+                    GrantsCareerSkill = s.GrantsCareerSkill,
                 }).ToList(),
             };
         }

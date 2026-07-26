@@ -14,10 +14,17 @@ public class CompleteCreationHandler(IAppDbContext db) : ICommandHandler<Complet
         if (c.System == GameSystem.RealmsOfTerrinoth && c.HeroicAbilityId is null)
             throw new DomainRuleException(
                 "Для персонажа Realms of Terrinoth выберите героическую способность до завершения создания.");
+        // Пороги фиксируются в той же транзакции до переключения фазы; повторный вызов сюда не
+        // доходит (idempotent-выход выше), поэтому snapshot делается ровно один раз.
+        var (wound, strain) = CharacterDerived.CreationSnapshot(c);
+        c.CreationWoundThreshold = wound;
+        c.CreationStrainThreshold = strain;
+        c.ThresholdSnapshotProvenance = ThresholdSnapshotProvenance.CreationCompleted;
         c.IsCreationPhase = false;
 
         CharacterAudit.Record(db, c, command.UserId, CharacterAuditAction.CreationCompleted,
-            "Создание персонажа завершено");
+            "Создание персонажа завершено",
+            data: new { woundThreshold = wound, strainThreshold = strain, brawn = c.Brawn, willpower = c.Willpower });
 
         await db.SaveChangesAsync(ct);
         return Unit.Value;

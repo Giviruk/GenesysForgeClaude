@@ -11,8 +11,14 @@ public record CharacterExportDto(
     DateTime ExportedAt,
     CharacterExportData Character)
 {
-    /// <summary>Текущая версия формата.</summary>
-    public const string CurrentFormat = "genesysforge.character.v1";
+    /// <summary>Текущая версия формата: v2 добавила зафиксированные пороги ран/стрейна (ROT-CRE-02).</summary>
+    public const string CurrentFormat = "genesysforge.character.v2";
+
+    /// <summary>Предыдущая версия формата — принимается на импорт с предупреждениями.</summary>
+    public const string LegacyFormatV1 = "genesysforge.character.v1";
+
+    /// <summary>Все форматы, которые импорт умеет читать.</summary>
+    public static readonly string[] SupportedFormats = [CurrentFormat, LegacyFormatV1];
 }
 
 public record CharacterExportData(
@@ -39,7 +45,13 @@ public record CharacterExportData(
     int HeroicDurationRanks = 0,
     int HeroicFrequencyRanks = 0,
     bool HeroicStoryUpgrade = false,
-    List<string>? HeroicSecondaryEffectCodes = null);
+    List<string>? HeroicSecondaryEffectCodes = null,
+    // v2: зафиксированные при завершении создания пороги. null у персонажа в фазе создания
+    // и у файлов v1 — импорт в этом случае предупреждает и не выдумывает точное значение.
+    int? CreationWoundThreshold = null,
+    int? CreationStrainThreshold = null,
+    ThresholdSnapshotProvenance ThresholdSnapshotProvenance = ThresholdSnapshotProvenance.None,
+    bool RulesReviewRequired = false);
 
 public record CharacterSkillExport(string Code, string Name, int Ranks, bool IsCareer, int FreeRanks);
 

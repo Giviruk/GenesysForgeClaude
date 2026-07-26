@@ -229,7 +229,8 @@
     "freeRanks": 2,
     "isChoice": false,
     "choiceGroup": "",
-    "choiceCount": 0
+    "choiceCount": 0,
+    "grantsCareerSkill": true
    }
   ],
   "source": "Realms of Terrinoth, с. 63",
@@ -313,7 +314,8 @@
     "freeRanks": 1,
     "isChoice": false,
     "choiceGroup": "",
-    "choiceCount": 0
+    "choiceCount": 0,
+    "grantsCareerSkill": true
    }
   ],
   "source": "Realms of Terrinoth, с. 63",

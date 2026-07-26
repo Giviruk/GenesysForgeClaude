@@ -14,18 +14,7 @@ public static class SheetBuilder
     {
         var ch = c.Characteristics;
 
-        var talentInputs = c.Talents.Select(t => new TalentInput(
-            t.TalentDef!.Name, t.TalentDef.Tier, t.Ranks,
-            t.TalentDef.WoundBonus, t.TalentDef.StrainBonus, t.TalentDef.SoakBonus,
-            t.TalentDef.MeleeDefenseBonus, t.TalentDef.RangedDefenseBonus)).ToList();
-
-        var itemInputs = c.Items.Select(i => new ItemInput(
-            i.ItemDef!.Name, i.ItemDef.Kind, i.State, i.ItemDef.Encumbrance, i.Quantity,
-            i.ItemDef.SoakBonus, i.ItemDef.MeleeDefense, i.ItemDef.RangedDefense,
-            i.ItemDef.EncumbranceThresholdBonus)).ToList();
-
-        var derived = SheetCalculator.ComputeDerived(
-            ch, c.Archetype!.WoundBase, c.Archetype.StrainBase, talentInputs, itemInputs);
+        var derived = CharacterDerived.Compute(c);
 
         var visiblePackIds = await HomebrewVisibility.GetVisiblePackIdsAsync(db, userId, c.System, c.Id, ct: ct);
 
@@ -37,17 +26,23 @@ public static class SheetBuilder
                         && (s.HomebrewPackId == null || visiblePackIds.Contains(s.HomebrewPackId.Value)))))
             .OrderBy(s => s.Kind).ThenBy(s => s.NameRu)
             .ToListAsync(ct);
+        // Карьерный статус — только из резолвера (карьера ∪ вид ∪ таланты); хранимый флаг строки не
+        // является источником истины и может отставать от текущего набора талантов.
+        var careerSkills = CareerSkills.Resolve(c, c.Career!, systemSkills);
         var rows = c.Skills.ToDictionary(s => s.SkillDefId);
         var skills = systemSkills.Select(def =>
         {
             rows.TryGetValue(def.Id, out var row);
             var ranks = row?.Ranks ?? 0;
-            var isCareer = row?.IsCareer ?? c.Career!.CareerSkillNames.Contains(def.Name);
+            var isCareer = careerSkills.IsCareer(def.Id);
             var pool = GenesysRules.BuildDicePool(ch.Get(def.Characteristic), ranks);
             return new CharacterSkillDto(def.Id, def.Name, def.NameRu, def.Kind, def.Characteristic, ranks, isCareer,
                 new DicePoolDto(pool.Ability, pool.Proficiency),
                 ranks < GenesysRules.MaxSkillRank ? GenesysRules.SkillRankCost(ranks + 1, isCareer) : 0,
-                row?.FreeRanks ?? 0);
+                row?.FreeRanks ?? 0,
+                careerSkills.GrantsFor(def.Id)
+                    .Select(g => new CareerSkillSourceDto(g.Source.ToString(), g.SourceName))
+                    .ToList());
         }).ToList();
 
         return new CharacterSheetDto(

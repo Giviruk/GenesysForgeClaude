@@ -31,6 +31,12 @@ public class DuplicateCharacterHandler(IAppDbContext db) : ICommandHandler<Dupli
             IsCreationPhase = src.IsCreationPhase,
             WoundsCurrent = src.WoundsCurrent,
             StrainCurrent = src.StrainCurrent,
+            // Пороги — часть состояния персонажа, а не пересчитываемое значение: копия обязана
+            // показывать те же числа, что и оригинал (ROT-CRE-02).
+            CreationWoundThreshold = src.CreationWoundThreshold,
+            CreationStrainThreshold = src.CreationStrainThreshold,
+            ThresholdSnapshotProvenance = src.ThresholdSnapshotProvenance,
+            RulesReviewRequired = src.RulesReviewRequired,
             Money = src.Money,
             HeroicAbilityId = src.HeroicAbilityId,
             HeroicUpgradeRank = src.HeroicUpgradeRank,

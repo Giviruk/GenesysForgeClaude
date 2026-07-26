@@ -115,17 +115,5 @@ public static class ParticipantFactory
             .FirstOrDefaultAsync(c => c.Id == characterId, ct)
             ?? throw new DomainRuleException("Персонаж не найден.");
 
-    private static DerivedStats SheetBuilderDerived(Character c)
-    {
-        var talentInputs = c.Talents.Select(t => new TalentInput(
-            t.TalentDef!.Name, t.TalentDef.Tier, t.Ranks,
-            t.TalentDef.WoundBonus, t.TalentDef.StrainBonus, t.TalentDef.SoakBonus,
-            t.TalentDef.MeleeDefenseBonus, t.TalentDef.RangedDefenseBonus)).ToList();
-        var itemInputs = c.Items.Select(i => new ItemInput(
-            i.ItemDef!.Name, i.ItemDef.Kind, i.State, i.ItemDef.Encumbrance, i.Quantity,
-            i.ItemDef.SoakBonus, i.ItemDef.MeleeDefense, i.ItemDef.RangedDefense,
-            i.ItemDef.EncumbranceThresholdBonus)).ToList();
-        return SheetCalculator.ComputeDerived(
-            c.Characteristics, c.Archetype!.WoundBase, c.Archetype.StrainBase, talentInputs, itemInputs);
-    }
+    private static DerivedStats SheetBuilderDerived(Character c) => CharacterDerived.Compute(c);
 }

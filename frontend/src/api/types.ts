@@ -221,6 +221,8 @@ export interface ArchetypeStartingSkill {
   isChoice: boolean
   choiceGroup: string
   choiceCount: number
+  /** Выдача делает навык карьерным вдобавок к бесплатным рангам (ROT-CRE-01). */
+  grantsCareerSkill: boolean
 }
 
 export interface ArchetypeSkillChoice {
@@ -357,6 +359,12 @@ export interface DicePool {
   proficiency: number
 }
 
+/** Источник карьерного статуса навыка (ROT-CRE-01). */
+export interface CareerSkillSource {
+  source: 'Career' | 'Species' | 'Talent'
+  sourceName: string
+}
+
 export interface SheetSkill {
   skillDefId: string
   name: string
@@ -368,6 +376,8 @@ export interface SheetSkill {
   pool: DicePool
   nextRankCost: number
   freeRanks: number
+  /** Все источники карьерного статуса: карьера, вид, таланты. Пусто — навык некарьерный. */
+  careerSources: CareerSkillSource[]
 }
 
 export interface SheetTalent {

@@ -6,12 +6,19 @@ namespace GenesysForge.Domain;
 /// </summary>
 public static class SheetCalculator
 {
+    /// <param name="woundThresholdSnapshot">
+    /// Зафиксированный при завершении создания порог ран (ROT-CRE-02). Если задан, база и Brawn
+    /// больше не участвуют в расчёте: явные бонусы талантов прибавляются поверх snapshot ровно один раз.
+    /// </param>
+    /// <param name="strainThresholdSnapshot">То же для порога стрейна.</param>
     public static DerivedStats ComputeDerived(
         CharacteristicsSet ch,
         int archetypeWoundBase,
         int archetypeStrainBase,
         IReadOnlyList<TalentInput> talents,
-        IReadOnlyList<ItemInput> items)
+        IReadOnlyList<ItemInput> items,
+        int? woundThresholdSnapshot = null,
+        int? strainThresholdSnapshot = null)
     {
         var equipped = items.Where(i => i.State == ItemState.Equipped).ToList();
 
@@ -33,8 +40,12 @@ public static class SheetCalculator
         var load = items.Sum(ItemLoad);
 
         return new DerivedStats(
-            WoundThreshold: GenesysRules.WoundThreshold(archetypeWoundBase, ch.Brawn, talentWounds),
-            StrainThreshold: GenesysRules.StrainThreshold(archetypeStrainBase, ch.Willpower, talentStrain),
+            WoundThreshold: woundThresholdSnapshot is { } wt
+                ? wt + talentWounds
+                : GenesysRules.WoundThreshold(archetypeWoundBase, ch.Brawn, talentWounds),
+            StrainThreshold: strainThresholdSnapshot is { } st
+                ? st + talentStrain
+                : GenesysRules.StrainThreshold(archetypeStrainBase, ch.Willpower, talentStrain),
             Soak: GenesysRules.Soak(ch.Brawn, armorSoak, talentSoak),
             MeleeDefense: meleeDef,
             RangedDefense: rangedDef,

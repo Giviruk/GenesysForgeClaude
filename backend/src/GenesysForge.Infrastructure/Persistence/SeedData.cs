@@ -456,7 +456,7 @@ public static class SeedData
         for (var i = 0; i < rs.Count; i++)
             if (rs[i].SkillName != ds[i].SkillName || rs[i].NameRu != ds[i].NameRu || rs[i].FreeRanks != ds[i].FreeRanks
                 || rs[i].IsChoice != ds[i].IsChoice || rs[i].ChoiceGroup != ds[i].ChoiceGroup
-                || rs[i].ChoiceCount != ds[i].ChoiceCount)
+                || rs[i].ChoiceCount != ds[i].ChoiceCount || rs[i].GrantsCareerSkill != ds[i].GrantsCareerSkill)
                 return false;
 
         return true;

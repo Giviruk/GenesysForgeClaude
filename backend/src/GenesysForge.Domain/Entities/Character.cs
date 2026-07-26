@@ -28,6 +28,23 @@ public class Character
     public int WoundsCurrent { get; set; }
     public int StrainCurrent { get; set; }
 
+    /// <summary>
+    /// Порог ран, зафиксированный в момент завершения создания (ROT-CRE-02). После completion
+    /// изменение Brawn (в том числе талантом Dedication) не пересчитывает порог; сверху
+    /// прибавляются только явные модификаторы порога (Toughened и т. п.).
+    /// <c>null</c> — персонаж ещё в фазе создания, порог считается динамически.
+    /// </summary>
+    public int? CreationWoundThreshold { get; set; }
+    /// <summary>Порог стрейна, зафиксированный в момент завершения создания. См. <see cref="CreationWoundThreshold"/>.</summary>
+    public int? CreationStrainThreshold { get; set; }
+    /// <summary>Происхождение сохранённых порогов: точный snapshot, восстановление или оценка.</summary>
+    public ThresholdSnapshotProvenance ThresholdSnapshotProvenance { get; set; } = ThresholdSnapshotProvenance.None;
+    /// <summary>
+    /// Данные персонажа восстановлены неоднозначно и требуют ручной проверки владельцем/GM.
+    /// Не блокирует игру, но показывается в UI и экспорте.
+    /// </summary>
+    public bool RulesReviewRequired { get; set; }
+
     /// <summary>Кошелёк персонажа (нейтральные «монеты»). Стартовый баланс — 500.</summary>
     public int Money { get; set; } = 500;
 

@@ -12,4 +12,4 @@ public record ArchetypeAbilityDto(string Code, string NameRu, string NameEn, str
     ArchetypeAbilityAutomationKind AutomationKind, string DescriptionEn = "");
 
 public record ArchetypeStartingSkillDto(string SkillName, string NameRu, int FreeRanks,
-    bool IsChoice, string ChoiceGroup, int ChoiceCount);
+    bool IsChoice, string ChoiceGroup, int ChoiceCount, bool GrantsCareerSkill = false);

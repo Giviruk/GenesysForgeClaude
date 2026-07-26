@@ -4,6 +4,7 @@ using GenesysForge.Application.Common;
 using GenesysForge.Application.Dtos;
 using GenesysForge.Domain;
 using GenesysForge.Domain.Entities;
+using GenesysForge.Domain.Rules;
 using Microsoft.EntityFrameworkCore;
 
 namespace GenesysForge.Application.Features.Characters;
@@ -38,9 +39,6 @@ public partial class CreateCharacterHandler(IAppDbContext db) : ICommandHandler<
         var freeSkills = req.FreeCareerSkillNames ?? [];
         if (freeSkills.Count > MaxFreeCareerSkills)
             throw new DomainRuleException($"При создании можно выбрать не более {MaxFreeCareerSkills} карьерных навыков для бесплатного ранга.");
-        var invalid = freeSkills.FirstOrDefault(n => !career.CareerSkillNames.Contains(n));
-        if (invalid is not null)
-            throw new DomainRuleException($"«{invalid}» не является карьерным навыком карьеры {career.Name}.");
 
         var character = new Character
         {
@@ -72,49 +70,36 @@ public partial class CreateCharacterHandler(IAppDbContext db) : ICommandHandler<
                     || (s.OwnerUserId == userId
                         && (s.HomebrewPackId == null || visiblePackIds.Contains(s.HomebrewPackId.Value)))))
             .ToListAsync(ct);
-        var skillByName = systemSkills
-            .OrderBy(s => s.OwnerUserId == null ? 0 : 1)
-            .GroupBy(s => s.Name)
-            .ToDictionary(g => g.Key, g => g.First());
+        var skillByName = CareerSkills.BuildNameIndex(systemSkills);
 
-        // Строки навыков создаются для карьерных и бесплатных рангов; остальные подмешиваются динамически.
-        var charSkills = new Dictionary<Guid, CharacterSkill>();
-        CharacterSkill GetOrCreate(SkillDef def, bool isCareer)
+        // Карьерный статус резолвится один раз из всех источников: карьера ∪ вид ∪ таланты.
+        // На создании талантов ещё нет, поэтому источников два.
+        var careerSkills = CareerSkillResolver.Resolve(
+            CareerSkills.GrantsFor(career, archetype, []),
+            name => skillByName.TryGetValue(name, out var def) ? def.Id : null);
+
+        // Полный план бесплатных рангов строится целиком до первой записи и только потом проверяется:
+        // превышение предела создания — ошибка, обрезать ранг нельзя.
+        var plan = new CreationSkillPlan();
+        foreach (var skillDefId in careerSkills.SkillDefIds)
         {
-            if (!charSkills.TryGetValue(def.Id, out var cs))
-            {
-                cs = new CharacterSkill
-                {
-                    Id = Guid.NewGuid(),
-                    CharacterId = character.Id,
-                    SkillDefId = def.Id,
-                    IsCareer = isCareer,
-                };
-                charSkills[def.Id] = cs;
-                character.Skills.Add(cs);
-            }
-            else if (isCareer) cs.IsCareer = true;
-            return cs;
-        }
-        void AddFreeRanks(SkillDef def, int ranks)
-        {
-            var cs = GetOrCreate(def, isCareer: false);
-            cs.Ranks += ranks;
-            cs.FreeRanks += ranks;
+            var def = systemSkills.First(s => s.Id == skillDefId);
+            plan.MarkCareer(def.Id, def.Name);
         }
 
-        foreach (var skill in systemSkills.Where(s => career.CareerSkillNames.Contains(s.Name)))
-        {
-            var cs = GetOrCreate(skill, isCareer: true);
-            if (freeSkills.Contains(skill.Name)) { cs.Ranks += 1; cs.FreeRanks += 1; }
-        }
+        var invalidFree = freeSkills.FirstOrDefault(n =>
+            !skillByName.TryGetValue(n, out var def) || !careerSkills.IsCareer(def.Id));
+        if (invalidFree is not null)
+            throw new DomainRuleException($"«{invalidFree}» не является карьерным навыком карьеры {career.Name}.");
+        foreach (var name in freeSkills.Distinct(StringComparer.Ordinal))
+            plan.AddFreeRanks(skillByName[name].Id, name, 1, $"карьера {career.Name}");
 
         // Фиксированные стартовые навыки вида применяются автоматически (сливаясь с карьерными по рангам).
         foreach (var ss in archetype.StartingSkills.Where(s => !s.IsChoice))
         {
             if (string.IsNullOrWhiteSpace(ss.SkillName)) continue; // несопоставленный навык — пропускаем безопасно
             if (skillByName.TryGetValue(ss.SkillName, out var def))
-                AddFreeRanks(def, ss.FreeRanks);
+                plan.AddFreeRanks(def.Id, def.Name, ss.FreeRanks, $"вид {archetype.Name}");
         }
 
         // Стартовые навыки-выборы вида — игрок выбирает конкретные навыки при создании.
@@ -125,17 +110,36 @@ public partial class CreateCharacterHandler(IAppDbContext db) : ICommandHandler<
         {
             if (!providedChoices.TryGetValue(group.ChoiceGroup, out var picks))
                 throw new DomainRuleException($"Нужно выбрать {group.ChoiceCount} стартовых навыка вида.");
-            var distinct = picks.Where(p => !string.IsNullOrWhiteSpace(p)).Distinct().ToList();
+            var distinct = picks.Where(p => !string.IsNullOrWhiteSpace(p)).Distinct(StringComparer.Ordinal).ToList();
             if (distinct.Count != group.ChoiceCount)
                 throw new DomainRuleException($"Нужно выбрать ровно {group.ChoiceCount} разных навыка вида.");
             foreach (var name in distinct)
             {
                 if (!skillByName.TryGetValue(name, out var def))
                     throw new DomainRuleException($"Навык «{name}» не найден в системе.");
-                if (group.ChoiceGroup == "any-noncareer" && career.CareerSkillNames.Contains(name))
+                if (group.ChoiceGroup == "any-noncareer" && careerSkills.IsCareer(def.Id))
                     throw new DomainRuleException($"«{name}» — карьерный навык; выберите некарьерный навык.");
-                AddFreeRanks(def, group.FreeRanks);
+                plan.AddFreeRanks(def.Id, def.Name, group.FreeRanks, $"выбор вида {archetype.Name}");
             }
+        }
+
+        var violations = plan.Validate();
+        if (violations.Count > 0)
+            throw new DomainRuleException(
+                "Стартовые ранги превышают предел создания. " + string.Join(" ", violations.Select(v => v.Describe())));
+
+        // План валиден — материализуем строки навыков. Остальные навыки подмешиваются динамически.
+        foreach (var entry in plan.Entries)
+        {
+            character.Skills.Add(new CharacterSkill
+            {
+                Id = Guid.NewGuid(),
+                CharacterId = character.Id,
+                SkillDefId = entry.SkillDefId,
+                IsCareer = entry.IsCareer,
+                Ranks = entry.TotalRanks,
+                FreeRanks = entry.TotalRanks,
+            });
         }
 
         // Стартовое снаряжение карьеры: фиксированное — автоматически, выборы — по запросу (лениво).

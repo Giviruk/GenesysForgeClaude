@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { api } from '../api/client'
-import type { ActivateCharacterAbilityResult, CharacterSheet, Reference, SkillKind } from '../api/types'
+import type {
+  ActivateCharacterAbilityResult, CareerSkillSource, CharacterSheet, Reference, SkillKind,
+} from '../api/types'
 import {
   CHARACTERISTICS, CHARACTERISTIC_LABELS, CHARACTERISTIC_SHORT_LABELS, localizedDescription, localizedName,
   secondaryName, SKILL_KIND_LABELS,
@@ -23,6 +25,19 @@ const SKILL_COLUMNS: SkillKind[][] = [
   ['general'],
   ['combat', 'knowledge', 'magic', 'social'],
 ]
+
+const CAREER_SOURCE_LABELS: Record<CareerSkillSource['source'], string> = t({
+  Career: 'карьера', Species: 'вид', Talent: 'талант',
+}, {
+  Career: 'career', Species: 'species', Talent: 'talent',
+})
+
+/** Подсказка «почему навык карьерный»: перечисляет все источники статуса (ROT-CRE-01). */
+function careerSourcesTitle(sources: CareerSkillSource[] | undefined): string | undefined {
+  if (!sources?.length) return undefined
+  return t('Карьерный навык: ', 'Career skill: ')
+    + sources.map(s => `${CAREER_SOURCE_LABELS[s.source] ?? s.source} ${s.sourceName}`).join(', ')
+}
 
 export function SheetTab({ sheet, reference, onError, refresh }: Props) {
   const [heroicPick, setHeroicPick] = useState('')
@@ -148,7 +163,7 @@ export function SheetTab({ sheet, reference, onError, refresh }: Props) {
                               <td className="muted" title={CHARACTERISTIC_LABELS[s.characteristic]}>
                                 {CHARACTERISTIC_SHORT_LABELS[s.characteristic]}
                               </td>
-                              <td className="centered">{s.isCareer ? '✓' : ''}</td>
+                              <td className="centered" title={careerSourcesTitle(s.careerSources)}>{s.isCareer ? '✓' : ''}</td>
                               <td>{'●'.repeat(s.ranks)}{'○'.repeat(Math.max(0, 5 - s.ranks))}</td>
                               <td><DicePoolView pool={s.pool} /></td>
                               <td className="right">

@@ -25,7 +25,7 @@ public static class CharacterLoader
         this IAppDbContext db, Guid characterId, bool tracking = true, CancellationToken ct = default)
     {
         var query = db.Characters
-            .Include(c => c.Archetype)
+            .Include(c => c.Archetype).ThenInclude(a => a!.StartingSkills)
             .Include(c => c.Career)
             .Include(c => c.HeroicAbility).ThenInclude(h => h!.Upgrades)
             .Include(c => c.HeroicSecondaryEffects).ThenInclude(x => x.HeroicSecondaryEffectDef)

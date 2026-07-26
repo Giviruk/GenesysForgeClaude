@@ -9,7 +9,7 @@ public static class Mappers
         a.Intellect, a.Cunning, a.Willpower, a.Presence, a.WoundBase, a.StrainBase, a.StartingXp,
         a.Description, a.SafeDescription, a.Source, a.OwnerUserId != null,
         a.Abilities.Select(x => new ArchetypeAbilityDto(x.Code, x.NameRu, x.NameEn, x.SafeDescription, x.AutomationKind, x.DescriptionEn)).ToList(),
-        a.StartingSkills.Select(x => new ArchetypeStartingSkillDto(x.SkillName, x.NameRu, x.FreeRanks, x.IsChoice, x.ChoiceGroup, x.ChoiceCount)).ToList(),
+        a.StartingSkills.Select(x => new ArchetypeStartingSkillDto(x.SkillName, x.NameRu, x.FreeRanks, x.IsChoice, x.ChoiceGroup, x.ChoiceCount, x.GrantsCareerSkill)).ToList(),
         a.DescriptionEn);
 
     public static CareerDto ToDto(this CareerDef c) =>

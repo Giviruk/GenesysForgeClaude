@@ -3,6 +3,7 @@ import { api } from '../api/client'
 import type { CharacterExport, CharacterListItem, GameSystem, ImportPreview, Reference } from '../api/types'
 import { Icon } from '../components/Icon'
 import { CHARACTERISTICS, CHARACTERISTIC_LABELS, dualName, localizedDescription, localizedName, SYSTEM_LABELS } from '../utils/labels'
+import { MAX_FREE_CAREER_SKILLS, MAX_SKILL_RANK_AT_CREATION } from '../utils/rules'
 import { t } from '../i18n'
 
 interface Props {
@@ -294,9 +295,33 @@ export function CreateCharacterForm({ onCancel, onCreated }: { onCancel: () => v
 
   const fixedStartingSkills = (archetype?.startingSkills ?? []).filter(s => !s.isChoice && s.skillName)
   const choiceGroups = (archetype?.startingSkills ?? []).filter(s => s.isChoice)
-  // Кандидаты для выбора: для «any-noncareer» — навыки вне карьерных (как валидирует бэкенд).
+
+  // Эффективный набор карьерных навыков = навыки карьеры ∪ выдачи вида (ROT-CRE-01).
+  // Тот же союз считает бэкенд; фронт лишь объясняет источники и не является источником истины.
+  const careerSkillEntries = career
+    ? (() => {
+      const speciesGrants = fixedStartingSkills.filter(s => s.grantsCareerSkill)
+      const names = [...new Set([...career.careerSkillNames, ...speciesGrants.map(s => s.skillName)])]
+      return names.map(name => {
+        const fromCareer = career.careerSkillNames.includes(name)
+        const grant = speciesGrants.find(s => s.skillName === name)
+        // Ранги, которые навык уже получает бесплатно от вида, до отметки карьерного ранга.
+        const speciesRanks = fixedStartingSkills
+          .filter(s => s.skillName === name)
+          .reduce((sum, s) => sum + s.freeRanks, 0)
+        const sources = [
+          ...(fromCareer ? [t(`карьера ${localizedName(career)}`, `career ${localizedName(career)}`)] : []),
+          ...(grant && archetype ? [t(`вид ${localizedName(archetype)}`, `species ${localizedName(archetype)}`)] : []),
+        ]
+        return { name, sources, speciesRanks, atCreationCap: speciesRanks >= MAX_SKILL_RANK_AT_CREATION }
+      })
+    })()
+    : []
+
+  // Кандидаты для выбора: для «any-noncareer» — навыки вне эффективного карьерного набора.
+  const effectiveCareerNames = new Set(careerSkillEntries.map(e => e.name))
   const choiceCandidates = (group: string) => (reference?.skills ?? [])
-    .filter(s => group !== 'any-noncareer' || !career?.careerSkillNames.includes(s.name))
+    .filter(s => group !== 'any-noncareer' || !effectiveCareerNames.has(s.name))
   const choicesComplete = choiceGroups.every(g => (skillChoices[g.choiceGroup]?.length ?? 0) === g.choiceCount)
 
   // Стартовое снаряжение карьеры: фиксированное и слоты выбора (вариант = набор предметов).
@@ -322,7 +347,7 @@ export function CreateCharacterForm({ onCancel, onCreated }: { onCancel: () => v
   function toggleFreeSkill(skillName: string) {
     setFreeSkills(prev => prev.includes(skillName)
       ? prev.filter(s => s !== skillName)
-      : prev.length < 4 ? [...prev, skillName] : prev)
+      : prev.length < MAX_FREE_CAREER_SKILLS ? [...prev, skillName] : prev)
   }
 
   function toggleChoiceSkill(group: string, skillName: string, max: number) {
@@ -441,14 +466,35 @@ export function CreateCharacterForm({ onCancel, onCreated }: { onCancel: () => v
               `Career skills — mark up to 4 for a free rank (${freeSkills.length}/4):`,
             )}</div>
             <div className="chips">
-              {career.careerSkillNames.map(s => (
-                <button key={s} type="button"
-                  className={freeSkills.includes(s) ? 'chip active' : 'chip'}
-                  onClick={() => toggleFreeSkill(s)}>
-                  {skillRu(s)}
-                </button>
-              ))}
+              {careerSkillEntries.map(entry => {
+                const disabledReason = entry.atCreationCap
+                  ? t(
+                    `Вид уже даёт ранг ${entry.speciesRanks}; при создании ранг навыка не может быть выше ${MAX_SKILL_RANK_AT_CREATION}.`,
+                    `Species already grants rank ${entry.speciesRanks}; a skill cannot exceed rank ${MAX_SKILL_RANK_AT_CREATION} at creation.`,
+                  )
+                  : null
+                return (
+                  <button key={entry.name} type="button"
+                    className={freeSkills.includes(entry.name) ? 'chip active' : 'chip'}
+                    disabled={entry.atCreationCap}
+                    title={disabledReason ?? entry.sources.join(' · ')}
+                    onClick={() => toggleFreeSkill(entry.name)}>
+                    {skillRu(entry.name)}
+                    {entry.sources.length > 1 && <span className="chip-badge"> ({entry.sources.length})</span>}
+                  </button>
+                )
+              })}
             </div>
+            {careerSkillEntries.some(e => e.sources.length > 1 || e.atCreationCap) && (
+              <div className="hint">
+                {careerSkillEntries
+                  .filter(e => e.sources.length > 1 || e.atCreationCap)
+                  .map(e => `${skillRu(e.name)} — ${e.sources.join(', ')}${e.atCreationCap
+                    ? t(` (уже ранг ${e.speciesRanks}, выбрать нельзя)`, ` (already rank ${e.speciesRanks}, cannot pick)`)
+                    : ''}`)
+                  .join('; ')}
+              </div>
+            )}
           </div>
         )}
 

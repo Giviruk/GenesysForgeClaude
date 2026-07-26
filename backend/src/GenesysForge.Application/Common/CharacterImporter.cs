@@ -25,8 +25,9 @@ public static class CharacterImporter
     public static async Task<ImportResolution> ResolveAsync(
         IAppDbContext db, Guid userId, CharacterExportDto? payload, CancellationToken ct = default)
     {
-        if (payload is null || payload.Format != CharacterExportDto.CurrentFormat)
-            throw new DomainRuleException($"Неподдерживаемый формат файла. Ожидается «{CharacterExportDto.CurrentFormat}».");
+        if (payload is null || !CharacterExportDto.SupportedFormats.Contains(payload.Format))
+            throw new DomainRuleException(
+                $"Неподдерживаемый формат файла. Поддерживаются: {string.Join(", ", CharacterExportDto.SupportedFormats)}.");
         var data = payload.Character ?? throw new DomainRuleException("В файле нет данных персонажа.");
         if (string.IsNullOrWhiteSpace(data.Name))
             throw new DomainRuleException("Имя персонажа не может быть пустым.");
@@ -149,6 +150,8 @@ public static class CharacterImporter
             warnings.Add("У персонажа RoT нет героической способности — фаза создания оставлена открытой.");
         }
 
+        ApplyThresholdSnapshot(character, archetype, data, warnings);
+
         var notes = (data.Notes ?? [])
             .Where(n => !string.IsNullOrWhiteSpace(n.Title) || !string.IsNullOrWhiteSpace(n.Body))
             .Select(n => new CharacterNote
@@ -162,6 +165,44 @@ public static class CharacterImporter
             .ToList();
 
         return new ImportResolution(character, notes, Label(archetype.NameRu, archetype.Name), Label(career.NameRu, career.Name), warnings);
+    }
+
+    /// <summary>
+    /// Восстанавливает пороги ран/стрейна (ROT-CRE-02). Персонаж в фазе создания порогов не хранит.
+    /// Файл v2 приносит их как есть. Файл v1 (или v2 без значений) — детерминированно считается
+    /// «база вида + импортированная характеристика», помечается <c>LegacyEstimated</c> и требует
+    /// ручной проверки: угадывать характеристику до Dedication нельзя, а ноль записывать запрещено.
+    /// </summary>
+    private static void ApplyThresholdSnapshot(
+        Character character, ArchetypeDef archetype, CharacterExportData data, List<string> warnings)
+    {
+        if (character.IsCreationPhase)
+        {
+            character.CreationWoundThreshold = null;
+            character.CreationStrainThreshold = null;
+            character.ThresholdSnapshotProvenance = ThresholdSnapshotProvenance.None;
+            return;
+        }
+
+        if (data.CreationWoundThreshold is { } wt and > 0 && data.CreationStrainThreshold is { } st and > 0)
+        {
+            character.CreationWoundThreshold = wt;
+            character.CreationStrainThreshold = st;
+            character.ThresholdSnapshotProvenance = data.ThresholdSnapshotProvenance == ThresholdSnapshotProvenance.None
+                ? ThresholdSnapshotProvenance.CreationCompleted
+                : data.ThresholdSnapshotProvenance;
+            character.RulesReviewRequired = data.RulesReviewRequired;
+            return;
+        }
+
+        character.CreationWoundThreshold = Math.Max(1, GenesysRules.WoundThreshold(archetype.WoundBase, character.Brawn));
+        character.CreationStrainThreshold = Math.Max(1, GenesysRules.StrainThreshold(archetype.StrainBase, character.Willpower));
+        character.ThresholdSnapshotProvenance = ThresholdSnapshotProvenance.LegacyEstimated;
+        character.RulesReviewRequired = true;
+        warnings.Add(
+            "В файле нет зафиксированных порогов ран/стрейна. Они рассчитаны по текущим характеристикам "
+            + "и помечены как требующие проверки: если персонаж повышал Мощь или Волю после создания, "
+            + "пороги нужно исправить вручную.");
     }
 
     private static async Task<ArchetypeDef?> ResolveArchetypeAsync(

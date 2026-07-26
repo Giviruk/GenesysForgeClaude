@@ -1,6 +1,6 @@
 using GenesysForge.Application.Abstractions;
+using GenesysForge.Application.Common;
 using GenesysForge.Application.Dtos;
-using GenesysForge.Domain;
 using Microsoft.EntityFrameworkCore;
 
 namespace GenesysForge.Application.Features.Characters;
@@ -20,35 +20,13 @@ public class GetCharactersHandler(IAppDbContext db) : IQueryHandler<GetCharacter
 
         return characters.Select(c =>
         {
-            var derived = SheetCalculator.ComputeDerived(
-                c.Characteristics,
-                c.Archetype!.WoundBase,
-                c.Archetype.StrainBase,
-                c.Talents.Select(t => new TalentInput(
-                    t.TalentDef!.Name,
-                    t.TalentDef.Tier,
-                    t.Ranks,
-                    t.TalentDef.WoundBonus,
-                    t.TalentDef.StrainBonus,
-                    t.TalentDef.SoakBonus,
-                    t.TalentDef.MeleeDefenseBonus,
-                    t.TalentDef.RangedDefenseBonus)).ToList(),
-                c.Items.Select(i => new ItemInput(
-                    i.ItemDef!.Name,
-                    i.ItemDef.Kind,
-                    i.State,
-                    i.ItemDef.Encumbrance,
-                    i.Quantity,
-                    i.ItemDef.SoakBonus,
-                    i.ItemDef.MeleeDefense,
-                    i.ItemDef.RangedDefense,
-                    i.ItemDef.EncumbranceThresholdBonus)).ToList());
+            var derived = CharacterDerived.Compute(c);
 
             return new CharacterListItemDto(
                 c.Id,
                 c.Name,
                 c.System,
-                c.Archetype.NameRu,
+                c.Archetype!.NameRu,
                 c.Career!.NameRu,
                 c.IsCreationPhase,
                 c.CreatedAt,

@@ -30,6 +30,11 @@ public class TalentDef : IContentDef
     /// При покупке игрок выбирает характеристику; одну и ту же дважды этим талантом увеличить нельзя.
     /// </summary>
     public bool GrantsCharacteristic { get; set; }
+    /// <summary>
+    /// Навыки, которые талант делает карьерными, каноническими (английскими) именами.
+    /// Учитываются резолвером карьерных навыков, пока талант принадлежит персонажу.
+    /// </summary>
+    public List<string> CareerSkillNames { get; set; } = [];
     // Пассивные бонусы, применяемые автоматически за каждый ранг.
     public int WoundBonus { get; set; }
     public int StrainBonus { get; set; }

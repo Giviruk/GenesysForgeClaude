@@ -17,11 +17,26 @@ const reference: Reference = {
       id: 'arch-choice', name: 'Average Human', nameRu: 'Обыватель',
       abilities: [{ code: 'c.ability.1', nameRu: 'Готов ко всему', nameEn: '',
         safeDescription: 'Готов ко всему: перемещает очко сюжета.', automationKind: 'manual' }],
-      startingSkills: [{ skillName: '', nameRu: '', freeRanks: 1, isChoice: true, choiceGroup: 'any-noncareer', choiceCount: 2 }],
+      startingSkills: [{ skillName: '', nameRu: '', freeRanks: 1, isChoice: true, choiceGroup: 'any-noncareer', choiceCount: 2, grantsCareerSkill: false }],
     }),
     archetype({
       id: 'arch-fixed', name: 'Laborer', nameRu: 'Трудяга',
-      startingSkills: [{ skillName: 'Athletics', nameRu: 'Атлетика', freeRanks: 1, isChoice: false, choiceGroup: '', choiceCount: 0 }],
+      startingSkills: [{ skillName: 'Athletics', nameRu: 'Атлетика', freeRanks: 1, isChoice: false, choiceGroup: '', choiceCount: 0, grantsCareerSkill: false }],
+    }),
+    // Аналог Deep Elf: вид даёт 2 бесплатных ранга и делает навык карьерным (ROT-CRE-01).
+    archetype({
+      id: 'arch-grantor', name: 'Deep Elf', nameRu: 'Тёмный эльф',
+      startingSkills: [
+        { skillName: 'Stealth', nameRu: 'Скрытность', freeRanks: 2, isChoice: false, choiceGroup: '', choiceCount: 0, grantsCareerSkill: true },
+        { skillName: 'Coordination', nameRu: 'Координация', freeRanks: 1, isChoice: false, choiceGroup: '', choiceCount: 0, grantsCareerSkill: false },
+      ],
+    }),
+    // Аналог Highborn Elf: один бесплатный ранг, второй можно добрать карьерным выбором.
+    archetype({
+      id: 'arch-grantor-1', name: 'Highborn Elf', nameRu: 'Высокий эльф',
+      startingSkills: [
+        { skillName: 'Stealth', nameRu: 'Скрытность', freeRanks: 1, isChoice: false, choiceGroup: '', choiceCount: 0, grantsCareerSkill: true },
+      ],
     }),
   ],
   careers: [
@@ -97,6 +112,44 @@ describe('CreateCharacterForm — стартовые навыки вида (U-12
     await waitFor(() => expect(createCharacterMock).toHaveBeenCalled())
     const call = createCharacterMock.mock.calls[0]
     expect(call[5]).toEqual([{ choiceGroup: 'any-noncareer', skillNames: ['Stealth', 'Coordination'] }])
+  })
+})
+
+describe('CreateCharacterForm — видовые карьерные навыки (ROT-CRE-01)', () => {
+  it('добавляет видовую выдачу в список карьерных навыков и блокирует её при ранге 2', async () => {
+    render(<CreateCharacterForm onCancel={() => {}} onCreated={() => {}} />)
+    await waitFor(() => expect(screen.getByRole('option', { name: 'Тёмный эльф' })).toBeTruthy())
+
+    const [archetypeSelect, careerSelect] = screen.getAllByRole('combobox')
+    fireEvent.change(archetypeSelect, { target: { value: 'arch-grantor' } })
+    fireEvent.change(careerSelect, { target: { value: 'career-soldier' } })
+
+    // Stealth не входит в careerSkillNames карьеры, но вид сделал его карьерным.
+    const stealth = screen.getByRole('button', { name: /Скрытность/ })
+    expect(stealth).toHaveProperty('disabled', true) // вид уже дал ранг 2
+    expect(screen.getByText(/уже ранг 2, выбрать нельзя/)).toBeTruthy()
+
+    // Навык вида без grantsCareerSkill карьерным не становится.
+    expect(screen.queryByRole('button', { name: /Координация/ })).toBeNull()
+  })
+
+  it('позволяет отметить видовой карьерный навык, если у него только 1 ранг', async () => {
+    createCharacterMock.mockClear()
+    render(<CreateCharacterForm onCancel={() => {}} onCreated={() => {}} />)
+    await waitFor(() => expect(screen.getByRole('option', { name: 'Высокий эльф' })).toBeTruthy())
+
+    fireEvent.change(screen.getByLabelText('Имя персонажа'), { target: { value: 'Эльф' } })
+    const [archetypeSelect, careerSelect] = screen.getAllByRole('combobox')
+    fireEvent.change(archetypeSelect, { target: { value: 'arch-grantor-1' } })
+    fireEvent.change(careerSelect, { target: { value: 'career-soldier' } })
+
+    const stealth = screen.getByRole('button', { name: /Скрытность/ })
+    expect(stealth).toHaveProperty('disabled', false)
+    fireEvent.click(stealth)
+    fireEvent.click(screen.getByRole('button', { name: 'Создать' }))
+
+    await waitFor(() => expect(createCharacterMock).toHaveBeenCalled())
+    expect(createCharacterMock.mock.calls[0][4]).toEqual(['Stealth'])
   })
 })
 

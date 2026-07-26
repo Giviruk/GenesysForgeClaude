@@ -58,7 +58,11 @@ public class ExportCharacterHandler(IAppDbContext db) : IQueryHandler<ExportChar
             HeroicSecondaryEffectCodes: c.HeroicSecondaryEffects
                 .Where(x => x.HeroicSecondaryEffectDef is not null)
                 .Select(x => x.HeroicSecondaryEffectDef!.Code)
-                .ToList());
+                .ToList(),
+            CreationWoundThreshold: c.CreationWoundThreshold,
+            CreationStrainThreshold: c.CreationStrainThreshold,
+            ThresholdSnapshotProvenance: c.ThresholdSnapshotProvenance,
+            RulesReviewRequired: c.RulesReviewRequired);
 
         return new CharacterExportDto(CharacterExportDto.CurrentFormat, DateTime.UtcNow, data);
     }

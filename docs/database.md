@@ -156,7 +156,9 @@ Structured species abilities (formerly free text in `SafeDescription`). Fields: 
 
 ### ArchetypeStartingSkills
 
-Species starting skills applied at character creation. Fields: `ArchetypeId`, `SkillName` (English canonical, matches `SkillDef.Name`), `NameRu`, `FreeRanks`, `IsChoice`, `ChoiceGroup`, `ChoiceCount`. Fixed entries (`IsChoice = false`) are auto-applied as free ranks; choice entries (e.g. `any-noncareer`, pick N) are resolved by the creation picker. Cascade delete from archetype; indexed by `ArchetypeId`.
+Species starting skills applied at character creation. Fields: `ArchetypeId`, `SkillName` (English canonical, matches `SkillDef.Name`), `NameRu`, `FreeRanks`, `IsChoice`, `ChoiceGroup`, `ChoiceCount`, `GrantsCareerSkill`. Fixed entries (`IsChoice = false`) are auto-applied as free ranks; choice entries (e.g. `any-noncareer`, pick N) are resolved by the creation picker. Cascade delete from archetype; indexed by `ArchetypeId`.
+
+`GrantsCareerSkill` (ROT-CRE-01) marks a grant that additionally makes the skill a career skill. In the built-in RoT catalog exactly two rows carry it: Deep Elf `Knowledge (Forbidden)` and Highborn Elf `Divine`. The effective career-skill set is resolved by `CareerSkillResolver` as career ∪ species grants ∪ talent grants, deduplicated by `SkillDefId`; the stored `CharacterSkills.IsCareer` flag is a cache, not the source of truth.
 
 ### CareerDefs
 
@@ -181,6 +183,18 @@ Owned character sheets.
 Fields include owner, name, system, archetype, career, six characteristics, total/spent XP, creation phase,
 current wounds/strain, optional heroic ability, `HeroicUpgradeRank` (Power), `HeroicDurationRanks`,
 `HeroicFrequencyRanks`, `HeroicStoryUpgrade`, and created timestamp.
+
+Threshold snapshot (ROT-CRE-02): `CreationWoundThreshold` and `CreationStrainThreshold` are nullable
+and written once, inside the `CompleteCreation` transaction, as species base + the characteristic at
+that moment. While they are `null` (creation phase) thresholds are computed dynamically. Once set,
+later Brawn/Willpower changes — including `Dedication` — no longer move them; only explicit threshold
+effects (`Toughened` +2 WT/rank, `Grit` +1 ST/rank) are added on top, exactly once, by
+`CharacterDerived.Compute`, which is the single calculator used by the sheet, list, print, duplicate,
+campaign and Game Table. `ThresholdSnapshotProvenance` records where the values came from
+(`None`, `CreationCompleted`, `LegacyAuditReconstructed`, `LegacyDerivedFromVisibleTotal`,
+`LegacyEstimated`) and `RulesReviewRequired` flags a character whose values were estimated and need a
+human check. Import of a pre-v2 export file computes the thresholds deterministically, marks them
+`LegacyEstimated` and returns a warning — it never stores a zero or a silent guess.
 
 Relationships:
 
@@ -389,6 +403,17 @@ Found migrations:
   lower an existing Power rank when the character lacks the required XP above species starting XP.
 - `20260726115105_TrackHeroicAbilityUses` — adds `HeroicAbilityUses` to Game Table participants so
   once-per-session activation and repeatable Frequency upgrades are enforced for player characters.
+- `20260726160924_RotCreationRulesFoundation` — ROT-CRE-01/ROT-CRE-02. Adds
+  `ArchetypeStartingSkills.GrantsCareerSkill`, `TalentDefs.CareerSkillNames` (`text[]`), and
+  `Characters.CreationWoundThreshold` / `CreationStrainThreshold` / `ThresholdSnapshotProvenance` /
+  `RulesReviewRequired`. Non-destructive (only `AddColumn`) plus a one-time backfill of the two
+  thresholds for already-completed characters. The backfill is exact rather than a guess: after
+  creation the only thing that changes a characteristic is `Dedication`, whose picks are stored per
+  rank in `CharacterTalents.GrantedCharacteristics`, so the value at completion is
+  `current − dedicationPicks`; the resulting rows are marked `LegacyAuditReconstructed`. Characters
+  still in the creation phase get no snapshot and keep computing thresholds dynamically. The
+  backfill can lower a displayed threshold for a character who raised Brawn/Willpower after
+  creation — that is the rule being fixed, not a regression.
 
 Startup behavior:
 
