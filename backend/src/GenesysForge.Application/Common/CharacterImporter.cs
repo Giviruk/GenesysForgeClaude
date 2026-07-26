@@ -139,6 +139,8 @@ public static class CharacterImporter
             else
             {
                 character.HeroicAbilityId = heroic.Id;
+                // Навигация нужна дальше: требование параметра выводится из кода способности.
+                character.HeroicAbility = heroic;
                 character.HeroicUpgradeRank = Math.Clamp(data.HeroicUpgradeRank, 0, 2);
                 character.HeroicDurationRanks = Math.Max(0, data.HeroicDurationRanks);
                 character.HeroicFrequencyRanks = Math.Max(0, data.HeroicFrequencyRanks);
@@ -207,6 +209,66 @@ public static class CharacterImporter
             character.IsCreationPhase = true;
             warnings.Add("У персонажа RoT нет героической способности — фаза создания оставлена открытой.");
         }
+        // ROT-HA-02: параметр primary effect. Навык Paragon резолвится по коду/имени в области
+        // видимости импортирующего; нерезолвленный навык не подменяется другим.
+        if (character.HeroicAbilityId is not null)
+        {
+            var kind = HeroicParameterRules.Required(character.HeroicAbility?.Code);
+            if (kind == HeroicParameterKind.ParagonSkill && !string.IsNullOrWhiteSpace(data.ParagonSkillName))
+            {
+                var skill = await ResolveSkillAsync(
+                    db, userId, character.System, data.ParagonSkillCode, data.ParagonSkillName, ct);
+                if (skill is null)
+                    warnings.Add($"Навык Paragon «{data.ParagonSkillName}» не найден — выберите его заново.");
+                else
+                    character.HeroicConfiguration = new CharacterHeroicConfiguration
+                    {
+                        Id = Guid.NewGuid(),
+                        CharacterId = characterId,
+                        ParagonSkillDefId = skill.Id,
+                        ParagonSkillName = skill.Name,
+                    };
+            }
+            else if (kind == HeroicParameterKind.SixthSenseSubject
+                && !string.IsNullOrWhiteSpace(data.SixthSenseSubject))
+            {
+                character.HeroicConfiguration = new CharacterHeroicConfiguration
+                {
+                    Id = Guid.NewGuid(),
+                    CharacterId = characterId,
+                    SixthSenseSubject = data.SixthSenseSubject.Trim()[..Math.Min(
+                        data.SixthSenseSubject.Trim().Length, HeroicParameterRules.SixthSenseSubjectMaxLength)],
+                };
+            }
+            else if (kind == HeroicParameterKind.SignatureWeapon && data.SignatureWeaponProfile is { } profile)
+            {
+                try
+                {
+                    character.SignatureWeapon = new CharacterSignatureWeapon
+                    {
+                        Id = Guid.NewGuid(),
+                        CharacterId = characterId,
+                        Profile = profile,
+                        Craftsmanship = data.SignatureWeaponCraftsmanship ?? WeaponCraftsmanship.Steel,
+                        NarrativeForm = HeroicParameterRules.ValidateNarrativeForm(data.SignatureWeaponForm),
+                        FormTraits = HeroicParameterRules.ValidateFormTraits(
+                            profile, data.SignatureWeaponTraits ?? WeaponFormTraits.None),
+                        IsLost = data.SignatureWeaponLost,
+                    };
+                }
+                catch (DomainRuleException ex)
+                {
+                    warnings.Add($"Именное оружие не перенесено: {ex.Message}");
+                }
+            }
+        }
+        if (character.HeroicConfigurationIncomplete)
+        {
+            warnings.Add(
+                "Параметр героической способности не выбран — улучшения останутся заблокированы, "
+                + "пока владелец не выберет его вручную.");
+        }
+
         if (character.HeroicIdentityIncomplete)
         {
             warnings.Add(

@@ -59,7 +59,11 @@ public record CharacterSheetDto(
     /// Способность выбрана, но её личное название и происхождение не заполнены. Улучшения
     /// заблокированы, пока владелец не заполнит данные; сервер их не выдумывает.
     /// </summary>
-    bool HeroicIdentityIncomplete = false);
+    bool HeroicIdentityIncomplete = false,
+    /// <summary>Параметр primary effect: навык Paragon, категория Sixth Sense или оружие (ROT-HA-02).</summary>
+    HeroicConfigurationDto? HeroicConfiguration = null,
+    /// <summary>Способность требует параметр, а он не выбран — улучшения заблокированы.</summary>
+    bool HeroicConfigurationIncomplete = false);
 
 /// <summary>Один сохранённый выбор ранга таланта (ROT-TAL-03).</summary>
 public record CharacterTalentChoiceDto(int RankIndex, TalentChoiceKind Kind, string Value, string DisplayName);

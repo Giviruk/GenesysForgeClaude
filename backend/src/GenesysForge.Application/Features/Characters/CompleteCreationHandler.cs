@@ -18,6 +18,8 @@ public class CompleteCreationHandler(IAppDbContext db) : ICommandHandler<Complet
         // Личное название и происхождение — обязательная часть способности (ROT-HA-01): после
         // completion они неизменяемы, поэтому проверяются до фиксации порогов и смены фазы.
         HeroicIdentityGate.EnsureComplete(c);
+        // Параметр primary effect (Paragon / Sixth Sense / Signature Weapon) обязателен там же.
+        HeroicConfigurationGate.EnsureComplete(c);
         // Пороги фиксируются в той же транзакции до переключения фазы; повторный вызов сюда не
         // доходит (idempotent-выход выше), поэтому snapshot делается ровно один раз.
         var (wound, strain) = CharacterDerived.CreationSnapshot(c);

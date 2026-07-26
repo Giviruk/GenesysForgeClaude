@@ -65,7 +65,17 @@ public record CharacterExportData(
     HeroicOriginType? HeroicOriginPrimary = null,
     HeroicOriginType? HeroicOriginSecondary = null,
     string? HeroicOriginNarrative = null,
-    List<int>? HeroicOriginRolls = null);
+    List<int>? HeroicOriginRolls = null,
+    // v2: параметр primary effect (ROT-HA-02). Навык Paragon переносится по коду/имени, а не по id,
+    // потому что id кастомного навыка в чужом аккаунте не существует.
+    string? ParagonSkillCode = null,
+    string? ParagonSkillName = null,
+    string? SixthSenseSubject = null,
+    SignatureWeaponProfile? SignatureWeaponProfile = null,
+    WeaponCraftsmanship? SignatureWeaponCraftsmanship = null,
+    string? SignatureWeaponForm = null,
+    WeaponFormTraits? SignatureWeaponTraits = null,
+    bool SignatureWeaponLost = false);
 
 public record CharacterSkillExport(string Code, string Name, int Ranks, bool IsCareer, int FreeRanks);
 

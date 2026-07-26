@@ -34,7 +34,9 @@ public static class CharacterLoader
             .Include(c => c.Talents).ThenInclude(t => t.TalentDef)
             .Include(c => c.Talents).ThenInclude(t => t.Choices)
             .Include(c => c.Items).ThenInclude(i => i.ItemDef)
-            .Include(c => c.CriticalInjuries);
+            .Include(c => c.CriticalInjuries)
+            .Include(c => c.HeroicConfiguration).ThenInclude(x => x!.ParagonSkillDef)
+            .Include(c => c.SignatureWeapon);
         return await (tracking ? query : query.AsNoTracking())
             .FirstOrDefaultAsync(c => c.Id == characterId, ct);
     }

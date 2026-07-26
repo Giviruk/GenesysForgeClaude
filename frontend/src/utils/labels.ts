@@ -1,6 +1,6 @@
 import type {
   AllowedState, Characteristic, ContentEntryType, CreatureTemplate, EncounterType, GameSystem, HouseRuleCategory,
-  HeroicOriginType, InitiativeSlotType, ItemKind, ItemState, NpcCombatStyle, NpcKind, NpcPowerLevel, NpcRole,
+  HeroicOriginType, InitiativeSlotType, SignatureWeaponProfile, WeaponCraftsmanship, WeaponFormTrait, ItemKind, ItemState, NpcCombatStyle, NpcKind, NpcPowerLevel, NpcRole,
   NpcVisibility, ParticipantType, SkillKind, TalentCategory, ThreatLevel,
 } from '../api/types'
 import { t } from '../i18n'
@@ -470,3 +470,69 @@ export const HEROIC_ORIGIN_LABELS: Record<HeroicOriginType, string> = t({
 
 /** Грань d10, соответствующая категории: индекс в таблице + 1. */
 export const heroicOriginFace = (type: HeroicOriginType) => HEROIC_ORIGIN_TYPES.indexOf(type) + 1
+
+export const SIGNATURE_WEAPON_PROFILES: SignatureWeaponProfile[] = ['brawl', 'oneHanded', 'twoHanded', 'ranged']
+
+export const SIGNATURE_WEAPON_PROFILE_LABELS: Record<SignatureWeaponProfile, string> = t({
+  brawl: 'Рукопашный',
+  oneHanded: 'Одноручный',
+  twoHanded: 'Двуручный',
+  ranged: 'Дальнобойный',
+}, {
+  brawl: 'Brawl',
+  oneHanded: 'One-handed',
+  twoHanded: 'Two-handed',
+  ranged: 'Ranged',
+})
+
+export const WEAPON_CRAFTSMANSHIPS: WeaponCraftsmanship[] = ['dwarven', 'elven', 'steel']
+
+export const WEAPON_CRAFTSMANSHIP_LABELS: Record<WeaponCraftsmanship, string> = t({
+  dwarven: 'Гномья работа',
+  elven: 'Эльфийская работа',
+  steel: 'Сталь',
+}, {
+  dwarven: 'Dwarven',
+  elven: 'Elven',
+  steel: 'Steel',
+})
+
+/**
+ * Признаки формы, которые подтверждает GM. Группу профиля (brawl/oneHanded/twoHanded/ranged)
+ * ставит сервер, поэтому в списке её нет.
+ */
+export const CONFIRMABLE_WEAPON_TRAITS: WeaponFormTrait[] = [
+  'sword', 'bowOrCrossbow', 'bladed', 'bluntOrCrushing', 'hasCuttingEdge', 'woodenWorkingEdge',
+]
+
+export const WEAPON_TRAIT_LABELS: Record<WeaponFormTrait, string> = t({
+  brawl: 'рукопашное',
+  oneHanded: 'одноручное',
+  twoHanded: 'двуручное',
+  ranged: 'дальнобойное',
+  sword: 'меч',
+  bowOrCrossbow: 'лук или арбалет',
+  bladed: 'клинковое',
+  bluntOrCrushing: 'дробящее',
+  hasCuttingEdge: 'есть режущая кромка',
+  woodenWorkingEdge: 'деревянная рабочая кромка',
+}, {
+  brawl: 'brawl',
+  oneHanded: 'one-handed',
+  twoHanded: 'two-handed',
+  ranged: 'ranged',
+  sword: 'sword',
+  bowOrCrossbow: 'bow or crossbow',
+  bladed: 'bladed',
+  bluntOrCrushing: 'blunt or crushing',
+  hasCuttingEdge: 'has a cutting edge',
+  woodenWorkingEdge: 'wooden working edge',
+})
+
+/** Флаги формы приходят строкой «oneHanded, sword» — разбираем её в список. */
+export const parseWeaponTraits = (value: string | null | undefined): WeaponFormTrait[] =>
+  (value ?? '').split(',').map(x => x.trim()).filter(x => x && x !== 'none') as WeaponFormTrait[]
+
+/** Обратная сборка: сервер читает тот же формат. */
+export const formatWeaponTraits = (traits: WeaponFormTrait[]) =>
+  traits.length === 0 ? 'none' : traits.join(', ')

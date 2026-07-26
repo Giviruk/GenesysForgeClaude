@@ -54,6 +54,23 @@ public class DuplicateCharacterHandler(IAppDbContext db) : ICommandHandler<Dupli
             HeroicOriginSecondary = src.HeroicOriginSecondary,
             HeroicOriginNarrative = src.HeroicOriginNarrative,
             HeroicOriginRolls = src.HeroicOriginRolls,
+            // Параметр способности принадлежит копии так же, как и оригиналу (ROT-HA-02).
+            HeroicConfiguration = src.HeroicConfiguration is null ? null : new CharacterHeroicConfiguration
+            {
+                Id = Guid.NewGuid(),
+                ParagonSkillDefId = src.HeroicConfiguration.ParagonSkillDefId,
+                ParagonSkillName = src.HeroicConfiguration.ParagonSkillName,
+                SixthSenseSubject = src.HeroicConfiguration.SixthSenseSubject,
+            },
+            SignatureWeapon = src.SignatureWeapon is null ? null : new CharacterSignatureWeapon
+            {
+                Id = Guid.NewGuid(),
+                Profile = src.SignatureWeapon.Profile,
+                Craftsmanship = src.SignatureWeapon.Craftsmanship,
+                NarrativeForm = src.SignatureWeapon.NarrativeForm,
+                FormTraits = src.SignatureWeapon.FormTraits,
+                IsLost = src.SignatureWeapon.IsLost,
+            },
             Desire = src.Desire,
             Fear = src.Fear,
             Strength = src.Strength,

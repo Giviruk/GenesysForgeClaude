@@ -2,12 +2,14 @@ import { useState } from 'react'
 import { api } from '../api/client'
 import type {
   ActivateCharacterAbilityResult, CareerSkillSource, CharacterSheet, HeroicIdentity, HeroicOriginType,
-  Reference, SkillKind,
+  Reference, SignatureWeaponProfile, SkillKind, WeaponCraftsmanship, WeaponFormTrait,
 } from '../api/types'
 import {
-  CHARACTERISTICS, CHARACTERISTIC_LABELS, CHARACTERISTIC_SHORT_LABELS, HEROIC_ORIGIN_LABELS,
-  HEROIC_ORIGIN_TYPES, heroicOriginFace, localizedDescription, localizedName,
-  secondaryName, SKILL_KIND_LABELS,
+  CHARACTERISTICS, CHARACTERISTIC_LABELS, CHARACTERISTIC_SHORT_LABELS, CONFIRMABLE_WEAPON_TRAITS,
+  formatWeaponTraits, HEROIC_ORIGIN_LABELS, HEROIC_ORIGIN_TYPES, heroicOriginFace, localizedDescription,
+  localizedName, parseWeaponTraits, secondaryName, SIGNATURE_WEAPON_PROFILE_LABELS,
+  SIGNATURE_WEAPON_PROFILES, SKILL_KIND_LABELS, WEAPON_CRAFTSMANSHIP_LABELS, WEAPON_CRAFTSMANSHIPS,
+  WEAPON_TRAIT_LABELS,
 } from '../utils/labels'
 import { DicePoolView } from './DicePoolView'
 import { CriticalInjuriesSection } from './CriticalInjuriesSection'
@@ -286,6 +288,7 @@ function HeroicAbilityCard({ sheet, reference, run }: {
       {h.notes && <p className="hint small-text">{h.notes}</p>}
 
       <HeroicIdentitySection sheet={sheet} run={run} />
+      <HeroicParameterSection sheet={sheet} reference={reference} run={run} />
 
       <div className="heroic-upgrades">
           <div className="label-line">
@@ -296,6 +299,12 @@ function HeroicAbilityCard({ sheet, reference, run }: {
             <p className="hint small-text">
               {t('Улучшения заблокированы, пока не заполнены личное название и происхождение.',
                 'Upgrades are locked until the personal name and origin are filled in.')}
+            </p>
+          )}
+          {sheet.heroicConfigurationIncomplete && (
+            <p className="hint small-text">
+              {t('Улучшения заблокированы, пока не выбран параметр способности.',
+                'Upgrades are locked until the ability parameter is chosen.')}
             </p>
           )}
           {h.upgrades.map(u => {
@@ -522,6 +531,170 @@ export function HeroicIdentitySection({ sheet, run }: {
             {t('Сохранить', 'Save')}
           </button>
         </div>
+      )}
+    </div>
+  )
+}
+
+/**
+ * Параметр primary effect (ROT-HA-02): навык Paragon, категория Sixth Sense или именное оружие.
+ * Выбирается вместе со способностью и после завершения создания не меняется; отдельная команда
+ * замены остаётся доступной только для потерянного оружия.
+ */
+export function HeroicParameterSection({ sheet, reference, run }: {
+  sheet: CharacterSheet
+  reference: Reference
+  run: (action: () => Promise<unknown>) => Promise<void>
+}) {
+  const config = sheet.heroicConfiguration
+  const editable = sheet.isCreationPhase || sheet.heroicConfigurationIncomplete
+
+  const [skillId, setSkillId] = useState(config?.paragonSkillDefId ?? '')
+  const [subject, setSubject] = useState(config?.sixthSenseSubject ?? '')
+  const weapon = config?.signatureWeapon ?? null
+  const [profile, setProfile] = useState<SignatureWeaponProfile>(weapon?.profile ?? 'oneHanded')
+  const [craftsmanship, setCraftsmanship] = useState<WeaponCraftsmanship>(weapon?.craftsmanship ?? 'steel')
+  const [form, setForm] = useState(weapon?.narrativeForm ?? '')
+  const [traits, setTraits] = useState<WeaponFormTrait[]>(parseWeaponTraits(weapon?.formTraits))
+
+  if (!config || config.kind === 'none') return null
+
+  function toggleTrait(trait: WeaponFormTrait) {
+    setTraits(prev => prev.includes(trait) ? prev.filter(x => x !== trait) : [...prev, trait])
+  }
+
+  const title = config.kind === 'paragonSkill' ? t('Навык способности', 'Ability skill')
+    : config.kind === 'sixthSenseSubject' ? t('Что воспринимает способность', 'What the ability senses')
+      : t('Именное оружие', 'Signature weapon')
+
+  return (
+    <div className="heroic-parameter">
+      <div className="label-line">{title}</div>
+
+      {config.kind === 'paragonSkill' && config.paragonSkillName && (
+        <div className="hint small-text">
+          {config.paragonSkillName}
+          {config.paragonSkillMissing && ` · ${t('навык больше не доступен — требуется исправление',
+            'the skill is no longer available — needs repair')}`}
+        </div>
+      )}
+      {config.kind === 'sixthSenseSubject' && config.sixthSenseSubject && (
+        <div className="hint small-text">{config.sixthSenseSubject}</div>
+      )}
+      {weapon && (
+        <div className="hint small-text">
+          {weapon.narrativeForm} · {SIGNATURE_WEAPON_PROFILE_LABELS[weapon.profile]}
+          {' · '}{WEAPON_CRAFTSMANSHIP_LABELS[weapon.craftsmanship]}
+          {' · '}{weapon.skillName} · {t('урон', 'damage')} {weapon.damage}
+          {' · '}{t('крит', 'crit')} {weapon.crit} · {weapon.rangeBand}
+          {' · '}{t('вес', 'enc')} {weapon.encumbrance} · HP {weapon.hardPoints}
+          {weapon.qualities.length > 0 && ` · ${weapon.qualities
+            .map(q => q.rating ? `${q.nameRu} ${q.rating}` : q.nameRu).join(', ')}`}
+          {weapon.isLost && ` · ${t('потеряно', 'lost')}`}
+        </div>
+      )}
+
+      {sheet.heroicConfigurationIncomplete && (
+        <p className="hint small-text">
+          {t('Параметр обязателен: без него создание не завершается, а улучшения недоступны.',
+            'The parameter is mandatory: creation cannot be finished and upgrades stay locked without it.')}
+        </p>
+      )}
+
+      {editable && config.kind === 'paragonSkill' && (
+        <div className="inline-form">
+          <select value={skillId} onChange={e => setSkillId(e.target.value)}>
+            <option value="" disabled>{t('— выберите навык —', '— pick a skill —')}</option>
+            {reference.skills.map(s => (
+              <option key={s.id} value={s.id}>{localizedName(s)}</option>
+            ))}
+          </select>
+          <button className="small primary" disabled={!skillId}
+            onClick={() => run(() => api.setHeroicConfiguration(sheet.id, { paragonSkillDefId: skillId }))}>
+            {t('Сохранить', 'Save')}
+          </button>
+        </div>
+      )}
+
+      {editable && config.kind === 'sixthSenseSubject' && (
+        <div className="inline-form">
+          <input value={subject} maxLength={300} placeholder={t('например, духи', 'for example, spirits')}
+            onChange={e => setSubject(e.target.value)} />
+          <button className="small primary" disabled={!subject.trim()}
+            onClick={() => run(() => api.setHeroicConfiguration(sheet.id, { sixthSenseSubject: subject.trim() }))}>
+            {t('Сохранить', 'Save')}
+          </button>
+        </div>
+      )}
+
+      {config.kind === 'signatureWeapon' && (editable || weapon?.isLost) && (
+        <div className="heroic-weapon-form">
+          <div className="inline-form">
+            {SIGNATURE_WEAPON_PROFILES.map(p => {
+              const spec = SIGNATURE_WEAPON_PROFILE_LABELS[p]
+              return (
+                <label key={p}>
+                  <input type="radio" name={`weapon-profile-${sheet.id}`} checked={profile === p}
+                    onChange={() => setProfile(p)} /> {spec}
+                </label>
+              )
+            })}
+          </div>
+          <div className="inline-form">
+            <select value={craftsmanship}
+              onChange={e => setCraftsmanship(e.target.value as WeaponCraftsmanship)}>
+              {WEAPON_CRAFTSMANSHIPS.map(c => (
+                <option key={c} value={c}>{WEAPON_CRAFTSMANSHIP_LABELS[c]}</option>
+              ))}
+            </select>
+            <input value={form} maxLength={200} placeholder={t('форма оружия', 'weapon form')}
+              onChange={e => setForm(e.target.value)} />
+          </div>
+          <div className="inline-form">
+            {CONFIRMABLE_WEAPON_TRAITS.map(trait => (
+              <label key={trait}>
+                <input type="checkbox" checked={traits.includes(trait)} onChange={() => toggleTrait(trait)} />
+                {' '}{WEAPON_TRAIT_LABELS[trait]}
+              </label>
+            ))}
+          </div>
+          <p className="hint small-text">
+            {t('Признаки формы подтверждает ведущий: по ним, а не по названию, считается совместимость улучшений.',
+              'The GM confirms the form traits: attachment compatibility follows them, not the name.')}
+          </p>
+          <div className="inline-form">
+            <button className="small primary" disabled={!form.trim()}
+              onClick={() => run(() => (editable
+                ? api.setHeroicConfiguration(sheet.id, {
+                  weaponProfile: profile,
+                  craftsmanship,
+                  narrativeForm: form.trim(),
+                  formTraits: formatWeaponTraits(traits),
+                })
+                : api.replaceSignatureWeapon(sheet.id, {
+                  lost: false,
+                  weaponProfile: profile,
+                  craftsmanship,
+                  narrativeForm: form.trim(),
+                  formTraits: formatWeaponTraits(traits),
+                })))}>
+              {editable ? t('Сохранить', 'Save') : t('Заменить оружие', 'Replace weapon')}
+            </button>
+            {weapon?.isLost && (
+              <button className="small"
+                onClick={() => run(() => api.replaceSignatureWeapon(sheet.id, { lost: false }))}>
+                {t('Вернуть прежнее', 'Recover the old one')}
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
+      {weapon && !weapon.isLost && !sheet.isCreationPhase && (
+        <button className="small"
+          onClick={() => run(() => api.replaceSignatureWeapon(sheet.id, { lost: true }))}>
+          {t('Отметить потерянным', 'Mark as lost')}
+        </button>
       )}
     </div>
   )

@@ -1,7 +1,7 @@
 import type {
   Account,
   AuthResponse, AuthProviders, CampaignDetail, CampaignListItem, CampaignNote, CharacterListItem, CharacterNote,
-  ActivateAbilityResult, ActivateCharacterAbilityResult, AddParticipantRequest, CharacterBio, CharacterSheet, CharacterShareResponse, CreatureTemplate, GameSession, GameSystem, HeroicAbility, HeroicOriginMode, HeroicOriginRollResult, HeroicOriginType, InitiativeSlotType,
+  ActivateAbilityResult, ActivateCharacterAbilityResult, AddParticipantRequest, CharacterBio, CharacterSheet, CharacterShareResponse, CreatureTemplate, GameSession, GameSystem, HeroicAbility, HeroicOriginMode, HeroicOriginRollResult, HeroicOriginType, InitiativeSlotType, SignatureWeaponProfile, WeaponCraftsmanship,
   Archetype, Career, CustomArchetypeInput, CustomCareerInput, ItemDef, ItemState, NpcDetail, NpcFilter, NpcInput, NpcListItem, QuickDraftRequest, Reference,
   SkillDef, Spell, TalentCategory, TalentDef, UpdateParticipantRequest,
   AddEncounterParticipantRequest, EncounterDetail, EncounterFilter, EncounterInput, EncounterListItem,
@@ -195,6 +195,22 @@ export const api = {
   }) => request<void>('PUT', `/api/characters/${id}/heroic-identity`, body),
   rollHeroicOrigin: (id: string) =>
     request<HeroicOriginRollResult>('POST', `/api/characters/${id}/heroic-identity/roll-origin`),
+  setHeroicConfiguration: (id: string, body: {
+    paragonSkillDefId?: string | null
+    sixthSenseSubject?: string | null
+    weaponProfile?: SignatureWeaponProfile | null
+    craftsmanship?: WeaponCraftsmanship | null
+    narrativeForm?: string | null
+    /** Флаги формы одной строкой: «oneHanded, sword». */
+    formTraits?: string | null
+  }) => request<void>('PUT', `/api/characters/${id}/heroic-configuration`, body),
+  replaceSignatureWeapon: (id: string, body: {
+    lost: boolean
+    weaponProfile?: SignatureWeaponProfile | null
+    craftsmanship?: WeaponCraftsmanship | null
+    narrativeForm?: string | null
+    formTraits?: string | null
+  }) => request<void>('POST', `/api/characters/${id}/heroic-configuration/signature-weapon`, body),
   setHeroicUpgradeRank: (id: string, rank: number) =>
     request<void>('PUT', `/api/characters/${id}/heroic-upgrade`, { rank }),
   setHeroicUpgrades: (id: string, body: {

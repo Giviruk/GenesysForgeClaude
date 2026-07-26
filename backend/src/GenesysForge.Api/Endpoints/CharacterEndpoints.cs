@@ -184,6 +184,21 @@ public static class CharacterEndpoints
             return Results.Ok(result);
         });
 
+        group.MapPut("/{id:guid}/heroic-configuration", async (Guid id, SetHeroicConfigurationRequest req,
+            ClaimsPrincipal user, ICommandHandler<SetHeroicConfigurationCommand, Unit> handler, CancellationToken ct) =>
+        {
+            await handler.Handle(new SetHeroicConfigurationCommand(user.UserId(), id, req), ct);
+            return Results.NoContent();
+        });
+
+        group.MapPost("/{id:guid}/heroic-configuration/signature-weapon", async (Guid id,
+            ReplaceSignatureWeaponRequest req, ClaimsPrincipal user,
+            ICommandHandler<ReplaceSignatureWeaponCommand, Unit> handler, CancellationToken ct) =>
+        {
+            await handler.Handle(new ReplaceSignatureWeaponCommand(user.UserId(), id, req), ct);
+            return Results.NoContent();
+        });
+
         group.MapPut("/{id:guid}/heroic-upgrade", async (Guid id, SetHeroicUpgradeRankRequest req,
             ClaimsPrincipal user, ICommandHandler<SetHeroicUpgradeRankCommand, Unit> handler, CancellationToken ct) =>
         {

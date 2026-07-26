@@ -30,6 +30,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<CharacterItem> CharacterItems => Set<CharacterItem>();
     public DbSet<CharacterCriticalInjury> CharacterCriticalInjuries => Set<CharacterCriticalInjury>();
     public DbSet<CharacterHeroicSecondaryEffect> CharacterHeroicSecondaryEffects => Set<CharacterHeroicSecondaryEffect>();
+    public DbSet<CharacterHeroicConfiguration> CharacterHeroicConfigurations => Set<CharacterHeroicConfiguration>();
+    public DbSet<CharacterSignatureWeapon> CharacterSignatureWeapons => Set<CharacterSignatureWeapon>();
     public DbSet<CharacterShareToken> CharacterShareTokens => Set<CharacterShareToken>();
     public DbSet<CharacterNote> CharacterNotes => Set<CharacterNote>();
     public DbSet<Campaign> Campaigns => Set<Campaign>();
@@ -107,6 +109,11 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             e.HasMany(c => c.CriticalInjuries).WithOne().HasForeignKey(ci => ci.CharacterId).OnDelete(DeleteBehavior.Cascade);
             e.HasMany(c => c.HeroicSecondaryEffects).WithOne().HasForeignKey(x => x.CharacterId)
                 .OnDelete(DeleteBehavior.Cascade);
+            // Параметры способности и именное оружие — ровно по одной строке на персонажа (ROT-HA-02).
+            e.HasOne(c => c.HeroicConfiguration).WithOne().HasForeignKey<CharacterHeroicConfiguration>(x => x.CharacterId)
+                .OnDelete(DeleteBehavior.Cascade);
+            e.HasOne(c => c.SignatureWeapon).WithOne().HasForeignKey<CharacterSignatureWeapon>(x => x.CharacterId)
+                .OnDelete(DeleteBehavior.Cascade);
             e.Ignore(c => c.Characteristics);
             e.Property(c => c.Desire).HasMaxLength(300);
             e.Property(c => c.Fear).HasMaxLength(300);
@@ -137,6 +144,22 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             e.Property(ci => ci.NameRu).HasMaxLength(200);
             e.Property(ci => ci.Severity).HasMaxLength(40);
             e.Property(ci => ci.Notes).HasMaxLength(1000);
+        });
+
+        b.Entity<CharacterHeroicConfiguration>(e =>
+        {
+            e.HasIndex(x => x.CharacterId).IsUnique();
+            e.Property(x => x.ParagonSkillName).HasMaxLength(200);
+            e.Property(x => x.SixthSenseSubject).HasMaxLength(300);
+            // Навык не удаляется вместе с выбором: снимок имени должен пережить скрытый custom skill.
+            e.HasOne(x => x.ParagonSkillDef).WithMany()
+                .HasForeignKey(x => x.ParagonSkillDefId).OnDelete(DeleteBehavior.SetNull);
+        });
+
+        b.Entity<CharacterSignatureWeapon>(e =>
+        {
+            e.HasIndex(x => x.CharacterId).IsUnique();
+            e.Property(x => x.NarrativeForm).HasMaxLength(200);
         });
 
         b.Entity<CharacterHeroicSecondaryEffect>(e =>

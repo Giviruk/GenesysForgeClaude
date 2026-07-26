@@ -46,6 +46,8 @@ public static class SheetBuilder
                     .ToList());
         }).ToList();
 
+        var configuration = await BuildConfigurationAsync(db, c, systemSkills, ct);
+
         return new CharacterSheetDto(
             c.Id, c.Name, c.System,
             c.Archetype.ToDto(),
@@ -120,6 +122,52 @@ public static class SheetBuilder
                 c.HeroicOriginNarrative,
                 [.. HeroicIdentityRules.ParseRolls(c.HeroicOriginRolls)],
                 c.HeroicIdentityComplete),
-            c.HeroicIdentityIncomplete);
+            c.HeroicIdentityIncomplete,
+            configuration,
+            c.HeroicConfigurationIncomplete);
+    }
+
+    /// <summary>
+    /// Параметр primary effect (ROT-HA-02). Числа именного оружия строятся из профиля, а качества
+    /// резолвятся по кодам из справочника — в базе они не дублируются.
+    /// </summary>
+    private static async Task<HeroicConfigurationDto?> BuildConfigurationAsync(
+        IAppDbContext db, Character c, List<SkillDef> visibleSkills, CancellationToken ct)
+    {
+        if (c.HeroicAbilityId is null) return null;
+        var kind = c.RequiredHeroicParameter;
+        var config = c.HeroicConfiguration;
+
+        SignatureWeaponDto? weapon = null;
+        if (c.SignatureWeapon is { } w)
+        {
+            var spec = SignatureWeaponProfiles.Get(w.Profile);
+            var codes = spec.Qualities.Select(q => q.Code).ToList();
+            var defs = await db.QualityDefs.AsNoTracking()
+                .Where(q => codes.Contains(q.Code)).ToListAsync(ct);
+            var byCode = defs.ToDictionary(q => q.Code, StringComparer.Ordinal);
+            weapon = new SignatureWeaponDto(
+                w.Profile, w.Craftsmanship, w.NarrativeForm, w.FormTraits, w.IsLost,
+                spec.SkillName, spec.Damage, spec.Crit, spec.RangeBand, spec.Encumbrance, spec.HardPoints,
+                [.. spec.Qualities.Select(q => byCode.TryGetValue(q.Code, out var def)
+                    ? new ItemQualityRefDto(def.Code, def.NameRu, def.NameEn,
+                        q.Rating > 0 ? q.Rating : null, def.HasRating, def.IsActive, def.ActivationCost)
+                    : new ItemQualityRefDto(q.Code, q.Code, q.Code,
+                        q.Rating > 0 ? q.Rating : null, q.Rating > 0, false, ""))]);
+        }
+
+        // Скрытый позднее кастомный навык не подменяется другим: остаётся снимок имени и предупреждение.
+        var paragonMissing = kind == HeroicParameterKind.ParagonSkill
+            && config?.ParagonSkillDefId is { } skillId
+            && visibleSkills.TrueForAll(s => s.Id != skillId);
+
+        return new HeroicConfigurationDto(
+            kind,
+            config?.ParagonSkillDefId,
+            string.IsNullOrEmpty(config?.ParagonSkillName) ? null : config.ParagonSkillName,
+            paragonMissing,
+            string.IsNullOrEmpty(config?.SixthSenseSubject) ? null : config.SixthSenseSubject,
+            weapon,
+            c.HeroicParameterComplete);
     }
 }

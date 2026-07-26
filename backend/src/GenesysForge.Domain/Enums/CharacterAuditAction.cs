@@ -25,4 +25,10 @@ public enum CharacterAuditAction
 
     /// <summary>Происхождение героической способности брошено по таблице d10: сохранены фактические грани.</summary>
     HeroicOriginRolled,
+
+    /// <summary>Выбран параметр primary effect: навык Paragon, категория Sixth Sense или оружие (ROT-HA-02).</summary>
+    HeroicParameterSet,
+
+    /// <summary>Именное оружие потеряно, возвращено или заменено.</summary>
+    SignatureWeaponReplaced,
 }

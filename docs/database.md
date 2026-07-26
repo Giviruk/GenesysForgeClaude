@@ -229,6 +229,23 @@ after completion the identity is immutable. Duplicate, export v2 and import carr
 whose identity fields are inconsistent (for example `Custom` together with a table category) drops
 the identity with a warning instead of inventing an origin.
 
+Heroic parameters (ROT-HA-02): three primary effects take a parameter chosen together with the
+effect. `CharacterHeroicConfigurations` is a one-row-per-character table holding the Paragon skill
+(`ParagonSkillDefId` plus a `ParagonSkillName` snapshot, so a later-hidden custom skill produces a
+repair warning instead of a silent substitution) and the Sixth Sense subject (≤ 300 chars, a typed
+parameter rather than a free character note). `CharacterSignatureWeapons` holds the named weapon —
+also one row per character, so a lost weapon and its replacement can never both be active. Only the
+choice is stored (`Profile`, `Craftsmanship`, `NarrativeForm`, `FormTraits`, `IsLost`); the numbers
+— skill, damage, crit, range, encumbrance, hard points and qualities — are rebuilt by the server
+from `SignatureWeaponProfiles`, so a tampered client cannot invent a weapon. `FormTraits` is the
+GM-confirmed flag set that attachment compatibility is resolved against; the profile group flag is
+always set server-side, and physically impossible combinations (bladed + blunt, a ranged sword, a
+one-handed bow) are rejected. Changing the primary effect during creation deletes both rows in the
+same transaction. Completion requires the parameter, after completion it is immutable, and a legacy
+character without one reports `HeroicConfigurationIncomplete` and cannot buy heroic upgrades until
+the owner picks it once. Export v2 carries the Paragon skill by code and name — never by id, which
+does not exist in another account.
+
 Starting equipment (ROT-CRE-03): `StartingEquipmentMode` (`StandardMoney` / `CareerPackage`) records
 the mutually exclusive mode chosen at creation, and `StartingPurchaseBudget` holds what is left of it.
 The modes never mix. `StandardMoney` gives a 500-silver purchase budget plus separate `1d100` pocket

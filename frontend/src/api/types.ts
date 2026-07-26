@@ -193,6 +193,47 @@ export interface HeroicAbility {
   effects: RuleEffect[]
 }
 
+/** Параметр, который primary effect требует выбрать вместе с собой (ROT-HA-02). */
+export type HeroicParameterKind = 'none' | 'paragonSkill' | 'sixthSenseSubject' | 'signatureWeapon'
+
+export type SignatureWeaponProfile = 'brawl' | 'oneHanded' | 'twoHanded' | 'ranged'
+
+export type WeaponCraftsmanship = 'dwarven' | 'elven' | 'steel'
+
+/** Один признак формы оружия. На проводе флаги едут строкой «oneHanded, sword». */
+export type WeaponFormTrait =
+  | 'brawl' | 'oneHanded' | 'twoHanded' | 'ranged'
+  | 'sword' | 'bowOrCrossbow' | 'bladed' | 'bluntOrCrushing'
+  | 'hasCuttingEdge' | 'woodenWorkingEdge'
+
+/** Именное оружие: числа приходят с сервера из выбранного профиля. */
+export interface SignatureWeapon {
+  profile: SignatureWeaponProfile
+  craftsmanship: WeaponCraftsmanship
+  narrativeForm: string
+  formTraits: string
+  isLost: boolean
+  skillName: string
+  damage: string
+  crit: number
+  rangeBand: string
+  encumbrance: number
+  hardPoints: number
+  qualities: ItemQualityRef[]
+}
+
+/** Параметр primary effect на листе персонажа. */
+export interface HeroicConfiguration {
+  kind: HeroicParameterKind
+  paragonSkillDefId: string | null
+  paragonSkillName: string | null
+  /** Навык Paragon больше не виден персонажу: снимок имени сохранён, замена не подставляется. */
+  paragonSkillMissing: boolean
+  sixthSenseSubject: string | null
+  signatureWeapon: SignatureWeapon | null
+  complete: boolean
+}
+
 /** Как задано происхождение героической способности (ROT-HA-01). */
 export type HeroicOriginMode = 'standard' | 'doubleStandard' | 'custom'
 
@@ -1057,6 +1098,10 @@ export interface CharacterSheet {
   heroicIdentity: HeroicIdentity | null
   /** Способность выбрана, но личность не заполнена — улучшения заблокированы. */
   heroicIdentityIncomplete: boolean
+  /** Параметр primary effect; null, пока способность не выбрана (ROT-HA-02). */
+  heroicConfiguration: HeroicConfiguration | null
+  /** Способность требует параметр, а он не выбран — улучшения заблокированы. */
+  heroicConfigurationIncomplete: boolean
   items: SheetItem[]
   // Мотивации и предыстория (U-22)
   desire: string | null
@@ -1096,6 +1141,7 @@ export type CharacterAuditAction =
   | 'itemBought' | 'itemSold' | 'itemRemoved'
   | 'heroicAbilityChanged' | 'creationCompleted' | 'manualEdit'
   | 'heroicIdentitySet' | 'heroicOriginRolled'
+  | 'heroicParameterSet' | 'signatureWeaponReplaced'
 
 export interface CharacterAuditEntry {
   id: string

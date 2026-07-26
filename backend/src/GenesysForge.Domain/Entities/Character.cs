@@ -122,6 +122,12 @@ public class Character
     public List<CharacterCriticalInjury> CriticalInjuries { get; set; } = [];
     public List<CharacterHeroicSecondaryEffect> HeroicSecondaryEffects { get; set; } = [];
 
+    /// <summary>Параметры primary effect (Paragon / Sixth Sense), выбранные вместе со способностью.</summary>
+    public CharacterHeroicConfiguration? HeroicConfiguration { get; set; }
+
+    /// <summary>Именное оружие способности Signature Weapon. Не более одного на персонажа.</summary>
+    public CharacterSignatureWeapon? SignatureWeapon { get; set; }
+
     public CharacteristicsSet Characteristics => new(Brawn, Agility, Intellect, Cunning, Willpower, Presence);
 
     public int AvailableXp => TotalXp - SpentXp;
@@ -140,6 +146,27 @@ public class Character
     /// </summary>
     public bool HeroicIdentityIncomplete =>
         System == GameSystem.RealmsOfTerrinoth && HeroicAbilityId is not null && !HeroicIdentityComplete;
+
+    /// <summary>Какой параметр требует выбранный primary effect (ROT-HA-02).</summary>
+    public HeroicParameterKind RequiredHeroicParameter => HeroicParameterRules.Required(HeroicAbility?.Code);
+
+    /// <summary>Обязательный параметр способности заполнен целиком.</summary>
+    public bool HeroicParameterComplete => RequiredHeroicParameter switch
+    {
+        HeroicParameterKind.None => true,
+        HeroicParameterKind.ParagonSkill => HeroicConfiguration?.ParagonSkillDefId is not null,
+        HeroicParameterKind.SixthSenseSubject =>
+            !string.IsNullOrWhiteSpace(HeroicConfiguration?.SixthSenseSubject),
+        HeroicParameterKind.SignatureWeapon => SignatureWeapon is not null,
+        _ => false,
+    };
+
+    /// <summary>
+    /// Способность требует параметр, а он не выбран. Как и с личностью, сервер не угадывает: такой
+    /// персонаж остаётся доступен, но не может завершить создание и покупать улучшения героики.
+    /// </summary>
+    public bool HeroicConfigurationIncomplete =>
+        System == GameSystem.RealmsOfTerrinoth && HeroicAbilityId is not null && !HeroicParameterComplete;
 
     /// <summary>Всего ability points: по 1 за каждые полные 50 XP сверх стартового XP вида.</summary>
     public int HeroicUpgradePointsTotal => EarnedXp / 50;

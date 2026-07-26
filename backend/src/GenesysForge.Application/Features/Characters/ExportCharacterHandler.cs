@@ -77,7 +77,15 @@ public class ExportCharacterHandler(IAppDbContext db) : IQueryHandler<ExportChar
             HeroicOriginPrimary: c.HeroicOriginPrimary,
             HeroicOriginSecondary: c.HeroicOriginSecondary,
             HeroicOriginNarrative: c.HeroicOriginNarrative,
-            HeroicOriginRolls: [.. HeroicIdentityRules.ParseRolls(c.HeroicOriginRolls)]);
+            HeroicOriginRolls: [.. HeroicIdentityRules.ParseRolls(c.HeroicOriginRolls)],
+            ParagonSkillCode: c.HeroicConfiguration?.ParagonSkillDef?.Code,
+            ParagonSkillName: c.HeroicConfiguration?.ParagonSkillName,
+            SixthSenseSubject: c.HeroicConfiguration?.SixthSenseSubject,
+            SignatureWeaponProfile: c.SignatureWeapon?.Profile,
+            SignatureWeaponCraftsmanship: c.SignatureWeapon?.Craftsmanship,
+            SignatureWeaponForm: c.SignatureWeapon?.NarrativeForm,
+            SignatureWeaponTraits: c.SignatureWeapon?.FormTraits,
+            SignatureWeaponLost: c.SignatureWeapon?.IsLost ?? false);
 
         return new CharacterExportDto(CharacterExportDto.CurrentFormat, DateTime.UtcNow, data);
     }

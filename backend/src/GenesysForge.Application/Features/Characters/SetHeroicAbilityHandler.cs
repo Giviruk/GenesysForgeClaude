@@ -38,6 +38,18 @@ public class SetHeroicAbilityHandler(IAppDbContext db) : ICommandHandler<SetHero
         c.HeroicFrequencyRanks = 0;
         c.HeroicStoryUpgrade = false;
         db.CharacterHeroicSecondaryEffects.RemoveRange(c.HeroicSecondaryEffects);
+        // Параметры и созданные экземпляры принадлежат конкретному primary effect (ROT-HA-02):
+        // смена способности удаляет их в той же транзакции, а не оставляет чужой навык Paragon.
+        if (c.HeroicConfiguration is not null)
+        {
+            db.CharacterHeroicConfigurations.Remove(c.HeroicConfiguration);
+            c.HeroicConfiguration = null;
+        }
+        if (c.SignatureWeapon is not null)
+        {
+            db.CharacterSignatureWeapons.Remove(c.SignatureWeapon);
+            c.SignatureWeapon = null;
+        }
         c.HeroicAbilityId = command.HeroicAbilityId;
 
         CharacterAudit.Record(db, c, command.UserId, CharacterAuditAction.HeroicAbilityChanged,

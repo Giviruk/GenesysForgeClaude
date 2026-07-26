@@ -67,6 +67,8 @@ public static class DependencyInjection
         services.AddScoped<ICommandHandler<SetHeroicAbilityCommand, Unit>, SetHeroicAbilityHandler>();
         services.AddScoped<ICommandHandler<SetHeroicIdentityCommand, Unit>, SetHeroicIdentityHandler>();
         services.AddScoped<ICommandHandler<RollHeroicOriginCommand, HeroicOriginRollDto>, RollHeroicOriginHandler>();
+        services.AddScoped<ICommandHandler<SetHeroicConfigurationCommand, Unit>, SetHeroicConfigurationHandler>();
+        services.AddScoped<ICommandHandler<ReplaceSignatureWeaponCommand, Unit>, ReplaceSignatureWeaponHandler>();
         services.AddScoped<ICommandHandler<SetHeroicUpgradeRankCommand, Unit>, SetHeroicUpgradeRankHandler>();
         services.AddScoped<ICommandHandler<SetHeroicUpgradesCommand, Unit>, SetHeroicUpgradesHandler>();
         services.AddScoped<ICommandHandler<AddItemCommand, Guid>, AddItemHandler>();
