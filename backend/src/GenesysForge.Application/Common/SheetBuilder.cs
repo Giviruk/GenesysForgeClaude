@@ -2,6 +2,7 @@ using GenesysForge.Application.Abstractions;
 using GenesysForge.Application.Dtos;
 using GenesysForge.Domain;
 using GenesysForge.Domain.Entities;
+using GenesysForge.Domain.Rules;
 using Microsoft.EntityFrameworkCore;
 
 namespace GenesysForge.Application.Common;
@@ -103,6 +104,9 @@ public static class SheetBuilder
             c.StartingEquipmentMode,
             c.StartingPurchaseBudget,
             c.ThresholdSnapshotProvenance,
-            c.RulesReviewRequired);
+            c.RulesReviewRequired,
+            c.SpeciesAbilityChoiceCode,
+            SpeciesAbilityRules.ChoiceIncomplete(c.Archetype, c.SpeciesAbilityChoiceCode),
+            CharacterDerived.Silhouette(c));
     }
 }

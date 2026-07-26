@@ -38,6 +38,7 @@ public class DuplicateCharacterHandler(IAppDbContext db) : ICommandHandler<Dupli
             ThresholdSnapshotProvenance = src.ThresholdSnapshotProvenance,
             RulesReviewRequired = src.RulesReviewRequired,
             Money = src.Money,
+            SpeciesAbilityChoiceCode = src.SpeciesAbilityChoiceCode,
             StartingEquipmentMode = src.StartingEquipmentMode,
             StartingPurchaseBudget = src.StartingPurchaseBudget,
             HeroicAbilityId = src.HeroicAbilityId,

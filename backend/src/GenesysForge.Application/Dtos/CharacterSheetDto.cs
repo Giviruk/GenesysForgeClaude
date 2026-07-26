@@ -43,7 +43,16 @@ public record CharacterSheetDto(
     /// <summary>Происхождение зафиксированных порогов ран/стрейна (ROT-CRE-02).</summary>
     ThresholdSnapshotProvenance ThresholdSnapshotProvenance = ThresholdSnapshotProvenance.None,
     /// <summary>Данные восстановлены неоднозначно и требуют ручной проверки владельцем/GM.</summary>
-    bool RulesReviewRequired = false);
+    bool RulesReviewRequired = false,
+    /// <summary>Выбранная видовая способность там, где вид требует выбора (ROT-SPECIES-01).</summary>
+    string SpeciesAbilityChoiceCode = "",
+    /// <summary>
+    /// Вид требует выбора видовой способности, а он ещё не сделан. Автоматизация выбранной
+    /// способности до исправления не применяется; выбирать за игрока сервер не будет.
+    /// </summary>
+    bool SpeciesChoiceIncomplete = false,
+    /// <summary>Итоговый silhouette персонажа с учётом способности <c>Small</c>.</summary>
+    int Silhouette = 1);
 
 public record HeroicUpgradeStateDto(
     int PowerRank,

@@ -35,6 +35,11 @@ public class ArchetypeDef : IContentDef
     /// уже созданных персонажей (FK). Выставляется сидом для built-in видов, которых больше нет в каталоге.
     /// </summary>
     public bool Retired { get; set; }
+    /// <summary>
+    /// Размер существа (ROT-SPECIES-01). У всех видов RoT 1, у обоих гномов — 0.
+    /// Участвует в правилах, сравнивающих silhouette цели и владельца.
+    /// </summary>
+    public int Silhouette { get; set; } = 1;
 
     /// <summary>Видовые способности (структурно). См. <see cref="ArchetypeAbilityDef"/>.</summary>
     public List<ArchetypeAbilityDef> Abilities { get; set; } = [];

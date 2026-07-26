@@ -204,6 +204,16 @@ export interface Spell {
 
 export type ArchetypeAbilityAutomationKind = 'passive' | 'activationCost' | 'timedEffect' | 'manual' | 'requiresGmDecision'
 
+/** Исполняемый тип видового правила (ROT-SPECIES-01) — источник механики, не имя способности. */
+export type SpeciesAbilityRuleKind =
+  | 'manual' | 'moveStoryPointToPlayers' | 'setBaseDefense' | 'removeSetbackBySource'
+  | 'forceCriticalInjuryRoll' | 'addSetbackWhenTargeted' | 'optionalSetbackForDamage'
+  | 'strainThresholdRage' | 'boostAgainstMarkedTarget' | 'naturalWeapon'
+  | 'freeSecondMoveManeuver' | 'setSilhouette' | 'boostAgainstLargerSilhouette'
+  | 'conjureMinorItem' | 'chooseOneAbility' | 'skillGrantOnly'
+
+export type AbilityUseScope = 'none' | 'encounter' | 'session'
+
 export interface ArchetypeAbility {
   code: string
   nameRu: string
@@ -212,6 +222,14 @@ export interface ArchetypeAbility {
   /** Английское описание (собственный copyright-safe парафраз); пусто, если не переведено. */
   descriptionEn?: string
   automationKind: ArchetypeAbilityAutomationKind
+  ruleKind: SpeciesAbilityRuleKind
+  ruleValue: number
+  ruleParameters: string
+  usesPerScope: number
+  useScope: AbilityUseScope
+  storyPointCost: number
+  /** Допустимые коды для способности-выбора; пусто у обычных способностей. */
+  choiceOptions: string[] | null
 }
 
 export interface ArchetypeStartingSkill {
@@ -251,6 +269,8 @@ export interface Archetype {
   isCustom: boolean
   abilities: ArchetypeAbility[]
   startingSkills: ArchetypeStartingSkill[]
+  /** Размер существа: 1 у всех видов RoT, 0 у обоих гномов. */
+  silhouette: number
 }
 
 export type CareerRuleKind = 'advisory' | 'skillSubstitution'

@@ -35,7 +35,8 @@
    }
   ],
   "source": "Genesys Core Rulebook, с. 36",
-  "safeEn": "A flexible baseline human archetype. Ability — Ready for Anything: once per encounter, as an out-of-turn incidental, move 1 story point from the GM's pool to the players' pool. Starting skills: 1 rank in each of two different non-career skills."
+  "safeEn": "A flexible baseline human archetype. Ability — Ready for Anything: once per encounter, as an out-of-turn incidental, move 1 story point from the GM's pool to the players' pool. Starting skills: 1 rank in each of two different non-career skills.",
+  "silhouette": 1
  },
  {
   "system": "GenesysCore",
@@ -73,7 +74,8 @@
    }
   ],
   "source": "Genesys Core Rulebook, с. 37",
-  "safeEn": "A strong and hardy archetype for physical work and melee combat. Ability — Tough as Nails: once per encounter after suffering a critical injury, spend 1 story point to count the critical injury roll as 01. Starting skills: Athletics 1."
+  "safeEn": "A strong and hardy archetype for physical work and melee combat. Ability — Tough as Nails: once per encounter after suffering a critical injury, spend 1 story point to count the critical injury roll as 01. Starting skills: Athletics 1.",
+  "silhouette": 1
  },
  {
   "system": "GenesysCore",
@@ -111,7 +113,8 @@
    }
   ],
   "source": "Genesys Core Rulebook, с. 38",
-  "safeEn": "An archetype for a scientist, doctor, teacher, mage or other intellectual profession. Ability — Brilliant: once per encounter, as an incidental, spend 1 story point; for the next check this turn, the skill's ranks count as equal to Intellect. Starting skills: Knowledge 1."
+  "safeEn": "An archetype for a scientist, doctor, teacher, mage or other intellectual profession. Ability — Brilliant: once per encounter, as an incidental, spend 1 story point; for the next check this turn, the skill's ranks count as equal to Intellect. Starting skills: Knowledge 1.",
+  "silhouette": 1
  },
  {
   "system": "GenesysCore",
@@ -149,7 +152,8 @@
    }
   ],
   "source": "Genesys Core Rulebook, с. 39",
-  "safeEn": "A social archetype for a noble, politician, bard, merchant or negotiator. Ability — Forceful Personality: once per encounter, as an incidental, spend 1 story point; the next skill check this turn doubles the strain it inflicts or heals. Starting skills: Cool 1."
+  "safeEn": "A social archetype for a noble, politician, bard, merchant or negotiator. Ability — Forceful Personality: once per encounter, as an incidental, spend 1 story point; the next skill check this turn doubles the strain it inflicts or heals. Starting skills: Cool 1.",
+  "silhouette": 1
  },
  {
   "system": "RealmsOfTerrinoth",
@@ -172,8 +176,12 @@
     "nameRu": "Готов к приключениям",
     "nameEn": "",
     "safe": "Готов к приключениям: 1 раз за сессию свободным действием вне хода перемещает 1 очко сюжета из пула ведущего в пул игроков.",
-    "automationKind": "Manual",
-    "safeEn": "Ready for Adventure: once per session, as an out-of-turn incidental, move 1 story point from the GM's pool to the players' pool."
+    "automationKind": "ActivationCost",
+    "safeEn": "Ready for Adventure: once per session, as an out-of-turn incidental, move 1 story point from the GM's pool to the players' pool.",
+    "ruleKind": "MoveStoryPointToPlayers",
+    "ruleValue": 1,
+    "usesPerScope": 1,
+    "useScope": "Session"
    }
   ],
   "startingSkills": [
@@ -187,7 +195,8 @@
    }
   ],
   "source": "Realms of Terrinoth, с. 61",
-  "safeEn": "In RoT humans are not split into subspecies with separate rules; skills can be chosen by background. Ability — Ready for Adventure: once per session, as an out-of-turn incidental, move 1 story point from the GM's pool to the players' pool. Starting skills: 1 rank in each of two different non-career skills."
+  "safeEn": "In RoT humans are not split into subspecies with separate rules; skills can be chosen by background. Ability — Ready for Adventure: once per session, as an out-of-turn incidental, move 1 story point from the GM's pool to the players' pool. Starting skills: 1 rank in each of two different non-career skills.",
+  "silhouette": 1
  },
  {
   "system": "RealmsOfTerrinoth",
@@ -210,8 +219,9 @@
     "nameRu": "Знание Инфернаэля",
     "nameEn": "",
     "safe": "Знание Инфернаэля: получает Знание (запретное) как карьерный навык и начинает с 2 рангами в нём.",
-    "automationKind": "Manual",
-    "safeEn": "Ynfernael Lore: gains Knowledge (Forbidden) as a career skill and starts with 2 ranks in it."
+    "automationKind": "Passive",
+    "safeEn": "Ynfernael Lore: gains Knowledge (Forbidden) as a career skill and starts with 2 ranks in it.",
+    "ruleKind": "SkillGrantOnly"
    }
   ],
   "startingSkills": [
@@ -234,7 +244,8 @@
    }
   ],
   "source": "Realms of Terrinoth, с. 63",
-  "safeEn": "Elves devoted to hunting the forces of the Ynfernael. Ability — Ynfernael Lore: gains Knowledge (Forbidden) as a career skill and starts with 2 ranks in it. Starting skills: Discipline 1; Knowledge (Forbidden) 2."
+  "safeEn": "Elves devoted to hunting the forces of the Ynfernael. Ability — Ynfernael Lore: gains Knowledge (Forbidden) as a career skill and starts with 2 ranks in it. Starting skills: Discipline 1; Knowledge (Forbidden) 2.",
+  "silhouette": 1
  },
  {
   "system": "RealmsOfTerrinoth",
@@ -257,8 +268,10 @@
     "nameRu": "Проворство",
     "nameEn": "",
     "safe": "Проворство: ближняя и дальняя защита 1.",
-    "automationKind": "Manual",
-    "safeEn": "Nimble: melee and ranged defense 1."
+    "automationKind": "Passive",
+    "safeEn": "Nimble: melee and ranged defense 1.",
+    "ruleKind": "SetBaseDefense",
+    "ruleValue": 1
    }
   ],
   "startingSkills": [
@@ -272,7 +285,8 @@
    }
   ],
   "source": "Realms of Terrinoth, с. 63",
-  "safeEn": "Elves who abandoned tribal hierarchy to live among short-lived peoples. Ability — Nimble: melee and ranged defense 1. Starting skills: Streetwise 1."
+  "safeEn": "Elves who abandoned tribal hierarchy to live among short-lived peoples. Ability — Nimble: melee and ranged defense 1. Starting skills: Streetwise 1.",
+  "silhouette": 1
  },
  {
   "system": "RealmsOfTerrinoth",
@@ -295,8 +309,9 @@
     "nameRu": "Эмпирейская магия",
     "nameEn": "",
     "safe": "Эмпирейская магия: получает Веру как карьерный навык и начинает с 1 рангом в Вере.",
-    "automationKind": "Manual",
-    "safeEn": "Empyrean Magic: gains Divine as a career skill and starts with 1 rank in it."
+    "automationKind": "Passive",
+    "safeEn": "Empyrean Magic: gains Divine as a career skill and starts with 1 rank in it.",
+    "ruleKind": "SkillGrantOnly"
    }
   ],
   "startingSkills": [
@@ -319,7 +334,8 @@
    }
   ],
   "source": "Realms of Terrinoth, с. 63",
-  "safeEn": "Elven nobility with a strong bond to their ancient heritage. Ability — Empyrean Magic: gains Divine as a career skill and starts with 1 rank in it. Starting skills: Negotiation 1; Divine 1."
+  "safeEn": "Elven nobility with a strong bond to their ancient heritage. Ability — Empyrean Magic: gains Divine as a career skill and starts with 1 rank in it. Starting skills: Negotiation 1; Divine 1.",
+  "silhouette": 1
  },
  {
   "system": "RealmsOfTerrinoth",
@@ -342,8 +358,10 @@
     "nameRu": "Проворство",
     "nameEn": "",
     "safe": "Проворство: ближняя и дальняя защита 1.",
-    "automationKind": "Manual",
-    "safeEn": "Nimble: melee and ranged defense 1."
+    "automationKind": "Passive",
+    "safeEn": "Nimble: melee and ranged defense 1.",
+    "ruleKind": "SetBaseDefense",
+    "ruleValue": 1
    }
   ],
   "startingSkills": [
@@ -357,7 +375,8 @@
    }
   ],
   "source": "Realms of Terrinoth, с. 63",
-  "safeEn": "Practical forest elves — hunters, warriors and wardens of the wild. Ability — Nimble: melee and ranged defense 1. Starting skills: Survival 1."
+  "safeEn": "Practical forest elves — hunters, warriors and wardens of the wild. Ability — Nimble: melee and ranged defense 1. Starting skills: Survival 1.",
+  "silhouette": 1
  },
  {
   "system": "RealmsOfTerrinoth",
@@ -380,16 +399,24 @@
     "nameRu": "Ночное зрение",
     "nameEn": "",
     "safe": "Ночное зрение: убирает до 2 штрафных кубов от темноты.",
-    "automationKind": "Manual",
-    "safeEn": "Dark Vision: removes up to 2 setback dice imposed by darkness."
+    "automationKind": "Passive",
+    "safeEn": "Dark Vision: removes up to 2 setback dice imposed by darkness.",
+    "ruleKind": "RemoveSetbackBySource",
+    "ruleValue": 2,
+    "ruleParameters": "source=darkness"
    },
    {
     "code": "rot.archetype.dunwarr-dwarf.ability.2",
     "nameRu": "Крепкий орешек",
     "nameEn": "",
     "safe": "Крепкий орешек: 1 раз за сессию после критической травмы потратить очко сюжета и считать результат 01.",
-    "automationKind": "Manual",
-    "safeEn": "Tough as Nails: once per session after a critical injury, spend a story point to count the result as 01."
+    "automationKind": "ActivationCost",
+    "safeEn": "Tough as Nails: once per session after a critical injury, spend a story point to count the result as 01.",
+    "ruleKind": "ForceCriticalInjuryRoll",
+    "ruleValue": 1,
+    "usesPerScope": 1,
+    "useScope": "Session",
+    "storyPointCost": 1
    }
   ],
   "startingSkills": [
@@ -403,7 +430,8 @@
    }
   ],
   "source": "Realms of Terrinoth, с. 65",
-  "safeEn": "The deep dwarves of Dunwarr, heirs of an ancient mountain culture. Ability — Dark Vision: removes up to 2 setback dice imposed by darkness. Tough as Nails: once per session after a critical injury, spend a story point to count the result as 01. Starting skills: Resilience 1."
+  "safeEn": "The deep dwarves of Dunwarr, heirs of an ancient mountain culture. Ability — Dark Vision: removes up to 2 setback dice imposed by darkness. Tough as Nails: once per session after a critical injury, spend a story point to count the result as 01. Starting skills: Resilience 1.",
+  "silhouette": 1
  },
  {
   "system": "RealmsOfTerrinoth",
@@ -426,16 +454,24 @@
     "nameRu": "Упрямство",
     "nameEn": "",
     "safe": "Упрямство: добавляет штрафной куб к социальным проверкам, направленным против него.",
-    "automationKind": "Manual",
-    "safeEn": "Stubborn: adds a setback die to social checks targeting them."
+    "automationKind": "Passive",
+    "safeEn": "Stubborn: adds a setback die to social checks targeting them.",
+    "ruleKind": "AddSetbackWhenTargeted",
+    "ruleValue": 1,
+    "ruleParameters": "check=social"
    },
    {
     "code": "rot.archetype.forge-dwarf.ability.2",
     "nameRu": "Крепкий орешек",
     "nameEn": "",
     "safe": "Крепкий орешек: как у дварфов.",
-    "automationKind": "Manual",
-    "safeEn": "Tough as Nails: as other dwarves."
+    "automationKind": "ActivationCost",
+    "safeEn": "Tough as Nails: as other dwarves.",
+    "ruleKind": "ForceCriticalInjuryRoll",
+    "ruleValue": 1,
+    "usesPerScope": 1,
+    "useScope": "Session",
+    "storyPointCost": 1
    }
   ],
   "startingSkills": [
@@ -449,7 +485,8 @@
    }
   ],
   "source": "Realms of Terrinoth, с. 65",
-  "safeEn": "Dwarves living in cities and trade settlements among other peoples. Ability — Stubborn: adds a setback die to social checks targeting them. Tough as Nails: as other dwarves. Starting skills: Negotiation 1."
+  "safeEn": "Dwarves living in cities and trade settlements among other peoples. Ability — Stubborn: adds a setback die to social checks targeting them. Tough as Nails: as other dwarves. Starting skills: Negotiation 1.",
+  "silhouette": 1
  },
  {
   "system": "RealmsOfTerrinoth",
@@ -472,8 +509,11 @@
     "nameRu": "Боевая ярость",
     "nameEn": "",
     "safe": "Боевая ярость: при атаке в ближнем бою может добавить штрафной куб к проверке, чтобы дать +2 урона одному попаданию.",
-    "automationKind": "Manual",
-    "safeEn": "Battle Fury: when attacking in melee, may add a setback die to the check to grant +2 damage to one hit."
+    "automationKind": "ActivationCost",
+    "safeEn": "Battle Fury: when attacking in melee, may add a setback die to the check to grant +2 damage to one hit.",
+    "ruleKind": "OptionalSetbackForDamage",
+    "ruleValue": 2,
+    "ruleParameters": "check=melee"
    }
   ],
   "startingSkills": [
@@ -487,7 +527,8 @@
    }
   ],
   "source": "Realms of Terrinoth, с. 67",
-  "safeEn": "Nomadic hunters and warriors of the Broken Plains. Ability — Battle Fury: when attacking in melee, may add a setback die to the check to grant +2 damage to one hit. Starting skills: Coercion 1."
+  "safeEn": "Nomadic hunters and warriors of the Broken Plains. Ability — Battle Fury: when attacking in melee, may add a setback die to the check to grant +2 damage to one hit. Starting skills: Coercion 1.",
+  "silhouette": 1
  },
  {
   "system": "RealmsOfTerrinoth",
@@ -510,8 +551,11 @@
     "nameRu": "Горячий нрав",
     "nameEn": "",
     "safe": "Горячий нрав: когда текущая усталость выше половины порога усталости, добавляет 2 штрафных куба к социальным проверкам и +1 урон одному попаданию каждой атаки ближнего боя.",
-    "automationKind": "Manual",
-    "safeEn": "Hot Temper: while current strain is above half the strain threshold, adds 2 setback dice to social checks and +1 damage to one hit of every melee attack."
+    "automationKind": "Passive",
+    "safeEn": "Hot Temper: while current strain is above half the strain threshold, adds 2 setback dice to social checks and +1 damage to one hit of every melee attack.",
+    "ruleKind": "StrainThresholdRage",
+    "ruleValue": 1,
+    "ruleParameters": "socialSetback=2"
    }
   ],
   "startingSkills": [
@@ -525,7 +569,8 @@
    }
   ],
   "source": "Realms of Terrinoth, с. 67",
-  "safeEn": "City orcs, often living as mercenaries, guards, soldiers or criminals. Ability — Hot Temper: while current strain is above half the strain threshold, adds 2 setback dice to social checks and +1 damage to one hit of every melee attack. Starting skills: Cool 1."
+  "safeEn": "City orcs, often living as mercenaries, guards, soldiers or criminals. Ability — Hot Temper: while current strain is above half the strain threshold, adds 2 setback dice to social checks and +1 damage to one hit of every melee attack. Starting skills: Cool 1.",
+  "silhouette": 1
  },
  {
   "system": "RealmsOfTerrinoth",
@@ -548,8 +593,11 @@
     "nameRu": "Упорство",
     "nameEn": "",
     "safe": "Упорство: после успешного попадания по цели добавляет бонусный куб к боевым проверкам против той же цели до конца встречи.",
-    "automationKind": "Manual",
-    "safeEn": "Tenacity: after successfully hitting a target, adds a boost die to combat checks against that target until the end of the encounter."
+    "automationKind": "TimedEffect",
+    "safeEn": "Tenacity: after successfully hitting a target, adds a boost die to combat checks against that target until the end of the encounter.",
+    "ruleKind": "BoostAgainstMarkedTarget",
+    "ruleValue": 1,
+    "useScope": "Encounter"
    }
   ],
   "startingSkills": [
@@ -563,7 +611,8 @@
    }
   ],
   "source": "Realms of Terrinoth, с. 67",
-  "safeEn": "Secretive orcs of the Al-Kalim deserts, known for alchemy and medicine. Ability — Tenacity: after successfully hitting a target, adds a boost die to combat checks against that target until the end of the encounter. Starting skills: Alchemy 1."
+  "safeEn": "Secretive orcs of the Al-Kalim deserts, known for alchemy and medicine. Ability — Tenacity: after successfully hitting a target, adds a boost die to combat checks against that target until the end of the encounter. Starting skills: Alchemy 1.",
+  "silhouette": 1
  },
  {
   "system": "RealmsOfTerrinoth",
@@ -586,16 +635,21 @@
     "nameRu": "Когти",
     "nameEn": "",
     "safe": "Когти: может атаковать когтями (Грубая сила; урон +1; крит. 3; вплотную; Злобное 1).",
-    "automationKind": "Manual",
-    "safeEn": "Claws: may attack with claws (Brawl; damage +1; crit 3; engaged; Vicious 1)."
+    "automationKind": "Passive",
+    "safeEn": "Claws: may attack with claws (Brawl; damage +1; crit 3; engaged; Vicious 1).",
+    "ruleKind": "NaturalWeapon",
+    "ruleValue": 1,
+    "ruleParameters": "skill=Brawl;damage=brawn+1;crit=3;range=Engaged;quality=Vicious 1"
    },
    {
     "code": "rot.archetype.catfolk.ability.2",
     "nameRu": "Быстрые лапы",
     "nameEn": "",
     "safe": "Быстрые лапы: второй манёвр движения не требует усталости; лимит двух манёвров за ход сохраняется.",
-    "automationKind": "Manual",
-    "safeEn": "Fleet-Footed: a second movement maneuver costs no strain; the two-maneuver-per-turn limit still applies."
+    "automationKind": "Passive",
+    "safeEn": "Fleet-Footed: a second movement maneuver costs no strain; the two-maneuver-per-turn limit still applies.",
+    "ruleKind": "FreeSecondMoveManeuver",
+    "ruleValue": 2
    }
   ],
   "startingSkills": [
@@ -609,7 +663,8 @@
    }
   ],
   "source": "Realms of Terrinoth, с. 68",
-  "safeEn": "Hunters and trackers with feline features. Ability — Claws: may attack with claws (Brawl; damage +1; crit 3; engaged; Vicious 1). Fleet-Footed: a second movement maneuver costs no strain; the two-maneuver-per-turn limit still applies. Starting skills: Perception 1."
+  "safeEn": "Hunters and trackers with feline features. Ability — Claws: may attack with claws (Brawl; damage +1; crit 3; engaged; Vicious 1). Fleet-Footed: a second movement maneuver costs no strain; the two-maneuver-per-turn limit still applies. Starting skills: Perception 1.",
+  "silhouette": 1
  },
  {
   "system": "RealmsOfTerrinoth",
@@ -632,8 +687,10 @@
     "nameRu": "Кошачья кровь",
     "nameEn": "",
     "safe": "Кошачья кровь: выбирает либо Когти, либо Быстрые лапы из способностей котолюдов.",
-    "automationKind": "Manual",
-    "safeEn": "Feline Blood: choose either Claws or Fleet-Footed from the catfolk abilities."
+    "automationKind": "RequiresGmDecision",
+    "safeEn": "Feline Blood: choose either Claws or Fleet-Footed from the catfolk abilities.",
+    "ruleKind": "ChooseOneAbility",
+    "ruleParameters": "options=rot.archetype.catfolk.ability.1,rot.archetype.catfolk.ability.2"
    }
   ],
   "startingSkills": [
@@ -647,7 +704,8 @@
    }
   ],
   "source": "Realms of Terrinoth, с. 68",
-  "safeEn": "Descendants of catfolk and other peoples. Ability — Feline Blood: choose either Claws or Fleet-Footed from the catfolk abilities. Starting skills: Cool 1."
+  "safeEn": "Descendants of catfolk and other peoples. Ability — Feline Blood: choose either Claws or Fleet-Footed from the catfolk abilities. Starting skills: Cool 1.",
+  "silhouette": 1
  },
  {
   "system": "RealmsOfTerrinoth",
@@ -670,16 +728,20 @@
     "nameRu": "Малый",
     "nameEn": "",
     "safe": "Малый: силуэт 0.",
-    "automationKind": "Manual",
-    "safeEn": "Small: silhouette 0."
+    "automationKind": "Passive",
+    "safeEn": "Small: silhouette 0.",
+    "ruleKind": "SetSilhouette"
    },
    {
     "code": "rot.archetype.burrow-gnome.ability.2",
     "nameRu": "Обучение ополчения",
     "nameEn": "",
     "safe": "Обучение ополчения: добавляет бонусный куб к боевым проверкам против целей с большим силуэтом.",
-    "automationKind": "Manual",
-    "safeEn": "Militia Training: adds a boost die to combat checks against targets of larger silhouette."
+    "automationKind": "Passive",
+    "safeEn": "Militia Training: adds a boost die to combat checks against targets of larger silhouette.",
+    "ruleKind": "BoostAgainstLargerSilhouette",
+    "ruleValue": 1,
+    "ruleParameters": "check=combat"
    }
   ],
   "startingSkills": [
@@ -701,7 +763,8 @@
    }
   ],
   "source": "Realms of Terrinoth, с. 69",
-  "safeEn": "Settled gnomes of burrows and tunnels, focused on community and defending their homes. Ability — Small: silhouette 0. Militia Training: adds a boost die to combat checks against targets of larger silhouette. Starting skills: Charm 1; Resilience 1."
+  "safeEn": "Settled gnomes of burrows and tunnels, focused on community and defending their homes. Ability — Small: silhouette 0. Militia Training: adds a boost die to combat checks against targets of larger silhouette. Starting skills: Charm 1; Resilience 1.",
+  "silhouette": 0
  },
  {
   "system": "RealmsOfTerrinoth",
@@ -724,16 +787,23 @@
     "nameRu": "Малый",
     "nameEn": "",
     "safe": "Малый: силуэт 0.",
-    "automationKind": "Manual",
-    "safeEn": "Small: silhouette 0."
+    "automationKind": "Passive",
+    "safeEn": "Small: silhouette 0.",
+    "ruleKind": "SetSilhouette"
    },
    {
     "code": "rot.archetype.wanderer-gnome.ability.2",
     "nameRu": "Хитрец",
     "nameEn": "",
     "safe": "Хитрец: 1 раз за встречу в свой ход может потратить очко сюжета, чтобы достать ранее не указанный небольшой предмет с нагрузкой 1 или меньше и редкостью не выше 4.",
-    "automationKind": "Manual",
-    "safeEn": "Trickster: once per encounter on their turn, may spend a story point to produce a previously undeclared small item of encumbrance 1 or less and rarity 4 or lower."
+    "automationKind": "ActivationCost",
+    "safeEn": "Trickster: once per encounter on their turn, may spend a story point to produce a previously undeclared small item of encumbrance 1 or less and rarity 4 or lower.",
+    "ruleKind": "ConjureMinorItem",
+    "ruleValue": 1,
+    "ruleParameters": "enc=1;rarity=4;requireQuality=Limited Ammo 1",
+    "usesPerScope": 1,
+    "useScope": "Encounter",
+    "storyPointCost": 1
    }
   ],
   "startingSkills": [
@@ -755,6 +825,7 @@
    }
   ],
   "source": "Realms of Terrinoth, с. 69",
-  "safeEn": "Nomadic gnome traders, performers and wanderers. Ability — Small: silhouette 0. Trickster: once per encounter on their turn, may spend a story point to produce a previously undeclared small item of encumbrance 1 or less and rarity 4 or lower. Starting skills: Charm 1; Stealth 1."
+  "safeEn": "Nomadic gnome traders, performers and wanderers. Ability — Small: silhouette 0. Trickster: once per encounter on their turn, may spend a story point to produce a previously undeclared small item of encumbrance 1 or less and rarity 4 or lower. Starting skills: Charm 1; Stealth 1.",
+  "silhouette": 0
  }
 ]

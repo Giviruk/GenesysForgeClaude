@@ -259,6 +259,8 @@ export function CreateCharacterForm({ onCancel, onCreated }: { onCancel: () => v
   const [gearChoices, setGearChoices] = useState<Record<string, number>>({})
   // ROT-CRE-03: режимы взаимоисключающие, безопасный default — стандартные деньги.
   const [equipmentMode, setEquipmentMode] = useState<StartingEquipmentMode>('standardMoney')
+  // ROT-SPECIES-01: у Half-Catfolk выбор обязателен и необратим — умолчания у него нет.
+  const [speciesChoice, setSpeciesChoice] = useState('')
   // Мотивации и предыстория (U-22) — все опциональны, можно заполнить позже на листе.
   const [desire, setDesire] = useState('')
   const [fear, setFear] = useState('')
@@ -283,6 +285,7 @@ export function CreateCharacterForm({ onCancel, onCreated }: { onCancel: () => v
         setSkillChoices({})
         setGearChoices({})
         setEquipmentMode('standardMoney')
+        setSpeciesChoice('')
       })
       .catch((err: unknown) => {
         if (!cancelled) setError(err instanceof Error ? err.message : t('Ошибка загрузки', 'Failed to load'))
@@ -297,6 +300,13 @@ export function CreateCharacterForm({ onCancel, onCreated }: { onCancel: () => v
     const def = reference?.skills.find(s => s.name === name)
     return def ? dualName(def) : name
   }
+
+  // Способность вида, требующая обязательного выбора одной опции (Half-Catfolk).
+  const speciesChoiceAbility = (archetype?.abilities ?? []).find(a => a.ruleKind === 'chooseOneAbility')
+  const speciesChoiceOptions = (speciesChoiceAbility?.choiceOptions ?? [])
+    .map(code => (reference?.archetypes ?? []).flatMap(a => a.abilities).find(a => a.code === code))
+    .filter((a): a is NonNullable<typeof a> => a !== undefined)
+  const speciesChoiceComplete = !speciesChoiceAbility || speciesChoice.length > 0
 
   const fixedStartingSkills = (archetype?.startingSkills ?? []).filter(s => !s.isChoice && s.skillName)
   const choiceGroups = (archetype?.startingSkills ?? []).filter(s => s.isChoice)
@@ -376,7 +386,7 @@ export function CreateCharacterForm({ onCancel, onCreated }: { onCancel: () => v
         ? gearSlots.map(s => ({ choiceGroup: s.group, optionIndex: gearChoices[s.group] }))
         : []
       const { id } = await api.createCharacter(name, system, archetypeId, careerId, freeSkills, choices, gear,
-        { desire, fear, strength, flaw, background }, equipmentMode)
+        { desire, fear, strength, flaw, background }, equipmentMode, speciesChoice || undefined)
       onCreated(id)
     } catch (err) {
       setError(err instanceof Error ? err.message : t('Ошибка создания', 'Failed to create'))
@@ -410,7 +420,7 @@ export function CreateCharacterForm({ onCancel, onCreated }: { onCancel: () => v
         <label>
           {system === 'realmsOfTerrinoth' ? t('Раса (архетип)', 'Species (archetype)') : t('Архетип', 'Archetype')}
           <select value={archetypeId}
-            onChange={e => { setArchetypeId(e.target.value); setSkillChoices({}) }} required>
+            onChange={e => { setArchetypeId(e.target.value); setSkillChoices({}); setSpeciesChoice('') }} required>
             <option value="" disabled>{t('— выберите —', '— select —')}</option>
             {reference?.archetypes.map(a => <option key={a.id} value={a.id}>{localizedName(a)}</option>)}
           </select>
@@ -432,6 +442,26 @@ export function CreateCharacterForm({ onCancel, onCreated }: { onCancel: () => v
               const abilityName = t(ab.nameRu, ab.nameEn || ab.nameRu)
               return <div key={ab.code}><strong>{abilityName}</strong>{desc ? `: ${desc.replace(new RegExp(`^${abilityName}:\\s*`), '')}` : ''}</div>
             })}
+          </div>
+        )}
+        {speciesChoiceAbility && (
+          <div>
+            <div className="label-line">
+              {t(
+                `${speciesChoiceAbility.nameRu} — выберите одну способность (изменить после создания нельзя):`,
+                `${speciesChoiceAbility.nameEn || speciesChoiceAbility.nameRu} — pick one ability (it cannot be changed later):`,
+              )}
+            </div>
+            <div className="chips">
+              {speciesChoiceOptions.map(option => (
+                <button key={option.code} type="button"
+                  className={speciesChoice === option.code ? 'chip active' : 'chip'}
+                  title={localizedDescription({ safeDescription: option.safeDescription, descriptionEn: option.descriptionEn })}
+                  onClick={() => setSpeciesChoice(option.code)}>
+                  {t(option.nameRu, option.nameEn || option.nameRu)}
+                </button>
+              ))}
+            </div>
           </div>
         )}
         {archetype && choiceGroups.map(g => {
@@ -581,7 +611,7 @@ export function CreateCharacterForm({ onCancel, onCreated }: { onCancel: () => v
         {error && <div className="error">{error}</div>}
         <div className="modal-actions">
           <button type="button" onClick={onCancel}>{t('Отмена', 'Cancel')}</button>
-          <button className="primary" type="submit" disabled={busy || !archetypeId || !careerId || !choicesComplete || !gearComplete}>{t('Создать', 'Create')}</button>
+          <button className="primary" type="submit" disabled={busy || !archetypeId || !careerId || !choicesComplete || !gearComplete || !speciesChoiceComplete}>{t('Создать', 'Create')}</button>
         </div>
       </form>
     </div>

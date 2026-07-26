@@ -54,7 +54,10 @@ public record CharacterExportData(
     bool RulesReviewRequired = false,
     // v2: режим стартового снаряжения и остаток бюджета создания (ROT-CRE-03).
     StartingEquipmentMode StartingEquipmentMode = StartingEquipmentMode.StandardMoney,
-    int StartingPurchaseBudget = 0);
+    int StartingPurchaseBudget = 0,
+    // v2: обязательный видовой выбор (Half-Catfolk). Пусто — вид выбора не требует либо
+    // legacy-персонаж, которому выбор нужно сделать вручную (ROT-SPECIES-01).
+    string SpeciesAbilityChoiceCode = "");
 
 public record CharacterSkillExport(string Code, string Name, int Ranks, bool IsCareer, int FreeRanks);
 

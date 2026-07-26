@@ -1,5 +1,6 @@
 using GenesysForge.Domain;
 using GenesysForge.Domain.Entities;
+using GenesysForge.Domain.Rules;
 
 namespace GenesysForge.Application.Common;
 
@@ -18,7 +19,8 @@ public static class CharacterDerived
             TalentInputs(c),
             ItemInputs(c),
             c.CreationWoundThreshold,
-            c.CreationStrainThreshold);
+            c.CreationStrainThreshold,
+            BaseDefense(c));
 
     public static List<TalentInput> TalentInputs(Character c) => c.Talents
         .Where(t => t.TalentDef is not null)
@@ -35,6 +37,22 @@ public static class CharacterDerived
             i.ItemDef.SoakBonus, i.ItemDef.MeleeDefense, i.ItemDef.RangedDefense,
             i.ItemDef.EncumbranceThresholdBonus))
         .ToList();
+
+    /// <summary>
+    /// Базовая защита от видовых способностей, действующих для этого персонажа (Nimble).
+    /// У вида с обязательным выбором учитывается только сделанный выбор.
+    /// </summary>
+    public static int? BaseDefense(Character c)
+    {
+        if (c.Archetype is null) return null;
+        var byCode = c.Archetype.Abilities.ToDictionary(a => a.Code, StringComparer.Ordinal);
+        return SpeciesAbilityRules.BaseDefense(
+            SpeciesAbilityRules.EffectiveAbilities(c.Archetype, c.SpeciesAbilityChoiceCode, byCode));
+    }
+
+    /// <summary>Итоговый silhouette персонажа: база вида, перекрытая способностью <c>Small</c>.</summary>
+    public static int Silhouette(Character c) =>
+        c.Archetype is null ? 1 : SpeciesAbilityRules.Silhouette(c.Archetype);
 
     /// <summary>
     /// Пороги на момент завершения создания: база вида плюс текущая характеристика, без бонусов

@@ -20,6 +20,7 @@ public class CreateCharacterHandler(IAppDbContext db, IDiceRoller dice)
 
         var archetype = await db.ArchetypeDefs
                 .Include(a => a.StartingSkills)
+                .Include(a => a.Abilities)
                 .FirstOrDefaultAsync(a => a.Id == req.ArchetypeId && a.System == req.System
                     && !a.Retired
                     && (a.OwnerUserId == null
@@ -39,6 +40,10 @@ public class CreateCharacterHandler(IAppDbContext db, IDiceRoller dice)
         var freeSkills = req.FreeCareerSkillNames ?? [];
         if (freeSkills.Count > MaxFreeCareerSkills)
             throw new DomainRuleException($"При создании можно выбрать не более {MaxFreeCareerSkills} карьерных навыков для бесплатного ранга.");
+
+        // Обязательный видовой выбор (Half-Catfolk) валидируется до создания сущности: пропустить
+        // его, взять обе способности или указать чужой код нельзя, и подставлять умолчание тоже.
+        var speciesChoice = ResolveSpeciesChoice(archetype, req.SpeciesAbilityChoiceCode);
 
         // Режим стартового снаряжения: отсутствие поля у старого клиента — безопасный StandardMoney.
         var mode = req.StartingEquipmentMode ?? StartingEquipmentMode.StandardMoney;
@@ -61,6 +66,7 @@ public class CreateCharacterHandler(IAppDbContext db, IDiceRoller dice)
             TotalXp = archetype.StartingXp,
             // Бюджет покупок и карманные деньги — два разных счёта; складывать их нельзя.
             Money = startingGear.Money,
+            SpeciesAbilityChoiceCode = speciesChoice,
             StartingEquipmentMode = mode,
             StartingPurchaseBudget = startingGear.PurchaseBudget,
             Desire = Clean(req.Desire),
@@ -177,6 +183,37 @@ public class CreateCharacterHandler(IAppDbContext db, IDiceRoller dice)
 
         await db.SaveChangesAsync(ct);
         return character.Id;
+    }
+
+    /// <summary>
+    /// Проверяет обязательный видовой выбор. Возвращает выбранный код или пустую строку, если
+    /// вид выбора не требует. Некорректный запрос отклоняется с машинным <c>reasonCode</c>.
+    /// </summary>
+    private static string ResolveSpeciesChoice(ArchetypeDef archetype, string? requested)
+    {
+        var choice = archetype.Abilities
+            .FirstOrDefault(a => a.RuleKind == SpeciesAbilityRuleKind.ChooseOneAbility);
+        var code = requested?.Trim() ?? "";
+
+        if (choice is null)
+        {
+            if (code.Length > 0)
+                throw new DomainRuleException(
+                    $"Вид {archetype.Name} не требует выбора видовой способности.",
+                    "species.choice.not_applicable");
+            return "";
+        }
+
+        var options = SpeciesAbilityRules.ChoiceOptions(choice);
+        if (code.Length == 0)
+            throw new DomainRuleException(
+                $"Вид {archetype.Name} требует выбрать одну видовую способность: {string.Join(", ", options)}.",
+                "species.choice.required");
+        if (!options.Contains(code, StringComparer.Ordinal))
+            throw new DomainRuleException(
+                $"«{code}» не входит в список допустимых видовых способностей: {string.Join(", ", options)}.",
+                "species.choice.unknown_option");
+        return code;
     }
 
     /// <summary>Разрешённое стартовое снаряжение: деньги, бюджет и позиции комплекта.</summary>

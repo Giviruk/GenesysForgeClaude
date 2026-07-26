@@ -145,10 +145,11 @@ export const api = {
   createCharacter: (name: string, system: GameSystem, archetypeId: string, careerId: string,
     freeCareerSkillNames: string[], archetypeSkillChoices: ArchetypeSkillChoice[] = [],
     careerGearChoices: CareerGearChoice[] = [], bio: CharacterBio = {},
-    startingEquipmentMode: StartingEquipmentMode = 'standardMoney') =>
+    startingEquipmentMode: StartingEquipmentMode = 'standardMoney',
+    speciesAbilityChoiceCode?: string) =>
     request<{ id: string }>('POST', '/api/characters/',
       { name, system, archetypeId, careerId, freeCareerSkillNames, archetypeSkillChoices, careerGearChoices,
-        startingEquipmentMode, ...bio }),
+        startingEquipmentMode, speciesAbilityChoiceCode, ...bio }),
   sheet: (id: string) => request<CharacterSheet>('GET', `/api/characters/${id}`),
   sharedSheet: (token: string) => request<CharacterSheet>('GET', `/api/share/${encodeURIComponent(token)}`),
   duplicateCharacter: (id: string) => request<{ id: string }>('POST', `/api/characters/${id}/duplicate`),

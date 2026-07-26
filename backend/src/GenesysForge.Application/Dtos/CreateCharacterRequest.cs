@@ -12,7 +12,12 @@ public record CreateCharacterRequest(string Name, GameSystem System, Guid Archet
     /// как <see cref="StartingEquipmentMode.StandardMoney"/>; в этом режиме
     /// <see cref="CareerGearChoices"/> обязан быть пустым.
     /// </summary>
-    StartingEquipmentMode? StartingEquipmentMode = null);
+    StartingEquipmentMode? StartingEquipmentMode = null,
+    /// <summary>
+    /// Код видовой способности для видов с обязательным выбором (Half-Catfolk: Claws или
+    /// Fleet of Paw). Обязателен для таких видов и запрещён для остальных (ROT-SPECIES-01).
+    /// </summary>
+    string? SpeciesAbilityChoiceCode = null);
 
 /// <summary>Выбор игрока для группы стартовых навыков вида (например «any-noncareer» → 2 навыка).</summary>
 public record ArchetypeSkillChoice(string ChoiceGroup, List<string> SkillNames);

@@ -1,5 +1,6 @@
 using GenesysForge.Application.Dtos;
 using GenesysForge.Domain.Entities;
+using GenesysForge.Domain.Rules;
 
 namespace GenesysForge.Application.Common;
 
@@ -8,9 +9,12 @@ public static class Mappers
     public static ArchetypeDto ToDto(this ArchetypeDef a) => new(a.Id, a.Name, a.NameRu, a.Brawn, a.Agility,
         a.Intellect, a.Cunning, a.Willpower, a.Presence, a.WoundBase, a.StrainBase, a.StartingXp,
         a.Description, a.SafeDescription, a.Source, a.OwnerUserId != null,
-        a.Abilities.Select(x => new ArchetypeAbilityDto(x.Code, x.NameRu, x.NameEn, x.SafeDescription, x.AutomationKind, x.DescriptionEn)).ToList(),
+        a.Abilities.Select(x => new ArchetypeAbilityDto(x.Code, x.NameRu, x.NameEn, x.SafeDescription, x.AutomationKind, x.DescriptionEn,
+            x.RuleKind, x.RuleValue, x.RuleParameters, x.UsesPerScope, x.UseScope, x.StoryPointCost,
+            SpeciesAbilityRules.ChoiceOptions(x))).ToList(),
         a.StartingSkills.Select(x => new ArchetypeStartingSkillDto(x.SkillName, x.NameRu, x.FreeRanks, x.IsChoice, x.ChoiceGroup, x.ChoiceCount, x.GrantsCareerSkill)).ToList(),
-        a.DescriptionEn);
+        a.DescriptionEn,
+        a.Silhouette);
 
     public static CareerDto ToDto(this CareerDef c) =>
         new(c.Id, c.Name, c.NameRu, c.Description, c.SafeDescription, c.Source, c.OwnerUserId != null, c.CareerSkillNames,

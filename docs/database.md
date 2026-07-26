@@ -152,7 +152,11 @@ Two child collections carry the structured species data parsed from the catalog 
 
 ### ArchetypeAbilityDefs
 
-Structured species abilities (formerly free text in `SafeDescription`). Fields: `ArchetypeId`, `Code`, `NameRu`, `NameEn`, `SafeDescription`, `AutomationKind` (`Passive`/`ActivationCost`/`TimedEffect`/`Manual`/`RequiresGmDecision` — classification only; effect execution is U-18, default `Manual`). Cascade delete from archetype; indexed by `ArchetypeId`.
+Structured species abilities (formerly free text in `SafeDescription`). Fields: `ArchetypeId`, `Code`, `NameRu`, `NameEn`, `SafeDescription`, `AutomationKind` (UI classification), and the executable rule metadata added by ROT-SPECIES-01: `RuleKind`, `RuleValue`, `RuleParameters`, `UsesPerScope`, `UseScope`, `StoryPointCost`. Cascade delete from archetype; indexed by `ArchetypeId`.
+
+`RuleKind` is a `SpeciesAbilityRuleKind` and is the only source of an ability's mechanics — deriving the effect from `Code`, a name or the description text is forbidden. `RuleValue` carries the single number a rule needs (Dark Vision removes 2, Battle Rage adds 2 damage, Nimble sets Defence to 1, Small sets silhouette to 0) and `RuleParameters` the named qualifiers (`source=darkness`, `enc=1;rarity=4;requireQuality=Limited Ammo 1`, `options=…` for a choice ability). `UseScope` (`None`/`Encounter`/`Session`) says where `UsesPerScope` resets.
+
+`ArchetypeDefs.Silhouette` is 1 for every RoT species and 0 for both gnomes; the `Small` ability overrides it through the same typed rule rather than a special case. `Characters.SpeciesAbilityChoiceCode` stores the mandatory, irreversible Half-Catfolk pick (Claws or Fleet of Paw); until it is set, the sheet reports `SpeciesChoiceIncomplete` and that ability contributes nothing — the server never picks for the player.
 
 ### ArchetypeStartingSkills
 
@@ -443,6 +447,14 @@ Found migrations:
   existing characters already received money under the old rule, so granting them a 500 budget
   retroactively would invent funds, and starting gear cannot be told apart from purchases in
   historical inventories — ROT-CRE-04 explicitly forbids rewriting them.
+- `20260726172948_RotSpeciesAbilityRules` — ROT-SPECIES-01. Adds `ArchetypeDefs.Silhouette`,
+  typed rule metadata on `ArchetypeAbilityDefs` (`RuleKind`, `RuleValue`, `RuleParameters`,
+  `UsesPerScope`, `UseScope`, `StoryPointCost`), and `Characters.SpeciesAbilityChoiceCode`.
+  Non-destructive and without a backfill: the rule metadata arrives through the idempotent
+  archetype seed, and the species choice is deliberately left empty for legacy Half-Catfolk
+  characters — picking Claws or Fleet of Paw for a player is an irreversible decision, so the
+  sheet reports `SpeciesChoiceIncomplete` and the ability simply stays unautomated until a human
+  resolves it.
 
 Startup behavior:
 

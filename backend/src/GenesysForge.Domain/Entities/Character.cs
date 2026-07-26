@@ -52,6 +52,13 @@ public class Character
     /// </summary>
     public int Money { get; set; }
 
+    /// <summary>
+    /// Код видовой способности, выбранной при создании там, где вид требует выбора
+    /// (Half-Catfolk: Claws или Fleet of Paw). Пусто у видов без выбора и у старых персонажей,
+    /// которым выбор нужно сделать вручную — автоматически подставлять его нельзя (ROT-SPECIES-01).
+    /// </summary>
+    public string SpeciesAbilityChoiceCode { get; set; } = "";
+
     /// <summary>Выбранный при создании режим стартового снаряжения (ROT-CRE-03).</summary>
     public StartingEquipmentMode StartingEquipmentMode { get; set; } = StartingEquipmentMode.StandardMoney;
 

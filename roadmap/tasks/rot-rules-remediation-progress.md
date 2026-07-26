@@ -28,7 +28,8 @@
 
 ### 2. Видовые способности RoT
 
-- [ ] **ROT-SPECIES-01** — полный каталог 14 вариантов и исполняемые способности
+- [~] **ROT-SPECIES-01** — каталог, типизированные правила и пассивные эффекты сделаны;
+  активируемые способности ждут состояния сессии (см. ниже)
 
 ### 3. Таланты RoT
 
@@ -133,9 +134,34 @@
 - Автоматическая раскладка legacy-паков выполняется только при доказанных provenance/quantity/state;
   иначе строка остаётся read-only.
 
+### ROT-SPECIES-01 — виды (частично)
+
+Сделано:
+
+- Все 14 профилей сверены с таблицей ТЗ построчно (они уже были верны) и закреплены
+  table-тестом на каждое значение, включая silhouette.
+- `SpeciesAbilityRuleKind` + структурные параметры (`RuleValue`, `RuleParameters`, `UsesPerScope`,
+  `UseScope`, `StoryPointCost`) на `ArchetypeAbilityDef`; все 19 способностей RoT типизированы.
+  Механика больше не выводится из имени или описания.
+- `ArchetypeDef.Silhouette` (гномы 0) и правило `Small` через тот же типизированный механизм.
+- Nimble реализован как provider: `SheetCalculator` берёт max(броня, видовая база), поэтому
+  Defense 1 с бронёй Defense 1 остаётся 1, а таланты по-прежнему прибавляются сверху.
+- Обязательный выбор Half-Catfolk: `Character.SpeciesAbilityChoiceCode`, валидация при создании с
+  `species.choice.required` / `unknown_option` / `not_applicable`, перенос в duplicate/export/import,
+  `SpeciesChoiceIncomplete` на листе для legacy, пикер и гейт в форме создания.
+
+Осталось (нужен рантайм сессии/encounter, которого в приложении ещё нет):
+
+- Счётчики применений со scope session/encounter и их сброс в `EndSession`/`EndEncounter`.
+- Активации, тратящие Story Point: Ready for Adventure, Tough as Nails, Tricksy.
+- Правила, которым нужен единый check context с `sourceTag` и стабильной целью: Dark Vision,
+  Stubborn, Battle Rage, Hot Tempered, Tenacious, Militia Training.
+- Claws как virtual attack profile и структурированные manoeuvres для Fleet of Paw.
+
 ## Что осталось / блокеры
 
-- Следующий пункт — **ROT-SPECIES-01** (полный каталог 14 видов и исполняемые способности).
+- Следующий пункт — доделать активируемые способности ROT-SPECIES-01 (нужен check context и
+  счётчики сессии), затем раздел 3 (**ROT-TAL-01** …).
 - ROT-TAL-04 требует cost stack покупок рангов (`CharacterSkillRankPurchase`) и repair-флоу для
   legacy без доказанной цены — крупнее остальных пунктов раздела 3, планировать отдельно.
 

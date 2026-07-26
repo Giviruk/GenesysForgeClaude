@@ -64,7 +64,8 @@ public class ExportCharacterHandler(IAppDbContext db) : IQueryHandler<ExportChar
             ThresholdSnapshotProvenance: c.ThresholdSnapshotProvenance,
             RulesReviewRequired: c.RulesReviewRequired,
             StartingEquipmentMode: c.StartingEquipmentMode,
-            StartingPurchaseBudget: c.StartingPurchaseBudget);
+            StartingPurchaseBudget: c.StartingPurchaseBudget,
+            SpeciesAbilityChoiceCode: c.SpeciesAbilityChoiceCode);
 
         return new CharacterExportDto(CharacterExportDto.CurrentFormat, DateTime.UtcNow, data);
     }

@@ -481,7 +481,8 @@ public static class SeedData
                 && row.Cunning == def.Cunning && row.Willpower == def.Willpower && row.Presence == def.Presence
                 && row.WoundBase == def.WoundBase && row.StrainBase == def.StrainBase && row.StartingXp == def.StartingXp
                 && row.SafeDescription == def.SafeDescription && row.Description == def.Description
-                && row.DescriptionEn == def.DescriptionEn && row.Source == def.Source;
+                && row.DescriptionEn == def.DescriptionEn && row.Source == def.Source
+                && row.Silhouette == def.Silhouette;
             var childrenSame = ArchetypeChildrenMatch(row, def);
             if (scalarSame && childrenSame) continue;
 
@@ -492,6 +493,7 @@ public static class SeedData
             row.WoundBase = def.WoundBase; row.StrainBase = def.StrainBase; row.StartingXp = def.StartingXp;
             row.SafeDescription = def.SafeDescription; row.Description = def.Description;
             row.DescriptionEn = def.DescriptionEn; row.Source = def.Source;
+            row.Silhouette = def.Silhouette;
 
             if (!childrenSame)
             {
@@ -528,7 +530,11 @@ public static class SeedData
         for (var i = 0; i < ra.Count; i++)
             if (ra[i].Code != da[i].Code || ra[i].NameRu != da[i].NameRu || ra[i].NameEn != da[i].NameEn
                 || ra[i].SafeDescription != da[i].SafeDescription || ra[i].DescriptionEn != da[i].DescriptionEn
-                || ra[i].AutomationKind != da[i].AutomationKind)
+                || ra[i].AutomationKind != da[i].AutomationKind
+                || ra[i].RuleKind != da[i].RuleKind || ra[i].RuleValue != da[i].RuleValue
+                || ra[i].RuleParameters != da[i].RuleParameters
+                || ra[i].UsesPerScope != da[i].UsesPerScope || ra[i].UseScope != da[i].UseScope
+                || ra[i].StoryPointCost != da[i].StoryPointCost)
                 return false;
 
         var rs = row.StartingSkills.OrderBy(x => x.SkillName).ThenBy(x => x.ChoiceGroup).ToList();

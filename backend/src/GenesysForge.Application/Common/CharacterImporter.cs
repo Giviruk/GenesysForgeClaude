@@ -63,6 +63,7 @@ public static class CharacterImporter
             WoundsCurrent = Math.Max(0, data.WoundsCurrent),
             StrainCurrent = Math.Max(0, data.StrainCurrent),
             Money = Math.Max(0, data.Money),
+            SpeciesAbilityChoiceCode = data.SpeciesAbilityChoiceCode ?? "",
             StartingEquipmentMode = data.StartingEquipmentMode,
             // Бюджет создания переносится только пока персонаж не завершил создание.
             StartingPurchaseBudget = data.IsCreationPhase ? Math.Max(0, data.StartingPurchaseBudget) : 0,
