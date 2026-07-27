@@ -30,14 +30,25 @@ public class AddItemHandler(IAppDbContext db) : ICommandHandler<AddItemCommand, 
                 "Для цены, назначенной вручную, нужна причина.", "trade.override_reason_required");
         if (req.PriceOverride is < 0)
             throw new DomainRuleException("Цена не может быть отрицательной.", "trade.price_negative");
+        // Торг и договорная цена — разные способы, и вместе они бессмысленны: доля считалась бы
+        // от цены, которая сама назначена вручную.
+        if (req.PriceOverride is not null && req.PricePercent is not null)
+            throw new DomainRuleException(
+                "Задайте один способ: долю цены или договорную цену.", "trade.purchase_mode_ambiguous");
 
         // Качество изготовления экземпляра (ROT-WPN-02): у уникальных записей его задаёт каталог,
         // иначе — выбор игрока. Дальше оно неизменно, поэтому проверяется здесь и только здесь.
         var craftsmanship = CraftsmanshipRules.FixedFor(itemDef.Code) ?? req.Craftsmanship;
         CraftsmanshipRules.EnsureApplicable(itemDef.Kind, craftsmanship);
 
-        var unitPrice = req.PriceOverride ?? CraftsmanshipRules.Price(itemDef.Price, craftsmanship);
-        var total = req.Free ? 0 : TradeRules.PurchaseTotal(unitPrice, req.Quantity);
+        var listedUnitPrice = CraftsmanshipRules.Price(itemDef.Price, craftsmanship);
+        var unitPrice = req.PriceOverride ?? listedUnitPrice;
+        var percent = req.PricePercent ?? 100;
+        var total = req.Free
+            ? 0
+            : req.PriceOverride is not null
+                ? TradeRules.PurchaseTotal(unitPrice, req.Quantity)
+                : TradeRules.PurchaseTotal(listedUnitPrice, req.Quantity, percent);
 
         // Покупка: сначала бюджет стартовых покупок (только в фазе создания), затем кошелёк.
         var charge = StartingWallet.Charge(total, c.StartingPurchaseBudget, c.Money, c.IsCreationPhase)
@@ -73,9 +84,11 @@ public class AddItemHandler(IAppDbContext db) : ICommandHandler<AddItemCommand, 
             {
                 item = itemDef.Name, quantity = req.Quantity, cost = charge.Total,
                 fromBudget = charge.FromBudget, fromMoney = charge.FromMoney,
-                listedUnitPrice = itemDef.Price, unitPrice, priceOverride = req.PriceOverride,
-                overrideReason = req.OverrideReason, free = req.Free,
-                craftsmanship = craftsmanship.ToString(),
+                catalogUnitPrice = itemDef.Price, listedUnitPrice, unitPrice,
+                priceOverride = req.PriceOverride, overrideReason = req.OverrideReason,
+                free = req.Free, craftsmanship = craftsmanship.ToString(),
+                percent, mode = req.PriceOverride is not null ? "override"
+                    : req.PricePercent is not null ? "haggle" : "direct",
             });
 
         await db.SaveChangesAsync(ct);

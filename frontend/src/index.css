@@ -894,7 +894,7 @@ table.ref-table td.ref-cost { white-space: nowrap; color: var(--accent); }
 
 /* Выбор качества изготовления при покупке (ROT-WPN-02) */
 .shop-craftsmanship { display: flex; flex-direction: column; gap: 0.2rem; margin-top: 0.5rem; }
-.shop-craftsmanship select { align-self: flex-start; }
+.shop-craftsmanship-select { font-size: 0.75rem; padding: 0.05rem 0.2rem; max-width: 11rem; }
 
 /* Управление ценой при покупке/продаже */
 .price-control { margin-top: 0.5rem; border-top: 1px dashed var(--border); padding-top: 0.5rem; display: flex; flex-direction: column; gap: 0.4rem; }

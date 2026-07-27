@@ -239,6 +239,8 @@ export const api = {
   addItem: (id: string, itemDefId: string, quantity: number, state: ItemState,
     opts?: {
       free?: boolean; priceOverride?: number; overrideReason?: string
+      /** Доля цены экземпляра при торге: 50…200 % с шагом 25. Сумму по ней считает сервер. */
+      pricePercent?: number
       craftsmanship?: WeaponCraftsmanship
     }) =>
     request<{ id: string }>('POST', `/api/characters/${id}/items`, { itemDefId, quantity, state, ...opts }),

@@ -136,4 +136,27 @@ public static class TradeRules
             throw new DomainRuleException("Количество должно быть не меньше 1.", "trade.quantity_invalid");
         return unitListedPrice * quantity;
     }
+
+    /// <summary>Границы и шаг торга при покупке: от половины цены до двойной, четвертями.</summary>
+    public const int MinPurchasePercent = 50;
+    public const int MaxPurchasePercent = 200;
+    public const int PurchasePercentStep = 25;
+
+    /// <summary>
+    /// Стоимость покупки с наценкой или скидкой обстановки: доля берётся от цены **единицы**
+    /// и округляется вниз, как и при продаже. Правила автоматической скидки не дают, поэтому
+    /// доля задаётся явно и попадает в историю.
+    /// </summary>
+    public static int PurchaseTotal(int unitListedPrice, int quantity, int percent)
+    {
+        if (percent < MinPurchasePercent || percent > MaxPurchasePercent)
+            throw new DomainRuleException(
+                $"Доля цены при покупке задаётся от {MinPurchasePercent} до {MaxPurchasePercent} процентов.",
+                "trade.percent_invalid");
+        if (percent % PurchasePercentStep != 0)
+            throw new DomainRuleException(
+                $"Доля цены при покупке задаётся с шагом {PurchasePercentStep} процентов.",
+                "trade.percent_step_invalid");
+        return BookSubtotal(unitListedPrice, quantity, percent);
+    }
 }

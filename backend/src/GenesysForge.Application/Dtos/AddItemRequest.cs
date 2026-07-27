@@ -17,6 +17,11 @@ namespace GenesysForge.Application.Dtos;
 /// Качество изготовления экземпляра (ROT-WPN-02). Задаётся только здесь и дальше не меняется;
 /// цену с его учётом считает сервер. У снаряжения допустима только обычная работа.
 /// </param>
+/// <param name="PricePercent">
+/// Доля цены экземпляра при торге: 50…200 % с шагом 25. Взаимоисключающа с
+/// <paramref name="PriceOverride"/>; сумму по ней считает сервер от цены каталога, поэтому
+/// «сколько списать» клиент по-прежнему не присылает.
+/// </param>
 public record AddItemRequest(
     Guid ItemDefId,
     int Quantity,
@@ -24,7 +29,8 @@ public record AddItemRequest(
     bool Free = false,
     int? PriceOverride = null,
     string? OverrideReason = null,
-    WeaponCraftsmanship Craftsmanship = WeaponCraftsmanship.Steel);
+    WeaponCraftsmanship Craftsmanship = WeaponCraftsmanship.Steel,
+    int? PricePercent = null);
 
 /// <summary>
 /// Продажа предмета. Сумму всегда считает сервер от цены каталога — клиент её не назначает.

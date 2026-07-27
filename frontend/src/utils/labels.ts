@@ -503,6 +503,24 @@ export const WEAPON_CRAFTSMANSHIP_LABELS: Record<WeaponCraftsmanship, string> = 
   ancient: 'Ancient',
 })
 
+/**
+ * Прилагательное для строки разбора поправок: «эльфийское · Вес 6 → 8». Отдельно от
+ * <see cref="WEAPON_CRAFTSMANSHIP_LABELS"/>: там названия работы, а здесь свойство предмета.
+ */
+export const WEAPON_CRAFTSMANSHIP_ADJECTIVES: Record<WeaponCraftsmanship, string> = t({
+  steel: 'стальное',
+  iron: 'железное',
+  dwarven: 'гномье',
+  elven: 'эльфийское',
+  ancient: 'древнее',
+}, {
+  steel: 'steel',
+  iron: 'iron',
+  dwarven: 'dwarven',
+  elven: 'elven',
+  ancient: 'ancient',
+})
+
 /** Краткая подсказка, что тип делает: игрок выбирает его при покупке и потом не меняет. */
 export const WEAPON_CRAFTSMANSHIP_HINTS: Record<WeaponCraftsmanship, string> = t({
   steel: 'Числа таблицы без изменений',
