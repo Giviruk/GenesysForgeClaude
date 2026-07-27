@@ -457,6 +457,21 @@ function WeaponLine({ item, sheet, skill, skillLabel, reference, run }: {
     ? profile.qualities.map(q => `${t(q.nameRu, q.nameEn)}${q.rating ? ` ${q.rating}` : ''}`).join(', ')
     : item.properties
 
+  // Что качества делают с пулом: Точное даёт бонусные кубы, Неточное — помехи, Громоздкое и
+  // Сноровка поднимают сложность при нехватке характеристики (GEN-EQP-QUAL-01).
+  const mods = profile?.poolModifiers ?? null
+  const modsTitle = mods && mods.sources.length > 0
+    ? [t('Качества оружия:', 'Weapon qualities:'), ...mods.sources.map(s => {
+      const parts: string[] = []
+      if (s.boost) parts.push(t(`+${s.boost} бонусных`, `+${s.boost} boost`))
+      if (s.setback) parts.push(t(`+${s.setback} помех`, `+${s.setback} setback`))
+      if (s.difficulty) parts.push(t(`+${s.difficulty} к сложности`, `+${s.difficulty} difficulty`))
+      if (s.advantage) parts.push(t(`+${s.advantage} преимущество`, `+${s.advantage} advantage`))
+      if (s.threat) parts.push(t(`+${s.threat} угроза`, `+${s.threat} threat`))
+      return `${t(s.nameRu, s.nameEn)}: ${parts.join(', ')}`
+    })].join('\n')
+    : undefined
+
   return (
     <div className="weapon-line">
       {profiles.length > 1 && (
@@ -486,9 +501,19 @@ function WeaponLine({ item, sheet, skill, skillLabel, reference, run }: {
         </span>
       )}
       {profileSkill ? (
-        <span className="weapon-pool" title={t(`Бросок: ${profileSkillLabel}`, `Roll: ${profileSkillLabel}`)}>
-          <DicePoolView pool={profileSkill.pool} setback={profileSkill.setbackDice} />
+        <span className="weapon-pool"
+          title={[t(`Бросок: ${profileSkillLabel}`, `Roll: ${profileSkillLabel}`), modsTitle]
+            .filter(Boolean).join('\n')}>
+          <DicePoolView pool={profileSkill.pool}
+            setback={profileSkill.setbackDice + (mods?.setback ?? 0)}
+            boost={mods?.boost ?? 0}
+            difficulty={mods?.difficultyIncrease ?? 0} />
           {' '}<span className="muted small-text">{profileSkillLabel}</span>
+          {(mods?.automaticAdvantage ?? 0) > 0 && (
+            <span className="muted small-text">
+              {' '}{t(`+${mods!.automaticAdvantage} преим.`, `+${mods!.automaticAdvantage} adv.`)}
+            </span>
+          )}
         </span>
       ) : profileSkillLabel ? (
         <span className="muted small-text">
@@ -519,10 +544,14 @@ function WeaponLine({ item, sheet, skill, skillLabel, reference, run }: {
                 ? {
                   ability: profileSkill.pool.ability,
                   proficiency: profileSkill.pool.proficiency,
-                  setback: profileSkill.setbackDice,
+                  setback: profileSkill.setbackDice + (mods?.setback ?? 0),
                 }
+                : { setback: mods?.setback ?? 0 }),
+              ...(mods?.boost ? { boost: mods.boost } : {}),
+              // Сложность оружия и надбавка за нехватку Мощи/Ловкости складываются.
+              ...((profile?.fixedDifficulty ?? 0) + (mods?.difficultyIncrease ?? 0) > 0
+                ? { difficulty: (profile?.fixedDifficulty ?? 0) + (mods?.difficultyIncrease ?? 0) }
                 : {}),
-              ...(profile?.fixedDifficulty != null ? { difficulty: profile.fixedDifficulty } : {}),
             },
             // Урон уже посчитан сервером под Мощь персонажа — клиенту его разбирать не нужно.
             damage: profile ? String(profile.baseDamage ?? profile.damageValue) : item.damage,

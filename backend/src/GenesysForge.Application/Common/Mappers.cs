@@ -64,8 +64,12 @@ public static class Mappers
     /// </summary>
     /// <param name="brawn">Мощь персонажа: с ней считается базовый урон. <c>null</c> — справочник.</param>
     /// <param name="qualitiesByCode">Справочник качеств для расшифровки кодов альтернативных профилей.</param>
+    /// <param name="agility">
+    /// Ловкость персонажа: вместе с Мощью нужна для Громоздкого и Сноровки (GEN-EQP-QUAL-01).
+    /// </param>
     public static List<WeaponAttackProfileDto> AttackProfileDtos(
-        this ItemDef i, int? brawn = null, IReadOnlyDictionary<string, QualityDef>? qualitiesByCode = null)
+        this ItemDef i, int? brawn = null, IReadOnlyDictionary<string, QualityDef>? qualitiesByCode = null,
+        int? agility = null)
     {
         var itemQualities = i.Qualities
             .Where(q => q.QualityDef != null)
@@ -74,14 +78,39 @@ public static class Mappers
                 q.QualityDef.HasRating, q.QualityDef.IsActive, q.QualityDef.ActivationCost))
             .ToList();
 
+        // Механика качеств профиля по умолчанию берётся из самого предмета, у альтернативного —
+        // из справочника по коду. Без справочника механики нет: угадывать её по коду нельзя.
+        var itemEffects = i.Qualities
+            .Where(q => q.QualityDef != null)
+            .Select(q => new WeaponQualityInput(
+                q.QualityDef!.NameEn, q.QualityDef.NameRu, q.QualityDef.EffectKind, q.Rating ?? 0))
+            .ToList();
+
+        List<WeaponQualityInput> ProfileEffects(WeaponAttackProfile p) => p.IsDefault
+            ? itemEffects
+            : [.. p.Qualities
+                .Where(q => qualitiesByCode is not null && qualitiesByCode.ContainsKey(q.Code))
+                .Select(q => new WeaponQualityInput(
+                    qualitiesByCode![q.Code].NameEn, qualitiesByCode[q.Code].NameRu,
+                    qualitiesByCode[q.Code].EffectKind, q.Rating))];
+
         return [.. i.AttackProfiles
             .OrderByDescending(p => p.IsDefault).ThenBy(p => p.Code, StringComparer.Ordinal)
             .Select(p => new WeaponAttackProfileDto(
                 p.Code, p.NameRu, p.NameEn, p.IsDefault, p.SkillName, p.DamageKind, p.DamageValue,
                 p.Crit, p.Range, p.CannotAttackEngaged, p.FixedDifficulty,
                 p.IsDefault ? itemQualities : [.. p.Qualities.Select(q => QualityRef(q, qualitiesByCode))],
-                brawn is { } b ? WeaponProfileRules.BaseDamage(p.DamageKind, p.DamageValue, b) : null))];
+                brawn is { } b ? WeaponProfileRules.BaseDamage(p.DamageKind, p.DamageValue, b) : null,
+                brawn is { } b2 && agility is { } a
+                    ? PoolDto(WeaponQualityRules.PoolFor(ProfileEffects(p), b2, a))
+                    : null))];
     }
+
+    /// <summary>Разбор изменения пула от качеств — с источниками, чтобы куб был объясним.</summary>
+    private static AttackPoolModifiersDto PoolDto(AttackPoolModifiers m) => new(
+        m.Boost, m.Setback, m.DifficultyIncrease, m.AutomaticAdvantage, m.AutomaticThreat,
+        [.. m.Sources.Select(s => new QualityContributionDto(
+            s.NameEn, s.NameRu, s.Boost, s.Setback, s.Difficulty, s.Advantage, s.Threat))]);
 
     /// <summary>Код качества → запись справочника; без справочника остаётся сам код, а не выдумка.</summary>
     private static ItemQualityRefDto QualityRef(
@@ -93,7 +122,9 @@ public static class Mappers
                 q.Rating > 0 ? q.Rating : null, q.Rating > 0, false, "");
 
     public static QualityDto ToDto(this QualityDef q) => new(q.Id, q.Code, q.NameEn, q.NameRu, q.Kind,
-        q.IsActive, q.HasRating, q.ActivationCost, q.Category, q.Description, q.SafeDescription, q.Source, q.DescriptionEn);
+        q.IsActive, q.HasRating, q.ActivationCost, q.Category, q.Description, q.SafeDescription, q.Source,
+        q.DescriptionEn, q.EffectKind, q.AdvantageCost, q.RequiresHit, q.CanActivateOnMiss, q.TriumphMayPay,
+        q.Repeatability);
 
     public static RuleTableEntryDto ToDto(this RuleTableEntry r) => new(r.Id, r.Kind, r.Code, r.NameRu,
         r.NameEn, r.GroupRu, r.SortOrder, r.RollRange, r.SymbolCost, r.Body, r.Notes, r.Source, r.SourcePage,

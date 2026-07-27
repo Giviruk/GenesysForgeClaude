@@ -32,7 +32,24 @@ public record WeaponAttackProfileDto(
     string SkillName, DamageKind DamageKind, int DamageValue, int Crit, WeaponRange Range,
     bool CannotAttackEngaged, int? FixedDifficulty,
     IReadOnlyList<ItemQualityRefDto> Qualities,
-    int? BaseDamage = null);
+    int? BaseDamage = null,
+    /// <summary>
+    /// Что качества профиля делают с пулом атаки (GEN-EQP-QUAL-01). Заполняется там, где известны
+    /// характеристики персонажа; в справочнике <c>null</c>.
+    /// </summary>
+    AttackPoolModifiersDto? PoolModifiers = null);
+
+/// <summary>
+/// Изменение пула атаки от качеств оружия. Автоматические преимущества и угрозы кубами не
+/// являются — они прибавляются к результату броска, поэтому едут отдельными полями.
+/// </summary>
+public record AttackPoolModifiersDto(
+    int Boost, int Setback, int DifficultyIncrease, int AutomaticAdvantage, int AutomaticThreat,
+    IReadOnlyList<QualityContributionDto> Sources);
+
+/// <summary>Вклад одного качества в пул — чтобы игрок видел, откуда взялся куб.</summary>
+public record QualityContributionDto(
+    string NameEn, string NameRu, int Boost, int Setback, int Difficulty, int Advantage, int Threat);
 
 /// <summary>Структурное качество предмета: ссылка на справочник (по коду) + рейтинг.</summary>
 public record ItemQualityRefDto(

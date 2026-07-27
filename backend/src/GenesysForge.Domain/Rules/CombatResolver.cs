@@ -37,6 +37,13 @@ public sealed record CombatSymbolSpend(
 /// <param name="TargetSoak">Поглощение основной цели.</param>
 /// <param name="AdditionalHits">Дополнительные удары той же атаки.</param>
 /// <param name="RequestedSpends">Траты символов, выбранные игроком.</param>
+/// <param name="Qualities">
+/// Качества атакующего профиля (GEN-EQP-QUAL-01). Из них считаются игнорируемое поглощение
+/// (Проникающее, Бронебойное) и прибавка к броску критического ранения (Высококритичное).
+/// </param>
+/// <param name="TargetReinforced">
+/// У цели укреплённая броня: её поглощение не поддаётся Проникающему и Бронебойному.
+/// </param>
 public sealed record CombatAttackInput(
     int NetSuccesses,
     int BaseDamage,
@@ -45,15 +52,26 @@ public sealed record CombatAttackInput(
     int Triumphs = 0,
     int Despairs = 0,
     IReadOnlyList<CombatHitInput>? AdditionalHits = null,
-    IReadOnlyList<CombatSymbolSpend>? RequestedSpends = null);
+    IReadOnlyList<CombatSymbolSpend>? RequestedSpends = null,
+    IReadOnlyList<WeaponQualityInput>? Qualities = null,
+    bool TargetReinforced = false);
 
-/// <summary>Урон одного удара после поглощения.</summary>
-public sealed record CombatHitResult(int RawDamage, int TargetSoak, int Applied, string Label);
+/// <summary>
+/// Урон одного удара после поглощения.
+/// </summary>
+/// <param name="TargetSoak">Поглощение цели после Проникающего и Бронебойного.</param>
+/// <param name="IgnoredSoak">Сколько поглощения качества сняли; 0 — не снимали ничего.</param>
+public sealed record CombatHitResult(
+    int RawDamage, int TargetSoak, int Applied, string Label, int IgnoredSoak = 0);
 
 /// <summary>
 /// Результат разрешения атаки. При промахе поля урона пусты, а не равны базовому урону:
 /// показывать базовый урон на промахе — та самая ошибка, ради которой правило и вынесено на сервер.
 /// </summary>
+/// <param name="CriticalRollBonus">
+/// Прибавка к броску критического ранения от Высококритичного (GEN-EQP-QUAL-01). Само ранение
+/// качество не создаёт и его цену не снижает.
+/// </param>
 public sealed record CombatAttackResult(
     bool IsHit,
     int? RawDamagePerHit,
@@ -61,7 +79,8 @@ public sealed record CombatAttackResult(
     int TotalApplied,
     IReadOnlyList<string> AllowedSymbolSpends,
     IReadOnlyList<string> RejectedSymbolSpends,
-    IReadOnlyList<string> Log);
+    IReadOnlyList<string> Log,
+    int CriticalRollBonus = 0);
 
 /// <summary>
 /// Разрешение атаки по Core (ROT-CMB-01): попадание, урон и допустимые траты символов.
@@ -79,6 +98,7 @@ public static class CombatResolver
 
         var log = new List<string>();
         var isHit = input.NetSuccesses > 0;
+        var criticalBonus = WeaponQualityRules.CriticalRollBonus(input.Qualities);
 
         if (!isHit)
         {
@@ -97,7 +117,7 @@ public static class CombatResolver
 
         var hits = new List<CombatHitResult>
         {
-            Hit(raw, input.TargetSoak, "Основная цель"),
+            Hit(raw, input.TargetSoak, "Основная цель", input),
         };
         foreach (var extra in input.AdditionalHits ?? [])
         {
@@ -105,12 +125,19 @@ public static class CombatResolver
                 throw new DomainRuleException(
                     "Поглощение дополнительной цели не может быть отрицательным.", "combat.soak_negative");
             hits.Add(Hit(raw, extra.TargetSoak,
-                string.IsNullOrWhiteSpace(extra.Label) ? "Дополнительный удар" : extra.Label));
+                string.IsNullOrWhiteSpace(extra.Label) ? "Дополнительный удар" : extra.Label, input));
         }
 
         // Поглощение применяется к каждому удару отдельно, а не к их сумме.
         foreach (var hit in hits)
-            log.Add($"{hit.Label}: {hit.RawDamage} − поглощение {hit.TargetSoak} = {hit.Applied}.");
+            log.Add(hit.IgnoredSoak > 0
+                ? $"{hit.Label}: {hit.RawDamage} − поглощение {hit.TargetSoak} " +
+                  $"(снято качествами {hit.IgnoredSoak}) = {hit.Applied}."
+                : $"{hit.Label}: {hit.RawDamage} − поглощение {hit.TargetSoak} = {hit.Applied}.");
+        if (input.TargetReinforced && WeaponQualityRules.EffectiveSoak(10, input.Qualities) < 10)
+            log.Add("Броня цели укреплена: Проникающее и Бронебойное её поглощение не снимают.");
+        if (criticalBonus > 0)
+            log.Add($"Высококритичное: +{criticalBonus} к броску критического ранения.");
 
         var total = hits.Sum(h => h.Applied);
         var anyThroughSoak = hits.Exists(h => h.Applied > 0);
@@ -118,11 +145,18 @@ public static class CombatResolver
             log.Add("Весь урон поглощён: обычное критическое ранение недоступно.");
 
         var (allowed, rejected) = SplitSpends(input, isHit: true, anyThroughSoak, log);
-        return new CombatAttackResult(true, raw, hits, total, allowed, rejected, log);
+        return new CombatAttackResult(true, raw, hits, total, allowed, rejected, log, criticalBonus);
     }
 
-    private static CombatHitResult Hit(int raw, int soak, string label) =>
-        new(raw, soak, Math.Max(0, raw - soak), label);
+    /// <summary>
+    /// Один удар: поглощение цели уменьшается качествами оружия (Проникающее, Бронебойное), но
+    /// не ниже нуля и не у укреплённой брони.
+    /// </summary>
+    private static CombatHitResult Hit(int raw, int soak, string label, CombatAttackInput input)
+    {
+        var effective = WeaponQualityRules.EffectiveSoak(soak, input.Qualities, input.TargetReinforced);
+        return new CombatHitResult(raw, effective, Math.Max(0, raw - effective), label, soak - effective);
+    }
 
     /// <summary>
     /// Делит запрошенные траты на допустимые и отклонённые. Активное качество по умолчанию требует

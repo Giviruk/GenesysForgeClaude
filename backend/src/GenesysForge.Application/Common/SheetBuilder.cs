@@ -125,7 +125,7 @@ public static class SheetBuilder
                     i.ItemDef.HardPoints,
                     [.. i.ItemDef.CheckModifiers.Select(m => new ItemCheckModifierDto(
                         m.Kind, m.SkillName, m.Characteristic, m.Value, m.RequiresWorn, m.Condition))],
-                    i.ItemDef.AttackProfileDtos(ch.Brawn, qualitiesByCode),
+                    i.ItemDef.AttackProfileDtos(ch.Brawn, qualitiesByCode, ch.Agility),
                     i.IsThrown))
                 .ToList(),
             c.Desire, c.Fear, c.Strength, c.Flaw, c.Background,

@@ -539,6 +539,38 @@ export type DamageKind = 'brawnPlus' | 'fixed'
 /** Дистанция профиля атаки. */
 export type WeaponRange = 'engaged' | 'short' | 'medium' | 'long' | 'extreme'
 
+/** Механика качества; «descriptive» — исполнения в приложении пока нет (GEN-EQP-QUAL-01). */
+export type QualityEffectKind =
+  | 'descriptive' | 'attackBoost' | 'attackSetback'
+  | 'difficultyPerMissingBrawn' | 'difficultyPerMissingAgility'
+  | 'automaticAdvantage' | 'automaticThreat'
+  | 'defenseMelee' | 'defenseRanged'
+  | 'ignoreSoak' | 'ignoreSoakTenfold' | 'immuneToPierceAndSunder' | 'criticalBonusTenfold'
+
+/** Вклад одного качества в пул атаки. */
+export interface QualityContribution {
+  nameEn: string
+  nameRu: string
+  boost: number
+  setback: number
+  difficulty: number
+  advantage: number
+  threat: number
+}
+
+/**
+ * Что качества оружия делают с пулом атаки (GEN-EQP-QUAL-01). Автоматические преимущества и
+ * угрозы кубами не являются — они прибавляются к результату броска.
+ */
+export interface AttackPoolModifiers {
+  boost: number
+  setback: number
+  difficultyIncrease: number
+  automaticAdvantage: number
+  automaticThreat: number
+  sources: QualityContribution[]
+}
+
 /**
  * Профиль атаки оружия (ROT-WPN-01): один экземпляр может бить в ближнем бою и метаться.
  * Урон разложен на тип и значение, поэтому строку «+3» клиент больше не разбирает.
@@ -560,6 +592,8 @@ export interface WeaponAttackProfile {
   qualities: ItemQualityRef[]
   /** Базовый урон, посчитанный сервером под Мощь персонажа; null в справочнике. */
   baseDamage: number | null
+  /** Изменение пула от качеств оружия; null в справочнике, где нет характеристик. */
+  poolModifiers: AttackPoolModifiers | null
 }
 
 /** Влияние предмета на проверки навыков (ROT-ARM-01). */
