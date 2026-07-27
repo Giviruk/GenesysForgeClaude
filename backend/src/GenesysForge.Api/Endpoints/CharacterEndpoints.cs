@@ -170,6 +170,15 @@ public static class CharacterEndpoints
             return Results.NoContent();
         });
 
+        // Метнуть оружие или подобрать его обратно (ROT-WPN-01).
+        group.MapPut("/{id:guid}/items/{itemId:guid}/thrown", async (Guid id, Guid itemId,
+            SetItemThrownRequest req, ClaimsPrincipal user,
+            ICommandHandler<SetItemThrownCommand, Unit> handler, CancellationToken ct) =>
+        {
+            await handler.Handle(new SetItemThrownCommand(user.UserId(), id, itemId, req.IsThrown), ct);
+            return Results.NoContent();
+        });
+
         group.MapPut("/{id:guid}/heroic-ability", async (Guid id, SetHeroicAbilityRequest req, ClaimsPrincipal user,
             ICommandHandler<SetHeroicAbilityCommand, Unit> handler, CancellationToken ct) =>
         {

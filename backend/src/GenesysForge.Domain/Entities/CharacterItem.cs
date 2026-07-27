@@ -10,4 +10,10 @@ public class CharacterItem
     public ItemState State { get; set; } = ItemState.Carried;
     /// <summary>Откуда позиция появилась: покупка, карьерный комплект, стартовый бюджет или импорт.</summary>
     public ItemProvenance Provenance { get; set; } = ItemProvenance.Purchased;
+
+    /// <summary>
+    /// Оружие метнули и ещё не подобрали (ROT-WPN-01, Limited Ammo метательного профиля). Экземпляр
+    /// недоступен для атак и не даёт своих качеств, но не исчезает: он лежит там, куда улетел.
+    /// </summary>
+    public bool IsThrown { get; set; }
 }

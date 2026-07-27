@@ -65,13 +65,17 @@ public class GetReferenceHandler(IAppDbContext db) : IQueryHandler<GetReferenceQ
         var itemDefs = await db.ItemDefs.AsNoTracking()
             .Include(i => i.Qualities).ThenInclude(v => v.QualityDef)
             .Include(i => i.CheckModifiers)
+            .Include(i => i.AttackProfiles)
             .Where(i => i.System == system && !i.Retired
                 && (i.OwnerUserId == null
                     || (i.OwnerUserId == userId
                         && (i.HomebrewPackId == null || visiblePackIds.Contains(i.HomebrewPackId.Value)))))
             .OrderBy(i => i.Kind).ThenBy(i => i.Name)
             .ToListAsync(ct);
-        var items = itemDefs.Select(i => i.ToDto()).ToList();
+        // Качества альтернативных профилей атаки хранятся кодами (ROT-WPN-01) и резолвятся справочником.
+        var qualityDefs = (await db.QualityDefs.AsNoTracking().ToListAsync(ct))
+            .ToDictionary(q => q.Code, StringComparer.Ordinal);
+        var items = itemDefs.Select(i => i.ToDto(qualityDefs)).ToList();
 
         var qualities = await db.QualityDefs.AsNoTracking()
             .Where(q => !q.Retired)

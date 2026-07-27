@@ -100,16 +100,47 @@ public static class SeedData
         // Каталог авторитетен и для книжных чисел предмета: слоты улучшений и штрафы к проверкам
         // (ROT-ARM-01) обязаны доехать до уже засиженной базы, иначе исправление увидят только новые.
         SyncBuiltinByCode(db,
-            db.ItemDefs.Include(x => x.CheckModifiers).Where(x => x.OwnerUserId == null && x.Code != ""), items,
+            db.ItemDefs.Include(x => x.CheckModifiers).Include(x => x.AttackProfiles)
+                .Where(x => x.OwnerUserId == null && x.Code != ""), items,
             (row, def) => Assign(
                 row.DescriptionEn != def.DescriptionEn || row.SafeDescription != def.SafeDescription
                 || row.Retired != def.Retired || row.HardPoints != def.HardPoints
-                || !CheckModifiersMatch(row, def),
+                || row.MeleeDefense != def.MeleeDefense || row.RangedDefense != def.RangedDefense
+                || !CheckModifiersMatch(row, def) || !AttackProfilesMatch(row, def),
                 () =>
                 {
                     row.DescriptionEn = def.DescriptionEn; row.SafeDescription = def.SafeDescription;
                     row.Retired = def.Retired;
                     row.HardPoints = def.HardPoints;
+                    // Колонки защиты у оружия обнулены: щит даёт защиту качествами (ROT-WPN-01),
+                    // и без синхронизации старая строка считалась бы дважды.
+                    row.MeleeDefense = def.MeleeDefense; row.RangedDefense = def.RangedDefense;
+                    if (!AttackProfilesMatch(row, def))
+                    {
+                        db.WeaponAttackProfiles.RemoveRange(row.AttackProfiles);
+                        foreach (var p in def.AttackProfiles)
+                            db.WeaponAttackProfiles.Add(new WeaponAttackProfile
+                            {
+                                Id = Guid.NewGuid(),
+                                ItemDefId = row.Id,
+                                Code = p.Code,
+                                NameRu = p.NameRu,
+                                NameEn = p.NameEn,
+                                IsDefault = p.IsDefault,
+                                SkillName = p.SkillName,
+                                DamageKind = p.DamageKind,
+                                DamageValue = p.DamageValue,
+                                Crit = p.Crit,
+                                Range = p.Range,
+                                CannotAttackEngaged = p.CannotAttackEngaged,
+                                FixedDifficulty = p.FixedDifficulty,
+                                Qualities = [.. p.Qualities.Select(q => new WeaponProfileQuality
+                                {
+                                    Code = q.Code,
+                                    Rating = q.Rating,
+                                })],
+                            });
+                    }
                     if (!CheckModifiersMatch(row, def))
                     {
                         // Через DbSet, а не через навигацию: у строки с уже проставленным Id EF
@@ -582,6 +613,28 @@ public static class SeedData
                 .OrderBy(m => m.SkillName, StringComparer.Ordinal)
                 .ThenBy(m => (int)m.Kind);
         return Key(row).SequenceEqual(Key(def));
+    }
+
+    /// <summary>Совпадают ли профили атаки строки и каталога (ROT-WPN-01), включая качества.</summary>
+    private static bool AttackProfilesMatch(ItemDef row, ItemDef def)
+    {
+        if (row.AttackProfiles.Count != def.AttackProfiles.Count) return false;
+        var rows = row.AttackProfiles.OrderBy(p => p.Code, StringComparer.Ordinal).ToList();
+        var defs = def.AttackProfiles.OrderBy(p => p.Code, StringComparer.Ordinal).ToList();
+        for (var i = 0; i < rows.Count; i++)
+        {
+            var (r, d) = (rows[i], defs[i]);
+            if (r.Code != d.Code || r.NameRu != d.NameRu || r.NameEn != d.NameEn
+                || r.IsDefault != d.IsDefault || r.SkillName != d.SkillName
+                || r.DamageKind != d.DamageKind || r.DamageValue != d.DamageValue
+                || r.Crit != d.Crit || r.Range != d.Range
+                || r.CannotAttackEngaged != d.CannotAttackEngaged || r.FixedDifficulty != d.FixedDifficulty)
+                return false;
+            var rq = r.Qualities.Select(q => (q.Code, q.Rating)).OrderBy(q => q.Code, StringComparer.Ordinal);
+            var dq = d.Qualities.Select(q => (q.Code, q.Rating)).OrderBy(q => q.Code, StringComparer.Ordinal);
+            if (!rq.SequenceEqual(dq)) return false;
+        }
+        return true;
     }
 
     /// <summary>Сравнивает дочерние коллекции архетипа (способности/стартовые навыки) с каталогом по порядку.</summary>

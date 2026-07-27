@@ -56,6 +56,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<QualityDef> QualityDefs => Set<QualityDef>();
     public DbSet<ItemQualityValue> ItemQualityValues => Set<ItemQualityValue>();
     public DbSet<ItemCheckModifier> ItemCheckModifiers => Set<ItemCheckModifier>();
+    public DbSet<WeaponAttackProfile> WeaponAttackProfiles => Set<WeaponAttackProfile>();
     public DbSet<RuleTableEntry> RuleTableEntries => Set<RuleTableEntry>();
 
     protected override void OnModelCreating(ModelBuilder b)
@@ -250,6 +251,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
                 .HasForeignKey(v => v.ItemDefId).OnDelete(DeleteBehavior.Cascade);
             e.HasMany(i => i.CheckModifiers).WithOne()
                 .HasForeignKey(m => m.ItemDefId).OnDelete(DeleteBehavior.Cascade);
+            e.HasMany(i => i.AttackProfiles).WithOne()
+                .HasForeignKey(p => p.ItemDefId).OnDelete(DeleteBehavior.Cascade);
         });
 
         b.Entity<ItemCheckModifier>(e =>
@@ -257,6 +260,17 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             e.HasIndex(m => m.ItemDefId);
             e.Property(m => m.SkillName).HasMaxLength(40);
             e.Property(m => m.Condition).HasMaxLength(200);
+        });
+
+        b.Entity<WeaponAttackProfile>(e =>
+        {
+            e.HasIndex(p => new { p.ItemDefId, p.Code }).IsUnique();
+            e.Property(p => p.Code).HasMaxLength(40);
+            e.Property(p => p.NameRu).HasMaxLength(80);
+            e.Property(p => p.NameEn).HasMaxLength(80);
+            e.Property(p => p.SkillName).HasMaxLength(40);
+            // Качества профиля — коды справочника, поэтому отдельная таблица не нужна.
+            e.OwnsMany(p => p.Qualities, q => q.ToJson());
         });
 
         b.Entity<RuleEffectDef>(e =>

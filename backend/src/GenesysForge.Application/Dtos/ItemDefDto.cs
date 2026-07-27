@@ -13,12 +13,26 @@ public record ItemDefDto(Guid Id, string Name, string NameRu, ItemKind Kind, int
     /// </summary>
     int? HardPoints = null,
     /// <summary>Влияние предмета на проверки навыков (ROT-ARM-01).</summary>
-    IReadOnlyList<ItemCheckModifierDto>? CheckModifiers = null);
+    IReadOnlyList<ItemCheckModifierDto>? CheckModifiers = null,
+    /// <summary>Типизированные профили атаки (ROT-WPN-01); пусто у не-оружия.</summary>
+    IReadOnlyList<WeaponAttackProfileDto>? AttackProfiles = null);
 
 /// <summary>Штраф или послабление предмета к проверкам конкретного навыка/характеристики.</summary>
 public record ItemCheckModifierDto(
     CheckModifierKind Kind, string SkillName, CharacteristicType? Characteristic, int Value,
     bool RequiresWorn, string Condition);
+
+/// <summary>
+/// Профиль атаки оружия (ROT-WPN-01). Урон разложен на тип и значение, поэтому клиент больше не
+/// разбирает строку «+3»; <paramref name="BaseDamage"/> уже посчитан для текущей Мощи персонажа
+/// там, где профиль отдаётся с листа.
+/// </summary>
+public record WeaponAttackProfileDto(
+    string Code, string NameRu, string NameEn, bool IsDefault,
+    string SkillName, DamageKind DamageKind, int DamageValue, int Crit, WeaponRange Range,
+    bool CannotAttackEngaged, int? FixedDifficulty,
+    IReadOnlyList<ItemQualityRefDto> Qualities,
+    int? BaseDamage = null);
 
 /// <summary>Структурное качество предмета: ссылка на справочник (по коду) + рейтинг.</summary>
 public record ItemQualityRefDto(

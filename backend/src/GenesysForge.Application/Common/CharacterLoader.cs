@@ -36,6 +36,9 @@ public static class CharacterLoader
             .Include(c => c.Items).ThenInclude(i => i.ItemDef)
             // Штрафы снаряжения к проверкам нужны и листу, и Game Table (ROT-ARM-01).
             .Include(c => c.Items).ThenInclude(i => i.ItemDef!.CheckModifiers)
+            // Качества предмета участвуют в защите (щит — оружие, ROT-WPN-01), профили — в атаках.
+            .Include(c => c.Items).ThenInclude(i => i.ItemDef!.Qualities).ThenInclude(q => q.QualityDef)
+            .Include(c => c.Items).ThenInclude(i => i.ItemDef!.AttackProfiles)
             .Include(c => c.CriticalInjuries)
             .Include(c => c.HeroicConfiguration).ThenInclude(x => x!.ParagonSkillDef)
             .Include(c => c.SignatureWeapon);

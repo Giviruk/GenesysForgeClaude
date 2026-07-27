@@ -38,3 +38,9 @@ public record ResolveAttackResponse(
 
 /// <summary>Выбор активной брони (ROT-CMB-02). <c>null</c> снимает выбор.</summary>
 public record SetActiveArmorRequest(Guid? CharacterItemId);
+
+/// <summary>
+/// Метнуть оружие или подобрать его обратно (ROT-WPN-01). Экземпляр не исчезает: он недоступен,
+/// пока лежит у цели.
+/// </summary>
+public record SetItemThrownRequest(bool IsThrown);

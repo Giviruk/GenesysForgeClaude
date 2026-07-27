@@ -144,14 +144,29 @@ public class DerivedStatsTests
     }
 
     [Fact]
-    public void Defense_DoesNotStack_TakesBest()
+    public void TwoArmors_DoNotStackTheirDefense_TheBestOneWins()
     {
-        var shield = new ItemInput("Щит", ItemKind.Weapon, ItemState.Equipped, 2, MeleeDefense: 1);
+        // Броня «получает Defense N» и потому конкурирует за максимум (ROT-CMB-03).
+        var leather = new ItemInput("Кожаная", ItemKind.Armor, ItemState.Equipped, 2, MeleeDefense: 1);
+        var plate = new ItemInput("Латы", ItemKind.Armor, ItemState.Equipped, 5, SoakBonus: 2, MeleeDefense: 2,
+            IsActiveArmor: true);
+        var d = SheetCalculator.ComputeDerived(Ch, 10, 10, [], [leather, plate]);
+
+        Assert.Equal(2, d.MeleeDefense); // max(1, 2), не 3
+    }
+
+    [Fact]
+    public void Shield_AddsToArmor_BecauseItIsAWeapon()
+    {
+        // Щит — оружие, его Defensive — надбавка «+N» (ROT-WPN-01): раньше здесь ожидался
+        // максимум, и число на листе было меньше правильного.
+        var shield = new ItemInput("Щит", ItemKind.Weapon, ItemState.Equipped, 2,
+            Qualities: [new ItemQualityInput("defensive", 1)]);
         var armor = new ItemInput("Латы", ItemKind.Armor, ItemState.Equipped, 5, SoakBonus: 2, MeleeDefense: 2,
             IsActiveArmor: true);
         var d = SheetCalculator.ComputeDerived(Ch, 10, 10, [], [shield, armor]);
 
-        Assert.Equal(2, d.MeleeDefense); // max(1, 2), не 3
+        Assert.Equal(3, d.MeleeDefense);
     }
 
     [Fact]
