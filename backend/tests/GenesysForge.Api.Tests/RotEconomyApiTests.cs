@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Http.Json;
 using GenesysForge.Application.Dtos;
 using GenesysForge.Domain;
+using GenesysForge.Domain.Entities;
 
 namespace GenesysForge.Api.Tests;
 
@@ -90,7 +91,7 @@ public class RotEconomyApiTests(ApiFactory factory) : IClassFixture<ApiFactory>
         var afterBuy = await SheetAsync(client, id);
 
         var sell = await client.PostAsJsonAsync($"/api/characters/{id}/items/{itemId}/sell",
-            new SellItemRequest(1, successes), Json.Options);
+            new SellItemRequest(1, NetSuccesses: successes), Json.Options);
         Assert.Equal(HttpStatusCode.NoContent, sell.StatusCode);
 
         var expected = item.Price * percent / 100;
@@ -118,13 +119,121 @@ public class RotEconomyApiTests(ApiFactory factory) : IClassFixture<ApiFactory>
     }
 
     [Fact]
+    public async Task DirectSaleWithoutAnyCheck_PaysTheListedPrice()
+    {
+        var (client, id, item) = await CreateBuyerAsync();
+        var itemId = await BuyAsync(client, id, item.Id);
+        var afterBuy = await SheetAsync(client, id);
+
+        // Ни проверки, ни доли — просто продать предмет.
+        var sell = await client.PostAsJsonAsync($"/api/characters/{id}/items/{itemId}/sell",
+            new SellItemRequest(1), Json.Options);
+        Assert.Equal(HttpStatusCode.NoContent, sell.StatusCode);
+
+        Assert.Equal(afterBuy.Money + item.Price, (await SheetAsync(client, id)).Money);
+    }
+
+    [Theory]
+    [InlineData(25)]
+    [InlineData(50)]
+    [InlineData(100)]
+    public async Task DirectSale_UsesTheChosenFractionOfTheListedPrice(int percent)
+    {
+        var (client, id, item) = await CreateBuyerAsync();
+        var itemId = await BuyAsync(client, id, item.Id);
+        var afterBuy = await SheetAsync(client, id);
+
+        var sell = await client.PostAsJsonAsync($"/api/characters/{id}/items/{itemId}/sell",
+            new SellItemRequest(1, Percent: percent), Json.Options);
+        Assert.Equal(HttpStatusCode.NoContent, sell.StatusCode);
+
+        var expected = item.Price * percent / 100;
+        Assert.Equal(afterBuy.Money + expected, (await SheetAsync(client, id)).Money);
+    }
+
+    [Fact]
+    public async Task DirectSale_StillCannotInventAnAmount()
+    {
+        var (client, id, item) = await CreateBuyerAsync();
+        var itemId = await BuyAsync(client, id, item.Id);
+
+        // Доля выше 100 % отклоняется: сумма всегда привязана к цене каталога.
+        var resp = await client.PostAsJsonAsync($"/api/characters/{id}/items/{itemId}/sell",
+            new SellItemRequest(1, Percent: 5000), Json.Options);
+
+        Assert.Equal(HttpStatusCode.BadRequest, resp.StatusCode);
+        Assert.Equal("trade.percent_invalid",
+            (await resp.Content.ReadFromJsonAsync<ErrorResponse>(Json.Options))!.ReasonCode);
+    }
+
+    [Fact]
+    public async Task NegotiatedPrice_PaysExactlyWhatWasAgreed()
+    {
+        var (client, id, item) = await CreateBuyerAsync();
+        var itemId = await BuyAsync(client, id, item.Id, quantity: 2);
+        var afterBuy = await SheetAsync(client, id);
+
+        var sell = await client.PostAsJsonAsync($"/api/characters/{id}/items/{itemId}/sell",
+            new SellItemRequest(2, PriceOverride: 500, OverrideReason: "сделка с гильдией"), Json.Options);
+        Assert.Equal(HttpStatusCode.NoContent, sell.StatusCode);
+
+        // Договорная цена — это цена за штуку, доля к ней не применяется.
+        Assert.Equal(afterBuy.Money + 1000, (await SheetAsync(client, id)).Money);
+    }
+
+    [Fact]
+    public async Task NegotiatedPriceWithoutAReason_IsRejected()
+    {
+        var (client, id, item) = await CreateBuyerAsync();
+        var itemId = await BuyAsync(client, id, item.Id);
+        var afterBuy = await SheetAsync(client, id);
+
+        var resp = await client.PostAsJsonAsync($"/api/characters/{id}/items/{itemId}/sell",
+            new SellItemRequest(1, PriceOverride: 500), Json.Options);
+
+        Assert.Equal(HttpStatusCode.BadRequest, resp.StatusCode);
+        Assert.Equal("trade.override_reason_required",
+            (await resp.Content.ReadFromJsonAsync<ErrorResponse>(Json.Options))!.ReasonCode);
+        Assert.Equal(afterBuy.Money, (await SheetAsync(client, id)).Money);
+    }
+
+    [Fact]
+    public async Task NegotiatedPrice_IsRecordedInHistoryWithItsReason()
+    {
+        var (client, id, item) = await CreateBuyerAsync();
+        var itemId = await BuyAsync(client, id, item.Id);
+
+        await client.PostAsJsonAsync($"/api/characters/{id}/items/{itemId}/sell",
+            new SellItemRequest(1, PriceOverride: 300, OverrideReason: "выкуп у коллекционера"), Json.Options);
+
+        var history = await client.GetFromJsonAsync<List<CharacterAuditEntryDto>>(
+            $"/api/characters/{id}/audit", Json.Options);
+
+        Assert.Contains(history!, e => e.Action == CharacterAuditAction.ItemSold && e.Summary.Contains("300"));
+    }
+
+    [Fact]
+    public async Task BothSaleModesAtOnce_AreRejected()
+    {
+        var (client, id, item) = await CreateBuyerAsync();
+        var itemId = await BuyAsync(client, id, item.Id);
+
+        var resp = await client.PostAsJsonAsync($"/api/characters/{id}/items/{itemId}/sell",
+            new SellItemRequest(1, NetSuccesses: 2, Percent: 100), Json.Options);
+
+        Assert.Equal(HttpStatusCode.BadRequest, resp.StatusCode);
+        Assert.Equal("trade.sale_mode_ambiguous",
+            (await resp.Content.ReadFromJsonAsync<ErrorResponse>(Json.Options))!.ReasonCode);
+    }
+
+    [Fact]
     public async Task ConditionMultiplierWithoutAReason_IsRejected()
     {
         var (client, id, item) = await CreateBuyerAsync();
         var itemId = await BuyAsync(client, id, item.Id);
 
         var sell = await client.PostAsJsonAsync($"/api/characters/{id}/items/{itemId}/sell",
-            new SellItemRequest(1, 3, ConditionMultiplier: 0.5), Json.Options);
+            new SellItemRequest(1, NetSuccesses: 3, ConditionMultiplier: 0.5), Json.Options);
 
         Assert.Equal(HttpStatusCode.BadRequest, sell.StatusCode);
         Assert.Equal("trade.condition_reason_required",

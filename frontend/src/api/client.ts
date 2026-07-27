@@ -234,11 +234,21 @@ export const api = {
     request<{ id: string }>('POST', `/api/characters/${id}/items`, { itemDefId, quantity, state, ...opts }),
   updateItem: (id: string, itemId: string, patch: { state?: ItemState; quantity?: number }) =>
     request<void>('PATCH', `/api/characters/${id}/items/${itemId}`, patch),
-  /** Продажа: выручку считает сервер по цене каталога и нетто-успехам проверки (ROT-ECO-01). */
-  sellItem: (id: string, itemId: string, quantity: number, netSuccesses: number,
-    opts?: { conditionMultiplier?: number; conditionReason?: string }) =>
-    request<void>('POST', `/api/characters/${id}/items/${itemId}/sell`,
-      { quantity, netSuccesses, ...opts }),
+  /**
+   * Продажа: сумму всегда считает сервер. Один из способов — `netSuccesses` (доля по правилу),
+   * `percent` (доля цены каталога) или `priceOverride` с `overrideReason` (договорная цена за
+   * штуку). Без всего — полная цена каталога.
+   */
+  sellItem: (id: string, itemId: string, quantity: number,
+    opts?: {
+      netSuccesses?: number
+      percent?: number
+      priceOverride?: number
+      overrideReason?: string
+      conditionMultiplier?: number
+      conditionReason?: string
+    }) =>
+    request<void>('POST', `/api/characters/${id}/items/${itemId}/sell`, { quantity, ...opts }),
   removeItem: (id: string, itemId: string) =>
     request<void>('DELETE', `/api/characters/${id}/items/${itemId}`),
 
