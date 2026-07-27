@@ -38,7 +38,12 @@ public static class Mappers
         TalentChoiceSchemas.For(t).CountForFirstRank,
         TalentChoiceSchemas.For(t).CountForNextRank);
 
-    public static ItemDefDto ToDto(this ItemDef i) => new(i.Id, i.Name, i.NameRu, i.Kind, i.Encumbrance, i.SoakBonus,
+    /// <param name="qualitiesByCode">
+    /// Справочник качеств для альтернативных профилей атаки (ROT-WPN-01): они хранятся кодами.
+    /// Без справочника вместо названия останется код — выдумывать имя нельзя.
+    /// </param>
+    public static ItemDefDto ToDto(this ItemDef i, IReadOnlyDictionary<string, QualityDef>? qualitiesByCode = null)
+        => new(i.Id, i.Name, i.NameRu, i.Kind, i.Encumbrance, i.SoakBonus,
         i.MeleeDefense, i.RangedDefense, i.EncumbranceThresholdBonus,
         i.Description, i.SafeDescription, i.Source, i.Price, i.Rarity,
         i.SkillName, i.Damage, i.Crit, i.RangeBand, i.Properties, i.OwnerUserId != null,
@@ -50,7 +55,42 @@ public static class Mappers
             .ToList(), i.DescriptionEn,
         i.HardPoints,
         [.. i.CheckModifiers.Select(m => new ItemCheckModifierDto(
-            m.Kind, m.SkillName, m.Characteristic, m.Value, m.RequiresWorn, m.Condition))]);
+            m.Kind, m.SkillName, m.Characteristic, m.Value, m.RequiresWorn, m.Condition))],
+        i.AttackProfileDtos(qualitiesByCode: qualitiesByCode));
+
+    /// <summary>
+    /// Профили атаки предмета (ROT-WPN-01). Профиль по умолчанию показывает качества самого
+    /// предмета — в базе они не дублируются; у альтернативных профилей качества свои.
+    /// </summary>
+    /// <param name="brawn">Мощь персонажа: с ней считается базовый урон. <c>null</c> — справочник.</param>
+    /// <param name="qualitiesByCode">Справочник качеств для расшифровки кодов альтернативных профилей.</param>
+    public static List<WeaponAttackProfileDto> AttackProfileDtos(
+        this ItemDef i, int? brawn = null, IReadOnlyDictionary<string, QualityDef>? qualitiesByCode = null)
+    {
+        var itemQualities = i.Qualities
+            .Where(q => q.QualityDef != null)
+            .Select(q => new ItemQualityRefDto(
+                q.QualityDef!.Code, q.QualityDef.NameRu, q.QualityDef.NameEn, q.Rating,
+                q.QualityDef.HasRating, q.QualityDef.IsActive, q.QualityDef.ActivationCost))
+            .ToList();
+
+        return [.. i.AttackProfiles
+            .OrderByDescending(p => p.IsDefault).ThenBy(p => p.Code, StringComparer.Ordinal)
+            .Select(p => new WeaponAttackProfileDto(
+                p.Code, p.NameRu, p.NameEn, p.IsDefault, p.SkillName, p.DamageKind, p.DamageValue,
+                p.Crit, p.Range, p.CannotAttackEngaged, p.FixedDifficulty,
+                p.IsDefault ? itemQualities : [.. p.Qualities.Select(q => QualityRef(q, qualitiesByCode))],
+                brawn is { } b ? WeaponProfileRules.BaseDamage(p.DamageKind, p.DamageValue, b) : null))];
+    }
+
+    /// <summary>Код качества → запись справочника; без справочника остаётся сам код, а не выдумка.</summary>
+    private static ItemQualityRefDto QualityRef(
+        WeaponProfileQuality q, IReadOnlyDictionary<string, QualityDef>? byCode) =>
+        byCode is not null && byCode.TryGetValue(q.Code, out var def)
+            ? new ItemQualityRefDto(def.Code, def.NameRu, def.NameEn,
+                q.Rating > 0 ? q.Rating : null, def.HasRating, def.IsActive, def.ActivationCost)
+            : new ItemQualityRefDto(q.Code, q.Code, q.Code,
+                q.Rating > 0 ? q.Rating : null, q.Rating > 0, false, "");
 
     public static QualityDto ToDto(this QualityDef q) => new(q.Id, q.Code, q.NameEn, q.NameRu, q.Kind,
         q.IsActive, q.HasRating, q.ActivationCost, q.Category, q.Description, q.SafeDescription, q.Source, q.DescriptionEn);

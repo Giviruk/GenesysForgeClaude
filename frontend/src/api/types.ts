@@ -125,6 +125,8 @@ export interface ItemDef {
   hardPoints: number | null
   /** Влияние предмета на проверки навыков (ROT-ARM-01). */
   checkModifiers: ItemCheckModifier[]
+  /** Типизированные профили атаки (ROT-WPN-01); пусто у не-оружия. */
+  attackProfiles: WeaponAttackProfile[]
 }
 
 /** Структурное качество предмета: ссылка на справочник по коду + рейтинг. */
@@ -531,6 +533,35 @@ export interface CheckModifierSource {
   condition: string
 }
 
+/** Как считается урон профиля: прибавка к Мощи или итоговое число (ROT-WPN-01). */
+export type DamageKind = 'brawnPlus' | 'fixed'
+
+/** Дистанция профиля атаки. */
+export type WeaponRange = 'engaged' | 'short' | 'medium' | 'long' | 'extreme'
+
+/**
+ * Профиль атаки оружия (ROT-WPN-01): один экземпляр может бить в ближнем бою и метаться.
+ * Урон разложен на тип и значение, поэтому строку «+3» клиент больше не разбирает.
+ */
+export interface WeaponAttackProfile {
+  code: string
+  nameRu: string
+  nameEn: string
+  isDefault: boolean
+  skillName: string
+  damageKind: DamageKind
+  damageValue: number
+  crit: number
+  range: WeaponRange
+  /** Оружием нельзя атаковать вплотную (пика). */
+  cannotAttackEngaged: boolean
+  /** Сложность, заданную самим оружием, роллер подставляет сам. */
+  fixedDifficulty: number | null
+  qualities: ItemQualityRef[]
+  /** Базовый урон, посчитанный сервером под Мощь персонажа; null в справочнике. */
+  baseDamage: number | null
+}
+
 /** Влияние предмета на проверки навыков (ROT-ARM-01). */
 export interface ItemCheckModifier {
   kind: 'AddSetback' | 'RemoveSetback'
@@ -600,6 +631,10 @@ export interface SheetItem {
   hardPoints: number | null
   /** Влияние предмета на проверки навыков: штраф Скрытности у тяжёлой брони и т. п. */
   checkModifiers: ItemCheckModifier[]
+  /** Профили атаки с уже посчитанным базовым уроном (ROT-WPN-01). */
+  attackProfiles: WeaponAttackProfile[]
+  /** Оружие метнули и не подобрали: атаковать нельзя, качеств и веса не даёт. */
+  isThrown: boolean
 }
 
 /** Один источник защиты для объяснения итога (ROT-CMB-03). */

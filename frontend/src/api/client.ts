@@ -188,6 +188,9 @@ export const api = {
     request<void>('PUT', `/api/characters/${id}/heroic-ability`, { heroicAbilityId }),
   setActiveArmor: (id: string, characterItemId: string | null) =>
     request<void>('PUT', `/api/characters/${id}/active-armor`, { characterItemId }),
+  /** Метнуть оружие или подобрать его обратно (ROT-WPN-01). */
+  setItemThrown: (id: string, itemId: string, isThrown: boolean) =>
+    request<void>('PUT', `/api/characters/${id}/items/${itemId}/thrown`, { isThrown }),
   setHeroicIdentity: (id: string, body: {
     customName: string
     originMode?: HeroicOriginMode | null

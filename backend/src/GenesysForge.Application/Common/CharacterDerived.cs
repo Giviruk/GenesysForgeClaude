@@ -36,7 +36,11 @@ public static class CharacterDerived
             i.ItemDef!.Name, i.ItemDef.Kind, i.State, i.ItemDef.Encumbrance, i.Quantity,
             i.ItemDef.SoakBonus, i.ItemDef.MeleeDefense, i.ItemDef.RangedDefense,
             i.ItemDef.EncumbranceThresholdBonus,
-            i.Id == c.ActiveArmorCharacterItemId))
+            i.Id == c.ActiveArmorCharacterItemId,
+            [.. i.ItemDef.Qualities
+                .Where(q => q.QualityDef is not null)
+                .Select(q => new ItemQualityInput(q.QualityDef!.Code, q.Rating ?? 0))],
+            i.IsThrown))
         .ToList();
 
     /// <summary>

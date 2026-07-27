@@ -61,6 +61,10 @@ public static class SheetBuilder
 
         var configuration = await BuildConfigurationAsync(db, c, systemSkills, ct);
 
+        // Качества альтернативных профилей хранятся кодами (ROT-WPN-01) — справочник резолвится один раз.
+        var qualitiesByCode = (await db.QualityDefs.AsNoTracking().ToListAsync(ct))
+            .ToDictionary(q => q.Code, StringComparer.Ordinal);
+
         return new CharacterSheetDto(
             c.Id, c.Name, c.System,
             c.Archetype.ToDto(),
@@ -120,7 +124,9 @@ public static class SheetBuilder
                     i.Id == c.ActiveArmorCharacterItemId,
                     i.ItemDef.HardPoints,
                     [.. i.ItemDef.CheckModifiers.Select(m => new ItemCheckModifierDto(
-                        m.Kind, m.SkillName, m.Characteristic, m.Value, m.RequiresWorn, m.Condition))]))
+                        m.Kind, m.SkillName, m.Characteristic, m.Value, m.RequiresWorn, m.Condition))],
+                    i.ItemDef.AttackProfileDtos(ch.Brawn, qualitiesByCode),
+                    i.IsThrown))
                 .ToList(),
             c.Desire, c.Fear, c.Strength, c.Flaw, c.Background,
             c.CriticalInjuries

@@ -15,7 +15,7 @@ function itemDef(p: Partial<ItemDef> & Pick<ItemDef, 'name' | 'nameRu' | 'kind'>
     id: p.name, encumbrance: 0, soakBonus: 0, meleeDefense: 0, rangedDefense: 0,
     encumbranceThresholdBonus: 0, description: '', safeDescription: '', source: '', price: 0,
     rarity: 0, skillName: '', damage: '', crit: '', rangeBand: '', properties: '', isCustom: false,
-    qualities: [], hardPoints: null, checkModifiers: [], ...p,
+    qualities: [], hardPoints: null, checkModifiers: [], attackProfiles: [], ...p,
   }
 }
 

@@ -56,6 +56,7 @@ public interface IAppDbContext
     DbSet<QualityDef> QualityDefs { get; }
     DbSet<ItemQualityValue> ItemQualityValues { get; }
     DbSet<ItemCheckModifier> ItemCheckModifiers { get; }
+    DbSet<WeaponAttackProfile> WeaponAttackProfiles { get; }
     DbSet<RuleTableEntry> RuleTableEntries { get; }
 
     Task<int> SaveChangesAsync(CancellationToken ct = default);

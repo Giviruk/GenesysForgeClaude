@@ -493,7 +493,7 @@
   "setting": "Fantasy",
   "enc": 5,
   "soak": 0,
-  "def": 1,
+  "def": 0,
   "rdef": 0,
   "encBonus": 0,
   "price": 250,
@@ -516,8 +516,8 @@
   "setting": "Fantasy",
   "enc": 3,
   "soak": 0,
-  "def": 2,
-  "rdef": 3,
+  "def": 0,
+  "rdef": 0,
   "encBonus": 0,
   "price": 280,
   "rarity": 3,
@@ -567,14 +567,14 @@
   "encBonus": 0,
   "price": 600,
   "rarity": 3,
-  "desc": "Оглушающее 1, Громоздкое 4, Неточное 1, Нокдаун",
+  "desc": "Ошеломление 1, Громоздкое 4, Неточное 1, Нокдаун",
   "descEn": "Stun 1, Cumbersome 4, Inaccurate 1, Knockdown",
   "source": "Realms of Terrinoth, с. 95",
   "skillEn": "Melee (Heavy)",
   "damage": "+5",
   "crit": "4",
   "rangeRu": "Вплотную",
-  "properties": "Оглушающее 1, Громоздкое 4, Неточное 1, Нокдаун",
+  "properties": "Ошеломление 1, Громоздкое 4, Неточное 1, Нокдаун",
   "hp": 2
  },
  {
@@ -585,8 +585,8 @@
   "setting": "Fantasy",
   "enc": 2,
   "soak": 0,
-  "def": 2,
-  "rdef": 2,
+  "def": 0,
+  "rdef": 0,
   "encBonus": 0,
   "price": 160,
   "rarity": 2,
@@ -631,7 +631,7 @@
   "setting": "Fantasy",
   "enc": 3,
   "soak": 0,
-  "def": 1,
+  "def": 0,
   "rdef": 0,
   "encBonus": 0,
   "price": 300,
@@ -690,7 +690,29 @@
   "crit": "3",
   "rangeRu": "Вплотную",
   "properties": "Точное 1",
-  "hp": 1
+  "hp": 1,
+  "profiles": [
+   {
+    "code": "thrown",
+    "nameRu": "в метании",
+    "nameEn": "thrown",
+    "skillEn": "Ranged",
+    "damageKind": "BrawnPlus",
+    "damage": 2,
+    "crit": 3,
+    "range": "Short",
+    "qualities": [
+     {
+      "code": "accurate",
+      "rating": 1
+     },
+     {
+      "code": "limited-ammo",
+      "rating": 1
+     }
+    ]
+   }
+  ]
  },
  {
   "code": "spear",
@@ -723,7 +745,7 @@
   "setting": "Fantasy",
   "enc": 2,
   "soak": 0,
-  "def": 1,
+  "def": 0,
   "rdef": 0,
   "encBonus": 0,
   "price": 90,
@@ -736,7 +758,29 @@
   "crit": "4",
   "rangeRu": "Вплотную",
   "properties": "Точное 1, Оборонительное 1",
-  "hp": 1
+  "hp": 1,
+  "profiles": [
+   {
+    "code": "thrown",
+    "nameRu": "в метании",
+    "nameEn": "thrown",
+    "skillEn": "Ranged",
+    "damageKind": "BrawnPlus",
+    "damage": 2,
+    "crit": 4,
+    "range": "Short",
+    "qualities": [
+     {
+      "code": "accurate",
+      "rating": 1
+     },
+     {
+      "code": "limited-ammo",
+      "rating": 1
+     }
+    ]
+   }
+  ]
  },
  {
   "code": "sword",
@@ -746,7 +790,7 @@
   "setting": "Fantasy",
   "enc": 1,
   "soak": 0,
-  "def": 1,
+  "def": 0,
   "rdef": 0,
   "encBonus": 0,
   "price": 200,
@@ -782,7 +826,9 @@
   "crit": "4",
   "rangeRu": "Короткая",
   "properties": "Подготовка 1",
-  "hp": 2
+  "hp": 2,
+  "cannotEngage": true,
+  "difficulty": 2
  },
  {
   "code": "staff",
@@ -792,7 +838,7 @@
   "setting": "Fantasy",
   "enc": 2,
   "soak": 0,
-  "def": 1,
+  "def": 0,
   "rdef": 0,
   "encBonus": 0,
   "price": 40,
@@ -907,8 +953,8 @@
   "setting": "Fantasy",
   "enc": 1,
   "soak": 0,
-  "def": 1,
-  "rdef": 1,
+  "def": 0,
+  "rdef": 0,
   "encBonus": 0,
   "price": 80,
   "rarity": 1,
@@ -1012,7 +1058,29 @@
   "crit": "3",
   "rangeRu": "Короткая",
   "properties": "Неточное 1, Ограниченный боезапас 1, Высококритичное 1",
-  "hp": 1
+  "hp": 1,
+  "profiles": [
+   {
+    "code": "held",
+    "nameRu": "в руке",
+    "nameEn": "held",
+    "skillEn": "Melee (Light)",
+    "damageKind": "BrawnPlus",
+    "damage": 2,
+    "crit": 3,
+    "range": "Engaged",
+    "qualities": [
+     {
+      "code": "inaccurate",
+      "rating": 1
+     },
+     {
+      "code": "vicious",
+      "rating": 1
+     }
+    ]
+   }
+  ]
  },
  {
   "code": "crossbow-repeating",
@@ -1990,7 +2058,7 @@
   "setting": "Fantasy",
   "enc": 3,
   "soak": 0,
-  "def": 1,
+  "def": 0,
   "rdef": 0,
   "encBonus": 0,
   "price": 0,
@@ -2046,7 +2114,7 @@
   "setting": "Fantasy",
   "enc": 0,
   "soak": 0,
-  "def": 2,
+  "def": 0,
   "rdef": 0,
   "encBonus": 0,
   "price": 0,
@@ -2068,7 +2136,7 @@
   "setting": "Fantasy",
   "enc": 2,
   "soak": 0,
-  "def": 1,
+  "def": 0,
   "rdef": 0,
   "encBonus": 0,
   "price": 0,
@@ -2158,8 +2226,8 @@
   "setting": "Fantasy",
   "enc": 2,
   "soak": 0,
-  "def": 3,
-  "rdef": 3,
+  "def": 0,
+  "rdef": 0,
   "encBonus": 0,
   "price": 0,
   "rarity": 9,

@@ -16,4 +16,14 @@ public record CharacterItemDto(Guid Id, Guid ItemDefId, string Name, string Name
     /// </summary>
     int? HardPoints = null,
     /// <summary>Влияние предмета на проверки навыков: штраф Скрытности у тяжёлой брони и т. п.</summary>
-    IReadOnlyList<ItemCheckModifierDto>? CheckModifiers = null);
+    IReadOnlyList<ItemCheckModifierDto>? CheckModifiers = null,
+    /// <summary>
+    /// Профили атаки с уже посчитанным для этого персонажа базовым уроном (ROT-WPN-01):
+    /// основной и альтернативные (метание, в руке).
+    /// </summary>
+    IReadOnlyList<WeaponAttackProfileDto>? AttackProfiles = null,
+    /// <summary>
+    /// Оружие метнули и не подобрали: атаковать им нельзя, качеств и веса оно не даёт,
+    /// но и не исчезает.
+    /// </summary>
+    bool IsThrown = false);

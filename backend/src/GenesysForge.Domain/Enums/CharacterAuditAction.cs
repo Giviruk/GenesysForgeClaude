@@ -34,4 +34,7 @@ public enum CharacterAuditAction
 
     /// <summary>Выбрана или снята активная броня (ROT-CMB-02).</summary>
     ActiveArmorChanged,
+
+    /// <summary>Метательное оружие брошено или подобрано (ROT-WPN-01).</summary>
+    ItemThrownChanged,
 }

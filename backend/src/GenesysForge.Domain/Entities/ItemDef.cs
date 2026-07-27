@@ -40,6 +40,12 @@ public class ItemDef : IContentDef
     /// </summary>
     public List<ItemCheckModifier> CheckModifiers { get; set; } = [];
 
+    /// <summary>
+    /// Типизированные профили атаки (ROT-WPN-01): основной и альтернативные (метание, в руке).
+    /// Пусто — у записи структурного профиля нет, числа читаются из строковых полей выше.
+    /// </summary>
+    public List<WeaponAttackProfile> AttackProfiles { get; set; } = [];
+
     // ── Боевые характеристики (заполнены только у оружия) ──
     /// <summary>Английское имя боевого навыка для броска (например, «Melee (Light)», «Ranged»). У не-оружия пусто.</summary>
     public string SkillName { get; set; } = "";

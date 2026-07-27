@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { api } from '../api/client'
 import type {
   CharacterSheet, ItemCheckModifier, ItemDef, ItemKind, ItemState, Reference, SheetItem,
+  WeaponAttackProfile, WeaponRange,
 } from '../api/types'
 import {
   CHARACTERISTIC_LABELS, CURRENCY_LABEL, ITEM_KIND_LABELS, ITEM_STATE_LABELS, localizedDescription, localizedName,
@@ -325,7 +326,10 @@ function InventoryCard({ item, sheet, skillNames, run, reference, sellOpen, onTo
         </div>
       </div>
 
-      {item.kind === 'weapon' && <WeaponLine item={item} sheet={sheet} skill={skill} skillLabel={skillLabel} reference={reference} />}
+      {item.kind === 'weapon' && (
+        <WeaponLine item={item} sheet={sheet} skill={skill} skillLabel={skillLabel}
+          reference={reference} run={run} />
+      )}
 
       {item.kind !== 'weapon' && item.properties && (
         <PropertyTags properties={item.properties} className="small-text" />
@@ -405,48 +409,139 @@ function InventoryCard({ item, sheet, skillNames, run, reference, sellOpen, onTo
   )
 }
 
-function WeaponLine({ item, sheet, skill, skillLabel, reference }: {
-  item: SheetItem; sheet: CharacterSheet; skill: CharacterSheet['skills'][number] | null; skillLabel: string; reference: Reference
+const RANGE_LABELS: Record<WeaponRange, string> = t({
+  engaged: 'Вплотную', short: 'Короткая', medium: 'Средняя', long: 'Длинная', extreme: 'Экстремальная',
+}, {
+  engaged: 'Engaged', short: 'Short', medium: 'Medium', long: 'Long', extreme: 'Extreme',
+})
+
+const DIFFICULTY_LABELS: Record<number, string> = t(
+  { 0: 'Простая', 1: 'Лёгкая', 2: 'Средняя', 3: 'Тяжёлая', 4: 'Устрашающая', 5: 'Немыслимая' },
+  { 0: 'Simple', 1: 'Easy', 2: 'Average', 3: 'Hard', 4: 'Daunting', 5: 'Formidable' },
+)
+
+/** Подпись профиля: у основного её нет, у альтернативных — «в метании», «в руке». */
+function profileLabel(p: WeaponAttackProfile): string {
+  if (p.isDefault) return t('основной', 'main')
+  return t(p.nameRu || p.nameEn, p.nameEn || p.nameRu)
+}
+
+/**
+ * Строка оружия (ROT-WPN-01). Один экземпляр может иметь несколько профилей — кинжал бьют
+ * и метают, — поэтому урон, навык, крит и дистанция берутся из выбранного профиля, а не из
+ * общих полей предмета. Базовый урон считает сервер: клиент строку «+3» больше не разбирает.
+ */
+function WeaponLine({ item, sheet, skill, skillLabel, reference, run }: {
+  item: SheetItem; sheet: CharacterSheet; skill: CharacterSheet['skills'][number] | null
+  skillLabel: string; reference: Reference; run: Run
 }) {
   const { openRoller } = useDiceRoller()
   const itemLabel = localizedName(item)
-  // Урон «+N» в ближнем бою — это прибавка к Мощи; абсолютное число — итоговый урон оружия.
-  const dmg = item.damage.trim()
-  let damageText = dmg
-  if (dmg.startsWith('+')) {
-    const bonus = Number(dmg.slice(1))
-    if (Number.isFinite(bonus)) damageText = `${sheet.characteristics.brawn + bonus} ${t(`(Мощь ${dmg})`, `(Brawn ${dmg})`)}`
-  }
+  const profiles = item.attackProfiles ?? []
+  const [profileCode, setProfileCode] = useState(profiles.find(p => p.isDefault)?.code ?? '')
+  const profile = profiles.find(p => p.code === profileCode) ?? profiles[0] ?? null
+
+  // Навык броска берётся из профиля: метательный кинжал бросается Дальним боем, а не Ближним.
+  const profileSkill = profile
+    ? sheet.skills.find(s => s.name === profile.skillName) ?? null
+    : skill
+  const profileSkillLabel = profileSkill ? localizedName(profileSkill) : profile?.skillName ?? skillLabel
+
+  const damageText = profile
+    ? `${profile.baseDamage ?? profile.damageValue}${profile.damageKind === 'brawnPlus'
+      ? ` ${t(`(Мощь +${profile.damageValue})`, `(Brawn +${profile.damageValue})`)}` : ''}`
+    : item.damage
+  const critText = profile ? String(profile.crit) : item.crit
+  const rangeText = profile ? RANGE_LABELS[profile.range] : item.rangeBand
+  const qualities = profile && !profile.isDefault
+    ? profile.qualities.map(q => `${t(q.nameRu, q.nameEn)}${q.rating ? ` ${q.rating}` : ''}`).join(', ')
+    : item.properties
+
   return (
     <div className="weapon-line">
-      <span className="weapon-stat">{t('Урон', 'Damage')} <strong>{damageText || '—'}</strong></span>
-      {item.crit && <span className="weapon-stat">{t('Крит', 'Crit')} <strong>{item.crit}</strong></span>}
-      {item.rangeBand && <span className="weapon-stat">{item.rangeBand}</span>}
-      {skill ? (
-        <span className="weapon-pool" title={t(`Бросок: ${skillLabel}`, `Roll: ${skillLabel}`)}>
-          <DicePoolView pool={skill.pool} setback={skill.setbackDice} />
-          {' '}<span className="muted small-text">{skillLabel}</span>
+      {profiles.length > 1 && (
+        <span className="weapon-profiles no-print">
+          {profiles.map(p => (
+            <button key={p.code} type="button"
+              className={`tiny${p.code === profile?.code ? ' active' : ''}`}
+              onClick={() => setProfileCode(p.code)}>
+              {profileLabel(p)}
+            </button>
+          ))}
         </span>
-      ) : item.skillName ? (
-        <span className="muted small-text">{t(`навык ${skillLabel} не освоен`, `skill ${skillLabel} not trained`)}</span>
+      )}
+      <span className="weapon-stat">{t('Урон', 'Damage')} <strong>{damageText || '—'}</strong></span>
+      {critText && <span className="weapon-stat">{t('Крит', 'Crit')} <strong>{critText}</strong></span>}
+      {rangeText && <span className="weapon-stat">{rangeText}</span>}
+      {/* Оружие, которое не достаёт вплотную и задаёт свою сложность (пика). */}
+      {profile?.cannotAttackEngaged && (
+        <span className="weapon-stat warn" title={t('Пика бьёт только на короткой дистанции.',
+          'A pike only reaches at short range.')}>
+          {t('не бьёт вплотную', 'not engaged')}
+        </span>
+      )}
+      {profile?.fixedDifficulty != null && (
+        <span className="weapon-stat">
+          {t('Сложность', 'Difficulty')} <strong>{DIFFICULTY_LABELS[profile.fixedDifficulty] ?? profile.fixedDifficulty}</strong>
+        </span>
+      )}
+      {profileSkill ? (
+        <span className="weapon-pool" title={t(`Бросок: ${profileSkillLabel}`, `Roll: ${profileSkillLabel}`)}>
+          <DicePoolView pool={profileSkill.pool} setback={profileSkill.setbackDice} />
+          {' '}<span className="muted small-text">{profileSkillLabel}</span>
+        </span>
+      ) : profileSkillLabel ? (
+        <span className="muted small-text">
+          {t(`навык ${profileSkillLabel} не освоен`, `skill ${profileSkillLabel} not trained`)}
+        </span>
       ) : null}
-      {item.properties && <PropertyTags properties={item.properties} className="weapon-props" />}
-      <button type="button" className="small no-print" onClick={() => openRoller({
-        kind: 'combat',
-        title: itemLabel,
-        skillLabel: skill ? skillLabel : null,
-        // Перегруз мешает и в бою (ROT-EQP-01), поэтому помехи навыка едут в атаку так же,
-        // как в обычную проверку.
-        basePool: skill
-          ? { ability: skill.pool.ability, proficiency: skill.pool.proficiency, setback: skill.setbackDice }
-          : {},
-        damage: item.damage,
-        brawn: sheet.characteristics.brawn,
-        crit: item.crit,
-        rangeBand: item.rangeBand,
-        qualities: qualitiesFromProperties(item.properties, reference),
-      })}>{t('🎲 Атаковать', '🎲 Attack')}</button>
+      {qualities && <PropertyTags properties={qualities} className="weapon-props" />}
 
+      {item.isThrown ? (
+        <>
+          <span className="weapon-stat warn">{t('метнуто', 'thrown')}</span>
+          <button type="button" className="small no-print"
+            title={t('Оружие лежит у цели — подобрать его', 'The weapon lies by the target — pick it up')}
+            onClick={() => run(() => api.setItemThrown(sheet.id, item.id, false))}>
+            {t('Подобрать', 'Pick up')}
+          </button>
+        </>
+      ) : (
+        <>
+          <button type="button" className="small no-print" onClick={() => openRoller({
+            kind: 'combat',
+            title: profile && !profile.isDefault ? `${itemLabel} — ${profileLabel(profile)}` : itemLabel,
+            skillLabel: profileSkill ? profileSkillLabel : null,
+            // Перегруз мешает и в бою (ROT-EQP-01), а сложность, заданную оружием, подставляем
+            // сразу: пику иначе бросали бы без её Средней сложности.
+            basePool: {
+              ...(profileSkill
+                ? {
+                  ability: profileSkill.pool.ability,
+                  proficiency: profileSkill.pool.proficiency,
+                  setback: profileSkill.setbackDice,
+                }
+                : {}),
+              ...(profile?.fixedDifficulty != null ? { difficulty: profile.fixedDifficulty } : {}),
+            },
+            // Урон уже посчитан сервером под Мощь персонажа — клиенту его разбирать не нужно.
+            damage: profile ? String(profile.baseDamage ?? profile.damageValue) : item.damage,
+            brawn: sheet.characteristics.brawn,
+            crit: critText,
+            rangeBand: rangeText,
+            qualities: qualitiesFromProperties(qualities, reference),
+          })}>{t('🎲 Атаковать', '🎲 Attack')}</button>
+          {/* Метательный профиль расходует сам экземпляр: оружие остаётся у цели (ROT-WPN-01). */}
+          {profiles.some(p => p.qualities.some(q => q.code === 'limited-ammo')) && (
+            <button type="button" className="small no-print"
+              title={t('Отметить, что оружие метнули и оно осталось у цели',
+                'Mark the weapon as thrown and left by the target')}
+              onClick={() => run(() => api.setItemThrown(sheet.id, item.id, true))}>
+              {t('Метнуть', 'Throw')}
+            </button>
+          )}
+        </>
+      )}
     </div>
   )
 }

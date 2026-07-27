@@ -23,7 +23,25 @@ public static class ItemCatalog
         /// <summary>Слоты улучшений по таблице книги; null — книжного значения у записи нет.</summary>
         int? Hp = null,
         /// <summary>Влияние предмета на проверки навыков (ROT-ARM-01).</summary>
-        ModifierEntry[]? Modifiers = null);
+        ModifierEntry[]? Modifiers = null,
+        /// <summary>
+        /// Альтернативные профили атаки (ROT-WPN-01): метание, взятие в руку. Профиль по умолчанию
+        /// не описывается — он строится из колонок таблицы.
+        /// </summary>
+        ProfileEntry[]? Profiles = null,
+        /// <summary>Оружием нельзя атаковать вплотную (пика).</summary>
+        bool CannotEngage = false,
+        /// <summary>Сложность проверки, заданная самим оружием (пика — 2).</summary>
+        int? Difficulty = null);
+
+    /// <param name="DamageKind">«BrawnPlus» или «Fixed».</param>
+    /// <param name="Range">Дистанция: Engaged, Short, Medium, Long, Extreme.</param>
+    private sealed record ProfileEntry(
+        string Code, string NameRu, string NameEn, string SkillEn, string DamageKind, int Damage,
+        int Crit, string Range, ProfileQualityEntry[]? Qualities = null,
+        bool CannotEngage = false, int? Difficulty = null);
+
+    private sealed record ProfileQualityEntry(string Code, int Rating = 0);
 
     /// <param name="Kind">«AddSetback» или «RemoveSetback».</param>
     /// <param name="Skill">Английское имя навыка; пусто — отбор по характеристике.</param>
@@ -90,6 +108,7 @@ public static class ItemCatalog
                         RequiresWorn = m.Worn,
                         Condition = m.Condition,
                     })],
+                    AttackProfiles = AttackProfiles(e, kind),
                 };
         }
     }
@@ -99,6 +118,78 @@ public static class ItemCatalog
         "weapon" => ItemKind.Weapon,
         "armor" => ItemKind.Armor,
         _ => ItemKind.Gear,
+    };
+
+    /// <summary>
+    /// Профили атаки предмета (ROT-WPN-01). Профиль по умолчанию строится из колонок таблицы —
+    /// иначе одни и те же числа лежали бы в каталоге дважды и расходились. Альтернативные профили
+    /// (метание, в руке) описаны в каталоге целиком, потому что отличаются от основного.
+    /// </summary>
+    private static List<WeaponAttackProfile> AttackProfiles(Entry e, ItemKind kind)
+    {
+        if (kind != ItemKind.Weapon) return [];
+
+        var profiles = new List<WeaponAttackProfile>
+        {
+            new()
+            {
+                Id = Guid.NewGuid(),
+                Code = WeaponAttackProfile.DefaultCode,
+                IsDefault = true,
+                SkillName = e.SkillEn ?? "",
+                DamageKind = ParseDamageKind(e.Damage),
+                DamageValue = ParseDamageValue(e.Damage, e.Code),
+                Crit = ParseCrit(e.Crit),
+                Range = ParseRange(e.RangeRu, e.Code),
+                CannotAttackEngaged = e.CannotEngage,
+                FixedDifficulty = e.Difficulty,
+            },
+        };
+
+        foreach (var p in e.Profiles ?? [])
+            profiles.Add(new WeaponAttackProfile
+            {
+                Id = Guid.NewGuid(),
+                Code = p.Code,
+                NameRu = p.NameRu,
+                NameEn = p.NameEn,
+                IsDefault = false,
+                SkillName = p.SkillEn,
+                DamageKind = Enum.Parse<DamageKind>(p.DamageKind, ignoreCase: true),
+                DamageValue = p.Damage,
+                Crit = p.Crit,
+                Range = Enum.Parse<WeaponRange>(p.Range, ignoreCase: true),
+                CannotAttackEngaged = p.CannotEngage,
+                FixedDifficulty = p.Difficulty,
+                Qualities = [.. (p.Qualities ?? []).Select(q => new WeaponProfileQuality
+                {
+                    Code = q.Code,
+                    Rating = q.Rating,
+                })],
+            });
+
+        return profiles;
+    }
+
+    /// <summary>«+3» — прибавка к Мощи, «7» — итоговый урон оружия.</summary>
+    private static DamageKind ParseDamageKind(string? damage) =>
+        (damage ?? "").TrimStart().StartsWith('+') ? DamageKind.BrawnPlus : DamageKind.Fixed;
+
+    private static int ParseDamageValue(string? damage, string code) =>
+        int.TryParse((damage ?? "").Replace("+", "").Trim(), out var value)
+            ? value
+            : throw new InvalidOperationException($"Не разобран урон предмета «{code}»: «{damage}».");
+
+    private static int ParseCrit(string? crit) => int.TryParse((crit ?? "").Trim(), out var value) ? value : 0;
+
+    private static WeaponRange ParseRange(string? rangeRu, string code) => (rangeRu ?? "").Trim() switch
+    {
+        "Вплотную" => WeaponRange.Engaged,
+        "Короткая" => WeaponRange.Short,
+        "Средняя" => WeaponRange.Medium,
+        "Длинная" => WeaponRange.Long,
+        "Экстремальная" => WeaponRange.Extreme,
+        var other => throw new InvalidOperationException($"Неизвестная дистанция предмета «{code}»: «{other}»."),
     };
 
     private static CheckModifierKind ParseModifierKind(string kind) =>
