@@ -379,7 +379,7 @@ public class CharacterFlowTests : IClassFixture<ApiFactory>
 
         // Добавить в рюкзак: бонусов нет, вес полный
         var add = await client.PostAsJsonAsync($"/api/characters/{id}/items",
-            new AddItemRequest(plate.Id, 1, ItemState.Backpack));
+            new AddItemRequest(plate.Id, 1, ItemState.Backpack, Free: true));
         Assert.Equal(HttpStatusCode.Created, add.StatusCode);
         var inBackpack = await SheetAsync(client, id);
         Assert.Contains(inBackpack.Items, i => i.ItemDefId == plate.Id && i.NameRu == plate.NameRu);

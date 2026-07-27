@@ -23,11 +23,21 @@ public class AddItemHandler(IAppDbContext db) : ICommandHandler<AddItemCommand, 
             ?? throw new DomainRuleException("Предмет не найден.");
         if (req.Quantity < 1) throw new DomainRuleException("Количество должно быть не меньше 1.");
 
+        // Цену считает сервер по каталогу (ROT-ECO-01): присланная клиентом сумма не используется.
+        // Цена ведущего допустима, но только явная и с причиной — она попадает в историю.
+        if (req.PriceOverride is not null && string.IsNullOrWhiteSpace(req.OverrideReason))
+            throw new DomainRuleException(
+                "Для цены, назначенной вручную, нужна причина.", "trade.override_reason_required");
+        if (req.PriceOverride is < 0)
+            throw new DomainRuleException("Цена не может быть отрицательной.", "trade.price_negative");
+
+        var unitPrice = req.PriceOverride ?? itemDef.Price;
+        var total = req.Free ? 0 : TradeRules.PurchaseTotal(unitPrice, req.Quantity);
+
         // Покупка: сначала бюджет стартовых покупок (только в фазе создания), затем кошелёк.
-        // Cost == null/≤0 — бесплатное добавление.
-        var charge = StartingWallet.Charge(req.Cost ?? 0, c.StartingPurchaseBudget, c.Money, c.IsCreationPhase)
+        var charge = StartingWallet.Charge(total, c.StartingPurchaseBudget, c.Money, c.IsCreationPhase)
             ?? throw new DomainRuleException(
-                $"Недостаточно средств: нужно {req.Cost}, доступно {c.StartingPurchaseBudget + c.Money} "
+                $"Недостаточно средств: нужно {total}, доступно {c.StartingPurchaseBudget + c.Money} "
                 + $"(бюджет создания {c.StartingPurchaseBudget}, монеты {c.Money}).",
                 "character.funds.insufficient");
         c.StartingPurchaseBudget -= charge.FromBudget;
@@ -37,7 +47,9 @@ public class AddItemHandler(IAppDbContext db) : ICommandHandler<AddItemCommand, 
         {
             Id = Guid.NewGuid(), CharacterId = c.Id, ItemDefId = itemDef.Id, ItemDef = itemDef,
             Quantity = req.Quantity, State = req.State,
-            Provenance = charge.FromBudget > 0 ? ItemProvenance.StartingBudget : ItemProvenance.Purchased,
+            Provenance = req.Free
+                ? ItemProvenance.Imported
+                : charge.FromBudget > 0 ? ItemProvenance.StartingBudget : ItemProvenance.Purchased,
         };
         db.CharacterItems.Add(item);
         c.Items.Add(item);
@@ -54,8 +66,10 @@ public class AddItemHandler(IAppDbContext db) : ICommandHandler<AddItemCommand, 
             $"Добавлен предмет «{itemDef.Name}»{qtyNote}{costNote}", null,
             new
             {
-                item = itemDef.Name, quantity = req.Quantity, cost = req.Cost,
+                item = itemDef.Name, quantity = req.Quantity, cost = charge.Total,
                 fromBudget = charge.FromBudget, fromMoney = charge.FromMoney,
+                listedUnitPrice = itemDef.Price, unitPrice, priceOverride = req.PriceOverride,
+                overrideReason = req.OverrideReason, free = req.Free,
             });
 
         await db.SaveChangesAsync(ct);

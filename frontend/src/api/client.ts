@@ -225,13 +225,20 @@ export const api = {
   activateCharacterAbility: (id: string) =>
     request<ActivateCharacterAbilityResult>('POST', `/api/characters/${id}/activate-ability`),
 
-  // cost — сколько монет списать при покупке; не передавайте (или 0) для бесплатного добавления.
-  addItem: (id: string, itemDefId: string, quantity: number, state: ItemState, cost?: number) =>
-    request<{ id: string }>('POST', `/api/characters/${id}/items`, { itemDefId, quantity, state, cost }),
+  /**
+   * Покупка: сумму считает сервер по цене каталога (ROT-ECO-01). `free` — выдача без оплаты,
+   * `priceOverride` — цена ведущего, требующая причины.
+   */
+  addItem: (id: string, itemDefId: string, quantity: number, state: ItemState,
+    opts?: { free?: boolean; priceOverride?: number; overrideReason?: string }) =>
+    request<{ id: string }>('POST', `/api/characters/${id}/items`, { itemDefId, quantity, state, ...opts }),
   updateItem: (id: string, itemId: string, patch: { state?: ItemState; quantity?: number }) =>
     request<void>('PATCH', `/api/characters/${id}/items/${itemId}`, patch),
-  sellItem: (id: string, itemId: string, quantity: number, proceeds: number) =>
-    request<void>('POST', `/api/characters/${id}/items/${itemId}/sell`, { quantity, proceeds }),
+  /** Продажа: выручку считает сервер по цене каталога и нетто-успехам проверки (ROT-ECO-01). */
+  sellItem: (id: string, itemId: string, quantity: number, netSuccesses: number,
+    opts?: { conditionMultiplier?: number; conditionReason?: string }) =>
+    request<void>('POST', `/api/characters/${id}/items/${itemId}/sell`,
+      { quantity, netSuccesses, ...opts }),
   removeItem: (id: string, itemId: string) =>
     request<void>('DELETE', `/api/characters/${id}/items/${itemId}`),
 

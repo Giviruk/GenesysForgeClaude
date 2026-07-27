@@ -40,7 +40,7 @@ public class RotActiveArmorApiTests(ApiFactory factory) : IClassFixture<ApiFacto
     private static async Task<Guid> AddAsync(HttpClient client, Guid characterId, Guid itemDefId)
     {
         var resp = await client.PostAsJsonAsync($"/api/characters/{characterId}/items",
-            new AddItemRequest(itemDefId, 1, ItemState.Equipped), Json.Options);
+            new AddItemRequest(itemDefId, 1, ItemState.Equipped, Free: true), Json.Options);
         Assert.Equal(HttpStatusCode.Created, resp.StatusCode);
         return (await resp.Content.ReadFromJsonAsync<Dictionary<string, Guid>>(Json.Options))!["id"];
     }
