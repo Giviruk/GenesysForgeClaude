@@ -47,7 +47,10 @@ public static class Mappers
             .Select(q => new ItemQualityRefDto(
                 q.QualityDef!.Code, q.QualityDef.NameRu, q.QualityDef.NameEn, q.Rating,
                 q.QualityDef.HasRating, q.QualityDef.IsActive, q.QualityDef.ActivationCost))
-            .ToList(), i.DescriptionEn);
+            .ToList(), i.DescriptionEn,
+        i.HardPoints,
+        [.. i.CheckModifiers.Select(m => new ItemCheckModifierDto(
+            m.Kind, m.SkillName, m.Characteristic, m.Value, m.RequiresWorn, m.Condition))]);
 
     public static QualityDto ToDto(this QualityDef q) => new(q.Id, q.Code, q.NameEn, q.NameRu, q.Kind,
         q.IsActive, q.HasRating, q.ActivationCost, q.Category, q.Description, q.SafeDescription, q.Source, q.DescriptionEn);

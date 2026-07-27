@@ -19,7 +19,18 @@ public static class ItemCatalog
         int Enc, int Soak, int Def, int Rdef, int EncBonus, int Price, int Rarity,
         string Desc, string Source,
         string? SkillEn, string? Damage, string? Crit, string? RangeRu, string? Properties,
-        string DescEn = "", bool Retired = false);
+        string DescEn = "", bool Retired = false,
+        /// <summary>Слоты улучшений по таблице книги; null — книжного значения у записи нет.</summary>
+        int? Hp = null,
+        /// <summary>Влияние предмета на проверки навыков (ROT-ARM-01).</summary>
+        ModifierEntry[]? Modifiers = null);
+
+    /// <param name="Kind">«AddSetback» или «RemoveSetback».</param>
+    /// <param name="Skill">Английское имя навыка; пусто — отбор по характеристике.</param>
+    /// <param name="Characteristic">Имя характеристики; пусто — отбор по навыку.</param>
+    /// <param name="Worn">Действует только когда предмет надет (для брони — выбран активной).</param>
+    private sealed record ModifierEntry(
+        string Kind, string? Skill, string? Characteristic, int Value, bool Worn = true, string Condition = "");
 
     private static readonly JsonSerializerOptions JsonOptions = new() { PropertyNameCaseInsensitive = true };
 
@@ -68,6 +79,17 @@ public static class ItemCatalog
                     RangeBand = e.RangeRu ?? "",
                     Properties = e.Properties ?? "",
                     Retired = e.Retired,
+                    HardPoints = e.Hp,
+                    CheckModifiers = [.. (e.Modifiers ?? []).Select(m => new ItemCheckModifier
+                    {
+                        Id = Guid.NewGuid(),
+                        Kind = ParseModifierKind(m.Kind),
+                        SkillName = m.Skill ?? "",
+                        Characteristic = ParseCharacteristic(m.Characteristic),
+                        Value = m.Value,
+                        RequiresWorn = m.Worn,
+                        Condition = m.Condition,
+                    })],
                 };
         }
     }
@@ -78,4 +100,16 @@ public static class ItemCatalog
         "armor" => ItemKind.Armor,
         _ => ItemKind.Gear,
     };
+
+    private static CheckModifierKind ParseModifierKind(string kind) =>
+        Enum.TryParse<CheckModifierKind>(kind, ignoreCase: true, out var parsed)
+            ? parsed
+            : throw new InvalidOperationException($"Неизвестный вид модификатора проверки: «{kind}».");
+
+    private static CharacteristicType? ParseCharacteristic(string? characteristic) =>
+        string.IsNullOrWhiteSpace(characteristic)
+            ? null
+            : Enum.TryParse<CharacteristicType>(characteristic, ignoreCase: true, out var parsed)
+                ? parsed
+                : throw new InvalidOperationException($"Неизвестная характеристика: «{characteristic}».");
 }

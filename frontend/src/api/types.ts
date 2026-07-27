@@ -121,6 +121,10 @@ export interface ItemDef {
   isCustom: boolean
   /** Структурные качества (U-10): свойство+рейтинг, бэкфилнутые из строки properties у встроенных предметов. */
   qualities: ItemQualityRef[]
+  /** Слоты улучшений по таблице книги; null — книжного значения у записи нет (ROT-WPN-01/ROT-ARM-01). */
+  hardPoints: number | null
+  /** Влияние предмета на проверки навыков (ROT-ARM-01). */
+  checkModifiers: ItemCheckModifier[]
 }
 
 /** Структурное качество предмета: ссылка на справочник по коду + рейтинг. */
@@ -507,6 +511,34 @@ export interface SheetSkill {
   freeRanks: number
   /** Все источники карьерного статуса: карьера, вид, таланты. Пусто — навык некарьерный. */
   careerSources: CareerSkillSource[]
+  /**
+   * Безусловные кости помех к этой проверке: снаряжение и перегруз (ROT-ARM-01, ROT-EQP-01).
+   * Ровно столько чёрных кубов роллер подставляет сам.
+   */
+  setbackDice: number
+  /** Из чего сложились помехи, включая условные вклады (их в пул не подставляют). */
+  setbackSources: CheckModifierSource[]
+}
+
+/** Один источник помех к проверке: снаряжение или перегруз. */
+export interface CheckModifierSource {
+  sourceType: 'Item' | 'Encumbrance' | string
+  sourceName: string
+  sourceNameRu: string
+  /** Больше нуля — добавляет помехи, меньше — снимает. */
+  setback: number
+  /** Условие из книги; непустое — вклад показывается, но автоматически не применяется. */
+  condition: string
+}
+
+/** Влияние предмета на проверки навыков (ROT-ARM-01). */
+export interface ItemCheckModifier {
+  kind: 'AddSetback' | 'RemoveSetback'
+  skillName: string
+  characteristic: Characteristic | null
+  value: number
+  requiresWorn: boolean
+  condition: string
 }
 
 export interface SheetTalent {
@@ -561,6 +593,13 @@ export interface SheetItem {
   properties: string
   /** Позиция выбрана активной бронёй: только она даёт защиту и поглощение (ROT-CMB-02). */
   isActiveArmor: boolean
+  /**
+   * Слоты улучшений по таблице книги (ROT-WPN-01/ROT-ARM-01); null — книжного значения нет.
+   * Ноль означает «улучшения ставить некуда».
+   */
+  hardPoints: number | null
+  /** Влияние предмета на проверки навыков: штраф Скрытности у тяжёлой брони и т. п. */
+  checkModifiers: ItemCheckModifier[]
 }
 
 /** Один источник защиты для объяснения итога (ROT-CMB-03). */

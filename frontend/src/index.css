@@ -518,6 +518,8 @@ table.ref-table td.ref-cost { white-space: nowrap; color: var(--accent); }
 .die.ability { color: var(--green); }
 .die.proficiency { color: var(--yellow); }
 .die.difficulty { color: var(--purple, #a06cd5); }
+/* Кости помех от снаряжения и перегруза (ROT-ARM-01): чёрные, поэтому нужен видимый контур. */
+.die.setback { color: #2b2b2b; text-shadow: 0 0 1px var(--border), 0 0 2px rgba(255, 255, 255, 0.5); }
 
 /* ---------- Magic Builder ---------- */
 .difficulty-badge.big { font-size: 0.95rem; padding: 0.25rem 0.9rem; }
@@ -1228,6 +1230,7 @@ button.tiny { font-size: 0.75rem; padding: 0.05rem 0.4rem 0.15rem; }
 /* Кубы пула читаемы на белой бумаге (жёлтый на белом был бы невидим) */
 .sheet-doc .die.proficiency { color: #b07d00; }
 .sheet-doc .die.ability { color: #2e7d32; }
+.sheet-doc .die.setback { color: #1a1a1a; text-shadow: none; }
 
 @media (max-width: 720px) {
   .sheet-stat-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }

@@ -35,12 +35,17 @@ public static class SheetBuilder
         // является источником истины и может отставать от текущего набора талантов.
         var careerSkills = CareerSkills.Resolve(c, c.Career!, systemSkills);
         var rows = c.Skills.ToDictionary(s => s.SkillDefId);
+        // Помехи от снаряжения и перегруза считаются один раз на персонажа и раскладываются
+        // по каждой проверке (ROT-ARM-01): их же роллер подставляет в пул.
+        var checkModifiers = CharacterDerived.CheckModifierInputs(c);
         var skills = systemSkills.Select(def =>
         {
             rows.TryGetValue(def.Id, out var row);
             var ranks = row?.Ranks ?? 0;
             var isCareer = careerSkills.IsCareer(def.Id);
             var pool = GenesysRules.BuildDicePool(ch.Get(def.Characteristic), ranks);
+            var penalty = CheckModifierAggregator.For(
+                def.Name, def.Characteristic, checkModifiers, derived.Encumbrance);
             return new CharacterSkillDto(def.Id, def.Name, def.NameRu, def.Kind, def.Characteristic, ranks, isCareer,
                 new DicePoolDto(pool.Ability, pool.Proficiency),
                 ranks < GenesysRules.MaxSkillRank ? GenesysRules.SkillRankCost(ranks + 1, isCareer) : 0,
@@ -48,7 +53,10 @@ public static class SheetBuilder
                 careerSkills.GrantsFor(def.Id)
                     .Select(g => new CareerSkillSourceDto(g.Source.ToString(), g.SourceName))
                     .ToList(),
-                def.Retired);
+                def.Retired,
+                penalty.SetbackDice,
+                [.. penalty.Sources.Select(s => new CheckModifierSourceDto(
+                    s.SourceType, s.SourceName, s.SourceNameRu, s.Setback, s.Condition))]);
         }).ToList();
 
         var configuration = await BuildConfigurationAsync(db, c, systemSkills, ct);
@@ -109,7 +117,10 @@ public static class SheetBuilder
                     i.ItemDef.Description, i.ItemDef.Price,
                     i.ItemDef.SkillName, i.ItemDef.Damage, i.ItemDef.Crit, i.ItemDef.RangeBand, i.ItemDef.Properties,
                     i.ItemDef.DescriptionEn,
-                    i.Id == c.ActiveArmorCharacterItemId))
+                    i.Id == c.ActiveArmorCharacterItemId,
+                    i.ItemDef.HardPoints,
+                    [.. i.ItemDef.CheckModifiers.Select(m => new ItemCheckModifierDto(
+                        m.Kind, m.SkillName, m.Characteristic, m.Value, m.RequiresWorn, m.Condition))]))
                 .ToList(),
             c.Desire, c.Fear, c.Strength, c.Flaw, c.Background,
             c.CriticalInjuries

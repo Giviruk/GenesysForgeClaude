@@ -40,6 +40,28 @@ public static class CharacterDerived
         .ToList();
 
     /// <summary>
+    /// Модификаторы проверок от снаряжения (ROT-ARM-01). Отбор здесь, а не в доменном агрегаторе:
+    /// правило «действует только надетое» и правило активной брони (ROT-CMB-02) — про инвентарь,
+    /// а не про конкретную проверку.
+    /// </summary>
+    public static List<ItemCheckModifierInput> CheckModifierInputs(Character c) => c.Items
+        .Where(i => i.ItemDef is not null)
+        .SelectMany(i => i.ItemDef!.CheckModifiers.Select(m => (Item: i, Def: i.ItemDef!, Mod: m)))
+        .Where(x => !x.Mod.RequiresWorn || IsWornAndEffective(c, x.Item, x.Def))
+        .Select(x => new ItemCheckModifierInput(
+            x.Def.Name, x.Def.NameRu, x.Mod.Kind, x.Mod.SkillName, x.Mod.Characteristic,
+            x.Mod.Value, x.Mod.Condition))
+        .ToList();
+
+    /// <summary>
+    /// Надет и действует: неактивная надетая броня даёт только вес, поэтому её штрафы тоже не
+    /// применяются — иначе две надетые кольчуги штрафовали бы Скрытность дважды.
+    /// </summary>
+    private static bool IsWornAndEffective(Character c, CharacterItem item, ItemDef def) =>
+        item.State == ItemState.Equipped
+        && (def.Kind != ItemKind.Armor || item.Id == c.ActiveArmorCharacterItemId);
+
+    /// <summary>
     /// Базовая защита от видовых способностей, действующих для этого персонажа (Nimble).
     /// У вида с обязательным выбором учитывается только сделанный выбор.
     /// </summary>

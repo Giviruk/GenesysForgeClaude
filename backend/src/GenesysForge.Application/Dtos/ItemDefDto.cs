@@ -6,7 +6,19 @@ public record ItemDefDto(Guid Id, string Name, string NameRu, ItemKind Kind, int
     int MeleeDefense, int RangedDefense, int EncumbranceThresholdBonus,
     string Description, string SafeDescription, string Source, int Price, int Rarity,
     string SkillName, string Damage, string Crit, string RangeBand, string Properties, bool IsCustom,
-    IReadOnlyList<ItemQualityRefDto> Qualities, string DescriptionEn = "");
+    IReadOnlyList<ItemQualityRefDto> Qualities, string DescriptionEn = "",
+    /// <summary>
+    /// Слоты улучшений по таблице книги; <c>null</c> — книжного значения у записи нет
+    /// (ROT-WPN-01/ROT-ARM-01). Ноль означает «улучшения ставить некуда».
+    /// </summary>
+    int? HardPoints = null,
+    /// <summary>Влияние предмета на проверки навыков (ROT-ARM-01).</summary>
+    IReadOnlyList<ItemCheckModifierDto>? CheckModifiers = null);
+
+/// <summary>Штраф или послабление предмета к проверкам конкретного навыка/характеристики.</summary>
+public record ItemCheckModifierDto(
+    CheckModifierKind Kind, string SkillName, CharacteristicType? Characteristic, int Value,
+    bool RequiresWorn, string Condition);
 
 /// <summary>Структурное качество предмета: ссылка на справочник (по коду) + рейтинг.</summary>
 public record ItemQualityRefDto(

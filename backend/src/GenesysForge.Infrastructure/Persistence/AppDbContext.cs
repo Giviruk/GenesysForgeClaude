@@ -55,6 +55,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<CharacterAuditEntry> CharacterAuditEntries => Set<CharacterAuditEntry>();
     public DbSet<QualityDef> QualityDefs => Set<QualityDef>();
     public DbSet<ItemQualityValue> ItemQualityValues => Set<ItemQualityValue>();
+    public DbSet<ItemCheckModifier> ItemCheckModifiers => Set<ItemCheckModifier>();
     public DbSet<RuleTableEntry> RuleTableEntries => Set<RuleTableEntry>();
 
     protected override void OnModelCreating(ModelBuilder b)
@@ -247,6 +248,15 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             e.Property(i => i.Properties).HasMaxLength(400);
             e.HasMany(i => i.Qualities).WithOne()
                 .HasForeignKey(v => v.ItemDefId).OnDelete(DeleteBehavior.Cascade);
+            e.HasMany(i => i.CheckModifiers).WithOne()
+                .HasForeignKey(m => m.ItemDefId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        b.Entity<ItemCheckModifier>(e =>
+        {
+            e.HasIndex(m => m.ItemDefId);
+            e.Property(m => m.SkillName).HasMaxLength(40);
+            e.Property(m => m.Condition).HasMaxLength(200);
         });
 
         b.Entity<RuleEffectDef>(e =>

@@ -27,6 +27,19 @@ public class ItemDef : IContentDef
     public int Price { get; set; }
     public int Rarity { get; set; }
 
+    /// <summary>
+    /// Слоты улучшений (hard points) по таблице книги (ROT-WPN-01/ROT-ARM-01). Берётся из таблицы,
+    /// а не вычисляется из веса. <c>null</c> — у записи нет книжного значения (ещё не перенесено),
+    /// и это не то же самое, что «ноль слотов».
+    /// </summary>
+    public int? HardPoints { get; set; }
+
+    /// <summary>
+    /// Влияние предмета на проверки навыков: штраф Скрытности у тяжёлой брони и подобное
+    /// (ROT-ARM-01). Пусто — предмет проверки не меняет.
+    /// </summary>
+    public List<ItemCheckModifier> CheckModifiers { get; set; } = [];
+
     // ── Боевые характеристики (заполнены только у оружия) ──
     /// <summary>Английское имя боевого навыка для броска (например, «Melee (Light)», «Ranged»). У не-оружия пусто.</summary>
     public string SkillName { get; set; } = "";

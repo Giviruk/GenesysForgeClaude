@@ -1,5 +1,7 @@
 import { api } from '../api/client'
-import type { CareerSkillSource, CharacterSheet, DefenseBreakdown, Derived, SkillKind } from '../api/types'
+import type {
+  CareerSkillSource, CharacterSheet, CheckModifierSource, DefenseBreakdown, Derived, SheetSkill, SkillKind,
+} from '../api/types'
 import {
   CHARACTERISTICS, CHARACTERISTIC_LABELS, CHARACTERISTIC_SHORT_LABELS, HEROIC_UPGRADE_LABELS,
   localizedDescription, localizedName, secondaryName, SKILL_KIND_LABELS,
@@ -27,6 +29,29 @@ const CAREER_SOURCE_LABELS: Record<CareerSkillSource['source'], string> = t({
 }, {
   Career: 'career', Species: 'species', Talent: 'talent',
 })
+
+/** Название источника помех в текущей локали; у перегруза своего предмета нет. */
+function modifierSourceName(s: CheckModifierSource): string {
+  const localized = t(s.sourceNameRu || s.sourceName, s.sourceName || s.sourceNameRu)
+  if (localized) return localized
+  return s.sourceType === 'Encumbrance' ? t('перегруз', 'encumbrance') : s.sourceType
+}
+
+/**
+ * Подсказка «откуда помехи»: броня, перегруз и прочее снаряжение (ROT-ARM-01, ROT-EQP-01).
+ * Условные вклады отмечены отдельно — их приложение в пул не подставляет.
+ */
+function setbackTitle(skill: SheetSkill): string | undefined {
+  const sources = skill.setbackSources ?? []
+  if (sources.length === 0) return undefined
+  const line = (s: CheckModifierSource) => {
+    const sign = s.setback > 0 ? '+' : '−'
+    const body = `${modifierSourceName(s)}: ${sign}${Math.abs(s.setback)} ${t('помех', 'setback')}`
+    return s.condition ? `${body} (${t('только', 'only')} ${s.condition})` : body
+  }
+  const head = t(`Помехи к проверке: ${skill.setbackDice}`, `Setback on this check: ${skill.setbackDice}`)
+  return [head, ...sources.map(line)].join('\n')
+}
 
 /** Подсказка «почему навык карьерный»: перечисляет все источники статуса (ROT-CRE-01). */
 function careerSourcesTitle(sources: CareerSkillSource[] | undefined): string | undefined {
@@ -138,14 +163,22 @@ export function SheetTab({ sheet, onError, refresh }: Props) {
                               </td>
                               <td className="centered" title={careerSourcesTitle(s.careerSources)}>{s.isCareer ? '✓' : ''}</td>
                               <td>{'●'.repeat(s.ranks)}{'○'.repeat(Math.max(0, 5 - s.ranks))}</td>
-                              <td><DicePoolView pool={s.pool} /></td>
+                              <td>
+                                <DicePoolView pool={s.pool} setback={s.setbackDice} setbackTitle={setbackTitle(s)} />
+                              </td>
                               <td className="right">
                                 <button className="small" title={t(`Бросить пул навыка «${label}»`, `Roll the "${label}" skill pool`)}
                                   onClick={() => openRoller({
                                     kind: 'roll',
                                     title: t('Бросок навыка', 'Skill check'),
                                     label,
-                                    initialPool: { ability: s.pool.ability, proficiency: s.pool.proficiency },
+                                    // Помехи снаряжения и перегруза едут в пул сами: игрок не обязан
+                                    // помнить, что на нём латы (ROT-ARM-01).
+                                    initialPool: {
+                                      ability: s.pool.ability,
+                                      proficiency: s.pool.proficiency,
+                                      setback: s.setbackDice,
+                                    },
                                   })}>
                                   🎲
                                 </button>
