@@ -85,7 +85,12 @@ public record CharacterTalentExport(string Code, string Name, int Ranks, string 
 
 public record CharacterTalentChoiceExport(int RankIndex, TalentChoiceKind Kind, string Value, string DisplayName);
 
+/// <param name="Craftsmanship">
+/// Качество изготовления экземпляра (ROT-WPN-02). Файлы прежних версий его не содержат — там
+/// экземпляр обычной работы, и это не догадка, а правило для legacy.
+/// </param>
 public record CharacterItemExport(string Code, string Name, int Quantity, ItemState State,
-    ItemProvenance Provenance = ItemProvenance.Purchased);
+    ItemProvenance Provenance = ItemProvenance.Purchased,
+    WeaponCraftsmanship Craftsmanship = WeaponCraftsmanship.Steel);
 
 public record CharacterNoteExport(string Title, string Body);

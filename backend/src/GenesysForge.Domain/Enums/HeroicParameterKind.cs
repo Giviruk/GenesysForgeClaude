@@ -28,14 +28,6 @@ public enum SignatureWeaponProfile
     Ranged = 3,
 }
 
-/// <summary>Качество изготовления именного оружия.</summary>
-public enum WeaponCraftsmanship
-{
-    Dwarven = 0,
-    Elven = 1,
-    Steel = 2,
-}
-
 /// <summary>
 /// Неизменяемые признаки формы оружия (ROT-HA-02). Совместимость attachment определяется ими,
 /// а не свободным названием формы: по тексту «меч-посох» нельзя вывести, есть ли режущая кромка.

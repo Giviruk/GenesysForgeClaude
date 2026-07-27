@@ -33,7 +33,11 @@ public class SellItemHandler(IAppDbContext db) : ICommandHandler<SellItemCommand
             throw new DomainRuleException(
                 "Для поправки за состояние нужна причина.", "trade.condition_reason_required");
 
-        var listedUnitPrice = item.ItemDef?.Price ?? 0;
+        // Продаётся конкретный экземпляр, поэтому доля считается от его цены, а не от каталожной:
+        // за гномий доспех дают вдвое больше, чем за обычный (ROT-WPN-02).
+        var listedUnitPrice = item.ItemDef is null
+            ? 0
+            : CraftsmanshipRules.Price(item.ItemDef.Price, item.Craftsmanship);
         int percent;
         int bookSubtotal;
 
@@ -95,6 +99,7 @@ public class SellItemHandler(IAppDbContext db) : ICommandHandler<SellItemCommand
                 toBudget = refund.FromBudget, toMoney = refund.FromMoney,
                 // История хранит всё, из чего сложилась сумма: цену, долю, промежуточный итог и поправку.
                 listedUnitPrice, netSuccesses = req.NetSuccesses, percent, bookSubtotal,
+                catalogUnitPrice = item.ItemDef?.Price ?? 0, craftsmanship = item.Craftsmanship.ToString(),
                 mode = req.PriceOverride is not null ? "override"
                     : req.NetSuccesses is not null ? "check" : "direct",
                 priceOverride = req.PriceOverride, overrideReason = req.OverrideReason,

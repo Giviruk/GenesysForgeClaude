@@ -31,7 +31,12 @@ public class AddItemHandler(IAppDbContext db) : ICommandHandler<AddItemCommand, 
         if (req.PriceOverride is < 0)
             throw new DomainRuleException("Цена не может быть отрицательной.", "trade.price_negative");
 
-        var unitPrice = req.PriceOverride ?? itemDef.Price;
+        // Качество изготовления экземпляра (ROT-WPN-02): у уникальных записей его задаёт каталог,
+        // иначе — выбор игрока. Дальше оно неизменно, поэтому проверяется здесь и только здесь.
+        var craftsmanship = CraftsmanshipRules.FixedFor(itemDef.Code) ?? req.Craftsmanship;
+        CraftsmanshipRules.EnsureApplicable(itemDef.Kind, craftsmanship);
+
+        var unitPrice = req.PriceOverride ?? CraftsmanshipRules.Price(itemDef.Price, craftsmanship);
         var total = req.Free ? 0 : TradeRules.PurchaseTotal(unitPrice, req.Quantity);
 
         // Покупка: сначала бюджет стартовых покупок (только в фазе создания), затем кошелёк.
@@ -46,7 +51,7 @@ public class AddItemHandler(IAppDbContext db) : ICommandHandler<AddItemCommand, 
         var item = new CharacterItem
         {
             Id = Guid.NewGuid(), CharacterId = c.Id, ItemDefId = itemDef.Id, ItemDef = itemDef,
-            Quantity = req.Quantity, State = req.State,
+            Quantity = req.Quantity, State = req.State, Craftsmanship = craftsmanship,
             Provenance = req.Free
                 ? ItemProvenance.Imported
                 : charge.FromBudget > 0 ? ItemProvenance.StartingBudget : ItemProvenance.Purchased,
@@ -70,6 +75,7 @@ public class AddItemHandler(IAppDbContext db) : ICommandHandler<AddItemCommand, 
                 fromBudget = charge.FromBudget, fromMoney = charge.FromMoney,
                 listedUnitPrice = itemDef.Price, unitPrice, priceOverride = req.PriceOverride,
                 overrideReason = req.OverrideReason, free = req.Free,
+                craftsmanship = craftsmanship.ToString(),
             });
 
         await db.SaveChangesAsync(ct);

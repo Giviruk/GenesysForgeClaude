@@ -204,7 +204,11 @@ export type HeroicParameterKind = 'none' | 'paragonSkill' | 'sixthSenseSubject' 
 
 export type SignatureWeaponProfile = 'brawl' | 'oneHanded' | 'twoHanded' | 'ranged'
 
-export type WeaponCraftsmanship = 'dwarven' | 'elven' | 'steel'
+/**
+ * Качество изготовления экземпляра (ROT-WPN-02). Порядок значений — исторический: гномья работа
+ * была первой ещё в именном оружии (ROT-HA-02).
+ */
+export type WeaponCraftsmanship = 'dwarven' | 'elven' | 'steel' | 'iron' | 'ancient'
 
 /** Один признак формы оружия. На проводе флаги едут строкой «oneHanded, sword». */
 export type WeaponFormTrait =
@@ -669,6 +673,31 @@ export interface SheetItem {
   attackProfiles: WeaponAttackProfile[]
   /** Оружие метнули и не подобрали: атаковать нельзя, качеств и веса не даёт. */
   isThrown: boolean
+  /**
+   * Качество изготовления экземпляра (ROT-WPN-02). Числа позиции выше — уже с его поправками:
+   * вес, поглощение, защита, слоты, цена, редкость и профили атаки.
+   */
+  craftsmanship: WeaponCraftsmanship
+  /** Редкость экземпляра: Ancient задаёт ровно 10, остальные типы сдвигают каталожную. */
+  rarity: number
+  /** Экземпляр укреплён (Ancient): броня не поддаётся Pierce/Breach, а предмет — Sunder. */
+  reinforced: boolean
+  /** Разбор поправок: что качество изготовления изменило и с какого значения. */
+  adjustments: ItemStatAdjustment[]
+}
+
+/** Этап расчёта характеристик предмета (ROT-WPN-02). */
+export type ItemStatStage = 'base' | 'craftsmanship' | 'attachments' | 'damageState' | 'situational'
+
+/** Одна поправка к характеристике экземпляра: что изменилось, с чего на что и от чего. */
+export interface ItemStatAdjustment {
+  /** Стабильный код характеристики: encumbrance, soak, meleeDefense, price… */
+  field: string
+  base: number
+  effective: number
+  stage: ItemStatStage
+  /** Источник поправки: значение WeaponCraftsmanship в PascalCase. */
+  source: string
 }
 
 /** Один источник защиты для объяснения итога (ROT-CMB-03). */

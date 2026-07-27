@@ -892,6 +892,10 @@ table.ref-table td.ref-cost { white-space: nowrap; color: var(--accent); }
 .shop-row-actions { display: flex; flex-direction: column; gap: 0.25rem; flex-shrink: 0; }
 .shop-desc { margin-top: 0.2rem; }
 
+/* Выбор качества изготовления при покупке (ROT-WPN-02) */
+.shop-craftsmanship { display: flex; flex-direction: column; gap: 0.2rem; margin-top: 0.5rem; }
+.shop-craftsmanship select { align-self: flex-start; }
+
 /* Управление ценой при покупке/продаже */
 .price-control { margin-top: 0.5rem; border-top: 1px dashed var(--border); padding-top: 0.5rem; display: flex; flex-direction: column; gap: 0.4rem; }
 .price-mults { display: flex; gap: 0.25rem; flex-wrap: wrap; }

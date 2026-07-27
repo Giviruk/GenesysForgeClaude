@@ -232,8 +232,15 @@ export const api = {
    * Покупка: сумму считает сервер по цене каталога (ROT-ECO-01). `free` — выдача без оплаты,
    * `priceOverride` — цена ведущего, требующая причины.
    */
+  /**
+   * Добавление предмета. `craftsmanship` выбирается один раз и дальше не меняется (ROT-WPN-02);
+   * цену с его учётом считает сервер.
+   */
   addItem: (id: string, itemDefId: string, quantity: number, state: ItemState,
-    opts?: { free?: boolean; priceOverride?: number; overrideReason?: string }) =>
+    opts?: {
+      free?: boolean; priceOverride?: number; overrideReason?: string
+      craftsmanship?: WeaponCraftsmanship
+    }) =>
     request<{ id: string }>('POST', `/api/characters/${id}/items`, { itemDefId, quantity, state, ...opts }),
   updateItem: (id: string, itemId: string, patch: { state?: ItemState; quantity?: number }) =>
     request<void>('PATCH', `/api/characters/${id}/items/${itemId}`, patch),

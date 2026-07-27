@@ -6,6 +6,7 @@ import type {
 import {
   CHARACTERISTICS, CHARACTERISTIC_LABELS, HEROIC_ORIGIN_LABELS, ITEM_STATE_LABELS, localizedDescription,
   localizedName, resolveWeaponSkillName, secondaryName, SKILL_KIND_LABELS, SYSTEM_LABELS,
+  WEAPON_CRAFTSMANSHIP_LABELS,
 } from '../../utils/labels'
 import { DicePoolView } from '../DicePoolView'
 import { t } from '../../i18n'
@@ -162,7 +163,12 @@ export function CharacterSheetPrint({ sheet, loadNotes = true }: {
                   : null
                 const weaponSkill = weaponSkillName ? skillsByName.get(weaponSkillName) : null
                 const weaponSkillLabel = weaponSkill ? localizedName(weaponSkill) : ''
-                const combat = [i.damage && t(`урон ${i.damage}`, `damage ${i.damage}`), i.crit && t(`крит ${i.crit}`, `crit ${i.crit}`), i.rangeBand, weaponSkillLabel]
+                // Урон и крит — из профиля экземпляра: он посчитан с Мощью персонажа и качеством
+                // изготовления (ROT-WPN-01/02), а строки каталога их не знают.
+                const profile = i.attackProfiles?.find(p => p.isDefault)
+                const damageText = profile?.baseDamage != null ? String(profile.baseDamage) : i.damage
+                const critText = profile ? String(profile.crit) : i.crit
+                const combat = [damageText && t(`урон ${damageText}`, `damage ${damageText}`), critText && t(`крит ${critText}`, `crit ${critText}`), i.rangeBand, weaponSkillLabel]
                   .filter(Boolean).join(', ')
                 const armor = [
                   i.soakBonus ? t(`поглощение +${i.soakBonus}`, `soak +${i.soakBonus}`) : '',
@@ -175,6 +181,8 @@ export function CharacterSheetPrint({ sheet, loadNotes = true }: {
                     <strong>{itemLabel}</strong>
                     {itemOriginal && <span className="sheet-meta"> · {itemOriginal}</span>}
                     <span className="sheet-meta">
+                      {i.craftsmanship !== 'steel' && ` · ${WEAPON_CRAFTSMANSHIP_LABELS[i.craftsmanship]}`}
+                      {i.reinforced && t(' · укреплённое', ' · reinforced')}
                       {' '}×{i.quantity} · {t('нагрузка', 'enc.')} {i.encumbrance}
                       {combat ? ` · ${combat}` : ''}
                       {armor ? ` · ${armor}` : ''}

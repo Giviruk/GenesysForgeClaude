@@ -1,6 +1,15 @@
 using GenesysForge.Domain;
+using GenesysForge.Domain.Rules;
 
 namespace GenesysForge.Application.Dtos;
+
+/// <summary>
+/// Одна поправка к характеристике экземпляра (ROT-WPN-02): что изменилось, с чего на что, на каком
+/// этапе и от чего. Клиент показывает разбор, а готовые числа берёт из полей позиции.
+/// </summary>
+/// <param name="Field">Стабильный код характеристики: <c>encumbrance</c>, <c>soak</c>, <c>price</c>…</param>
+public record ItemStatAdjustmentDto(
+    string Field, int Base, int Effective, ItemStatStage Stage, string Source);
 
 public record CharacterItemDto(Guid Id, Guid ItemDefId, string Name, string NameRu, ItemKind Kind, ItemState State, int Quantity,
     int Encumbrance, int SoakBonus, int MeleeDefense, int RangedDefense, int EncumbranceThresholdBonus, int Load,
@@ -26,4 +35,17 @@ public record CharacterItemDto(Guid Id, Guid ItemDefId, string Name, string Name
     /// Оружие метнули и не подобрали: атаковать им нельзя, качеств и веса оно не даёт,
     /// но и не исчезает.
     /// </summary>
-    bool IsThrown = false);
+    bool IsThrown = false,
+    /// <summary>
+    /// Качество изготовления экземпляра (ROT-WPN-02). Числа позиции выше — уже с его поправками:
+    /// вес, поглощение, защита, слоты, цена, редкость и профили атаки.
+    /// </summary>
+    WeaponCraftsmanship Craftsmanship = WeaponCraftsmanship.Steel,
+    /// <summary>Редкость экземпляра: Ancient задаёт ровно десять, остальные типы сдвигают каталожную.</summary>
+    int Rarity = 0,
+    /// <summary>
+    /// Экземпляр укреплён (Ancient): броня не поддаётся Pierce/Breach, а сам предмет — Sunder.
+    /// </summary>
+    bool Reinforced = false,
+    /// <summary>Разбор поправок: что именно качество изготовления изменило и с какого значения.</summary>
+    IReadOnlyList<ItemStatAdjustmentDto>? Adjustments = null);

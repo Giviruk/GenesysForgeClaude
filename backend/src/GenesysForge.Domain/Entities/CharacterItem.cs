@@ -16,4 +16,11 @@ public class CharacterItem
     /// недоступен для атак и не даёт своих качеств, но не исчезает: он лежит там, куда улетел.
     /// </summary>
     public bool IsThrown { get; set; }
+
+    /// <summary>
+    /// Качество изготовления экземпляра (ROT-WPN-02). Выбирается один раз при добавлении и дальше
+    /// не меняется: типы не складываются, а перековать вещь правила не дают. Legacy-строки и
+    /// снаряжение — <see cref="WeaponCraftsmanship.Steel"/>, то есть числа таблицы без изменений.
+    /// </summary>
+    public WeaponCraftsmanship Craftsmanship { get; set; } = WeaponCraftsmanship.Steel;
 }
