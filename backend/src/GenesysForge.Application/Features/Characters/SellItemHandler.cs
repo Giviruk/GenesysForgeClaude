@@ -19,12 +19,29 @@ public class SellItemHandler(IAppDbContext db) : ICommandHandler<SellItemCommand
         if (req.Quantity > item.Quantity)
             throw new DomainRuleException($"Нельзя продать больше, чем есть ({item.Quantity}).");
 
-        // Выручку считает сервер по цене каталога и результату проверки (ROT-ECO-01): присланная
-        // клиентом сумма не используется вовсе.
-        var percent = TradeRules.ProceedsPercent(req.NetSuccesses);
-        if (percent == 0)
+        // Сумму всегда считает сервер от цены каталога: присланных денег в запросе нет вовсе.
+        // Режим по проверке даёт долю по правилу, режим без проверки — простая продажа за
+        // выбранную долю цены (по умолчанию полную), чтобы не требовать броска ради мелочи.
+        if (req.NetSuccesses is not null && req.Percent is not null)
             throw new DomainRuleException(
-                "Проверка продажи провалена — сделка не состоялась.", "trade.sale_failed");
+                "Продажа идёт либо по проверке, либо без неё — сразу оба режима задать нельзя.",
+                "trade.sale_mode_ambiguous");
+
+        int percent;
+        if (req.NetSuccesses is { } successes)
+        {
+            percent = TradeRules.ProceedsPercent(successes);
+            if (percent == 0)
+                throw new DomainRuleException(
+                    "Проверка продажи провалена — сделка не состоялась.", "trade.sale_failed");
+        }
+        else
+        {
+            percent = req.Percent ?? 100;
+            if (percent is < 0 or > 100)
+                throw new DomainRuleException(
+                    "Доля цены при продаже задаётся от 0 до 100 процентов.", "trade.percent_invalid");
+        }
         if (req.ConditionMultiplier is not null && string.IsNullOrWhiteSpace(req.ConditionReason))
             throw new DomainRuleException(
                 "Для поправки за состояние нужна причина.", "trade.condition_reason_required");
@@ -61,6 +78,7 @@ public class SellItemHandler(IAppDbContext db) : ICommandHandler<SellItemCommand
                 toBudget = refund.FromBudget, toMoney = refund.FromMoney,
                 // История хранит всё, из чего сложилась сумма: цену, долю, промежуточный итог и поправку.
                 listedUnitPrice, netSuccesses = req.NetSuccesses, percent, bookSubtotal,
+                mode = req.NetSuccesses is null ? "direct" : "check",
                 conditionMultiplier = req.ConditionMultiplier, conditionReason = req.ConditionReason,
             });
 
