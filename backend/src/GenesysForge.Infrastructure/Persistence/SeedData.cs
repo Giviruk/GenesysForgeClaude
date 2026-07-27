@@ -110,6 +110,12 @@ public static class SeedData
             (row, def) => Assign(row.DescriptionEn != def.DescriptionEn || row.SafeDescription != def.SafeDescription,
                 () => { row.DescriptionEn = def.DescriptionEn; row.SafeDescription = def.SafeDescription; }));
         SyncHeroics(db, heroics);
+        // ROT-CLEAN-3.1 / 3.2: встроенная запись, которой больше нет в сид-наборе своей системы,
+        // помечается Retired, а не удаляется — на неё ссылаются созданные персонажи и экспорты.
+        RetireBuiltinsMissingFromSeed(
+            db, db.CareerDefs.Where(x => x.OwnerUserId == null), careers, c => (c.System, c.Name));
+        RetireBuiltinsMissingFromSeed(
+            db, db.SkillDefs.Where(x => x.OwnerUserId == null), skills, x => (x.System, x.Name));
         SyncBuiltinByCode(db,
             db.HeroicSecondaryEffectDefs.Where(x => x.Code != ""),
             heroicSecondaryEffects,
@@ -670,6 +676,28 @@ public static class SeedData
     }
 
     /// <summary>EN-описания героик и их улучшений (по Code способности + уровню улучшения).</summary>
+
+    /// <summary>
+    /// Помечает <c>Retired</c> встроенные записи, которых больше нет в сид-наборе. Сравнение идёт
+    /// по натуральному ключу внутри системы, поэтому очистка каталога RoT не задевает одноимённую
+    /// запись Genesys Core, а пользовательский контент не трогается вовсе.
+    /// </summary>
+    private static void RetireBuiltinsMissingFromSeed<T>(
+        AppDbContext db, IQueryable<T> builtins, IEnumerable<T> seeded, Func<T, (GameSystem, string)> key)
+        where T : class, IContentDef
+    {
+        var wanted = seeded.Select(key).ToHashSet();
+        var systems = wanted.Select(k => k.Item1).ToHashSet();
+        var changed = false;
+        foreach (var row in builtins.ToList())
+        {
+            var rowKey = key(row);
+            if (!systems.Contains(rowKey.Item1) || wanted.Contains(rowKey)) continue;
+            changed |= Assign(!row.Retired, () => row.Retired = true);
+        }
+        if (changed) db.SaveChanges();
+    }
+
     private static void SyncHeroics(AppDbContext db, IReadOnlyList<HeroicAbilityDef> catalog)
     {
         var wanted = catalog.Where(h => h.Code != "").ToDictionary(h => h.Code);
@@ -870,7 +898,6 @@ public static class SeedData
             Skill(S, "Survival", CharacteristicType.Cunning, SkillKind.General),
             Skill(S, "Vigilance", CharacteristicType.Willpower, SkillKind.General),
             Skill(S, "Brawl", CharacteristicType.Brawn, SkillKind.Combat),
-            Skill(S, "Gunnery", CharacteristicType.Agility, SkillKind.Combat),
             Skill(S, "Melee (Heavy)", CharacteristicType.Brawn, SkillKind.Combat),
             Skill(S, "Melee (Light)", CharacteristicType.Brawn, SkillKind.Combat),
             Skill(S, "Ranged", CharacteristicType.Agility, SkillKind.Combat),
@@ -995,10 +1022,6 @@ public static class SeedData
             "Мастер оружия и битвы: рыцарь, берсерк, маршал, наёмник или странствующий чемпион.",
             "A master of weapons and battle: a knight, berserker, marshal, mercenary or wandering champion.",
             "Brawl", "Coercion", "Leadership", "Melee (Heavy)", "Melee (Light)", "Resilience", "Riding", "Vigilance"),
-        Career(GameSystem.RealmsOfTerrinoth, "Knight", "Рыцарь",
-            "Знатный воин, обученный бою, верховой езде и исполнению обязанностей перед сюзереном.",
-            "A noble warrior trained in combat, riding and the duties owed to a liege.",
-            "Athletics", "Discipline", "Leadership", "Melee (Heavy)", "Melee (Light)", "Resilience", "Riding", "Vigilance"),
     ];
 
     // ─────────────────────────── talents ───────────────────────────

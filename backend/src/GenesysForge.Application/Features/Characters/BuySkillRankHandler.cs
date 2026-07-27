@@ -19,6 +19,12 @@ public class BuySkillRankHandler(IAppDbContext db) : ICommandHandler<BuySkillRan
                     || (s.OwnerUserId == command.UserId
                         && (s.HomebrewPackId == null || visiblePackIds.Contains(s.HomebrewPackId.Value)))), ct)
             ?? throw new DomainRuleException("Навык не найден.");
+        // Навык, исключённый из каталога системы, сохраняет уже купленные ранги, но новый ранг
+        // купить нельзя; подменять его похожим навыком тоже нельзя (ROT-CLEAN-3.2).
+        if (skillDef.Retired)
+            throw new DomainRuleException(
+                $"Навык «{skillDef.Name}» не входит в набор навыков этой системы.",
+                "skill.not_available_in_system");
 
         // Карьерный статус берётся из резолвера на момент покупки: талант, выдавший навык,
         // делает следующий ранг дешевле, но ранее уплаченную надбавку не возвращает.

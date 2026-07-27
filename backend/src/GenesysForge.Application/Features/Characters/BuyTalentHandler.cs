@@ -36,7 +36,6 @@ public class BuyTalentHandler(IAppDbContext db) : ICommandHandler<BuyTalentComma
         var policyError = TalentPurchasePolicy.ValidatePurchase(
             talentDef,
             new TalentPurchasePolicy.OwnedTalents(ownedCodes),
-            isNewTalent: row is null,
             code => relatedNames.GetValueOrDefault(code, code));
         if (policyError is not null)
             throw new DomainRuleException(policyError.Message, policyError.ReasonCode);

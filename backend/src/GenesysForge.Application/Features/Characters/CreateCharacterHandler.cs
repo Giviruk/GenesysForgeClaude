@@ -34,6 +34,11 @@ public class CreateCharacterHandler(IAppDbContext db, IDiceRoller dice)
                         || (c.OwnerUserId == userId
                             && (c.HomebrewPackId == null || visiblePackIds.Contains(c.HomebrewPackId.Value)))), ct)
             ?? throw new DomainRuleException("Карьера не найдена или принадлежит другой системе.");
+        // Retired-карьера остаётся у созданных персонажей, но новым не выдаётся: справочник её уже
+        // не показывает, и присланный напрямую id тоже не должен проходить (ROT-CLEAN-3.1).
+        if (career.Retired)
+            throw new DomainRuleException(
+                $"Карьера «{career.Name}» недоступна в этой системе.", "career.not_available_in_system");
         if (string.IsNullOrWhiteSpace(req.Name))
             throw new DomainRuleException("Имя персонажа не может быть пустым.");
 
@@ -78,7 +83,7 @@ public class CreateCharacterHandler(IAppDbContext db, IDiceRoller dice)
 
         // Резолвер навыков системы: built-in приоритетнее одноимённого custom.
         var systemSkills = await db.SkillDefs
-            .Where(s => s.System == req.System
+            .Where(s => s.System == req.System && !s.Retired
                 && (s.OwnerUserId == null
                     || (s.OwnerUserId == userId
                         && (s.HomebrewPackId == null || visiblePackIds.Contains(s.HomebrewPackId.Value)))))

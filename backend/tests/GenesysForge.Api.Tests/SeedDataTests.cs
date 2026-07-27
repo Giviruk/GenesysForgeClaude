@@ -149,16 +149,19 @@ public class SeedDataTests
         SeedData.Apply(db);
 
         var careers = db.CareerDefs.ToList();
-        Assert.Contains(careers, c => c.NameRu == "Рыцарь" && c.System == GameSystem.RealmsOfTerrinoth);
+        // Knight не входит в девять карьер RoT (ROT-CLEAN-3.1): активной записи для него нет.
+        Assert.DoesNotContain(careers,
+            c => c.Name == "Knight" && c.System == GameSystem.RealmsOfTerrinoth && !c.Retired);
         Assert.Contains(careers, c => c.NameRu == "Волшебник" && c.System == GameSystem.GenesysCore);
         Assert.Contains(careers, c => c.NameRu == "Друид" && c.System == GameSystem.GenesysCore);
         Assert.Contains(careers, c => c.NameRu == "Жрец" && c.System == GameSystem.GenesysCore);
 
         // Каждый карьерный навык должен существовать среди встроенных навыков своей системы,
         // иначе выбор бесплатных карьерных рангов при создании сломается.
-        foreach (var career in careers)
+        foreach (var career in careers.Where(c => !c.Retired))
         {
-            var skillNames = db.SkillDefs.Where(s => s.System == career.System).Select(s => s.Name).ToHashSet();
+            var skillNames = db.SkillDefs.Where(s => s.System == career.System && !s.Retired)
+                .Select(s => s.Name).ToHashSet();
             foreach (var cs in career.CareerSkillNames)
                 Assert.Contains(cs, skillNames);
         }
