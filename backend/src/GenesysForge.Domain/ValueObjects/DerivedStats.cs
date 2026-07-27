@@ -17,4 +17,6 @@ public record DerivedStats(
     int EncumbranceLoad,
     bool Encumbered,
     DefenseBreakdown? MeleeDefenseBreakdown = null,
-    DefenseBreakdown? RangedDefenseBreakdown = null);
+    DefenseBreakdown? RangedDefenseBreakdown = null,
+    /// <summary>Точное состояние перегруза: помехи, бесплатный манёвр и цена манёвра (ROT-EQP-01).</summary>
+    EncumbranceState? Encumbrance = null);

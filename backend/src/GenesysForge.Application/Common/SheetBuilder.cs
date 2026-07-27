@@ -66,7 +66,11 @@ public static class SheetBuilder
             c.WoundsCurrent, c.StrainCurrent, c.Money,
             new DerivedDto(derived.WoundThreshold, derived.StrainThreshold, derived.Soak, derived.MeleeDefense,
                 derived.RangedDefense, derived.EncumbranceThreshold, derived.EncumbranceLoad, derived.Encumbered,
-                ToDto(derived.MeleeDefenseBreakdown), ToDto(derived.RangedDefenseBreakdown)),
+                ToDto(derived.MeleeDefenseBreakdown), ToDto(derived.RangedDefenseBreakdown),
+                derived.Encumbrance is null ? null : new EncumbranceDto(
+                    derived.Encumbrance.Overload, derived.Encumbrance.SetbackDice,
+                    derived.Encumbrance.HasFreeManoeuvre, derived.Encumbrance.StrainPerManoeuvre,
+                    derived.Encumbrance.ZeroEncumbranceLoad)),
             skills,
             c.Talents
                 .OrderBy(t => t.TalentDef!.Tier).ThenBy(t => t.TalentDef!.Name)

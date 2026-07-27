@@ -580,6 +580,15 @@ export interface DefenseBreakdown {
   increases: DefenseSource[]
 }
 
+/** Состояние перегруза: помехи, бесплатный манёвр и цена манёвра. */
+export interface Encumbrance {
+  overload: number
+  setbackDice: number
+  hasFreeManoeuvre: boolean
+  strainPerManoeuvre: number
+  zeroEncumbranceLoad: number
+}
+
 export interface Derived {
   woundThreshold: number
   strainThreshold: number
@@ -593,6 +602,8 @@ export interface Derived {
   meleeDefenseBreakdown: DefenseBreakdown | null
   /** Как сложилась дальняя защита. */
   rangedDefenseBreakdown: DefenseBreakdown | null
+  /** Точная цена перегруза (ROT-EQP-01); null у старых ответов. */
+  encumbrance: Encumbrance | null
 }
 
 export interface CampaignListItem {

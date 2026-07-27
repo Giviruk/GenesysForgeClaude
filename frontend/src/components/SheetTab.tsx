@@ -85,7 +85,7 @@ export function SheetTab({ sheet, onError, refresh }: Props) {
         <DerivedBox label={t('Защита (ближ/дальн)', 'Defense (melee/ranged)')} value={`${d.meleeDefense} / ${d.rangedDefense}`}
           title={defenseTitle(d)} />
         <DerivedBox label={t('Переносимый вес', 'Encumbrance')} value={`${d.encumbranceLoad} / ${d.encumbranceThreshold}`}
-          warning={d.encumbered ? t('Перегружен!', 'Encumbered!') : undefined} />
+          warning={encumbranceWarning(d)} />
       </section>
 
       <CriticalInjuriesSection sheet={sheet} onError={onError} refresh={refresh} />
@@ -297,4 +297,18 @@ function defenseTitle(d: Derived): string | undefined {
     channel(t('Дальняя', 'Ranged'), d.rangedDefenseBreakdown),
   ].filter(Boolean)
   return lines.length > 0 ? lines.join('\n') : undefined
+}
+
+/**
+ * Точная цена перегруза, а не просто «перегружен» (ROT-EQP-01): сколько помех добавляется к
+ * проверкам Мощи и Ловкости и во что обходятся манёвры.
+ */
+function encumbranceWarning(d: Derived): string | undefined {
+  if (!d.encumbered) return undefined
+  const e = d.encumbrance
+  if (!e) return t('Перегружен!', 'Encumbered!')
+  const dice = t(`Перегруз: +${e.setbackDice} помех`, `Encumbered: +${e.setbackDice} setback`)
+  return e.hasFreeManoeuvre
+    ? dice
+    : `${dice}, ${t(`манёвр — ${e.strainPerManoeuvre} усталости`, `each manoeuvre costs ${e.strainPerManoeuvre} strain`)}`
 }

@@ -77,11 +77,17 @@ public static class SheetCalculator
         var meleeDef = meleeBreakdown.Effective;
         var rangedDef = rangedBreakdown.Effective;
 
-        var encThreshold = GenesysRules.EncumbranceThreshold(
+        // Предметы с нулевым Enc не пропадают: они считаются вместе по всем позициям (ROT-EQP-01).
+        var zeroEncUnits = items
+            .Where(i => i.Encumbrance == 0 && i.Kind != ItemKind.Armor)
+            .Sum(i => Math.Max(1, i.Quantity));
+        var encumbrance = EncumbranceRules.Compute(
             ch.Brawn,
-            protective.Sum(i => i.EncumbranceThresholdBonus));
-
-        var load = items.Sum(ItemLoad);
+            items.Sum(ItemLoad),
+            protective.Sum(i => i.EncumbranceThresholdBonus),
+            EncumbranceRules.ZeroEncumbranceLoad(zeroEncUnits));
+        var encThreshold = encumbrance.Threshold;
+        var load = encumbrance.Load;
 
         return new DerivedStats(
             WoundThreshold: woundThresholdSnapshot is { } wt
@@ -93,11 +99,12 @@ public static class SheetCalculator
             Soak: GenesysRules.Soak(ch.Brawn, armorSoak, talentSoak),
             MeleeDefense: meleeDef,
             RangedDefense: rangedDef,
-            MeleeDefenseBreakdown: meleeBreakdown,
-            RangedDefenseBreakdown: rangedBreakdown,
             EncumbranceThreshold: encThreshold,
             EncumbranceLoad: load,
-            Encumbered: load > encThreshold);
+            Encumbered: encumbrance.Encumbered,
+            MeleeDefenseBreakdown: meleeBreakdown,
+            RangedDefenseBreakdown: rangedBreakdown,
+            Encumbrance: encumbrance);
     }
 
     /// <summary>Вес позиции инвентаря: надетая броня — encumbrance −3 (мин. 0), остальное полностью.</summary>
