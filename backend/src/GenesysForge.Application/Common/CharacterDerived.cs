@@ -35,7 +35,8 @@ public static class CharacterDerived
         .Select(i => new ItemInput(
             i.ItemDef!.Name, i.ItemDef.Kind, i.State, i.ItemDef.Encumbrance, i.Quantity,
             i.ItemDef.SoakBonus, i.ItemDef.MeleeDefense, i.ItemDef.RangedDefense,
-            i.ItemDef.EncumbranceThresholdBonus))
+            i.ItemDef.EncumbranceThresholdBonus,
+            i.Id == c.ActiveArmorCharacterItemId))
         .ToList();
 
     /// <summary>

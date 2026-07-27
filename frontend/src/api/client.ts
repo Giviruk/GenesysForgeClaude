@@ -186,6 +186,8 @@ export const api = {
     request<void>('POST', `/api/characters/${id}/talents/refund`, { talentDefId }),
   setHeroicAbility: (id: string, heroicAbilityId: string | null) =>
     request<void>('PUT', `/api/characters/${id}/heroic-ability`, { heroicAbilityId }),
+  setActiveArmor: (id: string, characterItemId: string | null) =>
+    request<void>('PUT', `/api/characters/${id}/active-armor`, { characterItemId }),
   setHeroicIdentity: (id: string, body: {
     customName: string
     originMode?: HeroicOriginMode | null

@@ -319,7 +319,24 @@ function InventoryCard({ item, sheet, skillNames, run, reference, sellOpen, onTo
           {item.rangedDefense > 0 && t(`Защ.дальн +${item.rangedDefense} `, `Ranged def. +${item.rangedDefense} `)}
           {item.encumbranceThresholdBonus > 0 && t(`Порог веса +${item.encumbranceThresholdBonus} `, `Encumbrance +${item.encumbranceThresholdBonus} `)}
           {item.state !== 'equipped' && t('(не действует — предмет не используется)', '(inactive — the item is not equipped)')}
+          {item.state === 'equipped' && item.kind === 'armor' && !item.isActiveArmor
+            && t('(не действует — активна другая броня, эта даёт только вес)',
+              '(inactive — another armor is active; this one only adds load)')}
         </div>
+      )}
+
+      {/* Персонаж может носить несколько броней, но защиту даёт ровно одна (ROT-CMB-02). */}
+      {item.kind === 'armor' && item.state === 'equipped' && (
+        <label className="small-text">
+          <input type="radio" name={`active-armor-${sheet.id}`} checked={item.isActiveArmor}
+            onChange={() => run(() => api.setActiveArmor(sheet.id, item.id))} />
+          {' '}{t('Активная броня', 'Active armor')}
+          {item.isActiveArmor && (
+            <button className="tiny" onClick={() => run(() => api.setActiveArmor(sheet.id, null))}>
+              {t('снять выбор', 'clear')}
+            </button>
+          )}
+        </label>
       )}
 
       {localizedDescription(item) && <div className="inv-card-desc">{localizedDescription(item)}</div>}

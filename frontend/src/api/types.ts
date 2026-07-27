@@ -559,6 +559,8 @@ export interface SheetItem {
   crit: string
   rangeBand: string
   properties: string
+  /** Позиция выбрана активной бронёй: только она даёт защиту и поглощение (ROT-CMB-02). */
+  isActiveArmor: boolean
 }
 
 export interface Derived {
@@ -1102,6 +1104,8 @@ export interface CharacterSheet {
   heroicConfiguration: HeroicConfiguration | null
   /** Способность требует параметр, а он не выбран — улучшения заблокированы. */
   heroicConfigurationIncomplete: boolean
+  /** Выбранная активная броня; null — броня защиты не даёт (ROT-CMB-02). */
+  activeArmorCharacterItemId: string | null
   items: SheetItem[]
   // Мотивации и предыстория (U-22)
   desire: string | null
@@ -1141,7 +1145,7 @@ export type CharacterAuditAction =
   | 'itemBought' | 'itemSold' | 'itemRemoved'
   | 'heroicAbilityChanged' | 'creationCompleted' | 'manualEdit'
   | 'heroicIdentitySet' | 'heroicOriginRolled'
-  | 'heroicParameterSet' | 'signatureWeaponReplaced'
+  | 'heroicParameterSet' | 'signatureWeaponReplaced' | 'activeArmorChanged'
 
 export interface CharacterAuditEntry {
   id: string

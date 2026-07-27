@@ -63,7 +63,9 @@ public record CharacterSheetDto(
     /// <summary>Параметр primary effect: навык Paragon, категория Sixth Sense или оружие (ROT-HA-02).</summary>
     HeroicConfigurationDto? HeroicConfiguration = null,
     /// <summary>Способность требует параметр, а он не выбран — улучшения заблокированы.</summary>
-    bool HeroicConfigurationIncomplete = false);
+    bool HeroicConfigurationIncomplete = false,
+    /// <summary>Выбранная активная броня; <c>null</c> — броня защиты не даёт (ROT-CMB-02).</summary>
+    Guid? ActiveArmorCharacterItemId = null);
 
 /// <summary>Один сохранённый выбор ранга таланта (ROT-TAL-03).</summary>
 public record CharacterTalentChoiceDto(int RankIndex, TalentChoiceKind Kind, string Value, string DisplayName);

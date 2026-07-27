@@ -13,6 +13,7 @@ public class RemoveItemHandler(IAppDbContext db) : ICommandHandler<RemoveItemCom
         var item = c.Items.FirstOrDefault(i => i.Id == command.ItemId)
             ?? throw new DomainRuleException("Предмет не найден в инвентаре.");
         var itemName = item.ItemDef?.Name ?? "предмет";
+        if (c.ActiveArmorCharacterItemId == item.Id) c.ActiveArmorCharacterItemId = null;
         c.Items.Remove(item);
         db.CharacterItems.Remove(item);
 

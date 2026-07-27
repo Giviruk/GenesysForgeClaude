@@ -103,7 +103,8 @@ public static class SheetBuilder
                         i.ItemDef.Encumbrance, i.Quantity)),
                     i.ItemDef.Description, i.ItemDef.Price,
                     i.ItemDef.SkillName, i.ItemDef.Damage, i.ItemDef.Crit, i.ItemDef.RangeBand, i.ItemDef.Properties,
-                    i.ItemDef.DescriptionEn))
+                    i.ItemDef.DescriptionEn,
+                    i.Id == c.ActiveArmorCharacterItemId))
                 .ToList(),
             c.Desire, c.Fear, c.Strength, c.Flaw, c.Background,
             c.CriticalInjuries
@@ -129,7 +130,8 @@ public static class SheetBuilder
                 c.HeroicIdentityComplete),
             c.HeroicIdentityIncomplete,
             configuration,
-            c.HeroicConfigurationIncomplete);
+            c.HeroicConfigurationIncomplete,
+            c.ActiveArmorCharacterItemId);
     }
 
     /// <summary>

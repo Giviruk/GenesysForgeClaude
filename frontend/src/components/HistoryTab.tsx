@@ -26,6 +26,7 @@ const ACTION_LABELS: Record<CharacterAuditAction, string> = t({
   heroicOriginRolled: 'Происхождение',
   heroicParameterSet: 'Параметр героики',
   signatureWeaponReplaced: 'Именное оружие',
+  activeArmorChanged: 'Активная броня',
   creationCompleted: 'Создание',
   manualEdit: 'Правка',
 }, {
@@ -44,6 +45,7 @@ const ACTION_LABELS: Record<CharacterAuditAction, string> = t({
   heroicOriginRolled: 'Origin roll',
   heroicParameterSet: 'Heroic parameter',
   signatureWeaponReplaced: 'Signature weapon',
+  activeArmorChanged: 'Active armor',
   creationCompleted: 'Creation',
   manualEdit: 'Edit',
 })

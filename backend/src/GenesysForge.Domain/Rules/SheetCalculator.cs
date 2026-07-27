@@ -33,18 +33,24 @@ public static class SheetCalculator
         var talentMeleeDef = talents.Sum(t => t.MeleeDefenseBonusPerRank * t.Ranks);
         var talentRangedDef = talents.Sum(t => t.RangedDefenseBonusPerRank * t.Ranks);
 
-        var armorSoak = equipped.Sum(i => i.SoakBonus);
+        // Персонаж может носить несколько броней, но защиту и поглощение даёт ровно одна выбранная
+        // (ROT-CMB-02). Не-броня (щит, талисман) считается отдельно и активной броней не является.
+        var protective = equipped
+            .Where(i => i.Kind != ItemKind.Armor || i.IsActiveArmor)
+            .ToList();
+
+        var armorSoak = protective.Sum(i => i.SoakBonus);
         // Защита из разных источников не складывается — берётся лучшая, таланты добавляются сверху.
         // Видовая Nimble задаёт базовую защиту (set, не «+1»), поэтому участвует в том же max:
         // с бронёй Defense 1 итог остаётся 1, пока не появятся настоящие additive-модификаторы.
-        var meleeDef = Math.Max(equipped.Select(i => i.MeleeDefense).DefaultIfEmpty(0).Max(), baseDefense ?? 0)
+        var meleeDef = Math.Max(protective.Select(i => i.MeleeDefense).DefaultIfEmpty(0).Max(), baseDefense ?? 0)
             + talentMeleeDef;
-        var rangedDef = Math.Max(equipped.Select(i => i.RangedDefense).DefaultIfEmpty(0).Max(), baseDefense ?? 0)
+        var rangedDef = Math.Max(protective.Select(i => i.RangedDefense).DefaultIfEmpty(0).Max(), baseDefense ?? 0)
             + talentRangedDef;
 
         var encThreshold = GenesysRules.EncumbranceThreshold(
             ch.Brawn,
-            equipped.Sum(i => i.EncumbranceThresholdBonus));
+            protective.Sum(i => i.EncumbranceThresholdBonus));
 
         var load = items.Sum(ItemLoad);
 
