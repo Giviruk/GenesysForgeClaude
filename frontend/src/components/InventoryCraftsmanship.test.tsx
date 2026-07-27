@@ -53,13 +53,16 @@ describe('Инвентарь: качество изготовления (ROT-WPN
   })
 
   it('показывает работу экземпляра и разбор поправок', () => {
-    render(<InventoryTab sheet={sheet} reference={reference} onError={() => {}}
+    const { container } = render(<InventoryTab sheet={sheet} reference={reference} onError={() => {}}
       refresh={() => Promise.resolve()} />)
 
-    expect(screen.getByText(/Железо/)).toBeTruthy()
-    // Числа на карточке уже эффективные, а разбор объясняет, откуда они.
-    expect(screen.getByText(/Вес 6 → 8/)).toBeTruthy()
-    expect(screen.getByText(/Цена 5000 → 2500/)).toBeTruthy()
+    // Бейдж работы стоит в заголовке карточки, рядом со слотами улучшений.
+    expect(container.querySelector('.inv-card-title')!.textContent).toContain('· Железо')
+    // Числа на карточке уже эффективные, а разбор объясняет, откуда они, и называет работу.
+    const breakdown = [...container.querySelectorAll('.inv-card .muted')]
+      .map(e => e.textContent ?? '').find(text => text.startsWith('железное'))
+    expect(breakdown).toContain('Вес 6 → 8')
+    expect(breakdown).toContain('Цена 5000 → 2500')
   })
 
   it('покупает с выбранной работой и показывает её цену', async () => {
@@ -75,6 +78,50 @@ describe('Инвентарь: качество изготовления (ROT-WPN
     const buttons = screen.getAllByRole('button', { name: 'Купить' })
     fireEvent.click(buttons[buttons.length - 1])
     await waitFor(() => expect(addItemMock).toHaveBeenCalledWith(
-      'char-1', 'def-plate', 1, 'carried', { craftsmanship: 'dwarven' }))
+      'char-1', 'def-plate', 1, 'carried', { pricePercent: 100, craftsmanship: 'dwarven' }))
+  })
+
+  it('выдаёт без оплаты с выбранной работой, не открывая покупку', async () => {
+    render(<InventoryTab sheet={sheet} reference={reference} onError={() => {}}
+      refresh={() => Promise.resolve()} />)
+
+    // Выбор работы доступен сразу: бесплатная выдача не должна требовать открытия магазина.
+    fireEvent.change(screen.getByRole('combobox'), { target: { value: 'elven' } })
+    fireEvent.click(screen.getByRole('button', { name: '+ Добавить' }))
+
+    await waitFor(() => expect(addItemMock).toHaveBeenCalledWith(
+      'char-1', 'def-plate', 1, 'carried', { free: true, craftsmanship: 'elven' }))
+  })
+
+  it('торгуется долей цены с шагом 25 %', async () => {
+    render(<InventoryTab sheet={sheet} reference={reference} onError={() => {}}
+      refresh={() => Promise.resolve()} />)
+
+    fireEvent.click(screen.getAllByRole('button', { name: 'Купить' })[0])
+    fireEvent.click(screen.getByRole('button', { name: '75%' }))
+    expect(screen.getByText(/75% · Цена 3750 × 1 =/)).toBeTruthy()
+
+    const buttons = screen.getAllByRole('button', { name: 'Купить' })
+    fireEvent.click(buttons[buttons.length - 1])
+    await waitFor(() => expect(addItemMock).toHaveBeenCalledWith(
+      'char-1', 'def-plate', 1, 'carried', { pricePercent: 75, craftsmanship: 'steel' }))
+  })
+
+  it('договорная цена требует причины', async () => {
+    render(<InventoryTab sheet={sheet} reference={reference} onError={() => {}}
+      refresh={() => Promise.resolve()} />)
+
+    fireEvent.click(screen.getAllByRole('button', { name: 'Купить' })[0])
+    fireEvent.click(screen.getByLabelText('Своя цена'))
+    fireEvent.change(screen.getByLabelText('Цена/шт'), { target: { value: '300' } })
+
+    const buy = () => screen.getAllByRole('button', { name: 'Купить' }).at(-1)!
+    expect((buy() as HTMLButtonElement).disabled).toBe(true)
+
+    fireEvent.change(screen.getByLabelText('Причина'), { target: { value: 'скидка гильдии' } })
+    fireEvent.click(buy())
+    await waitFor(() => expect(addItemMock).toHaveBeenCalledWith(
+      'char-1', 'def-plate', 1, 'carried',
+      { priceOverride: 300, overrideReason: 'скидка гильдии', craftsmanship: 'steel' }))
   })
 })

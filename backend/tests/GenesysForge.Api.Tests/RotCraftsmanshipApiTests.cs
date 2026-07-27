@@ -200,6 +200,78 @@ public class RotCraftsmanshipApiTests(ApiFactory factory) : IClassFixture<ApiFac
         Assert.Equal(sword.Price / 2, spent);
     }
 
+    [Theory]
+    [InlineData(50)]
+    [InlineData(75)]
+    [InlineData(125)]
+    [InlineData(200)]
+    public async Task Haggling_ChargesTheFractionOfTheInstancePrice(int percent)
+    {
+        var (client, id, reference) = await CreateCharacterAsync();
+        var dagger = Item(reference, "Dagger", ItemKind.Weapon);
+
+        var before = await SheetAsync(client, id);
+        var resp = await client.PostAsJsonAsync($"/api/characters/{id}/items",
+            new AddItemRequest(dagger.Id, 1, ItemState.Carried,
+                Craftsmanship: WeaponCraftsmanship.Dwarven, PricePercent: percent), Json.Options);
+        Assert.Equal(HttpStatusCode.Created, resp.StatusCode);
+
+        var after = await SheetAsync(client, id);
+        var spent = (before.Money + before.StartingPurchaseBudget)
+            - (after.Money + after.StartingPurchaseBudget);
+        // Доля берётся от цены экземпляра (гномья работа — вдвое дороже) и округляется вниз.
+        Assert.Equal((int)Math.Floor(dagger.Price * 2 * (percent / 100.0)), spent);
+    }
+
+    [Theory]
+    [InlineData(40)]
+    [InlineData(250)]
+    [InlineData(60)]
+    public async Task Haggling_RejectsValuesOutsideTheRangeAndStep(int percent)
+    {
+        var (client, id, reference) = await CreateCharacterAsync();
+        var dagger = Item(reference, "Dagger", ItemKind.Weapon);
+
+        var resp = await client.PostAsJsonAsync($"/api/characters/{id}/items",
+            new AddItemRequest(dagger.Id, 1, ItemState.Carried, PricePercent: percent), Json.Options);
+        Assert.Equal(HttpStatusCode.BadRequest, resp.StatusCode);
+    }
+
+    [Fact]
+    public async Task Haggling_AndOwnPrice_AreMutuallyExclusive()
+    {
+        var (client, id, reference) = await CreateCharacterAsync();
+        var dagger = Item(reference, "Dagger", ItemKind.Weapon);
+
+        var resp = await client.PostAsJsonAsync($"/api/characters/{id}/items",
+            new AddItemRequest(dagger.Id, 1, ItemState.Carried,
+                PriceOverride: 10, OverrideReason: "сделка", PricePercent: 75), Json.Options);
+        Assert.Equal(HttpStatusCode.BadRequest, resp.StatusCode);
+    }
+
+    [Fact]
+    public async Task OwnPrice_StillRequiresAReason_AndWinsOverTheCatalog()
+    {
+        var (client, id, reference) = await CreateCharacterAsync();
+        var dagger = Item(reference, "Dagger", ItemKind.Weapon);
+
+        var noReason = await client.PostAsJsonAsync($"/api/characters/{id}/items",
+            new AddItemRequest(dagger.Id, 1, ItemState.Carried, PriceOverride: 10), Json.Options);
+        Assert.Equal(HttpStatusCode.BadRequest, noReason.StatusCode);
+
+        var before = await SheetAsync(client, id);
+        var resp = await client.PostAsJsonAsync($"/api/characters/{id}/items",
+            new AddItemRequest(dagger.Id, 2, ItemState.Carried,
+                PriceOverride: 10, OverrideReason: "скидка гильдии",
+                Craftsmanship: WeaponCraftsmanship.Ancient), Json.Options);
+        Assert.Equal(HttpStatusCode.Created, resp.StatusCode);
+
+        var after = await SheetAsync(client, id);
+        var spent = (before.Money + before.StartingPurchaseBudget)
+            - (after.Money + after.StartingPurchaseBudget);
+        Assert.Equal(20, spent);
+    }
+
     [Fact]
     public async Task SaleProceeds_FollowTheInstancePrice()
     {

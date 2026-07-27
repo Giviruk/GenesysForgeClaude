@@ -7,7 +7,8 @@ import type {
 import {
   CHARACTERISTIC_LABELS, CURRENCY_LABEL, ITEM_KIND_LABELS, ITEM_STAT_FIELD_LABELS, ITEM_STATE_LABELS,
   localizedDescription, localizedName, resolveWeaponSkillName, secondaryName,
-  WEAPON_CRAFTSMANSHIP_HINTS, WEAPON_CRAFTSMANSHIP_LABELS, WEAPON_CRAFTSMANSHIPS,
+  WEAPON_CRAFTSMANSHIP_ADJECTIVES, WEAPON_CRAFTSMANSHIP_HINTS, WEAPON_CRAFTSMANSHIP_LABELS,
+  WEAPON_CRAFTSMANSHIPS,
 } from '../utils/labels'
 import { craftsmanshipApplies, craftsmanshipPrice } from '../utils/craftsmanship'
 import { itemTags } from '../data/itemQualities'
@@ -260,6 +261,17 @@ function ShopRow({ item, money, run, sheetId, open, onToggle }: {
           {item.properties && <PropertyTags properties={item.properties} className="shop-props small-text" />}
         </div>
         <div className="shop-row-actions">
+          {/* Работа выбирается до любого из действий: и покупка, и бесплатная выдача берут её. */}
+          {canChoose && (
+            <select className="shop-craftsmanship-select" value={craftsmanship}
+              aria-label={t('Качество изготовления', 'Craftsmanship')}
+              title={WEAPON_CRAFTSMANSHIP_HINTS[craftsmanship]}
+              onChange={e => setCraftsmanship(e.target.value as WeaponCraftsmanship)}>
+              {WEAPON_CRAFTSMANSHIPS.map(c => (
+                <option key={c} value={c}>{WEAPON_CRAFTSMANSHIP_LABELS[c]}</option>
+              ))}
+            </select>
+          )}
           <button className="primary tiny" onClick={onToggle}>{open ? t('Отмена', 'Cancel') : t('Купить', 'Buy')}</button>
           <button className="tiny" title={t('Добавить без оплаты', 'Add without paying')}
             onClick={() => run(() => api.addItem(sheetId, item.id, 1, 'carried',
@@ -269,25 +281,17 @@ function ShopRow({ item, money, run, sheetId, open, onToggle }: {
       {open && (
         <>
           {canChoose && (
-            <label className="small-text shop-craftsmanship">
-              {t('Качество изготовления', 'Craftsmanship')}{': '}
-              <select value={craftsmanship}
-                onChange={e => setCraftsmanship(e.target.value as WeaponCraftsmanship)}>
-                {WEAPON_CRAFTSMANSHIPS.map(c => (
-                  <option key={c} value={c}>{WEAPON_CRAFTSMANSHIP_LABELS[c]}</option>
-                ))}
-              </select>
-              <div className="muted small-text">{WEAPON_CRAFTSMANSHIP_HINTS[craftsmanship]}</div>
-              <div className="muted small-text">
+            <div className="small-text shop-craftsmanship">
+              <div className="muted">{WEAPON_CRAFTSMANSHIP_HINTS[craftsmanship]}</div>
+              <div className="muted">
                 {t('Выбирается один раз — потом не меняется.', 'Chosen once — it cannot be changed later.')}
               </div>
-            </label>
+            </div>
           )}
           <BuyControl unitPrice={unitPrice} money={money}
-            maxAffordable={unitPrice > 0 ? Math.floor(money / unitPrice) : undefined}
-            onConfirm={qty => run(async () => {
+            onConfirm={(qty, opts) => run(async () => {
               await api.addItem(sheetId, item.id, qty, 'carried',
-                canChoose ? { craftsmanship } : undefined)
+                canChoose ? { ...opts, craftsmanship } : opts)
               onToggle()
             })} />
         </>
@@ -396,7 +400,7 @@ function InventoryCard({ item, sheet, skillNames, run, reference, sellOpen, onTo
       {/* Разбор поправок: числа выше — уже эффективные, здесь видно, от чего они такие (ROT-WPN-02). */}
       {item.adjustments?.length > 0 && (
         <div className="muted small-text">
-          {t('Работа', 'Craftsmanship')} · {item.adjustments.map((a, i) => (
+          {WEAPON_CRAFTSMANSHIP_ADJECTIVES[item.craftsmanship]} · {item.adjustments.map((a, i) => (
             <span key={a.field}>
               {i > 0 && ' · '}
               {ITEM_STAT_FIELD_LABELS[a.field] ?? a.field} {a.base} → {a.effective}
@@ -617,31 +621,92 @@ function WeaponLine({ item, sheet, skill, skillLabel, reference, run }: {
 }
 
 /** Покупка по каталожной цене: клиент не назначает сумму, только количество (ROT-ECO-01). */
-function BuyControl({ unitPrice, money, maxAffordable, onConfirm }: {
+/** Доли цены при торге: от половины до двойной, четвертями (ROT-ECO-01). */
+const PURCHASE_PERCENTS = [50, 75, 100, 125, 150, 175, 200]
+
+/**
+ * Покупка. Способа два и они взаимоисключающие: доля цены каталога (торг, наценка обстановки)
+ * и договорная цена за штуку с обязательной причиной. Сумму в обоих случаях считает сервер —
+ * здесь только предпросмотр, как и в продаже.
+ */
+function BuyControl({ unitPrice, money, onConfirm }: {
   unitPrice: number
   money: number
-  maxAffordable?: number
-  onConfirm: (quantity: number) => void
+  onConfirm: (quantity: number, opts: {
+    pricePercent?: number; priceOverride?: number; overrideReason?: string
+  }) => void
 }) {
   const [qty, setQty] = useState(1)
-  const total = unitPrice * qty
+  const [mode, setMode] = useState<'direct' | 'override'>('direct')
+  const [percent, setPercent] = useState(100)
+  const [ownPrice, setOwnPrice] = useState('')
+  const [reason, setReason] = useState('')
+
+  const ownPriceNum = Math.max(0, Math.trunc(Number(ownPrice)) || 0)
+  // Доля берётся от цены единицы и округляется вниз — тем же правилом, что и на сервере.
+  const effectiveUnit = mode === 'override' ? ownPriceNum : Math.floor(unitPrice * percent / 100)
+  const total = effectiveUnit * qty
   const tooExpensive = total > money
+  const needsReason = mode === 'override' && (ownPrice.trim() === '' || reason.trim() === '')
 
   return (
     <div className="price-control">
+      <div className="inline-form">
+        {([
+          ['direct', t('Доля цены', 'Price fraction')],
+          ['override', t('Своя цена', 'Own price')],
+        ] as const).map(([value, label]) => (
+          <label key={value}>
+            <input type="radio" name="buy-mode" checked={mode === value}
+              onChange={() => setMode(value)} /> {label}
+          </label>
+        ))}
+      </div>
+
+      {mode === 'direct' && (
+        <div className="price-mults">
+          {PURCHASE_PERCENTS.map(m => (
+            <button key={m} className={percent === m ? 'chip active' : 'chip'}
+              onClick={() => setPercent(m)}>{m}%</button>
+          ))}
+        </div>
+      )}
+
+      {mode === 'override' && (
+        <div className="price-row">
+          <label>{t('Цена/шт', 'Price/unit')}
+            <input type="number" min={0} value={ownPrice}
+              onChange={e => setOwnPrice(e.target.value)} style={{ width: '5rem' }} />
+          </label>
+          <label>{t('Причина', 'Reason')}
+            <input value={reason} maxLength={200} placeholder={t('например, скидка от гильдии', 'e.g. a guild discount')}
+              onChange={e => setReason(e.target.value)} />
+          </label>
+        </div>
+      )}
+
       <div className="price-row">
         <label>{t('Кол-во', 'Qty')}
-          <input type="number" min={1} max={maxAffordable} value={qty}
+          <input type="number" min={1} value={qty}
             onChange={e => setQty(Math.max(1, Math.trunc(Number(e.target.value)) || 1))}
             style={{ width: '4rem' }} />
         </label>
         <span className="price-total">
-          {t('Цена', 'Price')} {unitPrice} × {qty} = <strong className={tooExpensive ? 'error' : ''}>{total}</strong> 🪙
+          {mode === 'direct' && percent !== 100 && `${percent}% · `}
+          {t('Цена', 'Price')} {effectiveUnit} × {qty} = <strong className={tooExpensive ? 'error' : ''}>{total}</strong> 🪙
         </span>
-        <button className="primary small" disabled={tooExpensive}
-          title={tooExpensive ? t('Недостаточно монет', 'Not enough coins') : undefined}
-          onClick={() => onConfirm(qty)}>{t('Купить', 'Buy')}</button>
+        <button className="primary small" disabled={tooExpensive || needsReason}
+          title={needsReason
+            ? t('Нужны цена и причина', 'Price and reason required')
+            : tooExpensive ? t('Недостаточно монет', 'Not enough coins') : undefined}
+          onClick={() => onConfirm(qty, mode === 'override'
+            ? { priceOverride: ownPriceNum, overrideReason: reason.trim() }
+            : { pricePercent: percent })}>{t('Купить', 'Buy')}</button>
       </div>
+      <p className="hint small-text">
+        {t('Доля берётся от цены экземпляра за штуку и округляется вниз; итог считает сервер.',
+          'The fraction applies to the instance unit price and rounds down; the server computes the total.')}
+      </p>
     </div>
   )
 }
