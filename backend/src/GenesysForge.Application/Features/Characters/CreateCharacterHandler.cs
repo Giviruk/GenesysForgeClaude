@@ -121,9 +121,14 @@ public class CreateCharacterHandler(IAppDbContext db, IDiceRoller dice)
         }
 
         // Стартовые навыки-выборы вида — игрок выбирает конкретные навыки при создании.
+        // Запись без имени группы отклоняется явной ошибкой: сгруппировать её не по чему, а
+        // раньше такой запрос ронял создание необработанным исключением.
+        if ((req.ArchetypeSkillChoices ?? []).Exists(c => string.IsNullOrWhiteSpace(c.ChoiceGroup)))
+            throw new DomainRuleException(
+                "У выбора стартовых навыков не указана группа.", "creation.skill_choice.group_missing");
         var providedChoices = (req.ArchetypeSkillChoices ?? [])
-            .GroupBy(c => c.ChoiceGroup)
-            .ToDictionary(g => g.Key, g => g.Last().SkillNames ?? []);
+            .GroupBy(c => c.ChoiceGroup, StringComparer.Ordinal)
+            .ToDictionary(g => g.Key, g => g.Last().SkillNames ?? [], StringComparer.Ordinal);
         foreach (var group in archetype.StartingSkills.Where(s => s.IsChoice))
         {
             if (!providedChoices.TryGetValue(group.ChoiceGroup, out var picks))

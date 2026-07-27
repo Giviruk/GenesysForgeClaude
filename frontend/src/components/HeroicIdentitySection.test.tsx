@@ -1,7 +1,7 @@
 import { render, screen, waitFor, fireEvent } from '@testing-library/react'
 import { describe, expect, it, vi, beforeEach } from 'vitest'
 import type { CharacterSheet, HeroicIdentity } from '../api/types'
-import { HeroicIdentitySection } from './SheetTab'
+import { HeroicIdentitySection } from './HeroicTab'
 
 const setIdentityMock = vi.fn()
 const rollOriginMock = vi.fn()

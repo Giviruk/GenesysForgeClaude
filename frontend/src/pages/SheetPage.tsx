@@ -4,6 +4,7 @@ import type { CharacterSheet, Reference } from '../api/types'
 import { SYSTEM_LABELS } from '../utils/labels'
 import { SheetTab } from '../components/SheetTab'
 import { TalentsTab } from '../components/TalentsTab'
+import { HeroicTab } from '../components/HeroicTab'
 import { InventoryTab } from '../components/InventoryTab'
 import { CustomTab } from '../components/CustomTab'
 import { NotesTab } from '../components/NotesTab'
@@ -25,7 +26,7 @@ interface Props {
   onBack: () => void
 }
 
-type Tab = 'sheet' | 'talents' | 'inventory' | 'magic' | 'bio' | 'history' | 'notes' | 'custom'
+type Tab = 'sheet' | 'talents' | 'heroic' | 'inventory' | 'magic' | 'bio' | 'history' | 'notes' | 'custom'
 
 export function SheetPage({ characterId, printing, onOpenPrint, onClosePrint, onBack }: Props) {
   const [sheet, setSheet] = useState<CharacterSheet | null>(null)
@@ -239,6 +240,9 @@ export function SheetPage({ characterId, printing, onOpenPrint, onClosePrint, on
       <div className="tabs main-tabs">
         <button className={tab === 'sheet' ? 'tab active' : 'tab'} onClick={() => setTab('sheet')}>{t('Лист', 'Sheet')}</button>
         <button className={tab === 'talents' ? 'tab active' : 'tab'} onClick={() => setTab('talents')}>{t('Таланты', 'Talents')}</button>
+        {sheet.system === 'realmsOfTerrinoth' && (
+          <button className={tab === 'heroic' ? 'tab active' : 'tab'} onClick={() => setTab('heroic')}>{t('Героика', 'Heroic')}</button>
+        )}
         <button className={tab === 'inventory' ? 'tab active' : 'tab'} onClick={() => setTab('inventory')}>{t('Инвентарь', 'Inventory')}</button>
         <button className={tab === 'magic' ? 'tab active' : 'tab'} onClick={() => setTab('magic')}>{t('Магия', 'Magic')}</button>
         <button className={tab === 'bio' ? 'tab active' : 'tab'} onClick={() => setTab('bio')}>{t('Образ', 'Bio')}</button>
@@ -247,8 +251,9 @@ export function SheetPage({ characterId, printing, onOpenPrint, onClosePrint, on
         <button className={tab === 'custom' ? 'tab active' : 'tab'} onClick={() => setTab('custom')}>{t('Кастом', 'Custom')}</button>
       </div>
 
-      {tab === 'sheet' && <SheetTab sheet={sheet} reference={reference} onError={setError} refresh={refresh} />}
+      {tab === 'sheet' && <SheetTab sheet={sheet} onError={setError} refresh={refresh} />}
       {tab === 'talents' && <TalentsTab sheet={sheet} reference={reference} onError={setError} refresh={refresh} />}
+      {tab === 'heroic' && <HeroicTab sheet={sheet} reference={reference} onError={setError} refresh={refresh} />}
       {tab === 'inventory' && <InventoryTab sheet={sheet} reference={reference} onError={setError} refresh={refresh} />}
       {tab === 'magic' && <MagicTab sheet={sheet} onError={setError} />}
       {tab === 'bio' && <BioTab sheet={sheet} onError={setError} refresh={refresh} />}

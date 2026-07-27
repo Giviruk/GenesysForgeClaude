@@ -65,6 +65,72 @@ jobs:
       - name: Build
         run: npm run build
 
+  migrations:
+    name: Migrations (non-empty DB)
+    runs-on: ubuntu-latest
+    # Юнит-тесты используют InMemory-провайдер и SQL миграций не выполняют, а E2E всегда стартует
+    # с пустой базы. Эта джоба закрывает оставшийся класс дефектов: миграция, которая проходит на
+    # пустой схеме и падает на существующих строках (NOT NULL без значения по умолчанию, backfill
+    # с некорректным SQL и т. п.).
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: genesys
+          POSTGRES_PASSWORD: genesys_ci
+          POSTGRES_DB: genesysforge
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U genesys"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+    env:
+      ConnectionStrings__Default: "Host=localhost;Port=5432;Database=genesysforge;Username=genesys;Password=genesys_ci"
+      # Ключ нужен только чтобы приложение поднялось в CI; секретом не является.
+      Jwt__Key: ci-migrations-job-signing-key-not-a-secret-0000000000
+      ASPNETCORE_ENVIRONMENT: Development
+      PGPASSWORD: genesys_ci
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          # Нужна история, чтобы получить ревизию «до изменений».
+          fetch-depth: 0
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Check out the revision before these changes
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            BASE="${{ github.event.pull_request.base.sha }}"
+          else
+            BASE="${{ github.sha }}^"
+          fi
+          echo "Базовая ревизия: $(git rev-parse "$BASE")"
+          git worktree add "$RUNNER_TEMP/base" "$BASE"
+
+      - name: Fill the database at the base revision
+        working-directory: ${{ runner.temp }}/base/backend
+        run: "$GITHUB_WORKSPACE/scripts/run-api-once.sh"
+
+      - name: Fail if the database ended up empty
+        run: |
+          TALENTS=$(psql -h localhost -U genesys -d genesysforge -tAc 'SELECT count(*) FROM "TalentDefs";')
+          echo "Строк в TalentDefs: $TALENTS"
+          # Пустая база сделала бы проверку бессмысленной — именно на пустой всё и проходит.
+          if [ "$TALENTS" -lt 1 ]; then
+            echo "Сид не наполнил каталог — проверка миграций была бы холостой."
+            exit 1
+          fi
+
+      - name: Apply the new migrations to the filled database
+        working-directory: backend
+        run: "$GITHUB_WORKSPACE/scripts/run-api-once.sh"
+
   e2e:
     name: E2E smoke (Playwright)
     runs-on: ubuntu-latest

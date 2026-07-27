@@ -1,7 +1,7 @@
 import { render, screen, waitFor, fireEvent } from '@testing-library/react'
 import { describe, expect, it, vi, beforeEach } from 'vitest'
 import type { CharacterSheet, HeroicConfiguration, Reference } from '../api/types'
-import { HeroicParameterSection } from './SheetTab'
+import { HeroicParameterSection } from './HeroicTab'
 
 const setConfigMock = vi.fn()
 const replaceMock = vi.fn()

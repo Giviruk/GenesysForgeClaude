@@ -49,8 +49,12 @@ frontend/src/
 
 ## Components
 
-- `SheetTab` — characteristics, skills, wounds/strain and core sheet operations.
+- `SheetTab` — characteristics, skills, wounds/strain and core sheet operations. Its heroic block is a
+  read-only summary: the base effect plus only the upgrades already purchased.
 - `TalentsTab` — talents, pyramid and talent purchase/refund.
+- `HeroicTab` — Realms of Terrinoth only: picking the ability, its personal name and origin
+  (ROT-HA-01), the primary-effect parameter (ROT-HA-02) and buying upgrades. The full text of
+  not-yet-purchased upgrades and of every secondary effect lives here so the sheet stays readable.
 - `InventoryTab` — items, quantities, equipment state.
 - `CustomTab` — create/update/delete custom content.
 - `NotesTab` — character notes CRUD.
