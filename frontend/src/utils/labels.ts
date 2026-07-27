@@ -536,3 +536,7 @@ export const parseWeaponTraits = (value: string | null | undefined): WeaponFormT
 /** Обратная сборка: сервер читает тот же формат. */
 export const formatWeaponTraits = (traits: WeaponFormTrait[]) =>
   traits.length === 0 ? 'none' : traits.join(', ')
+
+/** Уровни улучшения Power героической способности. */
+export const HEROIC_UPGRADE_LABELS: Record<number, string> =
+  t({ 1: 'Улучшенная', 2: 'Высшая' }, { 1: 'Improved', 2: 'Supreme' })
