@@ -11,11 +11,14 @@ namespace GenesysForge.Infrastructure.Persistence.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            // Значение по умолчанию обязательно: без него NOT NULL не встаёт на уже существующие
+            // строки каталога талантов, и миграция падает на непустой базе (23502).
             migrationBuilder.AddColumn<List<string>>(
                 name: "CareerSkillNames",
                 table: "TalentDefs",
                 type: "text[]",
-                nullable: false);
+                nullable: false,
+                defaultValueSql: "'{}'::text[]");
 
             migrationBuilder.AddColumn<int>(
                 name: "CreationStrainThreshold",
