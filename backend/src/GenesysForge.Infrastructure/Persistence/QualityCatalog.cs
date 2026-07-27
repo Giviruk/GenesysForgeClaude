@@ -1,5 +1,6 @@
 using System.Reflection;
 using System.Text.Json;
+using GenesysForge.Domain;
 using GenesysForge.Domain.Entities;
 
 namespace GenesysForge.Infrastructure.Persistence;
@@ -11,9 +12,14 @@ namespace GenesysForge.Infrastructure.Persistence;
 /// </summary>
 public static class QualityCatalog
 {
+    /// <param name="EffectKind">Механика качества; «Descriptive» — исполнения пока нет.</param>
+    /// <param name="AdvantageCost">Стоимость активации в преимуществах; у пассивного ноль.</param>
     private sealed record Entry(
         string Code, string NameEn, string NameRu, bool Active, bool HasRating,
-        string ActivationCost, string Category, string Desc, string Safe, string Source, string SafeEn = "");
+        string ActivationCost, string Category, string Desc, string Safe, string Source, string SafeEn = "",
+        string EffectKind = "Descriptive", string Repeatability = "Once",
+        int AdvantageCost = 0, bool RequiresHit = false, bool CanActivateOnMiss = false,
+        bool TriumphMayPay = false);
 
     private static readonly JsonSerializerOptions JsonOptions = new() { PropertyNameCaseInsensitive = true };
 
@@ -43,6 +49,12 @@ public static class QualityCatalog
                 SafeDescription = e.Safe,
                 DescriptionEn = e.SafeEn,
                 Source = e.Source,
+                EffectKind = Enum.Parse<QualityEffectKind>(e.EffectKind, ignoreCase: true),
+                Repeatability = Enum.Parse<QualityRepeatability>(e.Repeatability, ignoreCase: true),
+                AdvantageCost = e.AdvantageCost,
+                RequiresHit = e.RequiresHit,
+                CanActivateOnMiss = e.CanActivateOnMiss,
+                TriumphMayPay = e.TriumphMayPay,
             };
     }
 }

@@ -161,9 +161,25 @@ public static class SeedData
                             });
                     }
                 }));
+        // Каталог авторитетен и для структурных метаданных качества (GEN-EQP-QUAL-01): без этого
+        // механика доехала бы только до новых установок, а старые остались бы с описанием.
         SyncBuiltinByCode(db, db.QualityDefs.Where(x => x.Code != ""), qualities,
-            (row, def) => Assign(row.DescriptionEn != def.DescriptionEn || row.SafeDescription != def.SafeDescription,
-                () => { row.DescriptionEn = def.DescriptionEn; row.SafeDescription = def.SafeDescription; }));
+            (row, def) => Assign(
+                row.DescriptionEn != def.DescriptionEn || row.SafeDescription != def.SafeDescription
+                || row.Description != def.Description || row.ActivationCost != def.ActivationCost
+                || row.Category != def.Category
+                || row.EffectKind != def.EffectKind || row.AdvantageCost != def.AdvantageCost
+                || row.RequiresHit != def.RequiresHit || row.CanActivateOnMiss != def.CanActivateOnMiss
+                || row.TriumphMayPay != def.TriumphMayPay || row.Repeatability != def.Repeatability,
+                () =>
+                {
+                    row.DescriptionEn = def.DescriptionEn; row.SafeDescription = def.SafeDescription;
+                    row.Description = def.Description; row.ActivationCost = def.ActivationCost;
+                    row.Category = def.Category;
+                    row.EffectKind = def.EffectKind; row.AdvantageCost = def.AdvantageCost;
+                    row.RequiresHit = def.RequiresHit; row.CanActivateOnMiss = def.CanActivateOnMiss;
+                    row.TriumphMayPay = def.TriumphMayPay; row.Repeatability = def.Repeatability;
+                }));
         SyncHeroics(db, heroics);
         // ROT-CLEAN-3.1 / 3.2: встроенная запись, которой больше нет в сид-наборе своей системы,
         // помечается Retired, а не удаляется — на неё ссылаются созданные персонажи и экспорты.
