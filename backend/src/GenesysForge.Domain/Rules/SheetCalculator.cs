@@ -1,3 +1,5 @@
+using GenesysForge.Domain.Rules;
+
 namespace GenesysForge.Domain;
 
 /// <summary>
@@ -23,15 +25,14 @@ public static class SheetCalculator
         IReadOnlyList<ItemInput> items,
         int? woundThresholdSnapshot = null,
         int? strainThresholdSnapshot = null,
-        int? baseDefense = null)
+        int? baseDefense = null,
+        IReadOnlyList<DefenseContribution>? extraDefense = null)
     {
         var equipped = items.Where(i => i.State == ItemState.Equipped).ToList();
 
         var talentWounds = talents.Sum(t => t.WoundBonusPerRank * t.Ranks);
         var talentStrain = talents.Sum(t => t.StrainBonusPerRank * t.Ranks);
         var talentSoak = talents.Sum(t => t.SoakBonusPerRank * t.Ranks);
-        var talentMeleeDef = talents.Sum(t => t.MeleeDefenseBonusPerRank * t.Ranks);
-        var talentRangedDef = talents.Sum(t => t.RangedDefenseBonusPerRank * t.Ranks);
 
         // Персонаж может носить несколько броней, но защиту и поглощение даёт ровно одна выбранная
         // (ROT-CMB-02). Не-броня (щит, талисман) считается отдельно и активной броней не является.
@@ -40,19 +41,53 @@ public static class SheetCalculator
             .ToList();
 
         var armorSoak = protective.Sum(i => i.SoakBonus);
-        // Защита из разных источников не складывается — берётся лучшая, таланты добавляются сверху.
-        // Видовая Nimble задаёт базовую защиту (set, не «+1»), поэтому участвует в том же max:
-        // с бронёй Defense 1 итог остаётся 1, пока не появятся настоящие additive-модификаторы.
-        var meleeDef = Math.Max(protective.Select(i => i.MeleeDefense).DefaultIfEmpty(0).Max(), baseDefense ?? 0)
-            + talentMeleeDef;
-        var rangedDef = Math.Max(protective.Select(i => i.RangedDefense).DefaultIfEmpty(0).Max(), baseDefense ?? 0)
-            + talentRangedDef;
 
-        var encThreshold = GenesysRules.EncumbranceThreshold(
+        // Защита сводится по ROT-CMB-03: источники «получает Defense N» (броня, укрытие, видовая
+        // Nimble) не складываются между собой — берётся лучший; надбавки «+N» от талантов
+        // складываются с ним и друг с другом; итог ограничен четырьмя.
+        var defenseContributions = new List<DefenseContribution>();
+        foreach (var item in protective)
+        {
+            if (item.MeleeDefense > 0)
+                defenseContributions.Add(new DefenseContribution(
+                    "Item", item.Name, DefenseScope.Melee, DefenseMode.Provides, item.MeleeDefense));
+            if (item.RangedDefense > 0)
+                defenseContributions.Add(new DefenseContribution(
+                    "Item", item.Name, DefenseScope.Ranged, DefenseMode.Provides, item.RangedDefense));
+        }
+        if (baseDefense is > 0)
+            defenseContributions.Add(new DefenseContribution(
+                "Species", "Nimble", DefenseScope.General, DefenseMode.Provides, baseDefense.Value));
+        foreach (var talent in talents)
+        {
+            if (talent.MeleeDefenseBonusPerRank != 0 && talent.Ranks > 0)
+                defenseContributions.Add(new DefenseContribution(
+                    "Talent", talent.Name, DefenseScope.Melee, DefenseMode.Increases,
+                    talent.MeleeDefenseBonusPerRank * talent.Ranks));
+            if (talent.RangedDefenseBonusPerRank != 0 && talent.Ranks > 0)
+                defenseContributions.Add(new DefenseContribution(
+                    "Talent", talent.Name, DefenseScope.Ranged, DefenseMode.Increases,
+                    talent.RangedDefenseBonusPerRank * talent.Ranks));
+        }
+        foreach (var extra in extraDefense ?? [])
+            defenseContributions.Add(extra);
+
+        var meleeBreakdown = DefenseAggregator.Melee(defenseContributions);
+        var rangedBreakdown = DefenseAggregator.Ranged(defenseContributions);
+        var meleeDef = meleeBreakdown.Effective;
+        var rangedDef = rangedBreakdown.Effective;
+
+        // Предметы с нулевым Enc не пропадают: они считаются вместе по всем позициям (ROT-EQP-01).
+        var zeroEncUnits = items
+            .Where(i => i.Encumbrance == 0 && i.Kind != ItemKind.Armor)
+            .Sum(i => Math.Max(1, i.Quantity));
+        var encumbrance = EncumbranceRules.Compute(
             ch.Brawn,
-            protective.Sum(i => i.EncumbranceThresholdBonus));
-
-        var load = items.Sum(ItemLoad);
+            items.Sum(ItemLoad),
+            protective.Sum(i => i.EncumbranceThresholdBonus),
+            EncumbranceRules.ZeroEncumbranceLoad(zeroEncUnits));
+        var encThreshold = encumbrance.Threshold;
+        var load = encumbrance.Load;
 
         return new DerivedStats(
             WoundThreshold: woundThresholdSnapshot is { } wt
@@ -66,7 +101,10 @@ public static class SheetCalculator
             RangedDefense: rangedDef,
             EncumbranceThreshold: encThreshold,
             EncumbranceLoad: load,
-            Encumbered: load > encThreshold);
+            Encumbered: encumbrance.Encumbered,
+            MeleeDefenseBreakdown: meleeBreakdown,
+            RangedDefenseBreakdown: rangedBreakdown,
+            Encumbrance: encumbrance);
     }
 
     /// <summary>Вес позиции инвентаря: надетая броня — encumbrance −3 (мин. 0), остальное полностью.</summary>

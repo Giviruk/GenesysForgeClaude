@@ -563,6 +563,32 @@ export interface SheetItem {
   isActiveArmor: boolean
 }
 
+/** Один источник защиты для объяснения итога (ROT-CMB-03). */
+export interface DefenseSource {
+  sourceType: string
+  sourceName: string
+  value: number
+}
+
+/** Разбор канала защиты: что победило, что проигнорировано и где сработал предел 4. */
+export interface DefenseBreakdown {
+  raw: number
+  effective: number
+  capped: boolean
+  provider: DefenseSource | null
+  ignoredProviders: DefenseSource[]
+  increases: DefenseSource[]
+}
+
+/** Состояние перегруза: помехи, бесплатный манёвр и цена манёвра. */
+export interface Encumbrance {
+  overload: number
+  setbackDice: number
+  hasFreeManoeuvre: boolean
+  strainPerManoeuvre: number
+  zeroEncumbranceLoad: number
+}
+
 export interface Derived {
   woundThreshold: number
   strainThreshold: number
@@ -572,6 +598,12 @@ export interface Derived {
   encumbranceThreshold: number
   encumbranceLoad: number
   encumbered: boolean
+  /** Как сложилась ближняя защита; null у старых ответов (ROT-CMB-03). */
+  meleeDefenseBreakdown: DefenseBreakdown | null
+  /** Как сложилась дальняя защита. */
+  rangedDefenseBreakdown: DefenseBreakdown | null
+  /** Точная цена перегруза (ROT-EQP-01); null у старых ответов. */
+  encumbrance: Encumbrance | null
 }
 
 export interface CampaignListItem {
