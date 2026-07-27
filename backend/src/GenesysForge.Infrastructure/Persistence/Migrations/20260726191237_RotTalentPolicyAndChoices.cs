@@ -12,11 +12,14 @@ namespace GenesysForge.Infrastructure.Persistence.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            // То же самое: массив кодов взаимоисключений должен получить пустое значение
+            // по умолчанию, иначе NOT NULL не встаёт на существующие таланты.
             migrationBuilder.AddColumn<List<string>>(
                 name: "ExcludesTalentCodes",
                 table: "TalentDefs",
                 type: "text[]",
-                nullable: false);
+                nullable: false,
+                defaultValueSql: "'{}'::text[]");
 
             migrationBuilder.AddColumn<string>(
                 name: "RequiresTalentCode",
