@@ -32,17 +32,16 @@ public static class TalentPurchasePolicy
     /// </summary>
     /// <param name="definition">Покупаемый талант.</param>
     /// <param name="owned">Коды уже имеющихся талантов.</param>
-    /// <param name="isNewTalent">Покупается первый ранг (а не следующий у уже имеющегося).</param>
     /// <param name="displayName">Функция «код → отображаемое имя» для текста ошибки.</param>
     public static TalentPolicyError? ValidatePurchase(
         TalentDef definition,
         OwnedTalents owned,
-        bool isNewTalent,
         Func<string, string> displayName)
     {
-        // Retired-талант нельзя купить заново, но уже купленные ранги остаются рабочими,
-        // поэтому следующий ранг существующего таланта не блокируется.
-        if (definition.Retired && isNewTalent)
+        // Retired-талант отклоняется и как новая покупка, и как повторный ранг: он исключён из
+        // покупаемого набора системы (ROT-CLEAN-3.5). Уже купленные ранги продолжают работать,
+        // XP за них не возвращается сам, а возврат остаётся разрешён отдельной командой.
+        if (definition.Retired)
             return new TalentPolicyError(ReasonRetired,
                 $"Талант «{definition.Name}» больше не входит в активный каталог этой системы.");
 

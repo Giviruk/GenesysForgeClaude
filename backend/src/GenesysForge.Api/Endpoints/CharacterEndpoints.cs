@@ -163,6 +163,13 @@ public static class CharacterEndpoints
             return Results.NoContent();
         });
 
+        group.MapPut("/{id:guid}/active-armor", async (Guid id, SetActiveArmorRequest req,
+            ClaimsPrincipal user, ICommandHandler<SetActiveArmorCommand, Unit> handler, CancellationToken ct) =>
+        {
+            await handler.Handle(new SetActiveArmorCommand(user.UserId(), id, req.CharacterItemId), ct);
+            return Results.NoContent();
+        });
+
         group.MapPut("/{id:guid}/heroic-ability", async (Guid id, SetHeroicAbilityRequest req, ClaimsPrincipal user,
             ICommandHandler<SetHeroicAbilityCommand, Unit> handler, CancellationToken ct) =>
         {

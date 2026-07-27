@@ -122,6 +122,13 @@ public class Character
     public List<CharacterCriticalInjury> CriticalInjuries { get; set; } = [];
     public List<CharacterHeroicSecondaryEffect> HeroicSecondaryEffects { get; set; } = [];
 
+    /// <summary>
+    /// Выбранная активная броня (ROT-CMB-02): ссылка на собственную надетую позицию инвентаря.
+    /// Защиту, поглощение и свойства даёт только она; прочая надетая броня продолжает считаться
+    /// в переносимый вес. <c>null</c> — активная броня не выбрана, защиты от брони нет.
+    /// </summary>
+    public Guid? ActiveArmorCharacterItemId { get; set; }
+
     /// <summary>Параметры primary effect (Paragon / Sixth Sense), выбранные вместе со способностью.</summary>
     public CharacterHeroicConfiguration? HeroicConfiguration { get; set; }
 

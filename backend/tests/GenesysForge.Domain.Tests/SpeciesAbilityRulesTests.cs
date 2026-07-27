@@ -33,8 +33,9 @@ public class SpeciesAbilityRulesTests
     public void Nimble_IsAProviderNotABonus_SoArmourDoesNotStackWithIt()
     {
         var ch = new CharacteristicsSet(2, 3, 2, 2, 1, 2);
+        // Броня защищает, только будучи выбранной активной (ROT-CMB-02).
         var armour = new ItemInput("Кожаный доспех", ItemKind.Armor, ItemState.Equipped,
-            Encumbrance: 2, SoakBonus: 1, MeleeDefense: 1, RangedDefense: 1);
+            Encumbrance: 2, SoakBonus: 1, MeleeDefense: 1, RangedDefense: 1, IsActiveArmor: true);
 
         var withArmour = SheetCalculator.ComputeDerived(ch, 9, 10, [], [armour], baseDefense: 1);
         var withoutArmour = SheetCalculator.ComputeDerived(ch, 9, 10, [], [], baseDefense: 1);
@@ -49,7 +50,7 @@ public class SpeciesAbilityRulesTests
     {
         var ch = new CharacteristicsSet(2, 3, 2, 2, 1, 2);
         var shield = new ItemInput("Большой щит", ItemKind.Armor, ItemState.Equipped,
-            Encumbrance: 2, SoakBonus: 0, MeleeDefense: 2, RangedDefense: 0);
+            Encumbrance: 2, SoakBonus: 0, MeleeDefense: 2, RangedDefense: 0, IsActiveArmor: true);
 
         var d = SheetCalculator.ComputeDerived(ch, 9, 10, [], [shield], baseDefense: 1);
 

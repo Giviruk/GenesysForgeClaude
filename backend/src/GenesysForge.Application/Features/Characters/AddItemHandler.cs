@@ -41,6 +41,10 @@ public class AddItemHandler(IAppDbContext db) : ICommandHandler<AddItemCommand, 
         };
         db.CharacterItems.Add(item);
         c.Items.Add(item);
+        // Первая надетая броня становится активной сама; вторая молча выбор не переключает (ROT-CMB-02).
+        if (item.State == ItemState.Equipped && itemDef.Kind == ItemKind.Armor
+            && c.ActiveArmorCharacterItemId is null)
+            c.ActiveArmorCharacterItemId = item.Id;
 
         var costNote = charge.Total > 0
             ? $", −{charge.Total}" + (charge.FromBudget > 0 ? $" (бюджет {charge.FromBudget}, монеты {charge.FromMoney})" : " монет")

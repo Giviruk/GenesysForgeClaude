@@ -20,8 +20,12 @@ public static class SheetBuilder
         var visiblePackIds = await HomebrewVisibility.GetVisiblePackIdsAsync(db, userId, c.System, c.Id, ct: ct);
 
         // Все навыки системы (встроенные + видимые кастомные владельца), объединённые со строками персонажа.
+        // Retired-навык не показывается всем подряд, но у персонажа с уже купленными рангами
+        // он обязан остаться на листе — иначе ранги просто исчезли бы (ROT-CLEAN-3.2).
+        var ownedSkillIds = c.Skills.Select(s => s.SkillDefId).ToList();
         var systemSkills = await db.SkillDefs.AsNoTracking()
             .Where(s => s.System == c.System
+                && (!s.Retired || ownedSkillIds.Contains(s.Id))
                 && (s.OwnerUserId == null
                     || (s.OwnerUserId == userId
                         && (s.HomebrewPackId == null || visiblePackIds.Contains(s.HomebrewPackId.Value)))))
@@ -43,7 +47,8 @@ public static class SheetBuilder
                 row?.FreeRanks ?? 0,
                 careerSkills.GrantsFor(def.Id)
                     .Select(g => new CareerSkillSourceDto(g.Source.ToString(), g.SourceName))
-                    .ToList());
+                    .ToList(),
+                def.Retired);
         }).ToList();
 
         var configuration = await BuildConfigurationAsync(db, c, systemSkills, ct);
@@ -98,7 +103,8 @@ public static class SheetBuilder
                         i.ItemDef.Encumbrance, i.Quantity)),
                     i.ItemDef.Description, i.ItemDef.Price,
                     i.ItemDef.SkillName, i.ItemDef.Damage, i.ItemDef.Crit, i.ItemDef.RangeBand, i.ItemDef.Properties,
-                    i.ItemDef.DescriptionEn))
+                    i.ItemDef.DescriptionEn,
+                    i.Id == c.ActiveArmorCharacterItemId))
                 .ToList(),
             c.Desire, c.Fear, c.Strength, c.Flaw, c.Background,
             c.CriticalInjuries
@@ -124,7 +130,8 @@ public static class SheetBuilder
                 c.HeroicIdentityComplete),
             c.HeroicIdentityIncomplete,
             configuration,
-            c.HeroicConfigurationIncomplete);
+            c.HeroicConfigurationIncomplete,
+            c.ActiveArmorCharacterItemId);
     }
 
     /// <summary>

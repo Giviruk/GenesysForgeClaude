@@ -120,8 +120,9 @@ public class DerivedStatsTests
     [Fact]
     public void EquippedArmor_AddsSoakAndDefense_AndReducesOwnEncumbrance()
     {
+        // Защиту даёт только выбранная активная броня (ROT-CMB-02).
         var armor = new ItemInput("Кольчуга", ItemKind.Armor, ItemState.Equipped,
-            Encumbrance: 4, SoakBonus: 2, MeleeDefense: 1, RangedDefense: 1);
+            Encumbrance: 4, SoakBonus: 2, MeleeDefense: 1, RangedDefense: 1, IsActiveArmor: true);
         var d = SheetCalculator.ComputeDerived(Ch, 10, 10, [], [armor]);
 
         Assert.Equal(5, d.Soak);          // 3 + 2
@@ -146,7 +147,8 @@ public class DerivedStatsTests
     public void Defense_DoesNotStack_TakesBest()
     {
         var shield = new ItemInput("Щит", ItemKind.Weapon, ItemState.Equipped, 2, MeleeDefense: 1);
-        var armor = new ItemInput("Латы", ItemKind.Armor, ItemState.Equipped, 5, SoakBonus: 2, MeleeDefense: 2);
+        var armor = new ItemInput("Латы", ItemKind.Armor, ItemState.Equipped, 5, SoakBonus: 2, MeleeDefense: 2,
+            IsActiveArmor: true);
         var d = SheetCalculator.ComputeDerived(Ch, 10, 10, [], [shield, armor]);
 
         Assert.Equal(2, d.MeleeDefense); // max(1, 2), не 3

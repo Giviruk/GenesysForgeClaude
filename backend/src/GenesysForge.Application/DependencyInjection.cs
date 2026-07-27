@@ -75,6 +75,7 @@ public static class DependencyInjection
         services.AddScoped<ICommandHandler<UpdateItemCommand, Unit>, UpdateItemHandler>();
         services.AddScoped<ICommandHandler<RemoveItemCommand, Unit>, RemoveItemHandler>();
         services.AddScoped<ICommandHandler<SellItemCommand, Unit>, SellItemHandler>();
+        services.AddScoped<ICommandHandler<SetActiveArmorCommand, Unit>, SetActiveArmorHandler>();
         services.AddScoped<ICommandHandler<AddCriticalInjuryCommand, Guid>, AddCriticalInjuryHandler>();
         services.AddScoped<ICommandHandler<RemoveCriticalInjuryCommand, Unit>, RemoveCriticalInjuryHandler>();
         services.AddScoped<IQueryHandler<GetCharacterAuditQuery, IReadOnlyList<CharacterAuditEntryDto>>, GetCharacterAuditHandler>();

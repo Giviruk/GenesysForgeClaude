@@ -15,6 +15,13 @@ public class UpdateItemHandler(IAppDbContext db) : ICommandHandler<UpdateItemCom
         if (req.Quantity is < 1) throw new DomainRuleException("Количество должно быть не меньше 1.");
 
         if (req.State is not null) item.State = req.State.Value;
+        // Снятая броня перестаёт быть активной; следующая не выбирается автоматически (ROT-CMB-02).
+        if (item.State != ItemState.Equipped && c.ActiveArmorCharacterItemId == item.Id)
+            c.ActiveArmorCharacterItemId = null;
+        // Первая надетая броня становится активной сама; надевание второй молча выбор не меняет.
+        else if (item.State == ItemState.Equipped && item.ItemDef?.Kind == ItemKind.Armor
+                 && c.ActiveArmorCharacterItemId is null)
+            c.ActiveArmorCharacterItemId = item.Id;
         if (req.Quantity is not null) item.Quantity = req.Quantity.Value;
         await db.SaveChangesAsync(ct);
         return Unit.Value;

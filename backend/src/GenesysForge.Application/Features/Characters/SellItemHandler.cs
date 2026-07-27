@@ -29,6 +29,8 @@ public class SellItemHandler(IAppDbContext db) : ICommandHandler<SellItemCommand
 
         if (req.Quantity == item.Quantity)
         {
+            // Проданная целиком броня перестаёт быть активной (ROT-CMB-02).
+            if (c.ActiveArmorCharacterItemId == item.Id) c.ActiveArmorCharacterItemId = null;
             c.Items.Remove(item);
             db.CharacterItems.Remove(item);
         }

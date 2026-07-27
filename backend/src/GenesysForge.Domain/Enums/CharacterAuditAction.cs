@@ -31,4 +31,7 @@ public enum CharacterAuditAction
 
     /// <summary>Именное оружие потеряно, возвращено или заменено.</summary>
     SignatureWeaponReplaced,
+
+    /// <summary>Выбрана или снята активная броня (ROT-CMB-02).</summary>
+    ActiveArmorChanged,
 }

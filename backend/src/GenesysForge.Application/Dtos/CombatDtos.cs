@@ -35,3 +35,6 @@ public record ResolveAttackResponse(
     List<string> AllowedSymbolSpends,
     List<string> RejectedSymbolSpends,
     List<string> Log);
+
+/// <summary>Выбор активной брони (ROT-CMB-02). <c>null</c> снимает выбор.</summary>
+public record SetActiveArmorRequest(Guid? CharacterItemId);
