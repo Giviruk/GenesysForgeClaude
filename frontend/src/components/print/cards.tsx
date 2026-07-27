@@ -3,8 +3,8 @@ import type {
 } from '../../api/types'
 import {
   CHARACTERISTIC_LABELS, ENCOUNTER_TYPE_LABELS, ITEM_KIND_LABELS, NPC_KIND_LABELS, NPC_ROLE_LABELS,
-  PARTICIPANT_TYPE_LABELS, SLOT_TYPE_LABELS, SYSTEM_LABELS, THREAT_LEVEL_LABELS, difficultyLabel,
-  localizedDescription, localizedName, magicSkillLabel, secondaryName,
+  PARTICIPANT_TYPE_LABELS, SLOT_TYPE_LABELS, SYSTEM_LABELS, THREAT_LEVEL_LABELS, WEAPON_CRAFTSMANSHIP_LABELS,
+  difficultyLabel, localizedDescription, localizedName, magicSkillLabel, secondaryName,
 } from '../../utils/labels'
 import type { PrintVersion } from './PrintPreview'
 import { t } from '../../i18n'
@@ -148,12 +148,19 @@ export function MagicActionCard({ data }: { data: MagicCardData }) {
 
 /** Карточка предмета (§3.4). */
 export function ItemCard({ item, skillLabel }: { item: SheetItem; skillLabel?: string | null }) {
+  // Числа берутся из профиля экземпляра: он уже посчитан сервером с Мощью персонажа и качеством
+  // изготовления (ROT-WPN-01/02). Строки каталога остаются запасным вариантом для записей без профиля.
+  const profile = item.attackProfiles?.find(p => p.isDefault)
+  const damage = profile?.baseDamage != null ? String(profile.baseDamage) : item.damage
+  const crit = profile ? String(profile.crit) : item.crit
   return (
     <article className="print-card">
       <header className="pcard-head">
         <h3>{localizedName(item)}</h3>
         <span className="pcard-sub">
           {secondaryName(item) && `${secondaryName(item)} · `}{ITEM_KIND_LABELS[item.kind]}
+          {item.craftsmanship !== 'steel' && ` · ${WEAPON_CRAFTSMANSHIP_LABELS[item.craftsmanship]}`}
+          {item.reinforced && t(' · укреплённое', ' · reinforced')}
         </span>
       </header>
       <div className="pcard-line">
@@ -163,8 +170,8 @@ export function ItemCard({ item, skillLabel }: { item: SheetItem; skillLabel?: s
       {item.kind === 'weapon' && (
         <div className="pcard-line">
           {item.skillName && <span><b>{t('Навык', 'Skill')}</b> {skillLabel || item.skillName}</span>}
-          {item.damage && <span><b>{t('Урон', 'Damage')}</b> {item.damage}</span>}
-          {item.crit && <span><b>{t('Крит', 'Crit')}</b> {item.crit}</span>}
+          {damage && <span><b>{t('Урон', 'Damage')}</b> {damage}</span>}
+          {crit && <span><b>{t('Крит', 'Crit')}</b> {crit}</span>}
           {item.rangeBand && <span><b>{t('Дистанция', 'Range')}</b> {item.rangeBand}</span>}
         </div>
       )}

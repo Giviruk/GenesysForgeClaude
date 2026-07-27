@@ -7,7 +7,8 @@ namespace GenesysForge.Domain.Rules;
 /// </summary>
 /// <param name="Profile">Выбранный профиль.</param>
 /// <param name="SkillName">Английское имя боевого навыка для броска.</param>
-/// <param name="Damage">Урон: «Brawn + N» для ближнего боя, абсолютное число для дальнего.</param>
+/// <param name="DamageKind">Как считается урон: прибавка к Мощи или готовое число.</param>
+/// <param name="DamageValue">Прибавка к Мощи или сам урон — в зависимости от вида.</param>
 /// <param name="Crit">Критическое значение.</param>
 /// <param name="RangeBand">Дистанция.</param>
 /// <param name="Encumbrance">Вес.</param>
@@ -17,13 +18,22 @@ namespace GenesysForge.Domain.Rules;
 public sealed record SignatureWeaponProfileSpec(
     SignatureWeaponProfile Profile,
     string SkillName,
-    string Damage,
+    DamageKind DamageKind,
+    int DamageValue,
     int Crit,
     string RangeBand,
     int Encumbrance,
     int HardPoints,
     IReadOnlyList<(string Code, int Rating)> Qualities,
-    WeaponFormTraits GroupTrait);
+    WeaponFormTraits GroupTrait)
+{
+    /// <summary>Урон подписью: «Brawn + N» для ближнего боя, абсолютное число для дальнего.</summary>
+    public string Damage => DamageText(DamageKind, DamageValue);
+
+    /// <summary>Подпись урона по типу и значению — одна на все поверхности, включая поправки работы.</summary>
+    public static string DamageText(DamageKind kind, int value) =>
+        kind == Domain.DamageKind.BrawnPlus ? $"Brawn + {value}" : value.ToString();
+}
 
 /// <summary>Таблица Signature Weapons: четыре профиля с точными характеристиками.</summary>
 public static class SignatureWeaponProfiles
@@ -31,16 +41,16 @@ public static class SignatureWeaponProfiles
     private static readonly Dictionary<SignatureWeaponProfile, SignatureWeaponProfileSpec> Table = new()
     {
         [SignatureWeaponProfile.Brawl] = new(
-            SignatureWeaponProfile.Brawl, "Brawl", "Brawn + 2", 4, "Engaged", 1, 2,
+            SignatureWeaponProfile.Brawl, "Brawl", DamageKind.BrawnPlus, 2, 4, "Engaged", 1, 2,
             [("disorient", 3), ("superior", 0)], WeaponFormTraits.Brawl),
         [SignatureWeaponProfile.OneHanded] = new(
-            SignatureWeaponProfile.OneHanded, "Melee (Light)", "Brawn + 3", 3, "Engaged", 1, 2,
+            SignatureWeaponProfile.OneHanded, "Melee (Light)", DamageKind.BrawnPlus, 3, 3, "Engaged", 1, 2,
             [("superior", 0)], WeaponFormTraits.OneHanded),
         [SignatureWeaponProfile.TwoHanded] = new(
-            SignatureWeaponProfile.TwoHanded, "Melee (Heavy)", "Brawn + 5", 3, "Engaged", 3, 2,
+            SignatureWeaponProfile.TwoHanded, "Melee (Heavy)", DamageKind.BrawnPlus, 5, 3, "Engaged", 3, 2,
             [("knockdown", 0), ("superior", 0)], WeaponFormTraits.TwoHanded),
         [SignatureWeaponProfile.Ranged] = new(
-            SignatureWeaponProfile.Ranged, "Ranged", "8", 3, "Long", 2, 2,
+            SignatureWeaponProfile.Ranged, "Ranged", DamageKind.Fixed, 8, 3, "Long", 2, 2,
             [("superior", 0)], WeaponFormTraits.Ranged),
     };
 

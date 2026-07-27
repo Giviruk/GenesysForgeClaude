@@ -13,13 +13,18 @@ namespace GenesysForge.Application.Dtos;
 /// Цена за единицу, назначенная ведущим вместо каталожной. Требует <paramref name="OverrideReason"/>
 /// и целиком попадает в историю персонажа.
 /// </param>
+/// <param name="Craftsmanship">
+/// Качество изготовления экземпляра (ROT-WPN-02). Задаётся только здесь и дальше не меняется;
+/// цену с его учётом считает сервер. У снаряжения допустима только обычная работа.
+/// </param>
 public record AddItemRequest(
     Guid ItemDefId,
     int Quantity,
     ItemState State,
     bool Free = false,
     int? PriceOverride = null,
-    string? OverrideReason = null);
+    string? OverrideReason = null,
+    WeaponCraftsmanship Craftsmanship = WeaponCraftsmanship.Steel);
 
 /// <summary>
 /// Продажа предмета. Сумму всегда считает сервер от цены каталога — клиент её не назначает.

@@ -1,4 +1,5 @@
 using GenesysForge.Application.Dtos;
+using GenesysForge.Domain;
 using GenesysForge.Domain.Entities;
 using GenesysForge.Domain.Rules;
 
@@ -67,9 +68,14 @@ public static class Mappers
     /// <param name="agility">
     /// Ловкость персонажа: вместе с Мощью нужна для Громоздкого и Сноровки (GEN-EQP-QUAL-01).
     /// </param>
+    /// <param name="craftsmanship">
+    /// Качество изготовления экземпляра (ROT-WPN-02): урон и крит профиля приезжают уже с его
+    /// поправками. В справочнике — <see cref="WeaponCraftsmanship.Steel"/>: у записи каталога
+    /// качества изготовления нет, оно бывает только у экземпляра.
+    /// </param>
     public static List<WeaponAttackProfileDto> AttackProfileDtos(
         this ItemDef i, int? brawn = null, IReadOnlyDictionary<string, QualityDef>? qualitiesByCode = null,
-        int? agility = null)
+        int? agility = null, WeaponCraftsmanship craftsmanship = WeaponCraftsmanship.Steel)
     {
         var itemQualities = i.Qualities
             .Where(q => q.QualityDef != null)
@@ -94,13 +100,22 @@ public static class Mappers
                     qualitiesByCode![q.Code].NameEn, qualitiesByCode[q.Code].NameRu,
                     qualitiesByCode[q.Code].EffectKind, q.Rating))];
 
+        // Качество изготовления сдвигает печатную прибавку, а пол урона считается по итогу —
+        // тому числу, которое персонаж действительно наносит (ROT-WPN-02).
+        var damageDelta = CraftsmanshipRules.DamageDelta(craftsmanship);
+
         return [.. i.AttackProfiles
             .OrderByDescending(p => p.IsDefault).ThenBy(p => p.Code, StringComparer.Ordinal)
             .Select(p => new WeaponAttackProfileDto(
-                p.Code, p.NameRu, p.NameEn, p.IsDefault, p.SkillName, p.DamageKind, p.DamageValue,
-                p.Crit, p.Range, p.CannotAttackEngaged, p.FixedDifficulty,
+                p.Code, p.NameRu, p.NameEn, p.IsDefault, p.SkillName, p.DamageKind,
+                p.DamageValue + damageDelta,
+                CraftsmanshipRules.Crit(p.Crit, craftsmanship),
+                p.Range, p.CannotAttackEngaged, p.FixedDifficulty,
                 p.IsDefault ? itemQualities : [.. p.Qualities.Select(q => QualityRef(q, qualitiesByCode))],
-                brawn is { } b ? WeaponProfileRules.BaseDamage(p.DamageKind, p.DamageValue, b) : null,
+                brawn is { } b
+                    ? CraftsmanshipRules.Damage(
+                        WeaponProfileRules.BaseDamage(p.DamageKind, p.DamageValue, b), craftsmanship)
+                    : null,
                 brawn is { } b2 && agility is { } a
                     ? PoolDto(WeaponQualityRules.PoolFor(ProfileEffects(p), b2, a))
                     : null))];

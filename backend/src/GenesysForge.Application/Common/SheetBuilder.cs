@@ -113,20 +113,7 @@ public static class SheetBuilder
                     .ToList()),
             c.Items
                 .OrderBy(i => i.ItemDef!.Kind).ThenBy(i => i.ItemDef!.NameRu)
-                .Select(i => new CharacterItemDto(i.Id, i.ItemDefId, i.ItemDef!.Name, i.ItemDef.NameRu, i.ItemDef.Kind, i.State,
-                    i.Quantity, i.ItemDef.Encumbrance, i.ItemDef.SoakBonus, i.ItemDef.MeleeDefense,
-                    i.ItemDef.RangedDefense, i.ItemDef.EncumbranceThresholdBonus,
-                    SheetCalculator.ItemLoad(new ItemInput(i.ItemDef.Name, i.ItemDef.Kind, i.State,
-                        i.ItemDef.Encumbrance, i.Quantity)),
-                    i.ItemDef.Description, i.ItemDef.Price,
-                    i.ItemDef.SkillName, i.ItemDef.Damage, i.ItemDef.Crit, i.ItemDef.RangeBand, i.ItemDef.Properties,
-                    i.ItemDef.DescriptionEn,
-                    i.Id == c.ActiveArmorCharacterItemId,
-                    i.ItemDef.HardPoints,
-                    [.. i.ItemDef.CheckModifiers.Select(m => new ItemCheckModifierDto(
-                        m.Kind, m.SkillName, m.Characteristic, m.Value, m.RequiresWorn, m.Condition))],
-                    i.ItemDef.AttackProfileDtos(ch.Brawn, qualitiesByCode, ch.Agility),
-                    i.IsThrown))
+                .Select(i => ItemDto(i, c, ch, qualitiesByCode))
                 .ToList(),
             c.Desire, c.Fear, c.Strength, c.Flaw, c.Background,
             c.CriticalInjuries
@@ -156,6 +143,41 @@ public static class SheetBuilder
             c.ActiveArmorCharacterItemId);
     }
 
+    /// <summary>
+    /// Позиция инвентаря на листе. Все числа — уже эффективные для экземпляра (ROT-WPN-02):
+    /// каталожные значения остаются видимыми в разборе поправок, а не в самих полях, иначе
+    /// у железной кольчуги на карточке стоял бы один вес, а в переносимом грузе — другой.
+    /// </summary>
+    private static CharacterItemDto ItemDto(
+        CharacterItem i, Character c, CharacteristicsSet ch,
+        IReadOnlyDictionary<string, QualityDef> qualitiesByCode)
+    {
+        var def = i.ItemDef!;
+        var stats = CraftsmanshipRules.For(def, i.Craftsmanship);
+        return new CharacterItemDto(
+            i.Id, i.ItemDefId, def.Name, def.NameRu, def.Kind, i.State,
+            i.Quantity, stats.Encumbrance, stats.SoakBonus, stats.MeleeDefense,
+            stats.RangedDefense, def.EncumbranceThresholdBonus,
+            SheetCalculator.ItemLoad(new ItemInput(def.Name, def.Kind, i.State,
+                stats.Encumbrance, i.Quantity)),
+            def.Description, stats.Price,
+            def.SkillName, def.Damage, def.Crit, def.RangeBand, def.Properties,
+            def.DescriptionEn,
+            i.Id == c.ActiveArmorCharacterItemId,
+            stats.HardPoints,
+            [.. def.CheckModifiers.Select(m => new ItemCheckModifierDto(
+                    m.Kind, m.SkillName, m.Characteristic, m.Value, m.RequiresWorn, m.Condition))
+                .Concat(stats.CheckModifiers.Select(m => new ItemCheckModifierDto(
+                    m.Kind, m.SkillName, null, m.Value, true, "")))],
+            def.AttackProfileDtos(ch.Brawn, qualitiesByCode, ch.Agility, i.Craftsmanship),
+            i.IsThrown,
+            i.Craftsmanship,
+            stats.Rarity,
+            stats.Reinforced,
+            [.. stats.Adjustments.Select(a => new ItemStatAdjustmentDto(
+                a.Field, a.Base, a.Effective, a.Stage, a.Source))]);
+    }
+
     /// <summary>Разбор защиты в DTO: источники нужны UI, чтобы объяснить итоговое число.</summary>
     private static DefenseBreakdownDto? ToDto(DefenseBreakdown? b) => b is null ? null : new(
         b.Raw, b.Effective, b.Capped,
@@ -180,14 +202,26 @@ public static class SheetBuilder
         if (c.SignatureWeapon is { } w)
         {
             var spec = SignatureWeaponProfiles.Get(w.Profile);
-            var codes = spec.Qualities.Select(q => q.Code).ToList();
+            // Качество изготовления именного оружия наконец считается, а не просто хранится
+            // (ROT-WPN-02): это то же оружие, что и в инвентаре, и правила у него те же.
+            var stats = CraftsmanshipRules.For(
+                ItemKind.Weapon, w.Craftsmanship, spec.Encumbrance, 0, 0, 0, spec.HardPoints, 0, 0);
+            var damageValue = spec.DamageValue + CraftsmanshipRules.DamageDelta(w.Craftsmanship);
+            // Древняя работа добавляет Укреплённое — тем же кодом справочника, что и у предметов.
+            List<(string Code, int Rating)> qualities = stats.Reinforced
+                ? [.. spec.Qualities, (CraftsmanshipRules.ReinforcedQualityCode, 0)]
+                : [.. spec.Qualities];
+            var codes = qualities.Select(q => q.Code).ToList();
             var defs = await db.QualityDefs.AsNoTracking()
                 .Where(q => codes.Contains(q.Code)).ToListAsync(ct);
             var byCode = defs.ToDictionary(q => q.Code, StringComparer.Ordinal);
             weapon = new SignatureWeaponDto(
                 w.Profile, w.Craftsmanship, w.NarrativeForm, w.FormTraits, w.IsLost,
-                spec.SkillName, spec.Damage, spec.Crit, spec.RangeBand, spec.Encumbrance, spec.HardPoints,
-                [.. spec.Qualities.Select(q => byCode.TryGetValue(q.Code, out var def)
+                spec.SkillName,
+                SignatureWeaponProfileSpec.DamageText(spec.DamageKind, damageValue),
+                CraftsmanshipRules.Crit(spec.Crit, w.Craftsmanship), spec.RangeBand,
+                stats.Encumbrance, stats.HardPoints ?? spec.HardPoints,
+                [.. qualities.Select(q => byCode.TryGetValue(q.Code, out var def)
                     ? new ItemQualityRefDto(def.Code, def.NameRu, def.NameEn,
                         q.Rating > 0 ? q.Rating : null, def.HasRating, def.IsActive, def.ActivationCost)
                     : new ItemQualityRefDto(q.Code, q.Code, q.Code,

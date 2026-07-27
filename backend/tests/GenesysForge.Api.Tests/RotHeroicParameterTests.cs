@@ -143,8 +143,10 @@ public class RotHeroicParameterTests(ApiFactory factory) : IClassFixture<ApiFact
 
         var weapon = (await SheetAsync(client, id)).HeroicConfiguration!.SignatureWeapon!;
         Assert.Equal("Melee (Heavy)", weapon.SkillName);
-        Assert.Equal("Brawn + 5", weapon.Damage);
-        Assert.Equal(3, weapon.Crit);
+        // Профиль даёт «Brawn + 5» и крит 3, эльфийская работа снимает по единице с обоих
+        // (ROT-WPN-02): у именного оружия те же правила, что у любого другого.
+        Assert.Equal("Brawn + 4", weapon.Damage);
+        Assert.Equal(2, weapon.Crit);
         Assert.Equal("Engaged", weapon.RangeBand);
         Assert.Equal(3, weapon.Encumbrance);
         Assert.Equal(2, weapon.HardPoints);
@@ -153,6 +155,38 @@ public class RotHeroicParameterTests(ApiFactory factory) : IClassFixture<ApiFact
         // Группа профиля проставлена сервером, чужие признаки отброшены.
         Assert.True(weapon.FormTraits.HasFlag(WeaponFormTraits.TwoHanded));
         Assert.False(weapon.FormTraits.HasFlag(WeaponFormTraits.Ranged));
+    }
+
+    [Fact]
+    public async Task AncientSignatureWeapon_IsReinforced_AndLosesAHardPoint()
+    {
+        var (client, id, _) = await CreateWithAbilityAsync("rot.heroic.signature-weapon");
+
+        Assert.Equal(HttpStatusCode.NoContent,
+            (await SetConfigAsync(client, id, Weapon(SignatureWeaponProfile.OneHanded,
+                WeaponCraftsmanship.Ancient, "Клинок первых королей", WeaponFormTraits.Sword))).StatusCode);
+
+        var weapon = (await SheetAsync(client, id)).HeroicConfiguration!.SignatureWeapon!;
+        // Одноручный профиль — «Brawn + 3», крит 3, 2 слота (ROT-HA-02).
+        Assert.Equal("Brawn + 4", weapon.Damage);
+        Assert.Equal(2, weapon.Crit);
+        Assert.Equal(1, weapon.HardPoints);
+        Assert.Contains(weapon.Qualities, q => q.Code == "reinforced");
+    }
+
+    [Fact]
+    public async Task IronSignatureWeapon_IsAllowed_AndCritsWorse()
+    {
+        var (client, id, _) = await CreateWithAbilityAsync("rot.heroic.signature-weapon");
+
+        Assert.Equal(HttpStatusCode.NoContent,
+            (await SetConfigAsync(client, id, Weapon(SignatureWeaponProfile.OneHanded,
+                WeaponCraftsmanship.Iron, "Простой клинок", WeaponFormTraits.Sword))).StatusCode);
+
+        var weapon = (await SheetAsync(client, id)).HeroicConfiguration!.SignatureWeapon!;
+        Assert.Equal("Brawn + 3", weapon.Damage);
+        Assert.Equal(4, weapon.Crit);
+        Assert.DoesNotContain(weapon.Qualities, q => q.Code == "reinforced");
     }
 
     [Fact]
@@ -231,7 +265,8 @@ public class RotHeroicParameterTests(ApiFactory factory) : IClassFixture<ApiFact
         var weapon = (await SheetAsync(client, id)).HeroicConfiguration!.SignatureWeapon!;
         Assert.False(weapon.IsLost);
         Assert.Equal(SignatureWeaponProfile.Ranged, weapon.Profile);
-        Assert.Equal("8", weapon.Damage);
+        // Дальнобойный профиль — урон 8, эльфийская работа уменьшает его на единицу (ROT-WPN-02).
+        Assert.Equal("7", weapon.Damage);
         Assert.Equal("Эльфийский лук", weapon.NarrativeForm);
     }
 

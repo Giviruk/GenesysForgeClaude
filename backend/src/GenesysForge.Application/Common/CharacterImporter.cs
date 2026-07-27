@@ -119,10 +119,20 @@ public static class CharacterImporter
         {
             var def = await ResolveItemAsync(db, userId, system, it.Code, it.Name, ct);
             if (def is null) { warnings.Add($"Предмет «{Display(it.Name, it.Code)}» не найден — пропущен."); continue; }
+            // Качество изготовления файла проверяется, а не применяется на веру: снаряжение
+            // эльфийским не бывает, и такой файл чинится обычной работой с предупреждением.
+            var craftsmanship = it.Craftsmanship;
+            if (!Enum.IsDefined(craftsmanship)
+                || (craftsmanship != WeaponCraftsmanship.Steel && !CraftsmanshipRules.AppliesTo(def.Kind)))
+            {
+                warnings.Add($"У предмета «{def.Name}» указано неприменимое качество изготовления — оставлена обычная работа.");
+                craftsmanship = WeaponCraftsmanship.Steel;
+            }
             character.Items.Add(new CharacterItem
             {
                 Id = Guid.NewGuid(), CharacterId = characterId, ItemDefId = def.Id,
                 Quantity = Math.Max(1, it.Quantity), State = it.State,
+                Craftsmanship = CraftsmanshipRules.FixedFor(def.Code) ?? craftsmanship,
                 // Комплект и стартовый бюджет сохраняются как провенанс; всё остальное — Imported,
                 // чтобы импорт не выглядел покупкой в истории нового персонажа.
                 Provenance = it.Provenance is ItemProvenance.CareerPackage or ItemProvenance.StartingBudget

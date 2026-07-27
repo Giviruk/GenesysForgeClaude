@@ -2,12 +2,14 @@ import { useMemo, useState } from 'react'
 import { api } from '../api/client'
 import type {
   CharacterSheet, ItemCheckModifier, ItemDef, ItemKind, ItemState, Reference, SheetItem,
-  WeaponAttackProfile, WeaponRange,
+  WeaponAttackProfile, WeaponCraftsmanship, WeaponRange,
 } from '../api/types'
 import {
-  CHARACTERISTIC_LABELS, CURRENCY_LABEL, ITEM_KIND_LABELS, ITEM_STATE_LABELS, localizedDescription, localizedName,
-  resolveWeaponSkillName, secondaryName,
+  CHARACTERISTIC_LABELS, CURRENCY_LABEL, ITEM_KIND_LABELS, ITEM_STAT_FIELD_LABELS, ITEM_STATE_LABELS,
+  localizedDescription, localizedName, resolveWeaponSkillName, secondaryName,
+  WEAPON_CRAFTSMANSHIP_HINTS, WEAPON_CRAFTSMANSHIP_LABELS, WEAPON_CRAFTSMANSHIPS,
 } from '../utils/labels'
+import { craftsmanshipApplies, craftsmanshipPrice } from '../utils/craftsmanship'
 import { itemTags } from '../data/itemQualities'
 import { DicePoolView } from './DicePoolView'
 import { qualitiesFromProperties } from '../utils/combat'
@@ -238,6 +240,10 @@ function ShopRow({ item, money, run, sheetId, open, onToggle }: {
 }) {
   const itemLabel = localizedName(item)
   const itemOriginal = secondaryName(item)
+  // Качество изготовления выбирается один раз, при покупке, и дальше не меняется (ROT-WPN-02).
+  const [craftsmanship, setCraftsmanship] = useState<WeaponCraftsmanship>('steel')
+  const canChoose = craftsmanshipApplies(item.kind)
+  const unitPrice = canChoose ? craftsmanshipPrice(item.price, craftsmanship) : item.price
   return (
     <div className="shop-row">
       <div className="shop-row-head">
@@ -256,15 +262,35 @@ function ShopRow({ item, money, run, sheetId, open, onToggle }: {
         <div className="shop-row-actions">
           <button className="primary tiny" onClick={onToggle}>{open ? t('Отмена', 'Cancel') : t('Купить', 'Buy')}</button>
           <button className="tiny" title={t('Добавить без оплаты', 'Add without paying')}
-            onClick={() => run(() => api.addItem(sheetId, item.id, 1, 'carried', { free: true }))}>{t('+ Добавить', '+ Add')}</button>
+            onClick={() => run(() => api.addItem(sheetId, item.id, 1, 'carried',
+              { free: true, ...(canChoose ? { craftsmanship } : {}) }))}>{t('+ Добавить', '+ Add')}</button>
         </div>
       </div>
       {open && (
-        <BuyControl unitPrice={item.price} money={money} maxAffordable={item.price > 0 ? Math.floor(money / item.price) : undefined}
-          onConfirm={qty => run(async () => {
-            await api.addItem(sheetId, item.id, qty, 'carried')
-            onToggle()
-          })} />
+        <>
+          {canChoose && (
+            <label className="small-text shop-craftsmanship">
+              {t('Качество изготовления', 'Craftsmanship')}{': '}
+              <select value={craftsmanship}
+                onChange={e => setCraftsmanship(e.target.value as WeaponCraftsmanship)}>
+                {WEAPON_CRAFTSMANSHIPS.map(c => (
+                  <option key={c} value={c}>{WEAPON_CRAFTSMANSHIP_LABELS[c]}</option>
+                ))}
+              </select>
+              <div className="muted small-text">{WEAPON_CRAFTSMANSHIP_HINTS[craftsmanship]}</div>
+              <div className="muted small-text">
+                {t('Выбирается один раз — потом не меняется.', 'Chosen once — it cannot be changed later.')}
+              </div>
+            </label>
+          )}
+          <BuyControl unitPrice={unitPrice} money={money}
+            maxAffordable={unitPrice > 0 ? Math.floor(money / unitPrice) : undefined}
+            onConfirm={qty => run(async () => {
+              await api.addItem(sheetId, item.id, qty, 'carried',
+                canChoose ? { craftsmanship } : undefined)
+              onToggle()
+            })} />
+        </>
       )}
     </div>
   )
@@ -315,6 +341,9 @@ function InventoryCard({ item, sheet, skillNames, run, reference, sellOpen, onTo
             {` · ${ITEM_KIND_LABELS[item.kind]}`}{item.price > 0 && ` · ${item.price} 🪙`}
             {/* Слоты улучшений берутся из таблицы книги; null — значения нет (ROT-ARM-01). */}
             {item.hardPoints != null && ` · HP ${item.hardPoints}`}
+            {/* Работа обычной стали ничего не меняет — её и не показываем (ROT-WPN-02). */}
+            {item.craftsmanship !== 'steel' && ` · ${WEAPON_CRAFTSMANSHIP_LABELS[item.craftsmanship]}`}
+            {item.reinforced && t(' · укреплённое', ' · reinforced')}
           </span>
         </div>
         <div className="inv-card-qty">
@@ -359,6 +388,18 @@ function InventoryCard({ item, sheet, skillNames, run, reference, sellOpen, onTo
                 && t(' (не действует — не надето)', ' (inactive — not worn)')}
               {m.requiresWorn && item.state === 'equipped' && item.kind === 'armor' && !item.isActiveArmor
                 && t(' (не действует — активна другая броня)', ' (inactive — another armor is active)')}
+            </span>
+          ))}
+        </div>
+      )}
+
+      {/* Разбор поправок: числа выше — уже эффективные, здесь видно, от чего они такие (ROT-WPN-02). */}
+      {item.adjustments?.length > 0 && (
+        <div className="muted small-text">
+          {t('Работа', 'Craftsmanship')} · {item.adjustments.map((a, i) => (
+            <span key={a.field}>
+              {i > 0 && ' · '}
+              {ITEM_STAT_FIELD_LABELS[a.field] ?? a.field} {a.base} → {a.effective}
             </span>
           ))}
         </div>

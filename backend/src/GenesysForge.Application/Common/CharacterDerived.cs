@@ -30,17 +30,26 @@ public static class CharacterDerived
             t.TalentDef.MeleeDefenseBonus, t.TalentDef.RangedDefenseBonus))
         .ToList();
 
+    /// <summary>
+    /// Вес, поглощение и защита экземпляров. Числа берутся уже с учётом качества изготовления
+    /// (ROT-WPN-02): железная броня тяжелее каталожной, эльфийская легче, и лист обязан считать
+    /// по экземпляру, а не по записи справочника.
+    /// </summary>
     public static List<ItemInput> ItemInputs(Character c) => c.Items
         .Where(i => i.ItemDef is not null)
-        .Select(i => new ItemInput(
-            i.ItemDef!.Name, i.ItemDef.Kind, i.State, i.ItemDef.Encumbrance, i.Quantity,
-            i.ItemDef.SoakBonus, i.ItemDef.MeleeDefense, i.ItemDef.RangedDefense,
-            i.ItemDef.EncumbranceThresholdBonus,
-            i.Id == c.ActiveArmorCharacterItemId,
-            [.. i.ItemDef.Qualities
-                .Where(q => q.QualityDef is not null)
-                .Select(q => new ItemQualityInput(q.QualityDef!.Code, q.Rating ?? 0))],
-            i.IsThrown))
+        .Select(i =>
+        {
+            var stats = CraftsmanshipRules.For(i.ItemDef!, i.Craftsmanship);
+            return new ItemInput(
+                i.ItemDef!.Name, i.ItemDef.Kind, i.State, stats.Encumbrance, i.Quantity,
+                stats.SoakBonus, stats.MeleeDefense, stats.RangedDefense,
+                i.ItemDef.EncumbranceThresholdBonus,
+                i.Id == c.ActiveArmorCharacterItemId,
+                [.. i.ItemDef.Qualities
+                    .Where(q => q.QualityDef is not null)
+                    .Select(q => new ItemQualityInput(q.QualityDef!.Code, q.Rating ?? 0))],
+                i.IsThrown);
+        })
         .ToList();
 
     /// <summary>
@@ -50,12 +59,27 @@ public static class CharacterDerived
     /// </summary>
     public static List<ItemCheckModifierInput> CheckModifierInputs(Character c) => c.Items
         .Where(i => i.ItemDef is not null)
-        .SelectMany(i => i.ItemDef!.CheckModifiers.Select(m => (Item: i, Def: i.ItemDef!, Mod: m)))
-        .Where(x => !x.Mod.RequiresWorn || IsWornAndEffective(c, x.Item, x.Def))
-        .Select(x => new ItemCheckModifierInput(
-            x.Def.Name, x.Def.NameRu, x.Mod.Kind, x.Mod.SkillName, x.Mod.Characteristic,
-            x.Mod.Value, x.Mod.Condition))
+        .SelectMany(i => CatalogModifiers(i).Concat(CraftsmanshipModifiers(i)))
+        .Where(x => !x.RequiresWorn || IsWornAndEffective(c, x.Item, x.Item.ItemDef!))
+        .Select(x => x.Input)
         .ToList();
+
+    private static IEnumerable<(CharacterItem Item, bool RequiresWorn, ItemCheckModifierInput Input)>
+        CatalogModifiers(CharacterItem i) => i.ItemDef!.CheckModifiers.Select(m => (i, m.RequiresWorn,
+            new ItemCheckModifierInput(
+                i.ItemDef!.Name, i.ItemDef.NameRu, m.Kind, m.SkillName, m.Characteristic,
+                m.Value, m.Condition)));
+
+    /// <summary>
+    /// Помехи от качества изготовления (ROT-WPN-02): железная броня мешает четырём навыкам,
+    /// эльфийская снимает одну помеху со Скрытности. Они действуют только на надетой активной
+    /// броне — по тому же правилу, что и книжные штрафы записи каталога.
+    /// </summary>
+    private static IEnumerable<(CharacterItem Item, bool RequiresWorn, ItemCheckModifierInput Input)>
+        CraftsmanshipModifiers(CharacterItem i) =>
+        CraftsmanshipRules.CheckModifiers(i.ItemDef!.Kind, i.Craftsmanship)
+            .Select(m => (i, true, new ItemCheckModifierInput(
+                i.ItemDef!.Name, i.ItemDef.NameRu, m.Kind, m.SkillName, null, m.Value)));
 
     /// <summary>
     /// Надет и действует: неактивная надетая броня даёт только вес, поэтому её штрафы тоже не

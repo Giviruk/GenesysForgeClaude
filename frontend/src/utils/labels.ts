@@ -485,16 +485,56 @@ export const SIGNATURE_WEAPON_PROFILE_LABELS: Record<SignatureWeaponProfile, str
   ranged: 'Ranged',
 })
 
-export const WEAPON_CRAFTSMANSHIPS: WeaponCraftsmanship[] = ['dwarven', 'elven', 'steel']
+/** Порядок выбора (ROT-WPN-02): от обычной работы к древней, как в таблице книги. */
+export const WEAPON_CRAFTSMANSHIPS: WeaponCraftsmanship[] =
+  ['steel', 'iron', 'dwarven', 'elven', 'ancient']
 
 export const WEAPON_CRAFTSMANSHIP_LABELS: Record<WeaponCraftsmanship, string> = t({
   dwarven: 'Гномья работа',
   elven: 'Эльфийская работа',
   steel: 'Сталь',
+  iron: 'Железо',
+  ancient: 'Древняя работа',
 }, {
   dwarven: 'Dwarven',
   elven: 'Elven',
   steel: 'Steel',
+  iron: 'Iron',
+  ancient: 'Ancient',
+})
+
+/** Краткая подсказка, что тип делает: игрок выбирает его при покупке и потом не меняет. */
+export const WEAPON_CRAFTSMANSHIP_HINTS: Record<WeaponCraftsmanship, string> = t({
+  steel: 'Числа таблицы без изменений',
+  iron: 'Броня: вес +2 и помехи Атлетике, Координации, Верховой езде и Скрытности. Оружие: крит +1. Цена вдвое ниже, редкость −1',
+  dwarven: 'Броня: вес +1, слот улучшений +1. Оружие: урон +1, вес +1. Цена вдвое выше, редкость +2',
+  elven: 'Броня: вес −2, минус одна помеха Скрытности. Оружие: урон −1 и крит −1. Цена вдвое выше, редкость +3',
+  ancient: 'Броня: поглощение +1, защита +1, укреплённая. Оружие: урон +1, крит −1, укреплённое. Слот улучшений −1, цена ×20, редкость 10',
+}, {
+  steel: 'Table values unchanged',
+  iron: 'Armor: Enc +2 and setbacks to Athletics, Coordination, Riding and Stealth. Weapon: Crit +1. Half price, rarity −1',
+  dwarven: 'Armor: Enc +1, one more hard point. Weapon: damage +1, Enc +1. Double price, rarity +2',
+  elven: 'Armor: Enc −2, one less Stealth setback. Weapon: damage −1 and Crit −1. Double price, rarity +3',
+  ancient: 'Armor: Soak +1, Defense +1, reinforced. Weapon: damage +1, Crit −1, reinforced. One less hard point, ×20 price, rarity 10',
+})
+
+/** Подписи характеристик в разборе поправок экземпляра (ROT-WPN-02). */
+export const ITEM_STAT_FIELD_LABELS: Record<string, string> = t({
+  encumbrance: 'Вес',
+  soak: 'Поглощение',
+  meleeDefense: 'Ближняя защита',
+  rangedDefense: 'Дальняя защита',
+  hardPoints: 'Слоты улучшений',
+  price: 'Цена',
+  rarity: 'Редкость',
+}, {
+  encumbrance: 'Encumbrance',
+  soak: 'Soak',
+  meleeDefense: 'Melee defense',
+  rangedDefense: 'Ranged defense',
+  hardPoints: 'Hard points',
+  price: 'Price',
+  rarity: 'Rarity',
 })
 
 /**

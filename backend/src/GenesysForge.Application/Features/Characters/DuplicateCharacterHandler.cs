@@ -106,6 +106,7 @@ public class DuplicateCharacterHandler(IAppDbContext db) : ICommandHandler<Dupli
                 Quantity = i.Quantity,
                 State = i.State,
                 Provenance = i.Provenance,
+                Craftsmanship = i.Craftsmanship,
             }).ToList(),
             CriticalInjuries = src.CriticalInjuries.Select(ci => new CharacterCriticalInjury
             {
