@@ -65,7 +65,8 @@ public static class SheetBuilder
             c.TotalXp, c.SpentXp, c.AvailableXp, c.IsCreationPhase,
             c.WoundsCurrent, c.StrainCurrent, c.Money,
             new DerivedDto(derived.WoundThreshold, derived.StrainThreshold, derived.Soak, derived.MeleeDefense,
-                derived.RangedDefense, derived.EncumbranceThreshold, derived.EncumbranceLoad, derived.Encumbered),
+                derived.RangedDefense, derived.EncumbranceThreshold, derived.EncumbranceLoad, derived.Encumbered,
+                ToDto(derived.MeleeDefenseBreakdown), ToDto(derived.RangedDefenseBreakdown)),
             skills,
             c.Talents
                 .OrderBy(t => t.TalentDef!.Tier).ThenBy(t => t.TalentDef!.Name)
@@ -133,6 +134,15 @@ public static class SheetBuilder
             c.HeroicConfigurationIncomplete,
             c.ActiveArmorCharacterItemId);
     }
+
+    /// <summary>Разбор защиты в DTO: источники нужны UI, чтобы объяснить итоговое число.</summary>
+    private static DefenseBreakdownDto? ToDto(DefenseBreakdown? b) => b is null ? null : new(
+        b.Raw, b.Effective, b.Capped,
+        b.Provider is null ? null : Source(b.Provider),
+        [.. b.IgnoredProviders.Select(Source)],
+        [.. b.Increases.Select(Source)]);
+
+    private static DefenseSourceDto Source(DefenseContribution c) => new(c.SourceType, c.SourceName, c.Value);
 
     /// <summary>
     /// Параметр primary effect (ROT-HA-02). Числа именного оружия строятся из профиля, а качества

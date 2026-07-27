@@ -1,5 +1,5 @@
 import { api } from '../api/client'
-import type { CareerSkillSource, CharacterSheet, SkillKind } from '../api/types'
+import type { CareerSkillSource, CharacterSheet, DefenseBreakdown, Derived, SkillKind } from '../api/types'
 import {
   CHARACTERISTICS, CHARACTERISTIC_LABELS, CHARACTERISTIC_SHORT_LABELS, HEROIC_UPGRADE_LABELS,
   localizedDescription, localizedName, secondaryName, SKILL_KIND_LABELS,
@@ -82,7 +82,8 @@ export function SheetTab({ sheet, onError, refresh }: Props) {
           onMinus={() => run(() => api.updateCharacter(sheet.id, { strainCurrent: sheet.strainCurrent - 1 }))}
           onPlus={() => run(() => api.updateCharacter(sheet.id, { strainCurrent: sheet.strainCurrent + 1 }))} />
         <DerivedBox label={t('Поглощение', 'Soak')} value={String(d.soak)} />
-        <DerivedBox label={t('Защита (ближ/дальн)', 'Defense (melee/ranged)')} value={`${d.meleeDefense} / ${d.rangedDefense}`} />
+        <DerivedBox label={t('Защита (ближ/дальн)', 'Defense (melee/ranged)')} value={`${d.meleeDefense} / ${d.rangedDefense}`}
+          title={defenseTitle(d)} />
         <DerivedBox label={t('Переносимый вес', 'Encumbrance')} value={`${d.encumbranceLoad} / ${d.encumbranceThreshold}`}
           warning={d.encumbered ? t('Перегружен!', 'Encumbered!') : undefined} />
       </section>
@@ -180,15 +181,17 @@ export function SheetTab({ sheet, onError, refresh }: Props) {
   )
 }
 
-function DerivedBox({ label, value, warning, onMinus, onPlus }: {
+function DerivedBox({ label, value, warning, title, onMinus, onPlus }: {
   label: string
   value: string
   warning?: string
+  /** Подсказка при наведении: например, из чего сложилась защита. */
+  title?: string
   onMinus?: () => void
   onPlus?: () => void
 }) {
   return (
-    <div className={warning ? 'stat-box warn' : 'stat-box'}>
+    <div className={warning ? 'stat-box warn' : 'stat-box'} title={title}>
       <div className="stat-value">
         {onMinus && <button className="tiny" onClick={onMinus}>−</button>}
         <span>{value}</span>
@@ -269,4 +272,29 @@ function HeroicSummary({ sheet }: { sheet: CharacterSheet }) {
       </div>
     </section>
   )
+}
+
+/**
+ * Объяснение итоговой защиты (ROT-CMB-03): что её задало, что проигнорировано (источники
+ * «получает Defense N» не складываются) и упёрлось ли значение в предел 4.
+ */
+function defenseTitle(d: Derived): string | undefined {
+  const channel = (label: string, b: DefenseBreakdown | null) => {
+    if (!b) return null
+    const parts: string[] = []
+    if (b.provider) parts.push(`${b.provider.sourceName} ${b.provider.value}`)
+    for (const inc of b.increases) parts.push(`${inc.sourceName} ${inc.value > 0 ? '+' : ''}${inc.value}`)
+    if (parts.length === 0) parts.push(t('источников нет', 'no sources'))
+    const ignored = b.ignoredProviders.length > 0
+      ? ` · ${t('не складывается с', 'does not stack with')} ${b.ignoredProviders.map(x => x.sourceName).join(', ')}`
+      : ''
+    const capped = b.capped ? ` · ${t(`предел 4 (было бы ${b.raw})`, `capped at 4 (raw ${b.raw})`)}` : ''
+    return `${label}: ${parts.join(' ')} = ${b.effective}${ignored}${capped}`
+  }
+
+  const lines = [
+    channel(t('Ближняя', 'Melee'), d.meleeDefenseBreakdown),
+    channel(t('Дальняя', 'Ranged'), d.rangedDefenseBreakdown),
+  ].filter(Boolean)
+  return lines.length > 0 ? lines.join('\n') : undefined
 }
