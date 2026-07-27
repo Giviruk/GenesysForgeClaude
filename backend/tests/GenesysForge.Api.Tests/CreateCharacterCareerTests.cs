@@ -242,7 +242,7 @@ public class CreateCharacterCareerTests(ApiFactory factory) : IClassFixture<ApiF
         var item = reference.Items.First(i => i.Price is > 0 and <= 100);
 
         var add = await client.PostAsJsonAsync($"/api/characters/{id}/items",
-            new AddItemRequest(item.Id, 1, ItemState.Backpack, item.Price), Json.Options);
+            new AddItemRequest(item.Id, 1, ItemState.Backpack), Json.Options);
         Assert.Equal(HttpStatusCode.Created, add.StatusCode);
 
         var afterBuy = await SheetAsync(client, id);
@@ -251,11 +251,13 @@ public class CreateCharacterCareerTests(ApiFactory factory) : IClassFixture<ApiF
 
         var bought = afterBuy.Items.Single(i => i.ItemDefId == item.Id);
         var sell = await client.PostAsJsonAsync($"/api/characters/{id}/items/{bought.Id}/sell",
-            new SellItemRequest(1, item.Price), Json.Options);
+            new SellItemRequest(1, NetSuccesses: 3), Json.Options);
         sell.EnsureSuccessStatusCode();
 
+        // Три успеха дают 75 % от цены (ROT-ECO-01), и вся выручка идёт в бюджет, а не в кошелёк.
+        var proceeds = item.Price * 75 / 100;
         var afterSell = await SheetAsync(client, id);
-        Assert.Equal(before.StartingPurchaseBudget, afterSell.StartingPurchaseBudget); // бюджет восстановлен
-        Assert.Equal(before.Money, afterSell.Money);                                   // а не превращён в деньги
+        Assert.Equal(afterBuy.StartingPurchaseBudget + proceeds, afterSell.StartingPurchaseBudget);
+        Assert.Equal(before.Money, afterSell.Money);
     }
 }

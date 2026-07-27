@@ -23,7 +23,6 @@ interface Props {
 
 const STATES: ItemState[] = ['equipped', 'carried', 'backpack']
 const KIND_FILTERS: (ItemKind | 'all')[] = ['all', 'weapon', 'armor', 'gear']
-const MULTIPLIERS = [50, 75, 100, 125, 150, 175, 200]
 
 // Поиск: регистронезависимо и устойчиво к лишним пробелам.
 const normalize = (s: string) => s.toLowerCase().replace(/\s+/g, ' ').trim()
@@ -254,13 +253,13 @@ function ShopRow({ item, money, run, sheetId, open, onToggle }: {
         <div className="shop-row-actions">
           <button className="primary tiny" onClick={onToggle}>{open ? t('Отмена', 'Cancel') : t('Купить', 'Buy')}</button>
           <button className="tiny" title={t('Добавить без оплаты', 'Add without paying')}
-            onClick={() => run(() => api.addItem(sheetId, item.id, 1, 'carried'))}>{t('+ Добавить', '+ Add')}</button>
+            onClick={() => run(() => api.addItem(sheetId, item.id, 1, 'carried', { free: true }))}>{t('+ Добавить', '+ Add')}</button>
         </div>
       </div>
       {open && (
-        <PriceControl basePrice={item.price} actionLabel={t('Купить', 'Buy')} money={money}
-          onConfirm={(total, qty) => run(async () => {
-            await api.addItem(sheetId, item.id, qty, 'carried', total)
+        <BuyControl unitPrice={item.price} money={money} maxAffordable={item.price > 0 ? Math.floor(money / item.price) : undefined}
+          onConfirm={qty => run(async () => {
+            await api.addItem(sheetId, item.id, qty, 'carried')
             onToggle()
           })} />
       )}
@@ -360,9 +359,9 @@ function InventoryCard({ item, sheet, skillNames, run, reference, sellOpen, onTo
       </div>
 
       {sellOpen && (
-        <PriceControl basePrice={item.price} actionLabel={t('Продать', 'Sell')} maxQuantity={item.quantity}
-          onConfirm={(total, qty) => run(async () => {
-            await api.sellItem(sheet.id, item.id, qty, total)
+        <SellControl unitPrice={item.price} maxQuantity={item.quantity}
+          onConfirm={(qty, successes) => run(async () => {
+            await api.sellItem(sheet.id, item.id, qty, successes)
             onToggleSell()
           })} />
       )}
@@ -411,49 +410,77 @@ function WeaponLine({ item, sheet, skill, skillLabel, reference }: {
   )
 }
 
-function PriceControl({ basePrice, actionLabel, onConfirm, money, maxQuantity }: {
-  basePrice: number
-  actionLabel: string
-  onConfirm: (total: number, quantity: number) => void
-  money?: number
-  maxQuantity?: number
+/** Покупка по каталожной цене: клиент не назначает сумму, только количество (ROT-ECO-01). */
+function BuyControl({ unitPrice, money, maxAffordable, onConfirm }: {
+  unitPrice: number
+  money: number
+  maxAffordable?: number
+  onConfirm: (quantity: number) => void
 }) {
-  const [mult, setMult] = useState(100)
-  const [custom, setCustom] = useState('')
   const [qty, setQty] = useState(1)
-
-  const customNum = custom.trim() === '' ? null : Math.max(0, Math.trunc(Number(custom)))
-  const unitPrice = customNum != null && Number.isFinite(customNum)
-    ? customNum
-    : Math.round(basePrice * mult / 100)
   const total = unitPrice * qty
-  const tooExpensive = money != null && total > money
+  const tooExpensive = total > money
 
   return (
     <div className="price-control">
-      <div className="price-mults">
-        {MULTIPLIERS.map(m => (
-          <button key={m} className={customNum == null && mult === m ? 'chip active' : 'chip'}
-            onClick={() => { setCustom(''); setMult(m) }}>{m}%</button>
-        ))}
-      </div>
       <div className="price-row">
-        <label>{t('Своя цена/шт', 'Custom price/unit')}
-          <input type="number" min={0} placeholder={String(Math.round(basePrice * mult / 100))}
-            value={custom} onChange={e => setCustom(e.target.value)} style={{ width: '5rem' }} />
-        </label>
         <label>{t('Кол-во', 'Qty')}
-          <input type="number" min={1} max={maxQuantity} value={qty}
-            onChange={e => setQty(Math.max(1, Math.min(maxQuantity ?? Infinity, Math.trunc(Number(e.target.value)) || 1)))}
+          <input type="number" min={1} max={maxAffordable} value={qty}
+            onChange={e => setQty(Math.max(1, Math.trunc(Number(e.target.value)) || 1))}
             style={{ width: '4rem' }} />
         </label>
         <span className="price-total">
-          {t('Итого', 'Total')} <strong className={tooExpensive ? 'error' : ''}>{total}</strong> 🪙
+          {t('Цена', 'Price')} {unitPrice} × {qty} = <strong className={tooExpensive ? 'error' : ''}>{total}</strong> 🪙
         </span>
         <button className="primary small" disabled={tooExpensive}
           title={tooExpensive ? t('Недостаточно монет', 'Not enough coins') : undefined}
-          onClick={() => onConfirm(total, qty)}>{actionLabel}</button>
+          onClick={() => onConfirm(qty)}>{t('Купить', 'Buy')}</button>
       </div>
+    </div>
+  )
+}
+
+/**
+ * Продажа: выручка зависит от результата проверки Переговоров или Уличной смекалки —
+ * 1 успех даёт 25 %, 2 — 50 %, 3 и больше — 75 % (ROT-ECO-01). Итог считает сервер,
+ * здесь показывается предварительный расчёт по тем же правилам.
+ */
+function SellControl({ unitPrice, maxQuantity, onConfirm }: {
+  unitPrice: number
+  maxQuantity: number
+  onConfirm: (quantity: number, netSuccesses: number) => void
+}) {
+  const [qty, setQty] = useState(1)
+  const [successes, setSuccesses] = useState(1)
+
+  const percent = successes <= 0 ? 0 : successes === 1 ? 25 : successes === 2 ? 50 : 75
+  const preview = Math.floor(unitPrice * percent / 100) * qty
+
+  return (
+    <div className="price-control">
+      <div className="price-row">
+        <label>{t('Кол-во', 'Qty')}
+          <input type="number" min={1} max={maxQuantity} value={qty}
+            onChange={e => setQty(Math.max(1, Math.min(maxQuantity, Math.trunc(Number(e.target.value)) || 1)))}
+            style={{ width: '4rem' }} />
+        </label>
+        <label>{t('Нетто-успехов', 'Net successes')}
+          <input type="number" min={0} value={successes}
+            onChange={e => setSuccesses(Math.max(0, Math.trunc(Number(e.target.value)) || 0))}
+            style={{ width: '4rem' }} />
+        </label>
+        <span className="price-total">
+          {percent > 0
+            ? <>{percent}% · <strong>{preview}</strong> 🪙</>
+            : <span className="error">{t('провал — сделки нет', 'failure — no sale')}</span>}
+        </span>
+        <button className="primary small" disabled={percent === 0}
+          onClick={() => onConfirm(qty, successes)}>{t('Продать', 'Sell')}</button>
+      </div>
+      <p className="hint small-text">
+        {t('Доля берётся от цены каталога за штуку и округляется вниз; итог считает сервер.',
+          'The fraction applies to the listed unit price and rounds down; the server computes the total.')}
+      </p>
     </div>
   )
 }
