@@ -22,8 +22,7 @@ namespace GenesysForge.Infrastructure.Persistence.Migrations
             // Предметы и их состояния не меняются: выбирается только одна из уже надетых броней.
             migrationBuilder.Sql("""
                 UPDATE "Characters" AS c
-                SET "ActiveArmorCharacterItemId" = pick."Id"
-                FROM LATERAL (
+                SET "ActiveArmorCharacterItemId" = (
                     SELECT ci."Id"
                     FROM "CharacterItems" AS ci
                     JOIN "ItemDefs" AS d ON d."Id" = ci."ItemDefId"
@@ -34,8 +33,7 @@ namespace GenesysForge.Infrastructure.Persistence.Migrations
                     ORDER BY d."SoakBonus" DESC,
                              GREATEST(d."MeleeDefense", d."RangedDefense") DESC,
                              ci."Id"
-                    LIMIT 1
-                ) AS pick
+                    LIMIT 1)
                 WHERE c."ActiveArmorCharacterItemId" IS NULL;
                 """);
         }
