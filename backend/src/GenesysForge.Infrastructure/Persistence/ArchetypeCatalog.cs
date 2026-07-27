@@ -17,12 +17,16 @@ public static class ArchetypeCatalog
         string System, string Code, string Name, string NameRu,
         int Brawn, int Agility, int Intellect, int Cunning, int Willpower, int Presence,
         int WoundBase, int StrainBase, int StartingXp, string Safe, string Source,
-        List<AbilityEntry>? Abilities, List<StartingSkillEntry>? StartingSkills, string SafeEn = "");
+        List<AbilityEntry>? Abilities, List<StartingSkillEntry>? StartingSkills, string SafeEn = "",
+        int Silhouette = 1);
 
-    private sealed record AbilityEntry(string Code, string NameRu, string NameEn, string Safe, string AutomationKind, string SafeEn = "");
+    private sealed record AbilityEntry(string Code, string NameRu, string NameEn, string Safe, string AutomationKind,
+        string SafeEn = "", string RuleKind = "Manual", int RuleValue = 0, string RuleParameters = "",
+        int UsesPerScope = 0, string UseScope = "None", int StoryPointCost = 0);
 
     private sealed record StartingSkillEntry(
-        string SkillName, string NameRu, int FreeRanks, bool IsChoice, string ChoiceGroup, int ChoiceCount);
+        string SkillName, string NameRu, int FreeRanks, bool IsChoice, string ChoiceGroup, int ChoiceCount,
+        bool GrantsCareerSkill = false);
 
     private static readonly JsonSerializerOptions JsonOptions = new() { PropertyNameCaseInsensitive = true };
 
@@ -47,6 +51,7 @@ public static class ArchetypeCatalog
                 Cunning = e.Cunning, Willpower = e.Willpower, Presence = e.Presence,
                 WoundBase = e.WoundBase, StrainBase = e.StrainBase, StartingXp = e.StartingXp,
                 SafeDescription = e.Safe, DescriptionEn = e.SafeEn, Source = e.Source,
+                Silhouette = e.Silhouette,
                 Abilities = (e.Abilities ?? []).Select(a => new ArchetypeAbilityDef
                 {
                     Id = Guid.NewGuid(), Code = a.Code, NameRu = a.NameRu, NameEn = a.NameEn,
@@ -54,11 +59,21 @@ public static class ArchetypeCatalog
                     DescriptionEn = a.SafeEn,
                     AutomationKind = Enum.TryParse<ArchetypeAbilityAutomationKind>(a.AutomationKind, ignoreCase: true, out var k)
                         ? k : ArchetypeAbilityAutomationKind.Manual,
+                    // Неизвестный ruleKind — Manual: лучше отсутствие автоматизации, чем выдуманное правило.
+                    RuleKind = Enum.TryParse<SpeciesAbilityRuleKind>(a.RuleKind, ignoreCase: true, out var rk)
+                        ? rk : SpeciesAbilityRuleKind.Manual,
+                    RuleValue = a.RuleValue,
+                    RuleParameters = a.RuleParameters,
+                    UsesPerScope = a.UsesPerScope,
+                    UseScope = Enum.TryParse<AbilityUseScope>(a.UseScope, ignoreCase: true, out var us)
+                        ? us : AbilityUseScope.None,
+                    StoryPointCost = a.StoryPointCost,
                 }).ToList(),
                 StartingSkills = (e.StartingSkills ?? []).Select(s => new ArchetypeStartingSkill
                 {
                     Id = Guid.NewGuid(), SkillName = s.SkillName, NameRu = s.NameRu, FreeRanks = s.FreeRanks,
                     IsChoice = s.IsChoice, ChoiceGroup = s.ChoiceGroup, ChoiceCount = s.ChoiceCount,
+                    GrantsCareerSkill = s.GrantsCareerSkill,
                 }).ToList(),
             };
         }

@@ -39,4 +39,9 @@ public class HeroicAbilityDef : IContentDef
 
     /// <summary>Структурные эффекты для автоматизации активации (U-18). Пусто → только ручная подсказка.</summary>
     public List<RuleEffectDef> Effects { get; set; } = [];
+    /// <summary>
+    /// Запись исключена из новых выборов, но сохранена ради существующих ссылок
+    /// (см. <see cref="IContentDef.Retired"/>).
+    /// </summary>
+    public bool Retired { get; set; }
 }

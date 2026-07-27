@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { api } from '../api/client'
-import type { Characteristic, CharacterSheet, Reference, SheetTalent, TalentCategory, TalentDef } from '../api/types'
+import type {
+  AbilityUseScope, Characteristic, CharacterSheet, Reference, SheetTalent, TalentCategory, TalentDef,
+} from '../api/types'
 import {
   CHARACTERISTICS, CHARACTERISTIC_LABELS, localizedDescription, localizedName, nextRankTier, secondaryName,
   TALENT_CATEGORIES, TALENT_CATEGORY_LABELS, talentCost,
@@ -27,6 +29,17 @@ const isPassiveActivation = (activation: string) => {
 }
 // Талант Dedication не поднимает характеристику выше этого значения.
 const TALENT_CHARACTERISTIC_MAX = 5
+
+/** Подпись лимита применений: «1 раз за столкновение» и т. п. (ROT-TAL-05, только описание). */
+function usesLabel(uses: number, scope: AbilityUseScope): string {
+  const scopeRu: Record<AbilityUseScope, string> = {
+    none: '', session: 'за сессию', encounter: 'за столкновение', round: 'за раунд', turn: 'за ход',
+  }
+  const scopeEn: Record<AbilityUseScope, string> = {
+    none: '', session: 'per session', encounter: 'per encounter', round: 'per round', turn: 'per turn',
+  }
+  return t(`${uses} раз ${scopeRu[scope]}`.trim(), `${uses}× ${scopeEn[scope]}`.trim())
+}
 
 export function TalentsTab({ sheet, reference, onError, refresh }: Props) {
   const [activeTier, setActiveTier] = useState<number | 'all'>('all')
@@ -68,6 +81,17 @@ export function TalentsTab({ sheet, reference, onError, refresh }: Props) {
   }
 
   const owned = new Map(sheet.talents.map(t => [t.talentDefId, t]))
+  // Связи талантов идут по bare-slug кодам, одинаковым для обеих игровых систем.
+  const ownedBareCodes = new Set(
+    sheet.talents
+      .map(t => reference.talents.find(d => d.id === t.talentDefId))
+      .filter((d): d is NonNullable<typeof d> => d !== undefined)
+      .map(d => d.linkCode),
+  )
+  const talentNameByCode = (bareCode: string) => {
+    const def = reference.talents.find(d => d.linkCode === bareCode)
+    return def ? localizedName(def) : bareCode
+  }
 
   // Раскладываем каждый ранг купленного таланта по тиру, который он занимает в пирамиде.
   type PyramidCard = {
@@ -277,7 +301,17 @@ export function TalentsTab({ sheet, reference, onError, refresh }: Props) {
                 const pyramidOk = canPurchaseTier(sheet.talentTierCounts, effectiveTier)
                 const affordable = cost <= sheet.availableXp
                 const noGrantsLeft = tal.grantsCharacteristic && grantableCharacteristics(tal).length === 0
+                // Зеркало серверной TalentPurchasePolicy: объясняем блокировку, но не заменяем проверку.
+                const missingPrerequisite = ranksOwned === 0 && tal.requiresTalentCode.length > 0
+                  && !ownedBareCodes.has(tal.requiresTalentCode)
+                const conflicting = tal.excludesTalentCodes.find(code => ownedBareCodes.has(code))
                 const reason = maxedOut ? t('Уже куплен', 'Already purchased')
+                  : missingPrerequisite ? t(
+                    `Сначала нужен талант «${talentNameByCode(tal.requiresTalentCode)}»`,
+                    `Requires the "${talentNameByCode(tal.requiresTalentCode)}" talent first`)
+                  : conflicting ? t(
+                    `Несовместим с «${talentNameByCode(conflicting)}»`,
+                    `Mutually exclusive with "${talentNameByCode(conflicting)}"`)
                   : !pyramidOk ? t('Нарушит пирамиду', 'Would break the pyramid')
                   : !affordable ? t('Недостаточно XP', 'Not enough XP')
                   : noGrantsLeft ? t('Нет характеристик для увеличения', 'No characteristics left to increase')
@@ -295,7 +329,18 @@ export function TalentsTab({ sheet, reference, onError, refresh }: Props) {
                         {tal.isRanked && <span className="badge">{t('Ранговый', 'Ranked')}{ranksOwned > 0 ? `: ${ranksOwned}` : ''}</span>}
                         {tal.isCustom && <span className="badge custom">{t('Кастом', 'Custom')}</span>}
                         <span className="badge">{tal.activation}</span>
+                        {tal.canUseOutOfTurn && <span className="badge">{t('Вне хода', 'Out of turn')}</span>}
+                        {tal.usesPerScope > 0 && (
+                          <span className="badge">{usesLabel(tal.usesPerScope, tal.useScope)}</span>
+                        )}
+                        {tal.storyPointCost > 0 && (
+                          <span className="badge">{t(`${tal.storyPointCost} очко сюжета`, `${tal.storyPointCost} Story Point`)}</span>
+                        )}
+                        {tal.strainCost > 0 && (
+                          <span className="badge">{t(`${tal.strainCost} усталости`, `${tal.strainCost} strain`)}</span>
+                        )}
                       </div>
+                      {tal.trigger && <p className="hint">{t('Триггер:', 'Trigger:')} {tal.trigger}</p>}
                       <p className="muted">{localizedDescription(tal)}</p>
                     </div>
                     <div className="talent-actions">

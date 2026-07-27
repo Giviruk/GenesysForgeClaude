@@ -12,8 +12,10 @@ public class HeroicAbilityUpgradeDef
     public HeroicUpgradeLevel Level { get; set; }
     /// <summary>Стоимость в очках улучшения (Improved=1, Supreme=2).</summary>
     public int Cost { get; set; }
-    /// <summary>Эффект улучшения (RU-переработка).</summary>
+    /// <summary>Полный (private) парафраз эффекта. Очищается в режиме PublicSafe.</summary>
     public string Description { get; set; } = "";
+    /// <summary>Короткая copyright-safe сводка, остающаяся видимой в PublicSafe.</summary>
+    public string SafeDescription { get; set; } = "";
     /// <summary>Английское описание — собственный copyright-safe парафраз. Используется в обоих режимах контента.</summary>
     public string DescriptionEn { get; set; } = "";
     /// <summary>Особые условия/заметки улучшения.</summary>

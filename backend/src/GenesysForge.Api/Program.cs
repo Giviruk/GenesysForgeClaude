@@ -174,7 +174,7 @@ app.Use(async (context, next) =>
     catch (DomainRuleException ex)
     {
         context.Response.StatusCode = StatusCodes.Status400BadRequest;
-        await context.Response.WriteAsJsonAsync(new ErrorResponse(ex.Message));
+        await context.Response.WriteAsJsonAsync(new ErrorResponse(ex.Message, ex.ReasonCode));
     }
     catch (ConflictException ex)
     {
@@ -207,6 +207,7 @@ app.MapSpells();
 app.MapNpcs();
 app.MapGameTable();
 app.MapRolls();
+app.MapCombat();
 app.MapEncounters();
 app.MapContentPacks();
 app.MapHub<CampaignHub>("/hubs/campaign");

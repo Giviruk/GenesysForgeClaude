@@ -60,6 +60,40 @@ export interface TalentDef {
   rangedDefenseBonus: number
   isCustom: boolean
   grantsCharacteristic: boolean
+  /** Английская подпись тайминга активации — стабильнее локализованной строки. */
+  activationEn: string
+  /** Талант применим вне своего хода (Out-of-turn Incidental, ROT-TAL-01). */
+  canUseOutOfTurn: boolean
+  /** Навыки, которые талант делает карьерными, пока принадлежит персонажу (ROT-TAL-04). */
+  careerSkillNames: string[]
+  /** Bare-slug код таланта — ключ связей prerequisite/exclusion, общий для обеих систем. */
+  linkCode: string
+  /** Обязательный талант-предусловие, bare-slug код; пусто — предусловий нет (ROT-TAL-02). */
+  requiresTalentCode: string
+  /** Коды несовместимых талантов; отношение симметрично. */
+  excludesTalentCodes: string[]
+  /** Лимит применений и область его сброса; стоимость активации (ROT-TAL-05). */
+  usesPerScope: number
+  useScope: AbilityUseScope
+  storyPointCost: number
+  strainCost: number
+  trigger: string
+  /** Схема обязательного выбора при покупке ранга (ROT-TAL-03). */
+  choiceKind: TalentChoiceKind
+  choiceCountFirstRank: number
+  choiceCountNextRank: number
+}
+
+/** Что выбирает игрок при покупке ранга таланта (ROT-TAL-03). */
+export type TalentChoiceKind =
+  | 'none' | 'characteristic' | 'skill' | 'spellConfiguration' | 'animalCompanion'
+
+/** Один сохранённый выбор ранга таланта. */
+export interface CharacterTalentChoice {
+  rankIndex: number
+  kind: TalentChoiceKind
+  value: string
+  displayName: string
 }
 
 export interface ItemDef {
@@ -159,6 +193,75 @@ export interface HeroicAbility {
   effects: RuleEffect[]
 }
 
+/** Параметр, который primary effect требует выбрать вместе с собой (ROT-HA-02). */
+export type HeroicParameterKind = 'none' | 'paragonSkill' | 'sixthSenseSubject' | 'signatureWeapon'
+
+export type SignatureWeaponProfile = 'brawl' | 'oneHanded' | 'twoHanded' | 'ranged'
+
+export type WeaponCraftsmanship = 'dwarven' | 'elven' | 'steel'
+
+/** Один признак формы оружия. На проводе флаги едут строкой «oneHanded, sword». */
+export type WeaponFormTrait =
+  | 'brawl' | 'oneHanded' | 'twoHanded' | 'ranged'
+  | 'sword' | 'bowOrCrossbow' | 'bladed' | 'bluntOrCrushing'
+  | 'hasCuttingEdge' | 'woodenWorkingEdge'
+
+/** Именное оружие: числа приходят с сервера из выбранного профиля. */
+export interface SignatureWeapon {
+  profile: SignatureWeaponProfile
+  craftsmanship: WeaponCraftsmanship
+  narrativeForm: string
+  formTraits: string
+  isLost: boolean
+  skillName: string
+  damage: string
+  crit: number
+  rangeBand: string
+  encumbrance: number
+  hardPoints: number
+  qualities: ItemQualityRef[]
+}
+
+/** Параметр primary effect на листе персонажа. */
+export interface HeroicConfiguration {
+  kind: HeroicParameterKind
+  paragonSkillDefId: string | null
+  paragonSkillName: string | null
+  /** Навык Paragon больше не виден персонажу: снимок имени сохранён, замена не подставляется. */
+  paragonSkillMissing: boolean
+  sixthSenseSubject: string | null
+  signatureWeapon: SignatureWeapon | null
+  complete: boolean
+}
+
+/** Как задано происхождение героической способности (ROT-HA-01). */
+export type HeroicOriginMode = 'standard' | 'doubleStandard' | 'custom'
+
+/** Категория происхождения из таблицы d10; порядок совпадает с гранями 1–9. */
+export type HeroicOriginType =
+  | 'bloodline' | 'destiny' | 'artifact' | 'patron' | 'purpose'
+  | 'lifeChangingEvent' | 'blessingOrCurse' | 'training' | 'wildMagic'
+
+/** Личное название и происхождение героической способности. */
+export interface HeroicIdentity {
+  customName: string | null
+  originMode: HeroicOriginMode | null
+  originPrimary: HeroicOriginType | null
+  originSecondary: HeroicOriginType | null
+  originNarrative: string | null
+  /** Фактические грани броска; 0 — специальный результат «бросить ещё дважды». */
+  originRolls: number[]
+  complete: boolean
+}
+
+/** Результат серверного броска по таблице происхождения. */
+export interface HeroicOriginRollResult {
+  rolls: number[]
+  originMode: HeroicOriginMode
+  originPrimary: HeroicOriginType
+  originSecondary: HeroicOriginType | null
+}
+
 export interface HeroicSecondaryEffect {
   id: string
   code: string
@@ -204,6 +307,16 @@ export interface Spell {
 
 export type ArchetypeAbilityAutomationKind = 'passive' | 'activationCost' | 'timedEffect' | 'manual' | 'requiresGmDecision'
 
+/** Исполняемый тип видового правила (ROT-SPECIES-01) — источник механики, не имя способности. */
+export type SpeciesAbilityRuleKind =
+  | 'manual' | 'moveStoryPointToPlayers' | 'setBaseDefense' | 'removeSetbackBySource'
+  | 'forceCriticalInjuryRoll' | 'addSetbackWhenTargeted' | 'optionalSetbackForDamage'
+  | 'strainThresholdRage' | 'boostAgainstMarkedTarget' | 'naturalWeapon'
+  | 'freeSecondMoveManeuver' | 'setSilhouette' | 'boostAgainstLargerSilhouette'
+  | 'conjureMinorItem' | 'chooseOneAbility' | 'skillGrantOnly'
+
+export type AbilityUseScope = 'none' | 'encounter' | 'session' | 'round' | 'turn'
+
 export interface ArchetypeAbility {
   code: string
   nameRu: string
@@ -212,6 +325,14 @@ export interface ArchetypeAbility {
   /** Английское описание (собственный copyright-safe парафраз); пусто, если не переведено. */
   descriptionEn?: string
   automationKind: ArchetypeAbilityAutomationKind
+  ruleKind: SpeciesAbilityRuleKind
+  ruleValue: number
+  ruleParameters: string
+  usesPerScope: number
+  useScope: AbilityUseScope
+  storyPointCost: number
+  /** Допустимые коды для способности-выбора; пусто у обычных способностей. */
+  choiceOptions: string[] | null
 }
 
 export interface ArchetypeStartingSkill {
@@ -221,6 +342,8 @@ export interface ArchetypeStartingSkill {
   isChoice: boolean
   choiceGroup: string
   choiceCount: number
+  /** Выдача делает навык карьерным вдобавок к бесплатным рангам (ROT-CRE-01). */
+  grantsCareerSkill: boolean
 }
 
 export interface ArchetypeSkillChoice {
@@ -249,6 +372,8 @@ export interface Archetype {
   isCustom: boolean
   abilities: ArchetypeAbility[]
   startingSkills: ArchetypeStartingSkill[]
+  /** Размер существа: 1 у всех видов RoT, 0 у обоих гномов. */
+  silhouette: number
 }
 
 export type CareerRuleKind = 'advisory' | 'skillSubstitution'
@@ -357,6 +482,18 @@ export interface DicePool {
   proficiency: number
 }
 
+/** Взаимоисключающие режимы стартового снаряжения (ROT-CRE-03). */
+export type StartingEquipmentMode = 'standardMoney' | 'careerPackage'
+
+/** Откуда позиция инвентаря появилась у персонажа (ROT-CRE-03). */
+export type ItemProvenance = 'purchased' | 'careerPackage' | 'startingBudget' | 'imported'
+
+/** Источник карьерного статуса навыка (ROT-CRE-01). */
+export interface CareerSkillSource {
+  source: 'Career' | 'Species' | 'Talent'
+  sourceName: string
+}
+
 export interface SheetSkill {
   skillDefId: string
   name: string
@@ -368,6 +505,8 @@ export interface SheetSkill {
   pool: DicePool
   nextRankCost: number
   freeRanks: number
+  /** Все источники карьерного статуса: карьера, вид, таланты. Пусто — навык некарьерный. */
+  careerSources: CareerSkillSource[]
 }
 
 export interface SheetTalent {
@@ -388,6 +527,13 @@ export interface SheetTalent {
   rangedDefenseBonus: number
   grantsCharacteristic: boolean
   grantedCharacteristics: Characteristic[]
+  /** Сохранённые выборы по рангам (ROT-TAL-03). */
+  choices: CharacterTalentChoice[]
+  /** Талант требует выбора, которого нет; эффект заблокирован до ручного исправления. */
+  needsChoice: boolean
+  /** Английский тайминг активации и возможность применения вне хода (ROT-TAL-01). */
+  activationEn: string
+  canUseOutOfTurn: boolean
 }
 
 export interface SheetItem {
@@ -948,6 +1094,14 @@ export interface CharacterSheet {
     story: boolean
     secondaryEffects: HeroicSecondaryEffect[]
   }
+  /** Личность героической способности; null, пока способность не выбрана (ROT-HA-01). */
+  heroicIdentity: HeroicIdentity | null
+  /** Способность выбрана, но личность не заполнена — улучшения заблокированы. */
+  heroicIdentityIncomplete: boolean
+  /** Параметр primary effect; null, пока способность не выбрана (ROT-HA-02). */
+  heroicConfiguration: HeroicConfiguration | null
+  /** Способность требует параметр, а он не выбран — улучшения заблокированы. */
+  heroicConfigurationIncomplete: boolean
   items: SheetItem[]
   // Мотивации и предыстория (U-22)
   desire: string | null
@@ -986,6 +1140,8 @@ export type CharacterAuditAction =
   | 'skillRankBought' | 'skillRankRefunded' | 'talentBought' | 'talentRefunded'
   | 'itemBought' | 'itemSold' | 'itemRemoved'
   | 'heroicAbilityChanged' | 'creationCompleted' | 'manualEdit'
+  | 'heroicIdentitySet' | 'heroicOriginRolled'
+  | 'heroicParameterSet' | 'signatureWeaponReplaced'
 
 export interface CharacterAuditEntry {
   id: string

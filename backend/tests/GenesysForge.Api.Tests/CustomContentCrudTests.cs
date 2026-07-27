@@ -181,7 +181,10 @@ public class CustomContentCrudTests : IClassFixture<ApiFactory>
         Assert.Equal("Clockwork Folk", sheet.Archetype.Name);
         Assert.Equal(3, sheet.Characteristics["agility"]);
         Assert.Equal(95, sheet.TotalXp);
-        Assert.Equal(25, sheet.Money);
+        // ROT-CRE-03: режим по умолчанию — стандартные деньги, поэтому кошелёк это карманные 1d100,
+        // а фиксированная сумма кастомной карьеры выдаётся только вместе с её комплектом.
+        Assert.InRange(sheet.Money, 1, 100);
+        Assert.Equal(500, sheet.StartingPurchaseBudget);
         foreach (var skill in careerSkills)
             Assert.Contains(sheet.Skills, s => s.Name == skill && s.IsCareer);
 

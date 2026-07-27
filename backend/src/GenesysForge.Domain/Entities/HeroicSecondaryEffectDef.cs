@@ -11,4 +11,9 @@ public class HeroicSecondaryEffectDef : IContentDef
     public string SafeDescription { get; set; } = "";
     public string DescriptionEn { get; set; } = "";
     public string Source { get; set; } = "";
+    /// <summary>
+    /// Запись исключена из новых выборов, но сохранена ради существующих ссылок
+    /// (см. <see cref="IContentDef.Retired"/>).
+    /// </summary>
+    public bool Retired { get; set; }
 }

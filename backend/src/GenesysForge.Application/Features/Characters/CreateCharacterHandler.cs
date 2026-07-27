@@ -1,14 +1,15 @@
-using System.Text.RegularExpressions;
 using GenesysForge.Application.Abstractions;
 using GenesysForge.Application.Common;
 using GenesysForge.Application.Dtos;
 using GenesysForge.Domain;
 using GenesysForge.Domain.Entities;
+using GenesysForge.Domain.Rules;
 using Microsoft.EntityFrameworkCore;
 
 namespace GenesysForge.Application.Features.Characters;
 
-public partial class CreateCharacterHandler(IAppDbContext db) : ICommandHandler<CreateCharacterCommand, Guid>
+public class CreateCharacterHandler(IAppDbContext db, IDiceRoller dice)
+    : ICommandHandler<CreateCharacterCommand, Guid>
 {
     private const int MaxFreeCareerSkills = 4;
 
@@ -19,6 +20,7 @@ public partial class CreateCharacterHandler(IAppDbContext db) : ICommandHandler<
 
         var archetype = await db.ArchetypeDefs
                 .Include(a => a.StartingSkills)
+                .Include(a => a.Abilities)
                 .FirstOrDefaultAsync(a => a.Id == req.ArchetypeId && a.System == req.System
                     && !a.Retired
                     && (a.OwnerUserId == null
@@ -38,9 +40,14 @@ public partial class CreateCharacterHandler(IAppDbContext db) : ICommandHandler<
         var freeSkills = req.FreeCareerSkillNames ?? [];
         if (freeSkills.Count > MaxFreeCareerSkills)
             throw new DomainRuleException($"При создании можно выбрать не более {MaxFreeCareerSkills} карьерных навыков для бесплатного ранга.");
-        var invalid = freeSkills.FirstOrDefault(n => !career.CareerSkillNames.Contains(n));
-        if (invalid is not null)
-            throw new DomainRuleException($"«{invalid}» не является карьерным навыком карьеры {career.Name}.");
+
+        // Обязательный видовой выбор (Half-Catfolk) валидируется до создания сущности: пропустить
+        // его, взять обе способности или указать чужой код нельзя, и подставлять умолчание тоже.
+        var speciesChoice = ResolveSpeciesChoice(archetype, req.SpeciesAbilityChoiceCode);
+
+        // Режим стартового снаряжения: отсутствие поля у старого клиента — безопасный StandardMoney.
+        var mode = req.StartingEquipmentMode ?? StartingEquipmentMode.StandardMoney;
+        var startingGear = await ResolveStartingGearAsync(career, req, mode, ct);
 
         var character = new Character
         {
@@ -57,7 +64,11 @@ public partial class CreateCharacterHandler(IAppDbContext db) : ICommandHandler<
             Willpower = archetype.Willpower,
             Presence = archetype.Presence,
             TotalXp = archetype.StartingXp,
-            Money = career.StartingMoneyFixed + RollDice(career.StartingMoneyDice),
+            // Бюджет покупок и карманные деньги — два разных счёта; складывать их нельзя.
+            Money = startingGear.Money,
+            SpeciesAbilityChoiceCode = speciesChoice,
+            StartingEquipmentMode = mode,
+            StartingPurchaseBudget = startingGear.PurchaseBudget,
             Desire = Clean(req.Desire),
             Fear = Clean(req.Fear),
             Strength = Clean(req.Strength),
@@ -72,49 +83,36 @@ public partial class CreateCharacterHandler(IAppDbContext db) : ICommandHandler<
                     || (s.OwnerUserId == userId
                         && (s.HomebrewPackId == null || visiblePackIds.Contains(s.HomebrewPackId.Value)))))
             .ToListAsync(ct);
-        var skillByName = systemSkills
-            .OrderBy(s => s.OwnerUserId == null ? 0 : 1)
-            .GroupBy(s => s.Name)
-            .ToDictionary(g => g.Key, g => g.First());
+        var skillByName = CareerSkills.BuildNameIndex(systemSkills);
 
-        // Строки навыков создаются для карьерных и бесплатных рангов; остальные подмешиваются динамически.
-        var charSkills = new Dictionary<Guid, CharacterSkill>();
-        CharacterSkill GetOrCreate(SkillDef def, bool isCareer)
+        // Карьерный статус резолвится один раз из всех источников: карьера ∪ вид ∪ таланты.
+        // На создании талантов ещё нет, поэтому источников два.
+        var careerSkills = CareerSkillResolver.Resolve(
+            CareerSkills.GrantsFor(career, archetype, []),
+            name => skillByName.TryGetValue(name, out var def) ? def.Id : null);
+
+        // Полный план бесплатных рангов строится целиком до первой записи и только потом проверяется:
+        // превышение предела создания — ошибка, обрезать ранг нельзя.
+        var plan = new CreationSkillPlan();
+        foreach (var skillDefId in careerSkills.SkillDefIds)
         {
-            if (!charSkills.TryGetValue(def.Id, out var cs))
-            {
-                cs = new CharacterSkill
-                {
-                    Id = Guid.NewGuid(),
-                    CharacterId = character.Id,
-                    SkillDefId = def.Id,
-                    IsCareer = isCareer,
-                };
-                charSkills[def.Id] = cs;
-                character.Skills.Add(cs);
-            }
-            else if (isCareer) cs.IsCareer = true;
-            return cs;
-        }
-        void AddFreeRanks(SkillDef def, int ranks)
-        {
-            var cs = GetOrCreate(def, isCareer: false);
-            cs.Ranks += ranks;
-            cs.FreeRanks += ranks;
+            var def = systemSkills.First(s => s.Id == skillDefId);
+            plan.MarkCareer(def.Id, def.Name);
         }
 
-        foreach (var skill in systemSkills.Where(s => career.CareerSkillNames.Contains(s.Name)))
-        {
-            var cs = GetOrCreate(skill, isCareer: true);
-            if (freeSkills.Contains(skill.Name)) { cs.Ranks += 1; cs.FreeRanks += 1; }
-        }
+        var invalidFree = freeSkills.FirstOrDefault(n =>
+            !skillByName.TryGetValue(n, out var def) || !careerSkills.IsCareer(def.Id));
+        if (invalidFree is not null)
+            throw new DomainRuleException($"«{invalidFree}» не является карьерным навыком карьеры {career.Name}.");
+        foreach (var name in freeSkills.Distinct(StringComparer.Ordinal))
+            plan.AddFreeRanks(skillByName[name].Id, name, 1, $"карьера {career.Name}");
 
         // Фиксированные стартовые навыки вида применяются автоматически (сливаясь с карьерными по рангам).
         foreach (var ss in archetype.StartingSkills.Where(s => !s.IsChoice))
         {
             if (string.IsNullOrWhiteSpace(ss.SkillName)) continue; // несопоставленный навык — пропускаем безопасно
             if (skillByName.TryGetValue(ss.SkillName, out var def))
-                AddFreeRanks(def, ss.FreeRanks);
+                plan.AddFreeRanks(def.Id, def.Name, ss.FreeRanks, $"вид {archetype.Name}");
         }
 
         // Стартовые навыки-выборы вида — игрок выбирает конкретные навыки при создании.
@@ -125,67 +123,162 @@ public partial class CreateCharacterHandler(IAppDbContext db) : ICommandHandler<
         {
             if (!providedChoices.TryGetValue(group.ChoiceGroup, out var picks))
                 throw new DomainRuleException($"Нужно выбрать {group.ChoiceCount} стартовых навыка вида.");
-            var distinct = picks.Where(p => !string.IsNullOrWhiteSpace(p)).Distinct().ToList();
+            var distinct = picks.Where(p => !string.IsNullOrWhiteSpace(p)).Distinct(StringComparer.Ordinal).ToList();
             if (distinct.Count != group.ChoiceCount)
                 throw new DomainRuleException($"Нужно выбрать ровно {group.ChoiceCount} разных навыка вида.");
             foreach (var name in distinct)
             {
                 if (!skillByName.TryGetValue(name, out var def))
                     throw new DomainRuleException($"Навык «{name}» не найден в системе.");
-                if (group.ChoiceGroup == "any-noncareer" && career.CareerSkillNames.Contains(name))
+                if (group.ChoiceGroup == "any-noncareer" && careerSkills.IsCareer(def.Id))
                     throw new DomainRuleException($"«{name}» — карьерный навык; выберите некарьерный навык.");
-                AddFreeRanks(def, group.FreeRanks);
+                plan.AddFreeRanks(def.Id, def.Name, group.FreeRanks, $"выбор вида {archetype.Name}");
             }
         }
 
-        // Стартовое снаряжение карьеры: фиксированное — автоматически, выборы — по запросу (лениво).
-        await ApplyStartingGearAsync(character, career, req, ct);
+        var violations = plan.Validate();
+        if (violations.Count > 0)
+            throw new DomainRuleException(
+                "Стартовые ранги превышают предел создания. " + string.Join(" ", violations.Select(v => v.Describe())));
+
+        // План валиден — материализуем строки навыков. Остальные навыки подмешиваются динамически.
+        foreach (var entry in plan.Entries)
+        {
+            character.Skills.Add(new CharacterSkill
+            {
+                Id = Guid.NewGuid(),
+                CharacterId = character.Id,
+                SkillDefId = entry.SkillDefId,
+                IsCareer = entry.IsCareer,
+                Ranks = entry.TotalRanks,
+                FreeRanks = entry.TotalRanks,
+            });
+        }
+
+        // Снаряжение уже разрешено и провалидировано до создания сущности — здесь только материализация.
+        foreach (var line in startingGear.Items)
+        {
+            character.Items.Add(new CharacterItem
+            {
+                Id = Guid.NewGuid(),
+                CharacterId = character.Id,
+                ItemDefId = line.ItemDefId,
+                Quantity = line.Quantity,
+                Provenance = ItemProvenance.CareerPackage,
+            });
+        }
 
         db.Characters.Add(character);
+
+        CharacterAudit.Record(db, character, userId, CharacterAuditAction.CharacterCreated,
+            $"Персонаж создан: {startingGear.Summary}", null,
+            new
+            {
+                startingEquipmentMode = mode.ToString(),
+                moneyFormula = startingGear.MoneyFormula,
+                moneyRolled = startingGear.Money,
+                purchaseBudget = startingGear.PurchaseBudget,
+                packageItems = startingGear.Items.Count,
+            });
+
         await db.SaveChangesAsync(ct);
         return character.Id;
     }
 
-    private async Task ApplyStartingGearAsync(Character character, CareerDef career, CreateCharacterRequest req, CancellationToken ct)
+    /// <summary>
+    /// Проверяет обязательный видовой выбор. Возвращает выбранный код или пустую строку, если
+    /// вид выбора не требует. Некорректный запрос отклоняется с машинным <c>reasonCode</c>.
+    /// </summary>
+    private static string ResolveSpeciesChoice(ArchetypeDef archetype, string? requested)
     {
-        if (career.StartingGear.Count == 0) return;
+        var choice = archetype.Abilities
+            .FirstOrDefault(a => a.RuleKind == SpeciesAbilityRuleKind.ChooseOneAbility);
+        var code = requested?.Trim() ?? "";
 
+        if (choice is null)
+        {
+            if (code.Length > 0)
+                throw new DomainRuleException(
+                    $"Вид {archetype.Name} не требует выбора видовой способности.",
+                    "species.choice.not_applicable");
+            return "";
+        }
+
+        var options = SpeciesAbilityRules.ChoiceOptions(choice);
+        if (code.Length == 0)
+            throw new DomainRuleException(
+                $"Вид {archetype.Name} требует выбрать одну видовую способность: {string.Join(", ", options)}.",
+                "species.choice.required");
+        if (!options.Contains(code, StringComparer.Ordinal))
+            throw new DomainRuleException(
+                $"«{code}» не входит в список допустимых видовых способностей: {string.Join(", ", options)}.",
+                "species.choice.unknown_option");
+        return code;
+    }
+
+    /// <summary>Разрешённое стартовое снаряжение: деньги, бюджет и позиции комплекта.</summary>
+    private sealed record StartingGearPlan(
+        int Money, int PurchaseBudget, string MoneyFormula, string Summary,
+        IReadOnlyList<(Guid ItemDefId, int Quantity)> Items);
+
+    /// <summary>
+    /// Полностью разрешает стартовое снаряжение до первой мутации (ROT-CRE-03). В режиме
+    /// стандартных денег комплект не выдаётся и любые package choices — ошибка. В режиме комплекта
+    /// требуется точное множество групп с ровно одной допустимой опцией каждая; бюджета 500 нет.
+    /// </summary>
+    private async Task<StartingGearPlan> ResolveStartingGearAsync(
+        CareerDef career, CreateCharacterRequest req, StartingEquipmentMode mode, CancellationToken ct)
+    {
+        var requested = req.CareerGearChoices ?? [];
+
+        if (mode == StartingEquipmentMode.StandardMoney)
+        {
+            if (requested.Count > 0)
+                throw new DomainRuleException(
+                    "В режиме стандартных денег карьерный комплект не выдаётся — выбор снаряжения недопустим.");
+
+            var pocket = StartingWallet.PocketMoneyFormula;
+            var rolled = pocket.Roll(dice.Roll);
+            return new StartingGearPlan(rolled, StartingWallet.StandardPurchaseBudget, pocket.Describe(),
+                $"бюджет {StartingWallet.StandardPurchaseBudget} и карманные {rolled} ({pocket.Describe()})",
+                []);
+        }
+
+        var duplicates = requested
+            .GroupBy(c => c.ChoiceGroup, StringComparer.Ordinal)
+            .Where(g => g.Count() > 1)
+            .Select(g => g.Key)
+            .ToList();
+        var picks = requested
+            .GroupBy(c => c.ChoiceGroup, StringComparer.Ordinal)
+            .ToDictionary(g => g.Key, g => g.First().OptionIndex, StringComparer.Ordinal);
+
+        var (lines, error) = CareerPackageResolver.Resolve(career.StartingGear, picks, duplicates);
+        if (error is not null) throw new DomainRuleException(error.Message, error.ReasonCode);
+
+        // Все ItemDef комплекта обязаны резолвиться: молча пропустить позицию значит выдать
+        // частичный комплект, что запрещено.
         var prefix = req.System == GameSystem.GenesysCore ? "gc" : "rot";
-        var codes = career.StartingGear.Where(g => g.ItemCode.Length > 0)
-            .Select(g => $"{prefix}.item.{g.ItemCode}").ToHashSet();
+        var codes = lines!.Select(l => $"{prefix}.item.{l.ItemCode}").ToHashSet(StringComparer.Ordinal);
         var itemsByCode = await db.ItemDefs
             .Where(i => i.System == req.System && i.OwnerUserId == null && codes.Contains(i.Code))
             .ToDictionaryAsync(i => i.Code, ct);
 
-        var charItems = new Dictionary<Guid, CharacterItem>();
-        void AddItem(string itemCode, int qty)
+        var resolved = new List<(Guid, int)>();
+        foreach (var line in lines)
         {
-            if (itemCode.Length == 0) return;
-            if (!itemsByCode.TryGetValue($"{prefix}.item.{itemCode}", out var def)) return; // нерезолвленный — пропускаем
-            if (!charItems.TryGetValue(def.Id, out var ci))
-            {
-                ci = new CharacterItem { Id = Guid.NewGuid(), CharacterId = character.Id, ItemDefId = def.Id, Quantity = 0 };
-                charItems[def.Id] = ci;
-                character.Items.Add(ci);
-            }
-            ci.Quantity += qty;
+            if (!itemsByCode.TryGetValue($"{prefix}.item.{line.ItemCode}", out var def))
+                throw new DomainRuleException(
+                    $"Предмет комплекта «{line.ItemNameFallback}» ({line.ItemCode}) не найден в каталоге системы.",
+                    "career.package.item_unresolved");
+            resolved.Add((def.Id, line.Quantity));
         }
 
-        foreach (var g in career.StartingGear.Where(g => !g.IsChoice))
-            AddItem(g.ItemCode, g.Quantity);
-
-        var picks = (req.CareerGearChoices ?? [])
-            .GroupBy(c => c.ChoiceGroup)
-            .ToDictionary(g => g.Key, g => g.Last().OptionIndex);
-        foreach (var group in career.StartingGear.Where(g => g.IsChoice).Select(g => g.ChoiceGroup).Distinct())
-        {
-            if (!picks.TryGetValue(group, out var optionIndex)) continue; // не выбран — снаряжение не обязательно
-            var optionItems = career.StartingGear
-                .Where(g => g.IsChoice && g.ChoiceGroup == group && g.ChoiceOption == optionIndex).ToList();
-            if (optionItems.Count == 0)
-                throw new DomainRuleException($"Неверный вариант стартового снаряжения для слота {group}.");
-            foreach (var g in optionItems) AddItem(g.ItemCode, g.Quantity);
-        }
+        var formula = MoneyFormula.Parse(career.StartingMoneyFixed, career.StartingMoneyDice);
+        var money = formula.Roll(dice.Roll);
+        return new StartingGearPlan(money, 0, formula.Describe(),
+            $"комплект карьеры {career.Name} ({resolved.Count} позиций) и {money} ({formula.Describe()})",
+            resolved);
     }
 
     /// <summary>Нормализует опциональное текстовое поле: trim, пустое → null.</summary>
@@ -195,18 +288,5 @@ public partial class CreateCharacterHandler(IAppDbContext db) : ICommandHandler<
         return string.IsNullOrEmpty(trimmed) ? null : trimmed;
     }
 
-    /// <summary>Бросок стартовых денег формата <c>NdM</c> (например «1d100»). Пусто/некорректно → 0.</summary>
-    private static int RollDice(string dice)
-    {
-        if (string.IsNullOrWhiteSpace(dice)) return 0;
-        var m = DiceRegex().Match(dice.Trim());
-        if (!m.Success) return 0;
-        var (count, sides) = (int.Parse(m.Groups[1].Value), int.Parse(m.Groups[2].Value));
-        var sum = 0;
-        for (var i = 0; i < count; i++) sum += Random.Shared.Next(1, sides + 1);
-        return sum;
-    }
 
-    [GeneratedRegex(@"^(\d+)d(\d+)$", RegexOptions.IgnoreCase)]
-    private static partial Regex DiceRegex();
 }

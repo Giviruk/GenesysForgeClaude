@@ -20,8 +20,18 @@ public class BuySkillRankHandler(IAppDbContext db) : ICommandHandler<BuySkillRan
                         && (s.HomebrewPackId == null || visiblePackIds.Contains(s.HomebrewPackId.Value)))), ct)
             ?? throw new DomainRuleException("Навык не найден.");
 
+        // Карьерный статус берётся из резолвера на момент покупки: талант, выдавший навык,
+        // делает следующий ранг дешевле, но ранее уплаченную надбавку не возвращает.
+        var systemSkills = await db.SkillDefs.AsNoTracking()
+            .Where(s => s.System == c.System
+                && (s.OwnerUserId == null
+                    || (s.OwnerUserId == command.UserId
+                        && (s.HomebrewPackId == null || visiblePackIds.Contains(s.HomebrewPackId.Value)))))
+            .ToListAsync(ct);
+        var careerSkills = CareerSkills.Resolve(c, c.Career!, systemSkills);
+
         var row = c.Skills.FirstOrDefault(s => s.SkillDefId == command.SkillDefId);
-        var isCareer = row?.IsCareer ?? c.Career!.CareerSkillNames.Contains(skillDef.Name);
+        var isCareer = careerSkills.IsCareer(command.SkillDefId);
         var currentRank = row?.Ranks ?? 0;
 
         var result = PurchaseValidator.BuySkillRank(currentRank, isCareer, c.AvailableXp, c.IsCreationPhase);

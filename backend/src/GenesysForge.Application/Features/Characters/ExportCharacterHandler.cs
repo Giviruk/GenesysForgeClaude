@@ -1,6 +1,7 @@
 using GenesysForge.Application.Abstractions;
 using GenesysForge.Application.Common;
 using GenesysForge.Application.Dtos;
+using GenesysForge.Domain.Rules;
 using Microsoft.EntityFrameworkCore;
 
 namespace GenesysForge.Application.Features.Characters;
@@ -43,10 +44,15 @@ public class ExportCharacterHandler(IAppDbContext db) : IQueryHandler<ExportChar
                 .Select(s => new CharacterSkillExport(s.SkillDef?.Code ?? "", s.SkillDef?.Name ?? "", s.Ranks, s.IsCareer, s.FreeRanks))
                 .ToList(),
             Talents: c.Talents
-                .Select(t => new CharacterTalentExport(t.TalentDef?.Code ?? "", t.TalentDef?.Name ?? "", t.Ranks, t.GrantedCharacteristics))
+                .Select(t => new CharacterTalentExport(t.TalentDef?.Code ?? "", t.TalentDef?.Name ?? "", t.Ranks,
+                    t.GrantedCharacteristics,
+                    t.Choices.OrderBy(x => x.RankIndex)
+                        .Select(x => new CharacterTalentChoiceExport(x.RankIndex, x.Kind, x.Value, x.DisplayName))
+                        .ToList(),
+                    t.NeedsChoice))
                 .ToList(),
             Items: c.Items
-                .Select(i => new CharacterItemExport(i.ItemDef?.Code ?? "", i.ItemDef?.Name ?? "", i.Quantity, i.State))
+                .Select(i => new CharacterItemExport(i.ItemDef?.Code ?? "", i.ItemDef?.Name ?? "", i.Quantity, i.State, i.Provenance))
                 .ToList(),
             HeroicAbilityCode: c.HeroicAbility?.Code,
             HeroicAbilityName: c.HeroicAbility?.Name,
@@ -58,7 +64,28 @@ public class ExportCharacterHandler(IAppDbContext db) : IQueryHandler<ExportChar
             HeroicSecondaryEffectCodes: c.HeroicSecondaryEffects
                 .Where(x => x.HeroicSecondaryEffectDef is not null)
                 .Select(x => x.HeroicSecondaryEffectDef!.Code)
-                .ToList());
+                .ToList(),
+            CreationWoundThreshold: c.CreationWoundThreshold,
+            CreationStrainThreshold: c.CreationStrainThreshold,
+            ThresholdSnapshotProvenance: c.ThresholdSnapshotProvenance,
+            RulesReviewRequired: c.RulesReviewRequired,
+            StartingEquipmentMode: c.StartingEquipmentMode,
+            StartingPurchaseBudget: c.StartingPurchaseBudget,
+            SpeciesAbilityChoiceCode: c.SpeciesAbilityChoiceCode,
+            HeroicCustomName: c.HeroicCustomName,
+            HeroicOriginMode: c.HeroicOriginMode,
+            HeroicOriginPrimary: c.HeroicOriginPrimary,
+            HeroicOriginSecondary: c.HeroicOriginSecondary,
+            HeroicOriginNarrative: c.HeroicOriginNarrative,
+            HeroicOriginRolls: [.. HeroicIdentityRules.ParseRolls(c.HeroicOriginRolls)],
+            ParagonSkillCode: c.HeroicConfiguration?.ParagonSkillDef?.Code,
+            ParagonSkillName: c.HeroicConfiguration?.ParagonSkillName,
+            SixthSenseSubject: c.HeroicConfiguration?.SixthSenseSubject,
+            SignatureWeaponProfile: c.SignatureWeapon?.Profile,
+            SignatureWeaponCraftsmanship: c.SignatureWeapon?.Craftsmanship,
+            SignatureWeaponForm: c.SignatureWeapon?.NarrativeForm,
+            SignatureWeaponTraits: c.SignatureWeapon?.FormTraits,
+            SignatureWeaponLost: c.SignatureWeapon?.IsLost ?? false);
 
         return new CharacterExportDto(CharacterExportDto.CurrentFormat, DateTime.UtcNow, data);
     }

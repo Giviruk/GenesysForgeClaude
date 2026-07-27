@@ -1,7 +1,7 @@
 import type {
   Account,
   AuthResponse, AuthProviders, CampaignDetail, CampaignListItem, CampaignNote, CharacterListItem, CharacterNote,
-  ActivateAbilityResult, ActivateCharacterAbilityResult, AddParticipantRequest, CharacterBio, CharacterSheet, CharacterShareResponse, CreatureTemplate, GameSession, GameSystem, HeroicAbility, InitiativeSlotType,
+  ActivateAbilityResult, ActivateCharacterAbilityResult, AddParticipantRequest, CharacterBio, CharacterSheet, CharacterShareResponse, CreatureTemplate, GameSession, GameSystem, HeroicAbility, HeroicOriginMode, HeroicOriginRollResult, HeroicOriginType, InitiativeSlotType, SignatureWeaponProfile, WeaponCraftsmanship,
   Archetype, Career, CustomArchetypeInput, CustomCareerInput, ItemDef, ItemState, NpcDetail, NpcFilter, NpcInput, NpcListItem, QuickDraftRequest, Reference,
   SkillDef, Spell, TalentCategory, TalentDef, UpdateParticipantRequest,
   AddEncounterParticipantRequest, EncounterDetail, EncounterFilter, EncounterInput, EncounterListItem,
@@ -12,7 +12,7 @@ import type {
   RollLogEntry, CreateRollRequest,
   CharacterAuditEntry,
   RulesResponse, SearchResponse,
-  ArchetypeSkillChoice, CareerGearChoice,
+  ArchetypeSkillChoice, CareerGearChoice, StartingEquipmentMode,
 } from './types'
 import { t } from '../i18n'
 import { ariadneAnonymousId } from '../analytics/ariadne'
@@ -144,9 +144,12 @@ export const api = {
   characters: () => request<CharacterListItem[]>('GET', '/api/characters/'),
   createCharacter: (name: string, system: GameSystem, archetypeId: string, careerId: string,
     freeCareerSkillNames: string[], archetypeSkillChoices: ArchetypeSkillChoice[] = [],
-    careerGearChoices: CareerGearChoice[] = [], bio: CharacterBio = {}) =>
+    careerGearChoices: CareerGearChoice[] = [], bio: CharacterBio = {},
+    startingEquipmentMode: StartingEquipmentMode = 'standardMoney',
+    speciesAbilityChoiceCode?: string) =>
     request<{ id: string }>('POST', '/api/characters/',
-      { name, system, archetypeId, careerId, freeCareerSkillNames, archetypeSkillChoices, careerGearChoices, ...bio }),
+      { name, system, archetypeId, careerId, freeCareerSkillNames, archetypeSkillChoices, careerGearChoices,
+        startingEquipmentMode, speciesAbilityChoiceCode, ...bio }),
   sheet: (id: string) => request<CharacterSheet>('GET', `/api/characters/${id}`),
   sharedSheet: (token: string) => request<CharacterSheet>('GET', `/api/share/${encodeURIComponent(token)}`),
   duplicateCharacter: (id: string) => request<{ id: string }>('POST', `/api/characters/${id}/duplicate`),
@@ -173,8 +176,8 @@ export const api = {
     request<void>('POST', `/api/characters/${id}/characteristics/${characteristic}/buy`),
   buySkillRank: (id: string, skillDefId: string) =>
     request<void>('POST', `/api/characters/${id}/skills/${skillDefId}/buy-rank`),
-  buyTalent: (id: string, talentDefId: string, characteristic?: string) =>
-    request<void>('POST', `/api/characters/${id}/talents/buy`, { talentDefId, characteristic }),
+  buyTalent: (id: string, talentDefId: string, characteristic?: string, choices?: string[]) =>
+    request<void>('POST', `/api/characters/${id}/talents/buy`, { talentDefId, characteristic, choices }),
   refundCharacteristic: (id: string, characteristic: string) =>
     request<void>('POST', `/api/characters/${id}/characteristics/${characteristic}/refund`),
   refundSkillRank: (id: string, skillDefId: string) =>
@@ -183,6 +186,31 @@ export const api = {
     request<void>('POST', `/api/characters/${id}/talents/refund`, { talentDefId }),
   setHeroicAbility: (id: string, heroicAbilityId: string | null) =>
     request<void>('PUT', `/api/characters/${id}/heroic-ability`, { heroicAbilityId }),
+  setHeroicIdentity: (id: string, body: {
+    customName: string
+    originMode?: HeroicOriginMode | null
+    originPrimary?: HeroicOriginType | null
+    originSecondary?: HeroicOriginType | null
+    originNarrative?: string | null
+  }) => request<void>('PUT', `/api/characters/${id}/heroic-identity`, body),
+  rollHeroicOrigin: (id: string) =>
+    request<HeroicOriginRollResult>('POST', `/api/characters/${id}/heroic-identity/roll-origin`),
+  setHeroicConfiguration: (id: string, body: {
+    paragonSkillDefId?: string | null
+    sixthSenseSubject?: string | null
+    weaponProfile?: SignatureWeaponProfile | null
+    craftsmanship?: WeaponCraftsmanship | null
+    narrativeForm?: string | null
+    /** Флаги формы одной строкой: «oneHanded, sword». */
+    formTraits?: string | null
+  }) => request<void>('PUT', `/api/characters/${id}/heroic-configuration`, body),
+  replaceSignatureWeapon: (id: string, body: {
+    lost: boolean
+    weaponProfile?: SignatureWeaponProfile | null
+    craftsmanship?: WeaponCraftsmanship | null
+    narrativeForm?: string | null
+    formTraits?: string | null
+  }) => request<void>('POST', `/api/characters/${id}/heroic-configuration/signature-weapon`, body),
   setHeroicUpgradeRank: (id: string, rank: number) =>
     request<void>('PUT', `/api/characters/${id}/heroic-upgrade`, { rank }),
   setHeroicUpgrades: (id: string, body: {

@@ -50,6 +50,9 @@ public static class SeedData
         ProjectContent(talents, mode, store);
         ProjectContent(items, mode, store);
         ProjectContent(heroics, mode, store);
+        // Улучшения Power не входят в content-model, но несут тот же полный текст правила.
+        if (mode == ContentMode.PublicSafe)
+            foreach (var upgrade in heroics.SelectMany(h => h.Upgrades)) upgrade.Description = "";
         ProjectContent(heroicSecondaryEffects, mode, store);
         ProjectContent(qualities, mode, store);
         ProjectSpells(spells, mode);
@@ -57,14 +60,34 @@ public static class SeedData
         // Синхронизация встроенных строк с каталогом по стабильному Code ДО SeedMissing:
         // переименование (например, замена транслитерированных имён талантов на английские)
         // обновляет существующие строки, чтобы аддитивный сид не создал дубликат по (System, Name).
+        // Каталог авторитетен для metadata таланта (ROT-TAL-01): tier, ranked, тайминг активации,
+        // out-of-turn и Retired синхронизируются, иначе исправления не доедут до уже засиженной БД.
         SyncBuiltinByCode(db, db.TalentDefs.Where(t => t.OwnerUserId == null && t.Code != ""), talents,
             (row, def) =>
             {
                 var same = row.Name == def.Name && row.NameRu == def.NameRu && row.DescriptionEn == def.DescriptionEn
-                    && row.SafeDescription == def.SafeDescription;
+                    && row.SafeDescription == def.SafeDescription
+                    && row.Tier == def.Tier && row.IsRanked == def.IsRanked
+                    && row.Activation == def.Activation && row.ActivationEn == def.ActivationEn
+                    && row.CanUseOutOfTurn == def.CanUseOutOfTurn && row.Retired == def.Retired
+                    && row.CareerSkillNames.SequenceEqual(def.CareerSkillNames)
+                    && row.RequiresTalentCode == def.RequiresTalentCode
+                    && row.ExcludesTalentCodes.SequenceEqual(def.ExcludesTalentCodes)
+                    && row.UsesPerScope == def.UsesPerScope && row.UseScope == def.UseScope
+                    && row.StoryPointCost == def.StoryPointCost && row.StrainCost == def.StrainCost
+                    && row.Trigger == def.Trigger;
                 if (same) return false;
                 row.Name = def.Name; row.NameRu = def.NameRu;
                 row.SafeDescription = def.SafeDescription; row.DescriptionEn = def.DescriptionEn;
+                row.Tier = def.Tier; row.IsRanked = def.IsRanked;
+                row.Activation = def.Activation; row.ActivationEn = def.ActivationEn;
+                row.CanUseOutOfTurn = def.CanUseOutOfTurn; row.Retired = def.Retired;
+                row.CareerSkillNames = [.. def.CareerSkillNames];
+                row.RequiresTalentCode = def.RequiresTalentCode;
+                row.ExcludesTalentCodes = [.. def.ExcludesTalentCodes];
+                row.UsesPerScope = def.UsesPerScope; row.UseScope = def.UseScope;
+                row.StoryPointCost = def.StoryPointCost; row.StrainCost = def.StrainCost;
+                row.Trigger = def.Trigger;
                 return true;
             });
         SyncBuiltinByCode(db, db.SkillDefs.Where(x => x.OwnerUserId == null && x.Code != ""), skills,
@@ -72,9 +95,17 @@ public static class SeedData
         SyncBuiltinByCode(db, db.CareerDefs.Where(x => x.OwnerUserId == null && x.Code != ""), careers,
             (row, def) => Assign(row.DescriptionEn != def.DescriptionEn || row.SafeDescription != def.SafeDescription,
                 () => { row.DescriptionEn = def.DescriptionEn; row.SafeDescription = def.SafeDescription; }));
+        // Retired синхронизируется из каталога: встроенная строка выводится из активных выборов,
+        // но не удаляется — на неё уже могут ссылаться инвентари, NPC и экспорты.
         SyncBuiltinByCode(db, db.ItemDefs.Where(x => x.OwnerUserId == null && x.Code != ""), items,
-            (row, def) => Assign(row.DescriptionEn != def.DescriptionEn || row.SafeDescription != def.SafeDescription,
-                () => { row.DescriptionEn = def.DescriptionEn; row.SafeDescription = def.SafeDescription; }));
+            (row, def) => Assign(
+                row.DescriptionEn != def.DescriptionEn || row.SafeDescription != def.SafeDescription
+                || row.Retired != def.Retired,
+                () =>
+                {
+                    row.DescriptionEn = def.DescriptionEn; row.SafeDescription = def.SafeDescription;
+                    row.Retired = def.Retired;
+                }));
         SyncBuiltinByCode(db, db.QualityDefs.Where(x => x.Code != ""), qualities,
             (row, def) => Assign(row.DescriptionEn != def.DescriptionEn || row.SafeDescription != def.SafeDescription,
                 () => { row.DescriptionEn = def.DescriptionEn; row.SafeDescription = def.SafeDescription; }));
@@ -125,6 +156,78 @@ public static class SeedData
 
         // Встроенный бестиарий Realms of Terrinoth (идемпотентно, по натуральному ключу System+Name).
         SeedBestiary(db);
+
+        // Раскладка выданного комплектом Adventuring Pack на Traveling Gear (идемпотентно).
+        ExpandLegacyAdventuringPacks(db);
+    }
+
+    /// <summary>Состав Traveling Gear: те же stable ItemDef, что продаются в магазине (ROT-CLEAN-3.7).</summary>
+    private static readonly (string Code, int Quantity)[] TravelingGear =
+    [
+        ("backpack", 1), ("bedroll", 1), ("rope", 1),
+        ("flint-and-steel", 1), ("torches-3", 1), ("waterskin-empty", 1),
+    ];
+
+    /// <summary>
+    /// Заменяет исторические строки выдуманного <c>Adventuring Pack</c> на явный состав
+    /// <c>Traveling Gear</c> (ROT-CLEAN-3.7). Раскладка выполняется только при одновременно
+    /// доказанных условиях: provenance — карьерный комплект, встроенный код, количество 1 и
+    /// стандартное состояние. Иначе строка остаётся read-only у retired-предмета и ждёт ручного
+    /// решения владельца/GM: молча трогать чужой инвентарь нельзя. Custom-предмет с тем же именем
+    /// не затрагивается — фильтр идёт по <c>OwnerUserId == null</c> и стабильному коду.
+    /// </summary>
+    private static void ExpandLegacyAdventuringPacks(AppDbContext db)
+    {
+        var packIds = db.ItemDefs
+            .Where(i => i.OwnerUserId == null && i.Code.EndsWith(".item.adventuring-pack"))
+            .Select(i => new { i.Id, i.System })
+            .ToList();
+        if (packIds.Count == 0) return;
+
+        var packIdSet = packIds.Select(p => p.Id).ToHashSet();
+        var rows = db.CharacterItems
+            .Where(ci => packIdSet.Contains(ci.ItemDefId)
+                && ci.Provenance == ItemProvenance.CareerPackage
+                && ci.Quantity == 1
+                && ci.State == ItemState.Carried)
+            .ToList();
+        if (rows.Count == 0) return;
+
+        var systemById = packIds.ToDictionary(p => p.Id, p => p.System);
+        var wantedCodes = new HashSet<string>(
+            systemById.Values.Distinct().SelectMany(sys => TravelingGear.Select(g =>
+                $"{(sys == GameSystem.GenesysCore ? "gc" : "rot")}.item.{g.Code}")));
+        var byCode = db.ItemDefs
+            .Where(i => i.OwnerUserId == null && wantedCodes.Contains(i.Code))
+            .ToDictionary(i => i.Code, i => i);
+
+        var changed = false;
+        foreach (var row in rows)
+        {
+            var system = systemById[row.ItemDefId];
+            var prefix = system == GameSystem.GenesysCore ? "gc" : "rot";
+            var replacements = TravelingGear
+                .Select(g => byCode.TryGetValue($"{prefix}.item.{g.Code}", out var def) ? (def, g.Quantity) : default)
+                .ToList();
+            // Неполный состав — не разбираем: частичная замена хуже, чем оставленный bundle.
+            if (replacements.Any(r => r.def is null)) continue;
+
+            foreach (var (def, quantity) in replacements)
+            {
+                db.CharacterItems.Add(new CharacterItem
+                {
+                    Id = Guid.NewGuid(),
+                    CharacterId = row.CharacterId,
+                    ItemDefId = def.Id,
+                    Quantity = quantity,
+                    State = ItemState.Carried,
+                    Provenance = ItemProvenance.CareerPackage,
+                });
+            }
+            db.CharacterItems.Remove(row);
+            changed = true;
+        }
+        if (changed) db.SaveChanges();
     }
 
     /// <summary>
@@ -401,7 +504,8 @@ public static class SeedData
                 && row.Cunning == def.Cunning && row.Willpower == def.Willpower && row.Presence == def.Presence
                 && row.WoundBase == def.WoundBase && row.StrainBase == def.StrainBase && row.StartingXp == def.StartingXp
                 && row.SafeDescription == def.SafeDescription && row.Description == def.Description
-                && row.DescriptionEn == def.DescriptionEn && row.Source == def.Source;
+                && row.DescriptionEn == def.DescriptionEn && row.Source == def.Source
+                && row.Silhouette == def.Silhouette;
             var childrenSame = ArchetypeChildrenMatch(row, def);
             if (scalarSame && childrenSame) continue;
 
@@ -412,6 +516,7 @@ public static class SeedData
             row.WoundBase = def.WoundBase; row.StrainBase = def.StrainBase; row.StartingXp = def.StartingXp;
             row.SafeDescription = def.SafeDescription; row.Description = def.Description;
             row.DescriptionEn = def.DescriptionEn; row.Source = def.Source;
+            row.Silhouette = def.Silhouette;
 
             if (!childrenSame)
             {
@@ -448,7 +553,11 @@ public static class SeedData
         for (var i = 0; i < ra.Count; i++)
             if (ra[i].Code != da[i].Code || ra[i].NameRu != da[i].NameRu || ra[i].NameEn != da[i].NameEn
                 || ra[i].SafeDescription != da[i].SafeDescription || ra[i].DescriptionEn != da[i].DescriptionEn
-                || ra[i].AutomationKind != da[i].AutomationKind)
+                || ra[i].AutomationKind != da[i].AutomationKind
+                || ra[i].RuleKind != da[i].RuleKind || ra[i].RuleValue != da[i].RuleValue
+                || ra[i].RuleParameters != da[i].RuleParameters
+                || ra[i].UsesPerScope != da[i].UsesPerScope || ra[i].UseScope != da[i].UseScope
+                || ra[i].StoryPointCost != da[i].StoryPointCost)
                 return false;
 
         var rs = row.StartingSkills.OrderBy(x => x.SkillName).ThenBy(x => x.ChoiceGroup).ToList();
@@ -456,7 +565,7 @@ public static class SeedData
         for (var i = 0; i < rs.Count; i++)
             if (rs[i].SkillName != ds[i].SkillName || rs[i].NameRu != ds[i].NameRu || rs[i].FreeRanks != ds[i].FreeRanks
                 || rs[i].IsChoice != ds[i].IsChoice || rs[i].ChoiceGroup != ds[i].ChoiceGroup
-                || rs[i].ChoiceCount != ds[i].ChoiceCount)
+                || rs[i].ChoiceCount != ds[i].ChoiceCount || rs[i].GrantsCareerSkill != ds[i].GrantsCareerSkill)
                 return false;
 
         return true;
@@ -569,12 +678,31 @@ public static class SeedData
                      .Where(h => h.OwnerUserId == null && h.Code != "").ToList())
         {
             if (!wanted.TryGetValue(row.Code, out var def)) continue;
-            changed |= Assign(row.DescriptionEn != def.DescriptionEn, () => row.DescriptionEn = def.DescriptionEn);
+            // Каталог авторитетен и для текстов (ROT-HA-05 / ROT-HA-CONTENT): исправленная механика
+            // и разделение полного парафраза с safe-сводкой должны доезжать до существующих строк.
+            // Каталог уже спроецирован под режим, поэтому в PublicSafe сюда приходит пустой Description.
+            changed |= Assign(
+                row.DescriptionEn != def.DescriptionEn || row.Description != def.Description
+                || row.SafeDescription != def.SafeDescription,
+                () =>
+                {
+                    row.DescriptionEn = def.DescriptionEn;
+                    row.Description = def.Description;
+                    row.SafeDescription = def.SafeDescription;
+                });
             foreach (var upgrade in row.Upgrades)
             {
                 var u = def.Upgrades.FirstOrDefault(x => x.Level == upgrade.Level);
                 if (u == null) continue;
-                changed |= Assign(upgrade.DescriptionEn != u.DescriptionEn, () => upgrade.DescriptionEn = u.DescriptionEn);
+                changed |= Assign(
+                    upgrade.DescriptionEn != u.DescriptionEn || upgrade.Description != u.Description
+                    || upgrade.SafeDescription != u.SafeDescription,
+                    () =>
+                    {
+                        upgrade.DescriptionEn = u.DescriptionEn;
+                        upgrade.Description = u.Description;
+                        upgrade.SafeDescription = u.SafeDescription;
+                    });
             }
         }
         if (changed) db.SaveChanges();

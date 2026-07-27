@@ -1,5 +1,6 @@
 using GenesysForge.Application.Dtos;
 using GenesysForge.Domain.Entities;
+using GenesysForge.Domain.Rules;
 
 namespace GenesysForge.Application.Common;
 
@@ -8,9 +9,12 @@ public static class Mappers
     public static ArchetypeDto ToDto(this ArchetypeDef a) => new(a.Id, a.Name, a.NameRu, a.Brawn, a.Agility,
         a.Intellect, a.Cunning, a.Willpower, a.Presence, a.WoundBase, a.StrainBase, a.StartingXp,
         a.Description, a.SafeDescription, a.Source, a.OwnerUserId != null,
-        a.Abilities.Select(x => new ArchetypeAbilityDto(x.Code, x.NameRu, x.NameEn, x.SafeDescription, x.AutomationKind, x.DescriptionEn)).ToList(),
-        a.StartingSkills.Select(x => new ArchetypeStartingSkillDto(x.SkillName, x.NameRu, x.FreeRanks, x.IsChoice, x.ChoiceGroup, x.ChoiceCount)).ToList(),
-        a.DescriptionEn);
+        a.Abilities.Select(x => new ArchetypeAbilityDto(x.Code, x.NameRu, x.NameEn, x.SafeDescription, x.AutomationKind, x.DescriptionEn,
+            x.RuleKind, x.RuleValue, x.RuleParameters, x.UsesPerScope, x.UseScope, x.StoryPointCost,
+            SpeciesAbilityRules.ChoiceOptions(x))).ToList(),
+        a.StartingSkills.Select(x => new ArchetypeStartingSkillDto(x.SkillName, x.NameRu, x.FreeRanks, x.IsChoice, x.ChoiceGroup, x.ChoiceCount, x.GrantsCareerSkill)).ToList(),
+        a.DescriptionEn,
+        a.Silhouette);
 
     public static CareerDto ToDto(this CareerDef c) =>
         new(c.Id, c.Name, c.NameRu, c.Description, c.SafeDescription, c.Source, c.OwnerUserId != null, c.CareerSkillNames,
@@ -26,7 +30,13 @@ public static class Mappers
     public static TalentDefDto ToDto(this TalentDef t) => new(t.Id, t.Name, t.NameRu, t.Tier, t.IsRanked, t.Category, t.Setting,
         t.Activation, t.Description, t.SafeDescription, t.Source,
         t.WoundBonus, t.StrainBonus, t.SoakBonus, t.MeleeDefenseBonus, t.RangedDefenseBonus, t.OwnerUserId != null,
-        t.GrantsCharacteristic, t.DescriptionEn);
+        t.GrantsCharacteristic, t.DescriptionEn,
+        t.ActivationEn, t.CanUseOutOfTurn, t.CareerSkillNames,
+        TalentPurchasePolicy.BareCode(t.Code), t.RequiresTalentCode, t.ExcludesTalentCodes,
+        t.UsesPerScope, t.UseScope, t.StoryPointCost, t.StrainCost, t.Trigger,
+        TalentChoiceSchemas.For(t).Kind,
+        TalentChoiceSchemas.For(t).CountForFirstRank,
+        TalentChoiceSchemas.For(t).CountForNextRank);
 
     public static ItemDefDto ToDto(this ItemDef i) => new(i.Id, i.Name, i.NameRu, i.Kind, i.Encumbrance, i.SoakBonus,
         i.MeleeDefense, i.RangedDefense, i.EncumbranceThresholdBonus,

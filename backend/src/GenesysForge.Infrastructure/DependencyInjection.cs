@@ -31,6 +31,7 @@ public static class DependencyInjection
         services.AddSingleton<ITokenService, TokenService>();
         services.AddSingleton<IPasswordHasherService, PasswordHasherService>();
         services.AddSingleton<IExternalIdentityValidator, GoogleIdTokenValidator>();
+        services.AddSingleton<IDiceRoller, SystemDiceRoller>();
 
         // Отправка писем: при Email:Provider=Smtp — реальный SMTP (MailKit), иначе заглушка в лог.
         var emailSection = config.GetSection(EmailOptions.SectionName);

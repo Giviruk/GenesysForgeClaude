@@ -32,7 +32,41 @@ public record CharacterSheetDto(
     string? Flaw = null,
     string? Background = null,
     List<CharacterCriticalInjuryDto>? CriticalInjuries = null,
-    string? PortraitUrl = null);
+    string? PortraitUrl = null,
+    /// <summary>Режим стартового снаряжения, выбранный при создании (ROT-CRE-03).</summary>
+    StartingEquipmentMode StartingEquipmentMode = StartingEquipmentMode.StandardMoney,
+    /// <summary>
+    /// Остаток бюджета стартовых покупок. Тратится раньше <see cref="Money"/> и только до
+    /// завершения создания; это отдельный счёт, а не часть кошелька.
+    /// </summary>
+    int StartingPurchaseBudget = 0,
+    /// <summary>Происхождение зафиксированных порогов ран/стрейна (ROT-CRE-02).</summary>
+    ThresholdSnapshotProvenance ThresholdSnapshotProvenance = ThresholdSnapshotProvenance.None,
+    /// <summary>Данные восстановлены неоднозначно и требуют ручной проверки владельцем/GM.</summary>
+    bool RulesReviewRequired = false,
+    /// <summary>Выбранная видовая способность там, где вид требует выбора (ROT-SPECIES-01).</summary>
+    string SpeciesAbilityChoiceCode = "",
+    /// <summary>
+    /// Вид требует выбора видовой способности, а он ещё не сделан. Автоматизация выбранной
+    /// способности до исправления не применяется; выбирать за игрока сервер не будет.
+    /// </summary>
+    bool SpeciesChoiceIncomplete = false,
+    /// <summary>Итоговый silhouette персонажа с учётом способности <c>Small</c>.</summary>
+    int Silhouette = 1,
+    /// <summary>Личное название и происхождение героической способности (ROT-HA-01).</summary>
+    HeroicIdentityDto? HeroicIdentity = null,
+    /// <summary>
+    /// Способность выбрана, но её личное название и происхождение не заполнены. Улучшения
+    /// заблокированы, пока владелец не заполнит данные; сервер их не выдумывает.
+    /// </summary>
+    bool HeroicIdentityIncomplete = false,
+    /// <summary>Параметр primary effect: навык Paragon, категория Sixth Sense или оружие (ROT-HA-02).</summary>
+    HeroicConfigurationDto? HeroicConfiguration = null,
+    /// <summary>Способность требует параметр, а он не выбран — улучшения заблокированы.</summary>
+    bool HeroicConfigurationIncomplete = false);
+
+/// <summary>Один сохранённый выбор ранга таланта (ROT-TAL-03).</summary>
+public record CharacterTalentChoiceDto(int RankIndex, TalentChoiceKind Kind, string Value, string DisplayName);
 
 public record HeroicUpgradeStateDto(
     int PowerRank,

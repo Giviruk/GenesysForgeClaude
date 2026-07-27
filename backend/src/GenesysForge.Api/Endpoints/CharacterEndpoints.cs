@@ -159,7 +159,7 @@ public static class CharacterEndpoints
         group.MapPost("/{id:guid}/talents/buy", async (Guid id, BuyTalentRequest req, ClaimsPrincipal user,
             ICommandHandler<BuyTalentCommand, Unit> handler, CancellationToken ct) =>
         {
-            await handler.Handle(new BuyTalentCommand(user.UserId(), id, req.TalentDefId, req.Characteristic), ct);
+            await handler.Handle(new BuyTalentCommand(user.UserId(), id, req.TalentDefId, req.Characteristic, req.Choices), ct);
             return Results.NoContent();
         });
 
@@ -167,6 +167,35 @@ public static class CharacterEndpoints
             ICommandHandler<SetHeroicAbilityCommand, Unit> handler, CancellationToken ct) =>
         {
             await handler.Handle(new SetHeroicAbilityCommand(user.UserId(), id, req.HeroicAbilityId), ct);
+            return Results.NoContent();
+        });
+
+        group.MapPut("/{id:guid}/heroic-identity", async (Guid id, SetHeroicIdentityRequest req,
+            ClaimsPrincipal user, ICommandHandler<SetHeroicIdentityCommand, Unit> handler, CancellationToken ct) =>
+        {
+            await handler.Handle(new SetHeroicIdentityCommand(user.UserId(), id, req), ct);
+            return Results.NoContent();
+        });
+
+        group.MapPost("/{id:guid}/heroic-identity/roll-origin", async (Guid id, ClaimsPrincipal user,
+            ICommandHandler<RollHeroicOriginCommand, HeroicOriginRollDto> handler, CancellationToken ct) =>
+        {
+            var result = await handler.Handle(new RollHeroicOriginCommand(user.UserId(), id), ct);
+            return Results.Ok(result);
+        });
+
+        group.MapPut("/{id:guid}/heroic-configuration", async (Guid id, SetHeroicConfigurationRequest req,
+            ClaimsPrincipal user, ICommandHandler<SetHeroicConfigurationCommand, Unit> handler, CancellationToken ct) =>
+        {
+            await handler.Handle(new SetHeroicConfigurationCommand(user.UserId(), id, req), ct);
+            return Results.NoContent();
+        });
+
+        group.MapPost("/{id:guid}/heroic-configuration/signature-weapon", async (Guid id,
+            ReplaceSignatureWeaponRequest req, ClaimsPrincipal user,
+            ICommandHandler<ReplaceSignatureWeaponCommand, Unit> handler, CancellationToken ct) =>
+        {
+            await handler.Handle(new ReplaceSignatureWeaponCommand(user.UserId(), id, req), ct);
             return Results.NoContent();
         });
 

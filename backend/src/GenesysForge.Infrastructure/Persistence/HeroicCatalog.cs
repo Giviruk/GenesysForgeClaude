@@ -14,12 +14,14 @@ namespace GenesysForge.Infrastructure.Persistence;
 /// </summary>
 public static class HeroicCatalog
 {
-    private sealed record UpgradeEntry(string Level, int Cost, string Desc, string Notes, string DescEn = "");
+    private sealed record UpgradeEntry(
+        string Level, int Cost, string Desc, string Notes, string DescEn = "", string Safe = "");
 
     private sealed record Entry(
         string Code, string Name, string NameRu,
         string Requirement, string ActivationCost, string Activation, string Duration, string Frequency,
-        string Desc, string Notes, string Source, string Page, List<UpgradeEntry> Upgrades, string DescEn = "");
+        string Desc, string Notes, string Source, string Page, List<UpgradeEntry> Upgrades,
+        string DescEn = "", string Safe = "");
 
     private static readonly JsonSerializerOptions JsonOptions = new() { PropertyNameCaseInsensitive = true };
 
@@ -46,7 +48,10 @@ public static class HeroicCatalog
                 Code = $"rot.heroic.{e.Code}",
                 Name = e.Name,
                 NameRu = string.IsNullOrWhiteSpace(e.NameRu) ? e.Name : e.NameRu,
-                SafeDescription = e.Desc,
+                // Полный парафраз — только для PrivateFull; в PublicSafe остаётся короткая сводка,
+                // иначе полный текст правила утекал бы в публичный режим (ROT-HA-CONTENT).
+                Description = e.Desc,
+                SafeDescription = string.IsNullOrWhiteSpace(e.Safe) ? e.Desc : e.Safe,
                 DescriptionEn = e.DescEn,
                 Requirement = e.Requirement,
                 ActivationCost = e.ActivationCost,
@@ -61,6 +66,7 @@ public static class HeroicCatalog
                     Level = ParseLevel(u.Level),
                     Cost = u.Cost,
                     Description = u.Desc,
+                    SafeDescription = string.IsNullOrWhiteSpace(u.Safe) ? u.Desc : u.Safe,
                     DescriptionEn = u.DescEn,
                     Notes = u.Notes,
                 }).ToList(),

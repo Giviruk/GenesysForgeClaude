@@ -54,10 +54,29 @@ namespace GenesysForge.Infrastructure.Persistence.Migrations
                         .HasMaxLength(160)
                         .HasColumnType("character varying(160)");
 
+                    b.Property<int>("RuleKind")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("RuleParameters")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("RuleValue")
+                        .HasColumnType("integer");
+
                     b.Property<string>("SafeDescription")
                         .IsRequired()
                         .HasMaxLength(2000)
                         .HasColumnType("character varying(2000)");
+
+                    b.Property<int>("StoryPointCost")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("UseScope")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("UsesPerScope")
+                        .HasColumnType("integer");
 
                     b.HasKey("Id");
 
@@ -122,6 +141,9 @@ namespace GenesysForge.Infrastructure.Persistence.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<int>("Silhouette")
+                        .HasColumnType("integer");
+
                     b.Property<string>("Source")
                         .IsRequired()
                         .HasMaxLength(160)
@@ -172,6 +194,9 @@ namespace GenesysForge.Infrastructure.Persistence.Migrations
 
                     b.Property<int>("FreeRanks")
                         .HasColumnType("integer");
+
+                    b.Property<bool>("GrantsCareerSkill")
+                        .HasColumnType("boolean");
 
                     b.Property<bool>("IsChoice")
                         .HasColumnType("boolean");
@@ -329,6 +354,9 @@ namespace GenesysForge.Infrastructure.Persistence.Migrations
                     b.Property<Guid?>("OwnerUserId")
                         .HasColumnType("uuid");
 
+                    b.Property<bool>("Retired")
+                        .HasColumnType("boolean");
+
                     b.Property<string>("SafeDescription")
                         .IsRequired()
                         .HasColumnType("text");
@@ -458,6 +486,12 @@ namespace GenesysForge.Infrastructure.Persistence.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<int?>("CreationStrainThreshold")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("CreationWoundThreshold")
+                        .HasColumnType("integer");
+
                     b.Property<int>("Cunning")
                         .HasColumnType("integer");
 
@@ -476,10 +510,29 @@ namespace GenesysForge.Infrastructure.Persistence.Migrations
                     b.Property<Guid?>("HeroicAbilityId")
                         .HasColumnType("uuid");
 
+                    b.Property<string>("HeroicCustomName")
+                        .HasColumnType("text");
+
                     b.Property<int>("HeroicDurationRanks")
                         .HasColumnType("integer");
 
                     b.Property<int>("HeroicFrequencyRanks")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("HeroicOriginMode")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("HeroicOriginNarrative")
+                        .HasColumnType("text");
+
+                    b.Property<int?>("HeroicOriginPrimary")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("HeroicOriginRolls")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int?>("HeroicOriginSecondary")
                         .HasColumnType("integer");
 
                     b.Property<bool>("HeroicStoryUpgrade")
@@ -511,7 +564,20 @@ namespace GenesysForge.Infrastructure.Persistence.Migrations
                     b.Property<int>("Presence")
                         .HasColumnType("integer");
 
+                    b.Property<bool>("RulesReviewRequired")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("SpeciesAbilityChoiceCode")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<int>("SpentXp")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("StartingEquipmentMode")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("StartingPurchaseBudget")
                         .HasColumnType("integer");
 
                     b.Property<int>("StrainCurrent")
@@ -522,6 +588,9 @@ namespace GenesysForge.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(300)");
 
                     b.Property<int>("System")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("ThresholdSnapshotProvenance")
                         .HasColumnType("integer");
 
                     b.Property<int>("TotalXp")
@@ -627,6 +696,38 @@ namespace GenesysForge.Infrastructure.Persistence.Migrations
                     b.ToTable("CharacterCriticalInjuries");
                 });
 
+            modelBuilder.Entity("GenesysForge.Domain.Entities.CharacterHeroicConfiguration", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("CharacterId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("ParagonSkillDefId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("ParagonSkillName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("SixthSenseSubject")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CharacterId")
+                        .IsUnique();
+
+                    b.HasIndex("ParagonSkillDefId");
+
+                    b.ToTable("CharacterHeroicConfigurations");
+                });
+
             modelBuilder.Entity("GenesysForge.Domain.Entities.CharacterHeroicSecondaryEffect", b =>
                 {
                     b.Property<Guid>("Id")
@@ -660,6 +761,9 @@ namespace GenesysForge.Infrastructure.Persistence.Migrations
 
                     b.Property<Guid>("ItemDefId")
                         .HasColumnType("uuid");
+
+                    b.Property<int>("Provenance")
+                        .HasColumnType("integer");
 
                     b.Property<int>("Quantity")
                         .HasColumnType("integer");
@@ -742,6 +846,40 @@ namespace GenesysForge.Infrastructure.Persistence.Migrations
                     b.ToTable("CharacterShareTokens");
                 });
 
+            modelBuilder.Entity("GenesysForge.Domain.Entities.CharacterSignatureWeapon", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("CharacterId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Craftsmanship")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("FormTraits")
+                        .HasColumnType("integer");
+
+                    b.Property<bool>("IsLost")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("NarrativeForm")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<int>("Profile")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CharacterId")
+                        .IsUnique();
+
+                    b.ToTable("CharacterSignatureWeapons");
+                });
+
             modelBuilder.Entity("GenesysForge.Domain.Entities.CharacterSkill", b =>
                 {
                     b.Property<Guid>("Id")
@@ -786,6 +924,9 @@ namespace GenesysForge.Infrastructure.Persistence.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<bool>("NeedsChoice")
+                        .HasColumnType("boolean");
+
                     b.Property<int>("Ranks")
                         .HasColumnType("integer");
 
@@ -800,6 +941,38 @@ namespace GenesysForge.Infrastructure.Persistence.Migrations
                         .IsUnique();
 
                     b.ToTable("CharacterTalents");
+                });
+
+            modelBuilder.Entity("GenesysForge.Domain.Entities.CharacterTalentChoice", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("CharacterTalentId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("DisplayName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<int>("Kind")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("RankIndex")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Value")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CharacterTalentId");
+
+                    b.ToTable("CharacterTalentChoices");
                 });
 
             modelBuilder.Entity("GenesysForge.Domain.Entities.ContentPack", b =>
@@ -1281,6 +1454,9 @@ namespace GenesysForge.Infrastructure.Persistence.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)");
 
+                    b.Property<bool>("Retired")
+                        .HasColumnType("boolean");
+
                     b.Property<string>("SafeDescription")
                         .IsRequired()
                         .HasColumnType("text");
@@ -1326,6 +1502,10 @@ namespace GenesysForge.Infrastructure.Persistence.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<string>("SafeDescription")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.HasKey("Id");
 
                     b.HasIndex("HeroicAbilityDefId");
@@ -1362,6 +1542,9 @@ namespace GenesysForge.Infrastructure.Persistence.Migrations
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
+
+                    b.Property<bool>("Retired")
+                        .HasColumnType("boolean");
 
                     b.Property<string>("SafeDescription")
                         .IsRequired()
@@ -1589,6 +1772,9 @@ namespace GenesysForge.Infrastructure.Persistence.Migrations
 
                     b.Property<int>("Rarity")
                         .HasColumnType("integer");
+
+                    b.Property<bool>("Retired")
+                        .HasColumnType("boolean");
 
                     b.Property<string>("SafeDescription")
                         .IsRequired()
@@ -1981,6 +2167,9 @@ namespace GenesysForge.Infrastructure.Persistence.Migrations
                         .HasMaxLength(160)
                         .HasColumnType("character varying(160)");
 
+                    b.Property<bool>("Retired")
+                        .HasColumnType("boolean");
+
                     b.Property<string>("SafeDescription")
                         .IsRequired()
                         .HasMaxLength(600)
@@ -2264,6 +2453,9 @@ namespace GenesysForge.Infrastructure.Persistence.Migrations
                     b.Property<Guid?>("OwnerUserId")
                         .HasColumnType("uuid");
 
+                    b.Property<bool>("Retired")
+                        .HasColumnType("boolean");
+
                     b.Property<string>("SafeDescription")
                         .IsRequired()
                         .HasColumnType("text");
@@ -2363,6 +2555,17 @@ namespace GenesysForge.Infrastructure.Persistence.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<string>("ActivationEn")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<bool>("CanUseOutOfTurn")
+                        .HasColumnType("boolean");
+
+                    b.PrimitiveCollection<List<string>>("CareerSkillNames")
+                        .IsRequired()
+                        .HasColumnType("text[]");
+
                     b.Property<int>("Category")
                         .HasColumnType("integer");
 
@@ -2378,6 +2581,10 @@ namespace GenesysForge.Infrastructure.Persistence.Migrations
                     b.Property<string>("DescriptionEn")
                         .IsRequired()
                         .HasColumnType("text");
+
+                    b.PrimitiveCollection<List<string>>("ExcludesTalentCodes")
+                        .IsRequired()
+                        .HasColumnType("text[]");
 
                     b.Property<bool>("GrantsCharacteristic")
                         .HasColumnType("boolean");
@@ -2406,6 +2613,13 @@ namespace GenesysForge.Infrastructure.Persistence.Migrations
                     b.Property<int>("RangedDefenseBonus")
                         .HasColumnType("integer");
 
+                    b.Property<string>("RequiresTalentCode")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<bool>("Retired")
+                        .HasColumnType("boolean");
+
                     b.Property<string>("SafeDescription")
                         .IsRequired()
                         .HasColumnType("text");
@@ -2421,13 +2635,29 @@ namespace GenesysForge.Infrastructure.Persistence.Migrations
                         .HasMaxLength(160)
                         .HasColumnType("character varying(160)");
 
+                    b.Property<int>("StoryPointCost")
+                        .HasColumnType("integer");
+
                     b.Property<int>("StrainBonus")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("StrainCost")
                         .HasColumnType("integer");
 
                     b.Property<int>("System")
                         .HasColumnType("integer");
 
                     b.Property<int>("Tier")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Trigger")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("UseScope")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("UsesPerScope")
                         .HasColumnType("integer");
 
                     b.Property<int>("WoundBonus")
@@ -2581,6 +2811,22 @@ namespace GenesysForge.Infrastructure.Persistence.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("GenesysForge.Domain.Entities.CharacterHeroicConfiguration", b =>
+                {
+                    b.HasOne("GenesysForge.Domain.Entities.Character", null)
+                        .WithOne("HeroicConfiguration")
+                        .HasForeignKey("GenesysForge.Domain.Entities.CharacterHeroicConfiguration", "CharacterId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("GenesysForge.Domain.Entities.SkillDef", "ParagonSkillDef")
+                        .WithMany()
+                        .HasForeignKey("ParagonSkillDefId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("ParagonSkillDef");
+                });
+
             modelBuilder.Entity("GenesysForge.Domain.Entities.CharacterHeroicSecondaryEffect", b =>
                 {
                     b.HasOne("GenesysForge.Domain.Entities.Character", null)
@@ -2635,6 +2881,15 @@ namespace GenesysForge.Infrastructure.Persistence.Migrations
                     b.Navigation("Character");
                 });
 
+            modelBuilder.Entity("GenesysForge.Domain.Entities.CharacterSignatureWeapon", b =>
+                {
+                    b.HasOne("GenesysForge.Domain.Entities.Character", null)
+                        .WithOne("SignatureWeapon")
+                        .HasForeignKey("GenesysForge.Domain.Entities.CharacterSignatureWeapon", "CharacterId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("GenesysForge.Domain.Entities.CharacterSkill", b =>
                 {
                     b.HasOne("GenesysForge.Domain.Entities.Character", null)
@@ -2667,6 +2922,15 @@ namespace GenesysForge.Infrastructure.Persistence.Migrations
                         .IsRequired();
 
                     b.Navigation("TalentDef");
+                });
+
+            modelBuilder.Entity("GenesysForge.Domain.Entities.CharacterTalentChoice", b =>
+                {
+                    b.HasOne("GenesysForge.Domain.Entities.CharacterTalent", null)
+                        .WithMany("Choices")
+                        .HasForeignKey("CharacterTalentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("GenesysForge.Domain.Entities.ContentPackEntry", b =>
@@ -2864,13 +3128,22 @@ namespace GenesysForge.Infrastructure.Persistence.Migrations
                 {
                     b.Navigation("CriticalInjuries");
 
+                    b.Navigation("HeroicConfiguration");
+
                     b.Navigation("HeroicSecondaryEffects");
 
                     b.Navigation("Items");
 
+                    b.Navigation("SignatureWeapon");
+
                     b.Navigation("Skills");
 
                     b.Navigation("Talents");
+                });
+
+            modelBuilder.Entity("GenesysForge.Domain.Entities.CharacterTalent", b =>
+                {
+                    b.Navigation("Choices");
                 });
 
             modelBuilder.Entity("GenesysForge.Domain.Entities.ContentPack", b =>

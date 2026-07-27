@@ -25,14 +25,18 @@ public static class CharacterLoader
         this IAppDbContext db, Guid characterId, bool tracking = true, CancellationToken ct = default)
     {
         var query = db.Characters
-            .Include(c => c.Archetype)
+            .Include(c => c.Archetype).ThenInclude(a => a!.StartingSkills)
+            .Include(c => c.Archetype).ThenInclude(a => a!.Abilities)
             .Include(c => c.Career)
             .Include(c => c.HeroicAbility).ThenInclude(h => h!.Upgrades)
             .Include(c => c.HeroicSecondaryEffects).ThenInclude(x => x.HeroicSecondaryEffectDef)
             .Include(c => c.Skills).ThenInclude(s => s.SkillDef)
             .Include(c => c.Talents).ThenInclude(t => t.TalentDef)
+            .Include(c => c.Talents).ThenInclude(t => t.Choices)
             .Include(c => c.Items).ThenInclude(i => i.ItemDef)
-            .Include(c => c.CriticalInjuries);
+            .Include(c => c.CriticalInjuries)
+            .Include(c => c.HeroicConfiguration).ThenInclude(x => x!.ParagonSkillDef)
+            .Include(c => c.SignatureWeapon);
         return await (tracking ? query : query.AsNoTracking())
             .FirstOrDefaultAsync(c => c.Id == characterId, ct);
     }

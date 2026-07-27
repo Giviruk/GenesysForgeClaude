@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { Quality } from '../api/types'
-import { combatTotal, expandDamage, qualitiesFromProperties, resolveQualityCosts } from './combat'
+import { combatTotal, expandDamage, isHit, qualitiesFromProperties, resolveQualityCosts } from './combat'
 
 describe('expandDamage — раскрытие урона оружия', () => {
   it('«+N» в ближнем бою = Мощь + N', () => {
@@ -15,16 +15,26 @@ describe('expandDamage — раскрытие урона оружия', () => {
   })
 })
 
-describe('combatTotal — урон + нетто-успехи', () => {
+describe('combatTotal — урон + нетто-успехи (ROT-CMB-01)', () => {
   it('каждый успех = +1 урон', () => {
     expect(combatTotal(5, 3)).toBe(8)
-    expect(combatTotal(7, 0)).toBe(7)
   })
   it('null base → null', () => {
     expect(combatTotal(null, 4)).toBeNull()
   })
-  it('отрицательные успехи (промах) не уменьшают базу', () => {
-    expect(combatTotal(5, -2)).toBe(5)
+  it('без успехов атака промахивается и обычного урона не наносит', () => {
+    expect(combatTotal(7, 0)).toBeNull()
+    expect(combatTotal(5, -2)).toBeNull()
+  })
+})
+
+describe('isHit — попадание только при положительных успехах', () => {
+  it('успехи есть — попадание', () => {
+    expect(isHit(1)).toBe(true)
+  })
+  it('нулевые и отрицательные успехи — промах', () => {
+    expect(isHit(0)).toBe(false)
+    expect(isHit(-3)).toBe(false)
   })
 })
 

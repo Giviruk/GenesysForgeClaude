@@ -20,6 +20,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<ArchetypeDef> ArchetypeDefs => Set<ArchetypeDef>();
     public DbSet<ArchetypeAbilityDef> ArchetypeAbilityDefs => Set<ArchetypeAbilityDef>();
     public DbSet<ArchetypeStartingSkill> ArchetypeStartingSkills => Set<ArchetypeStartingSkill>();
+    public DbSet<CharacterTalentChoice> CharacterTalentChoices => Set<CharacterTalentChoice>();
     public DbSet<CareerDef> CareerDefs => Set<CareerDef>();
     public DbSet<CareerStartingGear> CareerStartingGears => Set<CareerStartingGear>();
     public DbSet<CareerRule> CareerRules => Set<CareerRule>();
@@ -29,6 +30,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<CharacterItem> CharacterItems => Set<CharacterItem>();
     public DbSet<CharacterCriticalInjury> CharacterCriticalInjuries => Set<CharacterCriticalInjury>();
     public DbSet<CharacterHeroicSecondaryEffect> CharacterHeroicSecondaryEffects => Set<CharacterHeroicSecondaryEffect>();
+    public DbSet<CharacterHeroicConfiguration> CharacterHeroicConfigurations => Set<CharacterHeroicConfiguration>();
+    public DbSet<CharacterSignatureWeapon> CharacterSignatureWeapons => Set<CharacterSignatureWeapon>();
     public DbSet<CharacterShareToken> CharacterShareTokens => Set<CharacterShareToken>();
     public DbSet<CharacterNote> CharacterNotes => Set<CharacterNote>();
     public DbSet<Campaign> Campaigns => Set<Campaign>();
@@ -106,6 +109,11 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             e.HasMany(c => c.CriticalInjuries).WithOne().HasForeignKey(ci => ci.CharacterId).OnDelete(DeleteBehavior.Cascade);
             e.HasMany(c => c.HeroicSecondaryEffects).WithOne().HasForeignKey(x => x.CharacterId)
                 .OnDelete(DeleteBehavior.Cascade);
+            // Параметры способности и именное оружие — ровно по одной строке на персонажа (ROT-HA-02).
+            e.HasOne(c => c.HeroicConfiguration).WithOne().HasForeignKey<CharacterHeroicConfiguration>(x => x.CharacterId)
+                .OnDelete(DeleteBehavior.Cascade);
+            e.HasOne(c => c.SignatureWeapon).WithOne().HasForeignKey<CharacterSignatureWeapon>(x => x.CharacterId)
+                .OnDelete(DeleteBehavior.Cascade);
             e.Ignore(c => c.Characteristics);
             e.Property(c => c.Desire).HasMaxLength(300);
             e.Property(c => c.Fear).HasMaxLength(300);
@@ -123,6 +131,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         {
             e.HasOne(t => t.TalentDef).WithMany().OnDelete(DeleteBehavior.Cascade);
             e.HasIndex(t => new { t.CharacterId, t.TalentDefId }).IsUnique();
+            e.HasMany(t => t.Choices).WithOne()
+                .HasForeignKey(x => x.CharacterTalentId).OnDelete(DeleteBehavior.Cascade);
         });
         b.Entity<CharacterItem>()
             .HasOne(i => i.ItemDef).WithMany().OnDelete(DeleteBehavior.Cascade);
@@ -134,6 +144,22 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             e.Property(ci => ci.NameRu).HasMaxLength(200);
             e.Property(ci => ci.Severity).HasMaxLength(40);
             e.Property(ci => ci.Notes).HasMaxLength(1000);
+        });
+
+        b.Entity<CharacterHeroicConfiguration>(e =>
+        {
+            e.HasIndex(x => x.CharacterId).IsUnique();
+            e.Property(x => x.ParagonSkillName).HasMaxLength(200);
+            e.Property(x => x.SixthSenseSubject).HasMaxLength(300);
+            // Навык не удаляется вместе с выбором: снимок имени должен пережить скрытый custom skill.
+            e.HasOne(x => x.ParagonSkillDef).WithMany()
+                .HasForeignKey(x => x.ParagonSkillDefId).OnDelete(DeleteBehavior.SetNull);
+        });
+
+        b.Entity<CharacterSignatureWeapon>(e =>
+        {
+            e.HasIndex(x => x.CharacterId).IsUnique();
+            e.Property(x => x.NarrativeForm).HasMaxLength(200);
         });
 
         b.Entity<CharacterHeroicSecondaryEffect>(e =>
@@ -422,6 +448,13 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             e.Property(a => a.NameEn).HasMaxLength(160);
             e.Property(a => a.SafeDescription).HasMaxLength(2000);
         });
+        b.Entity<CharacterTalentChoice>(e =>
+        {
+            e.HasIndex(x => x.CharacterTalentId);
+            e.Property(x => x.Value).HasMaxLength(200);
+            e.Property(x => x.DisplayName).HasMaxLength(200);
+        });
+
         b.Entity<ArchetypeStartingSkill>(e =>
         {
             e.HasIndex(s => s.ArchetypeId);

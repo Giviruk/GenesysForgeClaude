@@ -109,6 +109,10 @@ Indexes include non-unique `HomebrewPackId` and `(System, OwnerUserId)` for buil
 
 Built-in talents are not hand-written in `SeedData`; they are loaded from the embedded catalog `Persistence/SeedContent/talents.catalog.json` (see `TalentCatalog`). The catalog is generated from the source CSVs (structure + reworked Russian descriptions, not book text). Each catalog entry is expanded into `TalentDef` rows per system by its setting (`Any` → both systems, `Fantasy` → Realms of Terrinoth only) and carries a structural `category` tag.
 
+ROT-TAL-01 makes the catalogue authoritative for talent metadata, not just for names: the seed also syncs `Tier`, `IsRanked`, `Activation`/`ActivationEn`, `CanUseOutOfTurn`, `Retired` and `CareerSkillNames` onto existing rows. The active RoT scope is exactly 112 talents. A catalogue entry may carry `retiredIn: ["RealmsOfTerrinoth"]`, which retires only the RoT row and leaves the Genesys Core one active — an entry wrongly attributed to the RoT PC catalogue is never deleted globally, and historical ownership keeps working because the row survives.
+
+`ActivationEn` holds the stable English timing and `CanUseOutOfTurn` marks `Out-of-turn Incidental` as its own timing rather than a plain Incidental. `Shapeshifter (Improved)` is out-of-turn only through its own trigger, so it carries `Triggered Incidental`. `CareerSkillNames` (ROT-TAL-04) lists the skills a talent turns into career skills while owned; `CareerSkillResolver` unions them with career and species grants.
+
 ### ItemDefs
 
 Built-in and custom item definitions.
@@ -152,11 +156,17 @@ Two child collections carry the structured species data parsed from the catalog 
 
 ### ArchetypeAbilityDefs
 
-Structured species abilities (formerly free text in `SafeDescription`). Fields: `ArchetypeId`, `Code`, `NameRu`, `NameEn`, `SafeDescription`, `AutomationKind` (`Passive`/`ActivationCost`/`TimedEffect`/`Manual`/`RequiresGmDecision` — classification only; effect execution is U-18, default `Manual`). Cascade delete from archetype; indexed by `ArchetypeId`.
+Structured species abilities (formerly free text in `SafeDescription`). Fields: `ArchetypeId`, `Code`, `NameRu`, `NameEn`, `SafeDescription`, `AutomationKind` (UI classification), and the executable rule metadata added by ROT-SPECIES-01: `RuleKind`, `RuleValue`, `RuleParameters`, `UsesPerScope`, `UseScope`, `StoryPointCost`. Cascade delete from archetype; indexed by `ArchetypeId`.
+
+`RuleKind` is a `SpeciesAbilityRuleKind` and is the only source of an ability's mechanics — deriving the effect from `Code`, a name or the description text is forbidden. `RuleValue` carries the single number a rule needs (Dark Vision removes 2, Battle Rage adds 2 damage, Nimble sets Defence to 1, Small sets silhouette to 0) and `RuleParameters` the named qualifiers (`source=darkness`, `enc=1;rarity=4;requireQuality=Limited Ammo 1`, `options=…` for a choice ability). `UseScope` (`None`/`Encounter`/`Session`) says where `UsesPerScope` resets.
+
+`ArchetypeDefs.Silhouette` is 1 for every RoT species and 0 for both gnomes; the `Small` ability overrides it through the same typed rule rather than a special case. `Characters.SpeciesAbilityChoiceCode` stores the mandatory, irreversible Half-Catfolk pick (Claws or Fleet of Paw); until it is set, the sheet reports `SpeciesChoiceIncomplete` and that ability contributes nothing — the server never picks for the player.
 
 ### ArchetypeStartingSkills
 
-Species starting skills applied at character creation. Fields: `ArchetypeId`, `SkillName` (English canonical, matches `SkillDef.Name`), `NameRu`, `FreeRanks`, `IsChoice`, `ChoiceGroup`, `ChoiceCount`. Fixed entries (`IsChoice = false`) are auto-applied as free ranks; choice entries (e.g. `any-noncareer`, pick N) are resolved by the creation picker. Cascade delete from archetype; indexed by `ArchetypeId`.
+Species starting skills applied at character creation. Fields: `ArchetypeId`, `SkillName` (English canonical, matches `SkillDef.Name`), `NameRu`, `FreeRanks`, `IsChoice`, `ChoiceGroup`, `ChoiceCount`, `GrantsCareerSkill`. Fixed entries (`IsChoice = false`) are auto-applied as free ranks; choice entries (e.g. `any-noncareer`, pick N) are resolved by the creation picker. Cascade delete from archetype; indexed by `ArchetypeId`.
+
+`GrantsCareerSkill` (ROT-CRE-01) marks a grant that additionally makes the skill a career skill. In the built-in RoT catalog exactly two rows carry it: Deep Elf `Knowledge (Forbidden)` and Highborn Elf `Divine`. The effective career-skill set is resolved by `CareerSkillResolver` as career ∪ species grants ∪ talent grants, deduplicated by `SkillDefId`; the stored `CharacterSkills.IsCareer` flag is a cache, not the source of truth.
 
 ### CareerDefs
 
@@ -170,6 +180,14 @@ Indexes include non-unique `OwnerUserId`, `HomebrewPackId`, and `(System, OwnerU
 
 Career starting equipment granted at character creation (U-13). Fields: `CareerId`, `ItemCode` (bare slug; matches the suffix of `ItemDef.Code` = `{sys}.item.{ItemCode}`), `ItemNameFallback` (RU label), `Quantity`, `IsChoice`, `ChoiceGroup`, `ChoiceOption`. Fixed rows are auto-added to inventory; choice slots group rows by `ChoiceGroup`, and one selectable bundle = all rows sharing a `ChoiceOption`. Cascade delete from career; indexed by `CareerId`.
 
+These rows are only granted in `CareerPackage` mode, and only as a whole: `CareerPackageResolver`
+requires exactly one valid option per group, rejects missing/unknown/duplicated groups with a machine
+`reasonCode`, and merges repeated item codes into one line (ROT-CRE-03). Two catalog corrections live
+here: Scout's first group is exactly `Bow` **or** `Light Spear` with `Leather Armor` as a separate
+fixed row, so neither branch yields two suits of armour (ROT-CRE-04); and `Traveling Gear` is stored
+as its six real items — Backpack, Bedroll, Rope, Flint and Steel, Torches (3), empty Waterskin —
+rather than the invented `Adventuring Pack` bundle, which is now `Retired` (ROT-CLEAN-3.7).
+
 ### CareerRule
 
 Structured career rules/notes (U-13). Fields: `CareerId`, `Code`, `Kind` (`Advisory`/`SkillSubstitution`), `Description`. Cascade delete from career; indexed by `CareerId`.
@@ -181,6 +199,65 @@ Owned character sheets.
 Fields include owner, name, system, archetype, career, six characteristics, total/spent XP, creation phase,
 current wounds/strain, optional heroic ability, `HeroicUpgradeRank` (Power), `HeroicDurationRanks`,
 `HeroicFrequencyRanks`, `HeroicStoryUpgrade`, and created timestamp.
+
+Threshold snapshot (ROT-CRE-02): `CreationWoundThreshold` and `CreationStrainThreshold` are nullable
+and written once, inside the `CompleteCreation` transaction, as species base + the characteristic at
+that moment. While they are `null` (creation phase) thresholds are computed dynamically. Once set,
+later Brawn/Willpower changes — including `Dedication` — no longer move them; only explicit threshold
+effects (`Toughened` +2 WT/rank, `Grit` +1 ST/rank) are added on top, exactly once, by
+`CharacterDerived.Compute`, which is the single calculator used by the sheet, list, print, duplicate,
+campaign and Game Table. `ThresholdSnapshotProvenance` records where the values came from
+(`None`, `CreationCompleted`, `LegacyAuditReconstructed`, `LegacyDerivedFromVisibleTotal`,
+`LegacyEstimated`) and `RulesReviewRequired` flags a character whose values were estimated and need a
+human check. Import of a pre-v2 export file computes the thresholds deterministically, marks them
+`LegacyEstimated` and returns a warning — it never stores a zero or a silent guess.
+
+Heroic identity (ROT-HA-01): a heroic ability has three separate notions — the catalogue primary
+effect, the player's own name for it, and its origin. `HeroicCustomName` (1–120 chars) stores the
+personal name and never falls back to the effect's display name. `HeroicOriginMode`
+(`Standard` / `DoubleStandard` / `Custom`) is stored explicitly so a lost second category cannot be
+mistaken for a single-category roll; `HeroicOriginPrimary` / `HeroicOriginSecondary` hold the d10
+table categories (enum value = printed face 1–9) and `HeroicOriginNarrative` (≤ 2000 chars) the
+player's own text, mandatory for `Custom`. `HeroicOriginRolls` keeps the actual faces as a
+comma-separated list (`0,0,4,7`), where `0` is the special "roll twice more" result — it is recorded
+for audit and never stored as a final origin. The roll itself is server-side, through the injected
+`IDiceRoller`, and is logged as `HeroicOriginRolled`; setting the identity is logged as
+`HeroicIdentitySet`. All columns are nullable so pre-ROT-HA-01 characters still load: such a
+character reports `HeroicIdentityIncomplete`, stays playable, but cannot buy or edit heroic upgrades
+until the owner fills the data in once. New RoT characters cannot complete creation without it, and
+after completion the identity is immutable. Duplicate, export v2 and import carry it over; an import
+whose identity fields are inconsistent (for example `Custom` together with a table category) drops
+the identity with a warning instead of inventing an origin.
+
+Heroic parameters (ROT-HA-02): three primary effects take a parameter chosen together with the
+effect. `CharacterHeroicConfigurations` is a one-row-per-character table holding the Paragon skill
+(`ParagonSkillDefId` plus a `ParagonSkillName` snapshot, so a later-hidden custom skill produces a
+repair warning instead of a silent substitution) and the Sixth Sense subject (≤ 300 chars, a typed
+parameter rather than a free character note). `CharacterSignatureWeapons` holds the named weapon —
+also one row per character, so a lost weapon and its replacement can never both be active. Only the
+choice is stored (`Profile`, `Craftsmanship`, `NarrativeForm`, `FormTraits`, `IsLost`); the numbers
+— skill, damage, crit, range, encumbrance, hard points and qualities — are rebuilt by the server
+from `SignatureWeaponProfiles`, so a tampered client cannot invent a weapon. `FormTraits` is the
+GM-confirmed flag set that attachment compatibility is resolved against; the profile group flag is
+always set server-side, and physically impossible combinations (bladed + blunt, a ranged sword, a
+one-handed bow) are rejected. Changing the primary effect during creation deletes both rows in the
+same transaction. Completion requires the parameter, after completion it is immutable, and a legacy
+character without one reports `HeroicConfigurationIncomplete` and cannot buy heroic upgrades until
+the owner picks it once. Export v2 carries the Paragon skill by code and name — never by id, which
+does not exist in another account.
+
+Starting equipment (ROT-CRE-03): `StartingEquipmentMode` (`StandardMoney` / `CareerPackage`) records
+the mutually exclusive mode chosen at creation, and `StartingPurchaseBudget` holds what is left of it.
+The modes never mix. `StandardMoney` gives a 500-silver purchase budget plus separate `1d100` pocket
+money in `Money`; the budget and the pocket money are deliberately two accounts, so 500 and the roll
+are never summed into one balance. `CareerPackage` gives the whole career package and the career's own
+money formula instead, with no budget. During the creation phase a purchase draws on the budget first
+and the wallet second, and a sale restores the budget before the wallet — otherwise buy-then-sell
+would launder the budget into spendable cash. The money roll goes through the injected `IDiceRoller`,
+and both the formula and the rolled result are written to the audit log as `CharacterCreated`.
+
+`CharacterItems.Provenance` (`Purchased`, `CareerPackage`, `StartingBudget`, `Imported`) keeps
+duplicate, audit and legacy repair from treating granted starting gear as an ordinary purchase.
 
 Relationships:
 
@@ -219,6 +296,12 @@ Fields: `CharacterId`, `SkillDefId`, `Ranks`, `IsCareer`, `FreeRanks`.
 Indexes:
 
 - unique `(CharacterId, SkillDefId)`.
+
+### CharacterTalentChoices
+
+Player choices saved per talent rank (ROT-TAL-03). Fields: `CharacterTalentId`, `RankIndex`, `Kind` (`Characteristic`/`Skill`/`SpellConfiguration`/`AnimalCompanion`), `Value`, `DisplayName`. Cascade delete from the talent; indexed by `CharacterTalentId`.
+
+`Value` is the stable identifier (a `CharacteristicType` name, a canonical skill name, a serialized spell configuration or a companion id) and `DisplayName` is only a snapshot for the sheet — renaming reference content must not change what was chosen. `TalentChoiceSchemas` defines cardinality per rank, cross-rank distinctness and allowed skill kinds, and validates everything before XP is spent. Refunding a rank removes that rank's choices in the same transaction. `CharacterTalents.NeedsChoice` marks a legacy talent whose required choice is missing: its effect is blocked until a human fixes it, without paying XP again.
 
 ### CharacterTalents
 
@@ -389,6 +472,38 @@ Found migrations:
   lower an existing Power rank when the character lacks the required XP above species starting XP.
 - `20260726115105_TrackHeroicAbilityUses` — adds `HeroicAbilityUses` to Game Table participants so
   once-per-session activation and repeatable Frequency upgrades are enforced for player characters.
+- `20260726160924_RotCreationRulesFoundation` — ROT-CRE-01/ROT-CRE-02. Adds
+  `ArchetypeStartingSkills.GrantsCareerSkill`, `TalentDefs.CareerSkillNames` (`text[]`), and
+  `Characters.CreationWoundThreshold` / `CreationStrainThreshold` / `ThresholdSnapshotProvenance` /
+  `RulesReviewRequired`. Non-destructive (only `AddColumn`) plus a one-time backfill of the two
+  thresholds for already-completed characters. The backfill is exact rather than a guess: after
+  creation the only thing that changes a characteristic is `Dedication`, whose picks are stored per
+  rank in `CharacterTalents.GrantedCharacteristics`, so the value at completion is
+  `current − dedicationPicks`; the resulting rows are marked `LegacyAuditReconstructed`. Characters
+  still in the creation phase get no snapshot and keep computing thresholds dynamically. The
+  backfill can lower a displayed threshold for a character who raised Brawn/Willpower after
+  creation — that is the rule being fixed, not a regression.
+- `20260726163445_RotStartingEquipmentModes` — ROT-CRE-03/04 and ROT-CLEAN-3.7. Adds
+  `Characters.StartingEquipmentMode` / `StartingPurchaseBudget`, `CharacterItems.Provenance`, and a
+  `Retired` flag to every remaining content table (`SkillDefs`, `TalentDefs`, `ItemDefs`,
+  `CareerDefs`, `HeroicAbilityDefs`, `HeroicSecondaryEffectDefs`, `QualityDefs`; `ArchetypeDefs`
+  already had one). Non-destructive (only `AddColumn`) and deliberately without a data backfill:
+  existing characters already received money under the old rule, so granting them a 500 budget
+  retroactively would invent funds, and starting gear cannot be told apart from purchases in
+  historical inventories — ROT-CRE-04 explicitly forbids rewriting them.
+- `20260726172948_RotSpeciesAbilityRules` — ROT-SPECIES-01. Adds `ArchetypeDefs.Silhouette`,
+  typed rule metadata on `ArchetypeAbilityDefs` (`RuleKind`, `RuleValue`, `RuleParameters`,
+  `UsesPerScope`, `UseScope`, `StoryPointCost`), and `Characters.SpeciesAbilityChoiceCode`.
+  Non-destructive and without a backfill: the rule metadata arrives through the idempotent
+  archetype seed, and the species choice is deliberately left empty for legacy Half-Catfolk
+  characters — picking Claws or Fleet of Paw for a player is an irreversible decision, so the
+  sheet reports `SpeciesChoiceIncomplete` and the ability simply stays unautomated until a human
+  resolves it.
+- `20260726180958_RotTalentCatalogMetadata` — ROT-TAL-01/ROT-TAL-04 (data half). Adds `TalentDefs.ActivationEn`,
+  `CanUseOutOfTurn` and `CareerSkillNames`. Non-destructive (only `AddColumn`); the corrected
+  catalogue itself is applied by the idempotent talent seed, which now treats the catalogue as
+  authoritative for tier, ranked, activation timing, out-of-turn and `Retired` as well as names and
+  descriptions. No talent row is deleted — characters reference them.
 
 Startup behavior:
 

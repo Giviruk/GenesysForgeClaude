@@ -14,6 +14,18 @@ public class CharacterTalent
     /// </summary>
     public string GrantedCharacteristics { get; set; } = "";
 
+    /// <summary>
+    /// Сохранённые выборы игрока по рангам (ROT-TAL-03). Общий формат для всех талантов;
+    /// <see cref="GrantedCharacteristics"/> остаётся legacy-алиасом Dedication.
+    /// </summary>
+    public List<CharacterTalentChoice> Choices { get; set; } = [];
+
+    /// <summary>
+    /// Талант требует выбора, которого нет ни в <see cref="Choices"/>, ни в legacy-поле.
+    /// Эффект блокируется до ручного исправления, повторно платить XP не нужно.
+    /// </summary>
+    public bool NeedsChoice { get; set; }
+
     /// <summary>Разбор <see cref="GrantedCharacteristics"/> в список характеристик в порядке покупки.</summary>
     public List<CharacteristicType> ParseGrants() =>
         string.IsNullOrWhiteSpace(GrantedCharacteristics)

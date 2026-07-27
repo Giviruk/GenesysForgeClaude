@@ -14,50 +14,90 @@
    },
    {
     "itemCode": "holy-icon",
-    "itemNameFallback": "святой символ",
+    "itemNameFallback": "Святой символ",
     "quantity": 1,
     "isChoice": true,
-    "choiceGroup": "slot-2",
+    "choiceGroup": "slot-1",
     "choiceOption": 0
    },
    {
     "itemCode": "shield",
-    "itemNameFallback": "щит",
+    "itemNameFallback": "Щит",
     "quantity": 1,
     "isChoice": true,
-    "choiceGroup": "slot-2",
+    "choiceGroup": "slot-1",
     "choiceOption": 1
    },
    {
     "itemCode": "leather",
-    "itemNameFallback": "кожаная броня",
+    "itemNameFallback": "Кожаная броня",
+    "quantity": 1,
+    "isChoice": true,
+    "choiceGroup": "slot-1",
+    "choiceOption": 1
+   },
+   {
+    "itemCode": "lantern",
+    "itemNameFallback": "Фонарь",
+    "quantity": 1,
+    "isChoice": true,
+    "choiceGroup": "slot-2",
+    "choiceOption": 0
+   },
+   {
+    "itemCode": "herbs-of-healing",
+    "itemNameFallback": "Целебные травы",
+    "quantity": 2,
+    "isChoice": true,
+    "choiceGroup": "slot-2",
+    "choiceOption": 0
+   },
+   {
+    "itemCode": "backpack",
+    "itemNameFallback": "Рюкзак",
     "quantity": 1,
     "isChoice": true,
     "choiceGroup": "slot-2",
     "choiceOption": 1
    },
    {
-    "itemCode": "lantern",
-    "itemNameFallback": "фонарь",
+    "itemCode": "bedroll",
+    "itemNameFallback": "Спальный мешок",
     "quantity": 1,
     "isChoice": true,
-    "choiceGroup": "slot-3",
-    "choiceOption": 0
+    "choiceGroup": "slot-2",
+    "choiceOption": 1
    },
    {
-    "itemCode": "herbs-of-healing",
-    "itemNameFallback": "целебные травы",
-    "quantity": 2,
-    "isChoice": true,
-    "choiceGroup": "slot-3",
-    "choiceOption": 0
-   },
-   {
-    "itemCode": "adventuring-pack",
-    "itemNameFallback": "дорожный набор",
+    "itemCode": "rope",
+    "itemNameFallback": "Верёвка",
     "quantity": 1,
     "isChoice": true,
-    "choiceGroup": "slot-3",
+    "choiceGroup": "slot-2",
+    "choiceOption": 1
+   },
+   {
+    "itemCode": "flint-and-steel",
+    "itemNameFallback": "Огниво",
+    "quantity": 1,
+    "isChoice": true,
+    "choiceGroup": "slot-2",
+    "choiceOption": 1
+   },
+   {
+    "itemCode": "torches-3",
+    "itemNameFallback": "Факелы (3)",
+    "quantity": 1,
+    "isChoice": true,
+    "choiceGroup": "slot-2",
+    "choiceOption": 1
+   },
+   {
+    "itemCode": "waterskin-empty",
+    "itemNameFallback": "Бурдюк (пустой)",
+    "quantity": 1,
+    "isChoice": true,
+    "choiceGroup": "slot-2",
     "choiceOption": 1
    }
   ],
@@ -77,44 +117,84 @@
     "choiceOption": 0
    },
    {
-    "itemCode": "sword",
-    "itemNameFallback": "меч",
-    "quantity": 1,
-    "isChoice": true,
-    "choiceGroup": "slot-2",
-    "choiceOption": 0
-   },
-   {
-    "itemCode": "musical-instrument",
-    "itemNameFallback": "музыкальный инструмент",
-    "quantity": 1,
-    "isChoice": true,
-    "choiceGroup": "slot-2",
-    "choiceOption": 1
-   },
-   {
-    "itemCode": "fine-cloak",
-    "itemNameFallback": "хороший плащ",
-    "quantity": 1,
-    "isChoice": true,
-    "choiceGroup": "slot-3",
-    "choiceOption": 0
-   },
-   {
-    "itemCode": "adventuring-pack",
-    "itemNameFallback": "дорожный набор",
-    "quantity": 1,
-    "isChoice": true,
-    "choiceGroup": "slot-3",
-    "choiceOption": 1
-   },
-   {
     "itemCode": "padded",
-    "itemNameFallback": "стёганая броня",
+    "itemNameFallback": "Стёганый доспех",
     "quantity": 1,
     "isChoice": false,
     "choiceGroup": "",
     "choiceOption": 0
+   },
+   {
+    "itemCode": "sword",
+    "itemNameFallback": "Меч",
+    "quantity": 1,
+    "isChoice": true,
+    "choiceGroup": "slot-1",
+    "choiceOption": 0
+   },
+   {
+    "itemCode": "musical-instrument",
+    "itemNameFallback": "Музыкальный инструмент",
+    "quantity": 1,
+    "isChoice": true,
+    "choiceGroup": "slot-1",
+    "choiceOption": 1
+   },
+   {
+    "itemCode": "fine-cloak",
+    "itemNameFallback": "Хороший плащ",
+    "quantity": 1,
+    "isChoice": true,
+    "choiceGroup": "slot-2",
+    "choiceOption": 0
+   },
+   {
+    "itemCode": "backpack",
+    "itemNameFallback": "Рюкзак",
+    "quantity": 1,
+    "isChoice": true,
+    "choiceGroup": "slot-2",
+    "choiceOption": 1
+   },
+   {
+    "itemCode": "bedroll",
+    "itemNameFallback": "Спальный мешок",
+    "quantity": 1,
+    "isChoice": true,
+    "choiceGroup": "slot-2",
+    "choiceOption": 1
+   },
+   {
+    "itemCode": "rope",
+    "itemNameFallback": "Верёвка",
+    "quantity": 1,
+    "isChoice": true,
+    "choiceGroup": "slot-2",
+    "choiceOption": 1
+   },
+   {
+    "itemCode": "flint-and-steel",
+    "itemNameFallback": "Огниво",
+    "quantity": 1,
+    "isChoice": true,
+    "choiceGroup": "slot-2",
+    "choiceOption": 1
+   },
+   {
+    "itemCode": "torches-3",
+    "itemNameFallback": "Факелы (3)",
+    "quantity": 1,
+    "isChoice": true,
+    "choiceGroup": "slot-2",
+    "choiceOption": 1
+   },
+   {
+    "itemCode": "waterskin-empty",
+    "itemNameFallback": "Бурдюк (пустой)",
+    "quantity": 1,
+    "isChoice": true,
+    "choiceGroup": "slot-2",
+    "choiceOption": 1
    }
   ],
   "rules": []
@@ -134,7 +214,7 @@
    },
    {
     "itemCode": "magic-wand",
-    "itemNameFallback": "магическая палочка",
+    "itemNameFallback": "Магическая палочка",
     "quantity": 1,
     "isChoice": true,
     "choiceGroup": "slot-1",
@@ -142,7 +222,7 @@
    },
    {
     "itemCode": "dagger",
-    "itemNameFallback": "кинжал",
+    "itemNameFallback": "Кинжал",
     "quantity": 1,
     "isChoice": true,
     "choiceGroup": "slot-2",
@@ -150,7 +230,7 @@
    },
    {
     "itemCode": "sling",
-    "itemNameFallback": "праща",
+    "itemNameFallback": "Праща",
     "quantity": 1,
     "isChoice": true,
     "choiceGroup": "slot-2",
@@ -158,7 +238,7 @@
    },
    {
     "itemCode": "heavy-robes",
-    "itemNameFallback": "тяжёлые одежды",
+    "itemNameFallback": "Тяжёлые одеяния",
     "quantity": 1,
     "isChoice": true,
     "choiceGroup": "slot-3",
@@ -166,7 +246,7 @@
    },
    {
     "itemCode": "stamina-elixir",
-    "itemNameFallback": "эликсир выносливости",
+    "itemNameFallback": "Эликсир бодрости",
     "quantity": 1,
     "isChoice": true,
     "choiceGroup": "slot-3",
@@ -182,7 +262,7 @@
   "gear": [
    {
     "itemCode": "lesser-rune",
-    "itemNameFallback": "малая руна",
+    "itemNameFallback": "Малая руна",
     "quantity": 1,
     "isChoice": false,
     "choiceGroup": "",
@@ -190,34 +270,34 @@
    },
    {
     "itemCode": "dagger",
-    "itemNameFallback": "кинжал",
+    "itemNameFallback": "Кинжал",
     "quantity": 1,
     "isChoice": true,
-    "choiceGroup": "slot-2",
+    "choiceGroup": "slot-1",
     "choiceOption": 0
    },
    {
     "itemCode": "sling",
-    "itemNameFallback": "праща",
+    "itemNameFallback": "Праща",
     "quantity": 1,
     "isChoice": true,
-    "choiceGroup": "slot-2",
+    "choiceGroup": "slot-1",
     "choiceOption": 1
    },
    {
     "itemCode": "heavy-robes",
-    "itemNameFallback": "тяжёлые одежды",
+    "itemNameFallback": "Тяжёлые одеяния",
     "quantity": 1,
     "isChoice": true,
-    "choiceGroup": "slot-3",
+    "choiceGroup": "slot-2",
     "choiceOption": 0
    },
    {
     "itemCode": "stamina-elixir",
-    "itemNameFallback": "эликсир выносливости",
+    "itemNameFallback": "Эликсир бодрости",
     "quantity": 1,
     "isChoice": true,
-    "choiceGroup": "slot-3",
+    "choiceGroup": "slot-2",
     "choiceOption": 1
    }
   ],
@@ -245,7 +325,7 @@
    },
    {
     "itemCode": "greataxe",
-    "itemNameFallback": "секира",
+    "itemNameFallback": "Большой топор",
     "quantity": 1,
     "isChoice": true,
     "choiceGroup": "slot-1",
@@ -253,7 +333,7 @@
    },
    {
     "itemCode": "leather",
-    "itemNameFallback": "кожаная броня",
+    "itemNameFallback": "Кожаная броня",
     "quantity": 1,
     "isChoice": true,
     "choiceGroup": "slot-1",
@@ -261,15 +341,55 @@
    },
    {
     "itemCode": "apothecarys-kit",
-    "itemNameFallback": "набор аптекаря",
+    "itemNameFallback": "Набор травника",
     "quantity": 1,
     "isChoice": true,
     "choiceGroup": "slot-2",
     "choiceOption": 0
    },
    {
-    "itemCode": "adventuring-pack",
-    "itemNameFallback": "дорожный набор",
+    "itemCode": "backpack",
+    "itemNameFallback": "Рюкзак",
+    "quantity": 1,
+    "isChoice": true,
+    "choiceGroup": "slot-2",
+    "choiceOption": 1
+   },
+   {
+    "itemCode": "bedroll",
+    "itemNameFallback": "Спальный мешок",
+    "quantity": 1,
+    "isChoice": true,
+    "choiceGroup": "slot-2",
+    "choiceOption": 1
+   },
+   {
+    "itemCode": "rope",
+    "itemNameFallback": "Верёвка",
+    "quantity": 1,
+    "isChoice": true,
+    "choiceGroup": "slot-2",
+    "choiceOption": 1
+   },
+   {
+    "itemCode": "flint-and-steel",
+    "itemNameFallback": "Огниво",
+    "quantity": 1,
+    "isChoice": true,
+    "choiceGroup": "slot-2",
+    "choiceOption": 1
+   },
+   {
+    "itemCode": "torches-3",
+    "itemNameFallback": "Факелы (3)",
+    "quantity": 1,
+    "isChoice": true,
+    "choiceGroup": "slot-2",
+    "choiceOption": 1
+   },
+   {
+    "itemCode": "waterskin-empty",
+    "itemNameFallback": "Бурдюк (пустой)",
     "quantity": 1,
     "isChoice": true,
     "choiceGroup": "slot-2",
@@ -293,50 +413,90 @@
    },
    {
     "itemCode": "alchemists-kit",
-    "itemNameFallback": "набор алхимика",
+    "itemNameFallback": "Набор алхимика",
     "quantity": 1,
     "isChoice": true,
-    "choiceGroup": "slot-2",
+    "choiceGroup": "slot-1",
     "choiceOption": 0
    },
    {
     "itemCode": "sword",
-    "itemNameFallback": "меч",
+    "itemNameFallback": "Меч",
+    "quantity": 1,
+    "isChoice": true,
+    "choiceGroup": "slot-1",
+    "choiceOption": 1
+   },
+   {
+    "itemCode": "lantern",
+    "itemNameFallback": "Фонарь",
+    "quantity": 1,
+    "isChoice": true,
+    "choiceGroup": "slot-2",
+    "choiceOption": 0
+   },
+   {
+    "itemCode": "herbs-of-healing",
+    "itemNameFallback": "Целебные травы",
     "quantity": 1,
     "isChoice": true,
     "choiceGroup": "slot-2",
     "choiceOption": 1
    },
    {
-    "itemCode": "lantern",
-    "itemNameFallback": "фонарь",
+    "itemCode": "fine-cloak",
+    "itemNameFallback": "Хороший плащ",
     "quantity": 1,
     "isChoice": true,
     "choiceGroup": "slot-3",
     "choiceOption": 0
    },
    {
-    "itemCode": "herbs-of-healing",
-    "itemNameFallback": "целебные травы",
+    "itemCode": "backpack",
+    "itemNameFallback": "Рюкзак",
     "quantity": 1,
     "isChoice": true,
     "choiceGroup": "slot-3",
     "choiceOption": 1
    },
    {
-    "itemCode": "fine-cloak",
-    "itemNameFallback": "хороший плащ",
+    "itemCode": "bedroll",
+    "itemNameFallback": "Спальный мешок",
     "quantity": 1,
     "isChoice": true,
-    "choiceGroup": "slot-4",
-    "choiceOption": 0
+    "choiceGroup": "slot-3",
+    "choiceOption": 1
    },
    {
-    "itemCode": "adventuring-pack",
-    "itemNameFallback": "дорожный набор",
+    "itemCode": "rope",
+    "itemNameFallback": "Верёвка",
     "quantity": 1,
     "isChoice": true,
-    "choiceGroup": "slot-4",
+    "choiceGroup": "slot-3",
+    "choiceOption": 1
+   },
+   {
+    "itemCode": "flint-and-steel",
+    "itemNameFallback": "Огниво",
+    "quantity": 1,
+    "isChoice": true,
+    "choiceGroup": "slot-3",
+    "choiceOption": 1
+   },
+   {
+    "itemCode": "torches-3",
+    "itemNameFallback": "Факелы (3)",
+    "quantity": 1,
+    "isChoice": true,
+    "choiceGroup": "slot-3",
+    "choiceOption": 1
+   },
+   {
+    "itemCode": "waterskin-empty",
+    "itemNameFallback": "Бурдюк (пустой)",
+    "quantity": 1,
+    "isChoice": true,
+    "choiceGroup": "slot-3",
     "choiceOption": 1
    }
   ],
@@ -348,6 +508,54 @@
   "moneyDice": "1d100",
   "gear": [
    {
+    "itemCode": "backpack",
+    "itemNameFallback": "Рюкзак",
+    "quantity": 1,
+    "isChoice": false,
+    "choiceGroup": "",
+    "choiceOption": 0
+   },
+   {
+    "itemCode": "bedroll",
+    "itemNameFallback": "Спальный мешок",
+    "quantity": 1,
+    "isChoice": false,
+    "choiceGroup": "",
+    "choiceOption": 0
+   },
+   {
+    "itemCode": "rope",
+    "itemNameFallback": "Верёвка",
+    "quantity": 1,
+    "isChoice": false,
+    "choiceGroup": "",
+    "choiceOption": 0
+   },
+   {
+    "itemCode": "flint-and-steel",
+    "itemNameFallback": "Огниво",
+    "quantity": 1,
+    "isChoice": false,
+    "choiceGroup": "",
+    "choiceOption": 0
+   },
+   {
+    "itemCode": "torches-3",
+    "itemNameFallback": "Факелы (3)",
+    "quantity": 1,
+    "isChoice": false,
+    "choiceGroup": "",
+    "choiceOption": 0
+   },
+   {
+    "itemCode": "waterskin-empty",
+    "itemNameFallback": "Бурдюк (пустой)",
+    "quantity": 1,
+    "isChoice": false,
+    "choiceGroup": "",
+    "choiceOption": 0
+   },
+   {
     "itemCode": "dagger",
     "itemNameFallback": "Кинжал",
     "quantity": 1,
@@ -357,7 +565,7 @@
    },
    {
     "itemCode": "cestus",
-    "itemNameFallback": "цестус",
+    "itemNameFallback": "Цестус",
     "quantity": 1,
     "isChoice": true,
     "choiceGroup": "slot-1",
@@ -365,7 +573,7 @@
    },
    {
     "itemCode": "sword",
-    "itemNameFallback": "меч",
+    "itemNameFallback": "Меч",
     "quantity": 1,
     "isChoice": true,
     "choiceGroup": "slot-2",
@@ -373,7 +581,7 @@
    },
    {
     "itemCode": "dagger",
-    "itemNameFallback": "кинжал",
+    "itemNameFallback": "Кинжал",
     "quantity": 1,
     "isChoice": true,
     "choiceGroup": "slot-2",
@@ -381,7 +589,7 @@
    },
    {
     "itemCode": "bow",
-    "itemNameFallback": "лук",
+    "itemNameFallback": "Лук",
     "quantity": 1,
     "isChoice": true,
     "choiceGroup": "slot-2",
@@ -389,7 +597,7 @@
    },
    {
     "itemCode": "fine-cloak",
-    "itemNameFallback": "хороший плащ",
+    "itemNameFallback": "Хороший плащ",
     "quantity": 1,
     "isChoice": true,
     "choiceGroup": "slot-3",
@@ -397,19 +605,11 @@
    },
    {
     "itemCode": "thieves-tools",
-    "itemNameFallback": "воровские инструменты",
+    "itemNameFallback": "Воровские инструменты",
     "quantity": 1,
     "isChoice": true,
     "choiceGroup": "slot-3",
     "choiceOption": 1
-   },
-   {
-    "itemCode": "adventuring-pack",
-    "itemNameFallback": "дорожный набор",
-    "quantity": 1,
-    "isChoice": false,
-    "choiceGroup": "",
-    "choiceOption": 0
    }
   ],
   "rules": []
@@ -420,6 +620,62 @@
   "moneyDice": "1d100",
   "gear": [
    {
+    "itemCode": "leather",
+    "itemNameFallback": "Кожаная броня",
+    "quantity": 1,
+    "isChoice": false,
+    "choiceGroup": "",
+    "choiceOption": 0
+   },
+   {
+    "itemCode": "backpack",
+    "itemNameFallback": "Рюкзак",
+    "quantity": 1,
+    "isChoice": false,
+    "choiceGroup": "",
+    "choiceOption": 0
+   },
+   {
+    "itemCode": "bedroll",
+    "itemNameFallback": "Спальный мешок",
+    "quantity": 1,
+    "isChoice": false,
+    "choiceGroup": "",
+    "choiceOption": 0
+   },
+   {
+    "itemCode": "rope",
+    "itemNameFallback": "Верёвка",
+    "quantity": 1,
+    "isChoice": false,
+    "choiceGroup": "",
+    "choiceOption": 0
+   },
+   {
+    "itemCode": "flint-and-steel",
+    "itemNameFallback": "Огниво",
+    "quantity": 1,
+    "isChoice": false,
+    "choiceGroup": "",
+    "choiceOption": 0
+   },
+   {
+    "itemCode": "torches-3",
+    "itemNameFallback": "Факелы (3)",
+    "quantity": 1,
+    "isChoice": false,
+    "choiceGroup": "",
+    "choiceOption": 0
+   },
+   {
+    "itemCode": "waterskin-empty",
+    "itemNameFallback": "Бурдюк (пустой)",
+    "quantity": 1,
+    "isChoice": false,
+    "choiceGroup": "",
+    "choiceOption": 0
+   },
+   {
     "itemCode": "bow",
     "itemNameFallback": "Лук",
     "quantity": 1,
@@ -429,15 +685,7 @@
    },
    {
     "itemCode": "spear-light",
-    "itemNameFallback": "лёгкое копьё",
-    "quantity": 1,
-    "isChoice": true,
-    "choiceGroup": "slot-1",
-    "choiceOption": 1
-   },
-   {
-    "itemCode": "leather",
-    "itemNameFallback": "кожаная броня",
+    "itemNameFallback": "Лёгкое копьё",
     "quantity": 1,
     "isChoice": true,
     "choiceGroup": "slot-1",
@@ -445,7 +693,7 @@
    },
    {
     "itemCode": "dagger",
-    "itemNameFallback": "кинжал",
+    "itemNameFallback": "Кинжал",
     "quantity": 1,
     "isChoice": true,
     "choiceGroup": "slot-2",
@@ -453,51 +701,35 @@
    },
    {
     "itemCode": "health-elixir",
-    "itemNameFallback": "целебных эликсира",
+    "itemNameFallback": "Целебный эликсир",
     "quantity": 2,
     "isChoice": true,
     "choiceGroup": "slot-2",
     "choiceOption": 1
    },
    {
-    "itemCode": "leather",
-    "itemNameFallback": "кожаная броня",
-    "quantity": 1,
-    "isChoice": false,
-    "choiceGroup": "",
-    "choiceOption": 0
-   },
-   {
     "itemCode": "herbs-of-healing",
-    "itemNameFallback": "целебные травы",
+    "itemNameFallback": "Целебные травы",
     "quantity": 1,
     "isChoice": true,
-    "choiceGroup": "slot-4",
+    "choiceGroup": "slot-3",
     "choiceOption": 0
    },
    {
     "itemCode": "climbing-gear",
-    "itemNameFallback": "снаряжение для лазания",
+    "itemNameFallback": "Снаряжение для лазания",
     "quantity": 1,
     "isChoice": true,
-    "choiceGroup": "slot-4",
+    "choiceGroup": "slot-3",
     "choiceOption": 0
    },
    {
     "itemCode": "winter-clothing",
-    "itemNameFallback": "зимняя одежда",
+    "itemNameFallback": "Зимняя одежда",
     "quantity": 1,
     "isChoice": true,
-    "choiceGroup": "slot-4",
+    "choiceGroup": "slot-3",
     "choiceOption": 1
-   },
-   {
-    "itemCode": "adventuring-pack",
-    "itemNameFallback": "дорожный набор",
-    "quantity": 1,
-    "isChoice": false,
-    "choiceGroup": "",
-    "choiceOption": 0
    }
   ],
   "rules": []
@@ -508,6 +740,70 @@
   "moneyDice": "1d100",
   "gear": [
    {
+    "itemCode": "leather",
+    "itemNameFallback": "Кожаная броня",
+    "quantity": 1,
+    "isChoice": false,
+    "choiceGroup": "",
+    "choiceOption": 0
+   },
+   {
+    "itemCode": "health-elixir",
+    "itemNameFallback": "Целебный эликсир",
+    "quantity": 2,
+    "isChoice": false,
+    "choiceGroup": "",
+    "choiceOption": 0
+   },
+   {
+    "itemCode": "backpack",
+    "itemNameFallback": "Рюкзак",
+    "quantity": 1,
+    "isChoice": false,
+    "choiceGroup": "",
+    "choiceOption": 0
+   },
+   {
+    "itemCode": "bedroll",
+    "itemNameFallback": "Спальный мешок",
+    "quantity": 1,
+    "isChoice": false,
+    "choiceGroup": "",
+    "choiceOption": 0
+   },
+   {
+    "itemCode": "rope",
+    "itemNameFallback": "Верёвка",
+    "quantity": 1,
+    "isChoice": false,
+    "choiceGroup": "",
+    "choiceOption": 0
+   },
+   {
+    "itemCode": "flint-and-steel",
+    "itemNameFallback": "Огниво",
+    "quantity": 1,
+    "isChoice": false,
+    "choiceGroup": "",
+    "choiceOption": 0
+   },
+   {
+    "itemCode": "torches-3",
+    "itemNameFallback": "Факелы (3)",
+    "quantity": 1,
+    "isChoice": false,
+    "choiceGroup": "",
+    "choiceOption": 0
+   },
+   {
+    "itemCode": "waterskin-empty",
+    "itemNameFallback": "Бурдюк (пустой)",
+    "quantity": 1,
+    "isChoice": false,
+    "choiceGroup": "",
+    "choiceOption": 0
+   },
+   {
     "itemCode": "sword",
     "itemNameFallback": "Меч",
     "quantity": 1,
@@ -517,7 +813,7 @@
    },
    {
     "itemCode": "shield",
-    "itemNameFallback": "щит",
+    "itemNameFallback": "Щит",
     "quantity": 1,
     "isChoice": true,
     "choiceGroup": "slot-1",
@@ -525,7 +821,7 @@
    },
    {
     "itemCode": "axe",
-    "itemNameFallback": "топор",
+    "itemNameFallback": "Топор",
     "quantity": 1,
     "isChoice": true,
     "choiceGroup": "slot-1",
@@ -533,7 +829,7 @@
    },
    {
     "itemCode": "shield",
-    "itemNameFallback": "щит",
+    "itemNameFallback": "Щит",
     "quantity": 1,
     "isChoice": true,
     "choiceGroup": "slot-1",
@@ -541,35 +837,11 @@
    },
    {
     "itemCode": "halberd",
-    "itemNameFallback": "алебарда",
+    "itemNameFallback": "Алебарда",
     "quantity": 1,
     "isChoice": true,
     "choiceGroup": "slot-1",
     "choiceOption": 2
-   },
-   {
-    "itemCode": "leather",
-    "itemNameFallback": "кожаная броня",
-    "quantity": 1,
-    "isChoice": false,
-    "choiceGroup": "",
-    "choiceOption": 0
-   },
-   {
-    "itemCode": "health-elixir",
-    "itemNameFallback": "целебных эликсира",
-    "quantity": 2,
-    "isChoice": false,
-    "choiceGroup": "",
-    "choiceOption": 0
-   },
-   {
-    "itemCode": "adventuring-pack",
-    "itemNameFallback": "дорожный набор",
-    "quantity": 1,
-    "isChoice": false,
-    "choiceGroup": "",
-    "choiceOption": 0
    }
   ],
   "rules": []

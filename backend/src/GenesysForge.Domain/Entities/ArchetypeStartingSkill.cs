@@ -24,4 +24,9 @@ public class ArchetypeStartingSkill
     public string ChoiceGroup { get; set; } = "";
     /// <summary>Сколько навыков нужно выбрать в группе (для <see cref="IsChoice"/>).</summary>
     public int ChoiceCount { get; set; }
+    /// <summary>
+    /// Выдача делает навык карьерным в дополнение к бесплатным рангам. В RoT это только
+    /// <c>Knowledge (Forbidden)</c> у Deep Elf и <c>Divine</c> у Highborn Elf.
+    /// </summary>
+    public bool GrantsCareerSkill { get; set; }
 }

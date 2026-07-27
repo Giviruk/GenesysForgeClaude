@@ -11,8 +11,14 @@ public record CharacterExportDto(
     DateTime ExportedAt,
     CharacterExportData Character)
 {
-    /// <summary>Текущая версия формата.</summary>
-    public const string CurrentFormat = "genesysforge.character.v1";
+    /// <summary>Текущая версия формата: v2 добавила зафиксированные пороги ран/стрейна (ROT-CRE-02).</summary>
+    public const string CurrentFormat = "genesysforge.character.v2";
+
+    /// <summary>Предыдущая версия формата — принимается на импорт с предупреждениями.</summary>
+    public const string LegacyFormatV1 = "genesysforge.character.v1";
+
+    /// <summary>Все форматы, которые импорт умеет читать.</summary>
+    public static readonly string[] SupportedFormats = [CurrentFormat, LegacyFormatV1];
 }
 
 public record CharacterExportData(
@@ -39,12 +45,47 @@ public record CharacterExportData(
     int HeroicDurationRanks = 0,
     int HeroicFrequencyRanks = 0,
     bool HeroicStoryUpgrade = false,
-    List<string>? HeroicSecondaryEffectCodes = null);
+    List<string>? HeroicSecondaryEffectCodes = null,
+    // v2: зафиксированные при завершении создания пороги. null у персонажа в фазе создания
+    // и у файлов v1 — импорт в этом случае предупреждает и не выдумывает точное значение.
+    int? CreationWoundThreshold = null,
+    int? CreationStrainThreshold = null,
+    ThresholdSnapshotProvenance ThresholdSnapshotProvenance = ThresholdSnapshotProvenance.None,
+    bool RulesReviewRequired = false,
+    // v2: режим стартового снаряжения и остаток бюджета создания (ROT-CRE-03).
+    StartingEquipmentMode StartingEquipmentMode = StartingEquipmentMode.StandardMoney,
+    int StartingPurchaseBudget = 0,
+    // v2: обязательный видовой выбор (Half-Catfolk). Пусто — вид выбора не требует либо
+    // legacy-персонаж, которому выбор нужно сделать вручную (ROT-SPECIES-01).
+    string SpeciesAbilityChoiceCode = "",
+    // v2: личное название и происхождение героической способности (ROT-HA-01). Пусто у файлов v1
+    // и у legacy-персонажей — импорт предупреждает и оставляет личность незаполненной.
+    string? HeroicCustomName = null,
+    HeroicOriginMode? HeroicOriginMode = null,
+    HeroicOriginType? HeroicOriginPrimary = null,
+    HeroicOriginType? HeroicOriginSecondary = null,
+    string? HeroicOriginNarrative = null,
+    List<int>? HeroicOriginRolls = null,
+    // v2: параметр primary effect (ROT-HA-02). Навык Paragon переносится по коду/имени, а не по id,
+    // потому что id кастомного навыка в чужом аккаунте не существует.
+    string? ParagonSkillCode = null,
+    string? ParagonSkillName = null,
+    string? SixthSenseSubject = null,
+    SignatureWeaponProfile? SignatureWeaponProfile = null,
+    WeaponCraftsmanship? SignatureWeaponCraftsmanship = null,
+    string? SignatureWeaponForm = null,
+    WeaponFormTraits? SignatureWeaponTraits = null,
+    bool SignatureWeaponLost = false);
 
 public record CharacterSkillExport(string Code, string Name, int Ranks, bool IsCareer, int FreeRanks);
 
-public record CharacterTalentExport(string Code, string Name, int Ranks, string GrantedCharacteristics);
+public record CharacterTalentExport(string Code, string Name, int Ranks, string GrantedCharacteristics,
+    // v2: общий формат выборов ранга (ROT-TAL-03); пусто у файлов v1.
+    List<CharacterTalentChoiceExport>? Choices = null, bool NeedsChoice = false);
 
-public record CharacterItemExport(string Code, string Name, int Quantity, ItemState State);
+public record CharacterTalentChoiceExport(int RankIndex, TalentChoiceKind Kind, string Value, string DisplayName);
+
+public record CharacterItemExport(string Code, string Name, int Quantity, ItemState State,
+    ItemProvenance Provenance = ItemProvenance.Purchased);
 
 public record CharacterNoteExport(string Title, string Body);

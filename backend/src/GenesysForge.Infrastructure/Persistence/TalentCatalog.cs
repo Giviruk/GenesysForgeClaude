@@ -17,7 +17,11 @@ public static class TalentCatalog
         string Code, string Name, string NameRu, int Tier, bool Ranked,
         string[] Setting, string Activation, string Desc, string? Category,
         int Wt, int St, int Soak, int Mdef, int Rdef,
-        bool GrantsCharacteristic = false, string DescEn = "", string ActivationEn = "");
+        bool GrantsCharacteristic = false, string DescEn = "", string ActivationEn = "",
+        bool CanUseOutOfTurn = false, string[]? RetiredIn = null, string[]? CareerSkillNames = null,
+        string RequiresTalent = "", string[]? ExcludesTalents = null,
+        int UsesPerScope = 0, string UseScope = "None", int StoryPointCost = 0, int StrainCost = 0,
+        string Trigger = "");
 
     private static readonly JsonSerializerOptions JsonOptions = new() { PropertyNameCaseInsensitive = true };
 
@@ -44,6 +48,14 @@ public static class TalentCatalog
                 ? "Genesys: расширенный список талантов"
                 : "Realms of Terrinoth, гл. «Таланты»";
 
+            // Талант может быть исключён из активного каталога одной системы и остаться в другой:
+            // ошибочная принадлежность RoT PC catalog не удаляет запись из Genesys Core.
+            var retiredIn = (e.RetiredIn ?? [])
+                .Select(x => Enum.TryParse<GameSystem>(x, ignoreCase: true, out var g) ? (GameSystem?)g : null)
+                .Where(x => x is not null)
+                .Select(x => x!.Value)
+                .ToHashSet();
+
             foreach (var sys in systems)
                 yield return new TalentDef
                 {
@@ -57,6 +69,18 @@ public static class TalentCatalog
                     Category = ParseCategory(e.Category),
                     Setting = setting,
                     Activation = e.Activation,
+                    ActivationEn = e.ActivationEn,
+                    CanUseOutOfTurn = e.CanUseOutOfTurn,
+                    CareerSkillNames = [.. e.CareerSkillNames ?? []],
+                    RequiresTalentCode = e.RequiresTalent,
+                    ExcludesTalentCodes = [.. e.ExcludesTalents ?? []],
+                    UsesPerScope = e.UsesPerScope,
+                    UseScope = Enum.TryParse<AbilityUseScope>(e.UseScope, ignoreCase: true, out var scope)
+                        ? scope : AbilityUseScope.None,
+                    StoryPointCost = e.StoryPointCost,
+                    StrainCost = e.StrainCost,
+                    Trigger = e.Trigger,
+                    Retired = retiredIn.Contains(sys),
                     GrantsCharacteristic = e.GrantsCharacteristic,
                     SafeDescription = e.Desc,
                     DescriptionEn = e.DescEn,
