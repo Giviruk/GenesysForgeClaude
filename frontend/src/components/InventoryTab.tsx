@@ -448,33 +448,63 @@ function BuyControl({ unitPrice, money, maxAffordable, onConfirm }: {
 function SellControl({ unitPrice, maxQuantity, onConfirm }: {
   unitPrice: number
   maxQuantity: number
-  onConfirm: (quantity: number, opts: { percent?: number; netSuccesses?: number }) => void
+  onConfirm: (quantity: number, opts: {
+    percent?: number; netSuccesses?: number; priceOverride?: number; overrideReason?: string
+  }) => void
 }) {
   const [qty, setQty] = useState(1)
-  const [byCheck, setByCheck] = useState(false)
+  const [mode, setMode] = useState<'direct' | 'check' | 'override'>('direct')
   const [percent, setPercent] = useState(100)
   const [successes, setSuccesses] = useState(1)
+  const [ownPrice, setOwnPrice] = useState('')
+  const [reason, setReason] = useState('')
 
-  const effectivePercent = byCheck
+  const ownPriceNum = Math.max(0, Math.trunc(Number(ownPrice)) || 0)
+  const effectivePercent = mode === 'check'
     ? (successes <= 0 ? 0 : successes === 1 ? 25 : successes === 2 ? 50 : 75)
     : percent
-  const preview = Math.floor(unitPrice * effectivePercent / 100) * qty
+  const preview = mode === 'override'
+    ? ownPriceNum * qty
+    : Math.floor(unitPrice * effectivePercent / 100) * qty
+  // Договорная цена требует причины — она попадёт в историю персонажа.
+  const canSell = mode === 'override'
+    ? ownPrice.trim() !== '' && reason.trim() !== ''
+    : effectivePercent > 0
 
   return (
     <div className="price-control">
       <div className="inline-form">
-        <label>
-          <input type="checkbox" checked={byCheck} onChange={e => setByCheck(e.target.checked)} />
-          {' '}{t('Продажа по проверке', 'Sell with a check')}
-        </label>
+        {([
+          ['direct', t('Просто продать', 'Just sell')],
+          ['check', t('По проверке', 'With a check')],
+          ['override', t('Своя цена', 'Own price')],
+        ] as const).map(([value, label]) => (
+          <label key={value}>
+            <input type="radio" name="sell-mode" checked={mode === value}
+              onChange={() => setMode(value)} /> {label}
+          </label>
+        ))}
       </div>
 
-      {!byCheck && (
+      {mode === 'direct' && (
         <div className="price-mults">
           {[25, 50, 75, 100].map(m => (
             <button key={m} className={percent === m ? 'chip active' : 'chip'}
               onClick={() => setPercent(m)}>{m}%</button>
           ))}
+        </div>
+      )}
+
+      {mode === 'override' && (
+        <div className="price-row">
+          <label>{t('Цена/шт', 'Price/unit')}
+            <input type="number" min={0} value={ownPrice}
+              onChange={e => setOwnPrice(e.target.value)} style={{ width: '5rem' }} />
+          </label>
+          <label>{t('Причина', 'Reason')}
+            <input value={reason} maxLength={200} placeholder={t('например, сделка с гильдией', 'e.g. a guild deal')}
+              onChange={e => setReason(e.target.value)} />
+          </label>
         </div>
       )}
 
@@ -484,7 +514,7 @@ function SellControl({ unitPrice, maxQuantity, onConfirm }: {
             onChange={e => setQty(Math.max(1, Math.min(maxQuantity, Math.trunc(Number(e.target.value)) || 1)))}
             style={{ width: '4rem' }} />
         </label>
-        {byCheck && (
+        {mode === 'check' && (
           <label>{t('Нетто-успехов', 'Net successes')}
             <input type="number" min={0} value={successes}
               onChange={e => setSuccesses(Math.max(0, Math.trunc(Number(e.target.value)) || 0))}
@@ -492,12 +522,18 @@ function SellControl({ unitPrice, maxQuantity, onConfirm }: {
           </label>
         )}
         <span className="price-total">
-          {effectivePercent > 0
-            ? <>{effectivePercent}% · <strong>{preview}</strong> 🪙</>
-            : <span className="error">{t('провал — сделки нет', 'failure — no sale')}</span>}
+          {mode === 'override'
+            ? <><strong>{preview}</strong> 🪙</>
+            : effectivePercent > 0
+              ? <>{effectivePercent}% · <strong>{preview}</strong> 🪙</>
+              : <span className="error">{t('провал — сделки нет', 'failure — no sale')}</span>}
         </span>
-        <button className="primary small" disabled={effectivePercent === 0}
-          onClick={() => onConfirm(qty, byCheck ? { netSuccesses: successes } : { percent })}>
+        <button className="primary small" disabled={!canSell}
+          title={mode === 'override' && !canSell ? t('Нужны цена и причина', 'Price and reason required') : undefined}
+          onClick={() => onConfirm(qty,
+            mode === 'check' ? { netSuccesses: successes }
+              : mode === 'override' ? { priceOverride: ownPriceNum, overrideReason: reason.trim() }
+                : { percent })}>
           {t('Продать', 'Sell')}
         </button>
       </div>

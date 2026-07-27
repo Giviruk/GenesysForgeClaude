@@ -235,11 +235,19 @@ export const api = {
   updateItem: (id: string, itemId: string, patch: { state?: ItemState; quantity?: number }) =>
     request<void>('PATCH', `/api/characters/${id}/items/${itemId}`, patch),
   /**
-   * Продажа: сумму всегда считает сервер от цены каталога. Либо `netSuccesses` (доля по правилу),
-   * либо `percent` для простой продажи без проверки; без обоих — полная цена.
+   * Продажа: сумму всегда считает сервер. Один из способов — `netSuccesses` (доля по правилу),
+   * `percent` (доля цены каталога) или `priceOverride` с `overrideReason` (договорная цена за
+   * штуку). Без всего — полная цена каталога.
    */
   sellItem: (id: string, itemId: string, quantity: number,
-    opts?: { netSuccesses?: number; percent?: number; conditionMultiplier?: number; conditionReason?: string }) =>
+    opts?: {
+      netSuccesses?: number
+      percent?: number
+      priceOverride?: number
+      overrideReason?: string
+      conditionMultiplier?: number
+      conditionReason?: string
+    }) =>
     request<void>('POST', `/api/characters/${id}/items/${itemId}/sell`, { quantity, ...opts }),
   removeItem: (id: string, itemId: string) =>
     request<void>('DELETE', `/api/characters/${id}/items/${itemId}`),

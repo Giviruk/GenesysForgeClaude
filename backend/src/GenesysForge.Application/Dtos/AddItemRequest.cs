@@ -24,14 +24,20 @@ public record AddItemRequest(
 /// <summary>
 /// Продажа предмета. Сумму всегда считает сервер от цены каталога — клиент её не назначает.
 /// <para>
-/// Есть два режима. По проверке (<paramref name="NetSuccesses"/>): провал не продаёт ничего,
-/// 1 успех — 25 %, 2 — 50 %, 3 и больше — 75 % (ROT-ECO-01). Без проверки
-/// (<paramref name="Percent"/>): игрок просто продаёт предмет за указанную долю цены; если не
-/// указано ни то, ни другое, предмет продаётся за полную цену каталога.
+/// Режимов три, и они взаимоисключающие. По проверке (<paramref name="NetSuccesses"/>): провал не
+/// продаёт ничего, 1 успех — 25 %, 2 — 50 %, 3 и больше — 75 % (ROT-ECO-01). Без проверки
+/// (<paramref name="Percent"/>): игрок просто продаёт предмет за указанную долю цены. По
+/// договорной цене (<paramref name="PriceOverride"/>): цена за штуку задаётся вручную и требует
+/// причины. Если не указано ничего, предмет продаётся за полную цену каталога.
 /// </para>
 /// </summary>
 /// <param name="NetSuccesses">Нетто-успехи проверки Переговоров или Уличной смекалки.</param>
 /// <param name="Percent">Доля цены каталога, 0–100, для продажи без проверки.</param>
+/// <param name="PriceOverride">
+/// Цена за единицу, назначенная вместо каталожной (сделка по договорённости). Требует
+/// <paramref name="OverrideReason"/> и целиком попадает в историю персонажа.
+/// </param>
+/// <param name="OverrideReason">Причина назначенной вручную цены.</param>
 /// <param name="ConditionMultiplier">
 /// Явная поправка ведущего за состояние товара. Автоматической скидки правила не дают, поэтому
 /// множитель задаётся вручную и требует <paramref name="ConditionReason"/>.
@@ -40,5 +46,7 @@ public record SellItemRequest(
     int Quantity,
     int? NetSuccesses = null,
     int? Percent = null,
+    int? PriceOverride = null,
+    string? OverrideReason = null,
     double? ConditionMultiplier = null,
     string? ConditionReason = null);

@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Http.Json;
 using GenesysForge.Application.Dtos;
 using GenesysForge.Domain;
+using GenesysForge.Domain.Entities;
 
 namespace GenesysForge.Api.Tests;
 
@@ -163,6 +164,52 @@ public class RotEconomyApiTests(ApiFactory factory) : IClassFixture<ApiFactory>
         Assert.Equal(HttpStatusCode.BadRequest, resp.StatusCode);
         Assert.Equal("trade.percent_invalid",
             (await resp.Content.ReadFromJsonAsync<ErrorResponse>(Json.Options))!.ReasonCode);
+    }
+
+    [Fact]
+    public async Task NegotiatedPrice_PaysExactlyWhatWasAgreed()
+    {
+        var (client, id, item) = await CreateBuyerAsync();
+        var itemId = await BuyAsync(client, id, item.Id, quantity: 2);
+        var afterBuy = await SheetAsync(client, id);
+
+        var sell = await client.PostAsJsonAsync($"/api/characters/{id}/items/{itemId}/sell",
+            new SellItemRequest(2, PriceOverride: 500, OverrideReason: "сделка с гильдией"), Json.Options);
+        Assert.Equal(HttpStatusCode.NoContent, sell.StatusCode);
+
+        // Договорная цена — это цена за штуку, доля к ней не применяется.
+        Assert.Equal(afterBuy.Money + 1000, (await SheetAsync(client, id)).Money);
+    }
+
+    [Fact]
+    public async Task NegotiatedPriceWithoutAReason_IsRejected()
+    {
+        var (client, id, item) = await CreateBuyerAsync();
+        var itemId = await BuyAsync(client, id, item.Id);
+        var afterBuy = await SheetAsync(client, id);
+
+        var resp = await client.PostAsJsonAsync($"/api/characters/{id}/items/{itemId}/sell",
+            new SellItemRequest(1, PriceOverride: 500), Json.Options);
+
+        Assert.Equal(HttpStatusCode.BadRequest, resp.StatusCode);
+        Assert.Equal("trade.override_reason_required",
+            (await resp.Content.ReadFromJsonAsync<ErrorResponse>(Json.Options))!.ReasonCode);
+        Assert.Equal(afterBuy.Money, (await SheetAsync(client, id)).Money);
+    }
+
+    [Fact]
+    public async Task NegotiatedPrice_IsRecordedInHistoryWithItsReason()
+    {
+        var (client, id, item) = await CreateBuyerAsync();
+        var itemId = await BuyAsync(client, id, item.Id);
+
+        await client.PostAsJsonAsync($"/api/characters/{id}/items/{itemId}/sell",
+            new SellItemRequest(1, PriceOverride: 300, OverrideReason: "выкуп у коллекционера"), Json.Options);
+
+        var history = await client.GetFromJsonAsync<List<CharacterAuditEntryDto>>(
+            $"/api/characters/{id}/audit", Json.Options);
+
+        Assert.Contains(history!, e => e.Action == CharacterAuditAction.ItemSold && e.Summary.Contains("300"));
     }
 
     [Fact]
