@@ -10,4 +10,10 @@ public record CharacterItemDto(Guid Id, Guid ItemDefId, string Name, string Name
     /// Позиция выбрана активной бронёй (ROT-CMB-02): только она даёт защиту и поглощение.
     /// Прочая надетая броня продолжает считаться в переносимый вес.
     /// </summary>
-    bool IsActiveArmor = false);
+    bool IsActiveArmor = false,
+    /// <summary>
+    /// Слоты улучшений по таблице книги (ROT-WPN-01/ROT-ARM-01); <c>null</c> — значения нет.
+    /// </summary>
+    int? HardPoints = null,
+    /// <summary>Влияние предмета на проверки навыков: штраф Скрытности у тяжёлой брони и т. п.</summary>
+    IReadOnlyList<ItemCheckModifierDto>? CheckModifiers = null);

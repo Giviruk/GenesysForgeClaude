@@ -55,6 +55,7 @@ public interface IAppDbContext
     DbSet<CharacterAuditEntry> CharacterAuditEntries { get; }
     DbSet<QualityDef> QualityDefs { get; }
     DbSet<ItemQualityValue> ItemQualityValues { get; }
+    DbSet<ItemCheckModifier> ItemCheckModifiers { get; }
     DbSet<RuleTableEntry> RuleTableEntries { get; }
 
     Task<int> SaveChangesAsync(CancellationToken ct = default);

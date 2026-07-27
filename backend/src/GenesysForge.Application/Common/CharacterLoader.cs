@@ -34,6 +34,8 @@ public static class CharacterLoader
             .Include(c => c.Talents).ThenInclude(t => t.TalentDef)
             .Include(c => c.Talents).ThenInclude(t => t.Choices)
             .Include(c => c.Items).ThenInclude(i => i.ItemDef)
+            // Штрафы снаряжения к проверкам нужны и листу, и Game Table (ROT-ARM-01).
+            .Include(c => c.Items).ThenInclude(i => i.ItemDef!.CheckModifiers)
             .Include(c => c.CriticalInjuries)
             .Include(c => c.HeroicConfiguration).ThenInclude(x => x!.ParagonSkillDef)
             .Include(c => c.SignatureWeapon);

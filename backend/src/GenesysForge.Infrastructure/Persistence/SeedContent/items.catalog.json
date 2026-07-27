@@ -505,7 +505,8 @@
   "damage": "+3",
   "crit": "3",
   "rangeRu": "Вплотную",
-  "properties": "Оборонительное 1, Проникающее 3"
+  "properties": "Оборонительное 1, Проникающее 3",
+  "hp": 3
  },
  {
   "code": "shield-bulwark",
@@ -527,7 +528,8 @@
   "damage": "+2",
   "crit": "5",
   "rangeRu": "Вплотную",
-  "properties": "Громоздкое 4, Оборонительное 2, Отражающее 3, Неточное 2, Нокдаун, Укреплённое"
+  "properties": "Громоздкое 4, Оборонительное 2, Отражающее 3, Неточное 2, Нокдаун, Укреплённое",
+  "hp": 2
  },
  {
   "code": "military-pick",
@@ -549,7 +551,8 @@
   "damage": "+1",
   "crit": "2",
   "rangeRu": "Вплотную",
-  "properties": "Проникающее 2"
+  "properties": "Проникающее 2",
+  "hp": 1
  },
  {
   "code": "war-hammer",
@@ -571,7 +574,8 @@
   "damage": "+5",
   "crit": "4",
   "rangeRu": "Вплотную",
-  "properties": "Оглушающее 1, Громоздкое 4, Неточное 1, Нокдаун"
+  "properties": "Оглушающее 1, Громоздкое 4, Неточное 1, Нокдаун",
+  "hp": 2
  },
  {
   "code": "shield-large",
@@ -593,7 +597,8 @@
   "damage": "+1",
   "crit": "5",
   "rangeRu": "Вплотную",
-  "properties": "Оборонительное 2, Отражающее 2, Неточное 2, Нокдаун"
+  "properties": "Оборонительное 2, Отражающее 2, Неточное 2, Нокдаун",
+  "hp": 2
  },
  {
   "code": "mace",
@@ -615,7 +620,8 @@
   "damage": "+3",
   "crit": "4",
   "rangeRu": "Вплотную",
-  "properties": ""
+  "properties": "",
+  "hp": 1
  },
  {
   "code": "greatsword",
@@ -637,7 +643,8 @@
   "damage": "+4",
   "crit": "2",
   "rangeRu": "Вплотную",
-  "properties": "Оборонительное 1, Проникающее 1, Сноровка 3"
+  "properties": "Оборонительное 1, Проникающее 1, Сноровка 3",
+  "hp": 2
  },
  {
   "code": "katar",
@@ -659,7 +666,8 @@
   "damage": "+1",
   "crit": "2",
   "rangeRu": "Вплотную",
-  "properties": "Точное 1"
+  "properties": "Точное 1",
+  "hp": 1
  },
  {
   "code": "dagger",
@@ -681,7 +689,8 @@
   "damage": "+2",
   "crit": "3",
   "rangeRu": "Вплотную",
-  "properties": "Точное 1"
+  "properties": "Точное 1",
+  "hp": 1
  },
  {
   "code": "spear",
@@ -703,7 +712,8 @@
   "damage": "+3",
   "crit": "3",
   "rangeRu": "Вплотную",
-  "properties": "Точное 1"
+  "properties": "Точное 1",
+  "hp": 1
  },
  {
   "code": "spear-light",
@@ -725,7 +735,8 @@
   "damage": "+2",
   "crit": "4",
   "rangeRu": "Вплотную",
-  "properties": "Точное 1, Оборонительное 1"
+  "properties": "Точное 1, Оборонительное 1",
+  "hp": 1
  },
  {
   "code": "sword",
@@ -747,7 +758,8 @@
   "damage": "+3",
   "crit": "2",
   "rangeRu": "Вплотную",
-  "properties": "Оборонительное 1"
+  "properties": "Оборонительное 1",
+  "hp": 1
  },
  {
   "code": "pike",
@@ -769,7 +781,8 @@
   "damage": "+4",
   "crit": "4",
   "rangeRu": "Короткая",
-  "properties": "Подготовка 1"
+  "properties": "Подготовка 1",
+  "hp": 2
  },
  {
   "code": "staff",
@@ -791,7 +804,8 @@
   "damage": "+2",
   "crit": "4",
   "rangeRu": "Вплотную",
-  "properties": "Оборонительное 1"
+  "properties": "Оборонительное 1",
+  "hp": 1
  },
  {
   "code": "greataxe",
@@ -813,7 +827,8 @@
   "damage": "+4",
   "crit": "3",
   "rangeRu": "Вплотную",
-  "properties": "Громоздкое 3, Проникающее 2, Высококритичное 1"
+  "properties": "Громоздкое 3, Проникающее 2, Высококритичное 1",
+  "hp": 2
  },
  {
   "code": "axe",
@@ -835,7 +850,8 @@
   "damage": "+3",
   "crit": "3",
   "rangeRu": "Вплотную",
-  "properties": "Высококритичное 1"
+  "properties": "Высококритичное 1",
+  "hp": 1
  },
  {
   "code": "flail",
@@ -857,7 +873,8 @@
   "damage": "+4",
   "crit": "3",
   "rangeRu": "Вплотную",
-  "properties": "Громоздкое 3, Сцепленное 1, Сноровка 3"
+  "properties": "Громоздкое 3, Сцепленное 1, Сноровка 3",
+  "hp": 2
  },
  {
   "code": "cestus",
@@ -879,7 +896,8 @@
   "damage": "+1",
   "crit": "4",
   "rangeRu": "Вплотную",
-  "properties": "Дезориентирующее 3"
+  "properties": "Дезориентирующее 3",
+  "hp": 0
  },
  {
   "code": "shield",
@@ -901,7 +919,8 @@
   "damage": "+0",
   "crit": "6",
   "rangeRu": "Вплотную",
-  "properties": "Оборонительное 1, Отражающее 1, Неточное 1, Нокдаун"
+  "properties": "Оборонительное 1, Отражающее 1, Неточное 1, Нокдаун",
+  "hp": 1
  },
  {
   "code": "crossbow",
@@ -923,7 +942,8 @@
   "damage": "7",
   "crit": "2",
   "rangeRu": "Средняя",
-  "properties": "Проникающее 2, Подготовка 1"
+  "properties": "Проникающее 2, Подготовка 1",
+  "hp": 1
  },
  {
   "code": "longbow",
@@ -945,7 +965,8 @@
   "damage": "8",
   "crit": "3",
   "rangeRu": "Длинная",
-  "properties": "Сноровка 3"
+  "properties": "Сноровка 3",
+  "hp": 2
  },
  {
   "code": "bow",
@@ -967,7 +988,8 @@
   "damage": "7",
   "crit": "3",
   "rangeRu": "Средняя",
-  "properties": "Сноровка 2"
+  "properties": "Сноровка 2",
+  "hp": 1
  },
  {
   "code": "throwing-axe",
@@ -989,7 +1011,8 @@
   "damage": "+2",
   "crit": "3",
   "rangeRu": "Короткая",
-  "properties": "Неточное 1, Ограниченный боезапас 1, Высококритичное 1"
+  "properties": "Неточное 1, Ограниченный боезапас 1, Высококритичное 1",
+  "hp": 1
  },
  {
   "code": "crossbow-repeating",
@@ -1011,7 +1034,8 @@
   "damage": "6",
   "crit": "2",
   "rangeRu": "Короткая",
-  "properties": "Сцепленное 2, Подготовка 2"
+  "properties": "Сцепленное 2, Подготовка 2",
+  "hp": 2
  },
  {
   "code": "sling",
@@ -1033,7 +1057,8 @@
   "damage": "4",
   "crit": "4",
   "rangeRu": "Средняя",
-  "properties": "Дезориентирующее 2, Подготовка 1"
+  "properties": "Дезориентирующее 2, Подготовка 1",
+  "hp": 0
  },
  {
   "code": "crossbow-hand",
@@ -1055,7 +1080,8 @@
   "damage": "5",
   "crit": "2",
   "rangeRu": "Короткая",
-  "properties": "Проникающее 1, Подготовка 1"
+  "properties": "Проникающее 1, Подготовка 1",
+  "hp": 0
  },
  {
   "code": "crossbow-heavy",
@@ -1077,7 +1103,8 @@
   "damage": "8",
   "crit": "2",
   "rangeRu": "Длинная",
-  "properties": "Громоздкое 3, Проникающее 3, Подготовка 2"
+  "properties": "Громоздкое 3, Проникающее 3, Подготовка 2",
+  "hp": 2
  },
  {
   "code": "brigandine",
@@ -1094,7 +1121,8 @@
   "rarity": 5,
   "desc": "Защитное снаряжение.",
   "descEn": "Protective gear.",
-  "source": "Realms of Terrinoth, с. 97"
+  "source": "Realms of Terrinoth, с. 97",
+  "hp": 1
  },
  {
   "code": "leather",
@@ -1111,7 +1139,8 @@
   "rarity": 3,
   "desc": "Защитное снаряжение.",
   "descEn": "Protective gear.",
-  "source": "Realms of Terrinoth, с. 97"
+  "source": "Realms of Terrinoth, с. 97",
+  "hp": 1
  },
  {
   "code": "chainmail",
@@ -1128,7 +1157,15 @@
   "rarity": 4,
   "desc": "Защитное снаряжение.",
   "descEn": "Protective gear.",
-  "source": "Realms of Terrinoth, с. 97"
+  "source": "Realms of Terrinoth, с. 97",
+  "hp": 2,
+  "modifiers": [
+   {
+    "kind": "AddSetback",
+    "skill": "Stealth",
+    "value": 1
+   }
+  ]
  },
  {
   "code": "plate",
@@ -1145,7 +1182,15 @@
   "rarity": 6,
   "desc": "Защитное снаряжение.",
   "descEn": "Protective gear.",
-  "source": "Realms of Terrinoth, с. 97"
+  "source": "Realms of Terrinoth, с. 97",
+  "hp": 2,
+  "modifiers": [
+   {
+    "kind": "AddSetback",
+    "skill": "Stealth",
+    "value": 2
+   }
+  ]
  },
  {
   "code": "padded",
@@ -1162,7 +1207,8 @@
   "rarity": 2,
   "desc": "Защитное снаряжение.",
   "descEn": "Protective gear.",
-  "source": "Realms of Terrinoth, с. 97"
+  "source": "Realms of Terrinoth, с. 97",
+  "hp": 0
  },
  {
   "code": "heavy-robes",
@@ -1179,7 +1225,8 @@
   "rarity": 0,
   "desc": "Защитное снаряжение.",
   "descEn": "Protective gear.",
-  "source": "Realms of Terrinoth, с. 97"
+  "source": "Realms of Terrinoth, с. 97",
+  "hp": 1
  },
  {
   "code": "scale",
@@ -1196,7 +1243,15 @@
   "rarity": 4,
   "desc": "Защитное снаряжение.",
   "descEn": "Protective gear.",
-  "source": "Realms of Terrinoth, с. 97"
+  "source": "Realms of Terrinoth, с. 97",
+  "hp": 1,
+  "modifiers": [
+   {
+    "kind": "AddSetback",
+    "skill": "Stealth",
+    "value": 1
+   }
+  ]
  },
  {
   "code": "alchemists-lab-supplies",

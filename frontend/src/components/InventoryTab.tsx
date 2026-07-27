@@ -1,9 +1,11 @@
 import { useMemo, useState } from 'react'
 import { api } from '../api/client'
-import type { CharacterSheet, ItemDef, ItemKind, ItemState, Reference, SheetItem } from '../api/types'
+import type {
+  CharacterSheet, ItemCheckModifier, ItemDef, ItemKind, ItemState, Reference, SheetItem,
+} from '../api/types'
 import {
-  CURRENCY_LABEL, ITEM_KIND_LABELS, ITEM_STATE_LABELS, localizedDescription, localizedName, resolveWeaponSkillName,
-  secondaryName,
+  CHARACTERISTIC_LABELS, CURRENCY_LABEL, ITEM_KIND_LABELS, ITEM_STATE_LABELS, localizedDescription, localizedName,
+  resolveWeaponSkillName, secondaryName,
 } from '../utils/labels'
 import { itemTags } from '../data/itemQualities'
 import { DicePoolView } from './DicePoolView'
@@ -267,6 +269,22 @@ function ShopRow({ item, money, run, sheetId, open, onToggle }: {
   )
 }
 
+/**
+ * Человекочитаемый штраф снаряжения: «+1 помеха к Скрытности» (ROT-ARM-01). Имя навыка берётся
+ * из листа, чтобы в русской локали не показывать английское «Stealth».
+ */
+function checkModifierText(m: ItemCheckModifier, sheet: CharacterSheet): string {
+  const skill = sheet.skills.find(s => s.name === m.skillName)
+  const target = skill
+    ? localizedName(skill)
+    : m.skillName || (m.characteristic
+      ? CHARACTERISTIC_LABELS[m.characteristic]
+      : t('всем проверкам', 'all checks'))
+  const sign = m.kind === 'AddSetback' ? '+' : '−'
+  const body = t(`${sign}${m.value} помех к «${target}»`, `${sign}${m.value} setback to ${target}`)
+  return m.condition ? `${body} — ${m.condition}` : body
+}
+
 function InventoryCard({ item, sheet, skillNames, run, reference, sellOpen, onToggleSell }: {
   item: SheetItem; sheet: CharacterSheet; skillNames: string[]; run: Run; reference: Reference
   sellOpen: boolean; onToggleSell: () => void
@@ -294,6 +312,8 @@ function InventoryCard({ item, sheet, skillNames, run, reference, sellOpen, onTo
           <span className="muted small-text">
             {secondaryName(item) && ` · ${secondaryName(item)}`}
             {` · ${ITEM_KIND_LABELS[item.kind]}`}{item.price > 0 && ` · ${item.price} 🪙`}
+            {/* Слоты улучшений берутся из таблицы книги; null — значения нет (ROT-ARM-01). */}
+            {item.hardPoints != null && ` · HP ${item.hardPoints}`}
           </span>
         </div>
         <div className="inv-card-qty">
@@ -321,6 +341,22 @@ function InventoryCard({ item, sheet, skillNames, run, reference, sellOpen, onTo
           {item.state === 'equipped' && item.kind === 'armor' && !item.isActiveArmor
             && t('(не действует — активна другая броня, эта даёт только вес)',
               '(inactive — another armor is active; this one only adds load)')}
+        </div>
+      )}
+
+      {/* Штраф снаряжения к проверкам виден на карточке, а не только в пуле навыка (ROT-ARM-01). */}
+      {item.checkModifiers?.length > 0 && (
+        <div className="muted small-text">
+          {item.checkModifiers.map((m, i) => (
+            <span key={i}>
+              {i > 0 && ' · '}
+              {checkModifierText(m, sheet)}
+              {m.requiresWorn && item.state !== 'equipped'
+                && t(' (не действует — не надето)', ' (inactive — not worn)')}
+              {m.requiresWorn && item.state === 'equipped' && item.kind === 'armor' && !item.isActiveArmor
+                && t(' (не действует — активна другая броня)', ' (inactive — another armor is active)')}
+            </span>
+          ))}
         </div>
       )}
 
@@ -388,7 +424,8 @@ function WeaponLine({ item, sheet, skill, skillLabel, reference }: {
       {item.rangeBand && <span className="weapon-stat">{item.rangeBand}</span>}
       {skill ? (
         <span className="weapon-pool" title={t(`Бросок: ${skillLabel}`, `Roll: ${skillLabel}`)}>
-          <DicePoolView pool={skill.pool} /> <span className="muted small-text">{skillLabel}</span>
+          <DicePoolView pool={skill.pool} setback={skill.setbackDice} />
+          {' '}<span className="muted small-text">{skillLabel}</span>
         </span>
       ) : item.skillName ? (
         <span className="muted small-text">{t(`навык ${skillLabel} не освоен`, `skill ${skillLabel} not trained`)}</span>
@@ -398,7 +435,11 @@ function WeaponLine({ item, sheet, skill, skillLabel, reference }: {
         kind: 'combat',
         title: itemLabel,
         skillLabel: skill ? skillLabel : null,
-        basePool: skill ? { ability: skill.pool.ability, proficiency: skill.pool.proficiency } : {},
+        // Перегруз мешает и в бою (ROT-EQP-01), поэтому помехи навыка едут в атаку так же,
+        // как в обычную проверку.
+        basePool: skill
+          ? { ability: skill.pool.ability, proficiency: skill.pool.proficiency, setback: skill.setbackDice }
+          : {},
         damage: item.damage,
         brawn: sheet.characteristics.brawn,
         crit: item.crit,

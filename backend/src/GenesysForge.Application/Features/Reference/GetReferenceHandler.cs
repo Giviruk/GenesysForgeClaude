@@ -64,6 +64,7 @@ public class GetReferenceHandler(IAppDbContext db) : IQueryHandler<GetReferenceQ
         // Материализуем с навигацией Qualities → QualityDef, затем маппим в памяти (ToDto тянет навигацию).
         var itemDefs = await db.ItemDefs.AsNoTracking()
             .Include(i => i.Qualities).ThenInclude(v => v.QualityDef)
+            .Include(i => i.CheckModifiers)
             .Where(i => i.System == system && !i.Retired
                 && (i.OwnerUserId == null
                     || (i.OwnerUserId == userId

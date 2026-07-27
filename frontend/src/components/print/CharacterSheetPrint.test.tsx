@@ -45,6 +45,8 @@ const sheet = {
       pool: { ability: 1, proficiency: 1 },
       nextRankCost: 10,
       freeRanks: 0,
+      setbackDice: 0,
+      setbackSources: [],
     },
     {
       skillDefId: 'skill-melee',
@@ -57,6 +59,12 @@ const sheet = {
       pool: { ability: 0, proficiency: 2 },
       nextRankCost: 15,
       freeRanks: 0,
+      // Латы и перегруз: помехи печатаются вместе с пулом (ROT-ARM-01).
+      setbackDice: 2,
+      setbackSources: [
+        { sourceType: 'Item', sourceName: 'Plate', sourceNameRu: 'Латы', setback: 1, condition: '' },
+        { sourceType: 'Encumbrance', sourceName: 'Encumbered', sourceNameRu: 'Перегруз', setback: 1, condition: '' },
+      ],
     },
   ],
   talents: [],
@@ -117,6 +125,9 @@ describe('CharacterSheetPrint', () => {
     expect(screen.queryByText('Меч (Sword)')).toBeNull()
     expect(container.querySelector('.sheet-weapon-pool .dice-pool')
       ?.getAttribute('title')).toBe('2 мастерства + 0 способности')
+    // Помехи навыка печатаются вместе с пулом: и в таблице навыков, и в блоке оружия (ROT-ARM-01).
+    expect(container.querySelectorAll('.sheet-weapon-pool .die.setback')).toHaveLength(2)
+    expect(container.querySelectorAll('.die.setback').length).toBeGreaterThanOrEqual(4)
     expect(container.querySelectorAll('.sheet-stat')).toHaveLength(12)
     expect(screen.getByRole('heading', { name: 'Общие' })).toBeTruthy()
     expect(screen.getByRole('heading', { name: 'Боевые' })).toBeTruthy()

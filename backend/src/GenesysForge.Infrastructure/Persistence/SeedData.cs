@@ -97,14 +97,38 @@ public static class SeedData
                 () => { row.DescriptionEn = def.DescriptionEn; row.SafeDescription = def.SafeDescription; }));
         // Retired синхронизируется из каталога: встроенная строка выводится из активных выборов,
         // но не удаляется — на неё уже могут ссылаться инвентари, NPC и экспорты.
-        SyncBuiltinByCode(db, db.ItemDefs.Where(x => x.OwnerUserId == null && x.Code != ""), items,
+        // Каталог авторитетен и для книжных чисел предмета: слоты улучшений и штрафы к проверкам
+        // (ROT-ARM-01) обязаны доехать до уже засиженной базы, иначе исправление увидят только новые.
+        SyncBuiltinByCode(db,
+            db.ItemDefs.Include(x => x.CheckModifiers).Where(x => x.OwnerUserId == null && x.Code != ""), items,
             (row, def) => Assign(
                 row.DescriptionEn != def.DescriptionEn || row.SafeDescription != def.SafeDescription
-                || row.Retired != def.Retired,
+                || row.Retired != def.Retired || row.HardPoints != def.HardPoints
+                || !CheckModifiersMatch(row, def),
                 () =>
                 {
                     row.DescriptionEn = def.DescriptionEn; row.SafeDescription = def.SafeDescription;
                     row.Retired = def.Retired;
+                    row.HardPoints = def.HardPoints;
+                    if (!CheckModifiersMatch(row, def))
+                    {
+                        // Через DbSet, а не через навигацию: у строки с уже проставленным Id EF
+                        // считает добавление в коллекцию изменением существующей записи и шлёт
+                        // UPDATE несуществующей строки вместо INSERT.
+                        db.ItemCheckModifiers.RemoveRange(row.CheckModifiers);
+                        foreach (var m in def.CheckModifiers)
+                            db.ItemCheckModifiers.Add(new ItemCheckModifier
+                            {
+                                Id = Guid.NewGuid(),
+                                ItemDefId = row.Id,
+                                Kind = m.Kind,
+                                SkillName = m.SkillName,
+                                Characteristic = m.Characteristic,
+                                Value = m.Value,
+                                RequiresWorn = m.RequiresWorn,
+                                Condition = m.Condition,
+                            });
+                    }
                 }));
         SyncBuiltinByCode(db, db.QualityDefs.Where(x => x.Code != ""), qualities,
             (row, def) => Assign(row.DescriptionEn != def.DescriptionEn || row.SafeDescription != def.SafeDescription,
@@ -546,6 +570,18 @@ public static class SeedData
             }
 
         return changed;
+    }
+
+    /// <summary>Совпадают ли модификаторы проверок строки и каталога (порядок не важен).</summary>
+    private static bool CheckModifiersMatch(ItemDef row, ItemDef def)
+    {
+        if (row.CheckModifiers.Count != def.CheckModifiers.Count) return false;
+        static IEnumerable<(CheckModifierKind, string, CharacteristicType?, int, bool, string)> Key(ItemDef x) =>
+            x.CheckModifiers
+                .Select(m => (m.Kind, m.SkillName, m.Characteristic, m.Value, m.RequiresWorn, m.Condition))
+                .OrderBy(m => m.SkillName, StringComparer.Ordinal)
+                .ThenBy(m => (int)m.Kind);
+        return Key(row).SequenceEqual(Key(def));
     }
 
     /// <summary>Сравнивает дочерние коллекции архетипа (способности/стартовые навыки) с каталогом по порядку.</summary>
