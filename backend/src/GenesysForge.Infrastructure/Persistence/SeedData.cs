@@ -112,11 +112,15 @@ public static class SeedData
                     row.HardPoints = def.HardPoints;
                     if (!CheckModifiersMatch(row, def))
                     {
-                        row.CheckModifiers.Clear();
+                        // Через DbSet, а не через навигацию: у строки с уже проставленным Id EF
+                        // считает добавление в коллекцию изменением существующей записи и шлёт
+                        // UPDATE несуществующей строки вместо INSERT.
+                        db.ItemCheckModifiers.RemoveRange(row.CheckModifiers);
                         foreach (var m in def.CheckModifiers)
-                            row.CheckModifiers.Add(new ItemCheckModifier
+                            db.ItemCheckModifiers.Add(new ItemCheckModifier
                             {
                                 Id = Guid.NewGuid(),
+                                ItemDefId = row.Id,
                                 Kind = m.Kind,
                                 SkillName = m.SkillName,
                                 Characteristic = m.Characteristic,
