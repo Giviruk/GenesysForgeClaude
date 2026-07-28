@@ -620,14 +620,13 @@ function WeaponLine({ item, sheet, skill, skillLabel, reference, run }: {
   )
 }
 
-/** Покупка по каталожной цене: клиент не назначает сумму, только количество (ROT-ECO-01). */
 /** Доли цены при торге: от половины до двойной, четвертями (ROT-ECO-01). */
 const PURCHASE_PERCENTS = [50, 75, 100, 125, 150, 175, 200]
 
 /**
- * Покупка. Способа два и они взаимоисключающие: доля цены каталога (торг, наценка обстановки)
- * и договорная цена за штуку с обязательной причиной. Сумму в обоих случаях считает сервер —
- * здесь только предпросмотр, как и в продаже.
+ * Покупка. Переключателя режимов нет: доля цены и договорная цена лежат рядом, а способ выбирает
+ * само поле — пока цена за штуку пустая, покупка идёт по доле. Сумму в обоих случаях считает
+ * сервер, здесь только предпросмотр.
  */
 function BuyControl({ unitPrice, money, onConfirm }: {
   unitPrice: number
@@ -637,53 +636,40 @@ function BuyControl({ unitPrice, money, onConfirm }: {
   }) => void
 }) {
   const [qty, setQty] = useState(1)
-  const [mode, setMode] = useState<'direct' | 'override'>('direct')
   const [percent, setPercent] = useState(100)
   const [ownPrice, setOwnPrice] = useState('')
   const [reason, setReason] = useState('')
 
+  const hasOwnPrice = ownPrice.trim() !== ''
   const ownPriceNum = Math.max(0, Math.trunc(Number(ownPrice)) || 0)
   // Доля берётся от цены единицы и округляется вниз — тем же правилом, что и на сервере.
-  const effectiveUnit = mode === 'override' ? ownPriceNum : Math.floor(unitPrice * percent / 100)
+  const effectiveUnit = hasOwnPrice ? ownPriceNum : Math.floor(unitPrice * percent / 100)
   const total = effectiveUnit * qty
   const tooExpensive = total > money
-  const needsReason = mode === 'override' && (ownPrice.trim() === '' || reason.trim() === '')
+  const needsReason = hasOwnPrice && reason.trim() === ''
 
   return (
     <div className="price-control">
-      <div className="inline-form">
-        {([
-          ['direct', t('Доля цены', 'Price fraction')],
-          ['override', t('Своя цена', 'Own price')],
-        ] as const).map(([value, label]) => (
-          <label key={value}>
-            <input type="radio" name="buy-mode" checked={mode === value}
-              onChange={() => setMode(value)} /> {label}
-          </label>
+      <div className="price-mults">
+        {PURCHASE_PERCENTS.map(m => (
+          <button key={m} className={!hasOwnPrice && percent === m ? 'chip active' : 'chip'}
+            disabled={hasOwnPrice}
+            title={hasOwnPrice ? t('Задана своя цена', 'An own price is set') : undefined}
+            onClick={() => setPercent(m)}>{m}%</button>
         ))}
       </div>
 
-      {mode === 'direct' && (
-        <div className="price-mults">
-          {PURCHASE_PERCENTS.map(m => (
-            <button key={m} className={percent === m ? 'chip active' : 'chip'}
-              onClick={() => setPercent(m)}>{m}%</button>
-          ))}
-        </div>
-      )}
-
-      {mode === 'override' && (
-        <div className="price-row">
-          <label>{t('Цена/шт', 'Price/unit')}
-            <input type="number" min={0} value={ownPrice}
-              onChange={e => setOwnPrice(e.target.value)} style={{ width: '5rem' }} />
-          </label>
-          <label>{t('Причина', 'Reason')}
-            <input value={reason} maxLength={200} placeholder={t('например, скидка от гильдии', 'e.g. a guild discount')}
-              onChange={e => setReason(e.target.value)} />
-          </label>
-        </div>
-      )}
+      <div className="price-row">
+        <label>{t('Своя цена/шт', 'Own price/unit')}
+          <input type="number" min={0} value={ownPrice} placeholder={t('по доле', 'by fraction')}
+            onChange={e => setOwnPrice(e.target.value)} style={{ width: '5rem' }} />
+        </label>
+        <label>{t('Причина', 'Reason')}
+          <input value={reason} maxLength={200} disabled={!hasOwnPrice}
+            placeholder={t('например, скидка от гильдии', 'e.g. a guild discount')}
+            onChange={e => setReason(e.target.value)} />
+        </label>
+      </div>
 
       <div className="price-row">
         <label>{t('Кол-во', 'Qty')}
@@ -692,20 +678,20 @@ function BuyControl({ unitPrice, money, onConfirm }: {
             style={{ width: '4rem' }} />
         </label>
         <span className="price-total">
-          {mode === 'direct' && percent !== 100 && `${percent}% · `}
+          {!hasOwnPrice && percent !== 100 && `${percent}% · `}
           {t('Цена', 'Price')} {effectiveUnit} × {qty} = <strong className={tooExpensive ? 'error' : ''}>{total}</strong> 🪙
         </span>
         <button className="primary small" disabled={tooExpensive || needsReason}
           title={needsReason
-            ? t('Нужны цена и причина', 'Price and reason required')
+            ? t('Для своей цены нужна причина', 'An own price needs a reason')
             : tooExpensive ? t('Недостаточно монет', 'Not enough coins') : undefined}
-          onClick={() => onConfirm(qty, mode === 'override'
+          onClick={() => onConfirm(qty, hasOwnPrice
             ? { priceOverride: ownPriceNum, overrideReason: reason.trim() }
             : { pricePercent: percent })}>{t('Купить', 'Buy')}</button>
       </div>
       <p className="hint small-text">
-        {t('Доля берётся от цены экземпляра за штуку и округляется вниз; итог считает сервер.',
-          'The fraction applies to the instance unit price and rounds down; the server computes the total.')}
+        {t('Доля берётся от цены экземпляра за штуку и округляется вниз; итог считает сервер. Своя цена отменяет долю и требует причины.',
+          'The fraction applies to the instance unit price and rounds down; the server computes the total. An own price overrides the fraction and needs a reason.')}
       </p>
     </div>
   )
