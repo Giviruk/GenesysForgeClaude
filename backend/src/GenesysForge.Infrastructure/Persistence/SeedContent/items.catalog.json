@@ -48,7 +48,8 @@
     "rangeRu": "Средняя",
     "properties": "",
     "traits": [
-      "Ranged"
+      "Ranged",
+      "OneHanded"
     ]
   },
   {
@@ -913,7 +914,8 @@
     "hp": 1,
     "traits": [
       "Ranged",
-      "BowOrCrossbow"
+      "BowOrCrossbow",
+      "TwoHanded"
     ]
   },
   {
@@ -940,7 +942,8 @@
     "hp": 2,
     "traits": [
       "Ranged",
-      "BowOrCrossbow"
+      "BowOrCrossbow",
+      "TwoHanded"
     ]
   },
   {
@@ -967,7 +970,8 @@
     "hp": 1,
     "traits": [
       "Ranged",
-      "BowOrCrossbow"
+      "BowOrCrossbow",
+      "TwoHanded"
     ]
   },
   {
@@ -1044,7 +1048,8 @@
     "hp": 2,
     "traits": [
       "Ranged",
-      "BowOrCrossbow"
+      "BowOrCrossbow",
+      "TwoHanded"
     ]
   },
   {
@@ -1070,7 +1075,8 @@
     "properties": "Дезориентирующее 2, Подготовка 1",
     "hp": 0,
     "traits": [
-      "Ranged"
+      "Ranged",
+      "OneHanded"
     ]
   },
   {
@@ -1097,7 +1103,8 @@
     "hp": 0,
     "traits": [
       "Ranged",
-      "BowOrCrossbow"
+      "BowOrCrossbow",
+      "OneHanded"
     ]
   },
   {
@@ -1124,7 +1131,8 @@
     "hp": 2,
     "traits": [
       "Ranged",
-      "BowOrCrossbow"
+      "BowOrCrossbow",
+      "TwoHanded"
     ]
   },
   {
@@ -2027,7 +2035,8 @@
     "properties": "Точное 1, Громоздкое 3, Превосходное, Сноровка 3",
     "traits": [
       "Ranged",
-      "BowOrCrossbow"
+      "BowOrCrossbow",
+      "TwoHanded"
     ]
   },
   {

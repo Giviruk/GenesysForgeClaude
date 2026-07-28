@@ -85,6 +85,17 @@ public static class CharacterDerived
         && (def.Kind != ItemKind.Armor || item.Id == c.ActiveArmorCharacterItemId);
 
     /// <summary>
+    /// Что персонаж уже держит и носит: вход для проверки свободных рук и лимита брони
+    /// (ROT-EQP-01). Метнутое оружие в руках не считается — оно лежит у цели.
+    /// </summary>
+    /// <param name="exceptItemId">Позиция, которую как раз надевают: её исключают из занятого.</param>
+    public static List<EquippedItemInput> EquippedInputs(Character c, Guid? exceptItemId = null) =>
+        [.. c.Items
+            .Where(i => i.ItemDef is not null && i.State == ItemState.Equipped && !i.IsThrown
+                && i.Id != exceptItemId)
+            .Select(i => new EquippedItemInput(i.Id, i.ItemDef!.Kind, i.ItemDef.FormTraits, i.ItemDef.Name))];
+
+    /// <summary>
     /// Базовая защита от видовых способностей, действующих для этого персонажа (Nimble).
     /// У вида с обязательным выбором учитывается только сделанный выбор.
     /// </summary>

@@ -80,7 +80,6 @@ public static class DependencyInjection
         services.AddScoped<ICommandHandler<InstallAttachmentCommand, Unit>, InstallAttachmentHandler>();
         services.AddScoped<ICommandHandler<DetachAttachmentCommand, Unit>, DetachAttachmentHandler>();
         services.AddScoped<ICommandHandler<RemoveAttachmentCommand, Unit>, RemoveAttachmentHandler>();
-        services.AddScoped<ICommandHandler<SetActiveArmorCommand, Unit>, SetActiveArmorHandler>();
         services.AddScoped<ICommandHandler<SetItemThrownCommand, Unit>, SetItemThrownHandler>();
         services.AddScoped<ICommandHandler<AddCriticalInjuryCommand, Guid>, AddCriticalInjuryHandler>();
         services.AddScoped<ICommandHandler<RemoveCriticalInjuryCommand, Unit>, RemoveCriticalInjuryHandler>();

@@ -81,18 +81,22 @@ public class RotSkillSetbackApiTests(ApiFactory factory) : IClassFixture<ApiFact
     }
 
     [Fact]
-    public async Task InactiveWornArmor_DoesNotPenaliseStealthTwice()
+    public async Task SecondArmor_CannotBeWorn_SoStealthIsPenalisedOnce()
     {
         var (client, id, reference) = await CreateCharacterAsync();
         var plate = reference.Items.Single(i => i.Name == "Plate" && i.Kind == ItemKind.Armor);
         var chainmail = reference.Items.Single(i => i.Name == "Chainmail" && i.Kind == ItemKind.Armor);
 
         await AddAsync(client, id, plate.Id);
-        await AddAsync(client, id, chainmail.Id);
+        // Вторую броню надеть нельзя вовсе (ROT-EQP-01) — двойного штрафа не бывает по построению.
+        var second = await client.PostAsJsonAsync($"/api/characters/{id}/items",
+            new AddItemRequest(chainmail.Id, 1, ItemState.Equipped, Free: true), Json.Options);
+        Assert.Equal(HttpStatusCode.BadRequest, second.StatusCode);
+        await AddAsync(client, id, chainmail.Id, ItemState.Backpack);
 
         var sheet = await SheetAsync(client, id);
 
-        // Активна первая надетая (латы): штраф ровно её, кольчуга даёт только вес (ROT-CMB-02).
+        // Штраф ровно от надетых лат; кольчуга в рюкзаке даёт только вес.
         var stealth = Skill(sheet, "Stealth");
         Assert.Equal(2, stealth.SetbackDice);
         Assert.Equal(["Plate"], stealth.SetbackSources!.Select(s => s.SourceName));

@@ -41,6 +41,12 @@ public class AddItemHandler(IAppDbContext db) : ICommandHandler<AddItemCommand, 
         var craftsmanship = CraftsmanshipRules.FixedFor(itemDef.Code) ?? req.Craftsmanship;
         CraftsmanshipRules.EnsureApplicable(itemDef.Kind, craftsmanship);
 
+        // Больше одной брони и больше двух рук не бывает (ROT-EQP-01): предмет, добавленный сразу
+        // «в руки», проверяется теми же правилами, что и надевание уже купленного — и до списания.
+        if (req.State == ItemState.Equipped)
+            EquipmentSlotRules.EnsureCanEquip(
+                itemDef.Kind, itemDef.FormTraits, CharacterDerived.EquippedInputs(c));
+
         var listedUnitPrice = CraftsmanshipRules.Price(itemDef.Price, craftsmanship);
         var unitPrice = req.PriceOverride ?? listedUnitPrice;
         var percent = req.PricePercent ?? 100;
@@ -69,9 +75,8 @@ public class AddItemHandler(IAppDbContext db) : ICommandHandler<AddItemCommand, 
         };
         db.CharacterItems.Add(item);
         c.Items.Add(item);
-        // Первая надетая броня становится активной сама; вторая молча выбор не переключает (ROT-CMB-02).
-        if (item.State == ItemState.Equipped && itemDef.Kind == ItemKind.Armor
-            && c.ActiveArmorCharacterItemId is null)
+        // Надетая броня и есть активная: носят ровно одну, поэтому выбирать не из чего (ROT-CMB-02).
+        if (item.State == ItemState.Equipped && itemDef.Kind == ItemKind.Armor)
             c.ActiveArmorCharacterItemId = item.Id;
 
         var costNote = charge.Total > 0

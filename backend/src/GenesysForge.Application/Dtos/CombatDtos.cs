@@ -52,8 +52,6 @@ public record ResolveAttackResponse(
     /// <summary>Прибавка к броску критического ранения от Высококритичного.</summary>
     int CriticalRollBonus = 0);
 
-/// <summary>Выбор активной брони (ROT-CMB-02). <c>null</c> снимает выбор.</summary>
-public record SetActiveArmorRequest(Guid? CharacterItemId);
 
 /// <summary>
 /// Метнуть оружие или подобрать его обратно (ROT-WPN-01). Экземпляр не исчезает: он недоступен,

@@ -85,6 +85,22 @@ describe('Инвентарь: качество изготовления (ROT-WPN
     expect(card).toContain('Шипы: правило решает ведущий.')
   })
 
+  it('гасит «Используется», когда мест уже нет', () => {
+    // Латы надеты, вторая броня в рюкзаке: надеть её нельзя — это правило, а не подсказка.
+    const secondArmor = {
+      ...ironPlate, id: 'item-2', name: 'Chainmail', nameRu: 'Кольчуга', state: 'backpack',
+      isActiveArmor: false, craftsmanship: 'steel', adjustments: [], attachments: [],
+    } as unknown as SheetItem
+    const twoArmors = { ...sheet, items: [ironPlate, secondArmor] } as unknown as CharacterSheet
+    render(<InventoryTab sheet={twoArmors} reference={reference} onError={() => {}}
+      refresh={() => Promise.resolve()} />)
+
+    const equipButtons = screen.getAllByRole('button', { name: 'Используется' })
+    // Первая карточка — уже надетые латы, вторая — кольчуга в рюкзаке.
+    expect((equipButtons[1] as HTMLButtonElement).disabled).toBe(true)
+    expect((equipButtons[1] as HTMLButtonElement).title).toContain('Уже надета другая броня')
+  })
+
   it('покупает с выбранной работой и показывает её цену', async () => {
     render(<InventoryTab sheet={sheet} reference={reference} onError={() => {}}
       refresh={() => Promise.resolve()} />)
