@@ -322,6 +322,11 @@ export interface Spell {
    * По нему считается скидка священного символа (ROT-MAG-IMP-01).
    */
   restrictedSkill: string
+  /**
+   * Эффект можно добавлять к одному заклинанию несколько раз, каждый раз повышая сложность:
+   * Дистанция удлиняет дальность на категорию за раз, Размер — силуэт.
+   */
+  repeatable: boolean
 }
 
 export type ArchetypeAbilityAutomationKind = 'passive' | 'activationCost' | 'timedEffect' | 'manual' | 'requiresGmDecision'

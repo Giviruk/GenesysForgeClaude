@@ -182,6 +182,29 @@ public class ImplementRulesTests
         Assert.Equal(2, result.Discounts.Count);
     }
 
+    /// <summary>
+    /// Скидка даётся один раз на эффект: у фолианта с выбранной Дистанцией бесплатно только
+    /// первое добавление, второе стоит полную надбавку — как и у посоха.
+    /// </summary>
+    [Fact]
+    public void ChosenEffect_IsFreeOnlyOnItsFirstApplication()
+    {
+        var result = ImplementRules.Difficulty(
+            1, [Range, Range, Range], Spec("magic-tome"), "Arcana", configured: ["Range"]);
+        Assert.Equal(4, result.Raw);
+        Assert.Equal(3, result.Effective);
+        Assert.Single(result.Discounts);
+    }
+
+    [Fact]
+    public void NamedEffect_IsAlsoFreeOnlyOnce()
+    {
+        var result = ImplementRules.Difficulty(
+            1, [CloseCombat, CloseCombat], Spec("magic-scepter"), "Arcana");
+        Assert.Equal(3, result.Raw);
+        Assert.Equal(2, result.Effective);
+    }
+
     [Fact]
     public void PendingConfiguration_GivesNoFreeEffect()
     {

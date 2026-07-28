@@ -49,7 +49,8 @@ public class AddItemHandler(IAppDbContext db) : ICommandHandler<AddItemCommand, 
         // «в руки», проверяется теми же правилами, что и надевание уже купленного — и до списания.
         if (req.State == ItemState.Equipped)
             EquipmentSlotRules.EnsureCanEquip(
-                itemDef.Kind, itemDef.FormTraits, CharacterDerived.EquippedInputs(c));
+                itemDef.Kind, itemDef.FormTraits, CharacterDerived.EquippedInputs(c),
+                ImplementRules.IsImplement(itemDef.Code));
 
         var listedUnitPrice = ImplementRules.IsImplement(itemDef.Code)
             ? ImplementRules.Price(itemDef.Price, req.Material)

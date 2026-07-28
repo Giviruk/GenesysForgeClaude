@@ -9,4 +9,9 @@ public record SpellDto(Guid Id, string MagicSkill, SpellEntryKind Kind, string P
     /// Навык, которому эффект доступен исключительно; пусто — доступен нескольким. По нему
     /// считается скидка священного символа (ROT-MAG-IMP-01).
     /// </summary>
-    string RestrictedSkill = "");
+    string RestrictedSkill = "",
+    /// <summary>
+    /// Эффект можно добавлять к одному заклинанию несколько раз, каждый раз повышая сложность
+    /// (Дистанция, Размер, Увеличение силуэта).
+    /// </summary>
+    bool Repeatable = false);

@@ -28,6 +28,13 @@ public class SpellDef
     /// скидка священного символа (ROT-MAG-IMP-01), и разбирать текст правила для этого нельзя.
     /// </summary>
     public string RestrictedSkill { get; set; } = "";
+
+    /// <summary>
+    /// Эффект можно добавить к одному заклинанию несколько раз, и каждое добавление снова
+    /// повышает сложность: Дистанция удлиняет дальность на категорию за раз, Размер — силуэт.
+    /// Признак структурный: сборщик по нему разрешает счётчик вместо галочки.
+    /// </summary>
+    public bool Repeatable { get; set; }
     /// <summary>Полное (private) описание-парафраз. Отдаётся в режиме PrivateFull.</summary>
     public string Description { get; set; } = "";
     /// <summary>Copyright-safe краткое описание для публичной версии (ContentMode=PublicSafe).</summary>

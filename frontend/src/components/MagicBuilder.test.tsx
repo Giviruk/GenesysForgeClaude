@@ -18,7 +18,7 @@ const spell = (over: Partial<Spell>): Spell => ({
   nameRu: '',
   nameEn: '',
   difficulty: '',
-  restrictedSkill: '',
+  restrictedSkill: '', repeatable: false,
   description: '',
   safeDescription: '',
   source: 'Test',

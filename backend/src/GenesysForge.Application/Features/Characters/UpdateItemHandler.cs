@@ -20,7 +20,8 @@ public class UpdateItemHandler(IAppDbContext db) : ICommandHandler<UpdateItemCom
         if (req.State == ItemState.Equipped && item.State != ItemState.Equipped && item.ItemDef is not null)
             EquipmentSlotRules.EnsureCanEquip(
                 item.ItemDef.Kind, item.ItemDef.FormTraits,
-                CharacterDerived.EquippedInputs(c, item.Id));
+                CharacterDerived.EquippedInputs(c, item.Id),
+                ImplementRules.IsImplement(item.ItemDef.Code));
 
         if (req.State is not null) item.State = req.State.Value;
         // Снятая броня перестаёт быть активной; надетая ею становится — она единственная (ROT-CMB-02).

@@ -5,7 +5,12 @@ namespace GenesysForge.Domain.Rules;
 /// <summary>Что персонаж уже держит и носит — вход для проверки свободных мест.</summary>
 /// <param name="Kind">Вид предмета.</param>
 /// <param name="Traits">Признаки формы: по ним считается, сколько рук занимает оружие.</param>
-public sealed record EquippedItemInput(Guid Id, ItemKind Kind, WeaponFormTraits Traits, string Name);
+/// <param name="IsImplement">
+/// Запись — магический инструмент (ROT-MAG-IMP-01). На одну магическую проверку работает ровно
+/// один, поэтому и держать в руках больше одного бессмысленно.
+/// </param>
+public sealed record EquippedItemInput(
+    Guid Id, ItemKind Kind, WeaponFormTraits Traits, string Name, bool IsImplement = false);
 
 /// <summary>
 /// Ограничения на одновременно используемое снаряжение. Раньше их не было вовсе: персонаж мог
@@ -45,9 +50,20 @@ public static class EquipmentSlotRules
     /// Проверяет, можно ли начать использовать предмет. Уже используемые предметы приходят без
     /// проверяемого — вызывающий исключает его сам, иначе смена количества считалась бы надеванием.
     /// </summary>
+    /// <param name="isImplement">
+    /// Предмет — магический инструмент: их берут в руки по одному (ROT-MAG-IMP-01), потому что
+    /// на одну проверку всё равно работает только один, а лист иначе показывал бы шесть посохов
+    /// сразу и делал вид, что все шесть чем-то помогают.
+    /// </param>
     public static void EnsureCanEquip(
-        ItemKind kind, WeaponFormTraits traits, IReadOnlyList<EquippedItemInput> equipped)
+        ItemKind kind, WeaponFormTraits traits, IReadOnlyList<EquippedItemInput> equipped,
+        bool isImplement = false)
     {
+        if (isImplement && equipped.Any(e => e.IsImplement))
+            throw new DomainRuleException(
+                "На одну магическую проверку работает только один инструмент — уберите тот, что в руках.",
+                "implement.limit");
+
         if (kind == ItemKind.Armor)
         {
             if (WornArmor(equipped) >= MaxWornArmor)
@@ -75,5 +91,9 @@ public static class EquipmentSlotRules
     /// Нужен для импорта чужого файла, где ограничений могло не быть вовсе.
     /// </summary>
     public static bool IsValid(IReadOnlyList<EquippedItemInput> equipped) =>
-        WornArmor(equipped) <= MaxWornArmor && UsedHands(equipped) <= Hands;
+        WornArmor(equipped) <= MaxWornArmor && UsedHands(equipped) <= Hands
+        && equipped.Count(e => e.IsImplement) <= MaxUsedImplements;
+
+    /// <summary>Больше одного магического инструмента в руках не держат (ROT-MAG-IMP-01).</summary>
+    public const int MaxUsedImplements = 1;
 }

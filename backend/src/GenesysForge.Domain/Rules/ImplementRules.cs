@@ -8,10 +8,14 @@ public enum ImplementDiscountKind
     /// <summary>Инструмент ничего не удешевляет.</summary>
     None = 0,
 
-    /// <summary>Названные эффекты бесплатны всегда: скипетр — Ближний бой, инструмент — Доп. цель.</summary>
+    /// <summary>Названные эффекты бесплатны: скипетр — Ближний бой, инструмент — Доп. цель.</summary>
     NamedEffects = 1,
 
-    /// <summary>Первое добавление названного эффекта бесплатно: посох — первая Дистанция.</summary>
+    /// <summary>
+    /// Бесплатно только первое добавление любого из названных эффектов: посох — первая Дистанция.
+    /// Отличается от <see cref="NamedEffects"/> тем, что скидка одна на весь список, а не своя
+    /// у каждого эффекта.
+    /// </summary>
     FirstNamedEffect = 2,
 
     /// <summary>Каждый эффект, доступный только одному навыку, дешевле на единицу: икона — Вера.</summary>
@@ -251,8 +255,16 @@ public static class ImplementRules
         if (spec is not null && Works(spec, magicSkill) && !pending)
         {
             var firstUsed = false;
+            // Скидка даётся один раз на эффект: повторяемую Дистанцию инструмент удешевляет
+            // только в первом добавлении, второе и третье стоят полную надбавку.
+            var discounted = new HashSet<string>(StringComparer.Ordinal);
             foreach (var effect in effects)
             {
+                if (!discounted.Add(effect.Code)
+                    && spec.Discount is ImplementDiscountKind.NamedEffects
+                        or ImplementDiscountKind.ChosenEffects
+                        or ImplementDiscountKind.RestrictedSkillDiscount)
+                    continue;
                 var reduction = spec.Discount switch
                 {
                     ImplementDiscountKind.NamedEffects when Named(spec, effect) => effect.Increase,

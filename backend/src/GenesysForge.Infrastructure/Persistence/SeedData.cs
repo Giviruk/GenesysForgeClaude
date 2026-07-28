@@ -870,11 +870,12 @@ public static class SeedData
                 // священного символа молча не сработала бы у существующих установок.
                 changed |= Assign(
                     row.DescriptionEn != def.DescriptionEn || row.SafeDescription != def.SafeDescription
-                    || row.RestrictedSkill != def.RestrictedSkill,
+                    || row.RestrictedSkill != def.RestrictedSkill || row.Repeatable != def.Repeatable,
                     () =>
                     {
                         row.DescriptionEn = def.DescriptionEn; row.SafeDescription = def.SafeDescription;
                         row.RestrictedSkill = def.RestrictedSkill;
+                        row.Repeatable = def.Repeatable;
                     });
         if (changed) db.SaveChanges();
     }
@@ -1278,6 +1279,14 @@ public static class SeedData
         [("Augment", "Primal Fury")] = "Primal",
     };
 
+    /// <summary>
+    /// Эффекты, которые книга разрешает добавлять к одному заклинанию несколько раз. Ключ — код
+    /// эффекта: Дистанция повторяется у любого базового эффекта, где она есть, и каждое добавление
+    /// снова стоит своей надбавки.
+    /// </summary>
+    private static readonly HashSet<string> RepeatableEffects =
+        new(["Range", "Size", "Silhouette Increase"], StringComparer.Ordinal);
+
     private static IEnumerable<SpellDef> Spells(GameSystem sys)
     {
         var terrinoth = sys == GameSystem.RealmsOfTerrinoth;
@@ -1650,6 +1659,7 @@ public static class SeedData
                 m.Ru, m.En, m.Diff, m.Desc, m.Safe, m.SafeEn, m.SrcOverride ?? sysSource, m.Sort);
             // «Только Вера», «Только Магия», «Только Природа» — структурным полем, а не текстом.
             if (RestrictedEffects.TryGetValue((m.Parent, m.En), out var only)) spell.RestrictedSkill = only;
+            spell.Repeatable = RepeatableEffects.Contains(m.En);
             yield return spell;
         }
     }
