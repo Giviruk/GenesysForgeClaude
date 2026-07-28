@@ -107,13 +107,15 @@ describe('Инвентарь: качество изготовления (ROT-WPN
       'char-1', 'def-plate', 1, 'carried', { pricePercent: 75, craftsmanship: 'steel' }))
   })
 
-  it('договорная цена требует причины', async () => {
+  it('своя цена отменяет долю и требует причины', async () => {
     render(<InventoryTab sheet={sheet} reference={reference} onError={() => {}}
       refresh={() => Promise.resolve()} />)
 
     fireEvent.click(screen.getAllByRole('button', { name: 'Купить' })[0])
-    fireEvent.click(screen.getByLabelText('Своя цена'))
-    fireEvent.change(screen.getByLabelText('Цена/шт'), { target: { value: '300' } })
+    // Переключателя режимов нет: способ выбирает само поле цены.
+    fireEvent.click(screen.getByRole('button', { name: '75%' }))
+    fireEvent.change(screen.getByLabelText('Своя цена/шт'), { target: { value: '300' } })
+    expect((screen.getByRole('button', { name: '75%' }) as HTMLButtonElement).disabled).toBe(true)
 
     const buy = () => screen.getAllByRole('button', { name: 'Купить' }).at(-1)!
     expect((buy() as HTMLButtonElement).disabled).toBe(true)
