@@ -57,9 +57,14 @@ export function implementDiscounts(
 
   const discounts: ImplementEffectDiscount[] = []
   let firstUsed = false
+  // Скидка даётся один раз на эффект: повторяемую Дистанцию инструмент удешевляет только
+  // в первом добавлении, второе и третье стоят полную надбавку.
+  const discounted = new Set<string>()
   for (const effect of effects) {
     const increase = parseDifficulty(effect.difficulty)
     if (increase <= 0) continue
+    if (discounted.has(effect.nameEn)) continue
+    discounted.add(effect.nameEn)
     const named = implement.discountEffects.includes(effect.nameEn)
     let reduction = 0
     switch (implement.discount) {

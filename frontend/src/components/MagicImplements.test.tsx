@@ -215,6 +215,27 @@ describe('Магические инструменты в сборщике (ROT-M
     await waitFor(() => expect(difficulty()).toContain('2'))
   })
 
+  it('у фолианта бесплатно только первое добавление выбранного эффекта', async () => {
+    const tome = implement({
+      code: 'magic-tome', discount: 'chosenEffects', discountEffects: [], attackDamageBonus: 0,
+      choiceCount: 2, choiceMaxIncreaseSum: 3, chosenEffects: ['Range'], pending: false,
+    })
+    render(<MagicTab sheet={sheetWith(tome)} onError={() => {}} />)
+    await screen.findByText(/Сборка магического действия/)
+
+    fireEvent.change(screen.getByLabelText(/Инструмент/), { target: { value: 'item-1' } })
+    const range = () => within(document.querySelector('.effect-chips') as HTMLElement)
+      .getByRole('button', { name: /Дистанционный/ })
+
+    // Первая Дистанция бесплатна: базовая 1 остаётся единицей.
+    fireEvent.click(range())
+    await waitFor(() => expect(difficulty()).toContain('1'))
+
+    // Вторая стоит полную надбавку — так же, как у посоха.
+    fireEvent.click(range())
+    await waitFor(() => expect(difficulty()).toContain('2'))
+  })
+
   it('цена и редкость материала считаются той же формулой, что на сервере', () => {
     // Полтора по официальной errata — не «вдвое дешевле».
     expect(implementPrice(400, 'bone')).toBe(600)
