@@ -100,6 +100,9 @@ public static class SeedData
         // но не удаляется — на неё уже могут ссылаться инвентари, NPC и экспорты.
         // Каталог авторитетен и для книжных чисел предмета: слоты улучшений и штрафы к проверкам
         // (ROT-ARM-01) обязаны доехать до уже засиженной базы, иначе исправление увидят только новые.
+        // Признаки формы (ROT-EQP-ATT-01) — из того же разряда: колонка появилась пустой, и без
+        // синхронизации латы старой базы навсегда остались бы «не латными», а Шипы, Железная руна
+        // и Усиленные пластины — неустановимыми ни на что.
         SyncBuiltinByCode(db,
             db.ItemDefs.Include(x => x.CheckModifiers).Include(x => x.AttackProfiles)
                 .Where(x => x.OwnerUserId == null && x.Code != ""), items,
@@ -107,12 +110,14 @@ public static class SeedData
                 row.DescriptionEn != def.DescriptionEn || row.SafeDescription != def.SafeDescription
                 || row.Retired != def.Retired || row.HardPoints != def.HardPoints
                 || row.MeleeDefense != def.MeleeDefense || row.RangedDefense != def.RangedDefense
+                || row.FormTraits != def.FormTraits
                 || !CheckModifiersMatch(row, def) || !AttackProfilesMatch(row, def),
                 () =>
                 {
                     row.DescriptionEn = def.DescriptionEn; row.SafeDescription = def.SafeDescription;
                     row.Retired = def.Retired;
                     row.HardPoints = def.HardPoints;
+                    row.FormTraits = def.FormTraits;
                     // Колонки защиты у оружия обнулены: щит даёт защиту качествами (ROT-WPN-01),
                     // и без синхронизации старая строка считалась бы дважды.
                     row.MeleeDefense = def.MeleeDefense; row.RangedDefense = def.RangedDefense;
