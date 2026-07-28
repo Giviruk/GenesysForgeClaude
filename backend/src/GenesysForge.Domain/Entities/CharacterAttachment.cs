@@ -23,4 +23,11 @@ public class CharacterAttachment
     /// снятие и подобное. Пусто — обычный случай.
     /// </summary>
     public string Note { get; set; } = "";
+
+    /// <summary>
+    /// Собственное состояние повреждения улучшения (GEN-EQP-DMG-01). Серьёзное и Уничтоженное
+    /// улучшение эффекта не даёт, но слот носителя продолжает занимать: он освобождается только
+    /// снятием или утилизацией, а не самим повреждением.
+    /// </summary>
+    public ItemDamageState DamageState { get; set; } = ItemDamageState.Undamaged;
 }

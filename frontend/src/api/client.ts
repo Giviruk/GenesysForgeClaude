@@ -13,7 +13,7 @@ import type {
   CharacterAuditEntry,
   RulesResponse, SearchResponse,
   ArchetypeSkillChoice, CareerGearChoice, StartingEquipmentMode,
-  DetachOutcome,
+  DetachOutcome, ItemDamageState,
 } from './types'
 import { t } from '../i18n'
 import { ariadneAnonymousId } from '../analytics/ariadne'
@@ -245,6 +245,25 @@ export const api = {
     request<{ id: string }>('POST', `/api/characters/${id}/items`, { itemDefId, quantity, state, ...opts }),
   updateItem: (id: string, itemId: string, patch: { state?: ItemState; quantity?: number }) =>
     request<void>('PATCH', `/api/characters/${id}/items/${itemId}`, patch),
+
+  // ── Состояние повреждения и ремонт (GEN-EQP-DMG-01) ──
+  /** Меняет состояние предмета: и Sunder в бою, и порча по сюжету приходят сюда. */
+  setItemDamageState: (id: string, itemId: string, state: ItemDamageState, reason?: string) =>
+    request<void>('PUT', `/api/characters/${id}/items/${itemId}/damage-state`, { state, reason }),
+  /**
+   * Чинит предмет по кнопке: броска проверки нет, сервер списывает материалы и возвращает
+   * целое состояние. `netAdvantages` — скидка 10 % за каждое чистое преимущество.
+   */
+  repairItem: (id: string, itemId: string,
+    opts?: { free?: boolean; netAdvantages?: number; costOverride?: number; overrideReason?: string }) =>
+    request<void>('POST', `/api/characters/${id}/items/${itemId}/repair`, opts ?? {}),
+  /** Меняет состояние улучшения; слот носителя при этом не освобождается. */
+  setAttachmentDamageState: (id: string, attachmentId: string, state: ItemDamageState, reason?: string) =>
+    request<void>('PUT', `/api/characters/${id}/attachments/${attachmentId}/damage-state`, { state, reason }),
+  /** Чинит улучшение теми же правилами, что и предмет. */
+  repairAttachment: (id: string, attachmentId: string,
+    opts?: { free?: boolean; netAdvantages?: number; costOverride?: number; overrideReason?: string }) =>
+    request<void>('POST', `/api/characters/${id}/attachments/${attachmentId}/repair`, opts ?? {}),
 
   // ── Улучшения предметов (ROT-EQP-ATT-01) ──
   /** Покупает улучшение в запас персонажа; сумму считает сервер. */

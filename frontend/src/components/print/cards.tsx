@@ -2,7 +2,8 @@ import type {
   Characteristic, EncounterDetail, NpcDetail, SheetItem, SheetTalent,
 } from '../../api/types'
 import {
-  CHARACTERISTIC_LABELS, ENCOUNTER_TYPE_LABELS, ITEM_KIND_LABELS, NPC_KIND_LABELS, NPC_ROLE_LABELS,
+  CHARACTERISTIC_LABELS, ENCOUNTER_TYPE_LABELS, ITEM_DAMAGE_STATE_HINTS, ITEM_DAMAGE_STATE_LABELS,
+  ITEM_KIND_LABELS, NPC_KIND_LABELS, NPC_ROLE_LABELS,
   PARTICIPANT_TYPE_LABELS, SLOT_TYPE_LABELS, SYSTEM_LABELS, THREAT_LEVEL_LABELS, WEAPON_CRAFTSMANSHIP_LABELS,
   difficultyLabel, localizedDescription, localizedName, magicSkillLabel, secondaryName,
 } from '../../utils/labels'
@@ -161,8 +162,15 @@ export function ItemCard({ item, skillLabel }: { item: SheetItem; skillLabel?: s
           {secondaryName(item) && `${secondaryName(item)} · `}{ITEM_KIND_LABELS[item.kind]}
           {item.craftsmanship !== 'steel' && ` · ${WEAPON_CRAFTSMANSHIP_LABELS[item.craftsmanship]}`}
           {item.reinforced && t(' · укреплённое', ' · reinforced')}
+          {/* Состояние — часть экземпляра: печатная карточка сломанного меча не должна
+              выглядеть как карточка целого (GEN-EQP-DMG-01). */}
+          {item.damageState !== 'undamaged'
+            && ` · ${ITEM_DAMAGE_STATE_LABELS[item.damageState]}`}
         </span>
       </header>
+      {item.damageState !== 'undamaged' && (
+        <p>{ITEM_DAMAGE_STATE_HINTS[item.damageState]}</p>
+      )}
       <div className="pcard-line">
         <span><b>{t('Габариты', 'Encumbrance')}</b> {item.encumbrance}</span>
         {item.price > 0 && <span><b>{t('Цена', 'Price')}</b> {item.price}</span>}

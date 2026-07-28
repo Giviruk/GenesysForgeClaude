@@ -131,11 +131,17 @@ public static class CharacterImporter
                 warnings.Add($"У предмета «{def.Name}» указано неприменимое качество изготовления — оставлена обычная работа.");
                 craftsmanship = WeaponCraftsmanship.Steel;
             }
+            // Состояние повреждения переносится как есть; неизвестное значение файла — целый
+            // предмет, тем же правилом, что и у файлов прежних версий (GEN-EQP-DMG-01).
+            var damageState = Enum.IsDefined(it.DamageState) ? it.DamageState : ItemDamageState.Undamaged;
+            if (!Enum.IsDefined(it.DamageState))
+                warnings.Add($"У предмета «{def.Name}» указано неизвестное состояние — оставлен целым.");
             var item = new CharacterItem
             {
                 Id = Guid.NewGuid(), CharacterId = characterId, ItemDefId = def.Id,
                 Quantity = Math.Max(1, it.Quantity), State = it.State,
                 Craftsmanship = CraftsmanshipRules.FixedFor(def.Code) ?? craftsmanship,
+                DamageState = damageState,
                 // Комплект и стартовый бюджет сохраняются как провенанс; всё остальное — Imported,
                 // чтобы импорт не выглядел покупкой в истории нового персонажа.
                 Provenance = it.Provenance is ItemProvenance.CareerPackage or ItemProvenance.StartingBudget

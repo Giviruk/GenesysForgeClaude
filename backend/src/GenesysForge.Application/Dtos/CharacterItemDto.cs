@@ -11,6 +11,27 @@ namespace GenesysForge.Application.Dtos;
 public record ItemStatAdjustmentDto(
     string Field, int Base, int Effective, ItemStatStage Stage, string Source);
 
+/// <summary>
+/// Памятка по ремонту экземпляра (GEN-EQP-DMG-01): всё, что нужно знать до нажатия кнопки —
+/// доступен ли обычный ремонт, какая по книге сложность, сколько это занимает времени и во что
+/// обойдутся материалы. Считает сервер: стоимость идёт от цены экземпляра, а не строки каталога.
+/// </summary>
+/// <param name="MaterialCost">
+/// Стоимость материалов, которую спишет кнопка ремонта. <c>null</c> — у записи нет обычной цены,
+/// и сумму называет ведущий.
+/// </param>
+/// <param name="Affordable">Денег хватает: бюджет создания плюс кошелёк.</param>
+public record ItemRepairDto(
+    ItemDamageState State,
+    bool CanRepair,
+    int? Difficulty,
+    int HoursMin,
+    int HoursMax,
+    int MaterialPercent,
+    int? MaterialCost,
+    string SkillName,
+    bool Affordable);
+
 public record CharacterItemDto(Guid Id, Guid ItemDefId, string Name, string NameRu, ItemKind Kind, ItemState State, int Quantity,
     int Encumbrance, int SoakBonus, int MeleeDefense, int RangedDefense, int EncumbranceThresholdBonus, int Load,
     string Description, int Price, string SkillName, string Damage, string Crit, string RangeBand, string Properties,
@@ -64,4 +85,16 @@ public record CharacterItemDto(Guid Id, Guid ItemDefId, string Name, string Name
     /// </summary>
     IReadOnlyList<string>? AttachmentNotes = null,
     /// <summary>Признаки формы: по ним считается совместимость улучшений (ROT-EQP-ATT-01).</summary>
-    WeaponFormTraits FormTraits = WeaponFormTraits.None);
+    WeaponFormTraits FormTraits = WeaponFormTraits.None,
+    /// <summary>
+    /// Состояние повреждения экземпляра (GEN-EQP-DMG-01). Числа позиции выше — уже с его учётом:
+    /// у серьёзно повреждённого предмета поглощение, защита и прибавка к порогу веса обнулены.
+    /// </summary>
+    ItemDamageState DamageState = ItemDamageState.Undamaged,
+    /// <summary>
+    /// Предметом можно пользоваться. <c>false</c> — Серьёзное повреждение или Уничтожено: атаки,
+    /// поглощение, защита и эффекты улучшений не действуют, но вес и содержимое остаются.
+    /// </summary>
+    bool IsUsable = true,
+    /// <summary>Памятка по ремонту: сложность, время, доля и стоимость материалов.</summary>
+    ItemRepairDto? Repair = null);

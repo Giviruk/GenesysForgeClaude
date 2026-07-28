@@ -81,6 +81,12 @@ public static class DependencyInjection
         services.AddScoped<ICommandHandler<DetachAttachmentCommand, Unit>, DetachAttachmentHandler>();
         services.AddScoped<ICommandHandler<RemoveAttachmentCommand, Unit>, RemoveAttachmentHandler>();
         services.AddScoped<ICommandHandler<SetItemThrownCommand, Unit>, SetItemThrownHandler>();
+        // Состояние повреждения и ремонт (GEN-EQP-DMG-01).
+        services.AddScoped<ICommandHandler<SetItemDamageStateCommand, Unit>, SetItemDamageStateHandler>();
+        services.AddScoped<ICommandHandler<RepairItemCommand, Unit>, RepairItemHandler>();
+        services.AddScoped<ICommandHandler<SetAttachmentDamageStateCommand, Unit>,
+            SetAttachmentDamageStateHandler>();
+        services.AddScoped<ICommandHandler<RepairAttachmentCommand, Unit>, RepairAttachmentHandler>();
         services.AddScoped<ICommandHandler<AddCriticalInjuryCommand, Guid>, AddCriticalInjuryHandler>();
         services.AddScoped<ICommandHandler<RemoveCriticalInjuryCommand, Unit>, RemoveCriticalInjuryHandler>();
         services.AddScoped<IQueryHandler<GetCharacterAuditQuery, IReadOnlyList<CharacterAuditEntryDto>>, GetCharacterAuditHandler>();

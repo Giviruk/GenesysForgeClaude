@@ -700,6 +700,40 @@ export interface SheetItem {
   attachmentNotes: string[]
   /** Признаки формы предмета: по ним считается совместимость улучшений. */
   formTraits: string
+  /**
+   * Состояние повреждения экземпляра (GEN-EQP-DMG-01). Числа позиции выше — уже с его учётом:
+   * у серьёзно повреждённого предмета поглощение, защита и прибавка к порогу веса обнулены.
+   */
+  damageState: ItemDamageState
+  /** Предметом можно пользоваться: false — Серьёзное повреждение или Уничтожено. */
+  isUsable: boolean
+  /** Памятка по ремонту: сложность, время, доля и стоимость материалов. */
+  repair: ItemRepair
+}
+
+/** Состояние повреждения экземпляра (GEN-EQP-DMG-01). */
+export type ItemDamageState = 'undamaged' | 'minor' | 'moderate' | 'major' | 'destroyed'
+
+/**
+ * Памятка по ремонту экземпляра: всё, что нужно знать до нажатия кнопки. Считает сервер —
+ * стоимость идёт от цены экземпляра с учётом качества изготовления, а не от строки каталога.
+ */
+export interface ItemRepair {
+  state: ItemDamageState
+  /** Обычный ремонт доступен: уничтоженное чинится только особым правилом ведущего. */
+  canRepair: boolean
+  /** Базовая сложность проверки по книге: 1/2/3; null — ремонта нет. */
+  difficulty: number | null
+  hoursMin: number
+  hoursMax: number
+  /** Доля цены экземпляра на материалы: 25/50/100. */
+  materialPercent: number
+  /** Стоимость материалов; null — обычной цены нет, сумму называет ведущий. */
+  materialCost: number | null
+  /** Навык ремонта по умолчанию (английское имя). */
+  skillName: string
+  /** Денег хватает: бюджет создания плюс кошелёк. */
+  affordable: boolean
 }
 
 /** Вид эффекта улучшения (ROT-EQP-ATT-01). */
@@ -759,6 +793,15 @@ export interface CharacterAttachment {
   hostCharacterItemId: string | null
   note: string
   effects: AttachmentEffect[]
+  /**
+   * Собственное состояние повреждения улучшения (GEN-EQP-DMG-01): сломанное не даёт эффекта,
+   * но слот носителя не освобождает.
+   */
+  damageState: ItemDamageState
+  /** Эффекты улучшения действуют: состояние не Серьёзное и не Уничтожено. */
+  isUsable: boolean
+  /** Памятка по ремонту улучшения. */
+  repair: ItemRepair
 }
 
 /** Исход снятия улучшения. */
@@ -1365,6 +1408,11 @@ export interface CharacterSheet {
   // Критические ранения (U-23)
   criticalInjuries: CriticalInjury[]
   portraitUrl: string | null
+  /**
+   * Остаток бюджета стартовых покупок: в фазе создания он тратится раньше кошелька
+   * (ROT-CRE-03). Вне фазы создания смысла не имеет.
+   */
+  startingPurchaseBudget: number
 }
 
 /** Критическое ранение персонажа (U-23). */

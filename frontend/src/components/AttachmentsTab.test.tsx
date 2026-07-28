@@ -30,6 +30,11 @@ const runeDef = {
 const spare = (id: string, defId: string, extra: Partial<CharacterAttachment> = {}) => ({
   id, attachmentDefId: defId, name: 'x', nameRu: 'Бритвенная кромка', hardPointCost: 1,
   isEnchantment: false, price: 1250, rarity: 6, hostCharacterItemId: null, note: '', effects: [],
+  damageState: 'undamaged', isUsable: true,
+  repair: {
+    state: 'undamaged', canRepair: false, difficulty: null, hoursMin: 0, hoursMax: 0,
+    materialPercent: 0, materialCost: 0, skillName: 'Mechanics', affordable: true,
+  },
   ...extra,
 } as unknown as CharacterAttachment)
 
@@ -45,7 +50,8 @@ const mace = {
 } as unknown as SheetItem
 
 const sheet = {
-  id: 'char-1', money: 5000, items: [sword, mace], skills: [],
+  id: 'char-1', money: 5000, startingPurchaseBudget: 0, isCreationPhase: false,
+  items: [sword, mace], skills: [],
   attachments: [spare('att-1', 'def-razor')],
 } as unknown as CharacterSheet
 

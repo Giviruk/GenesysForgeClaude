@@ -46,4 +46,10 @@ public enum CharacterAuditAction
 
     /// <summary>Улучшение снято с предмета: возвращено, уничтожено или испорчено.</summary>
     AttachmentDetached,
+
+    /// <summary>Изменено состояние повреждения предмета или улучшения (GEN-EQP-DMG-01).</summary>
+    ItemDamageStateChanged,
+
+    /// <summary>Предмет или улучшение починены: списаны материалы, состояние стало целым.</summary>
+    ItemRepaired,
 }

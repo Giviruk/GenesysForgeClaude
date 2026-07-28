@@ -42,10 +42,17 @@ const ironPlate = {
   usedHardPoints: 1,
   overCapacity: false,
   attachmentNotes: ['Шипы: правило решает ведущий.'],
+  damageState: 'undamaged',
+  isUsable: true,
+  repair: {
+    state: 'undamaged', canRepair: false, difficulty: null, hoursMin: 0, hoursMax: 0,
+    materialPercent: 0, materialCost: 0, skillName: 'Mechanics', affordable: true,
+  },
 } as unknown as SheetItem
 
 const sheet = {
-  id: 'char-1', money: 10000, items: [ironPlate], skills: [],
+  id: 'char-1', money: 10000, startingPurchaseBudget: 0, isCreationPhase: false,
+  items: [ironPlate], skills: [],
   derived: {
     soak: 4, meleeDefense: 0, rangedDefense: 0, encumbranceThreshold: 10, encumbranceLoad: 5,
     encumbered: false,

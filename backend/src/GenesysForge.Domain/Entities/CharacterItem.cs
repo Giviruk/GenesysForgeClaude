@@ -23,4 +23,10 @@ public class CharacterItem
     /// снаряжение — <see cref="WeaponCraftsmanship.Steel"/>, то есть числа таблицы без изменений.
     /// </summary>
     public WeaponCraftsmanship Craftsmanship { get; set; } = WeaponCraftsmanship.Steel;
+
+    /// <summary>
+    /// Состояние повреждения экземпляра (GEN-EQP-DMG-01). Меняется отдельным действием — и когда
+    /// в бою сработал Sunder, и когда предмет пострадал по сюжету. Legacy-строки — целые.
+    /// </summary>
+    public ItemDamageState DamageState { get; set; } = ItemDamageState.Undamaged;
 }

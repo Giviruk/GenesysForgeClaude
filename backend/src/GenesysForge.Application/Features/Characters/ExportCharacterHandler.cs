@@ -52,7 +52,7 @@ public class ExportCharacterHandler(IAppDbContext db) : IQueryHandler<ExportChar
                     t.NeedsChoice))
                 .ToList(),
             Items: c.Items
-                .Select(i => new CharacterItemExport(i.ItemDef?.Code ?? "", i.ItemDef?.Name ?? "", i.Quantity, i.State, i.Provenance, i.Craftsmanship))
+                .Select(i => new CharacterItemExport(i.ItemDef?.Code ?? "", i.ItemDef?.Name ?? "", i.Quantity, i.State, i.Provenance, i.Craftsmanship, i.DamageState))
                 .ToList(),
             HeroicAbilityCode: c.HeroicAbility?.Code,
             HeroicAbilityName: c.HeroicAbility?.Name,
