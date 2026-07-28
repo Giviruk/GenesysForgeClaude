@@ -16,13 +16,13 @@ vi.mock('../api/client', () => ({
 const spell = (over: Partial<Spell>): Spell => ({
   id: Math.random().toString(36), magicSkill: '', kind: 'effect', parentEffect: '',
   nameRu: '', nameEn: '', difficulty: '', description: '', safeDescription: '',
-  source: '', isCustom: false, restrictedSkill: '', ...over,
+  source: '', isCustom: false, restrictedSkill: '', repeatable: false, ...over,
 })
 
 const SPELLS: Spell[] = [
   spell({ id: 'attack', magicSkill: 'Arcana', kind: 'effect', nameRu: 'Атака', nameEn: 'Attack', difficulty: '1 (Easy)' }),
   spell({ id: 'barrier', magicSkill: 'Divine', kind: 'effect', nameRu: 'Барьер', nameEn: 'Barrier', difficulty: '1 (Easy)' }),
-  spell({ id: 'range', kind: 'additionalEffect', parentEffect: 'Attack', nameRu: 'Дистанционный', nameEn: 'Range', difficulty: '+1' }),
+  spell({ id: 'range', kind: 'additionalEffect', parentEffect: 'Attack', nameRu: 'Дистанционный', nameEn: 'Range', difficulty: '+1', repeatable: true }),
   spell({ id: 'close', kind: 'additionalEffect', parentEffect: 'Attack', nameRu: 'Ближний бой', nameEn: 'Close Combat', difficulty: '+1' }),
   spell({ id: 'sanctuary', kind: 'additionalEffect', parentEffect: 'Barrier', nameRu: 'Святилище', nameEn: 'Sanctuary', difficulty: '+2', restrictedSkill: 'Divine' }),
 ]
@@ -187,6 +187,32 @@ describe('Магические инструменты в сборщике (ROT-M
     await waitFor(() => expect(difficulty()).toContain('2'))
     // Потолок не достигнут: он про итоговую сложность, а не про сумму печатных надбавок.
     expect(document.body.textContent).not.toContain('потолок 5 достигнут')
+  })
+
+  it('добавляет повторяемый эффект несколько раз, а обычный — включает и выключает', async () => {
+    render(<MagicTab sheet={sheetWith(null)} onError={() => {}} />)
+    await screen.findByText(/Сборка магического действия/)
+
+    const chips = () => within(document.querySelector('.effect-chips') as HTMLElement)
+    const range = () => chips().getByRole('button', { name: /Дистанционный/ })
+
+    // Дистанцию книга разрешает добавлять несколько раз: базовая 1 + 1 + 1 = 3.
+    fireEvent.click(range())
+    fireEvent.click(range())
+    await waitFor(() => expect(difficulty()).toContain('3'))
+    expect(range().textContent).toContain('×2')
+
+    // Крестик в сводке снимает одно добавление, а не весь набор.
+    const summary = within(document.querySelector('.effect-summary') as HTMLElement)
+    fireEvent.click(summary.getByRole('button', { name: /Убрать эффект/ }))
+    await waitFor(() => expect(difficulty()).toContain('2'))
+
+    // Обычный эффект по-прежнему переключается: второе нажатие снимает его.
+    const close = () => chips().getByRole('button', { name: /Ближний бой/ })
+    fireEvent.click(close())
+    await waitFor(() => expect(difficulty()).toContain('3'))
+    fireEvent.click(close())
+    await waitFor(() => expect(difficulty()).toContain('2'))
   })
 
   it('цена и редкость материала считаются той же формулой, что на сервере', () => {

@@ -322,6 +322,11 @@ public class RotImplementApiTests(ApiFactory factory) : IClassFixture<ApiFactory
         // Обычный эффект доступен нескольким навыкам и признака не несёт.
         Assert.Equal("", spells.First(s => s.NameEn == "Range").RestrictedSkill);
 
+        // Дистанцию книга разрешает добавлять несколько раз — это тоже структурный признак,
+        // иначе сборщик не даст удлинить заклинание на две категории.
+        Assert.All(spells.Where(s => s.NameEn == "Range"), s => Assert.True(s.Repeatable));
+        Assert.False(spells.First(s => s.NameEn == "Close Combat").Repeatable);
+
         // Икона объявляет именно этот вид скидки, и её навык — Вера.
         var icon = Implement(reference, "holy-icon");
         Assert.Equal(ImplementDiscountKind.RestrictedSkillDiscount, icon.Implement!.Discount);

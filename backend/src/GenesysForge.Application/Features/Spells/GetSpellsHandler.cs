@@ -13,6 +13,6 @@ public class GetSpellsHandler(IAppDbContext db) : IQueryHandler<GetSpellsQuery, 
             .ThenBy(s => s.SortOrder).ThenBy(s => s.NameRu)
             .Select(s => new SpellDto(s.Id, s.MagicSkill, s.Kind, s.ParentEffect, s.NameRu, s.NameEn,
                 s.Difficulty, s.Description, s.SafeDescription, s.Source, s.OwnerUserId != null, s.DescriptionEn,
-                s.RestrictedSkill))
+                s.RestrictedSkill, s.Repeatable))
             .ToListAsync(ct);
 }

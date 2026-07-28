@@ -536,6 +536,7 @@ table.ref-table td.ref-cost { white-space: nowrap; color: var(--accent); }
 .effect-chip.blocked, .effect-chip:disabled { opacity: 0.45; cursor: not-allowed; }
 .effect-chip.free { border-color: var(--accent); }
 .effect-chip-free { color: var(--accent); font-size: 0.72rem; }
+.effect-chip-count { color: var(--accent); font-weight: 700; }
 .effect-chip-diff { color: var(--accent); font-weight: 600; }
 .effect-summary { margin: 0.4rem 0; }
 .effect-descriptions { margin-top: 0.5rem; }
