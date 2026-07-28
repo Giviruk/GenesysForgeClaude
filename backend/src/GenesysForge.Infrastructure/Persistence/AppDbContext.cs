@@ -28,6 +28,9 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<CharacterSkill> CharacterSkills => Set<CharacterSkill>();
     public DbSet<CharacterTalent> CharacterTalents => Set<CharacterTalent>();
     public DbSet<CharacterItem> CharacterItems => Set<CharacterItem>();
+    public DbSet<AttachmentDef> AttachmentDefs => Set<AttachmentDef>();
+    public DbSet<AttachmentEffect> AttachmentEffects => Set<AttachmentEffect>();
+    public DbSet<CharacterAttachment> CharacterAttachments => Set<CharacterAttachment>();
     public DbSet<CharacterCriticalInjury> CharacterCriticalInjuries => Set<CharacterCriticalInjury>();
     public DbSet<CharacterHeroicSecondaryEffect> CharacterHeroicSecondaryEffects => Set<CharacterHeroicSecondaryEffect>();
     public DbSet<CharacterHeroicConfiguration> CharacterHeroicConfigurations => Set<CharacterHeroicConfiguration>();
@@ -253,6 +256,34 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
                 .HasForeignKey(m => m.ItemDefId).OnDelete(DeleteBehavior.Cascade);
             e.HasMany(i => i.AttackProfiles).WithOne()
                 .HasForeignKey(p => p.ItemDefId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        b.Entity<AttachmentDef>(e =>
+        {
+            e.HasMany(a => a.Effects).WithOne()
+                .HasForeignKey(x => x.AttachmentDefId).OnDelete(DeleteBehavior.Cascade);
+            e.HasIndex(a => new { a.System, a.Code });
+        });
+
+        b.Entity<AttachmentEffect>(e =>
+        {
+            e.HasIndex(x => x.AttachmentDefId);
+            e.Property(x => x.QualityCode).HasMaxLength(60);
+            e.Property(x => x.OppositeQualityCode).HasMaxLength(60);
+            e.Property(x => x.SkillName).HasMaxLength(40);
+            e.Property(x => x.Note).HasMaxLength(500);
+        });
+
+        b.Entity<CharacterAttachment>(e =>
+        {
+            e.HasIndex(a => a.CharacterId);
+            e.HasIndex(a => a.HostCharacterItemId);
+            e.Property(a => a.Note).HasMaxLength(500);
+            e.HasOne(a => a.AttachmentDef).WithMany().OnDelete(DeleteBehavior.Cascade);
+            // Снятый с проданного предмета экземпляр не исчезает вместе с ним: он возвращается
+            // в запас, поэтому связь с носителем разрывается, а строка остаётся (ROT-EQP-ATT-01).
+            e.HasOne<CharacterItem>().WithMany()
+                .HasForeignKey(a => a.HostCharacterItemId).OnDelete(DeleteBehavior.SetNull);
         });
 
         b.Entity<ItemCheckModifier>(e =>
@@ -519,6 +550,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         ConfigureContent<CareerDef>(b);
         ConfigureContent<HeroicAbilityDef>(b);
         ConfigureContent<QualityDef>(b);
+        ConfigureContent<AttachmentDef>(b);
 
         b.Entity<SkillDef>().HasIndex(s => s.HomebrewPackId);
         b.Entity<SkillDef>().HasIndex(s => new { s.System, s.OwnerUserId });

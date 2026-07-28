@@ -892,6 +892,19 @@ table.ref-table td.ref-cost { white-space: nowrap; color: var(--accent); }
 .shop-row-actions { display: flex; flex-direction: column; gap: 0.25rem; flex-shrink: 0; }
 .shop-desc { margin-top: 0.2rem; }
 
+/* Улучшения предметов (ROT-EQP-ATT-01) */
+.attach-picker { display: flex; gap: 0.75rem; align-items: flex-end; flex-wrap: wrap; margin: 0.5rem 0; }
+.attach-picker label { display: flex; flex-direction: column; gap: 0.2rem; font-size: 0.85rem; }
+.attach-picker select { min-width: 16rem; max-width: 100%; }
+.attach-reason { display: flex; flex-direction: column; gap: 0.2rem; margin: 0.4rem 0; max-width: 32rem; }
+.attach-list { margin-top: 1rem; }
+.attach-list h4 { margin: 0 0 0.4rem; }
+.attach-row { display: flex; justify-content: space-between; gap: 0.75rem; align-items: flex-start;
+  padding: 0.35rem 0; border-top: 1px solid var(--border); }
+.attach-row-actions { display: flex; gap: 0.3rem; flex-shrink: 0; }
+.attach-host { margin-bottom: 0.75rem; }
+.attach-notes { margin: 0.2rem 0 0 1rem; }
+
 /* Выбор качества изготовления при покупке (ROT-WPN-02) */
 .shop-craftsmanship { display: flex; flex-direction: column; gap: 0.2rem; margin-top: 0.5rem; }
 .shop-craftsmanship-select { font-size: 0.75rem; padding: 0.05rem 0.2rem; max-width: 11rem; }

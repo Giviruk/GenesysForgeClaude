@@ -37,4 +37,13 @@ public enum CharacterAuditAction
 
     /// <summary>Метательное оружие брошено или подобрано (ROT-WPN-01).</summary>
     ItemThrownChanged,
+
+    /// <summary>Куплено улучшение предмета (ROT-EQP-ATT-01).</summary>
+    AttachmentBought,
+
+    /// <summary>Улучшение установлено на предмет (ROT-EQP-ATT-01).</summary>
+    AttachmentInstalled,
+
+    /// <summary>Улучшение снято с предмета: возвращено, уничтожено или испорчено.</summary>
+    AttachmentDetached,
 }

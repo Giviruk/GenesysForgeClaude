@@ -48,4 +48,20 @@ public record CharacterItemDto(Guid Id, Guid ItemDefId, string Name, string Name
     /// </summary>
     bool Reinforced = false,
     /// <summary>Разбор поправок: что именно качество изготовления изменило и с какого значения.</summary>
-    IReadOnlyList<ItemStatAdjustmentDto>? Adjustments = null);
+    IReadOnlyList<ItemStatAdjustmentDto>? Adjustments = null,
+    /// <summary>Установленные улучшения (ROT-EQP-ATT-01).</summary>
+    IReadOnlyList<CharacterAttachmentDto>? Attachments = null,
+    /// <summary>Занято слотов улучшений из <see cref="HardPoints"/>.</summary>
+    int UsedHardPoints = 0,
+    /// <summary>
+    /// Улучшений стоит больше, чем осталось слотов: так бывает, когда слот отняла работа или
+    /// новая редакция таблицы. Новые улучшения не ставятся, пока владелец не снимет лишнее.
+    /// </summary>
+    bool OverCapacity = false,
+    /// <summary>
+    /// Правила улучшений, которые приложение не исполняет: автоматические символы и эффекты,
+    /// которым нужен рантайм столкновения. Показываются игроку, а не теряются.
+    /// </summary>
+    IReadOnlyList<string>? AttachmentNotes = null,
+    /// <summary>Признаки формы: по ним считается совместимость улучшений (ROT-EQP-ATT-01).</summary>
+    WeaponFormTraits FormTraits = WeaponFormTraits.None);

@@ -59,6 +59,21 @@ public static class Mappers
             m.Kind, m.SkillName, m.Characteristic, m.Value, m.RequiresWorn, m.Condition))],
         i.AttackProfileDtos(qualitiesByCode: qualitiesByCode));
 
+    /// <summary>Улучшение справочника в DTO: механика приезжает типизированной, а не текстом.</summary>
+    public static AttachmentDefDto ToDto(this AttachmentDef a) => new(
+        a.Id, a.Code, a.Name, a.NameRu, a.HardPointCost, a.Price, a.Rarity, a.IsEnchantment,
+        a.HostKind, a.RequiredTraits, a.RequiredAnyTraits, a.ForbiddenTraits,
+        a.SafeDescription, a.DescriptionEn, a.Source,
+        [.. a.Effects.Select(ToDto)]);
+
+    /// <summary>
+    /// Один эффект улучшения. <c>Executed</c> честно показывает, считает ли его приложение:
+    /// автоматические символы и эффекты, которым нужен рантайм столкновения, только описаны.
+    /// </summary>
+    public static AttachmentEffectDto ToDto(this AttachmentEffect e) => new(
+        e.Kind, e.QualityCode, e.SkillName, e.Value, e.Increment, e.Condition, e.Note,
+        e.Kind is not (AttachmentEffectKind.NarrativeOnly or AttachmentEffectKind.AutomaticSymbol));
+
     /// <summary>
     /// Профили атаки предмета (ROT-WPN-01). Профиль по умолчанию показывает качества самого
     /// предмета — в базе они не дублируются; у альтернативных профилей качества свои.
@@ -73,23 +88,39 @@ public static class Mappers
     /// поправками. В справочнике — <see cref="WeaponCraftsmanship.Steel"/>: у записи каталога
     /// качества изготовления нет, оно бывает только у экземпляра.
     /// </param>
+    /// <param name="effectiveQualities">
+    /// Итоговые качества экземпляра с учётом улучшений (ROT-EQP-ATT-01). <c>null</c> — берутся
+    /// качества самой записи каталога: в справочнике улучшений нет.
+    /// </param>
+    /// <param name="damageBonus">Прибавка урона от улучшений; применяется после качества изготовления.</param>
+    /// <param name="critReduction">Уменьшение крита от улучшений; итог не ниже единицы.</param>
     public static List<WeaponAttackProfileDto> AttackProfileDtos(
         this ItemDef i, int? brawn = null, IReadOnlyDictionary<string, QualityDef>? qualitiesByCode = null,
-        int? agility = null, WeaponCraftsmanship craftsmanship = WeaponCraftsmanship.Steel)
+        int? agility = null, WeaponCraftsmanship craftsmanship = WeaponCraftsmanship.Steel,
+        IReadOnlyList<EffectiveQuality>? effectiveQualities = null,
+        int damageBonus = 0, int critReduction = 0)
     {
-        var itemQualities = i.Qualities
-            .Where(q => q.QualityDef != null)
+        // Качества экземпляра: база предмета плюс то, что дали улучшения. Название и механика
+        // берутся из справочника по коду — выдумывать их нельзя.
+        var qualityPairs = effectiveQualities is null
+            ? [.. i.Qualities.Where(q => q.QualityDef != null)
+                .Select(q => (Def: q.QualityDef!, Rating: q.Rating))]
+            : effectiveQualities
+                .Where(q => qualitiesByCode is not null && qualitiesByCode.ContainsKey(q.Code))
+                .Select(q => (Def: qualitiesByCode![q.Code], Rating: q.Rating > 0 ? q.Rating : (int?)null))
+                .ToList();
+
+        var itemQualities = qualityPairs
             .Select(q => new ItemQualityRefDto(
-                q.QualityDef!.Code, q.QualityDef.NameRu, q.QualityDef.NameEn, q.Rating,
-                q.QualityDef.HasRating, q.QualityDef.IsActive, q.QualityDef.ActivationCost))
+                q.Def.Code, q.Def.NameRu, q.Def.NameEn, q.Rating,
+                q.Def.HasRating, q.Def.IsActive, q.Def.ActivationCost))
             .ToList();
 
         // Механика качеств профиля по умолчанию берётся из самого предмета, у альтернативного —
         // из справочника по коду. Без справочника механики нет: угадывать её по коду нельзя.
-        var itemEffects = i.Qualities
-            .Where(q => q.QualityDef != null)
+        var itemEffects = qualityPairs
             .Select(q => new WeaponQualityInput(
-                q.QualityDef!.NameEn, q.QualityDef.NameRu, q.QualityDef.EffectKind, q.Rating ?? 0))
+                q.Def.NameEn, q.Def.NameRu, q.Def.EffectKind, q.Rating ?? 0))
             .ToList();
 
         List<WeaponQualityInput> ProfileEffects(WeaponAttackProfile p) => p.IsDefault
@@ -108,13 +139,15 @@ public static class Mappers
             .OrderByDescending(p => p.IsDefault).ThenBy(p => p.Code, StringComparer.Ordinal)
             .Select(p => new WeaponAttackProfileDto(
                 p.Code, p.NameRu, p.NameEn, p.IsDefault, p.SkillName, p.DamageKind,
-                p.DamageValue + damageDelta,
-                CraftsmanshipRules.Crit(p.Crit, craftsmanship),
+                p.DamageValue + damageDelta + damageBonus,
+                Math.Max(CraftsmanshipRules.MinCrit,
+                    CraftsmanshipRules.Crit(p.Crit, craftsmanship) - critReduction),
                 p.Range, p.CannotAttackEngaged, p.FixedDifficulty,
                 p.IsDefault ? itemQualities : [.. p.Qualities.Select(q => QualityRef(q, qualitiesByCode))],
                 brawn is { } b
                     ? CraftsmanshipRules.Damage(
                         WeaponProfileRules.BaseDamage(p.DamageKind, p.DamageValue, b), craftsmanship)
+                        + damageBonus
                     : null,
                 brawn is { } b2 && agility is { } a
                     ? PoolDto(WeaponQualityRules.PoolFor(ProfileEffects(p), b2, a))

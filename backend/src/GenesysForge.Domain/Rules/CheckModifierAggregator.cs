@@ -12,8 +12,10 @@ namespace GenesysForge.Domain.Rules;
 /// Условие из книги, при котором вклад применим. Пусто — применяется всегда; непустое условие
 /// приложение не проверяет и в пул автоматически не подставляет.
 /// </param>
+/// <param name="Boost">Сколько костей умения добавляет источник (улучшения брони, ROT-EQP-ATT-01).</param>
 public sealed record CheckModifierSource(
-    string SourceType, string SourceName, string SourceNameRu, int Setback, string Condition = "")
+    string SourceType, string SourceName, string SourceNameRu, int Setback, string Condition = "",
+    int Boost = 0)
 {
     public bool IsConditional => !string.IsNullOrEmpty(Condition);
 }
@@ -23,7 +25,9 @@ public sealed record CheckModifierSource(
 /// </summary>
 /// <param name="SetbackDice">Безусловные помехи; уже с учётом снятий и не ниже нуля.</param>
 /// <param name="Sources">Все вклады, включая условные — их видно в подсказке.</param>
-public sealed record CheckPenalty(int SetbackDice, IReadOnlyList<CheckModifierSource> Sources)
+/// <param name="BoostDice">Безусловные кости умения от снаряжения (ROT-EQP-ATT-01).</param>
+public sealed record CheckPenalty(
+    int SetbackDice, IReadOnlyList<CheckModifierSource> Sources, int BoostDice = 0)
 {
     public static readonly CheckPenalty None = new(0, []);
 }
@@ -59,11 +63,16 @@ public static class CheckModifierAggregator
     /// Модификаторы уже отобранных предметов: вызывающий отсекает ненадетое и неактивную броню.
     /// </param>
     /// <param name="encumbrance">Состояние перегруза; <c>null</c> — не учитывать.</param>
+    /// <param name="skillBoosts">
+    /// Кости умения от установленных улучшений (ROT-EQP-ATT-01). Вызывающий отсекает те, что
+    /// не действуют: у неактивной брони улучшение молчит так же, как её штраф.
+    /// </param>
     public static CheckPenalty For(
         string skillNameEn,
         CharacteristicType characteristic,
         IReadOnlyList<ItemCheckModifierInput>? itemModifiers = null,
-        EncumbranceState? encumbrance = null)
+        EncumbranceState? encumbrance = null,
+        IReadOnlyList<AttachmentSkillBoost>? skillBoosts = null)
     {
         var sources = new List<CheckModifierSource>();
 
@@ -81,8 +90,16 @@ public static class CheckModifierAggregator
 
         // Условные вклады показываются, но сами в пул не подставляются: приложение не знает,
         // холодная ли сейчас погода, и врать про это хуже, чем не считать.
+        foreach (var b in skillBoosts ?? [])
+        {
+            if (b.Boost == 0 || !string.Equals(b.SkillName, skillNameEn, StringComparison.OrdinalIgnoreCase))
+                continue;
+            sources.Add(new CheckModifierSource("Attachment", b.SourceName, b.SourceNameRu, 0, "", b.Boost));
+        }
+
         var total = sources.Where(s => !s.IsConditional).Sum(s => s.Setback);
-        return new CheckPenalty(Math.Max(0, total), sources);
+        var boost = sources.Where(s => !s.IsConditional).Sum(s => s.Boost);
+        return new CheckPenalty(Math.Max(0, total), sources, Math.Max(0, boost));
     }
 
     private static bool Applies(ItemCheckModifierInput m, string skillNameEn, CharacteristicType characteristic)

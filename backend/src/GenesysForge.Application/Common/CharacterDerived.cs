@@ -35,22 +35,17 @@ public static class CharacterDerived
     /// (ROT-WPN-02): железная броня тяжелее каталожной, эльфийская легче, и лист обязан считать
     /// по экземпляру, а не по записи справочника.
     /// </summary>
-    public static List<ItemInput> ItemInputs(Character c) => c.Items
-        .Where(i => i.ItemDef is not null)
-        .Select(i =>
-        {
-            var stats = CraftsmanshipRules.For(i.ItemDef!, i.Craftsmanship);
-            return new ItemInput(
-                i.ItemDef!.Name, i.ItemDef.Kind, i.State, stats.Encumbrance, i.Quantity,
-                stats.SoakBonus, stats.MeleeDefense, stats.RangedDefense,
-                i.ItemDef.EncumbranceThresholdBonus,
-                i.Id == c.ActiveArmorCharacterItemId,
-                [.. i.ItemDef.Qualities
-                    .Where(q => q.QualityDef is not null)
-                    .Select(q => new ItemQualityInput(q.QualityDef!.Code, q.Rating ?? 0))],
-                i.IsThrown);
-        })
-        .ToList();
+    public static List<ItemInput> ItemInputs(Character c) =>
+        [.. EffectiveItems.For(c).Select(ItemInput)];
+
+    /// <summary>Одна позиция для расчёта листа: числа и качества уже со всеми поправками.</summary>
+    private static ItemInput ItemInput(EffectiveItem e) => new(
+        e.Def.Name, e.Def.Kind, e.Item.State, e.Encumbrance, e.Item.Quantity,
+        e.SoakBonus, e.MeleeDefense, e.RangedDefense,
+        e.Def.EncumbranceThresholdBonus,
+        e.IsActiveArmor,
+        [.. e.Qualities.Select(q => new ItemQualityInput(q.Code, q.Rating))],
+        e.Item.IsThrown);
 
     /// <summary>
     /// Модификаторы проверок от снаряжения (ROT-ARM-01). Отбор здесь, а не в доменном агрегаторе:

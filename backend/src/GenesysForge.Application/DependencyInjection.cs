@@ -75,6 +75,11 @@ public static class DependencyInjection
         services.AddScoped<ICommandHandler<UpdateItemCommand, Unit>, UpdateItemHandler>();
         services.AddScoped<ICommandHandler<RemoveItemCommand, Unit>, RemoveItemHandler>();
         services.AddScoped<ICommandHandler<SellItemCommand, Unit>, SellItemHandler>();
+        // Улучшения предметов (ROT-EQP-ATT-01): покупка, установка, снятие и удаление из запаса.
+        services.AddScoped<ICommandHandler<BuyAttachmentCommand, Guid>, BuyAttachmentHandler>();
+        services.AddScoped<ICommandHandler<InstallAttachmentCommand, Unit>, InstallAttachmentHandler>();
+        services.AddScoped<ICommandHandler<DetachAttachmentCommand, Unit>, DetachAttachmentHandler>();
+        services.AddScoped<ICommandHandler<RemoveAttachmentCommand, Unit>, RemoveAttachmentHandler>();
         services.AddScoped<ICommandHandler<SetActiveArmorCommand, Unit>, SetActiveArmorHandler>();
         services.AddScoped<ICommandHandler<SetItemThrownCommand, Unit>, SetItemThrownHandler>();
         services.AddScoped<ICommandHandler<AddCriticalInjuryCommand, Guid>, AddCriticalInjuryHandler>();

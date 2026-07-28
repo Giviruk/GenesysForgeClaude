@@ -215,6 +215,8 @@ export type WeaponFormTrait =
   | 'brawl' | 'oneHanded' | 'twoHanded' | 'ranged'
   | 'sword' | 'bowOrCrossbow' | 'bladed' | 'bluntOrCrushing'
   | 'hasCuttingEdge' | 'woodenWorkingEdge'
+  // Признаки брони — совместимость улучшений считается тем же набором (ROT-EQP-ATT-01).
+  | 'plateArmor' | 'metalArmor' | 'hardenedPlate'
 
 /** Именное оружие: числа приходят с сервера из выбранного профиля. */
 export interface SignatureWeapon {
@@ -436,6 +438,8 @@ export interface Reference {
   heroicAbilities: HeroicAbility[]
   heroicSecondaryEffects: HeroicSecondaryEffect[]
   qualities: Quality[]
+  /** Улучшения предметов (ROT-EQP-ATT-01). */
+  attachments: AttachmentDef[]
 }
 
 export interface CustomArchetypeInput {
@@ -522,6 +526,8 @@ export interface SheetSkill {
    * Ровно столько чёрных кубов роллер подставляет сам.
    */
   setbackDice: number
+  /** Кости умения к проверке от улучшений (ROT-EQP-ATT-01). */
+  boostDice: number
   /** Из чего сложились помехи, включая условные вклады (их в пул не подставляют). */
   setbackSources: CheckModifierSource[]
 }
@@ -684,7 +690,79 @@ export interface SheetItem {
   reinforced: boolean
   /** Разбор поправок: что качество изготовления изменило и с какого значения. */
   adjustments: ItemStatAdjustment[]
+  /** Установленные улучшения (ROT-EQP-ATT-01). */
+  attachments: CharacterAttachment[]
+  /** Занято слотов улучшений из hardPoints. */
+  usedHardPoints: number
+  /** Улучшений больше, чем слотов: новые не ставятся, пока лишнее не снято. */
+  overCapacity: boolean
+  /** Правила улучшений, которые приложение не исполняет (показываются, а не теряются). */
+  attachmentNotes: string[]
+  /** Признаки формы предмета: по ним считается совместимость улучшений. */
+  formTraits: string
 }
+
+/** Вид эффекта улучшения (ROT-EQP-ATT-01). */
+export type AttachmentEffectKind =
+  | 'grantOrIncreaseQuality' | 'setQualityAtLeast' | 'grantQualityOrCancelOpposite'
+  | 'damage' | 'critReduction' | 'soak' | 'meleeDefense' | 'rangedDefense' | 'encumbrance'
+  | 'skillBoost' | 'automaticSymbol' | 'narrativeOnly'
+
+/** Когда эффект улучшения действует. */
+export type AttachmentEffectCondition = 'always' | 'wornAndActive'
+
+/** Один типизированный эффект улучшения. */
+export interface AttachmentEffect {
+  kind: AttachmentEffectKind
+  qualityCode: string
+  skillName: string
+  value: number
+  increment: number
+  condition: AttachmentEffectCondition
+  note: string
+  /** Приложение действительно считает этот эффект; false — правило только описано. */
+  executed: boolean
+}
+
+/** Улучшение справочника: собственный тип контента, а не снаряжение. */
+export interface AttachmentDef {
+  id: string
+  code: string
+  name: string
+  nameRu: string
+  hardPointCost: number
+  /** null — бесценно: обычная покупка недоступна, цену называет ведущий. */
+  price: number | null
+  rarity: number
+  isEnchantment: boolean
+  hostKind: ItemKind
+  /** Флаги едут строкой «bladed, sword»; пусто или «none» — требований нет. */
+  requiredTraits: string
+  requiredAnyTraits: string
+  forbiddenTraits: string
+  description: string
+  descriptionEn: string
+  source: string
+  effects: AttachmentEffect[]
+}
+
+/** Экземпляр улучшения у персонажа: в запасе (host = null) или на предмете. */
+export interface CharacterAttachment {
+  id: string
+  attachmentDefId: string
+  name: string
+  nameRu: string
+  hardPointCost: number
+  isEnchantment: boolean
+  price: number | null
+  rarity: number
+  hostCharacterItemId: string | null
+  note: string
+  effects: AttachmentEffect[]
+}
+
+/** Исход снятия улучшения. */
+export type DetachOutcome = 'returned' | 'destroyed' | 'unusable'
 
 /** Этап расчёта характеристик предмета (ROT-WPN-02). */
 export type ItemStatStage = 'base' | 'craftsmanship' | 'attachments' | 'damageState' | 'situational'
@@ -1276,6 +1354,8 @@ export interface CharacterSheet {
   /** Выбранная активная броня; null — броня защиты не даёт (ROT-CMB-02). */
   activeArmorCharacterItemId: string | null
   items: SheetItem[]
+  /** Все улучшения персонажа, включая лежащие в запасе (ROT-EQP-ATT-01). */
+  attachments: CharacterAttachment[]
   // Мотивации и предыстория (U-22)
   desire: string | null
   fear: string | null

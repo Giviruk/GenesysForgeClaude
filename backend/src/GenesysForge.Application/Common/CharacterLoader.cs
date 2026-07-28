@@ -39,6 +39,8 @@ public static class CharacterLoader
             // Качества предмета участвуют в защите (щит — оружие, ROT-WPN-01), профили — в атаках.
             .Include(c => c.Items).ThenInclude(i => i.ItemDef!.Qualities).ThenInclude(q => q.QualityDef)
             .Include(c => c.Items).ThenInclude(i => i.ItemDef!.AttackProfiles)
+            // Улучшения меняют числа предмета и его качества (ROT-EQP-ATT-01).
+            .Include(c => c.Attachments).ThenInclude(a => a.AttachmentDef!.Effects)
             .Include(c => c.CriticalInjuries)
             .Include(c => c.HeroicConfiguration).ThenInclude(x => x!.ParagonSkillDef)
             .Include(c => c.SignatureWeapon);

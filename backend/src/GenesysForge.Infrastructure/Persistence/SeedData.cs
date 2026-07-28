@@ -40,6 +40,7 @@ public static class SeedData
         var heroics = HeroicCatalog.Load().ToList();
         var heroicSecondaryEffects = HeroicSecondaryEffectCatalog.Load();
         var qualities = QualityCatalog.Load().ToList();
+        var attachments = AttachmentCatalog.Load().ToList();
         var rules = RuleCatalog.Load().ToList();
         var spells = Spells(GameSystem.GenesysCore).Concat(Spells(GameSystem.RealmsOfTerrinoth)).ToList();
 
@@ -213,6 +214,7 @@ public static class SeedData
         added |= SeedMissing(db, db.HeroicSecondaryEffectDefs, heroicSecondaryEffects,
             d => ((GameSystem)0, d.Code));
         added |= SeedMissing(db, db.QualityDefs, qualities, d => ((GameSystem)0, d.NameEn));
+        added |= SeedMissing(db, db.AttachmentDefs, attachments, d => (d.System, d.Name));
         added |= SeedOrUpdateRules(db, rules);
         added |= SeedMissing(db, db.SpellDefs, spells,
             d => (d.System, $"{d.MagicSkill}:{(int)d.Kind}:{d.ParentEffect}:{d.NameEn}"));
@@ -224,6 +226,16 @@ public static class SeedData
 
         // Стартовое снаряжение/деньги/правила карьер из каталога extras (идемпотентно, поверх засиженных карьер).
         SeedCareerExtras(db);
+
+        // Каталог авторитетен и для улучшений: слоты, цена, совместимость и эффекты обязаны
+        // доехать до уже засиженной базы (ROT-EQP-ATT-01).
+        SyncBuiltinByCode(db,
+            db.AttachmentDefs.Include(x => x.Effects).Where(x => x.OwnerUserId == null && x.Code != ""),
+            attachments, SyncAttachment);
+
+        // Улучшения жили в каталоге предметов обычным снаряжением; купленные экземпляры переносятся
+        // в запас улучшений, а не пропадают вместе с записью каталога (ROT-EQP-ATT-01).
+        MigrateLegacyAttachmentItems(db);
 
         // Бэкфилл структурных качеств из строк Properties встроенных предметов (идемпотентно).
         BackfillItemQualities(db);
@@ -855,6 +867,80 @@ public static class SeedData
     }
 
     /// <summary>Добавляет элементы, чьи ключи отсутствуют среди встроенных (OwnerUserId == null) записей.</summary>
+    /// <summary>Обновляет встроенное улучшение по каталогу: числа, совместимость и эффекты.</summary>
+    private static bool SyncAttachment(AttachmentDef row, AttachmentDef def)
+    {
+        var effectsMatch = row.Effects.Count == def.Effects.Count
+            && row.Effects.OrderBy(x => x.Kind).ThenBy(x => x.QualityCode, StringComparer.Ordinal)
+                .Zip(def.Effects.OrderBy(x => x.Kind).ThenBy(x => x.QualityCode, StringComparer.Ordinal))
+                .All(p => p.First.Kind == p.Second.Kind && p.First.QualityCode == p.Second.QualityCode
+                    && p.First.OppositeQualityCode == p.Second.OppositeQualityCode
+                    && p.First.SkillName == p.Second.SkillName && p.First.Value == p.Second.Value
+                    && p.First.Increment == p.Second.Increment && p.First.Condition == p.Second.Condition
+                    && p.First.Note == p.Second.Note);
+
+        var changed = row.HardPointCost != def.HardPointCost || row.Price != def.Price
+            || row.Rarity != def.Rarity || row.IsEnchantment != def.IsEnchantment
+            || row.HostKind != def.HostKind || row.RequiredTraits != def.RequiredTraits
+            || row.RequiredAnyTraits != def.RequiredAnyTraits || row.ForbiddenTraits != def.ForbiddenTraits
+            || row.SafeDescription != def.SafeDescription || row.DescriptionEn != def.DescriptionEn
+            || row.Source != def.Source || row.Retired != def.Retired || !effectsMatch;
+        if (!changed) return false;
+
+        row.HardPointCost = def.HardPointCost;
+        row.Price = def.Price;
+        row.Rarity = def.Rarity;
+        row.IsEnchantment = def.IsEnchantment;
+        row.HostKind = def.HostKind;
+        row.RequiredTraits = def.RequiredTraits;
+        row.RequiredAnyTraits = def.RequiredAnyTraits;
+        row.ForbiddenTraits = def.ForbiddenTraits;
+        row.SafeDescription = def.SafeDescription;
+        row.DescriptionEn = def.DescriptionEn;
+        row.Source = def.Source;
+        row.Retired = def.Retired;
+        return true;
+    }
+
+    /// <summary>
+    /// Переносит купленные ранее «улучшения-снаряжение» в запас улучшений. Предмет каталога после
+    /// выноса помечается Retired, но экземпляры игрока терять нельзя: количество N превращается в
+    /// N отдельных улучшений, потому что улучшение — вещь штучная и ставится по одному.
+    /// </summary>
+    private static void MigrateLegacyAttachmentItems(AppDbContext db)
+    {
+        var byBareCode = db.AttachmentDefs.AsEnumerable()
+            .Where(a => a.Code != "")
+            .ToDictionary(a => (a.System, BareCode(a.Code)), a => a.Id);
+        if (byBareCode.Count == 0) return;
+
+        var legacy = db.CharacterItems
+            .Include(i => i.ItemDef)
+            .Where(i => i.ItemDef != null && i.ItemDef.Code != "")
+            .AsEnumerable()
+            .Select(i => (Item: i, Key: (i.ItemDef!.System, BareCode(i.ItemDef.Code))))
+            .Where(x => byBareCode.ContainsKey(x.Key))
+            .ToList();
+        if (legacy.Count == 0) return;
+
+        foreach (var (item, key) in legacy)
+        {
+            for (var n = 0; n < Math.Max(1, item.Quantity); n++)
+                db.CharacterAttachments.Add(new CharacterAttachment
+                {
+                    Id = Guid.NewGuid(),
+                    CharacterId = item.CharacterId,
+                    AttachmentDefId = byBareCode[key],
+                    Provenance = item.Provenance,
+                });
+            db.CharacterItems.Remove(item);
+        }
+        db.SaveChanges();
+    }
+
+    /// <summary>Код без префикса системы: <c>rot.item.spikes</c> → <c>spikes</c>.</summary>
+    private static string BareCode(string code) => code[(code.LastIndexOf('.') + 1)..];
+
     private static bool SeedMissing<T>(
         AppDbContext db,
         DbSet<T> set,

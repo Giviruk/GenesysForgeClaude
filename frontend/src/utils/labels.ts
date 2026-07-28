@@ -574,6 +574,9 @@ export const WEAPON_TRAIT_LABELS: Record<WeaponFormTrait, string> = t({
   bluntOrCrushing: 'дробящее',
   hasCuttingEdge: 'есть режущая кромка',
   woodenWorkingEdge: 'деревянная рабочая кромка',
+  plateArmor: 'латная',
+  metalArmor: 'металлическая',
+  hardenedPlate: 'закалённые латы',
 }, {
   brawl: 'brawl',
   oneHanded: 'one-handed',
@@ -585,6 +588,9 @@ export const WEAPON_TRAIT_LABELS: Record<WeaponFormTrait, string> = t({
   bluntOrCrushing: 'blunt or crushing',
   hasCuttingEdge: 'has a cutting edge',
   woodenWorkingEdge: 'wooden working edge',
+  plateArmor: 'plate',
+  metalArmor: 'metal',
+  hardenedPlate: 'hardened plate',
 })
 
 /** Флаги формы приходят строкой «oneHanded, sword» — разбираем её в список. */

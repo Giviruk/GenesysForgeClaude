@@ -257,6 +257,37 @@ public static class CharacterEndpoints
             return Results.NoContent();
         });
 
+        // Улучшения предметов (ROT-EQP-ATT-01). Установка идёт по кнопке: броска проверки нет,
+        // правило книги показывается подсказкой в интерфейсе.
+        group.MapPost("/{id:guid}/attachments", async (Guid id, BuyAttachmentRequest req, ClaimsPrincipal user,
+            ICommandHandler<BuyAttachmentCommand, Guid> handler, CancellationToken ct) =>
+        {
+            var attachmentId = await handler.Handle(new BuyAttachmentCommand(user.UserId(), id, req), ct);
+            return Results.Created($"/api/characters/{id}/attachments/{attachmentId}", new { Id = attachmentId });
+        });
+
+        group.MapPost("/{id:guid}/attachments/install", async (Guid id, InstallAttachmentRequest req,
+            ClaimsPrincipal user, ICommandHandler<InstallAttachmentCommand, Unit> handler, CancellationToken ct) =>
+        {
+            await handler.Handle(new InstallAttachmentCommand(user.UserId(), id, req), ct);
+            return Results.NoContent();
+        });
+
+        group.MapPost("/{id:guid}/attachments/{attachmentId:guid}/detach", async (Guid id, Guid attachmentId,
+            DetachAttachmentRequest req, ClaimsPrincipal user,
+            ICommandHandler<DetachAttachmentCommand, Unit> handler, CancellationToken ct) =>
+        {
+            await handler.Handle(new DetachAttachmentCommand(user.UserId(), id, attachmentId, req), ct);
+            return Results.NoContent();
+        });
+
+        group.MapDelete("/{id:guid}/attachments/{attachmentId:guid}", async (Guid id, Guid attachmentId,
+            ClaimsPrincipal user, ICommandHandler<RemoveAttachmentCommand, Unit> handler, CancellationToken ct) =>
+        {
+            await handler.Handle(new RemoveAttachmentCommand(user.UserId(), id, attachmentId), ct);
+            return Results.NoContent();
+        });
+
         // Критические ранения (U-23): добавление (из таблицы U-11 или вручную) и снятие.
         group.MapPost("/{id:guid}/critical-injuries", async (Guid id, AddCriticalInjuryRequest req, ClaimsPrincipal user,
             ICommandHandler<AddCriticalInjuryCommand, Guid> handler, CancellationToken ct) =>
