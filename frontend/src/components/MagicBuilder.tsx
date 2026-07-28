@@ -6,6 +6,7 @@ import {
 } from '../utils/labels'
 import { implementDifficulty, implementDiscounts, implementWorks } from '../utils/implements'
 import { IMPLEMENT_MATERIAL_LABELS } from '../utils/labels'
+import { ImplementMaterialMemo } from './ImplementMaterialMemo'
 import { DicePoolView } from './DicePoolView'
 import { PrintPreview } from './print/PrintPreview'
 import { MagicActionCard, type MagicCardData } from './print/cards'
@@ -196,6 +197,14 @@ export function MagicBuilder({
                 ))}
               </select>
             </label>
+            {/* Свойство материала срабатывает как раз в момент броска, поэтому памятка стоит
+                рядом с выбранным инструментом (ROT-MAG-MAT-01). */}
+            {activeTool && (
+              <span className="muted">
+                {IMPLEMENT_MATERIAL_LABELS[activeTool.implement.material]}
+                {' '}<ImplementMaterialMemo material={activeTool.implement.material} />
+              </span>
+            )}
             {activeTool && !implementWorks(activeTool.implement, activeSkill) && (
               <span className="muted">
                 {t(`Работает только с направлением ${magicSkillLabel(activeTool.implement.requiredMagicSkill)}.`,

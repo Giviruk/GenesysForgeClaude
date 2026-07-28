@@ -13,6 +13,7 @@ import {
   WEAPON_CRAFTSMANSHIPS,
 } from '../utils/labels'
 import { DamageStateControls } from './ItemDamageControls'
+import { ImplementMaterialMemo } from './ImplementMaterialMemo'
 import { craftsmanshipApplies, craftsmanshipPrice } from '../utils/craftsmanship'
 import { IMPLEMENT_MATERIALS, implementPrice } from '../utils/implements'
 import { itemTags } from '../data/itemQualities'
@@ -377,6 +378,8 @@ function InventoryCard({ item, sheet, skillNames, run, reference, funds, sellOpe
   const [printing, setPrinting] = useState(false)
   const itemLabel = localizedName(item)
   const skillName = resolveWeaponSkillName(item.skillName, skillNames)
+  // Запись каталога нужна памятке материала: она показывает, во что материал превратил цену.
+  const catalogueDef = reference.items.find(d => d.id === item.itemDefId) ?? null
   const skill = skillName ? sheet.skills.find(s => s.name === skillName) ?? null : null
   const skillLabel = skill ? localizedName(skill) : item.skillName
 
@@ -526,6 +529,10 @@ function InventoryCard({ item, sheet, skillNames, run, reference, funds, sellOpe
       {item.implement && (
         <div className="muted small-text">
           {t('Инструмент', 'Implement')} · {IMPLEMENT_MATERIAL_LABELS[item.implement.material]}
+          {/* Свойство материала приложение не считает, поэтому оно должно быть под рукой там,
+              где вещью пользуются, а не только в магазине (ROT-MAG-MAT-01). */}
+          {' '}<ImplementMaterialMemo material={item.implement.material}
+            basePrice={catalogueDef?.price} baseRarity={catalogueDef?.rarity} />
           {item.implement.attackDamageBonus > 0
             && t(` · урон Атаки +${item.implement.attackDamageBonus}`,
               ` · Attack damage +${item.implement.attackDamageBonus}`)}

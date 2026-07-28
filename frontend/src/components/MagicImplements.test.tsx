@@ -121,6 +121,23 @@ describe('Магические инструменты в сборщике (ROT-M
     expect(screen.queryByLabelText(/Инструмент/)).toBeNull()
   })
 
+  it('держит памятку по материалу рядом с выбранным инструментом', async () => {
+    render(<MagicTab sheet={sheetWith(implement({ material: 'willow' }))} onError={() => {}} />)
+    await screen.findByText(/Сборка магического действия/)
+
+    fireEvent.change(screen.getByLabelText(/Инструмент/), { target: { value: 'item-1' } })
+    // Пока памятку не открыли, правила на экране нет — оно занимает место зря.
+    expect(screen.queryByRole('tooltip')).toBeNull()
+
+    fireEvent.click(screen.getByRole('button', { name: /Материал: Ива/ }))
+
+    const memo = screen.getByRole('tooltip').textContent ?? ''
+    // Свойство материала приложение не считает, поэтому оно должно быть прочитано игроком.
+    expect(memo).toContain('автоматическое преимущество')
+    expect(memo).toContain('Раз за проверку')
+    expect(memo).toContain('не считает')
+  })
+
   it('цена и редкость материала считаются той же формулой, что на сервере', () => {
     // Полтора по официальной errata — не «вдвое дешевле».
     expect(implementPrice(400, 'bone')).toBe(600)
