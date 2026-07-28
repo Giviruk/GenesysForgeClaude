@@ -2,9 +2,11 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { api } from '../api/client'
 import type { DicePool, GameSystem, ItemImplement, Spell } from '../api/types'
 import {
-  difficultyLabel, localizedDescription, magicSkillLabel, MAX_SPELL_DIFFICULTY, parseDifficulty, wouldExceedSpellCap,
+  difficultyLabel, localizedDescription, magicSkillLabel, MAX_SPELL_DIFFICULTY, parseDifficulty,
 } from '../utils/labels'
-import { implementDifficulty, implementDiscounts, implementWorks } from '../utils/implements'
+import {
+  effectiveSpellDifficulty, implementDiscounts, implementWorks,
+} from '../utils/implements'
 import { IMPLEMENT_MATERIAL_LABELS } from '../utils/labels'
 import { ImplementMaterialMemo } from './ImplementMaterialMemo'
 import { DicePoolView } from './DicePoolView'
@@ -82,7 +84,6 @@ export function MagicBuilder({
     [spells, activeEffectCode])
 
   const chosen = additional.filter(a => selectedIds.has(a.id))
-  const chosenDifficulties = chosen.map(a => a.difficulty)
   const baseDifficulty = selectedEffect ? parseDifficulty(selectedEffect.difficulty) : 0
   const added = chosen.reduce((sum, a) => sum + parseDifficulty(a.difficulty), 0)
 
@@ -92,11 +93,24 @@ export function MagicBuilder({
   const activeTool = tools?.find(x => x.itemId === implementItemId) ?? null
   const discounts = implementDiscounts(activeTool?.implement ?? null, chosen, activeSkill)
   const discounted = discounts.reduce((sum, d) => sum + d.reduction, 0)
-  const rawDifficulty = baseDifficulty + added
-  // Добавление эффектов сверх потолка блокируется, поэтому сумма не превышает 5; min — страховка отображения.
+  // Потолок считается по итоговой сложности, а не по сырой сумме надбавок: эффект, который
+  // инструмент делает бесплатным, в предел не упирается.
   const totalDifficulty = Math.min(
-    MAX_SPELL_DIFFICULTY, implementDifficulty(baseDifficulty, rawDifficulty, discounts))
-  const capReached = baseDifficulty + added >= MAX_SPELL_DIFFICULTY
+    MAX_SPELL_DIFFICULTY,
+    effectiveSpellDifficulty(baseDifficulty, chosen, activeTool?.implement ?? null, activeSkill))
+  const capReached = totalDifficulty >= MAX_SPELL_DIFFICULTY
+  /** Добавление этого эффекта упрётся в потолок — с учётом того, что инструмент может его удешевить. */
+  const wouldExceedCap = (candidate: Spell) => effectiveSpellDifficulty(
+    baseDifficulty, [...chosen, candidate], activeTool?.implement ?? null, activeSkill)
+    > MAX_SPELL_DIFFICULTY
+  // Что инструмент удешевляет — известно заранее, до выбора эффектов: у посоха и скипетра это
+  // фиксированные эффекты, у фолианта и палочки — выбор ведущего.
+  const toolActive = activeTool != null && !activeTool.implement.pending
+    && implementWorks(activeTool.implement, activeSkill)
+  const freeEffectCodes = !toolActive ? [] : (
+    activeTool!.implement.discount === 'chosenEffects'
+      ? activeTool!.implement.chosenEffects
+      : activeTool!.implement.discountEffects)
   const toolBoost = activeTool && implementWorks(activeTool.implement, activeSkill)
     && !activeTool.implement.pending
     ? activeTool.implement.boostDice
@@ -113,8 +127,7 @@ export function MagicBuilder({
         next.delete(effect.id)
         return next
       }
-      if (selectedEffect && wouldExceedSpellCap(selectedEffect.difficulty, chosenDifficulties, effect.difficulty))
-        return prev
+      if (selectedEffect && wouldExceedCap(effect)) return prev
       next.add(effect.id)
       return next
     })
@@ -205,6 +218,31 @@ export function MagicBuilder({
                 {' '}<ImplementMaterialMemo material={activeTool.implement.material} />
               </span>
             )}
+            {/* Что инструмент даёт — до выбора эффектов, а не после: иначе непонятно, зачем
+                вообще брать фолиант (ROT-MAG-IMP-01). */}
+            {toolActive && (
+              <span className="implement-summary muted">
+                {activeTool!.implement.attackDamageBonus > 0
+                  && t(`урон Атаки +${activeTool!.implement.attackDamageBonus}`,
+                    `Attack damage +${activeTool!.implement.attackDamageBonus}`)}
+                {activeTool!.implement.boostDice > 0
+                  && t(` · +${activeTool!.implement.boostDice} бонусная кость`,
+                    ` · +${activeTool!.implement.boostDice} boost`)}
+                {freeEffectCodes.length > 0 && (
+                  <> · {t('бесплатно', 'free')}: {freeEffectCodes
+                    .map(code => t(
+                      additional.find(e => e.nameEn === code)?.nameRu || code,
+                      code))
+                    .join(', ')}
+                    {activeTool!.implement.discount === 'firstNamedEffect'
+                      && t(' (первое добавление)', ' (first use only)')}
+                  </>
+                )}
+                {activeTool!.implement.discount === 'restrictedSkillDiscount'
+                  && t(` · каждый эффект только для ${magicSkillLabel(activeTool!.implement.requiredMagicSkill)} дешевле на 1`,
+                    ` · every ${magicSkillLabel(activeTool!.implement.requiredMagicSkill)}-only effect costs 1 less`)}
+              </span>
+            )}
             {activeTool && !implementWorks(activeTool.implement, activeSkill) && (
               <span className="muted">
                 {t(`Работает только с направлением ${magicSkillLabel(activeTool.implement.requiredMagicSkill)}.`,
@@ -287,21 +325,32 @@ export function MagicBuilder({
               <div className="chips effect-chips">
                 {additional.map(a => {
                   const on = selectedIds.has(a.id)
-                  const blocked = !on && selectedEffect != null
-                    && wouldExceedSpellCap(selectedEffect.difficulty, chosenDifficulties, a.difficulty)
+                  const blocked = !on && selectedEffect != null && wouldExceedCap(a)
+                  // Инструмент делает эффект бесплатным — это видно на самом чипе, а не только
+                  // в итоговой сложности (ROT-MAG-IMP-01).
+                  const freeByTool = freeEffectCodes.includes(a.nameEn)
                   const description = localizedDescription(a)
+                  const freeNote = freeByTool
+                    ? t('\nИнструмент делает этот эффект бесплатным.',
+                      '\nThe implement makes this effect free.')
+                    : ''
                   const title = blocked
                     ? t(`Недоступно: базовая ${baseDifficulty} + выбранные ${added} + ${a.difficulty} превысит потолок ${MAX_SPELL_DIFFICULTY}`,
                         `Unavailable: base ${baseDifficulty} + selected ${added} + ${a.difficulty} would exceed the cap of ${MAX_SPELL_DIFFICULTY}`)
-                    : `${t(a.nameEn, a.nameRu)} · ${a.difficulty}${description ? ` — ${description}` : ''}`
+                    : `${t(a.nameEn, a.nameRu)} · ${a.difficulty}${description ? ` — ${description}` : ''}${freeNote}`
                   return (
                     <button key={a.id} type="button"
-                      className={`chip effect-chip${on ? ' active' : ''}${blocked ? ' blocked' : ''}`}
+                      className={`chip effect-chip${on ? ' active' : ''}${blocked ? ' blocked' : ''}${freeByTool ? ' free' : ''}`}
                       disabled={blocked}
                       aria-pressed={on}
                       title={title}
                       onClick={() => toggle(a)}>
-                      {t(a.nameRu, a.nameEn)} <span className="effect-chip-diff">{a.difficulty}</span>
+                      {t(a.nameRu, a.nameEn)}{' '}
+                      <span className="effect-chip-diff">
+                        {/* Зачёркнутая надбавка вместо просто «+1»: инструмент её снимает. */}
+                        {freeByTool ? <s>{a.difficulty}</s> : a.difficulty}
+                      </span>
+                      {freeByTool && <span className="effect-chip-free"> {t('бесплатно', 'free')}</span>}
                     </button>
                   )
                 })}

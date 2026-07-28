@@ -96,3 +96,19 @@ export function implementDifficulty(
   const total = discounts.reduce((sum, d) => sum + d.reduction, 0)
   return Math.max(baseDifficulty, raw - total)
 }
+
+/**
+ * Итоговая сложность набора эффектов с учётом инструмента — одной функцией, чтобы потолок и
+ * показанное число считались одинаково. Раньше потолок сравнивался с сырой суммой надбавок, и
+ * эффект, который инструмент делает бесплатным, всё равно упирался в предел.
+ */
+export function effectiveSpellDifficulty(
+  baseDifficulty: number,
+  effects: Spell[],
+  implement: ItemImplement | null,
+  magicSkill: string,
+): number {
+  const raw = baseDifficulty + effects.reduce((sum, e) => sum + parseDifficulty(e.difficulty), 0)
+  return implementDifficulty(
+    baseDifficulty, raw, implementDiscounts(implement, effects, magicSkill))
+}

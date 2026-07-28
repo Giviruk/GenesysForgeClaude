@@ -47,6 +47,15 @@ public class RotImplementApiTests(ApiFactory factory) : IClassFixture<ApiFactory
         return (await resp.Content.ReadFromJsonAsync<Dictionary<string, Guid>>(Json.Options))!["id"];
     }
 
+    private static async Task<Guid> AddInStateAsync(
+        HttpClient client, Guid characterId, Guid itemDefId, ItemState state)
+    {
+        var resp = await client.PostAsJsonAsync($"/api/characters/{characterId}/items",
+            new AddItemRequest(itemDefId, 1, state, Free: true), Json.Options);
+        Assert.Equal(HttpStatusCode.Created, resp.StatusCode);
+        return (await resp.Content.ReadFromJsonAsync<Dictionary<string, Guid>>(Json.Options))!["id"];
+    }
+
     private static int Funds(CharacterSheetDto sheet) => sheet.Money + sheet.StartingPurchaseBudget;
 
     private static Task SetMoneyAsync(HttpClient client, Guid characterId, int money) =>
@@ -150,6 +159,55 @@ public class RotImplementApiTests(ApiFactory factory) : IClassFixture<ApiFactory
         var implement = (await SheetAsync(client, id)).Items.Single(i => i.Id == itemId).Implement!;
         Assert.Equal("Verse", implement.RequiredMagicSkill);
         Assert.Contains("Additional Target", implement.DiscountEffects);
+    }
+
+    /// <summary>
+    /// На одну магическую проверку работает ровно один инструмент, поэтому и в руках он один.
+    /// До этого лист позволял «использовать» хоть все шесть сразу и делал вид, что помогают все.
+    /// </summary>
+    [Fact]
+    public async Task OnlyOneImplement_CanBeInUseAtATime()
+    {
+        var (client, id, reference) = await CreateCharacterAsync();
+        var staffId = await AddAsync(client, id, Implement(reference, "magic-staff").Id);
+
+        // Второй инструмент сразу «в руки» не берётся.
+        var refused = await client.PostAsJsonAsync($"/api/characters/{id}/items",
+            new AddItemRequest(Implement(reference, "magic-wand").Id, 1, ItemState.Equipped,
+                Free: true), Json.Options);
+        Assert.Equal(HttpStatusCode.BadRequest, refused.StatusCode);
+
+        // И уже лежащий в рюкзаке не переводится в «используется», пока занят первый.
+        var wandId = await AddInStateAsync(client, id, Implement(reference, "magic-wand").Id,
+            ItemState.Backpack);
+        var equip = await client.PatchAsJsonAsync($"/api/characters/{id}/items/{wandId}",
+            new UpdateItemRequest(ItemState.Equipped, null), Json.Options);
+        Assert.Equal(HttpStatusCode.BadRequest, equip.StatusCode);
+
+        // Освободили руки — и палочка берётся.
+        Assert.Equal(HttpStatusCode.NoContent, (await client.PatchAsJsonAsync(
+            $"/api/characters/{id}/items/{staffId}",
+            new UpdateItemRequest(ItemState.Backpack, null), Json.Options)).StatusCode);
+        Assert.Equal(HttpStatusCode.NoContent, (await client.PatchAsJsonAsync(
+            $"/api/characters/{id}/items/{wandId}",
+            new UpdateItemRequest(ItemState.Equipped, null), Json.Options)).StatusCode);
+
+        var sheet = await SheetAsync(client, id);
+        Assert.Single(sheet.Items.Where(i => i.Implement != null && i.State == ItemState.Equipped));
+    }
+
+    /// <summary>Обычное снаряжение под это правило не попадает: верёвок можно нести сколько угодно.</summary>
+    [Fact]
+    public async Task OrdinaryGear_IsNotLimitedByTheImplementRule()
+    {
+        var (client, id, reference) = await CreateCharacterAsync();
+        var rope = reference.Items.First(i => i.Kind == ItemKind.Gear && i.Implement is null);
+
+        await AddAsync(client, id, rope.Id);
+        var second = await client.PostAsJsonAsync($"/api/characters/{id}/items",
+            new AddItemRequest(rope.Id, 1, ItemState.Equipped, Free: true), Json.Options);
+
+        Assert.Equal(HttpStatusCode.Created, second.StatusCode);
     }
 
     // ── Настройка ведущим ──

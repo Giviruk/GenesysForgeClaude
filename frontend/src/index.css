@@ -534,6 +534,8 @@ table.ref-table td.ref-cost { white-space: nowrap; color: var(--accent); }
 .effect-chip { cursor: pointer; font-family: inherit; color: var(--text); }
 .effect-chip:hover:not(:disabled) { border-color: var(--accent); }
 .effect-chip.blocked, .effect-chip:disabled { opacity: 0.45; cursor: not-allowed; }
+.effect-chip.free { border-color: var(--accent); }
+.effect-chip-free { color: var(--accent); font-size: 0.72rem; }
 .effect-chip-diff { color: var(--accent); font-weight: 600; }
 .effect-summary { margin: 0.4rem 0; }
 .effect-descriptions { margin-top: 0.5rem; }
@@ -835,7 +837,14 @@ table.ref-table td.ref-cost { white-space: nowrap; color: var(--accent); }
 .weapon-props { font-style: italic; }
 
 /* Магический инструмент в сборщике заклинаний (ROT-MAG-IMP-01) */
-.magic-implement { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; margin-top: 0.5rem; }
+.magic-implement {
+  display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; margin-top: 0.5rem;
+  /* Тултип памятки позиционируется от своего значка; строке нужен нормальный перенос,
+     иначе длинная сводка инструмента растягивает ряд и утаскивает значок за край. */
+  position: relative; white-space: normal;
+}
+.magic-implement .prop-tag { flex: none; }
+.implement-summary { flex-basis: 100%; }
 .implement-config {
   display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;
   padding: 0.4rem 0.55rem; border: 1px solid var(--yellow); border-radius: 7px;

@@ -164,11 +164,13 @@ public static class CharacterImporter
         var kept = new List<EquippedItemInput>();
         foreach (var (item, def) in resolvedItems.Where(x => x.Item.State == ItemState.Equipped))
         {
-            var candidate = new EquippedItemInput(item.Id, def.Kind, def.FormTraits, def.Name);
+            var candidate = new EquippedItemInput(
+                item.Id, def.Kind, def.FormTraits, def.Name, ImplementRules.IsImplement(def.Code));
             if (EquipmentSlotRules.IsValid([.. kept, candidate])) { kept.Add(candidate); continue; }
             item.State = ItemState.Carried;
             warnings.Add(
-                $"«{def.Name}» больше не используется: одновременно носят одну броню и держат две руки.");
+                $"«{def.Name}» больше не используется: одновременно носят одну броню, держат две руки "
+                + "и пользуются одним магическим инструментом.");
         }
         // Активной остаётся надетая броня — она теперь единственная.
         character.ActiveArmorCharacterItemId = resolvedItems

@@ -107,7 +107,9 @@ public static class CharacterDerived
         [.. c.Items
             .Where(i => i.ItemDef is not null && i.State == ItemState.Equipped && !i.IsThrown
                 && i.Id != exceptItemId)
-            .Select(i => new EquippedItemInput(i.Id, i.ItemDef!.Kind, i.ItemDef.FormTraits, i.ItemDef.Name))];
+            .Select(i => new EquippedItemInput(
+                i.Id, i.ItemDef!.Kind, i.ItemDef.FormTraits, i.ItemDef.Name,
+                ImplementRules.IsImplement(i.ItemDef.Code)))];
 
     /// <summary>
     /// Базовая защита от видовых способностей, действующих для этого персонажа (Nimble).

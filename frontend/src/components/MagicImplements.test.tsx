@@ -138,6 +138,57 @@ describe('Магические инструменты в сборщике (ROT-M
     expect(memo).toContain('не считает')
   })
 
+  it('показывает, что даёт инструмент, до выбора эффектов', async () => {
+    const tome = implement({
+      code: 'magic-tome', discount: 'chosenEffects', discountEffects: [], attackDamageBonus: 0,
+      choiceCount: 2, choiceMaxIncreaseSum: 3, chosenEffects: ['Range', 'Close Combat'],
+      pending: false,
+    })
+    render(<MagicTab sheet={sheetWith(tome)} onError={() => {}} />)
+    await screen.findByText(/Сборка магического действия/)
+
+    fireEvent.change(screen.getByLabelText(/Инструмент/), { target: { value: 'item-1' } })
+
+    // Оба выбранных эффекта названы сразу, ни один эффект ещё не выбран для заклинания.
+    const summary = document.querySelector('.implement-summary')!.textContent ?? ''
+    expect(summary).toContain('бесплатно')
+    expect(summary).toContain('Дистанционный')
+    expect(summary).toContain('Ближний бой')
+
+    // И на самом чипе видно, что надбавка снята.
+    const chip = within(document.querySelector('.effect-chips') as HTMLElement)
+      .getByRole('button', { name: /Дистанционный/ })
+    expect(chip.className).toContain('free')
+    expect(chip.textContent).toContain('бесплатно')
+  })
+
+  it('посох называет бесплатную Дистанцию как первое добавление', async () => {
+    render(<MagicTab sheet={sheetWith(implement({}))} onError={() => {}} />)
+    await screen.findByText(/Сборка магического действия/)
+
+    fireEvent.change(screen.getByLabelText(/Инструмент/), { target: { value: 'item-1' } })
+
+    const summary = document.querySelector('.implement-summary')!.textContent ?? ''
+    expect(summary).toContain('Дистанционный')
+    expect(summary).toContain('первое добавление')
+    expect(summary).toContain('урон Атаки +4')
+  })
+
+  it('потолок сложности считается по итогу, а не по сырой сумме надбавок', async () => {
+    // Базовая 1 + Дистанция 1 + Ближний бой 1 = 3; посох снимает Дистанцию, итог 2.
+    render(<MagicTab sheet={sheetWith(implement({}))} onError={() => {}} />)
+    await screen.findByText(/Сборка магического действия/)
+
+    fireEvent.change(screen.getByLabelText(/Инструмент/), { target: { value: 'item-1' } })
+    const chips = () => within(document.querySelector('.effect-chips') as HTMLElement)
+    fireEvent.click(chips().getByRole('button', { name: /Дистанционный/ }))
+    fireEvent.click(chips().getByRole('button', { name: /Ближний бой/ }))
+
+    await waitFor(() => expect(difficulty()).toContain('2'))
+    // Потолок не достигнут: он про итоговую сложность, а не про сумму печатных надбавок.
+    expect(document.body.textContent).not.toContain('потолок 5 достигнут')
+  })
+
   it('цена и редкость материала считаются той же формулой, что на сервере', () => {
     // Полтора по официальной errata — не «вдвое дешевле».
     expect(implementPrice(400, 'bone')).toBe(600)
