@@ -38,6 +38,9 @@ public static class SheetBuilder
         // Помехи от снаряжения и перегруза считаются один раз на персонажа и раскладываются
         // по каждой проверке (ROT-ARM-01): их же роллер подставляет в пул.
         var checkModifiers = CharacterDerived.CheckModifierInputs(c);
+        // Предметы со всеми поправками считаются один раз: и для навыков, и для карточек (ROT-EQP-ATT-01).
+        var effectiveItems = EffectiveItems.For(c);
+        var skillBoosts = EffectiveItems.SkillBoosts(effectiveItems);
         var skills = systemSkills.Select(def =>
         {
             rows.TryGetValue(def.Id, out var row);
@@ -45,7 +48,7 @@ public static class SheetBuilder
             var isCareer = careerSkills.IsCareer(def.Id);
             var pool = GenesysRules.BuildDicePool(ch.Get(def.Characteristic), ranks);
             var penalty = CheckModifierAggregator.For(
-                def.Name, def.Characteristic, checkModifiers, derived.Encumbrance);
+                def.Name, def.Characteristic, checkModifiers, derived.Encumbrance, skillBoosts);
             return new CharacterSkillDto(def.Id, def.Name, def.NameRu, def.Kind, def.Characteristic, ranks, isCareer,
                 new DicePoolDto(pool.Ability, pool.Proficiency),
                 ranks < GenesysRules.MaxSkillRank ? GenesysRules.SkillRankCost(ranks + 1, isCareer) : 0,
@@ -56,7 +59,8 @@ public static class SheetBuilder
                 def.Retired,
                 penalty.SetbackDice,
                 [.. penalty.Sources.Select(s => new CheckModifierSourceDto(
-                    s.SourceType, s.SourceName, s.SourceNameRu, s.Setback, s.Condition))]);
+                    s.SourceType, s.SourceName, s.SourceNameRu, s.Setback, s.Condition, s.Boost))],
+                penalty.BoostDice);
         }).ToList();
 
         var configuration = await BuildConfigurationAsync(db, c, systemSkills, ct);
@@ -111,9 +115,9 @@ public static class SheetBuilder
                     .Select(x => x.HeroicSecondaryEffectDef!.ToDto())
                     .OrderBy(x => x.NameRu)
                     .ToList()),
-            c.Items
-                .OrderBy(i => i.ItemDef!.Kind).ThenBy(i => i.ItemDef!.NameRu)
-                .Select(i => ItemDto(i, c, ch, qualitiesByCode))
+            effectiveItems
+                .OrderBy(e => e.Def.Kind).ThenBy(e => e.Def.NameRu)
+                .Select(e => ItemDto(e, ch, qualitiesByCode))
                 .ToList(),
             c.Desire, c.Fear, c.Strength, c.Flaw, c.Background,
             c.CriticalInjuries
@@ -140,7 +144,10 @@ public static class SheetBuilder
             c.HeroicIdentityIncomplete,
             configuration,
             c.HeroicConfigurationIncomplete,
-            c.ActiveArmorCharacterItemId);
+            c.ActiveArmorCharacterItemId,
+            [.. c.Attachments.Where(a => a.AttachmentDef is not null)
+                .OrderBy(a => a.AttachmentDef!.NameRu, StringComparer.Ordinal)
+                .Select(AttachmentDto)]);
     }
 
     /// <summary>
@@ -149,34 +156,46 @@ public static class SheetBuilder
     /// у железной кольчуги на карточке стоял бы один вес, а в переносимом грузе — другой.
     /// </summary>
     private static CharacterItemDto ItemDto(
-        CharacterItem i, Character c, CharacteristicsSet ch,
+        EffectiveItem e, CharacteristicsSet ch,
         IReadOnlyDictionary<string, QualityDef> qualitiesByCode)
     {
-        var def = i.ItemDef!;
-        var stats = CraftsmanshipRules.For(def, i.Craftsmanship);
+        var (item, def) = (e.Item, e.Def);
         return new CharacterItemDto(
-            i.Id, i.ItemDefId, def.Name, def.NameRu, def.Kind, i.State,
-            i.Quantity, stats.Encumbrance, stats.SoakBonus, stats.MeleeDefense,
-            stats.RangedDefense, def.EncumbranceThresholdBonus,
-            SheetCalculator.ItemLoad(new ItemInput(def.Name, def.Kind, i.State,
-                stats.Encumbrance, i.Quantity)),
-            def.Description, stats.Price,
+            item.Id, item.ItemDefId, def.Name, def.NameRu, def.Kind, item.State,
+            item.Quantity, e.Encumbrance, e.SoakBonus, e.MeleeDefense,
+            e.RangedDefense, def.EncumbranceThresholdBonus,
+            SheetCalculator.ItemLoad(new ItemInput(def.Name, def.Kind, item.State,
+                e.Encumbrance, item.Quantity)),
+            def.Description, e.Price,
             def.SkillName, def.Damage, def.Crit, def.RangeBand, def.Properties,
             def.DescriptionEn,
-            i.Id == c.ActiveArmorCharacterItemId,
-            stats.HardPoints,
+            e.IsActiveArmor,
+            e.HardPoints,
             [.. def.CheckModifiers.Select(m => new ItemCheckModifierDto(
                     m.Kind, m.SkillName, m.Characteristic, m.Value, m.RequiresWorn, m.Condition))
-                .Concat(stats.CheckModifiers.Select(m => new ItemCheckModifierDto(
+                .Concat(e.CheckModifiers.Select(m => new ItemCheckModifierDto(
                     m.Kind, m.SkillName, null, m.Value, true, "")))],
-            def.AttackProfileDtos(ch.Brawn, qualitiesByCode, ch.Agility, i.Craftsmanship),
-            i.IsThrown,
-            i.Craftsmanship,
-            stats.Rarity,
-            stats.Reinforced,
-            [.. stats.Adjustments.Select(a => new ItemStatAdjustmentDto(
-                a.Field, a.Base, a.Effective, a.Stage, a.Source))]);
+            def.AttackProfileDtos(ch.Brawn, qualitiesByCode, ch.Agility, item.Craftsmanship,
+                e.Qualities, e.AttachmentEffects.DamageBonus, e.AttachmentEffects.CritReduction),
+            item.IsThrown,
+            item.Craftsmanship,
+            e.Rarity,
+            e.Reinforced,
+            [.. e.Adjustments.Select(a => new ItemStatAdjustmentDto(
+                a.Field, a.Base, a.Effective, a.Stage, a.Source))],
+            [.. e.Attachments.Select(AttachmentDto)],
+            e.UsedHardPoints,
+            e.OverCapacity,
+            [.. e.AttachmentEffects.Notes.Select(n => $"{n.SourceNameRu}: {n.Text}")],
+            def.FormTraits);
     }
+
+    /// <summary>Экземпляр улучшения в DTO: механика приезжает вместе с ним, а не отдельным запросом.</summary>
+    internal static CharacterAttachmentDto AttachmentDto(CharacterAttachment a) => new(
+        a.Id, a.AttachmentDefId, a.AttachmentDef!.Name, a.AttachmentDef.NameRu,
+        a.AttachmentDef.HardPointCost, a.AttachmentDef.IsEnchantment, a.AttachmentDef.Price,
+        a.AttachmentDef.Rarity, a.HostCharacterItemId, a.Note,
+        [.. a.AttachmentDef.Effects.Select(Mappers.ToDto)]);
 
     /// <summary>Разбор защиты в DTO: источники нужны UI, чтобы объяснить итоговое число.</summary>
     private static DefenseBreakdownDto? ToDto(DefenseBreakdown? b) => b is null ? null : new(

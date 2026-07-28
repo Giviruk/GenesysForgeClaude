@@ -32,7 +32,9 @@ public static class ItemCatalog
         /// <summary>Оружием нельзя атаковать вплотную (пика).</summary>
         bool CannotEngage = false,
         /// <summary>Сложность проверки, заданная самим оружием (пика — 2).</summary>
-        int? Difficulty = null);
+        int? Difficulty = null,
+        /// <summary>Признаки формы для совместимости улучшений (ROT-EQP-ATT-01).</summary>
+        string[]? Traits = null);
 
     /// <param name="DamageKind">«BrawnPlus» или «Fixed».</param>
     /// <param name="Range">Дистанция: Engaged, Short, Medium, Long, Extreme.</param>
@@ -98,6 +100,7 @@ public static class ItemCatalog
                     Properties = e.Properties ?? "",
                     Retired = e.Retired,
                     HardPoints = e.Hp,
+                    FormTraits = ParseTraits(e.Traits),
                     CheckModifiers = [.. (e.Modifiers ?? []).Select(m => new ItemCheckModifier
                     {
                         Id = Guid.NewGuid(),
@@ -111,6 +114,19 @@ public static class ItemCatalog
                     AttackProfiles = AttackProfiles(e, kind),
                 };
         }
+    }
+
+    /// <summary>Признаки формы из каталога. Неизвестное имя молча не проглатывается.</summary>
+    internal static WeaponFormTraits ParseTraits(string[]? traits)
+    {
+        var result = WeaponFormTraits.None;
+        foreach (var name in traits ?? [])
+        {
+            if (!Enum.TryParse<WeaponFormTraits>(name, ignoreCase: true, out var trait))
+                throw new InvalidOperationException($"Неизвестный признак формы «{name}» в каталоге.");
+            result |= trait;
+        }
+        return result;
     }
 
     private static ItemKind ParseKind(string kind) => kind.ToLowerInvariant() switch

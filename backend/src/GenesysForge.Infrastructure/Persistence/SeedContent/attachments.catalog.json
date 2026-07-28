@@ -1,0 +1,609 @@
+[
+  {
+    "code": "balanced-hilt",
+    "name": "Balanced Hilt",
+    "nameRu": "Сбалансированная рукоять",
+    "setting": "Any",
+    "hardPointCost": 1,
+    "price": 1000,
+    "rarity": 6,
+    "isEnchantment": false,
+    "hostKind": "weapon",
+    "requiredTraits": [],
+    "requiredAnyTraits": [
+      "OneHanded"
+    ],
+    "forbiddenTraits": [],
+    "desc": "Для одноручного оружия ближнего боя; получает Accurate 1 или снижает Inaccurate на 1.",
+    "descEn": "For one-handed melee weapons; gains Accurate 1 or reduces Inaccurate by 1.",
+    "source": "Realms of Terrinoth, pp. 106-107",
+    "effects": [
+      {
+        "kind": "GrantQualityOrCancelOpposite",
+        "quality": "accurate",
+        "opposite": "inaccurate",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "code": "duelist-cross-guard",
+    "name": "Duelist Cross Guard",
+    "nameRu": "Гарда дуэлянта",
+    "setting": "Any",
+    "hardPointCost": 1,
+    "price": 800,
+    "rarity": 5,
+    "isEnchantment": false,
+    "hostKind": "weapon",
+    "requiredTraits": [
+      "Sword"
+    ],
+    "requiredAnyTraits": [],
+    "forbiddenTraits": [],
+    "desc": "Подходит к мечам; помогает парировать, добавляя угрозы к атаке ближнего боя против владельца.",
+    "descEn": "Fits swords; helps parry by adding threat to melee attacks against the wielder.",
+    "source": "Realms of Terrinoth, pp. 106-107",
+    "effects": [
+      {
+        "kind": "NarrativeOnly",
+        "note": "После ближней атаки по владельцу с неотменённой угрозой владелец раз за проверку может получить 1 усталость и добавить в результат ещё 2 угрозы."
+      }
+    ]
+  },
+  {
+    "code": "explosive-missile",
+    "name": "Explosive Missile",
+    "nameRu": "Взрывной снаряд",
+    "setting": "Fantasy",
+    "hardPointCost": 1,
+    "price": 1250,
+    "rarity": 7,
+    "isEnchantment": false,
+    "hostKind": "weapon",
+    "requiredTraits": [
+      "Ranged"
+    ],
+    "requiredAnyTraits": [],
+    "forbiddenTraits": [],
+    "desc": "Боеприпас/наконечник со взрывным эффектом; добавляет взрывной урон к подходящему оружию.",
+    "descEn": "Ammunition/warhead with an explosive effect; adds blast damage to a suitable weapon.",
+    "source": "Realms of Terrinoth, pp. 106-107",
+    "effects": [
+      {
+        "kind": "SetQualityAtLeast",
+        "quality": "blast",
+        "value": 5
+      }
+    ]
+  },
+  {
+    "code": "razor-edge",
+    "name": "Razor Edge",
+    "nameRu": "Острое лезвие",
+    "setting": "Any",
+    "hardPointCost": 1,
+    "price": 1250,
+    "rarity": 6,
+    "isEnchantment": false,
+    "hostKind": "weapon",
+    "requiredTraits": [
+      "Bladed"
+    ],
+    "requiredAnyTraits": [],
+    "forbiddenTraits": [
+      "Ranged"
+    ],
+    "desc": "Для клинкового оружия ближнего боя; получает Vicious 1 или повышает Vicious на 1.",
+    "descEn": "For bladed melee weapons; gains Vicious 1 or increases Vicious by 1.",
+    "source": "Realms of Terrinoth, pp. 106-107",
+    "effects": [
+      {
+        "kind": "GrantOrIncreaseQuality",
+        "quality": "pierce",
+        "value": 2,
+        "increment": 1
+      },
+      {
+        "kind": "CritReduction",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "code": "recurve-limbs",
+    "name": "Recurve Limbs",
+    "nameRu": "Рекурсивные плечи",
+    "setting": "Any",
+    "hardPointCost": 1,
+    "price": 300,
+    "rarity": 4,
+    "isEnchantment": false,
+    "hostKind": "weapon",
+    "requiredTraits": [
+      "BowOrCrossbow"
+    ],
+    "requiredAnyTraits": [],
+    "forbiddenTraits": [],
+    "desc": "Для луков/арбалетов; получает Pierce 2 или повышает Pierce; получает/повышает Unwieldy 2.",
+    "descEn": "For bows/crossbows; gains Pierce 2 or increases Pierce; gains/increases Unwieldy 2.",
+    "source": "Realms of Terrinoth, pp. 106-107",
+    "effects": [
+      {
+        "kind": "GrantOrIncreaseQuality",
+        "quality": "pierce",
+        "value": 2,
+        "increment": 1
+      },
+      {
+        "kind": "GrantOrIncreaseQuality",
+        "quality": "unwieldy",
+        "value": 2,
+        "increment": 1
+      }
+    ]
+  },
+  {
+    "code": "rune-of-blades",
+    "name": "Rune of Blades",
+    "nameRu": "Руна клинков",
+    "setting": "Fantasy",
+    "hardPointCost": 1,
+    "price": null,
+    "rarity": 10,
+    "isEnchantment": true,
+    "hostKind": "weapon",
+    "requiredTraits": [
+      "Bladed"
+    ],
+    "requiredAnyTraits": [],
+    "forbiddenTraits": [
+      "WoodenWorkingEdge"
+    ],
+    "desc": "Рунная модификация, усиливающая клинок магическим эффектом.",
+    "descEn": "A runic modification that empowers the blade with a magical effect.",
+    "source": "Realms of Terrinoth, pp. 106-107",
+    "effects": [
+      {
+        "kind": "NarrativeOnly",
+        "note": "Критическое ранение от этого оружия даёт фиксированный результат «Истекает кровью» вместо броска d100. Цели без таблицы ранений решение выносит ведущий."
+      }
+    ]
+  },
+  {
+    "code": "runic-flame",
+    "name": "Runic Flame",
+    "nameRu": "Руническое пламя",
+    "setting": "Fantasy",
+    "hardPointCost": 1,
+    "price": 2000,
+    "rarity": 8,
+    "isEnchantment": true,
+    "hostKind": "weapon",
+    "requiredTraits": [],
+    "requiredAnyTraits": [],
+    "forbiddenTraits": [
+      "Ranged"
+    ],
+    "desc": "Добавляет огненный/жгущий рунический эффект.",
+    "descEn": "Adds a fire/burning runic effect.",
+    "source": "Realms of Terrinoth, pp. 106-107",
+    "effects": [
+      {
+        "kind": "SetQualityAtLeast",
+        "quality": "burn",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "code": "runic-frost",
+    "name": "Runic Frost",
+    "nameRu": "Рунический мороз",
+    "setting": "Fantasy",
+    "hardPointCost": 1,
+    "price": 1750,
+    "rarity": 8,
+    "isEnchantment": true,
+    "hostKind": "weapon",
+    "requiredTraits": [],
+    "requiredAnyTraits": [],
+    "forbiddenTraits": [
+      "Ranged"
+    ],
+    "desc": "Добавляет ледяной/замедляющий рунический эффект.",
+    "descEn": "Adds an ice/slowing runic effect.",
+    "source": "Realms of Terrinoth, pp. 106-107",
+    "effects": [
+      {
+        "kind": "SetQualityAtLeast",
+        "quality": "ensnare",
+        "value": 1
+      },
+      {
+        "kind": "SetQualityAtLeast",
+        "quality": "stun",
+        "value": 4
+      }
+    ]
+  },
+  {
+    "code": "runic-thunder",
+    "name": "Runic Thunder",
+    "nameRu": "Рунический гром",
+    "setting": "Fantasy",
+    "hardPointCost": 2,
+    "price": 2000,
+    "rarity": 8,
+    "isEnchantment": true,
+    "hostKind": "weapon",
+    "requiredTraits": [],
+    "requiredAnyTraits": [],
+    "forbiddenTraits": [],
+    "desc": "Добавляет громовой/молниевый рунический эффект.",
+    "descEn": "Adds a thunder/lightning runic effect.",
+    "source": "Realms of Terrinoth, pp. 106-107",
+    "effects": [
+      {
+        "kind": "SetQualityAtLeast",
+        "quality": "concussive",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "code": "rune-of-severing",
+    "name": "Rune of Severing",
+    "nameRu": "Руна рассечения",
+    "setting": "Fantasy",
+    "hardPointCost": 2,
+    "price": null,
+    "rarity": 10,
+    "isEnchantment": true,
+    "hostKind": "weapon",
+    "requiredTraits": [
+      "Bladed"
+    ],
+    "requiredAnyTraits": [],
+    "forbiddenTraits": [
+      "Ranged"
+    ],
+    "desc": "Усиливает способность оружия рассекать и повреждать.",
+    "descEn": "Enhances the weapon's ability to cut and damage.",
+    "source": "Realms of Terrinoth, pp. 106-107",
+    "effects": [
+      {
+        "kind": "SetQualityAtLeast",
+        "quality": "vicious",
+        "value": 5
+      }
+    ]
+  },
+  {
+    "code": "serrated-edge",
+    "name": "Serrated Edge",
+    "nameRu": "Пилообразное лезвие",
+    "setting": "Any",
+    "hardPointCost": 1,
+    "price": 75,
+    "rarity": 2,
+    "isEnchantment": false,
+    "hostKind": "weapon",
+    "requiredTraits": [
+      "Bladed"
+    ],
+    "requiredAnyTraits": [],
+    "forbiddenTraits": [
+      "Ranged"
+    ],
+    "desc": "Для клинкового оружия ближнего боя; получает Vicious 1 или повышает Vicious на 1.",
+    "descEn": "For bladed melee weapons; gains Vicious 1 or increases Vicious by 1.",
+    "source": "Realms of Terrinoth, pp. 106-107",
+    "effects": [
+      {
+        "kind": "GrantOrIncreaseQuality",
+        "quality": "vicious",
+        "value": 1,
+        "increment": 1
+      }
+    ]
+  },
+  {
+    "code": "superior-weapon-customization",
+    "name": "Superior Weapon Customization",
+    "nameRu": "Превосходная модификация оружия",
+    "setting": "Any",
+    "hardPointCost": 1,
+    "price": 750,
+    "rarity": 7,
+    "isEnchantment": false,
+    "hostKind": "weapon",
+    "requiredTraits": [],
+    "requiredAnyTraits": [],
+    "forbiddenTraits": [],
+    "desc": "Оружие получает качество Superior.",
+    "descEn": "The weapon gains the Superior quality.",
+    "source": "Genesys Core Rulebook, pp. 207-209",
+    "effects": [
+      {
+        "kind": "GrantOrIncreaseQuality",
+        "quality": "superior",
+        "value": 0,
+        "increment": 0
+      }
+    ]
+  },
+  {
+    "code": "weighted-head",
+    "name": "Weighted Head",
+    "nameRu": "Утяжелённая боевая часть",
+    "setting": "Any",
+    "hardPointCost": 1,
+    "price": 250,
+    "rarity": 2,
+    "isEnchantment": false,
+    "hostKind": "weapon",
+    "requiredTraits": [
+      "BluntOrCrushing"
+    ],
+    "requiredAnyTraits": [],
+    "forbiddenTraits": [
+      "HasCuttingEdge",
+      "Ranged"
+    ],
+    "desc": "Для дробящего оружия ближнего боя; +2 урона и Cumbersome 2/повышение Cumbersome.",
+    "descEn": "For blunt melee weapons; +2 damage and Cumbersome 2 or increases Cumbersome.",
+    "source": "Realms of Terrinoth, pp. 106-107",
+    "effects": [
+      {
+        "kind": "Damage",
+        "value": 2
+      },
+      {
+        "kind": "GrantOrIncreaseQuality",
+        "quality": "cumbersome",
+        "value": 2,
+        "increment": 1
+      }
+    ]
+  },
+  {
+    "code": "ynfernael-corruption",
+    "name": "Ynfernael Corruption",
+    "nameRu": "Скверна Инфернаэля",
+    "setting": "Fantasy",
+    "hardPointCost": 1,
+    "price": null,
+    "rarity": 8,
+    "isEnchantment": true,
+    "hostKind": "weapon",
+    "requiredTraits": [],
+    "requiredAnyTraits": [],
+    "forbiddenTraits": [],
+    "desc": "Демоническая скверна, усиливающая вредоносный эффект оружия ценой опасных последствий.",
+    "descEn": "A demonic taint that empowers the weapon's harmful effect at the cost of dangerous consequences.",
+    "source": "Realms of Terrinoth, pp. 106-107",
+    "effects": [
+      {
+        "kind": "Damage",
+        "value": 2
+      },
+      {
+        "kind": "NarrativeOnly",
+        "note": "Пока оружие в руках, каждое отдельное событие усталости увеличивается на 1. На нули, раны и просто ношение не действует."
+      }
+    ]
+  },
+  {
+    "code": "deflective-plating",
+    "name": "Deflective Plating",
+    "nameRu": "Отклоняющие пластины",
+    "setting": "Any",
+    "hardPointCost": 1,
+    "price": 450,
+    "rarity": 4,
+    "isEnchantment": false,
+    "hostKind": "armor",
+    "requiredTraits": [],
+    "requiredAnyTraits": [],
+    "forbiddenTraits": [],
+    "desc": "Увеличивает дальнюю защиту на 1.",
+    "descEn": "Increases ranged defense by 1.",
+    "source": "Genesys Core Rulebook, pp. 207-209",
+    "effects": [
+      {
+        "kind": "RangedDefense",
+        "value": 1,
+        "condition": "WornAndActive"
+      }
+    ]
+  },
+  {
+    "code": "gilded",
+    "name": "Gilded",
+    "nameRu": "Позолота",
+    "setting": "Fantasy",
+    "hardPointCost": 0,
+    "price": 1500,
+    "rarity": 5,
+    "isEnchantment": false,
+    "hostKind": "armor",
+    "requiredTraits": [],
+    "requiredAnyTraits": [],
+    "forbiddenTraits": [],
+    "desc": "Позолоченная/роскошная отделка; повышает социальное впечатление и стоимость предмета.",
+    "descEn": "Gilded/luxurious finish; raises the social impression and the item's value.",
+    "source": "Genesys Core Rulebook, pp. 207-209",
+    "effects": [
+      {
+        "kind": "SkillBoost",
+        "skill": "Charm",
+        "value": 1,
+        "condition": "WornAndActive"
+      },
+      {
+        "kind": "SkillBoost",
+        "skill": "Negotiation",
+        "value": 1,
+        "condition": "WornAndActive"
+      },
+      {
+        "kind": "SkillBoost",
+        "skill": "Leadership",
+        "value": 1,
+        "condition": "WornAndActive"
+      }
+    ]
+  },
+  {
+    "code": "intimidating-visage",
+    "name": "Intimidating Visage",
+    "nameRu": "Пугающий облик",
+    "setting": "Any",
+    "hardPointCost": 0,
+    "price": 125,
+    "rarity": 3,
+    "isEnchantment": false,
+    "hostKind": "armor",
+    "requiredTraits": [],
+    "requiredAnyTraits": [],
+    "forbiddenTraits": [],
+    "desc": "Добавляет преимущество к Coercion и автоматическую угрозу к Charm.",
+    "descEn": "Adds advantage to Coercion checks and an automatic threat to Charm checks.",
+    "source": "Genesys Core Rulebook, pp. 207-209",
+    "effects": [
+      {
+        "kind": "AutomaticSymbol",
+        "skill": "Coercion",
+        "note": "Один автоматический успех к Устрашению, пока броня надета и активна."
+      },
+      {
+        "kind": "AutomaticSymbol",
+        "skill": "Charm",
+        "note": "Один автоматический провал к Обаянию, пока броня надета и активна."
+      }
+    ]
+  },
+  {
+    "code": "ironbound-rune",
+    "name": "Ironbound Rune",
+    "nameRu": "Железная руна",
+    "setting": "Fantasy",
+    "hardPointCost": 2,
+    "price": null,
+    "rarity": 10,
+    "isEnchantment": true,
+    "hostKind": "armor",
+    "requiredTraits": [
+      "MetalArmor"
+    ],
+    "requiredAnyTraits": [],
+    "forbiddenTraits": [],
+    "desc": "Руна усиленной защиты/прочности брони.",
+    "descEn": "A rune of reinforced protection/armor durability.",
+    "source": "Realms of Terrinoth, pp. 107-108",
+    "effects": [
+      {
+        "kind": "Soak",
+        "value": 1,
+        "condition": "WornAndActive"
+      },
+      {
+        "kind": "MeleeDefense",
+        "value": 1,
+        "condition": "WornAndActive"
+      },
+      {
+        "kind": "RangedDefense",
+        "value": 1,
+        "condition": "WornAndActive"
+      }
+    ]
+  },
+  {
+    "code": "reinforced-plating",
+    "name": "Reinforced Plating",
+    "nameRu": "Усиленные пластины",
+    "setting": "Any",
+    "hardPointCost": 2,
+    "price": 8000,
+    "rarity": 7,
+    "isEnchantment": false,
+    "hostKind": "armor",
+    "requiredTraits": [
+      "HardenedPlate"
+    ],
+    "requiredAnyTraits": [],
+    "forbiddenTraits": [],
+    "desc": "Броня получает Reinforced; нагрузка увеличивается на 1.",
+    "descEn": "The armor gains Reinforced; encumbrance increases by 1.",
+    "source": "Genesys Core Rulebook, pp. 207-209",
+    "effects": [
+      {
+        "kind": "GrantOrIncreaseQuality",
+        "quality": "reinforced",
+        "value": 0,
+        "increment": 0
+      },
+      {
+        "kind": "Encumbrance",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "code": "spikes",
+    "name": "Spikes",
+    "nameRu": "Шипы",
+    "setting": "Fantasy",
+    "hardPointCost": 1,
+    "price": 600,
+    "rarity": 4,
+    "isEnchantment": false,
+    "hostKind": "armor",
+    "requiredTraits": [
+      "PlateArmor"
+    ],
+    "requiredAnyTraits": [],
+    "forbiddenTraits": [],
+    "desc": "Шипы на броне; могут наносить вред или усложнять противнику борьбу вплотную.",
+    "descEn": "Armor spikes; can cause harm or make engaged grappling harder for the opponent.",
+    "source": "Realms of Terrinoth, pp. 107-108, официальная errata v1.1",
+    "effects": [
+      {
+        "kind": "NarrativeOnly",
+        "note": "Когда владелец — цель ближней атаки, после броска можно потратить из результата атакующего 3 угрозы или 1 отчаяние: атакующий получает 3 раны без поглощения. Раз за проверку, независимо от попадания."
+      }
+    ]
+  },
+  {
+    "code": "twilight-rune",
+    "name": "Twilight Rune",
+    "nameRu": "Сумеречная руна",
+    "setting": "Fantasy",
+    "hardPointCost": 1,
+    "price": null,
+    "rarity": 10,
+    "isEnchantment": true,
+    "hostKind": "armor",
+    "requiredTraits": [],
+    "requiredAnyTraits": [],
+    "forbiddenTraits": [],
+    "desc": "Руна сумерек; помогает скрываться/снижать заметность брони.",
+    "descEn": "A rune of dusk; helps hide and reduces the armor's visibility.",
+    "source": "Realms of Terrinoth, pp. 107-108",
+    "effects": [
+      {
+        "kind": "SkillBoost",
+        "skill": "Stealth",
+        "value": 2,
+        "condition": "WornAndActive"
+      },
+      {
+        "kind": "RangedDefense",
+        "value": 2,
+        "condition": "WornAndActive"
+      }
+    ]
+  }
+]

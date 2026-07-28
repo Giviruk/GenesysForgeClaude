@@ -119,6 +119,11 @@ public class Character
     public List<CharacterSkill> Skills { get; set; } = [];
     public List<CharacterTalent> Talents { get; set; } = [];
     public List<CharacterItem> Items { get; set; } = [];
+
+    /// <summary>
+    /// Улучшения персонажа (ROT-EQP-ATT-01): и установленные на предметы, и лежащие в запасе.
+    /// </summary>
+    public List<CharacterAttachment> Attachments { get; set; } = [];
     public List<CharacterCriticalInjury> CriticalInjuries { get; set; } = [];
     public List<CharacterHeroicSecondaryEffect> HeroicSecondaryEffects { get; set; } = [];
 

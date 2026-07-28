@@ -65,7 +65,12 @@ public record CharacterSheetDto(
     /// <summary>Способность требует параметр, а он не выбран — улучшения заблокированы.</summary>
     bool HeroicConfigurationIncomplete = false,
     /// <summary>Выбранная активная броня; <c>null</c> — броня защиты не даёт (ROT-CMB-02).</summary>
-    Guid? ActiveArmorCharacterItemId = null);
+    Guid? ActiveArmorCharacterItemId = null,
+    /// <summary>
+    /// Все улучшения персонажа (ROT-EQP-ATT-01), включая лежащие в запасе: вкладка установки
+    /// показывает их отдельно от инвентаря.
+    /// </summary>
+    IReadOnlyList<CharacterAttachmentDto>? Attachments = null);
 
 /// <summary>Один сохранённый выбор ранга таланта (ROT-TAL-03).</summary>
 public record CharacterTalentChoiceDto(int RankIndex, TalentChoiceKind Kind, string Value, string DisplayName);

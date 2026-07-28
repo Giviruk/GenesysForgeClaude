@@ -164,7 +164,8 @@ export function SheetTab({ sheet, onError, refresh }: Props) {
                               <td className="centered" title={careerSourcesTitle(s.careerSources)}>{s.isCareer ? '✓' : ''}</td>
                               <td>{'●'.repeat(s.ranks)}{'○'.repeat(Math.max(0, 5 - s.ranks))}</td>
                               <td>
-                                <DicePoolView pool={s.pool} setback={s.setbackDice} setbackTitle={setbackTitle(s)} />
+                                <DicePoolView pool={s.pool} setback={s.setbackDice} boost={s.boostDice}
+                                  setbackTitle={setbackTitle(s)} />
                               </td>
                               <td className="right">
                                 <button className="small" title={t(`Бросить пул навыка «${label}»`, `Roll the "${label}" skill pool`)}
@@ -178,6 +179,7 @@ export function SheetTab({ sheet, onError, refresh }: Props) {
                                       ability: s.pool.ability,
                                       proficiency: s.pool.proficiency,
                                       setback: s.setbackDice,
+                                      boost: s.boostDice,
                                     },
                                   })}>
                                   🎲

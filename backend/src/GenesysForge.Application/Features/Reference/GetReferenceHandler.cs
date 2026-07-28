@@ -101,7 +101,16 @@ public class GetReferenceHandler(IAppDbContext db) : IQueryHandler<GetReferenceQ
             : [];
         var heroicSecondaryEffects = heroicSecondaryEffectDefs.Select(x => x.ToDto()).ToList();
 
+        // Улучшения — отдельный тип контента (ROT-EQP-ATT-01): встроенные записи системы.
+        var attachments = (await db.AttachmentDefs.AsNoTracking().Include(a => a.Effects)
+                .Where(a => a.System == system && !a.Retired && a.OwnerUserId == null)
+                .ToListAsync(ct))
+            .OrderBy(a => a.NameRu, StringComparer.Ordinal)
+            .Select(a => a.ToDto())
+            .ToList();
+
         return new ReferenceResponse(
-            archetypes, careers, skills, talents, items, heroics, qualities, heroicSecondaryEffects);
+            archetypes, careers, skills, talents, items, heroics, qualities, heroicSecondaryEffects,
+            attachments);
     }
 }

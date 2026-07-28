@@ -66,4 +66,16 @@ public enum WeaponFormTraits
 
     /// <summary>Рабочая кромка деревянная.</summary>
     WoodenWorkingEdge = 1 << 9,
+
+    // ── Признаки брони (ROT-EQP-ATT-01). У оружия не встречаются, но живут в том же наборе:
+    // совместимость улучшений проверяется одним предикатом и для оружия, и для брони.
+
+    /// <summary>Латная броня.</summary>
+    PlateArmor = 1 << 10,
+
+    /// <summary>Броня из металла.</summary>
+    MetalArmor = 1 << 11,
+
+    /// <summary>Закалённые латы — самая тяжёлая пластинчатая защита.</summary>
+    HardenedPlate = 1 << 12,
 }

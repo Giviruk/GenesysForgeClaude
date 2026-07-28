@@ -8,7 +8,9 @@ public record ReferenceResponse(
     List<ItemDefDto> Items,
     List<HeroicAbilityDto> HeroicAbilities,
     List<QualityDto> Qualities,
-    List<HeroicSecondaryEffectDto> HeroicSecondaryEffects);
+    List<HeroicSecondaryEffectDto> HeroicSecondaryEffects,
+    /// <summary>Улучшения предметов (ROT-EQP-ATT-01): собственный тип контента, не снаряжение.</summary>
+    List<AttachmentDefDto>? Attachments = null);
 
 public record HeroicSecondaryEffectDto(
     Guid Id, string Code, string Name, string NameRu, string Description, string SafeDescription,

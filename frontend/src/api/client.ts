@@ -13,6 +13,7 @@ import type {
   CharacterAuditEntry,
   RulesResponse, SearchResponse,
   ArchetypeSkillChoice, CareerGearChoice, StartingEquipmentMode,
+  DetachOutcome,
 } from './types'
 import { t } from '../i18n'
 import { ariadneAnonymousId } from '../analytics/ariadne'
@@ -246,6 +247,26 @@ export const api = {
     request<{ id: string }>('POST', `/api/characters/${id}/items`, { itemDefId, quantity, state, ...opts }),
   updateItem: (id: string, itemId: string, patch: { state?: ItemState; quantity?: number }) =>
     request<void>('PATCH', `/api/characters/${id}/items/${itemId}`, patch),
+
+  // ── Улучшения предметов (ROT-EQP-ATT-01) ──
+  /** Покупает улучшение в запас персонажа; сумму считает сервер. */
+  buyAttachment: (id: string, attachmentDefId: string,
+    opts?: { free?: boolean; priceOverride?: number; overrideReason?: string }) =>
+    request<{ id: string }>('POST', `/api/characters/${id}/attachments`, { attachmentDefId, ...opts }),
+  /**
+   * Ставит улучшение на предмет. Броска проверки нет: правило книги показано подсказкой.
+   * `overrideReason` нужен, только когда чары ставит персонаж без магического навыка.
+   */
+  installAttachment: (id: string, characterAttachmentId: string, hostCharacterItemId: string,
+    overrideReason?: string) =>
+    request<void>('POST', `/api/characters/${id}/attachments/install`,
+      { characterAttachmentId, hostCharacterItemId, overrideReason }),
+  /** Снимает улучшение с предмета с явным исходом. */
+  detachAttachment: (id: string, attachmentId: string, outcome: DetachOutcome = 'returned', note?: string) =>
+    request<void>('POST', `/api/characters/${id}/attachments/${attachmentId}/detach`, { outcome, note }),
+  /** Убирает улучшение из запаса без выручки. */
+  removeAttachment: (id: string, attachmentId: string) =>
+    request<void>('DELETE', `/api/characters/${id}/attachments/${attachmentId}`),
   /**
    * Продажа: сумму всегда считает сервер. Один из способов — `netSuccesses` (доля по правилу),
    * `percent` (доля цены каталога) или `priceOverride` с `overrideReason` (договорная цена за
