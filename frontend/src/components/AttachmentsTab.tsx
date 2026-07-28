@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { api } from '../api/client'
 import type {
-  AttachmentDef, CharacterAttachment, CharacterSheet, Reference, SheetItem, WeaponFormTrait,
+  AttachmentDef, CharacterAttachment, CharacterSheet, ItemKind, Reference, SheetItem, WeaponFormTrait,
 } from '../api/types'
 import { ITEM_KIND_LABELS, localizedName, parseWeaponTraits } from '../utils/labels'
 import { t } from '../i18n'
@@ -47,10 +47,14 @@ function isCompatible(item: SheetItem, def: AttachmentDef, traits: WeaponFormTra
   return !forbidden.some(has)
 }
 
+/** Улучшение ставится либо на оружие, либо на броню — фильтр повторяет это деление. */
+const KIND_FILTERS: (ItemKind | 'all')[] = ['all', 'weapon', 'armor']
+
 export function AttachmentsTab({ sheet, reference, onError, refresh }: Props) {
   const [hostId, setHostId] = useState<string | null>(null)
   const [attachmentId, setAttachmentId] = useState<string | null>(null)
   const [reason, setReason] = useState('')
+  const [kindFilter, setKindFilter] = useState<ItemKind | 'all'>('all')
 
   async function run(action: () => Promise<unknown>) {
     try {
@@ -76,6 +80,19 @@ export function AttachmentsTab({ sheet, reference, onError, refresh }: Props) {
     for (const d of reference.attachments ?? []) map.set(d.id, d)
     return map
   }, [reference.attachments])
+
+  const matchesFilter = (def?: AttachmentDef) =>
+    kindFilter === 'all' || def?.hostKind === kindFilter
+  // Фильтр по виду носителя касается только списков; выбор для установки и так ограничен
+  // совместимостью выбранного предмета.
+  const spareShown = useMemo(
+    () => spare.filter(a => matchesFilter(defsById.get(a.attachmentDefId))),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [spare, defsById, kindFilter])
+  const catalogue = useMemo(
+    () => (reference.attachments ?? []).filter(d => matchesFilter(d)),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [reference.attachments, kindFilter])
 
   // Совместимость считается по признакам формы выбранного предмета; сервер проверит ещё раз.
   const hostTraits = useMemo(() => parseWeaponTraits(host?.formTraits), [host])
@@ -170,10 +187,22 @@ export function AttachmentsTab({ sheet, reference, onError, refresh }: Props) {
         </p>
       )}
 
+      <div className="attach-filters">
+        {KIND_FILTERS.map(k => (
+          <button key={k} className={kindFilter === k ? 'chip active' : 'chip'}
+            onClick={() => setKindFilter(k)}>
+            {k === 'all' ? t('Все', 'All') : ITEM_KIND_LABELS[k]}
+          </button>
+        ))}
+      </div>
+
       {spare.length > 0 && (
         <section className="attach-list">
           <h4>{t('В запасе', 'In reserve')}</h4>
-          {spare.map(a => (
+          {spareShown.length === 0 && (
+            <p className="muted small-text">{t('По фильтру ничего нет.', 'Nothing matches the filter.')}</p>
+          )}
+          {spareShown.map(a => (
             <AttachmentRow key={a.id} attachment={a} def={defsById.get(a.attachmentDefId)}
               onRemove={() => run(() => api.removeAttachment(sheet.id, a.id))} />
           ))}
@@ -186,7 +215,7 @@ export function AttachmentsTab({ sheet, reference, onError, refresh }: Props) {
           {t('Цену считает сервер. Бесценные улучшения обычной покупкой не берутся — их выдаёт ведущий.',
             'The server computes the price. Priceless attachments cannot be bought — the GM grants them.')}
         </p>
-        {(reference.attachments ?? []).map(d => (
+        {catalogue.map(d => (
           <div key={d.id} className="attach-row">
             <div>
               <strong>{d.nameRu || d.name}</strong>

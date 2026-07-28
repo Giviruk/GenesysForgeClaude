@@ -893,9 +893,13 @@ table.ref-table td.ref-cost { white-space: nowrap; color: var(--accent); }
 .shop-desc { margin-top: 0.2rem; }
 
 /* Улучшения предметов (ROT-EQP-ATT-01) */
-.attach-picker { display: flex; gap: 0.75rem; align-items: flex-end; flex-wrap: wrap; margin: 0.5rem 0; }
-.attach-picker label { display: flex; flex-direction: column; gap: 0.2rem; font-size: 0.85rem; }
+.attach-picker { display: flex; gap: 0.75rem; align-items: end; flex-wrap: wrap; margin: 0.5rem 0 0.75rem; }
+/* Глобальный label несёт вертикальные margin — из-за них селектор вставал выше кнопки. */
+.attach-picker label { display: flex; flex-direction: column; gap: 0.25rem; margin: 0; font-size: 0.85rem; }
+/* Одинаковая высота у селектора и кнопки: иначе «Применить» съезжает по нижней границе. */
+.attach-picker select, .attach-picker button { min-height: 2.15rem; box-sizing: border-box; }
 .attach-picker select { min-width: 16rem; max-width: 100%; }
+.attach-filters { display: flex; gap: 0.3rem; flex-wrap: wrap; margin: 0.4rem 0; }
 .attach-reason { display: flex; flex-direction: column; gap: 0.2rem; margin: 0.4rem 0; max-width: 32rem; }
 .attach-list { margin-top: 1rem; }
 .attach-list h4 { margin: 0 0 0.4rem; }

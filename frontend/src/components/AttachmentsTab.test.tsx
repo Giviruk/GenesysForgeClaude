@@ -106,6 +106,31 @@ describe('Улучшения предметов (ROT-EQP-ATT-01)', () => {
       'char-1', 'att-2', 'item-sword', 'помог городской чародей'))
   })
 
+  it('фильтрует списки по виду носителя', () => {
+    const armorDef = {
+      ...razorDef, id: 'def-plating', code: 'rot.attachment.deflective-plating',
+      name: 'Deflective Plating', nameRu: 'Отклоняющие пластины', hostKind: 'armor',
+      requiredTraits: 'none', forbiddenTraits: 'none',
+    } as unknown as AttachmentDef
+    const both = {
+      ...sheet,
+      attachments: [
+        spare('att-1', 'def-razor'),
+        spare('att-2', 'def-plating', { nameRu: 'Отклоняющие пластины' }),
+      ],
+    } as unknown as CharacterSheet
+    render(<AttachmentsTab sheet={both} reference={{ attachments: [razorDef, armorDef] } as unknown as Reference}
+      onError={() => {}} refresh={() => Promise.resolve()} />)
+
+    const reserve = () => document.querySelector('.attach-list')!.textContent ?? ''
+    expect(reserve()).toContain('Бритвенная кромка')
+    expect(reserve()).toContain('Отклоняющие пластины')
+
+    fireEvent.click(screen.getByRole('button', { name: 'Броня' }))
+    expect(reserve()).not.toContain('Бритвенная кромка')
+    expect(reserve()).toContain('Отклоняющие пластины')
+  })
+
   it('снимает установленное улучшение', async () => {
     const installed = {
       ...sheet,
