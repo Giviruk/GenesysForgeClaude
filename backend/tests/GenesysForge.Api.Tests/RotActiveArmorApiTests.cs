@@ -5,14 +5,17 @@ using GenesysForge.Domain;
 
 namespace GenesysForge.Api.Tests;
 
-/// <summary>ROT-CMB-02: выбор активной брони и её влияние на лист.</summary>
+/// <summary>
+/// ROT-CMB-02 + ROT-EQP-01: одновременно носят ровно одну броню, поэтому надетая броня и есть
+/// активная — выбирать не из чего. Раньше можно было надеть три доспеха и переключать «активный».
+/// </summary>
 public class RotActiveArmorApiTests(ApiFactory factory) : IClassFixture<ApiFactory>
 {
     private static async Task<CharacterSheetDto> SheetAsync(HttpClient client, Guid id) =>
         (await client.GetFromJsonAsync<CharacterSheetDto>($"/api/characters/{id}", Json.Options))!;
 
-    /// <summary>Персонаж RoT с двумя надетыми бронями разного поглощения.</summary>
-    private async Task<(HttpClient Client, Guid Id, Guid WeakItemId, Guid StrongItemId)> CreateWithTwoArmorsAsync()
+    /// <summary>Персонаж RoT и две брони разного поглощения из справочника.</summary>
+    private async Task<(HttpClient Client, Guid Id, ItemDefDto Weak, ItemDefDto Strong)> CreateAsync()
     {
         var client = await factory.CreateAuthorizedClientAsync();
         var reference = (await client.GetFromJsonAsync<ReferenceResponse>(
@@ -31,120 +34,90 @@ public class RotActiveArmorApiTests(ApiFactory factory) : IClassFixture<ApiFacto
         var weak = armors.First();
         var strong = armors.Last();
         Assert.True(strong.SoakBonus > weak.SoakBonus, "Нужны две брони с разным поглощением.");
-
-        var weakId = await AddAsync(client, id, weak.Id);
-        var strongId = await AddAsync(client, id, strong.Id);
-        return (client, id, weakId, strongId);
+        return (client, id, weak, strong);
     }
 
-    private static async Task<Guid> AddAsync(HttpClient client, Guid characterId, Guid itemDefId)
+    private static Task<HttpResponseMessage> AddAsync(
+        HttpClient client, Guid characterId, Guid itemDefId, ItemState state = ItemState.Equipped) =>
+        client.PostAsJsonAsync($"/api/characters/{characterId}/items",
+            new AddItemRequest(itemDefId, 1, state, Free: true), Json.Options);
+
+    private static async Task<Guid> AddAndGetIdAsync(
+        HttpClient client, Guid characterId, Guid itemDefId, ItemState state = ItemState.Equipped)
     {
-        var resp = await client.PostAsJsonAsync($"/api/characters/{characterId}/items",
-            new AddItemRequest(itemDefId, 1, ItemState.Equipped, Free: true), Json.Options);
+        var resp = await AddAsync(client, characterId, itemDefId, state);
         Assert.Equal(HttpStatusCode.Created, resp.StatusCode);
         return (await resp.Content.ReadFromJsonAsync<Dictionary<string, Guid>>(Json.Options))!["id"];
     }
 
-    private static Task<HttpResponseMessage> SetActiveAsync(HttpClient client, Guid id, Guid? itemId) =>
-        client.PutAsJsonAsync($"/api/characters/{id}/active-armor", new SetActiveArmorRequest(itemId), Json.Options);
+    private static Task<HttpResponseMessage> SetStateAsync(
+        HttpClient client, Guid id, Guid itemId, ItemState state) =>
+        client.PatchAsJsonAsync($"/api/characters/{id}/items/{itemId}",
+            new UpdateItemRequest(state, null), Json.Options);
 
     [Fact]
-    public async Task FirstEquippedArmorBecomesActive_AndTheSecondDoesNotSwitchItSilently()
+    public async Task WornArmor_IsTheActiveOne()
     {
-        var (client, id, weakId, _) = await CreateWithTwoArmorsAsync();
+        var (client, id, weak, _) = await CreateAsync();
+        var weakId = await AddAndGetIdAsync(client, id, weak.Id);
 
         var sheet = await SheetAsync(client, id);
-
         Assert.Equal(weakId, sheet.ActiveArmorCharacterItemId);
         Assert.True(sheet.Items.Single(i => i.Id == weakId).IsActiveArmor);
     }
 
     [Fact]
-    public async Task TwoArmors_DoNotStackSoak_AndSwitchingChangesItWithoutChangingLoad()
+    public async Task SecondArmor_CannotBeWorn()
     {
-        var (client, id, weakId, strongId) = await CreateWithTwoArmorsAsync();
+        var (client, id, weak, strong) = await CreateAsync();
+        await AddAndGetIdAsync(client, id, weak.Id);
+
+        // Ни сразу «на себя»…
+        var added = await AddAsync(client, id, strong.Id);
+        Assert.Equal(HttpStatusCode.BadRequest, added.StatusCode);
+        Assert.Equal("equipment.armor_limit",
+            (await added.Content.ReadFromJsonAsync<ErrorResponse>(Json.Options))!.ReasonCode);
+
+        // …ни надеванием той, что лежит в рюкзаке.
+        var carriedId = await AddAndGetIdAsync(client, id, strong.Id, ItemState.Backpack);
+        var worn = await SetStateAsync(client, id, carriedId, ItemState.Equipped);
+        Assert.Equal(HttpStatusCode.BadRequest, worn.StatusCode);
+        Assert.Equal("equipment.armor_limit",
+            (await worn.Content.ReadFromJsonAsync<ErrorResponse>(Json.Options))!.ReasonCode);
+    }
+
+    [Fact]
+    public async Task ArmorSwaps_OnlyAfterTheFirstIsTakenOff()
+    {
+        var (client, id, weak, strong) = await CreateAsync();
+        var weakId = await AddAndGetIdAsync(client, id, weak.Id);
+        var strongId = await AddAndGetIdAsync(client, id, strong.Id, ItemState.Backpack);
 
         var withWeak = await SheetAsync(client, id);
-        Assert.Equal(HttpStatusCode.NoContent, (await SetActiveAsync(client, id, strongId)).StatusCode);
-        var withStrong = await SheetAsync(client, id);
+        Assert.Equal(HttpStatusCode.NoContent,
+            (await SetStateAsync(client, id, weakId, ItemState.Backpack)).StatusCode);
+        Assert.Equal(HttpStatusCode.NoContent,
+            (await SetStateAsync(client, id, strongId, ItemState.Equipped)).StatusCode);
 
+        var withStrong = await SheetAsync(client, id);
         Assert.True(withStrong.Derived.Soak > withWeak.Derived.Soak);
-        // Обе брони остаются надетыми, поэтому переносимый вес не меняется.
-        Assert.Equal(withWeak.Derived.EncumbranceLoad, withStrong.Derived.EncumbranceLoad);
-        Assert.True(withStrong.Items.Single(i => i.Id == strongId).IsActiveArmor);
+        Assert.Equal(strongId, withStrong.ActiveArmorCharacterItemId);
         Assert.False(withStrong.Items.Single(i => i.Id == weakId).IsActiveArmor);
     }
 
     [Fact]
-    public async Task UnequippingTheActiveArmor_ClearsTheChoice_WithoutPickingTheNextOne()
+    public async Task UnequippingTheArmor_ClearsTheChoice_AndItsProtection()
     {
-        var (client, id, weakId, _) = await CreateWithTwoArmorsAsync();
+        var (client, id, _, strong) = await CreateAsync();
+        var strongId = await AddAndGetIdAsync(client, id, strong.Id);
+        var withArmor = await SheetAsync(client, id);
 
-        var resp = await client.PatchAsJsonAsync($"/api/characters/{id}/items/{weakId}",
-            new UpdateItemRequest(ItemState.Backpack, null), Json.Options);
-        Assert.Equal(HttpStatusCode.NoContent, resp.StatusCode);
+        Assert.Equal(HttpStatusCode.NoContent,
+            (await SetStateAsync(client, id, strongId, ItemState.Backpack)).StatusCode);
 
         var sheet = await SheetAsync(client, id);
         Assert.Null(sheet.ActiveArmorCharacterItemId);
         Assert.DoesNotContain(sheet.Items, i => i.IsActiveArmor);
-    }
-
-    [Fact]
-    public async Task ChoiceCanBeCleared_AndThenNoArmorProtectionApplies()
-    {
-        var (client, id, _, strongId) = await CreateWithTwoArmorsAsync();
-        // Самая слабая броня может иметь поглощение 0, поэтому снимать выбор нужно с сильной.
-        await SetActiveAsync(client, id, strongId);
-        var withArmor = await SheetAsync(client, id);
-
-        Assert.Equal(HttpStatusCode.NoContent, (await SetActiveAsync(client, id, null)).StatusCode);
-
-        var without = await SheetAsync(client, id);
-        Assert.Null(without.ActiveArmorCharacterItemId);
-        Assert.True(without.Derived.Soak < withArmor.Derived.Soak);
-    }
-
-    [Fact]
-    public async Task ForeignOrUnsuitableItem_IsRejectedAtomically()
-    {
-        var (client, id, weakId, _) = await CreateWithTwoArmorsAsync();
-
-        var foreign = await SetActiveAsync(client, id, Guid.NewGuid());
-        Assert.Equal(HttpStatusCode.BadRequest, foreign.StatusCode);
-        Assert.Equal("armor.item_not_found",
-            (await foreign.Content.ReadFromJsonAsync<ErrorResponse>(Json.Options))!.ReasonCode);
-
-        // Выбор не изменился ни на шаг.
-        Assert.Equal(weakId, (await SheetAsync(client, id)).ActiveArmorCharacterItemId);
-    }
-
-    [Fact]
-    public async Task NonArmorItem_CannotBeMadeActive()
-    {
-        var (client, id, _, _) = await CreateWithTwoArmorsAsync();
-        var reference = (await client.GetFromJsonAsync<ReferenceResponse>(
-            "/api/reference/RealmsOfTerrinoth", Json.Options))!;
-        var gearId = await AddAsync(client, id, reference.Items.First(i => i.Kind == ItemKind.Gear).Id);
-
-        var resp = await SetActiveAsync(client, id, gearId);
-
-        Assert.Equal(HttpStatusCode.BadRequest, resp.StatusCode);
-        Assert.Equal("armor.not_armor",
-            (await resp.Content.ReadFromJsonAsync<ErrorResponse>(Json.Options))!.ReasonCode);
-    }
-
-    [Fact]
-    public async Task ArmorThatIsNotWorn_CannotBeMadeActive()
-    {
-        var (client, id, weakId, strongId) = await CreateWithTwoArmorsAsync();
-        await client.PatchAsJsonAsync($"/api/characters/{id}/items/{strongId}",
-            new UpdateItemRequest(ItemState.Backpack, null), Json.Options);
-
-        var resp = await SetActiveAsync(client, id, strongId);
-
-        Assert.Equal(HttpStatusCode.BadRequest, resp.StatusCode);
-        Assert.Equal("armor.not_equipped",
-            (await resp.Content.ReadFromJsonAsync<ErrorResponse>(Json.Options))!.ReasonCode);
-        Assert.Equal(weakId, (await SheetAsync(client, id)).ActiveArmorCharacterItemId);
+        Assert.True(sheet.Derived.Soak < withArmor.Derived.Soak);
     }
 }

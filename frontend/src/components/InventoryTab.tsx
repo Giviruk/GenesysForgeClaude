@@ -6,7 +6,7 @@ import type {
 } from '../api/types'
 import {
   CHARACTERISTIC_LABELS, CURRENCY_LABEL, ITEM_KIND_LABELS, ITEM_STAT_FIELD_LABELS, ITEM_STATE_LABELS,
-  localizedDescription, localizedName, resolveWeaponSkillName, secondaryName,
+  localizedDescription, localizedName, parseWeaponTraits, resolveWeaponSkillName, secondaryName,
   WEAPON_CRAFTSMANSHIP_ADJECTIVES, WEAPON_CRAFTSMANSHIP_HINTS, WEAPON_CRAFTSMANSHIP_LABELS,
   WEAPON_CRAFTSMANSHIPS,
 } from '../utils/labels'
@@ -301,6 +301,26 @@ function ShopRow({ item, money, run, sheetId, open, onToggle }: {
 }
 
 /**
+ * Почему предмет нельзя взять в руки или надеть прямо сейчас: <c>null</c> — можно.
+ * Правило то же, что на сервере: одна броня и две руки, двуручное занимает обе (ROT-EQP-01).
+ */
+function equipBlockReason(item: SheetItem, sheet: CharacterSheet): string | null {
+  const equipped = sheet.items.filter(i => i.state === 'equipped' && !i.isThrown && i.id !== item.id)
+  if (item.kind === 'armor') {
+    return equipped.some(i => i.kind === 'armor')
+      ? t('Уже надета другая броня', 'Another armor is already worn')
+      : null
+  }
+  if (item.kind !== 'weapon') return null
+  const cost = (i: SheetItem) => (parseWeaponTraits(i.formTraits).includes('twoHanded') ? 2 : 1)
+  const used = equipped.filter(i => i.kind === 'weapon').reduce((sum, i) => sum + cost(i), 0)
+  if (used + cost(item) <= 2) return null
+  return cost(item) === 2
+    ? t('Двуручное оружие занимает обе руки', 'A two-handed weapon needs both hands')
+    : t('Обе руки заняты', 'Both hands are full')
+}
+
+/**
  * Человекочитаемый штраф снаряжения: «+1 помеха к Скрытности» (ROT-ARM-01). Имя навыка берётся
  * из листа, чтобы в русской локали не показывать английское «Stealth».
  */
@@ -435,30 +455,21 @@ function InventoryCard({ item, sheet, skillNames, run, reference, sellOpen, onTo
         </div>
       )}
 
-      {/* Персонаж может носить несколько броней, но защиту даёт ровно одна (ROT-CMB-02). */}
-      {item.kind === 'armor' && item.state === 'equipped' && (
-        <label className="small-text">
-          <input type="radio" name={`active-armor-${sheet.id}`} checked={item.isActiveArmor}
-            onChange={() => run(() => api.setActiveArmor(sheet.id, item.id))} />
-          {' '}{t('Активная броня', 'Active armor')}
-          {item.isActiveArmor && (
-            <button className="tiny" onClick={() => run(() => api.setActiveArmor(sheet.id, null))}>
-              {t('снять выбор', 'clear')}
-            </button>
-          )}
-        </label>
-      )}
-
       {localizedDescription(item) && <div className="inv-card-desc">{localizedDescription(item)}</div>}
 
       <div className="inv-card-foot">
         <div className="state-switch">
-          {STATES.map(s => (
-            <button key={s} className={item.state === s ? 'chip active' : 'chip'}
-              onClick={() => item.state !== s && run(() => api.updateItem(sheet.id, item.id, { state: s }))}>
-              {ITEM_STATE_LABELS[s]}
-            </button>
-          ))}
+          {STATES.map(s => {
+            // Одна броня и две руки (ROT-EQP-01): сервер всё равно откажет, но лучше сказать заранее.
+            const blocked = s === 'equipped' && item.state !== 'equipped' ? equipBlockReason(item, sheet) : null
+            return (
+              <button key={s} className={item.state === s ? 'chip active' : 'chip'}
+                disabled={blocked !== null} title={blocked ?? undefined}
+                onClick={() => item.state !== s && run(() => api.updateItem(sheet.id, item.id, { state: s }))}>
+                {ITEM_STATE_LABELS[s]}
+              </button>
+            )
+          })}
         </div>
         <div className="inv-card-end">
           <span className="muted small-text">{t('вес', 'load')} {item.load}</span>

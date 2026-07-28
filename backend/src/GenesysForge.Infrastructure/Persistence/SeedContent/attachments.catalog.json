@@ -13,7 +13,9 @@
     "requiredAnyTraits": [
       "OneHanded"
     ],
-    "forbiddenTraits": [],
+    "forbiddenTraits": [
+      "Ranged"
+    ],
     "desc": "Для одноручного оружия ближнего боя; получает Accurate 1 или снижает Inaccurate на 1.",
     "descEn": "For one-handed melee weapons; gains Accurate 1 or reduces Inaccurate by 1.",
     "source": "Realms of Terrinoth, pp. 106-107",

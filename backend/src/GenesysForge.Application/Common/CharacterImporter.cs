@@ -115,6 +115,9 @@ public static class CharacterImporter
             character.Talents.Add(imported);
         }
 
+        // Пары «строка инвентаря → запись каталога»: навигация ItemDef у новых строк не заполняется,
+        // а признаки формы нужны для проверки рук и брони ниже.
+        var resolvedItems = new List<(CharacterItem Item, ItemDef Def)>();
         foreach (var it in data.Items ?? [])
         {
             var def = await ResolveItemAsync(db, userId, system, it.Code, it.Name, ct);
@@ -128,7 +131,7 @@ public static class CharacterImporter
                 warnings.Add($"У предмета «{def.Name}» указано неприменимое качество изготовления — оставлена обычная работа.");
                 craftsmanship = WeaponCraftsmanship.Steel;
             }
-            character.Items.Add(new CharacterItem
+            var item = new CharacterItem
             {
                 Id = Guid.NewGuid(), CharacterId = characterId, ItemDefId = def.Id,
                 Quantity = Math.Max(1, it.Quantity), State = it.State,
@@ -138,8 +141,25 @@ public static class CharacterImporter
                 Provenance = it.Provenance is ItemProvenance.CareerPackage or ItemProvenance.StartingBudget
                     ? it.Provenance
                     : ItemProvenance.Imported,
-            });
+            };
+            character.Items.Add(item);
+            resolvedItems.Add((item, def));
         }
+
+        // Файл мог быть собран до правил о руках и броне: лишнее не выбрасывается, а перестаёт
+        // считаться используемым — с предупреждением, чтобы владелец сам решил, что взять (ROT-EQP-01).
+        var kept = new List<EquippedItemInput>();
+        foreach (var (item, def) in resolvedItems.Where(x => x.Item.State == ItemState.Equipped))
+        {
+            var candidate = new EquippedItemInput(item.Id, def.Kind, def.FormTraits, def.Name);
+            if (EquipmentSlotRules.IsValid([.. kept, candidate])) { kept.Add(candidate); continue; }
+            item.State = ItemState.Carried;
+            warnings.Add(
+                $"«{def.Name}» больше не используется: одновременно носят одну броню и держат две руки.");
+        }
+        // Активной остаётся надетая броня — она теперь единственная.
+        character.ActiveArmorCharacterItemId = resolvedItems
+            .FirstOrDefault(x => x.Item.State == ItemState.Equipped && x.Def.Kind == ItemKind.Armor).Item?.Id;
 
         if (!string.IsNullOrWhiteSpace(data.HeroicAbilityCode) || !string.IsNullOrWhiteSpace(data.HeroicAbilityName))
         {

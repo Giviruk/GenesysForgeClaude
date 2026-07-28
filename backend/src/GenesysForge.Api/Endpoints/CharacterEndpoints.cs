@@ -163,13 +163,6 @@ public static class CharacterEndpoints
             return Results.NoContent();
         });
 
-        group.MapPut("/{id:guid}/active-armor", async (Guid id, SetActiveArmorRequest req,
-            ClaimsPrincipal user, ICommandHandler<SetActiveArmorCommand, Unit> handler, CancellationToken ct) =>
-        {
-            await handler.Handle(new SetActiveArmorCommand(user.UserId(), id, req.CharacterItemId), ct);
-            return Results.NoContent();
-        });
-
         // Метнуть оружие или подобрать его обратно (ROT-WPN-01).
         group.MapPut("/{id:guid}/items/{itemId:guid}/thrown", async (Guid id, Guid itemId,
             SetItemThrownRequest req, ClaimsPrincipal user,
