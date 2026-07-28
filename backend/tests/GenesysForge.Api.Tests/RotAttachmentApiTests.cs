@@ -119,6 +119,30 @@ public class RotAttachmentApiTests(ApiFactory factory) : IClassFixture<ApiFactor
         Assert.Contains("errata", spikes.Source, StringComparison.OrdinalIgnoreCase);
     }
 
+    [Fact]
+    public async Task Descriptions_DoNotRepeat_AndMatchTheirMechanics()
+    {
+        var (_, _, reference) = await CreateCharacterAsync();
+
+        // Одинаковый текст у двух записей — верный признак копипасты: так «Острое лезвие» долго
+        // носило описание пилообразного и обещало Vicious вместо Проникающего.
+        var duplicates = reference.Attachments!
+            .GroupBy(a => a.Description, StringComparer.Ordinal)
+            .Where(g => !string.IsNullOrWhiteSpace(g.Key) && g.Count() > 1)
+            .Select(g => string.Join(", ", g.Select(a => a.Code)))
+            .ToList();
+        Assert.Empty(duplicates);
+
+        var razor = Attachment(reference, "razor-edge");
+        Assert.Contains(razor.Effects, e => e.QualityCode == "pierce");
+        Assert.Contains(razor.Effects, e => e.Kind == AttachmentEffectKind.CritReduction);
+        Assert.Contains("Проникающее", razor.Description);
+        Assert.DoesNotContain("Vicious", razor.Description, StringComparison.OrdinalIgnoreCase);
+
+        var serrated = Attachment(reference, "serrated-edge");
+        Assert.Equal("vicious", Assert.Single(serrated.Effects).QualityCode);
+    }
+
     // ── Установка ──
 
     [Fact]

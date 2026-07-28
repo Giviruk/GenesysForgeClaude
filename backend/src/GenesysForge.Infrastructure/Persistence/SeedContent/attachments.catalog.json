@@ -94,8 +94,8 @@
     "forbiddenTraits": [
       "Ranged"
     ],
-    "desc": "Для клинкового оружия ближнего боя; получает Vicious 1 или повышает Vicious на 1.",
-    "descEn": "For bladed melee weapons; gains Vicious 1 or increases Vicious by 1.",
+    "desc": "Для клинкового оружия ближнего боя: получает Проникающее 2, а если оно уже есть — повышает его на 1; критическое значение уменьшается на 1, но не ниже 1.",
+    "descEn": "For bladed melee weapons: gains Pierce 2, or increases existing Pierce by 1; the critical rating drops by 1, to a minimum of 1.",
     "source": "Realms of Terrinoth, pp. 106-107",
     "effects": [
       {
@@ -468,8 +468,8 @@
     "requiredTraits": [],
     "requiredAnyTraits": [],
     "forbiddenTraits": [],
-    "desc": "Добавляет преимущество к Coercion и автоматическую угрозу к Charm.",
-    "descEn": "Adds advantage to Coercion checks and an automatic threat to Charm checks.",
+    "desc": "Пока броня надета и активна: один автоматический успех к Устрашению и один автоматический провал к Обаянию. Это именно успех и провал, а не преимущество и угроза.",
+    "descEn": "While the armor is worn and active: one automatic Success on Coercion and one automatic Failure on Charm — successes and failures, not Advantage and Threat.",
     "source": "Genesys Core Rulebook, pp. 207-209",
     "effects": [
       {
