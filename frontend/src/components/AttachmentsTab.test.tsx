@@ -128,13 +128,52 @@ describe('Улучшения предметов (ROT-EQP-ATT-01)', () => {
     render(<AttachmentsTab sheet={both} reference={{ attachments: [razorDef, armorDef] } as unknown as Reference}
       onError={() => {}} refresh={() => Promise.resolve()} />)
 
-    const reserve = () => document.querySelector('.attach-list')!.textContent ?? ''
+    // Раздел ищется по стабильному ключу, а не по порядку: порядок разделов — вопрос вёрстки.
+    const reserve = () => document.querySelector('[data-section="reserve"]')!.textContent ?? ''
     expect(reserve()).toContain('Бритвенная кромка')
     expect(reserve()).toContain('Отклоняющие пластины')
 
     fireEvent.click(screen.getByRole('button', { name: 'Броня' }))
     expect(reserve()).not.toContain('Бритвенная кромка')
     expect(reserve()).toContain('Отклоняющие пластины')
+  })
+
+  it('держит установленное первым разделом и сворачивает разделы', () => {
+    const installed = {
+      ...sheet,
+      items: [{ ...sword, usedHardPoints: 1, attachments: [spare('att-1', 'def-razor', { hostCharacterItemId: 'item-sword' })] }, mace],
+      attachments: [spare('att-1', 'def-razor', { hostCharacterItemId: 'item-sword' })],
+    } as unknown as CharacterSheet
+    render(<AttachmentsTab sheet={installed} reference={reference} onError={() => {}}
+      refresh={() => Promise.resolve()} />)
+
+    // Установленное идёт раньше запаса и магазина — за ним сюда и приходят.
+    const sections = [...document.querySelectorAll('[data-section]')]
+      .map(s => s.getAttribute('data-section'))
+    expect(sections[0]).toBe('installed')
+
+    const installedSection = () => document.querySelector('[data-section="installed"]')!
+    expect(installedSection().textContent).toContain('Бритвенная кромка')
+
+    // Заголовок сворачивает раздел; счётчик остаётся видимым, иначе закрытый раздел
+    // не отличить от пустого.
+    fireEvent.click(screen.getByRole('button', { name: /Установленные/ }))
+    expect(installedSection().textContent).not.toContain('Бритвенная кромка')
+    expect(installedSection().textContent).toContain('1')
+
+    fireEvent.click(screen.getByRole('button', { name: /Установленные/ }))
+    expect(installedSection().textContent).toContain('Бритвенная кромка')
+  })
+
+  it('держит каталог закрытым, пока его не откроют', () => {
+    render(<AttachmentsTab sheet={sheet} reference={reference} onError={() => {}}
+      refresh={() => Promise.resolve()} />)
+
+    const shop = () => document.querySelector('[data-section="shop"]')!
+    expect(shop().textContent).not.toContain('Цену считает сервер')
+
+    fireEvent.click(screen.getByRole('button', { name: /Купить улучшение/ }))
+    expect(shop().textContent).toContain('Цену считает сервер')
   })
 
   it('снимает установленное улучшение', async () => {
