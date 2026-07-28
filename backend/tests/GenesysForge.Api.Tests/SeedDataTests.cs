@@ -360,6 +360,41 @@ public class SeedDataTests
         Assert.Equal(attacks, db.NpcAttacks.Count());
     }
 
+    /// <summary>
+    /// Признаки формы (ROT-EQP-ATT-01) доезжают до уже засиженной базы. Колонка появилась
+    /// миграцией со значением «нет признаков», и без синхронизации латы старой установки навсегда
+    /// остались бы «не латными»: Шипы, Железная руна и Усиленные пластины не ставились бы ни на
+    /// что, потому что совместимость считается именно по признакам.
+    /// </summary>
+    [Fact]
+    public void Apply_RestoresFormTraits_OnAlreadySeededDatabase()
+    {
+        using var db = NewDb();
+        SeedData.Apply(db);
+
+        // имитируем «старую» БД: строка предмета создана до появления признаков формы
+        var plate = db.ItemDefs.Single(i => i.Code == "rot.item.plate");
+        Assert.Equal(
+            WeaponFormTraits.MetalArmor | WeaponFormTraits.PlateArmor | WeaponFormTraits.HardenedPlate,
+            plate.FormTraits);
+        plate.FormTraits = WeaponFormTraits.None;
+        var sword = db.ItemDefs.Single(i => i.Code == "rot.item.sword");
+        sword.FormTraits = WeaponFormTraits.None;
+        db.SaveChanges();
+        db.ChangeTracker.Clear(); // как свежий контекст на старте приложения
+
+        SeedData.Apply(db);
+
+        var restoredPlate = db.ItemDefs.Single(i => i.Code == "rot.item.plate");
+        Assert.True(restoredPlate.FormTraits.HasFlag(WeaponFormTraits.PlateArmor));
+        Assert.True(restoredPlate.FormTraits.HasFlag(WeaponFormTraits.MetalArmor));
+        Assert.True(restoredPlate.FormTraits.HasFlag(WeaponFormTraits.HardenedPlate));
+        // Оружие чинится тем же проходом: без признаков не ставится Острое лезвие.
+        var restoredSword = db.ItemDefs.Single(i => i.Code == "rot.item.sword");
+        Assert.True(restoredSword.FormTraits.HasFlag(WeaponFormTraits.Bladed));
+        Assert.True(restoredSword.FormTraits.HasFlag(WeaponFormTraits.Sword));
+    }
+
     [Fact]
     public void Apply_DoesNotTouchCustomContent()
     {
