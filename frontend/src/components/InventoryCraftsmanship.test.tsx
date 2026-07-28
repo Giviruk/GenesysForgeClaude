@@ -59,7 +59,24 @@ const sheet = {
   },
 } as unknown as CharacterSheet
 
+/** Магический инструмент — по виду записи снаряжение, но своя корзина витрины (ROT-MAG-IMP-01). */
+const staffDef = {
+  ...plateDef, id: 'def-staff', name: 'Magic Staff', nameRu: 'Магический посох', kind: 'gear',
+  price: 400, rarity: 6, hardPoints: null,
+  implement: {
+    code: 'magic-staff', attackDamageBonus: 4, boostDice: 0, requiredMagicSkill: '',
+    discount: 'firstNamedEffect', discountEffects: ['Range'], choiceCount: 0,
+    choiceMaxIncreaseSum: null, choiceExactIncrease: null,
+  },
+} as unknown as ItemDef
+
+/** Обычное снаряжение: оно должно остаться в своей корзине и не уехать к инструментам. */
+const ropeDef = {
+  ...plateDef, id: 'def-rope', name: 'Rope', nameRu: 'Верёвка', kind: 'gear', price: 10, rarity: 0,
+} as unknown as ItemDef
+
 const reference = { items: [plateDef] } as unknown as Reference
+const shopReference = { items: [plateDef, staffDef, ropeDef] } as unknown as Reference
 
 describe('Инвентарь: качество изготовления (ROT-WPN-02)', () => {
   beforeEach(() => {
@@ -106,6 +123,26 @@ describe('Инвентарь: качество изготовления (ROT-WPN
     // Первая карточка — уже надетые латы, вторая — кольчуга в рюкзаке.
     expect((equipButtons[1] as HTMLButtonElement).disabled).toBe(true)
     expect((equipButtons[1] as HTMLButtonElement).title).toContain('Уже надета другая броня')
+  })
+
+  it('держит магические инструменты в своей корзине витрины', () => {
+    render(<InventoryTab sheet={sheet} reference={shopReference} onError={() => {}}
+      refresh={() => Promise.resolve()} />)
+
+    const shop = () => document.querySelector('.shop-list')!.textContent ?? ''
+    // По умолчанию видно всё.
+    expect(shop()).toContain('Магический посох')
+    expect(shop()).toContain('Верёвка')
+
+    fireEvent.click(screen.getByRole('button', { name: 'Инструменты магии' }))
+    expect(shop()).toContain('Магический посох')
+    expect(shop()).not.toContain('Верёвка')
+    expect(shop()).not.toContain('Латы')
+
+    // Из снаряжения инструмент уходит: дважды одна запись не показывается.
+    fireEvent.click(screen.getByRole('button', { name: 'Снаряжение' }))
+    expect(shop()).toContain('Верёвка')
+    expect(shop()).not.toContain('Магический посох')
   })
 
   it('покупает с выбранной работой и показывает её цену', async () => {

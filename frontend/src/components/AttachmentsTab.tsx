@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { api } from '../api/client'
 import type {
-  AttachmentDef, CharacterAttachment, CharacterSheet, ItemDamageState, ItemKind, Reference, SheetItem,
+  AttachmentDef, CharacterAttachment, CharacterSheet, ItemDamageState, Reference, SheetItem,
   WeaponFormTrait,
 } from '../api/types'
 import {
@@ -51,8 +51,28 @@ function isCompatible(item: SheetItem, def: AttachmentDef, traits: WeaponFormTra
   return !forbidden.some(has)
 }
 
-/** Улучшение ставится либо на оружие, либо на броню — фильтр повторяет это деление. */
-const KIND_FILTERS: (ItemKind | 'all')[] = ['all', 'weapon', 'armor']
+/**
+ * Фильтры улучшений. Руны вынесены отдельной корзиной: их ставит только тот, у кого есть ранг
+ * магического навыка, они бесценны и покупаются иначе, чем обычные накладки и клинья. Поэтому
+ * «Оружие» и «Броня» показывают обычные улучшения без рун, а руны — свой список для обоих видов.
+ */
+type AttachmentFilter = 'all' | 'weapon' | 'armor' | 'enchantment'
+const KIND_FILTERS: AttachmentFilter[] = ['all', 'weapon', 'armor', 'enchantment']
+
+const FILTER_LABELS: Record<AttachmentFilter, string> = {
+  all: t('Все', 'All'),
+  weapon: ITEM_KIND_LABELS.weapon,
+  armor: ITEM_KIND_LABELS.armor,
+  enchantment: t('Руны', 'Runes'),
+}
+
+/** Улучшение попадает в выбранную корзину. */
+const matchesAttachmentFilter = (def: AttachmentDef | undefined, filter: AttachmentFilter): boolean => {
+  if (filter === 'all') return true
+  if (!def) return false
+  if (filter === 'enchantment') return def.isEnchantment
+  return def.hostKind === filter && !def.isEnchantment
+}
 
 /**
  * Сворачиваемый раздел вкладки. Каталог из двадцати одной записи выталкивал установленное далеко
@@ -87,7 +107,7 @@ export function AttachmentsTab({ sheet, reference, onError, refresh }: Props) {
   const [hostId, setHostId] = useState<string | null>(null)
   const [attachmentId, setAttachmentId] = useState<string | null>(null)
   const [reason, setReason] = useState('')
-  const [kindFilter, setKindFilter] = useState<ItemKind | 'all'>('all')
+  const [kindFilter, setKindFilter] = useState<AttachmentFilter>('all')
 
   async function run(action: () => Promise<unknown>) {
     try {
@@ -122,8 +142,7 @@ export function AttachmentsTab({ sheet, reference, onError, refresh }: Props) {
     return map
   }, [reference.attachments])
 
-  const matchesFilter = (def?: AttachmentDef) =>
-    kindFilter === 'all' || def?.hostKind === kindFilter
+  const matchesFilter = (def?: AttachmentDef) => matchesAttachmentFilter(def, kindFilter)
   // Фильтр по виду носителя касается только списков; выбор для установки и так ограничен
   // совместимостью выбранного предмета.
   const spareShown = useMemo(
@@ -232,7 +251,7 @@ export function AttachmentsTab({ sheet, reference, onError, refresh }: Props) {
         {KIND_FILTERS.map(k => (
           <button key={k} className={kindFilter === k ? 'chip active' : 'chip'}
             onClick={() => setKindFilter(k)}>
-            {k === 'all' ? t('Все', 'All') : ITEM_KIND_LABELS[k]}
+            {FILTER_LABELS[k]}
           </button>
         ))}
       </div>
