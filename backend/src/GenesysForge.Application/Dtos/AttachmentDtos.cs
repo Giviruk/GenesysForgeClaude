@@ -51,7 +51,19 @@ public record CharacterAttachmentDto(
     int Rarity,
     Guid? HostCharacterItemId,
     string Note,
-    IReadOnlyList<AttachmentEffectDto> Effects);
+    IReadOnlyList<AttachmentEffectDto> Effects,
+    /// <summary>
+    /// Собственное состояние повреждения улучшения (GEN-EQP-DMG-01): Серьёзное и Уничтоженное
+    /// не даёт эффекта, но слот носителя не освобождает.
+    /// </summary>
+    ItemDamageState DamageState = ItemDamageState.Undamaged,
+    /// <summary>Эффекты улучшения действуют: состояние не Серьёзное и не Уничтожено.</summary>
+    bool IsUsable = true,
+    /// <summary>
+    /// Памятка по ремонту улучшения; <c>null</c> — у записи нет обычной цены, и стоимость
+    /// материалов называет ведущий.
+    /// </summary>
+    ItemRepairDto? Repair = null);
 
 /// <summary>Покупка улучшения. Сумму считает сервер по цене каталога (ROT-ECO-01).</summary>
 public record BuyAttachmentRequest(

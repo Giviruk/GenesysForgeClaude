@@ -5,11 +5,13 @@ import type {
   WeaponAttackProfile, WeaponCraftsmanship, WeaponRange,
 } from '../api/types'
 import {
-  CHARACTERISTIC_LABELS, CURRENCY_LABEL, ITEM_KIND_LABELS, ITEM_STAT_FIELD_LABELS, ITEM_STATE_LABELS,
+  CHARACTERISTIC_LABELS, CURRENCY_LABEL, DIFFICULTY_LABELS, ITEM_DAMAGE_STATE_HINTS,
+  ITEM_DAMAGE_STATE_LABELS, ITEM_KIND_LABELS, ITEM_STAT_FIELD_LABELS, ITEM_STATE_LABELS,
   localizedDescription, localizedName, parseWeaponTraits, resolveWeaponSkillName, secondaryName,
   WEAPON_CRAFTSMANSHIP_ADJECTIVES, WEAPON_CRAFTSMANSHIP_HINTS, WEAPON_CRAFTSMANSHIP_LABELS,
   WEAPON_CRAFTSMANSHIPS,
 } from '../utils/labels'
+import { DamageStateControls } from './ItemDamageControls'
 import { craftsmanshipApplies, craftsmanshipPrice } from '../utils/craftsmanship'
 import { itemTags } from '../data/itemQualities'
 import { DicePoolView } from './DicePoolView'
@@ -65,6 +67,8 @@ export function InventoryTab({ sheet, reference, onError, refresh }: Props) {
 
   const d = sheet.derived
   const skillNames = useMemo(() => sheet.skills.map(s => s.name), [sheet.skills])
+  // Чем можно заплатить за материалы ремонта: в фазе создания сначала тратится бюджет покупок.
+  const funds = sheet.money + (sheet.isCreationPhase ? sheet.startingPurchaseBudget : 0)
 
   const catalogue = useMemo(() => {
     const q = normalize(search)
@@ -101,7 +105,7 @@ export function InventoryTab({ sheet, reference, onError, refresh }: Props) {
           <div className="inv-items">
             {sheet.items.map(item => (
               <InventoryCard key={item.id} item={item} sheet={sheet} skillNames={skillNames} run={run}
-                reference={reference}
+                reference={reference} funds={funds}
                 sellOpen={sellOpen === item.id} onToggleSell={() => setSellOpen(sellOpen === item.id ? null : item.id)} />
             ))}
           </div>
@@ -336,9 +340,9 @@ function checkModifierText(m: ItemCheckModifier, sheet: CharacterSheet): string 
   return m.condition ? `${body} — ${m.condition}` : body
 }
 
-function InventoryCard({ item, sheet, skillNames, run, reference, sellOpen, onToggleSell }: {
+function InventoryCard({ item, sheet, skillNames, run, reference, funds, sellOpen, onToggleSell }: {
   item: SheetItem; sheet: CharacterSheet; skillNames: string[]; run: Run; reference: Reference
-  sellOpen: boolean; onToggleSell: () => void
+  funds: number; sellOpen: boolean; onToggleSell: () => void
 }) {
   const hasBonus = item.soakBonus > 0 || item.meleeDefense > 0 || item.rangedDefense > 0 || item.encumbranceThresholdBonus > 0
   const [printing, setPrinting] = useState(false)
@@ -356,10 +360,17 @@ function InventoryCard({ item, sheet, skillNames, run, reference, sellOpen, onTo
   }
 
   return (
-    <div className={`inv-card${item.state === 'equipped' ? ' equipped' : ''}`}>
+    <div className={`inv-card${item.state === 'equipped' ? ' equipped' : ''}${item.isUsable ? '' : ' broken'}`}>
       <div className="inv-card-head">
         <div className="inv-card-title">
           <strong>{itemLabel}</strong>
+          {/* Состояние видно сразу в заголовке: сломанная вещь не должна выглядеть как целая. */}
+          {item.damageState !== 'undamaged' && (
+            <span className={`chip damage-badge ${item.damageState}`}
+              title={ITEM_DAMAGE_STATE_HINTS[item.damageState]}>
+              {ITEM_DAMAGE_STATE_LABELS[item.damageState]}
+            </span>
+          )}
           <span className="muted small-text">
             {secondaryName(item) && ` · ${secondaryName(item)}`}
             {` · ${ITEM_KIND_LABELS[item.kind]}`}{item.price > 0 && ` · ${item.price} 🪙`}
@@ -399,6 +410,27 @@ function InventoryCard({ item, sheet, skillNames, run, reference, sellOpen, onTo
           {item.state === 'equipped' && item.kind === 'armor' && !item.isActiveArmor
             && t('(не действует — активна другая броня, эта даёт только вес)',
               '(inactive — another armor is active; this one only adds load)')}
+        </div>
+      )}
+
+      {/* Сломанный предмет не даёт ничего, кроме веса, — и об этом надо сказать прямо, а не
+          показывать нули без объяснения (GEN-EQP-DMG-01). */}
+      {!item.isUsable && (
+        <div className="damage-warn small-text">
+          {t('Предмет не даёт ни поглощения, ни защиты, ни эффектов улучшений: вес и содержимое остаются.',
+            'The item grants no soak, no defense and no attachment effects: weight and contents stay.')}
+        </div>
+      )}
+
+      {/* Незначительное и Умеренное меняют пул: у оружия это видно в строке атаки, у прочего —
+          только здесь, потому что «проверку этим предметом» приложение не строит. */}
+      {item.isUsable && item.damageState !== 'undamaged' && item.kind !== 'weapon' && (
+        <div className="damage-warn small-text">
+          {item.damageState === 'minor'
+            ? t('+1 помеха ко всем проверкам, прямо использующим предмет',
+              '+1 setback to every check that directly uses the item')
+            : t('+1 к сложности всех проверок, прямо использующих предмет',
+              '+1 difficulty to every check that directly uses the item')}
         </div>
       )}
 
@@ -447,15 +479,25 @@ function InventoryCard({ item, sheet, skillNames, run, reference, sellOpen, onTo
       {item.adjustments?.length > 0 && (
         <div className="muted small-text">
           {WEAPON_CRAFTSMANSHIP_ADJECTIVES[item.craftsmanship]} · {item.adjustments.map((a, i) => (
-            <span key={a.field}>
+            <span key={`${a.stage}-${a.field}-${i}`}>
               {i > 0 && ' · '}
               {ITEM_STAT_FIELD_LABELS[a.field] ?? a.field} {a.base} → {a.effective}
+              {/* Поправка от состояния подписывается: иначе непонятно, почему поглощение стало нулём. */}
+              {a.stage === 'damageState'
+                && ` (${ITEM_DAMAGE_STATE_LABELS[item.damageState]})`}
             </span>
           ))}
         </div>
       )}
 
       {localizedDescription(item) && <div className="inv-card-desc">{localizedDescription(item)}</div>}
+
+      {/* Состояние и ремонт — отдельной строкой и отдельными кнопками (GEN-EQP-DMG-01):
+          «используется/в рюкзаке» и «цел/сломан» — разные вещи, и путать их нельзя. */}
+      <DamageStateControls state={item.damageState} repair={item.repair} funds={funds}
+        reinforced={item.reinforced}
+        onSetState={next => run(() => api.setItemDamageState(sheet.id, item.id, next))}
+        onRepair={opts => run(() => api.repairItem(sheet.id, item.id, opts))} />
 
       <div className="inv-card-foot">
         <div className="state-switch">
@@ -496,11 +538,6 @@ const RANGE_LABELS: Record<WeaponRange, string> = t({
 }, {
   engaged: 'Engaged', short: 'Short', medium: 'Medium', long: 'Long', extreme: 'Extreme',
 })
-
-const DIFFICULTY_LABELS: Record<number, string> = t(
-  { 0: 'Простая', 1: 'Лёгкая', 2: 'Средняя', 3: 'Тяжёлая', 4: 'Устрашающая', 5: 'Немыслимая' },
-  { 0: 'Simple', 1: 'Easy', 2: 'Average', 3: 'Hard', 4: 'Daunting', 5: 'Formidable' },
-)
 
 /** Подпись профиля: у основного её нет, у альтернативных — «в метании», «в руке». */
 function profileLabel(p: WeaponAttackProfile): string {
@@ -545,8 +582,10 @@ function WeaponLine({ item, sheet, skill, skillLabel, reference, run }: {
   // Что качества делают с пулом: Точное даёт бонусные кубы, Неточное — помехи, Громоздкое и
   // Сноровка поднимают сложность при нехватке характеристики (GEN-EQP-QUAL-01).
   const mods = profile?.poolModifiers ?? null
+  // Источники поправок: качества оружия и состояние повреждения (GEN-EQP-DMG-01) — в одном
+  // списке, потому что в пул они попадают одинаково и игрок должен видеть оба.
   const modsTitle = mods && mods.sources.length > 0
-    ? [t('Качества оружия:', 'Weapon qualities:'), ...mods.sources.map(s => {
+    ? [t('Поправки к пулу:', 'Pool modifiers:'), ...mods.sources.map(s => {
       const parts: string[] = []
       if (s.boost) parts.push(t(`+${s.boost} бонусных`, `+${s.boost} boost`))
       if (s.setback) parts.push(t(`+${s.setback} помех`, `+${s.setback} setback`))
@@ -607,7 +646,14 @@ function WeaponLine({ item, sheet, skill, skillLabel, reference, run }: {
       ) : null}
       {qualities && <PropertyTags properties={qualities} className="weapon-props" />}
 
-      {item.isThrown ? (
+      {!item.isUsable ? (
+        // Сломанным оружием не атакуют: кнопки броска нет вовсе, чтобы её нельзя было нажать
+        // по привычке (GEN-EQP-DMG-01).
+        <span className="weapon-stat warn"
+          title={ITEM_DAMAGE_STATE_HINTS[item.damageState]}>
+          {t('сломано — атаковать нельзя', 'broken — cannot attack')}
+        </span>
+      ) : item.isThrown ? (
         <>
           <span className="weapon-stat warn">{t('метнуто', 'thrown')}</span>
           <button type="button" className="small no-print"

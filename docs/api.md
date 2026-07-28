@@ -364,6 +364,33 @@ Protected. Removes item instance. Response: `204`.
 
 Protected. Request: `SellItemRequest` with `quantity` and `proceeds`. Removes or decreases item quantity and adds proceeds to character money. Response: `204`.
 
+### `PUT /api/characters/{id}/items/{itemId}/damage-state`
+
+Protected (GEN-EQP-DMG-01). Request: `SetItemDamageStateRequest` with `state`
+(`undamaged` | `minor` | `moderate` | `major` | `destroyed`) and optional `reason`.
+
+The damage state belongs to the instance and is changed explicitly — a Sunder result and
+in-fiction damage both come through this route, because the app does not resolve Sunder itself.
+`major`/`destroyed` drop soak, defense, container threshold bonus and attachment effects while
+keeping weight and contents, and clear the active-armor selection. Response: `204`.
+
+### `POST /api/characters/{id}/items/{itemId}/repair`
+
+Protected (GEN-EQP-DMG-01). Request: `RepairItemRequest` — all fields optional: `free`,
+`netAdvantages` (10 % off the material cost each), `costOverride` with a required
+`overrideReason`.
+
+No check is rolled (owner decision): the server charges materials and sets the state back to
+`undamaged`. Material cost is 25/50/100 % of the *instance* price (craftsmanship included, trade
+markup and attachment prices excluded), rounded up to a whole coin. `undamaged` and `destroyed`
+are rejected. The sheet carries the same numbers up front in `items[].repair`. Response: `204`.
+
+### `PUT /api/characters/{id}/attachments/{attachmentId}/damage-state` and `POST …/repair`
+
+Protected. Same requests and rules for an attachment's own damage state. A broken attachment
+grants no effects but keeps occupying its host's hard point until it is detached. An attachment
+with no ordinary price (`price: null`) needs `costOverride` with a reason.
+
 ## Character notes
 
 All routes are protected and scoped to the character owner.

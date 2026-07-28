@@ -41,6 +41,9 @@ public static class SheetBuilder
         // Предметы со всеми поправками считаются один раз: и для навыков, и для карточек (ROT-EQP-ATT-01).
         var effectiveItems = EffectiveItems.For(c);
         var skillBoosts = EffectiveItems.SkillBoosts(effectiveItems);
+        // Чем персонаж может заплатить за материалы ремонта (GEN-EQP-DMG-01): в фазе создания
+        // сначала тратится бюджет стартовых покупок, поэтому он входит в доступную сумму.
+        var availableFunds = c.Money + (c.IsCreationPhase ? c.StartingPurchaseBudget : 0);
         var skills = systemSkills.Select(def =>
         {
             rows.TryGetValue(def.Id, out var row);
@@ -117,7 +120,7 @@ public static class SheetBuilder
                     .ToList()),
             effectiveItems
                 .OrderBy(e => e.Def.Kind).ThenBy(e => e.Def.NameRu)
-                .Select(e => ItemDto(e, ch, qualitiesByCode))
+                .Select(e => ItemDto(e, ch, qualitiesByCode, availableFunds))
                 .ToList(),
             c.Desire, c.Fear, c.Strength, c.Flaw, c.Background,
             c.CriticalInjuries
@@ -147,7 +150,7 @@ public static class SheetBuilder
             c.ActiveArmorCharacterItemId,
             [.. c.Attachments.Where(a => a.AttachmentDef is not null)
                 .OrderBy(a => a.AttachmentDef!.NameRu, StringComparer.Ordinal)
-                .Select(AttachmentDto)]);
+                .Select(a => AttachmentDto(a, availableFunds))]);
     }
 
     /// <summary>
@@ -157,13 +160,13 @@ public static class SheetBuilder
     /// </summary>
     private static CharacterItemDto ItemDto(
         EffectiveItem e, CharacteristicsSet ch,
-        IReadOnlyDictionary<string, QualityDef> qualitiesByCode)
+        IReadOnlyDictionary<string, QualityDef> qualitiesByCode, int availableFunds)
     {
         var (item, def) = (e.Item, e.Def);
         return new CharacterItemDto(
             item.Id, item.ItemDefId, def.Name, def.NameRu, def.Kind, item.State,
             item.Quantity, e.Encumbrance, e.SoakBonus, e.MeleeDefense,
-            e.RangedDefense, def.EncumbranceThresholdBonus,
+            e.RangedDefense, e.EncumbranceThresholdBonus,
             SheetCalculator.ItemLoad(new ItemInput(def.Name, def.Kind, item.State,
                 e.Encumbrance, item.Quantity)),
             def.Description, e.Price,
@@ -176,26 +179,48 @@ public static class SheetBuilder
                 .Concat(e.CheckModifiers.Select(m => new ItemCheckModifierDto(
                     m.Kind, m.SkillName, null, m.Value, true, "")))],
             def.AttackProfileDtos(ch.Brawn, qualitiesByCode, ch.Agility, item.Craftsmanship,
-                e.Qualities, e.AttachmentEffects.DamageBonus, e.AttachmentEffects.CritReduction),
+                e.Qualities, e.AttachmentEffects.DamageBonus, e.AttachmentEffects.CritReduction,
+                item.DamageState),
             item.IsThrown,
             item.Craftsmanship,
             e.Rarity,
             e.Reinforced,
             [.. e.Adjustments.Select(a => new ItemStatAdjustmentDto(
                 a.Field, a.Base, a.Effective, a.Stage, a.Source))],
-            [.. e.Attachments.Select(AttachmentDto)],
+            [.. e.Attachments.Select(a => AttachmentDto(a, availableFunds))],
             e.UsedHardPoints,
             e.OverCapacity,
             [.. e.AttachmentEffects.Notes.Select(n => $"{n.SourceNameRu}: {n.Text}")],
-            def.FormTraits);
+            def.FormTraits,
+            item.DamageState,
+            e.IsUsable,
+            RepairDto(e.Price, item.DamageState, availableFunds));
     }
 
     /// <summary>Экземпляр улучшения в DTO: механика приезжает вместе с ним, а не отдельным запросом.</summary>
-    internal static CharacterAttachmentDto AttachmentDto(CharacterAttachment a) => new(
+    internal static CharacterAttachmentDto AttachmentDto(CharacterAttachment a, int availableFunds) => new(
         a.Id, a.AttachmentDefId, a.AttachmentDef!.Name, a.AttachmentDef.NameRu,
         a.AttachmentDef.HardPointCost, a.AttachmentDef.IsEnchantment, a.AttachmentDef.Price,
         a.AttachmentDef.Rarity, a.HostCharacterItemId, a.Note,
-        [.. a.AttachmentDef.Effects.Select(Mappers.ToDto)]);
+        [.. a.AttachmentDef.Effects.Select(Mappers.ToDto)],
+        a.DamageState,
+        DamageStateRules.IsUsable(a.DamageState),
+        RepairDto(a.AttachmentDef.Price, a.DamageState, availableFunds));
+
+    /// <summary>
+    /// Памятка по ремонту экземпляра (GEN-EQP-DMG-01). Отдаётся всегда, даже целому предмету:
+    /// правило, время и доля материалов — это справка, которую игрок должен видеть до того, как
+    /// вещь сломается. <c>null</c> у цены означает «обычной цены нет» — сумму называет ведущий.
+    /// </summary>
+    private static ItemRepairDto RepairDto(int? instancePrice, ItemDamageState state, int availableFunds)
+    {
+        var estimate = DamageStateRules.Estimate(instancePrice ?? 0, state);
+        int? cost = instancePrice is null && estimate.CanRepair ? null : estimate.MaterialCost;
+        return new ItemRepairDto(
+            state, estimate.CanRepair, estimate.Difficulty, estimate.HoursMin, estimate.HoursMax,
+            estimate.MaterialPercent, cost, DamageStateRules.DefaultSkillName,
+            cost is not null && cost <= availableFunds);
+    }
 
     /// <summary>Разбор защиты в DTO: источники нужны UI, чтобы объяснить итоговое число.</summary>
     private static DefenseBreakdownDto? ToDto(DefenseBreakdown? b) => b is null ? null : new(

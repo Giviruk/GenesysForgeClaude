@@ -1,6 +1,6 @@
 import type {
   AllowedState, Characteristic, ContentEntryType, CreatureTemplate, EncounterType, GameSystem, HouseRuleCategory,
-  HeroicOriginType, InitiativeSlotType, SignatureWeaponProfile, WeaponCraftsmanship, WeaponFormTrait, ItemKind, ItemState, NpcCombatStyle, NpcKind, NpcPowerLevel, NpcRole,
+  HeroicOriginType, InitiativeSlotType, ItemDamageState, SignatureWeaponProfile, WeaponCraftsmanship, WeaponFormTrait, ItemKind, ItemState, NpcCombatStyle, NpcKind, NpcPowerLevel, NpcRole,
   NpcVisibility, ParticipantType, SkillKind, TalentCategory, ThreatLevel,
 } from '../api/types'
 import { t } from '../i18n'
@@ -545,6 +545,7 @@ export const ITEM_STAT_FIELD_LABELS: Record<string, string> = t({
   hardPoints: 'Слоты улучшений',
   price: 'Цена',
   rarity: 'Редкость',
+  encumbranceThreshold: 'Порог веса',
 }, {
   encumbrance: 'Encumbrance',
   soak: 'Soak',
@@ -553,6 +554,40 @@ export const ITEM_STAT_FIELD_LABELS: Record<string, string> = t({
   hardPoints: 'Hard points',
   price: 'Price',
   rarity: 'Rarity',
+  encumbranceThreshold: 'Encumbrance threshold',
+})
+
+/** Порядок состояний повреждения для переключателя (GEN-EQP-DMG-01). */
+export const ITEM_DAMAGE_STATES: ItemDamageState[] =
+  ['undamaged', 'minor', 'moderate', 'major', 'destroyed']
+
+export const ITEM_DAMAGE_STATE_LABELS: Record<ItemDamageState, string> = t({
+  undamaged: 'Цел',
+  minor: 'Незначительное',
+  moderate: 'Умеренное',
+  major: 'Серьёзное',
+  destroyed: 'Уничтожено',
+}, {
+  undamaged: 'Undamaged',
+  minor: 'Minor',
+  moderate: 'Moderate',
+  major: 'Major',
+  destroyed: 'Destroyed',
+})
+
+/** Что состояние делает с предметом — короткой строкой под переключателем и в памятке. */
+export const ITEM_DAMAGE_STATE_HINTS: Record<ItemDamageState, string> = t({
+  undamaged: 'Штрафов нет, ремонт не нужен',
+  minor: 'Одна помеха ко всем проверкам, прямо использующим предмет',
+  moderate: 'Сложность таких проверок повышается на одну ступень',
+  major: 'Пользоваться нельзя: ни атак, ни поглощения, ни защиты, ни улучшений. Вес и содержимое остаются',
+  destroyed: 'Пользоваться нельзя, обычный ремонт недоступен — дальше решает ведущий',
+}, {
+  undamaged: 'No penalty, no repair needed',
+  minor: 'One setback to every check that directly uses the item',
+  moderate: 'The difficulty of such checks increases once',
+  major: 'Unusable: no attacks, soak, defense or attachment effects. Weight and contents stay',
+  destroyed: 'Unusable and beyond ordinary repair — the GM decides what happens next',
 })
 
 /**

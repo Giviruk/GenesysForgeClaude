@@ -281,6 +281,42 @@ public static class CharacterEndpoints
             return Results.NoContent();
         });
 
+        // Состояние повреждения и ремонт (GEN-EQP-DMG-01). Состояние меняется отдельным действием,
+        // ремонт идёт по кнопке: броска проверки нет, правило книги показано памяткой в интерфейсе.
+        group.MapPut("/{id:guid}/items/{itemId:guid}/damage-state", async (Guid id, Guid itemId,
+            SetItemDamageStateRequest req, ClaimsPrincipal user,
+            ICommandHandler<SetItemDamageStateCommand, Unit> handler, CancellationToken ct) =>
+        {
+            await handler.Handle(new SetItemDamageStateCommand(user.UserId(), id, itemId, req), ct);
+            return Results.NoContent();
+        });
+
+        group.MapPost("/{id:guid}/items/{itemId:guid}/repair", async (Guid id, Guid itemId,
+            RepairItemRequest? req, ClaimsPrincipal user,
+            ICommandHandler<RepairItemCommand, Unit> handler, CancellationToken ct) =>
+        {
+            await handler.Handle(new RepairItemCommand(user.UserId(), id, itemId, req ?? new()), ct);
+            return Results.NoContent();
+        });
+
+        group.MapPut("/{id:guid}/attachments/{attachmentId:guid}/damage-state", async (Guid id,
+            Guid attachmentId, SetItemDamageStateRequest req, ClaimsPrincipal user,
+            ICommandHandler<SetAttachmentDamageStateCommand, Unit> handler, CancellationToken ct) =>
+        {
+            await handler.Handle(
+                new SetAttachmentDamageStateCommand(user.UserId(), id, attachmentId, req), ct);
+            return Results.NoContent();
+        });
+
+        group.MapPost("/{id:guid}/attachments/{attachmentId:guid}/repair", async (Guid id,
+            Guid attachmentId, RepairItemRequest? req, ClaimsPrincipal user,
+            ICommandHandler<RepairAttachmentCommand, Unit> handler, CancellationToken ct) =>
+        {
+            await handler.Handle(
+                new RepairAttachmentCommand(user.UserId(), id, attachmentId, req ?? new()), ct);
+            return Results.NoContent();
+        });
+
         // Критические ранения (U-23): добавление (из таблицы U-11 или вручную) и снятие.
         group.MapPost("/{id:guid}/critical-injuries", async (Guid id, AddCriticalInjuryRequest req, ClaimsPrincipal user,
             ICommandHandler<AddCriticalInjuryCommand, Guid> handler, CancellationToken ct) =>

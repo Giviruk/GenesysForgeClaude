@@ -38,13 +38,17 @@ public static class CharacterDerived
     public static List<ItemInput> ItemInputs(Character c) =>
         [.. EffectiveItems.For(c).Select(ItemInput)];
 
-    /// <summary>Одна позиция для расчёта листа: числа и качества уже со всеми поправками.</summary>
+    /// <summary>
+    /// Одна позиция для расчёта листа: числа и качества уже со всеми поправками. У серьёзно
+    /// повреждённого предмета качеств нет вовсе (GEN-EQP-DMG-01) — сломанный щит не защищает,
+    /// хотя и продолжает висеть на руке и весить.
+    /// </summary>
     private static ItemInput ItemInput(EffectiveItem e) => new(
         e.Def.Name, e.Def.Kind, e.Item.State, e.Encumbrance, e.Item.Quantity,
         e.SoakBonus, e.MeleeDefense, e.RangedDefense,
-        e.Def.EncumbranceThresholdBonus,
+        e.EncumbranceThresholdBonus,
         e.IsActiveArmor,
-        [.. e.Qualities.Select(q => new ItemQualityInput(q.Code, q.Rating))],
+        e.IsUsable ? [.. e.Qualities.Select(q => new ItemQualityInput(q.Code, q.Rating))] : [],
         e.Item.IsThrown);
 
     /// <summary>
@@ -56,8 +60,18 @@ public static class CharacterDerived
         .Where(i => i.ItemDef is not null)
         .SelectMany(i => CatalogModifiers(i).Concat(CraftsmanshipModifiers(i)))
         .Where(x => !x.RequiresWorn || IsWornAndEffective(c, x.Item, x.Item.ItemDef!))
+        .Where(x => IsStillInEffect(x.Item, x.Input))
         .Select(x => x.Input)
         .ToList();
+
+    /// <summary>
+    /// Сломанный предмет перестаёт помогать, но не перестаёт мешать (GEN-EQP-DMG-01): снятие
+    /// помехи — преимущество экземпляра и с Серьёзным повреждением пропадает, а вот вес разбитых
+    /// лат по-прежнему мешает красться. Помеха самого состояния сюда не попадает: она относится
+    /// к проверкам этим предметом, а не ко всем проверкам навыка, и живёт в пуле предмета.
+    /// </summary>
+    private static bool IsStillInEffect(CharacterItem item, ItemCheckModifierInput input) =>
+        DamageStateRules.IsUsable(item.DamageState) || input.Kind != CheckModifierKind.RemoveSetback;
 
     private static IEnumerable<(CharacterItem Item, bool RequiresWorn, ItemCheckModifierInput Input)>
         CatalogModifiers(CharacterItem i) => i.ItemDef!.CheckModifiers.Select(m => (i, m.RequiresWorn,

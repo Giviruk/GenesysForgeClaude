@@ -1,9 +1,13 @@
 import { useMemo, useState } from 'react'
 import { api } from '../api/client'
 import type {
-  AttachmentDef, CharacterAttachment, CharacterSheet, ItemKind, Reference, SheetItem, WeaponFormTrait,
+  AttachmentDef, CharacterAttachment, CharacterSheet, ItemDamageState, ItemKind, Reference, SheetItem,
+  WeaponFormTrait,
 } from '../api/types'
-import { ITEM_KIND_LABELS, localizedName, parseWeaponTraits } from '../utils/labels'
+import {
+  ITEM_DAMAGE_STATE_HINTS, ITEM_DAMAGE_STATE_LABELS, ITEM_KIND_LABELS, localizedName, parseWeaponTraits,
+} from '../utils/labels'
+import { DamageStateControls } from './ItemDamageControls'
 import { t } from '../i18n'
 
 interface Props {
@@ -64,6 +68,9 @@ export function AttachmentsTab({ sheet, reference, onError, refresh }: Props) {
       onError(err instanceof Error ? err.message : t('Ошибка', 'Error'))
     }
   }
+
+  // Чем можно заплатить за материалы ремонта: в фазе создания сначала тратится бюджет покупок.
+  const funds = sheet.money + (sheet.isCreationPhase ? sheet.startingPurchaseBudget : 0)
 
   // Улучшать можно только оружие и броню: у снаряжения слотов не бывает.
   const hosts = useMemo(
@@ -258,7 +265,11 @@ export function AttachmentsTab({ sheet, reference, onError, refresh }: Props) {
             </span>
             {i.attachments.map(a => (
               <AttachmentRow key={a.id} attachment={a} def={defsById.get(a.attachmentDefId)}
-                onDetach={outcome => run(() => api.detachAttachment(sheet.id, a.id, outcome))} />
+                funds={funds}
+                onDetach={outcome => run(() => api.detachAttachment(sheet.id, a.id, outcome))}
+                onSetDamageState={state =>
+                  run(() => api.setAttachmentDamageState(sheet.id, a.id, state))}
+                onRepair={opts => run(() => api.repairAttachment(sheet.id, a.id, opts))} />
             ))}
             {i.attachmentNotes.length > 0 && (
               <ul className="muted small-text attach-notes">
@@ -277,16 +288,26 @@ function hasMagicRank(sheet: CharacterSheet): boolean {
   return sheet.skills.some(s => s.kind === 'magic' && s.ranks > 0)
 }
 
-function AttachmentRow({ attachment, def, onDetach, onRemove }: {
+function AttachmentRow({ attachment, def, funds, onDetach, onRemove, onSetDamageState, onRepair }: {
   attachment: CharacterAttachment
   def?: AttachmentDef
+  /** Чем персонаж может заплатить за материалы ремонта. */
+  funds?: number
   onDetach?: (outcome: 'returned' | 'destroyed' | 'unusable') => void
   onRemove?: () => void
+  onSetDamageState?: (state: ItemDamageState) => void
+  onRepair?: (opts: { netAdvantages: number } | { costOverride: number; overrideReason: string }) => void
 }) {
   return (
     <div className="attach-row">
       <div>
         <strong>{attachment.nameRu || attachment.name}</strong>
+        {attachment.damageState !== 'undamaged' && (
+          <span className={`chip damage-badge ${attachment.damageState}`}
+            title={ITEM_DAMAGE_STATE_HINTS[attachment.damageState]}>
+            {ITEM_DAMAGE_STATE_LABELS[attachment.damageState]}
+          </span>
+        )}
         <span className="muted small-text">
           {' · '}{t('слотов', 'slots')} {attachment.hardPointCost}
           {attachment.isEnchantment && t(' · чары', ' · enchantment')}
@@ -296,6 +317,19 @@ function AttachmentRow({ attachment, def, onDetach, onRemove }: {
         </span>
         {def?.description && <div className="muted small-text">{def.description}</div>}
         {attachment.note && <div className="muted small-text">{attachment.note}</div>}
+        {/* Сломанное улучшение молчит, но слот не отдаёт: об этом надо сказать прямо, иначе
+            непонятно, почему свободных слотов не прибавилось (GEN-EQP-DMG-01). */}
+        {!attachment.isUsable && (
+          <div className="damage-warn small-text">
+            {t('Эффекты не действуют; слот освободится только после снятия.',
+              'Effects are off; the slot frees up only after detaching.')}
+          </div>
+        )}
+        {onSetDamageState && onRepair && (
+          <DamageStateControls state={attachment.damageState} repair={attachment.repair}
+            funds={funds ?? 0}
+            onSetState={onSetDamageState} onRepair={onRepair} />
+        )}
       </div>
       <div className="attach-row-actions">
         {onDetach && (

@@ -94,11 +94,17 @@ public static class Mappers
     /// </param>
     /// <param name="damageBonus">Прибавка урона от улучшений; применяется после качества изготовления.</param>
     /// <param name="critReduction">Уменьшение крита от улучшений; итог не ниже единицы.</param>
+    /// <param name="damageState">
+    /// Состояние повреждения экземпляра (GEN-EQP-DMG-01): Незначительное добавляет в пул помеху,
+    /// Умеренное поднимает сложность. В справочнике — <see cref="ItemDamageState.Undamaged"/>:
+    /// повреждена бывает вещь, а не строка каталога.
+    /// </param>
     public static List<WeaponAttackProfileDto> AttackProfileDtos(
         this ItemDef i, int? brawn = null, IReadOnlyDictionary<string, QualityDef>? qualitiesByCode = null,
         int? agility = null, WeaponCraftsmanship craftsmanship = WeaponCraftsmanship.Steel,
         IReadOnlyList<EffectiveQuality>? effectiveQualities = null,
-        int damageBonus = 0, int critReduction = 0)
+        int damageBonus = 0, int critReduction = 0,
+        ItemDamageState damageState = ItemDamageState.Undamaged)
     {
         // Качества экземпляра: база предмета плюс то, что дали улучшения. Название и механика
         // берутся из справочника по коду — выдумывать их нельзя.
@@ -150,7 +156,8 @@ public static class Mappers
                         + damageBonus
                     : null,
                 brawn is { } b2 && agility is { } a
-                    ? PoolDto(WeaponQualityRules.PoolFor(ProfileEffects(p), b2, a))
+                    ? PoolDto(DamageStateRules.ApplyTo(
+                        WeaponQualityRules.PoolFor(ProfileEffects(p), b2, a), damageState))
                     : null))];
     }
 

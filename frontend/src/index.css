@@ -817,6 +817,15 @@ table.ref-table td.ref-cost { white-space: nowrap; color: var(--accent); }
 .inv-card-qty { white-space: nowrap; }
 .inv-card-desc { font-size: 0.82rem; color: var(--muted); overflow-wrap: anywhere; }
 .inv-card-foot { display: flex; justify-content: space-between; align-items: center; gap: 0.6rem; flex-wrap: wrap; }
+
+/* Состояние повреждения и ремонт (GEN-EQP-DMG-01) */
+.inv-card.broken { border-color: var(--red); background: rgba(180, 60, 60, 0.07); }
+.damage-row { display: flex; align-items: center; gap: 0.45rem; flex-wrap: wrap; }
+.damage-switch { display: flex; gap: 0.25rem; flex-wrap: wrap; min-width: 0; }
+.damage-adv { display: inline-flex; align-items: center; gap: 0.3rem; color: var(--muted); }
+.damage-warn { color: var(--yellow); }
+.damage-badge { border-color: var(--yellow); color: var(--yellow); cursor: help; }
+.damage-badge.major, .damage-badge.destroyed { border-color: var(--red); color: var(--red); }
 .inv-card-end { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
 
 /* Строка боевых характеристик оружия */
@@ -863,6 +872,11 @@ table.ref-table td.ref-cost { white-space: nowrap; color: var(--accent); }
   white-space: normal;
   text-align: left;
 }
+/* Памятка (GEN-EQP-DMG-01): тот же тултип, но значок должен читаться как «здесь справка». */
+.info-tip { font-weight: 700; min-width: 1.2rem; text-align: center; }
+.prop-tooltip-body ul { margin: 0.2rem 0 0; padding-left: 1.05rem; }
+.prop-tooltip-body li { margin-bottom: 0.15rem; }
+
 .prop-tooltip-title { display: block; font-weight: 700; color: var(--accent); margin-bottom: 0.3rem; }
 .prop-tooltip-en { font-weight: 400; color: var(--muted); }
 .prop-tooltip-body { display: block; font-size: 0.82rem; line-height: 1.45; }

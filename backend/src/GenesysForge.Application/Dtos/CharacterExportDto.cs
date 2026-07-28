@@ -89,8 +89,13 @@ public record CharacterTalentChoiceExport(int RankIndex, TalentChoiceKind Kind, 
 /// Качество изготовления экземпляра (ROT-WPN-02). Файлы прежних версий его не содержат — там
 /// экземпляр обычной работы, и это не догадка, а правило для legacy.
 /// </param>
+/// <param name="DamageState">
+/// Состояние повреждения экземпляра (GEN-EQP-DMG-01). Файлы прежних версий его не содержат —
+/// такой экземпляр цел, и это правило для legacy, а не догадка.
+/// </param>
 public record CharacterItemExport(string Code, string Name, int Quantity, ItemState State,
     ItemProvenance Provenance = ItemProvenance.Purchased,
-    WeaponCraftsmanship Craftsmanship = WeaponCraftsmanship.Steel);
+    WeaponCraftsmanship Craftsmanship = WeaponCraftsmanship.Steel,
+    ItemDamageState DamageState = ItemDamageState.Undamaged);
 
 public record CharacterNoteExport(string Title, string Body);
