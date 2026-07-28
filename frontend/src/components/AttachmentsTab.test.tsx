@@ -176,6 +176,33 @@ describe('Улучшения предметов (ROT-EQP-ATT-01)', () => {
     expect(shop().textContent).toContain('Цену считает сервер')
   })
 
+  it('держит руны в отдельной корзине, а обычные улучшения — без них', () => {
+    const runeDef = {
+      ...razorDef, id: 'def-rune-blades', code: 'rot.attachment.rune-of-blades',
+      name: 'Rune of Blades', nameRu: 'Руна клинков', isEnchantment: true, price: null,
+      requiredTraits: 'none', forbiddenTraits: 'none',
+    } as unknown as AttachmentDef
+    const both = {
+      ...sheet,
+      attachments: [spare('att-1', 'def-razor'), spare('att-2', 'def-rune-blades', { nameRu: 'Руна клинков' })],
+    } as unknown as CharacterSheet
+    render(<AttachmentsTab sheet={both} reference={{ attachments: [razorDef, runeDef] } as unknown as Reference}
+      onError={() => {}} refresh={() => Promise.resolve()} />)
+
+    const reserve = () => document.querySelector('[data-section="reserve"]')!.textContent ?? ''
+    expect(reserve()).toContain('Бритвенная кромка')
+    expect(reserve()).toContain('Руна клинков')
+
+    fireEvent.click(screen.getByRole('button', { name: 'Руны' }))
+    expect(reserve()).toContain('Руна клинков')
+    expect(reserve()).not.toContain('Бритвенная кромка')
+
+    // «Оружие» — обычные улучшения без рун: руна к оружию тоже подходит, но живёт отдельно.
+    fireEvent.click(screen.getByRole('button', { name: 'Оружие' }))
+    expect(reserve()).toContain('Бритвенная кромка')
+    expect(reserve()).not.toContain('Руна клинков')
+  })
+
   it('снимает установленное улучшение', async () => {
     const installed = {
       ...sheet,

@@ -13,6 +13,7 @@ import {
   WEAPON_CRAFTSMANSHIPS,
 } from '../utils/labels'
 import { DamageStateControls } from './ItemDamageControls'
+import { ImplementMaterialMemo } from './ImplementMaterialMemo'
 import { craftsmanshipApplies, craftsmanshipPrice } from '../utils/craftsmanship'
 import { IMPLEMENT_MATERIALS, implementPrice } from '../utils/implements'
 import { itemTags } from '../data/itemQualities'
@@ -32,14 +33,38 @@ interface Props {
 }
 
 const STATES: ItemState[] = ['equipped', 'carried', 'backpack']
-const KIND_FILTERS: (ItemKind | 'all')[] = ['all', 'weapon', 'armor', 'gear']
+
+/**
+ * Фильтры витрины. Магические инструменты вынесены из снаряжения отдельной корзиной: по виду
+ * записи это тот же gear, но покупают их иначе — с выбором материала и под конкретный магический
+ * навык, и искать их среди верёвок и факелов бессмысленно (ROT-MAG-IMP-01).
+ */
+type ShopFilter = ItemKind | 'all' | 'implement'
+const KIND_FILTERS: ShopFilter[] = ['all', 'weapon', 'armor', 'gear', 'implement']
+
+const SHOP_FILTER_LABELS: Record<ShopFilter, string> = {
+  all: t('Все', 'All'),
+  weapon: ITEM_KIND_LABELS.weapon,
+  armor: ITEM_KIND_LABELS.armor,
+  gear: ITEM_KIND_LABELS.gear,
+  implement: t('Инструменты магии', 'Magic implements'),
+}
+
+/** Запись попадает в выбранную корзину витрины. */
+const matchesShopFilter = (item: ItemDef, filter: ShopFilter): boolean => {
+  if (filter === 'all') return true
+  if (filter === 'implement') return item.implement != null
+  // Инструмент из «снаряжения» уходит: он теперь живёт в своей корзине и дважды не показывается.
+  if (filter === 'gear') return item.kind === 'gear' && item.implement == null
+  return item.kind === filter
+}
 
 // Поиск: регистронезависимо и устойчиво к лишним пробелам.
 const normalize = (s: string) => s.toLowerCase().replace(/\s+/g, ' ').trim()
 
 export function InventoryTab({ sheet, reference, onError, refresh }: Props) {
   const [search, setSearch] = useState('')
-  const [kindFilter, setKindFilter] = useState<ItemKind | 'all'>('all')
+  const [kindFilter, setKindFilter] = useState<ShopFilter>('all')
   const [selectedTags, setSelectedTags] = useState<string[]>([])
   const [tagPickerOpen, setTagPickerOpen] = useState(false)
   // id предмета каталога, для которого открыт мини-магазин покупки
@@ -87,7 +112,7 @@ export function InventoryTab({ sheet, reference, onError, refresh }: Props) {
       return selectedTags.every(t => tags.includes(t)) // фильтры компонуются (И)
     }
     return reference.items
-      .filter(i => kindFilter === 'all' || i.kind === kindFilter)
+      .filter(i => matchesShopFilter(i, kindFilter))
       .filter(matchesText)
       .filter(matchesTags)
       .sort((a, b) => localizedName(a).localeCompare(localizedName(b), lang))
@@ -174,7 +199,7 @@ export function InventoryTab({ sheet, reference, onError, refresh }: Props) {
             {KIND_FILTERS.map(k => (
               <button key={k} className={kindFilter === k ? 'chip active' : 'chip'}
                 onClick={() => setKindFilter(k)}>
-                {k === 'all' ? t('Все', 'All') : ITEM_KIND_LABELS[k]}
+                {SHOP_FILTER_LABELS[k]}
               </button>
             ))}
           </div>
@@ -377,6 +402,8 @@ function InventoryCard({ item, sheet, skillNames, run, reference, funds, sellOpe
   const [printing, setPrinting] = useState(false)
   const itemLabel = localizedName(item)
   const skillName = resolveWeaponSkillName(item.skillName, skillNames)
+  // Запись каталога нужна памятке материала: она показывает, во что материал превратил цену.
+  const catalogueDef = reference.items.find(d => d.id === item.itemDefId) ?? null
   const skill = skillName ? sheet.skills.find(s => s.name === skillName) ?? null : null
   const skillLabel = skill ? localizedName(skill) : item.skillName
 
@@ -526,6 +553,10 @@ function InventoryCard({ item, sheet, skillNames, run, reference, funds, sellOpe
       {item.implement && (
         <div className="muted small-text">
           {t('Инструмент', 'Implement')} · {IMPLEMENT_MATERIAL_LABELS[item.implement.material]}
+          {/* Свойство материала приложение не считает, поэтому оно должно быть под рукой там,
+              где вещью пользуются, а не только в магазине (ROT-MAG-MAT-01). */}
+          {' '}<ImplementMaterialMemo material={item.implement.material}
+            basePrice={catalogueDef?.price} baseRarity={catalogueDef?.rarity} />
           {item.implement.attackDamageBonus > 0
             && t(` · урон Атаки +${item.implement.attackDamageBonus}`,
               ` · Attack damage +${item.implement.attackDamageBonus}`)}

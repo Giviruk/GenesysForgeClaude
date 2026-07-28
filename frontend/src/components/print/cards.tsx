@@ -2,7 +2,8 @@ import type {
   Characteristic, EncounterDetail, NpcDetail, SheetItem, SheetTalent,
 } from '../../api/types'
 import {
-  CHARACTERISTIC_LABELS, ENCOUNTER_TYPE_LABELS, ITEM_DAMAGE_STATE_HINTS, ITEM_DAMAGE_STATE_LABELS,
+  CHARACTERISTIC_LABELS, ENCOUNTER_TYPE_LABELS, IMPLEMENT_MATERIAL_LABELS,
+  IMPLEMENT_MATERIAL_TRIGGERS, ITEM_DAMAGE_STATE_HINTS, ITEM_DAMAGE_STATE_LABELS,
   ITEM_KIND_LABELS, NPC_KIND_LABELS, NPC_ROLE_LABELS,
   PARTICIPANT_TYPE_LABELS, SLOT_TYPE_LABELS, SYSTEM_LABELS, THREAT_LEVEL_LABELS, WEAPON_CRAFTSMANSHIP_LABELS,
   difficultyLabel, localizedDescription, localizedName, magicSkillLabel, secondaryName,
@@ -162,6 +163,7 @@ export function ItemCard({ item, skillLabel }: { item: SheetItem; skillLabel?: s
           {secondaryName(item) && `${secondaryName(item)} · `}{ITEM_KIND_LABELS[item.kind]}
           {item.craftsmanship !== 'steel' && ` · ${WEAPON_CRAFTSMANSHIP_LABELS[item.craftsmanship]}`}
           {item.reinforced && t(' · укреплённое', ' · reinforced')}
+          {item.implement && ` · ${IMPLEMENT_MATERIAL_LABELS[item.implement.material]}`}
           {/* Состояние — часть экземпляра: печатная карточка сломанного меча не должна
               выглядеть как карточка целого (GEN-EQP-DMG-01). */}
           {item.damageState !== 'undamaged'
@@ -189,6 +191,12 @@ export function ItemCard({ item, skillLabel }: { item: SheetItem; skillLabel?: s
           <span><b>{t('Бл.защ', 'M.Def')}</b> +{item.meleeDefense}</span>
           <span><b>{t('Дал.защ', 'R.Def')}</b> +{item.rangedDefense}</span>
         </div>
+      )}
+      {/* Карточку берут за стол, где приложения под рукой нет, а свойство материала считает
+          именно стол (ROT-MAG-MAT-01). */}
+      {item.implement && item.implement.material !== 'oak' && (
+        <p><b>{IMPLEMENT_MATERIAL_LABELS[item.implement.material]}:</b>{' '}
+          {IMPLEMENT_MATERIAL_TRIGGERS[item.implement.material]}</p>
       )}
       {item.attachments?.length > 0 && (
         <p>

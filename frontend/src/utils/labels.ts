@@ -579,6 +579,25 @@ export const IMPLEMENT_MATERIAL_HINTS: Record<ImplementMaterial, string> = t({
   yew: 'After a successful Augment, Barrier or Heal, heals the caster 1 strain. Price ×1.5, rarity +1',
 })
 
+/**
+ * Что материал делает за столом — без цены и редкости. Отдельно от подсказки витрины, потому что
+ * в памятке эти строки стоят рядом с посчитанными числами экземпляра, а не вместо них.
+ * Приложение эти срабатывания не считает: им нужен рантайм столкновения.
+ */
+export const IMPLEMENT_MATERIAL_TRIGGERS: Record<ImplementMaterial, string> = t({
+  oak: 'Особого свойства нет.',
+  bone: 'После успешной Атаки или Проклятья заклинатель лечит 1 рану. Раз за проверку.',
+  hazel: 'Если на проверке есть триумф, можно раз за проверку бросить одну бонусную кость и добавить её символы. Триумф при этом остаётся.',
+  willow: 'После успешного заклинания добавляется одно автоматическое преимущество. Раз за проверку.',
+  yew: 'После успешного Усиления, Барьера или Лечения заклинатель снимает 1 усталость. Раз за проверку.',
+}, {
+  oak: 'No special property.',
+  bone: 'After a successful Attack or Curse the caster heals 1 wound. Once per check.',
+  hazel: 'With a Triumph on the check, once per check roll one Boost die and add its symbols. The Triumph remains.',
+  willow: 'After a successful spell, one automatic Advantage is added. Once per check.',
+  yew: 'After a successful Augment, Barrier or Heal the caster heals 1 strain. Once per check.',
+})
+
 /** Порядок состояний повреждения для переключателя (GEN-EQP-DMG-01). */
 export const ITEM_DAMAGE_STATES: ItemDamageState[] =
   ['undamaged', 'minor', 'moderate', 'major', 'destroyed']
