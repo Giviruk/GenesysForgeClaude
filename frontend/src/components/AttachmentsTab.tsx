@@ -54,6 +54,35 @@ function isCompatible(item: SheetItem, def: AttachmentDef, traits: WeaponFormTra
 /** Улучшение ставится либо на оружие, либо на броню — фильтр повторяет это деление. */
 const KIND_FILTERS: (ItemKind | 'all')[] = ['all', 'weapon', 'armor']
 
+/**
+ * Сворачиваемый раздел вкладки. Каталог из двадцати одной записи выталкивал установленное далеко
+ * вниз, поэтому разделы закрываются, а счётчик в заголовке показывает, сколько внутри — иначе
+ * закрытый раздел выглядит пустым.
+ */
+function Section({ id, title, count, defaultOpen = true, children }: {
+  /** Стабильный ключ раздела: по нему его находят стили и тесты. */
+  id: string
+  title: string
+  count?: number
+  defaultOpen?: boolean
+  children: React.ReactNode
+}) {
+  const [open, setOpen] = useState(defaultOpen)
+  return (
+    <section className="attach-list" data-section={id}>
+      <h4>
+        <button type="button" className="section-toggle" aria-expanded={open}
+          onClick={() => setOpen(o => !o)}>
+          <span className="section-caret" aria-hidden>{open ? '▾' : '▸'}</span>
+          {title}
+          {count != null && <span className="muted section-count">{count}</span>}
+        </button>
+      </h4>
+      {open && children}
+    </section>
+  )
+}
+
 export function AttachmentsTab({ sheet, reference, onError, refresh }: Props) {
   const [hostId, setHostId] = useState<string | null>(null)
   const [attachmentId, setAttachmentId] = useState<string | null>(null)
@@ -71,6 +100,11 @@ export function AttachmentsTab({ sheet, reference, onError, refresh }: Props) {
 
   // Чем можно заплатить за материалы ремонта: в фазе создания сначала тратится бюджет покупок.
   const funds = sheet.money + (sheet.isCreationPhase ? sheet.startingPurchaseBudget : 0)
+
+  // Счётчик в заголовке закрытого раздела: сколько улучшений стоит на предметах.
+  const installedCount = useMemo(
+    () => sheet.items.reduce((sum, i) => sum + i.attachments.length, 0),
+    [sheet.items])
 
   // Улучшать можно только оружие и броню: у снаряжения слотов не бывает.
   const hosts = useMemo(
@@ -203,9 +237,37 @@ export function AttachmentsTab({ sheet, reference, onError, refresh }: Props) {
         ))}
       </div>
 
+      {/* Установленное — первым: это то, что у персонажа есть сейчас, и ради него сюда заходят.
+          Запас и магазин лежат ниже и закрываются, чтобы каталог не выталкивал их за экран. */}
+      <Section id="installed" title={t('Установленные', 'Installed')} count={installedCount}>
+        {installedCount === 0 && (
+          <p className="muted">{t('Пока ничего не установлено.', 'Nothing installed yet.')}</p>
+        )}
+        {hosts.filter(i => i.attachments.length > 0).map(i => (
+          <div key={i.id} className="attach-host">
+            <strong>{localizedName(i)}</strong>
+            <span className="muted small-text">
+              {' · '}{t('слоты', 'slots')} {i.usedHardPoints}/{i.hardPoints ?? 0}
+            </span>
+            {i.attachments.map(a => (
+              <AttachmentRow key={a.id} attachment={a} def={defsById.get(a.attachmentDefId)}
+                funds={funds}
+                onDetach={outcome => run(() => api.detachAttachment(sheet.id, a.id, outcome))}
+                onSetDamageState={state =>
+                  run(() => api.setAttachmentDamageState(sheet.id, a.id, state))}
+                onRepair={opts => run(() => api.repairAttachment(sheet.id, a.id, opts))} />
+            ))}
+            {i.attachmentNotes.length > 0 && (
+              <ul className="muted small-text attach-notes">
+                {i.attachmentNotes.map((n, idx) => <li key={idx}>{n}</li>)}
+              </ul>
+            )}
+          </div>
+        ))}
+      </Section>
+
       {spare.length > 0 && (
-        <section className="attach-list">
-          <h4>{t('В запасе', 'In reserve')}</h4>
+        <Section id="reserve" title={t('В запасе', 'In reserve')} count={spareShown.length}>
           {spareShown.length === 0 && (
             <p className="muted small-text">{t('По фильтру ничего нет.', 'Nothing matches the filter.')}</p>
           )}
@@ -213,11 +275,11 @@ export function AttachmentsTab({ sheet, reference, onError, refresh }: Props) {
             <AttachmentRow key={a.id} attachment={a} def={defsById.get(a.attachmentDefId)}
               onRemove={() => run(() => api.removeAttachment(sheet.id, a.id))} />
           ))}
-        </section>
+        </Section>
       )}
 
-      <section className="attach-list">
-        <h4>{t('Купить улучшение', 'Buy an attachment')}</h4>
+      <Section id="shop" title={t('Купить улучшение', 'Buy an attachment')} count={catalogue.length}
+        defaultOpen={false}>
         <p className="hint small-text">
           {t('Цену считает сервер. Бесценные улучшения обычной покупкой не берутся — их выдаёт ведущий.',
             'The server computes the price. Priceless attachments cannot be bought — the GM grants them.')}
@@ -250,35 +312,7 @@ export function AttachmentsTab({ sheet, reference, onError, refresh }: Props) {
             </div>
           </div>
         ))}
-      </section>
-
-      <section className="attach-list">
-        <h4>{t('Установленные', 'Installed')}</h4>
-        {hosts.every(i => i.attachments.length === 0) && (
-          <p className="muted">{t('Пока ничего не установлено.', 'Nothing installed yet.')}</p>
-        )}
-        {hosts.filter(i => i.attachments.length > 0).map(i => (
-          <div key={i.id} className="attach-host">
-            <strong>{localizedName(i)}</strong>
-            <span className="muted small-text">
-              {' · '}{t('слоты', 'slots')} {i.usedHardPoints}/{i.hardPoints ?? 0}
-            </span>
-            {i.attachments.map(a => (
-              <AttachmentRow key={a.id} attachment={a} def={defsById.get(a.attachmentDefId)}
-                funds={funds}
-                onDetach={outcome => run(() => api.detachAttachment(sheet.id, a.id, outcome))}
-                onSetDamageState={state =>
-                  run(() => api.setAttachmentDamageState(sheet.id, a.id, state))}
-                onRepair={opts => run(() => api.repairAttachment(sheet.id, a.id, opts))} />
-            ))}
-            {i.attachmentNotes.length > 0 && (
-              <ul className="muted small-text attach-notes">
-                {i.attachmentNotes.map((n, idx) => <li key={idx}>{n}</li>)}
-              </ul>
-            )}
-          </div>
-        ))}
-      </section>
+      </Section>
     </div>
   )
 }
