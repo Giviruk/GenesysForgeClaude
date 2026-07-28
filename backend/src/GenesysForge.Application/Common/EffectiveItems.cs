@@ -40,7 +40,9 @@ public sealed record EffectiveItem(
     bool IsActiveArmor,
     int EncumbranceThresholdBonus = 0,
     ItemDamageState DamageState = ItemDamageState.Undamaged,
-    bool IsUsable = true)
+    bool IsUsable = true,
+    /// <summary>Паспорт магического инструмента; <c>null</c> — запись инструментом не является.</summary>
+    ImplementSpec? Implement = null)
 {
     /// <summary>Свободные слоты улучшений; у записи без книжного значения — по Core-запасному расчёту.</summary>
     public int RemainingHardPoints => Math.Max(0, (HardPoints ?? 0) - UsedHardPoints);
@@ -61,6 +63,16 @@ public static class EffectiveItems
     {
         var def = item.ItemDef!;
         var stats = CraftsmanshipRules.For(def, item.Craftsmanship);
+
+        // Материал магического инструмента (ROT-MAG-MAT-01): он меняет цену и редкость экземпляра
+        // тем же порядком, что и качество изготовления, — до улучшений и состояния.
+        var implement = ImplementRules.For(def.Code);
+        var materialPrice = implement is null
+            ? stats.Price
+            : ImplementRules.Price(stats.Price, item.ImplementMaterial);
+        var materialRarity = implement is null
+            ? stats.Rarity
+            : ImplementRules.Rarity(stats.Rarity, item.ImplementMaterial);
 
         // Надета и действует: неактивная броня даёт только вес — и её улучшения молчат так же,
         // как её собственные штрафы (ROT-CMB-02).
@@ -109,6 +121,14 @@ public static class EffectiveItems
         var used = AttachmentRules.UsedHardPoints(installed.Select(a => a.AttachmentDef!));
 
         var adjustments = new List<ItemStatAdjustment>(stats.Adjustments);
+        if (materialPrice != stats.Price)
+            adjustments.Add(new ItemStatAdjustment(
+                "price", stats.Price, materialPrice, ItemStatStage.Material,
+                item.ImplementMaterial.ToString()));
+        if (materialRarity != stats.Rarity)
+            adjustments.Add(new ItemStatAdjustment(
+                "rarity", stats.Rarity, materialRarity, ItemStatStage.Material,
+                item.ImplementMaterial.ToString()));
         void Track(string field, int before, int after)
         {
             if (before != after) adjustments.Add(new ItemStatAdjustment(
@@ -138,11 +158,11 @@ public static class EffectiveItems
         }
 
         return new EffectiveItem(
-            item, def, encumbrance, soak, melee, ranged, stats.Price, stats.Rarity,
+            item, def, encumbrance, soak, melee, ranged, materialPrice, materialRarity,
             stats.Reinforced || qualities.Any(q => q.Code == CraftsmanshipRules.ReinforcedQualityCode),
             hardPoints, used, qualities, installed, aggregate, adjustments, stats.CheckModifiers,
             wornAndActive, item.Id == c.ActiveArmorCharacterItemId,
-            encThreshold, item.DamageState, usable);
+            encThreshold, item.DamageState, usable, implement);
     }
 
     /// <summary>

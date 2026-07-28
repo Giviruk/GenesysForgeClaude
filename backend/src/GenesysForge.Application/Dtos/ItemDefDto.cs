@@ -1,6 +1,22 @@
 using GenesysForge.Domain;
+using GenesysForge.Domain.Rules;
 
 namespace GenesysForge.Application.Dtos;
+
+/// <summary>
+/// Паспорт магического инструмента в справочнике (ROT-MAG-IMP-01): по нему витрина показывает
+/// выбор материала, а сборщик заклинаний — что именно инструмент удешевляет.
+/// </summary>
+public record ImplementSpecDto(
+    string Code,
+    int AttackDamageBonus,
+    int BoostDice,
+    string RequiredMagicSkill,
+    ImplementDiscountKind Discount,
+    IReadOnlyList<string> DiscountEffects,
+    int ChoiceCount,
+    int? ChoiceMaxIncreaseSum,
+    int? ChoiceExactIncrease);
 
 public record ItemDefDto(Guid Id, string Name, string NameRu, ItemKind Kind, int Encumbrance, int SoakBonus,
     int MeleeDefense, int RangedDefense, int EncumbranceThresholdBonus,
@@ -15,7 +31,12 @@ public record ItemDefDto(Guid Id, string Name, string NameRu, ItemKind Kind, int
     /// <summary>Влияние предмета на проверки навыков (ROT-ARM-01).</summary>
     IReadOnlyList<ItemCheckModifierDto>? CheckModifiers = null,
     /// <summary>Типизированные профили атаки (ROT-WPN-01); пусто у не-оружия.</summary>
-    IReadOnlyList<WeaponAttackProfileDto>? AttackProfiles = null);
+    IReadOnlyList<WeaponAttackProfileDto>? AttackProfiles = null,
+    /// <summary>
+    /// Магический инструмент (ROT-MAG-IMP-01); <c>null</c> — запись инструментом не является.
+    /// По нему витрина показывает выбор материала, а сборщик заклинаний — скидку на сложность.
+    /// </summary>
+    ImplementSpecDto? Implement = null);
 
 /// <summary>Штраф или послабление предмета к проверкам конкретного навыка/характеристики.</summary>
 public record ItemCheckModifierDto(

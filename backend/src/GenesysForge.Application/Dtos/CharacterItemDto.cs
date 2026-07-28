@@ -32,6 +32,27 @@ public record ItemRepairDto(
     string SkillName,
     bool Affordable);
 
+/// <summary>
+/// Магический инструмент на листе (ROT-MAG-IMP-01). Числа позиции — уже с материалом; здесь то,
+/// что нужно сборщику заклинаний: какой эффект инструмент удешевляет и работает ли он вообще.
+/// </summary>
+/// <param name="Pending">
+/// Экземпляр ещё не настроен ведущим: обычные числа у него есть, а бесплатный эффект не работает.
+/// </param>
+public record ItemImplementDto(
+    string Code,
+    ImplementMaterial Material,
+    int AttackDamageBonus,
+    int BoostDice,
+    string RequiredMagicSkill,
+    ImplementDiscountKind Discount,
+    IReadOnlyList<string> DiscountEffects,
+    int ChoiceCount,
+    int? ChoiceMaxIncreaseSum,
+    int? ChoiceExactIncrease,
+    IReadOnlyList<string> ChosenEffects,
+    bool Pending);
+
 public record CharacterItemDto(Guid Id, Guid ItemDefId, string Name, string NameRu, ItemKind Kind, ItemState State, int Quantity,
     int Encumbrance, int SoakBonus, int MeleeDefense, int RangedDefense, int EncumbranceThresholdBonus, int Load,
     string Description, int Price, string SkillName, string Damage, string Crit, string RangeBand, string Properties,
@@ -97,4 +118,8 @@ public record CharacterItemDto(Guid Id, Guid ItemDefId, string Name, string Name
     /// </summary>
     bool IsUsable = true,
     /// <summary>Памятка по ремонту: сложность, время, доля и стоимость материалов.</summary>
-    ItemRepairDto? Repair = null);
+    ItemRepairDto? Repair = null,
+    /// <summary>
+    /// Магический инструмент (ROT-MAG-IMP-01); <c>null</c> — запись инструментом не является.
+    /// </summary>
+    ItemImplementDto? Implement = null);

@@ -41,13 +41,19 @@ public class AddItemHandler(IAppDbContext db) : ICommandHandler<AddItemCommand, 
         var craftsmanship = CraftsmanshipRules.FixedFor(itemDef.Code) ?? req.Craftsmanship;
         CraftsmanshipRules.EnsureApplicable(itemDef.Kind, craftsmanship);
 
+        // Материал магического инструмента (ROT-MAG-MAT-01) — тоже выбор на всю жизнь экземпляра,
+        // и он тоже меняет цену, поэтому проверяется до списания.
+        ImplementRules.EnsureApplicable(itemDef.Code, req.Material);
+
         // Больше одной брони и больше двух рук не бывает (ROT-EQP-01): предмет, добавленный сразу
         // «в руки», проверяется теми же правилами, что и надевание уже купленного — и до списания.
         if (req.State == ItemState.Equipped)
             EquipmentSlotRules.EnsureCanEquip(
                 itemDef.Kind, itemDef.FormTraits, CharacterDerived.EquippedInputs(c));
 
-        var listedUnitPrice = CraftsmanshipRules.Price(itemDef.Price, craftsmanship);
+        var listedUnitPrice = ImplementRules.IsImplement(itemDef.Code)
+            ? ImplementRules.Price(itemDef.Price, req.Material)
+            : CraftsmanshipRules.Price(itemDef.Price, craftsmanship);
         var unitPrice = req.PriceOverride ?? listedUnitPrice;
         var percent = req.PricePercent ?? 100;
         var total = req.Free
@@ -69,6 +75,7 @@ public class AddItemHandler(IAppDbContext db) : ICommandHandler<AddItemCommand, 
         {
             Id = Guid.NewGuid(), CharacterId = c.Id, ItemDefId = itemDef.Id, ItemDef = itemDef,
             Quantity = req.Quantity, State = req.State, Craftsmanship = craftsmanship,
+            ImplementMaterial = req.Material,
             Provenance = req.Free
                 ? ItemProvenance.Imported
                 : charge.FromBudget > 0 ? ItemProvenance.StartingBudget : ItemProvenance.Purchased,
@@ -92,6 +99,7 @@ public class AddItemHandler(IAppDbContext db) : ICommandHandler<AddItemCommand, 
                 catalogUnitPrice = itemDef.Price, listedUnitPrice, unitPrice,
                 priceOverride = req.PriceOverride, overrideReason = req.OverrideReason,
                 free = req.Free, craftsmanship = craftsmanship.ToString(),
+                material = req.Material.ToString(),
                 percent, mode = req.PriceOverride is not null ? "override"
                     : req.PricePercent is not null ? "haggle" : "direct",
             });

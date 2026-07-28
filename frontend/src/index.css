@@ -834,6 +834,13 @@ table.ref-table td.ref-cost { white-space: nowrap; color: var(--accent); }
 .weapon-pool { display: inline-flex; align-items: center; gap: 0.3rem; }
 .weapon-props { font-style: italic; }
 
+/* Магический инструмент в сборщике заклинаний (ROT-MAG-IMP-01) */
+.magic-implement { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; margin-top: 0.5rem; }
+.implement-config {
+  display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;
+  padding: 0.4rem 0.55rem; border: 1px solid var(--yellow); border-radius: 7px;
+}
+
 /* Теги свойств (качеств) предметов с тултипами */
 .prop-tags { display: inline-flex; flex-wrap: wrap; gap: 0.3rem 0.4rem; align-items: center; }
 .prop-tag-plain { color: var(--muted); font-size: 0.78rem; }

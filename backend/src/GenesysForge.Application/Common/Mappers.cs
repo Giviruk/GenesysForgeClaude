@@ -57,7 +57,20 @@ public static class Mappers
         i.HardPoints,
         [.. i.CheckModifiers.Select(m => new ItemCheckModifierDto(
             m.Kind, m.SkillName, m.Characteristic, m.Value, m.RequiresWorn, m.Condition))],
-        i.AttackProfileDtos(qualitiesByCode: qualitiesByCode));
+        i.AttackProfileDtos(qualitiesByCode: qualitiesByCode),
+        ImplementSpecDto(i.Code));
+
+    /// <summary>
+    /// Паспорт магического инструмента для справочника (ROT-MAG-IMP-01). Определяется кодом
+    /// записи, а не разбором названия: «Посох света» — оружие, а не магический посох.
+    /// </summary>
+    public static ImplementSpecDto? ImplementSpecDto(string? code) =>
+        ImplementRules.For(code) is not { } spec
+            ? null
+            : new ImplementSpecDto(
+                spec.Code, spec.AttackDamageBonus, spec.BoostDice, spec.RequiredMagicSkill,
+                spec.Discount, spec.DiscountEffects, spec.ChoiceCount,
+                spec.ChoiceMaxIncreaseSum, spec.ChoiceExactIncrease);
 
     /// <summary>Улучшение справочника в DTO: механика приезжает типизированной, а не текстом.</summary>
     public static AttachmentDefDto ToDto(this AttachmentDef a) => new(

@@ -96,6 +96,13 @@ public record CharacterTalentChoiceExport(int RankIndex, TalentChoiceKind Kind, 
 public record CharacterItemExport(string Code, string Name, int Quantity, ItemState State,
     ItemProvenance Provenance = ItemProvenance.Purchased,
     WeaponCraftsmanship Craftsmanship = WeaponCraftsmanship.Steel,
-    ItemDamageState DamageState = ItemDamageState.Undamaged);
+    ItemDamageState DamageState = ItemDamageState.Undamaged,
+    /// <summary>
+    /// Материал магического инструмента и выбранные ведущим эффекты (ROT-MAG-IMP-01/MAT-01).
+    /// Файлы прежних версий их не содержат — там дуб и ненастроенный экземпляр.
+    /// </summary>
+    ImplementMaterial Material = ImplementMaterial.Oak,
+    string ImplementChoices = "",
+    bool ImplementConfigured = false);
 
 public record CharacterNoteExport(string Title, string Body);

@@ -87,6 +87,9 @@ public static class DependencyInjection
         services.AddScoped<ICommandHandler<SetAttachmentDamageStateCommand, Unit>,
             SetAttachmentDamageStateHandler>();
         services.AddScoped<ICommandHandler<RepairAttachmentCommand, Unit>, RepairAttachmentHandler>();
+        // Настройка магического инструмента (ROT-MAG-IMP-01).
+        services.AddScoped<ICommandHandler<SetImplementConfigurationCommand, Unit>,
+            SetImplementConfigurationHandler>();
         services.AddScoped<ICommandHandler<AddCriticalInjuryCommand, Guid>, AddCriticalInjuryHandler>();
         services.AddScoped<ICommandHandler<RemoveCriticalInjuryCommand, Unit>, RemoveCriticalInjuryHandler>();
         services.AddScoped<IQueryHandler<GetCharacterAuditQuery, IReadOnlyList<CharacterAuditEntryDto>>, GetCharacterAuditHandler>();

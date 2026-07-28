@@ -13,7 +13,7 @@ import type {
   CharacterAuditEntry,
   RulesResponse, SearchResponse,
   ArchetypeSkillChoice, CareerGearChoice, StartingEquipmentMode,
-  DetachOutcome, ItemDamageState,
+  DetachOutcome, ImplementMaterial, ItemDamageState,
 } from './types'
 import { t } from '../i18n'
 import { ariadneAnonymousId } from '../analytics/ariadne'
@@ -241,10 +241,19 @@ export const api = {
       /** Доля цены экземпляра при торге: 50…200 % с шагом 25. Сумму по ней считает сервер. */
       pricePercent?: number
       craftsmanship?: WeaponCraftsmanship
+      /** Материал магического инструмента (ROT-MAG-MAT-01); цену с его учётом считает сервер. */
+      material?: ImplementMaterial
     }) =>
     request<{ id: string }>('POST', `/api/characters/${id}/items`, { itemDefId, quantity, state, ...opts }),
   updateItem: (id: string, itemId: string, patch: { state?: ItemState; quantity?: number }) =>
     request<void>('PATCH', `/api/characters/${id}/items/${itemId}`, patch),
+  /**
+   * Настройка магического инструмента ведущим (ROT-MAG-IMP-01): фолиант берёт до двух эффектов,
+   * палочка — ровно один с надбавкой +1. Выбор делается один раз и дальше не меняется.
+   */
+  setImplementConfiguration: (id: string, itemId: string, effectCodes: string[], overrideReason?: string) =>
+    request<void>('PUT', `/api/characters/${id}/items/${itemId}/implement`,
+      { effectCodes, overrideReason }),
 
   // ── Состояние повреждения и ремонт (GEN-EQP-DMG-01) ──
   /** Меняет состояние предмета: и Sunder в бою, и порча по сюжету приходят сюда. */

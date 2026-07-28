@@ -30,6 +30,11 @@ public record AddItemRequest(
     int? PriceOverride = null,
     string? OverrideReason = null,
     WeaponCraftsmanship Craftsmanship = WeaponCraftsmanship.Steel,
+    /// <summary>
+    /// Материал магического инструмента (ROT-MAG-MAT-01): выбирается один раз при покупке.
+    /// У всего остального — дуб, то есть числа каталога без изменений.
+    /// </summary>
+    ImplementMaterial Material = ImplementMaterial.Oak,
     int? PricePercent = null);
 
 /// <summary>

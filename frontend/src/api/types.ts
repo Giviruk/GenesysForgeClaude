@@ -127,6 +127,8 @@ export interface ItemDef {
   checkModifiers: ItemCheckModifier[]
   /** Типизированные профили атаки (ROT-WPN-01); пусто у не-оружия. */
   attackProfiles: WeaponAttackProfile[]
+  /** Магический инструмент (ROT-MAG-IMP-01); null — запись инструментом не является. */
+  implement: ImplementSpec | null
 }
 
 /** Структурное качество предмета: ссылка на справочник по коду + рейтинг. */
@@ -315,6 +317,11 @@ export interface Spell {
   descriptionEn?: string
   source: string
   isCustom: boolean
+  /**
+   * Навык, которому эффект доступен исключительно («Только Вера»); пусто — доступен нескольким.
+   * По нему считается скидка священного символа (ROT-MAG-IMP-01).
+   */
+  restrictedSkill: string
 }
 
 export type ArchetypeAbilityAutomationKind = 'passive' | 'activationCost' | 'timedEffect' | 'manual' | 'requiresGmDecision'
@@ -709,6 +716,42 @@ export interface SheetItem {
   isUsable: boolean
   /** Памятка по ремонту: сложность, время, доля и стоимость материалов. */
   repair: ItemRepair
+  /** Магический инструмент (ROT-MAG-IMP-01); null — запись инструментом не является. */
+  implement: ItemImplement | null
+}
+
+/** Материал магического инструмента (ROT-MAG-MAT-01). */
+export type ImplementMaterial = 'oak' | 'bone' | 'hazel' | 'willow' | 'yew'
+
+/** Как инструмент удешевляет дополнительный эффект заклинания (ROT-MAG-IMP-01). */
+export type ImplementDiscountKind =
+  | 'none' | 'namedEffects' | 'firstNamedEffect' | 'restrictedSkillDiscount' | 'chosenEffects'
+
+/** Паспорт магического инструмента: и у записи справочника, и внутри позиции инвентаря. */
+export interface ImplementSpec {
+  code: string
+  /** Прибавка к базовому урону магической Атаки; не урон ближнего боя и не влияет на Лечение. */
+  attackDamageBonus: number
+  /** Бонусные кости к магической проверке: скипетр даёт одну. */
+  boostDice: number
+  /** Инструмент работает только с этим навыком; пусто — с любым. */
+  requiredMagicSkill: string
+  discount: ImplementDiscountKind
+  /** Коды эффектов, которых касается скидка. */
+  discountEffects: string[]
+  /** Сколько эффектов выбирает ведущий при изготовлении экземпляра. */
+  choiceCount: number
+  choiceMaxIncreaseSum: number | null
+  choiceExactIncrease: number | null
+}
+
+/** Магический инструмент в инвентаре: паспорт плюс то, что принадлежит экземпляру. */
+export interface ItemImplement extends ImplementSpec {
+  material: ImplementMaterial
+  /** Эффекты, выбранные ведущим (коды). */
+  chosenEffects: string[]
+  /** Экземпляр ещё не настроен: обычные числа есть, бесплатный эффект не работает. */
+  pending: boolean
 }
 
 /** Состояние повреждения экземпляра (GEN-EQP-DMG-01). */

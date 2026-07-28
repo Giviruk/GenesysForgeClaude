@@ -29,4 +29,22 @@ public class CharacterItem
     /// в бою сработал Sunder, и когда предмет пострадал по сюжету. Legacy-строки — целые.
     /// </summary>
     public ItemDamageState DamageState { get; set; } = ItemDamageState.Undamaged;
+
+    /// <summary>
+    /// Материал магического инструмента (ROT-MAG-MAT-01). Выбирается один раз при изготовлении и
+    /// дальше неизменен. У всего остального — дуб, то есть числа каталога без изменений.
+    /// </summary>
+    public ImplementMaterial ImplementMaterial { get; set; } = ImplementMaterial.Oak;
+
+    /// <summary>
+    /// Эффекты, выбранные ведущим у фолианта или палочки (ROT-MAG-IMP-01), кодами через запятую.
+    /// Пусто — выбор ещё не сделан.
+    /// </summary>
+    public string ImplementChoices { get; set; } = "";
+
+    /// <summary>
+    /// Ведущий подтвердил выбор эффектов. Пока нет — обычные числа инструмента работают, а
+    /// бесплатный эффект нет: витрина не может выдать полностью рабочий фолиант сама.
+    /// </summary>
+    public bool ImplementConfigured { get; set; }
 }

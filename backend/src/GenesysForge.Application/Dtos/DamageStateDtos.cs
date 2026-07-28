@@ -25,3 +25,16 @@ public record RepairItemRequest(
     int NetAdvantages = 0,
     int? CostOverride = null,
     string? OverrideReason = null);
+
+/// <summary>
+/// Настройка магического инструмента ведущим (ROT-MAG-IMP-01): фолиант берёт до двух эффектов,
+/// палочка — ровно один с надбавкой +1. Выбор делается один раз и дальше не меняется.
+/// </summary>
+/// <param name="EffectCodes">Английские коды дополнительных эффектов: <c>Range</c>, <c>Fire</c>…</param>
+/// <param name="OverrideReason">
+/// Причина превышения рекомендованного бюджета фолианта. Книга формулирует его как совет ведущему,
+/// поэтому превышение — не запрет, а явное решение с причиной.
+/// </param>
+public record SetImplementConfigurationRequest(
+    List<string>? EffectCodes = null,
+    string? OverrideReason = null);
