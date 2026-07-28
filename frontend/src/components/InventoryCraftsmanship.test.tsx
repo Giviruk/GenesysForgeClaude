@@ -34,6 +34,14 @@ const ironPlate = {
     { field: 'encumbrance', base: 6, effective: 8, stage: 'craftsmanship', source: 'Iron' },
     { field: 'price', base: 5000, effective: 2500, stage: 'craftsmanship', source: 'Iron' },
   ],
+  attachments: [
+    { id: 'att-1', attachmentDefId: 'def-plating', name: 'Deflective Plating',
+      nameRu: 'Отклоняющие пластины', hardPointCost: 1, isEnchantment: false, price: 450,
+      rarity: 4, hostCharacterItemId: 'item-1', note: '', effects: [] },
+  ],
+  usedHardPoints: 1,
+  overCapacity: false,
+  attachmentNotes: ['Шипы: правило решает ведущий.'],
 } as unknown as SheetItem
 
 const sheet = {
@@ -63,6 +71,18 @@ describe('Инвентарь: качество изготовления (ROT-WPN
       .map(e => e.textContent ?? '').find(text => text.startsWith('железное'))
     expect(breakdown).toContain('Вес 6 → 8')
     expect(breakdown).toContain('Цена 5000 → 2500')
+  })
+
+  it('называет установленные улучшения и занятые слоты', () => {
+    const { container } = render(<InventoryTab sheet={sheet} reference={reference} onError={() => {}}
+      refresh={() => Promise.resolve()} />)
+
+    // Числа на карточке уже с улучшением, поэтому видно и само улучшение, и занятый слот.
+    expect(container.querySelector('.inv-card-title')!.textContent).toContain('HP 1/4')
+    const card = container.querySelector('.inv-card')!.textContent ?? ''
+    expect(card).toContain('Отклоняющие пластины')
+    // Правило, которое приложение не исполняет, показывается, а не теряется.
+    expect(card).toContain('Шипы: правило решает ведущий.')
   })
 
   it('покупает с выбранной работой и показывает её цену', async () => {

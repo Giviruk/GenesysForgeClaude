@@ -343,8 +343,9 @@ function InventoryCard({ item, sheet, skillNames, run, reference, sellOpen, onTo
           <span className="muted small-text">
             {secondaryName(item) && ` · ${secondaryName(item)}`}
             {` · ${ITEM_KIND_LABELS[item.kind]}`}{item.price > 0 && ` · ${item.price} 🪙`}
-            {/* Слоты улучшений берутся из таблицы книги; null — значения нет (ROT-ARM-01). */}
-            {item.hardPoints != null && ` · HP ${item.hardPoints}`}
+            {/* Слоты улучшений берутся из таблицы книги; null — значения нет (ROT-ARM-01).
+                Занятые показываются рядом: иначе непонятно, куда делись свободные (ROT-EQP-ATT-01). */}
+            {item.hardPoints != null && ` · HP ${item.usedHardPoints}/${item.hardPoints}`}
             {/* Работа обычной стали ничего не меняет — её и не показываем (ROT-WPN-02). */}
             {item.craftsmanship !== 'steel' && ` · ${WEAPON_CRAFTSMANSHIP_LABELS[item.craftsmanship]}`}
             {item.reinforced && t(' · укреплённое', ' · reinforced')}
@@ -396,6 +397,31 @@ function InventoryCard({ item, sheet, skillNames, run, reference, sellOpen, onTo
           ))}
         </div>
       )}
+
+      {/* Установленные улучшения: числа выше уже с ними, но без списка непонятно, откуда они
+          взялись и что снимать, если слоты кончились (ROT-EQP-ATT-01). */}
+      {item.attachments?.length > 0 && (
+        <div className="muted small-text">
+          {t('Улучшения', 'Attachments')} · {item.attachments.map((a, i) => (
+            <span key={a.id}>
+              {i > 0 && ' · '}
+              {a.nameRu || a.name}
+              {a.hardPointCost > 0 && ` (${a.hardPointCost})`}
+              {a.isEnchantment && t(' — чары', ' — enchantment')}
+            </span>
+          ))}
+          {item.overCapacity && (
+            <span className="error">
+              {' · '}{t('слотов не хватает — снимите лишнее', 'not enough slots — remove one')}
+            </span>
+          )}
+        </div>
+      )}
+
+      {/* Правила улучшений, которые приложение не исполняет: их нельзя терять молча. */}
+      {item.attachmentNotes?.length > 0 && item.attachmentNotes.map((note, i) => (
+        <div key={i} className="muted small-text">{note}</div>
+      ))}
 
       {/* Разбор поправок: числа выше — уже эффективные, здесь видно, от чего они такие (ROT-WPN-02). */}
       {item.adjustments?.length > 0 && (
@@ -498,7 +524,10 @@ function WeaponLine({ item, sheet, skill, skillLabel, reference, run }: {
     : item.damage
   const critText = profile ? String(profile.crit) : item.crit
   const rangeText = profile ? RANGE_LABELS[profile.range] : item.rangeBand
-  const qualities = profile && !profile.isDefault
+  // Качества берутся из профиля экземпляра, а не из строки каталога: работа и улучшения меняют
+  // набор (Проникающее от Острого лезвия, Укреплённое у древней работы), а строка о них не знает.
+  // item.properties остаётся запасным вариантом для записей без структурного профиля.
+  const qualities = profile
     ? profile.qualities.map(q => `${t(q.nameRu, q.nameEn)}${q.rating ? ` ${q.rating}` : ''}`).join(', ')
     : item.properties
 

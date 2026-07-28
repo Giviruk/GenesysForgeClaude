@@ -182,6 +182,12 @@ export function ItemCard({ item, skillLabel }: { item: SheetItem; skillLabel?: s
           <span><b>{t('Дал.защ', 'R.Def')}</b> +{item.rangedDefense}</span>
         </div>
       )}
+      {item.attachments?.length > 0 && (
+        <p>
+          <b>{t('Улучшения:', 'Attachments:')}</b>{' '}
+          {item.attachments.map(a => a.nameRu || a.name).join(', ')}
+        </p>
+      )}
       {item.properties && <p><b>{t('Свойства:', 'Properties:')}</b> {item.properties}</p>}
       {localizedDescription(item) && <p>{localizedDescription(item)}</p>}
     </article>
