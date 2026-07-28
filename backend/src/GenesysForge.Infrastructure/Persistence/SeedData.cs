@@ -866,8 +866,16 @@ public static class SeedData
         var changed = false;
         foreach (var row in db.SpellDefs.Where(x => x.OwnerUserId == null).ToList())
             if (wanted.TryGetValue(Key(row), out var def))
-                changed |= Assign(row.DescriptionEn != def.DescriptionEn || row.SafeDescription != def.SafeDescription,
-                    () => { row.DescriptionEn = def.DescriptionEn; row.SafeDescription = def.SafeDescription; });
+                // Доступность единственному навыку доезжает и до засиженной базы: без неё скидка
+                // священного символа молча не сработала бы у существующих установок.
+                changed |= Assign(
+                    row.DescriptionEn != def.DescriptionEn || row.SafeDescription != def.SafeDescription
+                    || row.RestrictedSkill != def.RestrictedSkill,
+                    () =>
+                    {
+                        row.DescriptionEn = def.DescriptionEn; row.SafeDescription = def.SafeDescription;
+                        row.RestrictedSkill = def.RestrictedSkill;
+                    });
         if (changed) db.SaveChanges();
     }
 
@@ -1251,6 +1259,25 @@ public static class SeedData
     /// Arcana/Divine/Primal есть в обеих системах; Runes/Verse — только в Realms of Terrinoth.
     /// Mask/Predict/Transform взяты из Expanded Player's Guide.
     /// </summary>
+    /// <remarks>
+    /// Дополнительные эффекты, доступные единственному навыку. Книга помечает их «Только …»;
+    /// таблица явная, потому что разбирать описание текстом нельзя. По этим эффектам считается
+    /// скидка священного символа (ROT-MAG-IMP-01).
+    /// </remarks>
+    private static readonly Dictionary<(string Parent, string Code), string> RestrictedEffects = new()
+    {
+        [("Attack", "Move")] = "Arcana",
+        [("Attack", "Non-Lethal")] = "Primal",
+        [("Attack", "Holy/Unholy")] = "Divine",
+        [("Attack", "Manipulative")] = "Arcana",
+        [("Barrier", "Reflective")] = "Arcana",
+        [("Barrier", "Sanctuary")] = "Divine",
+        [("Curse", "Despair")] = "Divine",
+        [("Curse", "Doom")] = "Arcana",
+        [("Augment", "Divine Health")] = "Divine",
+        [("Augment", "Primal Fury")] = "Primal",
+    };
+
     private static IEnumerable<SpellDef> Spells(GameSystem sys)
     {
         var terrinoth = sys == GameSystem.RealmsOfTerrinoth;
@@ -1618,7 +1645,12 @@ public static class SeedData
 
         // Дополнительные эффекты: одна запись на (система, базовый эффект), независимо от навыка.
         foreach (var m in additional)
-            yield return Spell(sys, "", SpellEntryKind.AdditionalEffect, m.Parent,
+        {
+            var spell = Spell(sys, "", SpellEntryKind.AdditionalEffect, m.Parent,
                 m.Ru, m.En, m.Diff, m.Desc, m.Safe, m.SafeEn, m.SrcOverride ?? sysSource, m.Sort);
+            // «Только Вера», «Только Магия», «Только Природа» — структурным полем, а не текстом.
+            if (RestrictedEffects.TryGetValue((m.Parent, m.En), out var only)) spell.RestrictedSkill = only;
+            yield return spell;
+        }
     }
 }

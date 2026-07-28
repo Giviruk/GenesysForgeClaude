@@ -1,6 +1,6 @@
 import type {
   AllowedState, Characteristic, ContentEntryType, CreatureTemplate, EncounterType, GameSystem, HouseRuleCategory,
-  HeroicOriginType, InitiativeSlotType, ItemDamageState, SignatureWeaponProfile, WeaponCraftsmanship, WeaponFormTrait, ItemKind, ItemState, NpcCombatStyle, NpcKind, NpcPowerLevel, NpcRole,
+  HeroicOriginType, ImplementMaterial, InitiativeSlotType, ItemDamageState, SignatureWeaponProfile, WeaponCraftsmanship, WeaponFormTrait, ItemKind, ItemState, NpcCombatStyle, NpcKind, NpcPowerLevel, NpcRole,
   NpcVisibility, ParticipantType, SkillKind, TalentCategory, ThreatLevel,
 } from '../api/types'
 import { t } from '../i18n'
@@ -555,6 +555,28 @@ export const ITEM_STAT_FIELD_LABELS: Record<string, string> = t({
   price: 'Price',
   rarity: 'Rarity',
   encumbranceThreshold: 'Encumbrance threshold',
+})
+
+/** Подписи материалов магического инструмента (ROT-MAG-MAT-01). */
+export const IMPLEMENT_MATERIAL_LABELS: Record<ImplementMaterial, string> = t({
+  oak: 'Дуб', bone: 'Кость', hazel: 'Орешник', willow: 'Ива', yew: 'Тис',
+}, {
+  oak: 'Oak', bone: 'Bone', hazel: 'Hazel', willow: 'Willow', yew: 'Yew',
+})
+
+/** Что даёт материал: короткой строкой в подсказке к выбору. */
+export const IMPLEMENT_MATERIAL_HINTS: Record<ImplementMaterial, string> = t({
+  oak: 'Цена и редкость без изменений, особого свойства нет',
+  bone: 'После успешной Атаки или Проклятья лечит заклинателю 1 рану (раз за проверку). Цена ×1.5, редкость +2',
+  hazel: 'При триумфе раз за проверку добавляет бросок бонусной кости; триумф остаётся. Цена ×1.5, редкость +1',
+  willow: 'После успешного заклинания добавляет автоматическое преимущество (раз за проверку). Цена ×2, редкость +2',
+  yew: 'После успешного Усиления, Барьера или Лечения снимает заклинателю 1 усталость. Цена ×1.5, редкость +1',
+}, {
+  oak: 'Price and rarity unchanged, no special property',
+  bone: 'After a successful Attack or Curse, heals the caster 1 wound (once per check). Price ×1.5, rarity +2',
+  hazel: 'With a Triumph, once per check roll one Boost and add its symbols; the Triumph remains. Price ×1.5, rarity +1',
+  willow: 'After a successful spell, adds an automatic Advantage (once per check). Price ×2, rarity +2',
+  yew: 'After a successful Augment, Barrier or Heal, heals the caster 1 strain. Price ×1.5, rarity +1',
 })
 
 /** Порядок состояний повреждения для переключателя (GEN-EQP-DMG-01). */

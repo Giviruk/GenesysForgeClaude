@@ -142,6 +142,13 @@ public static class CharacterImporter
                 Quantity = Math.Max(1, it.Quantity), State = it.State,
                 Craftsmanship = CraftsmanshipRules.FixedFor(def.Code) ?? craftsmanship,
                 DamageState = damageState,
+                // Материал переносится только тому, у кого он бывает: файл с «ивовым мешком»
+                // чинится дубом, а не создаёт предмет с чужим свойством (ROT-MAG-MAT-01).
+                ImplementMaterial = Enum.IsDefined(it.Material) && ImplementRules.IsImplement(def.Code)
+                    ? it.Material
+                    : ImplementMaterial.Oak,
+                ImplementChoices = ImplementRules.IsImplement(def.Code) ? it.ImplementChoices : "",
+                ImplementConfigured = ImplementRules.IsImplement(def.Code) && it.ImplementConfigured,
                 // Комплект и стартовый бюджет сохраняются как провенанс; всё остальное — Imported,
                 // чтобы импорт не выглядел покупкой в истории нового персонажа.
                 Provenance = it.Provenance is ItemProvenance.CareerPackage or ItemProvenance.StartingBudget

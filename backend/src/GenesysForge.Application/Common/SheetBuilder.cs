@@ -194,7 +194,24 @@ public static class SheetBuilder
             def.FormTraits,
             item.DamageState,
             e.IsUsable,
-            RepairDto(e.Price, item.DamageState, availableFunds));
+            RepairDto(e.Price, item.DamageState, availableFunds),
+            ImplementDto(e));
+    }
+
+    /// <summary>
+    /// Магический инструмент в DTO (ROT-MAG-IMP-01). Механика приезжает вместе с позицией: сборщик
+    /// заклинаний должен знать, какой эффект инструмент удешевляет, не спрашивая справочник заново.
+    /// </summary>
+    private static ItemImplementDto? ImplementDto(EffectiveItem e)
+    {
+        if (e.Implement is not { } spec) return null;
+        var chosen = e.Item.ImplementChoices
+            .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        return new ItemImplementDto(
+            spec.Code, e.Item.ImplementMaterial, spec.AttackDamageBonus, spec.BoostDice,
+            spec.RequiredMagicSkill, spec.Discount, spec.DiscountEffects, spec.ChoiceCount,
+            spec.ChoiceMaxIncreaseSum, spec.ChoiceExactIncrease, chosen,
+            spec.NeedsConfiguration && !e.Item.ImplementConfigured);
     }
 
     /// <summary>Экземпляр улучшения в DTO: механика приезжает вместе с ним, а не отдельным запросом.</summary>

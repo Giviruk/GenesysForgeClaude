@@ -1,11 +1,12 @@
 import { useMemo, useState } from 'react'
 import { api } from '../api/client'
 import type {
-  CharacterSheet, ItemCheckModifier, ItemDef, ItemKind, ItemState, Reference, SheetItem,
-  WeaponAttackProfile, WeaponCraftsmanship, WeaponRange,
+  CharacterSheet, ImplementMaterial, ItemCheckModifier, ItemDef, ItemKind, ItemState, Reference,
+  SheetItem, WeaponAttackProfile, WeaponCraftsmanship, WeaponRange,
 } from '../api/types'
 import {
-  CHARACTERISTIC_LABELS, CURRENCY_LABEL, DIFFICULTY_LABELS, ITEM_DAMAGE_STATE_HINTS,
+  CHARACTERISTIC_LABELS, CURRENCY_LABEL, DIFFICULTY_LABELS, IMPLEMENT_MATERIAL_HINTS,
+  IMPLEMENT_MATERIAL_LABELS, ITEM_DAMAGE_STATE_HINTS,
   ITEM_DAMAGE_STATE_LABELS, ITEM_KIND_LABELS, ITEM_STAT_FIELD_LABELS, ITEM_STATE_LABELS,
   localizedDescription, localizedName, parseWeaponTraits, resolveWeaponSkillName, secondaryName,
   WEAPON_CRAFTSMANSHIP_ADJECTIVES, WEAPON_CRAFTSMANSHIP_HINTS, WEAPON_CRAFTSMANSHIP_LABELS,
@@ -13,6 +14,7 @@ import {
 } from '../utils/labels'
 import { DamageStateControls } from './ItemDamageControls'
 import { craftsmanshipApplies, craftsmanshipPrice } from '../utils/craftsmanship'
+import { IMPLEMENT_MATERIALS, implementPrice } from '../utils/implements'
 import { itemTags } from '../data/itemQualities'
 import { DicePoolView } from './DicePoolView'
 import { qualitiesFromProperties } from '../utils/combat'
@@ -247,8 +249,14 @@ function ShopRow({ item, money, run, sheetId, open, onToggle }: {
   const itemOriginal = secondaryName(item)
   // Качество изготовления выбирается один раз, при покупке, и дальше не меняется (ROT-WPN-02).
   const [craftsmanship, setCraftsmanship] = useState<WeaponCraftsmanship>('steel')
+  // Материал магического инструмента выбирается там же и по тому же правилу: один раз, при
+  // покупке, и он тоже меняет цену (ROT-MAG-MAT-01).
+  const [material, setMaterial] = useState<ImplementMaterial>('oak')
   const canChoose = craftsmanshipApplies(item.kind)
-  const unitPrice = canChoose ? craftsmanshipPrice(item.price, craftsmanship) : item.price
+  const isImplement = item.implement != null
+  const unitPrice = isImplement
+    ? implementPrice(item.price, material)
+    : canChoose ? craftsmanshipPrice(item.price, craftsmanship) : item.price
   return (
     <div className="shop-row">
       <div className="shop-row-head">
@@ -266,6 +274,16 @@ function ShopRow({ item, money, run, sheetId, open, onToggle }: {
         </div>
         <div className="shop-row-actions">
           {/* Работа выбирается до любого из действий: и покупка, и бесплатная выдача берут её. */}
+          {isImplement && (
+            <select className="shop-craftsmanship-select" value={material}
+              aria-label={t('Материал', 'Material')}
+              title={IMPLEMENT_MATERIAL_HINTS[material]}
+              onChange={e => setMaterial(e.target.value as ImplementMaterial)}>
+              {IMPLEMENT_MATERIALS.map(m => (
+                <option key={m} value={m}>{IMPLEMENT_MATERIAL_LABELS[m]}</option>
+              ))}
+            </select>
+          )}
           {canChoose && (
             <select className="shop-craftsmanship-select" value={craftsmanship}
               aria-label={t('Качество изготовления', 'Craftsmanship')}
@@ -279,11 +297,19 @@ function ShopRow({ item, money, run, sheetId, open, onToggle }: {
           <button className="primary tiny" onClick={onToggle}>{open ? t('Отмена', 'Cancel') : t('Купить', 'Buy')}</button>
           <button className="tiny" title={t('Добавить без оплаты', 'Add without paying')}
             onClick={() => run(() => api.addItem(sheetId, item.id, 1, 'carried',
-              { free: true, ...(canChoose ? { craftsmanship } : {}) }))}>{t('+ Добавить', '+ Add')}</button>
+              { free: true, ...(canChoose ? { craftsmanship } : {}), ...(isImplement ? { material } : {}) }))}>{t('+ Добавить', '+ Add')}</button>
         </div>
       </div>
       {open && (
         <>
+          {isImplement && (
+            <div className="small-text shop-craftsmanship">
+              <div className="muted">{IMPLEMENT_MATERIAL_HINTS[material]}</div>
+              <div className="muted">
+                {t('Выбирается один раз — потом не меняется.', 'Chosen once — it cannot be changed later.')}
+              </div>
+            </div>
+          )}
           {canChoose && (
             <div className="small-text shop-craftsmanship">
               <div className="muted">{WEAPON_CRAFTSMANSHIP_HINTS[craftsmanship]}</div>
@@ -294,8 +320,11 @@ function ShopRow({ item, money, run, sheetId, open, onToggle }: {
           )}
           <BuyControl unitPrice={unitPrice} money={money}
             onConfirm={(qty, opts) => run(async () => {
-              await api.addItem(sheetId, item.id, qty, 'carried',
-                canChoose ? { ...opts, craftsmanship } : opts)
+              await api.addItem(sheetId, item.id, qty, 'carried', {
+                ...opts,
+                ...(canChoose ? { craftsmanship } : {}),
+                ...(isImplement ? { material } : {}),
+              })
               onToggle()
             })} />
         </>
@@ -491,6 +520,34 @@ function InventoryCard({ item, sheet, skillNames, run, reference, funds, sellOpe
       )}
 
       {localizedDescription(item) && <div className="inv-card-desc">{localizedDescription(item)}</div>}
+
+      {/* Магический инструмент (ROT-MAG-IMP-01): материал, что он удешевляет и настроен ли он.
+          Сам выбор эффектов делает ведущий на вкладке «Магия» — там уже загружен справочник. */}
+      {item.implement && (
+        <div className="muted small-text">
+          {t('Инструмент', 'Implement')} · {IMPLEMENT_MATERIAL_LABELS[item.implement.material]}
+          {item.implement.attackDamageBonus > 0
+            && t(` · урон Атаки +${item.implement.attackDamageBonus}`,
+              ` · Attack damage +${item.implement.attackDamageBonus}`)}
+          {item.implement.boostDice > 0
+            && t(` · +${item.implement.boostDice} бонусная кость`,
+              ` · +${item.implement.boostDice} boost`)}
+          {item.implement.requiredMagicSkill
+            && t(` · только ${item.implement.requiredMagicSkill}`,
+              ` · ${item.implement.requiredMagicSkill} only`)}
+          {item.implement.discountEffects.length > 0
+            && ` · ${item.implement.discountEffects.join(', ')}`}
+          {item.implement.chosenEffects.length > 0
+            && t(` · выбрано: ${item.implement.chosenEffects.join(', ')}`,
+              ` · chosen: ${item.implement.chosenEffects.join(', ')}`)}
+          {item.implement.pending && (
+            <span className="damage-warn">
+              {' · '}{t('не настроен — бесплатный эффект выбирает ведущий на вкладке «Магия»',
+                'not configured — the GM picks the free effect on the Magic tab')}
+            </span>
+          )}
+        </div>
+      )}
 
       {/* Состояние и ремонт — отдельной строкой и отдельными кнопками (GEN-EQP-DMG-01):
           «используется/в рюкзаке» и «цел/сломан» — разные вещи, и путать их нельзя. */}

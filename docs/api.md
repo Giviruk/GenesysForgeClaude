@@ -385,6 +385,17 @@ No check is rolled (owner decision): the server charges materials and sets the s
 markup and attachment prices excluded), rounded up to a whole coin. `undamaged` and `destroyed`
 are rejected. The sheet carries the same numbers up front in `items[].repair`. Response: `204`.
 
+### `PUT /api/characters/{id}/items/{itemId}/implement`
+
+Protected (ROT-MAG-IMP-01). Request: `SetImplementConfigurationRequest` with `effectCodes`
+(English additional-effect codes) and an optional `overrideReason`.
+
+A Magic Tome takes up to two effects (their printed increases usually total no more than 3; going
+over needs the reason), a Magic Wand exactly one effect whose printed increase is `+1`. Until the
+GM configures it, the instance keeps its ordinary stats but grants no free effect
+(`items[].implement.pending`). Effect increases come from the spell reference, not from the
+request. Response: `204`.
+
 ### `PUT /api/characters/{id}/attachments/{attachmentId}/damage-state` and `POST …/repair`
 
 Protected. Same requests and rules for an attachment's own damage state. A broken attachment

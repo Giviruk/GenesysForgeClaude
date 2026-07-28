@@ -52,4 +52,7 @@ public enum CharacterAuditAction
 
     /// <summary>Предмет или улучшение починены: списаны материалы, состояние стало целым.</summary>
     ItemRepaired,
+
+    /// <summary>Ведущий настроил магический инструмент: выбраны бесплатные эффекты (ROT-MAG-IMP-01).</summary>
+    ImplementConfigured,
 }

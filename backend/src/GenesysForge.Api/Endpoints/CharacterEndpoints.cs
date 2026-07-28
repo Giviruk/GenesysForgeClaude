@@ -299,6 +299,15 @@ public static class CharacterEndpoints
             return Results.NoContent();
         });
 
+        // Настройка магического инструмента ведущим (ROT-MAG-IMP-01): выбор делается один раз.
+        group.MapPut("/{id:guid}/items/{itemId:guid}/implement", async (Guid id, Guid itemId,
+            SetImplementConfigurationRequest req, ClaimsPrincipal user,
+            ICommandHandler<SetImplementConfigurationCommand, Unit> handler, CancellationToken ct) =>
+        {
+            await handler.Handle(new SetImplementConfigurationCommand(user.UserId(), id, itemId, req), ct);
+            return Results.NoContent();
+        });
+
         group.MapPut("/{id:guid}/attachments/{attachmentId:guid}/damage-state", async (Guid id,
             Guid attachmentId, SetItemDamageStateRequest req, ClaimsPrincipal user,
             ICommandHandler<SetAttachmentDamageStateCommand, Unit> handler, CancellationToken ct) =>

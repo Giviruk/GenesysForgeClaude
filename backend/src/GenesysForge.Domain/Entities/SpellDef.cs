@@ -21,6 +21,13 @@ public class SpellDef
     public required string NameEn { get; set; }
     /// <summary>Отображаемая сложность: для эффектов — базовая, для модификаторов — «+N».</summary>
     public string Difficulty { get; set; } = "";
+
+    /// <summary>
+    /// Навык, которому эффект доступен исключительно («Только Вера», «Только Магия»); пусто —
+    /// доступен нескольким. Признак структурный, а не вычитанный из описания: по нему считается
+    /// скидка священного символа (ROT-MAG-IMP-01), и разбирать текст правила для этого нельзя.
+    /// </summary>
+    public string RestrictedSkill { get; set; } = "";
     /// <summary>Полное (private) описание-парафраз. Отдаётся в режиме PrivateFull.</summary>
     public string Description { get; set; } = "";
     /// <summary>Copyright-safe краткое описание для публичной версии (ContentMode=PublicSafe).</summary>

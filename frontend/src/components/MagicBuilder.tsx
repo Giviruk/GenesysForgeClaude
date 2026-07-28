@@ -1,9 +1,11 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { api } from '../api/client'
-import type { DicePool, GameSystem, Spell } from '../api/types'
+import type { DicePool, GameSystem, ItemImplement, Spell } from '../api/types'
 import {
   difficultyLabel, localizedDescription, magicSkillLabel, MAX_SPELL_DIFFICULTY, parseDifficulty, wouldExceedSpellCap,
 } from '../utils/labels'
+import { implementDifficulty, implementDiscounts, implementWorks } from '../utils/implements'
+import { IMPLEMENT_MATERIAL_LABELS } from '../utils/labels'
 import { DicePoolView } from './DicePoolView'
 import { PrintPreview } from './print/PrintPreview'
 import { MagicActionCard, type MagicCardData } from './print/cards'
@@ -15,10 +17,25 @@ export interface MagicSkillPool {
   pool: DicePool
 }
 
+/** Магический инструмент персонажа, доступный сборщику: только то, что в руках. */
+export interface BuilderImplement {
+  /** Строка инвентаря — по ней ведущий настраивает фолиант и палочку. */
+  itemId: string
+  name: string
+  implement: ItemImplement
+}
+
 interface Props {
   system: GameSystem
   /** Магические навыки персонажа с пулами кубов — для интеграции с листом (необязательно). */
   characterSkills?: MagicSkillPool[]
+  /**
+   * Инструменты в руках персонажа (ROT-MAG-IMP-01). На одну проверку работает ровно один,
+   * поэтому сборщик даёт выбрать его, а не складывает все сразу.
+   */
+  implements?: BuilderImplement[]
+  /** Настройка фолианта и палочки ведущим; без неё выбор эффектов не предлагается. */
+  onConfigureImplement?: (itemId: string, effectCodes: string[]) => Promise<void>
   onError: (message: string) => void
 }
 
@@ -27,7 +44,12 @@ interface Props {
  * дополнительные эффекты, а сборщик считает итоговую сложность и собирает текст для копирования.
  * Работает поверх того же справочника, что и SpellsTab; персонажа знать не обязательно (режим GM).
  */
-export function MagicBuilder({ system, characterSkills, onError }: Props) {
+export function MagicBuilder({
+  system, characterSkills, implements: tools, onConfigureImplement, onError,
+}: Props) {
+  // Инструмент выбирается явно: на одну магическую проверку работает ровно один, и складывать
+  // посох с палочкой правила не дают.
+  const [implementItemId, setImplementItemId] = useState('')
   const [spells, setSpells] = useState<Spell[] | null>(null)
   const [skill, setSkill] = useState('')
   const [effectCode, setEffectCode] = useState('')
@@ -62,9 +84,22 @@ export function MagicBuilder({ system, characterSkills, onError }: Props) {
   const chosenDifficulties = chosen.map(a => a.difficulty)
   const baseDifficulty = selectedEffect ? parseDifficulty(selectedEffect.difficulty) : 0
   const added = chosen.reduce((sum, a) => sum + parseDifficulty(a.difficulty), 0)
+
+  // Инструмент удешевляет добавленные эффекты (ROT-MAG-IMP-01). Правило повторяет серверное:
+  // сложность собирается из действия и эффектов, потом инструмент снимает свои надбавки, и итог
+  // не опускается ниже базовой сложности действия.
+  const activeTool = tools?.find(x => x.itemId === implementItemId) ?? null
+  const discounts = implementDiscounts(activeTool?.implement ?? null, chosen, activeSkill)
+  const discounted = discounts.reduce((sum, d) => sum + d.reduction, 0)
+  const rawDifficulty = baseDifficulty + added
   // Добавление эффектов сверх потолка блокируется, поэтому сумма не превышает 5; min — страховка отображения.
-  const totalDifficulty = Math.min(MAX_SPELL_DIFFICULTY, baseDifficulty + added)
+  const totalDifficulty = Math.min(
+    MAX_SPELL_DIFFICULTY, implementDifficulty(baseDifficulty, rawDifficulty, discounts))
   const capReached = baseDifficulty + added >= MAX_SPELL_DIFFICULTY
+  const toolBoost = activeTool && implementWorks(activeTool.implement, activeSkill)
+    && !activeTool.implement.pending
+    ? activeTool.implement.boostDice
+    : 0
 
   // Пул кубов персонажа для выбранного направления (если передан лист).
   const charPool = characterSkills?.find(s => s.name === activeSkill)?.pool ?? null
@@ -145,7 +180,32 @@ export function MagicBuilder({ system, characterSkills, onError }: Props) {
         </div>
         {charPool && (
           <div className="muted small-text">
-            {t(`Ваш пул для «${magicSkillLabel(activeSkill)}»:`, `Your pool for “${magicSkillLabel(activeSkill)}”:`)} <DicePoolView pool={charPool} />
+            {t(`Ваш пул для «${magicSkillLabel(activeSkill)}»:`, `Your pool for “${magicSkillLabel(activeSkill)}”:`)} <DicePoolView pool={charPool} boost={toolBoost} />
+          </div>
+        )}
+        {/* Инструмент в руках: ровно один на проверку (ROT-MAG-IMP-01). */}
+        {tools && tools.length > 0 && (
+          <div className="magic-implement small-text">
+            <label className="inline-label">{t('Инструмент', 'Implement')}
+              <select value={implementItemId} onChange={e => setImplementItemId(e.target.value)}>
+                <option value="">{t('— без инструмента —', '— none —')}</option>
+                {tools.map(x => (
+                  <option key={x.itemId} value={x.itemId}>
+                    {x.name} · {IMPLEMENT_MATERIAL_LABELS[x.implement.material]}
+                  </option>
+                ))}
+              </select>
+            </label>
+            {activeTool && !implementWorks(activeTool.implement, activeSkill) && (
+              <span className="muted">
+                {t(`Работает только с направлением ${magicSkillLabel(activeTool.implement.requiredMagicSkill)}.`,
+                  `Works only with ${magicSkillLabel(activeTool.implement.requiredMagicSkill)}.`)}
+              </span>
+            )}
+            {activeTool?.implement.pending && (
+              <ImplementConfigurator tool={activeTool} effects={additional}
+                onConfigure={onConfigureImplement} onError={onError} />
+            )}
           </div>
         )}
       </section>
@@ -162,7 +222,18 @@ export function MagicBuilder({ system, characterSkills, onError }: Props) {
             {Array.from({ length: totalDifficulty }).map((_, i) => <span key={i} className="die difficulty">▲</span>)}
             {totalDifficulty === 0 && <span className="muted">{t('— (простая проверка)', '— (simple check)')}</span>}
           </div>
-          {added > 0 && <div className="muted small-text">{t('Базовая', 'Base')} {baseDifficulty} {t('+ дополнительные', '+ additional')} {added}</div>}
+          {added > 0 && (
+            <div className="muted small-text">
+              {t('Базовая', 'Base')} {baseDifficulty} {t('+ дополнительные', '+ additional')} {added}
+              {discounted > 0 && t(` − инструмент ${discounted}`, ` − implement ${discounted}`)}
+            </div>
+          )}
+          {/* Что именно удешевил инструмент — иначе непонятно, почему сложность ниже суммы. */}
+          {discounts.length > 0 && (
+            <div className="muted small-text">
+              {t('Инструмент', 'Implement')}: {discounts.map(d => `${d.code} −${d.reduction}`).join(', ')}
+            </div>
+          )}
           {capReached && (
             <div className="muted small-text cap-note">
               {t(`Достигнут потолок сложности ${MAX_SPELL_DIFFICULTY} — новые эффекты добавить нельзя.`, `The difficulty cap of ${MAX_SPELL_DIFFICULTY} is reached — no more effects can be added.`)}
@@ -257,4 +328,75 @@ function CopyButton({ text, onError }: { text: string; onError: (m: string) => v
     }
   }
   return <button className="primary small" onClick={copy}>{copied ? t('Скопировано ✓', 'Copied ✓') : t('Скопировать карточку', 'Copy card')}</button>
+}
+
+/**
+ * Настройка фолианта или палочки ведущим (ROT-MAG-IMP-01). Выбор делается один раз, когда
+ * экземпляр изготовлен или впервые попал в руки, и дальше не меняется — поэтому кнопка одна,
+ * а список эффектов берётся из того же справочника, что и сам сборщик.
+ *
+ * Границы книги проверяет сервер: палочка берёт ровно один эффект с надбавкой +1, у фолианта
+ * рекомендованный бюджет надбавок — три. Здесь они только подсказаны.
+ */
+function ImplementConfigurator({ tool, effects, onConfigure, onError }: {
+  tool: BuilderImplement
+  effects: Spell[]
+  onConfigure?: (itemId: string, effectCodes: string[]) => Promise<void>
+  onError: (message: string) => void
+}) {
+  const [codes, setCodes] = useState<string[]>([])
+  const [busy, setBusy] = useState(false)
+  const spec = tool.implement
+
+  if (!onConfigure) {
+    return (
+      <span className="damage-warn">
+        {t('Инструмент не настроен — бесплатный эффект выбирает ведущий.',
+          'The implement is not configured — the GM picks the free effect.')}
+      </span>
+    )
+  }
+
+  // Палочка берёт только эффекты с надбавкой ровно +1; фолиант — любые.
+  const allowed = effects.filter(e => spec.choiceExactIncrease == null
+    || parseDifficulty(e.difficulty) === spec.choiceExactIncrease)
+  const toggle = (code: string) => setCodes(prev => prev.includes(code)
+    ? prev.filter(x => x !== code)
+    : prev.length >= spec.choiceCount ? prev : [...prev, code])
+
+  return (
+    <div className="implement-config">
+      <span className="damage-warn">
+        {t(`Не настроен: выберите ${spec.choiceCount === 1 ? 'эффект' : `до ${spec.choiceCount} эффектов`}.`,
+          `Not configured: choose ${spec.choiceCount === 1 ? 'an effect' : `up to ${spec.choiceCount} effects`}.`)}
+        {spec.choiceMaxIncreaseSum != null
+          && t(` Сумма надбавок обычно не выше ${spec.choiceMaxIncreaseSum}.`,
+            ` The increases usually total no more than ${spec.choiceMaxIncreaseSum}.`)}
+      </span>
+      <div className="chips">
+        {allowed.map(e => (
+          <button key={e.id} type="button"
+            className={codes.includes(e.nameEn) ? 'chip active' : 'chip'}
+            onClick={() => toggle(e.nameEn)}>
+            {t(e.nameRu, e.nameEn)} <span className="effect-chip-diff">{e.difficulty}</span>
+          </button>
+        ))}
+        {allowed.length === 0 && (
+          <span className="muted">
+            {t('У этого базового эффекта нет подходящих дополнительных эффектов.',
+              'This base effect has no suitable additional effects.')}
+          </span>
+        )}
+      </div>
+      <button type="button" className="primary small" disabled={busy || codes.length === 0}
+        onClick={() => {
+          setBusy(true)
+          onConfigure(tool.itemId, codes)
+            .catch((err: unknown) => onError(err instanceof Error ? err.message : t('Ошибка', 'Error')))
+            .finally(() => setBusy(false))
+        }}>
+        {t('Настроить', 'Configure')}
+      </button>
+    </div>
+  )
 }

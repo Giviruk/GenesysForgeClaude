@@ -258,7 +258,7 @@ export function SheetPage({ characterId, printing, onOpenPrint, onClosePrint, on
       {tab === 'heroic' && <HeroicTab sheet={sheet} reference={reference} onError={setError} refresh={refresh} />}
       {tab === 'inventory' && <InventoryTab sheet={sheet} reference={reference} onError={setError} refresh={refresh} />}
       {tab === 'attachments' && <AttachmentsTab sheet={sheet} reference={reference} onError={setError} refresh={refresh} />}
-      {tab === 'magic' && <MagicTab sheet={sheet} onError={setError} />}
+      {tab === 'magic' && <MagicTab sheet={sheet} onError={setError} refresh={refresh} />}
       {tab === 'bio' && <BioTab sheet={sheet} onError={setError} refresh={refresh} />}
       {tab === 'history' && <HistoryTab characterId={sheet.id} onError={setError} refresh={refresh} />}
       {tab === 'notes' && <NotesTab characterId={sheet.id} onError={setError} />}
