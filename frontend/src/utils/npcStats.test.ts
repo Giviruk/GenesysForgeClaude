@@ -12,7 +12,10 @@ function skillDef(p: Partial<SkillDef> & Pick<SkillDef, 'name' | 'nameRu' | 'cha
 
 function itemDef(p: Partial<ItemDef> & Pick<ItemDef, 'name' | 'nameRu' | 'kind'>): ItemDef {
   return {
-    id: p.name, encumbrance: 0, soakBonus: 0, meleeDefense: 0, rangedDefense: 0,
+    id: p.name, code: p.name.toLowerCase(),
+    shopCategory: p.kind === 'weapon' ? 'weaponLight' : p.kind,
+    encumbrance: 0,
+    soakBonus: 0, meleeDefense: 0, rangedDefense: 0,
     encumbranceThresholdBonus: 0, description: '', safeDescription: '', source: '', price: 0,
     rarity: 0, skillName: '', damage: '', crit: '', rangeBand: '', properties: '', isCustom: false,
     qualities: [], hardPoints: null, checkModifiers: [], attackProfiles: [], implement: null,

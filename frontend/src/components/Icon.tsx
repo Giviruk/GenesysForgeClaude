@@ -16,6 +16,7 @@ export type IconName =
   | 'plus'
   | 'printer'
   | 'share'
+  | 'shop'
   | 'skull'
   | 'trash'
   | 'user-plus'
@@ -38,6 +39,7 @@ const paths: Record<IconName, string[]> = {
   plus: ['M12 5v14', 'M5 12h14'],
   printer: ['M6 9V2h12v7', 'M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2', 'M6 14h12v8H6z'],
   share: ['M18 8a3 3 0 1 0-2.8-4', 'M6 14a3 3 0 1 0 2.8 4', 'M18 16a3 3 0 1 0-2.8 4', 'M8.6 13.5l6.8 3', 'M15.4 7.5l-6.8 3'],
+  shop: ['M3 9h18', 'M5 9v11h14V9', 'M4 4h16l1 5H3l1-5Z', 'M9 20v-6h6v6'],
   skull: ['M12 2a8 8 0 0 0-8 8v3a4 4 0 0 0 4 4v3h8v-3a4 4 0 0 0 4-4v-3a8 8 0 0 0-8-8Z', 'M9 11h.01', 'M15 11h.01', 'M10 16v2', 'M14 16v2'],
   trash: ['M3 6h18', 'M8 6V4h8v2', 'M6 6l1 16h10l1-16', 'M10 11v6', 'M14 11v6'],
   'user-plus': ['M15 19a6 6 0 0 0-12 0', 'M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z', 'M19 8v6', 'M16 11h6'],

@@ -20,3 +20,14 @@ export function craftsmanshipPrice(basePrice: number, craftsmanship: WeaponCraft
     default: return basePrice
   }
 }
+
+/** Редкость экземпляра для предпросмотра; сервер повторно считает её при покупке. */
+export function craftsmanshipRarity(baseRarity: number, craftsmanship: WeaponCraftsmanship): number {
+  switch (craftsmanship) {
+    case 'iron': return Math.max(0, baseRarity - 1)
+    case 'dwarven': return Math.min(10, baseRarity + 2)
+    case 'elven': return Math.min(10, baseRarity + 3)
+    case 'ancient': return 10
+    default: return Math.min(10, Math.max(0, baseRarity))
+  }
+}

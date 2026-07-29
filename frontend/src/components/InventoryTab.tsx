@@ -53,6 +53,8 @@ const SHOP_FILTER_LABELS: Record<ShopFilter, string> = {
 
 /** Запись попадает в выбранную корзину витрины. */
 const matchesShopFilter = (item: ItemDef, filter: ShopFilter): boolean => {
+  // Услуга является операцией, а не предметом: она доступна только в общем магазине.
+  if (item.shopCategory === 'service') return false
   if (filter === 'all') return true
   if (filter === 'implement') return item.implement != null
   if (filter === 'shard') return item.shard != null
@@ -77,7 +79,9 @@ export function InventoryTab({ sheet, reference, onError, refresh }: Props) {
   // Все доступные теги (из свойств предметов) — для пикера; стабильны независимо от поиска.
   const allTags = useMemo(() => {
     const set = new Set<string>()
-    for (const i of reference.items) for (const t of itemTags(i.properties)) set.add(t)
+    for (const i of reference.items) {
+      if (i.shopCategory !== 'service') for (const tag of itemTags(i.properties)) set.add(tag)
+    }
     return [...set].sort((a, b) => a.localeCompare(b, lang))
   }, [reference.items])
 

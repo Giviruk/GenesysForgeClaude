@@ -58,4 +58,7 @@ public enum CharacterAuditAction
 
     /// <summary>Ведущий необратимо настроил activation и бесплатный эффект Lesser Rune (ROT-MAG-11).</summary>
     ShardConfigured,
+
+    /// <summary>Куплена или бесплатно выдана услуга; предмет в инвентаре не создаётся.</summary>
+    ServiceBought,
 }

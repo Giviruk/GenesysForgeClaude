@@ -601,7 +601,7 @@ table.ref-table td.ref-cost { white-space: nowrap; color: var(--accent); }
 .talent-info p { margin: 0.2rem 0 0; font-size: 0.85rem; }
 .talent-row button { flex-shrink: 0; }
 
-/* ---------- Inventory ---------- */
+/* ---------- Inventory + Shop ---------- */
 .enc-bar { padding: 0.5rem 0; }
 .enc-bar.warn strong { color: var(--red); }
 .inline-form { display: flex; gap: 0.5rem; align-items: center; margin: 0.6rem 0; flex-wrap: wrap; }
@@ -792,7 +792,7 @@ table.ref-table td.ref-cost { white-space: nowrap; color: var(--accent); }
 .heroic-upgrade p { margin: 0.25rem 0 0; }
 .heroic-upgrade-head { display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap; }
 
-/* ---------- Inventory + Shop ---------- */
+/* ---------- Inventory ---------- */
 .inv-page { display: flex; flex-direction: column; }
 
 /* Кошелёк */
@@ -805,7 +805,7 @@ table.ref-table td.ref-cost { white-space: nowrap; color: var(--accent); }
 .money-adjust input { width: 6rem; }
 .money-derived { margin-left: auto; font-size: 0.85rem; }
 
-/* Две колонки: инвентарь + магазин */
+/* Две колонки: инвентарь + встроенный магазин */
 .inv-layout { display: grid; grid-template-columns: 1fr 22rem; gap: 1rem; align-items: start; }
 @media (max-width: 60rem) { .inv-layout { grid-template-columns: 1fr; } }
 .inv-current, .inv-shop { margin: 0; }
@@ -933,6 +933,45 @@ table.ref-table td.ref-cost { white-space: nowrap; color: var(--accent); }
 .shop-row-info { min-width: 0; overflow-wrap: anywhere; }
 .shop-row-actions { display: flex; flex-direction: column; gap: 0.25rem; flex-shrink: 0; }
 .shop-desc { margin-top: 0.2rem; }
+
+/* Самостоятельный общий магазин (GEN-SHOP-01) */
+.shop-page .page-head { align-items: flex-start; }
+.shop-catalogue { display: grid; gap: 0.9rem; }
+.shop-toolbar { display: flex; gap: 0.6rem; align-items: center; }
+.shop-category-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(12rem, 1fr)); gap: 0.4rem;
+}
+.shop-category {
+  display: flex; justify-content: space-between; align-items: center; gap: 0.6rem;
+  min-height: 2.4rem; text-align: left;
+}
+.shop-category.active { border-color: var(--accent); color: var(--accent); background: var(--accent-dark); }
+.shop-product-list { display: flex; flex-direction: column; gap: 0.4rem; }
+.shop-product-row {
+  display: flex; justify-content: space-between; align-items: center; gap: 1rem;
+  width: 100%; padding: 0.7rem 0.8rem; text-align: left;
+  background: var(--panel-2); border: 1px solid var(--border); border-radius: 8px;
+}
+.shop-product-row:hover { border-color: var(--accent); }
+.shop-product-name { display: flex; flex-direction: column; min-width: 0; overflow-wrap: anywhere; }
+.shop-product-category { margin-top: 0.15rem; }
+.shop-product-stats { display: flex; gap: 1rem; flex: 0 0 auto; white-space: nowrap; }
+.shop-product-modal { max-width: 44rem; }
+.shop-modal-facts {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr)); gap: 0.5rem;
+  margin: 0.8rem 0;
+}
+.shop-modal-facts > div {
+  display: flex; flex-direction: column; gap: 0.15rem;
+  padding: 0.55rem 0.65rem; border: 1px solid var(--border); border-radius: 7px;
+  background: var(--panel-2);
+}
+.shop-modal-facts span { color: var(--muted); font-size: 0.75rem; }
+.shop-modal-options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.7rem; }
+.shop-modal-options label { display: flex; flex-direction: column; gap: 0.25rem; margin: 0; }
+.shop-modal-options label:first-child { grid-column: 1 / -1; }
+.shop-modal-options input[type="number"] { width: 6rem; }
+.shop-funds { padding: 0.55rem 0; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
 
 /* Улучшения предметов (ROT-EQP-ATT-01) */
 .attach-picker { display: flex; gap: 0.75rem; align-items: end; flex-wrap: wrap; margin: 0.5rem 0 0.75rem; }
@@ -1846,6 +1885,10 @@ button.tiny { font-size: 0.75rem; padding: 0.05rem 0.4rem 0.15rem; }
   .shop-row-head { flex-wrap: wrap; }
   .shop-row-actions { flex-direction: row; flex-wrap: wrap; width: 100%; }
   .shop-row-actions button { flex: 1 1 8rem; }
+  .shop-product-row { align-items: flex-start; flex-direction: column; }
+  .shop-product-stats { width: 100%; justify-content: space-between; white-space: normal; }
+  .shop-modal-options { grid-template-columns: 1fr; }
+  .shop-modal-options label:first-child { grid-column: auto; }
   .campaign-players-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .campaign-bottom-grid, .campaign-wide-grid { grid-template-columns: 1fr; }
   .campaign-dash-head .head-actions { width: 100%; }
