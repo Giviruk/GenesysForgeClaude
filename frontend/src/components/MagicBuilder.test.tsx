@@ -27,6 +27,7 @@ const spell = (over: Partial<Spell>): Spell => {
     isCustom: false,
     allowedSkills: [], difficultyIncrease: 0, exclusions: [],
     resolution: 'onSuccess', isOptional: false,
+    usesKnowledgeRating: false, ratedQualities: [],
     ...over,
   }
   // Число сложности приходит с сервера полем; в фикстуре оно выводится из печатной строки,
@@ -147,5 +148,74 @@ describe('MagicBuilder — доступность эффектов направ�
     // Снятие «Отчаяния» снова открывает «Дополнительную цель».
     fireEvent.click(despair())
     expect(target().disabled).toBe(false)
+  })
+})
+
+/**
+ * ROT-MAG-10. Рейтинг свойств равен рангам Знания, и там, где правило даёт выбор навыка,
+ * выбирает игрок — сборщик показывает получившееся число, а не отсылку «равен рангу Знания».
+ */
+describe('MagicBuilder — рейтинг по Знанию', () => {
+  const rated: Spell[] = [
+    spell({ id: 'attack', magicSkill: 'Arcana', nameRu: 'Атака', nameEn: 'Attack', difficulty: '1 (Easy)', allowedSkills: ['Arcana'] }),
+    spell({
+      id: 'fire', kind: 'additionalEffect', parentEffect: 'Attack', nameRu: 'Огненный', nameEn: 'Fire',
+      difficulty: '+1', allowedSkills: ['Arcana'], usesKnowledgeRating: true,
+      ratedQualities: [{ code: 'Burn', nameRu: 'Жжение', nameEn: 'Burn' }],
+    }),
+    spell({
+      id: 'poison', kind: 'additionalEffect', parentEffect: 'Attack', nameRu: 'Ядовитый', nameEn: 'Poisonous',
+      difficulty: '+2', allowedSkills: ['Arcana'], usesKnowledgeRating: true,
+    }),
+    spell({
+      id: 'range', kind: 'additionalEffect', parentEffect: 'Attack', nameRu: 'Дистанционный', nameEn: 'Range',
+      difficulty: '+1', allowedSkills: ['Arcana'],
+    }),
+  ]
+
+  const lore = { skill: 'Knowledge (Lore)', skillRu: 'Знание (предания)', ranks: 2, reason: 'default' as const }
+  const forbidden = { skill: 'Knowledge (Forbidden)', skillRu: 'Знание (запретное)', ranks: 4, reason: 'darkInsight' as const }
+
+  beforeEach(() => {
+    vi.clearAllMocks()
+    vi.mocked(api.spells).mockResolvedValue(rated)
+  })
+
+  it('показывает рейтинг числом: свойству — своё имя, числовому эффекту — «по Знанию»', async () => {
+    render(<MagicBuilder system="realmsOfTerrinoth" knowledgeRating={{ options: [lore] }} onError={() => {}} />)
+    await screen.findByText(/Сложность: 1/)
+
+    expect(screen.getByRole('button', { name: /Огненный.*Жжение 2/ })).toBeTruthy()
+    expect(screen.getByRole('button', { name: /Ядовитый.*по Знанию 2/ })).toBeTruthy()
+    // Эффект, не зависящий от Знания, рейтинга не получает.
+    expect(screen.getByRole('button', { name: /Дистанционный/ }).textContent).not.toContain('Знанию')
+  })
+
+  it('без права выбора навык не предлагается, а просто назван', async () => {
+    render(<MagicBuilder system="realmsOfTerrinoth" knowledgeRating={{ options: [lore] }} onError={() => {}} />)
+    await screen.findByText(/Сложность: 1/)
+
+    expect(screen.queryByLabelText(/Рейтинг по навыку/)).toBeNull()
+    expect(screen.getByText(/Рейтинг свойств: Знание \(предания\) 2/)).toBeTruthy()
+  })
+
+  it('когда правило даёт выбор, игрок выбирает навык и числа пересчитываются', async () => {
+    render(<MagicBuilder system="realmsOfTerrinoth" knowledgeRating={{ options: [lore, forbidden] }} onError={() => {}} />)
+    await screen.findByText(/Сложность: 1/)
+
+    // По умолчанию — навык из правил системы, а не самый выгодный.
+    expect(screen.getByRole('button', { name: /Огненный.*Жжение 2/ })).toBeTruthy()
+
+    fireEvent.change(screen.getByLabelText(/Рейтинг по навыку/), { target: { value: 'Knowledge (Forbidden)' } })
+    expect(screen.getByRole('button', { name: /Огненный.*Жжение 4/ })).toBeTruthy()
+    expect(screen.getByRole('button', { name: /Ядовитый.*по Знанию 4/ })).toBeTruthy()
+  })
+
+  it('без листа персонажа сборщик работает и рейтинг не выдумывает', async () => {
+    render(<MagicBuilder system="realmsOfTerrinoth" onError={() => {}} />)
+    await screen.findByText(/Сложность: 1/)
+
+    expect(screen.queryByText(/Рейтинг свойств/)).toBeNull()
+    expect(screen.getByRole('button', { name: /Огненный/ }).textContent).not.toContain('Жжение')
   })
 })

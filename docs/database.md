@@ -527,6 +527,10 @@ Found migrations:
   description, so the stored code has to follow the mechanic. The swap lives in the migration
   rather than the idempotent seed, which would flip the values on every run; `Down` is the same
   swap.
+- `20260729074616_RotMagicKnowledgeRating` — ROT-MAG-10. Adds `SpellDefs.UsesKnowledgeRating` and
+  `RatedQualities`. Non-destructive (only `AddColumn`); values arrive with the next idempotent spell
+  seed. The character sheet also gains a computed `knowledgeRating` block (available rating sources
+  with ranks) — nothing is stored, it is derived from skills and talents on every read.
 
 Startup behavior:
 

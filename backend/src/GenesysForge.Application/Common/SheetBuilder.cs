@@ -68,6 +68,20 @@ public static class SheetBuilder
 
         var configuration = await BuildConfigurationAsync(db, c, systemSkills, ct);
 
+        // Откуда берётся рейтинг эффектов заклинания (ROT-MAG-10). Считает сервер: выбор между
+        // Преданиями и Запретным открывает талант, и решать, доступен ли он, клиенту нельзя.
+        var knowledgeRanks = skills.ToDictionary(x => x.Name, x => x.Ranks, StringComparer.Ordinal);
+        var knowledgeNames = systemSkills.ToDictionary(x => x.Name, x => x.NameRu, StringComparer.Ordinal);
+        var ratingOptions = KnowledgeRatingRules.Options(
+            c.System, knowledgeRanks,
+            KnowledgeRatingRules.HasDarkInsight(c.Talents.Select(t => t.TalentDef!.Name)));
+        var knowledgeRating = new KnowledgeRatingDto(
+            [.. ratingOptions.Select(o => new KnowledgeRatingOptionDto(
+                o.Skill,
+                knowledgeNames.TryGetValue(o.Skill, out var ru) ? ru : o.Skill,
+                o.Ranks,
+                o.Reason == KnowledgeRatingReason.DarkInsight ? "darkInsight" : "default"))]);
+
         // Качества альтернативных профилей хранятся кодами (ROT-WPN-01) — справочник резолвится один раз.
         var qualitiesByCode = (await db.QualityDefs.AsNoTracking().ToListAsync(ct))
             .ToDictionary(q => q.Code, StringComparer.Ordinal);
@@ -150,7 +164,8 @@ public static class SheetBuilder
             c.ActiveArmorCharacterItemId,
             [.. c.Attachments.Where(a => a.AttachmentDef is not null)
                 .OrderBy(a => a.AttachmentDef!.NameRu, StringComparer.Ordinal)
-                .Select(a => AttachmentDto(a, availableFunds))]);
+                .Select(a => AttachmentDto(a, availableFunds))],
+            knowledgeRating);
     }
 
     /// <summary>

@@ -882,7 +882,9 @@ public static class SeedData
                 || row.AllowedSkills != def.AllowedSkills
                 || row.DifficultyIncrease != def.DifficultyIncrease
                 || row.Exclusions != def.Exclusions || row.Resolution != def.Resolution
-                || row.IsOptional != def.IsOptional,
+                || row.IsOptional != def.IsOptional
+                || row.UsesKnowledgeRating != def.UsesKnowledgeRating
+                || row.RatedQualities != def.RatedQualities,
                 () =>
                 {
                     row.Description = def.Description; row.DescriptionEn = def.DescriptionEn;
@@ -894,6 +896,8 @@ public static class SeedData
                     row.Exclusions = def.Exclusions;
                     row.Resolution = def.Resolution;
                     row.IsOptional = def.IsOptional;
+                    row.UsesKnowledgeRating = def.UsesKnowledgeRating;
+                    row.RatedQualities = def.RatedQualities;
                 });
         }
 
@@ -1315,6 +1319,8 @@ public static class SeedData
             Exclusions = string.Join(",", MagicMatrix.ConflictsFor(action, effect)),
             Resolution = MagicMatrix.ResolutionFor(action, effect),
             IsOptional = MagicMatrix.IsOptionalAction(action),
+            UsesKnowledgeRating = MagicMatrix.UsesKnowledgeRating(action, effect),
+            RatedQualities = string.Join(",", MagicMatrix.KnowledgeRatedQualities(action, effect)),
         };
     }
 

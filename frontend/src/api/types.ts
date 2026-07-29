@@ -340,6 +340,17 @@ export interface Spell {
   resolution: SpellResolution
   /** Запись из опциональной книги (Expanded Player's Guide). */
   isOptional: boolean
+  /** Числа эффекта берутся из рангов Знания заклинателя (ROT-MAG-10). */
+  usesKnowledgeRating: boolean
+  /** Свойства, получающие рейтинг по Знанию; пусто — рейтинг не у свойства. */
+  ratedQualities: SpellRatedQuality[]
+}
+
+/** Свойство, чей рейтинг равен рангам Знания заклинателя (ROT-MAG-10). */
+export interface SpellRatedQuality {
+  code: string
+  nameRu: string
+  nameEn: string
 }
 
 /** Как применяется запись справочника магии (ROT-MAG-01). */
@@ -1479,6 +1490,26 @@ export interface CharacterSheet {
    * (ROT-CRE-03). Вне фазы создания смысла не имеет.
    */
   startingPurchaseBudget: number
+  /** Откуда персонаж берёт рейтинг эффектов заклинания (ROT-MAG-10). */
+  knowledgeRating: KnowledgeRating | null
+}
+
+/**
+ * Источники числового рейтинга эффектов заклинания (ROT-MAG-10). Список, а не одно число:
+ * «Тёмное прозрение» даёт игроку выбор, и делать его за него нельзя.
+ */
+export interface KnowledgeRating {
+  /** Первый — навык из правил системы, дальше — исключения таланта. */
+  options: KnowledgeRatingOption[]
+}
+
+export interface KnowledgeRatingOption {
+  /** Английское имя навыка — стабильный код выбора. */
+  skill: string
+  skillRu: string
+  ranks: number
+  /** `default` — навык из правил системы, `darkInsight` — исключение таланта. */
+  reason: 'default' | 'darkInsight'
 }
 
 /** Критическое ранение персонажа (U-23). */

@@ -70,7 +70,12 @@ public record CharacterSheetDto(
     /// Все улучшения персонажа (ROT-EQP-ATT-01), включая лежащие в запасе: вкладка установки
     /// показывает их отдельно от инвентаря.
     /// </summary>
-    IReadOnlyList<CharacterAttachmentDto>? Attachments = null);
+    IReadOnlyList<CharacterAttachmentDto>? Attachments = null,
+    /// <summary>
+    /// Откуда персонаж берёт рейтинг эффектов заклинания (ROT-MAG-10): в RoT это Знание
+    /// (предания), а «Тёмное прозрение» добавляет вторым источником Знание (запретное).
+    /// </summary>
+    KnowledgeRatingDto? KnowledgeRating = null);
 
 /// <summary>Один сохранённый выбор ранга таланта (ROT-TAL-03).</summary>
 public record CharacterTalentChoiceDto(int RankIndex, TalentChoiceKind Kind, string Value, string DisplayName);

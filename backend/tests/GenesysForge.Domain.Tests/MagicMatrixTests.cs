@@ -168,6 +168,54 @@ public class MagicMatrixTests
         Assert.Equal(SpellResolutionKind.OnSuccess, MagicMatrix.ResolutionFor("Attack"));
     }
 
+    // ── Рейтинги по Знанию (ROT-MAG-10) ──
+
+    [Theory]
+    [InlineData("Attack", "Fire", "Burn")]
+    [InlineData("Attack", "Ice", "Ensnare")]
+    [InlineData("Attack", "Blast", "Blast")]
+    [InlineData("Attack", "Lightning", "Stun")]
+    [InlineData("Attack", "Deadly", "Vicious")]
+    [InlineData("Attack", "Impact", "Disorient")]
+    [InlineData("Attack", "Destructive", "Pierce")]
+    public void RatedQualities_AreListedExplicitly(string action, string effect, string quality)
+    {
+        Assert.True(MagicMatrix.UsesKnowledgeRating(action, effect));
+        Assert.Equal([quality], MagicMatrix.KnowledgeRatedQualities(action, effect));
+    }
+
+    [Fact]
+    public void QualitiesWithoutARating_NeverGetOne()
+    {
+        // «Повреждение N» и «Нокдаун N» не существуют: рейтинг получает только вторая половина пары.
+        Assert.DoesNotContain("Sunder", MagicMatrix.KnowledgeRatedQualities("Attack", "Destructive"));
+        Assert.DoesNotContain("Knockdown", MagicMatrix.KnowledgeRatedQualities("Attack", "Impact"));
+        Assert.DoesNotContain("Auto-fire", MagicMatrix.KnowledgeRatedQualities("Attack", "Lightning"));
+    }
+
+    [Theory]
+    [InlineData("Attack", "Poisonous")]
+    [InlineData("Barrier", "Add Defense")]
+    [InlineData("Curse", "Despair")]
+    [InlineData("Augment", "Divine Health")]
+    [InlineData("Augment", "Primal Fury")]
+    public void NumericEffects_UseTheRating_WithoutGrantingAQuality(string action, string effect)
+    {
+        Assert.True(MagicMatrix.UsesKnowledgeRating(action, effect));
+        Assert.Empty(MagicMatrix.KnowledgeRatedQualities(action, effect));
+    }
+
+    [Theory]
+    [InlineData("Attack", "Range")]
+    [InlineData("Attack", "Holy/Unholy")]
+    [InlineData("Curse", "Misfortune")]
+    [InlineData("Heal", "Restoration")]
+    public void UnrelatedEffects_DoNotDependOnKnowledge(string action, string effect)
+    {
+        Assert.False(MagicMatrix.UsesKnowledgeRating(action, effect));
+        Assert.Empty(MagicMatrix.KnowledgeRatedQualities(action, effect));
+    }
+
     [Fact]
     public void UnknownAction_IsAvailableToNobody_AndDoesNotThrow()
     {
