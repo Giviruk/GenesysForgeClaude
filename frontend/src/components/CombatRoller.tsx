@@ -1,6 +1,9 @@
 import { useState } from 'react'
 import type { RollOutcome, RollPool } from '../utils/diceRoller'
-import { combatTotal, expandDamage, isHit, type CombatQuality } from '../utils/combat'
+import {
+  combatTotal, criticalAdvantageSpend, expandDamage, isHit, qualityAdvantageSpends,
+  type CombatQuality,
+} from '../utils/combat'
 import { DiceRoller, RollSymbolsView, type RollLogRequest } from './DiceRoller'
 import { t } from '../i18n'
 
@@ -60,7 +63,12 @@ export function CombatRoller({
         </div>
 
         <p className="hint">{t('Базовый пул собран по навыку. Добавьте сложность/бонусы/помехи и бросьте — урон не решает за вас.', 'The base pool is built from the skill. Add difficulty/boosts/setbacks and roll — damage is not applied automatically.')}</p>
-        <DiceRoller initialPool={basePool} label={title} onResult={setOutcome} onLog={onLog} canSecret={canSecret} />
+        <DiceRoller initialPool={basePool} label={title} onResult={setOutcome}
+          onLog={onLog} canSecret={canSecret} spendContext="combat"
+          advantageSpends={[
+            ...criticalAdvantageSpend(crit),
+            ...qualityAdvantageSpends(qualities),
+          ]} />
 
         {outcome && (
           <div className="combat-damage">

@@ -22,10 +22,15 @@ export function MagicTab({ sheet, onError, refresh }: {
 
   const magicSkills = useMemo<MagicSkillPool[]>(
     () => sheet.skills.filter(s => s.kind === 'magic').map(s => ({
-      name: s.name, pool: s.pool, ranks: s.ranks, isCareer: s.isCareer,
+      name: s.name,
+      characteristic: s.characteristic,
+      // Полный API-лист всегда содержит характеристики; fallback сохраняет работу старых
+      // импортированных/тестовых частичных листов, но не пытается выводить рейтинг из пула.
+      characteristicValue: sheet.characteristics?.[s.characteristic] ?? 0,
+      pool: s.pool, ranks: s.ranks, isCareer: s.isCareer,
       setbackDice: s.setbackDice, boostDice: s.boostDice,
     })),
-    [sheet.skills])
+    [sheet.skills, sheet.characteristics])
 
   // Инструмент работает только в руках: лежащий в рюкзаке фолиант не помогает (ROT-MAG-IMP-01).
   // Сломанным он тоже не работает — как и любой предмет с серьёзным повреждением.

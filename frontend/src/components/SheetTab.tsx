@@ -173,6 +173,9 @@ export function SheetTab({ sheet, onError, refresh }: Props) {
                                     kind: 'roll',
                                     title: t('Бросок навыка', 'Skill check'),
                                     label,
+                                    spendContext: s.kind === 'social'
+                                      ? 'social'
+                                      : s.kind === 'combat' ? 'combat' : 'general',
                                     // Помехи снаряжения и перегруза едут в пул сами: игрок не обязан
                                     // помнить, что на нём латы (ROT-ARM-01).
                                     initialPool: {

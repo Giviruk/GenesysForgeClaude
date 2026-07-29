@@ -1975,8 +1975,13 @@ button.tiny { font-size: 0.75rem; padding: 0.05rem 0.4rem 0.15rem; }
 .dr-setback .dr-die-glyph { color: var(--muted); }
 .dr-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 0.6rem; }
 .dr-secret { margin-left: auto; }
-.dr-result { display: flex; flex-wrap: wrap; align-items: center; gap: 0.6rem; }
+.dr-result { display: flex; flex-direction: column; align-items: stretch; gap: 0.6rem; }
+.dr-result-summary { display: flex; flex-wrap: wrap; align-items: center; gap: 0.6rem; }
 .dr-summary { color: var(--muted); }
+.advantage-spends { padding: 0.5rem 0.65rem; border: 1px solid var(--border); border-radius: 6px; background: rgba(80, 140, 190, 0.09); }
+.advantage-spends ul { margin: 0.35rem 0; padding-left: 1.2rem; }
+.advantage-spends li + li { margin-top: 0.2rem; }
+.advantage-cost { display: inline-block; min-width: 2.2rem; color: #6fb3e8; font-weight: 700; }
 
 .combat-roller-head { display: flex; flex-direction: column; gap: 0.4rem; margin: 0.4rem 0 0.6rem; padding-bottom: 0.6rem; border-bottom: 1px solid var(--border); }
 .combat-qualities { margin: 0.2rem 0; padding-left: 1.1rem; }

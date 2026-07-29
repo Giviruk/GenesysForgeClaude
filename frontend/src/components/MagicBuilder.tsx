@@ -17,9 +17,12 @@ import { MagicActionCard, type MagicCardData } from './print/cards'
 import { magicMarkdown } from './print/markdown'
 import { t } from '../i18n'
 import { useDiceRoller } from '../dice-roller-store'
+import { magicAdvantageSpends } from '../utils/magicRoller'
 
 export interface MagicSkillPool {
   name: string
+  characteristic: string
+  characteristicValue: number
   pool: DicePool
   ranks: number
   isCareer: boolean
@@ -255,6 +258,29 @@ export function MagicBuilder({
         `${magicSkillLabel(activeSkill)} · ${selectedEffect.nameEn}`,
       )
     : magicSkillLabel(activeSkill)
+  const isMagicAttack = selectedEffect?.nameEn === 'Attack'
+  const characteristicMultiplier = chosenCodes.has('Empowered') ? 2 : 1
+  const implementAttackBonus = activeTool && implementWorks(activeTool.implement, activeSkill)
+    ? activeTool.implement.attackDamageBonus
+    : 0
+  const shardAttackBonus = activeShard?.shard.spec.attackDamageBonus ?? 0
+  const attackImplementBonus = implementAttackBonus + shardAttackBonus
+  const magicDamage = isMagicAttack && activeCharacterSkill
+    ? {
+        base: activeCharacterSkill.characteristicValue * characteristicMultiplier + attackImplementBonus,
+        characteristic: activeCharacterSkill.characteristicValue,
+        characteristicMultiplier,
+        implementBonus: attackImplementBonus,
+        successMultiplier: 1,
+        ...(chosenCodes.has('Holy/Unholy')
+          ? {
+              conditionalSuccessMultiplier: 2,
+              conditionalLabelRu: 'Если цель — враг веры или божества',
+              conditionalLabelEn: 'If the target is an enemy of the faith or deity',
+            }
+          : {}),
+      }
+    : null
 
   // Снять эффект можно всегда; добавить — только доступный направлению, сочетаемый с уже
   // выбранными и не выводящий сложность за потолок 5.
@@ -581,16 +607,21 @@ export function MagicBuilder({
                 <button type="button" className="primary small"
                   title={t('Бросить рассчитанный пул магического действия', 'Roll the calculated magic-action pool')}
                   onClick={() => openRoller({
-                    kind: 'roll',
+                    kind: 'magic',
                     title: t('Магическая проверка', 'Magic check'),
                     label: rollLabel,
-                    initialPool: {
+                    skillLabel: `${magicSkillLabel(activeSkill)} (${activeCharacterSkill.characteristicValue})`,
+                    basePool: {
                       ability: activeCharacterSkill.pool.ability,
                       proficiency: activeCharacterSkill.pool.proficiency,
                       difficulty: totalDifficulty,
                       boost: activeCharacterSkill.boostDice + toolBoost,
                       setback: activeCharacterSkill.setbackDice,
                     },
+                    damage: magicDamage,
+                    advantageSpends: selectedEffect
+                      ? magicAdvantageSpends(selectedEffect, chosen)
+                      : [],
                   })}>
                   {t('🎲 Бросить', '🎲 Roll')}
                 </button>

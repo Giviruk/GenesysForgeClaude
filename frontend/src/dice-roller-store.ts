@@ -2,6 +2,7 @@ import { createContext, useContext } from 'react'
 import type { RollPool } from './utils/diceRoller'
 import type { CombatQuality } from './utils/combat'
 import type { RollLogRequest } from './components/DiceRoller'
+import type { AdvantageSpendContext, AdvantageSpendOption } from './utils/advantageSpends'
 
 export type DiceRollerRequest =
   | {
@@ -9,6 +10,7 @@ export type DiceRollerRequest =
       title?: string
       label?: string
       initialPool?: Partial<RollPool>
+      spendContext?: AdvantageSpendContext
       onLog?: (req: RollLogRequest) => void
       canSecret?: boolean
     }
@@ -22,6 +24,27 @@ export type DiceRollerRequest =
       crit: string
       rangeBand: string
       qualities: CombatQuality[]
+      onLog?: (req: RollLogRequest) => void
+      canSecret?: boolean
+    }
+  | {
+      kind: 'magic'
+      title: string
+      label: string
+      skillLabel: string
+      basePool: Partial<RollPool>
+      /** null у неатакующего магического действия. */
+      damage: {
+        base: number
+        characteristic: number
+        characteristicMultiplier: number
+        implementBonus: number
+        successMultiplier: number
+        conditionalSuccessMultiplier?: number
+        conditionalLabelRu?: string
+        conditionalLabelEn?: string
+      } | null
+      advantageSpends: AdvantageSpendOption[]
       onLog?: (req: RollLogRequest) => void
       canSecret?: boolean
     }
