@@ -217,6 +217,55 @@ public class SpellTests : IClassFixture<ApiFactory>
         Assert.Contains(spells, s => s.ParentEffect == "Attack" && s.NameEn == "Manipulative");
     }
 
+    // ── ROT-MAG-04: Быстрота и Ускорение не путаются местами ──
+
+    [Fact]
+    public async Task Haste_IsTheSecondManeuver_AndSwift_IsTerrain()
+    {
+        var client = await _factory.CreateAuthorizedClientAsync();
+        var spells = (await client.GetFromJsonAsync<List<SpellDto>>("/api/spells/RealmsOfTerrinoth", Json.Options))!;
+
+        SpellDto Effect(string code) => spells.Single(s =>
+            s.Kind == SpellEntryKind.AdditionalEffect && s.ParentEffect == "Augment" && s.NameEn == code);
+
+        var haste = Effect("Haste");
+        Assert.Equal("Ускорение", haste.NameRu);
+        Assert.Equal(1, haste.DifficultyIncrease);
+        Assert.Contains("второй манёвр", haste.Description);
+        Assert.Contains("без получения усталости", haste.Description);
+        // Общий предел двух манёвров эффект не снимает — это отдельное правило, а не следствие.
+        Assert.Contains("лимит двух манёвров", haste.Description);
+        Assert.Contains("maneuver", haste.DescriptionEn, StringComparison.OrdinalIgnoreCase);
+
+        var swift = Effect("Swift");
+        Assert.Equal("Быстрота", swift.NameRu);
+        Assert.Equal(1, swift.DifficultyIncrease);
+        Assert.Contains("пересечённой местности", swift.Description);
+        Assert.Contains("обездвижены", swift.Description);
+        Assert.Contains("terrain", swift.DescriptionEn, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public async Task Haste_AndSwift_DoNotBorrowEachOthersEffect()
+    {
+        var client = await _factory.CreateAuthorizedClientAsync();
+        var spells = (await client.GetFromJsonAsync<List<SpellDto>>("/api/spells/GenesysCore", Json.Options))!;
+
+        SpellDto Effect(string code) => spells.Single(s =>
+            s.Kind == SpellEntryKind.AdditionalEffect && s.ParentEffect == "Augment" && s.NameEn == code);
+
+        // Перекрёстного эффекта нет ни в одной локали: ошибка была именно в том, что тексты
+        // стояли под чужими кодами.
+        var haste = Effect("Haste");
+        Assert.DoesNotContain("местност", haste.Description);
+        Assert.DoesNotContain("обездвиж", haste.Description);
+        Assert.DoesNotContain("terrain", haste.DescriptionEn, StringComparison.OrdinalIgnoreCase);
+
+        var swift = Effect("Swift");
+        Assert.DoesNotContain("манёвр", swift.Description);
+        Assert.DoesNotContain("maneuver", swift.DescriptionEn, StringComparison.OrdinalIgnoreCase);
+    }
+
     [Fact]
     public async Task Spells_HaveRussianNames_SafeDescription_AndSource()
     {
