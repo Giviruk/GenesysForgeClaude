@@ -1,11 +1,59 @@
 // Боевой расчёт (U-17): раскрытие урона оружия и итог с учётом нетто-успехов.
 import type { Quality } from '../api/types'
 import { t } from '../i18n'
+import { parseAdvantageCost, type AdvantageSpendOption } from './advantageSpends'
 
 /** Качество боя для отображения: подпись + цена активации (если есть). */
 export interface CombatQuality {
   label: string
   activationCost: string
+}
+
+/** Активации конкретных качеств оружия, которые можно предложить рядом с общими боевыми тратами. */
+export function qualityAdvantageSpends(qualities: CombatQuality[]): AdvantageSpendOption[] {
+  return qualities.flatMap((quality, index) => {
+    const cost = parseAdvantageCost(quality.activationCost)
+    if (cost == null) return []
+    const name = normQuality(quality.label)
+    const worksOnMiss = ['sunder', 'повреждение', 'guided', 'наведение'].includes(name)
+    const normal: AdvantageSpendOption = {
+      id: `quality-${index}-${quality.label}`,
+      cost,
+      labelRu: `Активировать «${quality.label}»`,
+      labelEn: `Activate “${quality.label}”`,
+      detailRu: quality.activationCost,
+      detailEn: quality.activationCost,
+      requiresSuccess: !worksOnMiss,
+    }
+    if (!['blast', 'взрыв'].includes(name)) return [normal]
+    return [
+      normal,
+      {
+        ...normal,
+        id: `${normal.id}-miss`,
+        cost: 3,
+        labelRu: `Активировать «${quality.label}» при промахе`,
+        labelEn: `Activate “${quality.label}” on a miss`,
+        requiresSuccess: false,
+        requiresFailure: true,
+      },
+    ]
+  })
+}
+
+/** Критическая травма имеет известную цену только при числовом критическом значении. */
+export function criticalAdvantageSpend(critical: string): AdvantageSpendOption[] {
+  const cost = Number(critical)
+  if (!Number.isFinite(cost) || cost <= 0) return []
+  return [{
+    id: 'attack-critical',
+    cost,
+    labelRu: 'Нанести критическую травму',
+    labelEn: 'Inflict a critical injury',
+    detailRu: 'Только после попадания, которое нанесло урон после поглощения.',
+    detailEn: 'Only after a hit that dealt damage past soak.',
+    requiresSuccess: true,
+  }]
 }
 
 /**

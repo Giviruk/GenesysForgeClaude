@@ -4,6 +4,8 @@ import {
   type DieKind, type DieSymbol, type RollPool, type RollSymbols, type RollOutcome,
 } from '../utils/diceRoller'
 import { t } from '../i18n'
+import type { AdvantageSpendContext, AdvantageSpendOption } from '../utils/advantageSpends'
+import { AdvantageSpendGuide } from './AdvantageSpendGuide'
 
 /** Заявка на запись броска в лог стола. */
 export interface RollLogRequest {
@@ -24,6 +26,10 @@ interface Props {
   canSecret?: boolean
   /** Вызывается с исходом каждого броска (для боевого расчёта урона поверх roller). */
   onResult?: (outcome: RollOutcome) => void
+  /** Таблица расходов преимуществ для типа сцены. */
+  spendContext?: AdvantageSpendContext
+  /** Активации конкретного оружия, магического эффекта и другие расходы этого броска. */
+  advantageSpends?: AdvantageSpendOption[]
 }
 
 const DIE_META: Record<DieKind, { label: string; glyph: string }> = t({
@@ -58,7 +64,10 @@ const SYMBOL_META: Record<DieSymbol, { label: string; glyph: string }> = t({
   despair: { label: 'Despair', glyph: '☠' },
 })
 
-export function DiceRoller({ initialPool, label, onLog, canSecret, onResult }: Props) {
+export function DiceRoller({
+  initialPool, label, onLog, canSecret, onResult,
+  spendContext = 'general', advantageSpends = [],
+}: Props) {
   const [pool, setPool] = useState<RollPool>({ ...emptyPool(), ...initialPool })
   const [outcome, setOutcome] = useState<RollOutcome | null>(null)
   const [secret, setSecret] = useState(false)
@@ -112,8 +121,13 @@ export function DiceRoller({ initialPool, label, onLog, canSecret, onResult }: P
 
       {outcome && (
         <div className="dr-result">
-          <RollSymbolsView symbols={outcome.net} />
-          <span className="dr-summary">{summarize(outcome.net)}</span>
+          <div className="dr-result-summary">
+            <RollSymbolsView symbols={outcome.net} />
+            <span className="dr-summary">{summarize(outcome.net)}</span>
+          </div>
+          <AdvantageSpendGuide advantages={outcome.net.advantage}
+            successful={outcome.net.success > 0}
+            context={spendContext} extra={advantageSpends} />
         </div>
       )}
     </div>

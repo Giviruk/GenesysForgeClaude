@@ -237,6 +237,16 @@ describe('MagicBuilder — дайсроллер', () => {
       nameRu: 'Дистанционный', nameEn: 'Range', difficulty: '+1',
       allowedSkills: ['Arcana'],
     }),
+    spell({
+      id: 'empowered', kind: 'additionalEffect', parentEffect: 'Attack',
+      nameRu: 'Усиленный', nameEn: 'Empowered', difficulty: '+2',
+      allowedSkills: ['Arcana'],
+    }),
+    spell({
+      id: 'holy', kind: 'additionalEffect', parentEffect: 'Attack',
+      nameRu: 'Святой/нечестивый', nameEn: 'Holy/Unholy', difficulty: '+1',
+      allowedSkills: ['Arcana'],
+    }),
   ]
 
   beforeEach(() => {
@@ -248,6 +258,8 @@ describe('MagicBuilder — дайсроллер', () => {
     render(<MagicBuilder system="realmsOfTerrinoth" onError={() => {}}
       characterSkills={[{
         name: 'Arcana',
+        characteristic: 'intellect',
+        characteristicValue: 3,
         pool: { ability: 1, proficiency: 2 },
         ranks: 2,
         isCareer: true,
@@ -279,16 +291,25 @@ describe('MagicBuilder — дайсроллер', () => {
     fireEvent.click(screen.getByRole('button', { name: '🎲 Бросить' }))
 
     expect(openRollerMock).toHaveBeenCalledWith({
-      kind: 'roll',
+      kind: 'magic',
       title: 'Магическая проверка',
       label: 'Тайная (Arcana) · Атака',
-      initialPool: {
+      skillLabel: 'Тайная (Arcana) (3)',
+      basePool: {
         ability: 1,
         proficiency: 2,
         difficulty: 3,
         boost: 3,
         setback: 1,
       },
+      damage: {
+        base: 3,
+        characteristic: 3,
+        characteristicMultiplier: 1,
+        implementBonus: 0,
+        successMultiplier: 1,
+      },
+      advantageSpends: [],
     })
   })
 
@@ -296,6 +317,8 @@ describe('MagicBuilder — дайсроллер', () => {
     vi.mocked(api.spells).mockResolvedValue(spells)
     render(<MagicBuilder system="realmsOfTerrinoth" onError={() => {}} characterSkills={[{
       name: 'Runes',
+      characteristic: 'intellect',
+      characteristicValue: 3,
       pool: { ability: 2, proficiency: 1 },
       ranks: 1,
       isCareer: true,
@@ -305,5 +328,57 @@ describe('MagicBuilder — дайсроллер', () => {
 
     await screen.findByText(/Сборка недействительна/)
     expect(screen.queryByRole('button', { name: '🎲 Бросить' })).toBeNull()
+  })
+
+  it('передаёт удвоенную характеристику, бонус инструмента и условный урон Holy/Unholy', async () => {
+    render(<MagicBuilder system="realmsOfTerrinoth" onError={() => {}}
+      characterSkills={[{
+        name: 'Arcana',
+        characteristic: 'intellect',
+        characteristicValue: 3,
+        pool: { ability: 2, proficiency: 1 },
+        ranks: 1,
+        isCareer: true,
+        setbackDice: 0,
+        boostDice: 0,
+      }]}
+      implements={[{
+        itemId: 'staff',
+        name: 'Посох',
+        implement: {
+          code: 'staff',
+          attackDamageBonus: 4,
+          boostDice: 0,
+          requiredMagicSkill: '',
+          discount: 'none',
+          discountEffects: [],
+          choiceCount: 0,
+          choiceMaxIncreaseSum: null,
+          choiceExactIncrease: null,
+          material: 'oak',
+          chosenEffects: [],
+          pending: false,
+        },
+      }]} />)
+    await screen.findByText(/Сложность: 2/)
+
+    fireEvent.change(screen.getByLabelText('Инструмент'), { target: { value: 'staff' } })
+    fireEvent.click(screen.getByRole('button', { name: /Усиленный \+2/ }))
+    fireEvent.click(screen.getByRole('button', { name: /Святой\/нечестивый \+1/ }))
+    fireEvent.click(screen.getByRole('button', { name: '🎲 Бросить' }))
+
+    expect(openRollerMock).toHaveBeenLastCalledWith(expect.objectContaining({
+      kind: 'magic',
+      damage: {
+        base: 10,
+        characteristic: 3,
+        characteristicMultiplier: 2,
+        implementBonus: 4,
+        successMultiplier: 1,
+        conditionalSuccessMultiplier: 2,
+        conditionalLabelRu: 'Если цель — враг веры или божества',
+        conditionalLabelEn: 'If the target is an enemy of the faith or deity',
+      },
+    }))
   })
 })
