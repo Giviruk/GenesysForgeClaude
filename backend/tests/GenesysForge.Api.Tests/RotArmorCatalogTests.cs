@@ -65,7 +65,7 @@ public class RotArmorCatalogTests(ApiFactory factory) : IClassFixture<ApiFactory
         Assert.Equal(expected, new ArmorRow(
             armor.Name, armor.MeleeDefense, armor.SoakBonus, armor.Encumbrance,
             GenesysRules.WornArmorEncumbrance(armor.Encumbrance),
-            armor.HardPoints ?? -1, armor.Price, armor.Rarity, stealth));
+            armor.HardPoints ?? -1, armor.Price!.Value, armor.Rarity!.Value, stealth));
     }
 
     [Fact]

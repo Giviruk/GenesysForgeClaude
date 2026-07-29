@@ -111,8 +111,8 @@ export interface ItemDef {
   /** Английское описание (собственный copyright-safe парафраз); пусто, если не переведено. */
   descriptionEn?: string
   source: string
-  price: number
-  rarity: number
+  price: number | null
+  rarity: number | null
   skillName: string
   damage: string
   crit: string
@@ -129,6 +129,12 @@ export interface ItemDef {
   attackProfiles: WeaponAttackProfile[]
   /** Магический инструмент (ROT-MAG-IMP-01); null — запись инструментом не является. */
   implement: ImplementSpec | null
+  /** Runebound shard (ROT-MAG-11); отдельный implement для навыка Runes. */
+  shard: RuneboundShardSpec | null
+  /** Есть обычная книжная цена и предмет можно купить через магазин. */
+  purchasable: boolean
+  /** Предмет можно продать по обычной экономике. */
+  sellable: boolean
 }
 
 /** Структурное качество предмета: ссылка на справочник по коду + рейтинг. */
@@ -701,7 +707,7 @@ export interface SheetItem {
   description: string
   /** Английское описание; пусто, если не переведено. */
   descriptionEn?: string
-  price: number
+  price: number | null
   skillName: string
   damage: string
   crit: string
@@ -726,7 +732,7 @@ export interface SheetItem {
    */
   craftsmanship: WeaponCraftsmanship
   /** Редкость экземпляра: Ancient задаёт ровно 10, остальные типы сдвигают каталожную. */
-  rarity: number
+  rarity: number | null
   /** Экземпляр укреплён (Ancient): броня не поддаётся Pierce/Breach, а предмет — Sunder. */
   reinforced: boolean
   /** Разбор поправок: что качество изготовления изменило и с какого значения. */
@@ -752,6 +758,9 @@ export interface SheetItem {
   repair: ItemRepair
   /** Магический инструмент (ROT-MAG-IMP-01); null — запись инструментом не является. */
   implement: ItemImplement | null
+  /** Runebound shard и конфигурация конкретного экземпляра. */
+  shard: ItemRuneboundShard | null
+  sellable: boolean
 }
 
 /** Материал магического инструмента (ROT-MAG-MAT-01). */
@@ -785,6 +794,58 @@ export interface ItemImplement extends ImplementSpec {
   /** Эффекты, выбранные ведущим (коды). */
   chosenEffects: string[]
   /** Экземпляр ещё не настроен: обычные числа есть, бесплатный эффект не работает. */
+  pending: boolean
+}
+
+export type ShardSpellEffectMode = 'mandatoryFree' | 'optionalFree'
+export type ShardActivationCost = 'maneuver' | 'action' | 'passive'
+
+export interface ShardSpellEffect {
+  action: string
+  effectCode: string
+  mode: ShardSpellEffectMode
+  freeUses: number
+  overridesSkillRestriction: boolean
+}
+
+export interface ShardDifficultyReduction {
+  action: string
+  amount: number
+}
+
+export interface ShardActivationQuality {
+  code: string
+  rating: number | null
+}
+
+export interface ShardActivationAttack {
+  skill: string
+  damage: number
+  critical: number
+  range: string
+  qualities: ShardActivationQuality[]
+}
+
+/** Типизированный паспорт одной runebound shard (ROT-MAG-11). */
+export interface RuneboundShardSpec {
+  code: string
+  requiredMagicSkill: string
+  minimumSkillRank: number
+  attackDamageBonus: number
+  castingStrainReduction: number
+  difficultyReductions: ShardDifficultyReduction[]
+  spellEffects: ShardSpellEffect[]
+  activationCost: ShardActivationCost
+  activationFrequency: string
+  activationAttack: ShardActivationAttack | null
+  needsConfiguration: boolean
+}
+
+export interface ItemRuneboundShard {
+  spec: RuneboundShardSpec
+  activationChoice: string
+  effectAction: string
+  effectChoice: string
   pending: boolean
 }
 

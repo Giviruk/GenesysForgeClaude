@@ -26,8 +26,8 @@ public sealed record EffectiveItem(
     int SoakBonus,
     int MeleeDefense,
     int RangedDefense,
-    int Price,
-    int Rarity,
+    int? Price,
+    int? Rarity,
     bool Reinforced,
     int? HardPoints,
     int UsedHardPoints,
@@ -67,12 +67,16 @@ public static class EffectiveItems
         // Материал магического инструмента (ROT-MAG-MAT-01): он меняет цену и редкость экземпляра
         // тем же порядком, что и качество изготовления, — до улучшений и состояния.
         var implement = ImplementRules.For(def.Code);
-        var materialPrice = implement is null
-            ? stats.Price
-            : ImplementRules.Price(stats.Price, item.ImplementMaterial);
-        var materialRarity = implement is null
-            ? stats.Rarity
-            : ImplementRules.Rarity(stats.Rarity, item.ImplementMaterial);
+        int? materialPrice = def.Price is null
+            ? null
+            : implement is null
+                ? stats.Price
+                : ImplementRules.Price(stats.Price, item.ImplementMaterial);
+        int? materialRarity = def.Rarity is null
+            ? null
+            : implement is null
+                ? stats.Rarity
+                : ImplementRules.Rarity(stats.Rarity, item.ImplementMaterial);
 
         // Надета и действует: неактивная броня даёт только вес — и её улучшения молчат так же,
         // как её собственные штрафы (ROT-CMB-02).
@@ -121,13 +125,13 @@ public static class EffectiveItems
         var used = AttachmentRules.UsedHardPoints(installed.Select(a => a.AttachmentDef!));
 
         var adjustments = new List<ItemStatAdjustment>(stats.Adjustments);
-        if (materialPrice != stats.Price)
+        if (materialPrice is { } effectivePrice && effectivePrice != stats.Price)
             adjustments.Add(new ItemStatAdjustment(
-                "price", stats.Price, materialPrice, ItemStatStage.Material,
+                "price", stats.Price, effectivePrice, ItemStatStage.Material,
                 item.ImplementMaterial.ToString()));
-        if (materialRarity != stats.Rarity)
+        if (materialRarity is { } effectiveRarity && effectiveRarity != stats.Rarity)
             adjustments.Add(new ItemStatAdjustment(
-                "rarity", stats.Rarity, materialRarity, ItemStatStage.Material,
+                "rarity", stats.Rarity, effectiveRarity, ItemStatStage.Material,
                 item.ImplementMaterial.ToString()));
         void Track(string field, int before, int after)
         {

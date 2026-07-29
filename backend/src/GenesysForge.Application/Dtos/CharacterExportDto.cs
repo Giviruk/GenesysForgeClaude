@@ -11,14 +11,16 @@ public record CharacterExportDto(
     DateTime ExportedAt,
     CharacterExportData Character)
 {
-    /// <summary>Текущая версия формата: v2 добавила зафиксированные пороги ран/стрейна (ROT-CRE-02).</summary>
-    public const string CurrentFormat = "genesysforge.character.v2";
+    /// <summary>Текущая версия формата: v3 переносит настройку экземпляра Lesser Rune.</summary>
+    public const string CurrentFormat = "genesysforge.character.v3";
+
+    public const string LegacyFormatV2 = "genesysforge.character.v2";
 
     /// <summary>Предыдущая версия формата — принимается на импорт с предупреждениями.</summary>
     public const string LegacyFormatV1 = "genesysforge.character.v1";
 
     /// <summary>Все форматы, которые импорт умеет читать.</summary>
-    public static readonly string[] SupportedFormats = [CurrentFormat, LegacyFormatV1];
+    public static readonly string[] SupportedFormats = [CurrentFormat, LegacyFormatV2, LegacyFormatV1];
 }
 
 public record CharacterExportData(
@@ -103,6 +105,10 @@ public record CharacterItemExport(string Code, string Name, int Quantity, ItemSt
     /// </summary>
     ImplementMaterial Material = ImplementMaterial.Oak,
     string ImplementChoices = "",
-    bool ImplementConfigured = false);
+    bool ImplementConfigured = false,
+    string ShardActivationChoice = "",
+    string ShardEffectAction = "",
+    string ShardEffectChoice = "",
+    bool ShardConfigured = false);
 
 public record CharacterNoteExport(string Title, string Body);

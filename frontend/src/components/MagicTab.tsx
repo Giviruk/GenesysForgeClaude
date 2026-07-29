@@ -4,7 +4,9 @@ import type { CharacterSheet } from '../api/types'
 import { SpellsTab } from './SpellsTab'
 import { localizedName } from '../utils/labels'
 import { t } from '../i18n'
-import { MagicBuilder, type BuilderImplement, type MagicSkillPool } from './MagicBuilder'
+import {
+  MagicBuilder, type BuilderImplement, type BuilderShard, type MagicSkillPool,
+} from './MagicBuilder'
 
 /**
  * Вкладка «Магия» листа персонажа: переключатель между справочником эффектов и
@@ -19,7 +21,9 @@ export function MagicTab({ sheet, onError, refresh }: {
   const [mode, setMode] = useState<'reference' | 'builder'>('builder')
 
   const magicSkills = useMemo<MagicSkillPool[]>(
-    () => sheet.skills.filter(s => s.kind === 'magic').map(s => ({ name: s.name, pool: s.pool })),
+    () => sheet.skills.filter(s => s.kind === 'magic').map(s => ({
+      name: s.name, pool: s.pool, ranks: s.ranks, isCareer: s.isCareer,
+    })),
     [sheet.skills])
 
   // Инструмент работает только в руках: лежащий в рюкзаке фолиант не помогает (ROT-MAG-IMP-01).
@@ -28,6 +32,11 @@ export function MagicTab({ sheet, onError, refresh }: {
     () => sheet.items
       .filter(i => i.implement != null && i.state === 'equipped' && i.isUsable)
       .map(i => ({ itemId: i.id, name: localizedName(i), implement: i.implement! })),
+    [sheet.items])
+  const shardsInHand = useMemo<BuilderShard[]>(
+    () => sheet.items
+      .filter(i => i.shard != null && i.state === 'equipped' && i.isUsable)
+      .map(i => ({ itemId: i.id, name: localizedName(i), shard: i.shard! })),
     [sheet.items])
 
   return (
@@ -39,10 +48,16 @@ export function MagicTab({ sheet, onError, refresh }: {
       {mode === 'builder'
         ? <MagicBuilder system={sheet.system} characterSkills={magicSkills}
           knowledgeRating={sheet.knowledgeRating}
-          implements={implementsInHand} onError={onError}
+          implements={implementsInHand} shards={shardsInHand} onError={onError}
           onConfigureImplement={refresh
             ? async (itemId, codes) => {
               await api.setImplementConfiguration(sheet.id, itemId, codes)
+              await refresh()
+            }
+            : undefined}
+          onConfigureLesserRune={refresh
+            ? async (itemId, activation, actionCode, effectCode) => {
+              await api.setLesserRuneConfiguration(sheet.id, itemId, activation, actionCode, effectCode)
               await refresh()
             }
             : undefined} />

@@ -90,6 +90,8 @@ public static class DependencyInjection
         // Настройка магического инструмента (ROT-MAG-IMP-01).
         services.AddScoped<ICommandHandler<SetImplementConfigurationCommand, Unit>,
             SetImplementConfigurationHandler>();
+        services.AddScoped<ICommandHandler<SetLesserRuneConfigurationCommand, Unit>,
+            SetLesserRuneConfigurationHandler>();
         services.AddScoped<ICommandHandler<AddCriticalInjuryCommand, Guid>, AddCriticalInjuryHandler>();
         services.AddScoped<ICommandHandler<RemoveCriticalInjuryCommand, Unit>, RemoveCriticalInjuryHandler>();
         services.AddScoped<IQueryHandler<GetCharacterAuditQuery, IReadOnlyList<CharacterAuditEntryDto>>, GetCharacterAuditHandler>();

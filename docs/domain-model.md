@@ -44,12 +44,17 @@ Rules:
 
 ### ItemDef
 
-Fields: `Id`, `System`, `Name`, `Kind`, `Encumbrance`, `SoakBonus`, `MeleeDefense`, `RangedDefense`, `EncumbranceThresholdBonus`, `Description`, `Price`, `Rarity`, `OwnerUserId`.
+Fields: `Id`, `System`, `Name`, `Kind`, `Encumbrance`, `SoakBonus`, `MeleeDefense`, `RangedDefense`, `EncumbranceThresholdBonus`, `Description`, nullable `Price`/`Rarity`, `Purchasable`, `Sellable`, `OwnerUserId`.
 
 Rules:
 
 - Equipped item bonuses affect derived stats.
 - Description is informational only in current mechanics.
+- `RuneboundShardRules` recognizes the exact 17 built-in shard codes and exposes their
+  activation profile, Runes-only implement effects, attack damage bonus, strain reduction
+  and final-difficulty reduction as typed data.
+- A shard can be the sole implement of a Runes action only when Runes is a career skill with
+  at least one rank. It does not substitute for ordinary implements of other magic skills.
 
 ### HeroicAbilityDef
 
@@ -156,12 +161,18 @@ Rules:
 
 ### CharacterItem
 
-Fields: `Id`, `CharacterId`, `ItemDefId`, `Quantity`, `State`.
+Fields: `Id`, `CharacterId`, `ItemDefId`, `Quantity`, `State`, item-instance state and
+Lesser Rune configuration (`ShardActivationChoice`, `ShardEffectAction`,
+`ShardEffectChoice`, `ShardConfigured`).
 
 Rules:
 
 - State controls whether bonuses apply.
 - Quantity affects encumbrance load.
+- Runebound shards are always individual instances (`Quantity = 1`); they are granted by the
+  GM rather than bought or sold.
+- Lesser Rune configuration is immutable and follows the instance through duplicate and
+  character v3 export/import.
 
 ## Value objects found in code
 

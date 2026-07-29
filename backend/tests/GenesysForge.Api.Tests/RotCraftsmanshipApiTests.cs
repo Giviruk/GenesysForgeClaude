@@ -61,8 +61,8 @@ public class RotCraftsmanshipApiTests(ApiFactory factory) : IClassFixture<ApiFac
 
         Assert.Equal(WeaponCraftsmanship.Iron, item.Craftsmanship);
         Assert.Equal(plate.Encumbrance + 2, item.Encumbrance);
-        Assert.Equal(plate.Price / 2, item.Price);
-        Assert.Equal(Math.Max(0, plate.Rarity - 1), item.Rarity);
+        Assert.Equal(plate.Price!.Value / 2, item.Price);
+        Assert.Equal(Math.Max(0, plate.Rarity!.Value - 1), item.Rarity);
 
         // Латы сами дают 2 помехи Скрытности (ROT-ARM-01), железная работа добавляет третью.
         Assert.Equal(3, Skill(sheet, "Stealth").SetbackDice);
@@ -220,7 +220,7 @@ public class RotCraftsmanshipApiTests(ApiFactory factory) : IClassFixture<ApiFac
         var spent = (before.Money + before.StartingPurchaseBudget)
             - (after.Money + after.StartingPurchaseBudget);
         // Доля берётся от цены экземпляра (гномья работа — вдвое дороже) и округляется вниз.
-        Assert.Equal((int)Math.Floor(dagger.Price * 2 * (percent / 100.0)), spent);
+        Assert.Equal((int)Math.Floor(dagger.Price!.Value * 2 * (percent / 100.0)), spent);
     }
 
     [Theory]

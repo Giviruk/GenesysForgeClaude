@@ -192,7 +192,8 @@ internal static class HomebrewPackMapper
         var items = await db.ItemDefs.AsNoTracking()
             .Where(i => i.HomebrewPackId == pack.Id)
             .Select(i => new HomebrewItemDto(i.Code, i.Name, i.NameRu, i.Kind, i.Encumbrance, i.SoakBonus, i.MeleeDefense,
-                i.RangedDefense, i.EncumbranceThresholdBonus, i.Description, i.SafeDescription, i.Source, i.Price, i.Rarity,
+                i.RangedDefense, i.EncumbranceThresholdBonus, i.Description, i.SafeDescription, i.Source,
+                i.Price ?? 0, i.Rarity ?? 0,
                 i.SkillName, i.Damage, i.Crit, i.RangeBand, i.Properties))
             .ToListAsync(ct);
         var heroics = await db.HeroicAbilityDefs.AsNoTracking()

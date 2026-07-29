@@ -39,8 +39,8 @@ const STATES: ItemState[] = ['equipped', 'carried', 'backpack']
  * записи это тот же gear, но покупают их иначе — с выбором материала и под конкретный магический
  * навык, и искать их среди верёвок и факелов бессмысленно (ROT-MAG-IMP-01).
  */
-type ShopFilter = ItemKind | 'all' | 'implement'
-const KIND_FILTERS: ShopFilter[] = ['all', 'weapon', 'armor', 'gear', 'implement']
+type ShopFilter = ItemKind | 'all' | 'implement' | 'shard'
+const KIND_FILTERS: ShopFilter[] = ['all', 'weapon', 'armor', 'gear', 'implement', 'shard']
 
 const SHOP_FILTER_LABELS: Record<ShopFilter, string> = {
   all: t('Все', 'All'),
@@ -48,14 +48,16 @@ const SHOP_FILTER_LABELS: Record<ShopFilter, string> = {
   armor: ITEM_KIND_LABELS.armor,
   gear: ITEM_KIND_LABELS.gear,
   implement: t('Инструменты магии', 'Magic implements'),
+  shard: t('Руны', 'Runebound shards'),
 }
 
 /** Запись попадает в выбранную корзину витрины. */
 const matchesShopFilter = (item: ItemDef, filter: ShopFilter): boolean => {
   if (filter === 'all') return true
   if (filter === 'implement') return item.implement != null
-  // Инструмент из «снаряжения» уходит: он теперь живёт в своей корзине и дважды не показывается.
-  if (filter === 'gear') return item.kind === 'gear' && item.implement == null
+  if (filter === 'shard') return item.shard != null
+  // Инструменты и shard вынесены из «снаряжения» и дважды не показываются.
+  if (filter === 'gear') return item.kind === 'gear' && item.implement == null && item.shard == null
   return item.kind === filter
 }
 
@@ -279,7 +281,7 @@ function ShopRow({ item, money, run, sheetId, open, onToggle }: {
   const [material, setMaterial] = useState<ImplementMaterial>('oak')
   const canChoose = craftsmanshipApplies(item.kind)
   const isImplement = item.implement != null
-  const unitPrice = isImplement
+  const unitPrice = item.price == null ? null : isImplement
     ? implementPrice(item.price, material)
     : canChoose ? craftsmanshipPrice(item.price, craftsmanship) : item.price
   return (
@@ -289,7 +291,13 @@ function ShopRow({ item, money, run, sheetId, open, onToggle }: {
           <strong>{itemLabel}</strong>
           {itemOriginal && <span className="muted small-text name-secondary"> · {itemOriginal}</span>}
           <div className="muted small-text">
-            {ITEM_KIND_LABELS[item.kind]} · {t('цена', 'price')} {item.price} · {t('редкость', 'rarity')} {item.rarity}
+            {ITEM_KIND_LABELS[item.kind]}
+            {item.price == null
+              ? t(' · без обычной цены', ' · no ordinary price')
+              : ` · ${t('цена', 'price')} ${item.price}`}
+            {item.rarity == null
+              ? t(' · без обычной редкости', ' · no ordinary rarity')
+              : ` · ${t('редкость', 'rarity')} ${item.rarity}`}
             {item.isCustom && t(' · кастом', ' · custom')}
             {item.kind === 'weapon' && item.damage && t(` · урон ${item.damage}, крит ${item.crit}`, ` · damage ${item.damage}, crit ${item.crit}`)}
           </div>
@@ -319,13 +327,15 @@ function ShopRow({ item, money, run, sheetId, open, onToggle }: {
               ))}
             </select>
           )}
-          <button className="primary tiny" onClick={onToggle}>{open ? t('Отмена', 'Cancel') : t('Купить', 'Buy')}</button>
+          {item.purchasable && (
+            <button className="primary tiny" onClick={onToggle}>{open ? t('Отмена', 'Cancel') : t('Купить', 'Buy')}</button>
+          )}
           <button className="tiny" title={t('Добавить без оплаты', 'Add without paying')}
             onClick={() => run(() => api.addItem(sheetId, item.id, 1, 'carried',
               { free: true, ...(canChoose ? { craftsmanship } : {}), ...(isImplement ? { material } : {}) }))}>{t('+ Добавить', '+ Add')}</button>
         </div>
       </div>
-      {open && (
+      {open && item.purchasable && unitPrice != null && (
         <>
           {isImplement && (
             <div className="small-text shop-craftsmanship">
@@ -429,7 +439,7 @@ function InventoryCard({ item, sheet, skillNames, run, reference, funds, sellOpe
           )}
           <span className="muted small-text">
             {secondaryName(item) && ` · ${secondaryName(item)}`}
-            {` · ${ITEM_KIND_LABELS[item.kind]}`}{item.price > 0 && ` · ${item.price} 🪙`}
+            {` · ${ITEM_KIND_LABELS[item.kind]}`}{item.price != null && item.price > 0 && ` · ${item.price} 🪙`}
             {/* Слоты улучшений берутся из таблицы книги; null — значения нет (ROT-ARM-01).
                 Занятые показываются рядом: иначе непонятно, куда делись свободные (ROT-EQP-ATT-01). */}
             {item.hardPoints != null && ` · HP ${item.usedHardPoints}/${item.hardPoints}`}
@@ -556,7 +566,7 @@ function InventoryCard({ item, sheet, skillNames, run, reference, funds, sellOpe
           {/* Свойство материала приложение не считает, поэтому оно должно быть под рукой там,
               где вещью пользуются, а не только в магазине (ROT-MAG-MAT-01). */}
           {' '}<ImplementMaterialMemo material={item.implement.material}
-            basePrice={catalogueDef?.price} baseRarity={catalogueDef?.rarity} />
+            basePrice={catalogueDef?.price ?? undefined} baseRarity={catalogueDef?.rarity ?? undefined} />
           {item.implement.attackDamageBonus > 0
             && t(` · урон Атаки +${item.implement.attackDamageBonus}`,
               ` · Attack damage +${item.implement.attackDamageBonus}`)}
@@ -575,6 +585,27 @@ function InventoryCard({ item, sheet, skillNames, run, reference, funds, sellOpe
             <span className="damage-warn">
               {' · '}{t('не настроен — бесплатный эффект выбирает ведущий на вкладке «Магия»',
                 'not configured — the GM picks the free effect on the Magic tab')}
+            </span>
+          )}
+        </div>
+      )}
+      {item.shard && (
+        <div className="muted small-text">
+          <strong>{t('Runebound shard', 'Runebound shard')}</strong>
+          {item.shard.spec.attackDamageBonus > 0
+            && t(` · урон магической Атаки +${item.shard.spec.attackDamageBonus}`,
+              ` · magic Attack damage +${item.shard.spec.attackDamageBonus}`)}
+          {item.shard.spec.castingStrainReduction > 0
+            && t(` · напряжение за заклинание −${item.shard.spec.castingStrainReduction}`,
+              ` · casting strain −${item.shard.spec.castingStrainReduction}`)}
+          {item.shard.spec.spellEffects.length > 0
+            && ` · ${item.shard.spec.spellEffects.map(e => `${e.effectCode} (${
+              e.mode === 'mandatoryFree' ? t('обязательно', 'mandatory') : t('бесплатно', 'free')})`
+            ).join(', ')}`}
+          {item.shard.pending && (
+            <span className="damage-warn">
+              {' '}{t('· требуется необратимая настройка на вкладке «Магия»',
+                '· permanent configuration is required on the Magic tab')}
             </span>
           )}
         </div>
@@ -604,13 +635,15 @@ function InventoryCard({ item, sheet, skillNames, run, reference, funds, sellOpe
         <div className="inv-card-end">
           <span className="muted small-text">{t('вес', 'load')} {item.load}</span>
           <button className="small" title={t('Печать карточки предмета', 'Print the item card')} onClick={() => setPrinting(true)}>🖨</button>
-          <button className="small" onClick={onToggleSell}>{sellOpen ? t('Отмена', 'Cancel') : t('Продать', 'Sell')}</button>
+          {item.sellable && (
+            <button className="small" onClick={onToggleSell}>{sellOpen ? t('Отмена', 'Cancel') : t('Продать', 'Sell')}</button>
+          )}
           <button className="danger small" title={t('Убрать без выручки', 'Remove without proceeds')}
             onClick={() => run(() => api.removeItem(sheet.id, item.id))}>✕</button>
         </div>
       </div>
 
-      {sellOpen && (
+      {sellOpen && item.sellable && item.price != null && (
         <SellControl unitPrice={item.price} maxQuantity={item.quantity}
           onConfirm={(qty, opts) => run(async () => {
             await api.sellItem(sheet.id, item.id, qty, opts)

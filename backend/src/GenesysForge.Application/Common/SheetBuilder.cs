@@ -210,7 +210,9 @@ public static class SheetBuilder
             item.DamageState,
             e.IsUsable,
             RepairDto(e.Price, item.DamageState, availableFunds),
-            ImplementDto(e));
+            ImplementDto(e),
+            ShardDto(e),
+            def.Sellable);
     }
 
     /// <summary>
@@ -227,6 +229,17 @@ public static class SheetBuilder
             spec.RequiredMagicSkill, spec.Discount, spec.DiscountEffects, spec.ChoiceCount,
             spec.ChoiceMaxIncreaseSum, spec.ChoiceExactIncrease, chosen,
             spec.NeedsConfiguration && !e.Item.ImplementConfigured);
+    }
+
+    private static ItemRuneboundShardDto? ShardDto(EffectiveItem e)
+    {
+        if (RuneboundShardRules.For(e.Def.Code) is not { } spec) return null;
+        return new ItemRuneboundShardDto(
+            Mappers.RuneboundShardSpecDto(e.Def.Code)!,
+            e.Item.ShardActivationChoice,
+            e.Item.ShardEffectAction,
+            e.Item.ShardEffectChoice,
+            spec.NeedsConfiguration && !e.Item.ShardConfigured);
     }
 
     /// <summary>Экземпляр улучшения в DTO: механика приезжает вместе с ним, а не отдельным запросом.</summary>

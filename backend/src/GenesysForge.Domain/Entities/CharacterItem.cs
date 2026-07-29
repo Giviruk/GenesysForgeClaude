@@ -47,4 +47,23 @@ public class CharacterItem
     /// бесплатный эффект нет: витрина не может выдать полностью рабочий фолиант сама.
     /// </summary>
     public bool ImplementConfigured { get; set; }
+
+    /// <summary>
+    /// Малый полезный activation effect Lesser Rune, один раз сформулированный ведущим.
+    /// У прочих предметов пусто.
+    /// </summary>
+    public string ShardActivationChoice { get; set; } = "";
+
+    /// <summary>
+    /// Код одного additional effect с печатной надбавкой +1, выбранного для Lesser Rune.
+    /// </summary>
+    public string ShardEffectChoice { get; set; } = "";
+
+    /// <summary>Magic action, которому принадлежит выбранный additional effect Lesser Rune.</summary>
+    public string ShardEffectAction { get; set; } = "";
+
+    /// <summary>
+    /// Lesser Rune настроена. После этого обычная команда конфигурации не меняет выбор повторно.
+    /// </summary>
+    public bool ShardConfigured { get; set; }
 }

@@ -110,7 +110,7 @@ public class GenDamageStateApiTests(ApiFactory factory) : IClassFixture<ApiFacto
         Assert.Equal(difficulty, item.Repair.HoursMin);
         Assert.Equal(difficulty * 2, item.Repair.HoursMax);
         // Материалы считаются от цены экземпляра, а не от строки каталога.
-        Assert.Equal((int)Math.Ceiling(sword.Price * percent / 100.0), item.Repair.MaterialCost);
+        Assert.Equal((int)Math.Ceiling(sword.Price!.Value * percent / 100.0), item.Repair.MaterialCost);
     }
 
     [Fact]
@@ -273,7 +273,7 @@ public class GenDamageStateApiTests(ApiFactory factory) : IClassFixture<ApiFacto
         await SetMoneyAsync(client, id, 1000);
         await SetStateAsync(client, id, itemId, ItemDamageState.Moderate);
 
-        var expected = (int)Math.Ceiling(sword.Price * 0.5);
+        var expected = (int)Math.Ceiling(sword.Price!.Value * 0.5);
         var before = Funds(await SheetAsync(client, id));
         Assert.Equal(HttpStatusCode.NoContent, (await RepairAsync(client, id, itemId)).StatusCode);
 
@@ -299,7 +299,7 @@ public class GenDamageStateApiTests(ApiFactory factory) : IClassFixture<ApiFacto
             (await RepairAsync(client, id, itemId, new RepairItemRequest(NetAdvantages: 2))).StatusCode);
 
         var sheet = await SheetAsync(client, id);
-        Assert.Equal(before - (int)Math.Ceiling(sword.Price * 0.8), Funds(sheet));
+        Assert.Equal(before - (int)Math.Ceiling(sword.Price!.Value * 0.8), Funds(sheet));
     }
 
     [Fact]

@@ -2,6 +2,7 @@ using System.Reflection;
 using System.Text.Json;
 using GenesysForge.Domain;
 using GenesysForge.Domain.Entities;
+using GenesysForge.Domain.Rules;
 
 namespace GenesysForge.Infrastructure.Persistence;
 
@@ -16,10 +17,14 @@ public static class ItemCatalog
 {
     private sealed record Entry(
         string Code, string Name, string NameRu, string Kind, string Setting,
-        int Enc, int Soak, int Def, int Rdef, int EncBonus, int Price, int Rarity,
+        int Enc, int Soak, int Def, int Rdef, int EncBonus, int? Price, int? Rarity,
         string Desc, string Source,
         string? SkillEn, string? Damage, string? Crit, string? RangeRu, string? Properties,
         string DescEn = "", bool Retired = false,
+        /// <summary>Разрешена обычная покупка через витрину.</summary>
+        bool Purchasable = true,
+        /// <summary>Разрешена обычная продажа экземпляра.</summary>
+        bool Sellable = true,
         /// <summary>Слоты улучшений по таблице книги; null — книжного значения у записи нет.</summary>
         int? Hp = null,
         /// <summary>Влияние предмета на проверки навыков (ROT-ARM-01).</summary>
@@ -73,6 +78,7 @@ public static class ItemCatalog
                 : [GameSystem.GenesysCore, GameSystem.RealmsOfTerrinoth];
 
             var kind = ParseKind(e.Kind);
+            var shard = RuneboundShardRules.IsShard(e.Code);
 
             foreach (var sys in systems)
                 yield return new ItemDef
@@ -88,8 +94,12 @@ public static class ItemCatalog
                     MeleeDefense = e.Def,
                     RangedDefense = e.Rdef,
                     EncumbranceThresholdBonus = e.EncBonus,
-                    Price = e.Price,
-                    Rarity = e.Rarity,
+                    // У runebound shards в книге нет цены и редкости. Старые 0/1 были
+                    // ошибочной подменой отсутствующего значения и делали реликвию бесплатной.
+                    Price = shard ? null : e.Price,
+                    Rarity = shard ? null : e.Rarity,
+                    Purchasable = !shard && e.Purchasable,
+                    Sellable = !shard && e.Sellable,
                     SafeDescription = e.Desc,
                     DescriptionEn = e.DescEn,
                     Source = e.Source,

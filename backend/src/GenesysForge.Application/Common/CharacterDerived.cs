@@ -109,7 +109,8 @@ public static class CharacterDerived
                 && i.Id != exceptItemId)
             .Select(i => new EquippedItemInput(
                 i.Id, i.ItemDef!.Kind, i.ItemDef.FormTraits, i.ItemDef.Name,
-                ImplementRules.IsImplement(i.ItemDef.Code)))];
+                ImplementRules.IsImplement(i.ItemDef.Code)
+                || RuneboundShardRules.IsShard(i.ItemDef.Code)))];
 
     /// <summary>
     /// Базовая защита от видовых способностей, действующих для этого персонажа (Nimble).

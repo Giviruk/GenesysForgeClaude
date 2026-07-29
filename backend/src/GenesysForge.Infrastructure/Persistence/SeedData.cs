@@ -110,7 +110,9 @@ public static class SeedData
                 row.DescriptionEn != def.DescriptionEn || row.SafeDescription != def.SafeDescription
                 || row.Retired != def.Retired || row.HardPoints != def.HardPoints
                 || row.MeleeDefense != def.MeleeDefense || row.RangedDefense != def.RangedDefense
-                || row.FormTraits != def.FormTraits
+                || row.FormTraits != def.FormTraits || row.Price != def.Price
+                || row.Rarity != def.Rarity || row.Purchasable != def.Purchasable
+                || row.Sellable != def.Sellable
                 || !CheckModifiersMatch(row, def) || !AttackProfilesMatch(row, def),
                 () =>
                 {
@@ -118,6 +120,8 @@ public static class SeedData
                     row.Retired = def.Retired;
                     row.HardPoints = def.HardPoints;
                     row.FormTraits = def.FormTraits;
+                    row.Price = def.Price; row.Rarity = def.Rarity;
+                    row.Purchasable = def.Purchasable; row.Sellable = def.Sellable;
                     // Колонки защиты у оружия обнулены: щит даёт защиту качествами (ROT-WPN-01),
                     // и без синхронизации старая строка считалась бы дважды.
                     row.MeleeDefense = def.MeleeDefense; row.RangedDefense = def.RangedDefense;

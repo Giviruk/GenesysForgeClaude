@@ -53,9 +53,20 @@ public record ItemImplementDto(
     IReadOnlyList<string> ChosenEffects,
     bool Pending);
 
+/// <summary>
+/// Runebound shard на листе. Паспорт общий для каталога, а configuration принадлежит конкретному
+/// экземпляру Lesser Rune.
+/// </summary>
+public record ItemRuneboundShardDto(
+    RuneboundShardSpecDto Spec,
+    string ActivationChoice,
+    string EffectAction,
+    string EffectChoice,
+    bool Pending);
+
 public record CharacterItemDto(Guid Id, Guid ItemDefId, string Name, string NameRu, ItemKind Kind, ItemState State, int Quantity,
     int Encumbrance, int SoakBonus, int MeleeDefense, int RangedDefense, int EncumbranceThresholdBonus, int Load,
-    string Description, int Price, string SkillName, string Damage, string Crit, string RangeBand, string Properties,
+    string Description, int? Price, string SkillName, string Damage, string Crit, string RangeBand, string Properties,
     string DescriptionEn = "",
     /// <summary>
     /// Позиция выбрана активной бронёй (ROT-CMB-02): только она даёт защиту и поглощение.
@@ -84,7 +95,7 @@ public record CharacterItemDto(Guid Id, Guid ItemDefId, string Name, string Name
     /// </summary>
     WeaponCraftsmanship Craftsmanship = WeaponCraftsmanship.Steel,
     /// <summary>Редкость экземпляра: Ancient задаёт ровно десять, остальные типы сдвигают каталожную.</summary>
-    int Rarity = 0,
+    int? Rarity = null,
     /// <summary>
     /// Экземпляр укреплён (Ancient): броня не поддаётся Pierce/Breach, а сам предмет — Sunder.
     /// </summary>
@@ -122,4 +133,7 @@ public record CharacterItemDto(Guid Id, Guid ItemDefId, string Name, string Name
     /// <summary>
     /// Магический инструмент (ROT-MAG-IMP-01); <c>null</c> — запись инструментом не является.
     /// </summary>
-    ItemImplementDto? Implement = null);
+    ItemImplementDto? Implement = null,
+    /// <summary>Runebound shard instance; <c>null</c> у обычного предмета.</summary>
+    ItemRuneboundShardDto? Shard = null,
+    bool Sellable = true);

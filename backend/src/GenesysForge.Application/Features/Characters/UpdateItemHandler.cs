@@ -14,6 +14,12 @@ public class UpdateItemHandler(IAppDbContext db) : ICommandHandler<UpdateItemCom
         var item = c.Items.FirstOrDefault(i => i.Id == command.ItemId)
             ?? throw new DomainRuleException("Предмет не найден в инвентаре.");
         if (req.Quantity is < 1) throw new DomainRuleException("Количество должно быть не меньше 1.");
+        if (req.Quantity is not null
+            && RuneboundShardRules.IsShard(item.ItemDef?.Code)
+            && req.Quantity != 1)
+            throw new DomainRuleException(
+                "Runebound shard хранится отдельным экземпляром.",
+                "shard.quantity_one");
 
         // Начало использования проверяется до изменения состояния: больше одной брони не носят,
         // а двуручное оружие занимает обе руки (ROT-EQP-01).
@@ -21,7 +27,8 @@ public class UpdateItemHandler(IAppDbContext db) : ICommandHandler<UpdateItemCom
             EquipmentSlotRules.EnsureCanEquip(
                 item.ItemDef.Kind, item.ItemDef.FormTraits,
                 CharacterDerived.EquippedInputs(c, item.Id),
-                ImplementRules.IsImplement(item.ItemDef.Code));
+                ImplementRules.IsImplement(item.ItemDef.Code)
+                || RuneboundShardRules.IsShard(item.ItemDef.Code));
 
         if (req.State is not null) item.State = req.State.Value;
         // Снятая броня перестаёт быть активной; надетая ею становится — она единственная (ROT-CMB-02).
