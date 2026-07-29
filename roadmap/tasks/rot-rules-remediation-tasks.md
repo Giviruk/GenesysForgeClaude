@@ -1386,6 +1386,13 @@ raw value сверх cap; contributions сверх cap сохраняются, �
 
 ### ROT-EQP-01. Нагрузка, перегруз и сокрытие
 
+> **Финальное решение по объёму (2026-07-30): выполнено.** Текущая реализация перегруза,
+> агрегации предметов с нулевым Encumbrance и лимитов используемого снаряжения принята владельцем
+> как достаточная. Typed holder/placement для Container/Mount/Wagon, отдельная
+> `zeroEncStorageMode`, автоматический concealment builder и связанная миграция не считаются
+> незавершённой работой `ROT-EQP-01`. Требования ниже сохраняются как архив аудита. Отдельный
+> раздел транспорта остаётся в `ROT-TRANSPORT-01`.
+
 ```text
 threshold = 5 + current Brawn + applicable threshold bonuses
 overload  = max(0, load - threshold)
