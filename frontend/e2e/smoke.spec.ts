@@ -250,8 +250,8 @@ test.describe('U-29 smoke E2E', () => {
     const { id } = await createCharacter(request, user.token, characterName, 'realmsOfTerrinoth')
 
     const exported = await apiGet<CharacterExport>(request, user.token, `/api/characters/${id}/export`)
-    // v2 добавила зафиксированные пороги, режим стартового снаряжения и параметры героики (ROT-CRE-02).
-    expect(exported.format).toBe('genesysforge.character.v2')
+    // v3 сохраняет instance-конфигурацию рунических осколков (ROT-MAG-11).
+    expect(exported.format).toBe('genesysforge.character.v3')
     const imported = await apiPost<ImportResult>(request, user.token, '/api/characters/import', exported)
     await openAs(page, user.token, `/characters/${imported.characterId}`)
     await expect(page.getByText(characterName).first()).toBeVisible()

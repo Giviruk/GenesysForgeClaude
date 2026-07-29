@@ -34,6 +34,7 @@
 - [x] Проверить миграцию на непустой БД.
 - [x] Выполнить copyright-проверку seed/справочников.
 - [x] Запустить backend tests, frontend lint/test/build и E2E smoke.
+- [x] Обновить E2E-контракт экспорта персонажа с v2 до v3.
 - [x] Открыть PR.
 
 ## Что осталось / блокеры
@@ -52,5 +53,4 @@
   `Quantity=3` превратилась в три строки `Quantity=1`, исходный ID сохранён,
   суммарное количество не изменилось.
 - Проверки: backend 633 domain + 679 API; frontend 202 Vitest, lint и production build.
-  E2E smoke покрыт API/UI интеграционными тестами; отдельного браузерного E2E suite для
-  этого маршрута `Not found in current codebase`.
+  Playwright E2E smoke: 5/5, включая экспорт/импорт персонажа в формате v3.
