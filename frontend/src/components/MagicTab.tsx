@@ -23,6 +23,7 @@ export function MagicTab({ sheet, onError, refresh }: {
   const magicSkills = useMemo<MagicSkillPool[]>(
     () => sheet.skills.filter(s => s.kind === 'magic').map(s => ({
       name: s.name, pool: s.pool, ranks: s.ranks, isCareer: s.isCareer,
+      setbackDice: s.setbackDice, boostDice: s.boostDice,
     })),
     [sheet.skills])
 

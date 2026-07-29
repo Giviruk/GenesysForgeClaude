@@ -16,12 +16,15 @@ import { PrintPreview } from './print/PrintPreview'
 import { MagicActionCard, type MagicCardData } from './print/cards'
 import { magicMarkdown } from './print/markdown'
 import { t } from '../i18n'
+import { useDiceRoller } from '../dice-roller-store'
 
 export interface MagicSkillPool {
   name: string
   pool: DicePool
   ranks: number
   isCareer: boolean
+  setbackDice: number
+  boostDice: number
 }
 
 /** Магический инструмент персонажа, доступный сборщику: только то, что в руках. */
@@ -71,6 +74,7 @@ export function MagicBuilder({
   system, characterSkills, knowledgeRating, implements: tools, shards,
   onConfigureImplement, onConfigureLesserRune, onError,
 }: Props) {
+  const { openRoller } = useDiceRoller()
   // Инструмент выбирается явно: на одну магическую проверку работает ровно один, и складывать
   // посох с палочкой правила не дают.
   const [implementItemId, setImplementItemId] = useState('')
@@ -243,7 +247,14 @@ export function MagicBuilder({
   const ratingMatters = additional.some(a => a.usesKnowledgeRating)
 
   // Пул кубов персонажа для выбранного направления (если передан лист).
-  const charPool = characterSkills?.find(s => s.name === activeSkill)?.pool ?? null
+  const activeCharacterSkill = characterSkills?.find(s => s.name === activeSkill) ?? null
+  const charPool = activeCharacterSkill?.pool ?? null
+  const rollLabel = selectedEffect
+    ? t(
+        `${magicSkillLabel(activeSkill)} · ${selectedEffect.nameRu}`,
+        `${magicSkillLabel(activeSkill)} · ${selectedEffect.nameEn}`,
+      )
+    : magicSkillLabel(activeSkill)
 
   // Снять эффект можно всегда; добавить — только доступный направлению, сочетаемый с уже
   // выбранными и не выводящий сложность за потолок 5.
@@ -349,7 +360,10 @@ export function MagicBuilder({
         </div>
         {charPool && (
           <div className="muted small-text">
-            {t(`Ваш пул для «${magicSkillLabel(activeSkill)}»:`, `Your pool for “${magicSkillLabel(activeSkill)}”:`)} <DicePoolView pool={charPool} boost={toolBoost} />
+            {t(`Ваш пул для «${magicSkillLabel(activeSkill)}»:`, `Your pool for “${magicSkillLabel(activeSkill)}”:`)} <DicePoolView
+              pool={charPool}
+              boost={(activeCharacterSkill?.boostDice ?? 0) + toolBoost}
+              setback={activeCharacterSkill?.setbackDice ?? 0} />
           </div>
         )}
         {/* Откуда берётся рейтинг свойств (ROT-MAG-10). Выбор показывается только тогда, когда он
@@ -563,6 +577,24 @@ export function MagicBuilder({
           <div className="muted small-text">{t('Источник:', 'Source:')} {selectedEffect.source}</div>
           {!shardBuildInvalid && (
             <div className="card-actions">
+              {activeCharacterSkill && (
+                <button type="button" className="primary small"
+                  title={t('Бросить рассчитанный пул магического действия', 'Roll the calculated magic-action pool')}
+                  onClick={() => openRoller({
+                    kind: 'roll',
+                    title: t('Магическая проверка', 'Magic check'),
+                    label: rollLabel,
+                    initialPool: {
+                      ability: activeCharacterSkill.pool.ability,
+                      proficiency: activeCharacterSkill.pool.proficiency,
+                      difficulty: totalDifficulty,
+                      boost: activeCharacterSkill.boostDice + toolBoost,
+                      setback: activeCharacterSkill.setbackDice,
+                    },
+                  })}>
+                  {t('🎲 Бросить', '🎲 Roll')}
+                </button>
+              )}
               <CopyButton key={buildText()} text={buildText()} onError={onError} />
               <button className="small" onClick={() => setPrinting(true)}>{t('🖨 Печать карточки', '🖨 Print card')}</button>
             </div>

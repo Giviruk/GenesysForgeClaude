@@ -5,10 +5,16 @@ import { parseDifficulty } from '../utils/labels'
 import { api } from '../api/client'
 import { MagicBuilder } from './MagicBuilder'
 
+const { openRollerMock } = vi.hoisted(() => ({ openRollerMock: vi.fn() }))
+
 vi.mock('../api/client', () => ({
   api: {
     spells: vi.fn(),
   },
+}))
+
+vi.mock('../dice-roller-store', () => ({
+  useDiceRoller: () => ({ openRoller: openRollerMock }),
 }))
 
 const spell = (over: Partial<Spell>): Spell => {
@@ -217,5 +223,87 @@ describe('MagicBuilder — рейтинг по Знанию', () => {
 
     expect(screen.queryByText(/Рейтинг свойств/)).toBeNull()
     expect(screen.getByRole('button', { name: /Огненный/ }).textContent).not.toContain('Жжение')
+  })
+})
+
+describe('MagicBuilder — дайсроллер', () => {
+  const rollerSpells: Spell[] = [
+    spell({
+      id: 'attack', magicSkill: 'Arcana', nameRu: 'Атака', nameEn: 'Attack',
+      difficulty: '2 (Average)', allowedSkills: ['Arcana'],
+    }),
+    spell({
+      id: 'range', kind: 'additionalEffect', parentEffect: 'Attack',
+      nameRu: 'Дистанционный', nameEn: 'Range', difficulty: '+1',
+      allowedSkills: ['Arcana'],
+    }),
+  ]
+
+  beforeEach(() => {
+    vi.clearAllMocks()
+    vi.mocked(api.spells).mockResolvedValue(rollerSpells)
+  })
+
+  it('открывает общий роллер с пулом навыка, итоговой сложностью и модификаторами', async () => {
+    render(<MagicBuilder system="realmsOfTerrinoth" onError={() => {}}
+      characterSkills={[{
+        name: 'Arcana',
+        pool: { ability: 1, proficiency: 2 },
+        ranks: 2,
+        isCareer: true,
+        setbackDice: 1,
+        boostDice: 2,
+      }]}
+      implements={[{
+        itemId: 'scepter',
+        name: 'Скипетр',
+        implement: {
+          code: 'scepter',
+          attackDamageBonus: 0,
+          boostDice: 1,
+          requiredMagicSkill: '',
+          discount: 'none',
+          discountEffects: [],
+          choiceCount: 0,
+          choiceMaxIncreaseSum: null,
+          choiceExactIncrease: null,
+          material: 'oak',
+          chosenEffects: [],
+          pending: false,
+        },
+      }]} />)
+    await screen.findByText(/Сложность: 2/)
+
+    fireEvent.change(screen.getByLabelText('Инструмент'), { target: { value: 'scepter' } })
+    fireEvent.click(screen.getByRole('button', { name: /Дистанционный \+1/ }))
+    fireEvent.click(screen.getByRole('button', { name: '🎲 Бросить' }))
+
+    expect(openRollerMock).toHaveBeenCalledWith({
+      kind: 'roll',
+      title: 'Магическая проверка',
+      label: 'Тайная (Arcana) · Атака',
+      initialPool: {
+        ability: 1,
+        proficiency: 2,
+        difficulty: 3,
+        boost: 3,
+        setback: 1,
+      },
+    })
+  })
+
+  it('не предлагает бросок для Runes без выбранного runebound shard', async () => {
+    vi.mocked(api.spells).mockResolvedValue(spells)
+    render(<MagicBuilder system="realmsOfTerrinoth" onError={() => {}} characterSkills={[{
+      name: 'Runes',
+      pool: { ability: 2, proficiency: 1 },
+      ranks: 1,
+      isCareer: true,
+      setbackDice: 0,
+      boostDice: 0,
+    }]} />)
+
+    await screen.findByText(/Сборка недействительна/)
+    expect(screen.queryByRole('button', { name: '🎲 Бросить' })).toBeNull()
   })
 })
