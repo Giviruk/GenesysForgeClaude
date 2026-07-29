@@ -101,6 +101,122 @@ public class SpellTests : IClassFixture<ApiFactory>
         Assert.Contains(additional, m => m.ParentEffect == "Attack");
     }
 
+    // ── ROT-MAG-01: доступность приходит с сервера полем, а не собирается клиентом ──
+
+    [Fact]
+    public async Task EveryEntry_CarriesItsAllowedSkills()
+    {
+        var client = await _factory.CreateAuthorizedClientAsync();
+        var spells = (await client.GetFromJsonAsync<List<SpellDto>>("/api/spells/RealmsOfTerrinoth", Json.Options))!;
+
+        Assert.All(spells, s =>
+        {
+            Assert.NotNull(s.AllowedSkills);
+            Assert.NotEmpty(s.AllowedSkills!);
+            // У базовой записи собственное направление обязано входить в её же список доступности.
+            if (s.Kind == SpellEntryKind.Effect) Assert.Contains(s.MagicSkill, s.AllowedSkills!);
+        });
+    }
+
+    [Fact]
+    public async Task AdditionalEffect_InheritsAvailabilityOfItsAction_AndItsOwnRestriction()
+    {
+        var client = await _factory.CreateAuthorizedClientAsync();
+        var spells = (await client.GetFromJsonAsync<List<SpellDto>>("/api/spells/RealmsOfTerrinoth", Json.Options))!;
+
+        SpellDto Effect(string parent, string code) => spells.Single(s =>
+            s.Kind == SpellEntryKind.AdditionalEffect && s.ParentEffect == parent && s.NameEn == code);
+
+        // «Рок» — только Магия, хотя само Проклятье доступно ещё трём направлениям.
+        Assert.Equal(["Arcana"], Effect("Curse", "Doom").AllowedSkills);
+        Assert.Equal("Arcana", Effect("Curse", "Doom").RestrictedSkill);
+        // «Неудача» ограничений не имеет и наследует всю строку Проклятья.
+        Assert.Equal(["Arcana", "Divine", "Runes", "Verse"], Effect("Curse", "Misfortune").AllowedSkills);
+        Assert.Equal("", Effect("Curse", "Misfortune").RestrictedSkill);
+    }
+
+    [Fact]
+    public async Task GenesysCore_NeverMentionsTerrinothSkillsInAvailability()
+    {
+        var client = await _factory.CreateAuthorizedClientAsync();
+        var spells = (await client.GetFromJsonAsync<List<SpellDto>>("/api/spells/GenesysCore", Json.Options))!;
+
+        // Строка матрицы сужается до навыков системы: в Core Рун и Песни нет вообще.
+        Assert.All(spells, s => Assert.DoesNotContain(s.AllowedSkills!,
+            skill => skill is "Runes" or "Verse"));
+        Assert.Equal(["Arcana", "Divine", "Primal"],
+            spells.Single(s => s.Kind == SpellEntryKind.Effect && s.NameEn == "Utility"
+                && s.MagicSkill == "Arcana").AllowedSkills);
+    }
+
+    [Fact]
+    public async Task EpgEntries_AreMarkedOptional_AndRotEntriesAreNot()
+    {
+        var client = await _factory.CreateAuthorizedClientAsync();
+        var spells = (await client.GetFromJsonAsync<List<SpellDto>>("/api/spells/RealmsOfTerrinoth", Json.Options))!;
+
+        foreach (var epg in new[] { "Mask", "Predict", "Transform" })
+        {
+            Assert.All(spells.Where(s => s.Kind == SpellEntryKind.Effect && s.NameEn == epg),
+                s => Assert.True(s.IsOptional));
+            // Пометка спускается и на дополнительные эффекты опционального действия.
+            Assert.All(spells.Where(s => s.ParentEffect == epg), s => Assert.True(s.IsOptional));
+        }
+
+        Assert.All(spells.Where(s => s.ParentEffect == "Attack" || s.NameEn == "Attack"),
+            s => Assert.False(s.IsOptional));
+    }
+
+    [Fact]
+    public async Task RestrictionsAndConflicts_LiveInFields_NotInDescriptions()
+    {
+        var client = await _factory.CreateAuthorizedClientAsync();
+        var spells = (await client.GetFromJsonAsync<List<SpellDto>>("/api/spells/RealmsOfTerrinoth", Json.Options))!;
+
+        SpellDto Effect(string parent, string code) => spells.Single(s =>
+            s.Kind == SpellEntryKind.AdditionalEffect && s.ParentEffect == parent && s.NameEn == code);
+
+        Assert.Contains("Additional Target", Effect("Curse", "Despair").Exclusions!);
+        Assert.Contains("Additional Target", Effect("Curse", "Paralyzed").Exclusions!);
+        Assert.Contains("Despair", Effect("Curse", "Additional Target").Exclusions!);
+
+        // Ни ограничение по навыку, ни несочетаемость больше не дублируются текстом описания.
+        Assert.All(spells, s =>
+        {
+            Assert.DoesNotContain("Только Вера", s.Description);
+            Assert.DoesNotContain("Только Магия", s.Description);
+            Assert.DoesNotContain("Только Природа", s.Description);
+            Assert.DoesNotContain("Нельзя сочетать", s.Description);
+            Assert.DoesNotContain("только Divine", s.SafeDescription);
+            Assert.DoesNotContain("Divine only", s.DescriptionEn);
+        });
+    }
+
+    [Fact]
+    public async Task DifficultyIncrease_MatchesThePrintedString()
+    {
+        var client = await _factory.CreateAuthorizedClientAsync();
+        var spells = (await client.GetFromJsonAsync<List<SpellDto>>("/api/spells/RealmsOfTerrinoth", Json.Options))!;
+
+        var attack = spells.First(s => s.Kind == SpellEntryKind.Effect && s.NameEn == "Attack");
+        Assert.Equal("1 (Easy)", attack.Difficulty);
+        Assert.Equal(1, attack.DifficultyIncrease);
+
+        var empowered = spells.Single(s => s.ParentEffect == "Attack" && s.NameEn == "Empowered");
+        Assert.Equal("+2", empowered.Difficulty);
+        Assert.Equal(2, empowered.DifficultyIncrease);
+    }
+
+    [Fact]
+    public async Task MoveEffect_IsGone_ItsSurvivingTwinIsManipulative()
+    {
+        var client = await _factory.CreateAuthorizedClientAsync();
+        var spells = (await client.GetFromJsonAsync<List<SpellDto>>("/api/spells/RealmsOfTerrinoth", Json.Options))!;
+
+        Assert.DoesNotContain(spells, s => s.ParentEffect == "Attack" && s.NameEn == "Move");
+        Assert.Contains(spells, s => s.ParentEffect == "Attack" && s.NameEn == "Manipulative");
+    }
+
     [Fact]
     public async Task Spells_HaveRussianNames_SafeDescription_AndSource()
     {

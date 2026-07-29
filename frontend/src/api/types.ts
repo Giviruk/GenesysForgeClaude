@@ -327,7 +327,25 @@ export interface Spell {
    * Дистанция удлиняет дальность на категорию за раз, Размер — силуэт.
    */
   repeatable: boolean
+  /**
+   * Направления, которым доступна запись (ROT-MAG-01). Матрицу доступности клиент не собирает
+   * сам — иначе она разъедется с серверной.
+   */
+  allowedSkills: string[]
+  /** Число из difficulty: базовая сложность действия или надбавка эффекта. */
+  difficultyIncrease: number
+  /** Коды эффектов, вместе с которыми этот выбрать нельзя. */
+  exclusions: string[]
+  /** Как эффект применяется: сразу, свойством, активацией преимуществ, очком сюжета. */
+  resolution: SpellResolution
+  /** Запись из опциональной книги (Expanded Player's Guide). */
+  isOptional: boolean
 }
+
+/** Как применяется запись справочника магии (ROT-MAG-01). */
+export type SpellResolution =
+  | 'onSuccess' | 'passiveQuality' | 'activatedQuality' | 'advantageSpend'
+  | 'storyPoint' | 'narrative' | 'parameter'
 
 export type ArchetypeAbilityAutomationKind = 'passive' | 'activationCost' | 'timedEffect' | 'manual' | 'requiresGmDecision'
 

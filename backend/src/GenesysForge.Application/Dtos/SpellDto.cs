@@ -14,4 +14,17 @@ public record SpellDto(Guid Id, string MagicSkill, SpellEntryKind Kind, string P
     /// Эффект можно добавлять к одному заклинанию несколько раз, каждый раз повышая сложность
     /// (Дистанция, Размер, Увеличение силуэта).
     /// </summary>
-    bool Repeatable = false);
+    bool Repeatable = false,
+    /// <summary>
+    /// Направления, которым доступна запись (ROT-MAG-01). Клиент фильтрует по этому списку и не
+    /// собирает матрицу доступности сам — иначе две реализации разъедутся.
+    /// </summary>
+    IReadOnlyList<string>? AllowedSkills = null,
+    /// <summary>Число из <see cref="Difficulty"/>: базовая сложность или надбавка эффекта.</summary>
+    int DifficultyIncrease = 0,
+    /// <summary>Коды эффектов, вместе с которыми этот выбрать нельзя.</summary>
+    IReadOnlyList<string>? Exclusions = null,
+    /// <summary>Как эффект применяется: сразу, свойством, активацией преимуществ, очком сюжета.</summary>
+    SpellResolutionKind Resolution = SpellResolutionKind.OnSuccess,
+    /// <summary>Запись из опциональной книги (Expanded Player's Guide).</summary>
+    bool IsOptional = false);

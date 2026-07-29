@@ -3,6 +3,7 @@ import { describe, expect, it, vi, beforeEach } from 'vitest'
 import type { CharacterSheet, ItemImplement, Spell } from '../api/types'
 import { MagicTab } from './MagicTab'
 import { implementPrice, implementRarity } from '../utils/implements'
+import { parseDifficulty } from '../utils/labels'
 
 const spellsMock = vi.fn()
 const configureMock = vi.fn()
@@ -13,11 +14,17 @@ vi.mock('../api/client', () => ({
   },
 }))
 
-const spell = (over: Partial<Spell>): Spell => ({
-  id: Math.random().toString(36), magicSkill: '', kind: 'effect', parentEffect: '',
-  nameRu: '', nameEn: '', difficulty: '', description: '', safeDescription: '',
-  source: '', isCustom: false, restrictedSkill: '', repeatable: false, ...over,
-})
+const spell = (over: Partial<Spell>): Spell => {
+  const base: Spell = {
+    id: Math.random().toString(36), magicSkill: '', kind: 'effect', parentEffect: '',
+    nameRu: '', nameEn: '', difficulty: '', description: '', safeDescription: '',
+    source: '', isCustom: false, restrictedSkill: '', repeatable: false,
+    allowedSkills: [], difficultyIncrease: 0, exclusions: [],
+    resolution: 'onSuccess', isOptional: false, ...over,
+  }
+  // Надбавка приходит полем; в фикстуре она выводится из печатной строки.
+  return { ...base, difficultyIncrease: over.difficultyIncrease ?? parseDifficulty(base.difficulty) }
+}
 
 const SPELLS: Spell[] = [
   spell({ id: 'attack', magicSkill: 'Arcana', kind: 'effect', nameRu: 'Атака', nameEn: 'Attack', difficulty: '1 (Easy)' }),

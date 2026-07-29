@@ -10,6 +10,16 @@ once it reaches a tagged 1.0 release. The project is currently pre-1.0; the
 ## [Unreleased]
 
 ### Fixed
+- Magic builder now honours **which school may take which additional effect**
+  (ROT-MAG-01). Previously any effect of the chosen action could be added by any
+  school — a Divine caster could pick `Doom` or `Manipulative`, which the rules
+  reserve for Arcana. Restricted effects are shown blocked, with the reason, and
+  no longer count towards the difficulty after switching schools.
+- `Despair` and `Paralyzed` can no longer be combined with `Additional Target`
+  under `Curse`; the restriction used to be a sentence at the end of the
+  description that nothing enforced.
+- Removed the duplicate `Attack/Move` reference entry (same text and restriction
+  as `Manipulative`). Implements configured with it are migrated automatically.
 - NPC quick-draft generator now grants **talents** automatically per the adversary
   creation rules: the **Adversary** talent (Nemesis 1–2 by power level; combat
   Rival 1), role-specific talents, and a signature per-round ability for Nemeses.
@@ -17,6 +27,14 @@ once it reaches a tagged 1.0 release. The project is currently pre-1.0; the
   Nemesis had no `Adversary` talent.
 
 ### Added
+- Magic reference now shows the **8×5 availability matrix** (action × school) and
+  explains unavailability instead of silently hiding it, plus per-effect columns
+  for who may take an effect, what it cannot be combined with and whether it is
+  repeatable. Expanded Player's Guide entries (`Mask`, `Predict`, `Transform`)
+  are marked as optional content.
+- Structural rule fields on magic entries (`AllowedSkills`, `DifficultyIncrease`,
+  `Exclusions`, `Resolution`, `IsOptional`), fed by a single domain matrix
+  (`MagicMatrix`) instead of being parsed out of descriptions.
 - `LICENSE` (Apache-2.0) covering the project source code.
 - `NOTICE` with the content & trademark disclaimer (independent fan project,
   not affiliated with Fantasy Flight Games; no official book text included).

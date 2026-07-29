@@ -53,6 +53,19 @@ export function SpellsTab({ system, onError }: Props) {
     () => spells?.filter(s => s.kind === 'additionalEffect' && s.parentEffect === activeEffectCode) ?? [],
     [spells, activeEffectCode])
 
+  // Матрица доступности: строка на действие, столбец на направление. Справочник обязан объяснять
+  // и недоступность тоже — иначе непонятно, потерялось действие или его тут не бывает (ROT-MAG-01).
+  const matrix = useMemo(() => {
+    const actions = new Map<string, { nameRu: string; nameEn: string; skills: string[]; optional: boolean }>()
+    for (const s of spells ?? []) {
+      if (s.kind !== 'effect' || actions.has(s.nameEn)) continue
+      actions.set(s.nameEn, {
+        nameRu: s.nameRu, nameEn: s.nameEn, skills: s.allowedSkills, optional: s.isOptional,
+      })
+    }
+    return [...actions.values()]
+  }, [spells])
+
   if (spells === null) return <p className="muted">{t('Загрузка…', 'Loading…')}</p>
 
   return (
@@ -90,9 +103,54 @@ export function SpellsTab({ system, onError }: Props) {
             <span className="difficulty-badge">{t('Сложность:', 'Difficulty:')} {selectedEffect.difficulty}</span>
           </div>
           <p>{localizedDescription(selectedEffect)}</p>
+          <div className="muted small-text">
+            {t('Доступно направлениям:', 'Available to:')}{' '}
+            {selectedEffect.allowedSkills.map(magicSkillLabel).join(', ')}
+            {selectedEffect.isOptional
+              && t(' · опциональные правила (EPG)', ' · optional rules (EPG)')}
+          </div>
           <div className="muted small-text">{t('Источник:', 'Source:')} {selectedEffect.source}</div>
         </section>
       )}
+
+      {/* Вся матрица целиком: направление умеет действие или нет — и то и другое видно сразу. */}
+      <section className="panel">
+        <h3>{t('Доступность действий по направлениям', 'Action availability by school')}</h3>
+        <div className="table-wrap">
+          <table className="skills">
+            <thead>
+              <tr>
+                <th>{t('Действие', 'Action')}</th>
+                {skills.map(s => <th key={s} className="nowrap">{magicSkillLabel(s)}</th>)}
+              </tr>
+            </thead>
+            <tbody>
+              {matrix.map(a => (
+                <tr key={a.nameEn} className={a.nameEn === activeEffectCode ? 'active-row' : undefined}>
+                  <td>
+                    <strong>{t(a.nameRu, a.nameEn)}</strong>
+                    <div className="muted small-text">
+                      {t(a.nameEn, a.nameRu)}{a.optional && ' · EPG'}
+                    </div>
+                  </td>
+                  {skills.map(s => (
+                    <td key={s} className="nowrap"
+                      aria-label={a.skills.includes(s)
+                        ? t(`${magicSkillLabel(s)}: доступно`, `${magicSkillLabel(s)}: available`)
+                        : t(`${magicSkillLabel(s)}: недоступно`, `${magicSkillLabel(s)}: unavailable`)}>
+                      {a.skills.includes(s) ? '✓' : <span className="muted">—</span>}
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <p className="muted small-text">
+          {t('Прочерк — направление такого действия не умеет; это правило книги, а не пропуск в справочнике.',
+            'A dash means the school cannot perform that action — that is the rule, not a gap in the reference.')}
+        </p>
+      </section>
 
       <section className="panel">
         <h3>{t('Дополнительные эффекты', 'Additional effects')} {additional.length ? `(${additional.length})` : ''}</h3>
@@ -105,6 +163,7 @@ export function SpellsTab({ system, onError }: Props) {
                   <tr>
                     <th>{t('Название', 'Name')}</th>
                     <th>{t('Сложность (+)', 'Difficulty (+)')}</th>
+                    <th>{t('Кому доступен', 'Available to')}</th>
                     <th>{t('Описание', 'Description')}</th>
                     <th>{t('Источник', 'Source')}</th>
                   </tr>
@@ -117,6 +176,23 @@ export function SpellsTab({ system, onError }: Props) {
                         <div className="muted small-text">{t(m.nameEn, m.nameRu)}{m.isCustom && t(' · кастом', ' · custom')}</div>
                       </td>
                       <td className="nowrap">{m.difficulty}</td>
+                      {/* Ограничение по направлению и несочетаемость — отдельная колонка, а не
+                          оговорка в конце описания (ROT-MAG-01). */}
+                      <td>
+                        {m.allowedSkills.map(magicSkillLabel).join(', ')}
+                        {m.exclusions.length > 0 && (
+                          <div className="muted small-text">
+                            {t('не сочетается с', 'not combinable with')}{' '}
+                            {m.exclusions.map(code => t(
+                              additional.find(x => x.nameEn === code)?.nameRu || code, code)).join(', ')}
+                          </div>
+                        )}
+                        {m.repeatable && (
+                          <div className="muted small-text">
+                            {t('можно добавлять несколько раз', 'can be added several times')}
+                          </div>
+                        )}
+                      </td>
                       <td>{localizedDescription(m)}</td>
                       <td className="muted small-text">{m.source}</td>
                     </tr>
