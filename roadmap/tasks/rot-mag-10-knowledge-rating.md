@@ -4,7 +4,7 @@
   (см. [rot-rules-remediation-tasks.md](rot-rules-remediation-tasks.md))
 - **Ветка:** `claude/rot-mag-10-knowledge-rating`
 - **Базовая ветка:** `claude/rot-mag-04-haste-swift` (стек поверх PR #122)
-- **PR:** #<номер> (после создания)
+- **PR:** [#123](https://github.com/Giviruk/GenesysForgeClaude/pull/123)
 - **Статус:** 🚧 In progress
 
 ## Контекст
@@ -48,7 +48,7 @@
 - [x] Миграция создана + `docs/database.md` обновлён
 - [x] Copyright-проверка seed/справочников
 - [x] Статус в `rot-rules-remediation-progress.md` обновлён
-- [ ] PR открыт
+- [x] PR открыт
 
 ## Что осталось / блокеры
 
