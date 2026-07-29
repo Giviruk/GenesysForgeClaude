@@ -3,7 +3,7 @@
 - **Roadmap:** ROT-MAG-11 из [rot-rules-remediation-tasks.md](rot-rules-remediation-tasks.md)
 - **Ветка:** `feature/rot-mag-11-runebound-shards`
 - **Базовая ветка:** `master`
-- **PR:** будет указан после создания
+- **PR:** [#125](https://github.com/Giviruk/GenesysForgeClaude/pull/125)
 - **Статус:** 🚧 In progress
 
 ## Контекст
@@ -34,11 +34,11 @@
 - [x] Проверить миграцию на непустой БД.
 - [x] Выполнить copyright-проверку seed/справочников.
 - [x] Запустить backend tests, frontend lint/test/build и E2E smoke.
-- [ ] Открыть PR.
+- [x] Открыть PR.
 
 ## Что осталось / блокеры
 
-Реализация и проверки завершены. Осталось открыть PR.
+Реализация и проверки завершены, PR #125 открыт. Блокеров нет.
 
 ## Заметки / решения
 
