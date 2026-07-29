@@ -2203,6 +2203,12 @@ material, round-trip/content modes. Source: RoT printed pp.98–99; errata autho
 
 ### ROT-EQP-SRC-01. Источники и приоритет
 
+> **Финальное решение по объёму (2026-07-30): выполнено.** Текущие источники записей и
+> действующий приоритет совместимых Core rules, RoT overrides и official errata приняты
+> владельцем как достаточные. Расширение единственной строки источника до отдельных полей
+> `BookCode`, edition/language, printed page range, section, authority и errata version не
+> считается незавершённой работой этого пункта. Требования ниже сохраняются как архив аудита.
+
 Вместо единственной строки хранить BookCode, edition/language, printed page range,
 section, authority (`Core|RoTOverride|OfficialErrata`) и errata version. Display
 генерируется; printed page не вычисляется PDF-offset.
