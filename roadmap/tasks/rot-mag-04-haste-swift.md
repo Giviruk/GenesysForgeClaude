@@ -4,7 +4,7 @@
   (см. [rot-rules-remediation-tasks.md](rot-rules-remediation-tasks.md))
 - **Ветка:** `claude/rot-mag-04-haste-swift`
 - **Базовая ветка:** `claude/rot-runtime-out-of-scope` (стек поверх PR #121 → #120)
-- **PR:** #<номер> (после создания)
+- **PR:** [#122](https://github.com/Giviruk/GenesysForgeClaude/pull/122)
 - **Статус:** 🚧 In progress
 
 ## Контекст
@@ -47,7 +47,7 @@
 - [x] Миграция создана + `docs/database.md` обновлён
 - [x] Copyright-проверка seed/справочников
 - [x] Статус в `rot-rules-remediation-progress.md` обновлён
-- [ ] PR открыт
+- [x] PR открыт
 
 ## Что осталось / блокеры
 
