@@ -3,7 +3,7 @@
 - **Roadmap:** ROT-EQP-01 (см. [rot-rules-remediation-tasks.md](rot-rules-remediation-tasks.md))
 - **Ветка:** `feature/rot-eqp-01-scope`
 - **Базовая ветка:** `master`
-- **PR:** будет добавлен после создания
+- **PR:** [#135](https://github.com/Giviruk/GenesysForgeClaude/pull/135)
 - **Статус:** ✅ Scope complete
 
 ## Контекст
@@ -23,7 +23,7 @@
 - [x] Тесты не требуются: код приложения не менялся.
 - [x] Миграция не требуется: persistent model не менялась.
 - [x] Copyright-проверка не требуется: seed и книжные тексты не менялись.
-- [ ] PR открыт.
+- [x] PR открыт.
 
 ## Что осталось / блокеры
 
