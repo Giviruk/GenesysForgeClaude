@@ -1404,14 +1404,14 @@
    "Fantasy"
   ],
   "activation": "Инцидент",
-  "needsTranslation": true,
+  "needsTranslation": false,
   "wt": 0,
   "st": 0,
   "soak": 0,
   "mdef": 0,
   "rdef": 0,
   "desc": "Когда заклинание добавляет вашему заклинанию свойство, рейтинг которого определяется рангами Знания (предания), персонаж может вместо этого использовать ранги Знания (запретное).",
-  "descEn": "When a spell grants your casting a quality whose rating is based on Knowledge (Lore) ranks, treat your ranks as 1 higher.",
+  "descEn": "When a spell grants your casting a quality whose rating is based on Knowledge (Lore) ranks, the character may use their Knowledge (Forbidden) ranks instead.",
   "activationEn": "Incidental"
  },
  {

@@ -33,6 +33,12 @@ once it reaches a tagged 1.0 release. The project is currently pre-1.0; the
   Nemesis had no `Adversary` talent.
 
 ### Added
+- Spell effects whose rating comes from Knowledge ranks now show the actual number
+  (`Burn 2`, `Pierce 3`) in the builder, the copied card and the printed card, instead
+  of the sentence "equal to the caster's Knowledge ranks". In Realms of Terrinoth the
+  source is `Knowledge (Lore)`; with the **Dark Insight** talent the player picks between
+  Lore and `Knowledge (Forbidden)` per spell, and the sheet reports which sources are
+  available. Qualities without a rating (`Sunder`, `Knockdown`, `Auto-fire`) never get one.
 - Magic reference now shows the **8×5 availability matrix** (action × school) and
   explains unavailability instead of silently hiding it, plus per-effect columns
   for who may take an effect, what it cannot be combined with and whether it is

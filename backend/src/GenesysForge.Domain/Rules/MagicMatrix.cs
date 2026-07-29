@@ -143,6 +143,39 @@ public static class MagicMatrix
         [("Transform", "Curse of the Wild")] = SpellResolutionKind.Parameter,
     };
 
+    /// <summary>
+    /// Эффекты, чьи числа берутся из рангов Знания (ROT-MAG-10). Значение — коды свойств, которые
+    /// получают этот рейтинг; пустой список означает, что по Знанию считается само число эффекта,
+    /// а не рейтинг свойства (раны Ядовитого, защита Добавления защиты, пороги Отчаяния).
+    ///
+    /// Список свойств именно перечисляется, а не выводится из описания: у Разрушительного рейтинг
+    /// получает только Проникающее, а Повреждение — булево свойство, и «Повреждение N» не бывает.
+    /// То же у Ударного: рейтинг у Дезориентации, а Нокдаун рейтинга не имеет.
+    /// </summary>
+    private static readonly Dictionary<(string Action, string Effect), string[]> KnowledgeRated = new()
+    {
+        [("Attack", "Blast")] = ["Blast"],
+        [("Attack", "Ice")] = ["Ensnare"],
+        [("Attack", "Lightning")] = ["Stun"],
+        [("Attack", "Fire")] = ["Burn"],
+        [("Attack", "Deadly")] = ["Vicious"],
+        [("Attack", "Impact")] = ["Disorient"],
+        [("Attack", "Destructive")] = ["Pierce"],
+        [("Attack", "Poisonous")] = [],
+        [("Barrier", "Add Defense")] = [],
+        [("Curse", "Despair")] = [],
+        [("Augment", "Divine Health")] = [],
+        [("Augment", "Primal Fury")] = [],
+    };
+
+    /// <summary>Числа эффекта зависят от рангов Знания.</summary>
+    public static bool UsesKnowledgeRating(string action, string effect) =>
+        KnowledgeRated.ContainsKey((action, effect));
+
+    /// <summary>Свойства, получающие рейтинг по Знанию; пусто — рейтинг не у свойства.</summary>
+    public static IReadOnlyList<string> KnowledgeRatedQualities(string action, string effect) =>
+        KnowledgeRated.TryGetValue((action, effect), out var codes) ? codes : [];
+
     /// <summary>Восемь RoT-действий в порядке таблицы.</summary>
     public static IReadOnlyList<string> NativeActions { get; } =
         [.. ActionSkills.Keys.Where(a => !OptionalActions.Contains(a))];

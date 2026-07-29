@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { api } from '../api/client'
-import type { DicePool, GameSystem, ItemImplement, Spell } from '../api/types'
+import type { DicePool, GameSystem, ItemImplement, KnowledgeRating, Spell } from '../api/types'
 import {
   difficultyLabel, localizedDescription, magicSkillLabel, MAX_SPELL_DIFFICULTY,
 } from '../utils/labels'
@@ -37,6 +37,11 @@ interface Props {
    * поэтому сборщик даёт выбрать его, а не складывает все сразу.
    */
   implements?: BuilderImplement[]
+  /**
+   * Откуда берётся рейтинг эффектов заклинания (ROT-MAG-10). Источники присылает сервер: выбор
+   * между Преданиями и Запретным открывает талант, и решать это на клиенте нельзя.
+   */
+  knowledgeRating?: KnowledgeRating | null
   /** Настройка фолианта и палочки ведущим; без неё выбор эффектов не предлагается. */
   onConfigureImplement?: (itemId: string, effectCodes: string[]) => Promise<void>
   onError: (message: string) => void
@@ -48,7 +53,7 @@ interface Props {
  * Работает поверх того же справочника, что и SpellsTab; персонажа знать не обязательно (режим GM).
  */
 export function MagicBuilder({
-  system, characterSkills, implements: tools, onConfigureImplement, onError,
+  system, characterSkills, knowledgeRating, implements: tools, onConfigureImplement, onError,
 }: Props) {
   // Инструмент выбирается явно: на одну магическую проверку работает ровно один, и складывать
   // посох с палочкой правила не дают.
@@ -59,6 +64,9 @@ export function MagicBuilder({
   // Сколько раз выбран каждый эффект. Дистанцию и Размер книга разрешает добавлять несколько раз,
   // и каждое добавление снова стоит своей надбавки — множеством это не выражается.
   const [counts, setCounts] = useState<Record<string, number>>({})
+  // Навык, по которому считается рейтинг свойств. Выбор есть только у того, кому его дало
+  // правило: без «Тёмного прозрения» сервер присылает один источник (ROT-MAG-10).
+  const [ratingSkill, setRatingSkill] = useState('')
   const [printing, setPrinting] = useState(false)
 
   const reload = useCallback(
@@ -133,6 +141,27 @@ export function MagicBuilder({
     ? activeTool.implement.boostDice
     : 0
 
+  // Источник рейтинга: выбранный игроком либо первый — тот, что называют правила системы.
+  const ratingOptions = knowledgeRating?.options ?? []
+  const activeRating = ratingOptions.find(o => o.skill === ratingSkill) ?? ratingOptions[0] ?? null
+  /** Рейтинг, который получат свойства этого эффекта; null — рейтинг тут ни при чём. */
+  const ratingFor = (effect: Spell) =>
+    effect.usesKnowledgeRating && activeRating ? activeRating.ranks : null
+  /**
+   * Подпись рейтинга: «Жжение 2» у свойств, «по Знанию 2» у эффектов, где по рангам считается
+   * само число (раны Ядовитого, защита Добавления защиты). Ради этого числа игрок и открывает
+   * сборщик за столом — искать его в описании не нужно.
+   */
+  const ratingLabel = (effect: Spell) => {
+    const rating = ratingFor(effect)
+    if (rating == null) return ''
+    return effect.ratedQualities.length > 0
+      ? effect.ratedQualities.map(q => `${t(q.nameRu, q.nameEn)} ${rating}`).join(', ')
+      : t(`по Знанию ${rating}`, `Knowledge ${rating}`)
+  }
+  /** У этого действия есть эффекты, чьи числа зависят от Знания. */
+  const ratingMatters = additional.some(a => a.usesKnowledgeRating)
+
   // Пул кубов персонажа для выбранного направления (если передан лист).
   const charPool = characterSkills?.find(s => s.name === activeSkill)?.pool ?? null
 
@@ -169,9 +198,10 @@ export function MagicBuilder({
       lines.push(t('Доп. эффекты:', 'Additional effects:'))
       for (const a of additional.filter(x => (counts[x.id] ?? 0) > 0)) {
         const times = (counts[a.id] ?? 0) > 1 ? ` ×${counts[a.id]}` : ''
+        const rating = ratingLabel(a) ? ` [${ratingLabel(a)}]` : ''
         lines.push(t(
-          `  • ${a.nameRu} (${a.nameEn}) ${a.difficulty}${times} — ${localizedDescription(a)}`,
-          `  • ${a.nameEn} (${a.nameRu}) ${a.difficulty}${times} — ${localizedDescription(a)}`))
+          `  • ${a.nameRu} (${a.nameEn}) ${a.difficulty}${times}${rating} — ${localizedDescription(a)}`,
+          `  • ${a.nameEn} (${a.nameRu}) ${a.difficulty}${times}${rating} — ${localizedDescription(a)}`))
       }
     }
     const sources = [...new Set([selectedEffect.source, ...chosen.map(a => a.source)].filter(Boolean))]
@@ -188,7 +218,10 @@ export function MagicBuilder({
     effects: additional.filter(a => (counts[a.id] ?? 0) > 0).map(a => ({
       ru: a.nameRu, en: a.nameEn,
       difficulty: (counts[a.id] ?? 0) > 1 ? `${a.difficulty} ×${counts[a.id]}` : a.difficulty,
-      summary: localizedDescription(a),
+      // Рейтинг попадает и на печатную карточку: её берут за стол, где приложения нет.
+      summary: ratingLabel(a)
+        ? `${ratingLabel(a)} — ${localizedDescription(a)}`
+        : localizedDescription(a),
     })),
     description: selectedEffect ? localizedDescription(selectedEffect) : '',
     sources: selectedEffect ? [...new Set([selectedEffect.source, ...chosen.map(a => a.source)].filter(Boolean))] : [],
@@ -236,6 +269,38 @@ export function MagicBuilder({
             {t(`Ваш пул для «${magicSkillLabel(activeSkill)}»:`, `Your pool for “${magicSkillLabel(activeSkill)}”:`)} <DicePoolView pool={charPool} boost={toolBoost} />
           </div>
         )}
+        {/* Откуда берётся рейтинг свойств (ROT-MAG-10). Выбор показывается только тогда, когда он
+            действительно есть: «Тёмное прозрение» разрешает считать по Запретному знанию. */}
+        {activeRating && ratingMatters && (
+          <div className="magic-rating small-text">
+            {ratingOptions.length > 1
+              ? (
+                <>
+                  <label className="inline-label">{t('Рейтинг по навыку', 'Rating from')}
+                    <select value={activeRating.skill} onChange={e => setRatingSkill(e.target.value)}>
+                      {ratingOptions.map(o => (
+                        <option key={o.skill} value={o.skill}>
+                          {t(o.skillRu, o.skill)} · {o.ranks}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <span className="muted">
+                    {t('«Тёмное прозрение» разрешает считать рейтинг по Запретному знанию.',
+                      'Dark Insight lets the rating come from Knowledge (Forbidden).')}
+                  </span>
+                </>
+              )
+              : (
+                <span className="muted">
+                  {t(`Рейтинг свойств: ${activeRating.skillRu} ${activeRating.ranks}`,
+                    `Quality rating: ${activeRating.skill} ${activeRating.ranks}`)}
+                  {activeRating.ranks === 0 && t(' — рангов нет, рейтинг 0.', ' — no ranks, rating 0.')}
+                </span>
+              )}
+          </div>
+        )}
+
         {/* Инструмент в руках: ровно один на проверку (ROT-MAG-IMP-01). */}
         {tools && tools.length > 0 && (
           <div className="magic-implement small-text">
@@ -420,6 +485,10 @@ export function MagicBuilder({
                           показывает, сколько уже добавлено. */}
                       {count > 1 && <span className="effect-chip-count"> ×{count}</span>}
                       {freeByTool && <span className="effect-chip-free"> {t('бесплатно', 'free')}</span>}
+                      {/* Рейтинг по Знанию — числом на чипе, а не отсылкой «равен рангу Знания». */}
+                      {ratingLabel(a) && (
+                        <span className="effect-chip-rating"> · {ratingLabel(a)}</span>
+                      )}
                       {/* Ограничение видно на самом чипе: подсказка по наведению есть не везде. */}
                       {unavailable && (
                         <span className="effect-chip-only">
@@ -444,6 +513,9 @@ export function MagicBuilder({
                           {' '}· {t(`только ${magicSkillLabel(a.restrictedSkill)}`,
                             `${magicSkillLabel(a.restrictedSkill)} only`)}
                         </span>
+                      )}
+                      {ratingLabel(a) && (
+                        <span className="muted small-text"> · {ratingLabel(a)}</span>
                       )}
                       {a.exclusions.length > 0 && (
                         <span className="muted small-text">

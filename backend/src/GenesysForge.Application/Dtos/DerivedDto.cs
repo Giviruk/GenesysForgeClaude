@@ -31,3 +31,17 @@ public record DefenseBreakdownDto(
     DefenseSourceDto? Provider,
     List<DefenseSourceDto> IgnoredProviders,
     List<DefenseSourceDto> Increases);
+
+/// <summary>
+/// Откуда персонаж берёт числовой рейтинг эффектов заклинания (ROT-MAG-10). Список, а не одно
+/// число: талант «Тёмное прозрение» даёт игроку выбор при сборке заклинания, и решать за него
+/// приложение не должно.
+/// </summary>
+/// <param name="Options">Первый — названный правилами системы, дальше — исключения таланта.</param>
+public record KnowledgeRatingDto(IReadOnlyList<KnowledgeRatingOptionDto> Options);
+
+/// <summary>Один источник рейтинга: навык, его ранги и основание, по которому он доступен.</summary>
+/// <param name="Reason">
+/// <c>default</c> — навык из правил системы, <c>darkInsight</c> — исключение таланта.
+/// </param>
+public record KnowledgeRatingOptionDto(string Skill, string SkillRu, int Ranks, string Reason);

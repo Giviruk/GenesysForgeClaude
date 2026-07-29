@@ -27,4 +27,14 @@ public record SpellDto(Guid Id, string MagicSkill, SpellEntryKind Kind, string P
     /// <summary>Как эффект применяется: сразу, свойством, активацией преимуществ, очком сюжета.</summary>
     SpellResolutionKind Resolution = SpellResolutionKind.OnSuccess,
     /// <summary>Запись из опциональной книги (Expanded Player's Guide).</summary>
-    bool IsOptional = false);
+    bool IsOptional = false,
+    /// <summary>Числа эффекта берутся из рангов Знания заклинателя (ROT-MAG-10).</summary>
+    bool UsesKnowledgeRating = false,
+    /// <summary>Свойства, получающие рейтинг по Знанию; пусто — рейтинг не у свойства.</summary>
+    IReadOnlyList<SpellRatedQualityDto>? RatedQualities = null);
+
+/// <summary>
+/// Свойство, чей рейтинг равен рангам Знания заклинателя (ROT-MAG-10). Имена резолвятся по
+/// справочнику качеств на сервере: хранить их второй раз в записи заклинания незачем.
+/// </summary>
+public record SpellRatedQualityDto(string Code, string NameRu, string NameEn);

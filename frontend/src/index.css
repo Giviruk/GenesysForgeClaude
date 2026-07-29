@@ -537,6 +537,9 @@ table.ref-table td.ref-cost { white-space: nowrap; color: var(--accent); }
 .effect-chip.free { border-color: var(--accent); }
 .effect-chip-free { color: var(--accent); font-size: 0.72rem; }
 .effect-chip-count { color: var(--accent); font-weight: 700; }
+/* Рейтинг свойства по рангам Знания и ограничение по направлению — приписки на чипе (ROT-MAG-01/10). */
+.effect-chip-rating { color: var(--muted); font-size: 0.72rem; }
+.effect-chip-only { color: var(--yellow); font-size: 0.72rem; }
 .effect-chip-diff { color: var(--accent); font-weight: 600; }
 .effect-summary { margin: 0.4rem 0; }
 .effect-descriptions { margin-top: 0.5rem; }
@@ -839,6 +842,14 @@ table.ref-table td.ref-cost { white-space: nowrap; color: var(--accent); }
 
 /* Магический инструмент в сборщике заклинаний (ROT-MAG-IMP-01) */
 .magic-implement {
+  display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; margin-top: 0.5rem;
+  /* Тултип памятки позиционируется от своего значка; строке нужен нормальный перенос,
+     иначе длинная сводка инструмента растягивает ряд и утаскивает значок за край. */
+  position: relative; white-space: normal;
+}
+
+/* Откуда берётся рейтинг свойств: выбор навыка знаний (ROT-MAG-10). */
+.magic-rating {
   display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; margin-top: 0.5rem;
   /* Тултип памятки позиционируется от своего значка; строке нужен нормальный перенос,
      иначе длинная сводка инструмента растягивает ряд и утаскивает значок за край. */
