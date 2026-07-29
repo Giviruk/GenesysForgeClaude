@@ -10,6 +10,12 @@ once it reaches a tagged 1.0 release. The project is currently pre-1.0; the
 ## [Unreleased]
 
 ### Fixed
+- `Haste` and `Swift` (Augment) were attached to each other's mechanics in both the
+  magic reference and the quality catalog: `Haste` described ignoring difficult
+  terrain and `Swift` the extra maneuver. The codes now carry the right rule
+  (`Haste` = a second maneuver without strain, `Swift` = ignore difficult terrain
+  and immobilization), and implements configured with either effect are migrated so
+  the GM keeps the effect they actually picked.
 - Magic builder now honours **which school may take which additional effect**
   (ROT-MAG-01). Previously any effect of the chosen action could be added by any
   school — a Divine caster could pick `Doom` or `Manipulative`, which the rules

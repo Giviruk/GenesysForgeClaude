@@ -521,6 +521,12 @@ Found migrations:
   `AddColumn`); values arrive with the next idempotent spell seed, which is now authoritative for
   built-in magic entries. That seed also removes the built-in `Attack/Move` row (a duplicate of
   `Manipulative`) and migrates implement configurations that referenced it.
+- `20260729070926_RotMagicHasteSwiftSwap` — ROT-MAG-04. No schema change: a one-time data fix that
+  swaps the `Haste` and `Swift` codes stored in `CharacterItems.ImplementChoices`. The catalog had
+  the two Augment effects under each other's codes, and the GM picked the free effect by name and
+  description, so the stored code has to follow the mechanic. The swap lives in the migration
+  rather than the idempotent seed, which would flip the values on every run; `Down` is the same
+  swap.
 
 Startup behavior:
 

@@ -31,6 +31,23 @@ public class QualityReferenceTests : IClassFixture<ApiFactory>
         Assert.False(knockdown!.HasRating);
     }
 
+    /// <summary>
+    /// ROT-MAG-04: в справочнике качеств те же две записи Усиления стояли под чужими кодами.
+    /// </summary>
+    [Fact]
+    public async Task Reference_HasteAndSwift_AreNotSwapped()
+    {
+        var reference = await ReferenceAsync();
+
+        var haste = reference.Qualities.Single(q => q.NameEn == "Haste");
+        Assert.Equal("Ускорение", haste.NameRu);
+        Assert.Contains("второй манёвр", haste.SafeDescription);
+
+        var swift = reference.Qualities.Single(q => q.NameEn == "Swift");
+        Assert.Equal("Быстрота", swift.NameRu);
+        Assert.Contains("пересечённой местности", swift.SafeDescription);
+    }
+
     [Fact]
     public void QualityCatalog_ValuesFitDatabaseLimits()
     {
