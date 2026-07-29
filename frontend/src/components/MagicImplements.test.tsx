@@ -20,7 +20,8 @@ const spell = (over: Partial<Spell>): Spell => {
     nameRu: '', nameEn: '', difficulty: '', description: '', safeDescription: '',
     source: '', isCustom: false, restrictedSkill: '', repeatable: false,
     allowedSkills: [], difficultyIncrease: 0, exclusions: [],
-    resolution: 'onSuccess', isOptional: false, ...over,
+    resolution: 'onSuccess', isOptional: false,
+    usesKnowledgeRating: false, ratedQualities: [], ...over,
   }
   // Надбавка приходит полем; в фикстуре она выводится из печатной строки.
   return { ...base, difficultyIncrease: over.difficultyIncrease ?? parseDifficulty(base.difficulty) }
