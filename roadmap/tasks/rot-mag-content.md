@@ -1,0 +1,348 @@
+# ROT-MAG-CONTENT — полный двуязычный PrivateFull-контент магии
+
+- **Roadmap:** ROT-MAG-CONTENT из [rot-rules-remediation-tasks.md](rot-rules-remediation-tasks.md)
+- **Ветка:** `feature/rot-mag-content`
+- **Базовая ветка:** `master`
+- **PR:** будет создан после реализации
+- **Статус:** 🚧 Planning
+
+## Цель
+
+Сделать магический справочник механически полным на русском и английском в режиме
+`ContentMode.PrivateFull`, сохранив структурно полный и copyright-safe режим `PublicSafe`.
+Игрок должен получать правильный для активного режима текст во всех существующих поверхностях:
+справочник магии, сборщик действия, подсказки, печатная карточка и расходы символов.
+
+В задаче запрещено хранить или воспроизводить дословные тексты Genesys Core Rulebook,
+Realms of Terrinoth и Expanded Player's Guide. Под «полным текстом» ниже понимается
+самостоятельный парафраз, который полностью передаёт механический смысл записи.
+
+## Результаты аудита перед реализацией
+
+### Магические действия и эффекты
+
+В `SeedData.Spells` определены:
+
+- 8 базовых действий Genesys/Core/RoT: `Attack`, `Augment`, `Barrier`, `Conjure`, `Curse`,
+  `Dispel`, `Heal`, `Utility`;
+- 3 опциональных действия EPG: `Mask`, `Predict`, `Transform`;
+- 65 дополнительных эффектов:
+  - Attack — 14;
+  - Barrier — 6;
+  - Heal — 6;
+  - Conjure — 5;
+  - Curse — 7;
+  - Dispel — 2;
+  - Augment — 6;
+  - Mask — 8;
+  - Predict — 6;
+  - Transform — 5.
+
+После разворачивания матрицы навыков ожидается 86 встроенных строк `SpellDef` для Genesys Core
+и 96 для Realms of Terrinoth. Семантически это 76 правил: 11 действий и 65 дополнительных
+эффектов; строки действий повторяются для разрешённых магических навыков.
+
+Текущее состояние:
+
+- `SpellDef` не имеет стабильного `Code`;
+- полный RU-парафраз находится прямо в `SeedData.cs`, поэтому присутствует и в public build;
+- `ProjectSpells` в `PublicSafe` только очищает `Description`;
+- `DescriptionEn` содержит короткую safe-сводку и не имеет отдельного полного варианта;
+- private overlay не содержит ни одного ключа заклинаний;
+- существующий тест проверяет только непустое описание, поэтому fallback или короткая сводка
+  ошибочно считаются полным покрытием.
+
+### Implements, runebound shards и материалы
+
+- В каталоге шесть implements: `holy-icon`, `magic-scepter`, `magic-staff`, `magic-tome`,
+  `magic-wand`, `musical-instrument`.
+- В private overlay есть расширенные RU-парафразы всех 17 runebound shards, но нет их полных
+  EN-парафразов.
+- У шести implements нет отдельных PrivateFull-текстов: каталог содержит только safe RU/EN.
+- Пять материалов (`oak`, `bone`, `hazel`, `willow`, `yew`) имеют двуязычные правила в UI.
+  В рамках этой задачи они остаются структурной памяткой ROT-MAG-MAT-01, но coverage-тест обязан
+  подтвердить наличие текста для обоих языков и каждого материала.
+
+### Расходы символов
+
+В `rules.catalog.json` есть 68 двуязычных строк расходов символов:
+
+- Combat — 28;
+- Social encounter — 24;
+- Chase / vehicle encounter — 16.
+
+Сейчас это один и тот же safe-текст для обоих content modes. У таблицы есть стабильные коды,
+поэтому миграция схемы для PrivateFull-overlay расходов не нужна.
+
+## Зафиксированная архитектура реализации
+
+### 1. Стабильная идентичность SpellDef
+
+Добавить `SpellDef.Code` и отдавать его в `SpellDto`/frontend type.
+
+Формат встроенных кодов:
+
+- действие:
+  - `gc.spell.action.<skill-slug>.<action-slug>`;
+  - `rot.spell.action.<skill-slug>.<action-slug>`;
+- дополнительный эффект:
+  - `gc.spell.effect.<action-slug>.<effect-slug>`;
+  - `rot.spell.effect.<action-slug>.<effect-slug>`.
+
+Требования:
+
+- код детерминирован и не строится из локализованного имени;
+- для built-in строк уникален;
+- у custom-записи разрешён пустой код либо существующий custom-code;
+- `SyncSpells` использует `Code` как основной ключ;
+- legacy built-in строки с пустым `Code` однократно сопоставляются по старому составному ключу
+  `System + MagicSkill + Kind + ParentEffect + NameEn` и получают новый код;
+- custom content не переименовывается и не удаляется.
+
+Потребуется недеструктивная EF migration:
+
+- колонка `SpellDefs.Code`, `varchar(120)`, not null, default `""`;
+- индекс для поиска/синхронизации built-in-кодов;
+- backfill выполняет seed/sync, не SQL-разбор локализованных названий.
+
+### 2. Двуязычный private overlay
+
+Расширить формат `private-content/*.ru.json` обратно совместимым полем:
+
+```json
+{
+  "descriptions": {
+    "<content-key>": "полный RU-парафраз"
+  },
+  "descriptionsEn": {
+    "<content-key>": "полный EN-парафраз"
+  }
+}
+```
+
+Существующие строковые `descriptions` остаются валидными. `PrivateContentStore` получает методы
+`GetRu(code)` и `GetEn(code)`; текущий `Get(code)` можно оставить как совместимый RU-alias.
+Коллизия ключей между embedded-файлами является ошибкой валидатора, а не правилом
+«последний файл победил».
+
+Для магии создать отдельный embedded-файл `backend/private-content/magic.ru.json`.
+Он содержит 76 семантических пар RU/EN:
+
+- `magic.action.<action-slug>` — 8 базовых действий;
+- `magic.effect.<action-slug>.<effect-slug>` — 46 эффектов базовых действий;
+- `epg.magic.action.<action-slug>` — 3 опциональных действия;
+- `epg.magic.effect.<action-slug>.<effect-slug>` — 19 опциональных эффектов.
+
+Текст не дублируется для каждой строки skill matrix. При проекции `SpellDef` вычисляется
+семантический content-key. Сначала разрешён точечный override по `SpellDef.Code`, затем общий
+семантический ключ. Благодаря этому все 182 строки получают полный текст, но одинаковое правило
+не копируется пять раз. Если вариант Runes/Verse действительно отличается по механике, для него
+добавляется override по полному `SpellDef.Code`; отличие нельзя выдумывать ради уникального текста.
+
+### 3. Проекция режимов
+
+Исходный public-каталог содержит только:
+
+- `SafeDescription` — короткий RU-парафраз;
+- текущий safe EN-текст, используемый как public `DescriptionEn`;
+- структуру, числа, ограничения и source.
+
+Полные RU-описания должны быть удалены из `SeedData.cs` и перенесены в private resource.
+
+Проекция:
+
+- `PrivateFull`:
+  - `Description = full RU`;
+  - `DescriptionEn = full EN`;
+- `PublicSafe`:
+  - `Description = ""`;
+  - `DescriptionEn = safe EN`;
+  - `SafeDescription` и все структурные поля сохраняются.
+
+Отдельная persistent-колонка `SafeDescriptionEn` не нужна: база разворачивается только в одном
+content mode, а `DescriptionEn` является спроецированным английским текстом активного режима.
+Это решение должно быть явно отражено в комментариях модели и `docs/database.md`.
+
+### 4. Implements и shards
+
+В `realms-of-terrinoth.ru.json`:
+
+- добавить RU/EN PrivateFull-записи всех шести implements;
+- дополнить `descriptionsEn` для всех 17 shards;
+- сохранить существующие стабильные item-коды (`rot.item.*`);
+- не переносить структурные числа в prose вместо typed `ImplementRules`/`RuneboundShardRules`;
+- полный парафраз должен объяснять активацию, стоимость/частоту, implement-эффект, обязательные и
+  бесплатные spell effects, бонус урона и особые последствия;
+- Lesser Rune отдельно описывает постоянную конфигурацию ведущим и ограничения выбранного эффекта.
+
+`ProjectContent` в `PrivateFull` применяет оба языка overlay; в `PublicSafe` item `Description`
+остаётся пустым, а `DescriptionEn` берётся из safe-каталога.
+
+### 5. Расходы символов
+
+Для 68 существующих `RuleTableEntry.Code` использовать private keys `rule.<code>`.
+
+- `rules.catalog.json` остаётся источником safe RU/EN;
+- в `PrivateFull` `Body`/`BodyEn` заменяются полными парафразами из overlay;
+- `Notes`/`NotesEn` заменяются только при наличии private note;
+- `SymbolCost`, group, sort order, source и остальные структурные поля не берутся из prose;
+- в `PublicSafe` private store не загружается и каталог остаётся неизменным;
+- `SearchText` строится после проекции, чтобы поиск соответствовал фактически отдаваемому тексту.
+
+Модель БД менять не требуется: поля `Body`, `BodyEn`, `Notes`, `NotesEn` уже существуют.
+
+### 6. Материалы implements
+
+Для `oak`, `bone`, `hazel`, `willow`, `yew` не создаётся новая persistent-сущность.
+Текущие typed price/rarity rules остаются в `ImplementRules`, двуязычные триггеры — в UI.
+
+Обязательная проверка:
+
+- для каждого из пяти значений есть RU/EN label, hint и trigger;
+- числа цены и редкости берутся из `ImplementRules`, а не повторяются как источник истины в prose;
+- full-текст доступен в PrivateFull UI;
+- публичный текст остаётся самостоятельным коротким парафразом и не содержит книжной цитаты.
+
+Если во время реализации выяснится, что trigger нельзя безопасно показывать в PublicSafe,
+реализация останавливается и оформляется отдельное решение о typed API-каталоге материалов;
+скрыто менять контракт в этой задаче нельзя.
+
+## Требования к текстам
+
+Каждая полная запись обязана однозначно отвечать на применимые вопросы:
+
+- когда эффект действует;
+- кто выбирает цель/параметр;
+- дистанция, срок и частота;
+- стоимость активации;
+- результат успеха и дополнительные успехи;
+- расходы Advantage/Triumph либо Threat/Despair;
+- взаимодействие с soak, wounds, strain, Defense и critical injury;
+- repeatability, ограничения навыка и несовместимость;
+- что требует решения ведущего;
+- что приложение считает автоматически, а что только показывает.
+
+Запрещено:
+
+- копировать предложения из книг;
+- подменять отсутствующее правило предположением;
+- прятать число только в prose, если для него уже есть typed field;
+- утверждать автоматическое применение механики, которой нет в сервисе;
+- смешивать EPG с обязательным Core/RoT-контентом.
+
+Если точной информации нет в текущих разрешённых материалах, запись помечается
+`Not found in current codebase` в рабочем отчёте и не дописывается по памяти.
+
+## Валидатор полноты
+
+Добавить отдельный валидатор магического контента и тестовый отчёт. Он должен падать, если:
+
+- ожидаемое число семантических записей не равно 76;
+- seed не создаёт ровно 86 Core и 96 RoT spell rows;
+- хотя бы одна built-in строка не имеет стабильного кода;
+- две built-in строки имеют одинаковый код;
+- хотя бы одна строка не разрешается в RU и EN private text;
+- PrivateFull-текст пуст, равен safe summary или содержит placeholder;
+- у optional EPG-записи отсутствует EPG source/flag либо она попала в native coverage;
+- отсутствует хотя бы один из 6 implements или 17 shards;
+- implement/shard не имеет full RU и EN;
+- отсутствует хотя бы одна из 68 строк symbol-spend либо её private RU/EN не разрешается;
+- у одного из 5 материалов нет двуязычной памятки;
+- PublicSafe содержит private RU-текст или private EN-текст;
+- private resource оказался встроен в public build.
+
+Минимальная длина может использоваться только как защита от пустой заглушки. Она не считается
+доказательством смысловой полноты; список записей дополнительно проходит ручной review.
+
+## Изменения по слоям
+
+### Domain
+
+- `SpellDef.Code`;
+- уточнённые комментарии о projected `DescriptionEn`;
+- pure validator/manifest ожидаемых magic content keys и counts.
+
+### Infrastructure
+
+- двуязычный `PrivateContentStore`;
+- стабильные spell codes;
+- перенос full RU spell prose из `SeedData.cs` в private resource;
+- PrivateFull-проекция spells/items/rules;
+- синхронизация legacy spell rows;
+- EF migration и snapshot;
+- обновление `docs/database.md`.
+
+### Application/API
+
+- `SpellDto.Code`;
+- без изменения маршрута `/api/spells/{system}`;
+- правила и item DTO используют уже спроецированные поля;
+- никаких параметров `contentMode` от клиента: режим задаёт сервер.
+
+### Frontend
+
+- добавить `code` в `Spell`;
+- сохранить единый `localizedDescription`: RU использует `description || safeDescription`,
+  EN использует спроецированный `descriptionEn`;
+- проверить справочник, builder, tooltip, copy/print card;
+- не добавлять переключатель PrivateFull/PublicSafe на клиенте.
+
+## Порядок реализации
+
+- [ ] Зафиксировать manifest: 76 semantic keys, 86 Core rows, 96 RoT rows, 6 implements,
+  17 shards, 68 symbol spends, 5 materials.
+- [ ] Добавить stable `SpellDef.Code`, migration, backfill/sync и DTO.
+- [ ] Расширить `PrivateContentStore` двуязычным overlay и collision validation.
+- [ ] Разделить safe/full тексты spells; перенести full RU и написать full EN в `magic.ru.json`.
+- [ ] Дополнить PrivateFull RU/EN шести implements и семнадцати shards.
+- [ ] Добавить PrivateFull RU/EN для 68 symbol-spend entries и перестроение `SearchText`.
+- [ ] Подключить projection во всех seed/sync путях без изменения custom content.
+- [ ] Обновить frontend types и проверить все поверхности отображения/печати.
+- [ ] Добавить validators и table-driven backend/frontend tests.
+- [ ] Создать недеструктивную EF migration и обновить `docs/database.md`.
+- [ ] Обновить progress-файл и отмечать этот checklist по ходу реализации.
+- [ ] Выполнить copyright-review изменённых private/public файлов.
+- [ ] Запустить backend tests, frontend tests, lint, build, PublicSafe build и Playwright E2E.
+- [ ] Открыть PR со ссылкой на этот план; `Done` ставится только после merge.
+
+## Тестовые сценарии приёмки
+
+1. **PrivateFull RU:** открыть каждое действие и эффект — отображается полный RU-парафраз;
+   builder, reference и print используют один текст.
+2. **PrivateFull EN:** переключить язык — отображается полный EN-парафраз, а не короткая safe-сводка.
+3. **Skill matrix:** одинаковое правило во всех разрешённых направлениях получает текст; запрещённые
+   сочетания не появляются.
+4. **EPG:** Mask/Predict/Transform и 19 эффектов помечены optional/EPG и не смешаны с native count.
+5. **Implements/shards:** все 6/17 имеют полный двуязычный текст и неизменные typed stats.
+6. **Symbol spends:** все 68 строк доступны; roller фильтрует по прежним структурным cost/context,
+   а подробный текст соответствует режиму.
+7. **PublicSafe RU/EN:** полный private prose отсутствует в API, search, reference, builder,
+   print и roller; структура и safe summaries остаются.
+8. **Legacy DB:** повторный seed назначает коды старым built-in spells, не создаёт дублей и не
+   трогает custom spells.
+9. **Idempotency:** второй seed в том же режиме не меняет counts и содержимое.
+10. **Public image:** сборка с `PUBLIC_SAFE_BUILD=true` не содержит `private-content` resources.
+
+## Не входит в задачу
+
+- исполнение длительности Conjure/Augment и иной runtime из ROT-MAG-12;
+- серверный протокол каста ROT-MAG-08;
+- автоматическая активация Story Point/encounter effects;
+- добавление новых действий или эффектов сверх утверждённых 76;
+- исправление механических чисел, кроме обнаруженной явной ошибки, которая оформляется отдельно;
+- оригинальные тексты книг.
+
+## Плановый Definition of Done
+
+- Все перечисленные counts подтверждены table-driven tests.
+- PrivateFull даёт полный самостоятельный RU/EN-парафраз каждой магической записи.
+- PublicSafe остаётся структурно полным и не содержит private prose.
+- Все пользовательские поверхности отображают текст активного server-side режима.
+- Legacy и custom content сохранены.
+- Миграция недеструктивна, документация обновлена.
+- Backend/frontend/PublicSafe/E2E проверки зелёные.
+- Ручной copyright-review завершён и зафиксирован в PR.
+
+## Что осталось / блокеры
+
+План подготовлен. Реализация не начата и ожидает подтверждения пользователя.
