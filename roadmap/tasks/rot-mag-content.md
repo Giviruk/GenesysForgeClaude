@@ -1,12 +1,27 @@
-# ROT-MAG-CONTENT — полный двуязычный PrivateFull-контент магии
+# ROT-MAG-CONTENT — контекстные подсказки результатов магических проверок
 
 - **Roadmap:** ROT-MAG-CONTENT из [rot-rules-remediation-tasks.md](rot-rules-remediation-tasks.md)
 - **Ветка:** `feature/rot-mag-content`
 - **Базовая ветка:** `master`
 - **PR:** [#128](https://github.com/Giviruk/GenesysForgeClaude/pull/128)
-- **Статус:** 🚧 Planning
+- **Статус:** ✅ Scope complete (PR #128; merge pending)
 
-## Цель
+## Финальное решение по объёму
+
+По решению пользователя от 2026-07-29 задача считается выполненной в следующем объёме:
+
+- существующие двуязычные тексты шести implements и семнадцати runebound shards принимаются
+  как достаточные и не требуют отдельного расширения;
+- существующие описания магических действий и эффектов принимаются без переноса в новый
+  PrivateFull-overlay;
+- stable `SpellDef.Code`, отдельный двуязычный private overlay, content projection, validator
+  покрытия и связанная EF migration исключены из принятого объёма;
+- выполненным результатом задачи является контекстная выдача общих, боевых, социальных и
+  магических подсказок по всем применимым символам результата броска;
+- исходный расширенный проект ниже сохраняется только как архив аудита и не является списком
+  незавершённой работы.
+
+## Исходная цель (архив, заменена финальным решением)
 
 Сделать магический справочник механически полным на русском и английском в режиме
 `ContentMode.PrivateFull`, сохранив структурно полный и copyright-safe режим `PublicSafe`.
@@ -95,7 +110,7 @@ Realms of Terrinoth и Expanded Player's Guide. Под «полным текст
 
 Отдельные расширенные PrivateFull-тексты для 68 строк больше не входят в этот подпункт.
 
-## Зафиксированная архитектура реализации
+## Исходная архитектура реализации (архив, не входит в принятый объём)
 
 ### 1. Стабильная идентичность SpellDef
 
@@ -312,41 +327,38 @@ content mode, а `DescriptionEn` является спроецированным
 
 ## Порядок реализации
 
-- [ ] Зафиксировать manifest: 76 semantic keys, 86 Core rows, 96 RoT rows, 6 implements,
-  17 shards, 68 symbol spends, 5 materials.
-- [ ] Добавить stable `SpellDef.Code`, migration, backfill/sync и DTO.
-- [ ] Расширить `PrivateContentStore` двуязычным overlay и collision validation.
-- [ ] Разделить safe/full тексты spells; перенести full RU и написать full EN в `magic.ru.json`.
-- [ ] Дополнить PrivateFull RU/EN шести implements и семнадцати shards.
+- [x] Зафиксировать аудиторские counts в плане: 76 semantic keys, 86 Core rows, 96 RoT rows,
+  6 implements, 17 shards, 68 symbol spends, 5 materials.
+- [x] Stable `SpellDef.Code` исключён из принятого объёма решением пользователя.
+- [x] Двуязычный private overlay исключён из принятого объёма решением пользователя.
+- [x] Разделение safe/full spell texts исключено из принятого объёма решением пользователя.
+- [x] Существующие двуязычные тексты 6 implements и 17 shards приняты как достаточные.
 - [x] Покрыть роллеры всеми релевантными Advantage/Threat/Triumph/Despair и
   Success/Failure-эффектами существующего каталога.
-- [ ] Подключить projection во всех seed/sync путях без изменения custom content.
-- [ ] Обновить frontend types и проверить все поверхности отображения/печати.
-- [ ] Добавить validators и table-driven backend/frontend tests.
-- [ ] Создать недеструктивную EF migration и обновить `docs/database.md`.
-- [ ] Обновить progress-файл и отмечать этот checklist по ходу реализации.
-- [ ] Выполнить copyright-review изменённых private/public файлов.
-- [ ] Запустить backend tests, frontend tests, lint, build, PublicSafe build и Playwright E2E.
-- [ ] Открыть PR со ссылкой на этот план; `Done` ставится только после merge.
+- [x] Content projection исключён из принятого объёма; custom content не изменялся.
+- [x] Frontend-контексты `general/combat/social/magic` подключены во всех существующих роллерах.
+- [x] Добавлены table-driven unit/component tests результата и контекстов.
+- [x] Миграция не требуется: persistent model не менялась.
+- [x] Progress-файл обновлён.
+- [x] Copyright-review завершён: новые книжные или private-тексты не добавлялись.
+- [x] Frontend tests, lint, production build и Playwright E2E прошли; backend/PublicSafe
+  проверки не требуются, поскольку backend и content projection не менялись.
+- [x] Открыт PR #128 со ссылкой на этот план.
 
 ## Тестовые сценарии приёмки
 
-1. **PrivateFull RU:** открыть каждое действие и эффект — отображается полный RU-парафраз;
-   builder, reference и print используют один текст.
-2. **PrivateFull EN:** переключить язык — отображается полный EN-парафраз, а не короткая safe-сводка.
-3. **Skill matrix:** одинаковое правило во всех разрешённых направлениях получает текст; запрещённые
-   сочетания не появляются.
-4. **EPG:** Mask/Predict/Transform и 19 эффектов помечены optional/EPG и не смешаны с native count.
-5. **Implements/shards:** все 6/17 имеют полный двуязычный текст и неизменные typed stats.
-6. **Symbol spends:** все 68 строк доступны в справочнике; roller показывает общие варианты
+1. **Symbol spends:** все 68 строк доступны в справочнике; roller показывает общие варианты
    всем броскам, добавляет combat/social/magic только совпадающему контексту и фильтрует их
    по фактически выпавшим символам. Без известного контекста специализированные таблицы скрыты.
-7. **PublicSafe RU/EN:** полный private prose отсутствует в API, search, reference, builder,
-   print и roller; структура и safe summaries остаются.
-8. **Legacy DB:** повторный seed назначает коды старым built-in spells, не создаёт дублей и не
-   трогает custom spells.
-9. **Idempotency:** второй seed в том же режиме не меняет counts и содержимое.
-10. **Public image:** сборка с `PUBLIC_SAFE_BUILD=true` не содержит `private-content` resources.
+2. **Magic context:** магическая проверка получает общие и магические варианты, но не боевую
+   или социальную таблицу.
+3. **Combat/social:** специализированные варианты появляются только у соответствующего навыка;
+   социальные эквиваленты общих вариантов не дублируются.
+4. **Unknown context:** ручной бросок без типа получает только общие варианты.
+5. **Success/Failure:** приложение не создаёт универсальный эффект за дополнительные успехи
+   или провалы, если такого эффекта не задаёт конкретное правило.
+6. **X-cost:** критическая травма и активное качество предлагаются только при известной цене
+   конкретного оружия или эффекта.
 
 ## Не входит в задачу
 
@@ -357,18 +369,16 @@ content mode, а `DescriptionEn` является спроецированным
 - исправление механических чисел, кроме обнаруженной явной ошибки, которая оформляется отдельно;
 - оригинальные тексты книг.
 
-## Плановый Definition of Done
+## Принятый Definition of Done
 
-- Все перечисленные counts подтверждены table-driven tests.
-- PrivateFull даёт полный самостоятельный RU/EN-парафраз каждой магической записи.
-- PublicSafe остаётся структурно полным и не содержит private prose.
-- Все пользовательские поверхности отображают текст активного server-side режима.
-- Legacy и custom content сохранены.
-- Миграция недеструктивна, документация обновлена.
-- Backend/frontend/PublicSafe/E2E проверки зелёные.
-- Ручной copyright-review завершён и зафиксирован в PR.
+- Общие, боевые, социальные и магические варианты разделены по контекстам.
+- Advantage, Threat, Triumph и Despair фильтруются по фактическому результату.
+- Success/Failure не получают выдуманных универсальных эффектов.
+- Конкретные критические травмы и качества используют известную X-стоимость.
+- Frontend tests, lint, production build и Playwright E2E проходят.
+- Новые книжные тексты, backend/API/schema changes отсутствуют.
+- PR открыт в `master`.
 
 ## Что осталось / блокеры
 
-Подпункт контекстных расходов символов реализован и проверен frontend unit/E2E-тестами.
-Остальная реализация PrivateFull-контента из этого плана ещё не начата.
+Ничего. Принятый объём выполнен; ожидается review и merge PR #128.
