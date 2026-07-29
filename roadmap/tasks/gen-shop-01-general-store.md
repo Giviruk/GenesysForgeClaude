@@ -3,7 +3,7 @@
 - **Roadmap:** GEN-SHOP-01 (см. [rot-rules-remediation-tasks.md](rot-rules-remediation-tasks.md))
 - **Ветка:** `feature/gen-shop-01-general-store`
 - **Базовая ветка:** `feature/rot-eqp-gear-01-scope` (stacked поверх PR #131)
-- **PR:** будет добавлен после создания
+- **PR:** [#132](https://github.com/Giviruk/GenesysForgeClaude/pull/132)
 - **Статус:** ✅ Scope complete
 
 ## Контекст
@@ -26,7 +26,7 @@
 - [x] Тесты не требуются: код приложения не менялся.
 - [x] Миграция не требуется: persistent model не менялась.
 - [x] Copyright-проверка пройдена: seed и книжные тексты не менялись.
-- [ ] PR открыт.
+- [x] PR открыт.
 
 ## Что осталось / блокеры
 
