@@ -13,7 +13,8 @@ const spell = (over: Partial<Spell>): Spell => {
     nameRu: '', nameEn: '', difficulty: '', description: '', safeDescription: '',
     source: 'Test', isCustom: false, restrictedSkill: '', repeatable: false,
     allowedSkills: [], difficultyIncrease: 0, exclusions: [],
-    resolution: 'onSuccess', isOptional: false, ...over,
+    resolution: 'onSuccess', isOptional: false,
+    usesKnowledgeRating: false, ratedQualities: [], ...over,
   }
   return { ...base, difficultyIncrease: over.difficultyIncrease ?? parseDifficulty(base.difficulty) }
 }
