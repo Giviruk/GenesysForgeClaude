@@ -3,7 +3,7 @@
 - **Roadmap:** ROT-EQP-02 / ROT-TRANSPORT-01 (см. [rot-rules-remediation-tasks.md](rot-rules-remediation-tasks.md))
 - **Ветка:** `feature/rot-eqp-02-transport-section`
 - **Базовая ветка:** `feature/rot-mag-content` (stacked поверх PR #129)
-- **PR:** будет открыт после фиксации решения
+- **PR:** [#130](https://github.com/Giviruk/GenesysForgeClaude/pull/130)
 - **Статус:** ✅ Scope complete
 
 ## Контекст
@@ -23,12 +23,11 @@
 - [x] Тесты не требуются: код приложения не менялся.
 - [x] Миграция не требуется: persistent model не менялась.
 - [x] Copyright-проверка не требуется: seed и книжные тексты не менялись.
-- [ ] PR открыт.
+- [x] PR открыт.
 
 ## Что осталось / блокеры
 
-Открыть документационный stacked PR. Реализация `ROT-TRANSPORT-01` является отдельной будущей
-задачей и в этот PR не входит.
+Реализация `ROT-TRANSPORT-01` является отдельной будущей задачей и в этот PR не входит.
 
 ## Заметки / решения
 
