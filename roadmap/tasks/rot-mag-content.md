@@ -4,7 +4,7 @@
 - **Ветка:** `feature/rot-mag-content`
 - **Базовая ветка:** `master`
 - **PR:** [#128](https://github.com/Giviruk/GenesysForgeClaude/pull/128)
-- **Статус:** ✅ Scope complete (PR #128; merge pending)
+- **Статус:** ✅ Done (PR #128)
 
 ## Финальное решение по объёму
 
@@ -343,7 +343,7 @@ content mode, а `DescriptionEn` является спроецированным
 - [x] Copyright-review завершён: новые книжные или private-тексты не добавлялись.
 - [x] Frontend tests, lint, production build и Playwright E2E прошли; backend/PublicSafe
   проверки не требуются, поскольку backend и content projection не менялись.
-- [x] Открыт PR #128 со ссылкой на этот план.
+- [x] PR #128 со ссылкой на этот план слит в `master`.
 
 ## Тестовые сценарии приёмки
 
@@ -377,8 +377,8 @@ content mode, а `DescriptionEn` является спроецированным
 - Конкретные критические травмы и качества используют известную X-стоимость.
 - Frontend tests, lint, production build и Playwright E2E проходят.
 - Новые книжные тексты, backend/API/schema changes отсутствуют.
-- PR открыт в `master`.
+- PR #128 слит в `master`.
 
 ## Что осталось / блокеры
 
-Ничего. Принятый объём выполнен; ожидается review и merge PR #128.
+Ничего. Принятый объём выполнен и слит в `master` через PR #128.
