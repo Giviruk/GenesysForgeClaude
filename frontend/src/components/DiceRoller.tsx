@@ -5,7 +5,7 @@ import {
 } from '../utils/diceRoller'
 import { t } from '../i18n'
 import type { AdvantageSpendContext, AdvantageSpendOption } from '../utils/advantageSpends'
-import { AdvantageSpendGuide } from './AdvantageSpendGuide'
+import { OutcomeSpendGuide } from './OutcomeSpendGuide'
 
 /** Заявка на запись броска в лог стола. */
 export interface RollLogRequest {
@@ -26,7 +26,7 @@ interface Props {
   canSecret?: boolean
   /** Вызывается с исходом каждого броска (для боевого расчёта урона поверх roller). */
   onResult?: (outcome: RollOutcome) => void
-  /** Таблица расходов преимуществ для типа сцены. */
+  /** Контекст таблиц результатов: общий, боевой, социальный, магический или транспортный. */
   spendContext?: AdvantageSpendContext
   /** Активации конкретного оружия, магического эффекта и другие расходы этого броска. */
   advantageSpends?: AdvantageSpendOption[]
@@ -125,8 +125,7 @@ export function DiceRoller({
             <RollSymbolsView symbols={outcome.net} />
             <span className="dr-summary">{summarize(outcome.net)}</span>
           </div>
-          <AdvantageSpendGuide advantages={outcome.net.advantage}
-            successful={outcome.net.success > 0}
+          <OutcomeSpendGuide result={outcome.net}
             context={spendContext} extra={advantageSpends} />
         </div>
       )}

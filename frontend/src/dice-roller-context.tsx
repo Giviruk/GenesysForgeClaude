@@ -115,7 +115,7 @@ function MagicRollerContent({ request }: {
         onResult={setOutcome}
         onLog={request.onLog}
         canSecret={request.canSecret}
-        spendContext="combat"
+        spendContext="magic"
         advantageSpends={request.advantageSpends}
       />
 

@@ -1982,6 +1982,13 @@ button.tiny { font-size: 0.75rem; padding: 0.05rem 0.4rem 0.15rem; }
 .advantage-spends ul { margin: 0.35rem 0; padding-left: 1.2rem; }
 .advantage-spends li + li { margin-top: 0.2rem; }
 .advantage-cost { display: inline-block; min-width: 2.2rem; color: #6fb3e8; font-weight: 700; }
+.outcome-spends { display: flex; flex-direction: column; gap: 0.45rem; }
+.outcome-spend-section ul { margin-bottom: 0; }
+.outcome-symbol-cost { display: inline-block; min-width: 3rem; font-weight: 700; }
+.outcome-spend-positive .outcome-symbol-cost { color: #6fb3e8; }
+.outcome-spend-negative .outcome-symbol-cost { color: #e8a36f; }
+.outcome-spend-result .outcome-symbol-cost { color: var(--green); }
+.outcome-spends p { margin: 0; }
 
 .combat-roller-head { display: flex; flex-direction: column; gap: 0.4rem; margin: 0.4rem 0 0.6rem; padding-bottom: 0.6rem; border-bottom: 1px solid var(--border); }
 .combat-qualities { margin: 0.2rem 0; padding-left: 1.1rem; }

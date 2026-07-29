@@ -1,7 +1,7 @@
 import type { Spell } from '../api/types'
 import type { AdvantageSpendOption } from './advantageSpends'
 
-/** Контекстные траты преимуществ для уже собранного магического действия. */
+/** Магические траты преимуществ для уже собранного действия; общие варианты добавляет roller. */
 export function magicAdvantageSpends(action: Spell, effects: Spell[]): AdvantageSpendOption[] {
   const options: AdvantageSpendOption[] = []
   const add = (option: AdvantageSpendOption) => {

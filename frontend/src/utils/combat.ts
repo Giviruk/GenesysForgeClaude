@@ -24,6 +24,7 @@ export function qualityAdvantageSpends(qualities: CombatQuality[]): AdvantageSpe
       detailRu: quality.activationCost,
       detailEn: quality.activationCost,
       requiresSuccess: !worksOnMiss,
+      triumphCost: 1,
     }
     if (!['blast', 'взрыв'].includes(name)) return [normal]
     return [
@@ -53,6 +54,7 @@ export function criticalAdvantageSpend(critical: string): AdvantageSpendOption[]
     detailRu: 'Только после попадания, которое нанесло урон после поглощения.',
     detailEn: 'Only after a hit that dealt damage past soak.',
     requiresSuccess: true,
+    triumphCost: 1,
   }]
 }
 

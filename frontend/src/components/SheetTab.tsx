@@ -175,7 +175,9 @@ export function SheetTab({ sheet, onError, refresh }: Props) {
                                     label,
                                     spendContext: s.kind === 'social'
                                       ? 'social'
-                                      : s.kind === 'combat' ? 'combat' : 'general',
+                                      : s.kind === 'combat'
+                                        ? 'combat'
+                                        : s.kind === 'magic' ? 'magic' : 'general',
                                     // Помехи снаряжения и перегруза едут в пул сами: игрок не обязан
                                     // помнить, что на нём латы (ROT-ARM-01).
                                     initialPool: {
