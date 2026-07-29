@@ -107,6 +107,15 @@ public class DuplicateCharacterHandler(IAppDbContext db) : ICommandHandler<Dupli
                 State = i.State,
                 Provenance = i.Provenance,
                 Craftsmanship = i.Craftsmanship,
+                DamageState = i.DamageState,
+                IsThrown = i.IsThrown,
+                ImplementMaterial = i.ImplementMaterial,
+                ImplementChoices = i.ImplementChoices,
+                ImplementConfigured = i.ImplementConfigured,
+                ShardActivationChoice = i.ShardActivationChoice,
+                ShardEffectAction = i.ShardEffectAction,
+                ShardEffectChoice = i.ShardEffectChoice,
+                ShardConfigured = i.ShardConfigured,
             }).ToList(),
             CriticalInjuries = src.CriticalInjuries.Select(ci => new CharacterCriticalInjury
             {

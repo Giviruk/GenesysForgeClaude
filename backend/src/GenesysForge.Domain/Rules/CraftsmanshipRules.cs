@@ -257,7 +257,7 @@ public static class CraftsmanshipRules
     /// <inheritdoc cref="For(ItemKind, WeaponCraftsmanship, int, int, int, int, int?, int, int)"/>
     public static EffectiveItemStats For(ItemDef def, WeaponCraftsmanship craftsmanship) =>
         For(def.Kind, craftsmanship, def.Encumbrance, def.SoakBonus, def.MeleeDefense,
-            def.RangedDefense, def.HardPoints, def.Price, def.Rarity);
+            def.RangedDefense, def.HardPoints, def.Price ?? 0, def.Rarity ?? 0);
 
     /// <summary>
     /// Помехи от качества изготовления: железная броня мешает двигаться, эльфийская — наоборот,

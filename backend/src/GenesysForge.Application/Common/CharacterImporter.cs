@@ -136,10 +136,30 @@ public static class CharacterImporter
             var damageState = Enum.IsDefined(it.DamageState) ? it.DamageState : ItemDamageState.Undamaged;
             if (!Enum.IsDefined(it.DamageState))
                 warnings.Add($"У предмета «{def.Name}» указано неизвестное состояние — оставлен целым.");
+            var shardSpec = RuneboundShardRules.For(def.Code);
+            var validShardConfiguration = false;
+            if (shardSpec is { NeedsConfiguration: true } && it.ShardConfigured)
+            {
+                var activation = it.ShardActivationChoice?.Trim() ?? "";
+                var configuredEffect = await db.SpellDefs.AsNoTracking().FirstOrDefaultAsync(s =>
+                    s.System == system
+                    && s.Kind == SpellEntryKind.AdditionalEffect
+                    && s.ParentEffect == it.ShardEffectAction
+                    && s.NameEn == it.ShardEffectChoice, ct);
+                validShardConfiguration = activation.Length is >= 3 and <= 500
+                    && configuredEffect?.DifficultyIncrease == 1
+                    && MagicMatrix.SkillsForEffect(
+                            it.ShardEffectAction ?? "", it.ShardEffectChoice ?? "")
+                        .Contains(RuneboundShardRules.RequiredMagicSkill, StringComparer.Ordinal);
+                if (!validShardConfiguration)
+                    warnings.Add(
+                        $"Настройка Lesser Rune «{def.Name}» не прошла проверку и сброшена; "
+                        + "ведущий должен настроить её заново.");
+            }
             var item = new CharacterItem
             {
                 Id = Guid.NewGuid(), CharacterId = characterId, ItemDefId = def.Id,
-                Quantity = Math.Max(1, it.Quantity), State = it.State,
+                Quantity = shardSpec is null ? Math.Max(1, it.Quantity) : 1, State = it.State,
                 Craftsmanship = CraftsmanshipRules.FixedFor(def.Code) ?? craftsmanship,
                 DamageState = damageState,
                 // Материал переносится только тому, у кого он бывает: файл с «ивовым мешком»
@@ -149,6 +169,16 @@ public static class CharacterImporter
                     : ImplementMaterial.Oak,
                 ImplementChoices = ImplementRules.IsImplement(def.Code) ? it.ImplementChoices : "",
                 ImplementConfigured = ImplementRules.IsImplement(def.Code) && it.ImplementConfigured,
+                ShardActivationChoice = validShardConfiguration
+                    ? (it.ShardActivationChoice ?? "").Trim()
+                    : "",
+                ShardEffectAction = validShardConfiguration
+                    ? it.ShardEffectAction ?? ""
+                    : "",
+                ShardEffectChoice = validShardConfiguration
+                    ? it.ShardEffectChoice ?? ""
+                    : "",
+                ShardConfigured = validShardConfiguration,
                 // Комплект и стартовый бюджет сохраняются как провенанс; всё остальное — Imported,
                 // чтобы импорт не выглядел покупкой в истории нового персонажа.
                 Provenance = it.Provenance is ItemProvenance.CareerPackage or ItemProvenance.StartingBudget
@@ -157,6 +187,26 @@ public static class CharacterImporter
             };
             character.Items.Add(item);
             resolvedItems.Add((item, def));
+            // Старые экспорты могли хранить несколько shard одной строкой. Каждый shard является
+            // отдельным implement instance, поэтому сохраняем количество отдельными строками.
+            for (var copy = 1; shardSpec is not null && copy < Math.Max(1, it.Quantity); copy++)
+            {
+                var clone = new CharacterItem
+                {
+                    Id = Guid.NewGuid(), CharacterId = characterId, ItemDefId = def.Id,
+                    Quantity = 1, State = item.State, Craftsmanship = item.Craftsmanship,
+                    DamageState = item.DamageState, ImplementMaterial = item.ImplementMaterial,
+                    ImplementChoices = item.ImplementChoices,
+                    ImplementConfigured = item.ImplementConfigured,
+                    ShardActivationChoice = item.ShardActivationChoice,
+                    ShardEffectAction = item.ShardEffectAction ?? "",
+                    ShardEffectChoice = item.ShardEffectChoice ?? "",
+                    ShardConfigured = item.ShardConfigured,
+                    Provenance = item.Provenance,
+                };
+                character.Items.Add(clone);
+                resolvedItems.Add((clone, def));
+            }
         }
 
         // Файл мог быть собран до правил о руках и броне: лишнее не выбрасывается, а перестаёт
@@ -165,7 +215,8 @@ public static class CharacterImporter
         foreach (var (item, def) in resolvedItems.Where(x => x.Item.State == ItemState.Equipped))
         {
             var candidate = new EquippedItemInput(
-                item.Id, def.Kind, def.FormTraits, def.Name, ImplementRules.IsImplement(def.Code));
+                item.Id, def.Kind, def.FormTraits, def.Name,
+                ImplementRules.IsImplement(def.Code) || RuneboundShardRules.IsShard(def.Code));
             if (EquipmentSlotRules.IsValid([.. kept, candidate])) { kept.Add(candidate); continue; }
             item.State = ItemState.Carried;
             warnings.Add(

@@ -38,3 +38,12 @@ public record RepairItemRequest(
 public record SetImplementConfigurationRequest(
     List<string>? EffectCodes = null,
     string? OverrideReason = null);
+
+/// <summary>
+/// Одноразовая настройка Lesser Rune: небольшой narrative activation effect и один additional
+/// effect с печатной надбавкой +1.
+/// </summary>
+public record SetLesserRuneConfigurationRequest(
+    string ActivationDescription,
+    string ActionCode,
+    string EffectCode);

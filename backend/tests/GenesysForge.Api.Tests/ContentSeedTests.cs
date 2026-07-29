@@ -110,6 +110,46 @@ public class ContentSeedTests
     }
 
     [Fact]
+    public void PrivateFull_HasExpandedTextForEveryRuneboundShard()
+    {
+        using var db = NewDb();
+        SeedData.Apply(db, ContentMode.PrivateFull);
+
+        var shards = db.ItemDefs.Where(i => i.System == GameSystem.RealmsOfTerrinoth)
+            .AsEnumerable()
+            .Where(i => GenesysForge.Domain.Rules.RuneboundShardRules.IsShard(i.Code))
+            .ToList();
+        Assert.Equal(17, shards.Count);
+        Assert.All(shards, shard =>
+        {
+            Assert.False(string.IsNullOrWhiteSpace(shard.Description));
+            Assert.NotEqual(shard.SafeDescription, shard.Description);
+            Assert.True(shard.Description.Length >= 140,
+                $"{shard.Code}: private-full описание слишком короткое");
+        });
+    }
+
+    [Fact]
+    public void EveryShardSpellEffect_UsesAnExistingStableSpellCode()
+    {
+        using var db = NewDb();
+        SeedData.Apply(db, ContentMode.PrivateFull);
+
+        foreach (var effect in GenesysForge.Domain.Rules.RuneboundShardRules.All
+                     .SelectMany(x => x.SpellEffects))
+        {
+            var rows = db.SpellDefs.Where(s =>
+                s.System == GameSystem.RealmsOfTerrinoth
+                && s.Kind == SpellEntryKind.AdditionalEffect
+                && s.NameEn == effect.EffectCode);
+            if (!string.IsNullOrEmpty(effect.Action))
+                rows = rows.Where(s => s.ParentEffect == effect.Action);
+            Assert.True(rows.Any(),
+                $"Shard effect code does not resolve: {effect.Action}/{effect.EffectCode}");
+        }
+    }
+
+    [Fact]
     public void PublicSafe_BuiltInContent_HasNoFullDescriptions()
     {
         using var db = NewDb();

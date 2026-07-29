@@ -113,7 +113,9 @@ ROT-TAL-05, ROT-HA-08/10, ROT-MAG-05/07/08 и ROT-EQP-AMMO-01 — всем, чт
   каталоге качеств; настроенные инструменты перенесены миграцией (P1)
 - [x] **ROT-MAG-10** — рейтинг эффектов считается по `Knowledge (Lore)`, «Тёмное прозрение» даёт
   игроку выбор навыка при сборке, и число видно на чипе, в карточке и в печати (P1)
-- [ ] **ROT-MAG-11**, **ROT-MAG-12**, **ROT-MAG-CONTENT**
+- [x] **ROT-MAG-11** — 17 runebound shards, nullable экономика, обязательные/бесплатные
+  implement-эффекты, Lesser Rune, PrivateFull-тексты и отдельная вкладка магазина (P1)
+- [ ] **ROT-MAG-12**, **ROT-MAG-CONTENT**
 
 ### 10. Magic items, crafting и alchemy
 

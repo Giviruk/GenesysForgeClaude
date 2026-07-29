@@ -245,7 +245,7 @@ public class RotEconomyApiTests(ApiFactory factory) : IClassFixture<ApiFactory>
     {
         var (client, id, item) = await CreateBuyerAsync();
         var before = await SheetAsync(client, id);
-        var unaffordable = before.Money / item.Price + 2;
+        var unaffordable = before.Money / item.Price!.Value + 2;
 
         var resp = await client.PostAsJsonAsync($"/api/characters/{id}/items",
             new AddItemRequest(item.Id, unaffordable, ItemState.Carried), Json.Options);

@@ -34,7 +34,7 @@ public class CharacterImportExportTests : IClassFixture<ApiFactory>
         var (client, id, _) = await CreateCharacterAsync();
         var export = await ExportAsync(client, id);
 
-        Assert.Equal("genesysforge.character.v2", export.Format);
+        Assert.Equal("genesysforge.character.v3", export.Format);
         Assert.Equal("Экспортируемый", export.Character.Name);
         Assert.Equal(GameSystem.GenesysCore, export.Character.System);
         Assert.NotEmpty(export.Character.ArchetypeCode);

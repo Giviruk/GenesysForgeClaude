@@ -175,7 +175,7 @@ export function ItemCard({ item, skillLabel }: { item: SheetItem; skillLabel?: s
       )}
       <div className="pcard-line">
         <span><b>{t('Габариты', 'Encumbrance')}</b> {item.encumbrance}</span>
-        {item.price > 0 && <span><b>{t('Цена', 'Price')}</b> {item.price}</span>}
+        {item.price != null && item.price > 0 && <span><b>{t('Цена', 'Price')}</b> {item.price}</span>}
       </div>
       {item.kind === 'weapon' && (
         <div className="pcard-line">

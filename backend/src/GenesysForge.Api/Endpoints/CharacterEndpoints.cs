@@ -308,6 +308,16 @@ public static class CharacterEndpoints
             return Results.NoContent();
         });
 
+        group.MapPut("/{id:guid}/items/{itemId:guid}/lesser-rune", async (Guid id, Guid itemId,
+            SetLesserRuneConfigurationRequest req, ClaimsPrincipal user,
+            ICommandHandler<SetLesserRuneConfigurationCommand, Unit> handler,
+            CancellationToken ct) =>
+        {
+            await handler.Handle(
+                new SetLesserRuneConfigurationCommand(user.UserId(), id, itemId, req), ct);
+            return Results.NoContent();
+        });
+
         group.MapPut("/{id:guid}/attachments/{attachmentId:guid}/damage-state", async (Guid id,
             Guid attachmentId, SetItemDamageStateRequest req, ClaimsPrincipal user,
             ICommandHandler<SetAttachmentDamageStateCommand, Unit> handler, CancellationToken ct) =>

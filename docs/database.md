@@ -117,7 +117,12 @@ ROT-TAL-01 makes the catalogue authoritative for talent metadata, not just for n
 
 Built-in and custom item definitions.
 
-Fields include `System`, content-model fields, `Kind`, `Encumbrance`, `SoakBonus`, `MeleeDefense`, `RangedDefense`, `EncumbranceThresholdBonus`, `Price`, `Rarity`, `OwnerUserId`, `HomebrewPackId`.
+Fields include `System`, content-model fields, `Kind`, `Encumbrance`, `SoakBonus`, `MeleeDefense`, `RangedDefense`, `EncumbranceThresholdBonus`, nullable `Price`/`Rarity`, `Purchasable`, `Sellable`, `OwnerUserId`, `HomebrewPackId`.
+
+The 17 built-in Realms of Terrinoth runebound shards have no ordinary listed economy:
+`Price = null`, `Rarity = null`, `Purchasable = false`, `Sellable = false`. Their typed
+implement and activation profiles are defined by `RuneboundShardRules`, keyed by the
+suffix of `ItemDef.Code`.
 
 Indexes include non-unique `HomebrewPackId` and `(System, OwnerUserId)` for built-in/custom reference visibility lookups.
 
@@ -317,7 +322,12 @@ Indexes:
 
 Inventory item instances.
 
-Fields: `CharacterId`, `ItemDefId`, `Quantity`, `State`.
+Fields: `CharacterId`, `ItemDefId`, `Quantity`, `State`, implement material/configuration,
+damage/craftsmanship state, and the Lesser Rune fields `ShardActivationChoice`,
+`ShardEffectAction`, `ShardEffectChoice`, `ShardConfigured`.
+
+Runebound shards are non-stackable instances (`Quantity = 1`). Lesser Rune configuration
+belongs to the instance and is immutable after it is first saved.
 
 ### SpellDefs
 
@@ -531,6 +541,11 @@ Found migrations:
   `RatedQualities`. Non-destructive (only `AddColumn`); values arrive with the next idempotent spell
   seed. The character sheet also gains a computed `knowledgeRating` block (available rating sources
   with ranks) — nothing is stored, it is derived from skills and talents on every read.
+- `20260729095218_RotMag11RuneboundShards` — ROT-MAG-11. Makes `ItemDefs.Price` and `Rarity`
+  nullable, adds `Purchasable`/`Sellable`, and stores immutable Lesser Rune choices on
+  `CharacterItems`. Only the exact 17 built-in shard codes are changed to null/non-tradeable.
+  Legacy stacked shard rows keep the original row id at quantity one and are split into individual
+  cloned rows, so no owned shard is discarded.
 
 Startup behavior:
 

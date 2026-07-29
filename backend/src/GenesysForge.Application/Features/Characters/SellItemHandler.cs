@@ -14,6 +14,10 @@ public class SellItemHandler(IAppDbContext db) : ICommandHandler<SellItemCommand
         var c = await db.GetOwnedAsync(command.UserId, command.CharacterId, ct: ct);
         var item = c.Items.FirstOrDefault(i => i.Id == command.ItemId)
             ?? throw new DomainRuleException("Предмет не найден в инвентаре.");
+        if (item.ItemDef is { Sellable: false })
+            throw new DomainRuleException(
+                "Этот предмет нельзя продать через обычную экономику.",
+                "item.not_sellable");
 
         if (req.Quantity < 1) throw new DomainRuleException("Количество должно быть не меньше 1.");
         if (req.Quantity > item.Quantity)
@@ -37,7 +41,7 @@ public class SellItemHandler(IAppDbContext db) : ICommandHandler<SellItemCommand
         // за гномий доспех дают вдвое больше, чем за обычный (ROT-WPN-02).
         var listedUnitPrice = item.ItemDef is null
             ? 0
-            : CraftsmanshipRules.Price(item.ItemDef.Price, item.Craftsmanship);
+            : CraftsmanshipRules.Price(item.ItemDef.Price ?? 0, item.Craftsmanship);
         int percent;
         int bookSubtotal;
 

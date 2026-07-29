@@ -18,9 +18,41 @@ public record ImplementSpecDto(
     int? ChoiceMaxIncreaseSum,
     int? ChoiceExactIncrease);
 
+public record ShardSpellEffectDto(
+    string Action,
+    string EffectCode,
+    ShardSpellEffectMode Mode,
+    int FreeUses,
+    bool OverridesSkillRestriction);
+
+public record ShardDifficultyReductionDto(string Action, int Amount);
+
+public record ShardActivationQualityDto(string Code, int? Rating);
+
+public record ShardActivationAttackDto(
+    string Skill,
+    int Damage,
+    int Critical,
+    string Range,
+    IReadOnlyList<ShardActivationQualityDto> Qualities);
+
+/// <summary>Структурный паспорт runebound shard для справочника и Magic Builder.</summary>
+public record RuneboundShardSpecDto(
+    string Code,
+    string RequiredMagicSkill,
+    int MinimumSkillRank,
+    int AttackDamageBonus,
+    int CastingStrainReduction,
+    IReadOnlyList<ShardDifficultyReductionDto> DifficultyReductions,
+    IReadOnlyList<ShardSpellEffectDto> SpellEffects,
+    ShardActivationCost ActivationCost,
+    string ActivationFrequency,
+    ShardActivationAttackDto? ActivationAttack,
+    bool NeedsConfiguration);
+
 public record ItemDefDto(Guid Id, string Name, string NameRu, ItemKind Kind, int Encumbrance, int SoakBonus,
     int MeleeDefense, int RangedDefense, int EncumbranceThresholdBonus,
-    string Description, string SafeDescription, string Source, int Price, int Rarity,
+    string Description, string SafeDescription, string Source, int? Price, int? Rarity,
     string SkillName, string Damage, string Crit, string RangeBand, string Properties, bool IsCustom,
     IReadOnlyList<ItemQualityRefDto> Qualities, string DescriptionEn = "",
     /// <summary>
@@ -36,7 +68,11 @@ public record ItemDefDto(Guid Id, string Name, string NameRu, ItemKind Kind, int
     /// Магический инструмент (ROT-MAG-IMP-01); <c>null</c> — запись инструментом не является.
     /// По нему витрина показывает выбор материала, а сборщик заклинаний — скидку на сложность.
     /// </summary>
-    ImplementSpecDto? Implement = null);
+    ImplementSpecDto? Implement = null,
+    /// <summary>Runebound shard и его структурная implement-механика (ROT-MAG-11).</summary>
+    RuneboundShardSpecDto? Shard = null,
+    bool Purchasable = true,
+    bool Sellable = true);
 
 /// <summary>Штраф или послабление предмета к проверкам конкретного навыка/характеристики.</summary>
 public record ItemCheckModifierDto(

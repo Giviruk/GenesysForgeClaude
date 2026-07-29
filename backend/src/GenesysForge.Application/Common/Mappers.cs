@@ -58,7 +58,10 @@ public static class Mappers
         [.. i.CheckModifiers.Select(m => new ItemCheckModifierDto(
             m.Kind, m.SkillName, m.Characteristic, m.Value, m.RequiresWorn, m.Condition))],
         i.AttackProfileDtos(qualitiesByCode: qualitiesByCode),
-        ImplementSpecDto(i.Code));
+        ImplementSpecDto(i.Code),
+        RuneboundShardSpecDto(i.Code),
+        i.Purchasable,
+        i.Sellable);
 
     /// <summary>
     /// Паспорт магического инструмента для справочника (ROT-MAG-IMP-01). Определяется кодом
@@ -71,6 +74,34 @@ public static class Mappers
                 spec.Code, spec.AttackDamageBonus, spec.BoostDice, spec.RequiredMagicSkill,
                 spec.Discount, spec.DiscountEffects, spec.ChoiceCount,
                 spec.ChoiceMaxIncreaseSum, spec.ChoiceExactIncrease);
+
+    public static RuneboundShardSpecDto? RuneboundShardSpecDto(string? code) =>
+        RuneboundShardRules.For(code) is not { } spec
+            ? null
+            : new RuneboundShardSpecDto(
+                spec.Code,
+                RuneboundShardRules.RequiredMagicSkill,
+                RuneboundShardRules.MinimumSkillRank,
+                spec.AttackDamageBonus,
+                spec.CastingStrainReduction,
+                [.. spec.DifficultyReductions.Select(r =>
+                    new ShardDifficultyReductionDto(r.Action, r.Amount))],
+                [.. spec.SpellEffects.Select(e =>
+                    new ShardSpellEffectDto(
+                        e.Action, e.EffectCode, e.Mode, e.FreeUses,
+                        e.OverridesSkillRestriction))],
+                spec.ActivationCost,
+                spec.ActivationFrequency,
+                spec.ActivationAttack is null
+                    ? null
+                    : new ShardActivationAttackDto(
+                        spec.ActivationAttack.Skill,
+                        spec.ActivationAttack.Damage,
+                        spec.ActivationAttack.Critical,
+                        spec.ActivationAttack.Range,
+                        [.. spec.ActivationAttack.Qualities.Select(q =>
+                            new ShardActivationQualityDto(q.Code, q.Rating))]),
+                spec.NeedsConfiguration);
 
     /// <summary>Улучшение справочника в DTO: механика приезжает типизированной, а не текстом.</summary>
     public static AttachmentDefDto ToDto(this AttachmentDef a) => new(

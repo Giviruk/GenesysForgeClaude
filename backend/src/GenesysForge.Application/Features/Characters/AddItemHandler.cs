@@ -22,6 +22,14 @@ public class AddItemHandler(IAppDbContext db) : ICommandHandler<AddItemCommand, 
                         && (i.HomebrewPackId == null || visiblePackIds.Contains(i.HomebrewPackId.Value)))), ct)
             ?? throw new DomainRuleException("Предмет не найден.");
         if (req.Quantity < 1) throw new DomainRuleException("Количество должно быть не меньше 1.");
+        if (RuneboundShardRules.IsShard(itemDef.Code) && req.Quantity != 1)
+            throw new DomainRuleException(
+                "Runebound shard хранится отдельным экземпляром; добавьте одну руну за раз.",
+                "shard.quantity_one");
+        if (!req.Free && !itemDef.Purchasable)
+            throw new DomainRuleException(
+                "У этого предмета нет обычной цены — его может только выдать ведущий.",
+                "item.not_purchasable");
 
         // Цену считает сервер по каталогу (ROT-ECO-01): присланная клиентом сумма не используется.
         // Цена ведущего допустима, но только явная и с причиной — она попадает в историю.
@@ -50,11 +58,12 @@ public class AddItemHandler(IAppDbContext db) : ICommandHandler<AddItemCommand, 
         if (req.State == ItemState.Equipped)
             EquipmentSlotRules.EnsureCanEquip(
                 itemDef.Kind, itemDef.FormTraits, CharacterDerived.EquippedInputs(c),
-                ImplementRules.IsImplement(itemDef.Code));
+                ImplementRules.IsImplement(itemDef.Code) || RuneboundShardRules.IsShard(itemDef.Code));
 
+        var basePrice = itemDef.Price ?? 0;
         var listedUnitPrice = ImplementRules.IsImplement(itemDef.Code)
-            ? ImplementRules.Price(itemDef.Price, req.Material)
-            : CraftsmanshipRules.Price(itemDef.Price, craftsmanship);
+            ? ImplementRules.Price(basePrice, req.Material)
+            : CraftsmanshipRules.Price(basePrice, craftsmanship);
         var unitPrice = req.PriceOverride ?? listedUnitPrice;
         var percent = req.PricePercent ?? 100;
         var total = req.Free

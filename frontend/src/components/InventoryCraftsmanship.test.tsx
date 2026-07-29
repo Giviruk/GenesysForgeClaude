@@ -1,4 +1,4 @@
-import { render, screen, waitFor, fireEvent } from '@testing-library/react'
+import { render, screen, waitFor, fireEvent, within } from '@testing-library/react'
 import { describe, expect, it, vi, beforeEach } from 'vitest'
 import type { CharacterSheet, ItemDef, Reference, SheetItem } from '../api/types'
 import { InventoryTab } from './InventoryTab'
@@ -22,6 +22,7 @@ const plateDef = {
   meleeDefense: 0, rangedDefense: 0, encumbranceThresholdBonus: 0, description: '', safeDescription: '',
   source: '', price: 5000, rarity: 6, skillName: '', damage: '', crit: '', rangeBand: '', properties: '',
   isCustom: false, qualities: [], hardPoints: 4, checkModifiers: [], attackProfiles: [],
+  implement: null, shard: null, purchasable: true, sellable: true,
 } as unknown as ItemDef
 
 const ironPlate = {
@@ -75,8 +76,19 @@ const ropeDef = {
   ...plateDef, id: 'def-rope', name: 'Rope', nameRu: 'Верёвка', kind: 'gear', price: 10, rarity: 0,
 } as unknown as ItemDef
 
+const shardDef = {
+  ...ropeDef, id: 'def-shard', name: 'Arcane Bolt Rune', nameRu: 'Руна магического заряда',
+  price: null, rarity: null, purchasable: false, sellable: false,
+  shard: {
+    code: 'arcane-bolt-rune', requiredMagicSkill: 'Runes', minimumSkillRank: 1,
+    attackDamageBonus: 4, castingStrainReduction: 0, difficultyReductions: [],
+    spellEffects: [], activationCost: 'maneuver', activationFrequency: 'turn',
+    activationAttack: null, needsConfiguration: false,
+  },
+} as unknown as ItemDef
+
 const reference = { items: [plateDef] } as unknown as Reference
-const shopReference = { items: [plateDef, staffDef, ropeDef] } as unknown as Reference
+const shopReference = { items: [plateDef, staffDef, ropeDef, shardDef] } as unknown as Reference
 
 describe('Инвентарь: качество изготовления (ROT-WPN-02)', () => {
   beforeEach(() => {
@@ -143,6 +155,21 @@ describe('Инвентарь: качество изготовления (ROT-WPN
     fireEvent.click(screen.getByRole('button', { name: 'Снаряжение' }))
     expect(shop()).toContain('Верёвка')
     expect(shop()).not.toContain('Магический посох')
+  })
+
+  it('выносит runebound shards в отдельную вкладку без обычной покупки', () => {
+    render(<InventoryTab sheet={sheet} reference={shopReference} onError={() => {}}
+      refresh={() => Promise.resolve()} />)
+
+    fireEvent.click(screen.getByRole('button', { name: 'Руны' }))
+    const shop = document.querySelector('.shop-list')!
+    expect(shop.textContent).toContain('Руна магического заряда')
+    expect(shop.textContent).toContain('без обычной цены')
+    expect(within(shop as HTMLElement).queryByRole('button', { name: 'Купить' })).toBeNull()
+    expect(within(shop as HTMLElement).getByRole('button', { name: '+ Добавить' })).toBeTruthy()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Снаряжение' }))
+    expect(document.querySelector('.shop-list')!.textContent).not.toContain('Руна магического заряда')
   })
 
   it('покупает с выбранной работой и показывает её цену', async () => {

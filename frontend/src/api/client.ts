@@ -254,6 +254,11 @@ export const api = {
   setImplementConfiguration: (id: string, itemId: string, effectCodes: string[], overrideReason?: string) =>
     request<void>('PUT', `/api/characters/${id}/items/${itemId}/implement`,
       { effectCodes, overrideReason }),
+  /** Одноразовая настройка Lesser Rune: описание активации и ровно один эффект Runes с +1. */
+  setLesserRuneConfiguration: (id: string, itemId: string, activationDescription: string,
+    actionCode: string, effectCode: string) =>
+    request<void>('PUT', `/api/characters/${id}/items/${itemId}/lesser-rune`,
+      { activationDescription, actionCode, effectCode }),
 
   // ── Состояние повреждения и ремонт (GEN-EQP-DMG-01) ──
   /** Меняет состояние предмета: и Sunder в бою, и порча по сюжету приходят сюда. */

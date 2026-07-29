@@ -1,6 +1,6 @@
 import { render, screen, waitFor, fireEvent, within } from '@testing-library/react'
 import { describe, expect, it, vi, beforeEach } from 'vitest'
-import type { CharacterSheet, ItemImplement, Spell } from '../api/types'
+import type { CharacterSheet, ItemImplement, ItemRuneboundShard, Spell } from '../api/types'
 import { MagicTab } from './MagicTab'
 import { implementPrice, implementRarity } from '../utils/implements'
 import { parseDifficulty } from '../utils/labels'
@@ -30,7 +30,9 @@ const spell = (over: Partial<Spell>): Spell => {
 const SPELLS: Spell[] = [
   spell({ id: 'attack', magicSkill: 'Arcana', kind: 'effect', nameRu: 'Атака', nameEn: 'Attack', difficulty: '1 (Easy)' }),
   spell({ id: 'barrier', magicSkill: 'Divine', kind: 'effect', nameRu: 'Барьер', nameEn: 'Barrier', difficulty: '1 (Easy)' }),
+  spell({ id: 'runes-attack', magicSkill: 'Runes', kind: 'effect', nameRu: 'Атака', nameEn: 'Attack', difficulty: '1 (Easy)' }),
   spell({ id: 'range', kind: 'additionalEffect', parentEffect: 'Attack', nameRu: 'Дистанционный', nameEn: 'Range', difficulty: '+1', repeatable: true }),
+  spell({ id: 'impact', kind: 'additionalEffect', parentEffect: 'Attack', nameRu: 'Ударный', nameEn: 'Impact', difficulty: '+1' }),
   spell({ id: 'close', kind: 'additionalEffect', parentEffect: 'Attack', nameRu: 'Ближний бой', nameEn: 'Close Combat', difficulty: '+1' }),
   spell({ id: 'sanctuary', kind: 'additionalEffect', parentEffect: 'Barrier', nameRu: 'Святилище', nameEn: 'Sanctuary', difficulty: '+2', restrictedSkill: 'Divine' }),
 ]
@@ -52,6 +54,32 @@ const sheetWith = (impl: ItemImplement | null, over: Record<string, unknown> = {
     }]
     : [],
 } as unknown as CharacterSheet)
+
+const arcaneBoltShard: ItemRuneboundShard = {
+  spec: {
+    code: 'arcane-bolt-rune', requiredMagicSkill: 'Runes', minimumSkillRank: 1,
+    attackDamageBonus: 4, castingStrainReduction: 0, difficultyReductions: [],
+    spellEffects: [
+      { action: 'Attack', effectCode: 'Range', mode: 'optionalFree', freeUses: 1, overridesSkillRestriction: false },
+      { action: 'Attack', effectCode: 'Impact', mode: 'mandatoryFree', freeUses: 1, overridesSkillRestriction: false },
+    ],
+    activationCost: 'maneuver', activationFrequency: 'turn', activationAttack: null,
+    needsConfiguration: false,
+  },
+  activationChoice: '', effectAction: '', effectChoice: '', pending: false,
+}
+
+const shardSheet = {
+  id: 'char-runes', system: 'realmsOfTerrinoth',
+  skills: [{
+    name: 'Runes', kind: 'magic', pool: { ability: 1, proficiency: 1 },
+    ranks: 1, isCareer: true,
+  }],
+  items: [{
+    id: 'shard-1', nameRu: 'Руна магического заряда', name: 'Arcane Bolt Rune',
+    state: 'equipped', isUsable: true, implement: null, shard: arcaneBoltShard,
+  }],
+} as unknown as CharacterSheet
 
 describe('Магические инструменты в сборщике (ROT-MAG-IMP-01)', () => {
   beforeEach(() => {
@@ -80,6 +108,34 @@ describe('Магические инструменты в сборщике (ROT-M
     fireEvent.click(screen.getByRole('button', { name: /Дистанционный/ }))
 
     await waitFor(() => expect(difficulty()).toContain('2'))
+  })
+
+  it('runebound shard добавляет обязательный эффект и бесплатную Дистанцию', async () => {
+    render(<MagicTab sheet={shardSheet} onError={() => {}} />)
+    await screen.findByText(/Сборка магического действия/)
+
+    fireEvent.change(screen.getByLabelText(/Направление/), { target: { value: 'Runes' } })
+    fireEvent.change(screen.getByLabelText(/Runebound shard/), { target: { value: 'shard-1' } })
+    // Impact появляется сам и не имеет кнопки удаления.
+    expect(document.querySelector('.effect-summary')?.textContent).toContain('Ударный')
+    expect(document.querySelector('.effect-summary')?.textContent).toContain('обязательно')
+    fireEvent.click(screen.getByRole('button', { name: /Дистанционный/ }))
+
+    await waitFor(() => expect(difficulty()).toContain('1'))
+    expect(document.body.textContent).toContain('урон Атаки +4')
+  })
+
+  it('не разрешает Runes без карьерного навыка и ранга', async () => {
+    const invalid = {
+      ...shardSheet,
+      skills: [{ ...shardSheet.skills[0], ranks: 0, isCareer: false }],
+    } as unknown as CharacterSheet
+    render(<MagicTab sheet={invalid} onError={() => {}} />)
+    await screen.findByText(/Сборка магического действия/)
+
+    fireEvent.change(screen.getByLabelText(/Направление/), { target: { value: 'Runes' } })
+    expect(document.body.textContent).toContain('карьерный навык')
+    expect(screen.queryByLabelText(/Runebound shard/)).toBeNull()
   })
 
   it('инструмент чужого направления не работает и говорит об этом', async () => {

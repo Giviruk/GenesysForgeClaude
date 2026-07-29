@@ -24,8 +24,21 @@ public class ItemDef : IContentDef
     public string DescriptionEn { get; set; } = "";
     /// <summary>Ссылка на источник: книга/раздел/страница. Доступна в обоих режимах.</summary>
     public string Source { get; set; } = "";
-    public int Price { get; set; }
-    public int Rarity { get; set; }
+    /// <summary>
+    /// Обычная каталожная цена. <c>null</c> означает, что книга не задаёт цену; это не ноль монет.
+    /// </summary>
+    public int? Price { get; set; }
+
+    /// <summary>
+    /// Обычная редкость. <c>null</c> означает, что книга не задаёт значение; это не редкость 0.
+    /// </summary>
+    public int? Rarity { get; set; }
+
+    /// <summary>Запись можно купить через обычную витрину за каталожную цену.</summary>
+    public bool Purchasable { get; set; } = true;
+
+    /// <summary>Экземпляр можно продать через обычную экономику персонажа.</summary>
+    public bool Sellable { get; set; } = true;
 
     /// <summary>
     /// Слоты улучшений (hard points) по таблице книги (ROT-WPN-01/ROT-ARM-01). Берётся из таблицы,

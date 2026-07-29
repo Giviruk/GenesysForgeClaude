@@ -396,6 +396,22 @@ GM configures it, the instance keeps its ordinary stats but grants no free effec
 (`items[].implement.pending`). Effect increases come from the spell reference, not from the
 request. Response: `204`.
 
+### `PUT /api/characters/{id}/items/{itemId}/lesser-rune`
+
+Protected (ROT-MAG-11). Request: `SetLesserRuneConfigurationRequest` with
+`activationDescription`, `actionCode` and `effectCode`. The target must be an owned,
+unconfigured Lesser Rune. The description is 3–500 characters; the chosen additional
+effect must exist for the requested Runes action, be available to Runes and have a printed
+difficulty increase of exactly `+1`.
+
+The selection is permanent. It is preserved by character duplicate and v3 export/import.
+Response: `204`.
+
+Reference `items[].shard` carries the structural runebound-shard passport. Character sheet
+`items[].shard` additionally carries Lesser Rune instance choices and `pending`. Shards have
+nullable `price`/`rarity`, cannot use the ordinary purchase/sale routes, and may only be
+granted free in a quantity of one.
+
 ### `PUT /api/characters/{id}/attachments/{attachmentId}/damage-state` and `POST …/repair`
 
 Protected. Same requests and rules for an attachment's own damage state. A broken attachment

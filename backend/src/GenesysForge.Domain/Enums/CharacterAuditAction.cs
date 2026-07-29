@@ -55,4 +55,7 @@ public enum CharacterAuditAction
 
     /// <summary>Ведущий настроил магический инструмент: выбраны бесплатные эффекты (ROT-MAG-IMP-01).</summary>
     ImplementConfigured,
+
+    /// <summary>Ведущий необратимо настроил activation и бесплатный эффект Lesser Rune (ROT-MAG-11).</summary>
+    ShardConfigured,
 }
