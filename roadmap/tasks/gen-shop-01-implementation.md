@@ -3,8 +3,8 @@
 - **Roadmap:** GEN-SHOP-01 (см. [rot-rules-remediation-tasks.md](rot-rules-remediation-tasks.md))
 - **Ветка:** `feature/gen-shop-01-implementation`
 - **Базовая ветка:** `master`
-- **PR:** будет добавлен после создания
-- **Статус:** ✅ Implementation complete; PR pending
+- **PR:** [#136](https://github.com/Giviruk/GenesysForgeClaude/pull/136)
+- **Статус:** ✅ Implementation complete; draft PR open
 
 ## Контекст
 
@@ -32,11 +32,11 @@
 - [x] Обновить документацию БД при изменении persistent model (не требуется: схема не менялась).
 - [x] Проверить copyright: не добавлять оригинальные тексты книг.
 - [x] Обновить итоговый статус `GEN-SHOP-01`.
-- [ ] PR открыт.
+- [x] PR открыт.
 
 ## Что осталось / блокеры
 
-Реализация завершена. Осталось опубликовать ветку и открыть PR.
+Реализация завершена, draft PR #136 открыт. Блокеров нет.
 
 ## Заметки / решения
 
