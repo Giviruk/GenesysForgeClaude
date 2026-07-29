@@ -3,7 +3,7 @@
 - **Roadmap:** ROT-MAG-CONTENT из [rot-rules-remediation-tasks.md](rot-rules-remediation-tasks.md)
 - **Ветка:** `feature/rot-mag-content`
 - **Базовая ветка:** `master`
-- **PR:** будет создан после реализации
+- **PR:** [#128](https://github.com/Giviruk/GenesysForgeClaude/pull/128)
 - **Статус:** 🚧 Planning
 
 ## Цель
