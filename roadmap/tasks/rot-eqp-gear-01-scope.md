@@ -3,7 +3,7 @@
 - **Roadmap:** ROT-EQP-GEAR-01 (см. [rot-rules-remediation-tasks.md](rot-rules-remediation-tasks.md))
 - **Ветка:** `feature/rot-eqp-gear-01-scope`
 - **Базовая ветка:** `feature/rot-eqp-02-transport-section` (stacked поверх PR #130)
-- **PR:** будет открыт после фиксации решения
+- **PR:** [#131](https://github.com/Giviruk/GenesysForgeClaude/pull/131)
 - **Статус:** ✅ Scope complete
 
 ## Контекст
@@ -23,11 +23,11 @@
 - [x] Тесты не требуются: код приложения не менялся.
 - [x] Миграция не требуется: persistent model не менялась.
 - [x] Copyright-проверка не требуется: seed и тексты не менялись.
-- [ ] PR открыт.
+- [x] PR открыт.
 
 ## Что осталось / блокеры
 
-Открыть документационный stacked PR. Код приложения не меняется.
+Ничего. Код приложения не меняется.
 
 ## Заметки / решения
 
