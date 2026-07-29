@@ -325,7 +325,19 @@ Built-in and custom magic reference entries (spell effects and additional-effect
 
 Fields: `Id`, `System`, `MagicSkill` (Arcana/Divine/Primal, plus Runes/Verse for Terrinoth; empty for additional effects), `Kind` (`Effect`/`AdditionalEffect`), `ParentEffect` (for additional effects — the `NameEn` code of the base effect they modify; empty for base effects), `NameRu`, `NameEn`, `Difficulty`, `Description` (full/private paraphrase), `SafeDescription` (copyright-safe public text), `Source` (book/section reference), `SortOrder`, `OwnerUserId`.
 
+Structural rule fields (ROT-MAG-01), all fed from the domain matrix `MagicMatrix` rather than parsed out of descriptions:
+
+- `AllowedSkills` — comma-separated magic skills the entry is available to, already narrowed to the skills of its system. For a base effect it is the matrix row of the action; for an additional effect it is the parent action's row narrowed by the effect's own restriction.
+- `RestrictedSkill` — the single skill an additional effect is limited to (empty when unrestricted); the holy icon discount is computed from it.
+- `DifficultyIncrease` — the number behind the printed `Difficulty` string.
+- `Repeatable` — the effect may be added to one spell several times (keyed by action + effect, so a same-named effect of another action does not inherit it).
+- `Exclusions` — comma-separated effect codes that cannot be combined with this one.
+- `Resolution` — how the entry applies: `OnSuccess`, `PassiveQuality`, `ActivatedQuality`, `AdvantageSpend`, `StoryPoint`, `Narrative`, `Parameter`.
+- `IsOptional` — the entry comes from the optional Expanded Player's Guide.
+
 Base effects are seeded once per (system, magic skill) only for skills where the effect is available (availability matrix); additional effects are seeded once per (system, base effect) and are skill-agnostic.
+
+The seed is authoritative for built-in entries: descriptions and the structural fields are synced into already-seeded databases, and a built-in row that is no longer in the catalog is deleted (custom entries with `OwnerUserId` are never touched).
 
 Indexes:
 
@@ -504,6 +516,11 @@ Found migrations:
   catalogue itself is applied by the idempotent talent seed, which now treats the catalogue as
   authoritative for tier, ranked, activation timing, out-of-turn and `Retired` as well as names and
   descriptions. No talent row is deleted — characters reference them.
+- `20260728211444_RotMagicEffectAvailability` — ROT-MAG-01. Adds `SpellDefs.AllowedSkills`,
+  `DifficultyIncrease`, `Exclusions`, `Resolution` and `IsOptional`. Non-destructive (only
+  `AddColumn`); values arrive with the next idempotent spell seed, which is now authoritative for
+  built-in magic entries. That seed also removes the built-in `Attack/Move` row (a duplicate of
+  `Manipulative`) and migrates implement configurations that referenced it.
 
 Startup behavior:
 

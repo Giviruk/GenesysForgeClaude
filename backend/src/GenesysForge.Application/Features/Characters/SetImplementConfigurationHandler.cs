@@ -51,7 +51,7 @@ public class SetImplementConfigurationHandler(IAppDbContext db)
             var def = effects.FirstOrDefault(e => string.Equals(e.NameEn, code, StringComparison.Ordinal))
                 ?? throw new DomainRuleException(
                     $"Эффект «{code}» не найден в справочнике магии.", "implement.effect.not_found");
-            chosen.Add(new SpellEffectInput(def.NameEn, SpellRules.ParseIncrease(def.Difficulty)));
+            chosen.Add(new SpellEffectInput(def.NameEn, def.DifficultyIncrease, def.RestrictedSkill));
         }
 
         ImplementRules.EnsureConfigurationValid(spec, chosen, req.OverrideReason);

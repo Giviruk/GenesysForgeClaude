@@ -1,5 +1,4 @@
 import type { ImplementMaterial, ImplementSpec, ItemImplement, Spell } from '../api/types'
-import { parseDifficulty } from './labels'
 
 /**
  * Материалы магического инструмента (ROT-MAG-MAT-01) в порядке таблицы книги.
@@ -61,7 +60,7 @@ export function implementDiscounts(
   // в первом добавлении, второе и третье стоят полную надбавку.
   const discounted = new Set<string>()
   for (const effect of effects) {
-    const increase = parseDifficulty(effect.difficulty)
+    const increase = effect.difficultyIncrease
     if (increase <= 0) continue
     if (discounted.has(effect.nameEn)) continue
     discounted.add(effect.nameEn)
@@ -113,7 +112,7 @@ export function effectiveSpellDifficulty(
   implement: ItemImplement | null,
   magicSkill: string,
 ): number {
-  const raw = baseDifficulty + effects.reduce((sum, e) => sum + parseDifficulty(e.difficulty), 0)
+  const raw = baseDifficulty + effects.reduce((sum, e) => sum + e.difficultyIncrease, 0)
   return implementDifficulty(
     baseDifficulty, raw, implementDiscounts(implement, effects, magicSkill))
 }

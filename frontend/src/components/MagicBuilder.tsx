@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { api } from '../api/client'
 import type { DicePool, GameSystem, ItemImplement, Spell } from '../api/types'
 import {
-  difficultyLabel, localizedDescription, magicSkillLabel, MAX_SPELL_DIFFICULTY, parseDifficulty,
+  difficultyLabel, localizedDescription, magicSkillLabel, MAX_SPELL_DIFFICULTY,
 } from '../utils/labels'
 import {
   effectiveSpellDifficulty, implementDiscounts, implementWorks,
@@ -85,11 +85,24 @@ export function MagicBuilder({
     () => spells?.filter(s => s.kind === 'additionalEffect' && s.parentEffect === activeEffectCode) ?? [],
     [spells, activeEffectCode])
 
+  // Доступность эффекта направлению — правило книги, а не оформление: «Рок» умеет только Магия,
+  // и жрецу его выбрать нельзя (ROT-MAG-01). Матрица приходит с сервера полем allowedSkills.
+  const availableToSkill = (effect: Spell) =>
+    effect.allowedSkills.length === 0 || effect.allowedSkills.includes(activeSkill)
+
   // Развёрнутый список: повторно выбранный эффект встречается столько раз, сколько выбран, —
-  // так и сложность, и скидка инструмента считаются по одному правилу.
-  const chosen = additional.flatMap(a => Array.from({ length: counts[a.id] ?? 0 }, () => a))
-  const baseDifficulty = selectedEffect ? parseDifficulty(selectedEffect.difficulty) : 0
-  const added = chosen.reduce((sum, a) => sum + parseDifficulty(a.difficulty), 0)
+  // так и сложность, и скидка инструмента считаются по одному правилу. Недоступные направлению
+  // эффекты в счёт не идут, даже если остались в counts после смены направления.
+  const chosen = additional.filter(availableToSkill)
+    .flatMap(a => Array.from({ length: counts[a.id] ?? 0 }, () => a))
+  const chosenCodes = new Set(chosen.map(a => a.nameEn))
+  /** Эффект не сочетается с уже выбранным: «Отчаяние» и «Дополнительная цель» вместе не берутся. */
+  const conflicts = (effect: Spell) => effect.exclusions
+    .filter(code => chosenCodes.has(code) && code !== effect.nameEn)
+  // Числа берутся полем, а не разбором печатной строки: сервер уже посчитал их по той же
+  // записи справочника (ROT-MAG-01).
+  const baseDifficulty = selectedEffect?.difficultyIncrease ?? 0
+  const added = chosen.reduce((sum, a) => sum + a.difficultyIncrease, 0)
 
   // Инструмент удешевляет добавленные эффекты (ROT-MAG-IMP-01). Правило повторяет серверное:
   // сложность собирается из действия и эффектов, потом инструмент снимает свои надбавки, и итог
@@ -123,8 +136,10 @@ export function MagicBuilder({
   // Пул кубов персонажа для выбранного направления (если передан лист).
   const charPool = characterSkills?.find(s => s.name === activeSkill)?.pool ?? null
 
-  // Снять эффект можно всегда; добавить — только пока итоговая сложность не превысит потолок 5.
+  // Снять эффект можно всегда; добавить — только доступный направлению, сочетаемый с уже
+  // выбранными и не выводящий сложность за потолок 5.
   const add = (effect: Spell) => {
+    if (!availableToSkill(effect) || conflicts(effect).length > 0) return
     if (selectedEffect && wouldExceedCap(effect)) return
     setCounts(prev => ({ ...prev, [effect.id]: (prev[effect.id] ?? 0) + 1 }))
   }
@@ -205,7 +220,13 @@ export function MagicBuilder({
             </label>
             <label className="inline-label">{t('Базовый эффект', 'Base effect')}
               <select value={activeEffectCode} onChange={e => setEffectCode(e.target.value)}>
-                {baseEffects.map(e => <option key={e.id} value={e.nameEn}>{t(e.nameRu, e.nameEn)}</option>)}
+                {/* Опциональная книга помечена прямо в списке: игрок должен видеть, что берёт
+                    контент Expanded Player's Guide, а не базовые правила (ROT-MAG-01). */}
+                {baseEffects.map(e => (
+                  <option key={e.id} value={e.nameEn}>
+                    {t(e.nameRu, e.nameEn)}{e.isOptional ? ' · EPG' : ''}
+                  </option>
+                ))}
               </select>
             </label>
           </div>
@@ -349,11 +370,14 @@ export function MagicBuilder({
             <>
               <div className="chips effect-chips">
                 {additional.map(a => {
-                  const count = counts[a.id] ?? 0
+                  const unavailable = !availableToSkill(a)
+                  const conflicting = conflicts(a)
+                  const count = unavailable ? 0 : (counts[a.id] ?? 0)
                   const on = count > 0
                   // Повторяемый эффект добавляется снова, поэтому потолок его касается всегда,
                   // а не только при первом выборе.
-                  const blocked = (!on || a.repeatable) && selectedEffect != null && wouldExceedCap(a)
+                  const overCap = (!on || a.repeatable) && selectedEffect != null && wouldExceedCap(a)
+                  const blocked = unavailable || conflicting.length > 0 || overCap
                   // Инструмент делает эффект бесплатным — это видно на самом чипе, а не только
                   // в итоговой сложности (ROT-MAG-IMP-01).
                   const freeByTool = freeEffectCodes.includes(a.nameEn)
@@ -362,10 +386,21 @@ export function MagicBuilder({
                     ? t('\nИнструмент делает этот эффект бесплатным.',
                       '\nThe implement makes this effect free.')
                     : ''
-                  const title = blocked
-                    ? t(`Недоступно: базовая ${baseDifficulty} + выбранные ${added} + ${a.difficulty} превысит потолок ${MAX_SPELL_DIFFICULTY}`,
-                        `Unavailable: base ${baseDifficulty} + selected ${added} + ${a.difficulty} would exceed the cap of ${MAX_SPELL_DIFFICULTY}`)
-                    : `${t(a.nameEn, a.nameRu)} · ${a.difficulty}${description ? ` — ${description}` : ''}${freeNote}`
+                  // Причина недоступности называется прямо: иначе непонятно, эффект вообще не для
+                  // этого направления, мешает уже выбранный или дело в потолке сложности.
+                  const conflictNames = conflicting
+                    .map(code => t(additional.find(x => x.nameEn === code)?.nameRu || code, code))
+                    .join(', ')
+                  const title = unavailable
+                    ? t(`Недоступно направлению «${magicSkillLabel(activeSkill)}»: эффект только для ${a.allowedSkills.map(magicSkillLabel).join(', ')}`,
+                        `Unavailable for ${magicSkillLabel(activeSkill)}: this effect is ${a.allowedSkills.map(magicSkillLabel).join(', ')} only`)
+                    : conflicting.length > 0
+                      ? t(`Не сочетается с выбранным: ${conflictNames}`,
+                          `Cannot be combined with the selected ${conflictNames}`)
+                      : overCap
+                        ? t(`Недоступно: базовая ${baseDifficulty} + выбранные ${added} + ${a.difficulty} превысит потолок ${MAX_SPELL_DIFFICULTY}`,
+                            `Unavailable: base ${baseDifficulty} + selected ${added} + ${a.difficulty} would exceed the cap of ${MAX_SPELL_DIFFICULTY}`)
+                        : `${t(a.nameEn, a.nameRu)} · ${a.difficulty}${description ? ` — ${description}` : ''}${freeNote}`
                   return (
                     <button key={a.id} type="button"
                       className={`chip effect-chip${on ? ' active' : ''}${blocked ? ' blocked' : ''}${freeByTool ? ' free' : ''}`}
@@ -385,6 +420,13 @@ export function MagicBuilder({
                           показывает, сколько уже добавлено. */}
                       {count > 1 && <span className="effect-chip-count"> ×{count}</span>}
                       {freeByTool && <span className="effect-chip-free"> {t('бесплатно', 'free')}</span>}
+                      {/* Ограничение видно на самом чипе: подсказка по наведению есть не везде. */}
+                      {unavailable && (
+                        <span className="effect-chip-only">
+                          {' '}{t(`только ${a.allowedSkills.map(magicSkillLabel).join('/')}`,
+                            `${a.allowedSkills.map(magicSkillLabel).join('/')} only`)}
+                        </span>
+                      )}
                     </button>
                   )
                 })}
@@ -396,6 +438,20 @@ export function MagicBuilder({
                     <li key={a.id}>
                       <strong>{t(a.nameRu, a.nameEn)}</strong> <span className="muted small-text">{t(a.nameEn, a.nameRu)}</span>{' '}
                       <span className="effect-chip-diff">{a.difficulty}</span>
+                      {/* Кому эффект доступен и с чем не сочетается — рядом с описанием, а не внутри него. */}
+                      {a.restrictedSkill && (
+                        <span className="muted small-text">
+                          {' '}· {t(`только ${magicSkillLabel(a.restrictedSkill)}`,
+                            `${magicSkillLabel(a.restrictedSkill)} only`)}
+                        </span>
+                      )}
+                      {a.exclusions.length > 0 && (
+                        <span className="muted small-text">
+                          {' '}· {t('не сочетается с', 'not combinable with')}{' '}
+                          {a.exclusions.map(code => t(
+                            additional.find(x => x.nameEn === code)?.nameRu || code, code)).join(', ')}
+                        </span>
+                      )}
                       <div className="small-text">{localizedDescription(a)}</div>
                     </li>
                   ))}
@@ -451,7 +507,7 @@ function ImplementConfigurator({ tool, effects, onConfigure, onError }: {
 
   // Палочка берёт только эффекты с надбавкой ровно +1; фолиант — любые.
   const allowed = effects.filter(e => spec.choiceExactIncrease == null
-    || parseDifficulty(e.difficulty) === spec.choiceExactIncrease)
+    || e.difficultyIncrease === spec.choiceExactIncrease)
   const toggle = (code: string) => setCodes(prev => prev.includes(code)
     ? prev.filter(x => x !== code)
     : prev.length >= spec.choiceCount ? prev : [...prev, code])

@@ -858,26 +858,71 @@ public static class SeedData
         if (changed) db.SaveChanges();
     }
 
-    /// <summary>EN-описания заклинаний (по натуральному ключу сида).</summary>
+    /// <summary>
+    /// Каталог авторитетен для встроенных записей магии: описания и структурные признаки
+    /// (доступность, повторяемость, несочетаемость, способ применения) доезжают до уже засиженной
+    /// базы. Без этого правило ROT-MAG-01 работало бы только на пустой установке.
+    ///
+    /// Запись, которой в каталоге больше нет, удаляется — но только встроенная: пользовательская
+    /// магия (<see cref="SpellDef.OwnerUserId"/>) не трогается.
+    /// </summary>
     private static void SyncSpells(AppDbContext db, IReadOnlyList<SpellDef> catalog)
     {
         static string Key(SpellDef d) => $"{d.System}:{d.MagicSkill}:{(int)d.Kind}:{d.ParentEffect}:{d.NameEn}";
         var wanted = catalog.ToDictionary(Key);
         var changed = false;
+        var stale = new List<SpellDef>();
         foreach (var row in db.SpellDefs.Where(x => x.OwnerUserId == null).ToList())
-            if (wanted.TryGetValue(Key(row), out var def))
-                // Доступность единственному навыку доезжает и до засиженной базы: без неё скидка
-                // священного символа молча не сработала бы у существующих установок.
-                changed |= Assign(
-                    row.DescriptionEn != def.DescriptionEn || row.SafeDescription != def.SafeDescription
-                    || row.RestrictedSkill != def.RestrictedSkill || row.Repeatable != def.Repeatable,
-                    () =>
-                    {
-                        row.DescriptionEn = def.DescriptionEn; row.SafeDescription = def.SafeDescription;
-                        row.RestrictedSkill = def.RestrictedSkill;
-                        row.Repeatable = def.Repeatable;
-                    });
+        {
+            if (!wanted.TryGetValue(Key(row), out var def)) { stale.Add(row); continue; }
+            changed |= Assign(
+                row.Description != def.Description || row.DescriptionEn != def.DescriptionEn
+                || row.SafeDescription != def.SafeDescription
+                || row.RestrictedSkill != def.RestrictedSkill || row.Repeatable != def.Repeatable
+                || row.AllowedSkills != def.AllowedSkills
+                || row.DifficultyIncrease != def.DifficultyIncrease
+                || row.Exclusions != def.Exclusions || row.Resolution != def.Resolution
+                || row.IsOptional != def.IsOptional,
+                () =>
+                {
+                    row.Description = def.Description; row.DescriptionEn = def.DescriptionEn;
+                    row.SafeDescription = def.SafeDescription;
+                    row.RestrictedSkill = def.RestrictedSkill;
+                    row.Repeatable = def.Repeatable;
+                    row.AllowedSkills = def.AllowedSkills;
+                    row.DifficultyIncrease = def.DifficultyIncrease;
+                    row.Exclusions = def.Exclusions;
+                    row.Resolution = def.Resolution;
+                    row.IsOptional = def.IsOptional;
+                });
+        }
+
+        if (stale.Count > 0)
+        {
+            // «Двигающий» (Move) был русским дублем «Управляющего» (Manipulative) с тем же текстом:
+            // настроенные экземпляры фолиантов и палочек переносятся на оставшуюся запись, иначе
+            // ведущий молча потерял бы уже выбранный бесплатный эффект (ROT-MAG-01).
+            RenameImplementChoice(db, "Move", "Manipulative");
+            db.SpellDefs.RemoveRange(stale);
+            changed = true;
+        }
+
         if (changed) db.SaveChanges();
+    }
+
+    /// <summary>Переносит выбор бесплатного эффекта инструмента со старого кода эффекта на новый.</summary>
+    private static void RenameImplementChoice(AppDbContext db, string oldCode, string newCode)
+    {
+        foreach (var item in db.CharacterItems.Where(x => x.ImplementChoices != "").ToList())
+        {
+            var codes = item.ImplementChoices
+                .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                .Select(c => c == oldCode ? newCode : c)
+                .Distinct(StringComparer.Ordinal)
+                .ToList();
+            var joined = string.Join(",", codes);
+            if (joined != item.ImplementChoices) item.ImplementChoices = joined;
+        }
     }
 
     /// <summary>Добавляет элементы, чьи ключи отсутствуют среди встроенных (OwnerUserId == null) записей.</summary>
@@ -1243,56 +1288,56 @@ public static class SeedData
 
     // ─────────────────────────── spells ───────────────────────────
 
+    /// <summary>
+    /// Одна запись справочника магии. Структурные признаки — доступность, повторяемость,
+    /// несочетаемость, способ применения — не задаются здесь по месту, а берутся из
+    /// <see cref="MagicMatrix"/>: правило одно, а записей у него много (ROT-MAG-01).
+    /// </summary>
+    /// <param name="allowedSkills">
+    /// Направления системы, которым запись доступна: строка матрицы, уже суженная до навыков
+    /// конкретной системы (в Genesys Core нет Рун и Песни).
+    /// </param>
     private static SpellDef Spell(GameSystem sys, string skill, SpellEntryKind kind, string parent, string ru,
-        string en, string difficulty, string desc, string safe, string safeEn, string source, int sort) => new()
+        string en, string difficulty, IReadOnlyList<string> allowedSkills, string desc, string safe,
+        string safeEn, string source, int sort)
     {
-        Id = Guid.NewGuid(), System = sys, MagicSkill = skill, Kind = kind, ParentEffect = parent,
-        NameRu = ru, NameEn = en, Difficulty = difficulty, Description = desc,
-        SafeDescription = safe, DescriptionEn = safeEn, Source = source, SortOrder = sort,
-    };
+        var action = kind == SpellEntryKind.Effect ? en : parent;
+        var effect = kind == SpellEntryKind.Effect ? "" : en;
+        return new()
+        {
+            Id = Guid.NewGuid(), System = sys, MagicSkill = skill, Kind = kind, ParentEffect = parent,
+            NameRu = ru, NameEn = en, Difficulty = difficulty, Description = desc,
+            SafeDescription = safe, DescriptionEn = safeEn, Source = source, SortOrder = sort,
+            AllowedSkills = string.Join(",", allowedSkills),
+            DifficultyIncrease = SpellRules.ParseIncrease(difficulty),
+            RestrictedSkill = MagicMatrix.RestrictedSkill(action, effect),
+            Repeatable = MagicMatrix.IsRepeatable(action, effect),
+            Exclusions = string.Join(",", MagicMatrix.ConflictsFor(action, effect)),
+            Resolution = MagicMatrix.ResolutionFor(action, effect),
+            IsOptional = MagicMatrix.IsOptionalAction(action),
+        };
+    }
 
     /// <summary>
-    /// Справочник магии. Базовые эффекты (направления) доступны не для всех магических навыков —
-    /// доступность задаётся матрицей <see cref="EffectSkills"/>. Дополнительные эффекты-модификаторы
-    /// привязаны к конкретному базовому эффекту через <see cref="SpellDef.ParentEffect"/>.
+    /// Справочник магии. Доступность действий и дополнительных эффектов задаёт домен —
+    /// <see cref="MagicMatrix"/>; здесь остаются имена, числа, описания и порядок. Дополнительные
+    /// эффекты-модификаторы привязаны к конкретному базовому эффекту через
+    /// <see cref="SpellDef.ParentEffect"/>.
     /// Только структура, числа и краткие парафразы — без текста книг. Description — полный (private)
     /// парафраз, SafeDescription — copyright-safe вариант для публичной версии, Source — ссылка на раздел.
     /// Arcana/Divine/Primal есть в обеих системах; Runes/Verse — только в Realms of Terrinoth.
-    /// Mask/Predict/Transform взяты из Expanded Player's Guide.
+    /// Mask/Predict/Transform взяты из Expanded Player's Guide и помечены как опциональные.
+    ///
+    /// Ограничения «Только Вера», «Только Магия» и «нельзя сочетать с …» в описаниях не повторяются:
+    /// это поля записи (<see cref="SpellDef.AllowedSkills"/>, <see cref="SpellDef.Exclusions"/>),
+    /// и интерфейс показывает их сам (ROT-MAG-01).
     /// </summary>
-    /// <remarks>
-    /// Дополнительные эффекты, доступные единственному навыку. Книга помечает их «Только …»;
-    /// таблица явная, потому что разбирать описание текстом нельзя. По этим эффектам считается
-    /// скидка священного символа (ROT-MAG-IMP-01).
-    /// </remarks>
-    private static readonly Dictionary<(string Parent, string Code), string> RestrictedEffects = new()
-    {
-        [("Attack", "Move")] = "Arcana",
-        [("Attack", "Non-Lethal")] = "Primal",
-        [("Attack", "Holy/Unholy")] = "Divine",
-        [("Attack", "Manipulative")] = "Arcana",
-        [("Barrier", "Reflective")] = "Arcana",
-        [("Barrier", "Sanctuary")] = "Divine",
-        [("Curse", "Despair")] = "Divine",
-        [("Curse", "Doom")] = "Arcana",
-        [("Augment", "Divine Health")] = "Divine",
-        [("Augment", "Primal Fury")] = "Primal",
-    };
-
-    /// <summary>
-    /// Эффекты, которые книга разрешает добавлять к одному заклинанию несколько раз. Ключ — код
-    /// эффекта: Дистанция повторяется у любого базового эффекта, где она есть, и каждое добавление
-    /// снова стоит своей надбавки.
-    /// </summary>
-    private static readonly HashSet<string> RepeatableEffects =
-        new(["Range", "Size", "Silhouette Increase"], StringComparer.Ordinal);
-
     private static IEnumerable<SpellDef> Spells(GameSystem sys)
     {
         var terrinoth = sys == GameSystem.RealmsOfTerrinoth;
         var systemSkills = terrinoth
-            ? new[] { "Arcana", "Divine", "Primal", "Runes", "Verse" }
-            : ["Arcana", "Divine", "Primal"];
+            ? MagicMatrix.AllSkills
+            : MagicMatrix.CoreSkills;
 
         const string coreSource = "Genesys CRB, гл. «Магия»";
         const string terrSource = "Realms of Terrinoth, гл. «Магия»";
@@ -1303,64 +1348,64 @@ public static class SeedData
         // Базовые эффекты + навыки, которым они доступны (матрица доступности).
         // Skills: максимальный набор (для Terrinoth); Core фильтрует Runes/Verse.
         // SrcOverride: если null — используется skillSource(skill); иначе — указанный источник.
-        var effects = new (string En, string Ru, string Diff, string Desc, string Safe, string SafeEn, string[] Skills, string? SrcOverride, int Sort)[]
+        var effects = new (string En, string Ru, string Diff, string Desc, string Safe, string SafeEn, string? SrcOverride, int Sort)[]
         {
             ("Attack", "Атака", "1 (Easy)",
                 "Боевое магическое действие против одной цели на короткой дистанции: урон равен характеристике используемого магического навыка + 1 за каждый неотменённый успех. Базовая атака не имеет критического значения; критическую травму можно причинить только за триумф или через добавленный эффект с критическим значением.",
                 "Магическая атака цели на короткой дистанции.",
                 "A magic attack against a target within short range.",
-                ["Arcana", "Divine", "Primal", "Runes"], null, 1),
+                null, 1),
             ("Augment", "Усиление", "2 (Average)",
                 "Временно усиливает цель вплотную с заклинателем; базово повышает одну характеристику для всех проверок навыков.",
                 "Временно усиливает характеристику цели.",
                 "Temporarily boosts a characteristic of the target.",
-                ["Divine", "Primal", "Runes", "Verse"], null, 2),
+                null, 2),
             ("Barrier", "Барьер", "1 (Easy)",
                 "Создаёт магическую защиту для цели вплотную с заклинателем до конца следующего хода. Базово уменьшает урон от каждого попадания по цели на 1; при дополнительных успехах снижение урона может увеличиваться по правилам барьера.",
                 "Защищает цель, снижая получаемый урон.",
                 "Protects the target by reducing incoming damage.",
-                ["Arcana", "Divine", "Runes"], null, 3),
+                null, 3),
             ("Conjure", "Призыв", "1 (Easy)",
                 "Создаёт простой предмет, оружие ближнего боя без движущихся частей или временного приспешника силуэта не больше 1.",
                 "Создаёт предмет или приспешника.",
                 "Creates an item or a minion.",
-                ["Arcana", "Primal"], null, 4),
+                null, 4),
             ("Curse", "Проклятье", "2 (Average)",
                 "Накладывает на цель негативный боевой эффект; базово снижает способность проверок цели на 1.",
                 "Накладывает штраф на проверки цели.",
                 "Imposes a penalty on the target's checks.",
-                ["Arcana", "Divine", "Runes", "Verse"], null, 5),
+                null, 5),
             ("Dispel", "Рассеивание", "3 (Hard)",
                 "Пытается снять с цели магические эффекты; при успехе эффекты на цели немедленно заканчиваются.",
                 "Снимает активные магические эффекты.",
                 "Removes active magical effects.",
-                ["Arcana", "Verse"], null, 6),
+                null, 6),
             ("Heal", "Лечение", "1 (Easy)",
                 "Магическое лечение ран и усталости у цели вплотную, которая не выведена из строя. При успехе цель лечит 1 рану за каждый неотменённый успех и 1 усталость за каждое неотменённое преимущество.",
                 "Восстанавливает раны и усталость.",
                 "Restores wounds and strain.",
-                ["Divine", "Primal", "Verse"], null, 7),
+                null, 7),
             ("Utility", "Вспомогательная магия", "1 (Easy)",
                 "Малые и повествовательные магические эффекты: свет, звук, мелкое перемещение предметов, обнаружение магии и подобные фокусы.",
                 "Мелкие вспомогательные магические трюки.",
                 "Minor utility magic tricks.",
-                ["Arcana", "Divine", "Primal", "Runes", "Verse"], null, 8),
+                null, 8),
             // EPG
             ("Mask", "Маска", "1 (Easy)",
                 "Создаёт иллюзию существа или предмета силуэта 1 или меньше в пределах короткой дистанции либо меняет внешний вид заклинателя или цели вплотную.",
                 "Создаёт иллюзию или меняет внешний вид цели.",
                 "Creates an illusion or changes the target's appearance.",
-                ["Arcana"], epgSource, 9),
+                epgSource, 9),
             ("Predict", "Предсказание", "2 (Average)",
                 "Позволяет задать вопрос о событиях ближайших 24 часов; ответ ведущего правдив, но может быть неоднозначным.",
                 "Задаёт вопрос о ближайших событиях.",
                 "Asks a question about upcoming events.",
-                ["Arcana", "Divine"], epgSource, 10),
+                epgSource, 10),
             ("Transform", "Трансформация", "2 (Average)",
                 "Позволяет заклинателю принять форму природного животного силуэта 0, сохраняя свои навыки, таланты и порог усталости.",
                 "Превращает заклинателя в животное.",
                 "Transforms the caster into an animal.",
-                ["Primal"], epgSource, 11),
+                epgSource, 11),
         };
 
         // Дополнительные эффекты, привязанные к базовому (Parent = En базового эффекта).
@@ -1376,10 +1421,6 @@ public static class SeedData
                 "Атака получает свойство «Взрыв» с рейтингом, равным рангу Знания заклинателя. Чтобы нанести урон взрывом соседним целям, после успешного попадания нужно активировать свойство: обычно 2 преимущества за срабатывание.",
                 "Добавляет свойство «Взрыв» (активация: 2 преимущества).",
                 "Adds the Blast quality (activation: 2 advantage).", null, 2),
-            ("Attack", "Двигающий", "Move", "+1",
-                "Если атака попадает, можно потратить 1 преимущество, чтобы переместить цель на один диапазон дистанции в любом направлении. Только Магия/Arcana. В русском тексте эффект дублирует Управляющий; оставлен отдельной строкой как в таблице.",
-                "При попадании 1 преимущество → переместить цель (только Arcana).",
-                "On a hit, 1 advantage moves the target one range band (Arcana only).", null, 3),
             ("Attack", "Дистанционный", "Range", "+1",
                 "Увеличивает дистанцию заклинания на одну категорию; эффект можно добавлять несколько раз.",
                 "Увеличивает дальность заклинания.",
@@ -1393,17 +1434,17 @@ public static class SeedData
                 "Добавляет «Оглушение» и «Автоматическое» (активация: 2 преимущества каждое).",
                 "Adds Stun and Auto-fire (activation: 2 advantage each).", null, 6),
             ("Attack", "Нелетальный", "Non-Lethal", "+1",
-                "Атака получает свойство «Оглушающий урон»: наносит урон усталостью вместо ран. Отдельная активация преимуществами не требуется. Только Природа/Primal.",
-                "Урон усталостью вместо ран, без активации (только Primal).",
-                "Deals strain instead of wounds, no activation (Primal only).", null, 7),
+                "Атака получает свойство «Оглушающий урон»: наносит урон усталостью вместо ран. Отдельная активация преимуществами не требуется.",
+                "Урон усталостью вместо ран, без активации.",
+                "Deals strain instead of wounds, no activation.", null, 7),
             ("Attack", "Огненный", "Fire", "+1",
                 "Атака получает свойство «Жжение» с рейтингом, равным рангу Знания заклинателя. Чтобы поджечь цель, после успешного попадания нужно активировать свойство: обычно 2 преимущества.",
                 "Добавляет «Жжение» (активация: 2 преимущества).",
                 "Adds Burn (activation: 2 advantage).", null, 8),
             ("Attack", "Святой/нечестивый", "Holy/Unholy", "+1",
-                "Против целей, признанных врагами веры или божества заклинателя, каждый неотменённый успех даёт +2 урона вместо +1. Только Вера/Divine.",
-                "Усиленный урон против врагов веры (только Divine).",
-                "Extra damage against enemies of the faith (Divine only).", null, 9),
+                "Против целей, признанных врагами веры или божества заклинателя, каждый неотменённый успех даёт +2 урона вместо +1.",
+                "Усиленный урон против врагов веры.",
+                "Extra damage against enemies of the faith.", null, 9),
             ("Attack", "Смертельный", "Deadly", "+1",
                 "Атака получает критическое значение 2 и свойство «Высококритичное» с рейтингом, равным рангу Знания. После успешного попадания критическая травма обычно стоит 2 преимущества или 1 триумф.",
                 "Крит. значение 2 и «Высококритичное» (крит: 2 преимущества или 1 триумф).",
@@ -1413,9 +1454,9 @@ public static class SeedData
                 "«Нокдаун» и «Дезориентация» (активация раздельная).",
                 "Knockdown and Disorient (activated separately).", null, 11),
             ("Attack", "Управляющий", "Manipulative", "+1",
-                "Если атака попадает, можно потратить 1 преимущество, чтобы переместить цель на один диапазон дистанции в любом направлении. Только Магия/Arcana.",
-                "При попадании 1 преимущество → переместить цель (только Arcana).",
-                "On a hit, 1 advantage moves the target one range band (Arcana only).", null, 12),
+                "Если атака попадает, можно потратить 1 преимущество, чтобы переместить цель на один диапазон дистанции в любом направлении.",
+                "При попадании 1 преимущество → переместить цель.",
+                "On a hit, 1 advantage moves the target one range band.", null, 12),
             ("Attack", "Разрушительный", "Destructive", "+2",
                 "Атака получает свойства «Повреждение» и «Проникающее» с рейтингом, равным рангу Знания. Проникающее действует пассивно, а Повреждение активируется за 1 преимущество и может быть активировано даже при промахе.",
                 "«Проникающее» пассивно; «Повреждение» за 1 преимущество (даже при промахе).",
@@ -1442,13 +1483,13 @@ public static class SeedData
                 "Добавляет ближнюю и дальнюю защиту.",
                 "Adds melee and ranged defense.", null, 3),
             ("Barrier", "Отражающий", "Reflective", "+2",
-                "Если противник совершает магическую атаку по цели под этим барьером и на своей проверке получает 3 угрозы или 1 крах, после проверки он сам получает попадание, наносящее урон, равный итоговому урону его атаки. Только Магия/Arcana.",
-                "3 угрозы/1 крах атакующего → он получает свой урон обратно (только Arcana).",
-                "Attacker's 3 threat/1 despair → they suffer their own damage back (Arcana only).", null, 4),
+                "Если противник совершает магическую атаку по цели под этим барьером и на своей проверке получает 3 угрозы или 1 крах, после проверки он сам получает попадание, наносящее урон, равный итоговому урону его атаки.",
+                "3 угрозы/1 крах атакующего → он получает свой урон обратно.",
+                "Attacker's 3 threat/1 despair → they suffer their own damage back.", null, 4),
             ("Barrier", "Святилище", "Sanctuary", "+2",
-                "Враги веры или божества заклинателя автоматически перестают быть вплотную с целью и не могут снова войти вплотную до конца барьера. Только Вера/Divine.",
-                "Враги веры не могут приблизиться к цели (только Divine).",
-                "Enemies of the faith cannot approach the target (Divine only).", null, 5),
+                "Враги веры или божества заклинателя автоматически перестают быть вплотную с целью и не могут снова войти вплотную до конца барьера.",
+                "Враги веры не могут приблизиться к цели.",
+                "Enemies of the faith cannot approach the target.", null, 5),
             ("Barrier", "Усиленный", "Empowered", "+2",
                 "Барьер уменьшает урон на количество неотменённых успехов вместо базового эффекта.",
                 "Урон снижается на число успехов.",
@@ -1517,15 +1558,15 @@ public static class SeedData
                 "Добавляет цель; после броска +1 цель за 1 преимущество.",
                 "Adds a target; after the roll, +1 target per 1 advantage.", null, 4),
             ("Curse", "Отчаяние", "Despair", "+2",
-                "Пороги ран и усталости цели уменьшаются на ранг Знания заклинателя. Только Вера/Divine. Нельзя сочетать с «Дополнительная цель».",
-                "Снижает пороги ран/усталости (только Divine).",
-                "Reduces wound/strain thresholds (Divine only).", null, 5),
+                "Пороги ран и усталости цели уменьшаются на ранг Знания заклинателя.",
+                "Снижает пороги ран/усталости.",
+                "Reduces wound/strain thresholds.", null, 5),
             ("Curse", "Рок", "Doom", "+2",
-                "После проверки цели можно повернуть одну любую кость в наборе, не показывающую Триумф или Крах, на другую грань. Только Магия/Arcana.",
-                "Можно изменить грань одной кости цели (только Arcana).",
-                "One of the target's dice can be turned to another face (Arcana only).", null, 6),
+                "После проверки цели можно повернуть одну любую кость в наборе, не показывающую Триумф или Крах, на другую грань.",
+                "Можно изменить грань одной кости цели.",
+                "One of the target's dice can be turned to another face.", null, 6),
             ("Curse", "Паралич", "Paralyzed", "+3",
-                "Цель становится ошеломлённой на время действия заклинания. Нельзя сочетать с «Дополнительная цель».",
+                "Цель становится ошеломлённой на время действия заклинания.",
                 "Цель ошеломлена на время заклинания.",
                 "The target is staggered for the duration of the spell.", null, 7),
             // Dispel
@@ -1539,9 +1580,9 @@ public static class SeedData
                 "Adds a target; after the roll, +1 target per 1 advantage.", null, 2),
             // Augment
             ("Augment", "Божественное здоровье", "Divine Health", "+1",
-                "Цель увеличивает порог ран на число, равное рангу Знания заклинателя, на время действия заклинания. Только Вера/Divine.",
-                "Повышает порог ран цели (только Divine).",
-                "Raises the target's wound threshold (Divine only).", null, 1),
+                "Цель увеличивает порог ран на число, равное рангу Знания заклинателя, на время действия заклинания.",
+                "Повышает порог ран цели.",
+                "Raises the target's wound threshold.", null, 1),
             ("Augment", "Быстрота", "Haste", "+1",
                 "Цели игнорируют эффекты пересечённой местности и не могут быть обездвижены.",
                 "Цель игнорирует пересечённую местность и обездвиживание.",
@@ -1551,9 +1592,9 @@ public static class SeedData
                 "Увеличивает дальность заклинания.",
                 "Increases the spell's range.", null, 3),
             ("Augment", "Природная ярость", "Primal Fury", "+1",
-                "Цель добавляет к безоружным боевым проверкам дополнительный урон, равный рангу Знания; критическое значение таких проверок становится 3. Только Природа/Primal.",
-                "Усиливает безоружный бой цели (только Primal).",
-                "Empowers the target's unarmed combat (Primal only).", null, 4),
+                "Цель добавляет к безоружным боевым проверкам дополнительный урон, равный рангу Знания; критическое значение таких проверок становится 3.",
+                "Усиливает безоружный бой цели.",
+                "Empowers the target's unarmed combat.", null, 4),
             ("Augment", "Ускорение", "Swift", "+1",
                 "Цели всегда могут совершать второй манёвр в свой ход без получения усталости; обычный лимит двух манёвров сохраняется.",
                 "Второй манёвр без усталости.",
@@ -1643,24 +1684,27 @@ public static class SeedData
                 "Transforms the target into a silhouette 0 animal.", epgSource, 5),
         };
 
-        // Базовые эффекты: одна запись на (навык, эффект) для тех навыков системы, где эффект доступен.
+        // Базовые эффекты: одна запись на (навык, действие) для тех навыков системы, где действие
+        // доступно. В Genesys Core нет Рун и Песни, поэтому строка матрицы сужается до навыков системы.
         foreach (var e in effects)
-            foreach (var skill in e.Skills)
-            {
-                if (!systemSkills.Contains(skill)) continue; // в Genesys Core нет Runes/Verse
-                yield return Spell(sys, skill, SpellEntryKind.Effect, "",
-                    e.Ru, e.En, e.Diff, e.Desc, e.Safe, e.SafeEn, e.SrcOverride ?? skillSource(skill), e.Sort);
-            }
+        {
+            var allowed = Available(MagicMatrix.SkillsForAction(e.En));
+            foreach (var skill in allowed)
+                yield return Spell(sys, skill, SpellEntryKind.Effect, "", e.Ru, e.En, e.Diff, allowed,
+                    e.Desc, e.Safe, e.SafeEn, e.SrcOverride ?? skillSource(skill), e.Sort);
+        }
 
-        // Дополнительные эффекты: одна запись на (система, базовый эффект), независимо от навыка.
+        // Дополнительные эффекты: одна запись на (система, базовое действие), независимо от навыка.
+        // Доступность наследуется от родительского действия и сужается ограничением эффекта.
         foreach (var m in additional)
         {
-            var spell = Spell(sys, "", SpellEntryKind.AdditionalEffect, m.Parent,
-                m.Ru, m.En, m.Diff, m.Desc, m.Safe, m.SafeEn, m.SrcOverride ?? sysSource, m.Sort);
-            // «Только Вера», «Только Магия», «Только Природа» — структурным полем, а не текстом.
-            if (RestrictedEffects.TryGetValue((m.Parent, m.En), out var only)) spell.RestrictedSkill = only;
-            spell.Repeatable = RepeatableEffects.Contains(m.En);
-            yield return spell;
+            var allowed = Available(MagicMatrix.SkillsForEffect(m.Parent, m.En));
+            if (allowed.Count == 0) continue; // недоступный всем навыкам системы эффект не показывается
+            yield return Spell(sys, "", SpellEntryKind.AdditionalEffect, m.Parent, m.Ru, m.En, m.Diff,
+                allowed, m.Desc, m.Safe, m.SafeEn, m.SrcOverride ?? sysSource, m.Sort);
         }
+
+        IReadOnlyList<string> Available(IReadOnlyList<string> skills) =>
+            [.. skills.Where(systemSkills.Contains)];
     }
 }
