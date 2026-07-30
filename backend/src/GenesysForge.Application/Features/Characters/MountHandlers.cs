@@ -335,6 +335,14 @@ public class MoveCargoHandler(IAppDbContext db) : ICommandHandler<MoveCargoComma
             if (req.Install && !ShopCatalogRules.IsMountGear(def.Code))
                 throw new DomainRuleException(
                     "Это снаряжение не устанавливается на транспорт.", "cargo.not_mount_gear");
+            // Попона рассчитана на боевого скакуна. На любого другого её ставит ведущий, и причина
+            // обязательна: иначе решение стола не отличить от ошибки ввода (ROT-MOUNT-NPC-01).
+            if (req.Install && ShopCatalogRules.IsBarding(def.Code)
+                && MountRules.RequiresGmApprovalForBarding(targetDef)
+                && string.IsNullOrWhiteSpace(req.InstallOverrideReason))
+                throw new DomainRuleException(
+                    "Попона рассчитана на боевого скакуна — для другого нужна причина от ведущего.",
+                    "cargo.barding_requires_override");
 
             // Вместимость считается по состоянию после переноса: своя же позиция, если она уже
             // лежит на этом транспорте, не должна учитываться дважды.
@@ -387,14 +395,20 @@ public class MoveCargoHandler(IAppDbContext db) : ICommandHandler<MoveCargoComma
             : $"на «{MountMapper.DisplayName(target)}»";
         var verb = req.Install ? "Установлено" : "Перенесено";
         var quantityNote = quantity > 1 ? $" ×{quantity}" : "";
+        // Решение ведущего видно прямо в строке истории, а не только в данных записи.
+        var overrideReason = moved.IsInstalledOnMount ? req.InstallOverrideReason?.Trim() : null;
+        var overrideNote = string.IsNullOrEmpty(overrideReason)
+            ? ""
+            : $" (решение ведущего: {overrideReason})";
         CharacterAudit.Record(db, c, command.UserId, CharacterAuditAction.CargoMoved,
-            $"{verb} «{def.Name}»{quantityNote} {where}", null,
+            $"{verb} «{def.Name}»{quantityNote} {where}{overrideNote}", null,
             new
             {
                 item = def.Name, code = def.Code, quantity,
                 fromMount = source is null ? null : MountMapper.DisplayName(source),
                 toMount = target is null ? null : MountMapper.DisplayName(target),
                 installed = moved.IsInstalledOnMount,
+                installOverrideReason = overrideReason,
             });
 
         await db.SaveChangesAsync(ct);

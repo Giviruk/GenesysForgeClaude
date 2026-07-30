@@ -594,6 +594,8 @@ export interface CharacterMount {
   rangedDefense: number
   /** Позиции груза; установленное снаряжение помечено флагом позиции. */
   cargo: SheetItem[]
+  /** Попона этому транспорту не положена по умолчанию — её ставит ведущий с причиной. */
+  requiresGmApprovalForBarding: boolean
 }
 
 export interface CustomArchetypeInput {
@@ -877,6 +879,11 @@ export interface SheetItem {
   isInstalledOnMount: boolean
   /** Позицию можно установить на транспорт. */
   isMountGear: boolean
+  /**
+   * Это попона — единственное установленное снаряжение с ограничением по профилю. Вместе с
+   * `CharacterMount.requiresGmApprovalForBarding` говорит, когда спрашивать причину у ведущего.
+   */
+  isBarding: boolean
 }
 
 /** Материал магического инструмента (ROT-MAG-MAT-01). */

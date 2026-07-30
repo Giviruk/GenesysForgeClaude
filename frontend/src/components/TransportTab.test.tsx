@@ -59,9 +59,12 @@ const beast: MountDef = {
 const item = (over: Partial<SheetItem> = {}): SheetItem => ({
   id: 'item-1', itemDefId: 'def-bedroll', name: 'Bedroll', nameRu: 'Спальник',
   quantity: 1, encumbrance: 1, carriedByMountId: null, isInstalledOnMount: false,
-  isMountGear: false,
+  isMountGear: false, isBarding: false,
   ...over,
 } as SheetItem)
+
+const barding = () =>
+  item({ id: 'item-barding', nameRu: 'Попона', isMountGear: true, isBarding: true, encumbrance: 5 })
 
 const owned = (over: Partial<CharacterMount> = {}): CharacterMount => ({
   id: 'mount-1', mountDefId: 'def-war', displayName: 'Уголь', name: 'Уголь',
@@ -69,6 +72,7 @@ const owned = (over: Partial<CharacterMount> = {}): CharacterMount => ({
   isOverloaded: false, isIncapacitated: false, provenance: 'purchased', notes: '',
   drawnByMountId: null, drawnByName: '', needsTraction: false,
   soak: 4, meleeDefense: 0, rangedDefense: 0, cargo: [],
+  requiresGmApprovalForBarding: false,
   ...over,
 })
 
@@ -183,14 +187,50 @@ describe('Транспорт (ROT-MOUNT-ITEM-01, ROT-TRANSPORT-01)', () => {
   })
 
   it('попону предлагает установить, а не сложить грузом', async () => {
-    const barding = item({ id: 'item-barding', nameRu: 'Попона', isMountGear: true, encumbrance: 5 })
-    renderTab(sheetWith([owned()], 5000, [barding]))
+    renderTab(sheetWith([owned()], 5000, [barding()]))
 
     fireEvent.change(screen.getByLabelText('Что погрузить'), { target: { value: 'item-barding' } })
     fireEvent.click(screen.getByRole('button', { name: 'Установить' }))
 
     await waitFor(() => expect(moveCargoMock).toHaveBeenCalledWith('char-1', 'item-barding',
       { mountId: 'mount-1', quantity: 1, install: true }))
+  })
+
+  it('боевому скакуну попона ставится без причины ведущего', () => {
+    renderTab(sheetWith([owned()], 5000, [barding()]))
+
+    fireEvent.change(screen.getByLabelText('Что погрузить'), { target: { value: 'item-barding' } })
+
+    expect(screen.queryByLabelText('Причина ведущего')).toBeNull()
+    expect(screen.getByRole('button', { name: 'Установить' }).hasAttribute('disabled')).toBe(false)
+  })
+
+  it('другому скакуну попона требует причину ведущего и блокирует кнопку', async () => {
+    const beastMount = owned({ definition: beast, requiresGmApprovalForBarding: true })
+    renderTab(sheetWith([beastMount], 5000, [barding()]))
+
+    fireEvent.change(screen.getByLabelText('Что погрузить'), { target: { value: 'item-barding' } })
+
+    // То же правило, что на сервере: без причины кнопка заблокирована.
+    const install = screen.getByRole('button', { name: 'Установить' })
+    expect(install.hasAttribute('disabled')).toBe(true)
+
+    fireEvent.change(screen.getByLabelText('Причина ведущего'), { target: { value: 'подогнал кузнец' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Установить' }))
+
+    await waitFor(() => expect(moveCargoMock).toHaveBeenCalledWith('char-1', 'item-barding',
+      { mountId: 'mount-1', quantity: 1, install: true, installOverrideReason: 'подогнал кузнец' }))
+  })
+
+  it('сумкам причина ведущего не нужна даже на не-боевом скакуне', () => {
+    const beastMount = owned({ definition: beast, requiresGmApprovalForBarding: true })
+    const bags = item({ id: 'item-bags', nameRu: 'Седельные сумки', isMountGear: true })
+    renderTab(sheetWith([beastMount], 5000, [bags]))
+
+    fireEvent.change(screen.getByLabelText('Что погрузить'), { target: { value: 'item-bags' } })
+
+    expect(screen.queryByLabelText('Причина ведущего')).toBeNull()
+    expect(screen.getByRole('button', { name: 'Установить' }).hasAttribute('disabled')).toBe(false)
   })
 
   it('снимает груз обратно владельцу', async () => {

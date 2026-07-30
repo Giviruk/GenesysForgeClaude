@@ -352,7 +352,13 @@ export const api = {
    * владельцу; `quantity` меньше стопки отделяет часть; `install` ставит попону или сумки.
    */
   moveCargo: (id: string, itemId: string,
-    body: { mountId: string | null; quantity?: number; install?: boolean }) =>
+    body: {
+      mountId: string | null
+      quantity?: number
+      install?: boolean
+      /** Решение ведущего поставить попону не на боевого скакуна; попадает в историю. */
+      installOverrideReason?: string
+    }) =>
     request<void>('PATCH', `/api/characters/${id}/items/${itemId}/location`, body),
   /** Продажа скакуна: те же три способа, что у предметов, сумму считает сервер. */
   sellMount: (id: string, mountId: string,

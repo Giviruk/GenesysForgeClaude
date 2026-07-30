@@ -198,6 +198,16 @@ Rules (`MountRules`, ROT-MOUNT-ITEM-01 / ROT-TRANSPORT-01):
 - Installed gear (`IsInstalledOnMount`: barding, saddlebags) does not occupy capacity — it changes
   the transport's capacity and protection. Because such rows are excluded from the owner's equipped
   gear, barding never protects the rider; that follows from the exclusion rather than from a rule.
+- Saddlebags add their threshold bonus (+4) to capacity. Barding adds +2 soak and provides defense 1
+  (ROT-MOUNT-NPC-01). Soak adds up, defense does not: both the profile and the barding "provide
+  Defense N", and by ROT-CMB-03 such sources compete for the maximum. `MountRules.Protection` runs
+  them through the same `DefenseAggregator` the character uses, cap included — so barding lifts a
+  beast of burden from 0 to 1 but adds nothing to a flying mount's printed ranged defense of 2.
+- Protection is computed on read and never rewrites the profile: removing barding restores the
+  original numbers by itself.
+- Barding is meant for a war mount. Installing it on any other profile requires an explicit GM
+  reason (`MountRules.RequiresGmApprovalForBarding`), and that reason goes into character history —
+  otherwise a table decision is indistinguishable from a mis-click.
 - A vehicle with `RequiresTraction` and no draft animal simply does not move: it is not deleted and
   its cargo does not move to the owner. Only a self-moving mount can draw one.
 - Cargo above capacity is refused on an explicit move but kept and flagged when it arrives from

@@ -223,7 +223,8 @@ public static class SheetBuilder
             def.Sellable,
             item.CarriedByMountId,
             item.IsInstalledOnMount,
-            ShopCatalogRules.IsMountGear(def.Code));
+            ShopCatalogRules.IsMountGear(def.Code),
+            ShopCatalogRules.IsBarding(def.Code));
     }
 
     /// <summary>

@@ -415,14 +415,22 @@ count towards their encumbrance again. Response: `204`.
 
 Protected (ROT-TRANSPORT-01). Request: `MoveCargoRequest` — `mountId` (the transport to load onto,
 `null` to take the item back to the owner), optional `quantity` (defaults to the whole stack; a
-smaller number splits off part of it into a new row with the same instance properties) and optional
-`install` (put barding or saddlebags onto the transport instead of stowing them as cargo).
+smaller number splits off part of it into a new row with the same instance properties), optional
+`install` (put barding or saddlebags onto the transport instead of stowing them as cargo) and
+optional `installOverrideReason`.
+
+Barding is meant for a war mount: installing it on any other profile is refused
+(`cargo.barding_requires_override`) until `installOverrideReason` carries the GM's reason, which is
+then written into character history (ROT-MOUNT-NPC-01). The sheet reports both halves of that rule
+so the client never parses catalog codes: `CharacterItemDto.isBarding` and
+`CharacterMountDto.requiresGmApprovalForBarding`.
 
 One atomic command in both directions: ownership and capacity are checked before anything is written,
 so a half-moved item cannot happen. Cargo on a transport leaves the owner's encumbrance and equipped
 gear entirely. Every move is written to character history as `CargoMoved`.
 Reason codes: `item.not_found`, `mount.not_found`, `cargo.already_there`, `cargo.not_mount_gear`,
-`cargo.quantity_invalid`, `cargo.quantity_exceeds_stack`, `cargo.capacity_exceeded`.
+`cargo.quantity_invalid`, `cargo.quantity_exceeds_stack`, `cargo.capacity_exceeded`,
+`cargo.barding_requires_override`.
 Response: `204`.
 
 ### `PUT /api/characters/{id}/items/{itemId}/damage-state`

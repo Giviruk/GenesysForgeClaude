@@ -148,4 +148,10 @@ public record CharacterItemDto(Guid Id, Guid ItemDefId, string Name, string Name
     /// </summary>
     bool IsInstalledOnMount = false,
     /// <summary>Позицию можно установить на транспорт: попона и седельные сумки.</summary>
-    bool IsMountGear = false);
+    bool IsMountGear = false,
+    /// <summary>
+    /// Это попона — единственное установленное снаряжение с ограничением по профилю
+    /// (ROT-MOUNT-NPC-01). Вместе с <c>CharacterMountDto.RequiresGmApprovalForBarding</c> клиент
+    /// знает, когда спрашивать причину, не разбирая коды каталога сам.
+    /// </summary>
+    bool IsBarding = false);
