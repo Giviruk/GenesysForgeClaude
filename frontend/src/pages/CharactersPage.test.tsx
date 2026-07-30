@@ -84,6 +84,7 @@ const reference: Reference = {
     { id: 's4', name: 'Coordination', nameRu: 'Координация', characteristic: 'agility', kind: 'general', safeDescription: '', source: '', isCustom: false },
   ],
   talents: [], items: [], heroicAbilities: [], heroicSecondaryEffects: [], qualities: [], attachments: [],
+  mounts: [],
 }
 
 const createCharacterMock = vi.fn().mockResolvedValue({ id: 'new-id' })
