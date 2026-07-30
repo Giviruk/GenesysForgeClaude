@@ -3,8 +3,8 @@
 - **Roadmap:** ROT-MOUNT-ITEM-01 (см. [rot-rules-remediation-tasks.md](rot-rules-remediation-tasks.md))
 - **Ветка:** `claude/p1-status-review-1abc8a`
 - **Базовая ветка:** `master`
-- **PR:** — (после создания)
-- **Статус:** 🚧 Готово к ревью
+- **PR:** [#137](https://github.com/Giviruk/GenesysForgeClaude/pull/137)
+- **Статус:** 🚧 На ревью
 
 ## Контекст
 
@@ -37,7 +37,7 @@
 - [x] Документация: `docs/database.md`, `docs/domain-model.md`, `docs/api.md`, `CHANGELOG.md`.
 - [x] Проверки: backend 667 + 710 зелёные, frontend 233 Vitest + tsc + eslint, ручная проверка в
       браузере на in-memory API (покупка со скидкой, продажа по проверке, выдача из магазина).
-- [ ] PR открыт.
+- [x] PR открыт.
 
 ## Что осталось / блокеры
 
