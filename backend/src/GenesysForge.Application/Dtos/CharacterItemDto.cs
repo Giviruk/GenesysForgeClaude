@@ -136,4 +136,16 @@ public record CharacterItemDto(Guid Id, Guid ItemDefId, string Name, string Name
     ItemImplementDto? Implement = null,
     /// <summary>Runebound shard instance; <c>null</c> у обычного предмета.</summary>
     ItemRuneboundShardDto? Shard = null,
-    bool Sellable = true);
+    bool Sellable = true,
+    /// <summary>
+    /// Позиция лежит на транспорте (ROT-TRANSPORT-01); <c>null</c> — обычная позиция инвентаря.
+    /// Такие позиции приходят в карточке транспорта, а не в списке инвентаря владельца.
+    /// </summary>
+    Guid? CarriedByMountId = null,
+    /// <summary>
+    /// Снаряжение установлено на транспорт, а не сложено в него грузом: попона, седельные сумки.
+    /// Вместимость такое снаряжение не занимает, а меняет.
+    /// </summary>
+    bool IsInstalledOnMount = false,
+    /// <summary>Позицию можно установить на транспорт: попона и седельные сумки.</summary>
+    bool IsMountGear = false);

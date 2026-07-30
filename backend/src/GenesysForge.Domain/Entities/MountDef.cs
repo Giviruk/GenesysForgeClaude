@@ -17,6 +17,21 @@ public class MountDef : IContentDef
     public required string Name { get; set; }
     public string NameRu { get; set; } = "";
 
+    /// <summary>
+    /// Скакун или транспортное средство (ROT-TRANSPORT-01). У повозки характеристики, навыки и
+    /// атаки пустые, а <see cref="StrainThreshold"/> читается как порог систем.
+    /// </summary>
+    public TransportKind TransportKind { get; set; } = TransportKind.Mount;
+
+    /// <summary>Режим движения для карточки: по земле, по воздуху или на колёсах.</summary>
+    public MovementMode MovementMode { get; set; } = MovementMode.Ground;
+
+    /// <summary>
+    /// Сам по себе не движется — нужно тягловое животное. Отсутствие тяги не удаляет транспорт и
+    /// не переносит его груз владельцу: это состояние, а не запрет.
+    /// </summary>
+    public bool RequiresTraction { get; set; }
+
     /// <summary>Тип существа: у скакунов книги это Minion либо Rival.</summary>
     public NpcKind Kind { get; set; }
 

@@ -12,6 +12,21 @@ public class CharacterItem
     public ItemProvenance Provenance { get; set; } = ItemProvenance.Purchased;
 
     /// <summary>
+    /// Позиция лежит на транспорте, а не при персонаже (ROT-TRANSPORT-01). Такая позиция не входит
+    /// ни в переносимый вес владельца, ни в его надетое снаряжение — поэтому попона, надетая на
+    /// скакуна, не даёт защиту всаднику. <c>null</c> — обычная позиция инвентаря.
+    /// </summary>
+    public Guid? CarriedByMountId { get; set; }
+    public CharacterMount? CarriedByMount { get; set; }
+
+    /// <summary>
+    /// Снаряжение установлено на транспорт, а не сложено в него грузом: попона и седельные сумки.
+    /// Установленное не занимает вместимость, а меняет её и защиту самого транспорта.
+    /// Осмысленно только вместе с <see cref="CarriedByMountId"/>.
+    /// </summary>
+    public bool IsInstalledOnMount { get; set; }
+
+    /// <summary>
     /// Оружие метнули и ещё не подобрали (ROT-WPN-01, Limited Ammo метательного профиля). Экземпляр
     /// недоступен для атак и не даёт своих качеств, но не исчезает: он лежит там, куда улетел.
     /// </summary>

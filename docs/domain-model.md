@@ -176,25 +176,36 @@ Rules:
 
 ### MountDef / CharacterMount
 
-Fields (`MountDef`): `Code`, `Name`, `NameRu`, `Kind` (Minion or Rival), six characteristics,
-`Soak`, `WoundThreshold`, `StrainThreshold` (null — neither Minion nor Rival has one),
+Fields (`MountDef`): `Code`, `Name`, `NameRu`, `TransportKind` (Mount or Vehicle), `MovementMode`
+(Ground/Flight/Wheeled), `RequiresTraction`, `Kind` (Minion or Rival), six characteristics, `Soak`,
+`WoundThreshold`, `StrainThreshold` (null for mounts; a vehicle reads it as a system threshold),
 `MeleeDefense`, `RangedDefense`, `Silhouette`, `Capacity`, `Price` (null = priceless), `Rarity`,
 `IncludedGear`, `RequiresRidingCheck`, plus `Skills`, `Abilities` and `Attacks`.
 
 Fields (`CharacterMount`): `CharacterId`, `MountDefId`, `Name` (nickname), `Provenance`,
-`WoundsCurrent`, `CarriedLoad`, `IsActive`, `Notes`.
+`WoundsCurrent`, `IsActive`, `Notes`, `DrawnByMountId`.
 
-Rules (`MountRules`, ROT-MOUNT-ITEM-01):
+Rules (`MountRules`, ROT-MOUNT-ITEM-01 / ROT-TRANSPORT-01):
 
-- A mount is a creature, not an item: it has no encumbrance and never adds to the owner's carried
-  weight. Buying one creates a `CharacterMount`, never a `CharacterItem`.
+- Transport is not an item: it has no encumbrance and never adds to the owner's carried weight.
+  Buying one creates a `CharacterMount`, never a `CharacterItem`.
 - `Capacity` from the profile wins over the generic `5 + Brawn` rule; a profile without its own
-  number falls back to the generic rule.
-- Wounds are clamped to `0..WoundThreshold`; at the threshold the mount is incapacitated.
-- Cargo above capacity is kept and flagged as overloaded rather than rejected — the GM decides.
+  number falls back to the generic rule. Installed saddlebags add their threshold bonus on top.
+- Wounds are clamped to `0..WoundThreshold`; at the threshold the transport is out of action.
+- Cargo is per item (`CharacterItem.CarriedByMountId`), and its load is the sum of weight × quantity.
+  The "ten zero-weight items make one point" rule is not applied to cargo: it is about what a
+  character carries on their person.
+- Installed gear (`IsInstalledOnMount`: barding, saddlebags) does not occupy capacity — it changes
+  the transport's capacity and protection. Because such rows are excluded from the owner's equipped
+  gear, barding never protects the rider; that follows from the exclusion rather than from a rule.
+- A vehicle with `RequiresTraction` and no draft animal simply does not move: it is not deleted and
+  its cargo does not move to the owner. Only a self-moving mount can draw one.
+- Cargo above capacity is refused on an explicit move but kept and flagged when it arrives from
+  import — the GM decides what to do with an existing overload.
 - Purchase accepts the same payment modes as items (free grant, haggled percent, own price with a
   reason) and sale the same three modes; the server computes every sum.
-- A mount carrying cargo cannot be sold until it is unloaded, so no cargo is left without an owner.
+- Transport carrying cargo cannot be sold until it is unloaded. Deleting it instead returns the cargo
+  to the owner, so nothing is ever left without an owner.
 
 ## Value objects found in code
 

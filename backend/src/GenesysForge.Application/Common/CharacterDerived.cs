@@ -57,7 +57,7 @@ public static class CharacterDerived
     /// а не про конкретную проверку.
     /// </summary>
     public static List<ItemCheckModifierInput> CheckModifierInputs(Character c) => c.Items
-        .Where(i => i.ItemDef is not null)
+        .Where(i => i.ItemDef is not null && i.CarriedByMountId is null)
         .SelectMany(i => CatalogModifiers(i).Concat(CraftsmanshipModifiers(i)))
         .Where(x => !x.RequiresWorn || IsWornAndEffective(c, x.Item, x.Item.ItemDef!))
         .Where(x => IsStillInEffect(x.Item, x.Input))
@@ -106,7 +106,7 @@ public static class CharacterDerived
     public static List<EquippedItemInput> EquippedInputs(Character c, Guid? exceptItemId = null) =>
         [.. c.Items
             .Where(i => i.ItemDef is not null && i.State == ItemState.Equipped && !i.IsThrown
-                && i.Id != exceptItemId)
+                && i.CarriedByMountId is null && i.Id != exceptItemId)
             .Select(i => new EquippedItemInput(
                 i.Id, i.ItemDef!.Kind, i.ItemDef.FormTraits, i.ItemDef.Name,
                 ImplementRules.IsImplement(i.ItemDef.Code)

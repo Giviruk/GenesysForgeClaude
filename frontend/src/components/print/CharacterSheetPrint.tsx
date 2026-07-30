@@ -5,11 +5,11 @@ import type {
 } from '../../api/types'
 import {
   CHARACTERISTICS, CHARACTERISTIC_LABELS, HEROIC_ORIGIN_LABELS, ITEM_STATE_LABELS, localizedDescription,
-  localizedName, resolveWeaponSkillName, secondaryName, SKILL_KIND_LABELS, SYSTEM_LABELS,
-  WEAPON_CRAFTSMANSHIP_LABELS,
+  localizedName, MOVEMENT_MODE_LABELS, resolveWeaponSkillName, secondaryName, SKILL_KIND_LABELS,
+  SYSTEM_LABELS, TRANSPORT_KIND_LABELS, WEAPON_CRAFTSMANSHIP_LABELS,
 } from '../../utils/labels'
 import { DicePoolView } from '../DicePoolView'
-import { t } from '../../i18n'
+import { lang, t } from '../../i18n'
 
 const ITEM_STATE_ORDER: ItemState[] = ['equipped', 'carried', 'backpack']
 const SKILL_KIND_ORDER: SkillKind[] = ['general', 'combat', 'social', 'knowledge', 'magic']
@@ -203,6 +203,53 @@ export function CharacterSheetPrint({ sheet, loadNotes = true }: {
           )
         })}
       </section>
+
+      {sheet.mounts.length > 0 && (
+        <section className="sheet-section">
+          <h2>{t('Транспорт', 'Transport')}</h2>
+          {sheet.mounts.map(m => {
+            const def = m.definition
+            const isVehicle = def.transportKind === 'vehicle'
+            // Профиль дублировать незачем, когда клички нет и подпись уже равна его названию.
+            const profileName = lang === 'ru' ? def.nameRu || def.name : def.name
+            return (
+              <div key={m.id} className="sheet-entry">
+                <strong>{m.displayName}</strong>
+                <span className="sheet-meta">
+                  {profileName !== m.displayName && ` · ${profileName}`}
+                  {' · '}{TRANSPORT_KIND_LABELS[def.transportKind]}
+                  {' · '}{t('движение', 'movement')} {MOVEMENT_MODE_LABELS[def.movementMode]}
+                  {' · '}{t('силуэт', 'silhouette')} {def.silhouette}
+                </span>
+                <span className="sheet-meta">
+                  {' · '}{t('поглощение', 'soak')} {m.soak}
+                  {' · '}{t('защита', 'defense')} {m.meleeDefense}/{m.rangedDefense}
+                  {' · '}{isVehicle ? t('прочность', 'hull') : t('ранения', 'wounds')}{' '}
+                  {m.woundsCurrent}/{def.woundThreshold}
+                  {def.strainThreshold != null &&
+                    ` · ${isVehicle ? t('системы', 'systems') : t('усталость', 'strain')} ${def.strainThreshold}`}
+                  {' · '}{t('груз', 'cargo')} {m.carriedLoad}/{m.capacity}
+                  {m.isOverloaded && t(' (перегруз)', ' (overloaded)')}
+                  {m.needsTraction && t(' · без тяги', ' · no traction')}
+                  {m.drawnByName && t(` · тянет ${m.drawnByName}`, ` · drawn by ${m.drawnByName}`)}
+                </span>
+                {m.cargo.length > 0 && (
+                  <div className="sheet-meta">
+                    {m.cargo.map(c => {
+                      const name = lang === 'ru' ? c.nameRu || c.name : c.name
+                      const suffix = c.isInstalledOnMount
+                        ? t(' (установлено)', ' (installed)')
+                        : c.quantity > 1 ? ` ×${c.quantity}` : ''
+                      return `${name}${suffix}`
+                    }).join(', ')}
+                  </div>
+                )}
+                {m.notes && <div className="sheet-meta">{m.notes}</div>}
+              </div>
+            )
+          })}
+        </section>
+      )}
 
       {sheet.criticalInjuries.length > 0 && (
         <section className="sheet-section">

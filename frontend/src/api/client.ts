@@ -334,15 +334,26 @@ export const api = {
       name?: string
     }) =>
     request<{ id: string }>('POST', `/api/characters/${id}/mounts`, { mountDefId, ...opts }),
-  /** Кличка, раны, груз, «под седлом» и заметка. Присланные поля меняются, остальные остаются. */
+  /**
+   * Кличка, раны, «под седлом», заметка и тягловое животное. Присланные поля меняются, остальные
+   * остаются. Груз здесь не трогается — для него `moveCargo`.
+   */
   updateMount: (id: string, mountId: string, patch: {
     name?: string
     woundsCurrent?: number
-    carriedLoad?: number
     isActive?: boolean
     notes?: string
+    drawnByMountId?: string
+    clearDrawnBy?: boolean
   }) =>
     request<void>('PATCH', `/api/characters/${id}/mounts/${mountId}`, patch),
+  /**
+   * Переносит позицию между персонажем и транспортом (ROT-TRANSPORT-01). `mountId: null` — забрать
+   * владельцу; `quantity` меньше стопки отделяет часть; `install` ставит попону или сумки.
+   */
+  moveCargo: (id: string, itemId: string,
+    body: { mountId: string | null; quantity?: number; install?: boolean }) =>
+    request<void>('PATCH', `/api/characters/${id}/items/${itemId}/location`, body),
   /** Продажа скакуна: те же три способа, что у предметов, сумму считает сервер. */
   sellMount: (id: string, mountId: string,
     opts?: {

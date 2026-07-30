@@ -1,7 +1,7 @@
 import type {
   AllowedState, Characteristic, ContentEntryType, CreatureTemplate, EncounterType, GameSystem, HouseRuleCategory,
   HeroicOriginType, ImplementMaterial, InitiativeSlotType, ItemDamageState, SignatureWeaponProfile, WeaponCraftsmanship, WeaponFormTrait, ItemKind, ItemState, NpcCombatStyle, NpcKind, NpcPowerLevel, NpcRole,
-  NpcVisibility, ParticipantType, SkillKind, TalentCategory, ThreatLevel,
+  NpcVisibility, ParticipantType, SkillKind, TalentCategory, ThreatLevel, TransportKind, MovementMode,
 } from '../api/types'
 import { t } from '../i18n'
 
@@ -232,6 +232,26 @@ export const MOUNT_GEAR_LABELS: Record<string, string> = t({
 })
 
 export const mountGearLabel = (code: string): string => MOUNT_GEAR_LABELS[code] ?? code
+
+/** Скакун или транспортное средство (ROT-TRANSPORT-01). */
+export const TRANSPORT_KIND_LABELS: Record<TransportKind, string> = t({
+  mount: 'Скакун',
+  vehicle: 'Транспортное средство',
+}, {
+  mount: 'Mount',
+  vehicle: 'Vehicle',
+})
+
+/** Режим движения: числовой скорости книга этим профилям не даёт. */
+export const MOVEMENT_MODE_LABELS: Record<MovementMode, string> = t({
+  ground: 'по земле',
+  flight: 'по воздуху',
+  wheeled: 'на колёсах',
+}, {
+  ground: 'ground',
+  flight: 'flight',
+  wheeled: 'wheeled',
+})
 
 export const NPC_ROLE_LABELS: Record<NpcRole, string> = t({
   brute: 'Громила',

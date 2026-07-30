@@ -148,6 +148,35 @@
   ],
   "desc": "Летающий скакун: самый дорогой и самый редкий профиль. Талантов у него нет, а напечатанное «Уклонение 2» снято официальной erratой — защита у профиля 1 в ближнем и 2 в дальнем бою.",
   "descEn": "A flying mount: the priciest and rarest profile. It has no talents, and the printed Dodge 2 was removed by official errata — the profile's defense is 1 melee and 2 ranged.",
-  "source": "Realms of Terrinoth, с. 106"
+  "source": "Realms of Terrinoth, с. 106",
+  "movement": "Flight"
+ },
+ {
+  "code": "wagon",
+  "name": "Wagon",
+  "nameRu": "Повозка",
+  "setting": "Fantasy",
+  "transport": "Vehicle",
+  "movement": "Wheeled",
+  "requiresTraction": true,
+  "kind": "Minion",
+  "brawn": 0,
+  "agility": 0,
+  "intellect": 0,
+  "cunning": 0,
+  "willpower": 0,
+  "presence": 0,
+  "soak": 2,
+  "woundThreshold": 10,
+  "strainThreshold": 5,
+  "meleeDefense": 0,
+  "rangedDefense": 0,
+  "silhouette": 3,
+  "capacity": 40,
+  "price": 200,
+  "rarity": 2,
+  "desc": "Грузовая повозка: своего хода нет, её тянет вьючное животное. Цена и редкость взяты из таблицы книги; отдельного транспортного статблока книга повозке не даёт, поэтому прочность, порог систем и вместимость здесь — рабочие значения приложения, и ведущий вправе их изменить.",
+  "descEn": "A cargo wagon: it has no movement of its own and is pulled by a draft animal. Price and rarity come from the book table; the book gives the wagon no vehicle statblock, so durability, system threshold and capacity here are the application's working values and the GM may change them.",
+  "source": "Realms of Terrinoth, с. 102"
  }
 ]

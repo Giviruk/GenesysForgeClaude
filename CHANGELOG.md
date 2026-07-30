@@ -33,6 +33,20 @@ once it reaches a tagged 1.0 release. The project is currently pre-1.0; the
   Nemesis had no `Adversary` talent.
 
 ### Added
+- **Transport section** (ROT-TRANSPORT-01). The **Mounts** tab is now **Transport** and covers
+  wagons as well. The Wagon was a gear row with a fictitious `Enc 0`; it is now a vehicle with its
+  own durability, system threshold, silhouette and cargo capacity, and previously bought wagons are
+  converted into vehicle instances (money is not recalculated). Cargo is kept **per item** instead
+  of as a single number: an inventory row can be moved onto a transport with one atomic command
+  that checks ownership and capacity, splits part of a stack when asked, and writes to character
+  history. Cargo on a transport leaves the owner's encumbrance entirely. Barding and saddlebags are
+  installed on one specific animal — saddlebags raise its capacity, barding protects **it** and not
+  the rider. A wagon is hitched to a draft animal; unhitching or selling the animal leaves the
+  wagon standing with its cargo instead of dumping it on the owner. Selling transport with cargo is
+  refused, deleting it returns the cargo to the owner, and export/import (`v5`), duplicate and
+  deletion leave no dangling references. The printed sheet gained a Transport card.
+  **Breaking:** the old free-form `carriedLoad` number on a mount is dropped — it described cargo
+  with no items behind it and could not be migrated into rows.
 - **Mounts are creatures now, not gear** (ROT-MOUNT-ITEM-01). The four Realms of Terrinoth
   profiles (Beast of Burden, Riding Beast, War Mount, Flying Mount) used to be catalog
   "gear" rows with `Enc 0` and the description "Gear" — buying one put a nameless line in

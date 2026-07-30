@@ -129,7 +129,8 @@ Response: `ReferenceResponse`:
 - `items`
 - `heroicAbilities`
 - `attachments` — item attachments (ROT-EQP-ATT-01)
-- `mounts` — purchasable mount profiles with their statblocks (ROT-MOUNT-ITEM-01)
+- `mounts` — purchasable transport profiles (mounts and vehicles) with their statblocks
+  (ROT-MOUNT-ITEM-01, ROT-TRANSPORT-01)
 
 The response includes built-in content plus visible custom content owned by the current user. Imported
 homebrew-pack content is visible when the pack is enabled by default or enabled for the supplied
@@ -251,8 +252,9 @@ Protected. Ends creation phase. Response: `204`.
 ### `GET /api/characters/{id}/export`
 
 Protected (owner only). Returns the character as a portable JSON document
-(`CharacterExportDto`, current format `genesysforge.character.v4` — v4 adds mounts,
-ROT-MOUNT-ITEM-01; v1–v3 are still accepted on import). References to reference content use the
+(`CharacterExportDto`, current format `genesysforge.character.v5` — v5 adds per-item transport cargo
+and traction, ROT-TRANSPORT-01; v4 added mounts; v1–v4 are still accepted on import). Cargo and
+traction reference transport by its index in the `mounts` list, never by id. References to reference content use the
 stable `Code` + `Name` instead of internal ids; `OwnerUserId` and database ids are not included.
 Exporting a character you do not own returns `400` ("персонаж не найден").
 
@@ -369,11 +371,11 @@ Protected. Request: `SellItemRequest` with `quantity` and `proceeds`. Removes or
 
 ### `POST /api/characters/{id}/mounts`
 
-Protected (ROT-MOUNT-ITEM-01). Request: `BuyMountRequest` — `mountDefId`, plus the optional payment
+Protected (ROT-MOUNT-ITEM-01, ROT-TRANSPORT-01). Request: `BuyMountRequest` — `mountDefId`, plus the optional payment
 fields `free`, `pricePercent` (50–200 in steps of 25), `priceOverride` with a required
 `overrideReason`, and `name` (nickname).
 
-Creates a mount instance, never a `CharacterItem`: a mount is a creature with its own statblock, so
+Creates a transport instance, never a `CharacterItem`: a mount or wagon has its own statblock, so
 it has no encumbrance and does not touch the owner's carried weight. Always one per call. The server
 computes the sum from the catalog price (ROT-ECO-01) and spends the creation budget before the wallet.
 Priceless profiles (`price: null`) can only be granted or given an explicit GM price.
@@ -383,9 +385,14 @@ Response: `201 Created` with `{ "id": "..." }`.
 
 ### `PATCH /api/characters/{id}/mounts/{mountId}`
 
-Protected. Request: `UpdateMountRequest` — all fields optional: `name`, `woundsCurrent`,
-`carriedLoad`, `isActive`, `notes`. Wounds are clamped to the profile threshold; cargo above capacity
-is kept and reported as `isOverloaded`; negative cargo is rejected (`mount.load_negative`).
+Protected. Request: `UpdateMountRequest` — all fields optional: `name`, `woundsCurrent`, `isActive`,
+`notes`, `drawnByMountId`, `clearDrawnBy`. Wounds are clamped to the profile threshold. Cargo is not
+changed here — it moves through the item location endpoint below.
+
+Traction: `drawnByMountId` hitches a draft animal, `clearDrawnBy: true` unhitches (a `null`
+`drawnByMountId` changes nothing). Only a self-moving mount can draw, only one vehicle at a time, and
+only a vehicle that needs traction accepts it. Reason codes: `mount.traction_not_applicable`,
+`mount.traction_self`, `mount.traction_invalid`, `mount.traction_busy`.
 Response: `204`.
 
 ### `POST /api/characters/{id}/mounts/{mountId}/sell`
@@ -393,13 +400,30 @@ Response: `204`.
 Protected. Request: `SellMountRequest` — one of `netSuccesses` (25/50/75 % by the book),
 `percent` (0–100) or `priceOverride` with `overrideReason`; optional `conditionMultiplier` with
 `conditionReason`. The server computes the proceeds; during creation they restore the purchase budget
-first. A mount with cargo is rejected until it is unloaded (`mount.load_not_empty`).
+first. Transport with cargo or installed gear is rejected until it is unloaded
+(`mount.load_not_empty`). Selling a draft animal unhitches whatever it was pulling instead of leaving
+a dangling link.
 Response: `204`.
 
 ### `DELETE /api/characters/{id}/mounts/{mountId}`
 
-Protected. Removes the mount with no proceeds (died, released, entered by mistake) and records it in
-character history. Response: `204`.
+Protected. Removes the transport with no proceeds (died, released, entered by mistake) and records it
+in character history. Its cargo and installed gear are not deleted: they return to the owner and
+count towards their encumbrance again. Response: `204`.
+
+### `PATCH /api/characters/{id}/items/{itemId}/location`
+
+Protected (ROT-TRANSPORT-01). Request: `MoveCargoRequest` — `mountId` (the transport to load onto,
+`null` to take the item back to the owner), optional `quantity` (defaults to the whole stack; a
+smaller number splits off part of it into a new row with the same instance properties) and optional
+`install` (put barding or saddlebags onto the transport instead of stowing them as cargo).
+
+One atomic command in both directions: ownership and capacity are checked before anything is written,
+so a half-moved item cannot happen. Cargo on a transport leaves the owner's encumbrance and equipped
+gear entirely. Every move is written to character history as `CargoMoved`.
+Reason codes: `item.not_found`, `mount.not_found`, `cargo.already_there`, `cargo.not_mount_gear`,
+`cargo.quantity_invalid`, `cargo.quantity_exceeds_stack`, `cargo.capacity_exceeded`.
+Response: `204`.
 
 ### `PUT /api/characters/{id}/items/{itemId}/damage-state`
 

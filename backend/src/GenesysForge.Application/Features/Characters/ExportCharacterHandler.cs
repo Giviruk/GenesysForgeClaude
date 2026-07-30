@@ -18,6 +18,16 @@ public class ExportCharacterHandler(IAppDbContext db) : IQueryHandler<ExportChar
             .Select(n => new CharacterNoteExport(n.Title, n.Body))
             .ToListAsync(ct);
 
+        // Транспорт нумеруется один раз, и по этим индексам ссылаются груз и тяга: id экземпляра в
+        // чужом аккаунте не существует (ROT-TRANSPORT-01).
+        var mounts = c.Mounts
+            .Where(m => m.MountDef is not null)
+            .OrderBy(m => m.CreatedAt)
+            .ToList();
+        var mountIndex = mounts
+            .Select((m, i) => (m.Id, Index: i))
+            .ToDictionary(x => x.Id, x => x.Index);
+
         var data = new CharacterExportData(
             Name: c.Name,
             System: c.System,
@@ -57,7 +67,11 @@ public class ExportCharacterHandler(IAppDbContext db) : IQueryHandler<ExportChar
                     i.Provenance, i.Craftsmanship, i.DamageState, i.ImplementMaterial,
                     i.ImplementChoices, i.ImplementConfigured,
                     i.ShardActivationChoice, i.ShardEffectAction, i.ShardEffectChoice,
-                    i.ShardConfigured))
+                    i.ShardConfigured,
+                    i.CarriedByMountId is { } id && mountIndex.TryGetValue(id, out var idx)
+                        ? idx
+                        : null,
+                    i.IsInstalledOnMount))
                 .ToList(),
             HeroicAbilityCode: c.HeroicAbility?.Code,
             HeroicAbilityName: c.HeroicAbility?.Name,
@@ -91,12 +105,13 @@ public class ExportCharacterHandler(IAppDbContext db) : IQueryHandler<ExportChar
             SignatureWeaponForm: c.SignatureWeapon?.NarrativeForm,
             SignatureWeaponTraits: c.SignatureWeapon?.FormTraits,
             SignatureWeaponLost: c.SignatureWeapon?.IsLost ?? false,
-            Mounts: c.Mounts
-                .Where(m => m.MountDef is not null)
-                .OrderBy(m => m.CreatedAt)
+            Mounts: mounts
                 .Select(m => new CharacterMountExport(
-                    m.MountDef!.Code, m.MountDef.Name, m.Name, m.WoundsCurrent, m.CarriedLoad,
-                    m.IsActive, m.Notes, m.Provenance))
+                    m.MountDef!.Code, m.MountDef.Name, m.Name, m.WoundsCurrent, CarriedLoad: 0,
+                    m.IsActive, m.Notes, m.Provenance,
+                    m.DrawnByMountId is { } drawnBy && mountIndex.TryGetValue(drawnBy, out var drawnIdx)
+                        ? drawnIdx
+                        : null))
                 .ToList());
 
         return new CharacterExportDto(CharacterExportDto.CurrentFormat, DateTime.UtcNow, data);

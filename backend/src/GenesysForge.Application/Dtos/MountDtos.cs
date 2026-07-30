@@ -13,6 +13,9 @@ public record MountDefDto(
     string Code,
     string Name,
     string NameRu,
+    TransportKind TransportKind,
+    MovementMode MovementMode,
+    bool RequiresTraction,
     NpcKind Kind,
     Dictionary<string, int> Characteristics,
     int Soak,
@@ -48,13 +51,17 @@ public record MountAttackDto(
     IReadOnlyList<string> QualityCodes);
 
 /// <summary>
-/// Скакун персонажа. Собственного веса у него нет: <c>CarriedLoad</c> — груз самого скакуна, и в
-/// Encumbrance владельца он не входит.
+/// Транспорт персонажа: скакун или повозка. Собственного веса у него нет, и его груз в Encumbrance
+/// владельца не входит.
 /// </summary>
-/// <param name="DisplayName">Кличка, если задана, иначе название профиля.</param>
-/// <param name="Capacity">Вместимость профиля (приоритетнее <c>5 + Сила</c>).</param>
+/// <param name="DisplayName">Кличка или название, если задано, иначе название профиля.</param>
+/// <param name="CarriedLoad">Загрузка по позициям груза; установленное снаряжение сюда не входит.</param>
+/// <param name="Capacity">Вместимость профиля плюс прибавка от установленных сумок.</param>
 /// <param name="IsOverloaded">Груза больше вместимости.</param>
-/// <param name="IsIncapacitated">Раны достигли порога профиля — скакун выведен из строя.</param>
+/// <param name="IsIncapacitated">Раны достигли порога профиля — транспорт выведен из строя.</param>
+/// <param name="NeedsTraction">Нужна тяга, а тяглового животного нет: транспорт стоит.</param>
+/// <param name="Soak">Поглощение с учётом установленной попоны.</param>
+/// <param name="Cargo">Позиции груза; установленное снаряжение помечено флагом позиции.</param>
 public record CharacterMountDto(
     Guid Id,
     Guid MountDefId,
@@ -68,7 +75,14 @@ public record CharacterMountDto(
     bool IsOverloaded,
     bool IsIncapacitated,
     ItemProvenance Provenance,
-    string Notes);
+    string Notes,
+    Guid? DrawnByMountId,
+    string DrawnByName,
+    bool NeedsTraction,
+    int Soak,
+    int MeleeDefense,
+    int RangedDefense,
+    IReadOnlyList<CharacterItemDto> Cargo);
 
 /// <summary>
 /// Покупка или бесплатная выдача скакуна. Сумму считает сервер по цене каталога (ROT-ECO-01):
@@ -107,12 +121,31 @@ public record SellMountRequest(
     string? ConditionReason = null);
 
 /// <summary>
-/// Правка состояния скакуна: кличка, раны, груз, «под седлом», заметка. Все поля необязательные —
-/// присланные меняются, остальные остаются как были.
+/// Правка состояния транспорта: кличка, раны, «под седлом», заметка, тягловое животное. Все поля
+/// необязательные — присланные меняются, остальные остаются как были. Груз здесь не меняется: он
+/// переносится отдельной атомарной командой (<see cref="MoveCargoRequest"/>).
 /// </summary>
+/// <param name="DrawnByMountId">
+/// Тягловое животное. Присланный <c>null</c> ничего не меняет — чтобы отвязать тягу, пришлите
+/// <paramref name="ClearDrawnBy"/>.
+/// </param>
 public record UpdateMountRequest(
     string? Name = null,
     int? WoundsCurrent = null,
-    int? CarriedLoad = null,
     bool? IsActive = null,
-    string? Notes = null);
+    string? Notes = null,
+    Guid? DrawnByMountId = null,
+    bool ClearDrawnBy = false);
+
+/// <summary>
+/// Перенос позиции между персонажем и транспортом (ROT-TRANSPORT-01). Одна команда в обе стороны:
+/// <paramref name="MountId"/> — на какой транспорт положить, <c>null</c> — забрать владельцу.
+/// </summary>
+/// <param name="Quantity">
+/// Сколько штук перенести; <c>null</c> — всю позицию. Меньшее количество отделяет часть стопки.
+/// </param>
+/// <param name="Install">
+/// Установить снаряжение на транспорт (попона, седельные сумки), а не сложить грузом. Установленное
+/// не занимает вместимость, а меняет её и защиту самого транспорта.
+/// </param>
+public record MoveCargoRequest(Guid? MountId, int? Quantity = null, bool Install = false);

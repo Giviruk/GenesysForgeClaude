@@ -18,13 +18,45 @@ public class RotMountCatalogTests
         Rot.Single(m => m.Code == $"rot.mount.{bareCode}");
 
     [Fact]
-    public void CatalogHasExactlyFourRotProfilesAndNoneInCore()
+    public void CatalogHasExactlyFourRotMountsAndNoneInCore()
     {
-        Assert.Equal(4, Rot.Count);
+        var mounts = Rot.Where(m => m.TransportKind == TransportKind.Mount).ToList();
+        Assert.Equal(4, mounts.Count);
         Assert.DoesNotContain(MountCatalog.Load(), m => m.System == GameSystem.GenesysCore);
         Assert.Equal(
             ["beast-of-burden", "flying-mount", "riding-beast", "war-mount"],
-            Rot.Select(m => m.Code["rot.mount.".Length..]).OrderBy(c => c, StringComparer.Ordinal));
+            mounts.Select(m => m.Code["rot.mount.".Length..]).OrderBy(c => c, StringComparer.Ordinal));
+    }
+
+    /// <summary>
+    /// Повозка — транспортное средство того же каталога (ROT-TRANSPORT-01): она не движется сама,
+    /// у неё нет характеристик и атак, а груз она берёт своей вместимостью, а не Enc владельца.
+    /// </summary>
+    [Fact]
+    public void WagonIsAVehicleThatNeedsTraction()
+    {
+        var wagon = Rot.Single(m => m.TransportKind == TransportKind.Vehicle);
+
+        Assert.Equal("rot.vehicle.wagon", wagon.Code);
+        Assert.Equal(MovementMode.Wheeled, wagon.MovementMode);
+        Assert.True(wagon.RequiresTraction);
+        Assert.False(MountRules.CanDraw(wagon));
+        Assert.True(MountRules.NeedsTraction(wagon, null));
+        Assert.False(MountRules.NeedsTraction(wagon, Guid.NewGuid()));
+        Assert.Empty(wagon.Skills);
+        Assert.Empty(wagon.Attacks);
+        // Цена и редкость — из таблицы книги, остальные числа профиля рабочие (см. описание записи).
+        Assert.Equal(200, wagon.Price);
+        Assert.Equal(2, wagon.Rarity);
+    }
+
+    /// <summary>Вьючное животное тянет повозку, а летающий скакун летает — это видно из профиля.</summary>
+    [Fact]
+    public void MountsCarryTheirMovementModeAndTractionRole()
+    {
+        Assert.True(MountRules.CanDraw(Def("beast-of-burden")));
+        Assert.Equal(MovementMode.Ground, Def("beast-of-burden").MovementMode);
+        Assert.Equal(MovementMode.Flight, Def("flying-mount").MovementMode);
     }
 
     [Theory]
