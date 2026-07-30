@@ -76,7 +76,7 @@ public static class MountMapper
             .ToList();
         var installedBonus = MountRules.InstalledCapacityBonus(cargo);
         var load = MountRules.CargoLoad(cargo);
-        var protection = MountRules.InstalledProtection(cargo);
+        var protection = MountRules.Protection(def, cargo);
 
         var drawnBy = mount.DrawnByMountId is { } id ? all.FirstOrDefault(m => m.Id == id) : null;
 
@@ -97,13 +97,14 @@ public static class MountMapper
             mount.DrawnByMountId,
             drawnBy is null ? "" : DisplayName(drawnBy),
             MountRules.NeedsTraction(def, mount.DrawnByMountId),
-            def.Soak + protection.Soak,
-            def.MeleeDefense + protection.MeleeDefense,
-            def.RangedDefense + protection.RangedDefense,
+            protection.Soak,
+            protection.MeleeDefense,
+            protection.RangedDefense,
             [.. cargo
                 .OrderByDescending(i => i.IsInstalledOnMount)
                 .ThenBy(i => i.ItemDef!.NameRu, StringComparer.Ordinal)
-                .Select(cargoDto)]);
+                .Select(cargoDto)],
+            MountRules.RequiresGmApprovalForBarding(def));
     }
 
     /// <summary>Кличка, если задана, иначе название профиля.</summary>

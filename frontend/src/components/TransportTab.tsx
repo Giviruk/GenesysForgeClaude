@@ -340,10 +340,15 @@ function CargoSection({ sheet, mount, busy, run, cargo, installed, loadable }: {
 }) {
   const [pick, setPick] = useState('')
   const [quantity, setQuantity] = useState(1)
+  const [overrideReason, setOverrideReason] = useState('')
 
   const picked = loadable.find(i => i.id === pick)
   // Попона и сумки ставятся, всё остальное кладётся грузом: выбирать это отдельно игроку незачем.
   const install = picked?.isMountGear ?? false
+  // Попона рассчитана на боевого скакуна; на любого другого её ставит ведущий с причиной — то же
+  // правило, что на сервере, поэтому кнопка заблокирована, пока причины нет (ROT-MOUNT-NPC-01).
+  const needsGmReason = install && picked?.isBarding === true && mount.requiresGmApprovalForBarding
+  const blocked = !picked || (needsGmReason && overrideReason.trim().length === 0)
 
   return (
     <div className="mount-cargo small-text">
@@ -394,14 +399,32 @@ function CargoSection({ sheet, mount, busy, run, cargo, installed, loadable }: {
               onChange={e => setQuantity(Math.min(
                 picked.quantity, Math.max(1, Math.trunc(Number(e.target.value)) || 1)))} />
           )}
-          <button className="tiny primary" disabled={busy || !picked}
+          {needsGmReason && (
+            <input type="text" value={overrideReason} maxLength={200} disabled={busy}
+              aria-label={t('Причина ведущего', 'GM reason')}
+              placeholder={t('Причина ведущего', 'GM reason')}
+              onChange={e => setOverrideReason(e.target.value)} />
+          )}
+          <button className="tiny primary" disabled={busy || blocked}
             onClick={() => run(async () => {
-              await api.moveCargo(sheet.id, pick, { mountId: mount.id, quantity, install })
+              await api.moveCargo(sheet.id, pick, {
+                mountId: mount.id,
+                quantity,
+                install,
+                ...(needsGmReason ? { installOverrideReason: overrideReason.trim() } : {}),
+              })
               setPick('')
               setQuantity(1)
+              setOverrideReason('')
             })}>
             {install ? t('Установить', 'Install') : t('Погрузить', 'Load')}
           </button>
+        </div>
+      )}
+      {needsGmReason && (
+        <div className="muted">
+          {t('Попона рассчитана на боевого скакуна — для другого нужна причина от ведущего.',
+            'Barding is meant for a war mount — putting it on another one needs a GM reason.')}
         </div>
       )}
     </div>

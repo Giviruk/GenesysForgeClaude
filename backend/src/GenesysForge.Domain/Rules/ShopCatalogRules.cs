@@ -37,6 +37,13 @@ public static class ShopCatalogRules
     /// <summary>Позицию можно установить на транспорт: попона и седельные сумки.</summary>
     public static bool IsMountGear(string? code) => TransportCodes.Contains(BareCode(code));
 
+    /// <summary>
+    /// Попона — единственное установленное снаряжение с ограничением по профилю (ROT-MOUNT-NPC-01):
+    /// по умолчанию она рассчитана на боевого скакуна.
+    /// </summary>
+    public static bool IsBarding(string? code) =>
+        string.Equals(BareCode(code), "barding", StringComparison.Ordinal);
+
     private static readonly HashSet<string> ConsumableCodes =
     [
         "trail-rations-1-day",

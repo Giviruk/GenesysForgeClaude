@@ -82,7 +82,12 @@ public record CharacterMountDto(
     int Soak,
     int MeleeDefense,
     int RangedDefense,
-    IReadOnlyList<CharacterItemDto> Cargo);
+    IReadOnlyList<CharacterItemDto> Cargo,
+    /// <summary>
+    /// Попона этому транспорту не положена по умолчанию — её ставит ведущий с причиной
+    /// (ROT-MOUNT-NPC-01). Признак считает сервер, чтобы клиент не разбирал коды профилей.
+    /// </summary>
+    bool RequiresGmApprovalForBarding = false);
 
 /// <summary>
 /// Покупка или бесплатная выдача скакуна. Сумму считает сервер по цене каталога (ROT-ECO-01):
@@ -148,4 +153,12 @@ public record UpdateMountRequest(
 /// Установить снаряжение на транспорт (попона, седельные сумки), а не сложить грузом. Установленное
 /// не занимает вместимость, а меняет её и защиту самого транспорта.
 /// </param>
-public record MoveCargoRequest(Guid? MountId, int? Quantity = null, bool Install = false);
+/// <param name="InstallOverrideReason">
+/// Решение ведущего поставить попону не на боевого скакуна (ROT-MOUNT-NPC-01). Непустая причина
+/// разрешает установку и целиком попадает в историю персонажа.
+/// </param>
+public record MoveCargoRequest(
+    Guid? MountId,
+    int? Quantity = null,
+    bool Install = false,
+    string? InstallOverrideReason = null);

@@ -8,8 +8,13 @@ namespace GenesysForge.Domain.Tests;
 /// </summary>
 public class MountRulesTests
 {
-    private static MountDef Profile(int brawn = 4, int capacity = 18, int woundThreshold = 7) =>
-        new() { Name = "Beast of Burden", Brawn = brawn, Capacity = capacity, WoundThreshold = woundThreshold };
+    private static MountDef Profile(
+        int brawn = 4, int capacity = 18, int woundThreshold = 7, int soak = 0) =>
+        new()
+        {
+            Name = "Beast of Burden", Code = "rot.mount.beast-of-burden",
+            Brawn = brawn, Capacity = capacity, WoundThreshold = woundThreshold, Soak = soak,
+        };
 
     [Fact]
     public void ProfileCapacityOverridesFivePlusBrawn()
@@ -107,10 +112,51 @@ public class MountRulesTests
 
         Assert.Equal(4, MountRules.InstalledCapacityBonus(cargo));
         Assert.Equal(22, MountRules.Capacity(Profile(capacity: 18), MountRules.InstalledCapacityBonus(cargo)));
-        Assert.Equal((2, 1, 0), MountRules.InstalledProtection(cargo));
+        Assert.Equal(
+            new MountProtection(6, 1, 0),
+            MountRules.Protection(Profile(soak: 4), cargo));
         // Перегруз считается от расширенной вместимости, а не от каталожной.
         Assert.False(MountRules.IsOverloaded(Profile(capacity: 18), 22, installedBonus: 4));
         Assert.True(MountRules.IsOverloaded(Profile(capacity: 18), 23, installedBonus: 4));
+    }
+
+    /// <summary>
+    /// Попона «задаёт Defense 1», а не прибавляет: вьючное животное с нуля поднимается до единицы,
+    /// а летающему скакуну с напечатанной дальней защитой 2 она ничего не даёт (ROT-CMB-03).
+    /// </summary>
+    [Fact]
+    public void BardingDefenseCompetesWithTheProfileInsteadOfStacking()
+    {
+        List<CharacterItem> barding = [Cargo(enc: 5, soak: 2, melee: 1, ranged: 1, installed: true)];
+
+        var burden = MountRules.Protection(Profile(soak: 4), barding);
+        Assert.Equal(new MountProtection(6, 1, 1), burden);
+
+        var flyer = Profile(soak: 3);
+        flyer.MeleeDefense = 1;
+        flyer.RangedDefense = 2;
+        var flying = MountRules.Protection(flyer, barding);
+        Assert.Equal(new MountProtection(5, 1, 2), flying);
+    }
+
+    /// <summary>Груз попону не заменяет: незаустановленная позиция статблок не меняет.</summary>
+    [Fact]
+    public void CargoThatIsNotInstalledDoesNotProtectTheMount()
+    {
+        List<CharacterItem> cargo = [Cargo(enc: 5, soak: 2, melee: 1, ranged: 1)];
+
+        Assert.Equal(new MountProtection(4, 0, 0), MountRules.Protection(Profile(soak: 4), cargo));
+    }
+
+    [Fact]
+    public void BardingNeedsGmApprovalOnAnythingButAWarMount()
+    {
+        Assert.False(MountRules.RequiresGmApprovalForBarding(
+            new MountDef { Name = "War Mount", Code = "rot.mount.war-mount" }));
+        Assert.True(MountRules.RequiresGmApprovalForBarding(
+            new MountDef { Name = "Beast of Burden", Code = "rot.mount.beast-of-burden" }));
+        Assert.True(MountRules.RequiresGmApprovalForBarding(
+            new MountDef { Name = "Wagon", Code = "rot.vehicle.wagon" }));
     }
 
     [Fact]

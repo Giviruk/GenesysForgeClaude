@@ -395,28 +395,115 @@ public class RotMountApiTests(ApiFactory factory) : IClassFixture<ApiFactory>
     public async Task InstalledGearChangesTheMountRatherThanTheRider()
     {
         var (client, id, reference) = await CreateRiderAsync();
+        // Боевой скакун: попона положена ему по умолчанию, без решения ведущего.
         await client.PostAsJsonAsync($"/api/characters/{id}/mounts",
-            new BuyMountRequest(Mount(reference, "riding-beast").Id, Free: true), Json.Options);
+            new BuyMountRequest(Mount(reference, "war-mount").Id, Free: true), Json.Options);
         var mount = Assert.Single((await SheetAsync(client, id)).Mounts!);
         var before = await SheetAsync(client, id);
 
         var barding = await AddItemAsync(client, id, reference, "barding");
         var bags = await AddItemAsync(client, id, reference, "saddlebags");
-        await MoveAsync(client, id, barding, new MoveCargoRequest(mount.Id, Install: true));
-        await MoveAsync(client, id, bags, new MoveCargoRequest(mount.Id, Install: true));
+        Assert.Equal(HttpStatusCode.NoContent,
+            (await MoveAsync(client, id, barding, new MoveCargoRequest(mount.Id, Install: true))).StatusCode);
+        Assert.Equal(HttpStatusCode.NoContent,
+            (await MoveAsync(client, id, bags, new MoveCargoRequest(mount.Id, Install: true))).StatusCode);
 
         var sheet = await SheetAsync(client, id);
         var loaded = Assert.Single(sheet.Mounts!);
-        // Седельные сумки дают +4 к вместимости профиля 12; установленное груз не занимает.
-        Assert.Equal(16, loaded.Capacity);
+        // Седельные сумки дают +4 к вместимости профиля 13; установленное груз не занимает.
+        Assert.Equal(17, loaded.Capacity);
         Assert.Equal(0, loaded.CarriedLoad);
         Assert.Equal(2, loaded.Cargo.Count);
         Assert.All(loaded.Cargo, c => Assert.True(c.IsInstalledOnMount));
+        // Попона достаётся скакуну: поглощение профиля 4 + 2, защита с нуля до провайдера 1.
+        Assert.Equal(6, loaded.Soak);
+        Assert.Equal(1, loaded.MeleeDefense);
+        Assert.Equal(1, loaded.RangedDefense);
         // Всаднику установленное не достаётся ни защитой, ни весом, ни порогом нагрузки.
         Assert.Equal(before.Derived.Soak, sheet.Derived.Soak);
         Assert.Equal(before.Derived.MeleeDefense, sheet.Derived.MeleeDefense);
         Assert.Equal(before.Derived.EncumbranceLoad, sheet.Derived.EncumbranceLoad);
         Assert.Equal(before.Derived.EncumbranceThreshold, sheet.Derived.EncumbranceThreshold);
+    }
+
+    /// <summary>
+    /// Попона на не-боевого скакуна — решение ведущего: без причины отказ, с причиной ставится и
+    /// причина попадает в историю (ROT-MOUNT-NPC-01).
+    /// </summary>
+    [Fact]
+    public async Task BardingOnANonWarMountNeedsAnExplicitGmReason()
+    {
+        var (client, id, reference) = await CreateRiderAsync();
+        await client.PostAsJsonAsync($"/api/characters/{id}/mounts",
+            new BuyMountRequest(Mount(reference, "riding-beast").Id, Free: true), Json.Options);
+        var mount = Assert.Single((await SheetAsync(client, id)).Mounts!);
+        var barding = await AddItemAsync(client, id, reference, "barding");
+
+        var refused = await MoveAsync(client, id, barding, new MoveCargoRequest(mount.Id, Install: true));
+        Assert.Equal(HttpStatusCode.BadRequest, refused.StatusCode);
+        Assert.Equal("cargo.barding_requires_override",
+            (await refused.Content.ReadFromJsonAsync<ErrorResponse>(Json.Options))!.ReasonCode);
+        // Отказ ничего не менял: позиция осталась у владельца.
+        Assert.Empty(Assert.Single((await SheetAsync(client, id)).Mounts!).Cargo);
+
+        Assert.Equal(HttpStatusCode.NoContent, (await MoveAsync(client, id, barding,
+            new MoveCargoRequest(mount.Id, Install: true, InstallOverrideReason: "подогнал кузнец")))
+            .StatusCode);
+
+        var loaded = Assert.Single((await SheetAsync(client, id)).Mounts!);
+        Assert.True(Assert.Single(loaded.Cargo).IsInstalledOnMount);
+        // Профиль верхового животного — soak 4, защита 0/0; попона поднимает до 6 и 1/1.
+        Assert.Equal(6, loaded.Soak);
+        Assert.Equal(1, loaded.MeleeDefense);
+
+        var audit = await client.GetFromJsonAsync<List<CharacterAuditEntryDto>>(
+            $"/api/characters/{id}/audit", Json.Options);
+        Assert.Contains(audit!, a => a.Summary.Contains("подогнал кузнец", StringComparison.Ordinal));
+    }
+
+    /// <summary>
+    /// Снятие снаряжения возвращает исходные числа профиля: установленное считается на чтение и
+    /// статблок не переписывает (ROT-MOUNT-NPC-01).
+    /// </summary>
+    [Fact]
+    public async Task RemovingBardingRestoresTheProfileNumbers()
+    {
+        var (client, id, reference) = await CreateRiderAsync();
+        await client.PostAsJsonAsync($"/api/characters/{id}/mounts",
+            new BuyMountRequest(Mount(reference, "war-mount").Id, Free: true), Json.Options);
+        var mount = Assert.Single((await SheetAsync(client, id)).Mounts!);
+        var barding = await AddItemAsync(client, id, reference, "barding");
+        await MoveAsync(client, id, barding, new MoveCargoRequest(mount.Id, Install: true));
+        Assert.Equal(6, Assert.Single((await SheetAsync(client, id)).Mounts!).Soak);
+
+        await MoveAsync(client, id, barding, new MoveCargoRequest(null));
+
+        var bare = Assert.Single((await SheetAsync(client, id)).Mounts!);
+        Assert.Equal(4, bare.Soak);
+        Assert.Equal(0, bare.MeleeDefense);
+        Assert.Equal(4, bare.Definition.Soak);
+    }
+
+    /// <summary>
+    /// Попона «задаёт Defense 1», а не прибавляет: летающему скакуну с напечатанной дальней
+    /// защитой 2 она ничего не добавляет (ROT-CMB-03).
+    /// </summary>
+    [Fact]
+    public async Task BardingDoesNotStackWithAProfilesOwnDefense()
+    {
+        var (client, id, reference) = await CreateRiderAsync();
+        await client.PostAsJsonAsync($"/api/characters/{id}/mounts",
+            new BuyMountRequest(Mount(reference, "flying-mount").Id, Free: true), Json.Options);
+        var mount = Assert.Single((await SheetAsync(client, id)).Mounts!);
+        var barding = await AddItemAsync(client, id, reference, "barding");
+
+        await MoveAsync(client, id, barding,
+            new MoveCargoRequest(mount.Id, Install: true, InstallOverrideReason: "сшита по крылу"));
+
+        var loaded = Assert.Single((await SheetAsync(client, id)).Mounts!);
+        Assert.Equal(5, loaded.Soak);
+        Assert.Equal(1, loaded.MeleeDefense);
+        Assert.Equal(2, loaded.RangedDefense);
     }
 
     [Fact]

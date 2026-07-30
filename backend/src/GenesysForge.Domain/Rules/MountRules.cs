@@ -3,6 +3,12 @@ using GenesysForge.Domain.Entities;
 namespace GenesysForge.Domain.Rules;
 
 /// <summary>
+/// Защищённость транспорта после установленного снаряжения (ROT-MOUNT-NPC-01). Числа считаются на
+/// чтение и статблок профиля не меняют: снятая попона возвращает исходные значения сама собой.
+/// </summary>
+public sealed record MountProtection(int Soak, int MeleeDefense, int RangedDefense);
+
+/// <summary>
 /// Правила транспорта — скакунов и повозок (ROT-MOUNT-ITEM-01, ROT-TRANSPORT-01). Транспорт не
 /// предмет: его вес не входит в Encumbrance владельца, груз считается по своим позициям, а
 /// вместимость берётся из профиля книги, а не выводится из характеристик.
@@ -39,18 +45,58 @@ public static class MountRules
             .Sum(i => Math.Max(0, i.ItemDef?.EncumbranceThresholdBonus ?? 0) * Math.Max(1, i.Quantity));
 
     /// <summary>
-    /// Защита от установленного снаряжения: попона добавляет soak и защиту самому транспорту.
+    /// Итоговая защищённость транспорта с учётом установленного снаряжения (ROT-MOUNT-NPC-01).
     /// Всаднику эти числа не достаются — установленная позиция не входит в его надетое снаряжение.
+    ///
+    /// <para>
+    /// Поглощение складывается, а защита — нет: и профиль, и попона «задают Defense N», а такие
+    /// источники по ROT-CMB-03 конкурируют за максимум, а не суммируются. Поэтому попона с защитой 1
+    /// поднимает вьючное животное с нуля до единицы, но летающему скакуну с напечатанной дальней
+    /// защитой 2 ничего не добавляет. Считает общий <see cref="DefenseAggregator"/> — тот же, что и
+    /// у персонажа, вместе с общим пределом 4.
+    /// </para>
     /// </summary>
-    public static (int Soak, int MeleeDefense, int RangedDefense) InstalledProtection(
-        IEnumerable<CharacterItem> cargo)
+    public static MountProtection Protection(MountDef def, IEnumerable<CharacterItem> cargo)
     {
-        var installed = cargo.Where(i => i.IsInstalledOnMount).ToList();
-        return (
-            installed.Sum(i => i.ItemDef?.SoakBonus ?? 0),
-            installed.Sum(i => i.ItemDef?.MeleeDefense ?? 0),
-            installed.Sum(i => i.ItemDef?.RangedDefense ?? 0));
+        var installed = cargo.Where(i => i.IsInstalledOnMount && i.ItemDef is not null).ToList();
+
+        var contributions = new List<DefenseContribution>();
+        if (def.MeleeDefense > 0)
+            contributions.Add(new DefenseContribution(
+                "Profile", def.Name, DefenseScope.Melee, DefenseMode.Provides, def.MeleeDefense));
+        if (def.RangedDefense > 0)
+            contributions.Add(new DefenseContribution(
+                "Profile", def.Name, DefenseScope.Ranged, DefenseMode.Provides, def.RangedDefense));
+        foreach (var item in installed)
+        {
+            if (item.ItemDef!.MeleeDefense > 0)
+                contributions.Add(new DefenseContribution(
+                    "Item", item.ItemDef.Name, DefenseScope.Melee, DefenseMode.Provides,
+                    item.ItemDef.MeleeDefense));
+            if (item.ItemDef.RangedDefense > 0)
+                contributions.Add(new DefenseContribution(
+                    "Item", item.ItemDef.Name, DefenseScope.Ranged, DefenseMode.Provides,
+                    item.ItemDef.RangedDefense));
+        }
+
+        return new MountProtection(
+            def.Soak + installed.Sum(i => Math.Max(0, i.ItemDef!.SoakBonus)),
+            DefenseAggregator.Melee(contributions).Effective,
+            DefenseAggregator.Ranged(contributions).Effective);
     }
+
+    /// <summary>
+    /// Попона рассчитана на боевого скакуна: на любого другого её ставит ведущий своим решением,
+    /// и это решение обязано попасть в историю персонажа вместе с причиной (ROT-MOUNT-NPC-01).
+    /// </summary>
+    public static bool RequiresGmApprovalForBarding(MountDef def) =>
+        !string.Equals(BareCode(def.Code), WarMountCode, StringComparison.Ordinal);
+
+    /// <summary>Стабильный bare-код боевого скакуна: единственный профиль, которому попона положена.</summary>
+    private const string WarMountCode = "war-mount";
+
+    /// <summary>Код без префикса системы и типа: <c>rot.mount.war-mount</c> → <c>war-mount</c>.</summary>
+    private static string BareCode(string code) => code[(code.LastIndexOf('.') + 1)..];
 
     /// <summary>Транспорт перегружен: груза больше, чем допускает вместимость с учётом сумок.</summary>
     public static bool IsOverloaded(MountDef def, int carriedLoad, int installedBonus = 0) =>

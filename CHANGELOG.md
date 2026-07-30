@@ -33,6 +33,14 @@ once it reaches a tagged 1.0 release. The project is currently pre-1.0; the
   Nemesis had no `Adversary` talent.
 
 ### Added
+- **Barding and saddlebags actually do something** (ROT-MOUNT-NPC-01, equipment scope). Barding sat
+  in the catalog with soak 0 and defense 0, so installing it changed nothing. It now gives the
+  animal **+2 soak and defense 1**, and saddlebags **+4 capacity**. The defense is *provided*, not
+  added: it competes with the profile's own value instead of stacking, so barding lifts a beast of
+  burden from 0 to 1 but adds nothing to a flying mount's printed ranged defense of 2. Barding is
+  meant for a war mount — putting it on any other mount now needs an explicit GM reason, which is
+  recorded in character history. Removing equipment restores the profile numbers by itself: the
+  values are computed on read and never rewrite the statblock.
 - **Transport section** (ROT-TRANSPORT-01). The **Mounts** tab is now **Transport** and covers
   wagons as well. The Wagon was a gear row with a fictitious `Enc 0`; it is now a vehicle with its
   own durability, system threshold, silhouette and cargo capacity, and previously bought wagons are

@@ -2679,14 +2679,14 @@
     "kind": "gear",
     "setting": "Fantasy",
     "enc": 5,
-    "soak": 0,
-    "def": 0,
-    "rdef": 0,
+    "soak": 2,
+    "def": 1,
+    "rdef": 1,
     "encBonus": 0,
     "price": 900,
     "rarity": 4,
-    "desc": "Снаряжение.",
-    "descEn": "Gear.",
+    "desc": "Ставится на скакуна: даёт ему +2 поглощения и защиту 1, а не всаднику. Защита задаётся, а не прибавляется, поэтому с собственной защитой профиля не складывается. По умолчанию рассчитана на боевого скакуна; на другого её ставит ведущий своим решением.",
+    "descEn": "Installed on a mount: it gives the animal +2 soak and defense 1, not the rider. The defense is provided rather than added, so it does not stack with the profile's own defense. It is meant for a war mount by default; putting it on another mount is the GM's call.",
     "source": "Realms of Terrinoth, с. 106"
   },
   {
@@ -2702,8 +2702,8 @@
     "encBonus": 4,
     "price": 75,
     "rarity": 3,
-    "desc": "Снаряжение.",
-    "descEn": "Gear.",
+    "desc": "Ставятся на скакуна и увеличивают его вместимость на 4. Сами вместимость не занимают.",
+    "descEn": "Installed on a mount and raise its capacity by 4. They do not occupy capacity themselves.",
     "source": "Realms of Terrinoth, с. 106"
   },
   {
