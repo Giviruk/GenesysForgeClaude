@@ -229,6 +229,14 @@ public static class CharacterEndpoints
             return Results.Created($"/api/characters/{id}/items/{itemId}", new { Id = itemId });
         });
 
+        group.MapPost("/{id:guid}/services", async (Guid id, BuyServiceRequest req,
+            ClaimsPrincipal user, ICommandHandler<BuyServiceCommand, Unit> handler,
+            CancellationToken ct) =>
+        {
+            await handler.Handle(new BuyServiceCommand(user.UserId(), id, req), ct);
+            return Results.NoContent();
+        });
+
         group.MapPatch("/{id:guid}/items/{itemId:guid}", async (Guid id, Guid itemId, UpdateItemRequest req,
             ClaimsPrincipal user, ICommandHandler<UpdateItemCommand, Unit> handler, CancellationToken ct) =>
         {

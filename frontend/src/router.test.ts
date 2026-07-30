@@ -21,8 +21,9 @@ describe('parseRoute', () => {
     expect(parseRoute('/npcs/n1')).toEqual(route({ area: 'npcs', id: 'n1' }))
   })
 
-  it('parses idless areas magic, reference, help and about', () => {
+  it('parses idless areas magic, shop, reference, help and about', () => {
     expect(parseRoute('/magic')).toEqual(route({ area: 'magic' }))
+    expect(parseRoute('/shop')).toEqual(route({ area: 'shop' }))
     expect(parseRoute('/reference')).toEqual(route({ area: 'reference' }))
     expect(parseRoute('/help')).toEqual(route({ area: 'help' }))
     expect(parseRoute('/about')).toEqual(route({ area: 'about' }))
@@ -38,6 +39,7 @@ describe('parseRoute', () => {
     expect(parseRoute('/about/extra')).toEqual(route({ area: 'about', unknown: true }))
     expect(parseRoute('/help/extra')).toEqual(route({ area: 'help', unknown: true }))
     expect(parseRoute('/magic/extra')).toEqual(route({ area: 'magic', unknown: true }))
+    expect(parseRoute('/shop/extra')).toEqual(route({ area: 'shop', unknown: true }))
     expect(parseRoute('/reference/extra')).toEqual(route({ area: 'reference', unknown: true }))
   })
 

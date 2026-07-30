@@ -72,7 +72,11 @@ public record ItemDefDto(Guid Id, string Name, string NameRu, ItemKind Kind, int
     /// <summary>Runebound shard и его структурная implement-механика (ROT-MAG-11).</summary>
     RuneboundShardSpecDto? Shard = null,
     bool Purchasable = true,
-    bool Sellable = true);
+    bool Sellable = true,
+    /// <summary>Стабильный code для маршрутизации товара и связей без разбора названия.</summary>
+    string Code = "",
+    /// <summary>Категория общей витрины, вычисленная сервером из структурных правил.</summary>
+    ShopItemCategory ShopCategory = ShopItemCategory.Gear);
 
 /// <summary>Штраф или послабление предмета к проверкам конкретного навыка/характеристики.</summary>
 public record ItemCheckModifierDto(

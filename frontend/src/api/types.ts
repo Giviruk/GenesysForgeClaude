@@ -4,6 +4,9 @@ export type SkillKind = 'general' | 'combat' | 'social' | 'knowledge' | 'magic'
 export type TalentCategory = 'general' | 'social' | 'combat' | 'magic'
 export type ItemKind = 'weapon' | 'armor' | 'gear'
 export type ItemState = 'equipped' | 'carried' | 'backpack'
+export type ShopItemCategory =
+  | 'weaponLight' | 'weaponHeavy' | 'weaponRanged' | 'magicImplement'
+  | 'armor' | 'transport' | 'gear' | 'consumable' | 'service'
 
 export interface AuthResponse {
   token: string
@@ -98,6 +101,8 @@ export interface CharacterTalentChoice {
 
 export interface ItemDef {
   id: string
+  /** Стабильный код встроенной записи; пусто у старого custom content. */
+  code: string
   name: string
   nameRu: string
   kind: ItemKind
@@ -135,6 +140,8 @@ export interface ItemDef {
   purchasable: boolean
   /** Предмет можно продать по обычной экономике. */
   sellable: boolean
+  /** Серверная категория общей витрины. */
+  shopCategory: ShopItemCategory
 }
 
 /** Структурное качество предмета: ссылка на справочник по коду + рейтинг. */

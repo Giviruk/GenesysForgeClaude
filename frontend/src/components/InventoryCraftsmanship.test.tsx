@@ -87,8 +87,13 @@ const shardDef = {
   },
 } as unknown as ItemDef
 
+const serviceDef = {
+  ...ropeDef, id: 'def-service', code: 'rot.item.service-bath',
+  name: 'Bath', nameRu: 'Баня', price: 2, rarity: 0, shopCategory: 'service',
+} as unknown as ItemDef
+
 const reference = { items: [plateDef] } as unknown as Reference
-const shopReference = { items: [plateDef, staffDef, ropeDef, shardDef] } as unknown as Reference
+const shopReference = { items: [plateDef, staffDef, ropeDef, shardDef, serviceDef] } as unknown as Reference
 
 describe('Инвентарь: качество изготовления (ROT-WPN-02)', () => {
   beforeEach(() => {
@@ -155,6 +160,15 @@ describe('Инвентарь: качество изготовления (ROT-WPN
     fireEvent.click(screen.getByRole('button', { name: 'Снаряжение' }))
     expect(shop()).toContain('Верёвка')
     expect(shop()).not.toContain('Магический посох')
+  })
+
+  it('не показывает услуги во встроенном магазине инвентаря', () => {
+    render(<InventoryTab sheet={sheet} reference={shopReference} onError={() => {}}
+      refresh={() => Promise.resolve()} />)
+
+    const shop = document.querySelector('.shop-list')!.textContent ?? ''
+    expect(shop).toContain('Верёвка')
+    expect(shop).not.toContain('Баня')
   })
 
   it('выносит runebound shards в отдельную вкладку без обычной покупки', () => {

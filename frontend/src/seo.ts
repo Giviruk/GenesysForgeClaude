@@ -38,6 +38,13 @@ const AREA_SEO: Record<AppArea, { title: string; description?: string }> = {
       'Magic action builder for the Genesys rules: attack, heal, barrier and other effects with difficulty modifiers.',
     ),
   },
+  shop: {
+    title: t(`Магазин — ${SITE}`, `Shop — ${SITE}`),
+    description: t(
+      'Общий каталог оружия, брони, магических инструментов, улучшений, транспорта, снаряжения и услуг.',
+      'A unified catalogue of weapons, armor, magic implements, attachments, transport, gear, and services.',
+    ),
+  },
   reference: {
     title: t(
       `Справочник Genesys — навыки, таланты, снаряжение — ${SITE}`,

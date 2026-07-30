@@ -21,6 +21,10 @@ public class AddItemHandler(IAppDbContext db) : ICommandHandler<AddItemCommand, 
                     || (i.OwnerUserId == command.UserId
                         && (i.HomebrewPackId == null || visiblePackIds.Contains(i.HomebrewPackId.Value)))), ct)
             ?? throw new DomainRuleException("Предмет не найден.");
+        if (ShopCatalogRules.IsService(itemDef.Code))
+            throw new DomainRuleException(
+                "Услуга не добавляется в инвентарь. Используйте покупку услуги.",
+                "service.not_inventory");
         if (req.Quantity < 1) throw new DomainRuleException("Количество должно быть не меньше 1.");
         if (RuneboundShardRules.IsShard(itemDef.Code) && req.Quantity != 1)
             throw new DomainRuleException(

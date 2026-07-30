@@ -245,6 +245,9 @@ export const api = {
       material?: ImplementMaterial
     }) =>
     request<{ id: string }>('POST', `/api/characters/${id}/items`, { itemDefId, quantity, state, ...opts }),
+  /** Услуга списывает деньги и пишется в audit, но не создаёт строку инвентаря. */
+  buyService: (id: string, itemDefId: string, quantity = 1, free = false) =>
+    request<void>('POST', `/api/characters/${id}/services`, { itemDefId, quantity, free }),
   updateItem: (id: string, itemId: string, patch: { state?: ItemState; quantity?: number }) =>
     request<void>('PATCH', `/api/characters/${id}/items/${itemId}`, patch),
   /**

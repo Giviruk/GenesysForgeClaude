@@ -412,6 +412,18 @@ Reference `items[].shard` carries the structural runebound-shard passport. Chara
 nullable `price`/`rarity`, cannot use the ordinary purchase/sale routes, and may only be
 granted free in a quantity of one.
 
+### `POST /api/characters/{id}/services`
+
+Protected (GEN-SHOP-01). Request: `BuyServiceRequest` with `itemDefId`, `quantity` and `free`.
+The definition must be a service visible to the character owner and belong to the character's
+game system. A paid request charges the creation purchase budget first when applicable, then
+money; a free request charges neither.
+
+The operation records `ServiceBought` in the character audit and returns `204`. It never creates
+a `CharacterItem`. The ordinary `POST /api/characters/{id}/items` route rejects a service with
+reason code `service.not_inventory`, so a client cannot make a service appear in inventory by
+bypassing the shop UI.
+
 ### `PUT /api/characters/{id}/attachments/{attachmentId}/damage-state` and `POST …/repair`
 
 Protected. Same requests and rules for an attachment's own damage state. A broken attachment

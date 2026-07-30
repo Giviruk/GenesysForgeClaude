@@ -72,6 +72,7 @@ public static class DependencyInjection
         services.AddScoped<ICommandHandler<SetHeroicUpgradeRankCommand, Unit>, SetHeroicUpgradeRankHandler>();
         services.AddScoped<ICommandHandler<SetHeroicUpgradesCommand, Unit>, SetHeroicUpgradesHandler>();
         services.AddScoped<ICommandHandler<AddItemCommand, Guid>, AddItemHandler>();
+        services.AddScoped<ICommandHandler<BuyServiceCommand, Unit>, BuyServiceHandler>();
         services.AddScoped<ICommandHandler<UpdateItemCommand, Unit>, UpdateItemHandler>();
         services.AddScoped<ICommandHandler<RemoveItemCommand, Unit>, RemoveItemHandler>();
         services.AddScoped<ICommandHandler<SellItemCommand, Unit>, SellItemHandler>();

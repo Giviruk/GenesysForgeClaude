@@ -38,6 +38,15 @@ public record AddItemRequest(
     int? PricePercent = null);
 
 /// <summary>
+/// Покупка или бесплатная выдача услуги. Услуга записывается в историю расходов, но никогда не
+/// создаёт <c>CharacterItem</c>.
+/// </summary>
+public record BuyServiceRequest(
+    Guid ItemDefId,
+    int Quantity = 1,
+    bool Free = false);
+
+/// <summary>
 /// Продажа предмета. Сумму всегда считает сервер от цены каталога — клиент её не назначает.
 /// <para>
 /// Режимов три, и они взаимоисключающие. По проверке (<paramref name="NetSuccesses"/>): провал не

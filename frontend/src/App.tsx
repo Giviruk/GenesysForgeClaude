@@ -6,6 +6,7 @@ import { CampaignsPage } from './pages/CampaignsPage'
 import { NpcsPage } from './pages/NpcsPage'
 import { SheetPage } from './pages/SheetPage'
 import { MagicPage } from './pages/MagicPage'
+import { ShopPage } from './pages/ShopPage'
 import { ReferencePage } from './pages/ReferencePage'
 import { AboutPage } from './pages/AboutPage'
 import { HelpPage } from './pages/HelpPage'
@@ -27,6 +28,7 @@ const NAV_ITEMS: Array<{ area: AppArea; label: string; path: string; icon: IconN
   { area: 'npcs', label: t('Бестиарий', 'Bestiary'), path: '/npcs', icon: 'skull' },
   { area: 'campaigns', label: t('Кампании', 'Campaigns'), path: '/campaigns', icon: 'map' },
   { area: 'magic', label: t('Магия', 'Magic'), path: '/magic', icon: 'flame' },
+  { area: 'shop', label: t('Магазин', 'Shop'), path: '/shop', icon: 'shop' },
 ]
 
 const FOOTER_NAV_ITEMS: Array<{ area: AppArea; label: string; path: string; icon: IconName }> = [
@@ -114,6 +116,8 @@ function Shell() {
                     onOpen={id => navigate(`/npcs/${id}`)} onBack={() => navigate('/npcs')} />
                 : route.area === 'magic'
                   ? <MagicPage />
+                : route.area === 'shop'
+                  ? <ShopPage />
                 : route.area === 'account'
                   ? <ProfilePage onBack={() => navigate('/characters')} />
                   : route.area === 'help'

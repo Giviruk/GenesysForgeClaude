@@ -61,7 +61,9 @@ public static class Mappers
         ImplementSpecDto(i.Code),
         RuneboundShardSpecDto(i.Code),
         i.Purchasable,
-        i.Sellable);
+        i.Sellable,
+        i.Code,
+        ShopCatalogRules.Category(i));
 
     /// <summary>
     /// Паспорт магического инструмента для справочника (ROT-MAG-IMP-01). Определяется кодом
