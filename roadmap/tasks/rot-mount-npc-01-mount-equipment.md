@@ -3,8 +3,8 @@
 - **Roadmap:** ROT-MOUNT-NPC-01, объём снаряжения (см. [rot-rules-remediation-tasks.md](rot-rules-remediation-tasks.md))
 - **Ветка:** `feature/rot-mount-npc-01-mount-equipment`
 - **Базовая ветка:** `master` (PR #138 слит, открытых PR нет)
-- **PR:** #<номер> (после создания)
-- **Статус:** 🚧 In progress
+- **PR:** [#139](https://github.com/Giviruk/GenesysForgeClaude/pull/139)
+- **Статус:** 🚧 На ревью
 
 ## Контекст
 
@@ -49,7 +49,7 @@ GM override».
 - [x] Статус в `rot-rules-remediation-progress.md` обновлён.
 - [x] Проверки: backend 673 + 725, frontend 241 Vitest + tsc + eslint, ручная проверка в браузере
       и через API на in-memory базе.
-- [ ] PR открыт.
+- [x] PR открыт.
 
 ## Что осталось / блокеры
 
