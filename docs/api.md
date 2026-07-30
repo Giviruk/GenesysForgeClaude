@@ -128,6 +128,8 @@ Response: `ReferenceResponse`:
 - `talents`
 - `items`
 - `heroicAbilities`
+- `attachments` — item attachments (ROT-EQP-ATT-01)
+- `mounts` — purchasable mount profiles with their statblocks (ROT-MOUNT-ITEM-01)
 
 The response includes built-in content plus visible custom content owned by the current user. Imported
 homebrew-pack content is visible when the pack is enabled by default or enabled for the supplied
@@ -249,7 +251,8 @@ Protected. Ends creation phase. Response: `204`.
 ### `GET /api/characters/{id}/export`
 
 Protected (owner only). Returns the character as a portable JSON document
-(`CharacterExportDto`, format `genesysforge.character.v1`). References to reference content use the
+(`CharacterExportDto`, current format `genesysforge.character.v4` — v4 adds mounts,
+ROT-MOUNT-ITEM-01; v1–v3 are still accepted on import). References to reference content use the
 stable `Code` + `Name` instead of internal ids; `OwnerUserId` and database ids are not included.
 Exporting a character you do not own returns `400` ("персонаж не найден").
 
@@ -363,6 +366,40 @@ Protected. Removes item instance. Response: `204`.
 ### `POST /api/characters/{id}/items/{itemId}/sell`
 
 Protected. Request: `SellItemRequest` with `quantity` and `proceeds`. Removes or decreases item quantity and adds proceeds to character money. Response: `204`.
+
+### `POST /api/characters/{id}/mounts`
+
+Protected (ROT-MOUNT-ITEM-01). Request: `BuyMountRequest` — `mountDefId`, plus the optional payment
+fields `free`, `pricePercent` (50–200 in steps of 25), `priceOverride` with a required
+`overrideReason`, and `name` (nickname).
+
+Creates a mount instance, never a `CharacterItem`: a mount is a creature with its own statblock, so
+it has no encumbrance and does not touch the owner's carried weight. Always one per call. The server
+computes the sum from the catalog price (ROT-ECO-01) and spends the creation budget before the wallet.
+Priceless profiles (`price: null`) can only be granted or given an explicit GM price.
+Reason codes: `mount.not_found`, `mount.priceless`, `mount.retired`,
+`trade.override_reason_required`, `trade.purchase_mode_ambiguous`, `character.funds.insufficient`.
+Response: `201 Created` with `{ "id": "..." }`.
+
+### `PATCH /api/characters/{id}/mounts/{mountId}`
+
+Protected. Request: `UpdateMountRequest` — all fields optional: `name`, `woundsCurrent`,
+`carriedLoad`, `isActive`, `notes`. Wounds are clamped to the profile threshold; cargo above capacity
+is kept and reported as `isOverloaded`; negative cargo is rejected (`mount.load_negative`).
+Response: `204`.
+
+### `POST /api/characters/{id}/mounts/{mountId}/sell`
+
+Protected. Request: `SellMountRequest` — one of `netSuccesses` (25/50/75 % by the book),
+`percent` (0–100) or `priceOverride` with `overrideReason`; optional `conditionMultiplier` with
+`conditionReason`. The server computes the proceeds; during creation they restore the purchase budget
+first. A mount with cargo is rejected until it is unloaded (`mount.load_not_empty`).
+Response: `204`.
+
+### `DELETE /api/characters/{id}/mounts/{mountId}`
+
+Protected. Removes the mount with no proceeds (died, released, entered by mistake) and records it in
+character history. Response: `204`.
 
 ### `PUT /api/characters/{id}/items/{itemId}/damage-state`
 

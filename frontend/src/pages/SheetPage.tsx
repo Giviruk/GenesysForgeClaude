@@ -7,6 +7,7 @@ import { TalentsTab } from '../components/TalentsTab'
 import { HeroicTab } from '../components/HeroicTab'
 import { InventoryTab } from '../components/InventoryTab'
 import { AttachmentsTab } from '../components/AttachmentsTab'
+import { MountsTab } from '../components/MountsTab'
 import { CustomTab } from '../components/CustomTab'
 import { NotesTab } from '../components/NotesTab'
 import { BioTab } from '../components/BioTab'
@@ -27,7 +28,7 @@ interface Props {
   onBack: () => void
 }
 
-type Tab = 'sheet' | 'talents' | 'heroic' | 'inventory' | 'attachments' | 'magic' | 'bio' | 'history' | 'notes' | 'custom'
+type Tab = 'sheet' | 'talents' | 'heroic' | 'inventory' | 'attachments' | 'mounts' | 'magic' | 'bio' | 'history' | 'notes' | 'custom'
 
 export function SheetPage({ characterId, printing, onOpenPrint, onClosePrint, onBack }: Props) {
   const [sheet, setSheet] = useState<CharacterSheet | null>(null)
@@ -246,6 +247,7 @@ export function SheetPage({ characterId, printing, onOpenPrint, onClosePrint, on
         )}
         <button className={tab === 'inventory' ? 'tab active' : 'tab'} onClick={() => setTab('inventory')}>{t('Инвентарь', 'Inventory')}</button>
         <button className={tab === 'attachments' ? 'tab active' : 'tab'} onClick={() => setTab('attachments')}>{t('Улучшения', 'Attachments')}</button>
+        <button className={tab === 'mounts' ? 'tab active' : 'tab'} onClick={() => setTab('mounts')}>{t('Скакуны', 'Mounts')}</button>
         <button className={tab === 'magic' ? 'tab active' : 'tab'} onClick={() => setTab('magic')}>{t('Магия', 'Magic')}</button>
         <button className={tab === 'bio' ? 'tab active' : 'tab'} onClick={() => setTab('bio')}>{t('Образ', 'Bio')}</button>
         <button className={tab === 'history' ? 'tab active' : 'tab'} onClick={() => setTab('history')}>{t('История', 'History')}</button>
@@ -258,6 +260,7 @@ export function SheetPage({ characterId, printing, onOpenPrint, onClosePrint, on
       {tab === 'heroic' && <HeroicTab sheet={sheet} reference={reference} onError={setError} refresh={refresh} />}
       {tab === 'inventory' && <InventoryTab sheet={sheet} reference={reference} onError={setError} refresh={refresh} />}
       {tab === 'attachments' && <AttachmentsTab sheet={sheet} reference={reference} onError={setError} refresh={refresh} />}
+      {tab === 'mounts' && <MountsTab sheet={sheet} reference={reference} onError={setError} refresh={refresh} />}
       {tab === 'magic' && <MagicTab sheet={sheet} onError={setError} refresh={refresh} />}
       {tab === 'bio' && <BioTab sheet={sheet} onError={setError} refresh={refresh} />}
       {tab === 'history' && <HistoryTab characterId={sheet.id} onError={setError} refresh={refresh} />}

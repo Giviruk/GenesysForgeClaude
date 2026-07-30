@@ -10,7 +10,11 @@ public record ReferenceResponse(
     List<QualityDto> Qualities,
     List<HeroicSecondaryEffectDto> HeroicSecondaryEffects,
     /// <summary>Улучшения предметов (ROT-EQP-ATT-01): собственный тип контента, не снаряжение.</summary>
-    List<AttachmentDefDto>? Attachments = null);
+    List<AttachmentDefDto>? Attachments = null,
+    /// <summary>
+    /// Покупаемые скакуны (ROT-MOUNT-ITEM-01): существа со статблоком, а не записи снаряжения.
+    /// </summary>
+    List<MountDefDto>? Mounts = null);
 
 public record HeroicSecondaryEffectDto(
     Guid Id, string Code, string Name, string NameRu, string Description, string SafeDescription,

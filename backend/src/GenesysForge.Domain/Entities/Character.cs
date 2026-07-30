@@ -124,6 +124,12 @@ public class Character
     /// Улучшения персонажа (ROT-EQP-ATT-01): и установленные на предметы, и лежащие в запасе.
     /// </summary>
     public List<CharacterAttachment> Attachments { get; set; } = [];
+
+    /// <summary>
+    /// Скакуны персонажа (ROT-MOUNT-ITEM-01). В переносимый вес не входят: это существа, а не
+    /// позиции инвентаря.
+    /// </summary>
+    public List<CharacterMount> Mounts { get; set; } = [];
     public List<CharacterCriticalInjury> CriticalInjuries { get; set; } = [];
     public List<CharacterHeroicSecondaryEffect> HeroicSecondaryEffects { get; set; } = [];
 

@@ -34,11 +34,23 @@ public class ShopCatalogRulesTests
     }
 
     [Theory]
-    [InlineData("war-mount")]
     [InlineData("wagon")]
+    [InlineData("barding")]
     [InlineData("saddlebags")]
     public void TransportUsesStableCodes(string code) =>
         Assert.Equal(ShopItemCategory.Transport, ShopCatalogRules.Category(Item(code)));
+
+    /// <summary>
+    /// Скакуны больше не классифицируются как снаряжение (ROT-MOUNT-ITEM-01): в витрину они
+    /// приходят из каталога скакунов, а старые записи предметов выведены из активного каталога.
+    /// </summary>
+    [Theory]
+    [InlineData("war-mount")]
+    [InlineData("beast-of-burden")]
+    [InlineData("riding-beast")]
+    [InlineData("flying-mount")]
+    public void MountsAreNoLongerTransportGear(string code) =>
+        Assert.NotEqual(ShopItemCategory.Transport, ShopCatalogRules.Category(Item(code)));
 
     [Theory]
     [InlineData("dagger", "Melee (Light)", ShopItemCategory.WeaponLight)]

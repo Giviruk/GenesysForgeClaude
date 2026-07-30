@@ -1,0 +1,153 @@
+[
+ {
+  "code": "beast-of-burden",
+  "name": "Beast of Burden",
+  "nameRu": "Вьючное животное",
+  "setting": "Fantasy",
+  "kind": "Minion",
+  "brawn": 4,
+  "agility": 2,
+  "intellect": 1,
+  "cunning": 1,
+  "willpower": 1,
+  "presence": 1,
+  "soak": 4,
+  "woundThreshold": 7,
+  "meleeDefense": 0,
+  "rangedDefense": 0,
+  "silhouette": 2,
+  "capacity": 18,
+  "price": 200,
+  "rarity": 1,
+  "includedGear": ["harness"],
+  "skills": [
+   { "name": "Athletics", "group": true },
+   { "name": "Resilience", "group": true }
+  ],
+  "desc": "Тягловое животное: везёт груз и тянет повозку, в бою бесполезно. Вместимость профиля — 18, и она заменяет общее правило «5 + Сила».",
+  "descEn": "A draft animal: it carries cargo and pulls a wagon, and is useless in a fight. The profile's capacity of 18 replaces the generic 5 + Brawn rule.",
+  "source": "Realms of Terrinoth, с. 106"
+ },
+ {
+  "code": "riding-beast",
+  "name": "Riding Beast",
+  "nameRu": "Верховое животное",
+  "setting": "Fantasy",
+  "kind": "Minion",
+  "brawn": 4,
+  "agility": 3,
+  "intellect": 1,
+  "cunning": 1,
+  "willpower": 1,
+  "presence": 1,
+  "soak": 4,
+  "woundThreshold": 5,
+  "meleeDefense": 0,
+  "rangedDefense": 0,
+  "silhouette": 2,
+  "capacity": 12,
+  "price": 400,
+  "rarity": 2,
+  "includedGear": ["riding-tack"],
+  "requiresRidingCheck": true,
+  "skills": [
+   { "name": "Athletics", "group": true },
+   { "name": "Resilience", "group": true }
+  ],
+  "desc": "Ездовое животное для дороги, а не для боя: порог ран всего 5, и своей атаки у него нет.",
+  "descEn": "A riding animal made for travel rather than battle: a wound threshold of only 5 and no attack of its own.",
+  "source": "Realms of Terrinoth, с. 106"
+ },
+ {
+  "code": "war-mount",
+  "name": "War Mount",
+  "nameRu": "Боевой скакун",
+  "setting": "Fantasy",
+  "kind": "Rival",
+  "brawn": 4,
+  "agility": 3,
+  "intellect": 1,
+  "cunning": 2,
+  "willpower": 3,
+  "presence": 1,
+  "soak": 4,
+  "woundThreshold": 14,
+  "meleeDefense": 0,
+  "rangedDefense": 0,
+  "silhouette": 2,
+  "capacity": 13,
+  "price": 1500,
+  "rarity": 6,
+  "skills": [
+   { "name": "Athletics", "ranks": 3 },
+   { "name": "Brawl", "ranks": 1 },
+   { "name": "Discipline", "ranks": 2 },
+   { "name": "Resilience", "ranks": 3 },
+   { "name": "Survival", "ranks": 2 }
+  ],
+  "attacks": [
+   {
+    "name": "Trample",
+    "nameRu": "Топтание",
+    "skill": "Brawl",
+    "damage": 6,
+    "critical": 4,
+    "range": "Engaged",
+    "qualities": ["knockdown"]
+   }
+  ],
+  "desc": "Выученный для боя скакун: не пугается схватки и сам атакует. Дисциплина 3 и порог ран 14 — это боевое животное, а не ездовое.",
+  "descEn": "A mount trained for battle: it does not shy from a melee and attacks on its own. Discipline 3 and a wound threshold of 14 make it a combat animal rather than a riding one.",
+  "source": "Realms of Terrinoth, с. 106"
+ },
+ {
+  "code": "flying-mount",
+  "name": "Flying Mount",
+  "nameRu": "Летающий скакун",
+  "setting": "Fantasy",
+  "kind": "Rival",
+  "brawn": 3,
+  "agility": 4,
+  "intellect": 1,
+  "cunning": 2,
+  "willpower": 2,
+  "presence": 2,
+  "soak": 3,
+  "woundThreshold": 12,
+  "meleeDefense": 1,
+  "rangedDefense": 2,
+  "silhouette": 2,
+  "capacity": 12,
+  "price": 2000,
+  "rarity": 8,
+  "skills": [
+   { "name": "Athletics", "ranks": 3 },
+   { "name": "Coordination", "ranks": 3 },
+   { "name": "Discipline", "ranks": 2 },
+   { "name": "Resilience", "ranks": 2 },
+   { "name": "Survival", "ranks": 2 }
+  ],
+  "abilities": [
+   {
+    "name": "Flyer",
+    "nameRu": "Летун",
+    "desc": "Скакун летает: он перемещается по воздуху и не тратит движение на непроходимую по земле местность.",
+    "descEn": "The mount flies: it moves through the air and does not spend movement on terrain that would block a ground animal."
+   }
+  ],
+  "attacks": [
+   {
+    "name": "Claws",
+    "nameRu": "Когти",
+    "skill": "Brawl",
+    "damage": 5,
+    "critical": 4,
+    "range": "Engaged",
+    "qualities": ["knockdown"]
+   }
+  ],
+  "desc": "Летающий скакун: самый дорогой и самый редкий профиль. Талантов у него нет, а напечатанное «Уклонение 2» снято официальной erratой — защита у профиля 1 в ближнем и 2 в дальнем бою.",
+  "descEn": "A flying mount: the priciest and rarest profile. It has no talents, and the printed Dodge 2 was removed by official errata — the profile's defense is 1 melee and 2 ranged.",
+  "source": "Realms of Terrinoth, с. 106"
+ }
+]

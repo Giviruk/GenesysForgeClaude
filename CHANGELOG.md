@@ -33,6 +33,21 @@ once it reaches a tagged 1.0 release. The project is currently pre-1.0; the
   Nemesis had no `Adversary` talent.
 
 ### Added
+- **Mounts are creatures now, not gear** (ROT-MOUNT-ITEM-01). The four Realms of Terrinoth
+  profiles (Beast of Burden, Riding Beast, War Mount, Flying Mount) used to be catalog
+  "gear" rows with `Enc 0` and the description "Gear" — buying one put a nameless line in
+  the backpack. They are their own content type with the full book statblock (characteristics,
+  soak, wound threshold, defense, silhouette, skills, structural attack with `Knockdown`,
+  the Flyer ability, included harness/riding tack), and buying one creates a mount instance
+  on a new **Mounts** tab. A mount has no weight of its own and never counts towards the
+  owner's encumbrance; its capacity comes from the profile (18/12/13/12) and overrides the
+  generic `5 + Brawn` rule. The Flying Mount carries the official errata: no talents and no
+  printed Dodge 2. Purchase supports the same payment options as items — grant without
+  payment, haggled percentage, or a GM price with a reason — and sale the same three modes.
+  A mount carrying cargo cannot be sold until it is unloaded. Already-bought mount gear rows
+  are converted into real mounts (quantity N becomes N creatures) with a history entry; the
+  old catalog rows are retired rather than deleted. Character export moves to
+  `genesysforge.character.v4`, which carries mounts; v1–v3 files still import.
 - Spell effects whose rating comes from Knowledge ranks now show the actual number
   (`Burn 2`, `Pierce 3`) in the builder, the copied card and the printed card, instead
   of the sentence "equal to the caster's Knowledge ranks". In Realms of Terrinoth the

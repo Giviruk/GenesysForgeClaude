@@ -41,6 +41,7 @@ public static class SeedData
         var heroicSecondaryEffects = HeroicSecondaryEffectCatalog.Load();
         var qualities = QualityCatalog.Load().ToList();
         var attachments = AttachmentCatalog.Load().ToList();
+        var mounts = MountCatalog.Load().ToList();
         var rules = RuleCatalog.Load().ToList();
         var spells = Spells(GameSystem.GenesysCore).Concat(Spells(GameSystem.RealmsOfTerrinoth)).ToList();
 
@@ -56,6 +57,7 @@ public static class SeedData
             foreach (var upgrade in heroics.SelectMany(h => h.Upgrades)) upgrade.Description = "";
         ProjectContent(heroicSecondaryEffects, mode, store);
         ProjectContent(qualities, mode, store);
+        ProjectContent(mounts, mode, store);
         ProjectSpells(spells, mode);
 
         // Синхронизация встроенных строк с каталогом по стабильному Code ДО SeedMissing:
@@ -224,6 +226,7 @@ public static class SeedData
             d => ((GameSystem)0, d.Code));
         added |= SeedMissing(db, db.QualityDefs, qualities, d => ((GameSystem)0, d.NameEn));
         added |= SeedMissing(db, db.AttachmentDefs, attachments, d => (d.System, d.Name));
+        added |= SeedMissing(db, db.MountDefs, mounts, d => (d.System, d.Name));
         added |= SeedOrUpdateRules(db, rules);
         added |= SeedMissing(db, db.SpellDefs, spells,
             d => (d.System, $"{d.MagicSkill}:{(int)d.Kind}:{d.ParentEffect}:{d.NameEn}"));
@@ -245,6 +248,17 @@ public static class SeedData
         // Улучшения жили в каталоге предметов обычным снаряжением; купленные экземпляры переносятся
         // в запас улучшений, а не пропадают вместе с записью каталога (ROT-EQP-ATT-01).
         MigrateLegacyAttachmentItems(db);
+
+        // Каталог авторитетен и для профилей скакунов: числа книги обязаны доехать до уже
+        // засиженной базы (ROT-MOUNT-ITEM-01).
+        SyncBuiltinByCode(db,
+            db.MountDefs.Include(x => x.Skills).Include(x => x.Abilities).Include(x => x.Attacks)
+                .Where(x => x.OwnerUserId == null && x.Code != ""),
+            mounts, SyncMount);
+
+        // Скакуны жили в каталоге предметов записью «Снаряжение» с Enc 0; купленные экземпляры
+        // становятся настоящими скакунами со статблоком, а не пропадают (ROT-MOUNT-ITEM-01).
+        MigrateLegacyMountItems(db);
 
         // Бэкфилл структурных качеств из строк Properties встроенных предметов (идемпотентно).
         BackfillItemQualities(db);
@@ -1001,6 +1015,156 @@ public static class SeedData
                     Provenance = item.Provenance,
                 });
             db.CharacterItems.Remove(item);
+        }
+        db.SaveChanges();
+    }
+
+    /// <summary>
+    /// Профиль скакуна из каталога авторитетен: характеристики, пороги, защита, вместимость,
+    /// экономика, навыки, способности и атаки синхронизируются с уже засиженной строкой
+    /// (ROT-MOUNT-ITEM-01). Иначе исправление errata (снятое у летающего скакуна «Уклонение 2»)
+    /// не доехало бы до существующей базы.
+    /// </summary>
+    private static bool SyncMount(MountDef row, MountDef def)
+    {
+        var skillsMatch = row.Skills.Count == def.Skills.Count
+            && row.Skills.OrderBy(x => x.Name, StringComparer.Ordinal)
+                .Zip(def.Skills.OrderBy(x => x.Name, StringComparer.Ordinal))
+                .All(p => p.First.Name == p.Second.Name && p.First.Ranks == p.Second.Ranks
+                    && p.First.IsGroupSkill == p.Second.IsGroupSkill);
+        var abilitiesMatch = row.Abilities.Count == def.Abilities.Count
+            && row.Abilities.OrderBy(x => x.Name, StringComparer.Ordinal)
+                .Zip(def.Abilities.OrderBy(x => x.Name, StringComparer.Ordinal))
+                .All(p => p.First.Name == p.Second.Name && p.First.NameRu == p.Second.NameRu
+                    && p.First.Description == p.Second.Description
+                    && p.First.DescriptionEn == p.Second.DescriptionEn);
+        var attacksMatch = row.Attacks.Count == def.Attacks.Count
+            && row.Attacks.OrderBy(x => x.Name, StringComparer.Ordinal)
+                .Zip(def.Attacks.OrderBy(x => x.Name, StringComparer.Ordinal))
+                .All(p => p.First.Name == p.Second.Name && p.First.NameRu == p.Second.NameRu
+                    && p.First.SkillName == p.Second.SkillName && p.First.Damage == p.Second.Damage
+                    && p.First.Critical == p.Second.Critical && p.First.Range == p.Second.Range
+                    && p.First.QualityCodes.SequenceEqual(p.Second.QualityCodes));
+
+        var changed = row.Name != def.Name || row.NameRu != def.NameRu || row.Kind != def.Kind
+            || row.Brawn != def.Brawn || row.Agility != def.Agility || row.Intellect != def.Intellect
+            || row.Cunning != def.Cunning || row.Willpower != def.Willpower
+            || row.Presence != def.Presence || row.Soak != def.Soak
+            || row.WoundThreshold != def.WoundThreshold || row.StrainThreshold != def.StrainThreshold
+            || row.MeleeDefense != def.MeleeDefense || row.RangedDefense != def.RangedDefense
+            || row.Silhouette != def.Silhouette || row.Capacity != def.Capacity
+            || row.Price != def.Price || row.Rarity != def.Rarity
+            || !row.IncludedGear.SequenceEqual(def.IncludedGear)
+            || row.RequiresRidingCheck != def.RequiresRidingCheck
+            || row.SafeDescription != def.SafeDescription || row.DescriptionEn != def.DescriptionEn
+            || row.Source != def.Source || row.Retired != def.Retired
+            || !skillsMatch || !abilitiesMatch || !attacksMatch;
+        if (!changed) return false;
+
+        row.Name = def.Name; row.NameRu = def.NameRu; row.Kind = def.Kind;
+        row.Brawn = def.Brawn; row.Agility = def.Agility; row.Intellect = def.Intellect;
+        row.Cunning = def.Cunning; row.Willpower = def.Willpower; row.Presence = def.Presence;
+        row.Soak = def.Soak;
+        row.WoundThreshold = def.WoundThreshold; row.StrainThreshold = def.StrainThreshold;
+        row.MeleeDefense = def.MeleeDefense; row.RangedDefense = def.RangedDefense;
+        row.Silhouette = def.Silhouette; row.Capacity = def.Capacity;
+        row.Price = def.Price; row.Rarity = def.Rarity;
+        row.IncludedGear = [.. def.IncludedGear];
+        row.RequiresRidingCheck = def.RequiresRidingCheck;
+        row.SafeDescription = def.SafeDescription; row.DescriptionEn = def.DescriptionEn;
+        row.Source = def.Source; row.Retired = def.Retired;
+
+        if (!skillsMatch)
+        {
+            row.Skills.Clear();
+            foreach (var s in def.Skills)
+                row.Skills.Add(new MountSkill
+                {
+                    Id = Guid.NewGuid(), MountDefId = row.Id,
+                    Name = s.Name, Ranks = s.Ranks, IsGroupSkill = s.IsGroupSkill,
+                });
+        }
+        if (!abilitiesMatch)
+        {
+            row.Abilities.Clear();
+            foreach (var a in def.Abilities)
+                row.Abilities.Add(new MountAbility
+                {
+                    Id = Guid.NewGuid(), MountDefId = row.Id,
+                    Name = a.Name, NameRu = a.NameRu,
+                    Description = a.Description, DescriptionEn = a.DescriptionEn,
+                });
+        }
+        if (!attacksMatch)
+        {
+            row.Attacks.Clear();
+            foreach (var a in def.Attacks)
+                row.Attacks.Add(new MountAttack
+                {
+                    Id = Guid.NewGuid(), MountDefId = row.Id,
+                    Name = a.Name, NameRu = a.NameRu, SkillName = a.SkillName,
+                    Damage = a.Damage, Critical = a.Critical, Range = a.Range,
+                    QualityCodes = [.. a.QualityCodes],
+                });
+        }
+        return true;
+    }
+
+    /// <summary>
+    /// Переносит купленных ранее «скакунов-снаряжение» в настоящие скакуны. Запись каталога
+    /// предметов помечена Retired, но экземпляры игрока терять нельзя: количество N превращается в
+    /// N отдельных скакунов, потому что скакун — существо, а не стопка вещей. Деньги не
+    /// пересчитываются, а в историю персонажа пишется, что именно произошло.
+    /// </summary>
+    private static void MigrateLegacyMountItems(AppDbContext db)
+    {
+        var byBareCode = db.MountDefs.AsEnumerable()
+            .Where(m => m.Code != "" && MountCatalog.BuiltInCodes.Contains(BareCode(m.Code)))
+            .ToDictionary(m => (m.System, BareCode(m.Code)), m => m);
+        if (byBareCode.Count == 0) return;
+
+        var legacy = db.CharacterItems
+            .Include(i => i.ItemDef)
+            .Where(i => i.ItemDef != null && i.ItemDef.Code != "")
+            .AsEnumerable()
+            .Select(i => (Item: i, Key: (i.ItemDef!.System, BareCode(i.ItemDef.Code))))
+            .Where(x => byBareCode.ContainsKey(x.Key))
+            .ToList();
+        if (legacy.Count == 0) return;
+
+        var characters = db.Characters
+            .Where(c => legacy.Select(x => x.Item.CharacterId).Contains(c.Id))
+            .ToDictionary(c => c.Id);
+
+        foreach (var (item, key) in legacy)
+        {
+            var def = byBareCode[key];
+            var quantity = Math.Max(1, item.Quantity);
+            for (var n = 0; n < quantity; n++)
+                db.CharacterMounts.Add(new CharacterMount
+                {
+                    Id = Guid.NewGuid(),
+                    CharacterId = item.CharacterId,
+                    MountDefId = def.Id,
+                    Provenance = item.Provenance,
+                });
+            db.CharacterItems.Remove(item);
+
+            if (!characters.TryGetValue(item.CharacterId, out var character)) continue;
+            var quantityNote = quantity > 1 ? $" ×{quantity}" : "";
+            db.CharacterAuditEntries.Add(new CharacterAuditEntry
+            {
+                Id = Guid.NewGuid(),
+                CharacterId = character.Id,
+                UserId = character.OwnerUserId,
+                CreatedAt = DateTime.UtcNow,
+                Action = CharacterAuditAction.MountBought,
+                Summary = $"Скакун «{def.Name}»{quantityNote} перенесён из инвентаря в раздел скакунов",
+                TotalXpAfter = character.TotalXp,
+                SpentXpAfter = character.SpentXp,
+                DataJson = $"{{\"mount\":\"{def.Name}\",\"code\":\"{def.Code}\","
+                    + $"\"quantity\":{quantity},\"migratedFromItem\":true}}",
+            });
         }
         db.SaveChanges();
     }

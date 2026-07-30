@@ -2602,9 +2602,12 @@
     "encBonus": 0,
     "price": 1500,
     "rarity": 6,
-    "desc": "Снаряжение.",
-    "descEn": "Gear.",
-    "source": "Realms of Terrinoth, с. 106"
+    "desc": "Не предмет инвентаря: скакун покупается в разделе скакунов и имеет собственный статблок (ROT-MOUNT-ITEM-01).",
+    "descEn": "Not an inventory item: mounts are bought in the mounts section and have their own statblock (ROT-MOUNT-ITEM-01).",
+    "source": "Realms of Terrinoth, с. 106",
+    "purchasable": false,
+    "sellable": false,
+    "retired": true
   },
   {
     "code": "riding-beast",
@@ -2619,9 +2622,12 @@
     "encBonus": 0,
     "price": 400,
     "rarity": 2,
-    "desc": "Снаряжение.",
-    "descEn": "Gear.",
-    "source": "Realms of Terrinoth, с. 106"
+    "desc": "Не предмет инвентаря: скакун покупается в разделе скакунов и имеет собственный статблок (ROT-MOUNT-ITEM-01).",
+    "descEn": "Not an inventory item: mounts are bought in the mounts section and have their own statblock (ROT-MOUNT-ITEM-01).",
+    "source": "Realms of Terrinoth, с. 106",
+    "purchasable": false,
+    "sellable": false,
+    "retired": true
   },
   {
     "code": "beast-of-burden",
@@ -2636,9 +2642,12 @@
     "encBonus": 0,
     "price": 200,
     "rarity": 1,
-    "desc": "Снаряжение.",
-    "descEn": "Gear.",
-    "source": "Realms of Terrinoth, с. 106"
+    "desc": "Не предмет инвентаря: скакун покупается в разделе скакунов и имеет собственный статблок (ROT-MOUNT-ITEM-01).",
+    "descEn": "Not an inventory item: mounts are bought in the mounts section and have their own statblock (ROT-MOUNT-ITEM-01).",
+    "source": "Realms of Terrinoth, с. 106",
+    "purchasable": false,
+    "sellable": false,
+    "retired": true
   },
   {
     "code": "flying-mount",
@@ -2653,9 +2662,12 @@
     "encBonus": 0,
     "price": 2000,
     "rarity": 8,
-    "desc": "Снаряжение.",
-    "descEn": "Gear.",
-    "source": "Realms of Terrinoth, с. 106"
+    "desc": "Не предмет инвентаря: скакун покупается в разделе скакунов и имеет собственный статблок (ROT-MOUNT-ITEM-01).",
+    "descEn": "Not an inventory item: mounts are bought in the mounts section and have their own statblock (ROT-MOUNT-ITEM-01).",
+    "source": "Realms of Terrinoth, с. 106",
+    "purchasable": false,
+    "sellable": false,
+    "retired": true
   },
   {
     "code": "barding",

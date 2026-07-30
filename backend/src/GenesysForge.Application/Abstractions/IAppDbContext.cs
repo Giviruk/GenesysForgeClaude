@@ -30,6 +30,8 @@ public interface IAppDbContext
     DbSet<CharacterItem> CharacterItems { get; }
     DbSet<AttachmentDef> AttachmentDefs { get; }
     DbSet<CharacterAttachment> CharacterAttachments { get; }
+    DbSet<MountDef> MountDefs { get; }
+    DbSet<CharacterMount> CharacterMounts { get; }
     DbSet<CharacterCriticalInjury> CharacterCriticalInjuries { get; }
     DbSet<CharacterHeroicSecondaryEffect> CharacterHeroicSecondaryEffects { get; }
     DbSet<CharacterHeroicConfiguration> CharacterHeroicConfigurations { get; }

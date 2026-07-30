@@ -109,8 +109,18 @@ public class GetReferenceHandler(IAppDbContext db) : IQueryHandler<GetReferenceQ
             .Select(a => a.ToDto())
             .ToList();
 
+        // Скакуны — тоже собственный тип контента (ROT-MOUNT-ITEM-01): витрине нужен статблок,
+        // иначе покупка снова превратилась бы в безликую строку снаряжения.
+        var mounts = (await db.MountDefs.AsNoTracking()
+                .Include(m => m.Skills).Include(m => m.Abilities).Include(m => m.Attacks)
+                .Where(m => m.System == system && !m.Retired && m.OwnerUserId == null)
+                .ToListAsync(ct))
+            .OrderBy(m => m.Price ?? int.MaxValue).ThenBy(m => m.NameRu, StringComparer.Ordinal)
+            .Select(MountMapper.DefDto)
+            .ToList();
+
         return new ReferenceResponse(
             archetypes, careers, skills, talents, items, heroics, qualities, heroicSecondaryEffects,
-            attachments);
+            attachments, mounts);
     }
 }

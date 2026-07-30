@@ -117,6 +117,20 @@ public class DuplicateCharacterHandler(IAppDbContext db) : ICommandHandler<Dupli
                 ShardEffectChoice = i.ShardEffectChoice,
                 ShardConfigured = i.ShardConfigured,
             }).ToList(),
+            // Скакуны копируются вместе с состоянием: клон не должен потерять оплаченное
+            // существо, но и ссылок на исходного персонажа не остаётся (ROT-MOUNT-ITEM-01).
+            Mounts = src.Mounts.Select(m => new CharacterMount
+            {
+                Id = Guid.NewGuid(),
+                MountDefId = m.MountDefId,
+                Name = m.Name,
+                Provenance = m.Provenance,
+                WoundsCurrent = m.WoundsCurrent,
+                CarriedLoad = m.CarriedLoad,
+                IsActive = m.IsActive,
+                Notes = m.Notes,
+                CreatedAt = now,
+            }).ToList(),
             CriticalInjuries = src.CriticalInjuries.Select(ci => new CharacterCriticalInjury
             {
                 Id = Guid.NewGuid(),

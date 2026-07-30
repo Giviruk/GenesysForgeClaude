@@ -237,6 +237,39 @@ public static class CharacterEndpoints
             return Results.NoContent();
         });
 
+        // Скакуны (ROT-MOUNT-ITEM-01). Покупка создаёт существо со статблоком, поэтому это не
+        // /items: у скакуна свой порог ран и своя вместимость, а в Encumbrance он не входит.
+        group.MapPost("/{id:guid}/mounts", async (Guid id, BuyMountRequest req, ClaimsPrincipal user,
+            ICommandHandler<BuyMountCommand, Guid> handler, CancellationToken ct) =>
+        {
+            var mountId = await handler.Handle(new BuyMountCommand(user.UserId(), id, req), ct);
+            return Results.Created($"/api/characters/{id}/mounts/{mountId}", new { Id = mountId });
+        });
+
+        group.MapPatch("/{id:guid}/mounts/{mountId:guid}", async (Guid id, Guid mountId,
+            UpdateMountRequest req, ClaimsPrincipal user,
+            ICommandHandler<UpdateMountCommand, Unit> handler, CancellationToken ct) =>
+        {
+            await handler.Handle(new UpdateMountCommand(user.UserId(), id, mountId, req), ct);
+            return Results.NoContent();
+        });
+
+        group.MapPost("/{id:guid}/mounts/{mountId:guid}/sell", async (Guid id, Guid mountId,
+            SellMountRequest req, ClaimsPrincipal user,
+            ICommandHandler<SellMountCommand, Unit> handler, CancellationToken ct) =>
+        {
+            await handler.Handle(new SellMountCommand(user.UserId(), id, mountId, req), ct);
+            return Results.NoContent();
+        });
+
+        group.MapDelete("/{id:guid}/mounts/{mountId:guid}", async (Guid id, Guid mountId,
+            ClaimsPrincipal user, ICommandHandler<RemoveMountCommand, Unit> handler,
+            CancellationToken ct) =>
+        {
+            await handler.Handle(new RemoveMountCommand(user.UserId(), id, mountId), ct);
+            return Results.NoContent();
+        });
+
         group.MapPatch("/{id:guid}/items/{itemId:guid}", async (Guid id, Guid itemId, UpdateItemRequest req,
             ClaimsPrincipal user, ICommandHandler<UpdateItemCommand, Unit> handler, CancellationToken ct) =>
         {

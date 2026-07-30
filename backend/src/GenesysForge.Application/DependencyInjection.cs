@@ -82,6 +82,11 @@ public static class DependencyInjection
         services.AddScoped<ICommandHandler<DetachAttachmentCommand, Unit>, DetachAttachmentHandler>();
         services.AddScoped<ICommandHandler<RemoveAttachmentCommand, Unit>, RemoveAttachmentHandler>();
         services.AddScoped<ICommandHandler<SetItemThrownCommand, Unit>, SetItemThrownHandler>();
+        // Скакуны (ROT-MOUNT-ITEM-01): покупка создаёт существо, а не позицию инвентаря.
+        services.AddScoped<ICommandHandler<BuyMountCommand, Guid>, BuyMountHandler>();
+        services.AddScoped<ICommandHandler<SellMountCommand, Unit>, SellMountHandler>();
+        services.AddScoped<ICommandHandler<UpdateMountCommand, Unit>, UpdateMountHandler>();
+        services.AddScoped<ICommandHandler<RemoveMountCommand, Unit>, RemoveMountHandler>();
         // Состояние повреждения и ремонт (GEN-EQP-DMG-01).
         services.AddScoped<ICommandHandler<SetItemDamageStateCommand, Unit>, SetItemDamageStateHandler>();
         services.AddScoped<ICommandHandler<RepairItemCommand, Unit>, RepairItemHandler>();

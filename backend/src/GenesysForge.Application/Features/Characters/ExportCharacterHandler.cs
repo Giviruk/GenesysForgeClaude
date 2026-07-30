@@ -90,7 +90,14 @@ public class ExportCharacterHandler(IAppDbContext db) : IQueryHandler<ExportChar
             SignatureWeaponCraftsmanship: c.SignatureWeapon?.Craftsmanship,
             SignatureWeaponForm: c.SignatureWeapon?.NarrativeForm,
             SignatureWeaponTraits: c.SignatureWeapon?.FormTraits,
-            SignatureWeaponLost: c.SignatureWeapon?.IsLost ?? false);
+            SignatureWeaponLost: c.SignatureWeapon?.IsLost ?? false,
+            Mounts: c.Mounts
+                .Where(m => m.MountDef is not null)
+                .OrderBy(m => m.CreatedAt)
+                .Select(m => new CharacterMountExport(
+                    m.MountDef!.Code, m.MountDef.Name, m.Name, m.WoundsCurrent, m.CarriedLoad,
+                    m.IsActive, m.Notes, m.Provenance))
+                .ToList());
 
         return new CharacterExportDto(CharacterExportDto.CurrentFormat, DateTime.UtcNow, data);
     }

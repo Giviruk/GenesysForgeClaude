@@ -5,7 +5,7 @@ import type {
   WeaponCraftsmanship,
 } from '../api/types'
 import {
-  CURRENCY_LABEL, IMPLEMENT_MATERIAL_HINTS, IMPLEMENT_MATERIAL_LABELS,
+  CURRENCY_LABEL, IMPLEMENT_MATERIAL_HINTS, IMPLEMENT_MATERIAL_LABELS, NPC_KIND_LABELS,
   WEAPON_CRAFTSMANSHIP_HINTS, WEAPON_CRAFTSMANSHIP_LABELS, WEAPON_CRAFTSMANSHIPS,
   localizedDescription, localizedName, secondaryName,
 } from '../utils/labels'
@@ -57,26 +57,38 @@ const normalize = (value: string) => value.toLowerCase().replace(/\s+/g, ' ').tr
 const productName = (product: ShopProduct): string =>
   product.type === 'item'
     ? localizedName(product.item)
-    : lang === 'ru'
-      ? product.attachment.nameRu || product.attachment.name
-      : product.attachment.name
+    : product.type === 'mount'
+      ? (lang === 'ru' ? product.mount.nameRu || product.mount.name : product.mount.name)
+      : lang === 'ru'
+        ? product.attachment.nameRu || product.attachment.name
+        : product.attachment.name
 
 const productSecondaryName = (product: ShopProduct): string =>
   product.type === 'item'
     ? secondaryName(product.item)
-    : lang === 'ru' && product.attachment.nameRu && product.attachment.nameRu !== product.attachment.name
-      ? product.attachment.name
-      : ''
+    : product.type === 'mount'
+      ? (lang === 'ru' && product.mount.nameRu && product.mount.nameRu !== product.mount.name
+          ? product.mount.name
+          : '')
+      : lang === 'ru' && product.attachment.nameRu && product.attachment.nameRu !== product.attachment.name
+        ? product.attachment.name
+        : ''
 
 const productDescription = (product: ShopProduct): string =>
   product.type === 'item'
     ? localizedDescription(product.item)
-    : lang === 'ru'
-      ? product.attachment.description
-      : product.attachment.descriptionEn || product.attachment.description
+    : product.type === 'mount'
+      ? (lang === 'ru'
+          ? product.mount.description
+          : product.mount.descriptionEn || product.mount.description)
+      : lang === 'ru'
+        ? product.attachment.description
+        : product.attachment.descriptionEn || product.attachment.description
 
 const productSource = (product: ShopProduct): string =>
-  product.type === 'item' ? product.item.source : product.attachment.source
+  product.type === 'item' ? product.item.source
+    : product.type === 'mount' ? product.mount.source
+      : product.attachment.source
 
 export function ShopPage() {
   const [characters, setCharacters] = useState<CharacterListItem[]>([])
@@ -261,6 +273,8 @@ function ProductModal({ product, characters, onClose }: {
 
   const item = product.type === 'item' ? product.item : null
   const attachment = product.type === 'attachment' ? product.attachment : null
+  // Скакун покупается своей командой и всегда по одному: это существо, а не стопка вещей.
+  const mount = product.type === 'mount' ? product.mount : null
   const isService = item?.shopCategory === 'service'
   const isImplement = item?.implement != null
   const hasCraftsmanship = item ? craftsmanshipApplies(item.kind) : false
@@ -274,7 +288,7 @@ function ProductModal({ product, characters, onClose }: {
     : isImplement ? implementRarity(baseRarity, material)
       : hasCraftsmanship ? craftsmanshipRarity(baseRarity, craftsmanship)
         : baseRarity
-  const units = attachment ? 1 : quantity
+  const units = attachment || mount ? 1 : quantity
   const total = effectivePrice == null ? null : effectivePrice * units
   const funds = sheet
     ? sheet.money + (sheet.isCreationPhase ? sheet.startingPurchaseBudget : 0)
@@ -303,6 +317,8 @@ function ProductModal({ product, characters, onClose }: {
         })
       } else if (attachment) {
         await api.buyAttachment(characterId, attachment.id, { free })
+      } else if (mount) {
+        await api.buyMount(characterId, mount.id, { free })
       }
       await refreshSheet()
       setSuccess(isService
@@ -315,6 +331,16 @@ function ProductModal({ product, characters, onClose }: {
               'Услуга оплачена. В инвентарь ничего не добавлено.',
               'Service paid. Nothing was added to inventory.',
             )
+        : mount
+          ? free
+            ? t(
+                'Скакун выдан без оплаты — он появился во вкладке «Скакуны», а не в инвентаре.',
+                'The mount was granted without payment — it is on the Mounts tab, not in inventory.',
+              )
+            : t(
+                'Скакун куплен — он появился во вкладке «Скакуны», а не в инвентаре.',
+                'The mount was bought — it is on the Mounts tab, not in inventory.',
+              )
         : free
           ? t('Добавлено без оплаты.', 'Added without payment.')
           : t('Покупка добавлена выбранному персонажу.', 'Purchase added to the selected character.'))
@@ -346,6 +372,18 @@ function ProductModal({ product, characters, onClose }: {
           <div><span>{t('Редкость', 'Rarity')}</span><strong>{effectiveRarity ?? '—'}</strong></div>
           {attachment && (
             <div><span>{t('Слоты улучшений', 'Hard points')}</span><strong>{attachment.hardPointCost}</strong></div>
+          )}
+          {mount && (
+            <>
+              <div><span>{t('Тип', 'Type')}</span><strong>{NPC_KIND_LABELS[mount.kind]}</strong></div>
+              <div><span>{t('Ранения', 'Wounds')}</span><strong>{mount.woundThreshold}</strong></div>
+              <div><span>{t('Поглощение', 'Soak')}</span><strong>{mount.soak}</strong></div>
+              <div>
+                <span>{t('Защита', 'Defense')}</span>
+                <strong>{mount.meleeDefense}/{mount.rangedDefense}</strong>
+              </div>
+              <div><span>{t('Вместимость', 'Capacity')}</span><strong>{mount.capacity}</strong></div>
+            </>
           )}
         </div>
 
@@ -396,7 +434,7 @@ function ProductModal({ product, characters, onClose }: {
             </label>
           )}
 
-          {!attachment && (
+          {!attachment && !mount && (
             <label>
               {t('Количество', 'Quantity')}
               <input type="number" min={1} value={quantity}
@@ -412,6 +450,16 @@ function ProductModal({ product, characters, onClose }: {
             {total != null && <> · {t('Итого', 'Total')}: <strong>{total} {CURRENCY_LABEL}</strong></>}
           </p>
         )}
+        {mount && (
+          <p className="hint">
+            {t(
+              'Скакун — существо со своим статблоком: он появляется во вкладке «Скакуны», а не в '
+              + 'инвентаре, и его вес не входит в переносимый груз персонажа.',
+              'A mount is a creature with its own statblock: it appears on the Mounts tab rather than in '
+              + "inventory, and its weight is not part of the character's encumbrance.",
+            )}
+          </p>
+        )}
         {isService && (
           <p className="hint">
             {t(
@@ -425,7 +473,12 @@ function ProductModal({ product, characters, onClose }: {
 
         <div className="modal-actions">
           <button type="button" disabled={!canAdd} onClick={() => void act(true)}>
-            {busy ? t('Сохранение…', 'Saving…') : t('+ Добавить без оплаты', '+ Add without payment')}
+            {busy
+              ? t('Сохранение…', 'Saving…')
+              : mount
+                // «Добавить» здесь неверно: скакун не попадает в инвентарь, его выдают.
+                ? t('+ Выдать без оплаты', '+ Grant without payment')
+                : t('+ Добавить без оплаты', '+ Add without payment')}
           </button>
           <button type="button" className="primary" disabled={!canBuy}
             title={!characterId

@@ -329,6 +329,37 @@ damage/craftsmanship state, and the Lesser Rune fields `ShardActivationChoice`,
 Runebound shards are non-stackable instances (`Quantity = 1`). Lesser Rune configuration
 belongs to the instance and is immutable after it is first saved.
 
+### MountDefs / MountSkills / MountAbilities / MountAttacks
+
+Purchasable mount profiles (ROT-MOUNT-ITEM-01). A mount is a creature with a statblock, not a piece
+of gear, so it is its own content type rather than a row in `ItemDefs`.
+
+`MountDefs` fields: `System`, `Code` (`rot.mount.<bare>`), `Name`, `NameRu`, `Kind` (`NpcKind` —
+Minion or Rival), the six characteristics, `Soak`, `WoundThreshold`, `StrainThreshold` (null for
+Minion/Rival — they have none), `MeleeDefense`, `RangedDefense`, `Silhouette`, `Capacity`, `Price`
+(null = priceless), `Rarity`, `IncludedGear` (primitive collection of gear codes),
+`RequiresRidingCheck`, the content-model description fields, `OwnerUserId`, `HomebrewPackId`,
+`Retired`.
+
+`Capacity` is the book number and wins over the generic `5 + Brawn` rule (`MountRules.Capacity`);
+a custom profile with no capacity falls back to the generic rule.
+
+Child tables cascade from the profile: `MountSkills` (`Name`, `Ranks`, `IsGroupSkill` — Minion group
+skills carry rank 0), `MountAbilities` (`Name`, `NameRu`, descriptions), `MountAttacks` (`SkillName`,
+`Damage`, `Critical`, `Range`, `QualityCodes` as a primitive collection — no book profile has a rated
+quality).
+
+### CharacterMounts
+
+Mount instances owned by a character. Fields: `CharacterId`, `MountDefId`, `Name` (nickname; empty
+means the profile name is shown), `Provenance`, `WoundsCurrent`, `CarriedLoad`, `IsActive`, `Notes`,
+`CreatedAt`.
+
+Cascades from `Characters`; the profile link is `Restrict`, so a referenced profile cannot be
+deleted out from under an instance. A mount has no encumbrance of its own and never contributes to
+the owner's carried weight — `CarriedLoad` is the mount's own cargo, kept as a number until the
+Transport section (ROT-TRANSPORT-01) introduces per-item cargo.
+
 ### SpellDefs
 
 Built-in and custom magic reference entries (spell effects and additional-effect modifiers).
@@ -546,6 +577,13 @@ Found migrations:
   `CharacterItems`. Only the exact 17 built-in shard codes are changed to null/non-tradeable.
   Legacy stacked shard rows keep the original row id at quantity one and are split into individual
   cloned rows, so no owned shard is discarded.
+
+- `20260730095352_RotMountItem01Mounts` — ROT-MOUNT-ITEM-01. Adds `MountDefs`, `MountSkills`,
+  `MountAbilities`, `MountAttacks` and `CharacterMounts`. Purely additive — no existing table is
+  touched. The four mount rows in `ItemDefs` become retired/non-purchasable through the idempotent
+  item seed, and `SeedData.MigrateLegacyMountItems` converts already-owned mount gear rows into
+  `CharacterMounts` (quantity N becomes N creatures) with a history entry per character; money is
+  not recalculated and no row is silently deleted.
 
 Startup behavior:
 
