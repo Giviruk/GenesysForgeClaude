@@ -3,7 +3,7 @@
 - **Roadmap:** ROT-TRANSPORT-01 (см. [rot-rules-remediation-tasks.md](rot-rules-remediation-tasks.md))
 - **Ветка:** `feature/rot-transport-01-transport-section`
 - **Базовая ветка:** `master` (открытых PR нет)
-- **PR:** #<номер> (после создания)
+- **PR:** [#138](https://github.com/Giviruk/GenesysForgeClaude/pull/138)
 - **Статус:** 🚧 На ревью
 
 ## Контекст
@@ -57,7 +57,7 @@
 - [x] Проверки: backend 670 + 730 зелёные, frontend 238 Vitest + tsc + eslint, ручная проверка в
       браузере на in-memory API (повозка с тягой, установка сумок и попоны, погрузка/снятие,
       пересчёт переносимого веса, печатный лист).
-- [ ] PR открыт.
+- [x] PR открыт.
 
 ## Что осталось / блокеры
 
