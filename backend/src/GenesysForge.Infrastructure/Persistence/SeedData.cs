@@ -256,8 +256,9 @@ public static class SeedData
                 .Where(x => x.OwnerUserId == null && x.Code != ""),
             mounts, SyncMount);
 
-        // Скакуны жили в каталоге предметов записью «Снаряжение» с Enc 0; купленные экземпляры
-        // становятся настоящими скакунами со статблоком, а не пропадают (ROT-MOUNT-ITEM-01).
+        // Скакуны и повозка жили в каталоге предметов записью «Снаряжение» с Enc 0; купленные
+        // экземпляры становятся настоящим транспортом со статблоком, а не пропадают
+        // (ROT-MOUNT-ITEM-01, ROT-TRANSPORT-01).
         MigrateLegacyMountItems(db);
 
         // Бэкфилл структурных качеств из строк Properties встроенных предметов (идемпотентно).
@@ -1047,6 +1048,8 @@ public static class SeedData
                     && p.First.QualityCodes.SequenceEqual(p.Second.QualityCodes));
 
         var changed = row.Name != def.Name || row.NameRu != def.NameRu || row.Kind != def.Kind
+            || row.TransportKind != def.TransportKind || row.MovementMode != def.MovementMode
+            || row.RequiresTraction != def.RequiresTraction
             || row.Brawn != def.Brawn || row.Agility != def.Agility || row.Intellect != def.Intellect
             || row.Cunning != def.Cunning || row.Willpower != def.Willpower
             || row.Presence != def.Presence || row.Soak != def.Soak
@@ -1062,6 +1065,8 @@ public static class SeedData
         if (!changed) return false;
 
         row.Name = def.Name; row.NameRu = def.NameRu; row.Kind = def.Kind;
+        row.TransportKind = def.TransportKind; row.MovementMode = def.MovementMode;
+        row.RequiresTraction = def.RequiresTraction;
         row.Brawn = def.Brawn; row.Agility = def.Agility; row.Intellect = def.Intellect;
         row.Cunning = def.Cunning; row.Willpower = def.Willpower; row.Presence = def.Presence;
         row.Soak = def.Soak;
@@ -1159,7 +1164,7 @@ public static class SeedData
                 UserId = character.OwnerUserId,
                 CreatedAt = DateTime.UtcNow,
                 Action = CharacterAuditAction.MountBought,
-                Summary = $"Скакун «{def.Name}»{quantityNote} перенесён из инвентаря в раздел скакунов",
+                Summary = $"«{def.Name}»{quantityNote} перенесён из инвентаря в раздел транспорта",
                 TotalXpAfter = character.TotalXp,
                 SpentXpAfter = character.SpentXp,
                 DataJson = $"{{\"mount\":\"{def.Name}\",\"code\":\"{def.Code}\","

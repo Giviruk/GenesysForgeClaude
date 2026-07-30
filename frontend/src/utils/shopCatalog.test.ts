@@ -24,6 +24,7 @@ function attachment(id: string, hostKind: AttachmentDef['hostKind'], isEnchantme
 function mount(id: string): MountDef {
   return {
     id, code: `rot.mount.${id}`, name: id, nameRu: id, kind: 'minion',
+    transportKind: 'mount', movementMode: 'ground', requiresTraction: false,
     characteristics: { brawn: 4, agility: 2, intellect: 1, cunning: 1, willpower: 1, presence: 1 },
     soak: 4, woundThreshold: 7, strainThreshold: null, meleeDefense: 0, rangedDefense: 0,
     silhouette: 2, capacity: 18, price: 200, rarity: 1, includedGear: ['harness'],
@@ -35,7 +36,7 @@ function mount(id: string): MountDef {
 const reference = {
   archetypes: [], careers: [], skills: [], talents: [], heroicAbilities: [],
   heroicSecondaryEffects: [], qualities: [],
-  items: [item('dagger', 'weaponLight'), item('wagon', 'transport'), item('ale', 'service')],
+  items: [item('dagger', 'weaponLight'), item('barding', 'transport'), item('ale', 'service')],
   attachments: [
     attachment('edge', 'weapon', false),
     attachment('rune', 'weapon', true),

@@ -237,8 +237,9 @@ public static class CharacterEndpoints
             return Results.NoContent();
         });
 
-        // Скакуны (ROT-MOUNT-ITEM-01). Покупка создаёт существо со статблоком, поэтому это не
-        // /items: у скакуна свой порог ран и своя вместимость, а в Encumbrance он не входит.
+        // Транспорт (ROT-MOUNT-ITEM-01, ROT-TRANSPORT-01). Покупка создаёт экземпляр со статблоком,
+        // поэтому это не /items: у транспорта свой порог ран и своя вместимость, а в Encumbrance
+        // владельца он не входит.
         group.MapPost("/{id:guid}/mounts", async (Guid id, BuyMountRequest req, ClaimsPrincipal user,
             ICommandHandler<BuyMountCommand, Guid> handler, CancellationToken ct) =>
         {
@@ -267,6 +268,16 @@ public static class CharacterEndpoints
             CancellationToken ct) =>
         {
             await handler.Handle(new RemoveMountCommand(user.UserId(), id, mountId), ct);
+            return Results.NoContent();
+        });
+
+        // Груз персонаж ⇄ транспорт одной командой в обе стороны (ROT-TRANSPORT-01): это правка
+        // места хранения позиции, поэтому маршрут висит на предмете, а не на транспорте.
+        group.MapPatch("/{id:guid}/items/{itemId:guid}/location", async (Guid id, Guid itemId,
+            MoveCargoRequest req, ClaimsPrincipal user,
+            ICommandHandler<MoveCargoCommand, Unit> handler, CancellationToken ct) =>
+        {
+            await handler.Handle(new MoveCargoCommand(user.UserId(), id, itemId, req), ct);
             return Results.NoContent();
         });
 

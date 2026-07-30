@@ -96,6 +96,20 @@ const sheet = {
     rangeBand: 'Engaged',
     properties: '',
   }],
+  // Транспорт печатается отдельным разделом (ROT-TRANSPORT-01): груз транспорта не в инвентаре.
+  mounts: [{
+    id: 'mount-1',
+    displayName: 'Серко',
+    definition: {
+      name: 'Beast of Burden', nameRu: 'Вьючное животное',
+      transportKind: 'mount', movementMode: 'ground', requiresTraction: false,
+      soak: 4, woundThreshold: 7, strainThreshold: null, silhouette: 2,
+    },
+    woundsCurrent: 1, carriedLoad: 6, capacity: 18, isOverloaded: false,
+    needsTraction: false, drawnByName: '', soak: 4, meleeDefense: 0, rangedDefense: 0,
+    notes: '',
+    cargo: [{ id: 'cargo-1', name: 'Bedroll', nameRu: 'Спальник', quantity: 2, isInstalledOnMount: false }],
+  }],
   desire: 'Защитить деревню',
   fear: null,
   strength: null,

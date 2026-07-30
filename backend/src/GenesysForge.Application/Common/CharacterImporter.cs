@@ -118,6 +118,9 @@ public static class CharacterImporter
         // Пары «строка инвентаря → запись каталога»: навигация ItemDef у новых строк не заполняется,
         // а признаки формы нужны для проверки рук и брони ниже.
         var resolvedItems = new List<(CharacterItem Item, ItemDef Def)>();
+        // Груз ссылается на транспорт индексом, а транспорт создаётся ниже: ссылки собираются здесь
+        // и проставляются одним проходом после (ROT-TRANSPORT-01).
+        var cargoLinks = new List<(CharacterItem Item, ItemDef Def, int MountIndex, bool Installed)>();
         foreach (var it in data.Items ?? [])
         {
             var def = await ResolveItemAsync(db, userId, system, it.Code, it.Name, ct);
@@ -187,6 +190,8 @@ public static class CharacterImporter
             };
             character.Items.Add(item);
             resolvedItems.Add((item, def));
+            if (it.CarriedByMountIndex is { } cargoMountIndex)
+                cargoLinks.Add((item, def, cargoMountIndex, it.IsInstalledOnMount));
             // Старые экспорты могли хранить несколько shard одной строкой. Каждый shard является
             // отдельным implement instance, поэтому сохраняем количество отдельными строками.
             for (var copy = 1; shardSpec is not null && copy < Math.Max(1, it.Quantity); copy++)
@@ -209,36 +214,45 @@ public static class CharacterImporter
             }
         }
 
-        // Скакуны (ROT-MOUNT-ITEM-01, файлы v4). Профиль ищется по стабильному коду с fallback на
-        // имя; ненайденный не выдумывается, а называется в предупреждении. Раны и груз приводятся к
-        // границам профиля — файл мог прийти с любым числом.
+        // Транспорт (ROT-MOUNT-ITEM-01, ROT-TRANSPORT-01; файлы v4 и v5). Профиль ищется по
+        // стабильному коду с fallback на имя; ненайденный не выдумывается, а называется в
+        // предупреждении. Раны приводятся к границам профиля — файл мог прийти с любым числом.
+        // Порядок списка сохраняется: по нему груз и тяга ссылаются на транспорт индексами.
+        var importedMounts = new List<(CharacterMount? Mount, MountDef? Def)>();
         foreach (var m in data.Mounts ?? [])
         {
             var def = await ResolveMountAsync(db, userId, system, m.Code, m.Name, ct);
             if (def is null)
             {
-                warnings.Add($"Скакун «{Display(m.Name, m.Code)}» не найден — пропущен.");
+                warnings.Add($"Транспорт «{Display(m.Name, m.Code)}» не найден — пропущен.");
+                // Пропущенный транспорт остаётся дыркой в нумерации, иначе груз и тяга поехали бы
+                // не на тот экземпляр.
+                importedMounts.Add((null, null));
                 continue;
             }
 
-            var load = Math.Max(0, m.CarriedLoad);
-            if (load > MountRules.Capacity(def))
+            // Груз файлов v4 был одним числом без позиций; переносить его нечем, и молча делать вид,
+            // что его не было, нельзя.
+            if (m.CarriedLoad > 0)
                 warnings.Add(
-                    $"У скакуна «{def.Name}» груз {load} больше вместимости {MountRules.Capacity(def)} — "
-                    + "перегруз сохранён как есть.");
+                    $"У транспорта «{def.Name}» в файле указан груз {m.CarriedLoad} без описи — "
+                    + "он не перенесён: груз теперь хранится позициями.");
 
-            character.Mounts.Add(new CharacterMount
+            var mount = new CharacterMount
             {
                 Id = Guid.NewGuid(),
                 MountDefId = def.Id,
                 Name = (m.CustomName ?? "").Trim(),
                 WoundsCurrent = MountRules.ClampWounds(def, m.WoundsCurrent),
-                CarriedLoad = load,
                 IsActive = m.IsActive,
                 Notes = m.Notes ?? "",
                 Provenance = ItemProvenance.Imported,
-            });
+            };
+            character.Mounts.Add(mount);
+            importedMounts.Add((mount, def));
         }
+
+        LinkImportedTransport(data, importedMounts, cargoLinks, warnings);
 
         // Файл мог быть собран до правил о руках и броне: лишнее не выбрасывается, а перестаёт
         // считаться используемым — с предупреждением, чтобы владелец сам решил, что взять (ROT-EQP-01).
@@ -551,6 +565,76 @@ public static class CharacterImporter
                 m => m.System == system && m.Name == name
                     && (m.OwnerUserId == null || m.OwnerUserId == userId), ct);
         return def;
+    }
+
+    /// <summary>
+    /// Расставляет ссылки груза и тяги после того, как транспорт создан (ROT-TRANSPORT-01). Битая
+    /// ссылка не роняет импорт и не создаёт груз без владельца: позиция остаётся у персонажа, а в
+    /// предупреждениях написано, что именно не приехало.
+    /// </summary>
+    private static void LinkImportedTransport(
+        CharacterExportData data,
+        List<(CharacterMount? Mount, MountDef? Def)> mounts,
+        List<(CharacterItem Item, ItemDef Def, int MountIndex, bool Installed)> cargoLinks,
+        List<string> warnings)
+    {
+        foreach (var (item, def, index, installed) in cargoLinks)
+        {
+            if (index < 0 || index >= mounts.Count || mounts[index].Mount is not { } mount)
+            {
+                warnings.Add(
+                    $"Груз «{def.Name}» ссылается на транспорт, которого нет в файле — "
+                    + "позиция оставлена у персонажа.");
+                continue;
+            }
+
+            item.CarriedByMountId = mount.Id;
+            item.CarriedByMount = mount;
+            // Устанавливается только то, что вообще устанавливается: файл с «установленным мечом»
+            // чинится обычным грузом, а не создаёт предмет с чужим свойством.
+            item.IsInstalledOnMount = installed && ShopCatalogRules.IsMountGear(def.Code);
+            if (installed && !item.IsInstalledOnMount)
+                warnings.Add(
+                    $"«{def.Name}» в файле помечен установленным на транспорт, но таким снаряжением "
+                    + "не является — перенесён обычным грузом.");
+        }
+
+        var exports = data.Mounts ?? [];
+        for (var i = 0; i < exports.Count && i < mounts.Count; i++)
+        {
+            if (exports[i].DrawnByMountIndex is not { } drawnIndex) continue;
+            if (mounts[i] is not ({ } mount, { } def)) continue;
+
+            if (drawnIndex == i || drawnIndex < 0 || drawnIndex >= mounts.Count
+                || mounts[drawnIndex] is not ({ } draft, { } draftDef)
+                || !MountRules.CanDraw(draftDef))
+            {
+                warnings.Add(
+                    $"У транспорта «{def.Name}» тягловое животное из файла не подошло — "
+                    + "связь не восстановлена.");
+                continue;
+            }
+
+            mount.DrawnByMountId = draft.Id;
+            mount.DrawnBy = draft;
+        }
+
+        // Перегруз файла сохраняется как есть — это состояние стола, а не ошибка импорта, — но
+        // владелец должен о нём узнать.
+        foreach (var (mount, def) in mounts)
+        {
+            if (mount is null || def is null) continue;
+            var cargo = cargoLinks
+                .Where(x => x.Item.CarriedByMountId == mount.Id)
+                .Select(x => x.Item)
+                .ToList();
+            var load = MountRules.CargoLoad(cargo);
+            var capacity = MountRules.Capacity(def, MountRules.InstalledCapacityBonus(cargo));
+            if (load > capacity)
+                warnings.Add(
+                    $"У транспорта «{def.Name}» груз {load} больше вместимости {capacity} — "
+                    + "перегруз сохранён как есть.");
+        }
     }
 
     private static async Task<HeroicAbilityDef?> ResolveHeroicAsync(

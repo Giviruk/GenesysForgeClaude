@@ -494,16 +494,26 @@ export interface Reference {
   qualities: Quality[]
   /** Улучшения предметов (ROT-EQP-ATT-01). */
   attachments: AttachmentDef[]
-  /** Покупаемые скакуны (ROT-MOUNT-ITEM-01): существа со статблоком, а не снаряжение. */
+  /** Покупаемый транспорт (ROT-MOUNT-ITEM-01, ROT-TRANSPORT-01): скакуны и повозки со статблоком. */
   mounts: MountDef[]
 }
 
-/** Профиль покупаемого скакуна (ROT-MOUNT-ITEM-01). */
+/** Скакун или транспортное средство (ROT-TRANSPORT-01). */
+export type TransportKind = 'mount' | 'vehicle'
+
+/** Режим движения транспорта: числовой скорости книга этим профилям не даёт. */
+export type MovementMode = 'ground' | 'flight' | 'wheeled'
+
+/** Профиль покупаемого транспорта (ROT-MOUNT-ITEM-01, ROT-TRANSPORT-01). */
 export interface MountDef {
   id: string
   code: string
   name: string
   nameRu: string
+  transportKind: TransportKind
+  movementMode: MovementMode
+  /** Сам не движется: нужно тягловое животное. */
+  requiresTraction: boolean
   kind: NpcKind
   characteristics: Record<Characteristic, number>
   soak: number
@@ -554,23 +564,36 @@ export interface MountAttack {
   qualityCodes: string[]
 }
 
-/** Скакун персонажа: существо со своим порогом ран, в переносимый вес не входит. */
+/** Транспорт персонажа: свой порог ран и свой груз, в переносимый вес владельца не входит. */
 export interface CharacterMount {
   id: string
   mountDefId: string
-  /** Кличка, если задана, иначе название профиля. */
+  /** Кличка или название, если задано, иначе название профиля. */
   displayName: string
   name: string
   definition: MountDef
   woundsCurrent: number
+  /** Загрузка по позициям груза; установленное снаряжение сюда не входит. */
   carriedLoad: number
+  /** Вместимость профиля плюс прибавка от установленных сумок. */
   capacity: number
   isActive: boolean
   isOverloaded: boolean
-  /** Раны достигли порога профиля — скакун выведен из строя. */
+  /** Раны достигли порога профиля — транспорт выведен из строя. */
   isIncapacitated: boolean
   provenance: ItemProvenance
   notes: string
+  /** Тягловое животное; null — тяги нет. */
+  drawnByMountId: string | null
+  drawnByName: string
+  /** Нужна тяга, а животного нет: транспорт стоит, но груз остаётся на нём. */
+  needsTraction: boolean
+  /** Поглощение и защита с учётом установленной попоны. */
+  soak: number
+  meleeDefense: number
+  rangedDefense: number
+  /** Позиции груза; установленное снаряжение помечено флагом позиции. */
+  cargo: SheetItem[]
 }
 
 export interface CustomArchetypeInput {
@@ -845,6 +868,15 @@ export interface SheetItem {
   /** Runebound shard и конфигурация конкретного экземпляра. */
   shard: ItemRuneboundShard | null
   sellable: boolean
+  /**
+   * Позиция лежит на транспорте (ROT-TRANSPORT-01); null — обычная позиция инвентаря. Такие
+   * позиции приходят в карточке транспорта, а не в списке инвентаря владельца.
+   */
+  carriedByMountId: string | null
+  /** Снаряжение установлено на транспорт, а не сложено в него грузом: попона, седельные сумки. */
+  isInstalledOnMount: boolean
+  /** Позицию можно установить на транспорт. */
+  isMountGear: boolean
 }
 
 /** Материал магического инструмента (ROT-MAG-MAT-01). */

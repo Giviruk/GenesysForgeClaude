@@ -54,9 +54,13 @@ public sealed record EffectiveItem(
 /// <summary>Сборка <see cref="EffectiveItem"/> из строк персонажа.</summary>
 public static class EffectiveItems
 {
-    /// <summary>Все позиции инвентаря персонажа с посчитанными поправками.</summary>
+    /// <summary>
+    /// Все позиции инвентаря, которые персонаж несёт на себе. Груз транспорта сюда не попадает
+    /// (ROT-TRANSPORT-01): он не входит ни в переносимый вес, ни в надетое снаряжение владельца —
+    /// поэтому попона на скакуне не даёт защиту всаднику.
+    /// </summary>
     public static List<EffectiveItem> For(Character c) =>
-        [.. c.Items.Where(i => i.ItemDef is not null).Select(i => For(c, i))];
+        [.. c.Items.Where(i => i.ItemDef is not null && i.CarriedByMountId is null).Select(i => For(c, i))];
 
     /// <summary>Одна позиция инвентаря с посчитанными поправками.</summary>
     public static EffectiveItem For(Character c, CharacterItem item)

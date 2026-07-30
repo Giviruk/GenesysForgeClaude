@@ -117,8 +117,9 @@ public class DuplicateCharacterHandler(IAppDbContext db) : ICommandHandler<Dupli
                 ShardEffectChoice = i.ShardEffectChoice,
                 ShardConfigured = i.ShardConfigured,
             }).ToList(),
-            // Скакуны копируются вместе с состоянием: клон не должен потерять оплаченное
+            // Транспорт копируется вместе с состоянием: клон не должен потерять оплаченное
             // существо, но и ссылок на исходного персонажа не остаётся (ROT-MOUNT-ITEM-01).
+            // Груз и тяга перевешиваются на новые id ниже.
             Mounts = src.Mounts.Select(m => new CharacterMount
             {
                 Id = Guid.NewGuid(),
@@ -126,7 +127,6 @@ public class DuplicateCharacterHandler(IAppDbContext db) : ICommandHandler<Dupli
                 Name = m.Name,
                 Provenance = m.Provenance,
                 WoundsCurrent = m.WoundsCurrent,
-                CarriedLoad = m.CarriedLoad,
                 IsActive = m.IsActive,
                 Notes = m.Notes,
                 CreatedAt = now,
@@ -147,6 +147,25 @@ public class DuplicateCharacterHandler(IAppDbContext db) : ICommandHandler<Dupli
                 HeroicSecondaryEffectDefId = x.HeroicSecondaryEffectDefId,
             }).ToList(),
         };
+
+        // Ссылки внутри копии переводятся на её собственные id: иначе груз клона указывал бы на
+        // транспорт оригинала (ROT-TRANSPORT-01). Порядок Select сохраняется, поэтому сопоставление
+        // идёт по позиции в списке.
+        var mountIdMap = src.Mounts
+            .Zip(copy.Mounts, (from, to) => (from.Id, to.Id))
+            .ToDictionary(x => x.Item1, x => x.Item2);
+        foreach (var (from, to) in src.Mounts.Zip(copy.Mounts))
+        {
+            if (from.DrawnByMountId is { } drawnBy && mountIdMap.TryGetValue(drawnBy, out var newDrawnBy))
+                to.DrawnByMountId = newDrawnBy;
+        }
+        foreach (var (from, to) in src.Items.Zip(copy.Items))
+        {
+            if (from.CarriedByMountId is not { } carriedBy
+                || !mountIdMap.TryGetValue(carriedBy, out var newMountId)) continue;
+            to.CarriedByMountId = newMountId;
+            to.IsInstalledOnMount = from.IsInstalledOnMount;
+        }
 
         var notes = await db.CharacterNotes.AsNoTracking()
             .Where(n => n.CharacterId == src.Id)

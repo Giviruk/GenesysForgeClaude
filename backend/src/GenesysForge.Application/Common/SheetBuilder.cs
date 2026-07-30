@@ -168,7 +168,12 @@ public static class SheetBuilder
             knowledgeRating,
             [.. c.Mounts.Where(m => m.MountDef is not null)
                 .OrderBy(m => m.CreatedAt)
-                .Select(MountMapper.InstanceDto)]);
+                .Select(m => MountMapper.InstanceDto(
+                    m, c.Mounts, c.Items,
+                    // Груз считается теми же поправками, что и обычная позиция: вес железной
+                    // кольчуги в повозке обязан совпадать с её весом за спиной (ROT-WPN-02).
+                    item => ItemDto(
+                        EffectiveItems.For(c, item), ch, qualitiesByCode, availableFunds)))]);
     }
 
     /// <summary>
@@ -215,7 +220,10 @@ public static class SheetBuilder
             RepairDto(e.Price, item.DamageState, availableFunds),
             ImplementDto(e),
             ShardDto(e),
-            def.Sellable);
+            def.Sellable,
+            item.CarriedByMountId,
+            item.IsInstalledOnMount,
+            ShopCatalogRules.IsMountGear(def.Code));
     }
 
     /// <summary>

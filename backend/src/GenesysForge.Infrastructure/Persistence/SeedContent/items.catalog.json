@@ -1479,9 +1479,12 @@
     "encBonus": 0,
     "price": 200,
     "rarity": 2,
-    "desc": "Снаряжение.",
-    "descEn": "Gear.",
-    "source": "Realms of Terrinoth, с. 102"
+    "desc": "Не предмет инвентаря: повозка покупается в разделе транспорта, имеет собственный порог повреждений и везёт груз отдельно от владельца (ROT-TRANSPORT-01).",
+    "descEn": "Not an inventory item: a wagon is bought in the transport section, has its own damage threshold and carries cargo separately from its owner (ROT-TRANSPORT-01).",
+    "source": "Realms of Terrinoth, с. 102",
+    "purchasable": false,
+    "sellable": false,
+    "retired": true
   },
   {
     "code": "fine-cloak",

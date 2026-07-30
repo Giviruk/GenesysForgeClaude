@@ -21,7 +21,8 @@ public static class MountCatalog
         int? Price, int Rarity,
         string[]? IncludedGear, bool RequiresRidingCheck,
         SkillEntry[]? Skills, AbilityEntry[]? Abilities, AttackEntry[]? Attacks,
-        string Desc, string DescEn, string Source, bool Retired = false);
+        string Desc, string DescEn, string Source, bool Retired = false,
+        string Transport = "Mount", string Movement = "Ground", bool RequiresTraction = false);
 
     /// <param name="Group">Групповой навык Minion: ранг даёт группа, а не запись.</param>
     private sealed record SkillEntry(string Name, int Ranks = 0, bool Group = false);
@@ -34,9 +35,12 @@ public static class MountCatalog
 
     private static readonly JsonSerializerOptions JsonOptions = new() { PropertyNameCaseInsensitive = true };
 
-    /// <summary>Стабильные bare-коды четырёх скакунов книги: по ним же выводятся legacy-предметы.</summary>
+    /// <summary>
+    /// Стабильные bare-коды встроенного транспорта: по ним же выводятся и переносятся
+    /// legacy-предметы инвентаря.
+    /// </summary>
     public static readonly string[] BuiltInCodes =
-        ["beast-of-burden", "riding-beast", "war-mount", "flying-mount"];
+        ["beast-of-burden", "riding-beast", "war-mount", "flying-mount", "wagon"];
 
     /// <summary>Разворачивает каталог в список встроенных профилей по системам.</summary>
     public static IEnumerable<MountDef> Load(Assembly? assembly = null)
@@ -57,14 +61,22 @@ public static class MountCatalog
                 ? new[] { GameSystem.RealmsOfTerrinoth }
                 : [GameSystem.GenesysCore, GameSystem.RealmsOfTerrinoth];
 
+            var transport = Enum.Parse<TransportKind>(e.Transport, ignoreCase: true);
+            // Сегмент кода читаемо разводит скакуна и транспортное средство; bare-код (последний
+            // сегмент) при этом остаётся тем же, поэтому legacy-предмет `…item.wagon` находится.
+            var segment = transport == TransportKind.Vehicle ? "vehicle" : "mount";
+
             foreach (var sys in systems)
                 yield return new MountDef
                 {
                     Id = Guid.NewGuid(),
                     System = sys,
-                    Code = $"{(sys == GameSystem.GenesysCore ? "gc" : "rot")}.mount.{e.Code}",
+                    Code = $"{(sys == GameSystem.GenesysCore ? "gc" : "rot")}.{segment}.{e.Code}",
                     Name = e.Name,
                     NameRu = string.IsNullOrWhiteSpace(e.NameRu) ? e.Name : e.NameRu,
+                    TransportKind = transport,
+                    MovementMode = Enum.Parse<MovementMode>(e.Movement, ignoreCase: true),
+                    RequiresTraction = e.RequiresTraction,
                     Kind = Enum.Parse<NpcKind>(e.Kind, ignoreCase: true),
                     Brawn = e.Brawn,
                     Agility = e.Agility,

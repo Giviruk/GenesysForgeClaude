@@ -34,7 +34,6 @@ public class ShopCatalogRulesTests
     }
 
     [Theory]
-    [InlineData("wagon")]
     [InlineData("barding")]
     [InlineData("saddlebags")]
     public void TransportUsesStableCodes(string code) =>

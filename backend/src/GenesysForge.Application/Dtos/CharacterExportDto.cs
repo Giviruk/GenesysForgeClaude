@@ -11,8 +11,13 @@ public record CharacterExportDto(
     DateTime ExportedAt,
     CharacterExportData Character)
 {
-    /// <summary>Текущая версия формата: v4 переносит скакунов (ROT-MOUNT-ITEM-01).</summary>
-    public const string CurrentFormat = "genesysforge.character.v4";
+    /// <summary>
+    /// Текущая версия формата: v5 переносит груз транспорта и тягу (ROT-TRANSPORT-01).
+    /// </summary>
+    public const string CurrentFormat = "genesysforge.character.v5";
+
+    /// <summary>v4 переносил скакунов, но их груз был одним числом без позиций.</summary>
+    public const string LegacyFormatV4 = "genesysforge.character.v4";
 
     /// <summary>v3 переносил настройку экземпляра Lesser Rune, но ещё не знал скакунов.</summary>
     public const string LegacyFormatV3 = "genesysforge.character.v3";
@@ -24,7 +29,7 @@ public record CharacterExportDto(
 
     /// <summary>Все форматы, которые импорт умеет читать.</summary>
     public static readonly string[] SupportedFormats =
-        [CurrentFormat, LegacyFormatV3, LegacyFormatV2, LegacyFormatV1];
+        [CurrentFormat, LegacyFormatV4, LegacyFormatV3, LegacyFormatV2, LegacyFormatV1];
 }
 
 public record CharacterExportData(
@@ -116,15 +121,27 @@ public record CharacterItemExport(string Code, string Name, int Quantity, ItemSt
     string ShardActivationChoice = "",
     string ShardEffectAction = "",
     string ShardEffectChoice = "",
-    bool ShardConfigured = false);
+    bool ShardConfigured = false,
+    /// <summary>
+    /// Индекс транспорта из списка <c>Mounts</c>, на котором лежит позиция (ROT-TRANSPORT-01).
+    /// <c>null</c> — позиция при персонаже. По индексу, а не по id: id в чужом аккаунте свой.
+    /// </summary>
+    int? CarriedByMountIndex = null,
+    /// <summary>Снаряжение установлено на транспорт, а не сложено грузом.</summary>
+    bool IsInstalledOnMount = false);
 
 public record CharacterNoteExport(string Title, string Body);
 
 /// <summary>
-/// Скакун в переносимом формате (ROT-MOUNT-ITEM-01). Ссылка на профиль идёт по стабильному
-/// <paramref name="Code"/> с fallback на <paramref name="Name"/>: id профиля в чужом аккаунте свой.
+/// Транспорт в переносимом формате (ROT-MOUNT-ITEM-01, ROT-TRANSPORT-01). Ссылка на профиль идёт по
+/// стабильному <paramref name="Code"/> с fallback на <paramref name="Name"/>: id профиля в чужом
+/// аккаунте свой.
 /// </summary>
-/// <param name="CustomName">Кличка; пусто — показывается название профиля.</param>
+/// <param name="CustomName">Кличка или название; пусто — показывается название профиля.</param>
+/// <param name="DrawnByMountIndex">
+/// Индекс тяглового животного в этом же списке; <c>null</c> — тяги нет. Груз в v5 переносится
+/// позициями (см. <c>CharacterItemExport.CarriedByMountIndex</c>), а не числом.
+/// </param>
 public record CharacterMountExport(
     string Code,
     string Name,
@@ -133,4 +150,5 @@ public record CharacterMountExport(
     int CarriedLoad = 0,
     bool IsActive = false,
     string Notes = "",
-    ItemProvenance Provenance = ItemProvenance.Purchased);
+    ItemProvenance Provenance = ItemProvenance.Purchased,
+    int? DrawnByMountIndex = null);

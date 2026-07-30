@@ -33,14 +33,35 @@ public class RotMountApiTests(ApiFactory factory) : IClassFixture<ApiFactory>
     private static MountDefDto Mount(ReferenceResponse reference, string bareCode) =>
         reference.Mounts!.Single(m => m.Code == $"rot.mount.{bareCode}");
 
+    private static MountDefDto Vehicle(ReferenceResponse reference, string bareCode) =>
+        reference.Mounts!.Single(m => m.Code == $"rot.vehicle.{bareCode}");
+
     private static int Funds(CharacterSheetDto sheet) => sheet.Money + sheet.StartingPurchaseBudget;
+
+    /// <summary>Кладёт предмет каталога в инвентарь и возвращает id позиции.</summary>
+    private static async Task<Guid> AddItemAsync(
+        HttpClient client, Guid id, ReferenceResponse reference, string bareCode, int quantity = 1)
+    {
+        var def = reference.Items.Single(i => i.Code == $"rot.item.{bareCode}");
+        await client.PostAsJsonAsync($"/api/characters/{id}/items",
+            new AddItemRequest(def.Id, quantity, ItemState.Backpack, Free: true), Json.Options);
+        var sheet = await SheetAsync(client, id);
+        return sheet.Items.Last(i => i.ItemDefId == def.Id).Id;
+    }
+
+    private static Task<HttpResponseMessage> MoveAsync(
+        HttpClient client, Guid id, Guid itemId, MoveCargoRequest request) =>
+        client.PatchAsJsonAsync(
+            $"/api/characters/{id}/items/{itemId}/location", request, Json.Options);
 
     [Fact]
     public async Task ReferenceServesFourMountProfilesWithStatblocks()
     {
         var (_, _, reference) = await CreateRiderAsync();
 
-        Assert.Equal(4, reference.Mounts!.Count);
+        // Четыре скакуна книги плюс повозка одного каталога транспорта (ROT-TRANSPORT-01).
+        Assert.Equal(5, reference.Mounts!.Count);
+        Assert.Equal(4, reference.Mounts.Count(m => m.TransportKind == TransportKind.Mount));
         var flying = Mount(reference, "flying-mount");
         Assert.Equal(2000, flying.Price);
         Assert.Equal(12, flying.WoundThreshold);
@@ -206,8 +227,8 @@ public class RotMountApiTests(ApiFactory factory) : IClassFixture<ApiFactory>
         await client.PostAsJsonAsync($"/api/characters/{id}/mounts",
             new BuyMountRequest(Mount(reference, "beast-of-burden").Id, Free: true), Json.Options);
         var owned = Assert.Single((await SheetAsync(client, id)).Mounts!);
-        await client.PatchAsJsonAsync($"/api/characters/{id}/mounts/{owned.Id}",
-            new UpdateMountRequest(CarriedLoad: 6), Json.Options);
+        var cargo = await AddItemAsync(client, id, reference, "bedroll");
+        await MoveAsync(client, id, cargo, new MoveCargoRequest(owned.Id));
 
         var blocked = await client.PostAsJsonAsync(
             $"/api/characters/{id}/mounts/{owned.Id}/sell", new SellMountRequest(), Json.Options);
@@ -216,8 +237,7 @@ public class RotMountApiTests(ApiFactory factory) : IClassFixture<ApiFactory>
         Assert.Equal("mount.load_not_empty",
             (await blocked.Content.ReadFromJsonAsync<ErrorResponse>(Json.Options))!.ReasonCode);
 
-        await client.PatchAsJsonAsync($"/api/characters/{id}/mounts/{owned.Id}",
-            new UpdateMountRequest(CarriedLoad: 0), Json.Options);
+        await MoveAsync(client, id, cargo, new MoveCargoRequest(null));
         var sold = await client.PostAsJsonAsync(
             $"/api/characters/{id}/mounts/{owned.Id}/sell", new SellMountRequest(), Json.Options);
         Assert.Equal(HttpStatusCode.NoContent, sold.StatusCode);
@@ -233,19 +253,12 @@ public class RotMountApiTests(ApiFactory factory) : IClassFixture<ApiFactory>
 
         // Порог ран профиля 7: 40 ран не хранится, а приводится к порогу.
         await client.PatchAsJsonAsync($"/api/characters/{id}/mounts/{owned.Id}",
-            new UpdateMountRequest(WoundsCurrent: 40, CarriedLoad: 20, IsActive: true), Json.Options);
+            new UpdateMountRequest(WoundsCurrent: 40, IsActive: true), Json.Options);
 
         var mount = Assert.Single((await SheetAsync(client, id)).Mounts!);
         Assert.Equal(7, mount.WoundsCurrent);
         Assert.True(mount.IsIncapacitated);
-        // Груз выше вместимости 18 сохраняется, но помечается перегрузом.
-        Assert.Equal(20, mount.CarriedLoad);
-        Assert.True(mount.IsOverloaded);
         Assert.True(mount.IsActive);
-
-        var negative = await client.PatchAsJsonAsync($"/api/characters/{id}/mounts/{owned.Id}",
-            new UpdateMountRequest(CarriedLoad: -1), Json.Options);
-        Assert.Equal(HttpStatusCode.BadRequest, negative.StatusCode);
     }
 
     [Fact]
@@ -289,8 +302,10 @@ public class RotMountApiTests(ApiFactory factory) : IClassFixture<ApiFactory>
             Json.Options);
         var owned = Assert.Single((await SheetAsync(client, id)).Mounts!);
         await client.PatchAsJsonAsync($"/api/characters/{id}/mounts/{owned.Id}",
-            new UpdateMountRequest(WoundsCurrent: 4, CarriedLoad: 3, IsActive: true, Notes: "хромает"),
+            new UpdateMountRequest(WoundsCurrent: 4, IsActive: true, Notes: "хромает"),
             Json.Options);
+        var cargo = await AddItemAsync(client, id, reference, "bedroll");
+        await MoveAsync(client, id, cargo, new MoveCargoRequest(owned.Id));
 
         var export = (await client.GetFromJsonAsync<CharacterExportDto>(
             $"/api/characters/{id}/export", Json.Options))!;
@@ -309,9 +324,12 @@ public class RotMountApiTests(ApiFactory factory) : IClassFixture<ApiFactory>
         Assert.Equal("Гроза", mount.Name);
         Assert.Equal("Flying Mount", mount.Definition.Name);
         Assert.Equal(4, mount.WoundsCurrent);
-        Assert.Equal(3, mount.CarriedLoad);
         Assert.True(mount.IsActive);
         Assert.Equal("хромает", mount.Notes);
+        // Груз переехал позицией и остался на скакуне, а не у владельца (ROT-TRANSPORT-01).
+        Assert.Equal(1, mount.CarriedLoad);
+        Assert.Equal("Bedroll", Assert.Single(mount.Cargo).Name);
+        Assert.DoesNotContain(importedSheet.Items, i => i.Name == "Bedroll");
     }
 
     [Fact]
@@ -329,5 +347,243 @@ public class RotMountApiTests(ApiFactory factory) : IClassFixture<ApiFactory>
         var clone = Assert.Single((await SheetAsync(client, cloneId)).Mounts!);
         Assert.Equal("Уголь", clone.Name);
         Assert.Equal("War Mount", clone.Definition.Name);
+    }
+
+    // ── Раздел «Транспорт» (ROT-TRANSPORT-01) ──
+
+    /// <summary>Повозка стала транспортом со статблоком, а не предметом с фиктивным Enc.</summary>
+    [Fact]
+    public async Task WagonIsSoldAsTransportRatherThanInventoryGear()
+    {
+        var (_, _, reference) = await CreateRiderAsync();
+
+        var wagon = Vehicle(reference, "wagon");
+        Assert.Equal(TransportKind.Vehicle, wagon.TransportKind);
+        Assert.Equal(MovementMode.Wheeled, wagon.MovementMode);
+        Assert.True(wagon.RequiresTraction);
+        Assert.Equal(200, wagon.Price);
+        Assert.DoesNotContain(reference.Items, i => i.Code == "rot.item.wagon");
+    }
+
+    [Fact]
+    public async Task CargoOnTransportStaysOutOfTheOwnersEncumbrance()
+    {
+        var (client, id, reference) = await CreateRiderAsync();
+        await client.PostAsJsonAsync($"/api/characters/{id}/mounts",
+            new BuyMountRequest(Mount(reference, "beast-of-burden").Id, Free: true), Json.Options);
+        var mount = Assert.Single((await SheetAsync(client, id)).Mounts!);
+        // Enc 5, поэтому вклад в вес виден и до, и после переноса.
+        var item = await AddItemAsync(client, id, reference, "barding");
+        var loadedOwner = (await SheetAsync(client, id)).Derived.EncumbranceLoad;
+
+        Assert.Equal(HttpStatusCode.NoContent,
+            (await MoveAsync(client, id, item, new MoveCargoRequest(mount.Id))).StatusCode);
+
+        var sheet = await SheetAsync(client, id);
+        Assert.Equal(loadedOwner - 5, sheet.Derived.EncumbranceLoad);
+        var loaded = Assert.Single(sheet.Mounts!);
+        Assert.Equal(5, loaded.CarriedLoad);
+        Assert.Equal(18, loaded.Capacity);
+        Assert.False(loaded.IsOverloaded);
+        // Позиция уехала из инвентаря владельца в карточку транспорта, а не задвоилась.
+        Assert.DoesNotContain(sheet.Items, i => i.Id == item);
+        Assert.Equal(item, Assert.Single(loaded.Cargo).Id);
+    }
+
+    /// <summary>Попона защищает скакуна, а не всадника, и сумки поднимают вместимость.</summary>
+    [Fact]
+    public async Task InstalledGearChangesTheMountRatherThanTheRider()
+    {
+        var (client, id, reference) = await CreateRiderAsync();
+        await client.PostAsJsonAsync($"/api/characters/{id}/mounts",
+            new BuyMountRequest(Mount(reference, "riding-beast").Id, Free: true), Json.Options);
+        var mount = Assert.Single((await SheetAsync(client, id)).Mounts!);
+        var before = await SheetAsync(client, id);
+
+        var barding = await AddItemAsync(client, id, reference, "barding");
+        var bags = await AddItemAsync(client, id, reference, "saddlebags");
+        await MoveAsync(client, id, barding, new MoveCargoRequest(mount.Id, Install: true));
+        await MoveAsync(client, id, bags, new MoveCargoRequest(mount.Id, Install: true));
+
+        var sheet = await SheetAsync(client, id);
+        var loaded = Assert.Single(sheet.Mounts!);
+        // Седельные сумки дают +4 к вместимости профиля 12; установленное груз не занимает.
+        Assert.Equal(16, loaded.Capacity);
+        Assert.Equal(0, loaded.CarriedLoad);
+        Assert.Equal(2, loaded.Cargo.Count);
+        Assert.All(loaded.Cargo, c => Assert.True(c.IsInstalledOnMount));
+        // Всаднику установленное не достаётся ни защитой, ни весом, ни порогом нагрузки.
+        Assert.Equal(before.Derived.Soak, sheet.Derived.Soak);
+        Assert.Equal(before.Derived.MeleeDefense, sheet.Derived.MeleeDefense);
+        Assert.Equal(before.Derived.EncumbranceLoad, sheet.Derived.EncumbranceLoad);
+        Assert.Equal(before.Derived.EncumbranceThreshold, sheet.Derived.EncumbranceThreshold);
+    }
+
+    [Fact]
+    public async Task OrdinaryGearCannotBeInstalledOnATransport()
+    {
+        var (client, id, reference) = await CreateRiderAsync();
+        await client.PostAsJsonAsync($"/api/characters/{id}/mounts",
+            new BuyMountRequest(Mount(reference, "riding-beast").Id, Free: true), Json.Options);
+        var mount = Assert.Single((await SheetAsync(client, id)).Mounts!);
+        var bedroll = await AddItemAsync(client, id, reference, "bedroll");
+
+        var response = await MoveAsync(client, id, bedroll, new MoveCargoRequest(mount.Id, Install: true));
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.Equal("cargo.not_mount_gear",
+            (await response.Content.ReadFromJsonAsync<ErrorResponse>(Json.Options))!.ReasonCode);
+    }
+
+    [Fact]
+    public async Task CargoBeyondCapacityIsRefusedAndPartialMoveSplitsTheStack()
+    {
+        var (client, id, reference) = await CreateRiderAsync();
+        await client.PostAsJsonAsync($"/api/characters/{id}/mounts",
+            new BuyMountRequest(Mount(reference, "riding-beast").Id, Free: true), Json.Options);
+        var mount = Assert.Single((await SheetAsync(client, id)).Mounts!);
+        // Вместимость профиля 12, попона весит 5: три штуки не помещаются, две помещаются.
+        var stack = await AddItemAsync(client, id, reference, "barding", quantity: 3);
+
+        var tooMuch = await MoveAsync(client, id, stack, new MoveCargoRequest(mount.Id));
+        Assert.Equal(HttpStatusCode.BadRequest, tooMuch.StatusCode);
+        Assert.Equal("cargo.capacity_exceeded",
+            (await tooMuch.Content.ReadFromJsonAsync<ErrorResponse>(Json.Options))!.ReasonCode);
+
+        Assert.Equal(HttpStatusCode.NoContent,
+            (await MoveAsync(client, id, stack, new MoveCargoRequest(mount.Id, Quantity: 2))).StatusCode);
+
+        var sheet = await SheetAsync(client, id);
+        var loaded = Assert.Single(sheet.Mounts!);
+        Assert.Equal(10, loaded.CarriedLoad);
+        Assert.Equal(2, Assert.Single(loaded.Cargo).Quantity);
+        // Остаток стопки остался у владельца, а не пропал.
+        Assert.Equal(1, sheet.Items.Single(i => i.Id == stack).Quantity);
+    }
+
+    [Fact]
+    public async Task WagonKeepsItsCargoWhenTheDraftAnimalIsUnhitched()
+    {
+        var (client, id, reference) = await CreateRiderAsync();
+        await client.PostAsJsonAsync($"/api/characters/{id}/mounts",
+            new BuyMountRequest(Vehicle(reference, "wagon").Id, Free: true), Json.Options);
+        await client.PostAsJsonAsync($"/api/characters/{id}/mounts",
+            new BuyMountRequest(Mount(reference, "beast-of-burden").Id, Free: true), Json.Options);
+        var sheet = await SheetAsync(client, id);
+        var wagon = sheet.Mounts!.Single(m => m.Definition.Code == "rot.vehicle.wagon");
+        var beast = sheet.Mounts!.Single(m => m.Definition.Code == "rot.mount.beast-of-burden");
+        var cargo = await AddItemAsync(client, id, reference, "bedroll");
+        await MoveAsync(client, id, cargo, new MoveCargoRequest(wagon.Id));
+
+        // Без тяги повозка стоит, но существует и держит груз.
+        Assert.True(Assert.Single((await SheetAsync(client, id)).Mounts!
+            .Where(m => m.Id == wagon.Id)).NeedsTraction);
+
+        await client.PatchAsJsonAsync($"/api/characters/{id}/mounts/{wagon.Id}",
+            new UpdateMountRequest(DrawnByMountId: beast.Id), Json.Options);
+        var hitched = (await SheetAsync(client, id)).Mounts!.Single(m => m.Id == wagon.Id);
+        Assert.False(hitched.NeedsTraction);
+        Assert.Equal(beast.Id, hitched.DrawnByMountId);
+
+        await client.PatchAsJsonAsync($"/api/characters/{id}/mounts/{wagon.Id}",
+            new UpdateMountRequest(ClearDrawnBy: true), Json.Options);
+
+        var after = await SheetAsync(client, id);
+        var unhitched = after.Mounts!.Single(m => m.Id == wagon.Id);
+        Assert.True(unhitched.NeedsTraction);
+        Assert.Null(unhitched.DrawnByMountId);
+        // Груз не переехал владельцу и не пропал.
+        Assert.Equal(cargo, Assert.Single(unhitched.Cargo).Id);
+        Assert.DoesNotContain(after.Items, i => i.Id == cargo);
+    }
+
+    [Fact]
+    public async Task AWagonCannotPullAnotherWagon()
+    {
+        var (client, id, reference) = await CreateRiderAsync();
+        var wagonDef = Vehicle(reference, "wagon").Id;
+        await client.PostAsJsonAsync($"/api/characters/{id}/mounts",
+            new BuyMountRequest(wagonDef, Free: true), Json.Options);
+        await client.PostAsJsonAsync($"/api/characters/{id}/mounts",
+            new BuyMountRequest(wagonDef, Free: true), Json.Options);
+        var wagons = (await SheetAsync(client, id)).Mounts!;
+
+        var response = await client.PatchAsJsonAsync($"/api/characters/{id}/mounts/{wagons[0].Id}",
+            new UpdateMountRequest(DrawnByMountId: wagons[1].Id), Json.Options);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.Equal("mount.traction_invalid",
+            (await response.Content.ReadFromJsonAsync<ErrorResponse>(Json.Options))!.ReasonCode);
+    }
+
+    /// <summary>Удаление транспорта возвращает груз владельцу, а не оставляет его без хозяина.</summary>
+    [Fact]
+    public async Task RemovingATransportReturnsItsCargoToTheOwner()
+    {
+        var (client, id, reference) = await CreateRiderAsync();
+        await client.PostAsJsonAsync($"/api/characters/{id}/mounts",
+            new BuyMountRequest(Mount(reference, "beast-of-burden").Id, Free: true), Json.Options);
+        var mount = Assert.Single((await SheetAsync(client, id)).Mounts!);
+        var cargo = await AddItemAsync(client, id, reference, "bedroll");
+        var barding = await AddItemAsync(client, id, reference, "barding");
+        await MoveAsync(client, id, cargo, new MoveCargoRequest(mount.Id));
+        await MoveAsync(client, id, barding, new MoveCargoRequest(mount.Id, Install: true));
+
+        Assert.Equal(HttpStatusCode.NoContent,
+            (await client.DeleteAsync($"/api/characters/{id}/mounts/{mount.Id}")).StatusCode);
+
+        var sheet = await SheetAsync(client, id);
+        Assert.Empty(sheet.Mounts!);
+        Assert.Contains(sheet.Items, i => i.Id == cargo);
+        var returnedBarding = sheet.Items.Single(i => i.Id == barding);
+        Assert.False(returnedBarding.IsInstalledOnMount);
+        Assert.Null(returnedBarding.CarriedByMountId);
+    }
+
+    [Fact]
+    public async Task SellingTheDraftAnimalLeavesTheWagonWithoutABrokenLink()
+    {
+        var (client, id, reference) = await CreateRiderAsync();
+        await client.PostAsJsonAsync($"/api/characters/{id}/mounts",
+            new BuyMountRequest(Vehicle(reference, "wagon").Id, Free: true), Json.Options);
+        await client.PostAsJsonAsync($"/api/characters/{id}/mounts",
+            new BuyMountRequest(Mount(reference, "beast-of-burden").Id, Free: true), Json.Options);
+        var sheet = await SheetAsync(client, id);
+        var wagon = sheet.Mounts!.Single(m => m.Definition.Code == "rot.vehicle.wagon");
+        var beast = sheet.Mounts!.Single(m => m.Definition.Code == "rot.mount.beast-of-burden");
+        await client.PatchAsJsonAsync($"/api/characters/{id}/mounts/{wagon.Id}",
+            new UpdateMountRequest(DrawnByMountId: beast.Id), Json.Options);
+
+        Assert.Equal(HttpStatusCode.NoContent, (await client.PostAsJsonAsync(
+            $"/api/characters/{id}/mounts/{beast.Id}/sell", new SellMountRequest(), Json.Options))
+            .StatusCode);
+
+        var after = Assert.Single((await SheetAsync(client, id)).Mounts!);
+        Assert.Equal(wagon.Id, after.Id);
+        Assert.Null(after.DrawnByMountId);
+        Assert.True(after.NeedsTraction);
+    }
+
+    [Fact]
+    public async Task DuplicateKeepsCargoOnTheClonesOwnTransport()
+    {
+        var (client, id, reference) = await CreateRiderAsync();
+        await client.PostAsJsonAsync($"/api/characters/{id}/mounts",
+            new BuyMountRequest(Mount(reference, "beast-of-burden").Id, Free: true), Json.Options);
+        var mount = Assert.Single((await SheetAsync(client, id)).Mounts!);
+        var cargo = await AddItemAsync(client, id, reference, "bedroll");
+        await MoveAsync(client, id, cargo, new MoveCargoRequest(mount.Id));
+
+        var duplicate = await client.PostAsync($"/api/characters/{id}/duplicate", null);
+        var cloneId = (await duplicate.Content.ReadFromJsonAsync<Dictionary<string, Guid>>(Json.Options))!["id"];
+
+        var cloneSheet = await SheetAsync(client, cloneId);
+        var cloneMount = Assert.Single(cloneSheet.Mounts!);
+        var cloneCargo = Assert.Single(cloneMount.Cargo);
+        Assert.Equal("Bedroll", cloneCargo.Name);
+        // Ссылка ведёт на транспорт клона, а не оригинала.
+        Assert.Equal(cloneMount.Id, cloneCargo.CarriedByMountId);
+        Assert.NotEqual(mount.Id, cloneMount.Id);
+        Assert.NotEqual(cargo, cloneCargo.Id);
     }
 }

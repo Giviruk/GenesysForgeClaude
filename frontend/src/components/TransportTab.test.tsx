@@ -1,23 +1,28 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import type { CharacterMount, CharacterSheet, MountDef, Reference } from '../api/types'
-import { MountsTab } from './MountsTab'
+import type {
+  CharacterMount, CharacterSheet, MountDef, Reference, SheetItem,
+} from '../api/types'
+import { TransportTab } from './TransportTab'
 
 const buyMountMock = vi.fn()
 const sellMountMock = vi.fn()
 const updateMountMock = vi.fn()
 const removeMountMock = vi.fn()
+const moveCargoMock = vi.fn()
 vi.mock('../api/client', () => ({
   api: {
     buyMount: (...a: unknown[]) => buyMountMock(...a),
     sellMount: (...a: unknown[]) => sellMountMock(...a),
     updateMount: (...a: unknown[]) => updateMountMock(...a),
     removeMount: (...a: unknown[]) => removeMountMock(...a),
+    moveCargo: (...a: unknown[]) => moveCargoMock(...a),
   },
 }))
 
 const warMount: MountDef = {
   id: 'def-war', code: 'rot.mount.war-mount', name: 'War Mount', nameRu: 'Боевой скакун',
+  transportKind: 'mount', movementMode: 'ground', requiresTraction: false,
   kind: 'rival',
   characteristics: { brawn: 4, agility: 3, intellect: 1, cunning: 2, willpower: 3, presence: 1 },
   soak: 4, woundThreshold: 14, strainThreshold: null, meleeDefense: 0, rangedDefense: 0,
@@ -33,15 +38,42 @@ const warMount: MountDef = {
   source: 'Realms of Terrinoth, с. 106',
 }
 
+/** Повозка: та же запись каталога, но транспортное средство без своего хода. */
+const wagon: MountDef = {
+  ...warMount,
+  id: 'def-wagon', code: 'rot.vehicle.wagon', name: 'Wagon', nameRu: 'Повозка',
+  transportKind: 'vehicle', movementMode: 'wheeled', requiresTraction: true,
+  kind: 'minion',
+  characteristics: { brawn: 0, agility: 0, intellect: 0, cunning: 0, willpower: 0, presence: 0 },
+  soak: 2, woundThreshold: 10, strainThreshold: 5, silhouette: 3, capacity: 40,
+  price: 200, rarity: 2, skills: [], attacks: [],
+}
+
+const beast: MountDef = {
+  ...warMount,
+  id: 'def-beast', code: 'rot.mount.beast-of-burden', name: 'Beast of Burden',
+  nameRu: 'Вьючное животное', kind: 'minion', capacity: 18, price: 200, rarity: 1,
+  skills: [], attacks: [],
+}
+
+const item = (over: Partial<SheetItem> = {}): SheetItem => ({
+  id: 'item-1', itemDefId: 'def-bedroll', name: 'Bedroll', nameRu: 'Спальник',
+  quantity: 1, encumbrance: 1, carriedByMountId: null, isInstalledOnMount: false,
+  isMountGear: false,
+  ...over,
+} as SheetItem)
+
 const owned = (over: Partial<CharacterMount> = {}): CharacterMount => ({
   id: 'mount-1', mountDefId: 'def-war', displayName: 'Уголь', name: 'Уголь',
   definition: warMount, woundsCurrent: 0, carriedLoad: 0, capacity: 13, isActive: false,
   isOverloaded: false, isIncapacitated: false, provenance: 'purchased', notes: '',
+  drawnByMountId: null, drawnByName: '', needsTraction: false,
+  soak: 4, meleeDefense: 0, rangedDefense: 0, cargo: [],
   ...over,
 })
 
-const sheetWith = (mounts: CharacterMount[], money = 5000) => ({
-  id: 'char-1', money, startingPurchaseBudget: 0, isCreationPhase: false, mounts,
+const sheetWith = (mounts: CharacterMount[], money = 5000, items: SheetItem[] = []) => ({
+  id: 'char-1', money, startingPurchaseBudget: 0, isCreationPhase: false, mounts, items,
 } as unknown as CharacterSheet)
 
 const reference = {
@@ -50,12 +82,13 @@ const reference = {
 } as unknown as Reference
 
 const renderTab = (sheet: CharacterSheet) => render(
-  <MountsTab sheet={sheet} reference={reference} onError={() => {}}
+  <TransportTab sheet={sheet} reference={reference} onError={() => {}}
     refresh={() => Promise.resolve()} />)
 
-describe('Скакуны (ROT-MOUNT-ITEM-01)', () => {
+describe('Транспорт (ROT-MOUNT-ITEM-01, ROT-TRANSPORT-01)', () => {
   beforeEach(() => {
-    for (const mock of [buyMountMock, sellMountMock, updateMountMock, removeMountMock]) {
+    for (const mock of
+      [buyMountMock, sellMountMock, updateMountMock, removeMountMock, moveCargoMock]) {
       mock.mockReset()
       mock.mockResolvedValue(undefined)
     }
@@ -104,16 +137,12 @@ describe('Скакуны (ROT-MOUNT-ITEM-01)', () => {
     expect(screen.getAllByText(/Опрокидывание/).length).toBeGreaterThan(0)
   })
 
-  it('правит раны и груз через сервер', async () => {
+  it('правит раны через сервер', async () => {
     renderTab(sheetWith([owned()]))
 
     fireEvent.change(screen.getByLabelText('Ранения'), { target: { value: '5' } })
     await waitFor(() =>
       expect(updateMountMock).toHaveBeenCalledWith('char-1', 'mount-1', { woundsCurrent: 5 }))
-
-    fireEvent.change(screen.getByLabelText('Груз'), { target: { value: '7' } })
-    await waitFor(() =>
-      expect(updateMountMock).toHaveBeenCalledWith('char-1', 'mount-1', { carriedLoad: 7 }))
   })
 
   it('помечает перегруз и выведенного из строя', () => {
@@ -135,11 +164,74 @@ describe('Скакуны (ROT-MOUNT-ITEM-01)', () => {
       expect(sellMountMock).toHaveBeenCalledWith('char-1', 'mount-1', { netSuccesses: 2 }))
   })
 
-  it('удаляет скакуна без выручки', async () => {
+  it('удаляет транспорт без выручки', async () => {
     renderTab(sheetWith([owned()]))
 
     fireEvent.click(screen.getByRole('button', { name: 'Удалить' }))
 
     await waitFor(() => expect(removeMountMock).toHaveBeenCalledWith('char-1', 'mount-1'))
+  })
+
+  it('грузит позицию инвентаря на транспорт, а не правит число', async () => {
+    renderTab(sheetWith([owned()], 5000, [item()]))
+
+    fireEvent.change(screen.getByLabelText('Что погрузить'), { target: { value: 'item-1' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Погрузить' }))
+
+    await waitFor(() => expect(moveCargoMock).toHaveBeenCalledWith('char-1', 'item-1',
+      { mountId: 'mount-1', quantity: 1, install: false }))
+  })
+
+  it('попону предлагает установить, а не сложить грузом', async () => {
+    const barding = item({ id: 'item-barding', nameRu: 'Попона', isMountGear: true, encumbrance: 5 })
+    renderTab(sheetWith([owned()], 5000, [barding]))
+
+    fireEvent.change(screen.getByLabelText('Что погрузить'), { target: { value: 'item-barding' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Установить' }))
+
+    await waitFor(() => expect(moveCargoMock).toHaveBeenCalledWith('char-1', 'item-barding',
+      { mountId: 'mount-1', quantity: 1, install: true }))
+  })
+
+  it('снимает груз обратно владельцу', async () => {
+    const loaded = owned({ cargo: [item({ carriedByMountId: 'mount-1' })], carriedLoad: 1 })
+    renderTab(sheetWith([loaded]))
+
+    fireEvent.click(screen.getByRole('button', { name: 'Снять' }))
+
+    await waitFor(() =>
+      expect(moveCargoMock).toHaveBeenCalledWith('char-1', 'item-1', { mountId: null }))
+  })
+
+  it('повозка без тяги помечена и запрягается выбором животного', async () => {
+    const cart = owned({
+      id: 'wagon-1', mountDefId: 'def-wagon', displayName: 'Повозка', name: '',
+      definition: wagon, capacity: 40, needsTraction: true, soak: 2,
+    })
+    const draft = owned({
+      id: 'beast-1', mountDefId: 'def-beast', displayName: 'Серко', name: 'Серко',
+      definition: beast, capacity: 18,
+    })
+    renderTab(sheetWith([cart, draft]))
+
+    expect(screen.getByText(/без тяги/)).toBeTruthy()
+    fireEvent.change(screen.getByLabelText('Тяга'), { target: { value: 'beast-1' } })
+
+    await waitFor(() => expect(updateMountMock).toHaveBeenCalledWith('char-1', 'wagon-1',
+      { drawnByMountId: 'beast-1' }))
+  })
+
+  it('у повозки нет характеристик и её порог назван прочностью', () => {
+    const cart = owned({
+      id: 'wagon-1', mountDefId: 'def-wagon', displayName: 'Повозка', name: '',
+      definition: wagon, capacity: 40, needsTraction: true,
+    })
+    const { container } = renderTab(sheetWith([cart]))
+
+    // Ищем внутри карточки: в витрине ниже стоит скакун, и его характеристики видны законно.
+    const card = container.querySelector('.mount-card')!
+    expect(card.textContent).not.toContain('Хитрость')
+    expect(card.textContent).toContain('Прочность 10')
+    expect(card.textContent).toContain('Системы 5')
   })
 })

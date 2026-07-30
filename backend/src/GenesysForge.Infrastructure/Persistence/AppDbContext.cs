@@ -307,6 +307,14 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             e.Property(m => m.Name).HasMaxLength(120);
             e.Property(m => m.Notes).HasMaxLength(2000);
             e.HasOne(m => m.MountDef).WithMany().OnDelete(DeleteBehavior.Restrict);
+            // Тягловое животное (ROT-TRANSPORT-01): продажа скакуна не должна утаскивать за собой
+            // повозку, поэтому связь рвётся в null, а не каскадом.
+            e.HasOne(m => m.DrawnBy).WithMany()
+                .HasForeignKey(m => m.DrawnByMountId).OnDelete(DeleteBehavior.SetNull);
+            // Груз транспорта — обычные позиции инвентаря. Удаление транспорта не удаляет вещи:
+            // ownerless-груза не бывает, позиции возвращаются персонажу (ссылка обнуляется).
+            e.HasMany(m => m.Cargo).WithOne(i => i.CarriedByMount)
+                .HasForeignKey(i => i.CarriedByMountId).OnDelete(DeleteBehavior.SetNull);
         });
 
         b.Entity<AttachmentEffect>(e =>

@@ -14,5 +14,9 @@ public record SellMountCommand(
 public record UpdateMountCommand(
     Guid UserId, Guid CharacterId, Guid MountId, UpdateMountRequest Request) : ICommand<Unit>;
 
-/// <summary>Удаление скакуна без выручки (погиб, отпущен, ошибка ввода).</summary>
+/// <summary>Удаление транспорта без выручки (погиб, отпущен, ошибка ввода).</summary>
 public record RemoveMountCommand(Guid UserId, Guid CharacterId, Guid MountId) : ICommand<Unit>;
+
+/// <summary>Атомарный перенос позиции между персонажем и транспортом (ROT-TRANSPORT-01).</summary>
+public record MoveCargoCommand(
+    Guid UserId, Guid CharacterId, Guid ItemId, MoveCargoRequest Request) : ICommand<Unit>;

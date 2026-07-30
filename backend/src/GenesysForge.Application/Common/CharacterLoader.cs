@@ -41,11 +41,15 @@ public static class CharacterLoader
             .Include(c => c.Items).ThenInclude(i => i.ItemDef!.AttackProfiles)
             // Улучшения меняют числа предмета и его качества (ROT-EQP-ATT-01).
             .Include(c => c.Attachments).ThenInclude(a => a.AttachmentDef!.Effects)
-            // Скакуны показываются со статблоком профиля: без него нет ни порога ран, ни
+            // Транспорт показывается со статблоком профиля: без него нет ни порога ран, ни
             // вместимости (ROT-MOUNT-ITEM-01).
             .Include(c => c.Mounts).ThenInclude(m => m.MountDef!.Skills)
             .Include(c => c.Mounts).ThenInclude(m => m.MountDef!.Abilities)
             .Include(c => c.Mounts).ThenInclude(m => m.MountDef!.Attacks)
+            // Груз транспорта отдельным Include не грузится: это те же строки `c.Items`, уже
+            // загруженные со всеми справочниками выше. Раскладка по транспорту делается по
+            // `CarriedByMountId`, а не через навигацию, чтобы одинаково работать и без отслеживания
+            // (ROT-TRANSPORT-01).
             .Include(c => c.CriticalInjuries)
             .Include(c => c.HeroicConfiguration).ThenInclude(x => x!.ParagonSkillDef)
             .Include(c => c.SignatureWeapon);

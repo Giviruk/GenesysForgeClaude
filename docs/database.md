@@ -323,16 +323,28 @@ Indexes:
 Inventory item instances.
 
 Fields: `CharacterId`, `ItemDefId`, `Quantity`, `State`, implement material/configuration,
-damage/craftsmanship state, and the Lesser Rune fields `ShardActivationChoice`,
-`ShardEffectAction`, `ShardEffectChoice`, `ShardConfigured`.
+damage/craftsmanship state, the Lesser Rune fields `ShardActivationChoice`, `ShardEffectAction`,
+`ShardEffectChoice`, `ShardConfigured`, and the transport link `CarriedByMountId` /
+`IsInstalledOnMount` (ROT-TRANSPORT-01).
 
 Runebound shards are non-stackable instances (`Quantity = 1`). Lesser Rune configuration
 belongs to the instance and is immutable after it is first saved.
 
+`CarriedByMountId` (nullable, `SetNull`) means the row sits on a transport rather than on the
+character: such rows are excluded from the owner's encumbrance and from their equipped gear, which
+is why barding on a mount never protects the rider. `IsInstalledOnMount` separates installed gear
+(barding, saddlebags — changes the transport's capacity and protection) from ordinary cargo
+(occupies capacity). Deleting a transport does not delete its cargo: the link is nulled and the
+items return to the owner.
+
 ### MountDefs / MountSkills / MountAbilities / MountAttacks
 
-Purchasable mount profiles (ROT-MOUNT-ITEM-01). A mount is a creature with a statblock, not a piece
-of gear, so it is its own content type rather than a row in `ItemDefs`.
+Purchasable transport profiles — mounts and vehicles (ROT-MOUNT-ITEM-01, ROT-TRANSPORT-01). Neither
+is a piece of gear: both have a statblock, a damage threshold and a cargo capacity, so they are their
+own content type rather than rows in `ItemDefs`. `TransportKind` (`Mount`/`Vehicle`) separates the
+two; a vehicle has no characteristics, skills or attacks, and its `StrainThreshold` reads as a system
+threshold. `MovementMode` (`Ground`/`Flight`/`Wheeled`) and `RequiresTraction` describe how it moves —
+the book gives these profiles no numeric speed, so the card shows the mode instead.
 
 `MountDefs` fields: `System`, `Code` (`rot.mount.<bare>`), `Name`, `NameRu`, `Kind` (`NpcKind` —
 Minion or Rival), the six characteristics, `Soak`, `WoundThreshold`, `StrainThreshold` (null for
@@ -351,14 +363,21 @@ quality).
 
 ### CharacterMounts
 
-Mount instances owned by a character. Fields: `CharacterId`, `MountDefId`, `Name` (nickname; empty
-means the profile name is shown), `Provenance`, `WoundsCurrent`, `CarriedLoad`, `IsActive`, `Notes`,
-`CreatedAt`.
+Transport instances owned by a character — mounts and vehicles. Fields: `CharacterId`, `MountDefId`,
+`Name` (nickname; empty means the profile name is shown), `Provenance`, `WoundsCurrent`, `IsActive`,
+`Notes`, `DrawnByMountId`, `CreatedAt`.
 
 Cascades from `Characters`; the profile link is `Restrict`, so a referenced profile cannot be
-deleted out from under an instance. A mount has no encumbrance of its own and never contributes to
-the owner's carried weight — `CarriedLoad` is the mount's own cargo, kept as a number until the
-Transport section (ROT-TRANSPORT-01) introduces per-item cargo.
+deleted out from under an instance. `DrawnByMountId` is a self-reference to the draft animal pulling
+a vehicle (`SetNull`): selling the animal leaves the wagon in place without a dangling link, and a
+wagon with no traction simply does not move — it is not deleted and its cargo does not move to the
+owner. Transport has no encumbrance of its own and never contributes to the owner's carried weight;
+its cargo lives in `CharacterItems.CarriedByMountId`.
+
+`CarriedLoad` was dropped in `RotTransport01TransportSection`. It held an undescribed load number
+with no items behind it, and there was nothing to migrate it into — the owner accepted the loss
+explicitly. Load is now computed from the cargo rows (`MountRules.CargoLoad`), and capacity is the
+profile number plus any installed saddlebags.
 
 ### SpellDefs
 

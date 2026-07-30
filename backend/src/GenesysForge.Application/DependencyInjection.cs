@@ -87,6 +87,7 @@ public static class DependencyInjection
         services.AddScoped<ICommandHandler<SellMountCommand, Unit>, SellMountHandler>();
         services.AddScoped<ICommandHandler<UpdateMountCommand, Unit>, UpdateMountHandler>();
         services.AddScoped<ICommandHandler<RemoveMountCommand, Unit>, RemoveMountHandler>();
+        services.AddScoped<ICommandHandler<MoveCargoCommand, Unit>, MoveCargoHandler>();
         // Состояние повреждения и ремонт (GEN-EQP-DMG-01).
         services.AddScoped<ICommandHandler<SetItemDamageStateCommand, Unit>, SetItemDamageStateHandler>();
         services.AddScoped<ICommandHandler<RepairItemCommand, Unit>, RepairItemHandler>();
