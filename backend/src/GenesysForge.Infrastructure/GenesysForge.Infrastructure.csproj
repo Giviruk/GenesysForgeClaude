@@ -15,6 +15,7 @@
     <EmbeddedResource Include="Persistence\SeedContent\archetypes.catalog.json" />
     <EmbeddedResource Include="Persistence\SeedContent\career-extras.catalog.json" />
     <EmbeddedResource Include="Persistence\SeedContent\bestiary.catalog.json" />
+    <EmbeddedResource Include="Persistence\SeedContent\mounts.catalog.json" />
   </ItemGroup>
 
   <Target Name="VerifyPublicBuildHasNoPrivateContent" BeforeTargets="PrepareResources" Condition="'$(IncludePrivateContent)' == 'false'">

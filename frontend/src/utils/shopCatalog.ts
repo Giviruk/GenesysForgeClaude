@@ -1,4 +1,4 @@
-import type { AttachmentDef, ItemDef, Reference, ShopItemCategory } from '../api/types'
+import type { AttachmentDef, ItemDef, MountDef, Reference, ShopItemCategory } from '../api/types'
 
 export type ShopCategory =
   | 'all'
@@ -15,6 +15,9 @@ export type ShopProduct =
       category: 'weaponAttachment' | 'weaponEnchantment' | 'armorAttachment'
       attachment: AttachmentDef
     }
+  // Скакун — не запись снаряжения, а существо со статблоком (ROT-MOUNT-ITEM-01): в витрине он
+  // живёт в «Транспорте», но покупается своей командой и не становится позицией инвентаря.
+  | { key: string; type: 'mount'; category: 'transport'; mount: MountDef }
 
 export function buildShopProducts(reference: Reference): ShopProduct[] {
   const items: ShopProduct[] = reference.items.map(item => ({
@@ -31,11 +34,21 @@ export function buildShopProducts(reference: Reference): ShopProduct[] {
       : attachment.isEnchantment ? 'weaponEnchantment' : 'weaponAttachment',
     attachment,
   }))
-  return [...items, ...attachments]
+  const mounts: ShopProduct[] = (reference.mounts ?? []).map(mount => ({
+    key: `mount:${mount.id}`,
+    type: 'mount',
+    category: 'transport',
+    mount,
+  }))
+  return [...items, ...attachments, ...mounts]
 }
 
 export const productPrice = (product: ShopProduct): number | null =>
-  product.type === 'item' ? product.item.price : product.attachment.price
+  product.type === 'item' ? product.item.price
+    : product.type === 'attachment' ? product.attachment.price
+      : product.mount.price
 
 export const productRarity = (product: ShopProduct): number | null =>
-  product.type === 'item' ? product.item.rarity : product.attachment.rarity
+  product.type === 'item' ? product.item.rarity
+    : product.type === 'attachment' ? product.attachment.rarity
+      : product.mount.rarity

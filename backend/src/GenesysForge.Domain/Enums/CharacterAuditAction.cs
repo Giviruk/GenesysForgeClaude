@@ -61,4 +61,13 @@ public enum CharacterAuditAction
 
     /// <summary>Куплена или бесплатно выдана услуга; предмет в инвентаре не создаётся.</summary>
     ServiceBought,
+
+    /// <summary>Куплен или выдан скакун: создан экземпляр существа, а не позиция инвентаря (ROT-MOUNT-ITEM-01).</summary>
+    MountBought,
+
+    /// <summary>Скакун продан.</summary>
+    MountSold,
+
+    /// <summary>Скакун удалён без выручки: погиб, отпущен или заведён по ошибке.</summary>
+    MountRemoved,
 }

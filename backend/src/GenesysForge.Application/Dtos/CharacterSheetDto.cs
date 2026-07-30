@@ -75,7 +75,12 @@ public record CharacterSheetDto(
     /// Откуда персонаж берёт рейтинг эффектов заклинания (ROT-MAG-10): в RoT это Знание
     /// (предания), а «Тёмное прозрение» добавляет вторым источником Знание (запретное).
     /// </summary>
-    KnowledgeRatingDto? KnowledgeRating = null);
+    KnowledgeRatingDto? KnowledgeRating = null,
+    /// <summary>
+    /// Скакуны персонажа (ROT-MOUNT-ITEM-01). В переносимый вес не входят: это существа со
+    /// своим порогом ран и своей вместимостью, а не позиции инвентаря.
+    /// </summary>
+    IReadOnlyList<CharacterMountDto>? Mounts = null);
 
 /// <summary>Один сохранённый выбор ранга таланта (ROT-TAL-03).</summary>
 public record CharacterTalentChoiceDto(int RankIndex, TalentChoiceKind Kind, string Value, string DisplayName);

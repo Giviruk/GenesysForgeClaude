@@ -31,6 +31,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<AttachmentDef> AttachmentDefs => Set<AttachmentDef>();
     public DbSet<AttachmentEffect> AttachmentEffects => Set<AttachmentEffect>();
     public DbSet<CharacterAttachment> CharacterAttachments => Set<CharacterAttachment>();
+    public DbSet<MountDef> MountDefs => Set<MountDef>();
+    public DbSet<CharacterMount> CharacterMounts => Set<CharacterMount>();
     public DbSet<CharacterCriticalInjury> CharacterCriticalInjuries => Set<CharacterCriticalInjury>();
     public DbSet<CharacterHeroicSecondaryEffect> CharacterHeroicSecondaryEffects => Set<CharacterHeroicSecondaryEffect>();
     public DbSet<CharacterHeroicConfiguration> CharacterHeroicConfigurations => Set<CharacterHeroicConfiguration>();
@@ -111,6 +113,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             e.HasMany(c => c.Skills).WithOne().HasForeignKey(s => s.CharacterId).OnDelete(DeleteBehavior.Cascade);
             e.HasMany(c => c.Talents).WithOne().HasForeignKey(t => t.CharacterId).OnDelete(DeleteBehavior.Cascade);
             e.HasMany(c => c.Items).WithOne().HasForeignKey(i => i.CharacterId).OnDelete(DeleteBehavior.Cascade);
+            e.HasMany(c => c.Mounts).WithOne().HasForeignKey(m => m.CharacterId).OnDelete(DeleteBehavior.Cascade);
             e.HasMany(c => c.CriticalInjuries).WithOne().HasForeignKey(ci => ci.CharacterId).OnDelete(DeleteBehavior.Cascade);
             e.HasMany(c => c.HeroicSecondaryEffects).WithOne().HasForeignKey(x => x.CharacterId)
                 .OnDelete(DeleteBehavior.Cascade);
@@ -263,6 +266,47 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             e.HasMany(a => a.Effects).WithOne()
                 .HasForeignKey(x => x.AttachmentDefId).OnDelete(DeleteBehavior.Cascade);
             e.HasIndex(a => new { a.System, a.Code });
+        });
+
+        // Профили скакунов (ROT-MOUNT-ITEM-01): статблок хранится структурно, а не строкой.
+        b.Entity<MountDef>(e =>
+        {
+            e.HasMany(m => m.Skills).WithOne()
+                .HasForeignKey(x => x.MountDefId).OnDelete(DeleteBehavior.Cascade);
+            e.HasMany(m => m.Abilities).WithOne()
+                .HasForeignKey(x => x.MountDefId).OnDelete(DeleteBehavior.Cascade);
+            e.HasMany(m => m.Attacks).WithOne()
+                .HasForeignKey(x => x.MountDefId).OnDelete(DeleteBehavior.Cascade);
+            e.HasIndex(m => new { m.System, m.Code });
+        });
+
+        b.Entity<MountSkill>(e =>
+        {
+            e.HasIndex(x => x.MountDefId);
+            e.Property(x => x.Name).HasMaxLength(60);
+        });
+
+        b.Entity<MountAbility>(e =>
+        {
+            e.HasIndex(x => x.MountDefId);
+            e.Property(x => x.Name).HasMaxLength(120);
+            e.Property(x => x.NameRu).HasMaxLength(120);
+        });
+
+        b.Entity<MountAttack>(e =>
+        {
+            e.HasIndex(x => x.MountDefId);
+            e.Property(x => x.Name).HasMaxLength(120);
+            e.Property(x => x.NameRu).HasMaxLength(120);
+            e.Property(x => x.SkillName).HasMaxLength(40);
+        });
+
+        b.Entity<CharacterMount>(e =>
+        {
+            e.HasIndex(m => m.CharacterId);
+            e.Property(m => m.Name).HasMaxLength(120);
+            e.Property(m => m.Notes).HasMaxLength(2000);
+            e.HasOne(m => m.MountDef).WithMany().OnDelete(DeleteBehavior.Restrict);
         });
 
         b.Entity<AttachmentEffect>(e =>

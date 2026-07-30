@@ -11,8 +11,11 @@ public record CharacterExportDto(
     DateTime ExportedAt,
     CharacterExportData Character)
 {
-    /// <summary>Текущая версия формата: v3 переносит настройку экземпляра Lesser Rune.</summary>
-    public const string CurrentFormat = "genesysforge.character.v3";
+    /// <summary>Текущая версия формата: v4 переносит скакунов (ROT-MOUNT-ITEM-01).</summary>
+    public const string CurrentFormat = "genesysforge.character.v4";
+
+    /// <summary>v3 переносил настройку экземпляра Lesser Rune, но ещё не знал скакунов.</summary>
+    public const string LegacyFormatV3 = "genesysforge.character.v3";
 
     public const string LegacyFormatV2 = "genesysforge.character.v2";
 
@@ -20,7 +23,8 @@ public record CharacterExportDto(
     public const string LegacyFormatV1 = "genesysforge.character.v1";
 
     /// <summary>Все форматы, которые импорт умеет читать.</summary>
-    public static readonly string[] SupportedFormats = [CurrentFormat, LegacyFormatV2, LegacyFormatV1];
+    public static readonly string[] SupportedFormats =
+        [CurrentFormat, LegacyFormatV3, LegacyFormatV2, LegacyFormatV1];
 }
 
 public record CharacterExportData(
@@ -77,7 +81,10 @@ public record CharacterExportData(
     WeaponCraftsmanship? SignatureWeaponCraftsmanship = null,
     string? SignatureWeaponForm = null,
     WeaponFormTraits? SignatureWeaponTraits = null,
-    bool SignatureWeaponLost = false);
+    bool SignatureWeaponLost = false,
+    // v4: скакуны персонажа (ROT-MOUNT-ITEM-01). У файлов прежних версий их нет — там скакун мог
+    // быть только позицией инвентаря, и её переносит список Items.
+    List<CharacterMountExport>? Mounts = null);
 
 public record CharacterSkillExport(string Code, string Name, int Ranks, bool IsCareer, int FreeRanks);
 
@@ -112,3 +119,18 @@ public record CharacterItemExport(string Code, string Name, int Quantity, ItemSt
     bool ShardConfigured = false);
 
 public record CharacterNoteExport(string Title, string Body);
+
+/// <summary>
+/// Скакун в переносимом формате (ROT-MOUNT-ITEM-01). Ссылка на профиль идёт по стабильному
+/// <paramref name="Code"/> с fallback на <paramref name="Name"/>: id профиля в чужом аккаунте свой.
+/// </summary>
+/// <param name="CustomName">Кличка; пусто — показывается название профиля.</param>
+public record CharacterMountExport(
+    string Code,
+    string Name,
+    string CustomName = "",
+    int WoundsCurrent = 0,
+    int CarriedLoad = 0,
+    bool IsActive = false,
+    string Notes = "",
+    ItemProvenance Provenance = ItemProvenance.Purchased);

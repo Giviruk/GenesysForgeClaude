@@ -494,6 +494,83 @@ export interface Reference {
   qualities: Quality[]
   /** Улучшения предметов (ROT-EQP-ATT-01). */
   attachments: AttachmentDef[]
+  /** Покупаемые скакуны (ROT-MOUNT-ITEM-01): существа со статблоком, а не снаряжение. */
+  mounts: MountDef[]
+}
+
+/** Профиль покупаемого скакуна (ROT-MOUNT-ITEM-01). */
+export interface MountDef {
+  id: string
+  code: string
+  name: string
+  nameRu: string
+  kind: NpcKind
+  characteristics: Record<Characteristic, number>
+  soak: number
+  woundThreshold: number
+  /** Порог усталости; null у Minion — его у них нет. */
+  strainThreshold: number | null
+  meleeDefense: number
+  rangedDefense: number
+  silhouette: number
+  /** Вместимость профиля: приоритетнее общего правила «5 + Мощь». */
+  capacity: number
+  /** null — бесценно: обычная покупка недоступна, цену называет ведущий. */
+  price: number | null
+  rarity: number
+  /** Снаряжение, идущее вместе со скакуном: коды, локализация на клиенте. */
+  includedGear: string[]
+  /** В бою и под стрессом нужна проверка Верховой езды; сложность задаёт ведущий. */
+  requiresRidingCheck: boolean
+  skills: MountSkill[]
+  abilities: MountAbility[]
+  attacks: MountAttack[]
+  description: string
+  descriptionEn: string
+  source: string
+}
+
+export interface MountSkill {
+  name: string
+  ranks: number
+  /** Групповой навык Minion: ранг даёт группа, а не запись. */
+  isGroupSkill: boolean
+}
+
+export interface MountAbility {
+  name: string
+  nameRu: string
+  description: string
+  descriptionEn: string
+}
+
+export interface MountAttack {
+  name: string
+  nameRu: string
+  skillName: string
+  damage: number
+  critical: number
+  range: WeaponRange
+  qualityCodes: string[]
+}
+
+/** Скакун персонажа: существо со своим порогом ран, в переносимый вес не входит. */
+export interface CharacterMount {
+  id: string
+  mountDefId: string
+  /** Кличка, если задана, иначе название профиля. */
+  displayName: string
+  name: string
+  definition: MountDef
+  woundsCurrent: number
+  carriedLoad: number
+  capacity: number
+  isActive: boolean
+  isOverloaded: boolean
+  /** Раны достигли порога профиля — скакун выведен из строя. */
+  isIncapacitated: boolean
+  provenance: ItemProvenance
+  notes: string
 }
 
 export interface CustomArchetypeInput {
@@ -1560,6 +1637,8 @@ export interface CharacterSheet {
   startingPurchaseBudget: number
   /** Откуда персонаж берёт рейтинг эффектов заклинания (ROT-MAG-10). */
   knowledgeRating: KnowledgeRating | null
+  /** Скакуны персонажа (ROT-MOUNT-ITEM-01): в переносимый вес не входят. */
+  mounts: CharacterMount[]
 }
 
 /**

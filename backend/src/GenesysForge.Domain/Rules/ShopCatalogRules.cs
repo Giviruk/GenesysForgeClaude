@@ -21,12 +21,11 @@ public static class ShopCatalogRules
         "wine-bottle",
     ];
 
+    // Скакуны в этом списке больше не нужны: они не записи снаряжения, а собственный тип контента
+    // со статблоком (ROT-MOUNT-ITEM-01), и витрина берёт их из каталога скакунов. Здесь остаётся
+    // транспортное снаряжение — то, что действительно лежит в инвентаре.
     private static readonly HashSet<string> TransportCodes =
     [
-        "beast-of-burden",
-        "riding-beast",
-        "flying-mount",
-        "war-mount",
         "wagon",
         "barding",
         "saddlebags",

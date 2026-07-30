@@ -165,7 +165,10 @@ public static class SheetBuilder
             [.. c.Attachments.Where(a => a.AttachmentDef is not null)
                 .OrderBy(a => a.AttachmentDef!.NameRu, StringComparer.Ordinal)
                 .Select(a => AttachmentDto(a, availableFunds))],
-            knowledgeRating);
+            knowledgeRating,
+            [.. c.Mounts.Where(m => m.MountDef is not null)
+                .OrderBy(m => m.CreatedAt)
+                .Select(MountMapper.InstanceDto)]);
     }
 
     /// <summary>

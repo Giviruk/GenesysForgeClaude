@@ -319,6 +319,45 @@ export const api = {
   removeItem: (id: string, itemId: string) =>
     request<void>('DELETE', `/api/characters/${id}/items/${itemId}`),
 
+  // ── Скакуны (ROT-MOUNT-ITEM-01) ──
+  /**
+   * Покупает или выдаёт скакуна: создаётся существо со статблоком, а не строка инвентаря.
+   * Способы оплаты те же, что у предметов: `free` — выдача без оплаты, `pricePercent` — торг,
+   * `priceOverride` с `overrideReason` — договорная цена. Сумму считает сервер.
+   */
+  buyMount: (id: string, mountDefId: string,
+    opts?: {
+      free?: boolean
+      priceOverride?: number
+      overrideReason?: string
+      pricePercent?: number
+      name?: string
+    }) =>
+    request<{ id: string }>('POST', `/api/characters/${id}/mounts`, { mountDefId, ...opts }),
+  /** Кличка, раны, груз, «под седлом» и заметка. Присланные поля меняются, остальные остаются. */
+  updateMount: (id: string, mountId: string, patch: {
+    name?: string
+    woundsCurrent?: number
+    carriedLoad?: number
+    isActive?: boolean
+    notes?: string
+  }) =>
+    request<void>('PATCH', `/api/characters/${id}/mounts/${mountId}`, patch),
+  /** Продажа скакуна: те же три способа, что у предметов, сумму считает сервер. */
+  sellMount: (id: string, mountId: string,
+    opts?: {
+      netSuccesses?: number
+      percent?: number
+      priceOverride?: number
+      overrideReason?: string
+      conditionMultiplier?: number
+      conditionReason?: string
+    }) =>
+    request<void>('POST', `/api/characters/${id}/mounts/${mountId}/sell`, opts ?? {}),
+  /** Удаляет скакуна без выручки: погиб, отпущен или заведён по ошибке. */
+  removeMount: (id: string, mountId: string) =>
+    request<void>('DELETE', `/api/characters/${id}/mounts/${mountId}`),
+
   // Критические ранения (U-23): из таблицы U-11 (ruleCode) или вручную (nameRu).
   addCriticalInjury: (id: string, body: { ruleCode?: string; nameRu?: string; severity?: string; rollResult?: number; notes?: string }) =>
     request<{ id: string }>('POST', `/api/characters/${id}/critical-injuries`, body),

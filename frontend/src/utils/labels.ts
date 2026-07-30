@@ -219,6 +219,20 @@ export const NPC_KIND_LABELS: Record<NpcKind, string> = t({
   nemesis: 'Nemesis',
 })
 
+/**
+ * Снаряжение, идущее вместе со скакуном (ROT-MOUNT-ITEM-01). Каталог хранит коды, подписи живут
+ * здесь: неизвестный код показывается как есть, а не прячется.
+ */
+export const MOUNT_GEAR_LABELS: Record<string, string> = t({
+  'harness': 'упряжь',
+  'riding-tack': 'верховая сбруя',
+}, {
+  'harness': 'harness',
+  'riding-tack': 'riding tack',
+})
+
+export const mountGearLabel = (code: string): string => MOUNT_GEAR_LABELS[code] ?? code
+
 export const NPC_ROLE_LABELS: Record<NpcRole, string> = t({
   brute: 'Громила',
   skirmisher: 'Застрельщик',

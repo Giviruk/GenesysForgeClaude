@@ -3,8 +3,8 @@
 - **Roadmap:** U-31 — Исправление прогрессии героических способностей RoT (см. [unified-roadmap.md](../unified-roadmap.md))
 - **Ветка:** `feature/heroic-ability-rules`
 - **Базовая ветка:** `master`
-- **PR:** #97
-- **Статус:** 🚧 In progress
+- **PR:** [#97](https://github.com/Giviruk/GenesysForgeClaude/pull/97)
+- **Статус:** ✅ Done (PR #97)
 
 ## Контекст
 
@@ -33,7 +33,7 @@ Improved/Supreme. По правилам RoT очки начисляются за
 
 ## Что осталось / блокеры
 
-Блокеров нет. Draft PR #97 открыт; после review/merge статус U-31 можно перевести в Done.
+Блокеров нет. PR #97 влит в master 26.07.2026 — задача закрыта.
 
 ## Заметки / решения
 

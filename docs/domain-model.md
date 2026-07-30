@@ -174,6 +174,28 @@ Rules:
 - Lesser Rune configuration is immutable and follows the instance through duplicate and
   character v3 export/import.
 
+### MountDef / CharacterMount
+
+Fields (`MountDef`): `Code`, `Name`, `NameRu`, `Kind` (Minion or Rival), six characteristics,
+`Soak`, `WoundThreshold`, `StrainThreshold` (null — neither Minion nor Rival has one),
+`MeleeDefense`, `RangedDefense`, `Silhouette`, `Capacity`, `Price` (null = priceless), `Rarity`,
+`IncludedGear`, `RequiresRidingCheck`, plus `Skills`, `Abilities` and `Attacks`.
+
+Fields (`CharacterMount`): `CharacterId`, `MountDefId`, `Name` (nickname), `Provenance`,
+`WoundsCurrent`, `CarriedLoad`, `IsActive`, `Notes`.
+
+Rules (`MountRules`, ROT-MOUNT-ITEM-01):
+
+- A mount is a creature, not an item: it has no encumbrance and never adds to the owner's carried
+  weight. Buying one creates a `CharacterMount`, never a `CharacterItem`.
+- `Capacity` from the profile wins over the generic `5 + Brawn` rule; a profile without its own
+  number falls back to the generic rule.
+- Wounds are clamped to `0..WoundThreshold`; at the threshold the mount is incapacitated.
+- Cargo above capacity is kept and flagged as overloaded rather than rejected — the GM decides.
+- Purchase accepts the same payment modes as items (free grant, haggled percent, own price with a
+  reason) and sale the same three modes; the server computes every sum.
+- A mount carrying cargo cannot be sold until it is unloaded, so no cargo is left without an owner.
+
 ## Value objects found in code
 
 - `CharacteristicsSet`
@@ -195,6 +217,7 @@ Rules:
 - CharacterSkill references SkillDef.
 - CharacterTalent references TalentDef.
 - CharacterItem references ItemDef.
+- Character has many mounts; CharacterMount references MountDef (ROT-MOUNT-ITEM-01).
 
 ## Business rules implemented in code
 

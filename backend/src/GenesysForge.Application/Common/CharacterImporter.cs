@@ -209,6 +209,37 @@ public static class CharacterImporter
             }
         }
 
+        // Скакуны (ROT-MOUNT-ITEM-01, файлы v4). Профиль ищется по стабильному коду с fallback на
+        // имя; ненайденный не выдумывается, а называется в предупреждении. Раны и груз приводятся к
+        // границам профиля — файл мог прийти с любым числом.
+        foreach (var m in data.Mounts ?? [])
+        {
+            var def = await ResolveMountAsync(db, userId, system, m.Code, m.Name, ct);
+            if (def is null)
+            {
+                warnings.Add($"Скакун «{Display(m.Name, m.Code)}» не найден — пропущен.");
+                continue;
+            }
+
+            var load = Math.Max(0, m.CarriedLoad);
+            if (load > MountRules.Capacity(def))
+                warnings.Add(
+                    $"У скакуна «{def.Name}» груз {load} больше вместимости {MountRules.Capacity(def)} — "
+                    + "перегруз сохранён как есть.");
+
+            character.Mounts.Add(new CharacterMount
+            {
+                Id = Guid.NewGuid(),
+                MountDefId = def.Id,
+                Name = (m.CustomName ?? "").Trim(),
+                WoundsCurrent = MountRules.ClampWounds(def, m.WoundsCurrent),
+                CarriedLoad = load,
+                IsActive = m.IsActive,
+                Notes = m.Notes ?? "",
+                Provenance = ItemProvenance.Imported,
+            });
+        }
+
         // Файл мог быть собран до правил о руках и броне: лишнее не выбрасывается, а перестаёт
         // считаться используемым — с предупреждением, чтобы владелец сам решил, что взять (ROT-EQP-01).
         var kept = new List<EquippedItemInput>();
@@ -506,6 +537,19 @@ public static class CharacterImporter
         if (def is null && !string.IsNullOrWhiteSpace(name))
             def = await db.ItemDefs.FirstOrDefaultAsync(
                 i => i.System == system && i.Name == name && (i.OwnerUserId == null || i.OwnerUserId == userId), ct);
+        return def;
+    }
+
+    private static async Task<MountDef?> ResolveMountAsync(
+        IAppDbContext db, Guid userId, GameSystem system, string? code, string? name, CancellationToken ct)
+    {
+        MountDef? def = null;
+        if (!string.IsNullOrWhiteSpace(code))
+            def = await db.MountDefs.FirstOrDefaultAsync(m => m.System == system && m.Code == code, ct);
+        if (def is null && !string.IsNullOrWhiteSpace(name))
+            def = await db.MountDefs.FirstOrDefaultAsync(
+                m => m.System == system && m.Name == name
+                    && (m.OwnerUserId == null || m.OwnerUserId == userId), ct);
         return def;
     }
 
