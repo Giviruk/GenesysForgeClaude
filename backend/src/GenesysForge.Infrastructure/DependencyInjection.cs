@@ -24,7 +24,14 @@ public static class DependencyInjection
                 options.UseInMemoryDatabase(config["InMemoryDatabaseName"] ?? "genesysforge-tests");
             else
                 options.UseNpgsql(config.GetConnectionString("Default")
-                    ?? "Host=localhost;Port=5432;Database=genesysforge;Username=genesys;Password=genesys_dev");
+                    ?? "Host=localhost;Port=5432;Database=genesysforge;Username=genesys;Password=genesys_dev",
+                    // Лист персонажа грузится одним запросом с десятком Include'ов коллекций
+                    // (навыки, таланты, предметы, улучшения, транспорт). В режиме по умолчанию EF
+                    // склеивает их LEFT JOIN'ами в одну выборку, и строки перемножаются: у персонажа
+                    // с 40 предметами, 20 талантами, 3 единицами транспорта и 5 улучшениями это
+                    // 7 360 000 строк вместо примерно двухсот — и в каждой едут все описания
+                    // справочника. Раздельные запросы делают каждую коллекцию линейной по себе.
+                    o => o.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery));
         });
         services.AddScoped<IAppDbContext>(sp => sp.GetRequiredService<AppDbContext>());
 

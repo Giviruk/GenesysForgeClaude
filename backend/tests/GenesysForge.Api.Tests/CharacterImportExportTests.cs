@@ -64,7 +64,7 @@ public class CharacterImportExportTests : IClassFixture<ApiFactory>
         Assert.Equal(export.Character.System, sheet.System);
         Assert.Equal(export.Character.Characteristics["brawn"], sheet.Characteristics["brawn"]);
         Assert.Equal(export.Character.TotalXp, sheet.TotalXp);
-        Assert.Contains(sheet.Items, i => i.Quantity == 2);
+        Assert.Contains(sheet.Items!, i => i.Quantity == 2);
     }
 
     [Fact]

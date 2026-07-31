@@ -241,7 +241,7 @@ public class CharacterFlowTests : IClassFixture<ApiFactory>
         Assert.Equal(before.Archetype.Id, copy.Archetype.Id);
         Assert.Equal(before.Career.Id, copy.Career.Id);
         Assert.Equal(1, copy.Skills.First(s => s.SkillDefId == skill.SkillDefId).Ranks);
-        Assert.Contains(copy.Items, i => i.ItemDefId == item.Id && i.Quantity == 2 && i.State == ItemState.Carried);
+        Assert.Contains(copy.Items!, i => i.ItemDefId == item.Id && i.Quantity == 2 && i.State == ItemState.Carried);
 
         var notes = (await client.GetFromJsonAsync<List<CharacterNoteDto>>($"/api/characters/{copyId}/notes/", Json.Options))!;
         Assert.Single(notes);
@@ -330,7 +330,7 @@ public class CharacterFlowTests : IClassFixture<ApiFactory>
         Assert.Equal(HttpStatusCode.NoContent, allowed.StatusCode);
 
         var sheet = await SheetAsync(client, id);
-        Assert.Equal(2, sheet.TalentTierCounts[1]);
+        Assert.Equal(2, sheet.TalentTierCounts![1]);
         Assert.Equal(1, sheet.TalentTierCounts[2]);
         Assert.Equal(5 + 5 + 10, sheet.SpentXp);
     }
@@ -347,7 +347,7 @@ public class CharacterFlowTests : IClassFixture<ApiFactory>
 
         Assert.Equal(before.Derived.StrainThreshold + 1, after.Derived.StrainThreshold);
         // лист отдаёт пассивные бонусы таланта — для детального отображения на клиенте
-        var owned = after.Talents.First(t => t.Name == "Grit");
+        var owned = after.Talents!.First(t => t.Name == "Grit");
         Assert.Equal(1, owned.StrainBonus);
         Assert.Equal(0, owned.WoundBonus);
     }
@@ -382,13 +382,13 @@ public class CharacterFlowTests : IClassFixture<ApiFactory>
             new AddItemRequest(plate.Id, 1, ItemState.Backpack, Free: true));
         Assert.Equal(HttpStatusCode.Created, add.StatusCode);
         var inBackpack = await SheetAsync(client, id);
-        Assert.Contains(inBackpack.Items, i => i.ItemDefId == plate.Id && i.NameRu == plate.NameRu);
+        Assert.Contains(inBackpack.Items!, i => i.ItemDefId == plate.Id && i.NameRu == plate.NameRu);
         // Дельты относительно стартового снаряжения карьеры (RoT-карьеры выдают экипировку при создании).
         Assert.Equal(before.Derived.Soak, inBackpack.Derived.Soak);
         Assert.Equal(before.Derived.EncumbranceLoad + plate.Encumbrance, inBackpack.Derived.EncumbranceLoad);
 
         // Надеть: +поглощение, +защита, вес −3
-        var itemId = inBackpack.Items.First(i => i.ItemDefId == plate.Id).Id;
+        var itemId = inBackpack.Items!.First(i => i.ItemDefId == plate.Id).Id;
         await client.PatchAsJsonAsync($"/api/characters/{id}/items/{itemId}", new UpdateItemRequest(ItemState.Equipped, null), Json.Options);
         var equipped = await SheetAsync(client, id);
         Assert.Equal(before.Derived.Soak + plate.SoakBonus, equipped.Derived.Soak);

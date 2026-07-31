@@ -78,7 +78,7 @@ public class GenDamageStateApiTests(ApiFactory factory) : IClassFixture<ApiFacto
         var sword = Item(reference, "Sword", ItemKind.Weapon);
         var itemId = await AddItemAsync(client, id, sword.Id);
 
-        var item = (await SheetAsync(client, id)).Items.Single(i => i.Id == itemId);
+        var item = (await SheetAsync(client, id)).Items!.Single(i => i.Id == itemId);
 
         Assert.Equal(ItemDamageState.Undamaged, item.DamageState);
         Assert.True(item.IsUsable);
@@ -101,7 +101,7 @@ public class GenDamageStateApiTests(ApiFactory factory) : IClassFixture<ApiFacto
 
         Assert.Equal(HttpStatusCode.NoContent, (await SetStateAsync(client, id, itemId, state)).StatusCode);
 
-        var item = (await SheetAsync(client, id)).Items.Single(i => i.Id == itemId);
+        var item = (await SheetAsync(client, id)).Items!.Single(i => i.Id == itemId);
         Assert.Equal(state, item.DamageState);
         Assert.True(item.Repair!.CanRepair);
         Assert.Equal(difficulty, item.Repair.Difficulty);
@@ -122,7 +122,7 @@ public class GenDamageStateApiTests(ApiFactory factory) : IClassFixture<ApiFacto
         var itemId = await AddItemAsync(client, id, sword.Id, craftsmanship: WeaponCraftsmanship.Ancient);
         await SetStateAsync(client, id, itemId, ItemDamageState.Major);
 
-        var item = (await SheetAsync(client, id)).Items.Single(i => i.Id == itemId);
+        var item = (await SheetAsync(client, id)).Items!.Single(i => i.Id == itemId);
         Assert.Equal(sword.Price * 20, item.Price);
         Assert.Equal(sword.Price * 20, item.Repair!.MaterialCost);
     }
@@ -162,7 +162,7 @@ public class GenDamageStateApiTests(ApiFactory factory) : IClassFixture<ApiFacto
         {
             await SetStateAsync(client, id, itemId, state);
             var sheet = await SheetAsync(client, id);
-            var item = sheet.Items.Single(i => i.Id == itemId);
+            var item = sheet.Items!.Single(i => i.Id == itemId);
             Assert.True(item.IsUsable);
             Assert.Equal(plate.SoakBonus, item.SoakBonus);
         }
@@ -178,12 +178,12 @@ public class GenDamageStateApiTests(ApiFactory factory) : IClassFixture<ApiFacto
         var before = await SheetAsync(client, id);
         var soakBefore = before.Derived.Soak;
         var loadBefore = before.Derived.EncumbranceLoad;
-        Assert.True(before.Items.Single(i => i.Id == itemId).SoakBonus > 0);
+        Assert.True(before.Items!.Single(i => i.Id == itemId).SoakBonus > 0);
 
         await SetStateAsync(client, id, itemId, ItemDamageState.Major);
 
         var after = await SheetAsync(client, id);
-        var item = after.Items.Single(i => i.Id == itemId);
+        var item = after.Items!.Single(i => i.Id == itemId);
         Assert.False(item.IsUsable);
         Assert.Equal(0, item.SoakBonus);
         Assert.Equal(0, item.MeleeDefense);
@@ -206,7 +206,7 @@ public class GenDamageStateApiTests(ApiFactory factory) : IClassFixture<ApiFacto
 
         var sheet = await SheetAsync(client, id);
         Assert.Null(sheet.ActiveArmorCharacterItemId);
-        Assert.False(sheet.Items.Single(i => i.Id == itemId).IsActiveArmor);
+        Assert.False(sheet.Items!.Single(i => i.Id == itemId).IsActiveArmor);
     }
 
     [Fact]
@@ -223,12 +223,12 @@ public class GenDamageStateApiTests(ApiFactory factory) : IClassFixture<ApiFacto
         await SetStateAsync(client, id, itemId, ItemDamageState.Major);
 
         var after = await SheetAsync(client, id);
-        var item = after.Items.Single(i => i.Id == itemId);
+        var item = after.Items!.Single(i => i.Id == itemId);
         Assert.Equal(0, item.EncumbranceThresholdBonus);
         Assert.Equal(thresholdBefore - container.EncumbranceThresholdBonus,
             after.Derived.EncumbranceThreshold);
         // Сам мешок остался в инвентаре: содержимое не теряется вместе с бонусом.
-        Assert.Equal(before.Items.Count, after.Items.Count);
+        Assert.Equal(before.Items!.Count, after.Items!.Count);
     }
 
     // ── Пул атаки ──
@@ -240,7 +240,7 @@ public class GenDamageStateApiTests(ApiFactory factory) : IClassFixture<ApiFacto
         var itemId = await AddItemAsync(client, id, Item(reference, "Sword", ItemKind.Weapon).Id);
         await SetStateAsync(client, id, itemId, ItemDamageState.Minor);
 
-        var item = (await SheetAsync(client, id)).Items.Single(i => i.Id == itemId);
+        var item = (await SheetAsync(client, id)).Items!.Single(i => i.Id == itemId);
         var pool = item.AttackProfiles!.Single(p => p.IsDefault).PoolModifiers!;
 
         Assert.Equal(1, pool.Setback);
@@ -255,7 +255,7 @@ public class GenDamageStateApiTests(ApiFactory factory) : IClassFixture<ApiFacto
         var itemId = await AddItemAsync(client, id, Item(reference, "Sword", ItemKind.Weapon).Id);
         await SetStateAsync(client, id, itemId, ItemDamageState.Moderate);
 
-        var pool = (await SheetAsync(client, id)).Items.Single(i => i.Id == itemId)
+        var pool = (await SheetAsync(client, id)).Items!.Single(i => i.Id == itemId)
             .AttackProfiles!.Single(p => p.IsDefault).PoolModifiers!;
 
         Assert.Equal(0, pool.Setback);
@@ -278,7 +278,7 @@ public class GenDamageStateApiTests(ApiFactory factory) : IClassFixture<ApiFacto
         Assert.Equal(HttpStatusCode.NoContent, (await RepairAsync(client, id, itemId)).StatusCode);
 
         var sheet = await SheetAsync(client, id);
-        var item = sheet.Items.Single(i => i.Id == itemId);
+        var item = sheet.Items!.Single(i => i.Id == itemId);
         Assert.Equal(ItemDamageState.Undamaged, item.DamageState);
         Assert.True(item.IsUsable);
         Assert.Equal(before - expected, Funds(sheet));
@@ -316,7 +316,7 @@ public class GenDamageStateApiTests(ApiFactory factory) : IClassFixture<ApiFacto
 
         var sheet = await SheetAsync(client, id);
         Assert.Equal(before, Funds(sheet));
-        Assert.Equal(ItemDamageState.Undamaged, sheet.Items.Single(i => i.Id == itemId).DamageState);
+        Assert.Equal(ItemDamageState.Undamaged, sheet.Items!.Single(i => i.Id == itemId).DamageState);
     }
 
     [Fact]
@@ -335,8 +335,8 @@ public class GenDamageStateApiTests(ApiFactory factory) : IClassFixture<ApiFacto
 
         var sheet = await SheetAsync(client, id);
         Assert.Equal(before, Funds(sheet));
-        Assert.Equal(ItemDamageState.Major, sheet.Items.Single(i => i.Id == itemId).DamageState);
-        Assert.False(sheet.Items.Single(i => i.Id == itemId).Repair!.Affordable);
+        Assert.Equal(ItemDamageState.Major, sheet.Items!.Single(i => i.Id == itemId).DamageState);
+        Assert.False(sheet.Items!.Single(i => i.Id == itemId).Repair!.Affordable);
     }
 
     [Fact]
@@ -354,7 +354,7 @@ public class GenDamageStateApiTests(ApiFactory factory) : IClassFixture<ApiFacto
 
         var sheet = await SheetAsync(client, id);
         Assert.Equal(before, Funds(sheet));
-        var item = sheet.Items.Single(i => i.Id == itemId);
+        var item = sheet.Items!.Single(i => i.Id == itemId);
         Assert.Equal(ItemDamageState.Destroyed, item.DamageState);
         Assert.False(item.Repair!.CanRepair);
     }
@@ -405,7 +405,7 @@ public class GenDamageStateApiTests(ApiFactory factory) : IClassFixture<ApiFacto
         await client.PostAsJsonAsync($"/api/characters/{id}/attachments/install",
             new InstallAttachmentRequest(attachmentId, hostId), Json.Options);
 
-        var installed = (await SheetAsync(client, id)).Items.Single(i => i.Id == hostId);
+        var installed = (await SheetAsync(client, id)).Items!.Single(i => i.Id == hostId);
         Assert.Contains(installed.AttackProfiles!.Single(p => p.IsDefault).Qualities,
             q => q.Code == "pierce");
         var usedSlots = installed.UsedHardPoints;
@@ -414,7 +414,7 @@ public class GenDamageStateApiTests(ApiFactory factory) : IClassFixture<ApiFacto
             $"/api/characters/{id}/attachments/{attachmentId}/damage-state",
             new SetItemDamageStateRequest(ItemDamageState.Major), Json.Options)).StatusCode);
 
-        var after = (await SheetAsync(client, id)).Items.Single(i => i.Id == hostId);
+        var after = (await SheetAsync(client, id)).Items!.Single(i => i.Id == hostId);
         Assert.DoesNotContain(after.AttackProfiles!.Single(p => p.IsDefault).Qualities,
             q => q.Code == "pierce");
         // Слот освобождает снятие, а не поломка.
@@ -436,7 +436,7 @@ public class GenDamageStateApiTests(ApiFactory factory) : IClassFixture<ApiFacto
 
         await SetStateAsync(client, id, hostId, ItemDamageState.Major);
 
-        var item = (await SheetAsync(client, id)).Items.Single(i => i.Id == hostId);
+        var item = (await SheetAsync(client, id)).Items!.Single(i => i.Id == hostId);
         Assert.DoesNotContain(item.AttackProfiles!.Single(p => p.IsDefault).Qualities,
             q => q.Code == "pierce");
     }
@@ -485,6 +485,6 @@ public class GenDamageStateApiTests(ApiFactory factory) : IClassFixture<ApiFacto
         var result = (await imported.Content.ReadFromJsonAsync<ImportCharacterResult>(Json.Options))!;
 
         var sheet = await SheetAsync(client, result.CharacterId);
-        Assert.Equal(ItemDamageState.Moderate, sheet.Items.Single().DamageState);
+        Assert.Equal(ItemDamageState.Moderate, sheet.Items!.Single().DamageState);
     }
 }

@@ -90,7 +90,7 @@ public class RotImplementApiTests(ApiFactory factory) : IClassFixture<ApiFactory
         var staff = Implement(reference, "magic-staff");
         var itemId = await AddAsync(client, id, staff.Id, material);
 
-        var item = (await SheetAsync(client, id)).Items.Single(i => i.Id == itemId);
+        var item = (await SheetAsync(client, id)).Items!.Single(i => i.Id == itemId);
         Assert.Equal(material, item.Implement!.Material);
         Assert.Equal(price, item.Price);
         Assert.Equal(rarity, item.Rarity);
@@ -121,7 +121,7 @@ public class RotImplementApiTests(ApiFactory factory) : IClassFixture<ApiFactory
                 Material: ImplementMaterial.Willow), Json.Options);
 
         Assert.Equal(HttpStatusCode.BadRequest, resp.StatusCode);
-        Assert.Empty((await SheetAsync(client, id)).Items);
+        Assert.Empty((await SheetAsync(client, id)).Items!);
     }
 
     [Fact]
@@ -131,7 +131,7 @@ public class RotImplementApiTests(ApiFactory factory) : IClassFixture<ApiFactory
         var sword = reference.Items.Single(i => i.Name == "Sword" && i.Kind == ItemKind.Weapon);
         var itemId = await AddAsync(client, id, sword.Id);
 
-        Assert.Null((await SheetAsync(client, id)).Items.Single(i => i.Id == itemId).Implement);
+        Assert.Null((await SheetAsync(client, id)).Items!.Single(i => i.Id == itemId).Implement);
     }
 
     // ── Механика инструмента на листе ──
@@ -142,7 +142,7 @@ public class RotImplementApiTests(ApiFactory factory) : IClassFixture<ApiFactory
         var (client, id, reference) = await CreateCharacterAsync();
         var scepterId = await AddAsync(client, id, Implement(reference, "magic-scepter").Id);
 
-        var implement = (await SheetAsync(client, id)).Items.Single(i => i.Id == scepterId).Implement!;
+        var implement = (await SheetAsync(client, id)).Items!.Single(i => i.Id == scepterId).Implement!;
         Assert.Equal("magic-scepter", implement.Code);
         Assert.Equal(2, implement.AttackDamageBonus);
         Assert.Equal(1, implement.BoostDice);
@@ -156,7 +156,7 @@ public class RotImplementApiTests(ApiFactory factory) : IClassFixture<ApiFactory
         var (client, id, reference) = await CreateCharacterAsync();
         var itemId = await AddAsync(client, id, Implement(reference, "musical-instrument").Id);
 
-        var implement = (await SheetAsync(client, id)).Items.Single(i => i.Id == itemId).Implement!;
+        var implement = (await SheetAsync(client, id)).Items!.Single(i => i.Id == itemId).Implement!;
         Assert.Equal("Verse", implement.RequiredMagicSkill);
         Assert.Contains("Additional Target", implement.DiscountEffects);
     }
@@ -193,7 +193,7 @@ public class RotImplementApiTests(ApiFactory factory) : IClassFixture<ApiFactory
             new UpdateItemRequest(ItemState.Equipped, null), Json.Options)).StatusCode);
 
         var sheet = await SheetAsync(client, id);
-        Assert.Single(sheet.Items.Where(i => i.Implement != null && i.State == ItemState.Equipped));
+        Assert.Single(sheet.Items!.Where(i => i.Implement != null && i.State == ItemState.Equipped));
     }
 
     /// <summary>Обычное снаряжение под это правило не попадает: верёвок можно нести сколько угодно.</summary>
@@ -218,7 +218,7 @@ public class RotImplementApiTests(ApiFactory factory) : IClassFixture<ApiFactory
         var (client, id, reference) = await CreateCharacterAsync();
         var tomeId = await AddAsync(client, id, Implement(reference, "magic-tome").Id);
 
-        var pending = (await SheetAsync(client, id)).Items.Single(i => i.Id == tomeId).Implement!;
+        var pending = (await SheetAsync(client, id)).Items!.Single(i => i.Id == tomeId).Implement!;
         Assert.True(pending.Pending);
         Assert.Empty(pending.ChosenEffects);
         Assert.Equal(2, pending.ChoiceCount);
@@ -228,7 +228,7 @@ public class RotImplementApiTests(ApiFactory factory) : IClassFixture<ApiFactory
             new SetImplementConfigurationRequest(["Range", "Additional Target"]), Json.Options);
         Assert.Equal(HttpStatusCode.NoContent, resp.StatusCode);
 
-        var configured = (await SheetAsync(client, id)).Items.Single(i => i.Id == tomeId).Implement!;
+        var configured = (await SheetAsync(client, id)).Items!.Single(i => i.Id == tomeId).Implement!;
         Assert.False(configured.Pending);
         Assert.Equal(["Range", "Additional Target"], configured.ChosenEffects);
     }
@@ -247,7 +247,7 @@ public class RotImplementApiTests(ApiFactory factory) : IClassFixture<ApiFactory
         var ok = await client.PutAsJsonAsync($"/api/characters/{id}/items/{wandId}/implement",
             new SetImplementConfigurationRequest(["Range"]), Json.Options);
         Assert.Equal(HttpStatusCode.NoContent, ok.StatusCode);
-        Assert.True((await SheetAsync(client, id)).Items
+        Assert.True((await SheetAsync(client, id)).Items!
             .Single(i => i.Id == wandId).Implement!.ChosenEffects.Contains("Range"));
     }
 
@@ -351,7 +351,7 @@ public class RotImplementApiTests(ApiFactory factory) : IClassFixture<ApiFactory
         var imported = await client.PostAsJsonAsync("/api/characters/import", export, Json.Options);
         var result = (await imported.Content.ReadFromJsonAsync<ImportCharacterResult>(Json.Options))!;
 
-        var copy = (await SheetAsync(client, result.CharacterId)).Items.Single();
+        var copy = (await SheetAsync(client, result.CharacterId)).Items!.Single();
         Assert.Equal(ImplementMaterial.Willow, copy.Implement!.Material);
         Assert.Equal(["Range"], copy.Implement.ChosenEffects);
         Assert.False(copy.Implement.Pending);

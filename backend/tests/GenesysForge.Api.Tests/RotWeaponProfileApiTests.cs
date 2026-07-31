@@ -54,7 +54,7 @@ public class RotWeaponProfileApiTests(ApiFactory factory) : IClassFixture<ApiFac
 
         var sheet = await SheetAsync(client, id);
         var brawn = sheet.Characteristics["brawn"];
-        var item = sheet.Items.Single(i => i.ItemDefId == dagger.Id);
+        var item = sheet.Items!.Single(i => i.ItemDefId == dagger.Id);
 
         var melee = item.AttackProfiles!.Single(p => p.IsDefault);
         var thrown = item.AttackProfiles!.Single(p => p.Code == "thrown");
@@ -95,14 +95,14 @@ public class RotWeaponProfileApiTests(ApiFactory factory) : IClassFixture<ApiFac
         Assert.Equal(HttpStatusCode.NoContent, (await SetThrownAsync(client, id, itemId, true)).StatusCode);
 
         var thrown = await SheetAsync(client, id);
-        var item = thrown.Items.Single(i => i.Id == itemId);
+        var item = thrown.Items!.Single(i => i.Id == itemId);
         Assert.True(item.IsThrown);
         // Топорик не исчез — он лежит у цели и просто не висит на персонаже.
         Assert.Equal(loadBefore - 1, thrown.Derived.EncumbranceLoad);
 
         Assert.Equal(HttpStatusCode.NoContent, (await SetThrownAsync(client, id, itemId, false)).StatusCode);
         var recovered = await SheetAsync(client, id);
-        Assert.False(recovered.Items.Single(i => i.Id == itemId).IsThrown);
+        Assert.False(recovered.Items!.Single(i => i.Id == itemId).IsThrown);
         Assert.Equal(loadBefore, recovered.Derived.EncumbranceLoad);
     }
 

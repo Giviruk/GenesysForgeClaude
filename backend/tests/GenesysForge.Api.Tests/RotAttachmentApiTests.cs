@@ -154,14 +154,14 @@ public class RotAttachmentApiTests(ApiFactory factory) : IClassFixture<ApiFactor
         var razor = await BuyAttachmentAsync(client, id, Attachment(reference, "razor-edge").Id);
 
         var before = await SheetAsync(client, id);
-        var beforeItem = before.Items.Single(i => i.Id == hostId);
+        var beforeItem = before.Items!.Single(i => i.Id == hostId);
         Assert.Equal(0, beforeItem.UsedHardPoints);
         Assert.Equal(2, beforeItem.AttackProfiles!.Single(p => p.IsDefault).Crit);
 
         Assert.Equal(HttpStatusCode.NoContent, (await InstallAsync(client, id, razor, hostId)).StatusCode);
 
         var after = await SheetAsync(client, id);
-        var item = after.Items.Single(i => i.Id == hostId);
+        var item = after.Items!.Single(i => i.Id == hostId);
         Assert.Equal(1, item.UsedHardPoints);
         Assert.Single(item.Attachments!);
         // Бритвенная кромка: Проникающее 2 у оружия без него и крит на единицу меньше.
@@ -181,12 +181,12 @@ public class RotAttachmentApiTests(ApiFactory factory) : IClassFixture<ApiFactor
         var head = await BuyAttachmentAsync(client, id, Attachment(reference, "weighted-head").Id);
 
         var before = await SheetAsync(client, id);
-        var baseDamage = before.Items.Single(i => i.Id == hostId)
+        var baseDamage = before.Items!.Single(i => i.Id == hostId)
             .AttackProfiles!.Single(p => p.IsDefault).BaseDamage;
 
         Assert.Equal(HttpStatusCode.NoContent, (await InstallAsync(client, id, head, hostId)).StatusCode);
 
-        var profile = (await SheetAsync(client, id)).Items.Single(i => i.Id == hostId)
+        var profile = (await SheetAsync(client, id)).Items!.Single(i => i.Id == hostId)
             .AttackProfiles!.Single(p => p.IsDefault);
         Assert.Equal(baseDamage + 2, profile.BaseDamage);
         Assert.Contains(profile.Qualities, q => q.Code == "cumbersome" && q.Rating == 2);
@@ -231,7 +231,7 @@ public class RotAttachmentApiTests(ApiFactory factory) : IClassFixture<ApiFactor
         Assert.Equal(1, sheet.Skills.Single(s => s.Name == "Leadership").BoostDice);
         Assert.Equal(0, sheet.Skills.Single(s => s.Name == "Stealth").BoostDice);
         // Позолота слотов не занимает: у неё нулевая стоимость.
-        Assert.Equal(0, sheet.Items.Single(i => i.Id == hostId).UsedHardPoints);
+        Assert.Equal(0, sheet.Items!.Single(i => i.Id == hostId).UsedHardPoints);
     }
 
     [Fact]
@@ -244,7 +244,7 @@ public class RotAttachmentApiTests(ApiFactory factory) : IClassFixture<ApiFactor
 
         Assert.Equal(HttpStatusCode.NoContent, (await InstallAsync(client, id, plating, hostId)).StatusCode);
 
-        var item = (await SheetAsync(client, id)).Items.Single(i => i.Id == hostId);
+        var item = (await SheetAsync(client, id)).Items!.Single(i => i.Id == hostId);
         Assert.True(item.Reinforced);
         Assert.Equal(plate.Encumbrance + 1, item.Encumbrance);
     }
@@ -309,7 +309,7 @@ public class RotAttachmentApiTests(ApiFactory factory) : IClassFixture<ApiFactor
         var installed = sheet.Attachments!.Single(a => a.Id == rune);
         Assert.Equal("помог городской чародей", installed.Note);
         // Руна рассечения — «не ниже 5», а не «плюс пять».
-        var profile = sheet.Items.Single(i => i.Id == hostId).AttackProfiles!.Single(p => p.IsDefault);
+        var profile = sheet.Items!.Single(i => i.Id == hostId).AttackProfiles!.Single(p => p.IsDefault);
         Assert.Contains(profile.Qualities, q => q.Code == "vicious" && q.Rating == 5);
     }
 
@@ -329,11 +329,11 @@ public class RotAttachmentApiTests(ApiFactory factory) : IClassFixture<ApiFactor
         Assert.Equal(HttpStatusCode.NoContent, resp.StatusCode);
 
         var sheet = await SheetAsync(client, id);
-        Assert.Equal(0, sheet.Items.Single(i => i.Id == hostId).UsedHardPoints);
+        Assert.Equal(0, sheet.Items!.Single(i => i.Id == hostId).UsedHardPoints);
         Assert.Null(sheet.Attachments!.Single(a => a.Id == edge).HostCharacterItemId);
         // Качество, которое давало улучшение, исчезло вместе с ним.
         Assert.DoesNotContain(
-            sheet.Items.Single(i => i.Id == hostId).AttackProfiles!.Single(p => p.IsDefault).Qualities,
+            sheet.Items!.Single(i => i.Id == hostId).AttackProfiles!.Single(p => p.IsDefault).Qualities,
             q => q.Code == "vicious");
     }
 
@@ -389,7 +389,7 @@ public class RotAttachmentApiTests(ApiFactory factory) : IClassFixture<ApiFactor
 
         Assert.Equal(HttpStatusCode.NoContent, (await InstallAsync(client, id, spikes, hostId)).StatusCode);
 
-        var item = (await SheetAsync(client, id)).Items.Single(i => i.Id == hostId);
+        var item = (await SheetAsync(client, id)).Items!.Single(i => i.Id == hostId);
         // Шипам нужен рантайм столкновения: правило показывается, а не исполняется молча.
         Assert.NotEmpty(item.AttachmentNotes!);
     }

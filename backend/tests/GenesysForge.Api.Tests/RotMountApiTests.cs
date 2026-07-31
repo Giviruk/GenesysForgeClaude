@@ -46,7 +46,7 @@ public class RotMountApiTests(ApiFactory factory) : IClassFixture<ApiFactory>
         await client.PostAsJsonAsync($"/api/characters/{id}/items",
             new AddItemRequest(def.Id, quantity, ItemState.Backpack, Free: true), Json.Options);
         var sheet = await SheetAsync(client, id);
-        return sheet.Items.Last(i => i.ItemDefId == def.Id).Id;
+        return sheet.Items!.Last(i => i.ItemDefId == def.Id).Id;
     }
 
     private static Task<HttpResponseMessage> MoveAsync(
@@ -97,7 +97,7 @@ public class RotMountApiTests(ApiFactory factory) : IClassFixture<ApiFactory>
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
         var after = await SheetAsync(client, id);
         Assert.Equal(Funds(before) - 1500, Funds(after));
-        Assert.Equal(before.Items.Count, after.Items.Count);
+        Assert.Equal(before.Items!.Count, after.Items!.Count);
 
         var mount = Assert.Single(after.Mounts!);
         Assert.Equal("War Mount", mount.Definition.Name);
@@ -329,7 +329,7 @@ public class RotMountApiTests(ApiFactory factory) : IClassFixture<ApiFactory>
         // Груз переехал позицией и остался на скакуне, а не у владельца (ROT-TRANSPORT-01).
         Assert.Equal(1, mount.CarriedLoad);
         Assert.Equal("Bedroll", Assert.Single(mount.Cargo).Name);
-        Assert.DoesNotContain(importedSheet.Items, i => i.Name == "Bedroll");
+        Assert.DoesNotContain(importedSheet.Items!, i => i.Name == "Bedroll");
     }
 
     [Fact]
@@ -386,7 +386,7 @@ public class RotMountApiTests(ApiFactory factory) : IClassFixture<ApiFactory>
         Assert.Equal(18, loaded.Capacity);
         Assert.False(loaded.IsOverloaded);
         // Позиция уехала из инвентаря владельца в карточку транспорта, а не задвоилась.
-        Assert.DoesNotContain(sheet.Items, i => i.Id == item);
+        Assert.DoesNotContain(sheet.Items!, i => i.Id == item);
         Assert.Equal(item, Assert.Single(loaded.Cargo).Id);
     }
 
@@ -545,7 +545,7 @@ public class RotMountApiTests(ApiFactory factory) : IClassFixture<ApiFactory>
         Assert.Equal(10, loaded.CarriedLoad);
         Assert.Equal(2, Assert.Single(loaded.Cargo).Quantity);
         // Остаток стопки остался у владельца, а не пропал.
-        Assert.Equal(1, sheet.Items.Single(i => i.Id == stack).Quantity);
+        Assert.Equal(1, sheet.Items!.Single(i => i.Id == stack).Quantity);
     }
 
     [Fact]
@@ -581,7 +581,7 @@ public class RotMountApiTests(ApiFactory factory) : IClassFixture<ApiFactory>
         Assert.Null(unhitched.DrawnByMountId);
         // Груз не переехал владельцу и не пропал.
         Assert.Equal(cargo, Assert.Single(unhitched.Cargo).Id);
-        Assert.DoesNotContain(after.Items, i => i.Id == cargo);
+        Assert.DoesNotContain(after.Items!, i => i.Id == cargo);
     }
 
     [Fact]
@@ -621,8 +621,8 @@ public class RotMountApiTests(ApiFactory factory) : IClassFixture<ApiFactory>
 
         var sheet = await SheetAsync(client, id);
         Assert.Empty(sheet.Mounts!);
-        Assert.Contains(sheet.Items, i => i.Id == cargo);
-        var returnedBarding = sheet.Items.Single(i => i.Id == barding);
+        Assert.Contains(sheet.Items!, i => i.Id == cargo);
+        var returnedBarding = sheet.Items!.Single(i => i.Id == barding);
         Assert.False(returnedBarding.IsInstalledOnMount);
         Assert.Null(returnedBarding.CarriedByMountId);
     }

@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { api, invalidateReference, setUnauthorizedHandler, takeFreshSheet, tokenStorage } from './client'
+import { api, invalidateReference, setActiveSlices, setUnauthorizedHandler, takeFreshSlices, tokenStorage } from './client'
 
 describe('api client — обработка 401', () => {
   afterEach(() => {
@@ -278,74 +278,105 @@ describe('api client — кэш справочника', () => {
 })
 
 /**
- * Лист, приехавший вместе с ответом на правку. Убирает второй запрос: интерфейс после каждой правки
- * всё равно перечитывает лист, а на проде это отдельные 250–500 мс.
+ * Части листа, приехавшие вместе с ответом на правку. Убирают второй запрос: интерфейс после каждой
+ * правки всё равно перечитывает лист, а на проде это отдельные 250–500 мс. Просим при этом ровно
+ * то, что сейчас на экране: инвентарь — две трети веса листа, и на вкладке заметок он не нужен.
  */
-describe('api client — лист в ответе на правку', () => {
-  const sheetBody = (id = 'c1') => new Response(
-    JSON.stringify({ id, derived: {}, characteristics: {}, money: 5 }), { status: 200 })
+describe('api client — части листа в ответе на правку', () => {
+  const slicesBody = (money = 5) => new Response(
+    JSON.stringify({ base: { id: 'c1', derived: {}, characteristics: {}, money } }), { status: 200 })
 
   afterEach(() => {
     vi.restoreAllMocks()
-    takeFreshSheet('c1')
+    takeFreshSlices('c1')
+    setActiveSlices(['base'])
     invalidateReference()
     tokenStorage.clear()
   })
 
-  it('правка персонажа просит лист заголовком, GET — нет', async () => {
+  it('правка персонажа просит части заголовком, GET — нет', async () => {
     tokenStorage.set('t')
-    const fetchMock = vi.spyOn(globalThis, 'fetch').mockImplementation(() => Promise.resolve(sheetBody()))
+    setActiveSlices(['base', 'items'])
+    const fetchMock = vi.spyOn(globalThis, 'fetch').mockImplementation(() => Promise.resolve(slicesBody()))
 
     await api.sheet('c1')
     await api.updateMount('c1', 'm1', { isActive: true })
 
     const headerOf = (i: number) =>
-      (fetchMock.mock.calls[i][1]?.headers as Record<string, string>)['X-Return-Sheet']
+      (fetchMock.mock.calls[i][1]?.headers as Record<string, string>)['X-Return-Slices']
     expect(headerOf(0)).toBeUndefined()
-    expect(headerOf(1)).toBe('1')
+    expect(headerOf(1)).toBe('base,items')
   })
 
-  it('вернувшийся лист забирается один раз', async () => {
+  /** Правка денег и опыта уходит в сам `/api/characters/{id}` — без хвоста, но части ей тоже нужны. */
+  it('правка без хвоста в адресе тоже просит части', async () => {
     tokenStorage.set('t')
-    vi.spyOn(globalThis, 'fetch').mockImplementation(() => Promise.resolve(sheetBody()))
+    const fetchMock = vi.spyOn(globalThis, 'fetch').mockImplementation(() => Promise.resolve(slicesBody()))
+
+    await api.updateCharacter('c1', { money: 10 })
+
+    const headers = fetchMock.mock.calls[0][1]?.headers as Record<string, string>
+    expect(headers['X-Return-Slices']).toBe('base')
+    expect(takeFreshSlices('c1')).toMatchObject({ base: { money: 5 } })
+  })
+
+  it('вернувшиеся части забираются один раз', async () => {
+    tokenStorage.set('t')
+    vi.spyOn(globalThis, 'fetch').mockImplementation(() => Promise.resolve(slicesBody()))
 
     await api.updateMount('c1', 'm1', { isActive: true })
 
-    expect(takeFreshSheet('c1')).toMatchObject({ id: 'c1' })
+    expect(takeFreshSlices('c1')).toMatchObject({ base: { id: 'c1' } })
     // Второй раз — уже ничего: устаревшие данные не должны осесть в интерфейсе.
-    expect(takeFreshSheet('c1')).toBeNull()
+    expect(takeFreshSlices('c1')).toBeNull()
   })
 
-  it('лист другого персонажа не отдаётся', async () => {
+  it('части другого персонажа не отдаются', async () => {
     tokenStorage.set('t')
-    vi.spyOn(globalThis, 'fetch').mockImplementation(() => Promise.resolve(sheetBody('c1')))
+    vi.spyOn(globalThis, 'fetch').mockImplementation(() => Promise.resolve(slicesBody()))
 
     await api.updateMount('c1', 'm1', { isActive: true })
 
-    expect(takeFreshSheet('c2')).toBeNull()
+    expect(takeFreshSlices('c2')).toBeNull()
   })
 
   it('после двух правок подряд остаётся результат последней', async () => {
     tokenStorage.set('t')
     let n = 0
-    vi.spyOn(globalThis, 'fetch').mockImplementation(() => Promise.resolve(new Response(
-      JSON.stringify({ id: 'c1', derived: {}, characteristics: {}, money: ++n }), { status: 200 })))
+    vi.spyOn(globalThis, 'fetch').mockImplementation(() => Promise.resolve(slicesBody(++n)))
 
     await api.updateMount('c1', 'm1', { isActive: true })
     await api.updateMount('c1', 'm1', { isActive: false })
 
-    expect(takeFreshSheet('c1')).toMatchObject({ money: 2 })
+    expect(takeFreshSlices('c1')).toMatchObject({ base: { money: 2 } })
   })
 
-  it('ответ со своим телом листом не считается', async () => {
+  /** `duplicate` создаёт другого персонажа и отвечает своим `{ id }` — частями это не считается. */
+  it('ответ со своим телом частями не считается', async () => {
     tokenStorage.set('t')
-    // Покупка отвечает { id }, а не листом — подменять её нельзя.
     vi.spyOn(globalThis, 'fetch').mockImplementation(() =>
-      Promise.resolve(new Response(JSON.stringify({ id: 'mount-1' }), { status: 201 })))
+      Promise.resolve(new Response(JSON.stringify({ id: 'copy-1' }), { status: 201 })))
 
-    await api.buyMount('c1', 'def-1', { free: true })
+    await api.duplicateCharacter('c1')
 
-    expect(takeFreshSheet('c1')).toBeNull()
+    expect(takeFreshSlices('c1')).toBeNull()
+  })
+
+  /**
+   * Покупка создаёт запись внутри персонажа, поэтому части приезжают и с ней — раньше за ними шёл
+   * второй запрос. Идентификатор созданного при этом не теряется.
+   */
+  it('покупка возвращает части вместе с идентификатором созданного', async () => {
+    tokenStorage.set('t')
+    setActiveSlices(['base', 'items'])
+    vi.spyOn(globalThis, 'fetch').mockImplementation(() => Promise.resolve(new Response(
+      JSON.stringify({ base: { id: 'c1' }, items: [{ id: 'item-1' }], createdId: 'item-1' }),
+      { status: 200 })))
+
+    const created = await api.addItem('c1', 'def-1', 1, 'carried', { free: true })
+
+    expect(created.createdId).toBe('item-1')
+    expect(takeFreshSlices('c1')).toMatchObject({ createdId: 'item-1' })
   })
 
   it('ответ 204 ничего не оставляет', async () => {
@@ -354,6 +385,15 @@ describe('api client — лист в ответе на правку', () => {
 
     await api.updateMount('c1', 'm1', { isActive: true })
 
-    expect(takeFreshSheet('c1')).toBeNull()
+    expect(takeFreshSlices('c1')).toBeNull()
+  })
+
+  it('чтение частей уходит на свой маршрут со списком', async () => {
+    tokenStorage.set('t')
+    const fetchMock = vi.spyOn(globalThis, 'fetch').mockImplementation(() => Promise.resolve(slicesBody()))
+
+    await api.sheetSlices('c1', ['base', 'items'])
+
+    expect(fetchMock.mock.calls[0][0]).toBe('/api/characters/c1/slices?include=base,items')
   })
 })

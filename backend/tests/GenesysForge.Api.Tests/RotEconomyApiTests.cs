@@ -115,7 +115,7 @@ public class RotEconomyApiTests(ApiFactory factory) : IClassFixture<ApiFactory>
         // Ни денег, ни предмета не тронуто.
         var after = await SheetAsync(client, id);
         Assert.Equal(afterBuy.Money, after.Money);
-        Assert.Contains(after.Items, i => i.Id == itemId);
+        Assert.Contains(after.Items!, i => i.Id == itemId);
     }
 
     [Fact]
@@ -253,6 +253,6 @@ public class RotEconomyApiTests(ApiFactory factory) : IClassFixture<ApiFactory>
         Assert.Equal(HttpStatusCode.BadRequest, resp.StatusCode);
         var after = await SheetAsync(client, id);
         Assert.Equal(before.Money, after.Money);
-        Assert.Equal(before.Items.Count, after.Items.Count);
+        Assert.Equal(before.Items!.Count, after.Items!.Count);
     }
 }

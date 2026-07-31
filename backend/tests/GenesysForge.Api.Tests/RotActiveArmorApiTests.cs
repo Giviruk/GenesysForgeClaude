@@ -63,7 +63,7 @@ public class RotActiveArmorApiTests(ApiFactory factory) : IClassFixture<ApiFacto
 
         var sheet = await SheetAsync(client, id);
         Assert.Equal(weakId, sheet.ActiveArmorCharacterItemId);
-        Assert.True(sheet.Items.Single(i => i.Id == weakId).IsActiveArmor);
+        Assert.True(sheet.Items!.Single(i => i.Id == weakId).IsActiveArmor);
     }
 
     [Fact]
@@ -102,7 +102,7 @@ public class RotActiveArmorApiTests(ApiFactory factory) : IClassFixture<ApiFacto
         var withStrong = await SheetAsync(client, id);
         Assert.True(withStrong.Derived.Soak > withWeak.Derived.Soak);
         Assert.Equal(strongId, withStrong.ActiveArmorCharacterItemId);
-        Assert.False(withStrong.Items.Single(i => i.Id == weakId).IsActiveArmor);
+        Assert.False(withStrong.Items!.Single(i => i.Id == weakId).IsActiveArmor);
     }
 
     [Fact]
@@ -117,7 +117,7 @@ public class RotActiveArmorApiTests(ApiFactory factory) : IClassFixture<ApiFacto
 
         var sheet = await SheetAsync(client, id);
         Assert.Null(sheet.ActiveArmorCharacterItemId);
-        Assert.DoesNotContain(sheet.Items, i => i.IsActiveArmor);
+        Assert.DoesNotContain(sheet.Items!, i => i.IsActiveArmor);
         Assert.True(sheet.Derived.Soak < withArmor.Derived.Soak);
     }
 }
