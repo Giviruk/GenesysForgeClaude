@@ -10,6 +10,12 @@ once it reaches a tagged 1.0 release. The project is currently pre-1.0; the
 ## [Unreleased]
 
 ### Fixed
+- **An edit in the sheet now costs a single request.** The client rereads the sheet after every
+  edit, which was a second round-trip on top of the mutation — 250–500 ms on the deployment even
+  over a warm connection. Edits can now carry the updated sheet back in their own response
+  (`X-Return-Sheet` request header), built by the same handler that serves `GET`. Opt-in, so
+  without the header every route answers `204 No Content` exactly as before. Together with the
+  catalog cache below: 3 requests per click → 1.
 - **The sheet no longer refetches the whole game catalog after every click.** Each action used to
   cost three sequential requests — the mutation, the sheet, and then the full reference catalog
   (~560 KB and about ten DB queries), with the UI updating only after the last one. The reference is

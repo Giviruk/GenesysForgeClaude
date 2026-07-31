@@ -187,6 +187,20 @@ Fields:
 
 Response: `201 Created` with `{ "id": "..." }`.
 
+### `X-Return-Sheet` (all `/api/characters/**` edits)
+
+Optional request header. On any edit under `/api/characters/` that would answer `204 No Content`,
+sending `X-Return-Sheet: 1` makes the response `200 OK` carrying the updated `CharacterSheetDto`
+instead — the same object a plain `GET /api/characters/{id}` returns, built by the same handler.
+
+It exists because the client rereads the sheet after every edit anyway, and that second request
+costs a full round-trip (250–500 ms on the deployment even over a warm connection).
+
+The header is opt-in and changes nothing else: without it every route answers exactly as before.
+Routes that already have a response body (`201 Created` on purchases, share links) are never
+touched, and if the sheet cannot be built after a successful write — deleting the character, for
+instance — the original `204` is returned rather than turning a successful edit into an error.
+
 ### `GET /api/characters/{id}`
 
 Protected. Returns `CharacterSheetDto`:

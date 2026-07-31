@@ -15,6 +15,9 @@ public static class CharacterEndpoints
             Results.Ok(await handler.Handle(new GetSharedCharacterSheetQuery(token), ct)));
 
         var group = app.MapGroup("/api/characters").RequireAuthorization();
+        // Клиент может попросить вернуть обновлённый лист прямо в ответе на правку и не ходить за
+        // ним вторым запросом (см. ReturnSheetFilter). Без заголовка поведение прежнее.
+        group.AddEndpointFilter(ReturnSheetFilter.Apply);
 
         group.MapGet("/", async (ClaimsPrincipal user,
                 IQueryHandler<GetCharactersQuery, List<CharacterListItemDto>> handler, CancellationToken ct) =>
