@@ -74,6 +74,9 @@ async function rawFetch(method: string, url: string, body: unknown): Promise<Res
     const anonymousId = ariadneAnonymousId()
     if (anonymousId) headers['X-Ariadne-Anonymous-Id'] = anonymousId
   }
+  // Просим сервер вернуть обновлённый лист вместе с ответом на правку: иначе за ним пришлось бы
+  // идти вторым запросом. Сервер без этого заголовка отвечает как раньше.
+  if (wantsSheetBack(method, url)) headers['X-Return-Sheet'] = '1'
   return fetch(url, {
     method,
     headers,
@@ -109,6 +112,31 @@ const invalidatesReference = (method: string, url: string) =>
   method !== 'GET'
   && (!url.startsWith('/api/characters/') || url.includes('/homebrew-packs/'))
 
+/**
+ * Лист, приехавший вместе с ответом на правку. Интерфейс после каждой правки всё равно перечитывает
+ * лист, и это стоило отдельного обращения к серверу — на проде четверть-полсекунды даже при уже
+ * установленном соединении. Сервер отдаёт лист сразу, если попросить заголовком `X-Return-Sheet`.
+ *
+ * Хранится ровно один — самый свежий — и забирается один раз: `takeFreshSheet` его отдаёт и очищает.
+ * Поэтому цепочка «правка → правка → обновление» использует результат последней правки, а
+ * обновление без правки перед ним честно идёт на сервер.
+ */
+let freshSheet: { characterId: string; sheet: CharacterSheet } | null = null
+
+/** Просить ли лист в ответе: у правок конкретного персонажа он и нужен. */
+const wantsSheetBack = (method: string, url: string) =>
+  method !== 'GET' && /^\/api\/characters\/[^/]+\//.test(url)
+
+/**
+ * Забирает лист, приехавший с последней правкой этого персонажа, — или `null`, если его нет.
+ * Одноразовый: второй вызов вернёт `null`, чтобы устаревшие данные не осели в интерфейсе.
+ */
+export function takeFreshSheet(characterId: string): CharacterSheet | null {
+  const hit = freshSheet?.characterId === characterId ? freshSheet.sheet : null
+  freshSheet = null
+  return hit
+}
+
 async function request<T>(method: string, url: string, body?: unknown, retried = false): Promise<T> {
   const hadToken = tokenStorage.get() !== null
   const response = await rawFetch(method, url, body)
@@ -137,8 +165,23 @@ async function request<T>(method: string, url: string, body?: unknown, retried =
   // Сбрасываем только после успеха: неудавшаяся правка каталог не меняла.
   if (invalidatesReference(method, url)) invalidateReference()
   if (response.status === 204) return undefined as T
-  return (await response.json()) as T
+
+  const data = await response.json()
+  // Лист, приехавший вместе с правкой: запоминаем, чтобы следующее обновление обошлось без запроса.
+  if (wantsSheetBack(method, url) && isSheet(data)) {
+    freshSheet = { characterId: data.id, sheet: data }
+  }
+  return data as T
 }
+
+/**
+ * Ответ на правку — это лист, а не что-то своё. Проверяем по паре характерных полей: у части
+ * маршрутов группы своё тело ответа (`{ id }` у покупки, ссылка у share), и подменять их нельзя.
+ */
+const isSheet = (data: unknown): data is CharacterSheet =>
+  typeof data === 'object' && data !== null
+  && typeof (data as CharacterSheet).id === 'string'
+  && 'derived' in data && 'characteristics' in data
 
 export const api = {
   register: (email: string, password: string, displayName: string) =>

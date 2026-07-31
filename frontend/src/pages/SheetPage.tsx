@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState, type ChangeEvent } from 'react'
-import { api } from '../api/client'
+import { api, takeFreshSheet } from '../api/client'
 import type { CharacterSheet, Reference } from '../api/types'
 import { SYSTEM_LABELS } from '../utils/labels'
 import { SheetTab } from '../components/SheetTab'
@@ -42,16 +42,16 @@ export function SheetPage({ characterId, printing, onOpenPrint, onClosePrint, on
 
   /**
    * Лист показывается сразу, как только приехал, — справочник берётся следом и обычно уже из кэша
-   * (`api.reference`). Раньше оба запроса шли строго друг за другом, а состояние менялось только
-   * после второго: на каждое действие приходилось три последовательных обращения к серверу, и
-   * интерфейс ждал самый тяжёлый ответ, хотя данные для отрисовки приезжали шагом раньше.
+   * (`api.reference`). Если правка вернула лист вместе с ответом, второго запроса не будет вовсе:
+   * раньше на каждое действие уходило три последовательных обращения к серверу, теперь одно.
    */
-  const refresh = useCallback(
-    () => api.sheet(characterId).then(next => {
+  const refresh = useCallback(() => {
+    const fresh = takeFreshSheet(characterId)
+    return (fresh ? Promise.resolve(fresh) : api.sheet(characterId)).then(next => {
       setSheet(next)
       return api.reference(next.system).then(setReference)
-    }),
-    [characterId])
+    })
+  }, [characterId])
 
   useEffect(() => {
     refresh().catch((err: unknown) => setError(err instanceof Error ? err.message : t('Ошибка загрузки', 'Failed to load')))
