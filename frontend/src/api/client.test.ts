@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { api, setUnauthorizedHandler, tokenStorage } from './client'
+import { api, invalidateReference, setUnauthorizedHandler, tokenStorage } from './client'
 
 describe('api client — обработка 401', () => {
   afterEach(() => {
@@ -153,5 +153,126 @@ describe('api client — обработка 401', () => {
       ['/api/characters/c1/homebrew-packs/p1', 'PUT'],
       ['/api/campaigns/g1/homebrew-packs/p1', 'PUT'],
     ])
+  })
+})
+
+/**
+ * Справочник — каталог игры на 560 КБ, который лист раньше перезапрашивал после каждого клика.
+ * Кэш обязан жить ровно до момента, когда каталог реально мог измениться, — не дольше.
+ */
+describe('api client — кэш справочника', () => {
+  const refBody = () => new Response(JSON.stringify({ items: [] }), { status: 200 })
+
+  afterEach(() => {
+    vi.restoreAllMocks()
+    invalidateReference()
+    tokenStorage.clear()
+  })
+
+  it('второй запрос того же справочника идёт из кэша, а не в сеть', async () => {
+    tokenStorage.set('t')
+    const fetchMock = vi.spyOn(globalThis, 'fetch').mockImplementation(() => Promise.resolve(refBody()))
+
+    await api.reference('realmsOfTerrinoth')
+    await api.reference('realmsOfTerrinoth')
+
+    expect(fetchMock).toHaveBeenCalledOnce()
+  })
+
+  it('разные системы и контексты кэшируются по отдельности', async () => {
+    tokenStorage.set('t')
+    const fetchMock = vi.spyOn(globalThis, 'fetch').mockImplementation(() => Promise.resolve(refBody()))
+
+    await api.reference('realmsOfTerrinoth')
+    await api.reference('genesysCore')
+    await api.reference('realmsOfTerrinoth', { characterId: 'c1' })
+
+    expect(fetchMock).toHaveBeenCalledTimes(3)
+  })
+
+  it('одновременные запросы склеиваются в один', async () => {
+    tokenStorage.set('t')
+    const fetchMock = vi.spyOn(globalThis, 'fetch').mockImplementation(() => Promise.resolve(refBody()))
+
+    await Promise.all([api.reference('realmsOfTerrinoth'), api.reference('realmsOfTerrinoth')])
+
+    expect(fetchMock).toHaveBeenCalledOnce()
+  })
+
+  it('правка персонажа кэш не сбрасывает: каталог от неё не меняется', async () => {
+    tokenStorage.set('t')
+    const fetchMock = vi.spyOn(globalThis, 'fetch').mockImplementation(() => Promise.resolve(refBody()))
+
+    await api.reference('realmsOfTerrinoth')
+    await api.moveCargo('c1', 'i1', { mountId: 'm1' })
+    await api.reference('realmsOfTerrinoth')
+
+    const referenceCalls = fetchMock.mock.calls.filter(([url]) => String(url).includes('/api/reference/'))
+    expect(referenceCalls).toHaveLength(1)
+  })
+
+  it('правка кастомного предмета сбрасывает кэш', async () => {
+    tokenStorage.set('t')
+    const fetchMock = vi.spyOn(globalThis, 'fetch').mockImplementation(() => Promise.resolve(refBody()))
+
+    await api.reference('realmsOfTerrinoth')
+    await api.deleteCustomItem('i9')
+    await api.reference('realmsOfTerrinoth')
+
+    const referenceCalls = fetchMock.mock.calls.filter(([url]) => String(url).includes('/api/reference/'))
+    expect(referenceCalls).toHaveLength(2)
+  })
+
+  /** Маршрут висит на персонаже, но меняет состав справочника — проверка по префиксу его пропустит. */
+  it('подключение homebrew-пака к персонажу сбрасывает кэш', async () => {
+    tokenStorage.set('t')
+    const fetchMock = vi.spyOn(globalThis, 'fetch').mockImplementation(() => Promise.resolve(refBody()))
+
+    await api.reference('realmsOfTerrinoth')
+    await api.setCharacterHomebrewPack('c1', 'p1', true)
+    await api.reference('realmsOfTerrinoth')
+
+    const referenceCalls = fetchMock.mock.calls.filter(([url]) => String(url).includes('/api/reference/'))
+    expect(referenceCalls).toHaveLength(2)
+  })
+
+  it('неудачная правка кэш не сбрасывает', async () => {
+    tokenStorage.set('t')
+    const fetchMock = vi.spyOn(globalThis, 'fetch').mockImplementation((url) =>
+      Promise.resolve(String(url).includes('/api/custom/')
+        ? new Response(JSON.stringify({ message: 'нет' }), { status: 400 })
+        : refBody()))
+
+    await api.reference('realmsOfTerrinoth')
+    await expect(api.deleteCustomItem('x')).rejects.toMatchObject({ status: 400 })
+    await api.reference('realmsOfTerrinoth')
+
+    const referenceCalls = fetchMock.mock.calls.filter(([url]) => String(url).includes('/api/reference/'))
+    expect(referenceCalls).toHaveLength(1)
+  })
+
+  it('провалившийся запрос справочника не залипает в кэше', async () => {
+    tokenStorage.set('t')
+    let first = true
+    const fetchMock = vi.spyOn(globalThis, 'fetch').mockImplementation(() => {
+      if (first) { first = false; return Promise.resolve(new Response('{}', { status: 500 })) }
+      return Promise.resolve(refBody())
+    })
+
+    await expect(api.reference('realmsOfTerrinoth')).rejects.toMatchObject({ status: 500 })
+    await api.reference('realmsOfTerrinoth')
+
+    expect(fetchMock).toHaveBeenCalledTimes(2)
+  })
+
+  it('конец сессии чистит кэш: у следующего пользователя свой кастомный контент', async () => {
+    tokenStorage.set('t')
+    const fetchMock = vi.spyOn(globalThis, 'fetch').mockImplementation(() => Promise.resolve(refBody()))
+
+    await api.reference('realmsOfTerrinoth')
+    tokenStorage.clear()
+    await api.reference('realmsOfTerrinoth')
+
+    expect(fetchMock).toHaveBeenCalledTimes(2)
   })
 })

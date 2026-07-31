@@ -10,6 +10,12 @@ once it reaches a tagged 1.0 release. The project is currently pre-1.0; the
 ## [Unreleased]
 
 ### Fixed
+- **The sheet no longer refetches the whole game catalog after every click.** Each action used to
+  cost three sequential requests — the mutation, the sheet, and then the full reference catalog
+  (~560 KB and about ten DB queries), with the UI updating only after the last one. The reference is
+  now cached for the session and invalidated whenever something can actually change it (custom
+  content, homebrew packs, content packs, end of session), and the sheet renders as soon as it
+  arrives instead of waiting. Per click: 3 requests → 2, ~639 KB → 77 KB.
 - `Haste` and `Swift` (Augment) were attached to each other's mechanics in both the
   magic reference and the quality catalog: `Haste` described ignoring difficult
   terrain and `Swift` the extra maneuver. The codes now carry the right rule
