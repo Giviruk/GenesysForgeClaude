@@ -1,3 +1,4 @@
+using GenesysForge.Application.Common;
 using GenesysForge.Domain;
 
 namespace GenesysForge.Application.Dtos;
@@ -18,14 +19,20 @@ public record CharacterSheetDto(
     int Money,
     DerivedDto Derived,
     List<CharacterSkillDto> Skills,
-    List<CharacterTalentDto> Talents,
-    Dictionary<int, int> TalentTierCounts,
+    /// <summary>
+    /// Таланты персонажа. <c>null</c> — срез не запрашивали (см. <see cref="SheetSlice"/>), это не
+    /// то же самое, что пустой список: пустой значит «талантов нет».
+    /// </summary>
+    List<CharacterTalentDto>? Talents,
+    /// <summary>Сколько талантов каждого ранга взято; <c>null</c> вместе с <see cref="Talents"/>.</summary>
+    Dictionary<int, int>? TalentTierCounts,
     HeroicAbilityDto? HeroicAbility,
     int HeroicUpgradeRank,
     int HeroicUpgradePointsTotal,
     int HeroicUpgradePointsSpent,
     HeroicUpgradeStateDto HeroicUpgrades,
-    List<CharacterItemDto> Items,
+    /// <summary>Инвентарь. <c>null</c> — срез не запрашивали; пустой список — предметов нет.</summary>
+    List<CharacterItemDto>? Items,
     string? Desire = null,
     string? Fear = null,
     string? Strength = null,

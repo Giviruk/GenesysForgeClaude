@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useRef, useState, type ChangeEvent } from 'react'
-import { api, takeFreshSheet } from '../api/client'
-import type { CharacterSheet, Reference } from '../api/types'
+import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent } from 'react'
+import { api, setActiveSlices, takeFreshSlices } from '../api/client'
+import type { CharacterSheet, Reference, SheetSliceName, SheetSlices } from '../api/types'
 import { SYSTEM_LABELS } from '../utils/labels'
 import { SheetTab } from '../components/SheetTab'
 import { TalentsTab } from '../components/TalentsTab'
@@ -30,8 +30,69 @@ interface Props {
 
 type Tab = 'sheet' | 'talents' | 'heroic' | 'inventory' | 'attachments' | 'transport' | 'magic' | 'bio' | 'history' | 'notes' | 'custom'
 
-export function SheetPage({ characterId, printing, onOpenPrint, onClosePrint, onBack }: Props) {
+/**
+ * Что каждой вкладке нужно с сервера. Лист играющего персонажа весит около 116 КБ, и две трети из
+ * них — инвентарь: платить за него на вкладке заметок незачем.
+ *
+ * <p>Таблица — единственное место, где это знание живёт. Начали читать на вкладке новую коллекцию —
+ * впишите её сюда, иначе вкладка увидит пустой список вместо данных.</p>
+ */
+const SLICES_BY_TAB: Record<Tab, SheetSliceName[]> = {
+  sheet: ['base'],
+  talents: ['base', 'talents'],
+  heroic: ['base'],
+  inventory: ['base', 'items'],
+  attachments: ['base', 'items', 'attachments'],
+  transport: ['base', 'items', 'mounts'],
+  magic: ['base', 'items'],
+  bio: ['base'],
+  history: ['base'],
+  notes: ['base'],
+  custom: ['base'],
+}
+
+const hasSlice = (slices: SheetSlices, name: SheetSliceName) => slices[name] !== undefined
+
+/**
+ * Лист для печати. Печати нужно всё сразу, поэтому она берёт лист целиком одним запросом, а не
+ * собирает его из частей. Отдельным компонентом — чтобы он монтировался вместе с окном печати:
+ * так лист перечитывается при каждом открытии и показать устаревший нечем.
+ */
+function PrintSheet({ characterId, reference, onError }: {
+  characterId: string; reference: Reference; onError: (message: string) => void
+}) {
   const [sheet, setSheet] = useState<CharacterSheet | null>(null)
+  useEffect(() => {
+    let cancelled = false
+    api.sheet(characterId)
+      .then(full => { if (!cancelled) setSheet(full) })
+      .catch((err: unknown) => {
+        if (!cancelled) onError(err instanceof Error ? err.message : t('Ошибка загрузки', 'Failed to load'))
+      })
+    return () => { cancelled = true }
+  }, [characterId, onError])
+
+  return sheet
+    ? <CharacterSheetPrint sheet={sheet} reference={reference} />
+    : <p className="muted">{t('Загрузка…', 'Loading…')}</p>
+}
+
+/** Постоянная ссылка: она уходит в зависимости эффекта загрузки, новая каждый раз зациклила бы его. */
+const NOTHING_LOADED: SheetSlices = {}
+
+export function SheetPage({ characterId, printing, onOpenPrint, onClosePrint, onBack }: Props) {
+  /**
+   * Загруженные части вместе с тем, чьи они. Персонаж хранится рядом, а не сбрасывается эффектом:
+   * иначе при переходе к другому персонажу один кадр показывал бы данные предыдущего.
+   */
+  const [loaded, setLoaded] = useState<{ characterId: string; slices: SheetSlices }>(
+    { characterId, slices: NOTHING_LOADED })
+  const slices = loaded.characterId === characterId ? loaded.slices : NOTHING_LOADED
+
+  const mergeSlices = useCallback((got: SheetSlices) => setLoaded(prev => ({
+    characterId,
+    slices: prev.characterId === characterId ? { ...prev.slices, ...got } : got,
+  })), [characterId])
   const [reference, setReference] = useState<Reference | null>(null)
   const [tab, setTab] = useState<Tab>('sheet')
   const [error, setError] = useState<string | null>(null)
@@ -40,22 +101,66 @@ export function SheetPage({ characterId, printing, onOpenPrint, onClosePrint, on
   const [xpEdit, setXpEdit] = useState<string | null>(null)
   const portraitFileRef = useRef<HTMLInputElement>(null)
 
-  /**
-   * Лист показывается сразу, как только приехал, — справочник берётся следом и обычно уже из кэша
-   * (`api.reference`). Если правка вернула лист вместе с ответом, второго запроса не будет вовсе:
-   * раньше на каждое действие уходило три последовательных обращения к серверу, теперь одно.
-   */
-  const refresh = useCallback(() => {
-    const fresh = takeFreshSheet(characterId)
-    return (fresh ? Promise.resolve(fresh) : api.sheet(characterId)).then(next => {
-      setSheet(next)
-      return api.reference(next.system).then(setReference)
-    })
-  }, [characterId])
+  const needed = SLICES_BY_TAB[tab]
 
+  // Правка вернёт ровно то, что сейчас на экране, — остальное перечитается при открытии вкладки.
+  useEffect(() => { setActiveSlices(needed) }, [needed])
+
+  /**
+   * Догружает недостающие части. Уже загруженные не перезапрашиваются, поэтому возврат на вкладку
+   * бесплатен, а первое открытие стоит одного маленького запроса.
+   */
   useEffect(() => {
-    refresh().catch((err: unknown) => setError(err instanceof Error ? err.message : t('Ошибка загрузки', 'Failed to load')))
-  }, [refresh])
+    const missing = needed.filter(name => !hasSlice(slices, name))
+    if (missing.length === 0) return
+    let cancelled = false
+    api.sheetSlices(characterId, missing)
+      .then(got => { if (!cancelled) mergeSlices(got) })
+      .catch((err: unknown) => {
+        if (!cancelled) setError(err instanceof Error ? err.message : t('Ошибка загрузки', 'Failed to load'))
+      })
+    return () => { cancelled = true }
+  }, [characterId, needed, slices, mergeSlices])
+
+  // Справочник берётся один раз на систему и дальше живёт в кэше `api.reference`.
+  const system = slices.base?.system
+  useEffect(() => {
+    if (!system) return
+    let cancelled = false
+    api.reference(system)
+      .then(next => { if (!cancelled) setReference(next) })
+      .catch((err: unknown) => {
+        if (!cancelled) setError(err instanceof Error ? err.message : t('Ошибка загрузки', 'Failed to load'))
+      })
+    return () => { cancelled = true }
+  }, [system])
+
+  /**
+   * Обновление после правки. Если правка вернула части вместе с ответом, запроса не будет вовсе:
+   * раньше на каждое действие уходило три последовательных обращения к серверу.
+   *
+   * Пришедшее заменяет состояние целиком, а не дополняет его: правка могла задеть и то, чего
+   * сейчас нет на экране, — эти части просто выбрасываются и перечитаются при открытии вкладки.
+   */
+  const refresh = useCallback(async () => {
+    const fresh = takeFreshSlices(characterId)
+    setLoaded({ characterId, slices: fresh ?? await api.sheetSlices(characterId, needed) })
+  }, [characterId, needed])
+
+  /**
+   * Лист, каким его видят вкладки. Части, которые этой вкладке не нужны, подставляются пустыми:
+   * читать их здесь всё равно некому — рендер ниже ждёт, пока приедет всё нужное по таблице.
+   */
+  const sheet: CharacterSheet | null = useMemo(() => slices.base ? {
+    ...slices.base,
+    items: slices.items ?? [],
+    talents: slices.talents ?? [],
+    talentTierCounts: slices.talentTierCounts ?? {},
+    mounts: slices.mounts ?? [],
+    attachments: slices.attachments ?? [],
+  } : null, [slices])
+
+  const ready = needed.every(name => hasSlice(slices, name))
 
   // Ошибка действия показывается и сама скрывается
   useEffect(() => {
@@ -112,7 +217,7 @@ export function SheetPage({ characterId, printing, onOpenPrint, onClosePrint, on
     if (file.size > 5 * 1024 * 1024) { setError(t('Файл больше 5 МБ.', 'File is larger than 5 MB.')); return }
     try {
       const { portraitUrl } = await api.uploadCharacterPortrait(sheet.id, file)
-      setSheet({ ...sheet, portraitUrl })
+      mergeSlices({ base: { ...sheet, portraitUrl } })
       setNotice(t('Портрет обновлён.', 'Portrait updated.'))
     } catch (err) {
       setError(err instanceof Error ? err.message : t('Ошибка загрузки портрета', 'Portrait upload failed'))
@@ -260,21 +365,26 @@ export function SheetPage({ characterId, printing, onOpenPrint, onClosePrint, on
         <button className={tab === 'custom' ? 'tab active' : 'tab'} onClick={() => setTab('custom')}>{t('Кастом', 'Custom')}</button>
       </div>
 
-      {tab === 'sheet' && <SheetTab sheet={sheet} onError={setError} refresh={refresh} />}
-      {tab === 'talents' && <TalentsTab sheet={sheet} reference={reference} onError={setError} refresh={refresh} />}
-      {tab === 'heroic' && <HeroicTab sheet={sheet} reference={reference} onError={setError} refresh={refresh} />}
-      {tab === 'inventory' && <InventoryTab sheet={sheet} reference={reference} onError={setError} refresh={refresh} />}
-      {tab === 'attachments' && <AttachmentsTab sheet={sheet} reference={reference} onError={setError} refresh={refresh} />}
-      {tab === 'transport' && <TransportTab sheet={sheet} reference={reference} onError={setError} refresh={refresh} />}
-      {tab === 'magic' && <MagicTab sheet={sheet} onError={setError} refresh={refresh} />}
-      {tab === 'bio' && <BioTab sheet={sheet} onError={setError} refresh={refresh} />}
-      {tab === 'history' && <HistoryTab characterId={sheet.id} onError={setError} refresh={refresh} />}
-      {tab === 'notes' && <NotesTab characterId={sheet.id} onError={setError} />}
-      {tab === 'custom' && <CustomTab sheet={sheet} reference={reference} onError={setError} refresh={refresh} />}
+      {/* Шапка уже на экране — ждём только те части, которые нужны самой вкладке. */}
+      {!ready ? <p className="muted">{t('Загрузка…', 'Loading…')}</p> : (
+        <>
+          {tab === 'sheet' && <SheetTab sheet={sheet} onError={setError} refresh={refresh} />}
+          {tab === 'talents' && <TalentsTab sheet={sheet} reference={reference} onError={setError} refresh={refresh} />}
+          {tab === 'heroic' && <HeroicTab sheet={sheet} reference={reference} onError={setError} refresh={refresh} />}
+          {tab === 'inventory' && <InventoryTab sheet={sheet} reference={reference} onError={setError} refresh={refresh} />}
+          {tab === 'attachments' && <AttachmentsTab sheet={sheet} reference={reference} onError={setError} refresh={refresh} />}
+          {tab === 'transport' && <TransportTab sheet={sheet} reference={reference} onError={setError} refresh={refresh} />}
+          {tab === 'magic' && <MagicTab sheet={sheet} onError={setError} refresh={refresh} />}
+          {tab === 'bio' && <BioTab sheet={sheet} onError={setError} refresh={refresh} />}
+          {tab === 'history' && <HistoryTab characterId={sheet.id} onError={setError} refresh={refresh} />}
+          {tab === 'notes' && <NotesTab characterId={sheet.id} onError={setError} />}
+          {tab === 'custom' && <CustomTab sheet={sheet} reference={reference} onError={setError} refresh={refresh} />}
+        </>
+      )}
 
       {printing && (
         <PrintPreview title={t(`Лист персонажа — ${sheet.name}`, `Character sheet — ${sheet.name}`)} onClose={onClosePrint}>
-          {() => <CharacterSheetPrint sheet={sheet} reference={reference} />}
+          {() => <PrintSheet characterId={characterId} reference={reference} onError={setError} />}
         </PrintPreview>
       )}
     </div>

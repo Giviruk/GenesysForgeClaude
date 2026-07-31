@@ -10,6 +10,35 @@ once it reaches a tagged 1.0 release. The project is currently pre-1.0; the
 ## [Unreleased]
 
 ### Fixed
+- **Loading a character no longer explodes into millions of database rows.** The character graph was
+  read in one query with a dozen collection `Include`s, which EF joined into a single result set —
+  the rows multiply against each other. Measured on real data: a character with 40 items, 20
+  talents, 3 mounts and 5 attachments expanded into **7,360,000 rows**, each carrying every joined
+  table's columns including the full catalog descriptions. It ran twice per action: once for the
+  edit handler, once to build the response sheet. Because items, transport and attachments are the
+  multipliers, the app got monotonically slower the more a character owned — which is exactly what
+  players reported on those tabs. Fixed by loading the collections as separate queries
+  (`UseQuerySplittingBehavior`), making each one linear in its own size.
+- **The sheet is now read in parts instead of all at once.** A played character's sheet is ~116 KB,
+  and 64 % of that is the inventory the main tab never shows. `GET /api/characters/{id}/slices?include=…`
+  serves only the named parts (`base`, `items`, `talents`, `mounts`, `attachments`), each with its
+  own narrow query rather than the shared full-graph loader, and edits return just the parts the
+  client currently has on screen (`X-Return-Slices`). A tab loads its parts when it is opened and
+  keeps them. Opening a character: 116 KB → 17 KB; the Talents tab: 34 KB. Both are opt-in — the
+  full `GET /api/characters/{id}` is unchanged and still serves print, export, share links and the
+  GM's view.
+- **Adding an item and buying transport or an attachment no longer cost an extra round-trip.** Those
+  routes answer `201 Created` with the new record's id, and the filter only ever replaced
+  `204 No Content`, so the client still had to reread the sheet afterwards. They now carry the
+  requested parts too, with the created id in `createdId` so nothing is lost. `duplicate` and
+  `import` are deliberately left alone: they also answer `201 Created`, but they create *another*
+  character, and the parts would belong to the original. Adding a critical injury got the same fix.
+
+### Changed
+- `X-Return-Sheet` is replaced by `X-Return-Slices`, which names the parts to return instead of
+  asking for the whole sheet. `Items`, `Talents` and `TalentTierCounts` on the sheet DTO are now
+  nullable, where `null` means "not requested" as distinct from an empty collection.
+
 - **An edit in the sheet now costs a single request.** The client rereads the sheet after every
   edit, which was a second round-trip on top of the mutation — 250–500 ms on the deployment even
   over a warm connection. Edits can now carry the updated sheet back in their own response

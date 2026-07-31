@@ -144,7 +144,7 @@ public class RotEquipmentSlotApiTests(ApiFactory factory) : IClassFixture<ApiFac
             $"/api/characters/{id}", Json.Options))!;
         Assert.Equal(before.Money, after.Money);
         Assert.Equal(before.StartingPurchaseBudget, after.StartingPurchaseBudget);
-        Assert.Equal(before.Items.Count, after.Items.Count);
+        Assert.Equal(before.Items!.Count, after.Items!.Count);
     }
 
     [Fact]

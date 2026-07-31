@@ -66,7 +66,7 @@ public class RotRuneboundShardApiTests(ApiFactory factory) : IClassFixture<ApiFa
         var itemId = (await grant.Content.ReadFromJsonAsync<Dictionary<string, Guid>>(
             Json.Options))!["id"];
         var item = (await client.GetFromJsonAsync<CharacterSheetDto>(
-            $"/api/characters/{id}", Json.Options))!.Items.Single(x => x.Id == itemId);
+            $"/api/characters/{id}", Json.Options))!.Items!.Single(x => x.Id == itemId);
         Assert.NotNull(item.Shard);
         Assert.False(item.Sellable);
     }
@@ -88,7 +88,7 @@ public class RotRuneboundShardApiTests(ApiFactory factory) : IClassFixture<ApiFa
         Assert.Equal(HttpStatusCode.NoContent, configure.StatusCode);
 
         var item = (await client.GetFromJsonAsync<CharacterSheetDto>(
-            $"/api/characters/{id}", Json.Options))!.Items.Single(x => x.Id == itemId);
+            $"/api/characters/{id}", Json.Options))!.Items!.Single(x => x.Id == itemId);
         Assert.False(item.Shard!.Pending);
         Assert.Equal("Attack", item.Shard.EffectAction);
         Assert.Equal("Range", item.Shard.EffectChoice);

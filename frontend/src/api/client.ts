@@ -11,7 +11,7 @@ import type {
   CharacterExport, ImportPreview, ImportResult,
   RollLogEntry, CreateRollRequest,
   CharacterAuditEntry,
-  RulesResponse, SearchResponse,
+  RulesResponse, SearchResponse, SheetSlices, SheetSliceName,
   ArchetypeSkillChoice, CareerGearChoice, StartingEquipmentMode,
   DetachOutcome, ImplementMaterial, ItemDamageState,
 } from './types'
@@ -74,9 +74,10 @@ async function rawFetch(method: string, url: string, body: unknown): Promise<Res
     const anonymousId = ariadneAnonymousId()
     if (anonymousId) headers['X-Ariadne-Anonymous-Id'] = anonymousId
   }
-  // Просим сервер вернуть обновлённый лист вместе с ответом на правку: иначе за ним пришлось бы
-  // идти вторым запросом. Сервер без этого заголовка отвечает как раньше.
-  if (wantsSheetBack(method, url)) headers['X-Return-Sheet'] = '1'
+  // Просим сервер вернуть обновлённые части листа вместе с ответом на правку: иначе за ними
+  // пришлось бы идти вторым запросом. Просим ровно то, что сейчас на экране, — остальное всё равно
+  // перечитается при открытии своей вкладки. Сервер без этого заголовка отвечает как раньше.
+  if (wantsSheetBack(method, url)) headers['X-Return-Slices'] = activeSlices.join(',')
   return fetch(url, {
     method,
     headers,
@@ -113,27 +114,42 @@ const invalidatesReference = (method: string, url: string) =>
   && (!url.startsWith('/api/characters/') || url.includes('/homebrew-packs/'))
 
 /**
- * Лист, приехавший вместе с ответом на правку. Интерфейс после каждой правки всё равно перечитывает
- * лист, и это стоило отдельного обращения к серверу — на проде четверть-полсекунды даже при уже
- * установленном соединении. Сервер отдаёт лист сразу, если попросить заголовком `X-Return-Sheet`.
- *
- * Хранится ровно один — самый свежий — и забирается один раз: `takeFreshSheet` его отдаёт и очищает.
- * Поэтому цепочка «правка → правка → обновление» использует результат последней правки, а
- * обновление без правки перед ним честно идёт на сервер.
+ * Части листа, которые сейчас показаны на экране, — их и просим вернуть в ответе на правку.
+ * Задаёт лист персонажа при смене вкладки; по умолчанию — только базовая часть.
  */
-let freshSheet: { characterId: string; sheet: CharacterSheet } | null = null
-
-/** Просить ли лист в ответе: у правок конкретного персонажа он и нужен. */
-const wantsSheetBack = (method: string, url: string) =>
-  method !== 'GET' && /^\/api\/characters\/[^/]+\//.test(url)
+let activeSlices: SheetSliceName[] = ['base']
+export const setActiveSlices = (slices: SheetSliceName[]) => { activeSlices = slices }
 
 /**
- * Забирает лист, приехавший с последней правкой этого персонажа, — или `null`, если его нет.
- * Одноразовый: второй вызов вернёт `null`, чтобы устаревшие данные не осели в интерфейсе.
+ * Части листа, приехавшие вместе с ответом на правку. Интерфейс после каждой правки всё равно
+ * перечитывает лист, и это стоило отдельного обращения к серверу — на проде четверть-полсекунды
+ * даже при уже установленном соединении. Сервер отдаёт их сразу, если попросить заголовком
+ * `X-Return-Slices`.
+ *
+ * Хранятся ровно одни — самые свежие — и забираются один раз: `takeFreshSlices` их отдаёт и
+ * очищает. Поэтому цепочка «правка → правка → обновление» использует результат последней правки,
+ * а обновление без правки перед ним честно идёт на сервер.
  */
-export function takeFreshSheet(characterId: string): CharacterSheet | null {
-  const hit = freshSheet?.characterId === characterId ? freshSheet.sheet : null
-  freshSheet = null
+let freshSlices: { characterId: string; slices: SheetSlices } | null = null
+
+/** Просить ли части листа в ответе: у правок конкретного персонажа они и нужны. */
+const wantsSheetBack = (method: string, url: string) =>
+  method !== 'GET' && characterIdOf(url) !== null
+
+/** Персонаж, которого правит этот запрос: `/api/characters/{id}` и всё, что под ним. */
+function characterIdOf(url: string): string | null {
+  // Хвост обязателен не всегда: правка денег и опыта уходит в сам `/api/characters/{id}`.
+  const match = /^\/api\/characters\/([^/?]+)(?:[/?]|$)/.exec(url)
+  return match ? match[1] : null
+}
+
+/**
+ * Забирает части, приехавшие с последней правкой этого персонажа, — или `null`, если их нет.
+ * Одноразовые: второй вызов вернёт `null`, чтобы устаревшие данные не осели в интерфейсе.
+ */
+export function takeFreshSlices(characterId: string): SheetSlices | null {
+  const hit = freshSlices?.characterId === characterId ? freshSlices.slices : null
+  freshSlices = null
   return hit
 }
 
@@ -167,21 +183,24 @@ async function request<T>(method: string, url: string, body?: unknown, retried =
   if (response.status === 204) return undefined as T
 
   const data = await response.json()
-  // Лист, приехавший вместе с правкой: запоминаем, чтобы следующее обновление обошлось без запроса.
-  if (wantsSheetBack(method, url) && isSheet(data)) {
-    freshSheet = { characterId: data.id, sheet: data }
+  // Части, приехавшие вместе с правкой: запоминаем, чтобы обновление обошлось без запроса.
+  const editedCharacterId = wantsSheetBack(method, url) ? characterIdOf(url) : null
+  if (editedCharacterId !== null && isSlices(data)) {
+    freshSlices = { characterId: editedCharacterId, slices: data }
   }
   return data as T
 }
 
 /**
- * Ответ на правку — это лист, а не что-то своё. Проверяем по паре характерных полей: у части
- * маршрутов группы своё тело ответа (`{ id }` у покупки, ссылка у share), и подменять их нельзя.
+ * Ответ на правку — это части листа, а не что-то своё. У части маршрутов группы своё тело ответа
+ * (`{ id }` у покупки, ссылка у share), и подменять их нельзя. Отличаем по именам частей: пустой
+ * набор тоже валиден, поэтому проверяем, что лишних ключей нет.
  */
-const isSheet = (data: unknown): data is CharacterSheet =>
-  typeof data === 'object' && data !== null
-  && typeof (data as CharacterSheet).id === 'string'
-  && 'derived' in data && 'characteristics' in data
+const SLICE_KEYS = ['base', 'items', 'talents', 'talentTierCounts', 'mounts', 'attachments', 'createdId']
+const isSlices = (data: unknown): data is SheetSlices =>
+  typeof data === 'object' && data !== null && !Array.isArray(data)
+  && Object.keys(data).length > 0
+  && Object.keys(data).every(key => SLICE_KEYS.includes(key))
 
 export const api = {
   register: (email: string, password: string, displayName: string) =>
@@ -235,7 +254,14 @@ export const api = {
     request<{ id: string }>('POST', '/api/characters/',
       { name, system, archetypeId, careerId, freeCareerSkillNames, archetypeSkillChoices, careerGearChoices,
         startingEquipmentMode, speciesAbilityChoiceCode, ...bio }),
+  /** Весь лист сразу: нужен печати и экспорту, где показывают всё разом. */
   sheet: (id: string) => request<CharacterSheet>('GET', `/api/characters/${id}`),
+  /**
+   * Только названные части листа. Инвентарь — две трети веса листа, и главной вкладке он не нужен;
+   * вкладка берёт своё при открытии.
+   */
+  sheetSlices: (id: string, include: SheetSliceName[]) =>
+    request<SheetSlices>('GET', `/api/characters/${id}/slices?include=${include.join(',')}`),
   sharedSheet: (token: string) => request<CharacterSheet>('GET', `/api/share/${encodeURIComponent(token)}`),
   duplicateCharacter: (id: string) => request<{ id: string }>('POST', `/api/characters/${id}/duplicate`),
   // Файл уходит сырым телом; формат (JPEG/PNG/WebP) и размер сервер проверяет по содержимому.
@@ -328,7 +354,7 @@ export const api = {
       /** Материал магического инструмента (ROT-MAG-MAT-01); цену с его учётом считает сервер. */
       material?: ImplementMaterial
     }) =>
-    request<{ id: string }>('POST', `/api/characters/${id}/items`, { itemDefId, quantity, state, ...opts }),
+    request<SheetSlices>('POST', `/api/characters/${id}/items`, { itemDefId, quantity, state, ...opts }),
   /** Услуга списывает деньги и пишется в audit, но не создаёт строку инвентаря. */
   buyService: (id: string, itemDefId: string, quantity = 1, free = false) =>
     request<void>('POST', `/api/characters/${id}/services`, { itemDefId, quantity, free }),
@@ -370,7 +396,7 @@ export const api = {
   /** Покупает улучшение в запас персонажа; сумму считает сервер. */
   buyAttachment: (id: string, attachmentDefId: string,
     opts?: { free?: boolean; priceOverride?: number; overrideReason?: string }) =>
-    request<{ id: string }>('POST', `/api/characters/${id}/attachments`, { attachmentDefId, ...opts }),
+    request<SheetSlices>('POST', `/api/characters/${id}/attachments`, { attachmentDefId, ...opts }),
   /**
    * Ставит улучшение на предмет. Броска проверки нет: правило книги показано подсказкой.
    * `overrideReason` нужен, только когда чары ставит персонаж без магического навыка.
@@ -417,7 +443,7 @@ export const api = {
       pricePercent?: number
       name?: string
     }) =>
-    request<{ id: string }>('POST', `/api/characters/${id}/mounts`, { mountDefId, ...opts }),
+    request<SheetSlices>('POST', `/api/characters/${id}/mounts`, { mountDefId, ...opts }),
   /**
    * Кличка, раны, «под седлом», заметка и тягловое животное. Присланные поля меняются, остальные
    * остаются. Груз здесь не трогается — для него `moveCargo`.
@@ -461,7 +487,7 @@ export const api = {
 
   // Критические ранения (U-23): из таблицы U-11 (ruleCode) или вручную (nameRu).
   addCriticalInjury: (id: string, body: { ruleCode?: string; nameRu?: string; severity?: string; rollResult?: number; notes?: string }) =>
-    request<{ id: string }>('POST', `/api/characters/${id}/critical-injuries`, body),
+    request<SheetSlices>('POST', `/api/characters/${id}/critical-injuries`, body),
   removeCriticalInjury: (id: string, injuryId: string) =>
     request<void>('DELETE', `/api/characters/${id}/critical-injuries/${injuryId}`),
 

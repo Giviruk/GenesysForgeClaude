@@ -10,8 +10,92 @@ namespace GenesysForge.Application.Common;
 /// <summary>Сборка полного DTO листа персонажа из доменной модели.</summary>
 public static class SheetBuilder
 {
+    /// <summary>
+    /// Собирает лист целиком. Так его получают печать, экспорт, публичная ссылка и просмотр
+    /// ведущим — им нужно всё сразу.
+    /// </summary>
     public static async Task<CharacterSheetDto> BuildAsync(
         IAppDbContext db, Guid userId, Character c, CancellationToken ct = default)
+    {
+        var all = await BuildSlicesAsync(db, userId, c, SheetSlice.All, ct);
+        return all.Base! with
+        {
+            Items = all.Items,
+            Talents = all.Talents,
+            TalentTierCounts = all.TalentTierCounts,
+            Mounts = all.Mounts,
+            Attachments = all.Attachments,
+        };
+    }
+
+    /// <summary>
+    /// Собирает только запрошенные срезы; незапрошенные остаются <c>null</c> — «не загружено».
+    /// Персонаж должен быть прочитан тем же набором срезов
+    /// (<see cref="CharacterLoader.SliceQuery"/>), иначе связь окажется пустой не потому, что её нет.
+    /// </summary>
+    public static async Task<SheetSlicesDto> BuildSlicesAsync(
+        IAppDbContext db, Guid userId, Character c, SheetSlice slices, CancellationToken ct = default)
+    {
+        var ch = c.Characteristics;
+        // Чем персонаж может заплатить за материалы ремонта (GEN-EQP-DMG-01): в фазе создания
+        // сначала тратится бюджет стартовых покупок, поэтому он входит в доступную сумму.
+        var availableFunds = c.Money + (c.IsCreationPhase ? c.StartingPurchaseBudget : 0);
+
+        // Качества альтернативных профилей хранятся кодами (ROT-WPN-01) — справочник резолвится
+        // один раз и только там, где рисуются карточки предметов.
+        var qualitiesByCode = slices.HasAny(SheetSlice.Items | SheetSlice.Mounts)
+            ? (await db.QualityDefs.AsNoTracking().ToListAsync(ct))
+                .ToDictionary(q => q.Code, StringComparer.Ordinal)
+            : [];
+
+        return new SheetSlicesDto(
+            Base: slices.HasAny(SheetSlice.Base)
+                ? await BuildBaseAsync(db, userId, c, availableFunds, ct)
+                : null,
+            Items: slices.HasAny(SheetSlice.Items)
+                ? [.. EffectiveItems.For(c)
+                    .OrderBy(e => e.Def.Kind).ThenBy(e => e.Def.NameRu)
+                    .Select(e => ItemDto(e, ch, qualitiesByCode, availableFunds))]
+                : null,
+            Talents: slices.HasAny(SheetSlice.Talents) ? TalentDtos(c) : null,
+            TalentTierCounts: slices.HasAny(SheetSlice.Talents) ? TalentTierCounter.Count(c.Talents) : null,
+            Mounts: slices.HasAny(SheetSlice.Mounts)
+                ? [.. c.Mounts.Where(m => m.MountDef is not null)
+                    .OrderBy(m => m.CreatedAt)
+                    .Select(m => MountMapper.InstanceDto(
+                        m, c.Mounts, c.Items,
+                        // Груз считается теми же поправками, что и обычная позиция: вес железной
+                        // кольчуги в повозке обязан совпадать с её весом за спиной (ROT-WPN-02).
+                        item => ItemDto(
+                            EffectiveItems.For(c, item), ch, qualitiesByCode, availableFunds)))]
+                : null,
+            Attachments: slices.HasAny(SheetSlice.Attachments)
+                ? [.. c.Attachments.Where(a => a.AttachmentDef is not null)
+                    .OrderBy(a => a.AttachmentDef!.NameRu, StringComparer.Ordinal)
+                    .Select(a => AttachmentDto(a, availableFunds))]
+                : null);
+    }
+
+    private static List<CharacterTalentDto> TalentDtos(Character c) => c.Talents
+        .OrderBy(t => t.TalentDef!.Tier).ThenBy(t => t.TalentDef!.Name)
+        .Select(t => new CharacterTalentDto(t.TalentDefId, t.TalentDef!.Name, t.TalentDef.NameRu, t.TalentDef.Tier,
+            t.TalentDef.IsRanked, t.Ranks, t.TalentDef.Activation, t.TalentDef.Description,
+            t.TalentDef.WoundBonus, t.TalentDef.StrainBonus, t.TalentDef.SoakBonus,
+            t.TalentDef.MeleeDefenseBonus, t.TalentDef.RangedDefenseBonus,
+            t.TalentDef.GrantsCharacteristic, t.ParseGrants(), t.TalentDef.DescriptionEn,
+            t.Choices.OrderBy(x => x.RankIndex).ThenBy(x => x.Value, StringComparer.Ordinal)
+                .Select(x => new CharacterTalentChoiceDto(x.RankIndex, x.Kind, x.Value, x.DisplayName))
+                .ToList(),
+            t.NeedsChoice, t.TalentDef.ActivationEn, t.TalentDef.CanUseOutOfTurn))
+        .ToList();
+
+    /// <summary>
+    /// Базовый лист. Предметы, улучшения и таланты тут не отдаются, но участвуют в расчёте:
+    /// поглощение, защита и порог веса считаются из них, а помехи снаряжения раскладываются
+    /// по пулам навыков (ROT-ARM-01).
+    /// </summary>
+    private static async Task<CharacterSheetDto> BuildBaseAsync(
+        IAppDbContext db, Guid userId, Character c, int availableFunds, CancellationToken ct)
     {
         var ch = c.Characteristics;
 
@@ -38,12 +122,8 @@ public static class SheetBuilder
         // Помехи от снаряжения и перегруза считаются один раз на персонажа и раскладываются
         // по каждой проверке (ROT-ARM-01): их же роллер подставляет в пул.
         var checkModifiers = CharacterDerived.CheckModifierInputs(c);
-        // Предметы со всеми поправками считаются один раз: и для навыков, и для карточек (ROT-EQP-ATT-01).
-        var effectiveItems = EffectiveItems.For(c);
-        var skillBoosts = EffectiveItems.SkillBoosts(effectiveItems);
-        // Чем персонаж может заплатить за материалы ремонта (GEN-EQP-DMG-01): в фазе создания
-        // сначала тратится бюджет стартовых покупок, поэтому он входит в доступную сумму.
-        var availableFunds = c.Money + (c.IsCreationPhase ? c.StartingPurchaseBudget : 0);
+        // Улучшения предметов поднимают навыки (ROT-EQP-ATT-01) — для этого предметы и грузятся.
+        var skillBoosts = EffectiveItems.SkillBoosts(EffectiveItems.For(c));
         var skills = systemSkills.Select(def =>
         {
             rows.TryGetValue(def.Id, out var row);
@@ -82,13 +162,9 @@ public static class SheetBuilder
                 o.Ranks,
                 o.Reason == KnowledgeRatingReason.DarkInsight ? "darkInsight" : "default"))]);
 
-        // Качества альтернативных профилей хранятся кодами (ROT-WPN-01) — справочник резолвится один раз.
-        var qualitiesByCode = (await db.QualityDefs.AsNoTracking().ToListAsync(ct))
-            .ToDictionary(q => q.Code, StringComparer.Ordinal);
-
         return new CharacterSheetDto(
             c.Id, c.Name, c.System,
-            c.Archetype.ToDto(),
+            c.Archetype!.ToDto(),
             c.Career!.ToDto(),
             new Dictionary<string, int>
             {
@@ -105,19 +181,9 @@ public static class SheetBuilder
                     derived.Encumbrance.HasFreeManoeuvre, derived.Encumbrance.StrainPerManoeuvre,
                     derived.Encumbrance.ZeroEncumbranceLoad)),
             skills,
-            c.Talents
-                .OrderBy(t => t.TalentDef!.Tier).ThenBy(t => t.TalentDef!.Name)
-                .Select(t => new CharacterTalentDto(t.TalentDefId, t.TalentDef!.Name, t.TalentDef.NameRu, t.TalentDef.Tier,
-                    t.TalentDef.IsRanked, t.Ranks, t.TalentDef.Activation, t.TalentDef.Description,
-                    t.TalentDef.WoundBonus, t.TalentDef.StrainBonus, t.TalentDef.SoakBonus,
-                    t.TalentDef.MeleeDefenseBonus, t.TalentDef.RangedDefenseBonus,
-                    t.TalentDef.GrantsCharacteristic, t.ParseGrants(), t.TalentDef.DescriptionEn,
-                    t.Choices.OrderBy(x => x.RankIndex).ThenBy(x => x.Value, StringComparer.Ordinal)
-                        .Select(x => new CharacterTalentChoiceDto(x.RankIndex, x.Kind, x.Value, x.DisplayName))
-                        .ToList(),
-                    t.NeedsChoice, t.TalentDef.ActivationEn, t.TalentDef.CanUseOutOfTurn))
-                .ToList(),
-            TalentTierCounter.Count(c.Talents),
+            // Тяжёлые коллекции — отдельными срезами (см. BuildSlicesAsync); здесь «не загружено».
+            null,
+            null,
             c.HeroicAbility?.ToDto(),
             c.HeroicUpgradeRank,
             c.HeroicUpgradePointsTotal,
@@ -132,10 +198,7 @@ public static class SheetBuilder
                     .Select(x => x.HeroicSecondaryEffectDef!.ToDto())
                     .OrderBy(x => x.NameRu)
                     .ToList()),
-            effectiveItems
-                .OrderBy(e => e.Def.Kind).ThenBy(e => e.Def.NameRu)
-                .Select(e => ItemDto(e, ch, qualitiesByCode, availableFunds))
-                .ToList(),
+            null,
             c.Desire, c.Fear, c.Strength, c.Flaw, c.Background,
             c.CriticalInjuries
                 .OrderBy(ci => ci.RollResult ?? int.MaxValue).ThenBy(ci => ci.CreatedAt)
@@ -162,18 +225,9 @@ public static class SheetBuilder
             configuration,
             c.HeroicConfigurationIncomplete,
             c.ActiveArmorCharacterItemId,
-            [.. c.Attachments.Where(a => a.AttachmentDef is not null)
-                .OrderBy(a => a.AttachmentDef!.NameRu, StringComparer.Ordinal)
-                .Select(a => AttachmentDto(a, availableFunds))],
+            null,
             knowledgeRating,
-            [.. c.Mounts.Where(m => m.MountDef is not null)
-                .OrderBy(m => m.CreatedAt)
-                .Select(m => MountMapper.InstanceDto(
-                    m, c.Mounts, c.Items,
-                    // Груз считается теми же поправками, что и обычная позиция: вес железной
-                    // кольчуги в повозке обязан совпадать с её весом за спиной (ROT-WPN-02).
-                    item => ItemDto(
-                        EffectiveItems.For(c, item), ch, qualitiesByCode, availableFunds)))]);
+            null);
     }
 
     /// <summary>

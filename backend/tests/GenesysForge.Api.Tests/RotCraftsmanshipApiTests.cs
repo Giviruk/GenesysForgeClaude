@@ -57,7 +57,7 @@ public class RotCraftsmanshipApiTests(ApiFactory factory) : IClassFixture<ApiFac
         await AddAsync(client, id, plate.Id, WeaponCraftsmanship.Iron);
 
         var sheet = await SheetAsync(client, id);
-        var item = sheet.Items.Single(i => i.ItemDefId == plate.Id);
+        var item = sheet.Items!.Single(i => i.ItemDefId == plate.Id);
 
         Assert.Equal(WeaponCraftsmanship.Iron, item.Craftsmanship);
         Assert.Equal(plate.Encumbrance + 2, item.Encumbrance);
@@ -81,7 +81,7 @@ public class RotCraftsmanshipApiTests(ApiFactory factory) : IClassFixture<ApiFac
         await AddAsync(client, id, plate.Id, WeaponCraftsmanship.Elven);
 
         var sheet = await SheetAsync(client, id);
-        var item = sheet.Items.Single(i => i.ItemDefId == plate.Id);
+        var item = sheet.Items!.Single(i => i.ItemDefId == plate.Id);
 
         Assert.Equal(plate.Encumbrance - 2, item.Encumbrance);
         Assert.Equal(plate.Price * 2, item.Price);
@@ -99,7 +99,7 @@ public class RotCraftsmanshipApiTests(ApiFactory factory) : IClassFixture<ApiFac
         await AddAsync(client, id, plate.Id, WeaponCraftsmanship.Ancient);
         var after = await SheetAsync(client, id);
 
-        var item = after.Items.Single(i => i.ItemDefId == plate.Id);
+        var item = after.Items!.Single(i => i.ItemDefId == plate.Id);
         Assert.True(item.Reinforced);
         Assert.Equal(plate.Price * 20, item.Price);
         Assert.Equal(10, item.Rarity);
@@ -123,7 +123,7 @@ public class RotCraftsmanshipApiTests(ApiFactory factory) : IClassFixture<ApiFac
 
         var sheet = await SheetAsync(client, id);
         var brawn = sheet.Characteristics["brawn"];
-        var item = sheet.Items.Single(i => i.ItemDefId == sword.Id);
+        var item = sheet.Items!.Single(i => i.ItemDefId == sword.Id);
         var profile = item.AttackProfiles!.Single(p => p.IsDefault);
 
         // Меч — «Мощь +3», крит 2 (ROT-WPN-01): гномья работа поднимает урон и не трогает крит.
@@ -141,7 +141,7 @@ public class RotCraftsmanshipApiTests(ApiFactory factory) : IClassFixture<ApiFac
 
         var sheet = await SheetAsync(client, id);
         var brawn = sheet.Characteristics["brawn"];
-        var profile = sheet.Items.Single(i => i.ItemDefId == sword.Id).AttackProfiles!
+        var profile = sheet.Items!.Single(i => i.ItemDefId == sword.Id).AttackProfiles!
             .Single(p => p.IsDefault);
 
         Assert.Equal(brawn + 2, profile.BaseDamage);
@@ -157,7 +157,7 @@ public class RotCraftsmanshipApiTests(ApiFactory factory) : IClassFixture<ApiFac
 
         var sheet = await SheetAsync(client, id);
         var brawn = sheet.Characteristics["brawn"];
-        var item = sheet.Items.Single(i => i.ItemDefId == sword.Id);
+        var item = sheet.Items!.Single(i => i.ItemDefId == sword.Id);
         var profile = item.AttackProfiles!.Single(p => p.IsDefault);
 
         Assert.Equal(brawn + 3, profile.BaseDamage);
@@ -176,7 +176,7 @@ public class RotCraftsmanshipApiTests(ApiFactory factory) : IClassFixture<ApiFac
 
         var sheet = await SheetAsync(client, id);
         var brawn = sheet.Characteristics["brawn"];
-        var profiles = sheet.Items.Single(i => i.ItemDefId == dagger.Id).AttackProfiles!;
+        var profiles = sheet.Items!.Single(i => i.ItemDefId == dagger.Id).AttackProfiles!;
 
         // Кинжал метают тем же кинжалом: гномья работа действует на оба профиля.
         Assert.All(profiles, p => Assert.Equal(brawn + 3, p.BaseDamage));
@@ -310,7 +310,7 @@ public class RotCraftsmanshipApiTests(ApiFactory factory) : IClassFixture<ApiFac
         await AddAsync(client, id, plate.Id);
 
         var sheet = await SheetAsync(client, id);
-        var item = sheet.Items.Single(i => i.ItemDefId == plate.Id);
+        var item = sheet.Items!.Single(i => i.ItemDefId == plate.Id);
 
         Assert.Equal(WeaponCraftsmanship.Steel, item.Craftsmanship);
         Assert.Equal(plate.Encumbrance, item.Encumbrance);
@@ -327,7 +327,7 @@ public class RotCraftsmanshipApiTests(ApiFactory factory) : IClassFixture<ApiFac
         await AddAsync(client, id, plate.Id, WeaponCraftsmanship.Iron);
 
         var sheet = await SheetAsync(client, id);
-        var item = sheet.Items.Single(i => i.ItemDefId == plate.Id);
+        var item = sheet.Items!.Single(i => i.ItemDefId == plate.Id);
 
         var enc = Assert.Single(item.Adjustments!, a => a.Field == "encumbrance");
         Assert.Equal(plate.Encumbrance, enc.Base);

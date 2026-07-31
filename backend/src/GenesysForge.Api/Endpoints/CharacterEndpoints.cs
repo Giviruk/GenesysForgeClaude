@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using GenesysForge.Application.Abstractions;
+using GenesysForge.Application.Common;
 using GenesysForge.Application.Dtos;
 using GenesysForge.Application.Features.Characters;
 using GenesysForge.Domain;
@@ -33,6 +34,14 @@ public static class CharacterEndpoints
         group.MapGet("/{id:guid}", async (Guid id, ClaimsPrincipal user,
                 IQueryHandler<GetCharacterSheetQuery, CharacterSheetDto> handler, CancellationToken ct) =>
             Results.Ok(await handler.Handle(new GetCharacterSheetQuery(user.UserId(), id), ct)));
+
+        // Лист по частям: `?include=base,items`. Вкладка берёт свою часть и не платит за чужие —
+        // у играющего персонажа один инвентарь весит вдвое больше всего остального листа.
+        // Полный `GET /{id}` остаётся: печати, экспорту и публичной ссылке нужно всё сразу.
+        group.MapGet("/{id:guid}/slices", async (Guid id, string? include, ClaimsPrincipal user,
+                IQueryHandler<GetCharacterSlicesQuery, SheetSlicesDto> handler, CancellationToken ct) =>
+            Results.Ok(await handler.Handle(
+                new GetCharacterSlicesQuery(user.UserId(), id, SheetSlices.Parse(include)), ct)));
 
         group.MapPost("/{id:guid}/duplicate", async (Guid id, ClaimsPrincipal user,
             ICommandHandler<DuplicateCharacterCommand, Guid> handler, CancellationToken ct) =>
@@ -229,7 +238,7 @@ public static class CharacterEndpoints
             ICommandHandler<AddItemCommand, Guid> handler, CancellationToken ct) =>
         {
             var itemId = await handler.Handle(new AddItemCommand(user.UserId(), id, req), ct);
-            return Results.Created($"/api/characters/{id}/items/{itemId}", new { Id = itemId });
+            return Results.Created($"/api/characters/{id}/items/{itemId}", new CreatedInCharacterResponse(itemId));
         });
 
         group.MapPost("/{id:guid}/services", async (Guid id, BuyServiceRequest req,
@@ -247,7 +256,7 @@ public static class CharacterEndpoints
             ICommandHandler<BuyMountCommand, Guid> handler, CancellationToken ct) =>
         {
             var mountId = await handler.Handle(new BuyMountCommand(user.UserId(), id, req), ct);
-            return Results.Created($"/api/characters/{id}/mounts/{mountId}", new { Id = mountId });
+            return Results.Created($"/api/characters/{id}/mounts/{mountId}", new CreatedInCharacterResponse(mountId));
         });
 
         group.MapPatch("/{id:guid}/mounts/{mountId:guid}", async (Guid id, Guid mountId,
@@ -311,7 +320,7 @@ public static class CharacterEndpoints
             ICommandHandler<BuyAttachmentCommand, Guid> handler, CancellationToken ct) =>
         {
             var attachmentId = await handler.Handle(new BuyAttachmentCommand(user.UserId(), id, req), ct);
-            return Results.Created($"/api/characters/{id}/attachments/{attachmentId}", new { Id = attachmentId });
+            return Results.Created($"/api/characters/{id}/attachments/{attachmentId}", new CreatedInCharacterResponse(attachmentId));
         });
 
         group.MapPost("/{id:guid}/attachments/install", async (Guid id, InstallAttachmentRequest req,
@@ -396,7 +405,7 @@ public static class CharacterEndpoints
             ICommandHandler<AddCriticalInjuryCommand, Guid> handler, CancellationToken ct) =>
         {
             var injuryId = await handler.Handle(new AddCriticalInjuryCommand(user.UserId(), id, req), ct);
-            return Results.Created($"/api/characters/{id}/critical-injuries/{injuryId}", new { Id = injuryId });
+            return Results.Created($"/api/characters/{id}/critical-injuries/{injuryId}", new CreatedInCharacterResponse(injuryId));
         });
 
         group.MapDelete("/{id:guid}/critical-injuries/{injuryId:guid}", async (Guid id, Guid injuryId,

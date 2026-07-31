@@ -49,7 +49,7 @@ public class CreateCharacterCareerTests(ApiFactory factory) : IClassFixture<ApiF
         Assert.Equal(StartingEquipmentMode.StandardMoney, sheet.StartingEquipmentMode);
         Assert.Equal(500, sheet.StartingPurchaseBudget);
         Assert.InRange(sheet.Money, 1, 100); // карманные 1d100, а не 500 и не 500+1d100
-        Assert.Empty(sheet.Items);
+        Assert.Empty(sheet.Items!);
     }
 
     [Fact]
@@ -84,11 +84,11 @@ public class CreateCharacterCareerTests(ApiFactory factory) : IClassFixture<ApiF
         Assert.InRange(sheet.Money, 1, 100);           // 1d100 по формуле карьеры
 
         // Комплект Warrior: кожаная броня, 2 целебных эликсира, Traveling Gear и выбранный набор оружия.
-        Assert.Contains(sheet.Items, i => i.Name == "Leather");
-        Assert.Contains(sheet.Items, i => i.Name == "Health Elixir" && i.Quantity == 2);
-        Assert.Contains(sheet.Items, i => i.Name == "Backpack");
-        Assert.Contains(sheet.Items, i => i.Name == "Bedroll");
-        Assert.DoesNotContain(sheet.Items, i => i.Name == "Adventuring Pack");
+        Assert.Contains(sheet.Items!, i => i.Name == "Leather");
+        Assert.Contains(sheet.Items!, i => i.Name == "Health Elixir" && i.Quantity == 2);
+        Assert.Contains(sheet.Items!, i => i.Name == "Backpack");
+        Assert.Contains(sheet.Items!, i => i.Name == "Bedroll");
+        Assert.DoesNotContain(sheet.Items!, i => i.Name == "Adventuring Pack");
     }
 
     [Fact]
@@ -200,9 +200,9 @@ public class CreateCharacterCareerTests(ApiFactory factory) : IClassFixture<ApiF
             StartingEquipmentMode: StartingEquipmentMode.CareerPackage));
 
         var sheet = await SheetAsync(client, id);
-        var leather = sheet.Items.Single(i => i.Name == "Leather");
+        var leather = sheet.Items!.Single(i => i.Name == "Leather");
         Assert.Equal(1, leather.Quantity);
-        Assert.Contains(sheet.Items, i => i.Name == expectedWeapon);
+        Assert.Contains(sheet.Items!, i => i.Name == expectedWeapon);
     }
 
     [Fact]
@@ -218,8 +218,8 @@ public class CreateCharacterCareerTests(ApiFactory factory) : IClassFixture<ApiF
 
         var sheet = await SheetAsync(client, id);
         foreach (var name in new[] { "Backpack", "Bedroll", "Rope", "Flint and Steel", "Torches (3)", "Waterskin (Empty)" })
-            Assert.Contains(sheet.Items, i => i.Name == name);
-        Assert.DoesNotContain(sheet.Items, i => i.Name == "Adventuring Pack");
+            Assert.Contains(sheet.Items!, i => i.Name == name);
+        Assert.DoesNotContain(sheet.Items!, i => i.Name == "Adventuring Pack");
     }
 
     [Fact]
@@ -249,7 +249,7 @@ public class CreateCharacterCareerTests(ApiFactory factory) : IClassFixture<ApiF
         Assert.Equal(before.StartingPurchaseBudget - item.Price, afterBuy.StartingPurchaseBudget);
         Assert.Equal(before.Money, afterBuy.Money); // кошелёк не тронут
 
-        var bought = afterBuy.Items.Single(i => i.ItemDefId == item.Id);
+        var bought = afterBuy.Items!.Single(i => i.ItemDefId == item.Id);
         var sell = await client.PostAsJsonAsync($"/api/characters/{id}/items/{bought.Id}/sell",
             new SellItemRequest(1, NetSuccesses: 3), Json.Options);
         sell.EnsureSuccessStatusCode();

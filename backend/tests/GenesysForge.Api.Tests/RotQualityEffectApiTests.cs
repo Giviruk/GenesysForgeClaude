@@ -37,7 +37,7 @@ public class RotQualityEffectApiTests(ApiFactory factory) : IClassFixture<ApiFac
             new AddItemRequest(itemDefId, 1, ItemState.Equipped, Free: true), Json.Options)).StatusCode);
 
     private static WeaponAttackProfileDto DefaultProfile(CharacterSheetDto sheet, string name) =>
-        sheet.Items.Single(i => i.Name == name).AttackProfiles!.Single(p => p.IsDefault);
+        sheet.Items!.Single(i => i.Name == name).AttackProfiles!.Single(p => p.IsDefault);
 
     [Fact]
     public async Task AccurateGivesBoost_AndInaccurateGivesSetback()

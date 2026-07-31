@@ -91,7 +91,7 @@ public class RefundTests : IClassFixture<ApiFactory>
 
         var sheet = await SheetAsync(client, id);
         Assert.Equal(5, sheet.SpentXp); // остался один T1
-        Assert.Single(sheet.Talents);
+        Assert.Single(sheet.Talents!);
     }
 
     [Fact]
@@ -109,7 +109,7 @@ public class RefundTests : IClassFixture<ApiFactory>
         Assert.Equal(HttpStatusCode.NoContent, refund.StatusCode);
         var sheet = await SheetAsync(client, id);
         Assert.Equal(10, sheet.SpentXp); // вернулись 10 за второй ранг (T2)
-        Assert.Equal(1, sheet.Talents.First(t => t.Name == "Grit").Ranks);
+        Assert.Equal(1, sheet.Talents!.First(t => t.Name == "Grit").Ranks);
     }
 
     [Fact]
@@ -144,7 +144,7 @@ public class RefundTests : IClassFixture<ApiFactory>
         Assert.Equal(HttpStatusCode.NoContent, buy.StatusCode);
         var after = await SheetAsync(client, id);
         Assert.Equal(baseBrawn + 1, after.Characteristics["brawn"]);
-        Assert.Equal([CharacteristicType.Brawn], after.Talents.First(t => t.Name == "Dedication").GrantedCharacteristics);
+        Assert.Equal([CharacteristicType.Brawn], after.Talents!.First(t => t.Name == "Dedication").GrantedCharacteristics);
 
         // Повторно ту же характеристику этим талантом нельзя.
         var dup = await client.PostAsJsonAsync($"/api/characters/{id}/talents/buy",

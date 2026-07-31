@@ -227,7 +227,7 @@ public class RotSpeciesCatalogTests(ApiFactory factory) : IClassFixture<ApiFacto
         var sheet = (await client.GetFromJsonAsync<CharacterSheetDto>($"/api/characters/{id}", Json.Options))!;
         Assert.Equal(1, sheet.Derived.MeleeDefense);
         Assert.Equal(1, sheet.Derived.RangedDefense);
-        Assert.Empty(sheet.Items); // защита пришла от вида, а не от снаряжения
+        Assert.Empty(sheet.Items!); // защита пришла от вида, а не от снаряжения
     }
 
     [Fact]
