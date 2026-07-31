@@ -40,12 +40,17 @@ export function SheetPage({ characterId, printing, onOpenPrint, onClosePrint, on
   const [xpEdit, setXpEdit] = useState<string | null>(null)
   const portraitFileRef = useRef<HTMLInputElement>(null)
 
+  /**
+   * Лист показывается сразу, как только приехал, — справочник берётся следом и обычно уже из кэша
+   * (`api.reference`). Раньше оба запроса шли строго друг за другом, а состояние менялось только
+   * после второго: на каждое действие приходилось три последовательных обращения к серверу, и
+   * интерфейс ждал самый тяжёлый ответ, хотя данные для отрисовки приезжали шагом раньше.
+   */
   const refresh = useCallback(
-    () => api.sheet(characterId).then(next =>
-      api.reference(next.system).then(ref => {
-        setSheet(next)
-        setReference(ref)
-      })),
+    () => api.sheet(characterId).then(next => {
+      setSheet(next)
+      return api.reference(next.system).then(setReference)
+    }),
     [characterId])
 
   useEffect(() => {

@@ -23,7 +23,11 @@ const TOKEN_KEY = 'genesysforge.token'
 export const tokenStorage = {
   get: () => localStorage.getItem(TOKEN_KEY),
   set: (token: string) => localStorage.setItem(TOKEN_KEY, token),
-  clear: () => localStorage.removeItem(TOKEN_KEY),
+  clear: () => {
+    localStorage.removeItem(TOKEN_KEY)
+    // Конец сессии: у следующего пользователя свой кастомный контент, чужой каталог ему не отдаём.
+    invalidateReference()
+  },
 }
 
 export class ApiError extends Error {
@@ -78,6 +82,33 @@ async function rawFetch(method: string, url: string, body: unknown): Promise<Res
   })
 }
 
+/**
+ * Кэш справочника на сессию. Справочник — это каталог игры (предметы, таланты, качества…), он не
+ * зависит от действий с конкретным персонажем, но лист перезапрашивал его после каждого клика:
+ * ~560 КБ и около десятка запросов в БД на каждое действие. Ключ — тот же URL, что уходит на
+ * сервер, поэтому контекст (персонаж, кампания) учитывается сам собой.
+ *
+ * Хранится именно Promise, а не результат: два одновременных запроса склеиваются в один.
+ */
+const referenceCache = new Map<string, Promise<Reference>>()
+
+/** Сбрасывает кэш справочника: следующий запрос сходит на сервер. */
+export const invalidateReference = () => referenceCache.clear()
+
+/**
+ * Что может изменить каталог. Правило центральное и от обратного: перечислять по одному два десятка
+ * методов значит однажды забыть новый и показать игроку устаревший справочник. Лишний сброс стоит
+ * один запрос, пропущенный — это баг.
+ *
+ * Правки самого персонажа каталог не трогают: они меняют его собственные данные, а не справочник.
+ * Единственное исключение — подключение homebrew-пака: маршрут висит на персонаже
+ * (`PUT /api/characters/{id}/homebrew-packs/{packId}`), но состав справочника от него зависит
+ * напрямую. Поэтому проверка по `/characters/` одна его бы и пропустила.
+ */
+const invalidatesReference = (method: string, url: string) =>
+  method !== 'GET'
+  && (!url.startsWith('/api/characters/') || url.includes('/homebrew-packs/'))
+
 async function request<T>(method: string, url: string, body?: unknown, retried = false): Promise<T> {
   const hadToken = tokenStorage.get() !== null
   const response = await rawFetch(method, url, body)
@@ -103,6 +134,8 @@ async function request<T>(method: string, url: string, body?: unknown, retried =
     }
     throw new ApiError(response.status, message)
   }
+  // Сбрасываем только после успеха: неудавшаяся правка каталог не меняла.
+  if (invalidatesReference(method, url)) invalidateReference()
   if (response.status === 204) return undefined as T
   return (await response.json()) as T
 }
@@ -129,7 +162,15 @@ export const api = {
     if (context?.characterId) params.set('characterId', context.characterId)
     if (context?.campaignId) params.set('campaignId', context.campaignId)
     const qs = params.size ? `?${params}` : ''
-    return request<Reference>('GET', `/api/reference/${system === 'genesysCore' ? 'GenesysCore' : 'RealmsOfTerrinoth'}${qs}`)
+    const url = `/api/reference/${system === 'genesysCore' ? 'GenesysCore' : 'RealmsOfTerrinoth'}${qs}`
+
+    const cached = referenceCache.get(url)
+    if (cached) return cached
+    // Провалившийся запрос из кэша убираем, иначе одна сетевая ошибка залипла бы на всю сессию.
+    const pending = request<Reference>('GET', url)
+      .catch((err: unknown) => { referenceCache.delete(url); throw err })
+    referenceCache.set(url, pending)
+    return pending
   },
 
   // Справочные таблицы правил (U-11). Системо-независимы; опц. q — фильтр по подстроке.
