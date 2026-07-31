@@ -3,8 +3,8 @@
 - **Roadmap:** вне roadmap — жалоба владельца на отзывчивость интерфейса
 - **Ветка:** `feature/perf-sheet-refresh-roundtrips`
 - **Базовая ветка:** `master` (PR #138 и #139 слиты, открытых PR нет)
-- **PR:** #<номер> (после создания)
-- **Статус:** 🚧 In progress
+- **PR:** [#140](https://github.com/Giviruk/GenesysForgeClaude/pull/140)
+- **Статус:** 🚧 На ревью
 
 ## Контекст
 
@@ -40,7 +40,7 @@ GET   /reference/RealmsOfTerrinoth    31 ms  560 KB   старт +172 ms  ← ж
       чистит).
 - [x] Проверки: frontend 250 Vitest + tsc + eslint, замер до/после в браузере, ручная проверка
       инвалидации через реальный UI.
-- [ ] PR открыт.
+- [x] PR открыт.
 
 ## Результат замера
 
