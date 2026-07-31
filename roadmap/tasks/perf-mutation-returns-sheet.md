@@ -4,8 +4,8 @@
   [perf-sheet-refresh-roundtrips.md](perf-sheet-refresh-roundtrips.md))
 - **Ветка:** `feature/perf-mutation-returns-sheet`
 - **Базовая ветка:** `master` (PR #140 слит, открытых PR нет)
-- **PR:** #<номер> (после создания)
-- **Статус:** 🚧 In progress
+- **PR:** [#141](https://github.com/Giviruk/GenesysForgeClaude/pull/141)
+- **Статус:** 🚧 На ревью
 
 ## Контекст
 
@@ -43,7 +43,7 @@
 - [x] Документация: `docs/api.md`, `CHANGELOG.md`.
 - [x] Миграция не требуется: схема не менялась.
 - [x] Проверки: backend 673 + 732, frontend 256 Vitest + tsc + eslint, замер в браузере.
-- [ ] PR открыт.
+- [x] PR открыт.
 
 ## Результат замера
 
