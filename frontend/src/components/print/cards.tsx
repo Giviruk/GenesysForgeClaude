@@ -6,7 +6,7 @@ import {
   IMPLEMENT_MATERIAL_TRIGGERS, ITEM_DAMAGE_STATE_HINTS, ITEM_DAMAGE_STATE_LABELS,
   ITEM_KIND_LABELS, NPC_KIND_LABELS, NPC_ROLE_LABELS,
   PARTICIPANT_TYPE_LABELS, SLOT_TYPE_LABELS, SYSTEM_LABELS, THREAT_LEVEL_LABELS, WEAPON_CRAFTSMANSHIP_LABELS,
-  difficultyLabel, localizedDescription, localizedName, magicSkillLabel, secondaryName,
+  difficultyLabel, itemDescription, localizedDescription, localizedName, magicSkillLabel, secondaryName,
 } from '../../utils/labels'
 import type { PrintVersion } from './PrintPreview'
 import { t } from '../../i18n'
@@ -205,7 +205,7 @@ export function ItemCard({ item, skillLabel }: { item: SheetItem; skillLabel?: s
         </p>
       )}
       {item.properties && <p><b>{t('Свойства:', 'Properties:')}</b> {item.properties}</p>}
-      {localizedDescription(item) && <p>{localizedDescription(item)}</p>}
+      {itemDescription(item) && <p>{itemDescription(item)}</p>}
     </article>
   )
 }

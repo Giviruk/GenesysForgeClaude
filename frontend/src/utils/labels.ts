@@ -3,6 +3,7 @@ import type {
   HeroicOriginType, ImplementMaterial, InitiativeSlotType, ItemDamageState, SignatureWeaponProfile, WeaponCraftsmanship, WeaponFormTrait, ItemKind, ItemState, NpcCombatStyle, NpcKind, NpcPowerLevel, NpcRole,
   NpcVisibility, ParticipantType, SkillKind, TalentCategory, ThreatLevel, TransportKind, MovementMode,
 } from '../api/types'
+import { repeatsProperties } from '../data/itemQualities'
 import { t } from '../i18n'
 
 export const SYSTEM_LABELS: Record<GameSystem, string> = {
@@ -114,6 +115,23 @@ export const localizedDescription = (value: {
 }): string => {
   const ru = value.description?.trim() || value.safeDescription?.trim() || ''
   return t(ru, value.descriptionEn?.trim() || ru)
+}
+
+/**
+ * Описание предмета — или пустая строка, если оно всего лишь пересказывает список свойств.
+ *
+ * У части записей каталога в описание попал тот же список качеств, который уже показан тегами с
+ * тултипами: «Высококритичное 1» и там, и там. Второй раз его читать незачем, а записи с настоящим
+ * описанием («Магический длинный лук с высоким качеством и увеличенной дальностью») остаются.
+ */
+export const itemDescription = (item: {
+  description?: string | null
+  safeDescription?: string | null
+  descriptionEn?: string | null
+  properties?: string | null
+}): string => {
+  const text = localizedDescription(item)
+  return repeatsProperties(text, item.properties) ? '' : text
 }
 
 /**
