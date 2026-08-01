@@ -5,14 +5,17 @@
 
 ## Правила
 
-- Имя файла = slug ветки: `roadmap/tasks/<branch-slug>.md` (напр. `u03-character-json-export.md`).
+- Имя файла = slug ветки: `roadmap/tasks/<branch-slug>.md` (напр. `rot-transport-01-transport-section.md`).
 - Создавайте из шаблона [_TEMPLATE.md](_TEMPLATE.md).
 - Отмечайте пункты `- [x]` по ходу работы и коммитьте в ту же ветку.
 - В описании PR — ссылка на этот файл + краткий чеклист.
-- После слияния PR файл плана остаётся как история (не удаляем).
+- Файл плана живёт, пока живёт его партия задач. Когда партия закрыта и её итог перенесён
+  в файл прогресса, планы отдельных задач удаляются — историю держит git.
 
-## Связь с roadmap
+## Связь с планом
 
-- Статус задачи на верхнем уровне — в [../unified-roadmap.md](../unified-roadmap.md)
-  (строка `**Статус:** ⬜/🚧/✅`).
-- Детальный пошаговый прогресс — здесь.
+- Актуальный план и статусы всех пунктов — [rot-rules-remediation-progress.md](rot-rules-remediation-progress.md)
+  (чеклист `- [ ]` / `- [~]` / `- [x]`).
+- Объём каждого пункта — [rot-rules-remediation-tasks.md](rot-rules-remediation-tasks.md);
+  что вынесено из скопа — [rot-runtime-out-of-scope.md](rot-runtime-out-of-scope.md).
+- Детальный пошаговый прогресс по отдельной задаче — здесь.

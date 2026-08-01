@@ -13,7 +13,7 @@
 1. Should API versioning be introduced before release 1.0?
 2. Should startup migrations remain automatic in production?
 3. Should database check constraints be added for ranks, XP, tier and quantity?
-4. Should frontend adopt real routing for character/campaign/NPC URLs? Recommended next step is documented in `docs/mvp-ux-account-readiness.md`.
+4. ~~Should frontend adopt real routing for character/campaign/NPC URLs?~~ Resolved: yes — deep links are implemented (`frontend/src/router.ts`).
 5. Should CI include PostgreSQL integration tests instead of only InMemory API tests?
 6. Should public and private deployments be split into separate compose services before opening the app publicly?
 

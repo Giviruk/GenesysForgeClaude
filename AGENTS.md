@@ -110,7 +110,7 @@ npm run build
 
 - Каждая новая задача — в отдельной ветке.
 - Имя ветки: `feature/<краткое-описание-латиницей>` (kebab-case), напр. `feature/character-json-export`.
-- Если задача из roadmap — включайте её ID в slug: `feature/u03-character-json-export`.
+- Если задача из плана — включайте её ID в slug: `feature/rot-transport-01-transport-section`.
 - Перед созданием ветки: `git fetch`, проверьте `git status` и открытые PR (`gh pr list --state open`).
 
 ### 2. Стекинг поверх неслитых PR
@@ -131,15 +131,17 @@ npm run build
 
 - Для каждой задачи заводите файл плана: `roadmap/tasks/<branch-slug>.md` (шаблон — [roadmap/tasks/_TEMPLATE.md](roadmap/tasks/_TEMPLATE.md)).
 - План — markdown-чеклист (`- [ ]` / `- [x]`). Отмечайте выполненные пункты **по ходу работы** и коммитьте обновления плана в ту же ветку.
-- Файл плана содержит: ссылку на задачу roadmap (U-xx), контекст, пошаговый план, статус, что осталось/блокеры.
+- Файл плана содержит: ссылку на пункт ТЗ (`ROT-xx` / `GEN-xx`), контекст, пошаговый план, статус, что осталось/блокеры.
 - Агент, продолжающий задачу, **сначала читает файл плана**, затем продолжает с первого незакрытого пункта.
 
-### 5. Отметка прогресса в roadmap
+### 5. Отметка прогресса в плане
 
-- Меняя статус задачи, обновляйте статус-строку в [roadmap/unified-roadmap.md](roadmap/unified-roadmap.md) сразу под заголовком задачи `U-xx`:
-  - `**Статус:** ⬜ Todo` → `🚧 In progress` → `✅ Done (PR #N)`.
-- Легенда статусов — в шапке `unified-roadmap.md`.
-- `✅ Done` ставится только после слияния PR.
+- Актуальный план работ — [roadmap/tasks/rot-rules-remediation-progress.md](roadmap/tasks/rot-rules-remediation-progress.md);
+  источник истины по объёму каждого пункта — [rot-rules-remediation-tasks.md](roadmap/tasks/rot-rules-remediation-tasks.md),
+  вынесенное из скопа — [rot-runtime-out-of-scope.md](roadmap/tasks/rot-runtime-out-of-scope.md).
+- Меняя статус задачи, обновляйте её строку в чеклисте прогресса: `- [ ]` → `- [~]` (частично, с текстом остатка) → `- [x]`.
+- Крупные пункты дополнительно описывайте в разделе «Выполнено подробно» того же файла.
+- `- [x]` ставится только после слияния PR.
 
 ## Что нельзя менять без явного запроса
 
