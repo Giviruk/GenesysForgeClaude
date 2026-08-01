@@ -1692,21 +1692,25 @@ export type BaseSheet =
   Omit<CharacterSheet, 'items' | 'talents' | 'talentTierCounts' | 'mounts' | 'attachments'>
 
 /**
- * Ответ сервера с запрошенными частями. Отсутствующее поле значит «не загружено», а не «пусто»:
+ * Ответ сервера с запрошенными частями. Незапрошенная часть значит «не загружено», а не «пусто»:
  * пустой массив значит, что предметов (талантов, транспорта) у персонажа действительно нет.
+ *
+ * Незагруженное приходит именно как `null`, а не отсутствующим полем: сервер сериализует `null`-ы.
+ * Поэтому у полей `| null` — чтобы проверку «загружено ли» нельзя было написать через `undefined`
+ * и молча получить «загружено и пусто».
  */
 export interface SheetSlices {
-  base?: BaseSheet
-  items?: SheetItem[]
-  talents?: SheetTalent[]
-  talentTierCounts?: Record<string, number>
-  mounts?: CharacterMount[]
-  attachments?: CharacterAttachment[]
+  base?: BaseSheet | null
+  items?: SheetItem[] | null
+  talents?: SheetTalent[] | null
+  talentTierCounts?: Record<string, number> | null
+  mounts?: CharacterMount[] | null
+  attachments?: CharacterAttachment[] | null
   /**
    * Идентификатор только что созданной записи — у покупки предмета, транспорта, улучшения.
    * Иначе за ним пришлось бы оставлять отдельный ответ, а вместе с ним и второй запрос за листом.
    */
-  createdId?: string
+  createdId?: string | null
 }
 
 /**

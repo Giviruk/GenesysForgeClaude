@@ -176,6 +176,30 @@ public class CharacterSlicesApiTests(ApiFactory factory) : IClassFixture<ApiFact
         Assert.NotNull(full.Attachments);
     }
 
+    /// <summary>
+    /// Незапрошенная часть уезжает на провод как <c>"items": null</c>, а не отсутствующим полем:
+    /// сериализатор настроен писать <c>null</c>-ы.
+    ///
+    /// <para>
+    /// Это записано тестом, потому что на клиенте от этого зависит логика: там «загружено ли»
+    /// проверяется сравнением с <c>null</c>, а не с <c>undefined</c>, и пришедшие <c>null</c>-ы не
+    /// накладываются поверх уже загруженного. Ровно на этом один раз уже сломались вкладки —
+    /// незагруженное считалось загруженным, запросов не уходило, списки были пустыми.
+    /// </para>
+    /// </summary>
+    [Fact]
+    public async Task UnrequestedSlicesGoOverTheWireAsExplicitNulls()
+    {
+        var (client, id, _) = await CreateAsync();
+
+        var raw = await client.GetStringAsync($"/api/characters/{id}/slices?include=base");
+
+        Assert.Contains("\"items\":null", raw, StringComparison.Ordinal);
+        Assert.Contains("\"talents\":null", raw, StringComparison.Ordinal);
+        Assert.Contains("\"mounts\":null", raw, StringComparison.Ordinal);
+        Assert.Contains("\"attachments\":null", raw, StringComparison.Ordinal);
+    }
+
     [Fact]
     public async Task AnotherOwnersSlicesAreNotServed()
     {
