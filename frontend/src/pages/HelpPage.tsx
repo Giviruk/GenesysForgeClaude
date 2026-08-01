@@ -83,7 +83,7 @@ const GUIDE_BLOCKS = parseMarkdown(guideMarkdown)
   .filter(block => !(block.kind === 'heading' && block.level === 1))
 const GUIDE_SECTIONS = GUIDE_BLOCKS.filter((b): b is GuideHeading => b.kind === 'heading' && b.level === 2)
 
-/** User-facing guide rendered from docs/user-guide Markdown without pulling extra markdown dependencies. */
+/** User-facing guide rendered from src/content/user-guide*.md without pulling extra markdown dependencies. */
 export function HelpPage({ loggedIn, showFooter = true }: { loggedIn: boolean; showFooter?: boolean }) {
   return (
     <div className="page help-page">

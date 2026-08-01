@@ -11,7 +11,7 @@ namespace GenesysForge.Infrastructure.Auth;
 /// Проверка Google ID-токена по публичным ключам Google (JWKS) и настроенному client id
 /// (<c>Auth:Google:ClientId</c>). Пока client id не задан, провайдер считается ненастроенным
 /// и эндпоинт входа через Google возвращает понятную ошибку. Google Cloud проект/consent screen
-/// настраиваются отдельно (см. docs/mvp-ux-account-readiness.md, пункт 5).
+/// настраиваются отдельно (переменные — см. .env.example, раздел «Google OAuth»).
 /// </summary>
 public class GoogleIdTokenValidator(IConfiguration config) : IExternalIdentityValidator
 {

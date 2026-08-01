@@ -1,6 +1,6 @@
 # <Заголовок задачи> (<branch-slug>)
 
-- **Roadmap:** U-xx — <название> (см. [unified-roadmap.md](../unified-roadmap.md))
+- **Пункт ТЗ:** ROT-xx — <название> (объём — [rot-rules-remediation-tasks.md](rot-rules-remediation-tasks.md))
 - **Ветка:** `feature/<slug>`
 - **Базовая ветка:** `master` или `feature/<ветка-предыдущего-PR>` (если стек — см. AGENTS.md §2)
 - **PR:** #<номер> (после создания)
@@ -18,7 +18,7 @@
 - [ ] Тесты (xUnit / Vitest) обновлены
 - [ ] Миграция создана + `docs/database.md` обновлён (если менялась модель)
 - [ ] Copyright-проверка seed/справочников (если применимо)
-- [ ] Статус в `unified-roadmap.md` обновлён
+- [ ] Строка пункта в `rot-rules-remediation-progress.md` обновлена
 - [ ] PR открыт
 
 ## Что осталось / блокеры
