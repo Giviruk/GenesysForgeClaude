@@ -32,15 +32,23 @@ const base = {
   derived: {}, skills: [], characteristics: {},
 } as unknown as BaseSheet
 
-/** Отдаёт ровно запрошенные части — как это делает сервер. */
+/**
+ * Отдаёт ровно запрошенные части — как это делает сервер, включая `null` у незапрошенных.
+ *
+ * <p>Именно `null`, а не отсутствующее поле: сервер сериализует `null`-ы, и подделка, которая их
+ * опускала, однажды уже скрыла настоящий баг — вкладки считали незагруженное загруженным, ничего
+ * не запрашивали и рисовали пустые списки.</p>
+ */
 function serve(include: SheetSliceName[]): SheetSlices {
-  const out: SheetSlices = {}
-  if (include.includes('base')) out.base = base
-  if (include.includes('items')) out.items = []
-  if (include.includes('talents')) { out.talents = []; out.talentTierCounts = {} }
-  if (include.includes('mounts')) out.mounts = []
-  if (include.includes('attachments')) out.attachments = []
-  return out
+  const has = (name: SheetSliceName) => include.includes(name)
+  return {
+    base: has('base') ? base : null,
+    items: has('items') ? [] : null,
+    talents: has('talents') ? [] : null,
+    talentTierCounts: has('talents') ? {} : null,
+    mounts: has('mounts') ? [] : null,
+    attachments: has('attachments') ? [] : null,
+  }
 }
 
 const includesOf = () => sheetSlices.mock.calls.map(([, include]) => include.join(','))

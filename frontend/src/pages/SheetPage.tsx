@@ -51,7 +51,32 @@ const SLICES_BY_TAB: Record<Tab, SheetSliceName[]> = {
   custom: ['base'],
 }
 
-const hasSlice = (slices: SheetSlices, name: SheetSliceName) => slices[name] !== undefined
+/**
+ * Загружена ли часть. Сравнение именно с `null`, а не с `undefined`: незапрошенное приезжает с
+ * сервера как `"items": null`, и проверка на `undefined` считала бы его загруженным — вкладка
+ * молча рисовала бы пустой список и никогда ничего не запрашивала.
+ */
+const hasSlice = (slices: SheetSlices, name: SheetSliceName) => slices[name] != null
+
+/**
+ * Накладывает пришедшие части поверх уже загруженных.
+ *
+ * <p>Незапрошенное приезжает с сервера как `null`, а не отсутствующим полем, поэтому обычный
+ * spread не годится: ответ на запрос одного инвентаря затёр бы `null`-ами и базовую часть, и всё
+ * остальное. Здесь пришедшее перекрывает старое, только если оно действительно приехало.</p>
+ *
+ * <p>`createdId` не переносится: он относится к одному ответу, а не к состоянию листа.</p>
+ */
+function withSlices(prev: SheetSlices, got: SheetSlices): SheetSlices {
+  return {
+    base: got.base ?? prev.base,
+    items: got.items ?? prev.items,
+    talents: got.talents ?? prev.talents,
+    talentTierCounts: got.talentTierCounts ?? prev.talentTierCounts,
+    mounts: got.mounts ?? prev.mounts,
+    attachments: got.attachments ?? prev.attachments,
+  }
+}
 
 /**
  * Лист для печати. Печати нужно всё сразу, поэтому она берёт лист целиком одним запросом, а не
@@ -91,7 +116,7 @@ export function SheetPage({ characterId, printing, onOpenPrint, onClosePrint, on
 
   const mergeSlices = useCallback((got: SheetSlices) => setLoaded(prev => ({
     characterId,
-    slices: prev.characterId === characterId ? { ...prev.slices, ...got } : got,
+    slices: withSlices(prev.characterId === characterId ? prev.slices : NOTHING_LOADED, got),
   })), [characterId])
   const [reference, setReference] = useState<Reference | null>(null)
   const [tab, setTab] = useState<Tab>('sheet')
