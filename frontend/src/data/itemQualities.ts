@@ -344,6 +344,31 @@ export function parseProperties(properties: string | null | undefined): ParsedPr
 }
 
 /**
+ * Каноничный отпечаток списка свойств: имя качества берётся английское, а не отображаемое, чтобы
+ * «Vicious 1» и «Высококритичное 1» опознавались как одно и то же. Порядок не важен.
+ */
+const propertySignature = (list: ParsedProperty[]) =>
+  list
+    .map(p => `${p.quality ? p.quality.nameEn : normalizeName(p.raw)}:${p.rating ?? ''}`)
+    .sort()
+    .join('|')
+
+/**
+ * Текст не несёт ничего сверх списка свойств: он целиком разбирается в известные качества, и это
+ * ровно те же качества с теми же рейтингами.
+ *
+ * <p>Нужно, потому что у части записей каталога в описание попал тот же список качеств, который
+ * уже показан тегами с тултипами, — «Высококритичное 1» и там, и там. Проза в качества не
+ * разбирается, поэтому настоящее описание («Магический длинный лук…») сюда не попадает.</p>
+ */
+export function repeatsProperties(
+  text: string | null | undefined, properties: string | null | undefined): boolean {
+  const described = parseProperties(text)
+  if (described.length === 0 || described.some(p => !p.quality)) return false
+  return propertySignature(described) === propertySignature(parseProperties(properties))
+}
+
+/**
  * Нормализованные теги предмета из строки свойств: каноничное имя свойства (на языке
  * интерфейса) без рейтинга («Оборонительное 2» → «Оборонительное»). Используется как
  * набор тегов для фильтра магазина, пока нет отдельного поля тегов. Дубликаты убираются.

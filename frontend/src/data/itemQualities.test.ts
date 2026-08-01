@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { itemTags } from './itemQualities'
+import { itemTags, repeatsProperties } from './itemQualities'
 
 describe('itemTags — нормализованные теги из свойств', () => {
   it('убирает числовой рейтинг и берёт каноничное имя свойства', () => {
@@ -23,5 +23,44 @@ describe('itemTags — нормализованные теги из свойст
     expect(itemTags('')).toEqual([])
     expect(itemTags(null)).toEqual([])
     expect(itemTags(undefined)).toEqual([])
+  })
+})
+
+/**
+ * У части записей каталога в описание попал тот же список качеств, который уже показан тегами с
+ * тултипами: «Высококритичное 1» и там, и там. Правило отличает такой пересказ от настоящего
+ * описания — иначе вместе с дублями пропали бы и осмысленные тексты.
+ */
+describe('repeatsProperties — описание всего лишь пересказывает свойства', () => {
+  it('дословный повтор списка свойств', () => {
+    expect(repeatsProperties('Высококритичное 1', 'Высококритичное 1')).toBe(true)
+  })
+
+  it('повтор на другом языке: «Vicious 1» — то же качество, что «Высококритичное 1»', () => {
+    expect(repeatsProperties('Vicious 1', 'Высококритичное 1')).toBe(true)
+  })
+
+  it('порядок и пробелы не важны', () => {
+    expect(repeatsProperties('Точное 1,Оборонительное 2', 'Оборонительное 2, Точное 1')).toBe(true)
+  })
+
+  it('настоящее описание остаётся: проза в качества не разбирается', () => {
+    expect(repeatsProperties(
+      'Магический длинный лук с высоким качеством и увеличенной дальностью.',
+      'Точное 1, Громоздкое 3')).toBe(false)
+  })
+
+  it('другой рейтинг — уже не повтор: число несёт смысл', () => {
+    expect(repeatsProperties('Оборонительное 1', 'Оборонительное 2')).toBe(false)
+  })
+
+  it('описание короче списка свойств — не повтор', () => {
+    expect(repeatsProperties('Точное 1', 'Точное 1, Оборонительное 2')).toBe(false)
+  })
+
+  it('пустые значения повтором не считаются', () => {
+    expect(repeatsProperties('', 'Точное 1')).toBe(false)
+    expect(repeatsProperties(null, null)).toBe(false)
+    expect(repeatsProperties('Точное 1', null)).toBe(false)
   })
 })

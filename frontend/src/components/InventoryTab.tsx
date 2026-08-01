@@ -8,7 +8,7 @@ import {
   CHARACTERISTIC_LABELS, CURRENCY_LABEL, DIFFICULTY_LABELS, IMPLEMENT_MATERIAL_HINTS,
   IMPLEMENT_MATERIAL_LABELS, ITEM_DAMAGE_STATE_HINTS,
   ITEM_DAMAGE_STATE_LABELS, ITEM_KIND_LABELS, ITEM_STAT_FIELD_LABELS, ITEM_STATE_LABELS,
-  localizedDescription, localizedName, parseWeaponTraits, resolveWeaponSkillName, secondaryName,
+  itemDescription, localizedName, parseWeaponTraits, resolveWeaponSkillName, secondaryName,
   WEAPON_CRAFTSMANSHIP_ADJECTIVES, WEAPON_CRAFTSMANSHIP_HINTS, WEAPON_CRAFTSMANSHIP_LABELS,
   WEAPON_CRAFTSMANSHIPS,
 } from '../utils/labels'
@@ -306,8 +306,8 @@ function ShopRow({ item, money, run, sheetId, open, onToggle }: {
             {item.isCustom && t(' · кастом', ' · custom')}
             {item.kind === 'weapon' && item.damage && t(` · урон ${item.damage}, крит ${item.crit}`, ` · damage ${item.damage}, crit ${item.crit}`)}
           </div>
-          {localizedDescription(item) &&
-            <div className="muted small-text shop-desc">{localizedDescription(item)}</div>}
+          {itemDescription(item) &&
+            <div className="muted small-text shop-desc">{itemDescription(item)}</div>}
           {item.properties && <PropertyTags properties={item.properties} className="shop-props small-text" />}
         </div>
         <div className="shop-row-actions">
@@ -561,7 +561,7 @@ function InventoryCard({ item, sheet, skillNames, run, reference, funds, sellOpe
         </div>
       )}
 
-      {localizedDescription(item) && <div className="inv-card-desc">{localizedDescription(item)}</div>}
+      {itemDescription(item) && <div className="inv-card-desc">{itemDescription(item)}</div>}
 
       {/* Магический инструмент (ROT-MAG-IMP-01): материал, что он удешевляет и настроен ли он.
           Сам выбор эффектов делает ведущий на вкладке «Магия» — там уже загружен справочник. */}
