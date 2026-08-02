@@ -305,6 +305,9 @@ function ShopRow({ item, money, run, sheetId, open, onToggle }: {
               : ` · ${t('редкость', 'rarity')} ${item.rarity}`}
             {item.isCustom && t(' · кастом', ' · custom')}
             {item.kind === 'weapon' && item.damage && t(` · урон ${item.damage}, крит ${item.crit}`, ` · damage ${item.damage}, crit ${item.crit}`)}
+            {/* Реликвии и руны не покупаются вовсе — лучше сказать это словами, чем просто
+                спрятать кнопку «Купить» (ROT-MITEM-01). */}
+            {!item.purchasable && t(' · выдаёт ведущий', ' · GM award only')}
           </div>
           {itemDescription(item) &&
             <div className="muted small-text shop-desc">{itemDescription(item)}</div>}
