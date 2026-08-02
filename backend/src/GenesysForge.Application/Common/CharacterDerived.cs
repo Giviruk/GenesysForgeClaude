@@ -11,6 +11,16 @@ namespace GenesysForge.Application.Common;
 /// </summary>
 public static class CharacterDerived
 {
+    /// <summary>Узкий расчёт порогов для списков, которым не нужны предметы и остальные derived stats.</summary>
+    public static (int Wound, int Strain) Thresholds(Character c) =>
+        SheetCalculator.ComputeThresholds(
+            c.Characteristics,
+            c.Archetype!.WoundBase,
+            c.Archetype.StrainBase,
+            TalentInputs(c),
+            c.CreationWoundThreshold,
+            c.CreationStrainThreshold);
+
     public static DerivedStats Compute(Character c) =>
         SheetCalculator.ComputeDerived(
             c.Characteristics,

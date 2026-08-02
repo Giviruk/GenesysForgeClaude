@@ -46,10 +46,13 @@ public static class CampaignMapper
     {
         var campaign = await db.Campaigns.FirstOrDefaultAsync(c => c.Id == campaignId, ct)
             ?? throw new DomainRuleException("Кампания не найдена.");
-        var isGm = campaign.GmUserId == userId;
-        var isMember = await db.CampaignCharacters.AnyAsync(
-            cc => cc.CampaignId == campaignId && cc.PlayerUserId == userId, ct);
-        if (!isGm && !isMember) throw new DomainRuleException("Кампания не найдена.");
+        // GM уже авторизован самой строкой кампании; запрос членства для него был лишним round trip.
+        if (campaign.GmUserId != userId)
+        {
+            var isMember = await db.CampaignCharacters.AnyAsync(
+                cc => cc.CampaignId == campaignId && cc.PlayerUserId == userId, ct);
+            if (!isMember) throw new DomainRuleException("Кампания не найдена.");
+        }
         return campaign;
     }
 

@@ -11,19 +11,13 @@ public class GetNpcsHandler(IAppDbContext db) : IQueryHandler<GetNpcsQuery, List
     {
         var uid = q.UserId;
 
-        // кампании, в которых участвует пользователь — для показа CampaignVisible-NPC
-        var memberCampaignIds = await db.CampaignCharacters.AsNoTracking()
-            .Where(cc => cc.PlayerUserId == uid)
-            .Select(cc => cc.CampaignId)
-            .Distinct()
-            .ToListAsync(ct);
-
         var query = db.Npcs.AsNoTracking()
             .Include(n => n.Skills)
             .Where(n => n.OwnerUserId == uid
                 || n.IsBuiltIn
                 || (n.Visibility == NpcVisibility.CampaignVisible && n.CampaignId != null
-                    && memberCampaignIds.Contains(n.CampaignId.Value)));
+                    && db.CampaignCharacters.Any(cc => cc.PlayerUserId == uid
+                        && cc.CampaignId == n.CampaignId.Value)));
 
         if (q.System is { } system) query = query.Where(n => n.System == system);
         if (q.Kind is { } kind) query = query.Where(n => n.Kind == kind);

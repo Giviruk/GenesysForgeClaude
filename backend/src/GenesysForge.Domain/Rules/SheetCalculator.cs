@@ -31,8 +31,9 @@ public static class SheetCalculator
         // Метнутое и не подобранное оружие лежит у цели: ни качеств, ни защиты, ни веса (ROT-WPN-01).
         var equipped = items.Where(i => i.State == ItemState.Equipped && !i.IsThrown).ToList();
 
-        var talentWounds = talents.Sum(t => t.WoundBonusPerRank * t.Ranks);
-        var talentStrain = talents.Sum(t => t.StrainBonusPerRank * t.Ranks);
+        var thresholds = ComputeThresholds(
+            ch, archetypeWoundBase, archetypeStrainBase, talents,
+            woundThresholdSnapshot, strainThresholdSnapshot);
         var talentSoak = talents.Sum(t => t.SoakBonusPerRank * t.Ranks);
 
         // Персонаж может носить несколько броней, но защиту и поглощение даёт ровно одна выбранная
@@ -84,12 +85,8 @@ public static class SheetCalculator
         var load = encumbrance.Load;
 
         return new DerivedStats(
-            WoundThreshold: woundThresholdSnapshot is { } wt
-                ? wt + talentWounds
-                : GenesysRules.WoundThreshold(archetypeWoundBase, ch.Brawn, talentWounds),
-            StrainThreshold: strainThresholdSnapshot is { } st
-                ? st + talentStrain
-                : GenesysRules.StrainThreshold(archetypeStrainBase, ch.Willpower, talentStrain),
+            WoundThreshold: thresholds.Wound,
+            StrainThreshold: thresholds.Strain,
             Soak: GenesysRules.Soak(ch.Brawn, armorSoak, talentSoak),
             MeleeDefense: meleeDef,
             RangedDefense: rangedDef,
@@ -99,6 +96,30 @@ public static class SheetCalculator
             MeleeDefenseBreakdown: meleeBreakdown,
             RangedDefenseBreakdown: rangedBreakdown,
             Encumbrance: encumbrance);
+    }
+
+    /// <summary>
+    /// Считает только пороги ран и стрейна. Карточкам списка персонажей не нужны предметы,
+    /// защита и вес, поэтому они используют этот узкий расчёт и не загружают инвентарь.
+    /// Формула остаётся общей с полным листом через вызов из <see cref="ComputeDerived"/>.
+    /// </summary>
+    public static (int Wound, int Strain) ComputeThresholds(
+        CharacteristicsSet ch,
+        int archetypeWoundBase,
+        int archetypeStrainBase,
+        IReadOnlyList<TalentInput> talents,
+        int? woundThresholdSnapshot = null,
+        int? strainThresholdSnapshot = null)
+    {
+        var talentWounds = talents.Sum(t => t.WoundBonusPerRank * t.Ranks);
+        var talentStrain = talents.Sum(t => t.StrainBonusPerRank * t.Ranks);
+        return (
+            woundThresholdSnapshot is { } wt
+                ? wt + talentWounds
+                : GenesysRules.WoundThreshold(archetypeWoundBase, ch.Brawn, talentWounds),
+            strainThresholdSnapshot is { } st
+                ? st + talentStrain
+                : GenesysRules.StrainThreshold(archetypeStrainBase, ch.Willpower, talentStrain));
     }
 
     /// <summary>Вес позиции инвентаря: надетая броня — encumbrance −3 (мин. 0), остальное полностью.</summary>
