@@ -35,7 +35,9 @@ export function magicAdvantageSpends(action: Spell, effects: Spell[]): Advantage
     if (effect.nameEn === 'Additional Summon') {
       add({
         id: 'magic-additional-summon',
-        cost: 1,
+        // Два преимущества за призыв, одного не хватает (ROT-MAG-12): дополнительная цель стоит
+        // одно, и одинаковая цена делала призыв вдвое дешевле правила.
+        cost: 2,
         labelRu: 'Призвать ещё один предмет, оружие или существо',
         labelEn: 'Conjure one more item, weapon, or creature',
         detailRu: 'Можно повторять, оплачивая каждый дополнительный призыв отдельно.',

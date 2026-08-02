@@ -207,6 +207,58 @@ public class SpellTests : IClassFixture<ApiFactory>
         Assert.Equal(2, empowered.DifficultyIncrease);
     }
 
+    // ── ROT-MAG-12: состав Призыва и запрет стака Усиления ──
+
+    [Fact]
+    public async Task Conjure_StatesDisposition_Duration_And_TheSummonLevels()
+    {
+        var client = await _factory.CreateAuthorizedClientAsync();
+        var spells = (await client.GetFromJsonAsync<List<SpellDto>>("/api/spells/RealmsOfTerrinoth", Json.Options))!;
+
+        // Призванное существо не союзник по умолчанию — без этого «Призыв союзника» за +1
+        // выглядит покупкой ни за что.
+        // Базовое действие лежит по строке на каждое доступное направление, поэтому First.
+        var conjure = spells.First(s => s.Kind == SpellEntryKind.Effect && s.NameEn == "Conjure");
+        Assert.Contains("не подчиняется", conjure.Description);
+        Assert.Contains("враждебным", conjure.Description);
+        Assert.Contains("до конца его следующего хода", conjure.Description);
+        Assert.Contains("концентрации", conjure.Description);
+
+        SpellDto Effect(string code) => spells.Single(s => s.ParentEffect == "Conjure" && s.NameEn == code);
+
+        Assert.Contains("дружественно", Effect("Summon Ally").Description);
+        Assert.Contains("силуэта не больше 1", Effect("Medium Summon").Description);
+        Assert.Contains("силуэта не больше 3", Effect("Grand Summon").Description);
+    }
+
+    [Fact]
+    public async Task AdditionalSummon_CostsTwoAdvantage_NotOne()
+    {
+        var client = await _factory.CreateAuthorizedClientAsync();
+        var spells = (await client.GetFromJsonAsync<List<SpellDto>>("/api/spells/RealmsOfTerrinoth", Json.Options))!;
+
+        var summon = spells.Single(s => s.ParentEffect == "Conjure" && s.NameEn == "Additional Summon");
+        Assert.Contains("2 преимущества", summon.Description);
+        Assert.DoesNotContain("1 преимущество", summon.Description);
+        Assert.Contains("2 advantages", summon.DescriptionEn);
+    }
+
+    [Fact]
+    public async Task Augment_SaysOnlyOneAugmentAffectsATarget()
+    {
+        var client = await _factory.CreateAuthorizedClientAsync();
+        var spells = (await client.GetFromJsonAsync<List<SpellDto>>("/api/spells/RealmsOfTerrinoth", Json.Options))!;
+
+        var augment = spells.First(s => s.Kind == SpellEntryKind.Effect && s.NameEn == "Augment");
+        Assert.Contains("только одно усиление", augment.Description);
+        Assert.Contains("отклоняется", augment.Description);
+        Assert.Contains("только одно усиление", augment.SafeDescription);
+
+        // Правило про две цели, а не про сочетание эффектов внутри одного заклинания:
+        // структурная несочетаемость к Усилению не добавляется.
+        Assert.Empty(augment.Exclusions!);
+    }
+
     [Fact]
     public async Task MoveEffect_IsGone_ItsSurvivingTwinIsManipulative()
     {

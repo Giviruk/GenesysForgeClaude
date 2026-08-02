@@ -33,8 +33,9 @@ describe('magic advantage spends', () => {
 
   it('покрывает пост-бросковые расходы Conjure, Mask и Predict', () => {
     const conjure = { ...spell('Conjure', 'Призыв'), kind: 'effect' as const }
+    // Дополнительный призыв стоит два преимущества, а не одно (ROT-MAG-12).
     expect(magicAdvantageSpends(conjure, [spell('Additional Summon')]).map(x => x.cost))
-      .toEqual([1])
+      .toEqual([2])
 
     const mask = { ...spell('Mask', 'Маска'), kind: 'effect' as const }
     expect(magicAdvantageSpends(mask, [spell('Additional Illusion'), spell('Realism')])
