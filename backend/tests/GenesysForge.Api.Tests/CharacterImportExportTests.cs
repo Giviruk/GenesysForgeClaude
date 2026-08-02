@@ -113,6 +113,46 @@ public class CharacterImportExportTests : IClassFixture<ApiFactory>
     }
 
     [Fact]
+    public async Task Import_ForeignHomebrewCode_IsNotResolved()
+    {
+        var foreignOwner = await _factory.CreateAuthorizedClientAsync();
+        var suffix = Guid.NewGuid().ToString("N");
+        var foreignCode = $"foreign.skill.{suffix}";
+        var foreignName = $"Foreign Skill {suffix}";
+        var document = new HomebrewPackExportDto(
+            "genesysforge.homebrew-pack.v1",
+            $"Foreign Pack {suffix}",
+            null,
+            GameSystem.GenesysCore,
+            [new HomebrewSkillDto(foreignCode, foreignName, foreignName,
+                CharacteristicType.Cunning, SkillKind.General, null, null, "User")],
+            null, null, null, null, null);
+        var packResponse = await foreignOwner.PostAsJsonAsync(
+            "/api/homebrew-packs/import", document, Json.Options);
+        Assert.Equal(HttpStatusCode.Created, packResponse.StatusCode);
+
+        var (importer, id, _) = await CreateCharacterAsync();
+        var export = await ExportAsync(importer, id);
+        var forged = export with
+        {
+            Character = export.Character with
+            {
+                Skills = [.. export.Character.Skills,
+                    new CharacterSkillExport(foreignCode, foreignName, 1, false, 0)],
+            },
+        };
+
+        var response = await importer.PostAsJsonAsync("/api/characters/import", forged, Json.Options);
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+        var result = (await response.Content.ReadFromJsonAsync<ImportCharacterResult>(Json.Options))!;
+        Assert.Contains(result.Warnings, warning => warning.Contains(foreignName, StringComparison.Ordinal));
+
+        var sheet = (await importer.GetFromJsonAsync<CharacterSheetDto>(
+            $"/api/characters/{result.CharacterId}", Json.Options))!;
+        Assert.DoesNotContain(sheet.Skills, skill => skill.Name == foreignName);
+    }
+
+    [Fact]
     public async Task Preview_ReturnsSummaryWithoutCreating()
     {
         var (client, id, _) = await CreateCharacterAsync();

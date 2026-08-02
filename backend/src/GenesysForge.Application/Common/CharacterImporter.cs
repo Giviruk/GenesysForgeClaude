@@ -35,11 +35,12 @@ public static class CharacterImporter
 
         var warnings = new List<string>();
         var system = data.System;
+        var definitions = await ImportDefinitionSet.LoadAsync(db, userId, system, data, ct);
 
-        var archetype = await ResolveArchetypeAsync(db, system, data.ArchetypeCode, data.ArchetypeName, ct)
+        var archetype = definitions.Archetypes.Resolve(data.ArchetypeCode, data.ArchetypeName)
             ?? throw new DomainRuleException(
                 $"Не найден архетип «{Display(data.ArchetypeName, data.ArchetypeCode)}» для системы {system}.");
-        var career = await ResolveCareerAsync(db, system, data.CareerCode, data.CareerName, ct)
+        var career = definitions.Careers.Resolve(data.CareerCode, data.CareerName)
             ?? throw new DomainRuleException(
                 $"Не найдена карьера «{Display(data.CareerName, data.CareerCode)}» для системы {system}.");
 
@@ -73,7 +74,7 @@ public static class CharacterImporter
 
         foreach (var s in data.Skills ?? [])
         {
-            var def = await ResolveSkillAsync(db, userId, system, s.Code, s.Name, ct);
+            var def = definitions.Skills.Resolve(s.Code, s.Name);
             if (def is null) { warnings.Add($"Навык «{Display(s.Name, s.Code)}» не найден — пропущен."); continue; }
             character.Skills.Add(new CharacterSkill
             {
@@ -84,7 +85,7 @@ public static class CharacterImporter
 
         foreach (var t in data.Talents ?? [])
         {
-            var def = await ResolveTalentAsync(db, userId, system, t.Code, t.Name, ct);
+            var def = definitions.Talents.Resolve(t.Code, t.Name);
             if (def is null) { warnings.Add($"Талант «{Display(t.Name, t.Code)}» не найден — пропущен."); continue; }
             var talentId = Guid.NewGuid();
             var imported = new CharacterTalent
@@ -123,7 +124,7 @@ public static class CharacterImporter
         var cargoLinks = new List<(CharacterItem Item, ItemDef Def, int MountIndex, bool Installed)>();
         foreach (var it in data.Items ?? [])
         {
-            var def = await ResolveItemAsync(db, userId, system, it.Code, it.Name, ct);
+            var def = definitions.Items.Resolve(it.Code, it.Name);
             if (def is null) { warnings.Add($"Предмет «{Display(it.Name, it.Code)}» не найден — пропущен."); continue; }
             // Качество изготовления файла проверяется, а не применяется на веру: снаряжение
             // эльфийским не бывает, и такой файл чинится обычной работой с предупреждением.
@@ -144,11 +145,8 @@ public static class CharacterImporter
             if (shardSpec is { NeedsConfiguration: true } && it.ShardConfigured)
             {
                 var activation = it.ShardActivationChoice?.Trim() ?? "";
-                var configuredEffect = await db.SpellDefs.AsNoTracking().FirstOrDefaultAsync(s =>
-                    s.System == system
-                    && s.Kind == SpellEntryKind.AdditionalEffect
-                    && s.ParentEffect == it.ShardEffectAction
-                    && s.NameEn == it.ShardEffectChoice, ct);
+                var configuredEffect = definitions.ConfiguredSpellEffect(
+                    it.ShardEffectAction, it.ShardEffectChoice);
                 validShardConfiguration = activation.Length is >= 3 and <= 500
                     && configuredEffect?.DifficultyIncrease == 1
                     && MagicMatrix.SkillsForEffect(
@@ -221,7 +219,7 @@ public static class CharacterImporter
         var importedMounts = new List<(CharacterMount? Mount, MountDef? Def)>();
         foreach (var m in data.Mounts ?? [])
         {
-            var def = await ResolveMountAsync(db, userId, system, m.Code, m.Name, ct);
+            var def = definitions.Mounts.Resolve(m.Code, m.Name);
             if (def is null)
             {
                 warnings.Add($"Транспорт «{Display(m.Name, m.Code)}» не найден — пропущен.");
@@ -274,7 +272,7 @@ public static class CharacterImporter
 
         if (!string.IsNullOrWhiteSpace(data.HeroicAbilityCode) || !string.IsNullOrWhiteSpace(data.HeroicAbilityName))
         {
-            var heroic = await ResolveHeroicAsync(db, userId, data.HeroicAbilityCode, data.HeroicAbilityName, ct);
+            var heroic = definitions.Heroics.Resolve(data.HeroicAbilityCode, data.HeroicAbilityName);
             if (heroic is null)
                 warnings.Add($"Героическая способность «{Display(data.HeroicAbilityName, data.HeroicAbilityCode)}» не найдена — пропущена.");
             else
@@ -357,8 +355,7 @@ public static class CharacterImporter
             var kind = HeroicParameterRules.Required(character.HeroicAbility?.Code);
             if (kind == HeroicParameterKind.ParagonSkill && !string.IsNullOrWhiteSpace(data.ParagonSkillName))
             {
-                var skill = await ResolveSkillAsync(
-                    db, userId, character.System, data.ParagonSkillCode, data.ParagonSkillName, ct);
+                var skill = definitions.Skills.Resolve(data.ParagonSkillCode, data.ParagonSkillName);
                 if (skill is null)
                     warnings.Add($"Навык Paragon «{data.ParagonSkillName}» не найден — выберите его заново.");
                 else
@@ -496,77 +493,6 @@ public static class CharacterImporter
             + "пороги нужно исправить вручную.");
     }
 
-    private static async Task<ArchetypeDef?> ResolveArchetypeAsync(
-        IAppDbContext db, GameSystem system, string? code, string? name, CancellationToken ct)
-    {
-        ArchetypeDef? def = null;
-        if (!string.IsNullOrWhiteSpace(code))
-            def = await db.ArchetypeDefs.FirstOrDefaultAsync(a => a.System == system && a.Code == code, ct);
-        if (def is null && !string.IsNullOrWhiteSpace(name))
-            def = await db.ArchetypeDefs.FirstOrDefaultAsync(a => a.System == system && a.Name == name, ct);
-        return def;
-    }
-
-    private static async Task<CareerDef?> ResolveCareerAsync(
-        IAppDbContext db, GameSystem system, string? code, string? name, CancellationToken ct)
-    {
-        CareerDef? def = null;
-        if (!string.IsNullOrWhiteSpace(code))
-            def = await db.CareerDefs.FirstOrDefaultAsync(c => c.System == system && c.Code == code, ct);
-        if (def is null && !string.IsNullOrWhiteSpace(name))
-            def = await db.CareerDefs.FirstOrDefaultAsync(c => c.System == system && c.Name == name, ct);
-        return def;
-    }
-
-    private static async Task<SkillDef?> ResolveSkillAsync(
-        IAppDbContext db, Guid userId, GameSystem system, string? code, string? name, CancellationToken ct)
-    {
-        SkillDef? def = null;
-        if (!string.IsNullOrWhiteSpace(code))
-            def = await db.SkillDefs.FirstOrDefaultAsync(s => s.System == system && s.Code == code, ct);
-        if (def is null && !string.IsNullOrWhiteSpace(name))
-            def = await db.SkillDefs.FirstOrDefaultAsync(
-                s => s.System == system && s.Name == name && (s.OwnerUserId == null || s.OwnerUserId == userId), ct);
-        return def;
-    }
-
-    private static async Task<TalentDef?> ResolveTalentAsync(
-        IAppDbContext db, Guid userId, GameSystem system, string? code, string? name, CancellationToken ct)
-    {
-        TalentDef? def = null;
-        if (!string.IsNullOrWhiteSpace(code))
-            def = await db.TalentDefs.FirstOrDefaultAsync(t => t.System == system && t.Code == code, ct);
-        if (def is null && !string.IsNullOrWhiteSpace(name))
-            def = await db.TalentDefs.FirstOrDefaultAsync(
-                t => t.System == system && t.Name == name && (t.OwnerUserId == null || t.OwnerUserId == userId), ct);
-        return def;
-    }
-
-    private static async Task<ItemDef?> ResolveItemAsync(
-        IAppDbContext db, Guid userId, GameSystem system, string? code, string? name, CancellationToken ct)
-    {
-        ItemDef? def = null;
-        if (!string.IsNullOrWhiteSpace(code))
-            def = await db.ItemDefs.FirstOrDefaultAsync(i => i.System == system && i.Code == code, ct);
-        if (def is null && !string.IsNullOrWhiteSpace(name))
-            def = await db.ItemDefs.FirstOrDefaultAsync(
-                i => i.System == system && i.Name == name && (i.OwnerUserId == null || i.OwnerUserId == userId), ct);
-        return def;
-    }
-
-    private static async Task<MountDef?> ResolveMountAsync(
-        IAppDbContext db, Guid userId, GameSystem system, string? code, string? name, CancellationToken ct)
-    {
-        MountDef? def = null;
-        if (!string.IsNullOrWhiteSpace(code))
-            def = await db.MountDefs.FirstOrDefaultAsync(m => m.System == system && m.Code == code, ct);
-        if (def is null && !string.IsNullOrWhiteSpace(name))
-            def = await db.MountDefs.FirstOrDefaultAsync(
-                m => m.System == system && m.Name == name
-                    && (m.OwnerUserId == null || m.OwnerUserId == userId), ct);
-        return def;
-    }
-
     /// <summary>
     /// Расставляет ссылки груза и тяги после того, как транспорт создан (ROT-TRANSPORT-01). Битая
     /// ссылка не роняет импорт и не создаёт груз без владельца: позиция остаётся у персонажа, а в
@@ -635,19 +561,6 @@ public static class CharacterImporter
                     $"У транспорта «{def.Name}» груз {load} больше вместимости {capacity} — "
                     + "перегруз сохранён как есть.");
         }
-    }
-
-    private static async Task<HeroicAbilityDef?> ResolveHeroicAsync(
-        IAppDbContext db, Guid userId, string? code, string? name, CancellationToken ct)
-    {
-        // У HeroicAbilityDef нет System — матчим по Code, затем по Name в области видимости владельца.
-        HeroicAbilityDef? def = null;
-        if (!string.IsNullOrWhiteSpace(code))
-            def = await db.HeroicAbilityDefs.Include(h => h.Upgrades).FirstOrDefaultAsync(h => h.Code == code, ct);
-        if (def is null && !string.IsNullOrWhiteSpace(name))
-            def = await db.HeroicAbilityDefs.Include(h => h.Upgrades).FirstOrDefaultAsync(
-                h => h.Name == name && (h.OwnerUserId == null || h.OwnerUserId == userId), ct);
-        return def;
     }
 
     private static int Char(CharacterExportData d, string key, int fallback)

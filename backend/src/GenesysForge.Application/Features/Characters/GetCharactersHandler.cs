@@ -9,18 +9,11 @@ public class GetCharactersHandler(IAppDbContext db) : IQueryHandler<GetCharacter
 {
     public async Task<List<CharacterListItemDto>> Handle(GetCharactersQuery query, CancellationToken ct = default)
     {
-        var characters = await db.Characters.AsNoTracking()
-            .Where(c => c.OwnerUserId == query.UserId)
-            .Include(c => c.Archetype)
-            .Include(c => c.Career)
-            .Include(c => c.Talents).ThenInclude(t => t.TalentDef)
-            .Include(c => c.Items).ThenInclude(i => i.ItemDef)
-            .OrderByDescending(c => c.CreatedAt)
-            .ToListAsync(ct);
+        var characters = await db.CardListQuery(query.UserId).ToListAsync(ct);
 
         return characters.Select(c =>
         {
-            var derived = CharacterDerived.Compute(c);
+            var thresholds = CharacterDerived.Thresholds(c);
 
             return new CharacterListItemDto(
                 c.Id,
@@ -32,9 +25,9 @@ public class GetCharactersHandler(IAppDbContext db) : IQueryHandler<GetCharacter
                 c.CreatedAt,
                 c.AvailableXp,
                 c.WoundsCurrent,
-                derived.WoundThreshold,
+                thresholds.Wound,
                 c.StrainCurrent,
-                derived.StrainThreshold,
+                thresholds.Strain,
                 c.PortraitUrl);
         }).ToList();
     }

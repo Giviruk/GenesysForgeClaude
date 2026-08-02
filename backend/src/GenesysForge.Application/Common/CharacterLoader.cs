@@ -17,6 +17,18 @@ namespace GenesysForge.Application.Common;
 /// </summary>
 public static class CharacterLoader
 {
+    /// <summary>
+    /// Карточки списка: пороги зависят от вида и талантов, но не от инвентаря. Отдельный query
+    /// builder позволяет регрессионному тесту гарантировать, что тяжёлый Include предметов не вернётся.
+    /// </summary>
+    public static IQueryable<Character> CardListQuery(this IAppDbContext db, Guid userId) =>
+        db.Characters.AsNoTracking()
+            .Where(c => c.OwnerUserId == userId)
+            .Include(c => c.Archetype)
+            .Include(c => c.Career)
+            .Include(c => c.Talents).ThenInclude(t => t.TalentDef)
+            .OrderByDescending(c => c.CreatedAt);
+
     /// <summary>Загружает персонажа со всеми связями и проверяет владельца.</summary>
     public static async Task<Character> GetOwnedAsync(
         this IAppDbContext db, Guid userId, Guid characterId, bool tracking = true, CancellationToken ct = default)

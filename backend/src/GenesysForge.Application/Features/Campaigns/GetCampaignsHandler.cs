@@ -10,15 +10,11 @@ public class GetCampaignsHandler(IAppDbContext db) : IQueryHandler<GetCampaignsQ
     {
         var uid = query.UserId;
 
-        // кампании, где я мастер, либо где участвует мой персонаж
-        var memberCampaignIds = await db.CampaignCharacters.AsNoTracking()
-            .Where(cc => cc.PlayerUserId == uid)
-            .Select(cc => cc.CampaignId)
-            .Distinct()
-            .ToListAsync(ct);
-
         var campaigns = await db.Campaigns.AsNoTracking()
-            .Where(c => c.GmUserId == uid || memberCampaignIds.Contains(c.Id))
+            // Коррелированный EXISTS оставляет проверку членства в одном SQL-запросе и не переносит
+            // все campaign ids пользователя в память отдельным round trip.
+            .Where(c => c.GmUserId == uid || db.CampaignCharacters.Any(
+                cc => cc.PlayerUserId == uid && cc.CampaignId == c.Id))
             .OrderByDescending(c => c.CreatedAt)
             .Select(c => new
             {

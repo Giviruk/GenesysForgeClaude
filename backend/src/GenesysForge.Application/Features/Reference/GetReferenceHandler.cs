@@ -73,14 +73,16 @@ public class GetReferenceHandler(IAppDbContext db) : IQueryHandler<GetReferenceQ
             .OrderBy(i => i.Kind).ThenBy(i => i.Name)
             .ToListAsync(ct);
         // Качества альтернативных профилей атаки хранятся кодами (ROT-WPN-01) и резолвятся справочником.
-        var qualityDefs = (await db.QualityDefs.AsNoTracking().ToListAsync(ct))
+        var qualityDefRows = await db.QualityDefs.AsNoTracking()
+            .OrderBy(q => q.NameRu)
+            .ToListAsync(ct);
+        var qualityDefs = qualityDefRows
             .ToDictionary(q => q.Code, StringComparer.Ordinal);
         var items = itemDefs.Select(i => i.ToDto(qualityDefs)).ToList();
 
-        var qualities = await db.QualityDefs.AsNoTracking()
+        var qualities = qualityDefRows
             .Where(q => !q.Retired)
-            .OrderBy(q => q.NameRu)
-            .Select(q => q.ToDto()).ToListAsync(ct);
+            .Select(q => q.ToDto()).ToList();
 
         // Героики материализуем вместе с улучшениями и маппим в памяти (ToDto тянет навигацию Upgrades).
         var heroicDefs = system == GameSystem.RealmsOfTerrinoth

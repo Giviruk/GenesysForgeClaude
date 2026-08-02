@@ -95,4 +95,16 @@ public class CharacterLoadQueryShapeTests
                  })
             Assert.DoesNotContain(table, sql, StringComparison.Ordinal);
     }
+
+    [Fact]
+    public void CharacterCardListDoesNotLoadInventory()
+    {
+        using var db = RealProviderContext();
+
+        var tree = db.CardListQuery(Guid.Empty).Expression.ToString();
+
+        Assert.Contains("Talents", tree, StringComparison.Ordinal);
+        Assert.DoesNotContain("Items", tree, StringComparison.Ordinal);
+        Assert.DoesNotContain("Attachments", tree, StringComparison.Ordinal);
+    }
 }
