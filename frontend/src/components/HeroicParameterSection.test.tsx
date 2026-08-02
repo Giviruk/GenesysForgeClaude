@@ -148,6 +148,10 @@ describe('HeroicParameterSection (ROT-HA-02)', () => {
           damage: '8', crit: 3, rangeBand: 'Long', encumbrance: 2, hardPoints: 2,
           qualities: [{ code: 'superior', nameRu: 'Превосходное', nameEn: 'Superior', rating: null,
             hasRating: false, isActive: false, activationCost: '' }],
+          baseAttachment: {
+            defId: 'att-thunder', code: 'rot.attachment.runic-thunder', name: 'Runic Thunder',
+            nameRu: 'Рунический гром', description: '', effects: [],
+          },
         },
       }, { isCreationPhase: false })}
       reference={reference} run={run} />)
