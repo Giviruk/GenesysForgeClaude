@@ -168,6 +168,10 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         {
             e.HasIndex(x => x.CharacterId).IsUnique();
             e.Property(x => x.NarrativeForm).HasMaxLength(200);
+            // Базовое улучшение — ссылка на справочник, а не экземпляр в инвентаре (ROT-HA-02).
+            // Restrict: удаление записи каталога не должно молча обезоруживать персонажа.
+            e.HasOne(x => x.BaseAttachment).WithMany()
+                .HasForeignKey(x => x.BaseAttachmentDefId).OnDelete(DeleteBehavior.Restrict);
         });
 
         b.Entity<CharacterHeroicSecondaryEffect>(e =>

@@ -246,7 +246,23 @@ export interface SignatureWeapon {
   rangeBand: string
   encumbrance: number
   hardPoints: number
+  /** Качества профиля вместе с теми, что даёт базовое улучшение. */
   qualities: ItemQualityRef[]
+  /**
+   * Базовое улучшение оружия (ROT-HA-02): временное, действует только вместе со способностью,
+   * не покупается и не занимает слотов. `null` — старый персонаж, который его ещё не выбрал.
+   */
+  baseAttachment: SignatureBaseAttachment | null
+}
+
+/** Базовое улучшение именного оружия. Цены и слотов у героической копии нет — их и не приходит. */
+export interface SignatureBaseAttachment {
+  defId: string
+  code: string
+  name: string
+  nameRu: string
+  description: string
+  effects: AttachmentEffect[]
 }
 
 /** Параметр primary effect на листе персонажа. */

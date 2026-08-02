@@ -382,15 +382,48 @@ public static class CharacterImporter
             {
                 try
                 {
+                    var craftsmanship = data.SignatureWeaponCraftsmanship ?? WeaponCraftsmanship.Steel;
+                    var traits = HeroicParameterRules.ValidateFormTraits(
+                        profile, data.SignatureWeaponTraits ?? WeaponFormTraits.None);
+                    // Базовое улучшение переносится по коду и заново проверяется на совместимость:
+                    // подменённый в файле код не должен стать оружием, которого правило не даёт.
+                    // Файл до v6 его не содержит — параметр останется незавершённым.
+                    Guid? baseAttachmentId = null;
+                    if (!string.IsNullOrWhiteSpace(data.SignatureWeaponBaseAttachmentCode))
+                    {
+                        var code = data.SignatureWeaponBaseAttachmentCode.Trim();
+                        var att = await db.AttachmentDefs.Include(a => a.Effects).FirstOrDefaultAsync(a =>
+                            a.Code == code && a.System == system && !a.Retired && a.OwnerUserId == null, ct);
+                        if (att is null)
+                        {
+                            warnings.Add($"Базовое улучшение именного оружия «{code}» не найдено — выберите его заново.");
+                        }
+                        else
+                        {
+                            try
+                            {
+                                HeroicParameterRules.EnsureCanBeBaseAttachment(
+                                    traits,
+                                    [.. SignatureWeaponProfiles.QualitiesFor(profile, craftsmanship).Select(q => q.Code)],
+                                    att);
+                                baseAttachmentId = att.Id;
+                            }
+                            catch (DomainRuleException ex)
+                            {
+                                warnings.Add($"Базовое улучшение именного оружия не перенесено: {ex.Message}");
+                            }
+                        }
+                    }
+
                     character.SignatureWeapon = new CharacterSignatureWeapon
                     {
                         Id = Guid.NewGuid(),
                         CharacterId = characterId,
                         Profile = profile,
-                        Craftsmanship = data.SignatureWeaponCraftsmanship ?? WeaponCraftsmanship.Steel,
+                        Craftsmanship = craftsmanship,
                         NarrativeForm = HeroicParameterRules.ValidateNarrativeForm(data.SignatureWeaponForm),
-                        FormTraits = HeroicParameterRules.ValidateFormTraits(
-                            profile, data.SignatureWeaponTraits ?? WeaponFormTraits.None),
+                        FormTraits = traits,
+                        BaseAttachmentDefId = baseAttachmentId,
                         IsLost = data.SignatureWeaponLost,
                     };
                 }

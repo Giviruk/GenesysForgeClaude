@@ -100,7 +100,7 @@ public static class CharacterLoader
             // (ROT-TRANSPORT-01).
             .Include(c => c.CriticalInjuries)
             .Include(c => c.HeroicConfiguration).ThenInclude(x => x!.ParagonSkillDef)
-            .Include(c => c.SignatureWeapon);
+            .Include(c => c.SignatureWeapon).ThenInclude(w => w!.BaseAttachment).ThenInclude(a => a!.Effects);
 
     /// <summary>
     /// Запрос ровно под запрошенные срезы. Include'ы складываются объединением, потому что срез
@@ -142,7 +142,7 @@ public static class CharacterLoader
                 .Include(c => c.Skills).ThenInclude(s => s.SkillDef)
                 .Include(c => c.CriticalInjuries)
                 .Include(c => c.HeroicConfiguration).ThenInclude(x => x!.ParagonSkillDef)
-                .Include(c => c.SignatureWeapon);
+                .Include(c => c.SignatureWeapon).ThenInclude(w => w!.BaseAttachment).ThenInclude(a => a!.Effects);
 
         if (needsTalentDefs)
             query = query.Include(c => c.Talents).ThenInclude(t => t.TalentDef);

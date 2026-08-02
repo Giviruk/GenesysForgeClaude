@@ -69,6 +69,7 @@ public class DuplicateCharacterHandler(IAppDbContext db) : ICommandHandler<Dupli
                 Craftsmanship = src.SignatureWeapon.Craftsmanship,
                 NarrativeForm = src.SignatureWeapon.NarrativeForm,
                 FormTraits = src.SignatureWeapon.FormTraits,
+                BaseAttachmentDefId = src.SignatureWeapon.BaseAttachmentDefId,
                 IsLost = src.SignatureWeapon.IsLost,
             },
             Desire = src.Desire,

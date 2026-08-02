@@ -1,4 +1,5 @@
 using GenesysForge.Domain;
+using GenesysForge.Domain.Entities;
 using GenesysForge.Domain.Rules;
 
 namespace GenesysForge.Domain.Tests;
@@ -125,5 +126,60 @@ public class HeroicParameterTests
         var ex = Assert.Throws<DomainRuleException>(() => HeroicParameterRules.ValidateNarrativeForm(null));
 
         Assert.Equal("heroic.weapon.form_required", ex.ReasonCode);
+    }
+
+    // ---- базовое улучшение именного оружия ----
+
+    private static AttachmentDef Attachment(
+        string code, AttachmentEffectKind kind, string quality,
+        WeaponFormTraits required = WeaponFormTraits.None,
+        WeaponFormTraits forbidden = WeaponFormTraits.None) =>
+        new()
+        {
+            Code = code,
+            Name = code,
+            HostKind = ItemKind.Weapon,
+            RequiredTraits = required,
+            ForbiddenTraits = forbidden,
+            Effects = [new AttachmentEffect { Kind = kind, QualityCode = quality, Value = 1 }],
+        };
+
+    [Fact]
+    public void BaseAttachment_IsCheckedByConfirmedTraits_NotByTheFormName()
+    {
+        var bladed = WeaponFormTraits.OneHanded | WeaponFormTraits.Bladed | WeaponFormTraits.HasCuttingEdge;
+        var razor = Attachment("razor-edge", AttachmentEffectKind.GrantOrIncreaseQuality, "pierce",
+            required: WeaponFormTraits.Bladed);
+
+        HeroicParameterRules.EnsureCanBeBaseAttachment(bladed, ["superior"], razor);
+
+        var blunt = WeaponFormTraits.TwoHanded | WeaponFormTraits.BluntOrCrushing;
+        var ex = Assert.Throws<DomainRuleException>(() =>
+            HeroicParameterRules.EnsureCanBeBaseAttachment(blunt, ["superior"], razor));
+        Assert.Equal("heroic.weapon.attachment_incompatible", ex.ReasonCode);
+    }
+
+    [Theory]
+    [InlineData(AttachmentEffectKind.GrantOrIncreaseQuality)]
+    [InlineData(AttachmentEffectKind.SetQualityAtLeast)]
+    [InlineData(AttachmentEffectKind.GrantQualityOrCancelOpposite)]
+    public void BaseAttachment_GivingAQualityTheWeaponAlreadyHas_IsRejected(AttachmentEffectKind kind)
+    {
+        // Все три вида — выдача качества: способ выдачи разный, а правило одно.
+        var def = Attachment("superior-customization", kind, "superior");
+
+        var ex = Assert.Throws<DomainRuleException>(() => HeroicParameterRules.EnsureCanBeBaseAttachment(
+            WeaponFormTraits.OneHanded, ["superior"], def));
+
+        Assert.Equal("heroic.weapon.attachment_redundant", ex.ReasonCode);
+    }
+
+    [Fact]
+    public void BaseAttachment_WithNonQualityEffects_IsNotRedundant()
+    {
+        // Прибавка урона качества не выдаёт, поэтому «уже есть» к ней неприменимо.
+        var def = Attachment("weighted-head", AttachmentEffectKind.Damage, "");
+
+        HeroicParameterRules.EnsureCanBeBaseAttachment(WeaponFormTraits.TwoHanded, ["superior", "knockdown"], def);
     }
 }

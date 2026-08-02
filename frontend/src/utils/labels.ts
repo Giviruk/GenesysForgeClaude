@@ -1,5 +1,5 @@
 import type {
-  AllowedState, Characteristic, ContentEntryType, CreatureTemplate, EncounterType, GameSystem, HouseRuleCategory,
+  AllowedState, AttachmentDef, Characteristic, ContentEntryType, CreatureTemplate, EncounterType, GameSystem, HouseRuleCategory,
   HeroicOriginType, ImplementMaterial, InitiativeSlotType, ItemDamageState, SignatureWeaponProfile, WeaponCraftsmanship, WeaponFormTrait, ItemKind, ItemState, NpcCombatStyle, NpcKind, NpcPowerLevel, NpcRole,
   NpcVisibility, ParticipantType, SkillKind, TalentCategory, ThreatLevel, TransportKind, MovementMode,
 } from '../api/types'
@@ -727,6 +727,40 @@ export const parseWeaponTraits = (value: string | null | undefined): WeaponFormT
 /** Обратная сборка: сервер читает тот же формат. */
 export const formatWeaponTraits = (traits: WeaponFormTrait[]) =>
   traits.length === 0 ? 'none' : traits.join(', ')
+
+/**
+ * Признаки именного оружия так, как их достроит сервер: группу ставит профиль, меч всегда клинковый,
+ * а у клинка есть режущая кромка. Нужно, чтобы список улучшений в сборке совпадал с тем, что примет
+ * сервер (ROT-HA-02); проверяет он же.
+ */
+export function signatureWeaponTraits(
+  profile: SignatureWeaponProfile, confirmed: WeaponFormTrait[],
+): WeaponFormTrait[] {
+  const traits = new Set<WeaponFormTrait>(confirmed.filter(
+    x => x !== 'brawl' && x !== 'oneHanded' && x !== 'twoHanded' && x !== 'ranged'))
+  traits.add(profile as WeaponFormTrait)
+  if (traits.has('sword')) traits.add('bladed')
+  if (traits.has('bladed')) traits.add('hasCuttingEdge')
+  return [...traits]
+}
+
+/**
+ * Улучшение подходит носителю по виду и признакам формы — то же правило, что и на сервере.
+ * Повторено здесь только чтобы не предлагать заведомо невозможный выбор; решает сервер.
+ * Признаки приходят полями записи, поэтому своей таблицы совместимости у клиента нет.
+ */
+export function isAttachmentCompatible(
+  hostKind: string,
+  traits: WeaponFormTrait[],
+  def: Pick<AttachmentDef, 'hostKind' | 'requiredTraits' | 'requiredAnyTraits' | 'forbiddenTraits'>,
+): boolean {
+  if (hostKind !== def.hostKind) return false
+  const has = (trait: WeaponFormTrait) => traits.includes(trait)
+  const requiredAny = parseWeaponTraits(def.requiredAnyTraits)
+  if (!parseWeaponTraits(def.requiredTraits).every(has)) return false
+  if (requiredAny.length > 0 && !requiredAny.some(has)) return false
+  return !parseWeaponTraits(def.forbiddenTraits).some(has)
+}
 
 /** Уровни улучшения Power героической способности. */
 export const HEROIC_UPGRADE_LABELS: Record<number, string> =

@@ -317,6 +317,8 @@ export const api = {
     narrativeForm?: string | null
     /** Флаги формы одной строкой: «oneHanded, sword». */
     formTraits?: string | null
+    /** Базовое улучшение именного оружия (ROT-HA-02). */
+    baseAttachmentDefId?: string | null
   }) => request<void>('PUT', `/api/characters/${id}/heroic-configuration`, body),
   replaceSignatureWeapon: (id: string, body: {
     lost: boolean
@@ -324,6 +326,7 @@ export const api = {
     craftsmanship?: WeaponCraftsmanship | null
     narrativeForm?: string | null
     formTraits?: string | null
+    baseAttachmentDefId?: string | null
   }) => request<void>('POST', `/api/characters/${id}/heroic-configuration/signature-weapon`, body),
   setHeroicUpgradeRank: (id: string, rank: number) =>
     request<void>('PUT', `/api/characters/${id}/heroic-upgrade`, { rank }),

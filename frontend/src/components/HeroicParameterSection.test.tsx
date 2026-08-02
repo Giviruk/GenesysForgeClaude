@@ -17,6 +17,20 @@ const reference = {
     { id: 'skill-1', name: 'Melee (Light)', nameRu: 'Ближний бой (лёгкое)' },
     { id: 'skill-2', name: 'Vigilance', nameRu: 'Бдительность' },
   ],
+  // Улучшения нужны выбору базового улучшения именного оружия (ROT-HA-02): совместимость
+  // считается по признакам формы, поэтому в наборе есть и подходящее, и заведомо чужое.
+  attachments: [
+    {
+      id: 'att-thunder', code: 'rot.attachment.runic-thunder', name: 'Runic Thunder',
+      nameRu: 'Рунический гром', hostKind: 'weapon',
+      requiredTraits: 'none', requiredAnyTraits: 'none', forbiddenTraits: 'none',
+    },
+    {
+      id: 'att-missile', code: 'rot.attachment.explosive-missile', name: 'Explosive Missile',
+      nameRu: 'Взрывной снаряд', hostKind: 'weapon',
+      requiredTraits: 'ranged', requiredAnyTraits: 'none', forbiddenTraits: 'none',
+    },
+  ],
 } as unknown as Reference
 
 function sheetWith(config: HeroicConfiguration, overrides: Partial<CharacterSheet> = {}): CharacterSheet {
@@ -97,6 +111,12 @@ describe('HeroicParameterSection (ROT-HA-02)', () => {
     fireEvent.click(screen.getByRole('radio', { name: /Двуручный/ }))
     fireEvent.change(screen.getByPlaceholderText('форма оружия'), { target: { value: 'Родовой молот' } })
     fireEvent.click(screen.getByRole('checkbox', { name: /дробящее/ }))
+
+    // Ближней форме предлагают только подходящее улучшение: дальнобойного в списке нет.
+    const attachmentPicker = screen.getByLabelText('Базовое улучшение')
+    expect(screen.queryByRole('option', { name: 'Взрывной снаряд' })).toBeNull()
+    fireEvent.change(attachmentPicker, { target: { value: 'att-thunder' } })
+
     fireEvent.click(screen.getByRole('button', { name: 'Сохранить' }))
 
     await waitFor(() => expect(setConfigMock).toHaveBeenCalledWith('char-1', {
@@ -104,7 +124,18 @@ describe('HeroicParameterSection (ROT-HA-02)', () => {
       craftsmanship: 'steel',
       narrativeForm: 'Родовой молот',
       formTraits: 'bluntOrCrushing',
+      baseAttachmentDefId: 'att-thunder',
     }))
+  })
+
+  it('без базового улучшения именное оружие не сохраняется', () => {
+    render(<HeroicParameterSection
+      sheet={sheetWith({ ...emptyConfig, kind: 'signatureWeapon', complete: false })}
+      reference={reference} run={run} />)
+
+    fireEvent.change(screen.getByPlaceholderText('форма оружия'), { target: { value: 'Фамильный меч' } })
+
+    expect(screen.getByRole('button', { name: 'Сохранить' })).toHaveProperty('disabled', true)
   })
 
   it('показывает числа профиля, пришедшие с сервера, и позволяет пометить оружие потерянным', async () => {
@@ -117,6 +148,10 @@ describe('HeroicParameterSection (ROT-HA-02)', () => {
           damage: '8', crit: 3, rangeBand: 'Long', encumbrance: 2, hardPoints: 2,
           qualities: [{ code: 'superior', nameRu: 'Превосходное', nameEn: 'Superior', rating: null,
             hasRating: false, isActive: false, activationCost: '' }],
+          baseAttachment: {
+            defId: 'att-thunder', code: 'rot.attachment.runic-thunder', name: 'Runic Thunder',
+            nameRu: 'Рунический гром', description: '', effects: [],
+          },
         },
       }, { isCreationPhase: false })}
       reference={reference} run={run} />)

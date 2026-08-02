@@ -1,3 +1,5 @@
+using GenesysForge.Domain.Entities;
+
 namespace GenesysForge.Domain.Rules;
 
 /// <summary>
@@ -79,5 +81,41 @@ public static class HeroicParameterRules
                 "heroic.weapon.traits_conflict");
 
         return traits;
+    }
+
+    /// <summary>
+    /// Качества, которые улучшение выдаёт предмету. Прибавка к уже имеющемуся рейтингу — тоже
+    /// выдача: правило запрещает брать базовым то, что у оружия профиля уже есть.
+    /// </summary>
+    public static IEnumerable<string> GrantedQualityCodes(AttachmentDef def) =>
+        def.Effects
+            .Where(e => e.Kind is AttachmentEffectKind.GrantOrIncreaseQuality
+                or AttachmentEffectKind.SetQualityAtLeast
+                or AttachmentEffectKind.GrantQualityOrCancelOpposite)
+            .Select(e => e.QualityCode)
+            .Where(code => !string.IsNullOrEmpty(code));
+
+    /// <summary>
+    /// Базовое улучшение именного оружия (ROT-HA-02). Совместимость считается теми же предикатами,
+    /// что и обычная установка (ROT-EQP-ATT-02), — по подтверждённым признакам формы, а не по тексту
+    /// названия. Редкость, цена, слоты, проверка установки чар и ранг магического навыка к этой
+    /// временной героической копии не применяются: она не покупается и физически не ставится.
+    /// </summary>
+    /// <param name="traits">Подтверждённые признаки формы оружия.</param>
+    /// <param name="effectiveQualityCodes">Качества, которые оружие профиля уже имеет.</param>
+    public static void EnsureCanBeBaseAttachment(
+        WeaponFormTraits traits, IReadOnlyCollection<string> effectiveQualityCodes, AttachmentDef def)
+    {
+        if (!AttachmentRules.IsCompatible(ItemKind.Weapon, traits, def))
+            throw new DomainRuleException(
+                "Это улучшение не подходит подтверждённой форме именного оружия.",
+                "heroic.weapon.attachment_incompatible");
+
+        // Улучшение, которое выдаёт уже имеющееся качество, ничего оружию не добавляет: книга
+        // прямо не даёт брать базовым то, что и так есть в профиле.
+        if (GrantedQualityCodes(def).Any(code => effectiveQualityCodes.Contains(code, StringComparer.Ordinal)))
+            throw new DomainRuleException(
+                "Это улучшение выдаёт качество, которое у именного оружия уже есть.",
+                "heroic.weapon.attachment_redundant");
     }
 }

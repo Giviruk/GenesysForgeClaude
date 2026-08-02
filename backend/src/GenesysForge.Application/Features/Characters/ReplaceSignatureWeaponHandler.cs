@@ -37,7 +37,8 @@ public class ReplaceSignatureWeaponHandler(IAppDbContext db) : ICommandHandler<R
         {
             // Возврат прежнего оружия — запрос без описания формы; замена — с новой формой целиком.
             var replacing = req.WeaponProfile is not null || req.Craftsmanship is not null
-                || !string.IsNullOrWhiteSpace(req.NarrativeForm) || req.FormTraits is not null;
+                || !string.IsNullOrWhiteSpace(req.NarrativeForm) || req.FormTraits is not null
+                || req.BaseAttachmentDefId is not null;
             if (replacing)
             {
                 if (req.WeaponProfile is not { } profile || !Enum.IsDefined(profile))
@@ -47,11 +48,19 @@ public class ReplaceSignatureWeaponHandler(IAppDbContext db) : ICommandHandler<R
                     throw new DomainRuleException(
                         "У замены должно быть качество изготовления.", "heroic.weapon.craftsmanship_required");
 
+                var traits = HeroicParameterRules.ValidateFormTraits(
+                    profile, req.FormTraits ?? WeaponFormTraits.None);
+                // Форма замены своя, поэтому и базовое улучшение выбирается заново: прежнее могло
+                // подходить прошлой форме и не подходить этой.
+                var baseAttachment = await SignatureBaseAttachment.ResolveAsync(
+                    db, c, command.UserId, profile, craftsmanship, traits, req.BaseAttachmentDefId, ct);
+
                 weapon.Profile = profile;
                 weapon.Craftsmanship = craftsmanship;
                 weapon.NarrativeForm = HeroicParameterRules.ValidateNarrativeForm(req.NarrativeForm);
-                weapon.FormTraits = HeroicParameterRules.ValidateFormTraits(
-                    profile, req.FormTraits ?? WeaponFormTraits.None);
+                weapon.FormTraits = traits;
+                weapon.BaseAttachmentDefId = baseAttachment.Id;
+                weapon.BaseAttachment = baseAttachment;
             }
             weapon.IsLost = false;
         }

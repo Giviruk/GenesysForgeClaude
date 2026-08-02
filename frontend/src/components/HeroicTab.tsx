@@ -6,7 +6,8 @@ import type {
 } from '../api/types'
 import {
   CONFIRMABLE_WEAPON_TRAITS, formatWeaponTraits, HEROIC_ORIGIN_LABELS, HEROIC_ORIGIN_TYPES,
-  HEROIC_UPGRADE_LABELS, heroicOriginFace, localizedDescription, localizedName, parseWeaponTraits,
+  HEROIC_UPGRADE_LABELS, heroicOriginFace, isAttachmentCompatible, localizedDescription, localizedName,
+  parseWeaponTraits, signatureWeaponTraits,
   SIGNATURE_WEAPON_PROFILE_LABELS, SIGNATURE_WEAPON_PROFILES, WEAPON_CRAFTSMANSHIP_LABELS,
   WEAPON_CRAFTSMANSHIPS, WEAPON_TRAIT_LABELS,
 } from '../utils/labels'
@@ -394,6 +395,12 @@ export function HeroicParameterSection({ sheet, reference, run }: {
   const [craftsmanship, setCraftsmanship] = useState<WeaponCraftsmanship>(weapon?.craftsmanship ?? 'steel')
   const [form, setForm] = useState(weapon?.narrativeForm ?? '')
   const [traits, setTraits] = useState<WeaponFormTrait[]>(parseWeaponTraits(weapon?.formTraits))
+  const [baseAttachmentId, setBaseAttachmentId] = useState(weapon?.baseAttachment?.defId ?? '')
+
+  // Список улучшений сужается признаками формы — теми же, что достроит сервер. Качество, которое
+  // у профиля уже есть, отсеивает сервер: своей таблицы качеств профилей у клиента нет.
+  const compatibleAttachments = (reference.attachments ?? []).filter(def =>
+    isAttachmentCompatible('weapon', signatureWeaponTraits(profile, traits), def))
 
   if (!config || config.kind === 'none') return null
 
@@ -429,6 +436,14 @@ export function HeroicParameterSection({ sheet, reference, run }: {
           {weapon.qualities.length > 0 && ` · ${weapon.qualities
             .map(q => q.rating ? `${q.nameRu} ${q.rating}` : q.nameRu).join(', ')}`}
           {weapon.isLost && ` · ${t('потеряно', 'lost')}`}
+          {weapon.baseAttachment && (
+            <div>
+              {t('Базовое улучшение:', 'Base attachment:')}{' '}
+              {localizedName(weapon.baseAttachment)}
+              {' · '}{t('временное, 0 слотов, действует только со способностью',
+                'transient, 0 hard points, active only with the ability')}
+            </div>
+          )}
         </div>
       )}
 
@@ -501,13 +516,30 @@ export function HeroicParameterSection({ sheet, reference, run }: {
               'The GM confirms the form traits: attachment compatibility follows them, not the name.')}
           </p>
           <div className="inline-form">
-            <button className="small primary" disabled={!form.trim()}
+            <select value={baseAttachmentId} aria-label={t('Базовое улучшение', 'Base attachment')}
+              onChange={e => setBaseAttachmentId(e.target.value)}>
+              <option value="" disabled>{t('— базовое улучшение —', '— base attachment —')}</option>
+              {compatibleAttachments.map(a => (
+                <option key={a.id} value={a.id}>{localizedName(a)}</option>
+              ))}
+            </select>
+          </div>
+          <p className="hint small-text">
+            {compatibleAttachments.length === 0
+              ? t('Под выбранную форму улучшений нет — измените профиль или признаки формы.',
+                'No attachment fits the chosen form — change the profile or the confirmed traits.')
+              : t('Улучшение временное: действует только вместе со способностью, ничего не стоит и не занимает слотов. Того, что у оружия уже есть, взять нельзя.',
+                'The attachment is transient: it works only together with the ability, costs nothing and uses no hard points. What the weapon already has cannot be taken.')}
+          </p>
+          <div className="inline-form">
+            <button className="small primary" disabled={!form.trim() || !baseAttachmentId}
               onClick={() => run(() => (editable
                 ? api.setHeroicConfiguration(sheet.id, {
                   weaponProfile: profile,
                   craftsmanship,
                   narrativeForm: form.trim(),
                   formTraits: formatWeaponTraits(traits),
+                  baseAttachmentDefId: baseAttachmentId,
                 })
                 : api.replaceSignatureWeapon(sheet.id, {
                   lost: false,
@@ -515,6 +547,7 @@ export function HeroicParameterSection({ sheet, reference, run }: {
                   craftsmanship,
                   narrativeForm: form.trim(),
                   formTraits: formatWeaponTraits(traits),
+                  baseAttachmentDefId: baseAttachmentId,
                 })))}>
               {editable ? t('Сохранить', 'Save') : t('Заменить оружие', 'Replace weapon')}
             </button>

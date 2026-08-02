@@ -362,10 +362,27 @@ public static class SheetBuilder
             var stats = CraftsmanshipRules.For(
                 ItemKind.Weapon, w.Craftsmanship, spec.Encumbrance, 0, 0, 0, spec.HardPoints, 0, 0);
             var damageValue = spec.DamageValue + CraftsmanshipRules.DamageDelta(w.Craftsmanship);
-            // Древняя работа добавляет Укреплённое — тем же кодом справочника, что и у предметов.
-            List<(string Code, int Rating)> qualities = stats.Reinforced
-                ? [.. spec.Qualities, (CraftsmanshipRules.ReinforcedQualityCode, 0)]
-                : [.. spec.Qualities];
+            List<(string Code, int Rating)> qualities =
+                [.. SignatureWeaponProfiles.QualitiesFor(w.Profile, w.Craftsmanship)];
+            var crit = CraftsmanshipRules.Crit(spec.Crit, w.Craftsmanship);
+
+            // Базовое улучшение считается тем же движком, что и обычные (ROT-HA-02): вес и слоты
+            // оно героической копии не меняет — их у неё нет, — а урон, крит и качества меняет.
+            SignatureBaseAttachmentDto? baseAttachment = null;
+            if (w.BaseAttachment is { } att)
+            {
+                AttachmentInput[] inputs = [new(att, WornAndActive: true)];
+                var aggregate = AttachmentRules.Aggregate(inputs);
+                damageValue += aggregate.DamageBonus;
+                crit = Math.Max(1, crit - aggregate.CritReduction);
+                qualities = [.. AttachmentRules
+                    .ApplyQualities([.. qualities.Select(q => new EffectiveQuality(q.Code, q.Rating))], inputs)
+                    .Select(q => (q.Code, q.Rating))];
+                baseAttachment = new SignatureBaseAttachmentDto(
+                    att.Id, att.Code, att.Name, att.NameRu, att.SafeDescription,
+                    [.. att.Effects.Select(e => e.ToDto())]);
+            }
+
             var codes = qualities.Select(q => q.Code).ToList();
             var defs = await db.QualityDefs.AsNoTracking()
                 .Where(q => codes.Contains(q.Code)).ToListAsync(ct);
@@ -374,13 +391,14 @@ public static class SheetBuilder
                 w.Profile, w.Craftsmanship, w.NarrativeForm, w.FormTraits, w.IsLost,
                 spec.SkillName,
                 SignatureWeaponProfileSpec.DamageText(spec.DamageKind, damageValue),
-                CraftsmanshipRules.Crit(spec.Crit, w.Craftsmanship), spec.RangeBand,
+                crit, spec.RangeBand,
                 stats.Encumbrance, stats.HardPoints ?? spec.HardPoints,
                 [.. qualities.Select(q => byCode.TryGetValue(q.Code, out var def)
                     ? new ItemQualityRefDto(def.Code, def.NameRu, def.NameEn,
                         q.Rating > 0 ? q.Rating : null, def.HasRating, def.IsActive, def.ActivationCost)
                     : new ItemQualityRefDto(q.Code, q.Code, q.Code,
-                        q.Rating > 0 ? q.Rating : null, q.Rating > 0, false, ""))]);
+                        q.Rating > 0 ? q.Rating : null, q.Rating > 0, false, ""))],
+                baseAttachment);
         }
 
         // Скрытый позднее кастомный навык не подменяется другим: остаётся снимок имени и предупреждение.

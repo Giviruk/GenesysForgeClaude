@@ -37,7 +37,7 @@ public class SetHeroicConfigurationHandler(IAppDbContext db) : ICommandHandler<S
                 ApplySixthSense(db, c, req);
                 break;
             case HeroicParameterKind.SignatureWeapon:
-                ApplySignatureWeapon(db, c, req);
+                await ApplySignatureWeaponAsync(db, c, req, command.UserId, ct);
                 break;
         }
 
@@ -88,7 +88,8 @@ public class SetHeroicConfigurationHandler(IAppDbContext db) : ICommandHandler<S
         config.ParagonSkillName = "";
     }
 
-    private static void ApplySignatureWeapon(IAppDbContext db, Character c, SetHeroicConfigurationRequest req)
+    private static async Task ApplySignatureWeaponAsync(
+        IAppDbContext db, Character c, SetHeroicConfigurationRequest req, Guid userId, CancellationToken ct)
     {
         RejectForeignFields(req, allowWeapon: true);
         if (req.WeaponProfile is not { } profile)
@@ -103,6 +104,8 @@ public class SetHeroicConfigurationHandler(IAppDbContext db) : ICommandHandler<S
 
         var form = HeroicParameterRules.ValidateNarrativeForm(req.NarrativeForm);
         var traits = HeroicParameterRules.ValidateFormTraits(profile, req.FormTraits ?? WeaponFormTraits.None);
+        var baseAttachment = await SignatureBaseAttachment.ResolveAsync(
+            db, c, userId, profile, craftsmanship, traits, req.BaseAttachmentDefId, ct);
 
         // Оружие не более одного: существующая строка переписывается, вторая не создаётся.
         var weapon = c.SignatureWeapon;
@@ -116,6 +119,8 @@ public class SetHeroicConfigurationHandler(IAppDbContext db) : ICommandHandler<S
         weapon.Craftsmanship = craftsmanship;
         weapon.NarrativeForm = form;
         weapon.FormTraits = traits;
+        weapon.BaseAttachmentDefId = baseAttachment.Id;
+        weapon.BaseAttachment = baseAttachment;
         weapon.IsLost = false;
     }
 
@@ -136,7 +141,8 @@ public class SetHeroicConfigurationHandler(IAppDbContext db) : ICommandHandler<S
         var hasParagon = req.ParagonSkillDefId is not null;
         var hasSubject = !string.IsNullOrWhiteSpace(req.SixthSenseSubject);
         var hasWeapon = req.WeaponProfile is not null || req.Craftsmanship is not null
-            || !string.IsNullOrWhiteSpace(req.NarrativeForm) || req.FormTraits is not null;
+            || !string.IsNullOrWhiteSpace(req.NarrativeForm) || req.FormTraits is not null
+            || req.BaseAttachmentDefId is not null;
 
         if ((hasParagon && !allowParagon) || (hasSubject && !allowSubject) || (hasWeapon && !allowWeapon))
             throw new DomainRuleException(
