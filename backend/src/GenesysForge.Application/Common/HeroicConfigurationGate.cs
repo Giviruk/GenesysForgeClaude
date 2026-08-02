@@ -40,5 +40,12 @@ public static class HeroicConfigurationGate
             throw new DomainRuleException(
                 "Выберите параметр героической способности — после этого улучшения станут доступны.",
                 "heroic.parameter.incomplete");
+        // Купленное улучшение именного оружия требует решения: Укреплённое или древняя работа,
+        // а у Supreme — бесплатное улучшение (ROT-HA-05). Пока выбор не сделан, покупать дальше
+        // нельзя, иначе нерешённых развилок накопится несколько сразу.
+        if (c.SignatureWeaponUpgradeIncomplete)
+            throw new DomainRuleException(
+                "Сделайте выбор по улучшению именного оружия — после этого можно покупать дальше.",
+                "heroic.weapon.upgrade_incomplete");
     }
 }

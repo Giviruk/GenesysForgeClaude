@@ -167,37 +167,39 @@ public class RotHeroicParameterTests(ApiFactory factory) : IClassFixture<ApiFact
         Assert.False(weapon.FormTraits.HasFlag(WeaponFormTraits.Ranged));
     }
 
-    [Fact]
-    public async Task AncientSignatureWeapon_IsReinforced_AndLosesAHardPoint()
+    [Theory]
+    [InlineData(WeaponCraftsmanship.Iron)]
+    [InlineData(WeaponCraftsmanship.Ancient)]
+    public async Task CraftsmanshipOutsideTheAbility_IsRejected(WeaponCraftsmanship craftsmanship)
     {
+        // Железа книга именному оружию не даёт вовсе, а древняя работа — награда за Improved
+        // (ROT-HA-05), а не бесплатный выбор на старте.
         var (client, id, reference) = await CreateWithAbilityAsync("rot.heroic.signature-weapon");
 
-        Assert.Equal(HttpStatusCode.NoContent,
-            (await SetConfigAsync(client, id, Weapon(SignatureWeaponProfile.OneHanded,
-                WeaponCraftsmanship.Ancient, "Клинок первых королей", WeaponFormTraits.Sword,
-                AnyWeaponAttachment(reference)))).StatusCode);
+        var resp = await SetConfigAsync(client, id, Weapon(SignatureWeaponProfile.OneHanded,
+            craftsmanship, "Клинок", WeaponFormTraits.Sword, AnyWeaponAttachment(reference)));
 
-        var weapon = (await SheetAsync(client, id)).HeroicConfiguration!.SignatureWeapon!;
-        // Одноручный профиль — «Brawn + 3», крит 3, 2 слота (ROT-HA-02).
-        Assert.Equal("Brawn + 4", weapon.Damage);
-        Assert.Equal(2, weapon.Crit);
-        Assert.Equal(1, weapon.HardPoints);
-        Assert.Contains(weapon.Qualities, q => q.Code == "reinforced");
+        Assert.Equal(HttpStatusCode.BadRequest, resp.StatusCode);
+        Assert.Equal("heroic.weapon.craftsmanship_not_allowed",
+            (await resp.Content.ReadFromJsonAsync<ErrorResponse>(Json.Options))!.ReasonCode);
     }
 
     [Fact]
-    public async Task IronSignatureWeapon_IsAllowed_AndCritsWorse()
+    public async Task DwarvenSignatureWeapon_HitsHarderAndWeighsMore()
     {
         var (client, id, reference) = await CreateWithAbilityAsync("rot.heroic.signature-weapon");
 
         Assert.Equal(HttpStatusCode.NoContent,
             (await SetConfigAsync(client, id, Weapon(SignatureWeaponProfile.OneHanded,
-                WeaponCraftsmanship.Iron, "Простой клинок", WeaponFormTraits.Sword,
+                WeaponCraftsmanship.Dwarven, "Клинок предков", WeaponFormTraits.Sword,
                 AnyWeaponAttachment(reference)))).StatusCode);
 
         var weapon = (await SheetAsync(client, id)).HeroicConfiguration!.SignatureWeapon!;
-        Assert.Equal("Brawn + 3", weapon.Damage);
-        Assert.Equal(4, weapon.Crit);
+        // Одноручный профиль — «Brawn + 3», крит 3, 2 слота; гномья работа даёт +1 урона и +1 веса.
+        Assert.Equal("Brawn + 4", weapon.Damage);
+        Assert.Equal(3, weapon.Crit);
+        Assert.Equal(2, weapon.Encumbrance);
+        Assert.Equal(SignatureWeaponImprovement.None, weapon.Improvement);
         Assert.DoesNotContain(weapon.Qualities, q => q.Code == "reinforced");
     }
 
@@ -407,6 +409,183 @@ public class RotHeroicParameterTests(ApiFactory factory) : IClassFixture<ApiFact
         Assert.Null(sheet.HeroicConfiguration!.SignatureWeapon!.BaseAttachment);
         // Оружие без базового улучшения не собрано: параметр остаётся незавершённым.
         Assert.True(sheet.HeroicConfigurationIncomplete);
+    }
+
+    // ── ROT-HA-05: Improved и Supreme именного оружия ──
+
+    /// <summary>Готовое к улучшениям оружие: параметр выбран, создание завершено, XP начислен.</summary>
+    private async Task<(HttpClient Client, Guid Id, ReferenceResponse Reference)> WeaponReadyForUpgradesAsync(
+        int xp, WeaponCraftsmanship craftsmanship = WeaponCraftsmanship.Steel)
+    {
+        var (client, id, reference) = await CreateWithAbilityAsync("rot.heroic.signature-weapon");
+        Assert.Equal(HttpStatusCode.NoContent, (await SetConfigAsync(client, id, Weapon(
+            SignatureWeaponProfile.OneHanded, craftsmanship, "Фамильный меч", WeaponFormTraits.Sword,
+            AnyWeaponAttachment(reference)))).StatusCode);
+        Assert.Equal(HttpStatusCode.NoContent,
+            (await client.PostAsync($"/api/characters/{id}/complete-creation", null)).StatusCode);
+        await client.PostAsJsonAsync($"/api/characters/{id}/xp-awards", new AwardXpRequest(xp, null), Json.Options);
+        return (client, id, reference);
+    }
+
+    private static Task<HttpResponseMessage> BuyPowerAsync(HttpClient client, Guid id, int rank) =>
+        client.PutAsJsonAsync($"/api/characters/{id}/heroic-upgrades",
+            new SetHeroicUpgradesRequest(rank, 0, 0, false, []), Json.Options);
+
+    private static Task<HttpResponseMessage> SetWeaponUpgradesAsync(
+        HttpClient client, Guid id, SignatureWeaponImprovement? improvement = null, Guid? supreme = null) =>
+        client.PostAsJsonAsync($"/api/characters/{id}/heroic-configuration/signature-weapon/upgrades",
+            new SetSignatureWeaponUpgradesRequest(improvement, supreme), Json.Options);
+
+    [Fact]
+    public async Task Improved_AncientCraftsmanship_ReplacesTheOldOne_AndCostsAHardPoint()
+    {
+        // Гномья работа при создании: +1 урона. Древняя за Improved заменяет её целиком,
+        // а не прибавляется — урон считается от чисел профиля, а не от гномьих.
+        var (client, id, _) = await WeaponReadyForUpgradesAsync(50, WeaponCraftsmanship.Dwarven);
+        Assert.Equal(HttpStatusCode.NoContent, (await BuyPowerAsync(client, id, 1)).StatusCode);
+
+        Assert.Equal(HttpStatusCode.NoContent,
+            (await SetWeaponUpgradesAsync(client, id, SignatureWeaponImprovement.Ancient)).StatusCode);
+
+        var weapon = (await SheetAsync(client, id)).HeroicConfiguration!.SignatureWeapon!;
+        Assert.Equal(SignatureWeaponImprovement.Ancient, weapon.Improvement);
+        Assert.Equal("Brawn + 4", weapon.Damage);
+        Assert.Equal(2, weapon.Crit);
+        Assert.Equal(1, weapon.HardPoints);
+        Assert.Contains(weapon.Qualities, q => q.Code == "reinforced");
+        // Выбор при создании остаётся в записи: заменяются числа, а не история выбора.
+        Assert.Equal(WeaponCraftsmanship.Dwarven, weapon.Craftsmanship);
+    }
+
+    [Fact]
+    public async Task Improved_Reinforced_AddsTheQuality_WithoutTouchingNumbers()
+    {
+        var (client, id, _) = await WeaponReadyForUpgradesAsync(50);
+        await BuyPowerAsync(client, id, 1);
+
+        Assert.Equal(HttpStatusCode.NoContent,
+            (await SetWeaponUpgradesAsync(client, id, SignatureWeaponImprovement.Reinforced)).StatusCode);
+
+        var weapon = (await SheetAsync(client, id)).HeroicConfiguration!.SignatureWeapon!;
+        Assert.Contains(weapon.Qualities, q => q.Code == "reinforced");
+        Assert.Equal("Brawn + 3", weapon.Damage);
+        Assert.Equal(3, weapon.Crit);
+        Assert.Equal(2, weapon.HardPoints);
+    }
+
+    [Fact]
+    public async Task Improved_ChoiceIsMadeOnce_AndBlocksFurtherPurchasesUntilMade()
+    {
+        var (client, id, _) = await WeaponReadyForUpgradesAsync(150);
+        await BuyPowerAsync(client, id, 1);
+
+        // Пока выбор не сделан, покупать дальше нельзя.
+        var blocked = await BuyPowerAsync(client, id, 2);
+        Assert.Equal(HttpStatusCode.BadRequest, blocked.StatusCode);
+        Assert.Equal("heroic.weapon.upgrade_incomplete",
+            (await blocked.Content.ReadFromJsonAsync<ErrorResponse>(Json.Options))!.ReasonCode);
+
+        await SetWeaponUpgradesAsync(client, id, SignatureWeaponImprovement.Reinforced);
+
+        // Сделанный выбор не переигрывается.
+        var again = await SetWeaponUpgradesAsync(client, id, SignatureWeaponImprovement.Ancient);
+        Assert.Equal(HttpStatusCode.BadRequest, again.StatusCode);
+        Assert.Equal("heroic.weapon.improvement_immutable",
+            (await again.Content.ReadFromJsonAsync<ErrorResponse>(Json.Options))!.ReasonCode);
+    }
+
+    [Fact]
+    public async Task Improved_CannotBeChosenBeforeItIsBought()
+    {
+        var (client, id, _) = await WeaponReadyForUpgradesAsync(50);
+
+        var resp = await SetWeaponUpgradesAsync(client, id, SignatureWeaponImprovement.Ancient);
+        Assert.Equal(HttpStatusCode.BadRequest, resp.StatusCode);
+        Assert.Equal("heroic.weapon.improvement_not_bought",
+            (await resp.Content.ReadFromJsonAsync<ErrorResponse>(Json.Options))!.ReasonCode);
+    }
+
+    [Fact]
+    public async Task Supreme_AddsTwoHardPoints_AndInstallsOneFreeAttachment()
+    {
+        var (client, id, reference) = await WeaponReadyForUpgradesAsync(150);
+        await BuyPowerAsync(client, id, 1);
+        await SetWeaponUpgradesAsync(client, id, SignatureWeaponImprovement.Reinforced);
+        Assert.Equal(HttpStatusCode.NoContent, (await BuyPowerAsync(client, id, 2)).StatusCode);
+
+        Assert.Equal(HttpStatusCode.NoContent,
+            (await SetWeaponUpgradesAsync(client, id, supreme: Attachment(reference, "razor-edge"))).StatusCode);
+
+        var weapon = (await SheetAsync(client, id)).HeroicConfiguration!.SignatureWeapon!;
+        Assert.EndsWith(".razor-edge", weapon.SupremeAttachment!.Code, StringComparison.Ordinal);
+        // Два слота профиля плюс два за Supreme, минус один занятый бесплатным улучшением.
+        Assert.Equal(3, weapon.HardPoints);
+        // Установленное улучшение считается по-настоящему: Проникающее 2 и минус единица крита.
+        Assert.Equal(2, weapon.Qualities.Single(q => q.Code == "pierce").Rating);
+        Assert.Equal(2, weapon.Crit);
+    }
+
+    [Fact]
+    public async Task Supreme_RejectsTooRareAttachment()
+    {
+        var (client, id, reference) = await WeaponReadyForUpgradesAsync(150);
+        await BuyPowerAsync(client, id, 1);
+        await SetWeaponUpgradesAsync(client, id, SignatureWeaponImprovement.Reinforced);
+        await BuyPowerAsync(client, id, 2);
+
+        // Руна клинков — редкость 10, выше предела бесплатного улучшения.
+        var resp = await SetWeaponUpgradesAsync(client, id, supreme: Attachment(reference, "rune-of-blades"));
+        Assert.Equal(HttpStatusCode.BadRequest, resp.StatusCode);
+        Assert.Equal("heroic.weapon.attachment_too_rare",
+            (await resp.Content.ReadFromJsonAsync<ErrorResponse>(Json.Options))!.ReasonCode);
+    }
+
+    [Fact]
+    public async Task WeaponUpgrades_SurviveExportImport()
+    {
+        var (client, id, reference) = await WeaponReadyForUpgradesAsync(150);
+        await BuyPowerAsync(client, id, 1);
+        await SetWeaponUpgradesAsync(client, id, SignatureWeaponImprovement.Ancient);
+        await BuyPowerAsync(client, id, 2);
+        await SetWeaponUpgradesAsync(client, id, supreme: Attachment(reference, "serrated-edge"));
+
+        var export = (await client.GetFromJsonAsync<CharacterExportDto>(
+            $"/api/characters/{id}/export", Json.Options))!;
+        Assert.Equal(SignatureWeaponImprovement.Ancient, export.Character.SignatureWeaponImprovement);
+        Assert.EndsWith(".serrated-edge",
+            export.Character.SignatureWeaponSupremeAttachmentCode!, StringComparison.Ordinal);
+
+        var importResp = await client.PostAsJsonAsync("/api/characters/import", export, Json.Options);
+        var imported = (await importResp.Content.ReadFromJsonAsync<ImportCharacterResult>(Json.Options))!;
+        var weapon = (await SheetAsync(client, imported.CharacterId)).HeroicConfiguration!.SignatureWeapon!;
+        Assert.Equal(SignatureWeaponImprovement.Ancient, weapon.Improvement);
+        Assert.EndsWith(".serrated-edge", weapon.SupremeAttachment!.Code, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task ImportedWeapon_WithCraftsmanshipOutsideTheAbility_IsRepairedWithAWarning()
+    {
+        var (client, id, reference) = await CreateWithAbilityAsync("rot.heroic.signature-weapon");
+        await SetConfigAsync(client, id, Weapon(SignatureWeaponProfile.OneHanded,
+            WeaponCraftsmanship.Dwarven, "Фамильный меч", WeaponFormTraits.Sword,
+            AnyWeaponAttachment(reference)));
+        await client.PostAsync($"/api/characters/{id}/complete-creation", null);
+
+        // Файл персонажа, созданного до правила: железная работа именного оружия.
+        var export = (await client.GetFromJsonAsync<CharacterExportDto>(
+            $"/api/characters/{id}/export", Json.Options))!;
+        var legacy = export with
+        {
+            Character = export.Character with { SignatureWeaponCraftsmanship = WeaponCraftsmanship.Iron },
+        };
+
+        var importResp = await client.PostAsJsonAsync("/api/characters/import", legacy, Json.Options);
+        var result = (await importResp.Content.ReadFromJsonAsync<ImportCharacterResult>(Json.Options))!;
+        Assert.Contains(result.Warnings, w => w.Contains("Качество изготовления именного оружия"));
+
+        var weapon = (await SheetAsync(client, result.CharacterId)).HeroicConfiguration!.SignatureWeapon!;
+        Assert.Equal(WeaponCraftsmanship.Steel, weapon.Craftsmanship);
+        Assert.False(weapon.CraftsmanshipOutOfRules);
     }
 
     [Fact]

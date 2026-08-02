@@ -174,6 +174,60 @@ public class HeroicParameterTests
         Assert.Equal("heroic.weapon.attachment_redundant", ex.ReasonCode);
     }
 
+    // ---- Improved и Supreme (ROT-HA-05) ----
+
+    [Theory]
+    [InlineData(WeaponCraftsmanship.Steel, true)]
+    [InlineData(WeaponCraftsmanship.Dwarven, true)]
+    [InlineData(WeaponCraftsmanship.Elven, true)]
+    [InlineData(WeaponCraftsmanship.Iron, false)]
+    [InlineData(WeaponCraftsmanship.Ancient, false)]
+    public void SignatureCraftsmanship_IsLimitedToWhatTheAbilityGives(
+        WeaponCraftsmanship craftsmanship, bool allowed)
+    {
+        if (allowed)
+        {
+            HeroicParameterRules.EnsureSignatureCraftsmanship(craftsmanship);
+            return;
+        }
+
+        var ex = Assert.Throws<DomainRuleException>(
+            () => HeroicParameterRules.EnsureSignatureCraftsmanship(craftsmanship));
+        Assert.Equal("heroic.weapon.craftsmanship_not_allowed", ex.ReasonCode);
+    }
+
+    [Theory]
+    // Слоты профиля, работа, ранг Power → слоты оружия. Supreme добавляет два, древняя отнимает один.
+    [InlineData(WeaponCraftsmanship.Steel, 0, 2)]
+    [InlineData(WeaponCraftsmanship.Steel, 2, 4)]
+    [InlineData(WeaponCraftsmanship.Ancient, 0, 1)]
+    [InlineData(WeaponCraftsmanship.Ancient, 2, 3)]
+    public void HardPoints_CountCraftsmanshipAndSupreme(
+        WeaponCraftsmanship craftsmanship, int rank, int expected) =>
+        Assert.Equal(expected, HeroicParameterRules.HardPoints(2, craftsmanship, rank));
+
+    [Fact]
+    public void SupremeAttachment_IsLimitedByRarity_HardPoints_AndTheBaseChoice()
+    {
+        var def = Attachment("razor-edge", AttachmentEffectKind.GrantOrIncreaseQuality, "pierce",
+            required: WeaponFormTraits.Bladed);
+        def.HardPointCost = 1;
+        var traits = WeaponFormTraits.OneHanded | WeaponFormTraits.Bladed | WeaponFormTraits.HasCuttingEdge;
+
+        HeroicParameterRules.EnsureCanBeSupremeAttachment(traits, 4, "runic-thunder", def);
+
+        def.Rarity = HeroicParameterRules.SupremeAttachmentMaxRarity + 1;
+        Assert.Equal("heroic.weapon.attachment_too_rare", Assert.Throws<DomainRuleException>(
+            () => HeroicParameterRules.EnsureCanBeSupremeAttachment(traits, 4, null, def)).ReasonCode);
+
+        def.Rarity = 0;
+        Assert.Equal("heroic.weapon.attachment_duplicate", Assert.Throws<DomainRuleException>(
+            () => HeroicParameterRules.EnsureCanBeSupremeAttachment(traits, 4, "razor-edge", def)).ReasonCode);
+
+        Assert.Equal("attachment.no_hard_points", Assert.Throws<DomainRuleException>(
+            () => HeroicParameterRules.EnsureCanBeSupremeAttachment(traits, 0, null, def)).ReasonCode);
+    }
+
     [Fact]
     public void BaseAttachment_WithNonQualityEffects_IsNotRedundant()
     {

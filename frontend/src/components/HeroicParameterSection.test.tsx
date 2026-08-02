@@ -1,14 +1,16 @@
 import { render, screen, waitFor, fireEvent } from '@testing-library/react'
 import { describe, expect, it, vi, beforeEach } from 'vitest'
-import type { CharacterSheet, HeroicConfiguration, Reference } from '../api/types'
+import type { CharacterSheet, HeroicConfiguration, Reference, SignatureWeapon } from '../api/types'
 import { HeroicParameterSection } from './HeroicTab'
 
 const setConfigMock = vi.fn()
 const replaceMock = vi.fn()
+const upgradesMock = vi.fn()
 vi.mock('../api/client', () => ({
   api: {
     setHeroicConfiguration: (...a: unknown[]) => setConfigMock(...a),
     replaceSignatureWeapon: (...a: unknown[]) => replaceMock(...a),
+    setSignatureWeaponUpgrades: (...a: unknown[]) => upgradesMock(...a),
   },
 }))
 
@@ -53,12 +55,28 @@ const emptyConfig: HeroicConfiguration = {
   complete: true,
 }
 
+const weaponFixture: SignatureWeapon = {
+  profile: 'ranged', craftsmanship: 'elven', narrativeForm: 'Лук предков',
+  formTraits: 'ranged, bowOrCrossbow', isLost: false, skillName: 'Ranged',
+  damage: '8', crit: 3, rangeBand: 'Long', encumbrance: 2, hardPoints: 2,
+  qualities: [{ code: 'superior', nameRu: 'Превосходное', nameEn: 'Superior', rating: null,
+    hasRating: false, isActive: false, activationCost: '' }],
+  baseAttachment: {
+    defId: 'att-thunder', code: 'rot.attachment.runic-thunder', name: 'Runic Thunder',
+    nameRu: 'Рунический гром', description: '', effects: [],
+  },
+  improvement: 'none',
+  supremeAttachment: null,
+  craftsmanshipOutOfRules: false,
+}
+
 const run = (action: () => Promise<unknown>) => action().then(() => {})
 
 describe('HeroicParameterSection (ROT-HA-02)', () => {
   beforeEach(() => {
     setConfigMock.mockReset().mockResolvedValue(undefined)
     replaceMock.mockReset().mockResolvedValue(undefined)
+    upgradesMock.mockReset().mockResolvedValue(undefined)
   })
 
   it('способность без параметра не показывает секцию', () => {
@@ -128,6 +146,31 @@ describe('HeroicParameterSection (ROT-HA-02)', () => {
     }))
   })
 
+  it('качество изготовления предлагается только то, что даёт способность', () => {
+    render(<HeroicParameterSection
+      sheet={sheetWith({ ...emptyConfig, kind: 'signatureWeapon', complete: false })}
+      reference={reference} run={run} />)
+
+    // Железа книга именному оружию не даёт, древняя работа приходит улучшением (ROT-HA-05).
+    expect(screen.queryByRole('option', { name: 'Железо' })).toBeNull()
+    expect(screen.queryByRole('option', { name: 'Древняя работа' })).toBeNull()
+    expect(screen.getByRole('option', { name: 'Гномья работа' })).toBeTruthy()
+  })
+
+  it('после покупки Improved просит выбрать Укреплённое или древнюю работу', async () => {
+    render(<HeroicParameterSection
+      sheet={sheetWith({
+        ...emptyConfig, kind: 'signatureWeapon', complete: true,
+        signatureWeapon: { ...weaponFixture, improvement: 'none' },
+      }, { isCreationPhase: false, heroicUpgradeRank: 1 })}
+      reference={reference} run={run} />)
+
+    fireEvent.change(screen.getByLabelText('Улучшение Improved'), { target: { value: 'ancient' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Выбрать навсегда' }))
+
+    await waitFor(() => expect(upgradesMock).toHaveBeenCalledWith('char-1', { improvement: 'ancient' }))
+  })
+
   it('без базового улучшения именное оружие не сохраняется', () => {
     render(<HeroicParameterSection
       sheet={sheetWith({ ...emptyConfig, kind: 'signatureWeapon', complete: false })}
@@ -142,17 +185,7 @@ describe('HeroicParameterSection (ROT-HA-02)', () => {
     render(<HeroicParameterSection
       sheet={sheetWith({
         ...emptyConfig, kind: 'signatureWeapon', complete: true,
-        signatureWeapon: {
-          profile: 'ranged', craftsmanship: 'elven', narrativeForm: 'Лук предков',
-          formTraits: 'ranged, bowOrCrossbow', isLost: false, skillName: 'Ranged',
-          damage: '8', crit: 3, rangeBand: 'Long', encumbrance: 2, hardPoints: 2,
-          qualities: [{ code: 'superior', nameRu: 'Превосходное', nameEn: 'Superior', rating: null,
-            hasRating: false, isActive: false, activationCost: '' }],
-          baseAttachment: {
-            defId: 'att-thunder', code: 'rot.attachment.runic-thunder', name: 'Runic Thunder',
-            nameRu: 'Рунический гром', description: '', effects: [],
-          },
-        },
+        signatureWeapon: weaponFixture,
       }, { isCreationPhase: false })}
       reference={reference} run={run} />)
 

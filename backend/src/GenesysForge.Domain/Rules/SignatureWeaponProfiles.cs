@@ -77,6 +77,19 @@ public static class SignatureWeaponProfiles
             : spec.Qualities;
     }
 
+    /// <summary>
+    /// Качества экземпляра: работа с учётом Improved плюс Укреплённое, если игрок выбрал именно его
+    /// (ROT-HA-05). Древняя работа приносит Укреплённое сама, поэтому дважды оно не появляется.
+    /// </summary>
+    public static IReadOnlyList<(string Code, int Rating)> QualitiesFor(Entities.CharacterSignatureWeapon weapon)
+    {
+        var qualities = QualitiesFor(weapon.Profile, weapon.EffectiveCraftsmanship).ToList();
+        if (weapon.Improvement == SignatureWeaponImprovement.Reinforced
+            && !qualities.Exists(q => q.Code == CraftsmanshipRules.ReinforcedQualityCode))
+            qualities.Add((CraftsmanshipRules.ReinforcedQualityCode, 0));
+        return qualities;
+    }
+
     public static SignatureWeaponProfileSpec Get(SignatureWeaponProfile profile) =>
         Table.TryGetValue(profile, out var spec)
             ? spec

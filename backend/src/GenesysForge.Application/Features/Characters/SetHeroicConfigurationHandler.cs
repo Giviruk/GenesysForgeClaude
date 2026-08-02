@@ -101,6 +101,9 @@ public class SetHeroicConfigurationHandler(IAppDbContext db) : ICommandHandler<S
         if (!Enum.IsDefined(profile))
             throw new DomainRuleException(
                 "Неизвестный профиль именного оружия.", "heroic.weapon.profile_unknown");
+        // Древняя работа — награда за Improved, а не бесплатный выбор на старте; железа книга
+        // именному оружию не предлагает вовсе (ROT-HA-02 / ROT-HA-05).
+        HeroicParameterRules.EnsureSignatureCraftsmanship(craftsmanship);
 
         var form = HeroicParameterRules.ValidateNarrativeForm(req.NarrativeForm);
         var traits = HeroicParameterRules.ValidateFormTraits(profile, req.FormTraits ?? WeaponFormTraits.None);

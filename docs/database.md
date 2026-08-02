@@ -241,7 +241,7 @@ repair warning instead of a silent substitution) and the Sixth Sense subject (�
 parameter rather than a free character note). `CharacterSignatureWeapons` holds the named weapon —
 also one row per character, so a lost weapon and its replacement can never both be active. Only the
 choice is stored (`Profile`, `Craftsmanship`, `NarrativeForm`, `FormTraits`, `BaseAttachmentDefId`,
-`IsLost`); the numbers
+`Improvement`, `SupremeAttachmentDefId`, `IsLost`); the numbers
 — skill, damage, crit, range, encumbrance, hard points and qualities — are rebuilt by the server
 from `SignatureWeaponProfiles`, so a tampered client cannot invent a weapon. `FormTraits` is the
 GM-confirmed flag set that attachment compatibility is resolved against; the profile group flag is
@@ -260,7 +260,17 @@ attachment that would grant a quality the profile already carries is rejected; r
 points, the enchantment install check and the magic-skill rank do not apply to the heroic copy. The
 sheet folds its effects into the weapon's damage, crit and qualities. A weapon without one counts as
 an incomplete parameter, so characters created before this column pick it once through the same legacy
-path. Export v6 carries it by code, and import re-checks compatibility instead of trusting the file.
+path. Export v7 carries it by code, and import re-checks compatibility instead of trusting the file.
+
+`Improvement` and `SupremeAttachmentDefId` (ROT-HA-05) hold what the ability's upgrades granted.
+`Craftsmanship` is limited at creation to what the ability itself offers — Steel, Dwarven or Elven;
+Ancient is the Improved reward and Iron is not on offer at all, so `Improvement` = `Ancient` is what
+makes the weapon ancient, replacing the created craftsmanship in every calculation without
+overwriting the stored choice (`EffectiveCraftsmanship`). `Improvement` = `Reinforced` is the other
+half of that either/or. Supreme adds two hard points and one permanently installed free attachment
+of rarity 9 or less that must fit them; unlike the base attachment it does consume hard points.
+Both choices are fixed at purchase, and while an upgrade is bought but unchosen the character
+reports `SignatureWeaponUpgradeIncomplete` and cannot buy further heroic upgrades.
 
 Starting equipment (ROT-CRE-03): `StartingEquipmentMode` (`StandardMoney` / `CareerPackage`) records
 the mutually exclusive mode chosen at creation, and `StartingPurchaseBudget` holds what is left of it.

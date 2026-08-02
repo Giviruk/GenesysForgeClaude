@@ -1,7 +1,7 @@
 import type {
   Account,
   AuthResponse, AuthProviders, CampaignDetail, CampaignListItem, CampaignNote, CharacterListItem, CharacterNote,
-  ActivateAbilityResult, ActivateCharacterAbilityResult, AddParticipantRequest, CharacterBio, CharacterSheet, CharacterShareResponse, CreatureTemplate, GameSession, GameSystem, HeroicAbility, HeroicOriginMode, HeroicOriginRollResult, HeroicOriginType, InitiativeSlotType, SignatureWeaponProfile, WeaponCraftsmanship,
+  ActivateAbilityResult, ActivateCharacterAbilityResult, AddParticipantRequest, CharacterBio, CharacterSheet, CharacterShareResponse, CreatureTemplate, GameSession, GameSystem, HeroicAbility, HeroicOriginMode, HeroicOriginRollResult, HeroicOriginType, InitiativeSlotType, SignatureWeaponImprovement, SignatureWeaponProfile, WeaponCraftsmanship,
   Archetype, Career, CustomArchetypeInput, CustomCareerInput, ItemDef, ItemState, NpcDetail, NpcFilter, NpcInput, NpcListItem, QuickDraftRequest, Reference,
   SkillDef, Spell, TalentCategory, TalentDef, UpdateParticipantRequest,
   AddEncounterParticipantRequest, EncounterDetail, EncounterFilter, EncounterInput, EncounterListItem,
@@ -328,6 +328,11 @@ export const api = {
     formTraits?: string | null
     baseAttachmentDefId?: string | null
   }) => request<void>('POST', `/api/characters/${id}/heroic-configuration/signature-weapon`, body),
+  /** Выбор Improved/Supreme именного оружия (ROT-HA-05): фиксируется при покупке. */
+  setSignatureWeaponUpgrades: (id: string, body: {
+    improvement?: SignatureWeaponImprovement | null
+    supremeAttachmentDefId?: string | null
+  }) => request<void>('POST', `/api/characters/${id}/heroic-configuration/signature-weapon/upgrades`, body),
   setHeroicUpgradeRank: (id: string, rank: number) =>
     request<void>('PUT', `/api/characters/${id}/heroic-upgrade`, { rank }),
   setHeroicUpgrades: (id: string, body: {

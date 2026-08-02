@@ -172,6 +172,9 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             // Restrict: удаление записи каталога не должно молча обезоруживать персонажа.
             e.HasOne(x => x.BaseAttachment).WithMany()
                 .HasForeignKey(x => x.BaseAttachmentDefId).OnDelete(DeleteBehavior.Restrict);
+            // Бесплатное улучшение Supreme (ROT-HA-05) — тоже ссылка на справочник, не экземпляр.
+            e.HasOne(x => x.SupremeAttachment).WithMany()
+                .HasForeignKey(x => x.SupremeAttachmentDefId).OnDelete(DeleteBehavior.Restrict);
         });
 
         b.Entity<CharacterHeroicSecondaryEffect>(e =>

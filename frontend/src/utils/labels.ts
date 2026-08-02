@@ -1,6 +1,6 @@
 import type {
   AllowedState, AttachmentDef, Characteristic, ContentEntryType, CreatureTemplate, EncounterType, GameSystem, HouseRuleCategory,
-  HeroicOriginType, ImplementMaterial, InitiativeSlotType, ItemDamageState, SignatureWeaponProfile, WeaponCraftsmanship, WeaponFormTrait, ItemKind, ItemState, NpcCombatStyle, NpcKind, NpcPowerLevel, NpcRole,
+  HeroicOriginType, ImplementMaterial, InitiativeSlotType, ItemDamageState, SignatureWeaponImprovement, SignatureWeaponProfile, WeaponCraftsmanship, WeaponFormTrait, ItemKind, ItemState, NpcCombatStyle, NpcKind, NpcPowerLevel, NpcRole,
   NpcVisibility, ParticipantType, SkillKind, TalentCategory, ThreatLevel, TransportKind, MovementMode,
 } from '../api/types'
 import { repeatsProperties } from '../data/itemQualities'
@@ -539,6 +539,26 @@ export const SIGNATURE_WEAPON_PROFILE_LABELS: Record<SignatureWeaponProfile, str
 /** Порядок выбора (ROT-WPN-02): от обычной работы к древней, как в таблице книги. */
 export const WEAPON_CRAFTSMANSHIPS: WeaponCraftsmanship[] =
   ['steel', 'iron', 'dwarven', 'elven', 'ancient']
+
+/**
+ * Работа, доступная именному оружию при создании (ROT-HA-02): способность даёт гномью или
+ * эльфийскую, сталь — «без изменений». Древняя приходит улучшением Improved, железа книга не даёт.
+ */
+export const SIGNATURE_WEAPON_CRAFTSMANSHIPS: WeaponCraftsmanship[] = ['steel', 'dwarven', 'elven']
+
+/** Предел редкости бесплатного улучшения от Supreme (ROT-HA-05). Решает сервер, здесь — фильтр списка. */
+export const SUPREME_ATTACHMENT_MAX_RARITY = 9
+
+/** Что даёт Improved именного оружия (ROT-HA-05). */
+export const SIGNATURE_WEAPON_IMPROVEMENT_LABELS: Record<SignatureWeaponImprovement, string> = t({
+  none: '— выберите улучшение —',
+  reinforced: 'Укреплённое',
+  ancient: 'Древняя работа',
+}, {
+  none: '— pick an upgrade —',
+  reinforced: 'Reinforced',
+  ancient: 'Ancient craftsmanship',
+})
 
 export const WEAPON_CRAFTSMANSHIP_LABELS: Record<WeaponCraftsmanship, string> = t({
   dwarven: 'Гномья работа',

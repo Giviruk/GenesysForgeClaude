@@ -383,6 +383,15 @@ public static class CharacterImporter
                 try
                 {
                     var craftsmanship = data.SignatureWeaponCraftsmanship ?? WeaponCraftsmanship.Steel;
+                    // Работа вне списка способности бывает в файлах, созданных до правила
+                    // (ROT-HA-05). Молча переписывать выбор игрока нельзя, но и принимать
+                    // подделку тоже: чиним обычной сталью и говорим об этом.
+                    if (!HeroicParameterRules.SignatureCraftsmanshipChoices.Contains(craftsmanship))
+                    {
+                        warnings.Add(
+                            "Качество изготовления именного оружия недоступно способности — заменено обычным.");
+                        craftsmanship = WeaponCraftsmanship.Steel;
+                    }
                     var traits = HeroicParameterRules.ValidateFormTraits(
                         profile, data.SignatureWeaponTraits ?? WeaponFormTraits.None);
                     // Базовое улучшение переносится по коду и заново проверяется на совместимость:
@@ -415,12 +424,50 @@ public static class CharacterImporter
                         }
                     }
 
+                    // Выбор Improved переносится как есть, а бесплатное улучшение Supreme —
+                    // по коду и с той же перепроверкой, что и базовое (ROT-HA-05).
+                    Guid? supremeAttachmentId = null;
+                    if (!string.IsNullOrWhiteSpace(data.SignatureWeaponSupremeAttachmentCode))
+                    {
+                        var supremeCode = data.SignatureWeaponSupremeAttachmentCode.Trim();
+                        var supreme = await db.AttachmentDefs.Include(a => a.Effects).FirstOrDefaultAsync(a =>
+                            a.Code == supremeCode && a.System == system && !a.Retired && a.OwnerUserId == null, ct);
+                        if (supreme is null)
+                        {
+                            warnings.Add(
+                                $"Улучшение Supreme именного оружия «{supremeCode}» не найдено — выберите его заново.");
+                        }
+                        else
+                        {
+                            try
+                            {
+                                var improvement = data.SignatureWeaponImprovement ?? SignatureWeaponImprovement.None;
+                                var effective = improvement == SignatureWeaponImprovement.Ancient
+                                    ? WeaponCraftsmanship.Ancient
+                                    : craftsmanship;
+                                HeroicParameterRules.EnsureCanBeSupremeAttachment(
+                                    traits,
+                                    HeroicParameterRules.HardPoints(
+                                        SignatureWeaponProfiles.Get(profile).HardPoints, effective, 2),
+                                    baseAttachmentCode: null,
+                                    supreme);
+                                supremeAttachmentId = supreme.Id;
+                            }
+                            catch (DomainRuleException ex)
+                            {
+                                warnings.Add($"Улучшение Supreme именного оружия не перенесено: {ex.Message}");
+                            }
+                        }
+                    }
+
                     character.SignatureWeapon = new CharacterSignatureWeapon
                     {
                         Id = Guid.NewGuid(),
                         CharacterId = characterId,
                         Profile = profile,
                         Craftsmanship = craftsmanship,
+                        Improvement = data.SignatureWeaponImprovement ?? SignatureWeaponImprovement.None,
+                        SupremeAttachmentDefId = supremeAttachmentId,
                         NarrativeForm = HeroicParameterRules.ValidateNarrativeForm(data.SignatureWeaponForm),
                         FormTraits = traits,
                         BaseAttachmentDefId = baseAttachmentId,
