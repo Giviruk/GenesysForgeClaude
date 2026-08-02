@@ -705,14 +705,6 @@ export type DamageKind = 'brawnPlus' | 'fixed'
 /** Дистанция профиля атаки. */
 export type WeaponRange = 'engaged' | 'short' | 'medium' | 'long' | 'extreme'
 
-/** Механика качества; «descriptive» — исполнения в приложении пока нет (GEN-EQP-QUAL-01). */
-export type QualityEffectKind =
-  | 'descriptive' | 'attackBoost' | 'attackSetback'
-  | 'difficultyPerMissingBrawn' | 'difficultyPerMissingAgility'
-  | 'automaticAdvantage' | 'automaticThreat'
-  | 'defenseMelee' | 'defenseRanged'
-  | 'ignoreSoak' | 'ignoreSoakTenfold' | 'immuneToPierceAndSunder' | 'criticalBonusTenfold'
-
 /** Вклад одного качества в пул атаки. */
 export interface QualityContribution {
   nameEn: string
