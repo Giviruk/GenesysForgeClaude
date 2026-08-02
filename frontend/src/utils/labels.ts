@@ -98,7 +98,6 @@ export const ITEM_STATE_LABELS: Record<ItemState, string> = t({
 
 /** Нейтральная подпись валюты («монеты»). */
 export const CURRENCY_LABEL = t('монеты', 'coins')
-export const CURRENCY_SHORT = t('мон.', 'coins')
 
 /** Основное имя контента: русское в RU-интерфейсе, оригинальное (английское) — в EN. */
 export const localizedName = (value: { name: string; nameRu?: string | null }) =>

@@ -28,16 +28,6 @@ public sealed record EncumbranceState(
     public bool Encumbered => Overload > 0;
 }
 
-/// <summary>Как хранятся предметы с нулевым Enc: россыпью или уложенные.</summary>
-public enum ZeroEncumbranceStorage
-{
-    /// <summary>Россыпью: каждые 10 предметов дают 1 вес.</summary>
-    Loose = 0,
-
-    /// <summary>Уложены компактно: каждые 20 предметов дают 1 вес.</summary>
-    Efficient = 1,
-}
-
 /// <summary>Правила переносимого веса и перегруза.</summary>
 public static class EncumbranceRules
 {
