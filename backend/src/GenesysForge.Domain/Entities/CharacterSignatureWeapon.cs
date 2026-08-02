@@ -26,6 +26,14 @@ public class CharacterSignatureWeapon
     public WeaponFormTraits FormTraits { get; set; }
 
     /// <summary>
+    /// Базовое улучшение, выбранное вместе с формой (ROT-HA-02). Оно не установлено физически:
+    /// стоит 0, занимает 0 слотов и действует только вместе с героической способностью, поэтому
+    /// экземпляра <see cref="CharacterAttachment"/> у него нет — хранится сам выбор.
+    /// </summary>
+    public Guid? BaseAttachmentDefId { get; set; }
+    public AttachmentDef? BaseAttachment { get; set; }
+
+    /// <summary>
     /// Оружие потеряно или уничтожено. Пока флаг стоит, профиль не действует; отдельная команда
     /// возвращает прежнее оружие или выдаёт замену — эта же строка, а не вторая.
     /// </summary>

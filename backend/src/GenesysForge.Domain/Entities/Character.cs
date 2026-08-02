@@ -175,7 +175,11 @@ public class Character
         HeroicParameterKind.ParagonSkill => HeroicConfiguration?.ParagonSkillDefId is not null,
         HeroicParameterKind.SixthSenseSubject =>
             !string.IsNullOrWhiteSpace(HeroicConfiguration?.SixthSenseSubject),
-        HeroicParameterKind.SignatureWeapon => SignatureWeapon is not null,
+        // Базовое улучшение — часть выбора оружия, а не отдельная покупка: без него параметр
+        // не собран. У персонажа, созданного до ROT-HA-02, оно пустое — такой параметр считается
+        // незавершённым, и улучшение выбирается однократно, а не угадывается сервером.
+        HeroicParameterKind.SignatureWeapon =>
+            SignatureWeapon is not null && SignatureWeapon.BaseAttachmentDefId is not null,
         _ => false,
     };
 

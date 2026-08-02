@@ -5,7 +5,8 @@ import type {
   WeaponFormTrait,
 } from '../api/types'
 import {
-  ITEM_DAMAGE_STATE_HINTS, ITEM_DAMAGE_STATE_LABELS, ITEM_KIND_LABELS, localizedName, parseWeaponTraits,
+  ITEM_DAMAGE_STATE_HINTS, ITEM_DAMAGE_STATE_LABELS, ITEM_KIND_LABELS, isAttachmentCompatible,
+  localizedName, parseWeaponTraits,
 } from '../utils/labels'
 import { DamageStateControls } from './ItemDamageControls'
 import { t } from '../i18n'
@@ -36,20 +37,9 @@ const ENCHANTMENT_HINT = t(
   'Enchantments require at least one rank in a magic skill. A career skill with no ranks is not enough.',
 )
 
-/**
- * Предмет подходит улучшению по виду и признакам формы — то же правило, что и на сервере.
- * Здесь оно повторено только чтобы не предлагать заведомо невозможный выбор; решает сервер.
- */
-function isCompatible(item: SheetItem, def: AttachmentDef, traits: WeaponFormTrait[]): boolean {
-  if (item.kind !== def.hostKind) return false
-  const has = (trait: WeaponFormTrait) => traits.includes(trait)
-  const required = parseWeaponTraits(def.requiredTraits)
-  const requiredAny = parseWeaponTraits(def.requiredAnyTraits)
-  const forbidden = parseWeaponTraits(def.forbiddenTraits)
-  if (!required.every(has)) return false
-  if (requiredAny.length > 0 && !requiredAny.some(has)) return false
-  return !forbidden.some(has)
-}
+/** Предмет подходит улучшению: общее с именным оружием правило (ROT-EQP-ATT-02, ROT-HA-02). */
+const isCompatible = (item: SheetItem, def: AttachmentDef, traits: WeaponFormTrait[]): boolean =>
+  isAttachmentCompatible(item.kind, traits, def)
 
 /**
  * Фильтры улучшений. Руны вынесены отдельной корзиной: их ставит только тот, у кого есть ранг

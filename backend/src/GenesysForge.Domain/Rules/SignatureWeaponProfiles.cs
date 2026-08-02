@@ -62,6 +62,21 @@ public static class SignatureWeaponProfiles
     public static WeaponFormTraits GroupTraits =>
         WeaponFormTraits.Brawl | WeaponFormTraits.OneHanded | WeaponFormTraits.TwoHanded | WeaponFormTraits.Ranged;
 
+    /// <summary>
+    /// Качества именного оружия с учётом качества изготовления: древняя работа добавляет
+    /// Укреплённое. Один расчёт на лист и на проверку базового улучшения — иначе они разъедутся.
+    /// </summary>
+    public static IReadOnlyList<(string Code, int Rating)> QualitiesFor(
+        SignatureWeaponProfile profile, WeaponCraftsmanship craftsmanship)
+    {
+        var spec = Get(profile);
+        var stats = CraftsmanshipRules.For(
+            ItemKind.Weapon, craftsmanship, spec.Encumbrance, 0, 0, 0, spec.HardPoints, 0, 0);
+        return stats.Reinforced
+            ? [.. spec.Qualities, (CraftsmanshipRules.ReinforcedQualityCode, 0)]
+            : spec.Qualities;
+    }
+
     public static SignatureWeaponProfileSpec Get(SignatureWeaponProfile profile) =>
         Table.TryGetValue(profile, out var spec)
             ? spec

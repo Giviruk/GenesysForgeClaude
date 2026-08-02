@@ -240,7 +240,8 @@ effect. `CharacterHeroicConfigurations` is a one-row-per-character table holding
 repair warning instead of a silent substitution) and the Sixth Sense subject (≤ 300 chars, a typed
 parameter rather than a free character note). `CharacterSignatureWeapons` holds the named weapon —
 also one row per character, so a lost weapon and its replacement can never both be active. Only the
-choice is stored (`Profile`, `Craftsmanship`, `NarrativeForm`, `FormTraits`, `IsLost`); the numbers
+choice is stored (`Profile`, `Craftsmanship`, `NarrativeForm`, `FormTraits`, `BaseAttachmentDefId`,
+`IsLost`); the numbers
 — skill, damage, crit, range, encumbrance, hard points and qualities — are rebuilt by the server
 from `SignatureWeaponProfiles`, so a tampered client cannot invent a weapon. `FormTraits` is the
 GM-confirmed flag set that attachment compatibility is resolved against; the profile group flag is
@@ -250,6 +251,16 @@ same transaction. Completion requires the parameter, after completion it is immu
 character without one reports `HeroicConfigurationIncomplete` and cannot buy heroic upgrades until
 the owner picks it once. Export v2 carries the Paragon skill by code and name — never by id, which
 does not exist in another account.
+
+`BaseAttachmentDefId` (ROT-HA-02) is the transient base attachment chosen together with the form: a
+reference to `AttachmentDefs` rather than a `CharacterAttachments` instance, because it costs nothing,
+uses no hard points and is only active together with the heroic ability. Compatibility is resolved by
+the same predicates as a normal install (`AttachmentRules.IsCompatible` against `FormTraits`), and an
+attachment that would grant a quality the profile already carries is rejected; rarity, price, hard
+points, the enchantment install check and the magic-skill rank do not apply to the heroic copy. The
+sheet folds its effects into the weapon's damage, crit and qualities. A weapon without one counts as
+an incomplete parameter, so characters created before this column pick it once through the same legacy
+path. Export v6 carries it by code, and import re-checks compatibility instead of trusting the file.
 
 Starting equipment (ROT-CRE-03): `StartingEquipmentMode` (`StandardMoney` / `CareerPackage`) records
 the mutually exclusive mode chosen at creation, and `StartingPurchaseBudget` holds what is left of it.

@@ -48,8 +48,17 @@ public class RotHeroicParameterTests(ApiFactory factory) : IClassFixture<ApiFact
         SignatureWeaponProfile profile = SignatureWeaponProfile.OneHanded,
         WeaponCraftsmanship craftsmanship = WeaponCraftsmanship.Dwarven,
         string form = "Фамильный меч",
-        WeaponFormTraits traits = WeaponFormTraits.Sword) =>
-        new(null, null, profile, craftsmanship, form, traits);
+        WeaponFormTraits traits = WeaponFormTraits.Sword,
+        Guid? baseAttachmentId = null) =>
+        new(null, null, profile, craftsmanship, form, traits, baseAttachmentId);
+
+    /// <summary>Улучшение «на любое оружие»: подходит любой форме, поэтому годится всем тестам.</summary>
+    private static Guid AnyWeaponAttachment(ReferenceResponse reference) =>
+        Attachment(reference, "runic-thunder");
+
+    /// <summary>Код в каталоге с префиксом системы, поэтому ищем по хвосту — как в тестах улучшений.</summary>
+    private static Guid Attachment(ReferenceResponse reference, string code) =>
+        reference.Attachments!.Single(a => a.Code.EndsWith($".{code}", StringComparison.Ordinal)).Id;
 
     [Fact]
     public async Task Paragon_RequiresSkill_AndBlocksCompletionUntilChosen()
@@ -135,11 +144,12 @@ public class RotHeroicParameterTests(ApiFactory factory) : IClassFixture<ApiFact
     [Fact]
     public async Task SignatureWeapon_NumbersComeFromProfile_NotFromClient()
     {
-        var (client, id, _) = await CreateWithAbilityAsync("rot.heroic.signature-weapon");
+        var (client, id, reference) = await CreateWithAbilityAsync("rot.heroic.signature-weapon");
 
         Assert.Equal(HttpStatusCode.NoContent,
             (await SetConfigAsync(client, id, Weapon(SignatureWeaponProfile.TwoHanded,
-                WeaponCraftsmanship.Elven, "Двуручный молот", WeaponFormTraits.BluntOrCrushing))).StatusCode);
+                WeaponCraftsmanship.Elven, "Двуручный молот", WeaponFormTraits.BluntOrCrushing,
+                AnyWeaponAttachment(reference)))).StatusCode);
 
         var weapon = (await SheetAsync(client, id)).HeroicConfiguration!.SignatureWeapon!;
         Assert.Equal("Melee (Heavy)", weapon.SkillName);
@@ -160,11 +170,12 @@ public class RotHeroicParameterTests(ApiFactory factory) : IClassFixture<ApiFact
     [Fact]
     public async Task AncientSignatureWeapon_IsReinforced_AndLosesAHardPoint()
     {
-        var (client, id, _) = await CreateWithAbilityAsync("rot.heroic.signature-weapon");
+        var (client, id, reference) = await CreateWithAbilityAsync("rot.heroic.signature-weapon");
 
         Assert.Equal(HttpStatusCode.NoContent,
             (await SetConfigAsync(client, id, Weapon(SignatureWeaponProfile.OneHanded,
-                WeaponCraftsmanship.Ancient, "Клинок первых королей", WeaponFormTraits.Sword))).StatusCode);
+                WeaponCraftsmanship.Ancient, "Клинок первых королей", WeaponFormTraits.Sword,
+                AnyWeaponAttachment(reference)))).StatusCode);
 
         var weapon = (await SheetAsync(client, id)).HeroicConfiguration!.SignatureWeapon!;
         // Одноручный профиль — «Brawn + 3», крит 3, 2 слота (ROT-HA-02).
@@ -177,11 +188,12 @@ public class RotHeroicParameterTests(ApiFactory factory) : IClassFixture<ApiFact
     [Fact]
     public async Task IronSignatureWeapon_IsAllowed_AndCritsWorse()
     {
-        var (client, id, _) = await CreateWithAbilityAsync("rot.heroic.signature-weapon");
+        var (client, id, reference) = await CreateWithAbilityAsync("rot.heroic.signature-weapon");
 
         Assert.Equal(HttpStatusCode.NoContent,
             (await SetConfigAsync(client, id, Weapon(SignatureWeaponProfile.OneHanded,
-                WeaponCraftsmanship.Iron, "Простой клинок", WeaponFormTraits.Sword))).StatusCode);
+                WeaponCraftsmanship.Iron, "Простой клинок", WeaponFormTraits.Sword,
+                AnyWeaponAttachment(reference)))).StatusCode);
 
         var weapon = (await SheetAsync(client, id)).HeroicConfiguration!.SignatureWeapon!;
         Assert.Equal("Brawn + 3", weapon.Damage);
@@ -192,9 +204,10 @@ public class RotHeroicParameterTests(ApiFactory factory) : IClassFixture<ApiFact
     [Fact]
     public async Task SignatureWeapon_BrawlProfile_CarriesDisorientRating()
     {
-        var (client, id, _) = await CreateWithAbilityAsync("rot.heroic.signature-weapon");
+        var (client, id, reference) = await CreateWithAbilityAsync("rot.heroic.signature-weapon");
         await SetConfigAsync(client, id, Weapon(SignatureWeaponProfile.Brawl,
-            WeaponCraftsmanship.Steel, "Наручи", WeaponFormTraits.BluntOrCrushing));
+            WeaponCraftsmanship.Steel, "Наручи", WeaponFormTraits.BluntOrCrushing,
+            AnyWeaponAttachment(reference)));
 
         var weapon = (await SheetAsync(client, id)).HeroicConfiguration!.SignatureWeapon!;
         Assert.Equal("Brawn + 2", weapon.Damage);
@@ -248,8 +261,8 @@ public class RotHeroicParameterTests(ApiFactory factory) : IClassFixture<ApiFact
     [Fact]
     public async Task LostWeapon_IsReplacedByASingleActiveInstance()
     {
-        var (client, id, _) = await CreateWithAbilityAsync("rot.heroic.signature-weapon");
-        await SetConfigAsync(client, id, Weapon());
+        var (client, id, reference) = await CreateWithAbilityAsync("rot.heroic.signature-weapon");
+        await SetConfigAsync(client, id, Weapon(baseAttachmentId: AnyWeaponAttachment(reference)));
         await client.PostAsync($"/api/characters/{id}/complete-creation", null);
 
         var lost = await client.PostAsJsonAsync($"/api/characters/{id}/heroic-configuration/signature-weapon",
@@ -259,7 +272,7 @@ public class RotHeroicParameterTests(ApiFactory factory) : IClassFixture<ApiFact
 
         var replaced = await client.PostAsJsonAsync($"/api/characters/{id}/heroic-configuration/signature-weapon",
             new ReplaceSignatureWeaponRequest(false, SignatureWeaponProfile.Ranged, WeaponCraftsmanship.Elven,
-                "Эльфийский лук", WeaponFormTraits.BowOrCrossbow), Json.Options);
+                "Эльфийский лук", WeaponFormTraits.BowOrCrossbow, AnyWeaponAttachment(reference)), Json.Options);
         Assert.Equal(HttpStatusCode.NoContent, replaced.StatusCode);
 
         var weapon = (await SheetAsync(client, id)).HeroicConfiguration!.SignatureWeapon!;
@@ -268,6 +281,132 @@ public class RotHeroicParameterTests(ApiFactory factory) : IClassFixture<ApiFact
         // Дальнобойный профиль — урон 8, эльфийская работа уменьшает его на единицу (ROT-WPN-02).
         Assert.Equal("7", weapon.Damage);
         Assert.Equal("Эльфийский лук", weapon.NarrativeForm);
+    }
+
+    // ── ROT-HA-02: базовое улучшение именного оружия ──
+
+    [Fact]
+    public async Task SignatureWeapon_WithoutBaseAttachment_IsIncomplete()
+    {
+        var (client, id, _) = await CreateWithAbilityAsync("rot.heroic.signature-weapon");
+
+        var resp = await SetConfigAsync(client, id, Weapon());
+        Assert.Equal(HttpStatusCode.BadRequest, resp.StatusCode);
+        Assert.Equal("heroic.weapon.attachment_required",
+            (await resp.Content.ReadFromJsonAsync<ErrorResponse>(Json.Options))!.ReasonCode);
+        Assert.True((await SheetAsync(client, id)).HeroicConfigurationIncomplete);
+    }
+
+    [Fact]
+    public async Task BaseAttachment_ChangesDamageCritAndQualities_ButNotHardPoints()
+    {
+        var (client, id, reference) = await CreateWithAbilityAsync("rot.heroic.signature-weapon");
+
+        // Острое лезвие даёт Проникающее 2 и снимает единицу крита; клинок подтверждён формой.
+        Assert.Equal(HttpStatusCode.NoContent,
+            (await SetConfigAsync(client, id, Weapon(SignatureWeaponProfile.OneHanded,
+                WeaponCraftsmanship.Steel, "Фамильный меч", WeaponFormTraits.Sword,
+                Attachment(reference, "razor-edge")))).StatusCode);
+
+        var weapon = (await SheetAsync(client, id)).HeroicConfiguration!.SignatureWeapon!;
+        Assert.EndsWith(".razor-edge", weapon.BaseAttachment!.Code, StringComparison.Ordinal);
+        Assert.Equal(2, weapon.Qualities.Single(q => q.Code == "pierce").Rating);
+        Assert.Contains(weapon.Qualities, q => q.Code == "superior");
+        Assert.Equal(2, weapon.Crit);
+        // Слоты и вес героической копии улучшение не трогает: оно временное и ничего не занимает.
+        Assert.Equal(2, weapon.HardPoints);
+        Assert.Equal(1, weapon.Encumbrance);
+    }
+
+    [Fact]
+    public async Task BaseAttachment_IncompatibleWithTheForm_IsRejected()
+    {
+        var (client, id, reference) = await CreateWithAbilityAsync("rot.heroic.signature-weapon");
+
+        // Взрывной снаряд требует дальнобойной формы, а профиль ближний.
+        var resp = await SetConfigAsync(client, id, Weapon(SignatureWeaponProfile.OneHanded,
+            WeaponCraftsmanship.Steel, "Фамильный меч", WeaponFormTraits.Sword,
+            Attachment(reference, "explosive-missile")));
+        Assert.Equal(HttpStatusCode.BadRequest, resp.StatusCode);
+        Assert.Equal("heroic.weapon.attachment_incompatible",
+            (await resp.Content.ReadFromJsonAsync<ErrorResponse>(Json.Options))!.ReasonCode);
+    }
+
+    [Fact]
+    public async Task BaseAttachment_GivingAQualityTheProfileAlreadyHas_IsRejected()
+    {
+        var (client, id, reference) = await CreateWithAbilityAsync("rot.heroic.signature-weapon");
+
+        // Превосходная модификация выдаёт Превосходное, а оно есть у всех четырёх профилей.
+        var resp = await SetConfigAsync(client, id, Weapon(SignatureWeaponProfile.OneHanded,
+            WeaponCraftsmanship.Steel, "Фамильный меч", WeaponFormTraits.Sword,
+            Attachment(reference, "superior-weapon-customization")));
+        Assert.Equal(HttpStatusCode.BadRequest, resp.StatusCode);
+        Assert.Equal("heroic.weapon.attachment_redundant",
+            (await resp.Content.ReadFromJsonAsync<ErrorResponse>(Json.Options))!.ReasonCode);
+    }
+
+    [Fact]
+    public async Task BaseAttachment_ForeignId_IsRejected()
+    {
+        var (client, id, _) = await CreateWithAbilityAsync("rot.heroic.signature-weapon");
+
+        var resp = await SetConfigAsync(client, id, Weapon(baseAttachmentId: Guid.NewGuid()));
+        Assert.Equal(HttpStatusCode.BadRequest, resp.StatusCode);
+        Assert.Equal("heroic.weapon.attachment_not_available",
+            (await resp.Content.ReadFromJsonAsync<ErrorResponse>(Json.Options))!.ReasonCode);
+    }
+
+    [Fact]
+    public async Task BaseAttachment_SurvivesExportImport_ByCode()
+    {
+        var (client, id, reference) = await CreateWithAbilityAsync("rot.heroic.signature-weapon");
+        await SetConfigAsync(client, id, Weapon(SignatureWeaponProfile.OneHanded,
+            WeaponCraftsmanship.Steel, "Фамильный меч", WeaponFormTraits.Sword,
+            Attachment(reference, "razor-edge")));
+        await client.PostAsync($"/api/characters/{id}/complete-creation", null);
+
+        var export = (await client.GetFromJsonAsync<CharacterExportDto>(
+            $"/api/characters/{id}/export", Json.Options))!;
+        Assert.EndsWith(".razor-edge", export.Character.SignatureWeaponBaseAttachmentCode!, StringComparison.Ordinal);
+
+        var importResp = await client.PostAsJsonAsync("/api/characters/import", export, Json.Options);
+        var imported = (await importResp.Content.ReadFromJsonAsync<ImportCharacterResult>(Json.Options))!;
+        var sheet = await SheetAsync(client, imported.CharacterId);
+        Assert.EndsWith(".razor-edge",
+            sheet.HeroicConfiguration!.SignatureWeapon!.BaseAttachment!.Code, StringComparison.Ordinal);
+        Assert.False(sheet.HeroicConfigurationIncomplete);
+    }
+
+    [Fact]
+    public async Task ImportedWeapon_WithTamperedAttachmentCode_LosesIt_WithAWarning()
+    {
+        var (client, id, reference) = await CreateWithAbilityAsync("rot.heroic.signature-weapon");
+        await SetConfigAsync(client, id, Weapon(SignatureWeaponProfile.OneHanded,
+            WeaponCraftsmanship.Steel, "Фамильный меч", WeaponFormTraits.Sword,
+            Attachment(reference, "razor-edge")));
+        await client.PostAsync($"/api/characters/{id}/complete-creation", null);
+
+        var export = (await client.GetFromJsonAsync<CharacterExportDto>(
+            $"/api/characters/{id}/export", Json.Options))!;
+        // Подменённый в файле код требует дальнобойной формы — импорт не должен его принять.
+        var tampered = export with
+        {
+            Character = export.Character with
+            {
+                SignatureWeaponBaseAttachmentCode = export.Character.SignatureWeaponBaseAttachmentCode!
+                    .Replace("razor-edge", "explosive-missile", StringComparison.Ordinal),
+            },
+        };
+
+        var importResp = await client.PostAsJsonAsync("/api/characters/import", tampered, Json.Options);
+        var result = (await importResp.Content.ReadFromJsonAsync<ImportCharacterResult>(Json.Options))!;
+        Assert.Contains(result.Warnings, w => w.Contains("Базовое улучшение"));
+
+        var sheet = await SheetAsync(client, result.CharacterId);
+        Assert.Null(sheet.HeroicConfiguration!.SignatureWeapon!.BaseAttachment);
+        // Оружие без базового улучшения не собрано: параметр остаётся незавершённым.
+        Assert.True(sheet.HeroicConfigurationIncomplete);
     }
 
     [Fact]
