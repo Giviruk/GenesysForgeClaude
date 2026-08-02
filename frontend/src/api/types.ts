@@ -806,6 +806,8 @@ export interface SheetItem {
   encumbranceThresholdBonus: number
   load: number
   description: string
+  /** Copyright-safe описание; используется, когда private-описание недоступно. */
+  safeDescription: string
   /** Английское описание; пусто, если не переведено. */
   descriptionEn?: string
   price: number | null

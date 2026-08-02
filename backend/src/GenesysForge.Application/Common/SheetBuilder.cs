@@ -246,7 +246,7 @@ public static class SheetBuilder
             e.RangedDefense, e.EncumbranceThresholdBonus,
             SheetCalculator.ItemLoad(new ItemInput(def.Name, def.Kind, item.State,
                 e.Encumbrance, item.Quantity)),
-            def.Description, e.Price,
+            def.Description, def.SafeDescription, e.Price,
             def.SkillName, def.Damage, def.Crit, def.RangeBand, def.Properties,
             def.DescriptionEn,
             e.IsActiveArmor,

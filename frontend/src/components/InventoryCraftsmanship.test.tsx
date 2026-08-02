@@ -28,7 +28,8 @@ const plateDef = {
 const ironPlate = {
   id: 'item-1', itemDefId: 'def-plate', name: 'Plate', nameRu: 'Латы', kind: 'armor', state: 'equipped',
   quantity: 1, encumbrance: 8, soakBonus: 2, meleeDefense: 0, rangedDefense: 0,
-  encumbranceThresholdBonus: 0, load: 5, description: '', price: 2500, skillName: '', damage: '',
+  encumbranceThresholdBonus: 0, load: 5, description: '', safeDescription: 'Тяжёлая защитная броня.',
+  price: 2500, skillName: '', damage: '',
   crit: '', rangeBand: '', properties: '', isActiveArmor: true, hardPoints: 4, checkModifiers: [],
   attackProfiles: [], isThrown: false, craftsmanship: 'iron', rarity: 5, reinforced: false,
   adjustments: [
@@ -112,6 +113,13 @@ describe('Инвентарь: качество изготовления (ROT-WPN
       .map(e => e.textContent ?? '').find(text => text.startsWith('железное'))
     expect(breakdown).toContain('Вес 6 → 8')
     expect(breakdown).toContain('Цена 5000 → 2500')
+  })
+
+  it('показывает safe-описание на карточке предмета инвентаря', () => {
+    const { container } = render(<InventoryTab sheet={sheet} reference={reference} onError={() => {}}
+      refresh={() => Promise.resolve()} />)
+
+    expect(container.querySelector('.inv-card-desc')?.textContent).toBe('Тяжёлая защитная броня.')
   })
 
   it('называет установленные улучшения и занятые слоты', () => {
