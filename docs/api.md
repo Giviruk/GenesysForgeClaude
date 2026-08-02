@@ -215,7 +215,9 @@ Protected. Returns `CharacterSheetDto`:
 - skills with dice pools;
 - talents and tier counts;
 - heroic ability;
-- items.
+- items; every inventory entry carries `description`, `safeDescription`, and optional
+  `descriptionEn`, so clients can use the same language/content-mode fallback as the reference
+  catalogue.
 
 ### `PATCH /api/characters/{id}`
 

@@ -103,6 +103,25 @@ public class CharacterSlicesApiTests(ApiFactory factory) : IClassFixture<ApiFact
     }
 
     /// <summary>
+    /// Карточка инвентаря получает copyright-safe описание вместе с экземпляром. В PublicSafe
+    /// полное описание пусто, поэтому без этого поля существующий текст каталога терялся.
+    /// </summary>
+    [Fact]
+    public async Task TheInventoryItemCarriesSafeDescription()
+    {
+        var (client, id, reference) = await CreateAsync();
+        var definition = reference.Items.First(i =>
+            i.Purchasable && !string.IsNullOrWhiteSpace(i.SafeDescription));
+        await client.PostAsJsonAsync($"/api/characters/{id}/items",
+            new AddItemRequest(definition.Id, 1, ItemState.Carried, Free: true), Json.Options);
+
+        var slices = (await SlicesAsync(client, id, "items"))!;
+        var item = Assert.Single(slices.Items!);
+
+        Assert.Equal(definition.SafeDescription, item.SafeDescription);
+    }
+
+    /// <summary>
     /// Груз транспорта в своём срезе считается теми же поправками, что и позиция за спиной
     /// (ROT-TRANSPORT-01): для этого срезу транспорта и нужны предметы.
     /// </summary>
