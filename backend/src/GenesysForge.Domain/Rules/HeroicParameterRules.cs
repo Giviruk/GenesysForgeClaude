@@ -103,6 +103,8 @@ public static class HeroicParameterRules
 
     /// <summary>
     /// Слоты улучшений именного оружия: слоты профиля с поправкой работы плюс два за Supreme.
+    /// По таблице это 2 на старте и 4 после Supreme; древняя работа отнимает один, как у любого
+    /// другого оружия.
     /// </summary>
     public static int HardPoints(int profileHardPoints, WeaponCraftsmanship craftsmanship, int upgradeRank)
     {

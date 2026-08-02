@@ -85,17 +85,38 @@ public class AddItemHandler(IAppDbContext db) : ICommandHandler<AddItemCommand, 
         c.StartingPurchaseBudget -= charge.FromBudget;
         c.Money -= charge.FromMoney;
 
-        var item = new CharacterItem
+        var provenance = req.Free
+            ? ItemProvenance.Imported
+            : charge.FromBudget > 0 ? ItemProvenance.StartingBudget : ItemProvenance.Purchased;
+
+        // Одинаковое кладётся в ту же строку и увеличивает счётчик: две записи «Верёвка ×1» —
+        // это не два разных мотка, а сломанный список. Раздельными остаются только экземпляры,
+        // которые чем-то отличаются (работа, материал, повреждение, улучшения, место хранения).
+        var installedHosts = c.Attachments
+            .Where(a => a.HostCharacterItemId is not null)
+            .Select(a => a.HostCharacterItemId!.Value)
+            .ToHashSet();
+        var item = c.Items.FirstOrDefault(existing =>
+            existing.ItemDefId == itemDef.Id
+            && ItemStackRules.CanStack(existing, itemDef.Code, req.State, craftsmanship, req.Material,
+                provenance, installedHosts.Contains(existing.Id)));
+
+        if (item is null)
         {
-            Id = Guid.NewGuid(), CharacterId = c.Id, ItemDefId = itemDef.Id, ItemDef = itemDef,
-            Quantity = req.Quantity, State = req.State, Craftsmanship = craftsmanship,
-            ImplementMaterial = req.Material,
-            Provenance = req.Free
-                ? ItemProvenance.Imported
-                : charge.FromBudget > 0 ? ItemProvenance.StartingBudget : ItemProvenance.Purchased,
-        };
-        db.CharacterItems.Add(item);
-        c.Items.Add(item);
+            item = new CharacterItem
+            {
+                Id = Guid.NewGuid(), CharacterId = c.Id, ItemDefId = itemDef.Id, ItemDef = itemDef,
+                Quantity = req.Quantity, State = req.State, Craftsmanship = craftsmanship,
+                ImplementMaterial = req.Material,
+                Provenance = provenance,
+            };
+            db.CharacterItems.Add(item);
+            c.Items.Add(item);
+        }
+        else
+        {
+            item.Quantity += req.Quantity;
+        }
         // Надетая броня и есть активная: носят ровно одну, поэтому выбирать не из чего (ROT-CMB-02).
         if (item.State == ItemState.Equipped && itemDef.Kind == ItemKind.Armor)
             c.ActiveArmorCharacterItemId = item.Id;
