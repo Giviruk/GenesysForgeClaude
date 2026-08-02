@@ -106,6 +106,8 @@ public class ExportCharacterHandler(IAppDbContext db) : IQueryHandler<ExportChar
             SignatureWeaponTraits: c.SignatureWeapon?.FormTraits,
             SignatureWeaponLost: c.SignatureWeapon?.IsLost ?? false,
             SignatureWeaponBaseAttachmentCode: c.SignatureWeapon?.BaseAttachment?.Code,
+            SignatureWeaponImprovement: c.SignatureWeapon?.Improvement,
+            SignatureWeaponSupremeAttachmentCode: c.SignatureWeapon?.SupremeAttachment?.Code,
             Mounts: mounts
                 .Select(m => new CharacterMountExport(
                     m.MountDef!.Code, m.MountDef.Name, m.Name, m.WoundsCurrent, CarriedLoad: 0,

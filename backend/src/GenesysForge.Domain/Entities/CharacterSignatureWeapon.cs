@@ -34,8 +34,28 @@ public class CharacterSignatureWeapon
     public AttachmentDef? BaseAttachment { get; set; }
 
     /// <summary>
+    /// Выбор Improved (ROT-HA-05): Укреплённое либо древняя работа. Фиксируется при покупке
+    /// улучшения и дальше не меняется.
+    /// </summary>
+    public SignatureWeaponImprovement Improvement { get; set; }
+
+    /// <summary>
+    /// Бесплатное улучшение от Supreme (ROT-HA-05): в отличие от базового оно установлено
+    /// постоянно, занимает слоты и ограничено редкостью 9.
+    /// </summary>
+    public Guid? SupremeAttachmentDefId { get; set; }
+    public AttachmentDef? SupremeAttachment { get; set; }
+
+    /// <summary>
     /// Оружие потеряно или уничтожено. Пока флаг стоит, профиль не действует; отдельная команда
     /// возвращает прежнее оружие или выдаёт замену — эта же строка, а не вторая.
     /// </summary>
     public bool IsLost { get; set; }
+
+    /// <summary>
+    /// Качество изготовления, по которому считаются числа: древняя работа Improved заменяет
+    /// выбранную при создании, а не складывается с ней.
+    /// </summary>
+    public WeaponCraftsmanship EffectiveCraftsmanship =>
+        Improvement == SignatureWeaponImprovement.Ancient ? WeaponCraftsmanship.Ancient : Craftsmanship;
 }

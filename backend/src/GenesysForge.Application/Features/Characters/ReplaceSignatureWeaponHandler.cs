@@ -47,6 +47,8 @@ public class ReplaceSignatureWeaponHandler(IAppDbContext db) : ICommandHandler<R
                 if (req.Craftsmanship is not { } craftsmanship || !Enum.IsDefined(craftsmanship))
                     throw new DomainRuleException(
                         "У замены должно быть качество изготовления.", "heroic.weapon.craftsmanship_required");
+                // Замена — то же оружие: работа выбирается из того же списка, что и при создании.
+                HeroicParameterRules.EnsureSignatureCraftsmanship(craftsmanship);
 
                 var traits = HeroicParameterRules.ValidateFormTraits(
                     profile, req.FormTraits ?? WeaponFormTraits.None);

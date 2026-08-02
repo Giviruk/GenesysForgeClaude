@@ -190,6 +190,16 @@ public class Character
     public bool HeroicConfigurationIncomplete =>
         System == GameSystem.RealmsOfTerrinoth && HeroicAbilityId is not null && !HeroicParameterComplete;
 
+    /// <summary>
+    /// Улучшение именного оружия куплено, а его выбор не сделан (ROT-HA-05): Improved требует
+    /// решения «Укреплённое или древняя работа», Supreme — бесплатного улучшения. До выбора
+    /// покупать дальше нельзя; сам параметр оружия при этом остаётся неизменяемым.
+    /// </summary>
+    public bool SignatureWeaponUpgradeIncomplete =>
+        RequiredHeroicParameter == HeroicParameterKind.SignatureWeapon && SignatureWeapon is { } weapon
+        && ((HeroicUpgradeRank >= 1 && weapon.Improvement == SignatureWeaponImprovement.None)
+            || (HeroicUpgradeRank >= 2 && weapon.SupremeAttachmentDefId is null));
+
     /// <summary>Всего ability points: по 1 за каждые полные 50 XP сверх стартового XP вида.</summary>
     public int HeroicUpgradePointsTotal => EarnedXp / 50;
 

@@ -2,14 +2,15 @@ import { useState } from 'react'
 import { api } from '../api/client'
 import type {
   ActivateCharacterAbilityResult, CharacterSheet, HeroicIdentity, HeroicOriginType, Reference,
-  SignatureWeaponProfile, WeaponCraftsmanship, WeaponFormTrait,
+  SignatureWeaponImprovement, SignatureWeaponProfile, WeaponCraftsmanship, WeaponFormTrait,
 } from '../api/types'
 import {
   CONFIRMABLE_WEAPON_TRAITS, formatWeaponTraits, HEROIC_ORIGIN_LABELS, HEROIC_ORIGIN_TYPES,
   HEROIC_UPGRADE_LABELS, heroicOriginFace, isAttachmentCompatible, localizedDescription, localizedName,
   parseWeaponTraits, signatureWeaponTraits,
+  SIGNATURE_WEAPON_CRAFTSMANSHIPS, SIGNATURE_WEAPON_IMPROVEMENT_LABELS, SUPREME_ATTACHMENT_MAX_RARITY,
   SIGNATURE_WEAPON_PROFILE_LABELS, SIGNATURE_WEAPON_PROFILES, WEAPON_CRAFTSMANSHIP_LABELS,
-  WEAPON_CRAFTSMANSHIPS, WEAPON_TRAIT_LABELS,
+  WEAPON_TRAIT_LABELS,
 } from '../utils/labels'
 import { t } from '../i18n'
 
@@ -396,11 +397,22 @@ export function HeroicParameterSection({ sheet, reference, run }: {
   const [form, setForm] = useState(weapon?.narrativeForm ?? '')
   const [traits, setTraits] = useState<WeaponFormTrait[]>(parseWeaponTraits(weapon?.formTraits))
   const [baseAttachmentId, setBaseAttachmentId] = useState(weapon?.baseAttachment?.defId ?? '')
+  const [improvement, setImprovement] = useState<SignatureWeaponImprovement>(
+    weapon?.improvement ?? 'none')
+  const [supremeAttachmentId, setSupremeAttachmentId] = useState(weapon?.supremeAttachment?.defId ?? '')
 
   // Список улучшений сужается признаками формы — теми же, что достроит сервер. Качество, которое
   // у профиля уже есть, отсеивает сервер: своей таблицы качеств профилей у клиента нет.
   const compatibleAttachments = (reference.attachments ?? []).filter(def =>
     isAttachmentCompatible('weapon', signatureWeaponTraits(profile, traits), def))
+
+  // Supreme считает совместимость по уже подтверждённой форме оружия и знает про предел редкости;
+  // вместимость по слотам и повтор базового проверяет сервер.
+  const supremeChoices = (reference.attachments ?? []).filter(def =>
+    weapon != null
+    && isAttachmentCompatible('weapon', parseWeaponTraits(weapon.formTraits), def)
+    && def.rarity <= SUPREME_ATTACHMENT_MAX_RARITY
+    && def.code !== weapon.baseAttachment?.code)
 
   if (!config || config.kind === 'none') return null
 
@@ -444,6 +456,69 @@ export function HeroicParameterSection({ sheet, reference, run }: {
                 'transient, 0 hard points, active only with the ability')}
             </div>
           )}
+          {weapon.improvement !== 'none' && (
+            <div>
+              {t('Improved:', 'Improved:')} {SIGNATURE_WEAPON_IMPROVEMENT_LABELS[weapon.improvement]}
+            </div>
+          )}
+          {weapon.supremeAttachment && (
+            <div>
+              {t('Улучшение Supreme:', 'Supreme attachment:')}{' '}
+              {localizedName(weapon.supremeAttachment)}
+              {' · '}{t('установлено постоянно и занимает слоты',
+                'permanently installed and uses hard points')}
+            </div>
+          )}
+          {weapon.craftsmanshipOutOfRules && (
+            <div className="warning-text">
+              {t('Качество изготовления выбрано вне нынешнего списка способности — решение за ведущим.',
+                'The craftsmanship is outside what the ability now offers — the GM decides what to do.')}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Improved и Supreme фиксируются при покупке: пока выбор не сделан, покупать дальше нельзя. */}
+      {config.kind === 'signatureWeapon' && weapon && sheet.heroicUpgradeRank >= 1 && (
+        <div className="heroic-weapon-upgrades">
+          {weapon.improvement === 'none' && (
+            <div className="inline-form">
+              <select value={improvement} aria-label={t('Улучшение Improved', 'Improved upgrade')}
+                onChange={e => setImprovement(e.target.value as SignatureWeaponImprovement)}>
+                {(['none', 'reinforced', 'ancient'] as SignatureWeaponImprovement[]).map(v => (
+                  <option key={v} value={v} disabled={v === 'none'}>
+                    {SIGNATURE_WEAPON_IMPROVEMENT_LABELS[v]}
+                  </option>
+                ))}
+              </select>
+              <button className="small primary" disabled={improvement === 'none'}
+                onClick={() => run(() => api.setSignatureWeaponUpgrades(sheet.id, { improvement }))}>
+                {t('Выбрать навсегда', 'Choose permanently')}
+              </button>
+            </div>
+          )}
+          {sheet.heroicUpgradeRank >= 2 && !weapon.supremeAttachment && (
+            <div className="inline-form">
+              <select value={supremeAttachmentId}
+                aria-label={t('Улучшение Supreme', 'Supreme attachment')}
+                onChange={e => setSupremeAttachmentId(e.target.value)}>
+                <option value="" disabled>{t('— бесплатное улучшение —', '— free attachment —')}</option>
+                {supremeChoices.map(a => (
+                  <option key={a.id} value={a.id}>{localizedName(a)}</option>
+                ))}
+              </select>
+              <button className="small primary" disabled={!supremeAttachmentId}
+                onClick={() => run(() => api.setSignatureWeaponUpgrades(sheet.id, {
+                  supremeAttachmentDefId: supremeAttachmentId,
+                }))}>
+                {t('Установить', 'Install')}
+              </button>
+            </div>
+          )}
+          <p className="hint small-text">
+            {t('Improved даёт ровно одно: Укреплённое либо древнюю работу, которая заменяет прежнюю и отнимает слот. Supreme добавляет два слота и одно бесплатное улучшение редкости не выше 9. Оба выбора навсегда.',
+              'Improved grants exactly one: Reinforced or Ancient craftsmanship, which replaces the previous one and costs a hard point. Supreme adds two hard points and one free attachment of rarity 9 or less. Both choices are permanent.')}
+          </p>
         </div>
       )}
 
@@ -496,7 +571,7 @@ export function HeroicParameterSection({ sheet, reference, run }: {
           <div className="inline-form">
             <select value={craftsmanship}
               onChange={e => setCraftsmanship(e.target.value as WeaponCraftsmanship)}>
-              {WEAPON_CRAFTSMANSHIPS.map(c => (
+              {SIGNATURE_WEAPON_CRAFTSMANSHIPS.map(c => (
                 <option key={c} value={c}>{WEAPON_CRAFTSMANSHIP_LABELS[c]}</option>
               ))}
             </select>

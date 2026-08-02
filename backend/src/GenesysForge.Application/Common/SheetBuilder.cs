@@ -359,28 +359,45 @@ public static class SheetBuilder
             var spec = SignatureWeaponProfiles.Get(w.Profile);
             // Качество изготовления именного оружия наконец считается, а не просто хранится
             // (ROT-WPN-02): это то же оружие, что и в инвентаре, и правила у него те же.
+            // Древняя работа Improved заменяет выбранную при создании, а не прибавляется к ней.
+            var craftsmanship = w.EffectiveCraftsmanship;
             var stats = CraftsmanshipRules.For(
-                ItemKind.Weapon, w.Craftsmanship, spec.Encumbrance, 0, 0, 0, spec.HardPoints, 0, 0);
-            var damageValue = spec.DamageValue + CraftsmanshipRules.DamageDelta(w.Craftsmanship);
-            List<(string Code, int Rating)> qualities =
-                [.. SignatureWeaponProfiles.QualitiesFor(w.Profile, w.Craftsmanship)];
-            var crit = CraftsmanshipRules.Crit(spec.Crit, w.Craftsmanship);
+                ItemKind.Weapon, craftsmanship, spec.Encumbrance, 0, 0, 0, spec.HardPoints, 0, 0);
+            var damageValue = spec.DamageValue + CraftsmanshipRules.DamageDelta(craftsmanship);
+            List<(string Code, int Rating)> qualities = [.. SignatureWeaponProfiles.QualitiesFor(w)];
+            var crit = CraftsmanshipRules.Crit(spec.Crit, craftsmanship);
+            var hardPoints = HeroicParameterRules.HardPoints(
+                spec.HardPoints, craftsmanship, c.HeroicUpgradeRank);
 
             // Базовое улучшение считается тем же движком, что и обычные (ROT-HA-02): вес и слоты
             // оно героической копии не меняет — их у неё нет, — а урон, крит и качества меняет.
+            // Бесплатное улучшение Supreme установлено по-настоящему и слоты как раз занимает.
             SignatureBaseAttachmentDto? baseAttachment = null;
+            SignatureBaseAttachmentDto? supremeAttachment = null;
+            List<AttachmentInput> inputs = [];
             if (w.BaseAttachment is { } att)
             {
-                AttachmentInput[] inputs = [new(att, WornAndActive: true)];
+                inputs.Add(new(att, WornAndActive: true));
+                baseAttachment = new SignatureBaseAttachmentDto(
+                    att.Id, att.Code, att.Name, att.NameRu, att.SafeDescription,
+                    [.. att.Effects.Select(e => e.ToDto())]);
+            }
+            if (w.SupremeAttachment is { } supreme)
+            {
+                inputs.Add(new(supreme, WornAndActive: true));
+                hardPoints -= supreme.HardPointCost;
+                supremeAttachment = new SignatureBaseAttachmentDto(
+                    supreme.Id, supreme.Code, supreme.Name, supreme.NameRu, supreme.SafeDescription,
+                    [.. supreme.Effects.Select(e => e.ToDto())]);
+            }
+            if (inputs.Count > 0)
+            {
                 var aggregate = AttachmentRules.Aggregate(inputs);
                 damageValue += aggregate.DamageBonus;
                 crit = Math.Max(1, crit - aggregate.CritReduction);
                 qualities = [.. AttachmentRules
                     .ApplyQualities([.. qualities.Select(q => new EffectiveQuality(q.Code, q.Rating))], inputs)
                     .Select(q => (q.Code, q.Rating))];
-                baseAttachment = new SignatureBaseAttachmentDto(
-                    att.Id, att.Code, att.Name, att.NameRu, att.SafeDescription,
-                    [.. att.Effects.Select(e => e.ToDto())]);
             }
 
             var codes = qualities.Select(q => q.Code).ToList();
@@ -392,13 +409,18 @@ public static class SheetBuilder
                 spec.SkillName,
                 SignatureWeaponProfileSpec.DamageText(spec.DamageKind, damageValue),
                 crit, spec.RangeBand,
-                stats.Encumbrance, stats.HardPoints ?? spec.HardPoints,
+                stats.Encumbrance, hardPoints,
                 [.. qualities.Select(q => byCode.TryGetValue(q.Code, out var def)
                     ? new ItemQualityRefDto(def.Code, def.NameRu, def.NameEn,
                         q.Rating > 0 ? q.Rating : null, def.HasRating, def.IsActive, def.ActivationCost)
                     : new ItemQualityRefDto(q.Code, q.Code, q.Code,
                         q.Rating > 0 ? q.Rating : null, q.Rating > 0, false, ""))],
-                baseAttachment);
+                baseAttachment,
+                w.Improvement,
+                supremeAttachment,
+                // Работа вне нынешнего списка бывает только у персонажа, созданного до правила:
+                // сервер её не переписывает, а показывает — решение за ведущим.
+                !HeroicParameterRules.SignatureCraftsmanshipChoices.Contains(w.Craftsmanship));
         }
 
         // Скрытый позднее кастомный навык не подменяется другим: остаётся снимок имени и предупреждение.

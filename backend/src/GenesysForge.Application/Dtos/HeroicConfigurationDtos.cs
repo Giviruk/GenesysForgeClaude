@@ -25,6 +25,11 @@ public record ReplaceSignatureWeaponRequest(
     WeaponFormTraits? FormTraits,
     Guid? BaseAttachmentDefId = null);
 
+/// <summary>Выбор Improved и Supreme именного оружия (ROT-HA-05). Оба неизменяемы после покупки.</summary>
+public record SetSignatureWeaponUpgradesRequest(
+    SignatureWeaponImprovement? Improvement,
+    Guid? SupremeAttachmentDefId);
+
 /// <summary>Полный профиль именного оружия: числа строит сервер из выбранного профиля.</summary>
 /// <param name="Damage">Урон профиля вместе с вкладом базового улучшения.</param>
 /// <param name="Qualities">Качества профиля вместе с теми, что даёт базовое улучшение.</param>
@@ -45,7 +50,16 @@ public record SignatureWeaponDto(
     int Encumbrance,
     int HardPoints,
     List<ItemQualityRefDto> Qualities,
-    SignatureBaseAttachmentDto? BaseAttachment = null);
+    SignatureBaseAttachmentDto? BaseAttachment = null,
+    /// <summary>Выбор Improved: Укреплённое либо древняя работа (ROT-HA-05).</summary>
+    SignatureWeaponImprovement Improvement = SignatureWeaponImprovement.None,
+    /// <summary>Бесплатное установленное улучшение от Supreme; занимает слоты, в отличие от базового.</summary>
+    SignatureBaseAttachmentDto? SupremeAttachment = null,
+    /// <summary>
+    /// Работа выбрана вне нынешнего списка способности (железная или древняя у персонажа,
+    /// созданного до этого правила). Сервер её не переписывает — решение за ведущим.
+    /// </summary>
+    bool CraftsmanshipOutOfRules = false);
 
 /// <summary>
 /// Базовое улучшение именного оружия. Цена и слоты не приводятся намеренно: у героической копии

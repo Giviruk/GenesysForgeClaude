@@ -253,7 +253,16 @@ export interface SignatureWeapon {
    * не покупается и не занимает слотов. `null` — старый персонаж, который его ещё не выбрал.
    */
   baseAttachment: SignatureBaseAttachment | null
+  /** Выбор Improved: Укреплённое либо древняя работа (ROT-HA-05). */
+  improvement: SignatureWeaponImprovement
+  /** Бесплатное улучшение Supreme: установлено постоянно и занимает слоты. */
+  supremeAttachment: SignatureBaseAttachment | null
+  /** Работа выбрана вне нынешнего списка способности — у персонажа, созданного до правила. */
+  craftsmanshipOutOfRules: boolean
 }
+
+/** Что даёт Improved именного оружия: ровно одно из двух, навсегда (ROT-HA-05). */
+export type SignatureWeaponImprovement = 'none' | 'reinforced' | 'ancient' 
 
 /** Базовое улучшение именного оружия. Цены и слотов у героической копии нет — их и не приходит. */
 export interface SignatureBaseAttachment {

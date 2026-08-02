@@ -12,9 +12,13 @@ public record CharacterExportDto(
     CharacterExportData Character)
 {
     /// <summary>
-    /// Текущая версия формата: v6 переносит базовое улучшение именного оружия (ROT-HA-02).
+    /// Текущая версия формата: v7 переносит выбор Improved и бесплатное улучшение Supreme
+    /// именного оружия (ROT-HA-05).
     /// </summary>
-    public const string CurrentFormat = "genesysforge.character.v6";
+    public const string CurrentFormat = "genesysforge.character.v7";
+
+    /// <summary>v6 знал базовое улучшение именного оружия, но не его Improved и Supreme.</summary>
+    public const string LegacyFormatV6 = "genesysforge.character.v6";
 
     /// <summary>
     /// v5 переносил груз транспорта и тягу (ROT-TRANSPORT-01), но именное оружие в нём ещё без
@@ -35,7 +39,7 @@ public record CharacterExportDto(
 
     /// <summary>Все форматы, которые импорт умеет читать.</summary>
     public static readonly string[] SupportedFormats =
-        [CurrentFormat, LegacyFormatV5, LegacyFormatV4, LegacyFormatV3, LegacyFormatV2, LegacyFormatV1];
+        [CurrentFormat, LegacyFormatV6, LegacyFormatV5, LegacyFormatV4, LegacyFormatV3, LegacyFormatV2, LegacyFormatV1];
 }
 
 public record CharacterExportData(
@@ -96,6 +100,9 @@ public record CharacterExportData(
     // v6: базовое улучшение именного оружия (ROT-HA-02) — по стабильному коду, а не по id:
     // в другом аккаунте того же id нет.
     string? SignatureWeaponBaseAttachmentCode = null,
+    // v7: выбор Improved и бесплатное улучшение Supreme (ROT-HA-05); улучшение — по коду.
+    SignatureWeaponImprovement? SignatureWeaponImprovement = null,
+    string? SignatureWeaponSupremeAttachmentCode = null,
     // v4: скакуны персонажа (ROT-MOUNT-ITEM-01). У файлов прежних версий их нет — там скакун мог
     // быть только позицией инвентаря, и её переносит список Items.
     List<CharacterMountExport>? Mounts = null);

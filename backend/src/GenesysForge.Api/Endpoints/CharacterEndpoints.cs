@@ -220,6 +220,16 @@ public static class CharacterEndpoints
             return Results.NoContent();
         });
 
+        // Выбор Improved/Supreme именного оружия (ROT-HA-05): отдельная команда, потому что сам
+        // параметр оружия после создания неизменяем, а эти решения приходят с покупкой улучшений.
+        group.MapPost("/{id:guid}/heroic-configuration/signature-weapon/upgrades", async (Guid id,
+            SetSignatureWeaponUpgradesRequest req, ClaimsPrincipal user,
+            ICommandHandler<SetSignatureWeaponUpgradesCommand, Unit> handler, CancellationToken ct) =>
+        {
+            await handler.Handle(new SetSignatureWeaponUpgradesCommand(user.UserId(), id, req), ct);
+            return Results.NoContent();
+        });
+
         group.MapPut("/{id:guid}/heroic-upgrade", async (Guid id, SetHeroicUpgradeRankRequest req,
             ClaimsPrincipal user, ICommandHandler<SetHeroicUpgradeRankCommand, Unit> handler, CancellationToken ct) =>
         {

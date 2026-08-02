@@ -84,6 +84,64 @@ public static class HeroicParameterRules
     }
 
     /// <summary>
+    /// Качество изготовления, доступное именному оружию при создании: способность даёт гномью или
+    /// эльфийскую работу, обычная сталь — «без изменений». Железа книга не предлагает, а древняя
+    /// работа — награда за Improved (ROT-HA-05), а не бесплатный выбор на старте.
+    /// </summary>
+    public static IReadOnlyList<WeaponCraftsmanship> SignatureCraftsmanshipChoices { get; } =
+        [WeaponCraftsmanship.Steel, WeaponCraftsmanship.Dwarven, WeaponCraftsmanship.Elven];
+
+    /// <summary>Работа выбрана из того, что даёт сама способность.</summary>
+    public static void EnsureSignatureCraftsmanship(WeaponCraftsmanship craftsmanship)
+    {
+        if (!SignatureCraftsmanshipChoices.Contains(craftsmanship))
+            throw new DomainRuleException(
+                "Именное оружие бывает обычной, гномьей или эльфийской работы; древняя работа даётся "
+                + "улучшением способности.",
+                "heroic.weapon.craftsmanship_not_allowed");
+    }
+
+    /// <summary>
+    /// Слоты улучшений именного оружия: слоты профиля с поправкой работы плюс два за Supreme.
+    /// </summary>
+    public static int HardPoints(int profileHardPoints, WeaponCraftsmanship craftsmanship, int upgradeRank)
+    {
+        var stats = CraftsmanshipRules.For(ItemKind.Weapon, craftsmanship, 0, 0, 0, 0, profileHardPoints, 0, 0);
+        return (stats.HardPoints ?? profileHardPoints) + (upgradeRank >= 2 ? 2 : 0);
+    }
+
+    /// <summary>
+    /// Бесплатное улучшение от Supreme (ROT-HA-05). В отличие от базового оно ставится по-настоящему:
+    /// занимает слоты и ограничено редкостью 9. Совместимость — те же предикаты формы.
+    /// </summary>
+    /// <param name="availableHardPoints">Слоты оружия с учётом работы и прибавки Supreme.</param>
+    /// <param name="baseAttachmentCode">Код базового улучшения: второй такой же не ставится.</param>
+    public static void EnsureCanBeSupremeAttachment(
+        WeaponFormTraits traits, int availableHardPoints, string? baseAttachmentCode, AttachmentDef def)
+    {
+        if (!AttachmentRules.IsCompatible(ItemKind.Weapon, traits, def))
+            throw new DomainRuleException(
+                "Это улучшение не подходит подтверждённой форме именного оружия.",
+                "heroic.weapon.attachment_incompatible");
+
+        if (def.Rarity > SupremeAttachmentMaxRarity)
+            throw new DomainRuleException(
+                $"Бесплатное улучшение Supreme ограничено редкостью {SupremeAttachmentMaxRarity}.",
+                "heroic.weapon.attachment_too_rare");
+
+        if (string.Equals(def.Code, baseAttachmentCode, StringComparison.Ordinal))
+            throw new DomainRuleException(
+                "Такое улучшение уже выбрано базовым.", "heroic.weapon.attachment_duplicate");
+
+        if (def.HardPointCost > availableHardPoints)
+            throw new DomainRuleException(
+                "Улучшение не помещается в слоты именного оружия.", "attachment.no_hard_points");
+    }
+
+    /// <summary>Предел редкости бесплатного улучшения Supreme.</summary>
+    public const int SupremeAttachmentMaxRarity = 9;
+
+    /// <summary>
     /// Качества, которые улучшение выдаёт предмету. Прибавка к уже имеющемуся рейтингу — тоже
     /// выдача: правило запрещает брать базовым то, что у оружия профиля уже есть.
     /// </summary>
