@@ -1,17 +1,6 @@
+import { lazy, Suspense } from 'react'
 import { AuthProvider } from './auth'
 import { useAuth } from './auth-context'
-import { AuthPage } from './pages/AuthPage'
-import { CharactersPage } from './pages/CharactersPage'
-import { CampaignsPage } from './pages/CampaignsPage'
-import { NpcsPage } from './pages/NpcsPage'
-import { SheetPage } from './pages/SheetPage'
-import { MagicPage } from './pages/MagicPage'
-import { ShopPage } from './pages/ShopPage'
-import { ReferencePage } from './pages/ReferencePage'
-import { AboutPage } from './pages/AboutPage'
-import { HelpPage } from './pages/HelpPage'
-import { ProfilePage } from './pages/ProfilePage'
-import { SharedSheetPage } from './pages/SharedSheetPage'
 import { Footer } from './components/Footer'
 import { Icon, type IconName } from './components/Icon'
 import { navigate, parseRoute, usePath, type AppArea } from './router'
@@ -19,6 +8,21 @@ import { t, useLang } from './i18n'
 import { useSeo } from './seo'
 import type { CampaignView } from './pages/CampaignsPage'
 import { DiceRollerProvider } from './dice-roller-context'
+
+// Страницы загружаются по маршруту: тяжёлые редакторы NPC, кампаний и листа больше не входят
+// в стартовый bundle экрана входа. Именованные exports приводим к форме default для React.lazy.
+const AuthPage = lazy(() => import('./pages/AuthPage').then(module => ({ default: module.AuthPage })))
+const CharactersPage = lazy(() => import('./pages/CharactersPage').then(module => ({ default: module.CharactersPage })))
+const CampaignsPage = lazy(() => import('./pages/CampaignsPage').then(module => ({ default: module.CampaignsPage })))
+const NpcsPage = lazy(() => import('./pages/NpcsPage').then(module => ({ default: module.NpcsPage })))
+const SheetPage = lazy(() => import('./pages/SheetPage').then(module => ({ default: module.SheetPage })))
+const MagicPage = lazy(() => import('./pages/MagicPage').then(module => ({ default: module.MagicPage })))
+const ShopPage = lazy(() => import('./pages/ShopPage').then(module => ({ default: module.ShopPage })))
+const ReferencePage = lazy(() => import('./pages/ReferencePage').then(module => ({ default: module.ReferencePage })))
+const AboutPage = lazy(() => import('./pages/AboutPage').then(module => ({ default: module.AboutPage })))
+const HelpPage = lazy(() => import('./pages/HelpPage').then(module => ({ default: module.HelpPage })))
+const ProfilePage = lazy(() => import('./pages/ProfilePage').then(module => ({ default: module.ProfilePage })))
+const SharedSheetPage = lazy(() => import('./pages/SharedSheetPage').then(module => ({ default: module.SharedSheetPage })))
 
 const campaignView = (sub: string | null): CampaignView =>
   sub === 'table' || sub === 'handbook' || sub === 'encounters' ? sub : 'overview'
@@ -141,11 +145,17 @@ function NotFound() {
   )
 }
 
+function PageFallback() {
+  return <div className="page"><div className="panel muted">{t('Загрузка…', 'Loading…')}</div></div>
+}
+
 export default function App() {
   return (
     <AuthProvider>
       <DiceRollerProvider>
-        <Shell />
+        <Suspense fallback={<PageFallback />}>
+          <Shell />
+        </Suspense>
       </DiceRollerProvider>
     </AuthProvider>
   )
