@@ -449,9 +449,11 @@ User-owned, campaign-linked, or built-in adversaries.
 
 Fields include owner/campaign visibility, `System`, `Kind`, `Role`, characteristics, derived combat stats, `Silhouette`, `Tactics`, free-text talent/equipment arrays and `Tags` (`text[]` in PostgreSQL).
 
+`Code` is the stable seed key of a built-in adversary (empty for user NPCs); it — not the display name — identifies the row, so an official profile can be renamed without creating a duplicate (ROT-BEST-01). `Retired` marks a built-in that left the active bestiary of its system (the nine Haunted City profiles, ROT-CLEAN-3.6): it is filtered out of the library list, but stays reachable by id for existing encounters and duplicates. Duplicating a built-in produces user content with an empty `Code` and `Retired = false`.
+
 Indexes:
 
-- non-unique `OwnerUserId`, `CampaignId`, `IsBuiltIn`.
+- non-unique `OwnerUserId`, `CampaignId`, `IsBuiltIn`, `Code`.
 - non-unique `(System, Kind, Role)` for adversary library filters.
 - non-unique `(System, OwnerUserId)` and `(System, Visibility)` for scoped visible-library queries.
 - PostgreSQL GIN index `IX_Npcs_Tags_Gin` on `Tags` for `Tags.Contains(tag)` filters.
@@ -624,6 +626,13 @@ Found migrations:
   item seed, and `SeedData.MigrateLegacyMountItems` converts already-owned mount gear rows into
   `CharacterMounts` (quantity N becomes N creatures) with a history entry per character; money is
   not recalculated and no row is silently deleted.
+- `20260803113917_RotBest01NpcCodeAndRetired` — ROT-CLEAN-3.6 / ROT-BEST-01. Adds `Npcs.Code`
+  (`varchar(80)`, non-unique index; empty for user NPCs) and `Npcs.Retired` (`bool`, default
+  `false`). Purely additive. `SeedBestiary` back-fills `Code` on already-seeded built-ins by the
+  legacy `System+Name` key, renames `Goblin (Official)` to `Goblin` through an explicit legacy-name
+  map (so the rename cannot create a second row), and syncs `Name`/`Source`/`Retired` by code. No
+  row is deleted: the nine Haunted City adversaries stay reachable by id for existing encounters
+  and duplicates.
 
 Startup behavior:
 

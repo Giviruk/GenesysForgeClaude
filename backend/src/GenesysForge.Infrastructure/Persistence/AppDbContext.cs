@@ -408,7 +408,9 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             e.HasIndex(n => n.OwnerUserId);
             e.HasIndex(n => n.CampaignId);
             e.HasIndex(n => n.IsBuiltIn);
+            e.HasIndex(n => n.Code);
             e.HasIndex(n => new { n.System, n.Kind, n.Role });
+            e.Property(n => n.Code).HasMaxLength(80);
             e.HasIndex(n => new { n.System, n.OwnerUserId });
             e.HasIndex(n => new { n.System, n.Visibility });
             e.Property(n => n.Name).HasMaxLength(200);

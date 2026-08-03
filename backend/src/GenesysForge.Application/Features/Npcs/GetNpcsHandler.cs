@@ -11,8 +11,11 @@ public class GetNpcsHandler(IAppDbContext db) : IQueryHandler<GetNpcsQuery, List
     {
         var uid = q.UserId;
 
+        // Retired-существо (девять записей Haunted City, ROT-CLEAN-3.6) исключено из активного
+        // бестиария, но остаётся доступным по id — в уже созданных столкновениях и при копировании.
         var query = db.Npcs.AsNoTracking()
             .Include(n => n.Skills)
+            .Where(n => !n.Retired)
             .Where(n => n.OwnerUserId == uid
                 || n.IsBuiltIn
                 || (n.Visibility == NpcVisibility.CampaignVisible && n.CampaignId != null

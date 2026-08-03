@@ -320,7 +320,8 @@ public class SeedDataTests
             Assert.True(n.IsBuiltIn);
             Assert.Equal(GameSystem.RealmsOfTerrinoth, n.System);
             Assert.Equal(Domain.NpcVisibility.PublicTemplate, n.Visibility);
-            Assert.Equal("Realms of Terrinoth", n.Source);
+            // Девять записей Haunted City ушли из RoT вместе с источником (ROT-CLEAN-3.6).
+            Assert.Equal(n.Retired ? "Haunted City" : "Realms of Terrinoth", n.Source);
         });
 
         // Ни одно встроенное существо не должно нарушать правила adversary (errors блокируют сохранение).

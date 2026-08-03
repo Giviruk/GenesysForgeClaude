@@ -8,6 +8,17 @@ public class Npc
     public Guid? OwnerUserId { get; set; }
     /// <summary>Встроенное существо из преднаполненного бестиария: read-only, видно всем, клонируется.</summary>
     public bool IsBuiltIn { get; set; }
+    /// <summary>
+    /// Стабильный код встроенного существа — ключ сида и ссылок вместо имени, которое может
+    /// измениться (ROT-BEST-01). У пользовательских NPC пустой.
+    /// </summary>
+    public string Code { get; set; } = "";
+    /// <summary>
+    /// Существо исключено из активного бестиария системы, но сохранено ради уже созданных
+    /// столкновений и копий (ROT-CLEAN-3.6). Не предлагается в списке и поиске, но открывается
+    /// по прежнему id и коду. Ср. <see cref="IContentDef.Retired"/>.
+    /// </summary>
+    public bool Retired { get; set; }
     /// <summary>Кампания, к которой привязан NPC (необязательно).</summary>
     public Guid? CampaignId { get; set; }
 
