@@ -5,7 +5,7 @@ export type TalentCategory = 'general' | 'social' | 'combat' | 'magic'
 export type ItemKind = 'weapon' | 'armor' | 'gear'
 export type ItemState = 'equipped' | 'carried' | 'backpack'
 export type ShopItemCategory =
-  | 'weaponLight' | 'weaponHeavy' | 'weaponRanged' | 'magicImplement'
+  | 'weaponLight' | 'weaponHeavy' | 'weaponRanged' | 'magicImplement' | 'magicItem'
   | 'armor' | 'transport' | 'gear' | 'consumable' | 'service'
 
 export interface AuthResponse {

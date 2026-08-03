@@ -40,8 +40,9 @@ const STATES: ItemState[] = ['equipped', 'carried', 'backpack']
  * записи это тот же gear, но покупают их иначе — с выбором материала и под конкретный магический
  * навык, и искать их среди верёвок и факелов бессмысленно (ROT-MAG-IMP-01).
  */
-type ShopFilter = ItemKind | 'all' | 'implement' | 'shard'
-const KIND_FILTERS: ShopFilter[] = ['all', 'weapon', 'armor', 'gear', 'implement', 'shard']
+type ShopFilter = ItemKind | 'all' | 'implement' | 'shard' | 'magicItem'
+const KIND_FILTERS: ShopFilter[] =
+  ['all', 'weapon', 'armor', 'gear', 'implement', 'shard', 'magicItem']
 
 const SHOP_FILTER_LABELS: Record<ShopFilter, string> = {
   all: t('Все', 'All'),
@@ -50,6 +51,7 @@ const SHOP_FILTER_LABELS: Record<ShopFilter, string> = {
   gear: ITEM_KIND_LABELS.gear,
   implement: t('Инструменты магии', 'Magic implements'),
   shard: t('Руны', 'Runebound shards'),
+  magicItem: t('Магические предметы', 'Magic items'),
 }
 
 /** Запись попадает в выбранную корзину витрины. */
@@ -59,6 +61,10 @@ const matchesShopFilter = (item: ItemDef, filter: ShopFilter): boolean => {
   if (filter === 'all') return true
   if (filter === 'implement') return item.implement != null
   if (filter === 'shard') return item.shard != null
+  // Реликвии — своя корзина (ROT-MITEM-01): среди них есть и оружие, и снаряжение, но их не
+  // покупают, и в общих списках оружия они только мешают.
+  if (filter === 'magicItem') return item.shopCategory === 'magicItem'
+  if (item.shopCategory === 'magicItem') return false
   // Инструменты и shard вынесены из «снаряжения» и дважды не показываются.
   if (filter === 'gear') return item.kind === 'gear' && item.implement == null && item.shard == null
   return item.kind === filter
@@ -70,6 +76,7 @@ const normalize = (s: string) => s.toLowerCase().replace(/\s+/g, ' ').trim()
 export function InventoryTab({ sheet, reference, onError, refresh }: Props) {
   const [search, setSearch] = useState('')
   const [kindFilter, setKindFilter] = useState<ShopFilter>('all')
+  const [ownedFilter, setOwnedFilter] = useState<ShopFilter>('all')
   const [selectedTags, setSelectedTags] = useState<string[]>([])
   const [tagPickerOpen, setTagPickerOpen] = useState(false)
   // id предмета каталога, для которого открыт мини-магазин покупки
@@ -125,6 +132,19 @@ export function InventoryTab({ sheet, reference, onError, refresh }: Props) {
       .sort((a, b) => localizedName(a).localeCompare(localizedName(b), lang))
   }, [reference.items, search, kindFilter, selectedTags])
 
+  // Свои вещи фильтруются теми же корзинами, что и витрина: у реликвий, инструментов и рун своя
+  // полка, и искать кольцо среди верёвок так же бессмысленно, как и в магазине (ROT-MITEM-01).
+  const owned = useMemo(() => {
+    if (ownedFilter === 'all') return sheet.items
+    const defsById = new Map(reference.items.map(i => [i.id, i]))
+    // Записи каталога может не быть только у скрытого кастома: такую вещь фильтр не прячет,
+    // иначе она пропала бы из инвентаря совсем.
+    return sheet.items.filter(item => {
+      const def = defsById.get(item.itemDefId)
+      return def == null || matchesShopFilter(def, ownedFilter)
+    })
+  }, [sheet.items, reference.items, ownedFilter])
+
   return (
     <div className="inv-page">
       <MoneyPanel sheet={sheet} run={run} d={d} />
@@ -136,8 +156,20 @@ export function InventoryTab({ sheet, reference, onError, refresh }: Props) {
           {sheet.items.length === 0 && (
             <p className="muted">{t('Пусто. Купите или добавьте предметы из каталога справа.', 'Empty. Buy or add items from the catalogue on the right.')}</p>
           )}
+          {sheet.items.length > 0 && (
+            <div className="chips shop-filters" role="group"
+              aria-label={t('Фильтр инвентаря', 'Inventory filter')}>
+              {KIND_FILTERS.map(k => (
+                <button key={k} className={ownedFilter === k ? 'chip active' : 'chip'}
+                  onClick={() => setOwnedFilter(k)}>{SHOP_FILTER_LABELS[k]}</button>
+              ))}
+            </div>
+          )}
+          {sheet.items.length > 0 && owned.length === 0 && (
+            <p className="muted">{t('В этой корзине пусто.', 'Nothing in this bucket.')}</p>
+          )}
           <div className="inv-items">
-            {sheet.items.map(item => (
+            {owned.map(item => (
               <InventoryCard key={item.id} item={item} sheet={sheet} skillNames={skillNames} run={run}
                 reference={reference} funds={funds}
                 sellOpen={sellOpen === item.id} onToggleSell={() => setSellOpen(sellOpen === item.id ? null : item.id)} />
@@ -202,7 +234,8 @@ export function InventoryTab({ sheet, reference, onError, refresh }: Props) {
             </div>
           )}
 
-          <div className="shop-filters">
+          <div className="shop-filters" role="group"
+            aria-label={t('Фильтр каталога', 'Catalogue filter')}>
             {KIND_FILTERS.map(k => (
               <button key={k} className={kindFilter === k ? 'chip active' : 'chip'}
                 onClick={() => setKindFilter(k)}>

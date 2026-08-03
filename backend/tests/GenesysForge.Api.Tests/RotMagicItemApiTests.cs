@@ -54,6 +54,23 @@ public class RotMagicItemApiTests(ApiFactory factory) : IClassFixture<ApiFactory
     }
 
     [Fact]
+    public async Task Relics_HaveTheirOwnShopCategory_NotWeaponOrGear()
+    {
+        var (_, reference, _) = await CreateAsync();
+
+        var relics = reference.Items.Where(i => MagicItemRules.IsMagicItem(i.Code)).ToList();
+        Assert.All(relics, i => Assert.Equal(ShopItemCategory.MagicItem, i.ShopCategory));
+
+        // Категория считается до вида записи: среди реликвий есть и оружие, и снаряжение.
+        Assert.Contains(relics, i => i.Kind == ItemKind.Weapon);
+        Assert.Contains(relics, i => i.Kind == ItemKind.Gear);
+
+        // Обычный меч и обычная верёвка своих категорий не потеряли.
+        var sword = reference.Items.First(i => i.Name == "Sword");
+        Assert.Equal(ShopItemCategory.WeaponLight, sword.ShopCategory);
+    }
+
+    [Fact]
     public async Task Relic_KeepsItsTableStats()
     {
         var (_, reference, _) = await CreateAsync();
