@@ -293,6 +293,42 @@ public static class CharacterEndpoints
             return Results.NoContent();
         });
 
+        // Изготовление, варка и зачарование (ROT-CRAFT-01, ROT-ALCH-02, ROT-CRAFT-MAGIC-01).
+        // Доступны владельцу листа — и игроку, и ведущему: отдельного gm-режима у ремесла нет.
+        group.MapGet("/{id:guid}/crafting", async (Guid id, ClaimsPrincipal user,
+                IQueryHandler<GetCraftingProjectsQuery, List<CraftingProjectDto>> handler,
+                CancellationToken ct) =>
+            Results.Ok(await handler.Handle(new GetCraftingProjectsQuery(user.UserId(), id), ct)));
+
+        // Предпросмотр ничего не пишет: сложность, время и стоимость видны до подтверждения.
+        group.MapPost("/{id:guid}/crafting/preview", async (Guid id, CraftingProjectInput req,
+                ClaimsPrincipal user, IQueryHandler<PreviewCraftingQuery, CraftingPreviewDto> handler,
+                CancellationToken ct) =>
+            Results.Ok(await handler.Handle(new PreviewCraftingQuery(user.UserId(), id, req), ct)));
+
+        group.MapPost("/{id:guid}/crafting", async (Guid id, CraftingProjectInput req,
+            ClaimsPrincipal user, ICommandHandler<StartCraftingCommand, Guid> handler,
+            CancellationToken ct) =>
+        {
+            var projectId = await handler.Handle(new StartCraftingCommand(user.UserId(), id, req), ct);
+            return Results.Created($"/api/characters/{id}/crafting/{projectId}",
+                new CreatedInCharacterResponse(projectId));
+        });
+
+        group.MapPost("/{id:guid}/crafting/{projectId:guid}/resolve", async (Guid id, Guid projectId,
+                CraftingResolveInput req, ClaimsPrincipal user,
+                ICommandHandler<ResolveCraftingCommand, CraftingProjectDto> handler,
+                CancellationToken ct) =>
+            Results.Ok(await handler.Handle(new ResolveCraftingCommand(user.UserId(), id, projectId, req), ct)));
+
+        group.MapDelete("/{id:guid}/crafting/{projectId:guid}", async (Guid id, Guid projectId,
+            ClaimsPrincipal user, ICommandHandler<CancelCraftingCommand, Unit> handler,
+            CancellationToken ct) =>
+        {
+            await handler.Handle(new CancelCraftingCommand(user.UserId(), id, projectId), ct);
+            return Results.NoContent();
+        });
+
         // Груз персонаж ⇄ транспорт одной командой в обе стороны (ROT-TRANSPORT-01): это правка
         // места хранения позиции, поэтому маршрут висит на предмете, а не на транспорте.
         group.MapPatch("/{id:guid}/items/{itemId:guid}/location", async (Guid id, Guid itemId,

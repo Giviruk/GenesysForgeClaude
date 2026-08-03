@@ -681,7 +681,12 @@ export interface DicePool {
 export type StartingEquipmentMode = 'standardMoney' | 'careerPackage'
 
 /** Откуда позиция инвентаря появилась у персонажа (ROT-CRE-03). */
-export type ItemProvenance = 'purchased' | 'careerPackage' | 'startingBudget' | 'imported'
+export type ItemProvenance =
+  | 'purchased' | 'careerPackage' | 'startingBudget' | 'imported'
+  /** Изготовлено персонажем (ROT-CRAFT-01) — метка «создано персонажем» на карточке. */
+  | 'crafted'
+  /** Сделано грубо, Выживанием: ведущий может сломать вещь на отчаянии проверки с ней. */
+  | 'roughSurvival'
 
 /** Источник карьерного статуса навыка (ROT-CRE-01). */
 export interface CareerSkillSource {
@@ -854,6 +859,13 @@ export interface SheetItem {
   attackProfiles: WeaponAttackProfile[]
   /** Оружие метнули и не подобрали: атаковать нельзя, качеств и веса не даёт. */
   isThrown: boolean
+  /** Откуда позиция взялась; `crafted`/`roughSurvival` — изготовлена персонажем. */
+  provenance: ItemProvenance
+  /**
+   * Описание изготовления: все траты символов словами. Половина из них — правила, которые
+   * приложение не исполняет, поэтому текст показывается на карточке.
+   */
+  craftNote: string
   /**
    * Качество изготовления экземпляра (ROT-WPN-02). Числа позиции выше — уже с его поправками:
    * вес, поглощение, защита, слоты, цена, редкость и профили атаки.
@@ -1863,4 +1875,134 @@ export interface SearchHit {
 
 export interface SearchResponse {
   hits: SearchHit[]
+}
+
+// ─────────────────────────── Ремесло (ROT-CRAFT-01, ROT-ALCH-02, ROT-CRAFT-MAGIC-01) ───────────────────────────
+
+/** Что изготавливается: предмет, зелье или зачарование готовой основы. */
+export type CraftingKind = 'item' | 'potion' | 'enchantment'
+
+export type CraftingProjectStatus = 'draft' | 'resolved' | 'cancelled'
+
+/** Механика траты; `descriptive` — приложение её не исполняет, она остаётся текстом. */
+export type CraftingSpendEffect =
+  | 'descriptive' | 'time' | 'encumbrance' | 'hardPoints' | 'addQuality'
+  | 'qualityRating' | 'extraQuantity' | 'fragile' | 'combineDose' | 'timeHalved'
+
+/** Каким символом оплачена трата. */
+export type CraftingSymbol = 'advantage' | 'threat' | 'triumph' | 'despair'
+
+/** Строка таблицы трат символов. */
+export interface CraftingSpend {
+  code: string
+  /** Внутри строки эффекты взаимоисключающие: за одну цену берут один. */
+  rowCode: string
+  table: CraftingKind
+  nameRu: string
+  nameEn: string
+  description: string
+  descriptionEn: string
+  advantageCost: number
+  threatCost: number
+  triumphCost: number
+  despairCost: number
+  isNegative: boolean
+  repeatable: boolean
+  requiresGmConfirmation: boolean
+  requiresParameter: boolean
+  effect: CraftingSpendEffect
+  weaponOnly: boolean
+  sortOrder: number
+}
+
+export interface CraftingSpendChoice {
+  code: string
+  count?: number
+  parameter?: string
+  paidWith: CraftingSymbol
+}
+
+export interface CraftingProjectSpend {
+  code: string
+  count: number
+  parameter: string
+  paidWith: string
+  textRu: string
+  textEn: string
+}
+
+/** Числа проекта, посчитанные сервером до любой записи. */
+export interface CraftingPreview {
+  kind: CraftingKind
+  targetName: string
+  targetPrice: number | null
+  targetRarity: number | null
+  skillName: string
+  baseDifficulty: number
+  difficulty: number
+  baseTime: number
+  time: number
+  timeUnit: 'days' | 'hours'
+  listedCost: number
+  costPercent: number
+  costOverride: number | null
+  cost: number
+  isWeapon: boolean
+  spends: CraftingSpend[]
+}
+
+export interface CraftingProject {
+  id: string
+  kind: CraftingKind
+  status: CraftingProjectStatus
+  itemDefId: string
+  baseCharacterItemId: string | null
+  targetName: string
+  targetPrice: number | null
+  targetRarity: number | null
+  skillName: string
+  baseDifficulty: number
+  difficulty: number
+  difficultyReason: string
+  baseTime: number
+  time: number
+  timeUnit: 'days' | 'hours'
+  timeReason: string
+  listedCost: number
+  costPercent: number
+  costOverride: number | null
+  costOverrideReason: string
+  cost: number
+  /** Инструменты и компоненты своими словами; ни на что не проверяются. */
+  requirements: string
+  intent: string
+  roughSurvival: boolean
+  netSuccesses: number
+  advantages: number
+  threats: number
+  triumphs: number
+  despairs: number
+  createdCharacterItemId: string | null
+  outcome: string
+  spends: CraftingProjectSpend[]
+  createdAt: string
+  resolvedAt: string | null
+}
+
+/** Тело создания проекта и предпросмотра. */
+export interface CraftingProjectInput {
+  itemDefId: string
+  baseCharacterItemId?: string | null
+  kind?: CraftingKind
+  skillName?: string
+  costPercent?: number
+  costOverride?: number | null
+  costOverrideReason?: string
+  difficultyOverride?: number | null
+  difficultyReason?: string
+  timeOverride?: number | null
+  timeReason?: string
+  requirements?: string
+  intent?: string
+  roughSurvival?: boolean
 }

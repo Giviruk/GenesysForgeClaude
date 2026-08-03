@@ -59,6 +59,12 @@ public enum CharacterAuditAction
     /// <summary>Ведущий необратимо настроил activation и бесплатный эффект Lesser Rune (ROT-MAG-11).</summary>
     ShardConfigured,
 
+    /// <summary>Начат проект изготовления, варки или зачарования (ROT-CRAFT-01).</summary>
+    CraftingStarted,
+
+    /// <summary>Проект разрешён: бросок, траты символов и созданный экземпляр.</summary>
+    CraftingResolved,
+
     /// <summary>Куплена или бесплатно выдана услуга; предмет в инвентаре не создаётся.</summary>
     ServiceBought,
 

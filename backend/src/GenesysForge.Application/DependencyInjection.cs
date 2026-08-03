@@ -91,6 +91,11 @@ public static class DependencyInjection
         services.AddScoped<ICommandHandler<UpdateMountCommand, Unit>, UpdateMountHandler>();
         services.AddScoped<ICommandHandler<RemoveMountCommand, Unit>, RemoveMountHandler>();
         services.AddScoped<ICommandHandler<MoveCargoCommand, Unit>, MoveCargoHandler>();
+        services.AddScoped<IQueryHandler<PreviewCraftingQuery, CraftingPreviewDto>, PreviewCraftingHandler>();
+        services.AddScoped<ICommandHandler<StartCraftingCommand, Guid>, StartCraftingHandler>();
+        services.AddScoped<ICommandHandler<ResolveCraftingCommand, CraftingProjectDto>, ResolveCraftingHandler>();
+        services.AddScoped<ICommandHandler<CancelCraftingCommand, Unit>, CancelCraftingHandler>();
+        services.AddScoped<IQueryHandler<GetCraftingProjectsQuery, List<CraftingProjectDto>>, GetCraftingProjectsHandler>();
         // Состояние повреждения и ремонт (GEN-EQP-DMG-01).
         services.AddScoped<ICommandHandler<SetItemDamageStateCommand, Unit>, SetItemDamageStateHandler>();
         services.AddScoped<ICommandHandler<RepairItemCommand, Unit>, RepairItemHandler>();

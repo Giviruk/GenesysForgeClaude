@@ -163,4 +163,14 @@ public record CharacterItemDto(Guid Id, Guid ItemDefId, string Name, string Name
     /// (ROT-MOUNT-NPC-01). Вместе с <c>CharacterMountDto.RequiresGmApprovalForBarding</c> клиент
     /// знает, когда спрашивать причину, не разбирая коды каталога сам.
     /// </summary>
-    bool IsBarding = false);
+    bool IsBarding = false,
+    /// <summary>
+    /// Происхождение позиции. <c>Crafted</c> и <c>RoughSurvival</c> — метка «создано персонажем»
+    /// (ROT-CRAFT-01): по ней карточка отличает изготовленное от купленного.
+    /// </summary>
+    ItemProvenance Provenance = ItemProvenance.Purchased,
+    /// <summary>
+    /// Описание изготовления: все траты символов словами. Половина из них — правила, которые
+    /// приложение не исполняет, поэтому текст показывается на карточке, а не теряется.
+    /// </summary>
+    string CraftNote = "");

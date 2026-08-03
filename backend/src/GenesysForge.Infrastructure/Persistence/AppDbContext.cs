@@ -63,6 +63,9 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<ItemCheckModifier> ItemCheckModifiers => Set<ItemCheckModifier>();
     public DbSet<WeaponAttackProfile> WeaponAttackProfiles => Set<WeaponAttackProfile>();
     public DbSet<RuleTableEntry> RuleTableEntries => Set<RuleTableEntry>();
+    public DbSet<CraftingSpendDef> CraftingSpendDefs => Set<CraftingSpendDef>();
+    public DbSet<CraftingProject> CraftingProjects => Set<CraftingProject>();
+    public DbSet<CraftingProjectSpend> CraftingProjectSpends => Set<CraftingProjectSpend>();
 
     protected override void OnModelCreating(ModelBuilder b)
     {
@@ -142,8 +145,12 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             e.HasMany(t => t.Choices).WithOne()
                 .HasForeignKey(x => x.CharacterTalentId).OnDelete(DeleteBehavior.Cascade);
         });
-        b.Entity<CharacterItem>()
-            .HasOne(i => i.ItemDef).WithMany().OnDelete(DeleteBehavior.Cascade);
+        b.Entity<CharacterItem>(e =>
+        {
+            e.HasOne(i => i.ItemDef).WithMany().OnDelete(DeleteBehavior.Cascade);
+            e.Property(i => i.CraftedQualities).HasMaxLength(400);
+            e.Property(i => i.CraftNote).HasMaxLength(4000);
+        });
 
         b.Entity<CharacterCriticalInjury>(e =>
         {
@@ -401,6 +408,50 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             e.Property(r => r.Source).HasMaxLength(160);
             e.Property(r => r.SourcePage).HasMaxLength(40);
             e.Property(r => r.SearchText).HasMaxLength(4000);
+        });
+
+        b.Entity<CraftingSpendDef>(e =>
+        {
+            e.HasIndex(s => s.Code).IsUnique();
+            e.HasIndex(s => new { s.Table, s.SortOrder });
+            e.Property(s => s.Code).HasMaxLength(80);
+            e.Property(s => s.RowCode).HasMaxLength(40);
+            e.Property(s => s.NameRu).HasMaxLength(200);
+            e.Property(s => s.Name).HasMaxLength(200);
+            e.Property(s => s.Description).HasMaxLength(2000);
+            e.Property(s => s.SafeDescription).HasMaxLength(2000);
+            e.Property(s => s.DescriptionEn).HasMaxLength(2000);
+            e.Property(s => s.Source).HasMaxLength(160);
+            e.Property(s => s.Quality).HasMaxLength(80);
+        });
+
+        b.Entity<CraftingProject>(e =>
+        {
+            e.HasIndex(p => p.CharacterId);
+            e.HasIndex(p => new { p.CharacterId, p.Status });
+            e.Property(p => p.TargetName).HasMaxLength(200);
+            e.Property(p => p.SkillName).HasMaxLength(80);
+            e.Property(p => p.DifficultyReason).HasMaxLength(200);
+            e.Property(p => p.TimeReason).HasMaxLength(200);
+            e.Property(p => p.CostOverrideReason).HasMaxLength(200);
+            e.Property(p => p.Requirements).HasMaxLength(2000);
+            e.Property(p => p.Intent).HasMaxLength(2000);
+            e.Property(p => p.Outcome).HasMaxLength(4000);
+            e.HasOne(p => p.ItemDef).WithMany().OnDelete(DeleteBehavior.Restrict);
+            e.HasMany(p => p.Spends).WithOne().HasForeignKey(s => s.CraftingProjectId)
+                .OnDelete(DeleteBehavior.Cascade);
+            e.HasOne<Character>().WithMany().HasForeignKey(p => p.CharacterId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        b.Entity<CraftingProjectSpend>(e =>
+        {
+            e.HasIndex(s => s.CraftingProjectId);
+            e.Property(s => s.SpendCode).HasMaxLength(80);
+            e.Property(s => s.Parameter).HasMaxLength(400);
+            e.Property(s => s.PaidWith).HasMaxLength(20);
+            e.Property(s => s.TextRu).HasMaxLength(400);
+            e.Property(s => s.TextEn).HasMaxLength(400);
         });
 
         b.Entity<Npc>(e =>

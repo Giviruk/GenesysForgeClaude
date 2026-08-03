@@ -50,6 +50,10 @@ public static class ItemStackRules
         // Груз транспорта — это место хранения: новая покупка попадает к владельцу, а не в повозку.
         if (existing.CarriedByMountId is not null || existing.IsInstalledOnMount) return false;
 
+        // Изготовленный экземпляр несёт свои траты символов (ROT-CRAFT-01): доза с отложенным
+        // действием и обычная — разные вещи, даже когда зелье в каталоге одно.
+        if (existing.CraftingProjectId is not null) return false;
+
         // Используемый предмет занимает место — руку или корпус (ROT-EQP-01). Два меча в руках это
         // две занятые руки, а не счётчик в одной строке, поэтому в руках ничего не складывается.
         if (state == ItemState.Equipped || existing.State == ItemState.Equipped) return false;

@@ -1618,8 +1618,8 @@
     "encBonus": 0,
     "price": 125,
     "rarity": 6,
-    "desc": "Временно повышает защиту/стойкость.",
-    "descEn": "Temporarily increases defense/resilience.",
+    "desc": "+1 поглощения на следующие 3 хода выпившего. Считаются именно его ходы, а не раунды. Выпить зелье или дать его персонажу вплотную — один манёвр, если не сказано иначе; расходуется одна доза. Эффекты нескольких доз одного и того же зелья не складываются.",
+    "descEn": "+1 soak for the user's next 3 turns. Count the user's own turns, not rounds. Drinking a potion or giving it to an Engaged character is one maneuver unless stated otherwise; one dose is spent. Effects of several doses of the same potion do not stack.",
     "source": "Realms of Terrinoth, с. 103"
   },
   {
@@ -1635,8 +1635,8 @@
     "encBonus": 0,
     "price": 1000,
     "rarity": 9,
-    "desc": "Даёт невидимость/сокрытие на ограниченное время.",
-    "descEn": "Grants invisibility/concealment for a limited time.",
+    "desc": "На 3 раунда персонаж невидим невооружённому глазу, не отбрасывает видимой тени и не отражается, и получает сокрытие 4. Шум, запах и само тело никуда не деваются, а магическое обнаружение по-прежнему возможно. Выпить зелье или дать его персонажу вплотную — один манёвр, если не сказано иначе; расходуется одна доза. Эффекты нескольких доз одного и того же зелья не складываются.",
+    "descEn": "For 3 rounds the character is invisible to the naked eye, casts no visible shadow or reflection and gains concealment 4. Noise, smell and the body itself remain, and magical detection still works. Drinking a potion or giving it to an Engaged character is one maneuver unless stated otherwise; one dose is spent. Effects of several doses of the same potion do not stack.",
     "source": "Realms of Terrinoth, с. 103"
   },
   {
@@ -1652,8 +1652,8 @@
     "encBonus": 0,
     "price": 250,
     "rarity": 6,
-    "desc": "Временно повышает физическую мощь.",
-    "descEn": "Temporarily increases physical might.",
+    "desc": "До конца сцены или столкновения Мощь +1. Если до приёма Мощь уже была 5 или выше, роста нет — вместо него все проверки на основе Мощи получают 2 бонусных куба. По окончании выпивший получает 6 усталости. Временная Мощь меняет текущие поглощение и переносимый вес, но не трогает снимок порога ран, сделанный при создании. Выпить зелье или дать его персонажу вплотную — один манёвр, если не сказано иначе; расходуется одна доза. Эффекты нескольких доз одного и того же зелья не складываются.",
+    "descEn": "Until the end of the scene or encounter, Brawn +1. If Brawn was already 5 or higher, there is no increase — instead all Brawn-based checks gain 2 boost dice. When it ends the user suffers 6 strain. The temporary Brawn changes current soak and carrying load, but never the creation-time wound threshold snapshot. Drinking a potion or giving it to an Engaged character is one maneuver unless stated otherwise; one dose is spent. Effects of several doses of the same potion do not stack.",
     "source": "Realms of Terrinoth, с. 103"
   },
   {
@@ -1669,8 +1669,8 @@
     "encBonus": 0,
     "price": 200,
     "rarity": 7,
-    "desc": "Временно повышает скорость и мобильность.",
-    "descEn": "Temporarily increases speed and mobility.",
+    "desc": "На следующие 3 хода персонаж получает один дополнительный манёвр в ход и может выполнить до трёх манёвров вместо двух. После третьего хода он получает 6 усталости. Выпить зелье или дать его персонажу вплотную — один манёвр, если не сказано иначе; расходуется одна доза. Эффекты нескольких доз одного и того же зелья не складываются.",
+    "descEn": "For the next 3 turns the character gains one extra maneuver per turn and may perform up to three maneuvers instead of two. After the third turn the user suffers 6 strain. Drinking a potion or giving it to an Engaged character is one maneuver unless stated otherwise; one dose is spent. Effects of several doses of the same potion do not stack.",
     "source": "Realms of Terrinoth, с. 103"
   },
   {
@@ -1686,8 +1686,8 @@
     "encBonus": 0,
     "price": 25,
     "rarity": 5,
-    "desc": "Временно помогает выдержать страх или давление.",
-    "descEn": "Temporarily helps withstand fear or pressure.",
+    "desc": "До конца текущей сцены или столкновения один раз повышается ступень сложности каждой проверки Дисциплины против страха и каждой проверки Принуждения — по одному разу на проверку. Выпить зелье или дать его персонажу вплотную — один манёвр, если не сказано иначе; расходуется одна доза. Эффекты нескольких доз одного и того же зелья не складываются.",
+    "descEn": "Until the end of the current scene or encounter, each Discipline check against fear and each Coercion check is upgraded once. Drinking a potion or giving it to an Engaged character is one maneuver unless stated otherwise; one dose is spent. Effects of several doses of the same potion do not stack.",
     "source": "Realms of Terrinoth, с. 103"
   },
   {
@@ -1703,8 +1703,8 @@
     "encBonus": 0,
     "price": 25,
     "rarity": 4,
-    "desc": "Создаёт дымовую завесу/укрытие.",
-    "descEn": "Creates a smoke screen/cover.",
+    "desc": "Манёвр: бросить в точку в пределах Короткой дистанции. Дымовая завеса накрывает одну цель и всех, кто с ней вплотную, и даёт сокрытие 2. Она держится, пока ведущий не отметит рассеивание: фиксированной длительности у неё нет. Яд добавляется в бомбу только отдельной командой с разрешения ведущего и расходует обе дозы. Выпить зелье или дать его персонажу вплотную — один манёвр, если не сказано иначе; расходуется одна доза. Эффекты нескольких доз одного и того же зелья не складываются.",
+    "descEn": "Maneuver: thrown at a point within Short range. The smoke screen covers one target and everyone Engaged with it, granting concealment 2. It lasts until the GM marks it dispersed: it has no fixed duration. Poison is added only by a separate GM-approved action and spends both doses. Drinking a potion or giving it to an Engaged character is one maneuver unless stated otherwise; one dose is spent. Effects of several doses of the same potion do not stack.",
     "source": "Realms of Terrinoth, с. 103"
   },
   {
@@ -1720,8 +1720,8 @@
     "encBonus": 0,
     "price": 200,
     "rarity": 6,
-    "desc": "Метательное/расходуемое алхимическое средство; наносит кислотный вред по правилам предмета.",
-    "descEn": "A thrown/consumable alchemical agent; deals acid harm per the item's rules.",
+    "desc": "Действие: бросить в точку в пределах Короткой дистанции. Едкая атмосфера с рейтингом 4 накрывает одну выбранную цель и всех, кто с ней вплотную. Держится до конца столкновения, если ветер, открытое место или иные обстоятельства не рассеют её раньше по решению ведущего. Выпить зелье или дать его персонажу вплотную — один манёвр, если не сказано иначе; расходуется одна доза. Эффекты нескольких доз одного и того же зелья не складываются.",
+    "descEn": "Action: thrown at a point within Short range. A corrosive atmosphere of rating 4 covers one chosen target and everyone Engaged with it. It lasts until the end of the encounter unless wind, open ground or other circumstances disperse it sooner at the GM's call. Drinking a potion or giving it to an Engaged character is one maneuver unless stated otherwise; one dose is spent. Effects of several doses of the same potion do not stack.",
     "source": "Realms of Terrinoth, с. 103"
   },
   {
@@ -1737,8 +1737,8 @@
     "encBonus": 0,
     "price": 50,
     "rarity": 3,
-    "desc": "Восстанавливает или повышает запас усталости.",
-    "descEn": "Restores or increases the strain pool.",
+    "desc": "Первая доза за сутки лечит 5 усталости, каждая следующая — на единицу меньше; шестая и дальнейшие не лечат. Через сутки шкала сбрасывается. Выпить зелье или дать его персонажу вплотную — один манёвр, если не сказано иначе; расходуется одна доза. Эффекты нескольких доз одного и того же зелья не складываются.",
+    "descEn": "The first dose in a day heals 5 strain, each further dose one less; the sixth and beyond heal nothing. The scale resets after one day. Drinking a potion or giving it to an Engaged character is one maneuver unless stated otherwise; one dose is spent. Effects of several doses of the same potion do not stack.",
     "source": "Realms of Terrinoth, с. 103"
   },
   {
@@ -1754,8 +1754,8 @@
     "encBonus": 0,
     "price": 25,
     "rarity": 3,
-    "desc": "Восстанавливает раны по правилам эликсира.",
-    "descEn": "Heals wounds per the elixir's rules.",
+    "desc": "Это обезболивающее, а не исцеление: первая доза за сутки лечит 5 ран, следующие — 4, 3, 2 и 1. Шестая и дальнейшие дозы не лечат вовсе. Через сутки шкала сбрасывается. Специализация обезболивающих прибавляется по собственному правилу. Выпить зелье или дать его персонажу вплотную — один манёвр, если не сказано иначе; расходуется одна доза. Эффекты нескольких доз одного и того же зелья не складываются.",
+    "descEn": "This is a painkiller, not healing: the first dose in a day heals 5 wounds, then 4, 3, 2 and 1. The sixth and further doses heal nothing. The scale resets after one day. Painkiller Specialization adds on by its own rule. Drinking a potion or giving it to an Engaged character is one maneuver unless stated otherwise; one dose is spent. Effects of several doses of the same potion do not stack.",
     "source": "Realms of Terrinoth, с. 103"
   },
   {
@@ -1771,8 +1771,8 @@
     "encBonus": 0,
     "price": 100,
     "rarity": 4,
-    "desc": "Помогает сопротивляться ядам, болезням или вредным эффектам.",
-    "descEn": "Helps resist poisons, diseases or harmful effects.",
+    "desc": "Немедленно прекращает все действующие обычные яды и токсины; магический или необычный токсин ведущий может исключить. До конца сцены или столкновения проверки Стойкости против ядов и токсинов повышают ступень сложности дважды. Выпить зелье или дать его персонажу вплотную — один манёвр, если не сказано иначе; расходуется одна доза. Эффекты нескольких доз одного и того же зелья не складываются.",
+    "descEn": "Immediately ends all mundane poison and toxin effects in play; the GM may exclude a magical or extraordinary toxin. Until the end of the scene or encounter, Resilience checks against poison and toxin are upgraded twice. Drinking a potion or giving it to an Engaged character is one maneuver unless stated otherwise; one dose is spent. Effects of several doses of the same potion do not stack.",
     "source": "Realms of Terrinoth, с. 103"
   },
   {
@@ -1788,8 +1788,8 @@
     "encBonus": 0,
     "price": 50,
     "rarity": 4,
-    "desc": "Даёт восстановление в течение времени.",
-    "descEn": "Provides recovery over time.",
+    "desc": "Немедленная Простая проверка Стойкости: лечит 1 рану за успех и 1 усталость за преимущество. За триумф та же проверка повторяется в начале следующего хода; новый триумф может запланировать только один следующий повтор. Выпить зелье или дать его персонажу вплотную — один манёвр, если не сказано иначе; расходуется одна доза. Эффекты нескольких доз одного и того же зелья не складываются.",
+    "descEn": "An immediate Simple Resilience check: heal 1 wound per Success and 1 strain per Advantage. A Triumph schedules a repeat of the same check at the start of the next turn; a new Triumph may schedule only one further repeat. Drinking a potion or giving it to an Engaged character is one maneuver unless stated otherwise; one dose is spent. Effects of several doses of the same potion do not stack.",
     "source": "Realms of Terrinoth, с. 103"
   },
   {
@@ -1805,8 +1805,8 @@
     "encBonus": 0,
     "price": 200,
     "rarity": 5,
-    "desc": "Яд для оружия или иных применений; цель сопротивляется эффекту.",
-    "descEn": "A poison for weapons or other uses; the target resists the effect.",
+    "desc": "Доза действует при проглатывании; ведущий может разрешить добавить её в дымовую бомбу. Манёвром яд наносится на острое или режущее оружие: первое успешное попадание, причинившее хотя бы одну рану, расходует дозу и запускает Трудную (3) проверку Стойкости вне очереди. При провале цель получает 4 раны без поглощения и 1 усталость за каждую неотменённую угрозу. За одно отчаяние владелец яда выбирает: критическое ранение либо повтор этой проверки в начале следующего хода цели. Выпить зелье или дать его персонажу вплотную — один манёвр, если не сказано иначе; расходуется одна доза. Эффекты нескольких доз одного и того же зелья не складываются.",
+    "descEn": "A dose works when swallowed; the GM may allow adding it to a smokebomb. A maneuver coats a bladed or edged weapon: the first successful hit dealing at least one wound spends the dose and triggers a Hard (3) Resilience check out of turn. On a failure the target takes 4 wounds ignoring soak and 1 strain per uncancelled Threat. For one Despair the poison's owner chooses either a Critical Injury or a repeat of this check at the start of the target's next turn. Drinking a potion or giving it to an Engaged character is one maneuver unless stated otherwise; one dose is spent. Effects of several doses of the same potion do not stack.",
     "source": "Realms of Terrinoth, с. 103"
   },
   {

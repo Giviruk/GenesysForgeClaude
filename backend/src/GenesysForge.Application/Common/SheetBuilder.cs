@@ -280,7 +280,9 @@ public static class SheetBuilder
             item.CarriedByMountId,
             item.IsInstalledOnMount,
             ShopCatalogRules.IsMountGear(def.Code),
-            ShopCatalogRules.IsBarding(def.Code));
+            ShopCatalogRules.IsBarding(def.Code),
+            item.Provenance,
+            item.CraftNote);
     }
 
     /// <summary>

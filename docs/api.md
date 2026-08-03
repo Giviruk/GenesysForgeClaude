@@ -429,6 +429,63 @@ Protected. Removes the transport with no proceeds (died, released, entered by mi
 in character history. Its cargo and installed gear are not deleted: they return to the owner and
 count towards their encumbrance again. Response: `204`.
 
+### `GET /api/characters/{id}/crafting`
+
+Protected (ROT-CRAFT-01, ROT-ALCH-02, ROT-CRAFT-MAGIC-01). Every crafting, brewing and enchanting
+project of the character, newest first. Available to whoever owns the sheet — crafting has no
+separate GM mode.
+
+**Resources are description only.** Tools, components and ingredients are free text: the application
+neither consumes them nor checks that the character has them, and no project ever touches money.
+The component cost is computed and recorded, and that is all it does.
+
+### `POST /api/characters/{id}/crafting/preview`
+
+Protected. Request: `CraftingProjectInput`. Returns the normalized numbers — skill, base and
+effective difficulty, base and effective time with its unit (`days`, or `hours` for one brewing
+batch), listed and final component cost — plus the symbol-spend table for that kind of work.
+Writes nothing.
+
+Difficulty is `ceil(rarity / 2)`, base time `1 + rarity`, and the listed component cost
+`ceil(price / 2)` — rounded **up**, unlike sale proceeds. `costPercent` (50…200 in steps of 25) and
+`costOverride` are the same two mutually exclusive modes as a purchase (ROT-ECO-01): the fraction
+applies to the computed cost and rounds down, an own price replaces it and requires
+`costOverrideReason`. `difficultyOverride` and `timeOverride` likewise require their reasons.
+Enchanting has no recipe: its base difficulty is Formidable (5) and its listed cost is 0, so both
+are meant to be set explicitly.
+
+### `POST /api/characters/{id}/crafting`
+
+Protected. Starts a project from the same body the preview accepts. Response: `201` with
+`CreatedInCharacterResponse`. Enchanting additionally requires `baseCharacterItemId` — an item the
+character owns that already has the `Superior` quality (`crafting.base_not_superior`) — and an
+`intent` agreed in advance (`crafting.intent_required`). A priceless relic cannot be crafted at all
+(`crafting.target_priceless`).
+
+### `POST /api/characters/{id}/crafting/{projectId}/resolve`
+
+Protected. Request: `CraftingResolveInput` — net successes and the advantage/threat/triumph/despair
+counts, plus the chosen spends. The client rolls in its dice roller and reports the symbols, the
+same convention as a sale by check (ROT-ECO-01); the server computes everything else from the table
+codes and never trusts a submitted result.
+
+Each spend is validated against the table: the symbol budget, repeatability, one effect per table
+row, weapon-only rows, required parameters, the forbidden rating fields (damage, critical, soak,
+Defense) and the strictly-lower-rarity rule for a combined dose. A success creates the instance with
+`ItemProvenance.Crafted` (or `RoughSurvival`), the crafted deltas to encumbrance, hard points and
+qualities, and a `craftNote` holding every choice in words — half the spends are rules the
+application does not execute, so they are shown rather than silently dropped. A failure creates
+nothing but keeps the project in history. Resolving twice is refused
+(`crafting.project_not_draft`).
+
+Enchanting does not create a second item: the agreed ability is written onto the base instance,
+which is also returned as the project's result.
+
+### `DELETE /api/characters/{id}/crafting/{projectId}`
+
+Protected. Cancels a project that has not been resolved. A resolved project is history and is not
+cancelled (`crafting.project_not_draft`). Response: `204`.
+
 ### `PATCH /api/characters/{id}/items/{itemId}/location`
 
 Protected (ROT-TRANSPORT-01). Request: `MoveCargoRequest` — `mountId` (the transport to load onto,
