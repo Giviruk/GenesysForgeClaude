@@ -145,7 +145,10 @@ ROT-TAL-05, ROT-HA-08/10, ROT-MAG-05/07/08 и ROT-EQP-AMMO-01 — всем, чт
 
 ### 10. Magic items, crafting и alchemy
 
-- [ ] **ROT-MITEM-01**, **ROT-CRAFT-01**, **ROT-CRAFT-MAGIC-01**
+- [~] **ROT-MITEM-01** — экономика реликвий сделана: цены у них нет, покупка и продажа закрыты,
+  выдаёт ведущий (см. [rot-mitem-01-economy.md](rot-mitem-01-economy.md)). Исполняемые эффекты
+  и состояния экземпляров — впереди
+- [ ] **ROT-CRAFT-01**, **ROT-CRAFT-MAGIC-01**
 - [ ] **ROT-ALCH-01**, **ROT-ALCH-02**, **ROT-MITEM-CONTENT**
 
 ### 11. Очистка каталогов, бестиарий, скакуны
