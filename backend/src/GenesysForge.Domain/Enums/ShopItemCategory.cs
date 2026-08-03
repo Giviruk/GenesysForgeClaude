@@ -10,6 +10,12 @@ public enum ShopItemCategory
     WeaponHeavy,
     WeaponRanged,
     MagicImplement,
+
+    /// <summary>
+    /// Каталожная реликвия (ROT-MITEM-01). Стоит отдельно от оружия и снаряжения: её не покупают,
+    /// а выдаёт ведущий, и искать её в витрине среди обычных мечей бессмысленно.
+    /// </summary>
+    MagicItem,
     Armor,
     Transport,
     Gear,

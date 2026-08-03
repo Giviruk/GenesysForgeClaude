@@ -93,8 +93,22 @@ const serviceDef = {
   name: 'Bath', nameRu: 'Баня', price: 2, rarity: 0, shopCategory: 'service',
 } as unknown as ItemDef
 
+/** Реликвия (ROT-MITEM-01): по виду оружие, но своя корзина и никакой покупки. */
+const relicDef = {
+  ...plateDef, id: 'def-relic', code: 'rot.item.soulbound-sword',
+  name: 'Soulbound Sword', nameRu: 'Клинок душ', kind: 'weapon',
+  price: null, rarity: 10, purchasable: false, sellable: false, shopCategory: 'magicItem',
+} as unknown as ItemDef
+
+const relicItem = {
+  ...ironPlate, id: 'item-relic', itemDefId: 'def-relic', name: 'Soulbound Sword',
+  nameRu: 'Клинок душ', kind: 'weapon', state: 'carried', isActiveArmor: false,
+  attachments: [], usedHardPoints: 0,
+} as unknown as SheetItem
+
 const reference = { items: [plateDef] } as unknown as Reference
-const shopReference = { items: [plateDef, staffDef, ropeDef, shardDef, serviceDef] } as unknown as Reference
+const shopReference =
+  { items: [plateDef, staffDef, ropeDef, shardDef, serviceDef, relicDef] } as unknown as Reference
 
 describe('Инвентарь: качество изготовления (ROT-WPN-02)', () => {
   beforeEach(() => {
@@ -159,13 +173,16 @@ describe('Инвентарь: качество изготовления (ROT-WPN
     expect(shop()).toContain('Магический посох')
     expect(shop()).toContain('Верёвка')
 
-    fireEvent.click(screen.getByRole('button', { name: 'Инструменты магии' }))
+    // Корзины теперь есть и у инвентаря, и у каталога — берём каталожную явно.
+    fireEvent.click(within(screen.getByRole('group', { name: 'Фильтр каталога' }))
+      .getByRole('button', { name: 'Инструменты магии' }))
     expect(shop()).toContain('Магический посох')
     expect(shop()).not.toContain('Верёвка')
     expect(shop()).not.toContain('Латы')
 
     // Из снаряжения инструмент уходит: дважды одна запись не показывается.
-    fireEvent.click(screen.getByRole('button', { name: 'Снаряжение' }))
+    fireEvent.click(within(screen.getByRole('group', { name: 'Фильтр каталога' }))
+      .getByRole('button', { name: 'Снаряжение' }))
     expect(shop()).toContain('Верёвка')
     expect(shop()).not.toContain('Магический посох')
   })
@@ -183,14 +200,16 @@ describe('Инвентарь: качество изготовления (ROT-WPN
     render(<InventoryTab sheet={sheet} reference={shopReference} onError={() => {}}
       refresh={() => Promise.resolve()} />)
 
-    fireEvent.click(screen.getByRole('button', { name: 'Руны' }))
+    fireEvent.click(within(screen.getByRole('group', { name: 'Фильтр каталога' }))
+      .getByRole('button', { name: 'Руны' }))
     const shop = document.querySelector('.shop-list')!
     expect(shop.textContent).toContain('Руна магического заряда')
     expect(shop.textContent).toContain('без обычной цены')
     expect(within(shop as HTMLElement).queryByRole('button', { name: 'Купить' })).toBeNull()
     expect(within(shop as HTMLElement).getByRole('button', { name: '+ Добавить' })).toBeTruthy()
 
-    fireEvent.click(screen.getByRole('button', { name: 'Снаряжение' }))
+    fireEvent.click(within(screen.getByRole('group', { name: 'Фильтр каталога' }))
+      .getByRole('button', { name: 'Снаряжение' }))
     expect(document.querySelector('.shop-list')!.textContent).not.toContain('Руна магического заряда')
   })
 
@@ -254,5 +273,30 @@ describe('Инвентарь: качество изготовления (ROT-WPN
     await waitFor(() => expect(addItemMock).toHaveBeenCalledWith(
       'char-1', 'def-plate', 1, 'carried',
       { priceOverride: 300, overrideReason: 'скидка гильдии', craftsmanship: 'steel' }))
+  })
+
+  it('держит реликвии в своей корзине витрины и не показывает их среди оружия', () => {
+    render(<InventoryTab sheet={sheet} reference={shopReference} onError={() => {}}
+      refresh={() => Promise.resolve()} />)
+    const catalogue = within(screen.getByRole('group', { name: 'Фильтр каталога' }))
+
+    catalogue.getByRole('button', { name: 'Магические предметы' }).click()
+    expect(screen.getByText('Клинок душ')).toBeTruthy()
+
+    // В общей корзине оружия реликвии нет: её не покупают, и она там только мешает.
+    fireEvent.click(catalogue.getByRole('button', { name: 'Оружие' }))
+    expect(screen.queryByText('Клинок душ')).toBeNull()
+  })
+
+  it('фильтрует инвентарь персонажа теми же корзинами', () => {
+    const withRelic = { ...sheet, items: [ironPlate, relicItem] } as unknown as CharacterSheet
+    render(<InventoryTab sheet={withRelic} reference={shopReference} onError={() => {}}
+      refresh={() => Promise.resolve()} />)
+    const inventory = within(screen.getByRole('group', { name: 'Фильтр инвентаря' }))
+
+    fireEvent.click(inventory.getByRole('button', { name: 'Магические предметы' }))
+    const cards = document.querySelectorAll('.inv-current .inv-card-title')
+    expect([...cards].map(c => c.textContent).join(' ')).toContain('Клинок душ')
+    expect([...cards].map(c => c.textContent).join(' ')).not.toContain('Латы')
   })
 })

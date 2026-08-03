@@ -79,6 +79,10 @@ public static class ItemCatalog
 
             var kind = ParseKind(e.Kind);
             var shard = RuneboundShardRules.IsShard(e.Code);
+            // Каталожная реликвия (ROT-MITEM-01) продаётся не больше, чем руна: цены книга ей не
+            // задаёт, и ноль монет делал её бесплатным товаром витрины. Редкость, в отличие от рун,
+            // в таблице есть и остаётся.
+            var magicItem = MagicItemRules.IsMagicItem(e.Code);
 
             foreach (var sys in systems)
                 yield return new ItemDef
@@ -96,10 +100,10 @@ public static class ItemCatalog
                     EncumbranceThresholdBonus = e.EncBonus,
                     // У runebound shards в книге нет цены и редкости. Старые 0/1 были
                     // ошибочной подменой отсутствующего значения и делали реликвию бесплатной.
-                    Price = shard ? null : e.Price,
+                    Price = shard || magicItem ? null : e.Price,
                     Rarity = shard ? null : e.Rarity,
-                    Purchasable = !shard && e.Purchasable,
-                    Sellable = !shard && e.Sellable,
+                    Purchasable = !shard && !magicItem && e.Purchasable,
+                    Sellable = !shard && !magicItem && e.Sellable,
                     SafeDescription = e.Desc,
                     DescriptionEn = e.DescEn,
                     Source = e.Source,

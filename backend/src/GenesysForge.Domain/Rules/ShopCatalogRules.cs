@@ -73,6 +73,9 @@ public static class ShopCatalogRules
         if (ConsumableCodes.Contains(code)) return ShopItemCategory.Consumable;
         if (ImplementRules.IsImplement(item.Code) || RuneboundShardRules.IsShard(item.Code))
             return ShopItemCategory.MagicImplement;
+        // Реликвия проверяется до вида: среди семнадцати есть и оружие, и снаряжение, но лежат
+        // они в своей полке, а не вперемешку с покупным (ROT-MITEM-01).
+        if (MagicItemRules.IsMagicItem(item.Code)) return ShopItemCategory.MagicItem;
         if (item.Kind == ItemKind.Armor) return ShopItemCategory.Armor;
         if (item.Kind != ItemKind.Weapon) return ShopItemCategory.Gear;
 
