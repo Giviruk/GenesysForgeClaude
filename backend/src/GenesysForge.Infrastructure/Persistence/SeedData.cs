@@ -344,27 +344,55 @@ public static class SeedData
     }
 
     /// <summary>
+    /// Прежние имена встроенных существ, по которым backfill находит строку до появления кода.
+    /// Нужно только там, где имя менялось: сравнение по System+Name иначе создало бы дубль
+    /// (ROT-BEST-01, переименование <c>Goblin (Official)</c> → <c>Goblin</c>).
+    /// </summary>
+    private static readonly (string LegacyName, string Code)[] BestiaryRenames =
+    [
+        ("Гоблин (Официальный)", "goblin"),
+    ];
+
+    /// <summary>
     /// Идемпотентно сеет встроенный бестиарий (<see cref="BestiaryCatalog"/>): добавляет только
-    /// отсутствующих встроенных существ (по System+Name среди <c>IsBuiltIn</c>). Качества атак
+    /// отсутствующих встроенных существ (по стабильному коду среди <c>IsBuiltIn</c>). Качества атак
     /// привязываются к справочнику <see cref="QualityDef"/> по коду. Повторный вызов дублей не плодит.
+    /// Существующим строкам синхронизируются имя, источник и <c>Retired</c>: девять записей Haunted
+    /// City уходят из активного бестиария RoT (ROT-CLEAN-3.6), не удаляясь из столкновений и копий.
     /// </summary>
     private static void SeedBestiary(AppDbContext db)
     {
         var catalog = BestiaryCatalog.Load();
         if (catalog.Count == 0) return;
 
-        var existing = db.Npcs.Where(n => n.IsBuiltIn)
-            .Select(n => new { n.System, n.Name })
-            .ToHashSet();
+        var builtins = db.Npcs.Where(n => n.IsBuiltIn).ToList();
+
+        // Backfill кода на строки, засиженные до его появления: натуральный ключ System+Name.
+        var wantedByName = catalog.ToDictionary(n => (n.System, n.Name), n => n.Code);
+        var renames = BestiaryRenames.ToDictionary(r => r.LegacyName, r => r.Code);
+        foreach (var row in builtins.Where(n => n.Code.Length == 0))
+        {
+            if (renames.TryGetValue(row.Name, out var renamed)) row.Code = renamed;
+            else if (wantedByName.TryGetValue((row.System, row.Name), out var code)) row.Code = code;
+        }
+
+        var existing = builtins.Where(n => n.Code.Length > 0)
+            .GroupBy(n => n.Code, StringComparer.OrdinalIgnoreCase)
+            .ToDictionary(g => g.Key, g => g.First(), StringComparer.OrdinalIgnoreCase);
 
         var byCode = db.QualityDefs.AsEnumerable()
             .GroupBy(q => q.Code)
             .ToDictionary(g => g.Key, g => g.First(), StringComparer.OrdinalIgnoreCase);
 
-        var added = false;
         foreach (var npc in catalog)
         {
-            if (existing.Contains(new { npc.System, npc.Name })) continue;
+            if (existing.TryGetValue(npc.Code, out var row))
+            {
+                Assign(
+                    row.Name != npc.Name || row.Source != npc.Source || row.Retired != npc.Retired,
+                    () => { row.Name = npc.Name; row.Source = npc.Source; row.Retired = npc.Retired; });
+                continue;
+            }
 
             foreach (var quality in npc.Attacks.SelectMany(a => a.Qualities))
             {
@@ -376,9 +404,8 @@ public static class SeedData
             }
 
             db.Npcs.Add(npc);
-            added = true;
         }
-        if (added) db.SaveChanges();
+        if (db.ChangeTracker.HasChanges()) db.SaveChanges();
     }
 
     /// <summary>

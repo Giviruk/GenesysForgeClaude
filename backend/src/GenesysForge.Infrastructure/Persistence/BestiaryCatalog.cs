@@ -15,6 +15,7 @@ namespace GenesysForge.Infrastructure.Persistence;
 public static class BestiaryCatalog
 {
     private sealed record Entry(
+        string Code, bool Retired,
         string System, string Name, string NameEn, string Kind, string Role, string Source, string? Description,
         int Brawn, int Agility, int Intellect, int Cunning, int Willpower, int Presence,
         int WoundThreshold, int? StrainThreshold, int Soak, int MeleeDefense, int RangedDefense, int Silhouette,
@@ -41,7 +42,53 @@ public static class BestiaryCatalog
         using var stream = assembly.GetManifestResourceStream(resource)!;
         var entries = JsonSerializer.Deserialize<List<Entry>>(stream, JsonOptions) ?? [];
 
+        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var e in entries)
+        {
+            Validate(e);
+            if (!seen.Add(e.Code)) throw new InvalidOperationException($"Бестиарий: дубль кода «{e.Code}».");
+        }
         return entries.Select(ToNpc).ToList();
+    }
+
+    /// <summary>
+    /// Fail-fast каталога (ROT-BEST-01): встроенная запись, нарушающая правила своего kind, должна
+    /// падать при загрузке, а не молча подгоняться под них — тихая правка прячет ошибку данных.
+    /// Предела Defense здесь нет: по решению владельца NPC может иметь защиту выше 4.
+    /// </summary>
+    private static void Validate(Entry e)
+    {
+        var kind = Enum.TryParse<NpcKind>(e.Kind, ignoreCase: true, out var k) ? k : NpcKind.Rival;
+        void Require(bool ok, string what)
+        {
+            if (!ok) throw new InvalidOperationException($"Бестиарий «{e.Code}»: {what}.");
+        }
+
+        Require(!string.IsNullOrWhiteSpace(e.Code), "пустой стабильный код");
+        Require(!string.IsNullOrWhiteSpace(e.Name), "пустое имя");
+        Require(e.WoundThreshold > 0, "порог ран должен быть больше нуля");
+        switch (kind)
+        {
+            case NpcKind.Minion:
+                Require(e.StrainThreshold is null, "у миньона не бывает порога усталости");
+                Require((e.Skills ?? []).All(s => s.Ranks == 0), "у миньона групповые навыки без рангов");
+                break;
+            case NpcKind.Rival:
+                Require(e.StrainThreshold is null, "у соперника не бывает порога усталости");
+                break;
+            case NpcKind.Nemesis:
+                Require(e.StrainThreshold > 0, "у немезиды обязателен порог усталости");
+                break;
+        }
+        foreach (var a in e.Attacks ?? [])
+        {
+            Require(!string.IsNullOrWhiteSpace(a.Name), "атака без названия");
+            Require(!string.IsNullOrWhiteSpace(a.Skill), $"атака «{a.Name}» без навыка");
+            Require(!string.IsNullOrWhiteSpace(a.Damage), $"атака «{a.Name}» без урона");
+            var codes = (a.Qualities ?? []).Select(q => q.Code?.Trim() ?? "").Where(c => c.Length > 0).ToList();
+            Require(codes.Distinct(StringComparer.OrdinalIgnoreCase).Count() == codes.Count,
+                $"атака «{a.Name}»: дубль кода качества");
+        }
     }
 
     private static Npc ToNpc(Entry e)
@@ -52,6 +99,8 @@ public static class BestiaryCatalog
             Id = Guid.NewGuid(),
             OwnerUserId = null,
             IsBuiltIn = true,
+            Code = e.Code.Trim(),
+            Retired = e.Retired,
             System = Enum.TryParse<GameSystem>(e.System, ignoreCase: true, out var sys) ? sys : GameSystem.RealmsOfTerrinoth,
             Name = e.Name.Trim(),
             Kind = kind,
@@ -61,8 +110,7 @@ public static class BestiaryCatalog
             Brawn = e.Brawn, Agility = e.Agility, Intellect = e.Intellect,
             Cunning = e.Cunning, Willpower = e.Willpower, Presence = e.Presence,
             WoundThreshold = e.WoundThreshold,
-            // Миньон не имеет порога усталости (групповые правила).
-            StrainThreshold = kind == NpcKind.Minion ? null : e.StrainThreshold,
+            StrainThreshold = e.StrainThreshold,
             Soak = e.Soak,
             MeleeDefense = e.MeleeDefense,
             RangedDefense = e.RangedDefense,
@@ -74,11 +122,10 @@ public static class BestiaryCatalog
             Tags = Clean(e.Tags),
         };
 
-        // Миньон использует групповые навыки — индивидуальные ранги не значимы (как NpcMapper.Apply).
-        var minion = kind == NpcKind.Minion;
+        // Ранги миньона уже проверены в Validate: у него групповые навыки без рангов.
         npc.Skills = (e.Skills ?? [])
             .Where(s => !string.IsNullOrWhiteSpace(s.Name))
-            .Select(s => new NpcSkill { NpcId = npc.Id, Name = s.Name.Trim(), Ranks = minion ? 0 : s.Ranks })
+            .Select(s => new NpcSkill { NpcId = npc.Id, Name = s.Name.Trim(), Ranks = s.Ranks })
             .ToList();
         npc.Abilities = (e.Abilities ?? [])
             .Where(a => !string.IsNullOrWhiteSpace(a.Name))
