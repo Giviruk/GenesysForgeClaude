@@ -44,6 +44,8 @@ const ironPlate = {
   usedHardPoints: 1,
   overCapacity: false,
   attachmentNotes: ['Шипы: правило решает ведущий.'],
+  canEquip: true,
+  canBeDamaged: true,
   damageState: 'undamaged',
   isUsable: true,
   repair: {
@@ -286,6 +288,23 @@ describe('Инвентарь: качество изготовления (ROT-WPN
     // В общей корзине оружия реликвии нет: её не покупают, и она там только мешает.
     fireEvent.click(catalogue.getByRole('button', { name: 'Оружие' }))
     expect(screen.queryByText('Клинок душ')).toBeNull()
+  })
+
+  it('не предлагает «используется» и поломку тому, что нельзя надеть и сломать', () => {
+    const rope = {
+      ...ironPlate, id: 'item-rope', itemDefId: 'def-rope', name: 'Rope', nameRu: 'Верёвка',
+      kind: 'gear', state: 'carried', isActiveArmor: false, attachments: [], usedHardPoints: 0,
+      canEquip: false, canBeDamaged: false,
+    } as unknown as SheetItem
+    const withRope = { ...sheet, items: [rope] } as unknown as CharacterSheet
+
+    render(<InventoryTab sheet={withRope} reference={shopReference} onError={() => {}}
+      refresh={() => Promise.resolve()} />)
+
+    expect(screen.queryByRole('button', { name: 'Используется' })).toBeNull()
+    expect(screen.getByRole('button', { name: 'Не используется' })).toBeTruthy()
+    // Состояние поломки и ремонт мотку верёвки не предлагаются вовсе.
+    expect(screen.queryByText('Состояние')).toBeNull()
   })
 
   it('фильтрует инвентарь персонажа теми же корзинами', () => {

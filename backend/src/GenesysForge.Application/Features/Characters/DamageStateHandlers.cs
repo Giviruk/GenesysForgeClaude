@@ -44,6 +44,7 @@ public class SetItemDamageStateHandler(IAppDbContext db)
 
         var state = command.Request.State;
         DamageStateRules.EnsureKnown(state);
+        SetItemDamageStateHandler.EnsureBreakable(item);
 
         var previous = item.DamageState;
         if (previous == state) return Unit.Value; // Повтор ничего не меняет и ошибкой не является.
@@ -69,6 +70,18 @@ public class SetItemDamageStateHandler(IAppDbContext db)
         await db.SaveChangesAsync(ct);
         return Unit.Value;
     }
+
+    /// <summary>
+    /// Ступени состояния описаны для того, что несут в бою (GEN-EQP-DMG-01): у оружия отваливается
+    /// урон, у брони — поглощение. Снаряжению ломаться в правилах нечем, и «порог поломки» у мотка
+    /// верёвки был просто шумом на карточке.
+    /// </summary>
+    internal static void EnsureBreakable(CharacterItem item)
+    {
+        if (item.ItemDef is { } def && !ItemUseRules.CanBeDamaged(def))
+            throw new DomainRuleException(
+                "У этого предмета нет состояния поломки.", "item.not_breakable");
+    }
 }
 
 /// <summary>
@@ -87,6 +100,7 @@ public class RepairItemHandler(IAppDbContext db) : ICommandHandler<RepairItemCom
         var c = await db.GetOwnedAsync(command.UserId, command.CharacterId, ct: ct);
         var item = c.Items.FirstOrDefault(i => i.Id == command.CharacterItemId)
             ?? throw new DomainRuleException("Предмет не найден в инвентаре.", "item.not_found");
+        SetItemDamageStateHandler.EnsureBreakable(item);
 
         // Цена экземпляра, а не строки каталога: качество изготовления в ней учтено, цена
         // установленных улучшений — нет (они чинятся отдельно).

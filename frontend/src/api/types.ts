@@ -889,6 +889,10 @@ export interface SheetItem {
   /** Runebound shard и конфигурация конкретного экземпляра. */
   shard: ItemRuneboundShard | null
   sellable: boolean
+  /** Предмет можно взять в руки или надеть; у верёвки и провизии этого состояния нет. */
+  canEquip: boolean
+  /** У предмета есть состояние поломки и ремонт (GEN-EQP-DMG-01). */
+  canBeDamaged: boolean
   /**
    * Позиция лежит на транспорте (ROT-TRANSPORT-01); null — обычная позиция инвентаря. Такие
    * позиции приходят в карточке транспорта, а не в списке инвентаря владельца.

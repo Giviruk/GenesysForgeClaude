@@ -24,11 +24,14 @@ public class UpdateItemHandler(IAppDbContext db) : ICommandHandler<UpdateItemCom
         // Начало использования проверяется до изменения состояния: больше одной брони не носят,
         // а двуручное оружие занимает обе руки (ROT-EQP-01).
         if (req.State == ItemState.Equipped && item.State != ItemState.Equipped && item.ItemDef is not null)
+        {
+            AddItemHandler.EnsureUsable(item.ItemDef);
             EquipmentSlotRules.EnsureCanEquip(
                 item.ItemDef.Kind, item.ItemDef.FormTraits,
                 CharacterDerived.EquippedInputs(c, item.Id),
                 ImplementRules.IsImplement(item.ItemDef.Code)
                 || RuneboundShardRules.IsShard(item.ItemDef.Code));
+        }
 
         if (req.State is not null) item.State = req.State.Value;
         // Снятая броня перестаёт быть активной; надетая ею становится — она единственная (ROT-CMB-02).

@@ -138,6 +138,15 @@ public record CharacterItemDto(Guid Id, Guid ItemDefId, string Name, string Name
     ItemRuneboundShardDto? Shard = null,
     bool Sellable = true,
     /// <summary>
+    /// Предмет можно взять в руки или надеть. У верёвки и провизии состояния «используется» нет:
+    /// оно ничего не даёт и только путается с «носит».
+    /// </summary>
+    bool CanEquip = true,
+    /// <summary>
+    /// У предмета есть состояние поломки и ремонт (GEN-EQP-DMG-01). У снаряжения ломаться нечему.
+    /// </summary>
+    bool CanBeDamaged = true,
+    /// <summary>
     /// Позиция лежит на транспорте (ROT-TRANSPORT-01); <c>null</c> — обычная позиция инвентаря.
     /// Такие позиции приходят в карточке транспорта, а не в списке инвентаря владельца.
     /// </summary>
