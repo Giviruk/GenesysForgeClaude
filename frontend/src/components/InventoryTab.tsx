@@ -654,14 +654,17 @@ function InventoryCard({ item, sheet, skillNames, run, reference, funds, sellOpe
 
       {/* Состояние и ремонт — отдельной строкой и отдельными кнопками (GEN-EQP-DMG-01):
           «используется/в рюкзаке» и «цел/сломан» — разные вещи, и путать их нельзя. */}
+      {item.canBeDamaged && (
       <DamageStateControls state={item.damageState} repair={item.repair} funds={funds}
         reinforced={item.reinforced}
         onSetState={next => run(() => api.setItemDamageState(sheet.id, item.id, next))}
         onRepair={opts => run(() => api.repairItem(sheet.id, item.id, opts))} />
+      )}
 
       <div className="inv-card-foot">
         <div className="state-switch">
-          {STATES.map(s => {
+          {/* Верёвку и провизию не берут «в руки»: состояние ничего не даёт и путается с «носит». */}
+          {STATES.filter(s => s !== 'equipped' || item.canEquip).map(s => {
             // Одна броня и две руки (ROT-EQP-01): сервер всё равно откажет, но лучше сказать заранее.
             const blocked = s === 'equipped' && item.state !== 'equipped' ? equipBlockReason(item, sheet) : null
             return (

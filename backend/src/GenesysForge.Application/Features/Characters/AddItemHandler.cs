@@ -60,9 +60,12 @@ public class AddItemHandler(IAppDbContext db) : ICommandHandler<AddItemCommand, 
         // Больше одной брони и больше двух рук не бывает (ROT-EQP-01): предмет, добавленный сразу
         // «в руки», проверяется теми же правилами, что и надевание уже купленного — и до списания.
         if (req.State == ItemState.Equipped)
+        {
+            EnsureUsable(itemDef);
             EquipmentSlotRules.EnsureCanEquip(
                 itemDef.Kind, itemDef.FormTraits, CharacterDerived.EquippedInputs(c),
                 ImplementRules.IsImplement(itemDef.Code) || RuneboundShardRules.IsShard(itemDef.Code));
+        }
 
         var basePrice = itemDef.Price ?? 0;
         var listedUnitPrice = ImplementRules.IsImplement(itemDef.Code)
@@ -141,5 +144,14 @@ public class AddItemHandler(IAppDbContext db) : ICommandHandler<AddItemCommand, 
 
         await db.SaveChangesAsync(ct);
         return item.Id;
+    }
+
+    /// <summary>Взять в руки или надеть можно не всё: верёвка и провизия так и остаются ношей.</summary>
+    internal static void EnsureUsable(ItemDef def)
+    {
+        if (!ItemUseRules.CanBeEquipped(def))
+            throw new DomainRuleException(
+                "Этот предмет нельзя взять в руки или надеть — его носят или кладут в рюкзак.",
+                "item.not_equippable");
     }
 }

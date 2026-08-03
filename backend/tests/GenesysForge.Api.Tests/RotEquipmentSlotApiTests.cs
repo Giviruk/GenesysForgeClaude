@@ -103,7 +103,10 @@ public class RotEquipmentSlotApiTests(ApiFactory factory) : IClassFixture<ApiFac
         await AddAndGetIdAsync(client, id, Item(reference, "Plate").Id);
         await AddAndGetIdAsync(client, id, Item(reference, "Greatsword").Id);
 
-        var gear = reference.Items.First(i => i.Kind == ItemKind.Gear);
+        // Снаряжение рук не занимает. Берём то, что вообще можно надеть: рюкзак поднимает порог
+        // веса именно надетым, а верёвка с рационом больше «в руки» не берутся.
+        var gear = reference.Items.First(i =>
+            i.Kind == ItemKind.Gear && i.EncumbranceThresholdBonus > 0);
         Assert.Equal(HttpStatusCode.Created, (await AddAsync(client, id, gear.Id)).StatusCode);
         Assert.Equal(HttpStatusCode.Created, (await AddAsync(client, id, gear.Id)).StatusCode);
     }

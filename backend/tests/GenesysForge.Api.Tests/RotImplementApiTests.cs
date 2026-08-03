@@ -201,11 +201,14 @@ public class RotImplementApiTests(ApiFactory factory) : IClassFixture<ApiFactory
     public async Task OrdinaryGear_IsNotLimitedByTheImplementRule()
     {
         var (client, id, reference) = await CreateCharacterAsync();
-        var rope = reference.Items.First(i => i.Kind == ItemKind.Gear && i.Implement is null);
+        // Не-инструмент, который вообще можно надеть: правило одного инструмента его не касается,
+        // а верёвку с рационом теперь и в руки не берут.
+        var pack = reference.Items.First(i =>
+            i.Kind == ItemKind.Gear && i.Implement is null && i.EncumbranceThresholdBonus > 0);
 
-        await AddAsync(client, id, rope.Id);
+        await AddAsync(client, id, pack.Id);
         var second = await client.PostAsJsonAsync($"/api/characters/{id}/items",
-            new AddItemRequest(rope.Id, 1, ItemState.Equipped, Free: true), Json.Options);
+            new AddItemRequest(pack.Id, 1, ItemState.Equipped, Free: true), Json.Options);
 
         Assert.Equal(HttpStatusCode.Created, second.StatusCode);
     }

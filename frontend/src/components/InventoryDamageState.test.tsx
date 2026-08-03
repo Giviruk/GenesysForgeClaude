@@ -56,6 +56,8 @@ const sword = (over: Partial<SheetItem> = {}): SheetItem => ({
   hardPoints: 3, checkModifiers: [], attackProfiles: [profile(0, 0)], isThrown: false,
   craftsmanship: 'steel', rarity: 4, reinforced: false, adjustments: [], attachments: [],
   usedHardPoints: 0, overCapacity: false, attachmentNotes: [], formTraits: 'oneHanded',
+  canEquip: true,
+  canBeDamaged: true,
   damageState: 'undamaged', isUsable: true, repair: repair(),
   ...over,
 } as unknown as SheetItem)
@@ -101,7 +103,9 @@ describe('Инвентарь: состояние предмета и ремон�
 
   it('чинит по кнопке и показывает стоимость материалов', async () => {
     const item = sword({
-      damageState: 'moderate',
+      canEquip: true,
+  canBeDamaged: true,
+  damageState: 'moderate',
       repair: repair({
         state: 'moderate', canRepair: true, difficulty: 2, hoursMin: 2, hoursMax: 4,
         materialPercent: 50, materialCost: 250,
@@ -119,7 +123,9 @@ describe('Инвентарь: состояние предмета и ремон�
 
   it('снимает 10 % за каждое чистое преимущество — той же формулой, что и сервер', async () => {
     const item = sword({
-      damageState: 'minor',
+      canEquip: true,
+  canBeDamaged: true,
+  damageState: 'minor',
       repair: repair({
         state: 'minor', canRepair: true, difficulty: 1, hoursMin: 1, hoursMax: 2,
         materialPercent: 25, materialCost: 126,
@@ -139,7 +145,9 @@ describe('Инвентарь: состояние предмета и ремон�
 
   it('просит цену ведущего и причину, когда обычной цены нет', async () => {
     const item = sword({
-      damageState: 'minor',
+      canEquip: true,
+  canBeDamaged: true,
+  damageState: 'minor',
       repair: repair({
         state: 'minor', canRepair: true, difficulty: 1, hoursMin: 1, hoursMax: 2,
         materialPercent: 25, materialCost: null,
@@ -164,7 +172,9 @@ describe('Инвентарь: состояние предмета и ремон�
 
   it('не предлагает ремонт уничтоженного', () => {
     renderTab(sheetWith(sword({
-      damageState: 'destroyed', isUsable: false,
+      canEquip: true,
+  canBeDamaged: true,
+  damageState: 'destroyed', isUsable: false,
       repair: repair({ state: 'destroyed' }),
     })))
 
@@ -174,7 +184,9 @@ describe('Инвентарь: состояние предмета и ремон�
 
   it('гасит кнопку ремонта, когда на материалы не хватает монет', () => {
     const item = sword({
-      damageState: 'major',
+      canEquip: true,
+  canBeDamaged: true,
+  damageState: 'major',
       repair: repair({
         state: 'major', canRepair: true, difficulty: 3, hoursMin: 3, hoursMax: 6,
         materialPercent: 100, materialCost: 500, affordable: false,
@@ -189,7 +201,9 @@ describe('Инвентарь: состояние предмета и ремон�
 
   it('держит памятку по ремонту в тултипе: сложность, время и материалы', () => {
     const item = sword({
-      damageState: 'moderate',
+      canEquip: true,
+  canBeDamaged: true,
+  damageState: 'moderate',
       repair: repair({
         state: 'moderate', canRepair: true, difficulty: 2, hoursMin: 2, hoursMax: 4,
         materialPercent: 50, materialCost: 250,
@@ -213,7 +227,9 @@ describe('Инвентарь: состояние предмета и ремон�
 
   it('показывает помеху состояния в пуле атаки', () => {
     const { container } = renderTab(sheetWith(sword({
-      damageState: 'minor',
+      canEquip: true,
+  canBeDamaged: true,
+  damageState: 'minor',
       attackProfiles: [profile(1, 0)] as unknown as SheetItem['attackProfiles'],
       repair: repair({
         state: 'minor', canRepair: true, difficulty: 1, hoursMin: 1, hoursMax: 2,
@@ -229,7 +245,9 @@ describe('Инвентарь: состояние предмета и ремон�
 
   it('не даёт атаковать сломанным оружием', () => {
     renderTab(sheetWith(sword({
-      damageState: 'major', isUsable: false,
+      canEquip: true,
+  canBeDamaged: true,
+  damageState: 'major', isUsable: false,
       repair: repair({
         state: 'major', canRepair: true, difficulty: 3, hoursMin: 3, hoursMax: 6,
         materialPercent: 100, materialCost: 500,

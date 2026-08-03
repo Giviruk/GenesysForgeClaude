@@ -275,6 +275,8 @@ public static class SheetBuilder
             ImplementDto(e),
             ShardDto(e),
             def.Sellable,
+            ItemUseRules.CanBeEquipped(def),
+            ItemUseRules.CanBeDamaged(def),
             item.CarriedByMountId,
             item.IsInstalledOnMount,
             ShopCatalogRules.IsMountGear(def.Code),
