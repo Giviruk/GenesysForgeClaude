@@ -14,4 +14,11 @@ public enum ItemProvenance
     StartingBudget = 2,
     /// <summary>Перенесён импортом файла персонажа.</summary>
     Imported = 3,
+    /// <summary>Изготовлен самим персонажем (ROT-CRAFT-01): предмет, зелье или зачарование.</summary>
+    Crafted = 4,
+    /// <summary>
+    /// Сделан грубо, Выживанием вместо Механики: ведущий может сломать такую вещь на отчаянии
+    /// любой последующей проверки с ней.
+    /// </summary>
+    RoughSurvival = 5,
 }

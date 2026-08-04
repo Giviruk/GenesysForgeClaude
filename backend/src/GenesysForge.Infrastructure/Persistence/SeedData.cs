@@ -43,6 +43,7 @@ public static class SeedData
         var attachments = AttachmentCatalog.Load().ToList();
         var mounts = MountCatalog.Load().ToList();
         var rules = RuleCatalog.Load().ToList();
+        var craftingSpends = CraftingSpendCatalog.Load();
         var spells = Spells(GameSystem.GenesysCore).Concat(Spells(GameSystem.RealmsOfTerrinoth)).ToList();
 
         // Проекция описаний под режим контента — единственное отличие private/public pipeline.
@@ -58,6 +59,7 @@ public static class SeedData
         ProjectContent(heroicSecondaryEffects, mode, store);
         ProjectContent(qualities, mode, store);
         ProjectContent(mounts, mode, store);
+        ProjectContent(craftingSpends, mode, store);
         ProjectSpells(spells, mode);
 
         // Синхронизация встроенных строк с каталогом по стабильному Code ДО SeedMissing:
@@ -192,6 +194,35 @@ public static class SeedData
                     row.RequiresHit = def.RequiresHit; row.CanActivateOnMiss = def.CanActivateOnMiss;
                     row.TriumphMayPay = def.TriumphMayPay; row.Repeatability = def.Repeatability;
                 }));
+        // Таблицы трат авторитетны и в текстах, и в механике: исправление доезжает до уже
+        // засиженной базы, иначе старая установка навсегда осталась бы с прежней ценой символов.
+        SyncBuiltinByCode(db, db.CraftingSpendDefs.Where(x => x.Code != ""), craftingSpends,
+            (row, def) => Assign(
+                row.NameRu != def.NameRu || row.Name != def.Name
+                || row.Description != def.Description || row.SafeDescription != def.SafeDescription
+                || row.DescriptionEn != def.DescriptionEn || row.Source != def.Source
+                || row.RowCode != def.RowCode || row.Table != def.Table
+                || row.AdvantageCost != def.AdvantageCost || row.ThreatCost != def.ThreatCost
+                || row.TriumphCost != def.TriumphCost || row.DespairCost != def.DespairCost
+                || row.IsNegative != def.IsNegative || row.Repeatable != def.Repeatable
+                || row.RequiresGmConfirmation != def.RequiresGmConfirmation
+                || row.RequiresParameter != def.RequiresParameter
+                || row.Effect != def.Effect || row.Value != def.Value || row.Quality != def.Quality
+                || row.WeaponOnly != def.WeaponOnly || row.SortOrder != def.SortOrder,
+                () =>
+                {
+                    row.NameRu = def.NameRu; row.Name = def.Name;
+                    row.Description = def.Description; row.SafeDescription = def.SafeDescription;
+                    row.DescriptionEn = def.DescriptionEn; row.Source = def.Source;
+                    row.RowCode = def.RowCode; row.Table = def.Table;
+                    row.AdvantageCost = def.AdvantageCost; row.ThreatCost = def.ThreatCost;
+                    row.TriumphCost = def.TriumphCost; row.DespairCost = def.DespairCost;
+                    row.IsNegative = def.IsNegative; row.Repeatable = def.Repeatable;
+                    row.RequiresGmConfirmation = def.RequiresGmConfirmation;
+                    row.RequiresParameter = def.RequiresParameter;
+                    row.Effect = def.Effect; row.Value = def.Value; row.Quality = def.Quality;
+                    row.WeaponOnly = def.WeaponOnly; row.SortOrder = def.SortOrder;
+                }));
         SyncHeroics(db, heroics);
         // ROT-CLEAN-3.1 / 3.2: встроенная запись, которой больше нет в сид-наборе своей системы,
         // помечается Retired, а не удаляется — на неё ссылаются созданные персонажи и экспорты.
@@ -227,6 +258,7 @@ public static class SeedData
         added |= SeedMissing(db, db.QualityDefs, qualities, d => ((GameSystem)0, d.NameEn));
         added |= SeedMissing(db, db.AttachmentDefs, attachments, d => (d.System, d.Name));
         added |= SeedMissing(db, db.MountDefs, mounts, d => (d.System, d.Name));
+        added |= SeedMissing(db, db.CraftingSpendDefs, craftingSpends, d => ((GameSystem)0, d.Code));
         added |= SeedOrUpdateRules(db, rules);
         added |= SeedMissing(db, db.SpellDefs, spells,
             d => (d.System, $"{d.MagicSkill}:{(int)d.Kind}:{d.ParentEffect}:{d.NameEn}"));

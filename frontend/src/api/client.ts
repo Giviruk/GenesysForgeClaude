@@ -14,6 +14,7 @@ import type {
   RulesResponse, SearchResponse, SheetSlices, SheetSliceName,
   ArchetypeSkillChoice, CareerGearChoice, StartingEquipmentMode,
   DetachOutcome, ImplementMaterial, ItemDamageState,
+  CraftingPreview, CraftingProject, CraftingProjectInput, CraftingSpendChoice,
 } from './types'
 import { t } from '../i18n'
 import { ariadneAnonymousId } from '../analytics/ariadne'
@@ -489,6 +490,32 @@ export const api = {
       conditionReason?: string
     }) =>
     request<void>('POST', `/api/characters/${id}/mounts/${mountId}/sell`, opts ?? {}),
+  // Ремесло (ROT-CRAFT-01, ROT-ALCH-02, ROT-CRAFT-MAGIC-01). Доступно владельцу листа — и
+  // игроку, и ведущему. Ресурсы приложение не списывает и не проверяет: они остаются описанием.
+  /** Проекты персонажа, свежие сверху. */
+  crafting: (id: string) =>
+    request<CraftingProject[]>('GET', `/api/characters/${id}/crafting`),
+  /** Сложность, время и стоимость до подтверждения; ничего не пишет. */
+  craftingPreview: (id: string, body: CraftingProjectInput) =>
+    request<CraftingPreview>('POST', `/api/characters/${id}/crafting/preview`, body),
+  startCrafting: (id: string, body: CraftingProjectInput) =>
+    request<{ id: string }>('POST', `/api/characters/${id}/crafting`, body),
+  /**
+   * Разрешение проекта: символы броска и распределение трат. Символы приходят из роллера, как
+   * нетто-успехи при продаже; всё остальное считает сервер.
+   */
+  resolveCrafting: (id: string, projectId: string, body: {
+    netSuccesses: number
+    advantages?: number
+    threats?: number
+    triumphs?: number
+    despairs?: number
+    spends?: CraftingSpendChoice[]
+  }) =>
+    request<CraftingProject>('POST', `/api/characters/${id}/crafting/${projectId}/resolve`, body),
+  cancelCrafting: (id: string, projectId: string) =>
+    request<void>('DELETE', `/api/characters/${id}/crafting/${projectId}`),
+
   /** Удаляет скакуна без выручки: погиб, отпущен или заведён по ошибке. */
   removeMount: (id: string, mountId: string) =>
     request<void>('DELETE', `/api/characters/${id}/mounts/${mountId}`),

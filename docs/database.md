@@ -458,6 +458,24 @@ Indexes:
 - non-unique `(System, OwnerUserId)` and `(System, Visibility)` for scoped visible-library queries.
 - PostgreSQL GIN index `IX_Npcs_Tags_Gin` on `Tags` for `Tags.Contains(tag)` filters.
 
+### CraftingSpendDefs / CraftingProjects / CraftingProjectSpends
+
+Crafting, brewing and enchanting (ROT-CRAFT-01, ROT-ALCH-02, ROT-CRAFT-MAGIC-01).
+
+`CraftingSpendDefs` holds both symbol-spend tables as content rows (`IContentDef`, so the usual
+PublicSafe projection and code-based seed sync apply). One row per *effect*, not per table row:
+a book row offers several mutually exclusive effects for one price, and `RowCode` groups them.
+`Effect = Descriptive` marks a spend the application does not execute — round counters, dose
+durations, «a boost die on the next check» and GM decisions. Unique `Code`; index on
+`(Table, SortOrder)`.
+
+`CraftingProjects` records what a project was made of: target snapshot (name, price, rarity), skill,
+base and effective difficulty/time with their override reasons, the component cost with its
+percent/override mode, free-text `Requirements`, the roll symbols the client reported, the chosen
+spends and the resulting `CharacterItemId`. `BaseCharacterItemId` is the enchanted instance —
+enchanting upgrades an existing item rather than creating one. Indexes on `CharacterId` and
+`(CharacterId, Status)`.
+
 ### NpcAttacks / NpcAttackQualities
 
 Structural combat attacks for NPCs (U-14, GF-008 / Audit §5), replacing combat strings previously embedded in `Npc.Equipment` (non-combat gear stays in `Equipment`).
@@ -626,6 +644,14 @@ Found migrations:
   item seed, and `SeedData.MigrateLegacyMountItems` converts already-owned mount gear rows into
   `CharacterMounts` (quantity N becomes N creatures) with a history entry per character; money is
   not recalculated and no row is silently deleted.
+- `20260803153841_RotCraft01CraftingAndAlchemy` — ROT-CRAFT-01 / ROT-ALCH-02 / ROT-CRAFT-MAGIC-01.
+  Purely additive: creates `CraftingSpendDefs` (both symbol-spend tables as content rows, unique
+  `Code`), `CraftingProjects` (cascade FK to `Characters`, restrict FK to `ItemDefs`) and
+  `CraftingProjectSpends` (cascade FK to its project), plus per-instance crafting columns on
+  `CharacterItems`: `CraftingProjectId`, `CraftedEncumbrance`, `CraftedHardPoints`,
+  `CraftedQualities`, `CraftedFragile`, `CraftNote`. No existing row is touched. Materials, tools
+  and ingredients are description only — the project records a computed component cost but never
+  charges money and never checks inventory, so there is nothing to reserve or consume.
 - `20260803113917_RotBest01NpcCodeAndRetired` — ROT-CLEAN-3.6 / ROT-BEST-01. Adds `Npcs.Code`
   (`varchar(80)`, non-unique index; empty for user NPCs) and `Npcs.Retired` (`bool`, default
   `false`). Purely additive. `SeedBestiary` back-fills `Code` on already-seeded built-ins by the

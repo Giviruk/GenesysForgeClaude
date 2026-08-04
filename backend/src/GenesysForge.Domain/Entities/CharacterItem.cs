@@ -81,4 +81,31 @@ public class CharacterItem
     /// Lesser Rune настроена. После этого обычная команда конфигурации не меняет выбор повторно.
     /// </summary>
     public bool ShardConfigured { get; set; }
+
+    /// <summary>
+    /// Экземпляр изготовлен персонажем (ROT-CRAFT-01). Хранит проект, из которого он вышел, —
+    /// по нему видно бросок, траты и стоимость. <c>null</c> — предмет куплен или выдан.
+    /// </summary>
+    public Guid? CraftingProjectId { get; set; }
+
+    /// <summary>Поправка веса от трат символов при изготовлении.</summary>
+    public int CraftedEncumbrance { get; set; }
+
+    /// <summary>Поправка слотов улучшений от трат символов при изготовлении.</summary>
+    public int CraftedHardPoints { get; set; }
+
+    /// <summary>
+    /// Качества, добавленные изготовлением, кодами через запятую с рейтингом
+    /// (<c>superior,inaccurate:1</c>). Тот же способ хранения, что у выборов инструмента.
+    /// </summary>
+    public string CraftedQualities { get; set; } = "";
+
+    /// <summary>Хрупкая работа: при повреждении экземпляр теряет на одну ступень больше.</summary>
+    public bool CraftedFragile { get; set; }
+
+    /// <summary>
+    /// Описание изготовления: все выбранные траты символов словами. Показывается на карточке
+    /// предмета, потому что половина трат — правила, которые приложение не исполняет.
+    /// </summary>
+    public string CraftNote { get; set; } = "";
 }

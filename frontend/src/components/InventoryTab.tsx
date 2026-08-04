@@ -582,6 +582,18 @@ function InventoryCard({ item, sheet, skillNames, run, reference, funds, sellOpe
         <div key={i} className="muted small-text">{note}</div>
       ))}
 
+      {/* Изготовлено персонажем (ROT-CRAFT-01): метка и все выбранные при работе траты словами —
+          половина из них правила, которые приложение не исполняет. */}
+      {(item.provenance === 'crafted' || item.provenance === 'roughSurvival') && (
+        <div className="item-crafted small-text">
+          <span className="chip">{t('Создано персонажем', 'Made by the character')}</span>
+          {item.provenance === 'roughSurvival' && (
+            <span className="muted">{' '}{t('грубая работа', 'rough work')}</span>
+          )}
+          {item.craftNote && <pre className="crafting-outcome">{item.craftNote}</pre>}
+        </div>
+      )}
+
       {/* Разбор поправок: числа выше — уже эффективные, здесь видно, от чего они такие (ROT-WPN-02). */}
       {item.adjustments?.length > 0 && (
         <div className="muted small-text">

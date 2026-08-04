@@ -108,16 +108,24 @@ public static class EffectiveItems
             : new List<AttachmentInput>();
         var aggregate = AttachmentRules.Aggregate(inputs);
 
+        // Изготовление (ROT-CRAFT-01) — свойство самого экземпляра, как работа и материал:
+        // Превосходное от триумфа и Неточное от отчаяния стоят в профиле рядом с книжными
+        // качествами, а не приписываются улучшениям.
+        var crafted = CraftingRules.UnpackQualities(item.CraftedQualities);
         var baseQualities = def.Qualities
             .Where(q => q.QualityDef is not null)
-            .Select(q => new EffectiveQuality(q.QualityDef!.Code, q.Rating ?? 0));
+            .Select(q => new EffectiveQuality(q.QualityDef!.Code, q.Rating ?? 0))
+            .Concat(crafted)
+            .GroupBy(q => q.Code, StringComparer.OrdinalIgnoreCase)
+            .Select(g => new EffectiveQuality(g.First().Code, g.Sum(q => q.Rating)));
         var qualities = AttachmentRules.ApplyQualities(baseQualities, inputs);
         if (stats.Reinforced && qualities.All(q => q.Code != CraftsmanshipRules.ReinforcedQualityCode))
             qualities = [.. qualities, new EffectiveQuality(CraftsmanshipRules.ReinforcedQualityCode, 0)];
 
         // Вес улучшений остаётся и у сломанного предмета: наручи никуда не делись, они просто
         // больше не работают.
-        var encumbrance = Math.Max(0, stats.Encumbrance + AttachmentRules.Aggregate(allInputs).Encumbrance);
+        var craftedEncumbrance = Math.Max(0, stats.Encumbrance + item.CraftedEncumbrance);
+        var encumbrance = Math.Max(0, craftedEncumbrance + AttachmentRules.Aggregate(allInputs).Encumbrance);
         var soak = stats.SoakBonus + aggregate.SoakBonus;
         var melee = stats.MeleeDefense + aggregate.MeleeDefense;
         var ranged = stats.RangedDefense + aggregate.RangedDefense;
@@ -125,10 +133,18 @@ public static class EffectiveItems
 
         // Слоты: книжное значение с поправкой работы, а у записи без него — Core-запасной расчёт
         // от базового веса. «Значения нет» и «ноль слотов» — разные вещи только для книги.
-        var hardPoints = stats.HardPoints ?? AttachmentRules.FallbackHardPoints(def.Encumbrance);
+        var bookHardPoints = stats.HardPoints ?? AttachmentRules.FallbackHardPoints(def.Encumbrance);
+        var hardPoints = Math.Max(0, bookHardPoints + item.CraftedHardPoints);
         var used = AttachmentRules.UsedHardPoints(installed.Select(a => a.AttachmentDef!));
 
         var adjustments = new List<ItemStatAdjustment>(stats.Adjustments);
+        void TrackCrafted(string field, int before, int after)
+        {
+            if (before != after) adjustments.Add(new ItemStatAdjustment(
+                field, before, after, ItemStatStage.Crafted, "Crafted"));
+        }
+        TrackCrafted("encumbrance", stats.Encumbrance, craftedEncumbrance);
+        TrackCrafted("hardPoints", bookHardPoints, hardPoints);
         if (materialPrice is { } effectivePrice && effectivePrice != stats.Price)
             adjustments.Add(new ItemStatAdjustment(
                 "price", stats.Price, effectivePrice, ItemStatStage.Material,
@@ -142,7 +158,7 @@ public static class EffectiveItems
             if (before != after) adjustments.Add(new ItemStatAdjustment(
                 field, before, after, ItemStatStage.Attachments, "Attachments"));
         }
-        Track("encumbrance", stats.Encumbrance, encumbrance);
+        Track("encumbrance", craftedEncumbrance, encumbrance);
         Track("soak", stats.SoakBonus, soak);
         Track("meleeDefense", stats.MeleeDefense, melee);
         Track("rangedDefense", stats.RangedDefense, ranged);

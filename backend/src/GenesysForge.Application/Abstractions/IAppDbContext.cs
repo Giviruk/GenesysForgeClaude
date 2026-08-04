@@ -62,6 +62,9 @@ public interface IAppDbContext
     DbSet<ItemCheckModifier> ItemCheckModifiers { get; }
     DbSet<WeaponAttackProfile> WeaponAttackProfiles { get; }
     DbSet<RuleTableEntry> RuleTableEntries { get; }
+    DbSet<CraftingSpendDef> CraftingSpendDefs { get; }
+    DbSet<CraftingProject> CraftingProjects { get; }
+    DbSet<CraftingProjectSpend> CraftingProjectSpends { get; }
 
     Task<int> SaveChangesAsync(CancellationToken ct = default);
 }
