@@ -44,23 +44,11 @@ public static class ShopCatalogRules
     public static bool IsBarding(string? code) =>
         string.Equals(BareCode(code), "barding", StringComparison.Ordinal);
 
-    private static readonly HashSet<string> ConsumableCodes =
+    private static readonly HashSet<string> GeneralConsumableCodes =
     [
         "trail-rations-1-day",
         "torches-3",
         "herbs-of-healing",
-        "protective-tonic",
-        "invisibility-potion",
-        "power-potion",
-        "speed-potion",
-        "bottled-courage",
-        "smokebomb-vial",
-        "acid-flask",
-        "stamina-elixir",
-        "health-elixir",
-        "immunity-elixir",
-        "regeneration-elixir",
-        "poison",
     ];
 
     public static bool IsService(string? code) => ServiceCodes.Contains(BareCode(code));
@@ -70,7 +58,8 @@ public static class ShopCatalogRules
         var code = BareCode(item.Code);
         if (ServiceCodes.Contains(code)) return ShopItemCategory.Service;
         if (TransportCodes.Contains(code)) return ShopItemCategory.Transport;
-        if (ConsumableCodes.Contains(code)) return ShopItemCategory.Consumable;
+        if (GeneralConsumableCodes.Contains(code) || CraftingRules.IsPotion(code))
+            return ShopItemCategory.Consumable;
         if (ImplementRules.IsImplement(item.Code) || RuneboundShardRules.IsShard(item.Code))
             return ShopItemCategory.MagicImplement;
         // Реликвия проверяется до вида: среди семнадцати есть и оружие, и снаряжение, но лежат

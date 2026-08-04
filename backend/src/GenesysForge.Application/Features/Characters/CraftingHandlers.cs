@@ -30,6 +30,40 @@ public static class CraftingCalc
         _ => roughSurvival ? "Survival" : "Mechanics",
     };
 
+    /// <summary>
+    /// Навык задаётся видом проекта. Для зачарования игрок выбирает один из магических навыков
+    /// персонажа; произвольная строка из запроса не может превратить ремесло в проверку другого вида.
+    /// </summary>
+    public static async Task<string> SkillAsync(
+        IAppDbContext db, Guid userId, Character c, CraftingProjectInput req, CancellationToken ct)
+    {
+        var fallback = DefaultSkill(req.Kind, req.RoughSurvival);
+        var requested = string.IsNullOrWhiteSpace(req.SkillName) ? fallback : req.SkillName.Trim();
+
+        if (req.Kind != CraftingKind.Enchantment)
+        {
+            if (!string.Equals(requested, fallback, StringComparison.OrdinalIgnoreCase))
+                throw new DomainRuleException(
+                    $"Для этого проекта используется навык {fallback}.", "crafting.skill_invalid");
+            return fallback;
+        }
+
+        // CharacterSkill хранит купленные/выданные ранги, а нетренированную magic-проверку делать
+        // можно. Поэтому валидируем по видимому справочнику, а не только по строкам персонажа.
+        var visiblePackIds = await HomebrewVisibility.GetVisiblePackIdsAsync(
+            db, userId, c.System, c.Id, ct: ct);
+        var skill = await db.SkillDefs.AsNoTracking().FirstOrDefaultAsync(s =>
+            s.System == c.System && !s.Retired && s.Kind == SkillKind.Magic
+            && s.Name.ToLower() == requested.ToLower()
+            && (s.OwnerUserId == null
+                || (s.OwnerUserId == userId
+                    && (s.HomebrewPackId == null || visiblePackIds.Contains(s.HomebrewPackId.Value)))), ct);
+        if (skill is null)
+            throw new DomainRuleException(
+                "Для зачарования выберите магический навык персонажа.", "crafting.magic_skill_required");
+        return skill.Name;
+    }
+
     /// <summary>Единица времени: у варки одной партии это часы, у остального дни.</summary>
     public static string TimeUnit(CraftingKind kind) => kind == CraftingKind.Potion ? "hours" : "days";
 
@@ -102,6 +136,7 @@ public class PreviewCraftingHandler(IAppDbContext db) : IQueryHandler<PreviewCra
         CraftingRules.EnsureCraftable(def, q.Request.Kind);
 
         var n = CraftingCalc.Compute(def, q.Request);
+        var skill = await CraftingCalc.SkillAsync(db, q.UserId, c, q.Request, ct);
         var table = q.Request.Kind == CraftingKind.Potion ? CraftingKind.Potion : CraftingKind.Item;
         var spends = await db.CraftingSpendDefs.AsNoTracking()
             .Where(s => s.Table == table && !s.Retired)
@@ -109,9 +144,7 @@ public class PreviewCraftingHandler(IAppDbContext db) : IQueryHandler<PreviewCra
 
         return new CraftingPreviewDto(
             q.Request.Kind, def.Name, def.Price, def.Rarity,
-            string.IsNullOrWhiteSpace(q.Request.SkillName)
-                ? CraftingCalc.DefaultSkill(q.Request.Kind, q.Request.RoughSurvival)
-                : q.Request.SkillName!.Trim(),
+            skill,
             n.BaseDifficulty, n.Difficulty, n.BaseTime, n.Time, CraftingCalc.TimeUnit(q.Request.Kind),
             n.ListedCost, q.Request.CostPercent, q.Request.CostOverride, n.Cost,
             def.Kind == ItemKind.Weapon,
@@ -147,6 +180,7 @@ public class StartCraftingHandler(IAppDbContext db) : ICommandHandler<StartCraft
         }
 
         var n = CraftingCalc.Compute(def, req);
+        var skill = await CraftingCalc.SkillAsync(db, command.UserId, c, req, ct);
         var project = new CraftingProject
         {
             Id = Guid.NewGuid(),
@@ -158,9 +192,7 @@ public class StartCraftingHandler(IAppDbContext db) : ICommandHandler<StartCraft
             TargetName = def.Name,
             TargetPrice = def.Price,
             TargetRarity = def.Rarity,
-            SkillName = string.IsNullOrWhiteSpace(req.SkillName)
-                ? CraftingCalc.DefaultSkill(req.Kind, req.RoughSurvival)
-                : req.SkillName!.Trim(),
+            SkillName = skill,
             BaseDifficulty = n.BaseDifficulty,
             Difficulty = n.Difficulty,
             DifficultyReason = req.DifficultyReason?.Trim() ?? "",
