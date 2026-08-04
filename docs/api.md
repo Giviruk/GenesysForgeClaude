@@ -454,6 +454,11 @@ applies to the computed cost and rounds down, an own price replaces it and requi
 Enchanting has no recipe: its base difficulty is Formidable (5) and its listed cost is 0, so both
 are meant to be set explicitly.
 
+The work kind fixes the allowed catalog and skill: ordinary items use `Mechanics` (or `Survival`
+with `roughSurvival`), the twelve ROT-ALCH-01 consumables use `Alchemy`, and enchanting accepts a
+visible magic skill supplied in `skillName` (default `Arcana` for compatible older clients). A
+normal item submitted as `Potion`, or a potion submitted as `Item`, is rejected.
+
 ### `POST /api/characters/{id}/crafting`
 
 Protected. Starts a project from the same body the preview accepts. Response: `201` with

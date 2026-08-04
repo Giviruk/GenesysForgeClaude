@@ -17,6 +17,16 @@ interface Props {
 /** Доли стоимости компонентов — те же, что при покупке (ROT-ECO-01). */
 const COST_PERCENTS = [50, 75, 100, 125, 150, 175, 200]
 
+/** Рецепты ROT-ALCH-01; backend повторно проверяет kind, поэтому UI не является границей доверия. */
+const POTION_CODES = new Set([
+  'acid-flask', 'bottled-courage', 'health-elixir', 'immunity-elixir',
+  'invisibility-potion', 'poison', 'power-potion', 'protective-tonic',
+  'regeneration-elixir', 'smokebomb-vial', 'speed-potion', 'stamina-elixir',
+])
+
+const bareCode = (code: string) => code.slice(code.lastIndexOf('.') + 1)
+const isPotion = (item: ItemDef) => POTION_CODES.has(bareCode(item.code))
+
 const KIND_LABELS: Record<CraftingKind, string> = {
   item: t('Изготовление', 'Crafting'),
   potion: t('Варка зелья', 'Brewing'),
@@ -105,6 +115,8 @@ export function CraftingTab({ sheet, reference, onError, refresh }: Props) {
   const [timeReason, setTimeReason] = useState('')
   const [requirements, setRequirements] = useState('')
   const [intent, setIntent] = useState('')
+  const [magicSkillName, setMagicSkillName] = useState(
+    () => sheet.skills.find(s => s.kind === 'magic')?.name ?? '')
   const [rough, setRough] = useState(false)
   const [preview, setPreview] = useState<CraftingPreview | null>(null)
   const [busy, setBusy] = useState(false)
@@ -117,10 +129,15 @@ export function CraftingTab({ sheet, reference, onError, refresh }: Props) {
   useEffect(() => { void loadProjects() }, [loadProjects])
 
   // Зачарование идёт от вещи в инвентаре, всё остальное — от записи каталога.
-  const candidates: ItemDef[] = useMemo(
-    () => reference.items.filter(i => i.price !== null && i.rarity !== null),
-    [reference.items])
+  const candidates: ItemDef[] = useMemo(() => reference.items
+    .filter(i => i.price !== null && i.rarity !== null)
+    .filter(i => kind === 'potion' ? isPotion(i) : !isPotion(i)),
+  [reference.items, kind])
   const bases = useMemo(() => sheet.items ?? [], [sheet.items])
+  const magicSkills = useMemo(() => sheet.skills.filter(s => s.kind === 'magic'), [sheet.skills])
+  const effectiveMagicSkillName = magicSkills.some(s => s.name === magicSkillName)
+    ? magicSkillName
+    : magicSkills[0]?.name ?? ''
 
   const input: CraftingProjectInput | null = useMemo(() => {
     if (kind === 'enchantment') {
@@ -137,6 +154,7 @@ export function CraftingTab({ sheet, reference, onError, refresh }: Props) {
         itemDefId,
         baseCharacterItemId: baseId,
         kind,
+        skillName: kind === 'enchantment' ? effectiveMagicSkillName || undefined : undefined,
         costPercent: own === null ? percent : 100,
         costOverride: own,
         costOverrideReason: costReason.trim() || undefined,
@@ -149,7 +167,7 @@ export function CraftingTab({ sheet, reference, onError, refresh }: Props) {
         roughSurvival: rough,
       }
     }
-  }, [kind, targetId, baseItemId, bases, percent, ownCost, costReason,
+  }, [kind, targetId, baseItemId, bases, effectiveMagicSkillName, percent, ownCost, costReason,
     difficulty, difficultyReason, time, timeReason, requirements, intent, rough])
 
   // Предпросмотр обновляется сам: числа должны быть видны до подтверждения, а не после.
@@ -198,7 +216,15 @@ export function CraftingTab({ sheet, reference, onError, refresh }: Props) {
     && (!hasOwnCost || costReason.trim() !== '')
     && (difficulty.trim() === '' || difficultyReason.trim() !== '')
     && (time.trim() === '' || timeReason.trim() !== '')
-    && (kind !== 'enchantment' || intent.trim() !== '')
+    && (kind !== 'enchantment' || (intent.trim() !== '' && effectiveMagicSkillName !== ''))
+
+  function changeKind(next: CraftingKind) {
+    setKind(next)
+    setTargetId('')
+    setBaseItemId('')
+    setRough(false)
+    setPreview(null)
+  }
 
   return (
     <div className="crafting-tab">
@@ -211,7 +237,7 @@ export function CraftingTab({ sheet, reference, onError, refresh }: Props) {
           {(['item', 'potion', 'enchantment'] as CraftingKind[]).map(k => (
             <label key={k}>
               <input type="radio" name="crafting-kind" checked={kind === k}
-                onChange={() => { setKind(k); setPreview(null) }} /> {KIND_LABELS[k]}
+                onChange={() => changeKind(k)} /> {KIND_LABELS[k]}
             </label>
           ))}
         </div>
@@ -231,6 +257,14 @@ export function CraftingTab({ sheet, reference, onError, refresh }: Props) {
               <textarea value={intent} maxLength={2000} rows={2}
                 placeholder={t('что именно должно получиться', 'what exactly the enchantment does')}
                 onChange={e => setIntent(e.target.value)} />
+            </label>
+            <label>{t('Навык зачарования', 'Enchanting skill')}
+              <select value={effectiveMagicSkillName} onChange={e => setMagicSkillName(e.target.value)}>
+                <option value="">{t('— выберите магический навык —', '— pick a magic skill —')}</option>
+                {magicSkills.map(s => (
+                  <option key={s.skillDefId} value={s.name}>{localizedName(s)}</option>
+                ))}
+              </select>
             </label>
           </>
         ) : (

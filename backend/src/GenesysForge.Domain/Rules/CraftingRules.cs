@@ -30,6 +30,34 @@ public sealed record CraftingSpendChoice(string Code, int Count, string Paramete
 /// </remarks>
 public static class CraftingRules
 {
+    /// <summary>
+    /// Ровно двенадцать алхимических расходников ROT-ALCH-01. Код — структурный признак рецепта:
+    /// обычные consumable (паёк, факелы, лечебные травы) варить навыком Alchemy нельзя.
+    /// </summary>
+    public static readonly IReadOnlySet<string> PotionCodes = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+    {
+        "acid-flask",
+        "bottled-courage",
+        "health-elixir",
+        "immunity-elixir",
+        "invisibility-potion",
+        "poison",
+        "power-potion",
+        "protective-tonic",
+        "regeneration-elixir",
+        "smokebomb-vial",
+        "speed-potion",
+        "stamina-elixir",
+    };
+
+    /// <summary>Запись является рецептом алхимического расходника, включая namespaced code.</summary>
+    public static bool IsPotion(string? code)
+    {
+        if (string.IsNullOrWhiteSpace(code)) return false;
+        var index = code.LastIndexOf('.');
+        return PotionCodes.Contains(index < 0 ? code : code[(index + 1)..]);
+    }
+
     /// <summary>Качества, рейтинг которых поднимать нельзя: так сказано в строке 1 триумфа.</summary>
     public static readonly string[] RatingForbiddenFields = ["damage", "critical", "soak", "defense"];
 
@@ -84,6 +112,14 @@ public static class CraftingRules
     public static void EnsureCraftable(ItemDef def, CraftingKind kind)
     {
         if (kind == CraftingKind.Enchantment) return; // основу не создают, её улучшают
+        if (kind == CraftingKind.Potion && !IsPotion(def.Code))
+            throw new DomainRuleException(
+                "Эта запись не является алхимическим расходником.",
+                "crafting.target_not_potion");
+        if (kind == CraftingKind.Item && IsPotion(def.Code))
+            throw new DomainRuleException(
+                "Алхимический расходник нужно создавать через варку зелий.",
+                "crafting.target_is_potion");
         if (def.Price is null)
             throw new DomainRuleException(
                 "У этой записи нет цены — изготовить её обычным процессом нельзя.",

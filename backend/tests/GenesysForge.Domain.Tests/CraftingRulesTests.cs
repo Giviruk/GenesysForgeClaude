@@ -252,6 +252,22 @@ public class CraftingRulesTests
     }
 
     [Fact]
+    public void EnsureCraftable_MatchesPotionKindToTheRecipeCatalog()
+    {
+        var potion = new ItemDef { Name = "Stamina Elixir", Code = "stamina-elixir", Price = 50 };
+        var axe = new ItemDef { Name = "Axe", Code = "axe", Price = 150 };
+
+        CraftingRules.EnsureCraftable(potion, CraftingKind.Potion);
+        CraftingRules.EnsureCraftable(axe, CraftingKind.Item);
+        Assert.Equal("crafting.target_not_potion",
+            Assert.Throws<DomainRuleException>(() =>
+                CraftingRules.EnsureCraftable(axe, CraftingKind.Potion)).ReasonCode);
+        Assert.Equal("crafting.target_is_potion",
+            Assert.Throws<DomainRuleException>(() =>
+                CraftingRules.EnsureCraftable(potion, CraftingKind.Item)).ReasonCode);
+    }
+
+    [Fact]
     public void EnsureEnchantable_RequiresSuperiorBase()
     {
         Assert.Equal("crafting.base_not_superior",

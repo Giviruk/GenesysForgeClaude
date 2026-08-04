@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Http.Json;
 using GenesysForge.Application.Dtos;
 using GenesysForge.Domain;
+using GenesysForge.Domain.Rules;
 
 namespace GenesysForge.Api.Tests;
 
@@ -193,6 +194,76 @@ public class RotCraftingApiTests(ApiFactory factory) : IClassFixture<ApiFactory>
 
         var item = (await SheetAsync(client, id)).Items!.Single(i => i.Id == dto.CreatedCharacterItemId);
         Assert.Equal(3, item.Quantity);
+    }
+
+    /// <summary>ROT-ALCH-01: ровно 12 рецептов и точные price/rarity/component cost.</summary>
+    [Fact]
+    public async Task PotionCatalog_HasExactPricesRaritiesAndComponentCosts()
+    {
+        var (client, reference, id) = await CreateAsync();
+        var expected = new Dictionary<string, (int Price, int Rarity)>
+        {
+            ["acid-flask"] = (200, 6),
+            ["bottled-courage"] = (25, 5),
+            ["health-elixir"] = (25, 3),
+            ["immunity-elixir"] = (100, 4),
+            ["invisibility-potion"] = (1000, 9),
+            ["poison"] = (200, 5),
+            ["power-potion"] = (250, 6),
+            ["protective-tonic"] = (125, 6),
+            ["regeneration-elixir"] = (50, 4),
+            ["smokebomb-vial"] = (25, 4),
+            ["speed-potion"] = (200, 7),
+            ["stamina-elixir"] = (50, 3),
+        };
+        var potions = reference.Items.Where(i => CraftingRules.IsPotion(i.Code)).ToList();
+
+        Assert.Equal(expected.Count, potions.Count);
+        foreach (var potion in potions)
+        {
+            var code = potion.Code[(potion.Code.LastIndexOf('.') + 1)..];
+            var row = expected[code];
+            Assert.Equal(row.Price, potion.Price);
+            Assert.Equal(row.Rarity, potion.Rarity);
+
+            var preview = (await (await PreviewAsync(client, id,
+                    new CraftingProjectInput(potion.Id, Kind: CraftingKind.Potion)))
+                .Content.ReadFromJsonAsync<CraftingPreviewDto>(Json.Options))!;
+            Assert.Equal((row.Price + 1) / 2, preview.ListedCost);
+            Assert.Equal((row.Rarity + 1) / 2, preview.Difficulty);
+            Assert.Equal("Alchemy", preview.SkillName);
+        }
+    }
+
+    [Fact]
+    public async Task CraftingKind_RejectsWrongCatalogEntry()
+    {
+        var (client, reference, id) = await CreateAsync();
+        var weaponAsPotion = await PreviewAsync(client, id,
+            new CraftingProjectInput(Weapon(reference).Id, Kind: CraftingKind.Potion));
+        Assert.Equal("crafting.target_not_potion",
+            (await weaponAsPotion.Content.ReadFromJsonAsync<ErrorResponse>(Json.Options))!.ReasonCode);
+
+        var potionAsItem = await PreviewAsync(client, id,
+            new CraftingProjectInput(Potion(reference).Id, Kind: CraftingKind.Item));
+        Assert.Equal("crafting.target_is_potion",
+            (await potionAsItem.Content.ReadFromJsonAsync<ErrorResponse>(Json.Options))!.ReasonCode);
+    }
+
+    [Fact]
+    public async Task Enchantment_AcceptsOnlyACharactersMagicSkill()
+    {
+        var (client, reference, id) = await CreateAsync();
+        var magic = reference.Skills.First(s => s.Kind == SkillKind.Magic && s.Name != "Arcana");
+        var accepted = (await (await PreviewAsync(client, id, new CraftingProjectInput(
+                Weapon(reference).Id, Kind: CraftingKind.Enchantment, SkillName: magic.Name)))
+            .Content.ReadFromJsonAsync<CraftingPreviewDto>(Json.Options))!;
+        Assert.Equal(magic.Name, accepted.SkillName);
+
+        var rejected = await PreviewAsync(client, id, new CraftingProjectInput(
+            Weapon(reference).Id, Kind: CraftingKind.Enchantment, SkillName: "Mechanics"));
+        Assert.Equal("crafting.magic_skill_required",
+            (await rejected.Content.ReadFromJsonAsync<ErrorResponse>(Json.Options))!.ReasonCode);
     }
 
     /// <summary>Комбинированная доза проверяется по каталогу: редкость строго меньше.</summary>
