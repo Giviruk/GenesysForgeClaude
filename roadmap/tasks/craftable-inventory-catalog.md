@@ -3,8 +3,8 @@
 - **Пункт ТЗ:** пользовательское уточнение к ROT-CRAFT-01 и очистке каталога RoT
 - **Ветка:** `feature/craftable-inventory-catalog`
 - **Базовая ветка:** `master`
-- **PR:** будет добавлен после публикации
-- **Статус:** ✅ Implementation complete; awaiting PR/CI
+- **PR:** [#161](https://github.com/Giviruk/GenesysForgeClaude/pull/161)
+- **Статус:** ✅ Implementation complete; draft PR open, awaiting CI/review
 
 ## Контекст
 
@@ -21,11 +21,11 @@
 - [x] Миграция и изменение схемы не требуются
 - [x] Copyright-проверка seed/справочников выполнена
 - [x] `rot-rules-remediation-progress.md` обновлён
-- [ ] PR открыт
+- [x] PR открыт
 
 ## Что осталось / блокеры
 
-Полные локальные проверки пройдены; остаются публикация и CI.
+Полные локальные проверки пройдены; draft PR открыт, остаются CI и review.
 
 ## Заметки / решения
 
