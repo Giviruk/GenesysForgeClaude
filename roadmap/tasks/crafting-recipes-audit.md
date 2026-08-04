@@ -3,8 +3,8 @@
 - **Пункт ТЗ:** ROT-CRAFT-01 / ROT-ALCH-02 / ROT-CRAFT-MAGIC-01
 - **Ветка:** `feature/crafting-recipes-audit`
 - **Базовая ветка:** `master`
-- **PR:** будет добавлен после создания
-- **Статус:** 🚧 In progress
+- **PR:** [#160](https://github.com/Giviruk/GenesysForgeClaude/pull/160)
+- **Статус:** ✅ Реализация завершена, draft PR открыт; ожидается CI/review
 
 ## Контекст
 
@@ -23,7 +23,7 @@
 - [x] Запустить полные backend/frontend проверки
 - [x] Подтвердить отсутствие миграций и изменений seed
 - [x] Обновить progress-файл как частично выполненную remediation-задачу
-- [ ] PR открыт
+- [x] PR открыт
 
 ## Что осталось / блокеры
 
