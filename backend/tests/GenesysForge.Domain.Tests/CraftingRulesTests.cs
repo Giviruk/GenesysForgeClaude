@@ -267,6 +267,23 @@ public class CraftingRulesTests
                 CraftingRules.EnsureCraftable(potion, CraftingKind.Item)).ReasonCode);
     }
 
+    [Theory]
+    [InlineData("meal-tavern")]
+    [InlineData("ale-flagon")]
+    [InlineData("lodging-private-room-1-night")]
+    [InlineData("porter-per-day")]
+    public void EnsureCraftable_RejectsShopServices(string code)
+    {
+        var service = new ItemDef
+        {
+            Name = code, Code = $"rot.item.{code}", Price = 2, Rarity = 0,
+        };
+
+        Assert.Equal("crafting.target_not_craftable",
+            Assert.Throws<DomainRuleException>(() =>
+                CraftingRules.EnsureCraftable(service, CraftingKind.Item)).ReasonCode);
+    }
+
     [Fact]
     public void EnsureEnchantable_RequiresSuperiorBase()
     {

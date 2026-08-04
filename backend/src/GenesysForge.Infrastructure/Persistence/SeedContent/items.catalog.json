@@ -47,6 +47,7 @@
     "crit": "3",
     "rangeRu": "Средняя",
     "properties": "",
+    "retiredInRot": true,
     "traits": [
       "Ranged",
       "OneHanded"

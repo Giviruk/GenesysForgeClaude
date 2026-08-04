@@ -21,6 +21,8 @@ public static class ItemCatalog
         string Desc, string Source,
         string? SkillEn, string? Damage, string? Crit, string? RangeRu, string? Properties,
         string DescEn = "", bool Retired = false,
+        /// <summary>Запись остаётся в Core, но выводится из активного каталога RoT.</summary>
+        bool RetiredInRot = false,
         /// <summary>Разрешена обычная покупка через витрину.</summary>
         bool Purchasable = true,
         /// <summary>Разрешена обычная продажа экземпляра.</summary>
@@ -112,7 +114,8 @@ public static class ItemCatalog
                     Crit = e.Crit ?? "",
                     RangeBand = e.RangeRu ?? "",
                     Properties = e.Properties ?? "",
-                    Retired = e.Retired,
+                    Retired = e.Retired
+                        || (sys == GameSystem.RealmsOfTerrinoth && e.RetiredInRot),
                     HardPoints = e.Hp,
                     FormTraits = ParseTraits(e.Traits),
                     CheckModifiers = [.. (e.Modifiers ?? []).Select(m => new ItemCheckModifier

@@ -119,6 +119,10 @@ Built-in and custom item definitions.
 
 Fields include `System`, content-model fields, `Kind`, `Encumbrance`, `SoakBonus`, `MeleeDefense`, `RangedDefense`, `EncumbranceThresholdBonus`, nullable `Price`/`Rarity`, `Purchasable`, `Sellable`, `OwnerUserId`, `HomebrewPackId`.
 
+The embedded item catalog may retire a built-in row in RoT while keeping its Core counterpart
+active (`retiredInRot`). This is seed metadata, not a database column. The revolver uses this path:
+its legacy RoT row is retained with `Retired = true`, while the Genesys Core row remains active.
+
 The 17 built-in Realms of Terrinoth runebound shards have no ordinary listed economy:
 `Price = null`, `Rarity = null`, `Purchasable = false`, `Sellable = false`. Their typed
 implement and activation profiles are defined by `RuneboundShardRules`, keyed by the

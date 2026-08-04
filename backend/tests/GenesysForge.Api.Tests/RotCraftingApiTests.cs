@@ -251,6 +251,20 @@ public class RotCraftingApiTests(ApiFactory factory) : IClassFixture<ApiFactory>
     }
 
     [Fact]
+    public async Task Crafting_RejectsShopServices()
+    {
+        var (client, reference, id) = await CreateAsync();
+        var meal = reference.Items.Single(i => i.Code.EndsWith(".meal-tavern", StringComparison.Ordinal));
+
+        var response = await PreviewAsync(client, id,
+            new CraftingProjectInput(meal.Id, Kind: CraftingKind.Item));
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.Equal("crafting.target_not_craftable",
+            (await response.Content.ReadFromJsonAsync<ErrorResponse>(Json.Options))!.ReasonCode);
+    }
+
+    [Fact]
     public async Task Enchantment_AcceptsOnlyACharactersMagicSkill()
     {
         var (client, reference, id) = await CreateAsync();
