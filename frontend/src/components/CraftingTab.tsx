@@ -109,14 +109,11 @@ export function CraftingTab({ sheet, reference, onError, refresh }: Props) {
   const [preview, setPreview] = useState<CraftingPreview | null>(null)
   const [busy, setBusy] = useState(false)
 
-  const loadProjects = useCallback(async () => {
-    try {
-      setProjects(await api.crafting(sheet.id))
-    } catch (e) {
-      onError((e as Error).message)
-    }
-  }, [sheet.id, onError])
-
+  const loadProjects = useCallback(
+    () => api.crafting(sheet.id)
+      .then(setProjects)
+      .catch((err: unknown) => onError(err instanceof Error ? err.message : String(err))),
+    [sheet.id, onError])
   useEffect(() => { void loadProjects() }, [loadProjects])
 
   // Зачарование идёт от вещи в инвентаре, всё остальное — от записи каталога.
@@ -156,14 +153,17 @@ export function CraftingTab({ sheet, reference, onError, refresh }: Props) {
     difficulty, difficultyReason, time, timeReason, requirements, intent, rough])
 
   // Предпросмотр обновляется сам: числа должны быть видны до подтверждения, а не после.
+  // Пока цель не выбрана, запроса нет — и показывать нечего, поэтому старый ответ просто не
+  // рисуется (см. `shownPreview`), а не гасится состоянием прямо в теле эффекта.
   useEffect(() => {
-    if (!input) { setPreview(null); return }
+    if (!input) return
     let cancelled = false
     void api.craftingPreview(sheet.id, input)
       .then(p => { if (!cancelled) setPreview(p) })
       .catch(() => { if (!cancelled) setPreview(null) })
     return () => { cancelled = true }
   }, [sheet.id, input])
+  const shownPreview = input ? preview : null
 
   async function start() {
     if (!input) return
@@ -302,16 +302,16 @@ export function CraftingTab({ sheet, reference, onError, refresh }: Props) {
             onChange={e => setRequirements(e.target.value)} />
         </label>
 
-        {preview && (
+        {shownPreview && (
           <p className="price-total">
-            {t('Сложность', 'Difficulty')} <strong>{DIFFICULTY_LABELS[preview.difficulty] ?? preview.difficulty}</strong>
-            {preview.difficulty !== preview.baseDifficulty
-              && <span className="muted"> ({t('по правилу', 'by rule')} {preview.baseDifficulty})</span>}
-            {' · '}{t('Навык', 'Skill')} {preview.skillName}
-            {' · '}{preview.time} {preview.timeUnit === 'hours' ? t('ч', 'h') : t('дн', 'd')}
-            {' · '}{t('компоненты', 'components')} <strong>{preview.cost}</strong> 🪙
-            {preview.costOverride === null && preview.costPercent !== 100
-              && <span className="muted"> ({preview.costPercent}% {t('от', 'of')} {preview.listedCost})</span>}
+            {t('Сложность', 'Difficulty')} <strong>{DIFFICULTY_LABELS[shownPreview.difficulty] ?? shownPreview.difficulty}</strong>
+            {shownPreview.difficulty !== shownPreview.baseDifficulty
+              && <span className="muted"> ({t('по правилу', 'by rule')} {shownPreview.baseDifficulty})</span>}
+            {' · '}{t('Навык', 'Skill')} {shownPreview.skillName}
+            {' · '}{shownPreview.time} {shownPreview.timeUnit === 'hours' ? t('ч', 'h') : t('дн', 'd')}
+            {' · '}{t('компоненты', 'components')} <strong>{shownPreview.cost}</strong> 🪙
+            {shownPreview.costOverride === null && shownPreview.costPercent !== 100
+              && <span className="muted"> ({shownPreview.costPercent}% {t('от', 'of')} {shownPreview.listedCost})</span>}
           </p>
         )}
 
