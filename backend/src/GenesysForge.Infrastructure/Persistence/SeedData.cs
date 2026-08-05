@@ -1516,7 +1516,7 @@ public static class SeedData
 
     // ─────────────────────────── items ───────────────────────────
     // Снаряжение загружается из каталога SeedContent/items.catalog.json (см. ItemCatalog).
-    // Сеттинг каждого предмета задаёт систему: Any → обе, Fantasy → только Realms of Terrinoth.
+    // Fantasy активно в RoT; Any активно в Core и требует явного includeInRot для активности в RoT.
 
     // ─────────────────────────── heroic abilities ───────────────────────────
     // Героические способности (с улучшениями Improved/Supreme) загружаются из каталога

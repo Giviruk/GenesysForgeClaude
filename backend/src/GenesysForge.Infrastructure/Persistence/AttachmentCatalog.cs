@@ -41,7 +41,8 @@ public static class AttachmentCatalog
 
         foreach (var e in entries)
         {
-            // Any → обе системы; Fantasy → только Realms of Terrinoth. То же правило, что у предметов.
+            // Core-compatible attachments проходят собственный утверждённый каталог: для них Any
+            // по-прежнему означает обе системы. ItemDef использует отдельный allowlist includeInRot.
             var systems = string.Equals(e.Setting, "Fantasy", StringComparison.OrdinalIgnoreCase)
                 ? new[] { GameSystem.RealmsOfTerrinoth }
                 : [GameSystem.GenesysCore, GameSystem.RealmsOfTerrinoth];

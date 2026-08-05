@@ -38,6 +38,25 @@ public class SeedDataTests
     }
 
     [Fact]
+    public void Apply_RetiresCoreItemsInRot_ButKeepsApprovedExceptionsAndCoreRows()
+    {
+        using var db = NewDb();
+        SeedData.Apply(db);
+
+        // Имитируем старую БД, где Core-нож ещё ошибочно считался активным RoT-предметом.
+        var legacyRotKnife = db.ItemDefs.Single(i => i.Code == "rot.item.knife");
+        legacyRotKnife.Retired = false;
+        db.SaveChanges();
+
+        SeedData.Apply(db);
+
+        Assert.True(db.ItemDefs.Single(i => i.Code == "rot.item.knife").Retired);
+        Assert.False(db.ItemDefs.Single(i => i.Code == "gc.item.knife").Retired);
+        Assert.False(db.ItemDefs.Single(i => i.Code == "rot.item.backpack").Retired);
+        Assert.False(db.ItemDefs.Single(i => i.Code == "rot.item.rope").Retired);
+    }
+
+    [Fact]
     public void Apply_SeedsSpells_TerrinothHasMoreMagicSkills()
     {
         using var db = NewDb();

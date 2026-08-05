@@ -59,16 +59,46 @@ public class RotCatalogCleanupTests(ApiFactory factory) : IClassFixture<ApiFacto
         Assert.Contains(core, s => s.Name == "Gunnery");
     }
 
-    [Fact]
-    public async Task Revolver_IsAbsentFromRot_ButStaysInCore()
+    [Theory]
+    [InlineData("knife")]
+    [InlineData("revolver")]
+    [InlineData("heavy-jacket")]
+    [InlineData("painkiller")]
+    [InlineData("vacuum-sealed")]
+    [InlineData("rare-metals")]
+    [InlineData("enhanced-servos")]
+    [InlineData("telescopic-sight")]
+    [InlineData("weapon-harness")]
+    [InlineData("underslung-grenade-launcher")]
+    [InlineData("underslung-shotgun")]
+    [InlineData("underslung-flamethrower")]
+    [InlineData("bipod")]
+    [InlineData("tripod")]
+    [InlineData("extended-barrel")]
+    [InlineData("hair-trigger")]
+    public async Task CoreItem_IsAbsentFromRot_ButStaysInCore(string code)
     {
         var client = await factory.CreateAuthorizedClientAsync();
 
         var rot = (await ReferenceAsync(client, GameSystem.RealmsOfTerrinoth)).Items;
         var core = (await ReferenceAsync(client, GameSystem.GenesysCore)).Items;
 
-        Assert.DoesNotContain(rot, i => i.Code.EndsWith(".revolver", StringComparison.Ordinal));
-        Assert.Contains(core, i => i.Code.EndsWith(".revolver", StringComparison.Ordinal));
+        Assert.DoesNotContain(rot, i => i.Code.EndsWith($".{code}", StringComparison.Ordinal));
+        Assert.Contains(core, i => i.Code.EndsWith($".{code}", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public async Task RotItems_ContainOnlyTheApprovedCoreExceptions()
+    {
+        var client = await factory.CreateAuthorizedClientAsync();
+        var rot = (await ReferenceAsync(client, GameSystem.RealmsOfTerrinoth)).Items
+            .Where(i => !i.IsCustom).ToList();
+
+        Assert.Equal(116, rot.Count);
+        Assert.Equal(["backpack", "rope"], rot
+            .Where(i => i.Source.StartsWith("Genesys Core Rulebook", StringComparison.Ordinal))
+            .Select(i => i.Code[(i.Code.LastIndexOf('.') + 1)..])
+            .OrderBy(x => x, StringComparer.Ordinal));
     }
 
     [Fact]
