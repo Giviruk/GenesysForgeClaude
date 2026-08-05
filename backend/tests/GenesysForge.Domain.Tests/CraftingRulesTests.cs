@@ -284,6 +284,21 @@ public class CraftingRulesTests
                 CraftingRules.EnsureCraftable(service, CraftingKind.Item)).ReasonCode);
     }
 
+    [Theory]
+    [InlineData("rot.item.blasting-rune")]
+    [InlineData("rot.item.lesser-rune")]
+    public void EnsureCraftable_RejectsRuneAsEnchantmentBase(string code)
+    {
+        var rune = new ItemDef { Name = "Rune", Code = code, Price = null, Rarity = null };
+
+        Assert.Equal("crafting.base_not_enchantable",
+            Assert.Throws<DomainRuleException>(() =>
+                CraftingRules.EnsureCraftable(rune, CraftingKind.Enchantment)).ReasonCode);
+        Assert.Equal("crafting.target_priceless",
+            Assert.Throws<DomainRuleException>(() =>
+                CraftingRules.EnsureCraftable(rune, CraftingKind.Item)).ReasonCode);
+    }
+
     [Fact]
     public void EnsureEnchantable_RequiresSuperiorBase()
     {

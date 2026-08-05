@@ -71,7 +71,10 @@ const draft: CraftingProject = {
 
 const sheet = {
   id: 'char-1',
-  items: [{ id: 'item-axe', itemDefId: 'def-axe', name: 'Axe', nameRu: 'Топор' }],
+  items: [
+    { id: 'item-axe', itemDefId: 'def-axe', name: 'Axe', nameRu: 'Топор' },
+    { id: 'item-rune', itemDefId: 'def-rune', name: 'Lesser Rune', nameRu: 'Малая руна' },
+  ],
   skills: [
     { skillDefId: 'skill-arcana', name: 'Arcana', nameRu: 'Аркана', kind: 'magic' },
     { skillDefId: 'skill-runes', name: 'Runes', nameRu: 'Руны', kind: 'magic' },
@@ -85,6 +88,8 @@ const reference = {
       nameRu: 'Эликсир выносливости', price: 50, rarity: 3, shopCategory: 'consumable' },
     { id: 'def-meal', code: 'meal-tavern', name: 'Meal (Tavern)',
       nameRu: 'Еда в таверне', price: 2, rarity: 0, shopCategory: 'service' },
+    { id: 'def-rune', code: 'lesser-rune', name: 'Lesser Rune', nameRu: 'Малая руна',
+      price: null, rarity: null, shopCategory: 'magicImplement', shard: { code: 'lesser-rune' } },
   ],
 } as unknown as Reference
 
@@ -130,7 +135,7 @@ describe('Ремесло (ROT-CRAFT-01, ROT-ALCH-02, ROT-CRAFT-MAGIC-01)', () =>
     expect(within(select).queryByRole('option', { name: 'Эликсир выносливости' })).toBeNull()
 
     fireEvent.change(select, { target: { value: 'def-axe' } })
-    fireEvent.click(screen.getByLabelText('Варка зелья'))
+    fireEvent.click(screen.getByRole('tab', { name: 'Варка зелья' }))
 
     const potionSelect = screen.getByLabelText(/Что делаем/) as HTMLSelectElement
     expect(potionSelect.value).toBe('')
@@ -222,14 +227,23 @@ describe('Ремесло (ROT-CRAFT-01, ROT-ALCH-02, ROT-CRAFT-MAGIC-01)', () =>
 
   it('зачарование требует согласованной способности', async () => {
     renderTab()
-    fireEvent.click(await screen.findByLabelText('Зачарование'))
+    fireEvent.click(await screen.findByRole('tab', { name: 'Зачарование' }))
     expect(await screen.findByText(/уже превосходной основы/)).toBeTruthy()
     expect((screen.getByText('Начать проект') as HTMLButtonElement).disabled).toBe(true)
   })
 
+  it('не предлагает руну основой зачарования', async () => {
+    renderTab()
+    fireEvent.click(await screen.findByRole('tab', { name: 'Зачарование' }))
+
+    const select = screen.getByLabelText(/Основа из инвентаря/)
+    expect(within(select).getByRole('option', { name: 'Топор' })).toBeTruthy()
+    expect(within(select).queryByRole('option', { name: 'Малая руна' })).toBeNull()
+  })
+
   it('передаёт выбранный магический навык для зачарования', async () => {
     renderTab()
-    fireEvent.click(await screen.findByLabelText('Зачарование'))
+    fireEvent.click(await screen.findByRole('tab', { name: 'Зачарование' }))
     fireEvent.change(screen.getByLabelText(/Основа из инвентаря/), { target: { value: 'item-axe' } })
     fireEvent.change(screen.getByLabelText(/Согласованная способность/), { target: { value: 'огненный клинок' } })
     fireEvent.change(screen.getByLabelText(/Навык зачарования/), { target: { value: 'Runes' } })

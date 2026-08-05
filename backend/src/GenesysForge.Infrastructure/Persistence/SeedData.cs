@@ -230,6 +230,12 @@ public static class SeedData
             db, db.CareerDefs.Where(x => x.OwnerUserId == null), careers, c => (c.System, c.Name));
         RetireBuiltinsMissingFromSeed(
             db, db.SkillDefs.Where(x => x.OwnerUserId == null), skills, x => (x.System, x.Name));
+        // Улучшения (ROT-EQP-ATT-01) вынесены из каталога снаряжения в свой тип контента, но в уже
+        // засиженной базе их строки-предметы остались активными: «Рунический мороз» продавался в
+        // витрине и предлагался к изготовлению как обычное снаряжение. Экземпляры игроков переносит
+        // MigrateLegacyAttachmentItems, а сама запись каталога гасится здесь.
+        RetireBuiltinsMissingFromSeed(
+            db, db.ItemDefs.Where(x => x.OwnerUserId == null), items, x => (x.System, x.Name));
         SyncBuiltinByCode(db,
             db.HeroicSecondaryEffectDefs.Where(x => x.Code != ""),
             heroicSecondaryEffects,

@@ -56,6 +56,34 @@ public class SeedDataTests
         Assert.False(db.ItemDefs.Single(i => i.Code == "rot.item.rope").Retired);
     }
 
+    /// <summary>
+    /// Улучшение, вынесенное из каталога снаряжения в свой тип контента, не должно остаться
+    /// активным предметом в старой базе: иначе оно снова попадает в витрину и в ремесло.
+    /// </summary>
+    [Fact]
+    public void Apply_RetiresBuiltinItemsMissingFromSeed()
+    {
+        using var db = NewDb();
+        SeedData.Apply(db);
+
+        db.ItemDefs.Add(new Domain.Entities.ItemDef
+        {
+            Id = Guid.NewGuid(),
+            System = GameSystem.RealmsOfTerrinoth,
+            Code = "rot.item.runic-frost",
+            Name = "Runic Frost",
+            NameRu = "Рунический мороз",
+            Price = 1750,
+            Rarity = 8,
+        });
+        db.SaveChanges();
+
+        SeedData.Apply(db);
+
+        Assert.True(db.ItemDefs.Single(i => i.Code == "rot.item.runic-frost").Retired);
+        Assert.False(db.ItemDefs.Single(i => i.Code == "rot.item.backpack").Retired);
+    }
+
     [Fact]
     public void Apply_SeedsSpells_TerrinothHasMoreMagicSkills()
     {

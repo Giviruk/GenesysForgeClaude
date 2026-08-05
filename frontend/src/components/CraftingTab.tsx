@@ -139,7 +139,14 @@ export function CraftingTab({ sheet, reference, onError, refresh }: Props) {
   const unavailableCandidates = useMemo(() => kind === 'item'
     ? catalogCandidates.filter(i => i.shopCategory === 'service')
     : [], [catalogCandidates, kind])
-  const bases = useMemo(() => sheet.items ?? [], [sheet.items])
+  // Руну и каталожную реликвию зачаровывают не в мастерской: книга их не создаёт (backend
+  // повторяет проверку). Отбор исключением — незнакомая своя запись основой остаётся.
+  const notEnchantableDefIds = useMemo(() => new Set(reference.items
+    .filter(i => i.shard || i.shopCategory === 'magicItem')
+    .map(i => i.id)), [reference.items])
+  const bases = useMemo(() => (sheet.items ?? [])
+    .filter(i => !notEnchantableDefIds.has(i.itemDefId)),
+  [sheet.items, notEnchantableDefIds])
   const magicSkills = useMemo(() => sheet.skills.filter(s => s.kind === 'magic'), [sheet.skills])
   const effectiveMagicSkillName = magicSkills.some(s => s.name === magicSkillName)
     ? magicSkillName
@@ -239,12 +246,12 @@ export function CraftingTab({ sheet, reference, onError, refresh }: Props) {
       <section className="card">
         <h3>{t('Новый проект', 'New project')}</h3>
 
-        <div className="inline-form">
+        <div className="tabs" role="tablist">
           {(['item', 'potion', 'enchantment'] as CraftingKind[]).map(k => (
-            <label key={k}>
-              <input type="radio" name="crafting-kind" checked={kind === k}
-                onChange={() => changeKind(k)} /> {KIND_LABELS[k]}
-            </label>
+            <button key={k} role="tab" aria-selected={kind === k}
+              className={kind === k ? 'tab active' : 'tab'} onClick={() => changeKind(k)}>
+              {KIND_LABELS[k]}
+            </button>
           ))}
         </div>
 
