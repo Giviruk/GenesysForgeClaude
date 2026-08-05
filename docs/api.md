@@ -458,6 +458,9 @@ The work kind fixes the allowed catalog and skill: ordinary items use `Mechanics
 with `roughSurvival`), the twelve ROT-ALCH-01 consumables use `Alchemy`, and enchanting accepts a
 visible magic skill supplied in `skillName` (default `Arcana` for compatible older clients). A
 normal item submitted as `Potion`, or a potion submitted as `Item`, is rejected.
+Shop service rows (`shopCategory = Service`) are not craftable item recipes: prepared tavern food,
+drinks, lodging, hired help and paid travel remain visible as disabled entries in the client and a
+direct request is rejected with `crafting.target_not_craftable`.
 
 ### `POST /api/characters/{id}/crafting`
 

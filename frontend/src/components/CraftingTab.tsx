@@ -129,10 +129,16 @@ export function CraftingTab({ sheet, reference, onError, refresh }: Props) {
   useEffect(() => { void loadProjects() }, [loadProjects])
 
   // Зачарование идёт от вещи в инвентаре, всё остальное — от записи каталога.
-  const candidates: ItemDef[] = useMemo(() => reference.items
+  const catalogCandidates: ItemDef[] = useMemo(() => reference.items
     .filter(i => i.price !== null && i.rarity !== null)
     .filter(i => kind === 'potion' ? isPotion(i) : !isPotion(i)),
   [reference.items, kind])
+  const candidates = useMemo(() => catalogCandidates
+    .filter(i => kind === 'potion' || i.shopCategory !== 'service'),
+  [catalogCandidates, kind])
+  const unavailableCandidates = useMemo(() => kind === 'item'
+    ? catalogCandidates.filter(i => i.shopCategory === 'service')
+    : [], [catalogCandidates, kind])
   const bases = useMemo(() => sheet.items ?? [], [sheet.items])
   const magicSkills = useMemo(() => sheet.skills.filter(s => s.kind === 'magic'), [sheet.skills])
   const effectiveMagicSkillName = magicSkills.some(s => s.name === magicSkillName)
@@ -271,9 +277,18 @@ export function CraftingTab({ sheet, reference, onError, refresh }: Props) {
           <label>{t('Что делаем', 'What to make')}
             <select value={targetId} onChange={e => setTargetId(e.target.value)}>
               <option value="">{t('— выберите запись каталога —', '— pick a catalog entry —')}</option>
-              {candidates.map(i => (
-                <option key={i.id} value={i.id}>{localizedName(i)}</option>
-              ))}
+              <optgroup label={t('Можно создать', 'Craftable')}>
+                {candidates.map(i => (
+                  <option key={i.id} value={i.id}>{localizedName(i)}</option>
+                ))}
+              </optgroup>
+              {unavailableCandidates.length > 0 && (
+                <optgroup label={t('Нельзя создать ремеслом', 'Not craftable')}>
+                  {unavailableCandidates.map(i => (
+                    <option key={i.id} value={i.id} disabled>{localizedName(i)}</option>
+                  ))}
+                </optgroup>
+              )}
             </select>
           </label>
         )}

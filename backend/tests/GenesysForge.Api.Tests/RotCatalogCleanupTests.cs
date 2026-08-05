@@ -6,8 +6,8 @@ using GenesysForge.Domain;
 namespace GenesysForge.Api.Tests;
 
 /// <summary>
-/// ROT-CLEAN-3.1 / 3.2 / 3.5: активный каталог RoT не предлагает игроку лишние карьеры, навыки
-/// и таланты, но уже созданные персонажи ничего не теряют.
+/// ROT-CLEAN-3.1 / 3.2 / 3.5: активный каталог RoT не предлагает игроку лишние карьеры, навыки,
+/// таланты и предметы, но уже созданные персонажи ничего не теряют.
 /// </summary>
 public class RotCatalogCleanupTests(ApiFactory factory) : IClassFixture<ApiFactory>
 {
@@ -57,6 +57,18 @@ public class RotCatalogCleanupTests(ApiFactory factory) : IClassFixture<ApiFacto
         // Обе системы проверяются в одном процессе: фильтр RoT не должен удалить контент Core.
         Assert.DoesNotContain(rot, s => s.Name == "Gunnery");
         Assert.Contains(core, s => s.Name == "Gunnery");
+    }
+
+    [Fact]
+    public async Task Revolver_IsAbsentFromRot_ButStaysInCore()
+    {
+        var client = await factory.CreateAuthorizedClientAsync();
+
+        var rot = (await ReferenceAsync(client, GameSystem.RealmsOfTerrinoth)).Items;
+        var core = (await ReferenceAsync(client, GameSystem.GenesysCore)).Items;
+
+        Assert.DoesNotContain(rot, i => i.Code.EndsWith(".revolver", StringComparison.Ordinal));
+        Assert.Contains(core, i => i.Code.EndsWith(".revolver", StringComparison.Ordinal));
     }
 
     [Fact]

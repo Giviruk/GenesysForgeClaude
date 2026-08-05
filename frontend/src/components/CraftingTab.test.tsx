@@ -82,7 +82,9 @@ const reference = {
   items: [
     { id: 'def-axe', code: 'axe', name: 'Axe', nameRu: 'Топор', price: 150, rarity: 1 },
     { id: 'def-potion', code: 'stamina-elixir', name: 'Stamina Elixir',
-      nameRu: 'Эликсир выносливости', price: 50, rarity: 3 },
+      nameRu: 'Эликсир выносливости', price: 50, rarity: 3, shopCategory: 'consumable' },
+    { id: 'def-meal', code: 'meal-tavern', name: 'Meal (Tavern)',
+      nameRu: 'Еда в таверне', price: 2, rarity: 0, shopCategory: 'service' },
   ],
 } as unknown as Reference
 
@@ -138,6 +140,17 @@ describe('Ремесло (ROT-CRAFT-01, ROT-ALCH-02, ROT-CRAFT-MAGIC-01)', () =>
     fireEvent.change(potionSelect, { target: { value: 'def-potion' } })
     await waitFor(() => expect(previewMock).toHaveBeenLastCalledWith(
       'char-1', expect.objectContaining({ itemDefId: 'def-potion', kind: 'potion' })))
+  })
+
+  it('отделяет услуги от предметов, доступных для ремесла', async () => {
+    renderTab()
+    const select = await screen.findByLabelText(/Что делаем/)
+    const axe = within(select).getByRole('option', { name: 'Топор' }) as HTMLOptionElement
+    const meal = within(select).getByRole('option', { name: 'Еда в таверне' }) as HTMLOptionElement
+
+    expect(axe.disabled).toBe(false)
+    expect(meal.disabled).toBe(true)
+    expect(meal.parentElement?.getAttribute('label')).toBe('Нельзя создать ремеслом')
   })
 
   /** Своя цена отменяет долю и требует причины — то же правило, что при покупке. */

@@ -120,6 +120,10 @@ public static class CraftingRules
             throw new DomainRuleException(
                 "Алхимический расходник нужно создавать через варку зелий.",
                 "crafting.target_is_potion");
+        if (kind == CraftingKind.Item && ShopCatalogRules.IsService(def.Code))
+            throw new DomainRuleException(
+                "Услуги, готовую еду и напитки нельзя создавать обычным ремеслом.",
+                "crafting.target_not_craftable");
         if (def.Price is null)
             throw new DomainRuleException(
                 "У этой записи нет цены — изготовить её обычным процессом нельзя.",
