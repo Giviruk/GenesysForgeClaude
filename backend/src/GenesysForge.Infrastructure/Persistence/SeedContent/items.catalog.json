@@ -47,7 +47,6 @@
     "crit": "3",
     "rangeRu": "Средняя",
     "properties": "",
-    "retiredInRot": true,
     "traits": [
       "Ranged",
       "OneHanded"
@@ -102,7 +101,8 @@
     "rarity": 1,
     "desc": "Правильный инструмент для лазания, связывания, вытягивания и похожих задач.",
     "descEn": "The right tool for climbing, binding, hauling and similar tasks.",
-    "source": "Genesys Core Rulebook, с. 95"
+    "source": "Genesys Core Rulebook, с. 95",
+    "includeInRot": true
   },
   {
     "code": "backpack",
@@ -119,7 +119,8 @@
     "rarity": 3,
     "desc": "При ношении увеличивает порог нагрузки на 4.",
     "descEn": "Increases the encumbrance threshold by 4 while worn.",
-    "source": "Genesys Core Rulebook, с. 95"
+    "source": "Genesys Core Rulebook, с. 95",
+    "includeInRot": true
   },
   {
     "code": "vacuum-sealed",

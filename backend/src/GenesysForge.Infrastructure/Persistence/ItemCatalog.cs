@@ -10,8 +10,9 @@ namespace GenesysForge.Infrastructure.Persistence;
 /// Каталог снаряжения, загружаемый из embedded JSON (<c>SeedContent/items.catalog.json</c>).
 /// Источник — пользовательский CSV (структура + переработанные RU-описания, не текст книг),
 /// собран скриптом <c>_books/_inventory/gen-items-catalog.mjs</c>.
-/// Каждая запись разворачивается в <see cref="ItemDef"/> по игровым системам согласно сеттингу:
-/// Any → Genesys Core и Realms of Terrinoth; Fantasy → только Realms of Terrinoth.
+/// Каждая запись разворачивается в <see cref="ItemDef"/> по игровым системам согласно сеттингу.
+/// Fantasy активна только в Realms of Terrinoth. Any активна в Genesys Core, а в RoT — только
+/// при явном <c>includeInRot</c>; так новый Core-предмет не попадает в фэнтезийный каталог сам.
 /// </summary>
 public static class ItemCatalog
 {
@@ -21,8 +22,8 @@ public static class ItemCatalog
         string Desc, string Source,
         string? SkillEn, string? Damage, string? Crit, string? RangeRu, string? Properties,
         string DescEn = "", bool Retired = false,
-        /// <summary>Запись остаётся в Core, но выводится из активного каталога RoT.</summary>
-        bool RetiredInRot = false,
+        /// <summary>Общий Core-предмет явно одобрен утверждённым RoT-манифестом.</summary>
+        bool IncludeInRot = false,
         /// <summary>Разрешена обычная покупка через витрину.</summary>
         bool Purchasable = true,
         /// <summary>Разрешена обычная продажа экземпляра.</summary>
@@ -74,8 +75,10 @@ public static class ItemCatalog
 
         foreach (var e in entries)
         {
-            // Any → обе системы; Fantasy → только Realms of Terrinoth.
-            var systems = string.Equals(e.Setting, "Fantasy", StringComparison.OrdinalIgnoreCase)
+            // Any сохраняет legacy RoT-строку, но она retired без явного whitelist-флага.
+            // Fantasy существует только в RoT и активна по умолчанию.
+            var fantasy = string.Equals(e.Setting, "Fantasy", StringComparison.OrdinalIgnoreCase);
+            var systems = fantasy
                 ? new[] { GameSystem.RealmsOfTerrinoth }
                 : [GameSystem.GenesysCore, GameSystem.RealmsOfTerrinoth];
 
@@ -115,7 +118,7 @@ public static class ItemCatalog
                     RangeBand = e.RangeRu ?? "",
                     Properties = e.Properties ?? "",
                     Retired = e.Retired
-                        || (sys == GameSystem.RealmsOfTerrinoth && e.RetiredInRot),
+                        || (sys == GameSystem.RealmsOfTerrinoth && !fantasy && !e.IncludeInRot),
                     HardPoints = e.Hp,
                     FormTraits = ParseTraits(e.Traits),
                     CheckModifiers = [.. (e.Modifiers ?? []).Select(m => new ItemCheckModifier

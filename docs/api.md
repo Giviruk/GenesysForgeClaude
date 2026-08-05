@@ -132,6 +132,12 @@ Response: `ReferenceResponse`:
 - `mounts` — purchasable transport profiles (mounts and vehicles) with their statblocks
   (ROT-MOUNT-ITEM-01, ROT-TRANSPORT-01)
 
+The built-in Realms of Terrinoth `items` set is allowlisted: fantasy catalog rows plus the two
+Core-sourced gear entries explicitly present in the approved RoT manifest (`backpack`, `rope`).
+Other Core item rows remain available from the Genesys Core reference and are retired in RoT.
+The active RoT reference has exactly 116 built-in item rows, including nine service rows that the
+shop handles as operations rather than inventory.
+
 The response includes built-in content plus visible custom content owned by the current user. Imported
 homebrew-pack content is visible when the pack is enabled by default or enabled for the supplied
 `characterId`/`campaignId`.
