@@ -3,8 +3,8 @@
 - **Пункт ТЗ:** уточнение владельца к ROT-EQP-GEAR-01 / ROT-WPN-01 / ROT-ARM-01 / ROT-CLEAN
 - **Ветка:** `feature/rot-approved-items-only`
 - **Базовая ветка:** `master`
-- **PR:** будет добавлен после публикации
-- **Статус:** ✅ Implementation complete; awaiting PR/CI
+- **PR:** [#162](https://github.com/Giviruk/GenesysForgeClaude/pull/162)
+- **Статус:** ✅ Implementation complete; draft PR open, awaiting CI/review
 
 ## Контекст
 
@@ -23,11 +23,11 @@
 - [x] Миграция и изменение схемы не требуются
 - [x] Copyright-проверка seed/справочников выполнена
 - [x] `rot-rules-remediation-progress.md` обновлён
-- [ ] PR открыт
+- [x] PR открыт
 
 ## Что осталось / блокеры
 
-Реализация и полные локальные проверки завершены; остаются публикация и CI.
+Реализация и полные локальные проверки завершены; draft PR открыт, остаются CI и review.
 
 ## Заметки / решения
 
