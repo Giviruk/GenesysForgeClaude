@@ -111,7 +111,16 @@ public static class CraftingRules
     /// </summary>
     public static void EnsureCraftable(ItemDef def, CraftingKind kind)
     {
-        if (kind == CraftingKind.Enchantment) return; // основу не создают, её улучшают
+        // Основу зачарования не создают, её улучшают, — но руна и каталожная реликвия основой не
+        // бывают: книга их не изготавливает и превосходной работой мастера они не становятся.
+        if (kind == CraftingKind.Enchantment)
+        {
+            if (RuneboundShardRules.IsShard(def.Code) || MagicItemRules.IsMagicItem(def.Code))
+                throw new DomainRuleException(
+                    "Руну и магическую реликвию нельзя взять основой зачарования.",
+                    "crafting.base_not_enchantable");
+            return;
+        }
         if (kind == CraftingKind.Potion && !IsPotion(def.Code))
             throw new DomainRuleException(
                 "Эта запись не является алхимическим расходником.",
