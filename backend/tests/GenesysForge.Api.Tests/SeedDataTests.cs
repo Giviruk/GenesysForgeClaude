@@ -196,9 +196,10 @@ public class SeedDataTests
         SeedData.Apply(db);
 
         var careers = db.CareerDefs.ToList();
-        // Knight не входит в девять карьер RoT (ROT-CLEAN-3.1): активной записи для него нет.
+        // Knight и Runemaster не входят в восемь карьер RoT (ROT-CLEAN-3.1): активных записей нет.
         Assert.DoesNotContain(careers,
-            c => c.Name == "Knight" && c.System == GameSystem.RealmsOfTerrinoth && !c.Retired);
+            c => c.Name is "Knight" or "Runemaster"
+                && c.System == GameSystem.RealmsOfTerrinoth && !c.Retired);
         Assert.Contains(careers, c => c.NameRu == "Волшебник" && c.System == GameSystem.GenesysCore);
         Assert.Contains(careers, c => c.NameRu == "Друид" && c.System == GameSystem.GenesysCore);
         Assert.Contains(careers, c => c.NameRu == "Жрец" && c.System == GameSystem.GenesysCore);

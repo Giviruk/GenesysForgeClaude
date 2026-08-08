@@ -219,7 +219,6 @@ Willpower, включая `Dedication`, не пересчитывает сохр
 | Disciple | Mace | `Holy Icon` **или** `Shield + Leather Armor`; `Lantern + Herbs of Healing ×2` **или** `Traveling Gear` | `1d100` |
 | Envoy | Dagger; Padded Armor | `Sword` **или** `Musical Instrument`; `Fine Cloak` **или** `Traveling Gear` | `200 + 1d100` |
 | Mage | — | `Magic Staff` **или** `Magic Wand`; `Dagger` **или** `Sling`; `Heavy Robes` **или** `Stamina Elixir ×1` | `1d100` |
-| Runemaster | Lesser Rune | `Dagger` **или** `Sling`; `Heavy Robes` **или** `Stamina Elixir ×1` | `1d100` |
 | Primalist | — | `Staff` **или** `Greataxe + Leather Armor`; `Apothecary’s Kit` **или** `Traveling Gear` | `1d100` |
 | Scholar | Dagger | `Alchemist’s Kit` **или** `Sword`; `Lantern` **или** `Herbs of Healing ×1`; `Fine Cloak` **или** `Traveling Gear` | `1d100` |
 | Scoundrel | Traveling Gear | `Dagger` **или** `Cestus`; `Sword + Dagger` **или** `Bow`; `Fine Cloak` **или** `Thieves’ Tools` | `1d100` |
@@ -230,8 +229,6 @@ Willpower, включая `Dedication`, не пересчитывает сохр
 `Backpack ×1`, `Bedroll ×1`, `Rope ×1`, `Flint and Steel ×1`, `Torch ×3`,
 `Waterskin ×1` в пустом состоянии. Для оружия и implements комплект использует
 steel craftsmanship и oak material, если к предмету применима эта характеристика.
-Runemaster наследует комплект Mage, но заменяет только первую группу
-`Magic Staff | Magic Wand` на фиксированный `Lesser Rune`.
 
 #### Изменения
 
@@ -2928,28 +2925,28 @@ Coverage validator сравнивает ожидаемые codes/числа/choi
 
 ### ROT-CLEAN-3.1. Точный список карьер RoT
 
-В активном встроенном RoT-каталоге должно быть ровно девять карьер:
+В активном встроенном RoT-каталоге должно быть ровно восемь карьер:
 
 | Stable code | Canonical name |
 |---|---|
 | `disciple` | Disciple |
 | `envoy` | Envoy |
 | `mage` | Mage |
-| `runemaster` | Runemaster |
 | `primalist` | Primalist |
 | `scholar` | Scholar |
 | `scoundrel` | Scoundrel |
 | `scout` | Scout |
 | `warrior` | Warrior |
 
-`Knight` не является десятой карьерой RoT. Исключить только встроенную запись
+`Knight` и `Runemaster` карьерами RoT не являются: Runemaster — класс мага из Descent,
+а не карьера книги, и навык `Runes` уже есть у Scholar. Исключить только встроенную запись
 `System=RealmsOfTerrinoth`; одноимённый custom content и запись из другого
 правильного source scope не трогать. Старый RoT-персонаж с `Knight` сохраняет
 career snapshot, career-skill flags, стартовые предметы и XP. Он может продолжать
 использоваться, но UI показывает `LegacyCareerSourceMismatch`; смена карьеры после
 creation по-прежнему запрещрещена общим правилом.
 
-Seed-тест должен сравнивать **полное множество** девяти codes, а не только count.
+Seed-тест должен сравнивать **полное множество** восьми codes, а не только count.
 Reference, creation, import resolver и search используют один фильтр
 `ActiveFor(GameSystem.RealmsOfTerrinoth)`.
 

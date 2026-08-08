@@ -13,17 +13,17 @@ public class RotCatalogCleanupTests(ApiFactory factory) : IClassFixture<ApiFacto
 {
     private static readonly string[] RotCareerNames =
     [
-        "Disciple", "Envoy", "Mage", "Primalist", "Runemaster",
+        "Disciple", "Envoy", "Mage", "Primalist",
         "Scholar", "Scoundrel", "Scout", "Warrior",
     ];
 
     private static async Task<ReferenceResponse> ReferenceAsync(HttpClient client, GameSystem system) =>
         (await client.GetFromJsonAsync<ReferenceResponse>($"/api/reference/{system}", Json.Options))!;
 
-    // ---- ROT-CLEAN-3.1: ровно девять карьер ----
+    // ---- ROT-CLEAN-3.1: ровно восемь карьер ----
 
     [Fact]
-    public async Task RotCareerSet_IsExactlyTheNineOfTheBook()
+    public async Task RotCareerSet_IsExactlyTheEightOfTheBook()
     {
         var client = await factory.CreateAuthorizedClientAsync();
 
@@ -34,14 +34,18 @@ public class RotCatalogCleanupTests(ApiFactory factory) : IClassFixture<ApiFacto
         Assert.Equal(RotCareerNames, careers);
     }
 
-    [Fact]
-    public async Task Knight_IsNotOfferedAsARotCareer()
+    // Knight и Runemaster в книге не карьеры: Runemaster — класс мага из Descent, а навык Runes
+    // и без него есть у Scholar. Строки не удаляются, а гаснут — созданные персонажи их сохраняют.
+    [Theory]
+    [InlineData("Knight")]
+    [InlineData("Runemaster")]
+    public async Task CareerOutsideTheBook_IsNotOfferedInRot(string name)
     {
         var client = await factory.CreateAuthorizedClientAsync();
 
         var careers = (await ReferenceAsync(client, GameSystem.RealmsOfTerrinoth)).Careers;
 
-        Assert.DoesNotContain(careers, c => !c.IsCustom && c.Name == "Knight");
+        Assert.DoesNotContain(careers, c => !c.IsCustom && c.Name == name);
     }
 
     // ---- ROT-CLEAN-3.2: Gunnery только в Core ----

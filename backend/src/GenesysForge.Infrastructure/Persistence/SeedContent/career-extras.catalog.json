@@ -256,61 +256,6 @@
   "rules": []
  },
  {
-  "code": "rot.career.runemaster",
-  "moneyFixed": 0,
-  "moneyDice": "1d100",
-  "gear": [
-   {
-    "itemCode": "lesser-rune",
-    "itemNameFallback": "Малая руна",
-    "quantity": 1,
-    "isChoice": false,
-    "choiceGroup": "",
-    "choiceOption": 0
-   },
-   {
-    "itemCode": "dagger",
-    "itemNameFallback": "Кинжал",
-    "quantity": 1,
-    "isChoice": true,
-    "choiceGroup": "slot-1",
-    "choiceOption": 0
-   },
-   {
-    "itemCode": "sling",
-    "itemNameFallback": "Праща",
-    "quantity": 1,
-    "isChoice": true,
-    "choiceGroup": "slot-1",
-    "choiceOption": 1
-   },
-   {
-    "itemCode": "heavy-robes",
-    "itemNameFallback": "Тяжёлые одеяния",
-    "quantity": 1,
-    "isChoice": true,
-    "choiceGroup": "slot-2",
-    "choiceOption": 0
-   },
-   {
-    "itemCode": "stamina-elixir",
-    "itemNameFallback": "Эликсир бодрости",
-    "quantity": 1,
-    "isChoice": true,
-    "choiceGroup": "slot-2",
-    "choiceOption": 1
-   }
-  ],
-  "rules": [
-   {
-    "code": "rot.career.runemaster.rule.1",
-    "kind": "Advisory",
-    "description": "Вариант карьеры Mage: Runes вместо Arcana.",
-    "descriptionEn": "A variant of the Mage career: Runes instead of Arcana."
-   }
-  ]
- },
- {
   "code": "rot.career.primalist",
   "moneyFixed": 0,
   "moneyDice": "1d100",
