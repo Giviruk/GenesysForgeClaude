@@ -161,7 +161,7 @@ ROT-TAL-05, ROT-HA-08/10, ROT-MAG-05/07/08 и ROT-EQP-AMMO-01 — всем, чт
 
 ### 11. Очистка каталогов, бестиарий, скакуны
 
-- [x] **ROT-CLEAN-3.1** — ровно девять карьер RoT, Knight исключён (P1)
+- [x] **ROT-CLEAN-3.1** — ровно восемь карьер RoT, Knight и Runemaster исключены (P1)
 - [x] **ROT-CLEAN-3.2** — Gunnery только в Genesys Core (P1)
 - [x] **ROT-CLEAN-3.5** — одиннадцать лишних талантов не покупаются в RoT (P1)
 - [x] **ROT-CLEAN-3.6** — девять записей Haunted City ушли из активного бестиария RoT (P2)
