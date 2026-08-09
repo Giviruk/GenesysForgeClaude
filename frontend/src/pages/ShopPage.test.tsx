@@ -45,6 +45,21 @@ const rope = {
   implement: null,
 } as unknown as ItemDef
 
+const sword = {
+  ...rope,
+  id: 'item-sword',
+  code: 'rot.item.sword',
+  name: 'Sword',
+  nameRu: 'Меч',
+  kind: 'weapon',
+  shopCategory: 'weaponLight',
+  price: 100,
+  rarity: 1,
+  properties: 'Высококритичное 1, Оборонительное 1',
+  description: 'Надёжный клинок.',
+  safeDescription: 'Надёжный клинок.',
+} as unknown as ItemDef
+
 const service = {
   ...rope,
   id: 'item-service',
@@ -58,7 +73,7 @@ const service = {
 } as unknown as ItemDef
 
 const reference = {
-  items: [rope, service],
+  items: [rope, sword, service],
   attachments: [],
 } as unknown as Reference
 
@@ -95,6 +110,33 @@ describe('Общий магазин', () => {
       'char-1', 'item-rope', 1, 'carried', { free: false },
     ))
     expect(buyServiceMock).not.toHaveBeenCalled()
+  })
+
+  it('показывает у оружия теги свойств с теми же тултипами, что и магазин инвентаря', async () => {
+    render(<ShopPage />)
+
+    const swordButton = await screen.findByRole('button', { name: /Меч/ })
+    const viciousTag = screen.getByText('Высококритичное 1')
+    fireEvent.click(viciousTag)
+
+    expect(screen.queryByRole('dialog')).toBeNull()
+    const tooltip = screen.getByRole('tooltip')
+    expect(tooltip.textContent).toContain('Высококритичное')
+    expect(tooltip.textContent).toContain('критической травмы')
+
+    fireEvent.click(swordButton)
+    const dialog = screen.getByRole('dialog')
+    expect(within(dialog).getByText('Высококритичное 1')).toBeTruthy()
+  })
+
+  it('ищет оружие по названию свойства', async () => {
+    render(<ShopPage />)
+
+    const search = await screen.findByPlaceholderText(/Поиск по названию, описанию и свойствам/)
+    fireEvent.change(search, { target: { value: 'Оборонительное' } })
+
+    expect(await screen.findByRole('button', { name: /Меч/ })).toBeTruthy()
+    expect(screen.queryByRole('button', { name: /Верёвка/ })).toBeNull()
   })
 
   it('оказывает услугу без записи в инвентарь', async () => {
