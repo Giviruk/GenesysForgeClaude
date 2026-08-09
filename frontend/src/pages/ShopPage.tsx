@@ -18,6 +18,7 @@ import {
 import {
   buildShopProducts, productPrice, productRarity, type ShopCategory, type ShopProduct,
 } from '../utils/shopCatalog'
+import { PropertyTags } from '../components/PropertyTags'
 import { lang, t } from '../i18n'
 
 const CATEGORY_ORDER: ShopCategory[] = [
@@ -92,6 +93,9 @@ const productSource = (product: ShopProduct): string =>
     : product.type === 'mount' ? product.mount.source
       : product.attachment.source
 
+const productProperties = (product: ShopProduct): string =>
+  product.type === 'item' ? product.item.properties ?? '' : ''
+
 export function ShopPage() {
   const [characters, setCharacters] = useState<CharacterListItem[]>([])
   const [system, setSystem] = useState<GameSystem>('realmsOfTerrinoth')
@@ -141,6 +145,7 @@ export function ShopPage() {
           productName(product),
           productSecondaryName(product),
           productDescription(product),
+          productProperties(product),
           productSource(product),
         ].filter(Boolean).join(' ')).includes(query)
       })
@@ -185,7 +190,7 @@ export function ShopPage() {
       <section className="panel shop-catalogue">
         <div className="shop-toolbar">
           <input className="shop-search" value={search}
-            placeholder={t('Поиск по названию и описанию…', 'Search names and descriptions…')}
+            placeholder={t('Поиск по названию, описанию и свойствам…', 'Search names, descriptions, and properties…')}
             onChange={event => setSearch(event.target.value)} />
         </div>
 
@@ -223,6 +228,9 @@ export function ShopPage() {
                   <span className="muted small-text shop-product-category">
                     {CATEGORY_LABELS[product.category]}
                   </span>
+                  {product.type === 'item' && product.item.kind === 'weapon' && product.item.properties && (
+                    <PropertyTags properties={product.item.properties} className="shop-props small-text" />
+                  )}
                 </span>
                 <span className="shop-product-stats">
                   <span>
@@ -366,6 +374,9 @@ function ProductModal({ product, characters, onClose }: {
           <p className="muted">{productSecondaryName(product)}</p>
         )}
         <p>{productDescription(product) || t('Описание отсутствует.', 'No description available.')}</p>
+        {item?.kind === 'weapon' && item.properties && (
+          <PropertyTags properties={item.properties} className="shop-props" />
+        )}
         {productSource(product) && <p className="muted small-text">{productSource(product)}</p>}
 
         <div className="shop-modal-facts">
