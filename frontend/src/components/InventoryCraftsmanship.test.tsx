@@ -100,6 +100,12 @@ const relicDef = {
   ...plateDef, id: 'def-relic', code: 'rot.item.soulbound-sword',
   name: 'Soulbound Sword', nameRu: 'Клинок душ', kind: 'weapon',
   price: null, rarity: 10, purchasable: false, sellable: false, shopCategory: 'magicItem',
+  damage: '', crit: '', attackProfiles: [{
+    code: 'default', nameRu: '', nameEn: '', isDefault: true, skillName: 'Melee',
+    damageKind: 'brawnPlus', damageValue: 6, crit: 2, range: 'engaged',
+    cannotAttackEngaged: false, fixedDifficulty: null, qualities: [], baseDamage: null,
+    poolModifiers: null,
+  }],
 } as unknown as ItemDef
 
 const relicItem = {
@@ -196,6 +202,17 @@ describe('Инвентарь: качество изготовления (ROT-WPN
     const shop = document.querySelector('.shop-list')!.textContent ?? ''
     expect(shop).toContain('Верёвка')
     expect(shop).not.toContain('Баня')
+  })
+
+  it('показывает структурный урон оружия и поглощение брони во встроенном магазине', () => {
+    render(<InventoryTab sheet={sheet} reference={shopReference} onError={() => {}}
+      refresh={() => Promise.resolve()} />)
+
+    const shop = document.querySelector('.shop-list') as HTMLElement
+    const plateRow = within(shop).getByText('Латы').closest('.shop-row') as HTMLElement
+    const relicRow = within(shop).getByText('Клинок душ').closest('.shop-row') as HTMLElement
+    expect(plateRow.textContent).toContain('поглощение +2')
+    expect(relicRow.textContent).toContain('урон +6, крит 2')
   })
 
   it('выносит runebound shards в отдельную вкладку без обычной покупки', () => {
