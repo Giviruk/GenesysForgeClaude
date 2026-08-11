@@ -42,18 +42,20 @@ public class TalentChoiceApiTests(ApiFactory factory) : IClassFixture<ApiFactory
 
         var companion = reference.Talents.Single(t => t.Name == "Animal Companion");
         Assert.Equal(TalentChoiceKind.AnimalCompanion, companion.ChoiceKind);
-        async Task<NpcDetailDto> CreateCompanionAsync(string name, int silhouette)
+        async Task<NpcDetailDto> CreateCompanionAsync(
+            string name, int silhouette, List<string>? tags = null)
         {
             var response = await client.PostAsJsonAsync("/api/npcs/", new NpcInput(
                 name, GameSystem.GenesysCore, NpcKind.Minion, NpcRole.Skirmisher,
                 "", "", 1, 3, 1, 2, 1, 1, 5, null, 1, 0, 0, silhouette, "",
-                NpcVisibility.Private, null, [], [], [], [], [], ["animal"]));
+                NpcVisibility.Private, null, [], [], [], [], [], tags ?? ["animal"]));
             response.EnsureSuccessStatusCode();
             return (await response.Content.ReadFromJsonAsync<NpcDetailDto>(Json.Options))!;
         }
 
         var selectedCompanion = await CreateCompanionAsync("Серый сокол", 0);
         var tooLargeCompanion = await CreateCompanionAsync("Большой волк", 1);
+        var humanoid = await CreateCompanionAsync("Городской стражник", 0, ["человек"]);
         var before = (await client.GetFromJsonAsync<CharacterSheetDto>(
             $"/api/characters/{id}", Json.Options))!;
 
@@ -64,6 +66,14 @@ public class TalentChoiceApiTests(ApiFactory factory) : IClassFixture<ApiFactory
             $"/api/characters/{id}", Json.Options))!;
         Assert.Equal(before.SpentXp, afterMissing.SpentXp);
         Assert.DoesNotContain(afterMissing.Talents!, t => t.TalentDefId == companion.Id);
+
+        var nonAnimal = await client.PostAsJsonAsync($"/api/characters/{id}/talents/buy",
+            new BuyTalentRequest(companion.Id, Choices: [humanoid.Id.ToString()]));
+        Assert.Equal(HttpStatusCode.BadRequest, nonAnimal.StatusCode);
+        var afterNonAnimal = (await client.GetFromJsonAsync<CharacterSheetDto>(
+            $"/api/characters/{id}", Json.Options))!;
+        Assert.Equal(before.SpentXp, afterNonAnimal.SpentXp);
+        Assert.DoesNotContain(afterNonAnimal.Talents!, t => t.TalentDefId == companion.Id);
 
         var tooLarge = await client.PostAsJsonAsync($"/api/characters/{id}/talents/buy",
             new BuyTalentRequest(companion.Id, Choices: [tooLargeCompanion.Id.ToString()]));

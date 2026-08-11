@@ -30,6 +30,9 @@ const isPassiveActivation = (activation: string) => {
 }
 // Талант Dedication не поднимает характеристику выше этого значения.
 const TALENT_CHARACTERISTIC_MAX = 5
+const ANIMAL_COMPANION_TAGS = new Set(['animal', 'животное', 'зверь'])
+const isAnimalCompanion = (npc: NpcListItem) =>
+  npc.tags.some(tag => ANIMAL_COMPANION_TAGS.has(tag.trim().toLocaleLowerCase()))
 
 /** Подпись лимита применений: «1 раз за столкновение» и т. п. (ROT-TAL-05, только описание). */
 function usesLabel(uses: number, scope: AbilityUseScope): string {
@@ -87,7 +90,7 @@ export function TalentsTab({ sheet, reference, onError, refresh }: Props) {
     try {
       const maximumSilhouette = owned.get(talent.id)?.ranks ?? 0
       const options = (await api.npcs({ system: sheet.system, sort: 'name' }))
-        .filter(npc => npc.silhouette <= maximumSilhouette)
+        .filter(npc => isAnimalCompanion(npc) && npc.silhouette <= maximumSilhouette)
       setCompanionOptions(options)
       if (options.length > 0) setCompanionId(options[0].id)
     } catch (err) {
@@ -455,8 +458,8 @@ export function TalentsTab({ sheet, reference, onError, refresh }: Props) {
             <h3>{localizedName(companionPickFor)}: {t('выбор спутника', 'choose a companion')}</h3>
             <p className="hint">
               {t(
-                `Укажите животное, одобренное ведущим. Для этого ранга допустим силуэт не выше ${owned.get(companionPickFor.id)?.ranks ?? 0}.`,
-                `Enter a GM-approved animal. This rank allows silhouette up to ${owned.get(companionPickFor.id)?.ranks ?? 0}.`,
+                `Выберите NPC с тегом «зверь» или «животное», одобренного ведущим. Для этого ранга допустим силуэт не выше ${owned.get(companionPickFor.id)?.ranks ?? 0}.`,
+                `Choose a GM-approved NPC tagged “animal”. This rank allows silhouette up to ${owned.get(companionPickFor.id)?.ranks ?? 0}.`,
               )}
             </p>
             {companionLoading ? (
@@ -465,8 +468,8 @@ export function TalentsTab({ sheet, reference, onError, refresh }: Props) {
               <p className="error">{companionError}</p>
             ) : companionOptions.length === 0 ? (
               <p className="muted">
-                {t('Нет доступных NPC подходящего силуэта. Сначала создайте спутника в библиотеке NPC.',
-                  'No available NPC has an eligible silhouette. Create the companion in the NPC library first.')}
+                {t('Нет доступных животных подходящего силуэта. Создайте NPC или добавьте ему тег «зверь»/«животное».',
+                  'No eligible animal is available. Create an NPC or add the “animal” tag.')}
               </p>
             ) : (
               <label>{t('Спутник', 'Companion')}

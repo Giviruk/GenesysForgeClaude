@@ -66,8 +66,8 @@ public class BuyTalentHandler(IAppDbContext db) : ICommandHandler<BuyTalentComma
             throw new DomainRuleException(choiceError.Message, choiceError.ReasonCode);
 
         // Animal Companion хранит стабильный id записи NPC, а не имя. Одновременно проверяем,
-        // что этот NPC видим игроку, относится к той же системе и помещается в лимит силуэта
-        // текущего ранга (первый ранг — 0, каждый следующий повышает предел на 1).
+        // что этот NPC видим игроку, относится к той же системе, помечен как животное и
+        // помещается в лимит силуэта текущего ранга (первый ранг — 0, каждый следующий +1).
         var companionNames = schema.Kind == TalentChoiceKind.AnimalCompanion
             ? await CompanionNamesAsync(c, command.UserId, rankIndex, requestedChoices, ct)
             : new Dictionary<string, string>(StringComparer.Ordinal);
@@ -164,11 +164,17 @@ public class BuyTalentHandler(IAppDbContext db) : ICommandHandler<BuyTalentComma
                 || (n.Visibility == NpcVisibility.CampaignVisible && n.CampaignId != null
                     && db.CampaignCharacters.Any(cc => cc.PlayerUserId == userId
                         && cc.CampaignId == n.CampaignId.Value)))
-            .Select(n => new { n.Id, n.Name, n.Silhouette })
+            .Select(n => new { n.Id, n.Name, n.Silhouette, n.Tags })
             .ToListAsync(ct);
         if (companions.Count != ids.Distinct().Count())
             throw new DomainRuleException(
                 "Спутник не найден или недоступен персонажу.", "talent.choice.companion_unknown");
+
+        var notAnimal = companions.FirstOrDefault(n => !IsAnimal(n.Tags));
+        if (notAnimal is not null)
+            throw new DomainRuleException(
+                $"«{notAnimal.Name}» не помечен как животное и не может быть выбран спутником.",
+                "talent.choice.companion_not_animal");
 
         var tooLarge = companions.FirstOrDefault(n => n.Silhouette > maximumSilhouette);
         if (tooLarge is not null)
@@ -181,6 +187,11 @@ public class BuyTalentHandler(IAppDbContext db) : ICommandHandler<BuyTalentComma
             value => companions.Single(n => n.Id == Guid.Parse(value)).Name,
             StringComparer.Ordinal);
     }
+
+    private static bool IsAnimal(IEnumerable<string> tags) => tags.Any(tag =>
+        tag.Trim().Equals("animal", StringComparison.OrdinalIgnoreCase)
+        || tag.Trim().Equals("животное", StringComparison.OrdinalIgnoreCase)
+        || tag.Trim().Equals("зверь", StringComparison.OrdinalIgnoreCase));
 
     /// <summary>Имена предусловия и взаимоисключений таланта по их bare-slug кодам.</summary>
     private async Task<Dictionary<string, string>> RelatedTalentNamesAsync(

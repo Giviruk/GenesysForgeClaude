@@ -325,7 +325,8 @@ Protected. Refunds one skill rank during creation if it is not a free rank.
 ### `POST /api/characters/{id}/talents/buy`
 
 Protected. Request: `BuyTalentRequest` with `talentDefId` and any required `choices`. Buys one
-talent rank. For Animal Companion, the choice is a visible NPC id from the same game system;
+talent rank. For Animal Companion, the choice is a visible NPC id from the same game system,
+tagged exactly `animal`, `животное`, or `зверь` (case-insensitive);
 the server validates that its silhouette is at most the zero-based rank index (0 for the first
 rank, 1 for the second, and so on) before spending XP.
 
