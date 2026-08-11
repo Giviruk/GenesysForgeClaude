@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { api } from '../api/client'
-import type { Characteristic, GameParticipant, NpcDetail, Reference } from '../api/types'
+import type { Characteristic, GameParticipant, GameSession, NpcDetail, Reference } from '../api/types'
 import { useDiceRoller } from '../dice-roller-store'
 import { t } from '../i18n'
 import {
@@ -8,6 +8,7 @@ import {
 } from '../utils/labels'
 import { npcAttackViews, npcSkillViews, skillIndex } from '../utils/npcStats'
 import { resolveQualityCosts } from '../utils/combat'
+import { effectiveParticipantCount, minionGroupState, participantNameWithCount } from '../utils/gameTable'
 import { DicePoolView } from './DicePoolView'
 import type { RollLogRequest } from './DiceRoller'
 
@@ -15,15 +16,20 @@ interface Props {
   participant: GameParticipant
   campaignId: string
   isGm: boolean
+  onSessionChange: (session: GameSession) => void
   onClose: () => void
 }
 
 /** Read-only статблок связанного NPC прямо поверх игрового стола. */
-export function GameTableNpcStatblock({ participant, campaignId, isGm, onClose }: Props) {
+export function GameTableNpcStatblock({ participant, campaignId, isGm, onSessionChange, onClose }: Props) {
   const [npc, setNpc] = useState<NpcDetail | null>(null)
   const [reference, setReference] = useState<Reference | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [busy, setBusy] = useState(false)
   const { openRoller } = useDiceRoller()
+  const groupState = minionGroupState(participant)
+  const effectiveCount = effectiveParticipantCount(participant)
+  const canAct = effectiveCount > 0
 
   useEffect(() => {
     let cancelled = false
@@ -42,13 +48,24 @@ export function GameTableNpcStatblock({ participant, campaignId, isGm, onClose }
 
   const index = useMemo(() => skillIndex(reference), [reference])
   const skills = useMemo(
-    () => npc ? npcSkillViews(npc, index, participant.count) : [],
-    [npc, index, participant.count],
+    () => npc ? npcSkillViews(npc, index, effectiveCount) : [],
+    [npc, index, effectiveCount],
   )
   const attacks = useMemo(
-    () => npc ? npcAttackViews(npc, reference, participant.count) : [],
-    [npc, reference, participant.count],
+    () => npc ? npcAttackViews(npc, reference, effectiveCount) : [],
+    [npc, reference, effectiveCount],
   )
+
+  async function updateVitals(patch: { woundsCurrent?: number; strainCurrent?: number }) {
+    setBusy(true); setError(null)
+    try {
+      onSessionChange(await api.updateParticipant(campaignId, participant.id, patch))
+    } catch (e) {
+      setError(e instanceof Error ? e.message : t('Не удалось изменить состояние NPC.', 'Could not update NPC status.'))
+    } finally {
+      setBusy(false)
+    }
+  }
 
   const logAsNpc = (name: string) => (req: RollLogRequest) => {
     void api.createRoll(campaignId, { ...req, actorName: name })
@@ -66,11 +83,14 @@ export function GameTableNpcStatblock({ participant, campaignId, isGm, onClose }
         onClick={e => e.stopPropagation()}>
         <div className="modal-header">
           <div>
-            <h3>{participant.displayName}{participant.count > 1 ? ` ×${participant.count}` : ''}</h3>
+            <h3>{participantNameWithCount(participant)}</h3>
             {npc?.kind === 'minion' && (
               <div className="muted small-text">
-                {t(`Группа: эффективный ранг групповых навыков ${Math.max(0, participant.count - 1)}`,
-                  `Group: effective group-skill rank ${Math.max(0, participant.count - 1)}`)}
+                {groupState
+                  ? t(`Осталось ${groupState.remainingCount} из ${groupState.initialCount} · индивидуальный порог ран ${groupState.perMemberWoundThreshold} · эффективный ранг ${Math.max(0, groupState.remainingCount - 1)}`,
+                      `${groupState.remainingCount} of ${groupState.initialCount} remaining · per-member wound threshold ${groupState.perMemberWoundThreshold} · effective rank ${Math.max(0, groupState.remainingCount - 1)}`)
+                  : t(`Эффективный ранг групповых навыков ${Math.max(0, effectiveCount - 1)}`,
+                      `Effective group-skill rank ${Math.max(0, effectiveCount - 1)}`)}
               </div>
             )}
           </div>
@@ -106,6 +126,29 @@ export function GameTableNpcStatblock({ participant, campaignId, isGm, onClose }
               <span><b>{t('Силуэт', 'Silhouette')}</b> {npc.silhouette}</span>
             </div>
 
+            {isGm && (
+              <div className="gt-npc-vitals" aria-label={t('Управление состоянием NPC', 'NPC status controls')}>
+                <div className="gt-npc-vital-control">
+                  <strong>{t('Раны', 'Wounds')}</strong>
+                  <button type="button" className="small" disabled={busy || participant.woundsCurrent <= 0}
+                    onClick={() => void updateVitals({ woundsCurrent: Math.max(0, participant.woundsCurrent - 1) })}>−1</button>
+                  <span>{participant.woundsCurrent}/{participant.woundsThreshold}</span>
+                  <button type="button" className="small" disabled={busy}
+                    onClick={() => void updateVitals({ woundsCurrent: participant.woundsCurrent + 1 })}>+1</button>
+                </div>
+                {participant.strainThreshold != null && (
+                  <div className="gt-npc-vital-control">
+                    <strong>{t('Усталость', 'Strain')}</strong>
+                    <button type="button" className="small" disabled={busy || participant.strainCurrent <= 0}
+                      onClick={() => void updateVitals({ strainCurrent: Math.max(0, participant.strainCurrent - 1) })}>−1</button>
+                    <span>{participant.strainCurrent}/{participant.strainThreshold}</span>
+                    <button type="button" className="small" disabled={busy}
+                      onClick={() => void updateVitals({ strainCurrent: participant.strainCurrent + 1 })}>+1</button>
+                  </div>
+                )}
+              </div>
+            )}
+
             {skills.length > 0 && (
               <section className="npc-section">
                 <h4>{npc.kind === 'minion' ? t('Групповые навыки', 'Group skills') : t('Навыки', 'Skills')}</h4>
@@ -118,7 +161,7 @@ export function GameTableNpcStatblock({ participant, campaignId, isGm, onClose }
                       </span>
                       {skill.pool ? <>
                         <DicePoolView pool={skill.pool} />
-                        <button type="button" className="small" onClick={() => openRoller({
+                        <button type="button" className="small" disabled={!canAct} onClick={() => openRoller({
                           kind: 'roll',
                           title: `${participant.displayName} — ${skill.name}`,
                           label: skill.name,
@@ -142,7 +185,7 @@ export function GameTableNpcStatblock({ participant, campaignId, isGm, onClose }
                       <div className="npc-weapon-head">
                         <strong>{attack.name}</strong>
                         {attack.pool && <DicePoolView pool={attack.pool} />}
-                        <button type="button" className="small" disabled={!attack.pool} onClick={() => openRoller({
+                        <button type="button" className="small" disabled={!attack.pool || !canAct} onClick={() => openRoller({
                           kind: 'combat',
                           title: attack.name,
                           skillLabel: attack.skillLabel,
