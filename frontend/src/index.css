@@ -1584,12 +1584,24 @@ button.tiny { font-size: 0.75rem; padding: 0.05rem 0.4rem 0.15rem; }
 .pc-card.crit { border-color: var(--red); }
 .pc-card.warn { border-color: var(--yellow); }
 .pc-card.defeated { opacity: 0.55; }
+.pc-card.clickable { cursor: pointer; }
+.pc-card.clickable:hover, .pc-card.clickable:focus-visible {
+  border-color: var(--accent); box-shadow: 0 0 0 1px rgba(200, 162, 74, 0.25); outline: none;
+}
 .pc-name { display: flex; align-items: baseline; justify-content: space-between; gap: 0.35rem; color: #efeaf6; font-weight: 600; font-size: 0.8rem; }
 .pc-name span:first-child { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .pc-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 0.28rem; margin-top: 0.4rem; }
 .mini-stat { padding: 0.22rem 0.28rem; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; color: var(--muted); font-size: 0.66rem; }
 .mini-stat b { color: var(--text); font-weight: 600; }
 .gt-card-flags, .gt-card-actions { display: flex; flex-wrap: wrap; gap: 0.25rem; margin-top: auto; min-height: 1.4rem; align-items: flex-end; }
+.gt-npc-backdrop { z-index: 1050; }
+.gt-npc-statblock { max-height: min(90vh, 58rem); overflow-y: auto; }
+.gt-npc-card { max-width: none; margin-top: 0.65rem; }
+.gt-npc-roll-list { list-style: none; padding-left: 0 !important; display: flex; flex-direction: column; gap: 0.4rem; }
+.gt-npc-roll-list .npc-skill-row, .gt-npc-roll-list .npc-weapon-head {
+  display: flex; align-items: center; gap: 0.55rem; flex-wrap: wrap;
+}
+.gt-npc-roll-list .npc-skill-name, .gt-npc-roll-list .npc-weapon-head > strong { margin-right: auto; }
 .quick-panel { gap: 0.6rem; }
 .quick-main { display: grid; grid-template-columns: minmax(13rem, 1fr) auto; gap: 0.45rem; align-items: center; }
 .quick-controls { display: flex; flex-wrap: wrap; gap: 0.4rem; justify-content: flex-end; }
