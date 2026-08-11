@@ -280,10 +280,36 @@ public class GameTableTests : IClassFixture<ApiFactory>
         await gm.PatchAsJsonAsync($"/api/campaigns/{campaignId}/session",
             new UpdateSessionRequest(null, null, null, null, null, null, true), Json.Options);
         var ok = await player.PatchAsJsonAsync($"/api/campaigns/{campaignId}/session/participants/{pid}",
-            new UpdateParticipantRequest(null, 3, null, null, null, null, null, null, null, null, null, null, null, null), Json.Options);
+            new UpdateParticipantRequest(null, 3, null, null, null, null, null, null, null, null, null, null, null, null,
+                BoostDice: 4, SetbackDice: 3), Json.Options);
         Assert.Equal(HttpStatusCode.OK, ok.StatusCode);
         var updated = (await ok.Content.ReadFromJsonAsync<GameSessionDto>(Json.Options))!;
-        Assert.Equal(3, updated.Participants.First(p => p.Id == pid).WoundsCurrent);
+        var participant = updated.Participants.First(p => p.Id == pid);
+        Assert.Equal(3, participant.WoundsCurrent);
+        Assert.Equal(0, participant.BoostDice); // разрешение игроку относится только к wounds/strain
+        Assert.Equal(0, participant.SetbackDice);
+    }
+
+    [Fact]
+    public async Task Gm_AssignsParticipantBoostsAndSetbacks_WithBounds()
+    {
+        var gm = await _factory.CreateAuthorizedClientAsync();
+        var campaign = await CreateCampaignAsync(gm);
+        await CreateSessionAsync(gm, campaign.Id);
+        var addResp = await gm.PostAsJsonAsync($"/api/campaigns/{campaign.Id}/session/participants",
+            new AddParticipantRequest(null, null, "Разведчик", ParticipantType.Npc, null, null, 8, null, 2, 0, 0), Json.Options);
+        var created = (await addResp.Content.ReadFromJsonAsync<GameSessionDto>(Json.Options))!;
+        var participantId = created.Participants.Single().Id;
+
+        var response = await gm.PatchAsJsonAsync(
+            $"/api/campaigns/{campaign.Id}/session/participants/{participantId}",
+            new UpdateParticipantRequest(null, null, null, null, null, null, null, null, null, null, null, null, null, null,
+                BoostDice: 25, SetbackDice: -2), Json.Options);
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var updated = (await response.Content.ReadFromJsonAsync<GameSessionDto>(Json.Options))!;
+        Assert.Equal(20, updated.Participants.Single().BoostDice);
+        Assert.Equal(0, updated.Participants.Single().SetbackDice);
     }
 
     [Fact]

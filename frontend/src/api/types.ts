@@ -1370,6 +1370,8 @@ export interface GameParticipant {
   soak: number
   meleeDefense: number
   rangedDefense: number
+  boostDice: number
+  setbackDice: number
   criticalInjuries: number
   isActive: boolean
   isDefeated: boolean
@@ -1456,6 +1458,8 @@ export interface UpdateParticipantRequest {
   isHiddenFromPlayers?: boolean | null
   notes?: string | null
   initiativeSlotType?: InitiativeSlotType | null
+  boostDice?: number | null
+  setbackDice?: number | null
 }
 
 export type EncounterType =

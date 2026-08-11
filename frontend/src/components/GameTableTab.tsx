@@ -10,7 +10,7 @@ import type { RollSymbols } from '../utils/diceRoller'
 import { useDiceRoller } from '../dice-roller-store'
 import { t } from '../i18n'
 import { GameTableNpcStatblock } from './GameTableNpcStatblock'
-import { participantNameWithCount } from '../utils/gameTable'
+import { participantNameWithCount, participantRollPool } from '../utils/gameTable'
 
 interface Props {
   campaignId: string
@@ -493,6 +493,8 @@ function CompactParticipantCard({ p, onOpenNpc }: {
       </div>
       <div className="gt-card-flags">
         {onOpenNpc && <span className="muted small-text">{t('нажмите: статблок', 'click: stat block')}</span>}
+        {p.boostDice > 0 && <span className="badge slot-player">{t('бусты', 'boosts')} +{p.boostDice}</span>}
+        {p.setbackDice > 0 && <span className="badge slot-npc">{t('сетбеки', 'setbacks')} +{p.setbackDice}</span>}
         {p.isHiddenFromPlayers && <span className="badge tier">{t('скрыт', 'hidden')}</span>}
         {p.criticalInjuries > 0 && <span className="badge danger">{t('криты', 'crits')} {p.criticalInjuries}</span>}
       </div>
@@ -507,6 +509,7 @@ function QuickActionsPanel({ session, isGm, members, onRun, campaignId, abilitie
   const [abilityId, setAbilityId] = useState('')
   const [outcome, setOutcome] = useState<ActivateAbilityResult | null>(null)
   const [showAdd, setShowAdd] = useState(false)
+  const { openRoller } = useDiceRoller()
   const participant = session.participants.find(p => p.id === participantId)
 
   async function activate() {
@@ -534,6 +537,18 @@ function QuickActionsPanel({ session, isGm, members, onRun, campaignId, abilitie
         </select>
         <div className="quick-controls">
           {isGm && <button onClick={() => onRun(() => api.nextTurn(campaignId))}>{t('Следующий ход', 'Next turn')}</button>}
+          {participant && (
+            <button onClick={() => openRoller({
+              kind: 'roll',
+              title: `${participant.displayName} — ${t('бросок', 'roll')}`,
+              label: t('Бросок участника', 'Participant roll'),
+              initialPool: participantRollPool({}, participant),
+              onLog: req => { void onRun(() => api.createRoll(campaignId, { ...req, actorName: participant.displayName })) },
+              canSecret: isGm,
+            })}>
+              {t('🎲 Бросок участника', '🎲 Participant roll')}
+            </button>
+          )}
           {participant && isGm && (
             <>
               <button onClick={() => onRun(() => api.updateParticipant(campaignId, participant.id, { woundsCurrent: Math.max(0, participant.woundsCurrent - 1) }))}>
@@ -541,6 +556,26 @@ function QuickActionsPanel({ session, isGm, members, onRun, campaignId, abilitie
               </button>
               <button onClick={() => onRun(() => api.updateParticipant(campaignId, participant.id, { woundsCurrent: participant.woundsCurrent + 1 }))}>
                 {t('+ рана', '+ wound')}
+              </button>
+              <button disabled={participant.boostDice <= 0}
+                aria-label={t('Убрать буст', 'Remove boost')}
+                onClick={() => onRun(() => api.updateParticipant(campaignId, participant.id, { boostDice: participant.boostDice - 1 }))}>
+                {t('− буст', '− boost')}
+              </button>
+              <button disabled={participant.boostDice >= 20}
+                aria-label={t('Добавить буст', 'Add boost')}
+                onClick={() => onRun(() => api.updateParticipant(campaignId, participant.id, { boostDice: participant.boostDice + 1 }))}>
+                {t('+ буст', '+ boost')}
+              </button>
+              <button disabled={participant.setbackDice <= 0}
+                aria-label={t('Убрать сетбек', 'Remove setback')}
+                onClick={() => onRun(() => api.updateParticipant(campaignId, participant.id, { setbackDice: participant.setbackDice - 1 }))}>
+                {t('− сетбек', '− setback')}
+              </button>
+              <button disabled={participant.setbackDice >= 20}
+                aria-label={t('Добавить сетбек', 'Add setback')}
+                onClick={() => onRun(() => api.updateParticipant(campaignId, participant.id, { setbackDice: participant.setbackDice + 1 }))}>
+                {t('+ сетбек', '+ setback')}
               </button>
               <button onClick={() => onRun(() => api.updateParticipant(campaignId, participant.id, { isHiddenFromPlayers: !participant.isHiddenFromPlayers }))}>
                 {participant.isHiddenFromPlayers ? t('Показать', 'Reveal') : t('Скрыть NPC', 'Hide NPC')}

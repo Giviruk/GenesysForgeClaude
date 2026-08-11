@@ -47,11 +47,11 @@ const session = {
   participants: [
     { id: 'p1', characterId: 'ch1', npcId: null, displayName: 'Бард', participantType: 'playerCharacter',
       initiativeSlotType: 'player', count: 1, woundsCurrent: 0, woundsThreshold: 12, strainCurrent: 0,
-      strainThreshold: 11, soak: 3, meleeDefense: 0, rangedDefense: 0, criticalInjuries: 0, isActive: true,
+      strainThreshold: 11, soak: 3, meleeDefense: 0, rangedDefense: 0, boostDice: 0, setbackDice: 0, criticalInjuries: 0, isActive: true,
       isDefeated: false, isHiddenFromPlayers: false, notes: '', order: 0 },
     { id: 'n1', characterId: null, npcId: 'npc1', displayName: 'Наёмник', participantType: 'npc',
       initiativeSlotType: 'npc', count: 1, woundsCurrent: 5, woundsThreshold: 12, strainCurrent: 0,
-      strainThreshold: null, soak: 3, meleeDefense: 0, rangedDefense: 0, criticalInjuries: 0, isActive: true,
+      strainThreshold: null, soak: 3, meleeDefense: 0, rangedDefense: 0, boostDice: 0, setbackDice: 0, criticalInjuries: 0, isActive: true,
       isDefeated: false, isHiddenFromPlayers: false, notes: '', order: 1 },
   ],
   slots: [

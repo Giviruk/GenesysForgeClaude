@@ -28,6 +28,11 @@ public class GameParticipant : ICombatTarget
     public int MeleeDefense { get; set; }
     public int RangedDefense { get; set; }
 
+    /// <summary>Временные бонусные кубы, назначенные участнику на игровом столе.</summary>
+    public int BoostDice { get; set; }
+    /// <summary>Временные кубы помехи, назначенные участнику на игровом столе.</summary>
+    public int SetbackDice { get; set; }
+
     /// <summary>Счётчик активных критических ранений участника (U-23) для быстрого учёта за столом.</summary>
     public int CriticalInjuries { get; set; }
     /// <summary>Число активаций героической способности PC в текущей игровой сессии.</summary>

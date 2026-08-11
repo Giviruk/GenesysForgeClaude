@@ -37,7 +37,7 @@ const session: GameSession = {
     id: 'participant-1', characterId: null, npcId: 'npc-1', displayName: 'Гоблины',
     participantType: 'minionGroup', initiativeSlotType: 'npc', count: 3,
     woundsCurrent: 5, woundsThreshold: 15, strainCurrent: 0, strainThreshold: null,
-    soak: 3, meleeDefense: 0, rangedDefense: 0, criticalInjuries: 0,
+    soak: 3, meleeDefense: 0, rangedDefense: 0, boostDice: 2, setbackDice: 1, criticalInjuries: 0,
     isActive: true, isDefeated: false, isHiddenFromPlayers: false, notes: '', order: 0,
   }],
   slots: [],
@@ -87,7 +87,7 @@ describe('GameTableTab — статблок и броски NPC', () => {
 
     fireEvent.click(within(dialog).getByRole('button', { name: '🎲 Бросить' }))
     const request = openRollerMock.mock.calls[0][0] as Extract<DiceRollerRequest, { kind: 'roll' }>
-    expect(request.initialPool).toEqual({ ability: 1, proficiency: 2 })
+    expect(request.initialPool).toEqual({ ability: 1, proficiency: 2, boost: 2, setback: 1 })
     expect(request.label).toBe('Melee')
 
     request.onLog?.({ poolJson: '{}', resultJson: '{}', summary: 'ok', label: 'Melee', isSecret: false })
@@ -117,7 +117,7 @@ describe('GameTableTab — статблок и броски NPC', () => {
     openRollerMock.mockReset()
     fireEvent.click(within(dialog).getByRole('button', { name: '🎲 Бросить' }))
     expect(openRollerMock).toHaveBeenCalledWith(expect.objectContaining({
-      kind: 'roll', initialPool: { ability: 2, proficiency: 1 },
+      kind: 'roll', initialPool: { ability: 2, proficiency: 1, boost: 2, setback: 1 },
     }))
   })
 
@@ -151,7 +151,28 @@ describe('GameTableTab — статблок и броски NPC', () => {
 
     fireEvent.click(await within(dialog).findByRole('button', { name: '🎲 Атаковать' }))
     expect(openRollerMock).toHaveBeenCalledWith(expect.objectContaining({
-      kind: 'combat', title: 'Клинок', basePool: { ability: 1, proficiency: 2 }, canSecret: true,
+      kind: 'combat', title: 'Клинок', basePool: { ability: 1, proficiency: 2, boost: 2, setback: 1 }, canSecret: true,
+    }))
+  })
+
+  it('назначает участнику бусты и сетбеки и открывает общий бросок с ними', async () => {
+    const updated = {
+      ...session,
+      participants: [{ ...session.participants[0], boostDice: 3, setbackDice: 1 }],
+    }
+    updateParticipantMock.mockResolvedValue(updated)
+    render(<GameTableTab campaignId="campaign-1" isGm members={[]} />)
+
+    const participantOption = await screen.findByRole('option', { name: 'Гоблины' })
+    fireEvent.change(participantOption.parentElement!, { target: { value: 'participant-1' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Добавить буст' }))
+    await waitFor(() => expect(updateParticipantMock).toHaveBeenCalledWith(
+      'campaign-1', 'participant-1', { boostDice: 3 },
+    ))
+
+    fireEvent.click(screen.getByRole('button', { name: '🎲 Бросок участника' }))
+    expect(openRollerMock).toHaveBeenCalledWith(expect.objectContaining({
+      kind: 'roll', initialPool: { boost: 3, setback: 1 },
     }))
   })
 })

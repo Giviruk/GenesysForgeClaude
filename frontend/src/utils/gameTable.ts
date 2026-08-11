@@ -1,4 +1,5 @@
 import type { GameParticipant } from '../api/types'
+import type { RollPool } from './diceRoller'
 
 export interface MinionGroupState {
   initialCount: number
@@ -42,6 +43,18 @@ export function minionGroupState(participant: GameParticipant): MinionGroupState
 
 export function effectiveParticipantCount(participant: GameParticipant): number {
   return minionGroupState(participant)?.remainingCount ?? participant.count
+}
+
+/** Добавляет назначенные участнику модификаторы сцены к базовому пулу броска. */
+export function participantRollPool(
+  basePool: Partial<RollPool>,
+  participant: Pick<GameParticipant, 'boostDice' | 'setbackDice'>,
+): Partial<RollPool> {
+  return {
+    ...basePool,
+    boost: Math.max(0, basePool.boost ?? 0) + Math.max(0, participant.boostDice),
+    setback: Math.max(0, basePool.setback ?? 0) + Math.max(0, participant.setbackDice),
+  }
 }
 
 /** Имя участника с актуальным счётчиком, без дублирования старого suffix `×N`. */

@@ -8,7 +8,7 @@ import {
 } from '../utils/labels'
 import { npcAttackViews, npcSkillViews, skillIndex } from '../utils/npcStats'
 import { resolveQualityCosts } from '../utils/combat'
-import { effectiveParticipantCount, minionGroupState, participantNameWithCount } from '../utils/gameTable'
+import { effectiveParticipantCount, minionGroupState, participantNameWithCount, participantRollPool } from '../utils/gameTable'
 import { DicePoolView } from './DicePoolView'
 import type { RollLogRequest } from './DiceRoller'
 
@@ -124,6 +124,8 @@ export function GameTableNpcStatblock({ participant, campaignId, isGm, onSession
               <span><b>{t('Бл. защита', 'Melee def.')}</b> {npc.meleeDefense}</span>
               <span><b>{t('Дал. защита', 'Ranged def.')}</b> {npc.rangedDefense}</span>
               <span><b>{t('Силуэт', 'Silhouette')}</b> {npc.silhouette}</span>
+              <span><b>{t('Бусты', 'Boosts')}</b> {participant.boostDice}</span>
+              <span><b>{t('Сетбеки', 'Setbacks')}</b> {participant.setbackDice}</span>
             </div>
 
             {isGm && (
@@ -165,7 +167,7 @@ export function GameTableNpcStatblock({ participant, campaignId, isGm, onSession
                           kind: 'roll',
                           title: `${participant.displayName} — ${skill.name}`,
                           label: skill.name,
-                          initialPool: skill.pool ?? {},
+                          initialPool: participantRollPool(skill.pool ?? {}, participant),
                           onLog: logAsNpc(participant.displayName),
                           canSecret: isGm,
                         })}>{t('🎲 Бросить', '🎲 Roll')}</button>
@@ -189,7 +191,7 @@ export function GameTableNpcStatblock({ participant, campaignId, isGm, onSession
                           kind: 'combat',
                           title: attack.name,
                           skillLabel: attack.skillLabel,
-                          basePool: attack.pool ?? {},
+                          basePool: participantRollPool(attack.pool ?? {}, participant),
                           damage: npc.attacks[i].damage,
                           brawn: npc.brawn,
                           crit: npc.attacks[i].critical,
