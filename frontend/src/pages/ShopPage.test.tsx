@@ -55,9 +55,37 @@ const sword = {
   shopCategory: 'weaponLight',
   price: 100,
   rarity: 1,
+  damage: '',
+  crit: '',
+  attackProfiles: [{
+    code: 'default', nameRu: '', nameEn: '', isDefault: true, skillName: 'Melee',
+    damageKind: 'brawnPlus', damageValue: 3, crit: 2, range: 'engaged',
+    cannotAttackEngaged: false, fixedDifficulty: null, qualities: [], baseDamage: null,
+    poolModifiers: null,
+  }],
   properties: 'Высококритичное 1, Оборонительное 1',
   description: 'Надёжный клинок.',
   safeDescription: 'Надёжный клинок.',
+} as unknown as ItemDef
+
+const robes = {
+  ...rope,
+  id: 'item-robes',
+  code: 'rot.item.heavy-robes',
+  name: 'Heavy Robes',
+  nameRu: 'Тяжёлые мантии',
+  kind: 'armor',
+  shopCategory: 'armor',
+  soakBonus: 0,
+} as unknown as ItemDef
+
+const plate = {
+  ...robes,
+  id: 'item-plate',
+  code: 'rot.item.plate',
+  name: 'Plate',
+  nameRu: 'Латы',
+  soakBonus: 2,
 } as unknown as ItemDef
 
 const service = {
@@ -84,7 +112,7 @@ const staff = {
 } as unknown as ItemDef
 
 const reference = {
-  items: [rope, sword, staff, service],
+  items: [rope, sword, robes, plate, staff, service],
   attachments: [],
 } as unknown as Reference
 
@@ -168,6 +196,28 @@ describe('Общий магазин', () => {
     fireEvent.click(swordButton)
     const dialog = screen.getByRole('dialog')
     expect(within(dialog).getByText('Высококритичное 1')).toBeTruthy()
+  })
+
+  it('показывает урон всего оружия и поглощение всей брони в списке и карточке', async () => {
+    render(<ShopPage />)
+
+    const swordButton = await screen.findByRole('button', { name: /Меч/ })
+    expect(swordButton.textContent).toContain('Урон +3')
+
+    const robesButton = screen.getByRole('button', { name: /Тяжёлые мантии/ })
+    const plateButton = screen.getByRole('button', { name: /Латы/ })
+    expect(robesButton.textContent).toContain('Поглощение +0')
+    expect(plateButton.textContent).toContain('Поглощение +2')
+
+    fireEvent.click(swordButton)
+    let dialog = screen.getByRole('dialog')
+    expect(dialog.textContent).toContain('Урон+3')
+    expect(dialog.textContent).toContain('Крит2')
+
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Закрыть' }))
+    fireEvent.click(robesButton)
+    dialog = screen.getByRole('dialog')
+    expect(dialog.textContent).toContain('Поглощение+0')
   })
 
   it('ищет оружие по названию свойства', async () => {

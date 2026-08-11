@@ -27,6 +27,7 @@ import { PrintPreview } from './print/PrintPreview'
 import { ItemCard } from './print/cards'
 import { useDiceRoller } from '../dice-roller-store'
 import { lang, t } from '../i18n'
+import { catalogWeaponStats } from '../utils/itemCombatStats'
 
 interface Props {
   sheet: CharacterSheet
@@ -327,6 +328,7 @@ function ShopRow({ item, money, run, sheetId, open, onToggle }: {
   const unitRarity = item.rarity == null ? null : isImplement
     ? implementRarity(item.rarity, material)
     : canChoose ? craftsmanshipRarity(item.rarity, craftsmanship) : item.rarity
+  const weaponStats = item.kind === 'weapon' ? catalogWeaponStats(item) : null
   return (
     <div className="shop-row">
       <div className="shop-row-head">
@@ -344,7 +346,8 @@ function ShopRow({ item, money, run, sheetId, open, onToggle }: {
               : ` · ${t('редкость', 'rarity')} ${unitRarity === item.rarity
                 ? item.rarity : `${item.rarity} → ${unitRarity}`}`}
             {item.isCustom && t(' · кастом', ' · custom')}
-            {item.kind === 'weapon' && item.damage && t(` · урон ${item.damage}, крит ${item.crit}`, ` · damage ${item.damage}, crit ${item.crit}`)}
+            {weaponStats && t(` · урон ${weaponStats.damage}, крит ${weaponStats.crit}`, ` · damage ${weaponStats.damage}, crit ${weaponStats.crit}`)}
+            {item.kind === 'armor' && t(` · поглощение +${item.soakBonus}`, ` · soak +${item.soakBonus}`)}
             {/* Реликвии и руны не покупаются вовсе — лучше сказать это словами, чем просто
                 спрятать кнопку «Купить» (ROT-MITEM-01). */}
             {!item.purchasable && t(' · выдаёт ведущий', ' · GM award only')}

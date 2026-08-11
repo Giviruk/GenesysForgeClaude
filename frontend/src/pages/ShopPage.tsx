@@ -20,6 +20,7 @@ import {
 } from '../utils/shopCatalog'
 import { PropertyTags } from '../components/PropertyTags'
 import { lang, t } from '../i18n'
+import { catalogWeaponStats } from '../utils/itemCombatStats'
 
 const CATEGORY_ORDER: ShopCategory[] = [
   'all',
@@ -233,6 +234,18 @@ export function ShopPage() {
                   )}
                 </span>
                 <span className="shop-product-stats">
+                  {product.type === 'item' && product.item.kind === 'weapon' && (
+                    <span>
+                      {t('Урон', 'Damage')}{' '}
+                      <strong>{catalogWeaponStats(product.item).damage}</strong>
+                    </span>
+                  )}
+                  {product.type === 'item' && product.item.kind === 'armor' && (
+                    <span>
+                      {t('Поглощение', 'Soak')}{' '}
+                      <strong>+{product.item.soakBonus}</strong>
+                    </span>
+                  )}
                   <span>
                     {t('Цена', 'Price')}{' '}
                     <strong>{productPrice(product) == null ? '—' : productPrice(product)}</strong>
@@ -287,6 +300,7 @@ function ProductModal({ product, characters, onClose }: {
   const mount = product.type === 'mount' ? product.mount : null
   const isService = item?.shopCategory === 'service'
   const isImplement = item?.implement != null
+  const weaponStats = item?.kind === 'weapon' ? catalogWeaponStats(item) : null
   const hasCraftsmanship = item ? craftsmanshipApplies(item.kind) : false
   const basePrice = productPrice(product)
   const baseRarity = productRarity(product)
@@ -383,6 +397,15 @@ function ProductModal({ product, characters, onClose }: {
           <div><span>{t('Категория', 'Category')}</span><strong>{CATEGORY_LABELS[product.category]}</strong></div>
           <div><span>{t('Цена', 'Price')}</span><strong>{effectivePrice ?? '—'} {CURRENCY_LABEL}</strong></div>
           <div><span>{t('Редкость', 'Rarity')}</span><strong>{effectiveRarity ?? '—'}</strong></div>
+          {weaponStats && (
+            <>
+              <div><span>{t('Урон', 'Damage')}</span><strong>{weaponStats.damage}</strong></div>
+              <div><span>{t('Крит', 'Crit')}</span><strong>{weaponStats.crit}</strong></div>
+            </>
+          )}
+          {item?.kind === 'armor' && (
+            <div><span>{t('Поглощение', 'Soak')}</span><strong>+{item.soakBonus}</strong></div>
+          )}
           {attachment && (
             <div><span>{t('Слоты улучшений', 'Hard points')}</span><strong>{attachment.hardPointCost}</strong></div>
           )}
