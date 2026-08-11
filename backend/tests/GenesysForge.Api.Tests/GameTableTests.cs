@@ -108,7 +108,42 @@ public class GameTableTests : IClassFixture<ApiFactory>
         var group = s2.Participants.First(p => p.NpcId == npc.Id);
         Assert.Equal(ParticipantType.MinionGroup, group.ParticipantType);
         Assert.Equal(3, group.Count);
+        Assert.Equal(3, group.RemainingCount);
+        Assert.Equal(5, group.PerMemberWoundThreshold);
         Assert.Equal(15, group.WoundsThreshold); // 5 × 3
+    }
+
+    [Theory]
+    [InlineData(4, 3)]
+    [InlineData(5, 2)]
+    [InlineData(8, 2)]
+    [InlineData(9, 1)]
+    [InlineData(12, 1)]
+    [InlineData(13, 0)]
+    public async Task MinionGroup_RemainingCount_FollowsAppliedWounds(int wounds, int expectedRemaining)
+    {
+        var gm = await _factory.CreateAuthorizedClientAsync();
+        var campaign = await CreateCampaignAsync(gm);
+        await CreateSessionAsync(gm, campaign.Id);
+        var npcResponse = await gm.PostAsJsonAsync("/api/npcs/", new NpcInput(
+            "Миньон", GameSystem.GenesysCore, NpcKind.Minion, NpcRole.Skirmisher, null, null,
+            2, 2, 2, 2, 2, 2, 4, null, 2, 0, 0, 1, null,
+            NpcVisibility.Private, null, null, null, null, null, null, null), Json.Options);
+        var npc = (await npcResponse.Content.ReadFromJsonAsync<NpcDetailDto>(Json.Options))!;
+        var added = await gm.PostAsJsonAsync($"/api/campaigns/{campaign.Id}/session/participants",
+            new AddParticipantRequest(null, npc.Id, null, ParticipantType.MinionGroup, null, 3,
+                null, null, null, null, null), Json.Options);
+        var session = (await added.Content.ReadFromJsonAsync<GameSessionDto>(Json.Options))!;
+        var participant = Assert.Single(session.Participants);
+
+        var response = await gm.PatchAsJsonAsync(
+            $"/api/campaigns/{campaign.Id}/session/participants/{participant.Id}",
+            new UpdateParticipantRequest(null, wounds, null, null, null, null, null, null,
+                null, null, null, null, null, null), Json.Options);
+        response.EnsureSuccessStatusCode();
+        var updated = (await response.Content.ReadFromJsonAsync<GameSessionDto>(Json.Options))!;
+
+        Assert.Equal(expectedRemaining, Assert.Single(updated.Participants).RemainingCount);
     }
 
     [Fact]

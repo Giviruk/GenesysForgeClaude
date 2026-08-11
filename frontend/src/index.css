@@ -1602,6 +1602,11 @@ button.tiny { font-size: 0.75rem; padding: 0.05rem 0.4rem 0.15rem; }
   display: flex; align-items: center; gap: 0.55rem; flex-wrap: wrap;
 }
 .gt-npc-roll-list .npc-skill-name, .gt-npc-roll-list .npc-weapon-head > strong { margin-right: auto; }
+.gt-npc-vitals {
+  display: flex; flex-wrap: wrap; gap: 0.55rem; padding: 0.6rem;
+  border: 1px solid var(--border); border-radius: 8px; background: var(--panel-2);
+}
+.gt-npc-vital-control { display: flex; align-items: center; gap: 0.45rem; }
 .quick-panel { gap: 0.6rem; }
 .quick-main { display: grid; grid-template-columns: minmax(13rem, 1fr) auto; gap: 0.45rem; align-items: center; }
 .quick-controls { display: flex; flex-wrap: wrap; gap: 0.4rem; justify-content: flex-end; }

@@ -13,6 +13,8 @@ public record GameParticipantDto(
     ParticipantType ParticipantType,
     InitiativeSlotType InitiativeSlotType,
     int Count,
+    int RemainingCount,
+    int? PerMemberWoundThreshold,
     int WoundsCurrent,
     int WoundsThreshold,
     int StrainCurrent,
