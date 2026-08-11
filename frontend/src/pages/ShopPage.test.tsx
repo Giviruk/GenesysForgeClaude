@@ -72,14 +72,25 @@ const service = {
   safeDescription: 'Помыться и отдохнуть.',
 } as unknown as ItemDef
 
+const staff = {
+  ...rope,
+  id: 'item-staff',
+  code: 'rot.item.magic-staff',
+  name: 'Magic Staff',
+  nameRu: 'Магический посох',
+  price: 400,
+  rarity: 6,
+  implement: { code: 'magic-staff' },
+} as unknown as ItemDef
+
 const reference = {
-  items: [rope, sword, service],
+  items: [rope, sword, staff, service],
   attachments: [],
 } as unknown as Reference
 
 const sheet = {
   id: 'char-1',
-  money: 100,
+  money: 5000,
   startingPurchaseBudget: 0,
   isCreationPhase: false,
   items: [],
@@ -110,6 +121,36 @@ describe('Общий магазин', () => {
       'char-1', 'item-rope', 1, 'carried', { free: false },
     ))
     expect(buyServiceMock).not.toHaveBeenCalled()
+  })
+
+  it('показывает и отправляет цену материала обычного и магического снаряжения', async () => {
+    render(<ShopPage />)
+
+    fireEvent.click(await screen.findByRole('button', { name: /Меч/ }))
+    let dialog = screen.getByRole('dialog')
+    await waitFor(() => expect(
+      (within(dialog).getByRole('button', { name: 'Купить' }) as HTMLButtonElement).disabled,
+    ).toBe(false))
+    fireEvent.change(within(dialog).getByLabelText(/Материал \/ качество изготовления/),
+      { target: { value: 'iron' } })
+    expect(within(dialog).getAllByText(/50 монеты/)).toHaveLength(2)
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Купить' }))
+    await waitFor(() => expect(addItemMock).toHaveBeenLastCalledWith(
+      'char-1', 'item-sword', 1, 'carried', { free: false, craftsmanship: 'iron' },
+    ))
+
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Закрыть' }))
+    fireEvent.click(await screen.findByRole('button', { name: /Магический посох/ }))
+    dialog = screen.getByRole('dialog')
+    await waitFor(() => expect(
+      (within(dialog).getByRole('button', { name: 'Купить' }) as HTMLButtonElement).disabled,
+    ).toBe(false))
+    fireEvent.change(within(dialog).getAllByRole('combobox')[1], { target: { value: 'willow' } })
+    expect(within(dialog).getAllByText(/800 монеты/)).toHaveLength(2)
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Купить' }))
+    await waitFor(() => expect(addItemMock).toHaveBeenLastCalledWith(
+      'char-1', 'item-staff', 1, 'carried', { free: false, material: 'willow' },
+    ))
   })
 
   it('показывает у оружия теги свойств с теми же тултипами, что и магазин инвентаря', async () => {

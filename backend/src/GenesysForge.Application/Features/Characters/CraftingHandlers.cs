@@ -84,7 +84,25 @@ public static class CraftingCalc
     /// <summary>Числа проекта по правилам и поправкам запроса. Ничего не пишет.</summary>
     public static CraftingNumbers Compute(ItemDef def, CraftingProjectInput req)
     {
-        var rarity = def.Rarity ?? 0;
+        if (req.Kind == CraftingKind.Enchantment
+            && (req.Craftsmanship != WeaponCraftsmanship.Steel || req.Material != ImplementMaterial.Oak))
+            throw new DomainRuleException(
+                "Зачарование сохраняет материал готовой основы.", "crafting.material_not_applicable");
+        var craftsmanship = CraftsmanshipRules.FixedFor(def.Code) ?? req.Craftsmanship;
+        CraftsmanshipRules.EnsureApplicable(def.Kind, craftsmanship);
+        ImplementRules.EnsureApplicable(def.Code, req.Material);
+
+        int? targetPrice = def.Price is null
+            ? null
+            : ImplementRules.IsImplement(def.Code)
+                ? ImplementRules.Price(def.Price.Value, req.Material)
+                : CraftsmanshipRules.Price(def.Price.Value, craftsmanship);
+        int? targetRarity = def.Rarity is null
+            ? null
+            : ImplementRules.IsImplement(def.Code)
+                ? ImplementRules.Rarity(def.Rarity.Value, req.Material)
+                : CraftsmanshipRules.Rarity(def.Rarity.Value, craftsmanship);
+        var rarity = targetRarity ?? 0;
         var baseDifficulty = req.Kind == CraftingKind.Enchantment
             ? EnchantmentDifficulty
             : CraftingRules.Difficulty(rarity);
@@ -92,7 +110,7 @@ public static class CraftingCalc
         // У зачарования рецепта нет: и стоимость компонентов, и время назначает ведущий явно.
         var listedCost = req.Kind == CraftingKind.Enchantment
             ? 0
-            : CraftingRules.ComponentCost(def.Price ?? 0);
+            : CraftingRules.ComponentCost(targetPrice ?? 0);
 
         var difficulty = baseDifficulty;
         if (req.DifficultyOverride is { } d)
@@ -119,10 +137,14 @@ public static class CraftingCalc
         }
 
         var cost = CraftingRules.Cost(listedCost, req.CostPercent, req.CostOverride, req.CostOverrideReason);
-        return new CraftingNumbers(baseDifficulty, difficulty, baseTime, time, listedCost, cost);
+        return new CraftingNumbers(
+            targetPrice, targetRarity, craftsmanship, req.Material,
+            baseDifficulty, difficulty, baseTime, time, listedCost, cost);
     }
 
     public sealed record CraftingNumbers(
+        int? TargetPrice, int? TargetRarity,
+        WeaponCraftsmanship Craftsmanship, ImplementMaterial Material,
         int BaseDifficulty, int Difficulty, int BaseTime, int Time, int ListedCost, int Cost);
 }
 
@@ -143,7 +165,7 @@ public class PreviewCraftingHandler(IAppDbContext db) : IQueryHandler<PreviewCra
             .OrderBy(s => s.SortOrder).ToListAsync(ct);
 
         return new CraftingPreviewDto(
-            q.Request.Kind, def.Name, def.Price, def.Rarity,
+            q.Request.Kind, def.Name, n.TargetPrice, n.TargetRarity, n.Craftsmanship, n.Material,
             skill,
             n.BaseDifficulty, n.Difficulty, n.BaseTime, n.Time, CraftingCalc.TimeUnit(q.Request.Kind),
             n.ListedCost, q.Request.CostPercent, q.Request.CostOverride, n.Cost,
@@ -190,8 +212,10 @@ public class StartCraftingHandler(IAppDbContext db) : ICommandHandler<StartCraft
             ItemDefId = def.Id,
             BaseCharacterItemId = req.Kind == CraftingKind.Enchantment ? req.BaseCharacterItemId : null,
             TargetName = def.Name,
-            TargetPrice = def.Price,
-            TargetRarity = def.Rarity,
+            TargetPrice = n.TargetPrice,
+            TargetRarity = n.TargetRarity,
+            Craftsmanship = n.Craftsmanship,
+            ImplementMaterial = n.Material,
             SkillName = skill,
             BaseDifficulty = n.BaseDifficulty,
             Difficulty = n.Difficulty,
@@ -223,6 +247,8 @@ public class StartCraftingHandler(IAppDbContext db) : ICommandHandler<StartCraft
                 listedCost = project.ListedCost, percent = project.CostPercent,
                 costOverride = project.CostOverride, costOverrideReason = project.CostOverrideReason,
                 cost = project.Cost,
+                craftsmanship = project.Craftsmanship.ToString(),
+                material = project.ImplementMaterial.ToString(),
                 mode = project.CostOverride is not null ? "override"
                     : project.CostPercent != 100 ? "haggle" : "direct",
                 requirements = project.Requirements, intent = project.Intent,
@@ -338,6 +364,8 @@ public class ResolveCraftingHandler(IAppDbContext db)
                 ItemDef = def,
                 Quantity = Math.Max(1, outcome.Quantity),
                 State = ItemState.Carried,
+                Craftsmanship = project.Craftsmanship,
+                ImplementMaterial = project.ImplementMaterial,
                 // Метка «создано персонажем» живёт в происхождении позиции, а не в её названии.
                 Provenance = project.RoughSurvival ? ItemProvenance.RoughSurvival : ItemProvenance.Crafted,
                 CraftingProjectId = project.Id,
@@ -362,6 +390,8 @@ public class ResolveCraftingHandler(IAppDbContext db)
                 netSuccesses = req.NetSuccesses, advantages = req.Advantages, threats = req.Threats,
                 triumphs = req.Triumphs, despairs = req.Despairs,
                 difficulty = project.Difficulty, time = project.Time, cost = project.Cost,
+                craftsmanship = project.Craftsmanship.ToString(),
+                material = project.ImplementMaterial.ToString(),
                 spends = project.Spends.Select(s => new { s.SpendCode, s.Count, s.Parameter, s.PaidWith }),
                 createdItemId = project.CreatedCharacterItemId,
             });
@@ -445,6 +475,7 @@ public static class CraftingMapper
 
     public static CraftingProjectDto ToDto(CraftingProject p) => new(
         p.Id, p.Kind, p.Status, p.ItemDefId, p.BaseCharacterItemId, p.TargetName, p.TargetPrice, p.TargetRarity,
+        p.Craftsmanship, p.ImplementMaterial,
         p.SkillName, p.BaseDifficulty, p.Difficulty, p.DifficultyReason,
         p.BaseTime, p.Time, CraftingCalc.TimeUnit(p.Kind), p.TimeReason,
         p.ListedCost, p.CostPercent, p.CostOverride, p.CostOverrideReason, p.Cost,

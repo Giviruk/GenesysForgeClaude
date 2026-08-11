@@ -219,8 +219,13 @@ describe('Инвентарь: качество изготовления (ROT-WPN
     render(<InventoryTab sheet={sheet} reference={reference} onError={() => {}}
       refresh={() => Promise.resolve()} />)
 
-    fireEvent.click(screen.getAllByRole('button', { name: 'Купить' })[0])
     fireEvent.change(screen.getByRole('combobox'), { target: { value: 'dwarven' } })
+
+    // Цена и редкость меняются уже в строке каталога, а не только внутри раскрытой покупки.
+    expect(document.querySelector('.shop-row')?.textContent).toContain('цена 5000 → 10000')
+    expect(document.querySelector('.shop-row')?.textContent).toContain('редкость 6 → 8')
+
+    fireEvent.click(screen.getAllByRole('button', { name: 'Купить' })[0])
 
     // Гномья работа вдвое дороже каталожной цены; итог всё равно пересчитает сервер.
     expect(screen.getByText(/Цена 10000 × 1 =/)).toBeTruthy()
@@ -229,6 +234,25 @@ describe('Инвентарь: качество изготовления (ROT-WPN
     fireEvent.click(buttons[buttons.length - 1])
     await waitFor(() => expect(addItemMock).toHaveBeenCalledWith(
       'char-1', 'def-plate', 1, 'carried', { pricePercent: 100, craftsmanship: 'dwarven' }))
+  })
+
+  it('обновляет цену магического инструмента в строке магазина и при покупке', async () => {
+    render(<InventoryTab sheet={sheet} reference={shopReference} onError={() => {}}
+      refresh={() => Promise.resolve()} />)
+
+    const staffRow = screen.getByText('Магический посох').closest('.shop-row') as HTMLElement
+    fireEvent.change(within(staffRow).getByRole('combobox', { name: 'Материал' }),
+      { target: { value: 'willow' } })
+
+    expect(staffRow.textContent).toContain('цена 400 → 800')
+    expect(staffRow.textContent).toContain('редкость 6 → 8')
+
+    fireEvent.click(within(staffRow).getByRole('button', { name: 'Купить' }))
+    expect(within(staffRow).getByText(/Цена 800 × 1 =/)).toBeTruthy()
+    fireEvent.click(within(staffRow).getAllByRole('button', { name: 'Купить' }).at(-1)!)
+
+    await waitFor(() => expect(addItemMock).toHaveBeenCalledWith(
+      'char-1', 'def-staff', 1, 'carried', { pricePercent: 100, material: 'willow' }))
   })
 
   it('выдаёт без оплаты с выбранной работой, не открывая покупку', async () => {

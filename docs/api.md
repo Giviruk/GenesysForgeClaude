@@ -449,8 +449,8 @@ The component cost is computed and recorded, and that is all it does.
 
 Protected. Request: `CraftingProjectInput`. Returns the normalized numbers — skill, base and
 effective difficulty, base and effective time with its unit (`days`, or `hours` for one brewing
-batch), listed and final component cost — plus the symbol-spend table for that kind of work.
-Writes nothing.
+batch), effective target price and rarity, selected `craftsmanship`/`material`, listed and final
+component cost — plus the symbol-spend table for that kind of work. Writes nothing.
 
 Difficulty is `ceil(rarity / 2)`, base time `1 + rarity`, and the listed component cost
 `ceil(price / 2)` — rounded **up**, unlike sale proceeds. `costPercent` (50…200 in steps of 25) and
@@ -459,6 +459,12 @@ applies to the computed cost and rounds down, an own price replaces it and requi
 `costOverrideReason`. `difficultyOverride` and `timeOverride` likewise require their reasons.
 Enchanting has no recipe: its base difficulty is Formidable (5) and its listed cost is 0, so both
 are meant to be set explicitly.
+
+For an ordinary weapon or armour recipe, optional `craftsmanship` changes the target price and
+rarity before difficulty, time and component cost are calculated. For a magic implement, optional
+`material` does the same through the implement-material rules. Defaults are `Steel` and `Oak` for
+older clients. The selected value is stored with the project and copied to the crafted item.
+Enchanting keeps the material of its existing base and rejects a material override.
 
 The work kind fixes the allowed catalog and skill: ordinary items use `Mechanics` (or `Survival`
 with `roughSurvival`), the twelve ROT-ALCH-01 consumables use `Alchemy`, and enchanting accepts a

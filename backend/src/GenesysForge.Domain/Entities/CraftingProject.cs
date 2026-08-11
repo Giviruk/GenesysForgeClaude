@@ -32,6 +32,10 @@ public class CraftingProject
     /// <summary>Цена и редкость цели на момент старта — по ним посчитаны стоимость и сложность.</summary>
     public int? TargetPrice { get; set; }
     public int? TargetRarity { get; set; }
+    /// <summary>Работа/основной материал создаваемого оружия или брони.</summary>
+    public WeaponCraftsmanship Craftsmanship { get; set; } = WeaponCraftsmanship.Steel;
+    /// <summary>Материал создаваемого магического инструмента.</summary>
+    public ImplementMaterial ImplementMaterial { get; set; } = ImplementMaterial.Oak;
 
     /// <summary>Навык проверки: Механика, Выживание, Алхимия или магический навык зачарования.</summary>
     public string SkillName { get; set; } = "";

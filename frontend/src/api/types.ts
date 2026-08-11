@@ -1945,6 +1945,8 @@ export interface CraftingPreview {
   targetName: string
   targetPrice: number | null
   targetRarity: number | null
+  craftsmanship: WeaponCraftsmanship
+  material: ImplementMaterial
   skillName: string
   baseDifficulty: number
   difficulty: number
@@ -1968,6 +1970,8 @@ export interface CraftingProject {
   targetName: string
   targetPrice: number | null
   targetRarity: number | null
+  craftsmanship: WeaponCraftsmanship
+  material: ImplementMaterial
   skillName: string
   baseDifficulty: number
   difficulty: number
@@ -2013,4 +2017,6 @@ export interface CraftingProjectInput {
   requirements?: string
   intent?: string
   roughSurvival?: boolean
+  craftsmanship?: WeaponCraftsmanship
+  material?: ImplementMaterial
 }

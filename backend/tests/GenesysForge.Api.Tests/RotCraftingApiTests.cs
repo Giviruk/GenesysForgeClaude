@@ -53,6 +53,9 @@ public class RotCraftingApiTests(ApiFactory factory) : IClassFixture<ApiFactory>
     private static ItemDefDto Potion(ReferenceResponse reference) =>
         reference.Items.First(i => i.Name == "Stamina Elixir");
 
+    private static ItemDefDto Implement(ReferenceResponse reference, string code) =>
+        reference.Items.Single(i => i.Implement?.Code == code);
+
     [Fact]
     public async Task Preview_ComputesDifficultyTimeAndCost_AndWritesNothing()
     {
@@ -74,6 +77,54 @@ public class RotCraftingApiTests(ApiFactory factory) : IClassFixture<ApiFactory>
         var projects = await client.GetFromJsonAsync<List<CraftingProjectDto>>(
             $"/api/characters/{id}/crafting", Json.Options);
         Assert.Empty(projects!);
+    }
+
+    [Fact]
+    public async Task Crafting_UsesOrdinaryEquipmentMaterial_ForPriceCostAndResult()
+    {
+        var (client, reference, id) = await CreateAsync();
+        var weapon = Weapon(reference);
+        var effectivePrice = CraftsmanshipRules.Price(weapon.Price!.Value, WeaponCraftsmanship.Iron);
+        var effectiveRarity = CraftsmanshipRules.Rarity(weapon.Rarity!.Value, WeaponCraftsmanship.Iron);
+        var input = new CraftingProjectInput(
+            weapon.Id, Craftsmanship: WeaponCraftsmanship.Iron);
+
+        var preview = (await (await PreviewAsync(client, id, input))
+            .Content.ReadFromJsonAsync<CraftingPreviewDto>(Json.Options))!;
+        Assert.Equal(effectivePrice, preview.TargetPrice);
+        Assert.Equal(effectiveRarity, preview.TargetRarity);
+        Assert.Equal((effectivePrice + 1) / 2, preview.ListedCost);
+        Assert.Equal((effectiveRarity + 1) / 2, preview.Difficulty);
+        Assert.Equal(WeaponCraftsmanship.Iron, preview.Craftsmanship);
+
+        var projectId = await StartAsync(client, id, input);
+        var resolved = (await (await ResolveAsync(client, id, projectId, new CraftingResolveInput(1)))
+            .Content.ReadFromJsonAsync<CraftingProjectDto>(Json.Options))!;
+        var item = (await SheetAsync(client, id)).Items!.Single(i => i.Id == resolved.CreatedCharacterItemId);
+        Assert.Equal(WeaponCraftsmanship.Iron, item.Craftsmanship);
+        Assert.Equal(effectivePrice, item.Price);
+    }
+
+    [Fact]
+    public async Task Crafting_UsesMagicImplementMaterial_ForPriceCostAndResult()
+    {
+        var (client, reference, id) = await CreateAsync();
+        var staff = Implement(reference, "magic-staff");
+        var input = new CraftingProjectInput(staff.Id, Material: ImplementMaterial.Willow);
+
+        var preview = (await (await PreviewAsync(client, id, input))
+            .Content.ReadFromJsonAsync<CraftingPreviewDto>(Json.Options))!;
+        Assert.Equal(staff.Price * 2, preview.TargetPrice);
+        Assert.Equal(staff.Rarity + 2, preview.TargetRarity);
+        Assert.Equal((staff.Price * 2 + 1) / 2, preview.ListedCost);
+        Assert.Equal(ImplementMaterial.Willow, preview.Material);
+
+        var projectId = await StartAsync(client, id, input);
+        var resolved = (await (await ResolveAsync(client, id, projectId, new CraftingResolveInput(1)))
+            .Content.ReadFromJsonAsync<CraftingProjectDto>(Json.Options))!;
+        var item = (await SheetAsync(client, id)).Items!.Single(i => i.Id == resolved.CreatedCharacterItemId);
+        Assert.Equal(ImplementMaterial.Willow, item.Implement!.Material);
+        Assert.Equal(staff.Price * 2, item.Price);
     }
 
     /// <summary>Доля и своя цена работают как при торговле — и записываются в проект.</summary>
