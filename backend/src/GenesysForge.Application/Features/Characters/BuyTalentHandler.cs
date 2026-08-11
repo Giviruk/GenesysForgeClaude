@@ -65,6 +65,13 @@ public class BuyTalentHandler(IAppDbContext db) : ICommandHandler<BuyTalentComma
         if (choiceError is not null)
             throw new DomainRuleException(choiceError.Message, choiceError.ReasonCode);
 
+        // Animal Companion хранит стабильный id записи NPC, а не имя. Одновременно проверяем,
+        // что этот NPC видим игроку, относится к той же системе и помещается в лимит силуэта
+        // текущего ранга (первый ранг — 0, каждый следующий повышает предел на 1).
+        var companionNames = schema.Kind == TalentChoiceKind.AnimalCompanion
+            ? await CompanionNamesAsync(c, command.UserId, rankIndex, requestedChoices, ct)
+            : new Dictionary<string, string>(StringComparer.Ordinal);
+
         // Dedication дополнительно ограничен потолком характеристики.
         CharacteristicType? grant = null;
         if (talentDef.GrantsCharacteristic)
@@ -98,7 +105,7 @@ public class BuyTalentHandler(IAppDbContext db) : ICommandHandler<BuyTalentComma
                 RankIndex = rankIndex,
                 Kind = schema.Kind,
                 Value = value,
-                DisplayName = DisplayNameFor(schema.Kind, value),
+                DisplayName = companionNames.GetValueOrDefault(value, DisplayNameFor(schema.Kind, value)),
             });
         }
         if (grant is { } g)
@@ -137,6 +144,43 @@ public class BuyTalentHandler(IAppDbContext db) : ICommandHandler<BuyTalentComma
             && Enum.TryParse<CharacteristicType>(value, ignoreCase: true, out var ch)
             ? CharacterAudit.CharacteristicLabel(ch)
             : value;
+
+    private async Task<Dictionary<string, string>> CompanionNamesAsync(
+        Character character, Guid userId, int maximumSilhouette, IReadOnlyList<string> values,
+        CancellationToken ct)
+    {
+        var ids = new List<Guid>(values.Count);
+        foreach (var value in values)
+        {
+            if (!Guid.TryParse(value, out var id))
+                throw new DomainRuleException(
+                    "Выберите спутника из доступной библиотеки NPC.", "talent.choice.companion_unknown");
+            ids.Add(id);
+        }
+
+        var companions = await db.Npcs.AsNoTracking()
+            .Where(n => ids.Contains(n.Id) && !n.Retired && n.System == character.System)
+            .Where(n => n.OwnerUserId == userId || n.IsBuiltIn
+                || (n.Visibility == NpcVisibility.CampaignVisible && n.CampaignId != null
+                    && db.CampaignCharacters.Any(cc => cc.PlayerUserId == userId
+                        && cc.CampaignId == n.CampaignId.Value)))
+            .Select(n => new { n.Id, n.Name, n.Silhouette })
+            .ToListAsync(ct);
+        if (companions.Count != ids.Distinct().Count())
+            throw new DomainRuleException(
+                "Спутник не найден или недоступен персонажу.", "talent.choice.companion_unknown");
+
+        var tooLarge = companions.FirstOrDefault(n => n.Silhouette > maximumSilhouette);
+        if (tooLarge is not null)
+            throw new DomainRuleException(
+                $"Силуэт спутника «{tooLarge.Name}» не должен превышать {maximumSilhouette}.",
+                "talent.choice.companion_silhouette");
+
+        return values.ToDictionary(
+            value => value,
+            value => companions.Single(n => n.Id == Guid.Parse(value)).Name,
+            StringComparer.Ordinal);
+    }
 
     /// <summary>Имена предусловия и взаимоисключений таланта по их bare-slug кодам.</summary>
     private async Task<Dictionary<string, string>> RelatedTalentNamesAsync(

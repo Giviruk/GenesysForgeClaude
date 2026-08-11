@@ -1247,6 +1247,7 @@ export interface NpcListItem {
   system: GameSystem
   kind: NpcKind
   role: NpcRole
+  silhouette: number
   soak: number
   woundThreshold: number
   strainThreshold: number | null

@@ -5,11 +5,13 @@ import { NpcsPage } from './NpcsPage'
 
 const builtInItem: NpcListItem = {
   id: 'b1', name: 'Гигант', system: 'realmsOfTerrinoth', kind: 'nemesis', role: 'brute',
+  silhouette: 3,
   soak: 8, woundThreshold: 33, strainThreshold: 29, visibility: 'publicTemplate', campaignId: null,
   isMine: false, isBuiltIn: true, skills: [], tags: [], createdAt: '',
 }
 const mineItem: NpcListItem = {
   id: 'm1', name: 'Мой гоблин', system: 'realmsOfTerrinoth', kind: 'rival', role: 'skirmisher',
+  silhouette: 1,
   soak: 3, woundThreshold: 12, strainThreshold: null, visibility: 'private', campaignId: null,
   isMine: true, isBuiltIn: false, skills: [], tags: [], createdAt: '',
 }

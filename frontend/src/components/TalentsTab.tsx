@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { api } from '../api/client'
 import type {
-  AbilityUseScope, Characteristic, CharacterSheet, Reference, SheetTalent, TalentCategory, TalentDef,
+  AbilityUseScope, Characteristic, CharacterSheet, NpcListItem, Reference, SheetTalent,
+  TalentCategory, TalentDef,
 } from '../api/types'
 import {
   CHARACTERISTICS, CHARACTERISTIC_LABELS, localizedDescription, localizedName, nextRankTier, secondaryName,
@@ -46,12 +47,18 @@ export function TalentsTab({ sheet, reference, onError, refresh }: Props) {
   const [categoryFilter, setCategoryFilter] = useState<TalentCategory | 'all'>('all')
   // Талант, для которого открыт выбор характеристики (Dedication).
   const [pickFor, setPickFor] = useState<TalentDef | null>(null)
+  // Animal Companion выбирает видимую запись NPC и сохраняет её стабильный id.
+  const [companionPickFor, setCompanionPickFor] = useState<TalentDef | null>(null)
+  const [companionId, setCompanionId] = useState('')
+  const [companionOptions, setCompanionOptions] = useState<NpcListItem[]>([])
+  const [companionLoading, setCompanionLoading] = useState(false)
+  const [companionError, setCompanionError] = useState('')
   // Купленный талант, открытый на печать.
   const [printTalent, setPrintTalent] = useState<SheetTalent | null>(null)
 
-  async function buy(talent: TalentDef, characteristic?: string) {
+  async function buy(talent: TalentDef, characteristic?: string, choices?: string[]) {
     try {
-      await api.buyTalent(sheet.id, talent.id, characteristic)
+      await api.buyTalent(sheet.id, talent.id, characteristic, choices)
       await refresh()
     } catch (err) {
       onError(err instanceof Error ? err.message : t('Ошибка', 'Error'))
@@ -69,6 +76,32 @@ export function TalentsTab({ sheet, reference, onError, refresh }: Props) {
     const talent = pickFor
     setPickFor(null)
     if (talent) await buy(talent, characteristic)
+  }
+
+  async function openCompanionPick(talent: TalentDef) {
+    setCompanionId('')
+    setCompanionOptions([])
+    setCompanionError('')
+    setCompanionPickFor(talent)
+    setCompanionLoading(true)
+    try {
+      const maximumSilhouette = owned.get(talent.id)?.ranks ?? 0
+      const options = (await api.npcs({ system: sheet.system, sort: 'name' }))
+        .filter(npc => npc.silhouette <= maximumSilhouette)
+      setCompanionOptions(options)
+      if (options.length > 0) setCompanionId(options[0].id)
+    } catch (err) {
+      setCompanionError(err instanceof Error ? err.message : t('Не удалось загрузить NPC', 'Could not load NPCs'))
+    } finally {
+      setCompanionLoading(false)
+    }
+  }
+
+  async function confirmCompanionPick() {
+    const talent = companionPickFor
+    if (!talent || !companionId) return
+    setCompanionPickFor(null)
+    await buy(talent, undefined, [companionId])
   }
 
   async function refund(talent: TalentDef) {
@@ -103,6 +136,7 @@ export function TalentsTab({ sheet, reference, onError, refresh }: Props) {
     rankNo?: number
     bonuses: string[]
     grant?: Characteristic
+    choices: string[]
   }
   const cardsByTier = new Map<number, PyramidCard[]>(TIERS.map(t => [t, []]))
   for (const t of sheet.talents) {
@@ -120,6 +154,8 @@ export function TalentsTab({ sheet, reference, onError, refresh }: Props) {
         bonuses: talentBonusSummary(t, r + 1),
         // характеристика, выбранная для этого ранга (Dedication)
         grant: t.grantsCharacteristic ? t.grantedCharacteristics[r] : undefined,
+        choices: (t.choices ?? []).filter(choice => choice.rankIndex === r)
+          .map(choice => choice.displayName),
       })
     }
   }
@@ -200,6 +236,11 @@ export function TalentsTab({ sheet, reference, onError, refresh }: Props) {
                             ⬆ +1 {CHARACTERISTIC_LABELS[c.grant]}
                           </div>
                         )}
+                        {c.choices.length > 0 && (
+                          <div className="bonus-line">
+                            {t('Выбор:', 'Choice:')} {c.choices.join(' · ')}
+                          </div>
+                        )}
                         {c.bonuses.length > 0 && (
                           <div className="bonus-line" title={t('Применяется к производным характеристикам автоматически', 'Applied to derived characteristics automatically')}>
                             ⚡ {c.bonuses.join(' · ')}
@@ -240,6 +281,12 @@ export function TalentsTab({ sheet, reference, onError, refresh }: Props) {
                       </span>
                     </div>
                     <p className="owned-talent-desc muted">{localizedDescription(tal)}</p>
+                    {(tal.choices ?? []).length > 0 && (
+                      <div className="bonus-line">
+                        {t('Выбор:', 'Choice:')}{' '}
+                        {(tal.choices ?? []).map(choice => choice.displayName).join(' · ')}
+                      </div>
+                    )}
                     {bonuses.length > 0 && <div className="bonus-line">{bonuses.join(' · ')}</div>}
                   </div>
                 )
@@ -359,7 +406,11 @@ export function TalentsTab({ sheet, reference, onError, refresh }: Props) {
                         )
                       })()}
                       <button className="small" disabled={!!reason} title={reason ?? ''}
-                        onClick={() => (tal.grantsCharacteristic ? setPickFor(tal) : buy(tal))}>
+                        onClick={() => tal.grantsCharacteristic
+                          ? setPickFor(tal)
+                          : tal.choiceKind === 'animalCompanion'
+                            ? void openCompanionPick(tal)
+                            : buy(tal)}>
                         {maxedOut ? t('Куплен', 'Purchased') : t(`Купить (${cost} XP${tal.isRanked && ranksOwned > 0 ? `, тир ${effectiveTier}` : ''})`, `Buy (${cost} XP${tal.isRanked && ranksOwned > 0 ? `, tier ${effectiveTier}` : ''})`)}
                       </button>
                       {ownedRow && (
@@ -394,6 +445,48 @@ export function TalentsTab({ sheet, reference, onError, refresh }: Props) {
               <button type="button" onClick={() => setPickFor(null)}>{t('Отмена', 'Cancel')}</button>
             </div>
           </div>
+        </div>
+      )}
+
+      {companionPickFor && (
+        <div className="modal-backdrop" onClick={() => setCompanionPickFor(null)}>
+          <form className="modal" onClick={e => e.stopPropagation()}
+            onSubmit={e => { e.preventDefault(); void confirmCompanionPick() }}>
+            <h3>{localizedName(companionPickFor)}: {t('выбор спутника', 'choose a companion')}</h3>
+            <p className="hint">
+              {t(
+                `Укажите животное, одобренное ведущим. Для этого ранга допустим силуэт не выше ${owned.get(companionPickFor.id)?.ranks ?? 0}.`,
+                `Enter a GM-approved animal. This rank allows silhouette up to ${owned.get(companionPickFor.id)?.ranks ?? 0}.`,
+              )}
+            </p>
+            {companionLoading ? (
+              <p className="muted">{t('Загружаем доступных NPC…', 'Loading available NPCs…')}</p>
+            ) : companionError ? (
+              <p className="error">{companionError}</p>
+            ) : companionOptions.length === 0 ? (
+              <p className="muted">
+                {t('Нет доступных NPC подходящего силуэта. Сначала создайте спутника в библиотеке NPC.',
+                  'No available NPC has an eligible silhouette. Create the companion in the NPC library first.')}
+              </p>
+            ) : (
+              <label>{t('Спутник', 'Companion')}
+                <select autoFocus value={companionId} onChange={e => setCompanionId(e.target.value)}>
+                  {companionOptions.map(npc => (
+                    <option key={npc.id} value={npc.id}>
+                      {npc.name} · {t('силуэт', 'silhouette')} {npc.silhouette}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            )}
+            <div className="modal-actions">
+              <button type="button" onClick={() => setCompanionPickFor(null)}>{t('Отмена', 'Cancel')}</button>
+              <button type="submit" className="primary"
+                disabled={companionLoading || !!companionError || !companionId}>
+                {t('Подтвердить и купить', 'Confirm and buy')}
+              </button>
+            </div>
+          </form>
         </div>
       )}
     </div>

@@ -324,7 +324,10 @@ Protected. Refunds one skill rank during creation if it is not a free rank.
 
 ### `POST /api/characters/{id}/talents/buy`
 
-Protected. Request: `BuyTalentRequest` with `talentDefId`. Buys one talent rank.
+Protected. Request: `BuyTalentRequest` with `talentDefId` and any required `choices`. Buys one
+talent rank. For Animal Companion, the choice is a visible NPC id from the same game system;
+the server validates that its silhouette is at most the zero-based rank index (0 for the first
+rank, 1 for the second, and so on) before spending XP.
 
 ### `POST /api/characters/{id}/talents/refund`
 
@@ -711,7 +714,11 @@ PUT    /api/npcs/{id}
 DELETE /api/npcs/{id}
 ```
 
-List supports optional query filters used by the frontend: `search`, `system`, `kind`, `role`, `campaignId`, `tag`, `sort`. Create/update use `NpcInput`. Quick draft uses `QuickDraftRequest` and is deterministic for the same request. `quick-draft/preview` runs the same generator and returns the resulting `NpcDetail` without persisting anything — the quick draft form uses it for live preview.
+List supports optional query filters used by the frontend: `search`, `system`, `kind`, `role`,
+`campaignId`, `tag`, `sort`. Each list item includes `silhouette`, used by the Animal Companion
+picker. Create/update use `NpcInput`. Quick draft uses `QuickDraftRequest` and is deterministic for
+the same request. `quick-draft/preview` runs the same generator and returns the resulting
+`NpcDetail` without persisting anything — the quick draft form uses it for live preview.
 
 ## Game Table
 
