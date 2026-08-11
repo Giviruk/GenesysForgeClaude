@@ -73,6 +73,10 @@ describe('TalentsTab', () => {
     buyTalentMock.mockResolvedValue(undefined)
     npcsMock.mockResolvedValue([{
       id: 'npc-falcon', name: 'Серый сокол', system: 'genesysCore', silhouette: 0,
+      tags: ['животное'],
+    }, {
+      id: 'npc-guard', name: 'Городской стражник', system: 'genesysCore', silhouette: 0,
+      tags: ['человек'],
     }])
   })
 
@@ -112,6 +116,7 @@ describe('TalentsTab', () => {
     expect(buyTalentMock).not.toHaveBeenCalled()
     expect(screen.getByRole('heading', { name: /выбор спутника/ })).toBeTruthy()
     await screen.findByRole('option', { name: /Серый сокол/ })
+    expect(screen.queryByRole('option', { name: /Городской стражник/ })).toBeNull()
     fireEvent.click(screen.getByRole('button', { name: 'Подтвердить и купить' }))
 
     await waitFor(() => expect(buyTalentMock).toHaveBeenCalledWith(
