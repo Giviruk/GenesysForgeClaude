@@ -98,11 +98,23 @@ export interface NpcSkillView {
   pool: DicePool | null
 }
 
-export function npcSkillViews(npc: NpcDetail, index: Map<string, SkillDef>): NpcSkillView[] {
+/**
+ * Эффективный ранг сохранённого навыка NPC в текущем экземпляре сцены.
+ * У миньонов сами записи навыков означают membership в групповом навыке, поэтому
+ * ранг образуется размером группы, а не сохранённым нулём профиля.
+ */
+export function effectiveNpcSkillRanks(npc: NpcDetail, savedRanks: number, minionCount = 1): number {
+  return npc.kind === 'minion' ? Math.max(0, minionCount - 1) : Math.max(0, savedRanks)
+}
+
+export function npcSkillViews(
+  npc: NpcDetail, index: Map<string, SkillDef>, minionCount = 1,
+): NpcSkillView[] {
   return npc.skills.map(s => {
     const characteristic = skillCharacteristic(s.name, index)
-    const pool = characteristic ? buildPool(npc[characteristic], s.ranks) : null
-    return { name: s.name, ranks: s.ranks, characteristic, pool }
+    const ranks = effectiveNpcSkillRanks(npc, s.ranks, minionCount)
+    const pool = characteristic ? buildPool(npc[characteristic], ranks) : null
+    return { name: s.name, ranks, characteristic, pool }
   })
 }
 
@@ -186,7 +198,9 @@ export interface NpcAttackView {
 }
 
 /** Виды структурных атак NPC: считает пул по навыку атаки и раскрывает урон «+N» как Мощь+N. */
-export function npcAttackViews(npc: NpcDetail, reference: Reference | null): NpcAttackView[] {
+export function npcAttackViews(
+  npc: NpcDetail, reference: Reference | null, minionCount = 1,
+): NpcAttackView[] {
   return npc.attacks.map(a => {
     let pool: DicePool | null = null
     let skillLabel: string | null = null
@@ -195,7 +209,10 @@ export function npcAttackViews(npc: NpcDetail, reference: Reference | null): Npc
       const skillDef = skillName ? reference.skills.find(s => s.name === skillName) ?? null : null
       if (skillDef) {
         skillLabel = refLabel(skillDef)
-        const ranks = npc.skills.find(s => matchesRef(skillDef, s.name))?.ranks ?? 0
+        const savedSkill = npc.skills.find(s => matchesRef(skillDef, s.name))
+        // Только перечисленные у профиля навыки являются групповыми. Атака по другому
+        // навыку остаётся непрокачанной независимо от размера группы.
+        const ranks = savedSkill ? effectiveNpcSkillRanks(npc, savedSkill.ranks, minionCount) : 0
         pool = buildPool(npc[skillDef.characteristic], ranks)
       }
     }

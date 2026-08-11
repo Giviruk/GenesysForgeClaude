@@ -71,6 +71,15 @@ describe('npcSkillViews — пулы навыков NPC', () => {
     const custom: NpcDetail = { ...npc, skills: [{ name: 'Запугивание чем-то', ranks: 1 }] }
     expect(npcSkillViews(custom, skillIndex(reference))[0].pool).toBeNull()
   })
+
+  it('для группы миньонов использует ранг количество миньонов минус один', () => {
+    const minion: NpcDetail = { ...npc, kind: 'minion', strainThreshold: null,
+      skills: [{ name: 'Ближний бой', ranks: 0 }] }
+    const [view] = npcSkillViews(minion, skillIndex(reference), 4)
+
+    expect(view.ranks).toBe(3)
+    expect(view.pool).toEqual({ ability: 0, proficiency: 3 })
+  })
 })
 
 describe('splitEquipment — оружие vs прочее', () => {
@@ -122,6 +131,15 @@ describe('npcAttackViews — структурные атаки NPC', () => {
     expect(a.pool).toBeNull()
     expect(a.skillLabel).toBeNull()
     expect(a.damageText).toBe('5 (Мощь +2)') // раскрытие урона не зависит от справочника
+  })
+
+  it('масштабирует атаку миньонов только когда её навык входит в групповые', () => {
+    const minion: NpcDetail = { ...withAttacks, kind: 'minion', strainThreshold: null,
+      skills: [{ name: 'Ближний бой', ranks: 0 }] }
+    expect(npcAttackViews(minion, reference, 3)[0].pool).toEqual({ ability: 1, proficiency: 2 })
+
+    const withoutGroupSkill: NpcDetail = { ...minion, skills: [] }
+    expect(npcAttackViews(withoutGroupSkill, reference, 3)[0].pool).toEqual({ ability: 3, proficiency: 0 })
   })
 })
 

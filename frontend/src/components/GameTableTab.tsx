@@ -9,6 +9,7 @@ import { DiceRoller, RollSymbolsView, type RollLogRequest } from './DiceRoller'
 import type { RollSymbols } from '../utils/diceRoller'
 import { useDiceRoller } from '../dice-roller-store'
 import { t } from '../i18n'
+import { GameTableNpcStatblock } from './GameTableNpcStatblock'
 
 interface Props {
   campaignId: string
@@ -121,7 +122,7 @@ export function GameTableTab({ campaignId, isGm, members, refreshSignal }: Props
 
       <section className="center-stage">
         <RangeBandTracker session={session} isGm={isGm} />
-        <ParticipantsStrip session={session} />
+        <ParticipantsStrip session={session} campaignId={campaignId} isGm={isGm} />
       </section>
 
       <aside className="right-rail">
@@ -437,22 +438,36 @@ function InitiativeTracker({ session, isGm, onRun, campaignId }: BlockProps) {
   )
 }
 
-function ParticipantsStrip({ session }: { session: GameSession }) {
+function ParticipantsStrip({ session, campaignId, isGm }: {
+  session: GameSession
+  campaignId: string
+  isGm: boolean
+}) {
+  const [openNpc, setOpenNpc] = useState<GameParticipant | null>(null)
   return (
-    <section className="participants-strip">
-      {session.participants.length === 0 && <p className="muted">{t('Участников пока нет.', 'No participants yet.')}</p>}
-      {session.participants.map(p => (
-        <CompactParticipantCard key={p.id} p={p} />
-      ))}
-    </section>
+    <>
+      <section className="participants-strip">
+        {session.participants.length === 0 && <p className="muted">{t('Участников пока нет.', 'No participants yet.')}</p>}
+        {session.participants.map(p => (
+          <CompactParticipantCard key={p.id} p={p} onOpenNpc={p.npcId ? () => setOpenNpc(p) : undefined} />
+        ))}
+      </section>
+      {openNpc && <GameTableNpcStatblock participant={openNpc} campaignId={campaignId} isGm={isGm}
+        onClose={() => setOpenNpc(null)} />}
+    </>
   )
 }
 
-function CompactParticipantCard({ p }: {
+function CompactParticipantCard({ p, onOpenNpc }: {
   p: GameParticipant
+  onOpenNpc?: () => void
 }) {
   return (
-    <article className={`pc-card${p.isDefeated ? ' defeated' : ''}${p.criticalInjuries > 0 ? ' crit' : ''}`}>
+    <article className={`pc-card${onOpenNpc ? ' clickable' : ''}${p.isDefeated ? ' defeated' : ''}${p.criticalInjuries > 0 ? ' crit' : ''}`}
+      role={onOpenNpc ? 'button' : undefined} tabIndex={onOpenNpc ? 0 : undefined}
+      aria-label={onOpenNpc ? t(`Открыть статблок NPC ${p.displayName}`, `Open NPC stat block ${p.displayName}`) : undefined}
+      onClick={onOpenNpc}
+      onKeyDown={e => { if (onOpenNpc && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); onOpenNpc() } }}>
       <div className="pc-name">
         <span>{p.displayName}{p.count > 1 ? ` ×${p.count}` : ''}</span>
         <span className={p.participantType === 'playerCharacter' ? 'badge slot-player' : 'badge slot-npc'}>
@@ -474,6 +489,7 @@ function CompactParticipantCard({ p }: {
         )}
       </div>
       <div className="gt-card-flags">
+        {onOpenNpc && <span className="muted small-text">{t('нажмите: статблок', 'click: stat block')}</span>}
         {p.isHiddenFromPlayers && <span className="badge tier">{t('скрыт', 'hidden')}</span>}
         {p.criticalInjuries > 0 && <span className="badge danger">{t('криты', 'crits')} {p.criticalInjuries}</span>}
       </div>
