@@ -1359,6 +1359,10 @@ export interface GameParticipant {
   participantType: ParticipantType
   initiativeSlotType: InitiativeSlotType
   count: number
+  /** Авторитетное число действующих участников группы после потерь. */
+  remainingCount?: number
+  /** Индивидуальный WT миньона, null для обычного NPC и неоднозначного legacy snapshot. */
+  perMemberWoundThreshold?: number | null
   woundsCurrent: number
   woundsThreshold: number
   strainCurrent: number

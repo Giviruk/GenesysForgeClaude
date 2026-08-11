@@ -730,6 +730,13 @@ DELETE /api/campaigns/{campaignId}/session/slots/{slotId}
 
 `GET` returns `204` when there is no active session. GMs can create/reset/end scenes and manage participants/slots. Player edits are limited by campaign membership and session settings.
 
+Each `GameParticipant` includes the initial `count`, authoritative derived `remainingCount`, and
+nullable `perMemberWoundThreshold`. For a valid minion-group snapshot the individual threshold is
+`woundsThreshold / count`; a member is lost only after that threshold is exceeded. The UI rebuilds
+group-skill pools from `remainingCount`. These fields are response-only derivations and require no
+database columns. GMs can update wounds and strain through the participant `PATCH`; minions have no
+separate strain tracker.
+
 ## Encounters
 
 All routes are protected. Campaign-scoped list/create routes require access to the campaign; mutation routes enforce GM ownership through the encounter's campaign.

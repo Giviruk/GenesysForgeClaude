@@ -9,6 +9,7 @@ const npcMock = vi.fn()
 const referenceMock = vi.fn()
 const rollsMock = vi.fn()
 const createRollMock = vi.fn()
+const updateParticipantMock = vi.fn()
 const openRollerMock = vi.fn()
 
 vi.mock('../api/client', () => ({
@@ -18,6 +19,7 @@ vi.mock('../api/client', () => ({
     reference: (...args: unknown[]) => referenceMock(...args),
     rolls: (...args: unknown[]) => rollsMock(...args),
     createRoll: (...args: unknown[]) => createRollMock(...args),
+    updateParticipant: (...args: unknown[]) => updateParticipantMock(...args),
     rules: vi.fn().mockResolvedValue({ entries: [] }),
   },
 }))
@@ -34,7 +36,7 @@ const session: GameSession = {
   participants: [{
     id: 'participant-1', characterId: null, npcId: 'npc-1', displayName: 'Гоблины',
     participantType: 'minionGroup', initiativeSlotType: 'npc', count: 3,
-    woundsCurrent: 1, woundsThreshold: 15, strainCurrent: 0, strainThreshold: null,
+    woundsCurrent: 5, woundsThreshold: 15, strainCurrent: 0, strainThreshold: null,
     soak: 3, meleeDefense: 0, rangedDefense: 0, criticalInjuries: 0,
     isActive: true, isDefeated: false, isHiddenFromPlayers: false, notes: '', order: 0,
   }],
@@ -68,17 +70,18 @@ describe('GameTableTab — статблок и броски NPC', () => {
     referenceMock.mockReset().mockResolvedValue(reference)
     rollsMock.mockReset().mockResolvedValue([])
     createRollMock.mockReset().mockResolvedValue({})
+    updateParticipantMock.mockReset().mockResolvedValue(session)
     openRollerMock.mockReset()
   })
 
-  it('открывает статблок кликом по карточке и учитывает размер группы в навыках', async () => {
+  it('считает оставшихся миньонов по ранам и использует их число в навыках', async () => {
     render(<GameTableTab campaignId="campaign-1" isGm members={[]} />)
 
     fireEvent.click(await screen.findByRole('button', { name: 'Открыть статблок NPC Гоблины' }))
     const dialog = await screen.findByRole('dialog', { name: 'Статблок NPC: Гоблины' })
 
     expect(npcMock).toHaveBeenCalledWith('npc-1')
-    expect(await within(dialog).findByText('Группа: эффективный ранг групповых навыков 2')).toBeTruthy()
+    expect(await within(dialog).findByText('Осталось 3 из 3 · индивидуальный порог ран 5 · эффективный ранг 2')).toBeTruthy()
     expect(within(dialog).getByText('Небольшой опасный противник.')).toBeTruthy()
     expect(within(dialog).getByText('Держатся группой.')).toBeTruthy()
 
@@ -91,6 +94,54 @@ describe('GameTableTab — статблок и броски NPC', () => {
     await waitFor(() => expect(createRollMock).toHaveBeenCalledWith('campaign-1', expect.objectContaining({
       actorName: 'Гоблины', label: 'Melee',
     })))
+  })
+
+  it('после раны, пересекающей порог миньона, обновляет остаток и пул без закрытия карточки', async () => {
+    const wounded = {
+      ...session,
+      participants: [{ ...session.participants[0], woundsCurrent: 6 }],
+    }
+    updateParticipantMock.mockResolvedValue(wounded)
+    render(<GameTableTab campaignId="campaign-1" isGm members={[]} />)
+    fireEvent.click(await screen.findByRole('button', { name: 'Открыть статблок NPC Гоблины' }))
+    const dialog = await screen.findByRole('dialog', { name: 'Статблок NPC: Гоблины' })
+
+    fireEvent.click(within(dialog).getByLabelText('Управление состоянием NPC').querySelectorAll('button')[1])
+
+    await waitFor(() => expect(updateParticipantMock).toHaveBeenCalledWith(
+      'campaign-1', 'participant-1', { woundsCurrent: 6 },
+    ))
+    expect(await within(dialog).findByText('Осталось 2 из 3 · индивидуальный порог ран 5 · эффективный ранг 1')).toBeTruthy()
+    expect(screen.getAllByText('Гоблины ×2/3').length).toBeGreaterThanOrEqual(2)
+
+    openRollerMock.mockReset()
+    fireEvent.click(within(dialog).getByRole('button', { name: '🎲 Бросить' }))
+    expect(openRollerMock).toHaveBeenCalledWith(expect.objectContaining({
+      kind: 'roll', initialPool: { ability: 2, proficiency: 1 },
+    }))
+  })
+
+  it('позволяет мастеру менять усталость одиночного NPC из статблока', async () => {
+    const rivalSession = {
+      ...session,
+      participants: [{ ...session.participants[0], participantType: 'npc' as const, count: 1,
+        woundsCurrent: 0, woundsThreshold: 10, strainCurrent: 2, strainThreshold: 8 }],
+    }
+    const updated = {
+      ...rivalSession,
+      participants: [{ ...rivalSession.participants[0], strainCurrent: 3 }],
+    }
+    sessionMock.mockResolvedValue(rivalSession)
+    npcMock.mockResolvedValue({ ...npc, kind: 'rival', woundThreshold: 10, strainThreshold: 8 })
+    updateParticipantMock.mockResolvedValue(updated)
+    render(<GameTableTab campaignId="campaign-1" isGm members={[]} />)
+    fireEvent.click(await screen.findByRole('button', { name: 'Открыть статблок NPC Гоблины' }))
+    const controls = within(await screen.findByRole('dialog')).getByLabelText('Управление состоянием NPC')
+
+    fireEvent.click(within(controls).getAllByRole('button', { name: '+1' })[1])
+    await waitFor(() => expect(updateParticipantMock).toHaveBeenCalledWith(
+      'campaign-1', 'participant-1', { strainCurrent: 3 },
+    ))
   })
 
   it('открывает боевой дайсроллер атаки с тем же групповым пулом', async () => {

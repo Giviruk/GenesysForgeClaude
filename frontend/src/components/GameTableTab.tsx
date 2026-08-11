@@ -10,6 +10,7 @@ import type { RollSymbols } from '../utils/diceRoller'
 import { useDiceRoller } from '../dice-roller-store'
 import { t } from '../i18n'
 import { GameTableNpcStatblock } from './GameTableNpcStatblock'
+import { participantNameWithCount } from '../utils/gameTable'
 
 interface Props {
   campaignId: string
@@ -122,7 +123,7 @@ export function GameTableTab({ campaignId, isGm, members, refreshSignal }: Props
 
       <section className="center-stage">
         <RangeBandTracker session={session} isGm={isGm} />
-        <ParticipantsStrip session={session} campaignId={campaignId} isGm={isGm} />
+        <ParticipantsStrip session={session} campaignId={campaignId} isGm={isGm} onSessionChange={setSession} />
       </section>
 
       <aside className="right-rail">
@@ -345,7 +346,7 @@ function RangeBandTracker({ session, isGm }: { session: GameSession; isGm: boole
                     onDragStart={e => { setDragId(p.id); e.dataTransfer.effectAllowed = 'move' }}
                     onDragEnd={() => setDragId(null)}>
                     <div className="rb-token-name" title={p.displayName}>
-                      {p.displayName}{p.count > 1 ? ` ×${p.count}` : ''}
+                      {participantNameWithCount(p)}
                     </div>
                     <div className="rb-token-meta muted small-text">
                       {p.woundsThreshold > 0 && `${Math.max(0, p.woundsThreshold - p.woundsCurrent)}/${p.woundsThreshold}`}
@@ -438,22 +439,24 @@ function InitiativeTracker({ session, isGm, onRun, campaignId }: BlockProps) {
   )
 }
 
-function ParticipantsStrip({ session, campaignId, isGm }: {
+function ParticipantsStrip({ session, campaignId, isGm, onSessionChange }: {
   session: GameSession
   campaignId: string
   isGm: boolean
+  onSessionChange: (session: GameSession) => void
 }) {
-  const [openNpc, setOpenNpc] = useState<GameParticipant | null>(null)
+  const [openNpcId, setOpenNpcId] = useState<string | null>(null)
+  const openNpc = session.participants.find(p => p.id === openNpcId) ?? null
   return (
     <>
       <section className="participants-strip">
         {session.participants.length === 0 && <p className="muted">{t('Участников пока нет.', 'No participants yet.')}</p>}
         {session.participants.map(p => (
-          <CompactParticipantCard key={p.id} p={p} onOpenNpc={p.npcId ? () => setOpenNpc(p) : undefined} />
+          <CompactParticipantCard key={p.id} p={p} onOpenNpc={p.npcId ? () => setOpenNpcId(p.id) : undefined} />
         ))}
       </section>
       {openNpc && <GameTableNpcStatblock participant={openNpc} campaignId={campaignId} isGm={isGm}
-        onClose={() => setOpenNpc(null)} />}
+        onSessionChange={onSessionChange} onClose={() => setOpenNpcId(null)} />}
     </>
   )
 }
@@ -469,7 +472,7 @@ function CompactParticipantCard({ p, onOpenNpc }: {
       onClick={onOpenNpc}
       onKeyDown={e => { if (onOpenNpc && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); onOpenNpc() } }}>
       <div className="pc-name">
-        <span>{p.displayName}{p.count > 1 ? ` ×${p.count}` : ''}</span>
+        <span>{participantNameWithCount(p)}</span>
         <span className={p.participantType === 'playerCharacter' ? 'badge slot-player' : 'badge slot-npc'}>
           {p.participantType === 'playerCharacter' ? 'PC' : 'NPC'}
         </span>

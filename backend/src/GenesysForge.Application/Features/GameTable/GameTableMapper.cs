@@ -2,6 +2,7 @@ using GenesysForge.Application.Abstractions;
 using GenesysForge.Application.Dtos;
 using GenesysForge.Domain;
 using GenesysForge.Domain.Entities;
+using GenesysForge.Domain.Rules;
 using Microsoft.EntityFrameworkCore;
 
 namespace GenesysForge.Application.Features.GameTable;
@@ -32,11 +33,17 @@ public static class GameTableMapper
         var participants = s.Participants
             .Where(p => isGm || !p.IsHiddenFromPlayers)
             .OrderBy(p => p.Order).ThenBy(p => p.DisplayName)
-            .Select(p => new GameParticipantDto(
-                p.Id, p.CharacterId, p.NpcId, p.DisplayName, p.ParticipantType, p.InitiativeSlotType,
-                p.Count, p.WoundsCurrent, p.WoundsThreshold, p.StrainCurrent, p.StrainThreshold,
-                p.Soak, p.MeleeDefense, p.RangedDefense, p.CriticalInjuries, p.IsActive, p.IsDefeated,
-                p.IsHiddenFromPlayers, isGm ? p.Notes : "", p.Order))
+            .Select(p =>
+            {
+                var group = MinionGroupRules.Calculate(
+                    p.ParticipantType, p.Count, p.WoundsCurrent, p.WoundsThreshold, p.IsDefeated);
+                return new GameParticipantDto(
+                    p.Id, p.CharacterId, p.NpcId, p.DisplayName, p.ParticipantType, p.InitiativeSlotType,
+                    p.Count, group?.RemainingCount ?? p.Count, group?.PerMemberWoundThreshold,
+                    p.WoundsCurrent, p.WoundsThreshold, p.StrainCurrent, p.StrainThreshold,
+                    p.Soak, p.MeleeDefense, p.RangedDefense, p.CriticalInjuries, p.IsActive, p.IsDefeated,
+                    p.IsHiddenFromPlayers, isGm ? p.Notes : "", p.Order);
+            })
             .ToList();
 
         var slots = s.Slots
