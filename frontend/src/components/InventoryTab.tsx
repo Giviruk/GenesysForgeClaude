@@ -15,8 +15,10 @@ import {
 import { BuyControl, SellControl } from './PriceControls'
 import { DamageStateControls } from './ItemDamageControls'
 import { ImplementMaterialMemo } from './ImplementMaterialMemo'
-import { craftsmanshipApplies, craftsmanshipPrice } from '../utils/craftsmanship'
-import { IMPLEMENT_MATERIALS, implementPrice } from '../utils/implements'
+import {
+  craftsmanshipApplies, craftsmanshipPrice, craftsmanshipRarity,
+} from '../utils/craftsmanship'
+import { IMPLEMENT_MATERIALS, implementPrice, implementRarity } from '../utils/implements'
 import { itemTags } from '../data/itemQualities'
 import { DicePoolView } from './DicePoolView'
 import { qualitiesFromProperties } from '../utils/combat'
@@ -322,6 +324,9 @@ function ShopRow({ item, money, run, sheetId, open, onToggle }: {
   const unitPrice = item.price == null ? null : isImplement
     ? implementPrice(item.price, material)
     : canChoose ? craftsmanshipPrice(item.price, craftsmanship) : item.price
+  const unitRarity = item.rarity == null ? null : isImplement
+    ? implementRarity(item.rarity, material)
+    : canChoose ? craftsmanshipRarity(item.rarity, craftsmanship) : item.rarity
   return (
     <div className="shop-row">
       <div className="shop-row-head">
@@ -332,10 +337,12 @@ function ShopRow({ item, money, run, sheetId, open, onToggle }: {
             {ITEM_KIND_LABELS[item.kind]}
             {item.price == null
               ? t(' · без обычной цены', ' · no ordinary price')
-              : ` · ${t('цена', 'price')} ${item.price}`}
+              : ` · ${t('цена', 'price')} ${unitPrice === item.price
+                ? item.price : `${item.price} → ${unitPrice}`}`}
             {item.rarity == null
               ? t(' · без обычной редкости', ' · no ordinary rarity')
-              : ` · ${t('редкость', 'rarity')} ${item.rarity}`}
+              : ` · ${t('редкость', 'rarity')} ${unitRarity === item.rarity
+                ? item.rarity : `${item.rarity} → ${unitRarity}`}`}
             {item.isCustom && t(' · кастом', ' · custom')}
             {item.kind === 'weapon' && item.damage && t(` · урон ${item.damage}, крит ${item.crit}`, ` · damage ${item.damage}, crit ${item.crit}`)}
             {/* Реликвии и руны не покупаются вовсе — лучше сказать это словами, чем просто
