@@ -22,6 +22,7 @@ public record NpcListItemDto(
     GameSystem System,
     NpcKind Kind,
     NpcRole Role,
+    int Silhouette,
     int Soak,
     int WoundThreshold,
     int? StrainThreshold,

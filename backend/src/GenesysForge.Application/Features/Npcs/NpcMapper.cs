@@ -26,7 +26,7 @@ public static class NpcMapper
         npc.CreatedAt, npc.UpdatedAt);
 
     public static NpcListItemDto ToListItem(Npc npc, Guid userId) => new(
-        npc.Id, npc.Name, npc.System, npc.Kind, npc.Role, npc.Soak, npc.WoundThreshold,
+        npc.Id, npc.Name, npc.System, npc.Kind, npc.Role, npc.Silhouette, npc.Soak, npc.WoundThreshold,
         npc.StrainThreshold, npc.Visibility, npc.CampaignId, npc.OwnerUserId == userId, npc.IsBuiltIn,
         npc.Skills.OrderBy(s => s.Name).Select(s => new NpcSkillDto(s.Name, s.Ranks)).ToList(),
         npc.Tags, npc.CreatedAt);
