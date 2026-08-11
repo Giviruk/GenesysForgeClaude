@@ -665,6 +665,9 @@ Found migrations:
   map (so the rename cannot create a second row), and syncs `Name`/`Source`/`Retired` by code. No
   row is deleted: the nine Haunted City adversaries stay reachable by id for existing encounters
   and duplicates.
+- `20260811204103_AddGameParticipantDiceModifiers` — adds non-null `BoostDice` and `SetbackDice`
+  counters to `GameParticipants`, both defaulting to zero. The migration is additive; existing scene
+  participants keep the same state and receive no modifiers.
 
 Startup behavior:
 

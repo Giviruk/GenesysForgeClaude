@@ -22,6 +22,8 @@ public record GameParticipantDto(
     int Soak,
     int MeleeDefense,
     int RangedDefense,
+    int BoostDice,
+    int SetbackDice,
     int CriticalInjuries,
     bool IsActive,
     bool IsDefeated,
@@ -85,7 +87,9 @@ public record UpdateParticipantRequest(
     bool? IsDefeated,
     bool? IsHiddenFromPlayers,
     string? Notes,
-    InitiativeSlotType? InitiativeSlotType);
+    InitiativeSlotType? InitiativeSlotType,
+    int? BoostDice = null,
+    int? SetbackDice = null);
 
 public record AddSlotRequest(InitiativeSlotType SlotType, Guid? AssignedParticipantId, string? Notes);
 

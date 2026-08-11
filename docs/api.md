@@ -737,6 +737,11 @@ group-skill pools from `remainingCount`. These fields are response-only derivati
 database columns. GMs can update wounds and strain through the participant `PATCH`; minions have no
 separate strain tracker.
 
+Each participant also exposes persistent `boostDice` and `setbackDice` counters. A GM can change
+them through the participant `PATCH` (values are clamped to `0..20`). The Game Table adds these dice
+to generic participant rolls and to NPC skill/attack pools. Player self-edit permission does not
+grant permission to change these counters.
+
 ## Encounters
 
 All routes are protected. Campaign-scoped list/create routes require access to the campaign; mutation routes enforce GM ownership through the encounter's campaign.

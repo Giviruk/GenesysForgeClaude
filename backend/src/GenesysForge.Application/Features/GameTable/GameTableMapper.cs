@@ -41,7 +41,8 @@ public static class GameTableMapper
                     p.Id, p.CharacterId, p.NpcId, p.DisplayName, p.ParticipantType, p.InitiativeSlotType,
                     p.Count, group?.RemainingCount ?? p.Count, group?.PerMemberWoundThreshold,
                     p.WoundsCurrent, p.WoundsThreshold, p.StrainCurrent, p.StrainThreshold,
-                    p.Soak, p.MeleeDefense, p.RangedDefense, p.CriticalInjuries, p.IsActive, p.IsDefeated,
+                    p.Soak, p.MeleeDefense, p.RangedDefense, p.BoostDice, p.SetbackDice,
+                    p.CriticalInjuries, p.IsActive, p.IsDefeated,
                     p.IsHiddenFromPlayers, isGm ? p.Notes : "", p.Order);
             })
             .ToList();

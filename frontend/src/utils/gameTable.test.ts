@@ -1,14 +1,23 @@
 import { describe, expect, it } from 'vitest'
 import type { GameParticipant } from '../api/types'
-import { effectiveParticipantCount, minionGroupState, participantNameWithCount } from './gameTable'
+import { effectiveParticipantCount, minionGroupState, participantNameWithCount, participantRollPool } from './gameTable'
 
 const group = (woundsCurrent: number, patch: Partial<GameParticipant> = {}): GameParticipant => ({
   id: 'group', characterId: null, npcId: 'npc', displayName: 'Миньоны',
   participantType: 'minionGroup', initiativeSlotType: 'npc', count: 3,
   woundsCurrent, woundsThreshold: 12, strainCurrent: 0, strainThreshold: null,
-  soak: 2, meleeDefense: 0, rangedDefense: 0, criticalInjuries: 0,
+  soak: 2, meleeDefense: 0, rangedDefense: 0, boostDice: 0, setbackDice: 0, criticalInjuries: 0,
   isActive: true, isDefeated: false, isHiddenFromPlayers: false, notes: '', order: 0,
   ...patch,
+})
+
+describe('participantRollPool — модификаторы участника', () => {
+  it('добавляет бусты и сетбеки участника к уже собранному пулу', () => {
+    expect(participantRollPool(
+      { ability: 2, boost: 1, setback: 2 },
+      { boostDice: 2, setbackDice: 1 },
+    )).toEqual({ ability: 2, boost: 3, setback: 3 })
+  })
 })
 
 describe('minionGroupState — потери группы от ран', () => {

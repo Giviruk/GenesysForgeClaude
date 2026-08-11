@@ -42,6 +42,8 @@ public class UpdateParticipantHandler(IAppDbContext db) : ICommandHandler<Update
             if (r.Soak is { } soak) p.Soak = Math.Max(0, soak);
             if (r.MeleeDefense is { } md) p.MeleeDefense = Math.Max(0, md);
             if (r.RangedDefense is { } rd) p.RangedDefense = Math.Max(0, rd);
+            if (r.BoostDice is { } boost) p.BoostDice = Math.Clamp(boost, 0, 20);
+            if (r.SetbackDice is { } setback) p.SetbackDice = Math.Clamp(setback, 0, 20);
             if (r.IsActive is { } active) p.IsActive = active;
             if (r.IsDefeated is { } defeated) p.IsDefeated = defeated;
             if (r.IsHiddenFromPlayers is { } hidden) p.IsHiddenFromPlayers = hidden;
