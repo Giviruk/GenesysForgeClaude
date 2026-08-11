@@ -52,7 +52,9 @@ public record CraftingProjectInput(
     string? TimeReason = null,
     string? Requirements = null,
     string? Intent = null,
-    bool RoughSurvival = false);
+    bool RoughSurvival = false,
+    WeaponCraftsmanship Craftsmanship = WeaponCraftsmanship.Steel,
+    ImplementMaterial Material = ImplementMaterial.Oak);
 
 /// <summary>Тело разрешения проекта: символы броска и распределение.</summary>
 public record CraftingResolveInput(
@@ -69,6 +71,8 @@ public record CraftingPreviewDto(
     string TargetName,
     int? TargetPrice,
     int? TargetRarity,
+    WeaponCraftsmanship Craftsmanship,
+    ImplementMaterial Material,
     string SkillName,
     int BaseDifficulty,
     int Difficulty,
@@ -93,6 +97,8 @@ public record CraftingProjectDto(
     string TargetName,
     int? TargetPrice,
     int? TargetRarity,
+    WeaponCraftsmanship Craftsmanship,
+    ImplementMaterial Material,
     string SkillName,
     int BaseDifficulty,
     int Difficulty,

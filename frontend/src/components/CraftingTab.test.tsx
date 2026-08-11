@@ -53,6 +53,7 @@ const boost: CraftingSpend = {
 
 const preview: CraftingPreview = {
   kind: 'item', targetName: 'Axe', targetPrice: 150, targetRarity: 1,
+  craftsmanship: 'steel', material: 'oak',
   skillName: 'Mechanics', baseDifficulty: 1, difficulty: 1, baseTime: 2, time: 2,
   timeUnit: 'days', listedCost: 75, costPercent: 100, costOverride: null, cost: 75,
   isWeapon: true, spends: [faster, boost, superior],
@@ -61,6 +62,7 @@ const preview: CraftingPreview = {
 const draft: CraftingProject = {
   id: 'proj-1', kind: 'item', status: 'draft', itemDefId: 'def-axe', baseCharacterItemId: null,
   targetName: 'Axe', targetPrice: 150, targetRarity: 1, skillName: 'Mechanics',
+  craftsmanship: 'steel', material: 'oak',
   baseDifficulty: 1, difficulty: 1, difficultyReason: '', baseTime: 2, time: 2,
   timeUnit: 'days', timeReason: '', listedCost: 75, costPercent: 100, costOverride: null,
   costOverrideReason: '', cost: 75, requirements: 'кузница', intent: '', roughSurvival: false,
@@ -83,7 +85,10 @@ const sheet = {
 } as unknown as CharacterSheet
 const reference = {
   items: [
-    { id: 'def-axe', code: 'axe', name: 'Axe', nameRu: 'Топор', price: 150, rarity: 1 },
+    { id: 'def-axe', code: 'axe', name: 'Axe', nameRu: 'Топор', kind: 'weapon',
+      price: 150, rarity: 1, implement: null },
+    { id: 'def-staff', code: 'magic-staff', name: 'Magic Staff', nameRu: 'Магический посох',
+      kind: 'gear', price: 400, rarity: 6, implement: { code: 'magic-staff' } },
     { id: 'def-potion', code: 'stamina-elixir', name: 'Stamina Elixir',
       nameRu: 'Эликсир выносливости', price: 50, rarity: 3, shopCategory: 'consumable' },
     { id: 'def-meal', code: 'meal-tavern', name: 'Meal (Tavern)',
@@ -126,6 +131,22 @@ describe('Ремесло (ROT-CRAFT-01, ROT-ALCH-02, ROT-CRAFT-MAGIC-01)', () =>
     fireEvent.click(screen.getByText('150%'))
     await waitFor(() => expect(previewMock).toHaveBeenLastCalledWith(
       'char-1', expect.objectContaining({ costPercent: 150, costOverride: null })))
+  })
+
+  it('передаёт материал обычного и магического снаряжения в расчёт стоимости', async () => {
+    renderTab()
+    const target = await screen.findByLabelText(/Что делаем/)
+    fireEvent.change(target, { target: { value: 'def-axe' } })
+    fireEvent.change(screen.getByLabelText(/Материал \/ качество изготовления/),
+      { target: { value: 'iron' } })
+    await waitFor(() => expect(previewMock).toHaveBeenLastCalledWith(
+      'char-1', expect.objectContaining({ craftsmanship: 'iron', material: 'oak' })))
+
+    fireEvent.change(target, { target: { value: 'def-staff' } })
+    fireEvent.change(screen.getByLabelText(/Материал магического инструмента/),
+      { target: { value: 'willow' } })
+    await waitFor(() => expect(previewMock).toHaveBeenLastCalledWith(
+      'char-1', expect.objectContaining({ craftsmanship: 'steel', material: 'willow' })))
   })
 
   it('переключает каталог между обычными предметами и зельями', async () => {

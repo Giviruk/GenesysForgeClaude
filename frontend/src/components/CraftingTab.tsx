@@ -2,10 +2,16 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { api } from '../api/client'
 import type {
   CharacterSheet, CraftingKind, CraftingPreview, CraftingProject, CraftingProjectInput,
-  CraftingSpend, CraftingSpendChoice, CraftingSymbol, ItemDef, Reference,
+  CraftingSpend, CraftingSpendChoice, CraftingSymbol, ImplementMaterial, ItemDef, Reference,
+  WeaponCraftsmanship,
 } from '../api/types'
-import { localizedName } from '../utils/labels'
+import {
+  IMPLEMENT_MATERIAL_HINTS, IMPLEMENT_MATERIAL_LABELS, localizedName,
+  WEAPON_CRAFTSMANSHIPS, WEAPON_CRAFTSMANSHIP_HINTS, WEAPON_CRAFTSMANSHIP_LABELS,
+} from '../utils/labels'
 import { t } from '../i18n'
+import { craftsmanshipApplies } from '../utils/craftsmanship'
+import { IMPLEMENT_MATERIALS } from '../utils/implements'
 
 interface Props {
   sheet: CharacterSheet
@@ -118,6 +124,8 @@ export function CraftingTab({ sheet, reference, onError, refresh }: Props) {
   const [magicSkillName, setMagicSkillName] = useState(
     () => sheet.skills.find(s => s.kind === 'magic')?.name ?? '')
   const [rough, setRough] = useState(false)
+  const [craftsmanship, setCraftsmanship] = useState<WeaponCraftsmanship>('steel')
+  const [material, setMaterial] = useState<ImplementMaterial>('oak')
   const [preview, setPreview] = useState<CraftingPreview | null>(null)
   const [busy, setBusy] = useState(false)
 
@@ -151,6 +159,9 @@ export function CraftingTab({ sheet, reference, onError, refresh }: Props) {
   const effectiveMagicSkillName = magicSkills.some(s => s.name === magicSkillName)
     ? magicSkillName
     : magicSkills[0]?.name ?? ''
+  const target = kind === 'item' ? candidates.find(i => i.id === targetId) ?? null : null
+  const canChooseCraftsmanship = target ? craftsmanshipApplies(target.kind) : false
+  const canChooseMaterial = target?.implement != null
 
   const input: CraftingProjectInput | null = useMemo(() => {
     if (kind === 'enchantment') {
@@ -178,10 +189,13 @@ export function CraftingTab({ sheet, reference, onError, refresh }: Props) {
         requirements: requirements.trim() || undefined,
         intent: intent.trim() || undefined,
         roughSurvival: rough,
+        craftsmanship: canChooseCraftsmanship ? craftsmanship : 'steel',
+        material: canChooseMaterial ? material : 'oak',
       }
     }
   }, [kind, targetId, baseItemId, bases, effectiveMagicSkillName, percent, ownCost, costReason,
-    difficulty, difficultyReason, time, timeReason, requirements, intent, rough])
+    difficulty, difficultyReason, time, timeReason, requirements, intent, rough,
+    canChooseCraftsmanship, craftsmanship, canChooseMaterial, material])
 
   // Предпросмотр обновляется сам: числа должны быть видны до подтверждения, а не после.
   // Пока цель не выбрана, запроса нет — и показывать нечего, поэтому старый ответ просто не
@@ -236,6 +250,8 @@ export function CraftingTab({ sheet, reference, onError, refresh }: Props) {
     setTargetId('')
     setBaseItemId('')
     setRough(false)
+    setCraftsmanship('steel')
+    setMaterial('oak')
     setPreview(null)
   }
 
@@ -301,10 +317,35 @@ export function CraftingTab({ sheet, reference, onError, refresh }: Props) {
         )}
 
         {kind === 'item' && (
-          <label>
-            <input type="checkbox" checked={rough} onChange={e => setRough(e.target.checked)} />
-            {' '}{t('Грубая работа Выживанием (разрешение ведущего)', 'Rough work with Survival (GM permission)')}
-          </label>
+          <>
+            {canChooseCraftsmanship && (
+              <label>{t('Материал / качество изготовления', 'Material / craftsmanship')}
+                <select value={craftsmanship}
+                  title={WEAPON_CRAFTSMANSHIP_HINTS[craftsmanship]}
+                  onChange={e => setCraftsmanship(e.target.value as WeaponCraftsmanship)}>
+                  {WEAPON_CRAFTSMANSHIPS.map(value => (
+                    <option key={value} value={value}>{WEAPON_CRAFTSMANSHIP_LABELS[value]}</option>
+                  ))}
+                </select>
+                <span className="muted small-text">{WEAPON_CRAFTSMANSHIP_HINTS[craftsmanship]}</span>
+              </label>
+            )}
+            {canChooseMaterial && (
+              <label>{t('Материал магического инструмента', 'Magic implement material')}
+                <select value={material} title={IMPLEMENT_MATERIAL_HINTS[material]}
+                  onChange={e => setMaterial(e.target.value as ImplementMaterial)}>
+                  {IMPLEMENT_MATERIALS.map(value => (
+                    <option key={value} value={value}>{IMPLEMENT_MATERIAL_LABELS[value]}</option>
+                  ))}
+                </select>
+                <span className="muted small-text">{IMPLEMENT_MATERIAL_HINTS[material]}</span>
+              </label>
+            )}
+            <label>
+              <input type="checkbox" checked={rough} onChange={e => setRough(e.target.checked)} />
+              {' '}{t('Грубая работа Выживанием (разрешение ведущего)', 'Rough work with Survival (GM permission)')}
+            </label>
+          </>
         )}
 
         <div className="price-control">
@@ -365,6 +406,7 @@ export function CraftingTab({ sheet, reference, onError, refresh }: Props) {
               && <span className="muted"> ({t('по правилу', 'by rule')} {shownPreview.baseDifficulty})</span>}
             {' · '}{t('Навык', 'Skill')} {shownPreview.skillName}
             {' · '}{shownPreview.time} {shownPreview.timeUnit === 'hours' ? t('ч', 'h') : t('дн', 'd')}
+            {' · '}{t('цена предмета', 'item price')} <strong>{shownPreview.targetPrice ?? '—'}</strong> 🪙
             {' · '}{t('компоненты', 'components')} <strong>{shownPreview.cost}</strong> 🪙
             {shownPreview.costOverride === null && shownPreview.costPercent !== 100
               && <span className="muted"> ({shownPreview.costPercent}% {t('от', 'of')} {shownPreview.listedCost})</span>}

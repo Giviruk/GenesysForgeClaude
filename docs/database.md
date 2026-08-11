@@ -475,8 +475,9 @@ a book row offers several mutually exclusive effects for one price, and `RowCode
 durations, «a boost die on the next check» and GM decisions. Unique `Code`; index on
 `(Table, SortOrder)`.
 
-`CraftingProjects` records what a project was made of: target snapshot (name, price, rarity), skill,
-base and effective difficulty/time with their override reasons, the component cost with its
+`CraftingProjects` records what a project was made of: target snapshot (name, effective price and
+rarity), selected `Craftsmanship` and `ImplementMaterial`, skill, base and effective difficulty/time
+with their override reasons, the component cost with its
 percent/override mode, free-text `Requirements`, the roll symbols the client reported, the chosen
 spends and the resulting `CharacterItemId`. `BaseCharacterItemId` is the enchanted instance —
 enchanting upgrades an existing item rather than creating one. Indexes on `CharacterId` and
@@ -668,6 +669,9 @@ Found migrations:
 - `20260811204103_AddGameParticipantDiceModifiers` — adds non-null `BoostDice` and `SetbackDice`
   counters to `GameParticipants`, both defaulting to zero. The migration is additive; existing scene
   participants keep the same state and receive no modifiers.
+- `20260811211543_AddCraftingProjectMaterialPricing` — adds the selected `Craftsmanship` and
+  `ImplementMaterial` to `CraftingProjects`. Existing projects receive ordinary steel (`2`) and oak
+  (`0`), preserving their previous effective values; no rows are removed or rewritten.
 
 Startup behavior:
 
