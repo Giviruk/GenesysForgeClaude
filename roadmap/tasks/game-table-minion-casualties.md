@@ -3,8 +3,8 @@
 - **Пункт ТЗ:** follow-up к GEN-GT-NPC; ограниченный runtime-срез ROT-MIN-02/04
 - **Ветка:** `feature/game-table-minion-casualties`
 - **Базовая ветка:** `master`
-- **PR:** будет добавлен после публикации
-- **Статус:** 🚧 In progress
+- **PR:** [#169](https://github.com/Giviruk/GenesysForgeClaude/pull/169)
+- **Статус:** ✅ Done
 
 ## Контекст
 
@@ -22,11 +22,11 @@
 - [x] Обновить API-документацию
 - [x] Пройти Vitest, xUnit, ESLint и production build
 - [x] Подтвердить отсутствие миграции, seed и copyright-изменений
-- [ ] Открыть draft PR
+- [x] Открыть draft PR
 
 ## Что осталось / блокеры
 
-Осталось открыть новый draft PR: исходный PR #168 уже был слит до follow-up. Блокеров нет.
+Новый draft PR открыт: исходный PR #168 уже был слит до follow-up. Блокеров нет.
 
 ## Заметки / решения
 
