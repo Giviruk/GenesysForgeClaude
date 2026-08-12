@@ -11,6 +11,9 @@ import { useDiceRoller } from '../dice-roller-store'
 import { t } from '../i18n'
 import { GameTableNpcStatblock } from './GameTableNpcStatblock'
 import { participantNameWithCount, participantRollPool } from '../utils/gameTable'
+import {
+  readRangeTrackerState, writeRangeTrackerState, type RangeZone,
+} from '../utils/uiPreferences'
 
 interface Props {
   campaignId: string
@@ -122,7 +125,7 @@ export function GameTableTab({ campaignId, isGm, members, refreshSignal }: Props
       </aside>
 
       <section className="center-stage">
-        <RangeBandTracker session={session} isGm={isGm} />
+        <RangeBandTracker key={session.id} campaignId={campaignId} session={session} isGm={isGm} />
         <ParticipantsStrip session={session} campaignId={campaignId} isGm={isGm} onSessionChange={setSession} />
       </section>
 
@@ -261,8 +264,6 @@ function StoryPoints({ session, isGm, onRun, campaignId }: BlockProps) {
 
 // ── Range Band Tracker (локальный инструмент мастера, без серверного состояния) ──
 
-type RangeZone = 'engaged' | 'short' | 'medium' | 'long' | 'extreme'
-
 const RANGE_ZONES: { id: RangeZone; nameEn: string; nameRu: string; hint: string }[] = [
   { id: 'engaged', nameEn: 'Engaged', nameRu: 'Вплотную', hint: t('ближний бой', 'melee') },
   { id: 'short', nameEn: 'Short', nameRu: 'Ближняя', hint: t('лёгкие дальнобойные · 1 манёвр', 'light ranged · 1 maneuver') },
@@ -283,12 +284,15 @@ const defaultZone = (p: GameParticipant): RangeZone =>
 /**
  * Трекер дистанций по прототипу range-band-tracker: зоны Engaged…Extreme, токены участников
  * сцены, перемещение перетаскиванием или кнопками, локальный лог перемещений.
- * Позиции — локальный UI state (persistence зон в модели кампании нет), поэтому трекер
- * не синхронизируется между устройствами и сбрасывается при перезагрузке.
+ * Позиции не входят в серверную модель кампании и не синхронизируются между устройствами, но
+ * сохраняются на этом устройстве отдельно для каждой сцены и переживают навигацию/перезагрузку.
  */
-function RangeBandTracker({ session, isGm }: { session: GameSession; isGm: boolean }) {
-  const [zones, setZones] = useState<Record<string, RangeZone>>({})
-  const [log, setLog] = useState<string[]>([])
+function RangeBandTracker({ campaignId, session, isGm }: {
+  campaignId: string; session: GameSession; isGm: boolean
+}) {
+  const stored = () => readRangeTrackerState(campaignId, session.id)
+  const [zones, setZones] = useState<Record<string, RangeZone>>(() => stored().zones)
+  const [log, setLog] = useState<string[]>(() => stored().log)
   const [dragId, setDragId] = useState<string | null>(null)
   const [showLog, setShowLog] = useState(false)
 
@@ -313,13 +317,17 @@ function RangeBandTracker({ session, isGm }: { session: GameSession; isGm: boole
     if (next) move(p, next.id)
   }
 
+  useEffect(() => {
+    writeRangeTrackerState(campaignId, session.id, { zones, log })
+  }, [campaignId, session.id, zones, log])
+
   if (participants.length === 0) return null
 
   return (
     <section className="panel rb-tracker range-board">
       <div className="rb-head range-head">
         <h3>{t('Дистанции и позиции', 'Ranges and positions')}</h3>
-        <span className="muted small-text">{t('локальный трекер', 'local tracker')}</span>
+        <span className="muted small-text">{t('сохранено на этом устройстве', 'saved on this device')}</span>
       </div>
       <div className="rb-bands">
         {RANGE_ZONES.map(zone => (

@@ -65,6 +65,7 @@ const reference = {
 
 describe('GameTableTab — статблок и броски NPC', () => {
   beforeEach(() => {
+    localStorage.removeItem('genesysforge.game-table.range.campaign-1.session-1')
     sessionMock.mockReset().mockResolvedValue(session)
     npcMock.mockReset().mockResolvedValue(npc)
     referenceMock.mockReset().mockResolvedValue(reference)
@@ -72,6 +73,25 @@ describe('GameTableTab — статблок и броски NPC', () => {
     createRollMock.mockReset().mockResolvedValue({})
     updateParticipantMock.mockReset().mockResolvedValue(session)
     openRollerMock.mockReset()
+  })
+
+  it('сохраняет позиции трекера дистанций при повторном открытии игрового стола', async () => {
+    const first = render(<GameTableTab campaignId="campaign-1" isGm members={[]} />)
+    await screen.findByText('Засада')
+    const token = document.querySelector('.rb-token-name') as HTMLElement
+    expect(token.textContent).toContain('Гоблины')
+    expect(token.closest('.rb-band')?.className).toContain('rb-medium')
+
+    fireEvent.click(within(token.closest('.rb-token') as HTMLElement)
+      .getByTitle('Дальше (зона ниже)'))
+    expect(document.querySelector('.rb-long .rb-token-name')?.textContent).toContain('Гоблины')
+    first.unmount()
+
+    render(<GameTableTab campaignId="campaign-1" isGm members={[]} />)
+    await screen.findByText('Засада')
+    const restored = document.querySelector('.rb-token-name') as HTMLElement
+    expect(restored.closest('.rb-band')?.className).toContain('rb-long')
+    expect(screen.getByText(/Средняя → Дальняя/)).toBeTruthy()
   })
 
   it('считает оставшихся миньонов по ранам и использует их число в навыках', async () => {

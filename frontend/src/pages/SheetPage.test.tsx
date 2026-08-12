@@ -66,6 +66,7 @@ function renderPage() {
 describe('SheetPage — части листа грузятся по надобности', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    localStorage.removeItem('genesysforge.sheet-tab.c1')
     takeFreshSlices.mockReturnValue(null)
     sheetSlices.mockImplementation((_id, include) => Promise.resolve(serve(include)))
   })
@@ -86,6 +87,18 @@ describe('SheetPage — части листа грузятся по надобн
     await screen.findByText('вкладка инвентаря')
     // Базовая часть уже есть — заново её не просят.
     expect(includesOf()).toEqual(['base', 'items'])
+  })
+
+  it('восстанавливает последнюю вкладку персонажа после повторного монтирования', async () => {
+    const first = renderPage()
+    await screen.findByText('вкладка листа')
+    fireEvent.click(screen.getByRole('button', { name: 'Инвентарь' }))
+    await screen.findByText('вкладка инвентаря')
+    first.unmount()
+
+    renderPage()
+    await screen.findByText('вкладка инвентаря')
+    expect(localStorage.getItem('genesysforge.sheet-tab.c1')).toBe('inventory')
   })
 
   it('возврат на уже загруженную вкладку в сеть не ходит', async () => {
