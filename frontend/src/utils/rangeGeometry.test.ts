@@ -21,9 +21,15 @@ describe('range tracker geometry', () => {
 
   it('converts pointer coordinates to the intended ring cell', () => {
     const board = { left: 100, top: 50, width: 400, height: 400 }
-    expect(rangeCellFromBoardPoint(300, 50 + 200 - 30, board)).toEqual({ zone: 'short', angle: 285 })
-    expect(rangeCellFromBoardPoint(300 + 50, 250, board)).toEqual({ zone: 'medium', angle: 15 })
-    expect(rangeCellFromBoardPoint(300 - 190, 250, board)).toEqual({ zone: 'extreme', angle: 195 })
+    expect(rangeCellFromBoardPoint(300, 50 + 200 - 30, board)).toEqual({
+      zone: 'short', angle: 285, leftPercent: 50, topPercent: 42.5,
+    })
+    expect(rangeCellFromBoardPoint(300 + 50, 250, board)).toEqual({
+      zone: 'medium', angle: 15, leftPercent: 62.5, topPercent: 50,
+    })
+    expect(rangeCellFromBoardPoint(300 - 190, 250, board)).toEqual({
+      zone: 'extreme', angle: 195, leftPercent: 2.5, topPercent: 50,
+    })
   })
 
   it('uses the nearest free cell in the selected band', () => {

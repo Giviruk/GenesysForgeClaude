@@ -143,8 +143,14 @@ describe('GameTableTab — статблок и броски NPC', () => {
     })
 
     fireEvent.pointerDown(npcToken, { button: 0, pointerId: 1, clientX: 300, clientY: 250 })
-    fireEvent.pointerMove(npcToken, { buttons: 1, pointerId: 1, clientX: 330, clientY: 250 })
-    fireEvent.pointerUp(npcToken, { button: 0, pointerId: 1, clientX: 330, clientY: 250 })
+    fireEvent.pointerMove(board, { buttons: 1, pointerId: 1, clientX: 330, clientY: 250 })
+
+    const preview = document.querySelector('.ring-token.drag-preview') as HTMLElement
+    expect(Number.parseFloat(preview.style.left)).toBeCloseTo(57.5, 4)
+    expect(Number.parseFloat(preview.style.top)).toBeCloseTo(50, 4)
+    expect(Number.parseFloat((document.querySelector('.drag-cell-target') as HTMLElement).style.left)).toBeCloseTo(64.2, 2)
+
+    fireEvent.pointerUp(board, { button: 0, pointerId: 1, clientX: 330, clientY: 250 })
 
     expect(npcToken.title).toContain('Ближняя, справа')
     expect(Number.parseFloat(npcToken.style.left)).toBeCloseTo(64.20, 2)

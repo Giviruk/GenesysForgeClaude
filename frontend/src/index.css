@@ -1669,6 +1669,17 @@ button.tiny { font-size: 0.75rem; padding: 0.05rem 0.4rem 0.15rem; }
   border-style: dashed;
   box-shadow: 0 0 0 3px rgba(201, 162, 74, 0.16);
 }
+.drag-cell-target {
+  position: absolute;
+  z-index: 4;
+  translate: -50% -50%;
+  width: 0.72rem;
+  height: 0.72rem;
+  border: 1px solid var(--accent);
+  border-radius: 50%;
+  background: rgba(201, 162, 74, 0.22);
+  pointer-events: none;
+}
 .ring-token.pc { border-color: var(--core); color: #9db9e8; }
 .ring-token.hidden-token { border-style: dashed; opacity: 0.65; }
 .ring-token.selected {

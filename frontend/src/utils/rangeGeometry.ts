@@ -30,6 +30,9 @@ export interface EstimatedRange {
 export interface RangeBoardPoint {
   zone: RangeZone
   angle: number
+  /** Непрерывная позиция указателя на доске; не защёлкивается в центр ячейки. */
+  leftPercent: number
+  topPercent: number
 }
 
 export function normalizeAngle(angle: number): number {
@@ -61,6 +64,8 @@ export function rangeCellFromBoardPoint(
   return {
     zone: rangeZoneFromRadius(radiusPercent),
     angle: snapRangeAngle(Math.atan2(y, x) * 180 / Math.PI),
+    leftPercent: board.width > 0 ? (clientX - board.left) / board.width * 100 : 50,
+    topPercent: board.height > 0 ? (clientY - board.top) / board.height * 100 : 50,
   }
 }
 
