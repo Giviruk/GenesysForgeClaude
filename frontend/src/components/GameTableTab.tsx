@@ -255,7 +255,13 @@ function RangeBandTracker({ campaignId, session, isGm }: {
   const [log, setLog] = useState<string[]>(() => stored().log)
   const [focusParticipantId, setFocusParticipantId] = useState<string | null>(() => stored().focusParticipantId)
   const [dragId, setDragId] = useState<string | null>(null)
-  const [dragPreview, setDragPreview] = useState<{ id: string; zone: RangeZone; angle: number } | null>(null)
+  const [dragPreview, setDragPreview] = useState<{
+    id: string
+    targetZone: RangeZone
+    targetAngle: number
+    leftPercent: number
+    topPercent: number
+  } | null>(null)
   const [showLog, setShowLog] = useState(false)
   const rangeBoardRef = useRef<HTMLDivElement>(null)
 
@@ -320,15 +326,21 @@ function RangeBandTracker({ campaignId, session, isGm }: {
   const updateDragPreview = (p: GameParticipant, clientX: number, clientY: number) => {
     const board = rangeBoardRef.current?.getBoundingClientRect()
     if (!board) return
-    const cell = rangeCellFromBoardPoint(clientX, clientY, board)
-    setDragPreview({ id: p.id, zone: cell.zone, angle: freeAngle(p, cell.zone, cell.angle) })
+    const point = rangeCellFromBoardPoint(clientX, clientY, board)
+    setDragPreview({
+      id: p.id,
+      targetZone: point.zone,
+      targetAngle: freeAngle(p, point.zone, point.angle),
+      leftPercent: point.leftPercent,
+      topPercent: point.topPercent,
+    })
   }
   const beginDrag = (e: ReactPointerEvent<HTMLDivElement>, p: GameParticipant) => {
     if (!isGm || e.button !== 0) return
     e.preventDefault()
     setFocusParticipantId(p.id)
     setDragId(p.id)
-    setDragPreview({ id: p.id, zone: zoneOf(p), angle: angleOf(p) })
+    updateDragPreview(p, e.clientX, e.clientY)
   }
   const continueDrag = (e: ReactPointerEvent<HTMLDivElement>) => {
     const p = participants.find(candidate => candidate.id === dragId)
@@ -404,10 +416,15 @@ function RangeBandTracker({ campaignId, session, isGm }: {
         {dragPreview && (() => {
           const participant = participants.find(p => p.id === dragPreview.id)
           if (!participant) return null
-          return <div className={`ring-token drag-preview${participant.participantType === 'playerCharacter' ? ' pc' : ' npc'}`}
-            style={cellPositionStyle(dragPreview)} aria-hidden="true">
-            <span>{initials(participant)}</span>
-          </div>
+          return <>
+            <div className="drag-cell-target" style={cellPositionStyle({
+              zone: dragPreview.targetZone, angle: dragPreview.targetAngle,
+            })} aria-hidden="true" />
+            <div className={`ring-token drag-preview${participant.participantType === 'playerCharacter' ? ' pc' : ' npc'}`}
+              style={{ left: `${dragPreview.leftPercent}%`, top: `${dragPreview.topPercent}%` }} aria-hidden="true">
+              <span>{initials(participant)}</span>
+            </div>
+          </>
         })()}
       </div>
       <div className="ring-legend">
