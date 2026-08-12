@@ -362,6 +362,9 @@ function RangeBandTracker({ campaignId, session, isGm }: {
   const beginDrag = (e: ReactPointerEvent<HTMLDivElement>, p: GameParticipant) => {
     if (!isGm || e.button !== 0) return
     e.preventDefault()
+    // После захвата события продолжают приходить, даже если быстрый курсор вышел за жетон или
+    // границу доски. Без этого preview на мгновение отставал и затем перескакивал к pointerup.
+    e.currentTarget.setPointerCapture?.(e.pointerId)
     setFocusParticipantId(p.id)
     setDragId(p.id)
     updateDragPreview(p, e.clientX, e.clientY)

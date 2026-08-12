@@ -154,20 +154,23 @@ describe('GameTableTab — статблок и броски NPC', () => {
       left: 100, top: 50, width: 400, height: 400, right: 500, bottom: 450,
       x: 100, y: 50, toJSON: () => ({}),
     })
+    const capturePointer = vi.fn()
+    Object.defineProperty(npcToken, 'setPointerCapture', { value: capturePointer })
 
     fireEvent.pointerDown(npcToken, { button: 0, pointerId: 1, clientX: 300, clientY: 250 })
+    expect(capturePointer).toHaveBeenCalledWith(1)
     fireEvent.pointerMove(board, { buttons: 1, pointerId: 1, clientX: 330, clientY: 250 })
 
     const preview = document.querySelector('.ring-token.drag-preview') as HTMLElement
     expect(Number.parseFloat(preview.style.left)).toBeCloseTo(57.5, 4)
     expect(Number.parseFloat(preview.style.top)).toBeCloseTo(50, 4)
-    expect(Number.parseFloat((document.querySelector('.drag-cell-target') as HTMLElement).style.left)).toBeCloseTo(64.2, 2)
+    expect(Number.parseFloat((document.querySelector('.drag-cell-target') as HTMLElement).style.left)).toBeCloseTo(54.73, 2)
 
     fireEvent.pointerUp(board, { button: 0, pointerId: 1, clientX: 330, clientY: 250 })
 
-    expect(npcToken.title).toContain('Ближняя, справа')
-    expect(Number.parseFloat(npcToken.style.left)).toBeCloseTo(64.20, 2)
-    expect(Number.parseFloat(npcToken.style.top)).toBeCloseTo(53.805, 2)
+    expect(npcToken.title).toContain('Вплотную, справа')
+    expect(Number.parseFloat(npcToken.style.left)).toBeCloseTo(54.73, 2)
+    expect(Number.parseFloat(npcToken.style.top)).toBeCloseTo(51.268, 2)
   })
 
   it('считает оставшихся миньонов по ранам и использует их число в навыках', async () => {
