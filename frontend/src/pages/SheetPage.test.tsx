@@ -1,4 +1,4 @@
-import { render, screen, waitFor, fireEvent } from '@testing-library/react'
+import { render, screen, waitFor, fireEvent, within } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { BaseSheet, Reference, SheetSliceName, SheetSlices } from '../api/types'
 
@@ -53,10 +53,10 @@ function serve(include: SheetSliceName[]): SheetSlices {
 
 const includesOf = () => sheetSlices.mock.calls.map(([, include]) => include.join(','))
 
-function renderPage() {
+function renderPage(onOpenPrint = () => {}) {
   return render(
     <SheetPage characterId="c1" printing={false}
-      onOpenPrint={() => {}} onClosePrint={() => {}} onBack={() => {}} />)
+      onOpenPrint={onOpenPrint} onClosePrint={() => {}} onBack={() => {}} />)
 }
 
 /**
@@ -76,6 +76,37 @@ describe('SheetPage — части листа грузятся по надобн
 
     await screen.findByText('вкладка листа')
     expect(includesOf()).toEqual(['base'])
+  })
+
+  it('показывает основные вкладки первыми в заданном порядке', async () => {
+    renderPage()
+    await screen.findByText('вкладка листа')
+
+    const tabs = within(document.querySelector('.main-tabs') as HTMLElement)
+      .getAllByRole('button').map(button => button.textContent)
+    expect(tabs.slice(0, 5)).toEqual(['Лист', 'Инвентарь', 'Таланты', 'Магия', 'Заметки'])
+    expect(tabs.slice(5)).toEqual(['Героика', 'Улучшения', 'Транспорт', 'Ремесло', 'Образ', 'История', 'Кастом'])
+  })
+
+  it('скрывает редкие действия под кнопкой с тремя точками', async () => {
+    const onOpenPrint = vi.fn()
+    renderPage(onOpenPrint)
+    await screen.findByText('вкладка листа')
+
+    expect(screen.queryByRole('menu')).toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: 'Дополнительные действия' }))
+
+    const menu = screen.getByRole('menu')
+    expect(within(menu).getAllByRole('menuitem').map(item => item.textContent)).toEqual([
+      'Печать', 'Клонировать', 'Ссылка', 'Отозвать ссылки', 'Экспорт JSON',
+    ])
+    fireEvent.click(within(menu).getByRole('menuitem', { name: 'Печать' }))
+    expect(onOpenPrint).toHaveBeenCalledOnce()
+    expect(screen.queryByRole('menu')).toBeNull()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Дополнительные действия' }))
+    fireEvent.keyDown(document, { key: 'Escape' })
+    expect(screen.queryByRole('menu')).toBeNull()
   })
 
   it('переход на вкладку догружает только недостающее', async () => {

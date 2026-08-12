@@ -135,7 +135,9 @@ export function SheetPage({ characterId, printing, onOpenPrint, onClosePrint, on
   const [notice, setNotice] = useState<string | null>(null)
   const [shareUrl, setShareUrl] = useState<string | null>(null)
   const [xpEdit, setXpEdit] = useState<string | null>(null)
+  const [actionsOpen, setActionsOpen] = useState(false)
   const portraitFileRef = useRef<HTMLInputElement>(null)
+  const actionsMenuRef = useRef<HTMLDivElement>(null)
 
   const needed = SLICES_BY_TAB[tab]
 
@@ -210,6 +212,22 @@ export function SheetPage({ characterId, printing, onOpenPrint, onClosePrint, on
     const timer = setTimeout(() => setNotice(null), 6000)
     return () => clearTimeout(timer)
   }, [notice])
+
+  useEffect(() => {
+    if (!actionsOpen) return
+    const closeOnOutside = (event: PointerEvent) => {
+      if (!actionsMenuRef.current?.contains(event.target as Node)) setActionsOpen(false)
+    }
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setActionsOpen(false)
+    }
+    document.addEventListener('pointerdown', closeOnOutside)
+    document.addEventListener('keydown', closeOnEscape)
+    return () => {
+      document.removeEventListener('pointerdown', closeOnOutside)
+      document.removeEventListener('keydown', closeOnEscape)
+    }
+  }, [actionsOpen])
 
   if (!sheet || !reference) {
     return (
@@ -343,36 +361,37 @@ export function SheetPage({ characterId, printing, onOpenPrint, onClosePrint, on
             <strong className="xp-available">{t('доступно', 'available')} {sheet.availableXp}</strong>
           </div>
           <div className="sheet-action-buttons">
-            <button className="small" title={t('Печать листа персонажа / сохранение в PDF', 'Print the character sheet / save as PDF')}
-              onClick={onOpenPrint}>
-              <Icon name="printer" className="button-icon" />
-              {t('Печать', 'Print')}
-            </button>
-            <button className="small" title={t('Создать копию персонажа', 'Create a copy of the character')}
-              onClick={() => void duplicateCurrent()}>
-              <Icon name="copy" className="button-icon" />
-              {t('Клонировать', 'Duplicate')}
-            </button>
-            <button className="small" title={t('Создать публичную read-only ссылку', 'Create a public read-only link')}
-              onClick={() => void shareCurrent()}>
-              <Icon name="share" className="button-icon" />
-              {t('Ссылка', 'Share link')}
-            </button>
-            <button className="small" title={t('Отозвать все публичные ссылки этого персонажа', 'Revoke all public links for this character')}
-              onClick={() => void revokeShares()}>
-              {t('Отозвать ссылки', 'Revoke links')}
-            </button>
-            <button className="small" title={t('Скачать персонажа в JSON (бэкап / перенос между аккаунтами)', 'Download the character as JSON (backup / transfer between accounts)')}
-              onClick={() => void exportJson()}>
-              <Icon name="file-import" className="button-icon" />
-              {t('Экспорт JSON', 'Export JSON')}
-            </button>
             {sheet.isCreationPhase && (
               <button className="small" title={t('Завершить создание: зафиксировать характеристики и снять лимит рангов', 'Complete creation: lock characteristics and lift the rank limit')}
                 onClick={async () => { await api.completeCreation(sheet.id); await refresh() }}>
                 {t('Завершить создание', 'Complete creation')}
               </button>
             )}
+            <div className="sheet-actions-menu" ref={actionsMenuRef}>
+              <button type="button" className="small sheet-actions-trigger"
+                aria-label={t('Дополнительные действия', 'More actions')}
+                aria-haspopup="menu" aria-expanded={actionsOpen}
+                onClick={() => setActionsOpen(open => !open)}>•••</button>
+              {actionsOpen && (
+                <div className="sheet-actions-popover" role="menu">
+                  <button type="button" role="menuitem" onClick={() => { setActionsOpen(false); onOpenPrint() }}>
+                    <Icon name="printer" className="button-icon" />{t('Печать', 'Print')}
+                  </button>
+                  <button type="button" role="menuitem" onClick={() => { setActionsOpen(false); void duplicateCurrent() }}>
+                    <Icon name="copy" className="button-icon" />{t('Клонировать', 'Duplicate')}
+                  </button>
+                  <button type="button" role="menuitem" onClick={() => { setActionsOpen(false); void shareCurrent() }}>
+                    <Icon name="share" className="button-icon" />{t('Ссылка', 'Share link')}
+                  </button>
+                  <button type="button" role="menuitem" onClick={() => { setActionsOpen(false); void revokeShares() }}>
+                    {t('Отозвать ссылки', 'Revoke links')}
+                  </button>
+                  <button type="button" role="menuitem" onClick={() => { setActionsOpen(false); void exportJson() }}>
+                    <Icon name="file-import" className="button-icon" />{t('Экспорт JSON', 'Export JSON')}
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -387,18 +406,18 @@ export function SheetPage({ characterId, printing, onOpenPrint, onClosePrint, on
 
       <div className="tabs main-tabs">
         <button className={tab === 'sheet' ? 'tab active' : 'tab'} onClick={() => selectTab('sheet')}>{t('Лист', 'Sheet')}</button>
+        <button className={tab === 'inventory' ? 'tab active' : 'tab'} onClick={() => selectTab('inventory')}>{t('Инвентарь', 'Inventory')}</button>
         <button className={tab === 'talents' ? 'tab active' : 'tab'} onClick={() => selectTab('talents')}>{t('Таланты', 'Talents')}</button>
+        <button className={tab === 'magic' ? 'tab active' : 'tab'} onClick={() => selectTab('magic')}>{t('Магия', 'Magic')}</button>
+        <button className={tab === 'notes' ? 'tab active' : 'tab'} onClick={() => selectTab('notes')}>{t('Заметки', 'Notes')}</button>
         {sheet.system === 'realmsOfTerrinoth' && (
           <button className={tab === 'heroic' ? 'tab active' : 'tab'} onClick={() => selectTab('heroic')}>{t('Героика', 'Heroic')}</button>
         )}
-        <button className={tab === 'inventory' ? 'tab active' : 'tab'} onClick={() => selectTab('inventory')}>{t('Инвентарь', 'Inventory')}</button>
         <button className={tab === 'attachments' ? 'tab active' : 'tab'} onClick={() => selectTab('attachments')}>{t('Улучшения', 'Attachments')}</button>
         <button className={tab === 'transport' ? 'tab active' : 'tab'} onClick={() => selectTab('transport')}>{t('Транспорт', 'Transport')}</button>
         <button className={tab === 'crafting' ? 'tab active' : 'tab'} onClick={() => selectTab('crafting')}>{t('Ремесло', 'Crafting')}</button>
-        <button className={tab === 'magic' ? 'tab active' : 'tab'} onClick={() => selectTab('magic')}>{t('Магия', 'Magic')}</button>
         <button className={tab === 'bio' ? 'tab active' : 'tab'} onClick={() => selectTab('bio')}>{t('Образ', 'Bio')}</button>
         <button className={tab === 'history' ? 'tab active' : 'tab'} onClick={() => selectTab('history')}>{t('История', 'History')}</button>
-        <button className={tab === 'notes' ? 'tab active' : 'tab'} onClick={() => selectTab('notes')}>{t('Заметки', 'Notes')}</button>
         <button className={tab === 'custom' ? 'tab active' : 'tab'} onClick={() => selectTab('custom')}>{t('Кастом', 'Custom')}</button>
       </div>
 

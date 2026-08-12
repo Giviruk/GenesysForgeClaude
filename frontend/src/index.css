@@ -237,6 +237,37 @@ h1.auth-brand { font-size: 2rem; margin: 0 0 0.2rem; }
   margin-left: auto;
 }
 .sheet-action-buttons { display: flex; justify-content: flex-end; gap: 0.5rem; flex-wrap: wrap; }
+.sheet-actions-menu { position: relative; }
+.sheet-actions-trigger {
+  min-width: 2.4rem;
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+.sheet-actions-popover {
+  position: absolute;
+  z-index: 30;
+  top: calc(100% + 0.35rem);
+  right: 0;
+  width: 14rem;
+  max-width: calc(100vw - 1.5rem);
+  padding: 0.35rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--panel);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.32);
+}
+.sheet-actions-popover button {
+  width: 100%;
+  justify-content: flex-start;
+  gap: 0.5rem;
+  min-height: 2.15rem;
+  padding: 0.4rem 0.55rem;
+  border-color: transparent;
+  background: transparent;
+  color: var(--text);
+}
+.sheet-actions-popover button:hover { background: var(--panel-2); border-color: var(--border); }
 .back-link {
   min-height: 0;
   padding: 0;
