@@ -41,7 +41,7 @@ const implement = (over: Partial<ItemImplement>): ItemImplement => ({
   code: 'magic-staff', material: 'oak', attackDamageBonus: 4, boostDice: 0,
   requiredMagicSkill: '', discount: 'firstNamedEffect', discountEffects: ['Range'],
   choiceCount: 0, choiceMaxIncreaseSum: null, choiceExactIncrease: null,
-  chosenEffects: [], pending: false, ...over,
+  chosenEffects: [], pending: false, damageSetbackDice: 0, damageDifficultyIncrease: 0, ...over,
 })
 
 const sheetWith = (impl: ItemImplement | null, over: Record<string, unknown> = {}) => ({
@@ -180,6 +180,27 @@ describe('Магические инструменты в сборщике (ROT-M
 
   it('инструмент не в руках сборщику не предлагается', async () => {
     render(<MagicTab sheet={sheetWith(implement({}), { state: 'backpack' })} onError={() => {}} />)
+    await screen.findByText(/Сборка магического действия/)
+
+    expect(screen.queryByLabelText(/Инструмент/)).toBeNull()
+  })
+
+  it('учитывает незначительное и умеренное повреждение выбранного инструмента', async () => {
+    const { rerender } = render(<MagicTab sheet={sheetWith(implement({ damageSetbackDice: 1 }))}
+      onError={() => {}} />)
+    await screen.findByText(/Сборка магического действия/)
+
+    fireEvent.change(screen.getByLabelText(/Инструмент/), { target: { value: 'item-1' } })
+    expect(document.querySelectorAll('.dice-pool .die.setback')).toHaveLength(1)
+
+    rerender(<MagicTab sheet={sheetWith(implement({ damageDifficultyIncrease: 1 }))}
+      onError={() => {}} />)
+    await waitFor(() => expect(difficulty()).toContain('2'))
+  })
+
+  it('серьёзно повреждённый инструмент сборщику не предлагается', async () => {
+    render(<MagicTab sheet={sheetWith(implement({}), { isUsable: false, damageState: 'major' })}
+      onError={() => {}} />)
     await screen.findByText(/Сборка магического действия/)
 
     expect(screen.queryByLabelText(/Инструмент/)).toBeNull()

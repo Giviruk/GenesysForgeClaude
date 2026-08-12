@@ -282,6 +282,8 @@ describe('MagicBuilder — дайсроллер', () => {
           material: 'oak',
           chosenEffects: [],
           pending: false,
+          damageSetbackDice: 1,
+          damageDifficultyIncrease: 0,
         },
       }]} />)
     await screen.findByText(/Сложность: 2/)
@@ -300,7 +302,7 @@ describe('MagicBuilder — дайсроллер', () => {
         proficiency: 2,
         difficulty: 3,
         boost: 3,
-        setback: 1,
+        setback: 2,
       },
       damage: {
         base: 3,
@@ -358,6 +360,8 @@ describe('MagicBuilder — дайсроллер', () => {
           material: 'oak',
           chosenEffects: [],
           pending: false,
+          damageSetbackDice: 0,
+          damageDifficultyIncrease: 0,
         },
       }]} />)
     await screen.findByText(/Сложность: 2/)

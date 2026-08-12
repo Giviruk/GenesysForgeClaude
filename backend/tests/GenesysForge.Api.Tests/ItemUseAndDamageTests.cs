@@ -81,6 +81,45 @@ public class ItemUseAndDamageTests(ApiFactory factory) : IClassFixture<ApiFactor
     }
 
     [Fact]
+    public async Task MagicImplement_CanBeDamaged_AffectsMagicChecks_AndCanBeRepaired()
+    {
+        var (client, reference, id) = await CreateAsync();
+        var implement = reference.Items.First(i => i.Implement is not null);
+
+        Assert.Equal(HttpStatusCode.Created,
+            (await AddAsync(client, id, implement.Id, ItemState.Equipped)).StatusCode);
+        var item = (await SheetAsync(client, id)).Items!.Single(i => i.ItemDefId == implement.Id);
+        Assert.True(item.CanBeDamaged);
+
+        var minor = await client.PutAsJsonAsync($"/api/characters/{id}/items/{item.Id}/damage-state",
+            new SetItemDamageStateRequest(ItemDamageState.Minor, "повреждён в бою"), Json.Options);
+        Assert.Equal(HttpStatusCode.NoContent, minor.StatusCode);
+        item = (await SheetAsync(client, id)).Items!.Single(i => i.Id == item.Id);
+        Assert.Equal(1, item.Implement!.DamageSetbackDice);
+        Assert.Equal(0, item.Implement.DamageDifficultyIncrease);
+
+        var moderate = await client.PutAsJsonAsync($"/api/characters/{id}/items/{item.Id}/damage-state",
+            new SetItemDamageStateRequest(ItemDamageState.Moderate), Json.Options);
+        Assert.Equal(HttpStatusCode.NoContent, moderate.StatusCode);
+        item = (await SheetAsync(client, id)).Items!.Single(i => i.Id == item.Id);
+        Assert.Equal(0, item.Implement!.DamageSetbackDice);
+        Assert.Equal(1, item.Implement.DamageDifficultyIncrease);
+
+        var major = await client.PutAsJsonAsync($"/api/characters/{id}/items/{item.Id}/damage-state",
+            new SetItemDamageStateRequest(ItemDamageState.Major), Json.Options);
+        Assert.Equal(HttpStatusCode.NoContent, major.StatusCode);
+        item = (await SheetAsync(client, id)).Items!.Single(i => i.Id == item.Id);
+        Assert.False(item.IsUsable);
+
+        var repaired = await client.PostAsJsonAsync($"/api/characters/{id}/items/{item.Id}/repair",
+            new RepairItemRequest(Free: true), Json.Options);
+        Assert.Equal(HttpStatusCode.NoContent, repaired.StatusCode);
+        item = (await SheetAsync(client, id)).Items!.Single(i => i.Id == item.Id);
+        Assert.Equal(ItemDamageState.Undamaged, item.DamageState);
+        Assert.True(item.IsUsable);
+    }
+
+    [Fact]
     public async Task PlainGear_HasNoDamageState_AndRejectsRepair()
     {
         var (client, reference, id) = await CreateAsync();

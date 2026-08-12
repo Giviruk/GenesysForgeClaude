@@ -298,7 +298,9 @@ public static class SheetBuilder
             spec.Code, e.Item.ImplementMaterial, spec.AttackDamageBonus, spec.BoostDice,
             spec.RequiredMagicSkill, spec.Discount, spec.DiscountEffects, spec.ChoiceCount,
             spec.ChoiceMaxIncreaseSum, spec.ChoiceExactIncrease, chosen,
-            spec.NeedsConfiguration && !e.Item.ImplementConfigured);
+            spec.NeedsConfiguration && !e.Item.ImplementConfigured,
+            DamageStateRules.SetbackDice(e.Item.DamageState),
+            DamageStateRules.DifficultyIncrease(e.Item.DamageState));
     }
 
     private static ItemRuneboundShardDto? ShardDto(EffectiveItem e)

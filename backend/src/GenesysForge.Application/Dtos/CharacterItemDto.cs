@@ -51,7 +51,11 @@ public record ItemImplementDto(
     int? ChoiceMaxIncreaseSum,
     int? ChoiceExactIncrease,
     IReadOnlyList<string> ChosenEffects,
-    bool Pending);
+    bool Pending,
+    /// <summary>Помехи к проверке от состояния этого экземпляра.</summary>
+    int DamageSetbackDice,
+    /// <summary>Повышение сложности проверки от состояния этого экземпляра.</summary>
+    int DamageDifficultyIncrease);
 
 /// <summary>
 /// Runebound shard на листе. Паспорт общий для каталога, а configuration принадлежит конкретному

@@ -539,8 +539,11 @@ Protected (GEN-EQP-DMG-01). Request: `SetItemDamageStateRequest` with `state`
 
 The damage state belongs to the instance and is changed explicitly — a Sunder result and
 in-fiction damage both come through this route, because the app does not resolve Sunder itself.
-`major`/`destroyed` drop soak, defense, container threshold bonus and attachment effects while
-keeping weight and contents, and clear the active-armor selection. Response: `204`.
+`major`/`destroyed` drop soak, defense, container threshold bonus, magic-implement benefits and
+attachment effects while keeping weight and contents, and clear the active-armor selection.
+For a magic implement, `items[].implement.damageSetbackDice` and
+`damageDifficultyIncrease` carry the check penalty for `minor` and `moderate`; `isUsable=false`
+excludes a `major`/`destroyed` implement from the magic builder. Response: `204`.
 
 ### `POST /api/characters/{id}/items/{itemId}/repair`
 
