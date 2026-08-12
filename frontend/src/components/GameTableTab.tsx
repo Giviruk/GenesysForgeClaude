@@ -129,9 +129,9 @@ export function GameTableTab({ campaignId, isGm, members, onOpenMemberSheet, ref
 
       <aside className="right-rail">
         <RollSection campaignId={campaignId} isGm={isGm} refreshSignal={refreshSignal} />
-        <NotesBlock session={session} isGm={isGm} onRun={run} campaignId={campaignId} />
         <QuickActionsPanel session={session} isGm={isGm} members={members}
           onRun={run} campaignId={campaignId} abilities={abilities} onActivate={activate} />
+        <NotesBlock session={session} isGm={isGm} onRun={run} campaignId={campaignId} />
       </aside>
 
       <ParticipantsStrip session={session} campaignId={campaignId} isGm={isGm}
@@ -568,17 +568,19 @@ function ParticipantCard({ p, campaignId, isGm, canEditVitals, onRun, onOpenNpc,
           onChange={e => update({ isDefeated: e.target.checked })} />{t('повержен', 'defeated')}</label>}
         {isGm && <label><input type="checkbox" checked={p.isHiddenFromPlayers}
           onChange={e => update({ isHiddenFromPlayers: e.target.checked })} />{t('скрыт', 'hidden')}</label>}
-        <button type="button" className="tiny participant-roll"
-          aria-label={t(`Бросок участника ${p.displayName}`, `Roll for participant ${p.displayName}`)}
-          onClick={() => openRoller({
-          kind: 'roll', title: `${p.displayName} — ${t('бросок', 'roll')}`,
-          label: t('Бросок участника', 'Participant roll'), initialPool: participantRollPool({}, p),
-          onLog: req => { void onRun(() => api.createRoll(campaignId, { ...req, actorName: p.displayName })) },
-          canSecret: isGm,
-        })}>🎲</button>
-        {onOpen && <button type="button" className="tiny" onClick={onOpenNpc ?? onOpenCharacter}>
-          {onOpenNpc ? t('Статблок', 'Stat block') : t('Лист', 'Sheet')}
-        </button>}
+        <span className="participant-card-actions">
+          {onOpen && <button type="button" className="tiny" onClick={onOpenNpc ?? onOpenCharacter}>
+            {onOpenNpc ? t('Статблок', 'Stat block') : t('Лист', 'Sheet')}
+          </button>}
+          <button type="button" className="tiny participant-roll"
+            aria-label={t(`Бросок участника ${p.displayName}`, `Roll for participant ${p.displayName}`)}
+            onClick={() => openRoller({
+            kind: 'roll', title: `${p.displayName} — ${t('бросок', 'roll')}`,
+            label: t('Бросок участника', 'Participant roll'), initialPool: participantRollPool({}, p),
+            onLog: req => { void onRun(() => api.createRoll(campaignId, { ...req, actorName: p.displayName })) },
+            canSecret: isGm,
+          })}>🎲</button>
+        </span>
       </div>
     </article>
   )
