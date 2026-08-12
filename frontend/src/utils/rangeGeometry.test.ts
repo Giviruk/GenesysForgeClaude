@@ -44,10 +44,37 @@ describe('range tracker geometry', () => {
     ).zone).toBe('short')
     expect(estimateRangeBetween(
       { zone: 'medium', angle: 0 }, { zone: 'medium', angle: 180 },
-    ).zone).toBe('extreme')
+    ).zone).toBe('medium')
     expect(estimateRangeBetween(
       { zone: 'long', angle: 60 }, { zone: 'long', angle: 60 },
     ).zone).toBe('engaged')
+  })
+
+  it.each(['engaged', 'short', 'medium', 'long', 'extreme'] as const)(
+    'does not inflate the same angular separation in the %s band',
+    zone => {
+      expect(estimateRangeBetween(
+        { zone, angle: 15 }, { zone, angle: 45 },
+      )).toMatchObject({ zone: 'engaged' })
+      expect(estimateRangeBetween(
+        { zone, angle: 15 }, { zone, angle: 105 },
+      )).toMatchObject({ zone: 'short' })
+      expect(estimateRangeBetween(
+        { zone, angle: 15 }, { zone, angle: 195 },
+      )).toMatchObject({ zone: 'medium', bandUnits: 2 })
+    },
+  )
+
+  it('combines radial and normalized angular separation', () => {
+    expect(estimateRangeBetween(
+      { zone: 'short', angle: 15 }, { zone: 'medium', angle: 105 },
+    ).zone).toBe('medium')
+    expect(estimateRangeBetween(
+      { zone: 'engaged', angle: 15 }, { zone: 'short', angle: 195 },
+    ).zone).toBe('medium')
+    expect(estimateRangeBetween(
+      { zone: 'short', angle: 15 }, { zone: 'long', angle: 15 },
+    ).zone).toBe('medium')
   })
 
   it('uses the visible ring boundaries without a one-step offset', () => {
