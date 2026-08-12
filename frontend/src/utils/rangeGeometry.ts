@@ -90,25 +90,23 @@ export function nearestFreeRangeAngle(
   return desired
 }
 
-function point(zone: RangeZone, angle: number): { x: number; y: number } {
-  // Делим проценты на ширину кольца: соседние радиальные диапазоны отстоят на одну единицу.
-  const radius = RANGE_ZONE_RADII_PERCENT[zone] / 9.8
-  const radians = normalizeAngle(angle) * Math.PI / 180
-  return { x: Math.cos(radians) * radius, y: Math.sin(radians) * radius }
-}
-
 export function estimateRangeBetween(from: RangeCellPosition, to: RangeCellPosition): EstimatedRange {
-  const a = point(from.zone, from.angle)
-  const b = point(to.zone, to.angle)
-  const bandUnits = Math.hypot(a.x - b.x, a.y - b.y)
-  // Те же границы, что у колец доски: одна ширина кольца = «Вплотную», две = «Ближняя» и т. д.
-  // Пограничное значение относится к следующему диапазону; допуск убирает ошибки float
-  // (например, разность центров 3.5 − 1.5 должна быть ровно 2).
-  const epsilon = 1e-9
-  const zone: RangeZone = bandUnits < 1 - epsilon ? 'engaged'
-    : bandUnits < 2 - epsilon ? 'short'
-      : bandUnits < 3 - epsilon ? 'medium'
-        : bandUnits < 4 - epsilon ? 'long'
+  // Кольца — игровые категории, а не физические окружности разного масштаба. Поэтому радиальная
+  // часть равна числу диапазонов между кольцами, а одинаковый угловой разнос должен весить
+  // одинаково и на ближнем, и на предельном кольце. Хорда единичной окружности даёт углу вес
+  // от 0 (один сектор) до 2 (противоположные стороны), не раздувая внешние кольца.
+  const radialUnits = Math.abs(ZONES.indexOf(from.zone) - ZONES.indexOf(to.zone))
+  const angleDelta = Math.abs(normalizeAngle(from.angle) - normalizeAngle(to.angle))
+  const shortestAngle = Math.min(angleDelta, 360 - angleDelta)
+  const angularUnits = 2 * Math.sin(shortestAngle * Math.PI / 360)
+  const bandUnits = Math.hypot(radialUnits, angularUnits)
+
+  // Границы проходят посередине между целыми шагами дистанций. Так чистое перемещение на одно
+  // кольцо остаётся ближней дистанцией, на два — средней, а погрешность float не сдвигает ступень.
+  const zone: RangeZone = bandUnits < 0.75 ? 'engaged'
+    : bandUnits < 1.5 ? 'short'
+      : bandUnits < 2.5 ? 'medium'
+        : bandUnits < 3.5 ? 'long'
           : 'extreme'
   return { zone, bandUnits }
 }
