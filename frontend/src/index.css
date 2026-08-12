@@ -1588,6 +1588,22 @@ button.tiny { font-size: 0.75rem; padding: 0.05rem 0.4rem 0.15rem; }
   margin: 0 auto;
   overflow: hidden;
 }
+.range-cell-grid {
+  position: absolute;
+  z-index: 1;
+  left: 50%;
+  top: 50%;
+  width: 98%;
+  height: 98%;
+  translate: -50% -50%;
+  border-radius: 50%;
+  background: repeating-conic-gradient(
+    from 0deg,
+    transparent 0deg 29.65deg,
+    rgba(152, 145, 168, 0.16) 29.65deg 30deg
+  );
+  pointer-events: none;
+}
 .range-ring {
   position: absolute;
   left: 50%;
@@ -1644,15 +1660,12 @@ button.tiny { font-size: 0.75rem; padding: 0.05rem 0.4rem 0.15rem; }
 }
 .ring-token.pc { border-color: var(--core); color: #9db9e8; }
 .ring-token.hidden-token { border-style: dashed; opacity: 0.65; }
-.ring-token.focus {
-  left: 50%;
-  top: 50%;
-  width: 2.75rem;
-  height: 2.75rem;
+.ring-token.selected {
+  z-index: 3;
   border-color: var(--accent);
   color: #e3c073;
   background: rgba(201, 162, 74, 0.16);
-  cursor: default;
+  box-shadow: 0 0 0 3px rgba(201, 162, 74, 0.18);
 }
 .ring-token-actions {
   position: absolute;
@@ -1676,6 +1689,43 @@ button.tiny { font-size: 0.75rem; padding: 0.05rem 0.4rem 0.15rem; }
 .ring-legend i { width: 0.7rem; height: 0.7rem; border: 2px solid var(--red); border-radius: 50%; }
 .ring-legend .pc i { border-color: var(--core); }
 .ring-legend strong { color: #efeaf6; }
+.range-distance-panel {
+  padding: 0.45rem 0.6rem 0.55rem;
+  border-top: 1px solid var(--border);
+  background: rgba(201, 162, 74, 0.035);
+}
+.range-distance-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.35rem;
+}
+.range-distance-head strong { color: #efeaf6; font-size: 0.78rem; }
+.range-distance-head span { color: var(--muted); font-size: 0.66rem; text-align: right; }
+.range-distance-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+  gap: 0.3rem;
+}
+.range-distance-list button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.45rem;
+  min-height: 1.8rem;
+  padding: 0.16rem 0.5rem 0.28rem;
+  text-align: left;
+}
+.range-distance-list button span {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 0.7rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.range-distance-list button b { flex: 0 0 auto; color: var(--accent); font-size: 0.72rem; }
 .bar-stack { display: flex; flex-direction: column; gap: 2px; margin-top: 0.32rem; }
 .bar { height: 3px; background: var(--border); border-radius: 2px; overflow: hidden; }
 .bar > span { display: block; height: 100%; border-radius: 2px; }
