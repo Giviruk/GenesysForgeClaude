@@ -1,6 +1,7 @@
+import { useState } from 'react'
 import { api } from '../api/client'
 import type {
-  CareerSkillSource, CharacterSheet, CheckModifierSource, DefenseBreakdown, Derived, SheetSkill, SkillKind,
+  BaseSheet, CareerSkillSource, CharacterSheet, CheckModifierSource, DefenseBreakdown, Derived, SheetSkill, SkillKind,
 } from '../api/types'
 import {
   CHARACTERISTICS, CHARACTERISTIC_LABELS, CHARACTERISTIC_SHORT_LABELS, HEROIC_UPGRADE_LABELS,
@@ -15,6 +16,7 @@ interface Props {
   sheet: CharacterSheet
   onError: (message: string) => void
   refresh: () => Promise<void>
+  updateBaseOptimistically?: (patch: Partial<BaseSheet>, action: () => Promise<unknown>) => Promise<void>
 }
 
 // Левая колонка — крупный блок «общие»; правая — боевые, под ними знания/магия и
@@ -60,8 +62,13 @@ function careerSourcesTitle(sources: CareerSkillSource[] | undefined): string | 
     + sources.map(s => `${CAREER_SOURCE_LABELS[s.source] ?? s.source} ${s.sourceName}`).join(', ')
 }
 
-export function SheetTab({ sheet, onError, refresh }: Props) {
+export function SheetTab({ sheet, onError, refresh, updateBaseOptimistically }: Props) {
   const { openRoller } = useDiceRoller()
+  const [vitalsBusy, setVitalsBusy] = useState(false)
+  const optimisticUpdate = updateBaseOptimistically ?? (async (_patch, action) => {
+    await action()
+    await refresh()
+  })
 
   async function run(action: () => Promise<unknown>) {
     try {
@@ -69,6 +76,18 @@ export function SheetTab({ sheet, onError, refresh }: Props) {
       await refresh()
     } catch (err) {
       onError(err instanceof Error ? err.message : t('Ошибка', 'Error'))
+    }
+  }
+
+  async function updateVital(patch: Partial<BaseSheet>, action: () => Promise<unknown>) {
+    if (vitalsBusy) return
+    setVitalsBusy(true)
+    try {
+      await optimisticUpdate(patch, action)
+    } catch (err) {
+      onError(err instanceof Error ? err.message : t('Ошибка', 'Error'))
+    } finally {
+      setVitalsBusy(false)
     }
   }
 
@@ -101,11 +120,25 @@ export function SheetTab({ sheet, onError, refresh }: Props) {
 
       <section className="stat-row derived">
         <DerivedBox label={t('Раны', 'Wounds')} value={`${sheet.woundsCurrent} / ${d.woundThreshold}`}
-          onMinus={() => run(() => api.updateCharacter(sheet.id, { woundsCurrent: sheet.woundsCurrent - 1 }))}
-          onPlus={() => run(() => api.updateCharacter(sheet.id, { woundsCurrent: sheet.woundsCurrent + 1 }))} />
+          disabled={vitalsBusy}
+          onMinus={() => void updateVital(
+            { woundsCurrent: Math.max(0, sheet.woundsCurrent - 1) },
+            () => api.updateCharacter(sheet.id, { woundsCurrent: Math.max(0, sheet.woundsCurrent - 1) }),
+          )}
+          onPlus={() => void updateVital(
+            { woundsCurrent: sheet.woundsCurrent + 1 },
+            () => api.updateCharacter(sheet.id, { woundsCurrent: sheet.woundsCurrent + 1 }),
+          )} />
         <DerivedBox label={t('Усталость', 'Strain')} value={`${sheet.strainCurrent} / ${d.strainThreshold}`}
-          onMinus={() => run(() => api.updateCharacter(sheet.id, { strainCurrent: sheet.strainCurrent - 1 }))}
-          onPlus={() => run(() => api.updateCharacter(sheet.id, { strainCurrent: sheet.strainCurrent + 1 }))} />
+          disabled={vitalsBusy}
+          onMinus={() => void updateVital(
+            { strainCurrent: Math.max(0, sheet.strainCurrent - 1) },
+            () => api.updateCharacter(sheet.id, { strainCurrent: Math.max(0, sheet.strainCurrent - 1) }),
+          )}
+          onPlus={() => void updateVital(
+            { strainCurrent: sheet.strainCurrent + 1 },
+            () => api.updateCharacter(sheet.id, { strainCurrent: sheet.strainCurrent + 1 }),
+          )} />
         <DerivedBox label={t('Поглощение', 'Soak')} value={String(d.soak)} />
         <DerivedBox label={t('Защита (ближ/дальн)', 'Defense (melee/ranged)')} value={`${d.meleeDefense} / ${d.rangedDefense}`}
           title={defenseTitle(d)} />
@@ -221,7 +254,7 @@ export function SheetTab({ sheet, onError, refresh }: Props) {
   )
 }
 
-function DerivedBox({ label, value, warning, title, onMinus, onPlus }: {
+function DerivedBox({ label, value, warning, title, onMinus, onPlus, disabled }: {
   label: string
   value: string
   warning?: string
@@ -229,13 +262,14 @@ function DerivedBox({ label, value, warning, title, onMinus, onPlus }: {
   title?: string
   onMinus?: () => void
   onPlus?: () => void
+  disabled?: boolean
 }) {
   return (
     <div className={warning ? 'stat-box warn' : 'stat-box'} title={title}>
       <div className="stat-value">
-        {onMinus && <button className="tiny" onClick={onMinus}>−</button>}
+        {onMinus && <button className="tiny" disabled={disabled} onClick={onMinus}>−</button>}
         <span>{value}</span>
-        {onPlus && <button className="tiny" onClick={onPlus}>+</button>}
+        {onPlus && <button className="tiny" disabled={disabled} onClick={onPlus}>+</button>}
       </div>
       <div className="stat-label">{label}</div>
       {warning && <div className="error small-text">{warning}</div>}

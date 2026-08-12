@@ -5,7 +5,7 @@ import {
 import { api } from '../api/client'
 import type {
   ActivateAbilityResult, CampaignMember, GameParticipant, GameSession, HeroicAbility,
-  InitiativeSlotType, NpcListItem, RollLogEntry,
+  InitiativeSlotType, NpcListItem, RollLogEntry, UpdateParticipantRequest,
 } from '../api/types'
 import { SLOT_TYPE_LABELS } from '../utils/labels'
 import { RollSymbolsView, type RollLogRequest } from './DiceRoller'
@@ -13,7 +13,7 @@ import type { RollSymbols } from '../utils/diceRoller'
 import { useDiceRoller } from '../dice-roller-store'
 import { t } from '../i18n'
 import { GameTableNpcStatblock } from './GameTableNpcStatblock'
-import { participantNameWithCount, participantRollPool } from '../utils/gameTable'
+import { applyParticipantPatch, participantNameWithCount, participantRollPool } from '../utils/gameTable'
 import {
   readRangeTrackerState, writeRangeTrackerState, writeSheetTab, type RangeZone,
 } from '../utils/uiPreferences'
@@ -39,6 +39,8 @@ export function GameTableTab({ campaignId, isGm, members, onOpenMemberSheet, ref
   const [error, setError] = useState<string | null>(null)
   // Способности с автоматизируемыми эффектами (U-18) — для кнопки «Активировать» у участника.
   const [abilities, setAbilities] = useState<HeroicAbility[]>([])
+  const [participantMutationPending, setParticipantMutationPending] = useState(false)
+  const participantMutationLock = useRef(false)
 
   useEffect(() => {
     let cancelled = false
@@ -74,6 +76,27 @@ export function GameTableTab({ campaignId, isGm, members, onOpenMemberSheet, ref
       setError(null)
     } catch (e) { setError(e instanceof Error ? e.message : t('Ошибка', 'Error')) }
   }, [reload])
+
+  const updateParticipantOptimistically = useCallback(async (
+    participantId: string, patch: UpdateParticipantRequest,
+  ) => {
+    if (participantMutationLock.current || !session) return
+    participantMutationLock.current = true
+    setParticipantMutationPending(true)
+    const before = session
+    setSession(applyParticipantPatch(session, participantId, patch))
+    try {
+      setSession(await api.updateParticipant(campaignId, participantId, patch))
+      setError(null)
+    } catch (e) {
+      setSession(before)
+      setError(e instanceof Error ? e.message : t('Ошибка', 'Error'))
+      throw e
+    } finally {
+      participantMutationLock.current = false
+      setParticipantMutationPending(false)
+    }
+  }, [campaignId, session])
 
   if (!loaded) return <p className="muted">{t('Загрузка сцены…', 'Loading scene…')}</p>
 
@@ -142,7 +165,8 @@ export function GameTableTab({ campaignId, isGm, members, onOpenMemberSheet, ref
       </aside>
 
       <ParticipantsStrip session={session} campaignId={campaignId} isGm={isGm}
-        members={members} onRun={run} onSessionChange={setSession}
+        members={members} onRun={run}
+        onUpdateParticipant={updateParticipantOptimistically} updatePending={participantMutationPending}
         onOpenMemberSheet={onOpenMemberSheet} />
     </div>
   )
@@ -523,14 +547,16 @@ function InitiativeTracker({ session, isGm, onRun, campaignId }: BlockProps) {
   )
 }
 
-function ParticipantsStrip({ session, campaignId, isGm, members, onRun, onSessionChange,
+function ParticipantsStrip({ session, campaignId, isGm, members, onRun,
+  onUpdateParticipant, updatePending,
   onOpenMemberSheet }: {
   session: GameSession
   campaignId: string
   isGm: boolean
   members: CampaignMember[]
   onRun: (action: () => Promise<unknown>) => Promise<void>
-  onSessionChange: (session: GameSession) => void
+  onUpdateParticipant: (participantId: string, patch: UpdateParticipantRequest) => Promise<void>
+  updatePending: boolean
   onOpenMemberSheet?: (characterId: string, name: string) => Promise<void>
 }) {
   const [openNpcId, setOpenNpcId] = useState<string | null>(null)
@@ -557,23 +583,28 @@ function ParticipantsStrip({ session, campaignId, isGm, members, onRun, onSessio
               : undefined
             return <ParticipantCard key={p.id} p={p} campaignId={campaignId} isGm={isGm}
               canEditVitals={isGm || Boolean(session.allowPlayerEdits && member?.isMine)}
-              onRun={onRun} onOpenCharacter={onOpenCharacter}
+              onRun={onRun} onUpdateParticipant={onUpdateParticipant} updatePending={updatePending}
+              onOpenCharacter={onOpenCharacter}
               onOpenNpc={p.npcId ? () => setOpenNpcId(p.id) : undefined} />
           })}
         </div>
       </section>
       {openNpc && <GameTableNpcStatblock participant={openNpc} campaignId={campaignId} isGm={isGm}
-        onSessionChange={onSessionChange} onClose={() => setOpenNpcId(null)} />}
+        onUpdateParticipant={onUpdateParticipant}
+        updatePending={updatePending} onClose={() => setOpenNpcId(null)} />}
     </>
   )
 }
 
-function ParticipantCard({ p, campaignId, isGm, canEditVitals, onRun, onOpenNpc, onOpenCharacter }: {
+function ParticipantCard({ p, campaignId, isGm, canEditVitals, onRun, onUpdateParticipant,
+  updatePending, onOpenNpc, onOpenCharacter }: {
   p: GameParticipant
   campaignId: string
   isGm: boolean
   canEditVitals: boolean
   onRun: (action: () => Promise<unknown>) => Promise<void>
+  onUpdateParticipant: (participantId: string, patch: UpdateParticipantRequest) => Promise<void>
+  updatePending: boolean
   onOpenNpc?: () => void
   onOpenCharacter?: () => void
 }) {
@@ -583,8 +614,8 @@ function ParticipantCard({ p, campaignId, isGm, canEditVitals, onRun, onOpenNpc,
     event.stopPropagation()
     action()
   }
-  const update = (patch: Parameters<typeof api.updateParticipant>[2]) =>
-    void onRun(() => api.updateParticipant(campaignId, p.id, patch))
+  const update = (patch: UpdateParticipantRequest) =>
+    void onUpdateParticipant(p.id, patch).catch(() => { /* ошибка уже показана родителем */ })
   const label = onOpenNpc
     ? t(`Открыть статблок NPC ${p.displayName}`, `Open NPC stat block ${p.displayName}`)
     : onOpenCharacter
@@ -611,35 +642,35 @@ function ParticipantCard({ p, campaignId, isGm, canEditVitals, onRun, onOpenNpc,
       <div className="participant-control-grid">
         <span>{t('Раны', 'Wounds')}</span>
         <div className="participant-vital"><b>{p.woundsCurrent} / {p.woundsThreshold}</b><div className="bar"><span className="wounds" style={{ width: `${ratio(p.woundsCurrent, p.woundsThreshold) * 100}%` }} /></div></div>
-        <button type="button" className="tiny" disabled={!canEditVitals || p.woundsCurrent <= 0}
+        <button type="button" className="tiny" disabled={updatePending || !canEditVitals || p.woundsCurrent <= 0}
           aria-label={t(`Убрать рану у ${p.displayName}`, `Remove wound from ${p.displayName}`)}
           onClick={stop(() => update({ woundsCurrent: Math.max(0, p.woundsCurrent - 1) }))}>−</button>
-        <button type="button" className="tiny" disabled={!canEditVitals}
+        <button type="button" className="tiny" disabled={updatePending || !canEditVitals}
           aria-label={t(`Добавить рану ${p.displayName}`, `Add wound to ${p.displayName}`)}
           onClick={stop(() => update({ woundsCurrent: p.woundsCurrent + 1 }))}>+</button>
 
         <span>{t('Устал.', 'Strain')}</span>
         <div className="participant-vital"><b>{p.strainThreshold == null ? '—' : `${p.strainCurrent} / ${p.strainThreshold}`}</b>{p.strainThreshold != null && <div className="bar"><span className="strain" style={{ width: `${ratio(p.strainCurrent, p.strainThreshold) * 100}%` }} /></div>}</div>
-        <button type="button" className="tiny" disabled={!canEditVitals || p.strainThreshold == null || p.strainCurrent <= 0}
+        <button type="button" className="tiny" disabled={updatePending || !canEditVitals || p.strainThreshold == null || p.strainCurrent <= 0}
           aria-label={t(`Убрать усталость у ${p.displayName}`, `Remove strain from ${p.displayName}`)}
           onClick={stop(() => update({ strainCurrent: Math.max(0, p.strainCurrent - 1) }))}>−</button>
-        <button type="button" className="tiny" disabled={!canEditVitals || p.strainThreshold == null}
+        <button type="button" className="tiny" disabled={updatePending || !canEditVitals || p.strainThreshold == null}
           aria-label={t(`Добавить усталость ${p.displayName}`, `Add strain to ${p.displayName}`)}
           onClick={stop(() => update({ strainCurrent: p.strainCurrent + 1 }))}>+</button>
 
         <span className="boost-label">{t('Бусты', 'Boosts')}</span><b>{p.boostDice}</b>
-        <button type="button" className="tiny" disabled={!isGm || p.boostDice <= 0}
+        <button type="button" className="tiny" disabled={updatePending || !isGm || p.boostDice <= 0}
           aria-label={t(`Убрать буст у ${p.displayName}`, `Remove boost from ${p.displayName}`)}
           onClick={stop(() => update({ boostDice: p.boostDice - 1 }))}>−</button>
-        <button type="button" className="tiny" disabled={!isGm || p.boostDice >= 20}
+        <button type="button" className="tiny" disabled={updatePending || !isGm || p.boostDice >= 20}
           aria-label={t(`Добавить буст ${p.displayName}`, `Add boost to ${p.displayName}`)}
           onClick={stop(() => update({ boostDice: p.boostDice + 1 }))}>+</button>
 
         <span className="setback-label">{t('Сетбеки', 'Setbacks')}</span><b>{p.setbackDice}</b>
-        <button type="button" className="tiny" disabled={!isGm || p.setbackDice <= 0}
+        <button type="button" className="tiny" disabled={updatePending || !isGm || p.setbackDice <= 0}
           aria-label={t(`Убрать сетбек у ${p.displayName}`, `Remove setback from ${p.displayName}`)}
           onClick={stop(() => update({ setbackDice: p.setbackDice - 1 }))}>−</button>
-        <button type="button" className="tiny" disabled={!isGm || p.setbackDice >= 20}
+        <button type="button" className="tiny" disabled={updatePending || !isGm || p.setbackDice >= 20}
           aria-label={t(`Добавить сетбек ${p.displayName}`, `Add setback to ${p.displayName}`)}
           onClick={stop(() => update({ setbackDice: p.setbackDice + 1 }))}>+</button>
       </div>

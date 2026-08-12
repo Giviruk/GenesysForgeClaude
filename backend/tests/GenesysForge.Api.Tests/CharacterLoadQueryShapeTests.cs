@@ -107,4 +107,28 @@ public class CharacterLoadQueryShapeTests
         Assert.DoesNotContain("Items", tree, StringComparison.Ordinal);
         Assert.DoesNotContain("Attachments", tree, StringComparison.Ordinal);
     }
+
+    [Fact]
+    public void SimpleCharacterUpdateLoadsNoRelations()
+    {
+        using var db = RealProviderContext();
+
+        var tree = db.UpdateQuery(needsXpValidation: false).Expression.ToString();
+
+        foreach (var relation in new[] { "Items", "Talents", "Skills", "Attachments", "Mounts", "Archetype" })
+            Assert.DoesNotContain(relation, tree, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void XpUpdateLoadsOnlyRelationsRequiredForValidation()
+    {
+        using var db = RealProviderContext();
+
+        var tree = db.UpdateQuery(needsXpValidation: true).Expression.ToString();
+
+        foreach (var relation in new[] { "Archetype", "HeroicAbility", "HeroicSecondaryEffects" })
+            Assert.Contains(relation, tree, StringComparison.Ordinal);
+        foreach (var relation in new[] { "Items", "Talents", "Skills", "Attachments", "Mounts" })
+            Assert.DoesNotContain(relation, tree, StringComparison.Ordinal);
+    }
 }

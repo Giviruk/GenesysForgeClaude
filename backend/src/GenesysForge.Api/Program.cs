@@ -1,3 +1,5 @@
+using System.Diagnostics;
+using System.Globalization;
 using System.Text.Json.Serialization;
 using GenesysForge.Application;
 using GenesysForge.Application.Abstractions;
@@ -10,6 +12,7 @@ using GenesysForge.Api.Realtime;
 using GenesysForge.Domain;
 using GenesysForge.Infrastructure;
 using GenesysForge.Infrastructure.Auth;
+using GenesysForge.Infrastructure.Diagnostics;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
@@ -157,6 +160,32 @@ app.UseSerilogRequestLogging(options =>
         diagnosticContext.Set("TraceId", httpContext.TraceIdentifier);
         diagnosticContext.Set("RemoteIp", httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown");
     };
+});
+// Стандартный Server-Timing виден в DevTools и Resource Timing. Он отделяет время приложения
+// от времени БД и сразу показывает число SQL-команд без изменения тела публичного API.
+app.Use(async (context, next) =>
+{
+    var performance = context.RequestServices.GetRequiredService<RequestPerformanceContext>();
+    var stopwatch = Stopwatch.StartNew();
+    context.Response.OnStarting(() =>
+    {
+        var appMs = stopwatch.Elapsed.TotalMilliseconds.ToString("0.0", CultureInfo.InvariantCulture);
+        var dbMs = performance.DatabaseDuration.TotalMilliseconds.ToString("0.0", CultureInfo.InvariantCulture);
+        context.Response.Headers.Append("Server-Timing",
+            $"app;dur={appMs}, db;dur={dbMs};desc=\"{performance.DatabaseCommandCount} queries\"");
+        return Task.CompletedTask;
+    });
+    try
+    {
+        await next(context);
+    }
+    finally
+    {
+        stopwatch.Stop();
+        var diagnosticContext = context.RequestServices.GetService<Serilog.IDiagnosticContext>();
+        diagnosticContext?.Set("DbDurationMs", Math.Round(performance.DatabaseDuration.TotalMilliseconds, 1));
+        diagnosticContext?.Set("DbQueryCount", performance.DatabaseCommandCount);
+    }
 });
 if (builder.Configuration.GetValue("RateLimiting:Enabled", true))
     app.UseRateLimiter();

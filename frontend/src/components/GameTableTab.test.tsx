@@ -1,8 +1,9 @@
-import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { CampaignMember, GameParticipant, GameSession, NpcDetail, Reference } from '../api/types'
 import type { DiceRollerRequest } from '../dice-roller-store'
 import { GameTableTab } from './GameTableTab'
+import { applyParticipantPatch } from '../utils/gameTable'
 
 const sessionMock = vi.fn()
 const npcMock = vi.fn()
@@ -57,6 +58,18 @@ const npc: NpcDetail = {
     notes: '', qualities: [], sourceWeapon: '' }],
   talents: ['Быстрый'], equipment: ['Клинок'], tags: [], warnings: [], createdAt: '', updatedAt: '',
 }
+
+it('optimistic participant patch updates counters without mutating the previous session', () => {
+  const withThreshold = {
+    ...session,
+    participants: [{ ...session.participants[0], remainingCount: 3, perMemberWoundThreshold: 5 }],
+  }
+
+  const next = applyParticipantPatch(withThreshold, 'participant-1', { woundsCurrent: 6, boostDice: 3 })
+
+  expect(next.participants[0]).toMatchObject({ woundsCurrent: 6, boostDice: 3, remainingCount: 2 })
+  expect(withThreshold.participants[0]).toMatchObject({ woundsCurrent: 5, boostDice: 2, remainingCount: 3 })
+})
 
 const reference = {
   skills: [{ id: 'melee', name: 'Melee', nameRu: 'Ближний бой', characteristic: 'brawn',
@@ -254,6 +267,26 @@ describe('GameTableTab — статблок и броски NPC', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Бросок участника Гоблины' }))
     expect(openRollerMock).toHaveBeenCalledWith(expect.objectContaining({
       kind: 'roll', initialPool: { boost: 3, setback: 1 },
+    }))
+  })
+
+  it('сразу показывает изменение участника и откатывает его при ошибке сервера', async () => {
+    let rejectUpdate!: (reason?: unknown) => void
+    updateParticipantMock.mockReturnValue(new Promise((_resolve, reject) => { rejectUpdate = reject }))
+    render(<GameTableTab campaignId="campaign-1" isGm members={[]} />)
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Добавить буст Гоблины' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Бросок участника Гоблины' }))
+    expect(openRollerMock).toHaveBeenLastCalledWith(expect.objectContaining({
+      initialPool: { boost: 3, setback: 1 },
+    }))
+
+    await act(async () => { rejectUpdate(new Error('Сервер отклонил изменение')) })
+    await screen.findByText('Сервер отклонил изменение')
+    openRollerMock.mockClear()
+    fireEvent.click(screen.getByRole('button', { name: 'Бросок участника Гоблины' }))
+    expect(openRollerMock).toHaveBeenLastCalledWith(expect.objectContaining({
+      initialPool: { boost: 2, setback: 1 },
     }))
   })
 

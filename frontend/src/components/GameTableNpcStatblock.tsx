@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { api } from '../api/client'
-import type { Characteristic, GameParticipant, GameSession, NpcDetail, Reference } from '../api/types'
+import type { Characteristic, GameParticipant, NpcDetail, Reference, UpdateParticipantRequest } from '../api/types'
 import { useDiceRoller } from '../dice-roller-store'
 import { t } from '../i18n'
 import {
@@ -16,12 +16,14 @@ interface Props {
   participant: GameParticipant
   campaignId: string
   isGm: boolean
-  onSessionChange: (session: GameSession) => void
+  onUpdateParticipant: (participantId: string, patch: UpdateParticipantRequest) => Promise<void>
+  updatePending: boolean
   onClose: () => void
 }
 
 /** Read-only статблок связанного NPC прямо поверх игрового стола. */
-export function GameTableNpcStatblock({ participant, campaignId, isGm, onSessionChange, onClose }: Props) {
+export function GameTableNpcStatblock({ participant, campaignId, isGm,
+  onUpdateParticipant, updatePending, onClose }: Props) {
   const [npc, setNpc] = useState<NpcDetail | null>(null)
   const [reference, setReference] = useState<Reference | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -59,7 +61,7 @@ export function GameTableNpcStatblock({ participant, campaignId, isGm, onSession
   async function updateVitals(patch: { woundsCurrent?: number; strainCurrent?: number }) {
     setBusy(true); setError(null)
     try {
-      onSessionChange(await api.updateParticipant(campaignId, participant.id, patch))
+      await onUpdateParticipant(participant.id, patch)
     } catch (e) {
       setError(e instanceof Error ? e.message : t('Не удалось изменить состояние NPC.', 'Could not update NPC status.'))
     } finally {
@@ -132,19 +134,19 @@ export function GameTableNpcStatblock({ participant, campaignId, isGm, onSession
               <div className="gt-npc-vitals" aria-label={t('Управление состоянием NPC', 'NPC status controls')}>
                 <div className="gt-npc-vital-control">
                   <strong>{t('Раны', 'Wounds')}</strong>
-                  <button type="button" className="small" disabled={busy || participant.woundsCurrent <= 0}
+                  <button type="button" className="small" disabled={busy || updatePending || participant.woundsCurrent <= 0}
                     onClick={() => void updateVitals({ woundsCurrent: Math.max(0, participant.woundsCurrent - 1) })}>−1</button>
                   <span>{participant.woundsCurrent}/{participant.woundsThreshold}</span>
-                  <button type="button" className="small" disabled={busy}
+                  <button type="button" className="small" disabled={busy || updatePending}
                     onClick={() => void updateVitals({ woundsCurrent: participant.woundsCurrent + 1 })}>+1</button>
                 </div>
                 {participant.strainThreshold != null && (
                   <div className="gt-npc-vital-control">
                     <strong>{t('Усталость', 'Strain')}</strong>
-                    <button type="button" className="small" disabled={busy || participant.strainCurrent <= 0}
+                    <button type="button" className="small" disabled={busy || updatePending || participant.strainCurrent <= 0}
                       onClick={() => void updateVitals({ strainCurrent: Math.max(0, participant.strainCurrent - 1) })}>−1</button>
                     <span>{participant.strainCurrent}/{participant.strainThreshold}</span>
-                    <button type="button" className="small" disabled={busy}
+                    <button type="button" className="small" disabled={busy || updatePending}
                       onClick={() => void updateVitals({ strainCurrent: participant.strainCurrent + 1 })}>+1</button>
                   </div>
                 )}
