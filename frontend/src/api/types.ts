@@ -953,6 +953,10 @@ export interface ItemImplement extends ImplementSpec {
   chosenEffects: string[]
   /** Экземпляр ещё не настроен: обычные числа есть, бесплатный эффект не работает. */
   pending: boolean
+  /** Помехи к магической проверке от состояния этого экземпляра. */
+  damageSetbackDice: number
+  /** Повышение сложности магической проверки от состояния этого экземпляра. */
+  damageDifficultyIncrease: number
 }
 
 export type ShardSpellEffectMode = 'mandatoryFree' | 'optionalFree'

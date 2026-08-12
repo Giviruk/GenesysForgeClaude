@@ -204,29 +204,32 @@ export function MagicBuilder({
     }
     return effectiveSpellDifficulty(baseDifficulty, effects, activeTool?.implement ?? null, activeSkill)
   }
+  const activeToolWorks = activeTool != null && implementWorks(activeTool.implement, activeSkill)
+  const toolDamageDifficulty = activeToolWorks
+    ? activeTool.implement.damageDifficultyIncrease
+    : 0
   // Потолок считается по итоговой сложности, а не по сырой сумме надбавок: эффект, который
   // инструмент делает бесплатным, в предел не упирается.
   const totalDifficulty = Math.min(
     MAX_SPELL_DIFFICULTY,
-    calculateDifficulty(chosen))
+    calculateDifficulty(chosen) + toolDamageDifficulty)
   const capReached = totalDifficulty >= MAX_SPELL_DIFFICULTY
   /** Добавление этого эффекта упрётся в потолок — с учётом того, что инструмент может его удешевить. */
   const wouldExceedCap = (candidate: Spell) =>
-    calculateDifficulty([...chosen, candidate]) > MAX_SPELL_DIFFICULTY
+    calculateDifficulty([...chosen, candidate]) + toolDamageDifficulty > MAX_SPELL_DIFFICULTY
   // Что инструмент удешевляет — известно заранее, до выбора эффектов: у посоха и скипетра это
   // фиксированные эффекты, у фолианта и палочки — выбор ведущего.
-  const toolActive = activeTool != null && !activeTool.implement.pending
-    && implementWorks(activeTool.implement, activeSkill)
+  const toolActive = activeToolWorks && !activeTool.implement.pending
   const freeEffectCodes = activeShard
     ? shardEffects.map(x => x.effectCode)
     : !toolActive ? [] : (
     activeTool!.implement.discount === 'chosenEffects'
       ? activeTool!.implement.chosenEffects
       : activeTool!.implement.discountEffects)
-  const toolBoost = activeTool && implementWorks(activeTool.implement, activeSkill)
-    && !activeTool.implement.pending
+  const toolBoost = activeToolWorks && !activeTool.implement.pending
     ? activeTool.implement.boostDice
     : 0
+  const toolDamageSetback = activeToolWorks ? activeTool.implement.damageSetbackDice : 0
 
   // Источник рейтинга: выбранный игроком либо первый — тот, что называют правила системы.
   const ratingOptions = knowledgeRating?.options ?? []
@@ -389,7 +392,7 @@ export function MagicBuilder({
             {t(`Ваш пул для «${magicSkillLabel(activeSkill)}»:`, `Your pool for “${magicSkillLabel(activeSkill)}”:`)} <DicePoolView
               pool={charPool}
               boost={(activeCharacterSkill?.boostDice ?? 0) + toolBoost}
-              setback={activeCharacterSkill?.setbackDice ?? 0} />
+              setback={(activeCharacterSkill?.setbackDice ?? 0) + toolDamageSetback} />
           </div>
         )}
         {/* Откуда берётся рейтинг свойств (ROT-MAG-10). Выбор показывается только тогда, когда он
@@ -616,7 +619,7 @@ export function MagicBuilder({
                       proficiency: activeCharacterSkill.pool.proficiency,
                       difficulty: totalDifficulty,
                       boost: activeCharacterSkill.boostDice + toolBoost,
-                      setback: activeCharacterSkill.setbackDice,
+                      setback: activeCharacterSkill.setbackDice + toolDamageSetback,
                     },
                     damage: magicDamage,
                     advantageSpends: selectedEffect
