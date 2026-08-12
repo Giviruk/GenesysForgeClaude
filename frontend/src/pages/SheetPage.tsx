@@ -19,6 +19,7 @@ import { CharacterSheetPrint } from '../components/print/CharacterSheetPrint'
 import { Icon } from '../components/Icon'
 import { navigate } from '../router'
 import { t } from '../i18n'
+import { readSheetTab, writeSheetTab, type CharacterSheetTab } from '../utils/uiPreferences'
 
 interface Props {
   characterId: string
@@ -29,8 +30,6 @@ interface Props {
   onBack: () => void
 }
 
-type Tab = 'sheet' | 'talents' | 'heroic' | 'inventory' | 'attachments' | 'transport' | 'crafting' | 'magic' | 'bio' | 'history' | 'notes' | 'custom'
-
 /**
  * Что каждой вкладке нужно с сервера. Лист играющего персонажа весит около 116 КБ, и две трети из
  * них — инвентарь: платить за него на вкладке заметок незачем.
@@ -38,7 +37,7 @@ type Tab = 'sheet' | 'talents' | 'heroic' | 'inventory' | 'attachments' | 'trans
  * <p>Таблица — единственное место, где это знание живёт. Начали читать на вкладке новую коллекцию —
  * впишите её сюда, иначе вкладка увидит пустой список вместо данных.</p>
  */
-const SLICES_BY_TAB: Record<Tab, SheetSliceName[]> = {
+const SLICES_BY_TAB: Record<CharacterSheetTab, SheetSliceName[]> = {
   sheet: ['base'],
   talents: ['base', 'talents'],
   heroic: ['base'],
@@ -121,7 +120,17 @@ export function SheetPage({ characterId, printing, onOpenPrint, onClosePrint, on
     slices: withSlices(prev.characterId === characterId ? prev.slices : NOTHING_LOADED, got),
   })), [characterId])
   const [reference, setReference] = useState<Reference | null>(null)
-  const [tab, setTab] = useState<Tab>('sheet')
+  // Последняя вкладка хранится отдельно для каждого персонажа и переживает уход в другой раздел
+  // приложения и обновление страницы. Карта также корректно работает при смене characterId без
+  // размонтирования SheetPage.
+  const [tabs, setTabs] = useState<Record<string, CharacterSheetTab>>(() => ({
+    [characterId]: readSheetTab(characterId),
+  }))
+  const tab = tabs[characterId] ?? readSheetTab(characterId)
+  const selectTab = (next: CharacterSheetTab) => {
+    writeSheetTab(characterId, next)
+    setTabs(prev => ({ ...prev, [characterId]: next }))
+  }
   const [error, setError] = useState<string | null>(null)
   const [notice, setNotice] = useState<string | null>(null)
   const [shareUrl, setShareUrl] = useState<string | null>(null)
@@ -377,20 +386,20 @@ export function SheetPage({ characterId, printing, onOpenPrint, onClosePrint, on
       )}
 
       <div className="tabs main-tabs">
-        <button className={tab === 'sheet' ? 'tab active' : 'tab'} onClick={() => setTab('sheet')}>{t('Лист', 'Sheet')}</button>
-        <button className={tab === 'talents' ? 'tab active' : 'tab'} onClick={() => setTab('talents')}>{t('Таланты', 'Talents')}</button>
+        <button className={tab === 'sheet' ? 'tab active' : 'tab'} onClick={() => selectTab('sheet')}>{t('Лист', 'Sheet')}</button>
+        <button className={tab === 'talents' ? 'tab active' : 'tab'} onClick={() => selectTab('talents')}>{t('Таланты', 'Talents')}</button>
         {sheet.system === 'realmsOfTerrinoth' && (
-          <button className={tab === 'heroic' ? 'tab active' : 'tab'} onClick={() => setTab('heroic')}>{t('Героика', 'Heroic')}</button>
+          <button className={tab === 'heroic' ? 'tab active' : 'tab'} onClick={() => selectTab('heroic')}>{t('Героика', 'Heroic')}</button>
         )}
-        <button className={tab === 'inventory' ? 'tab active' : 'tab'} onClick={() => setTab('inventory')}>{t('Инвентарь', 'Inventory')}</button>
-        <button className={tab === 'attachments' ? 'tab active' : 'tab'} onClick={() => setTab('attachments')}>{t('Улучшения', 'Attachments')}</button>
-        <button className={tab === 'transport' ? 'tab active' : 'tab'} onClick={() => setTab('transport')}>{t('Транспорт', 'Transport')}</button>
-        <button className={tab === 'crafting' ? 'tab active' : 'tab'} onClick={() => setTab('crafting')}>{t('Ремесло', 'Crafting')}</button>
-        <button className={tab === 'magic' ? 'tab active' : 'tab'} onClick={() => setTab('magic')}>{t('Магия', 'Magic')}</button>
-        <button className={tab === 'bio' ? 'tab active' : 'tab'} onClick={() => setTab('bio')}>{t('Образ', 'Bio')}</button>
-        <button className={tab === 'history' ? 'tab active' : 'tab'} onClick={() => setTab('history')}>{t('История', 'History')}</button>
-        <button className={tab === 'notes' ? 'tab active' : 'tab'} onClick={() => setTab('notes')}>{t('Заметки', 'Notes')}</button>
-        <button className={tab === 'custom' ? 'tab active' : 'tab'} onClick={() => setTab('custom')}>{t('Кастом', 'Custom')}</button>
+        <button className={tab === 'inventory' ? 'tab active' : 'tab'} onClick={() => selectTab('inventory')}>{t('Инвентарь', 'Inventory')}</button>
+        <button className={tab === 'attachments' ? 'tab active' : 'tab'} onClick={() => selectTab('attachments')}>{t('Улучшения', 'Attachments')}</button>
+        <button className={tab === 'transport' ? 'tab active' : 'tab'} onClick={() => selectTab('transport')}>{t('Транспорт', 'Transport')}</button>
+        <button className={tab === 'crafting' ? 'tab active' : 'tab'} onClick={() => selectTab('crafting')}>{t('Ремесло', 'Crafting')}</button>
+        <button className={tab === 'magic' ? 'tab active' : 'tab'} onClick={() => selectTab('magic')}>{t('Магия', 'Magic')}</button>
+        <button className={tab === 'bio' ? 'tab active' : 'tab'} onClick={() => selectTab('bio')}>{t('Образ', 'Bio')}</button>
+        <button className={tab === 'history' ? 'tab active' : 'tab'} onClick={() => selectTab('history')}>{t('История', 'History')}</button>
+        <button className={tab === 'notes' ? 'tab active' : 'tab'} onClick={() => selectTab('notes')}>{t('Заметки', 'Notes')}</button>
+        <button className={tab === 'custom' ? 'tab active' : 'tab'} onClick={() => selectTab('custom')}>{t('Кастом', 'Custom')}</button>
       </div>
 
       {/* Шапка уже на экране — ждём только те части, которые нужны самой вкладке. */}
