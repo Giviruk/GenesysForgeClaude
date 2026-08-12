@@ -1657,6 +1657,17 @@ button.tiny { font-size: 0.75rem; padding: 0.05rem 0.4rem 0.15rem; }
   font-size: 0.72rem;
   font-weight: 700;
   cursor: grab;
+  touch-action: none;
+  user-select: none;
+}
+.range-rings.dragging .ring-token { cursor: grabbing; }
+.ring-token.dragging-source { opacity: 0.32; }
+.ring-token.drag-preview {
+  z-index: 5;
+  pointer-events: none;
+  opacity: 0.82;
+  border-style: dashed;
+  box-shadow: 0 0 0 3px rgba(201, 162, 74, 0.16);
 }
 .ring-token.pc { border-color: var(--core); color: #9db9e8; }
 .ring-token.hidden-token { border-style: dashed; opacity: 0.65; }

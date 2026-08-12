@@ -122,12 +122,33 @@ describe('GameTableTab — статблок и броски NPC', () => {
     const pcPosition = pcToken.getAttribute('style')
 
     expect(screen.getByText('Расчётные расстояния от Элира')).toBeTruthy()
-    expect(screen.getByText('≈ Дальняя')).toBeTruthy()
+    expect(screen.getByText('≈ Средняя')).toBeTruthy()
     fireEvent.click(npcToken)
 
     expect(screen.getByText('Расчётные расстояния от Гоблины ×3/3')).toBeTruthy()
     expect(npcToken.getAttribute('style')).toBe(npcPosition)
     expect(pcToken.getAttribute('style')).toBe(pcPosition)
+  })
+
+  it('перетаскивает токен указателем в центр выбранной ячейки', async () => {
+    const rangeSession = { ...session, participants: [playerParticipant, session.participants[0]] }
+    sessionMock.mockResolvedValue(rangeSession)
+    render(<GameTableTab campaignId="campaign-1" isGm members={[ownMember]} />)
+
+    const npcToken = await screen.findByRole('button', { name: 'Выбрать Гоблины ×3/3 для расчёта расстояний' })
+    const board = screen.getByTestId('range-board')
+    vi.spyOn(board, 'getBoundingClientRect').mockReturnValue({
+      left: 100, top: 50, width: 400, height: 400, right: 500, bottom: 450,
+      x: 100, y: 50, toJSON: () => ({}),
+    })
+
+    fireEvent.pointerDown(npcToken, { button: 0, pointerId: 1, clientX: 300, clientY: 250 })
+    fireEvent.pointerMove(npcToken, { buttons: 1, pointerId: 1, clientX: 330, clientY: 250 })
+    fireEvent.pointerUp(npcToken, { button: 0, pointerId: 1, clientX: 330, clientY: 250 })
+
+    expect(npcToken.title).toContain('Ближняя, справа')
+    expect(Number.parseFloat(npcToken.style.left)).toBeCloseTo(64.20, 2)
+    expect(Number.parseFloat(npcToken.style.top)).toBeCloseTo(53.805, 2)
   })
 
   it('считает оставшихся миньонов по ранам и использует их число в навыках', async () => {
