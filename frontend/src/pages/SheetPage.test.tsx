@@ -85,7 +85,8 @@ describe('SheetPage — части листа грузятся по надобн
     const tabs = within(document.querySelector('.main-tabs') as HTMLElement)
       .getAllByRole('button').map(button => button.textContent)
     expect(tabs.slice(0, 5)).toEqual(['Лист', 'Инвентарь', 'Таланты', 'Магия', 'Заметки'])
-    expect(tabs.slice(5)).toEqual(['Героика', 'Улучшения', 'Транспорт', 'Ремесло', 'Образ', 'История', 'Кастом'])
+    expect(tabs.slice(5)).toEqual(['Героика', 'Улучшения', 'Транспорт', 'Ремесло', 'Образ', 'История'])
+    expect(document.querySelectorAll('.sheet-secondary-tab')).toHaveLength(6)
   })
 
   it('скрывает редкие действия под кнопкой с тремя точками', async () => {

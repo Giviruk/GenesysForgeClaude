@@ -22,8 +22,8 @@ public class GetReferenceHandler(IAppDbContext db) : IQueryHandler<GetReferenceQ
             .Include(a => a.StartingSkills)
             .Where(a => a.System == system && !a.Retired
                 && (a.OwnerUserId == null
-                    || (a.OwnerUserId == userId
-                        && (a.HomebrewPackId == null || visiblePackIds.Contains(a.HomebrewPackId.Value)))))
+                    || (a.HomebrewPackId == null ? a.OwnerUserId == userId
+                        : visiblePackIds.Contains(a.HomebrewPackId.Value))))
             .OrderBy(a => a.NameRu)
             .ToListAsync(ct);
         var archetypes = archetypeDefs.Select(a => a.ToDto()).ToList();
@@ -33,8 +33,8 @@ public class GetReferenceHandler(IAppDbContext db) : IQueryHandler<GetReferenceQ
             .Include(c => c.Rules)
             .Where(c => c.System == system && !c.Retired
                 && (c.OwnerUserId == null
-                    || (c.OwnerUserId == userId
-                        && (c.HomebrewPackId == null || visiblePackIds.Contains(c.HomebrewPackId.Value)))))
+                    || (c.HomebrewPackId == null ? c.OwnerUserId == userId
+                        : visiblePackIds.Contains(c.HomebrewPackId.Value))))
             .OrderBy(c => c.NameRu)
             .ToListAsync(ct);
         var careers = careerDefs.Select(c => c.ToDto()).ToList();
@@ -42,8 +42,8 @@ public class GetReferenceHandler(IAppDbContext db) : IQueryHandler<GetReferenceQ
         var skills = await db.SkillDefs.AsNoTracking()
             .Where(s => s.System == system && !s.Retired
                 && (s.OwnerUserId == null
-                    || (s.OwnerUserId == userId
-                        && (s.HomebrewPackId == null || visiblePackIds.Contains(s.HomebrewPackId.Value)))))
+                    || (s.HomebrewPackId == null ? s.OwnerUserId == userId
+                        : visiblePackIds.Contains(s.HomebrewPackId.Value))))
             .OrderBy(s => s.Kind).ThenBy(s => s.Name)
             .Select(s => s.ToDto()).ToListAsync(ct);
 
@@ -55,8 +55,8 @@ public class GetReferenceHandler(IAppDbContext db) : IQueryHandler<GetReferenceQ
 
         var talents = await db.TalentDefs.AsNoTracking()
             .Where(t => t.System == system && !t.Retired
-                && ((t.OwnerUserId == userId
-                        && (t.HomebrewPackId == null || visiblePackIds.Contains(t.HomebrewPackId.Value)))
+                && (((t.HomebrewPackId == null ? t.OwnerUserId == userId
+                        : visiblePackIds.Contains(t.HomebrewPackId.Value)))
                     || (t.OwnerUserId == null && (t.Setting & settingMask) != 0)))
             .OrderBy(t => t.Tier).ThenBy(t => t.Name)
             .Select(t => t.ToDto()).ToListAsync(ct);
@@ -68,8 +68,8 @@ public class GetReferenceHandler(IAppDbContext db) : IQueryHandler<GetReferenceQ
             .Include(i => i.AttackProfiles)
             .Where(i => i.System == system && !i.Retired
                 && (i.OwnerUserId == null
-                    || (i.OwnerUserId == userId
-                        && (i.HomebrewPackId == null || visiblePackIds.Contains(i.HomebrewPackId.Value)))))
+                    || (i.HomebrewPackId == null ? i.OwnerUserId == userId
+                        : visiblePackIds.Contains(i.HomebrewPackId.Value))))
             .OrderBy(i => i.Kind).ThenBy(i => i.Name)
             .ToListAsync(ct);
         // Качества альтернативных профилей атаки хранятся кодами (ROT-WPN-01) и резолвятся справочником.
@@ -91,8 +91,8 @@ public class GetReferenceHandler(IAppDbContext db) : IQueryHandler<GetReferenceQ
                 .Include(h => h.Effects)
                 .Where(h => !h.Retired
                     && (h.OwnerUserId == null
-                    || (h.OwnerUserId == userId
-                        && (h.HomebrewPackId == null || visiblePackIds.Contains(h.HomebrewPackId.Value)))))
+                    || (h.HomebrewPackId == null ? h.OwnerUserId == userId
+                        : visiblePackIds.Contains(h.HomebrewPackId.Value))))
                 .OrderBy(h => h.NameRu)
                 .ToListAsync(ct)
             : [];

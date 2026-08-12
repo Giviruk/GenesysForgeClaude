@@ -17,8 +17,8 @@ public class BuyTalentHandler(IAppDbContext db) : ICommandHandler<BuyTalentComma
         var talentDef = await db.TalentDefs.FirstOrDefaultAsync(t =>
                 t.Id == command.TalentDefId && t.System == c.System
                 && (t.OwnerUserId == null
-                    || (t.OwnerUserId == command.UserId
-                        && (t.HomebrewPackId == null || visiblePackIds.Contains(t.HomebrewPackId.Value)))), ct)
+                    || (t.HomebrewPackId == null ? t.OwnerUserId == command.UserId
+                        : visiblePackIds.Contains(t.HomebrewPackId.Value))), ct)
             ?? throw new DomainRuleException("Талант не найден.");
 
         var row = c.Talents.FirstOrDefault(t => t.TalentDefId == command.TalentDefId);

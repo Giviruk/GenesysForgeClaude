@@ -16,8 +16,8 @@ public class BuySkillRankHandler(IAppDbContext db) : ICommandHandler<BuySkillRan
         var skillDef = await db.SkillDefs.FirstOrDefaultAsync(s =>
                 s.Id == command.SkillDefId && s.System == c.System
                 && (s.OwnerUserId == null
-                    || (s.OwnerUserId == command.UserId
-                        && (s.HomebrewPackId == null || visiblePackIds.Contains(s.HomebrewPackId.Value)))), ct)
+                    || (s.HomebrewPackId == null ? s.OwnerUserId == command.UserId
+                        : visiblePackIds.Contains(s.HomebrewPackId.Value))), ct)
             ?? throw new DomainRuleException("Навык не найден.");
         // Навык, исключённый из каталога системы, сохраняет уже купленные ранги, но новый ранг
         // купить нельзя; подменять его похожим навыком тоже нельзя (ROT-CLEAN-3.2).
@@ -31,8 +31,8 @@ public class BuySkillRankHandler(IAppDbContext db) : ICommandHandler<BuySkillRan
         var systemSkills = await db.SkillDefs.AsNoTracking()
             .Where(s => s.System == c.System
                 && (s.OwnerUserId == null
-                    || (s.OwnerUserId == command.UserId
-                        && (s.HomebrewPackId == null || visiblePackIds.Contains(s.HomebrewPackId.Value)))))
+                    || (s.HomebrewPackId == null ? s.OwnerUserId == command.UserId
+                        : visiblePackIds.Contains(s.HomebrewPackId.Value))))
             .ToListAsync(ct);
         var careerSkills = CareerSkills.Resolve(c, c.Career!, systemSkills);
 

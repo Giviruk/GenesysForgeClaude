@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { api } from '../api/client'
 import type {
-  Archetype, Career, CharacterSheet, CustomArchetypeInput, CustomCareerInput,
+  Archetype, Career, CustomArchetypeInput, CustomCareerInput, GameSystem,
   HeroicAbility, HomebrewPackDocument, HomebrewPackListItem, ItemDef, Quality, Reference, SkillDef, TalentDef,
   TalentCategory,
 } from '../api/types'
@@ -12,7 +12,8 @@ import {
 import { t } from '../i18n'
 
 interface Props {
-  sheet: CharacterSheet
+  campaignId: string
+  system: GameSystem
   reference: Reference
   onError: (message: string) => void
   refresh: () => Promise<void>
@@ -20,7 +21,7 @@ interface Props {
 
 type Section = 'skill' | 'talent' | 'item' | 'heroic' | 'archetype' | 'career' | 'packs'
 
-export function CustomTab({ sheet, reference, onError, refresh }: Props) {
+export function CustomTab({ campaignId, system, reference, onError, refresh }: Props) {
   const [section, setSection] = useState<Section>('skill')
   const [notice, setNotice] = useState<string | null>(null)
   // редактируемый объект текущей секции (null — режим создания)
@@ -55,10 +56,10 @@ export function CustomTab({ sheet, reference, onError, refresh }: Props) {
         <h3>{t('Кастомный контент', 'Custom content')}</h3>
         <p className="hint">
           {t(
-            `Создавайте и редактируйте собственные навыки, таланты, предметы и героические способности для системы «${sheet.system === 'genesysCore' ? 'Genesys Core' : 'Realms of Terrinoth'}». ` +
+            `Создавайте и редактируйте контент кампании для системы «${system === 'genesysCore' ? 'Genesys Core' : 'Realms of Terrinoth'}». ` +
             'Кастом привязан к вашему аккаунту, а не к этому персонажу: он виден только вам, но доступен ' +
             'во всех ваших персонажах и NPC этой системы. Удаление недоступно, пока контент используется персонажем.',
-            `Create and edit your own skills, talents, items and heroic abilities for the “${sheet.system === 'genesysCore' ? 'Genesys Core' : 'Realms of Terrinoth'}” system. ` +
+            `Create and edit campaign content for the “${system === 'genesysCore' ? 'Genesys Core' : 'Realms of Terrinoth'}” system. ` +
             'Custom content belongs to your account, not to this character: only you can see it, but it is available ' +
             'to all your characters and NPCs of this system. Deletion is unavailable while the content is in use by a character.',
           )}
@@ -70,7 +71,7 @@ export function CustomTab({ sheet, reference, onError, refresh }: Props) {
           <button className={section === 'archetype' ? 'tab active' : 'tab'} onClick={() => setSection('archetype')}>{t('Архетипы', 'Archetypes')}</button>
           <button className={section === 'career' ? 'tab active' : 'tab'} onClick={() => setSection('career')}>{t('Карьеры', 'Careers')}</button>
           <button className={section === 'packs' ? 'tab active' : 'tab'} onClick={() => setSection('packs')}>{t('Наборы JSON', 'JSON packs')}</button>
-          {sheet.system === 'realmsOfTerrinoth' && (
+          {system === 'realmsOfTerrinoth' && (
             <button className={section === 'heroic' ? 'tab active' : 'tab'} onClick={() => setSection('heroic')}>{t('Героич. способности', 'Heroic abilities')}</button>
           )}
         </div>
@@ -78,63 +79,63 @@ export function CustomTab({ sheet, reference, onError, refresh }: Props) {
 
         {section === 'skill' && (
           <>
-            <SkillForm key={editingSkill?.id ?? 'new'} sheet={sheet} run={run} editing={editingSkill}
+            <SkillForm key={editingSkill?.id ?? 'new'} campaignId={campaignId} system={system} run={run} editing={editingSkill}
               onDone={() => setEditingSkill(null)} />
             <CustomList items={customSkills.map(s => ({ id: s.id, label: `${s.name} · ${CHARACTERISTIC_LABELS[s.characteristic]} · ${SKILL_KIND_LABELS[s.kind]}` }))}
               onEdit={id => setEditingSkill(customSkills.find(s => s.id === id)!)}
-              onDelete={id => run(() => api.deleteCustomSkill(id), t('Навык удалён.', 'Skill deleted.'))} />
+              onDelete={id => run(() => api.deleteCustomSkill(campaignId, id), t('Навык удалён.', 'Skill deleted.'))} />
           </>
         )}
         {section === 'talent' && (
           <>
-            <TalentForm key={editingTalent?.id ?? 'new'} sheet={sheet} run={run} editing={editingTalent}
+            <TalentForm key={editingTalent?.id ?? 'new'} campaignId={campaignId} system={system} run={run} editing={editingTalent}
               onDone={() => setEditingTalent(null)} />
             <CustomList items={customTalents.map(tal => ({
               id: tal.id,
               label: `${tal.name} · ${TALENT_CATEGORY_LABELS[tal.category]} · ${t('Тир', 'Tier')} ${tal.tier}${tal.isRanked ? t(' · ранговый', ' · ranked') : ''}`,
             }))}
               onEdit={id => setEditingTalent(customTalents.find(tal => tal.id === id)!)}
-              onDelete={id => run(() => api.deleteCustomTalent(id), t('Талант удалён.', 'Talent deleted.'))} />
+              onDelete={id => run(() => api.deleteCustomTalent(campaignId, id), t('Талант удалён.', 'Talent deleted.'))} />
           </>
         )}
         {section === 'item' && (
           <>
-            <ItemForm key={editingItem?.id ?? 'new'} sheet={sheet} reference={reference} run={run} editing={editingItem}
+            <ItemForm key={editingItem?.id ?? 'new'} campaignId={campaignId} system={system} reference={reference} run={run} editing={editingItem}
               onDone={() => setEditingItem(null)} />
             <CustomList items={customItems.map(i => ({ id: i.id, label: `${i.name} · ${ITEM_KIND_LABELS[i.kind]} · ${t('вес', 'enc.')} ${i.encumbrance}` }))}
               onEdit={id => setEditingItem(customItems.find(i => i.id === id)!)}
-              onDelete={id => run(() => api.deleteCustomItem(id), t('Предмет удалён.', 'Item deleted.'))} />
+              onDelete={id => run(() => api.deleteCustomItem(campaignId, id), t('Предмет удалён.', 'Item deleted.'))} />
           </>
         )}
-        {section === 'heroic' && sheet.system === 'realmsOfTerrinoth' && (
+        {section === 'heroic' && system === 'realmsOfTerrinoth' && (
           <>
-            <HeroicForm key={editingHeroic?.id ?? 'new'} run={run} editing={editingHeroic}
+            <HeroicForm key={editingHeroic?.id ?? 'new'} campaignId={campaignId} run={run} editing={editingHeroic}
               onDone={() => setEditingHeroic(null)} />
             <CustomList items={customHeroics.map(h => ({ id: h.id, label: h.name }))}
               onEdit={id => setEditingHeroic(customHeroics.find(h => h.id === id)!)}
-              onDelete={id => run(() => api.deleteCustomHeroicAbility(id), t('Способность удалена.', 'Ability deleted.'))} />
+              onDelete={id => run(() => api.deleteCustomHeroicAbility(campaignId, id), t('Способность удалена.', 'Ability deleted.'))} />
           </>
         )}
         {section === 'archetype' && (
           <>
-            <ArchetypeForm key={editingArchetype?.id ?? 'new'} sheet={sheet} run={run}
+            <ArchetypeForm key={editingArchetype?.id ?? 'new'} campaignId={campaignId} system={system} run={run}
               editing={editingArchetype} onDone={() => setEditingArchetype(null)} />
             <CustomList items={customArchetypes.map(a => ({ id: a.id, label: `${a.nameRu || a.name} · XP ${a.startingXp}` }))}
               onEdit={id => setEditingArchetype(customArchetypes.find(a => a.id === id)!)}
-              onDelete={id => run(() => api.deleteCustomArchetype(id), t('Архетип удалён.', 'Archetype deleted.'))} />
+              onDelete={id => run(() => api.deleteCustomArchetype(campaignId, id), t('Архетип удалён.', 'Archetype deleted.'))} />
           </>
         )}
         {section === 'career' && (
           <>
-            <CareerForm key={editingCareer?.id ?? 'new'} sheet={sheet} reference={reference} run={run}
+            <CareerForm key={editingCareer?.id ?? 'new'} campaignId={campaignId} system={system} reference={reference} run={run}
               editing={editingCareer} onDone={() => setEditingCareer(null)} />
             <CustomList items={customCareers.map(c => ({ id: c.id, label: `${c.nameRu || c.name} · ${c.careerSkillNames.length} ${t('навыков', 'skills')}` }))}
               onEdit={id => setEditingCareer(customCareers.find(c => c.id === id)!)}
-              onDelete={id => run(() => api.deleteCustomCareer(id), t('Карьера удалена.', 'Career deleted.'))} />
+              onDelete={id => run(() => api.deleteCustomCareer(campaignId, id), t('Карьера удалена.', 'Career deleted.'))} />
           </>
         )}
         {section === 'packs' && (
-          <HomebrewPackPanel sheet={sheet} onError={onError} refresh={refresh} />
+          <HomebrewPackPanel campaignId={campaignId} system={system} onError={onError} refresh={refresh} />
         )}
       </section>
     </div>
@@ -143,8 +144,9 @@ export function CustomTab({ sheet, reference, onError, refresh }: Props) {
 
 type Run = (action: () => Promise<unknown>, successMessage: string) => Promise<void>
 
-function HomebrewPackPanel({ sheet, onError, refresh }: {
-  sheet: CharacterSheet
+function HomebrewPackPanel({ campaignId, system, onError, refresh }: {
+  campaignId: string
+  system: GameSystem
   onError: (message: string) => void
   refresh: () => Promise<void>
 }) {
@@ -155,7 +157,7 @@ function HomebrewPackPanel({ sheet, onError, refresh }: {
   const [busy, setBusy] = useState(false)
 
   async function load() {
-    setPacks((await api.homebrewPacks()).filter(p => p.system === sheet.system))
+    setPacks((await api.homebrewPacks()).filter(p => p.system === system))
   }
 
   async function act(fn: () => Promise<void>) {
@@ -193,9 +195,9 @@ function HomebrewPackPanel({ sheet, onError, refresh }: {
       <p className="hint">
         {t(
           'Импортируйте переносимый JSON `genesysforge.homebrew-pack.v1`. Контент набора можно включать по умолчанию ' +
-          'или отдельно для текущего персонажа.',
+          'для всей текущей кампании.',
           'Import a portable `genesysforge.homebrew-pack.v1` JSON. Pack content can be enabled by default ' +
-          'or individually for the current character.',
+          'for the current campaign.',
         )}
       </p>
       <label>{t('JSON набора', 'Pack JSON')}
@@ -214,19 +216,15 @@ function HomebrewPackPanel({ sheet, onError, refresh }: {
         {packs.length === 0 && <p className="hint">{t('Пока нет импортированных наборов для этой системы.', 'No imported packs for this system yet.')}</p>}
         {packs.map(pack => (
           <div key={pack.id} className="custom-list-row">
-            <span>{pack.name} · {pack.entryCount} {t('записей', 'entries')} · {pack.isEnabledByDefault ? t('включён по умолчанию', 'enabled by default') : t('выключен по умолчанию', 'disabled by default')}</span>
+            <span>{pack.name} · {pack.entryCount} {t('записей', 'entries')}</span>
             <span className="custom-list-actions">
               <button className="small" disabled={busy}
-                onClick={() => void act(() => api.setHomebrewPackDefault(pack.id, !pack.isEnabledByDefault))}>
-                {pack.isEnabledByDefault ? t('Выключить', 'Disable') : t('Включить', 'Enable')}
+                onClick={() => void act(() => api.setCampaignHomebrewPack(campaignId, pack.id, true))}>
+                {t('Для кампании: вкл.', 'For campaign: on')}
               </button>
               <button className="small" disabled={busy}
-                onClick={() => void act(() => api.setCharacterHomebrewPack(sheet.id, pack.id, true))}>
-                {t('Для персонажа: вкл.', 'For character: on')}
-              </button>
-              <button className="small" disabled={busy}
-                onClick={() => void act(() => api.setCharacterHomebrewPack(sheet.id, pack.id, false))}>
-                {t('Для персонажа: выкл.', 'For character: off')}
+                onClick={() => void act(() => api.setCampaignHomebrewPack(campaignId, pack.id, false))}>
+                {t('Для кампании: выкл.', 'For campaign: off')}
               </button>
               <button className="small" disabled={busy} onClick={() => void act(() => exportPack(pack.id))}>{t('Экспорт', 'Export')}</button>
               <button className="small" disabled={busy} onClick={() => void act(() => sharePack(pack.id))}>{t('Поделиться', 'Share')}</button>
@@ -266,19 +264,19 @@ function CustomList({ items, onEdit, onDelete }: {
   )
 }
 
-function SkillForm({ sheet, run, editing, onDone }: { sheet: CharacterSheet; run: Run; editing: SkillDef | null; onDone: () => void }) {
+function SkillForm({ campaignId, system, run, editing, onDone }: { campaignId: string; system: GameSystem; run: Run; editing: SkillDef | null; onDone: () => void }) {
   const [name, setName] = useState(editing?.name ?? '')
   const [characteristic, setCharacteristic] = useState<string>(editing?.characteristic ?? 'brawn')
   const [kind, setKind] = useState<string>(editing?.kind ?? 'general')
 
   function submit(e: FormEvent) {
     e.preventDefault()
-    const payload = { system: sheet.system, name, characteristic, kind }
+    const payload = { system, name, characteristic, kind }
     if (editing) {
-      void run(() => api.updateCustomSkill(editing.id, payload), t(`Навык «${name}» обновлён.`, `Skill "${name}" updated.`))
+      void run(() => api.updateCustomSkill(campaignId, editing.id, payload), t(`Навык «${name}» обновлён.`, `Skill "${name}" updated.`))
       onDone()
     } else {
-      void run(() => api.createCustomSkill(payload), t(`Навык «${name}» создан — он появился в списке навыков листа.`, `Skill "${name}" created — it now appears in the sheet's skill list.`))
+      void run(() => api.createCustomSkill(campaignId, payload), t(`Навык «${name}» создан — он появился в списке навыков листа.`, `Skill "${name}" created — it now appears in the sheet's skill list.`))
       setName('')
     }
   }
@@ -309,7 +307,7 @@ function SkillForm({ sheet, run, editing, onDone }: { sheet: CharacterSheet; run
   )
 }
 
-function TalentForm({ sheet, run, editing, onDone }: { sheet: CharacterSheet; run: Run; editing: TalentDef | null; onDone: () => void }) {
+function TalentForm({ campaignId, system, run, editing, onDone }: { campaignId: string; system: GameSystem; run: Run; editing: TalentDef | null; onDone: () => void }) {
   const [name, setName] = useState(editing?.name ?? '')
   const [tier, setTier] = useState(editing?.tier ?? 1)
   const [isRanked, setIsRanked] = useState(editing?.isRanked ?? false)
@@ -326,12 +324,12 @@ function TalentForm({ sheet, run, editing, onDone }: { sheet: CharacterSheet; ru
 
   function submit(e: FormEvent) {
     e.preventDefault()
-    const payload = { system: sheet.system, name, tier, isRanked, category, activation, description, ...bonuses }
+    const payload = { system, name, tier, isRanked, category, activation, description, ...bonuses }
     if (editing) {
-      void run(() => api.updateCustomTalent(editing.id, payload), t(`Талант «${name}» обновлён.`, `Talent "${name}" updated.`))
+      void run(() => api.updateCustomTalent(campaignId, editing.id, payload), t(`Талант «${name}» обновлён.`, `Talent "${name}" updated.`))
       onDone()
     } else {
-      void run(() => api.createCustomTalent(payload), t(`Талант «${name}» (тир ${tier}) создан — его можно купить на вкладке «Таланты».`, `Talent "${name}" (tier ${tier}) created — you can buy it on the "Talents" tab.`))
+      void run(() => api.createCustomTalent(campaignId, payload), t(`Талант «${name}» (тир ${tier}) создан — его можно купить на вкладке «Таланты».`, `Talent "${name}" (tier ${tier}) created — you can buy it on the "Talents" tab.`))
       setName(''); setDescription('')
     }
   }
@@ -386,7 +384,7 @@ function TalentForm({ sheet, run, editing, onDone }: { sheet: CharacterSheet; ru
   )
 }
 
-function ItemForm({ sheet, reference, run, editing, onDone }: { sheet: CharacterSheet; reference: Reference; run: Run; editing: ItemDef | null; onDone: () => void }) {
+function ItemForm({ campaignId, system, reference, run, editing, onDone }: { campaignId: string; system: GameSystem; reference: Reference; run: Run; editing: ItemDef | null; onDone: () => void }) {
   const [name, setName] = useState(editing?.name ?? '')
   const [kind, setKind] = useState<string>(editing?.kind ?? 'gear')
   const [description, setDescription] = useState(editing?.description ?? '')
@@ -409,12 +407,12 @@ function ItemForm({ sheet, reference, run, editing, onDone }: { sheet: Character
 
   function submit(e: FormEvent) {
     e.preventDefault()
-    const payload = { system: sheet.system, name, kind, description, ...numbers, ...(kind === 'weapon' ? weapon : {}) }
+    const payload = { system, name, kind, description, ...numbers, ...(kind === 'weapon' ? weapon : {}) }
     if (editing) {
-      void run(() => api.updateCustomItem(editing.id, payload), t(`Предмет «${name}» обновлён.`, `Item "${name}" updated.`))
+      void run(() => api.updateCustomItem(campaignId, editing.id, payload), t(`Предмет «${name}» обновлён.`, `Item "${name}" updated.`))
       onDone()
     } else {
-      void run(() => api.createCustomItem(payload), t(`Предмет «${name}» создан — его можно добавить в инвентарь.`, `Item "${name}" created — it can be added to the inventory.`))
+      void run(() => api.createCustomItem(campaignId, payload), t(`Предмет «${name}» создан — его можно добавить в инвентарь.`, `Item "${name}" created — it can be added to the inventory.`))
       setName(''); setDescription('')
     }
   }
@@ -446,8 +444,8 @@ function ItemForm({ sheet, reference, run, editing, onDone }: { sheet: Character
           <label>{t('Навык броска', 'Roll skill')}
             <select value={weapon.skillName} onChange={e => setWeapon(w => ({ ...w, skillName: e.target.value }))}>
               <option value="">{t('— не задан —', '— not set —')}</option>
-              {sheet.skills.filter(s => s.kind === 'combat').map(s => (
-                <option key={s.skillDefId} value={s.name}>{dualName(s)}</option>
+              {reference.skills.filter(s => s.kind === 'combat').map(s => (
+                <option key={s.id} value={s.name}>{dualName(s)}</option>
               ))}
             </select>
           </label>
@@ -525,8 +523,9 @@ function QualityPicker({ qualities, onAdd }: { qualities: Quality[]; onAdd: (tok
   )
 }
 
-function ArchetypeForm({ sheet, run, editing, onDone }: {
-  sheet: CharacterSheet
+function ArchetypeForm({ campaignId, system, run, editing, onDone }: {
+  campaignId: string
+  system: GameSystem
   run: Run
   editing: Archetype | null
   onDone: () => void
@@ -550,12 +549,12 @@ function ArchetypeForm({ sheet, run, editing, onDone }: {
 
   function submit(e: FormEvent) {
     e.preventDefault()
-    const payload: CustomArchetypeInput = { system: sheet.system, name, nameRu, description, abilityNameRu, abilityDescription, ...stats }
+    const payload: CustomArchetypeInput = { system, name, nameRu, description, abilityNameRu, abilityDescription, ...stats }
     if (editing) {
-      void run(() => api.updateCustomArchetype(editing.id, payload), t(`Архетип «${nameRu || name}» обновлён.`, `Archetype "${nameRu || name}" updated.`))
+      void run(() => api.updateCustomArchetype(campaignId, editing.id, payload), t(`Архетип «${nameRu || name}» обновлён.`, `Archetype "${nameRu || name}" updated.`))
       onDone()
     } else {
-      void run(() => api.createCustomArchetype(payload), t(`Архетип «${nameRu || name}» создан — он доступен при создании персонажа.`, `Archetype "${nameRu || name}" created — it is available during character creation.`))
+      void run(() => api.createCustomArchetype(campaignId, payload), t(`Архетип «${nameRu || name}» создан для кампании.`, `Archetype "${nameRu || name}" created for the campaign.`))
       setName(''); setNameRu(''); setDescription(''); setAbilityNameRu(''); setAbilityDescription('')
     }
   }
@@ -596,8 +595,9 @@ function ArchetypeForm({ sheet, run, editing, onDone }: {
   )
 }
 
-function CareerForm({ sheet, reference, run, editing, onDone }: {
-  sheet: CharacterSheet
+function CareerForm({ campaignId, system, reference, run, editing, onDone }: {
+  campaignId: string
+  system: GameSystem
   reference: Reference
   run: Run
   editing: Career | null
@@ -609,7 +609,7 @@ function CareerForm({ sheet, reference, run, editing, onDone }: {
   const [startingMoneyFixed, setStartingMoneyFixed] = useState(editing?.startingMoneyFixed ?? 0)
   const [startingMoneyDice, setStartingMoneyDice] = useState(editing?.startingMoneyDice ?? '')
   const [careerSkillNames, setCareerSkillNames] = useState<string[]>(editing?.careerSkillNames ?? [])
-  const skills = reference.skills.filter(s => s.kind !== 'magic' || sheet.system === 'realmsOfTerrinoth' || s.name !== 'Verse')
+  const skills = reference.skills.filter(s => s.kind !== 'magic' || system === 'realmsOfTerrinoth' || s.name !== 'Verse')
 
   function toggleSkill(skillName: string) {
     setCareerSkillNames(prev => prev.includes(skillName)
@@ -620,14 +620,14 @@ function CareerForm({ sheet, reference, run, editing, onDone }: {
   function submit(e: FormEvent) {
     e.preventDefault()
     const payload: CustomCareerInput = {
-      system: sheet.system, name, nameRu, description,
+      system, name, nameRu, description,
       careerSkillNames, startingMoneyFixed, startingMoneyDice,
     }
     if (editing) {
-      void run(() => api.updateCustomCareer(editing.id, payload), t(`Карьера «${nameRu || name}» обновлена.`, `Career "${nameRu || name}" updated.`))
+      void run(() => api.updateCustomCareer(campaignId, editing.id, payload), t(`Карьера «${nameRu || name}» обновлена.`, `Career "${nameRu || name}" updated.`))
       onDone()
     } else {
-      void run(() => api.createCustomCareer(payload), t(`Карьера «${nameRu || name}» создана — она доступна при создании персонажа.`, `Career "${nameRu || name}" created — it is available during character creation.`))
+      void run(() => api.createCustomCareer(campaignId, payload), t(`Карьера «${nameRu || name}» создана для кампании.`, `Career "${nameRu || name}" created for the campaign.`))
       setName(''); setNameRu(''); setDescription(''); setStartingMoneyFixed(0); setStartingMoneyDice(''); setCareerSkillNames([])
     }
   }
@@ -665,7 +665,7 @@ function CareerForm({ sheet, reference, run, editing, onDone }: {
   )
 }
 
-function HeroicForm({ run, editing, onDone }: { run: Run; editing: HeroicAbility | null; onDone: () => void }) {
+function HeroicForm({ campaignId, run, editing, onDone }: { campaignId: string; run: Run; editing: HeroicAbility | null; onDone: () => void }) {
   const [name, setName] = useState(editing?.name ?? '')
   const [description, setDescription] = useState(editing?.description ?? '')
 
@@ -673,10 +673,10 @@ function HeroicForm({ run, editing, onDone }: { run: Run; editing: HeroicAbility
     e.preventDefault()
     const payload = { name, description }
     if (editing) {
-      void run(() => api.updateCustomHeroicAbility(editing.id, payload), t(`Способность «${name}» обновлена.`, `Ability "${name}" updated.`))
+      void run(() => api.updateCustomHeroicAbility(campaignId, editing.id, payload), t(`Способность «${name}» обновлена.`, `Ability "${name}" updated.`))
       onDone()
     } else {
-      void run(() => api.createCustomHeroicAbility(payload), t(`Героическая способность «${name}» создана — её можно выбрать на вкладке «Лист».`, `Heroic ability "${name}" created — you can pick it on the "Sheet" tab.`))
+      void run(() => api.createCustomHeroicAbility(campaignId, payload), t(`Героическая способность «${name}» создана — её можно выбрать на вкладке «Лист».`, `Heroic ability "${name}" created — you can pick it on the "Sheet" tab.`))
       setName(''); setDescription('')
     }
   }

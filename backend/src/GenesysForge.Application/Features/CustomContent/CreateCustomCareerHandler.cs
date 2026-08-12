@@ -12,6 +12,8 @@ public class CreateCustomCareerHandler(IAppDbContext db) : ICommandHandler<Creat
     public async Task<CareerDto> Handle(CreateCustomCareerCommand command, CancellationToken ct = default)
     {
         var req = command.Request;
+        var packId = await CampaignCustomContent.GetOrCreatePackIdAsync(
+            db, command.CampaignId, command.UserId, req.System, ct);
         var careerSkills = await CustomCareerValidator.ValidateAndNormalizeSkillsAsync(db, command.UserId, req, ct);
         var name = req.Name.Trim();
 
@@ -29,6 +31,7 @@ public class CreateCustomCareerHandler(IAppDbContext db) : ICommandHandler<Creat
             SafeDescription = req.Description?.Trim() ?? "",
             Source = "Custom",
             OwnerUserId = command.UserId,
+            HomebrewPackId = packId,
             CareerSkillNames = careerSkills,
             StartingMoneyFixed = req.StartingMoneyFixed,
             StartingMoneyDice = req.StartingMoneyDice?.Trim() ?? "",

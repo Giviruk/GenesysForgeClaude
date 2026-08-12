@@ -11,6 +11,8 @@ public class CreateCustomTalentHandler(IAppDbContext db) : ICommandHandler<Creat
     public async Task<TalentDefDto> Handle(CreateCustomTalentCommand command, CancellationToken ct = default)
     {
         var req = command.Request;
+        var packId = await CampaignCustomContent.GetOrCreatePackIdAsync(
+            db, command.CampaignId, command.UserId, req.System, ct);
         if (string.IsNullOrWhiteSpace(req.Name))
             throw new DomainRuleException("Название таланта не может быть пустым.");
         if (req.Tier is < 1 or > GenesysRules.MaxTalentTier)
@@ -26,6 +28,7 @@ public class CreateCustomTalentHandler(IAppDbContext db) : ICommandHandler<Creat
             WoundBonus = req.WoundBonus, StrainBonus = req.StrainBonus, SoakBonus = req.SoakBonus,
             MeleeDefenseBonus = req.MeleeDefenseBonus, RangedDefenseBonus = req.RangedDefenseBonus,
             OwnerUserId = command.UserId,
+            HomebrewPackId = packId,
         };
         db.TalentDefs.Add(def);
         await db.SaveChangesAsync(ct);

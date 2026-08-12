@@ -1,18 +1,19 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react'
 import { api } from '../api/client'
 import type {
-  CampaignDetail, CampaignListItem, CampaignMember, CharacterListItem, CharacterSheet, GameSession, Reference,
+  CampaignDetail, CampaignListItem, CampaignMember, CharacterListItem, CharacterSheet, GameSession, GameSystem, Reference,
 } from '../api/types'
 import { PARTICIPANT_TYPE_LABELS, SLOT_TYPE_LABELS, SYSTEM_LABELS } from '../utils/labels'
 import { GameTableTab } from '../components/GameTableTab'
 import { EncountersTab } from '../components/EncountersTab'
 import { HandbookTab } from '../components/HandbookTab'
+import { CustomTab } from '../components/CustomTab'
 import { PrintPreview } from '../components/print/PrintPreview'
 import { CharacterSheetPrint } from '../components/print/CharacterSheetPrint'
 import { useCampaignHub, type CampaignHubStatus } from '../useCampaignHub'
 import { lang, t } from '../i18n'
 
-export type CampaignView = 'overview' | 'handbook' | 'encounters' | 'table'
+export type CampaignView = 'overview' | 'handbook' | 'encounters' | 'table' | 'custom'
 
 interface Props {
   openId: string | null
@@ -150,7 +151,7 @@ function CampaignDetailView({ campaignId, view, openEncounterId, onBack, onView,
   async function openMemberSheet(characterId: string, name: string) {
     try {
       const sheet = await api.campaignMemberSheet(campaignId, characterId)
-      const reference = await api.reference(sheet.system)
+      const reference = await api.reference(sheet.system, { campaignId })
       setMemberSheet({ name, sheet, reference })
     } catch (err) { setError(err instanceof Error ? err.message : t('Не удалось открыть лист', 'Could not open the sheet')) }
   }
@@ -238,9 +239,12 @@ function CampaignDetailView({ campaignId, view, openEncounterId, onBack, onView,
         <button className={view === 'handbook' ? 'tab active' : 'tab'} onClick={() => onView('handbook')}>{t('Материалы', 'Handbook')}</button>
         <button className={view === 'encounters' ? 'tab active' : 'tab'} onClick={() => onView('encounters')}>{t('Энкаунтеры', 'Encounters')}</button>
         <button className={view === 'table' ? 'tab active' : 'tab'} onClick={() => onView('table')}>{t('Игровой стол', 'Game table')}</button>
+        {c.isGm && <button className={view === 'custom' ? 'tab active' : 'tab'} onClick={() => onView('custom')}>{t('Кастом', 'Custom')}</button>}
       </div>
 
-      {view === 'table' ? (
+      {view === 'custom' && c.isGm ? (
+        <CampaignCustomTab campaignId={c.id} members={c.members} onError={setError} />
+      ) : view === 'table' ? (
         <GameTableTab campaignId={c.id} isGm={c.isGm} members={c.members}
           onOpenMemberSheet={openMemberSheet} refreshSignal={liveSignal} />
       ) : view === 'handbook' ? (
@@ -268,6 +272,43 @@ function CampaignDetailView({ campaignId, view, openEncounterId, onBack, onView,
           {() => <CharacterSheetPrint sheet={memberSheet.sheet} reference={memberSheet.reference} />}
         </PrintPreview>
       )}
+    </div>
+  )
+}
+
+function CampaignCustomTab({ campaignId, members, onError }: {
+  campaignId: string
+  members: CampaignMember[]
+  onError: (message: string) => void
+}) {
+  const availableSystems = Array.from(new Set(members.map(member => member.system))) as GameSystem[]
+  if (availableSystems.length === 0) availableSystems.push('realmsOfTerrinoth', 'genesysCore')
+  const [system, setSystem] = useState<GameSystem>(availableSystems[0])
+  const [reference, setReference] = useState<Reference | null>(null)
+
+  const refresh = useCallback(async () => {
+    setReference(await api.reference(system, { campaignId }))
+  }, [campaignId, system])
+
+  useEffect(() => {
+    let cancelled = false
+    api.reference(system, { campaignId })
+      .then(value => { if (!cancelled) setReference(value) })
+      .catch((err: unknown) => { if (!cancelled) onError(err instanceof Error ? err.message : t('Ошибка загрузки', 'Failed to load')) })
+    return () => { cancelled = true }
+  }, [campaignId, system, onError])
+
+  return (
+    <div>
+      {availableSystems.length > 1 && (
+        <div className="system-switch">
+          {availableSystems.map(value => <button key={value} className={system === value ? 'tab active' : 'tab'}
+            onClick={() => { setReference(null); setSystem(value) }}>{SYSTEM_LABELS[value]}</button>)}
+        </div>
+      )}
+      {reference
+        ? <CustomTab campaignId={campaignId} system={system} reference={reference} onError={onError} refresh={refresh} />
+        : <p className="muted">{t('Загрузка…', 'Loading…')}</p>}
     </div>
   )
 }

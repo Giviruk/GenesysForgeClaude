@@ -3,4 +3,4 @@ using GenesysForge.Application.Dtos;
 
 namespace GenesysForge.Application.Features.CustomContent;
 
-public record CreateCustomTalentCommand(Guid UserId, CreateCustomTalentRequest Request) : ICommand<TalentDefDto>;
+public record CreateCustomTalentCommand(Guid UserId, Guid CampaignId, CreateCustomTalentRequest Request) : ICommand<TalentDefDto>;

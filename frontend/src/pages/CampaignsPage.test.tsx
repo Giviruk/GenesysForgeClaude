@@ -122,6 +122,17 @@ describe('CampaignsPage — GM просмотр листа участника (U
     expect(screen.queryByRole('button', { name: 'Лист' })).toBeNull()
   })
 
+  it('показывает вкладку кастома только мастеру', async () => {
+    const gmView = render(<CampaignsPage {...props} />)
+    await screen.findByRole('button', { name: 'Кастом' })
+    gmView.unmount()
+
+    campaignMock.mockResolvedValue(detail(false))
+    render(<CampaignsPage {...props} />)
+    await waitFor(() => expect(screen.getAllByText('Бард').length).toBeGreaterThan(0))
+    expect(screen.queryByRole('button', { name: 'Кастом' })).toBeNull()
+  })
+
   it('показывает dashboard overview с активной сценой, сюжетными очками и статистикой', async () => {
     render(<CampaignsPage {...props} />)
 

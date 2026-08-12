@@ -9,7 +9,6 @@ import { InventoryTab } from '../components/InventoryTab'
 import { AttachmentsTab } from '../components/AttachmentsTab'
 import { TransportTab } from '../components/TransportTab'
 import { CraftingTab } from '../components/CraftingTab'
-import { CustomTab } from '../components/CustomTab'
 import { NotesTab } from '../components/NotesTab'
 import { BioTab } from '../components/BioTab'
 import { HistoryTab } from '../components/HistoryTab'
@@ -49,7 +48,6 @@ const SLICES_BY_TAB: Record<CharacterSheetTab, SheetSliceName[]> = {
   bio: ['base'],
   history: ['base'],
   notes: ['base'],
-  custom: ['base'],
 }
 
 /**
@@ -165,13 +163,13 @@ export function SheetPage({ characterId, printing, onOpenPrint, onClosePrint, on
   useEffect(() => {
     if (!system) return
     let cancelled = false
-    api.reference(system)
+    api.reference(system, { characterId })
       .then(next => { if (!cancelled) setReference(next) })
       .catch((err: unknown) => {
         if (!cancelled) setError(err instanceof Error ? err.message : t('Ошибка загрузки', 'Failed to load'))
       })
     return () => { cancelled = true }
-  }, [system])
+  }, [system, characterId])
 
   /**
    * Обновление после правки. Если правка вернула части вместе с ответом, запроса не будет вовсе:
@@ -434,15 +432,15 @@ export function SheetPage({ characterId, printing, onOpenPrint, onClosePrint, on
         <button className={tab === 'talents' ? 'tab active' : 'tab'} onClick={() => selectTab('talents')}>{t('Таланты', 'Talents')}</button>
         <button className={tab === 'magic' ? 'tab active' : 'tab'} onClick={() => selectTab('magic')}>{t('Магия', 'Magic')}</button>
         <button className={tab === 'notes' ? 'tab active' : 'tab'} onClick={() => selectTab('notes')}>{t('Заметки', 'Notes')}</button>
+        <span className="sheet-tab-divider" aria-hidden="true" />
         {sheet.system === 'realmsOfTerrinoth' && (
-          <button className={tab === 'heroic' ? 'tab active' : 'tab'} onClick={() => selectTab('heroic')}>{t('Героика', 'Heroic')}</button>
+          <button className={`sheet-secondary-tab ${tab === 'heroic' ? 'tab active' : 'tab'}`} onClick={() => selectTab('heroic')}>{t('Героика', 'Heroic')}</button>
         )}
-        <button className={tab === 'attachments' ? 'tab active' : 'tab'} onClick={() => selectTab('attachments')}>{t('Улучшения', 'Attachments')}</button>
-        <button className={tab === 'transport' ? 'tab active' : 'tab'} onClick={() => selectTab('transport')}>{t('Транспорт', 'Transport')}</button>
-        <button className={tab === 'crafting' ? 'tab active' : 'tab'} onClick={() => selectTab('crafting')}>{t('Ремесло', 'Crafting')}</button>
-        <button className={tab === 'bio' ? 'tab active' : 'tab'} onClick={() => selectTab('bio')}>{t('Образ', 'Bio')}</button>
-        <button className={tab === 'history' ? 'tab active' : 'tab'} onClick={() => selectTab('history')}>{t('История', 'History')}</button>
-        <button className={tab === 'custom' ? 'tab active' : 'tab'} onClick={() => selectTab('custom')}>{t('Кастом', 'Custom')}</button>
+        <button className={`sheet-secondary-tab ${tab === 'attachments' ? 'tab active' : 'tab'}`} onClick={() => selectTab('attachments')}>{t('Улучшения', 'Attachments')}</button>
+        <button className={`sheet-secondary-tab ${tab === 'transport' ? 'tab active' : 'tab'}`} onClick={() => selectTab('transport')}>{t('Транспорт', 'Transport')}</button>
+        <button className={`sheet-secondary-tab ${tab === 'crafting' ? 'tab active' : 'tab'}`} onClick={() => selectTab('crafting')}>{t('Ремесло', 'Crafting')}</button>
+        <button className={`sheet-secondary-tab ${tab === 'bio' ? 'tab active' : 'tab'}`} onClick={() => selectTab('bio')}>{t('Образ', 'Bio')}</button>
+        <button className={`sheet-secondary-tab ${tab === 'history' ? 'tab active' : 'tab'}`} onClick={() => selectTab('history')}>{t('История', 'History')}</button>
       </div>
 
       {/* Шапка уже на экране — ждём только те части, которые нужны самой вкладке. */}
@@ -461,7 +459,6 @@ export function SheetPage({ characterId, printing, onOpenPrint, onClosePrint, on
           {tab === 'bio' && <BioTab sheet={sheet} onError={setError} refresh={refresh} />}
           {tab === 'history' && <HistoryTab characterId={sheet.id} onError={setError} refresh={refresh} />}
           {tab === 'notes' && <NotesTab characterId={sheet.id} onError={setError} />}
-          {tab === 'custom' && <CustomTab sheet={sheet} reference={reference} onError={setError} refresh={refresh} />}
         </>
       )}
 

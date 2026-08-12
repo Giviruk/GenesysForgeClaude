@@ -18,8 +18,8 @@ public class AddItemHandler(IAppDbContext db) : ICommandHandler<AddItemCommand, 
         var itemDef = await db.ItemDefs.FirstOrDefaultAsync(i =>
                 i.Id == req.ItemDefId && i.System == c.System
                 && (i.OwnerUserId == null
-                    || (i.OwnerUserId == command.UserId
-                        && (i.HomebrewPackId == null || visiblePackIds.Contains(i.HomebrewPackId.Value)))), ct)
+                    || (i.HomebrewPackId == null ? i.OwnerUserId == command.UserId
+                        : visiblePackIds.Contains(i.HomebrewPackId.Value))), ct)
             ?? throw new DomainRuleException("Предмет не найден.");
         if (ShopCatalogRules.IsService(itemDef.Code))
             throw new DomainRuleException(

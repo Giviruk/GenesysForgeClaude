@@ -527,7 +527,10 @@ Indexes:
 Imported pack content is stored in the normal custom reference tables through nullable `HomebrewPackId`
 columns on `SkillDefs`, `TalentDefs`, `ItemDefs`, `HeroicAbilityDefs`, `ArchetypeDefs`, `CareerDefs`.
 Reference visibility includes pack content only when the pack is enabled by default or enabled through
-the character/campaign toggle tables.
+the character/campaign toggle tables. Directly created campaign custom content is stored in an
+automatically created system-specific pack linked through `HomebrewPackCampaigns`; no schema change is
+required. A character context also resolves enabled packs of every campaign that contains the character,
+including packs owned by that campaign's GM.
 
 ### HomebrewPackCharacters / HomebrewPackCampaigns
 

@@ -111,8 +111,8 @@ public static class SheetBuilder
             .Where(s => s.System == c.System
                 && (!s.Retired || ownedSkillIds.Contains(s.Id))
                 && (s.OwnerUserId == null
-                    || (s.OwnerUserId == userId
-                        && (s.HomebrewPackId == null || visiblePackIds.Contains(s.HomebrewPackId.Value)))))
+                    || (s.HomebrewPackId == null ? s.OwnerUserId == userId
+                        : visiblePackIds.Contains(s.HomebrewPackId.Value))))
             .OrderBy(s => s.Kind).ThenBy(s => s.NameRu)
             .ToListAsync(ct);
         // Карьерный статус — только из резолвера (карьера ∪ вид ∪ таланты); хранимый флаг строки не

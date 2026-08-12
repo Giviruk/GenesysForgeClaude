@@ -13,6 +13,8 @@ public class CreateCustomSkillHandler(IAppDbContext db) : ICommandHandler<Create
     public async Task<SkillDefDto> Handle(CreateCustomSkillCommand command, CancellationToken ct = default)
     {
         var req = command.Request;
+        var packId = await CampaignCustomContent.GetOrCreatePackIdAsync(
+            db, command.CampaignId, command.UserId, req.System, ct);
         if (string.IsNullOrWhiteSpace(req.Name))
             throw new DomainRuleException("Название навыка не может быть пустым.");
 
@@ -25,6 +27,7 @@ public class CreateCustomSkillHandler(IAppDbContext db) : ICommandHandler<Create
         {
             Id = Guid.NewGuid(), System = req.System, Name = name,
             Characteristic = req.Characteristic, Kind = req.Kind, OwnerUserId = command.UserId,
+            HomebrewPackId = packId,
         };
         db.SkillDefs.Add(def);
         await db.SaveChangesAsync(ct);

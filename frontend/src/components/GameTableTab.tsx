@@ -4,8 +4,8 @@ import {
 } from 'react'
 import { api } from '../api/client'
 import type {
-  ActivateAbilityResult, CampaignMember, GameParticipant, GameSession, HeroicAbility,
-  InitiativeSlotType, NpcListItem, RollLogEntry, UpdateParticipantRequest,
+  CampaignMember, GameParticipant, GameSession, InitiativeSlotType, NpcListItem, RollLogEntry,
+  UpdateParticipantRequest,
 } from '../api/types'
 import { SLOT_TYPE_LABELS } from '../utils/labels'
 import { RollSymbolsView, type RollLogRequest } from './DiceRoller'
@@ -37,26 +37,8 @@ export function GameTableTab({ campaignId, isGm, members, onOpenMemberSheet, ref
   const [session, setSession] = useState<GameSession | null>(null)
   const [loaded, setLoaded] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  // Способности с автоматизируемыми эффектами (U-18) — для кнопки «Активировать» у участника.
-  const [abilities, setAbilities] = useState<HeroicAbility[]>([])
   const [participantMutationPending, setParticipantMutationPending] = useState(false)
   const participantMutationLock = useRef(false)
-
-  useEffect(() => {
-    let cancelled = false
-    api.reference('realmsOfTerrinoth')
-      .then(r => { if (!cancelled) setAbilities(r.heroicAbilities.filter(h => h.effects.length > 0)) })
-      .catch(() => { /* без справочника список активируемых способностей будет пуст */ })
-    return () => { cancelled = true }
-  }, [])
-
-  const activate = useCallback(async (participantId: string, code: string): Promise<ActivateAbilityResult | null> => {
-    try {
-      const r = await api.activateAbility(campaignId, participantId, code)
-      setSession(r.session); setError(null)
-      return r
-    } catch (e) { setError(e instanceof Error ? e.message : t('Ошибка', 'Error')); return null }
-  }, [campaignId])
 
   const reload = useCallback(() =>
     api.session(campaignId)
@@ -160,7 +142,7 @@ export function GameTableTab({ campaignId, isGm, members, onOpenMemberSheet, ref
       <aside className="right-rail">
         <RollSection campaignId={campaignId} isGm={isGm} refreshSignal={refreshSignal} />
         <QuickActionsPanel session={session} isGm={isGm} members={members}
-          onRun={run} campaignId={campaignId} abilities={abilities} onActivate={activate} />
+          onRun={run} campaignId={campaignId} />
         <NotesBlock session={session} isGm={isGm} onRun={run} campaignId={campaignId} />
       </aside>
 
@@ -346,7 +328,19 @@ function RangeBandTracker({ campaignId, session, isGm }: {
     const radius = RANGE_ZONE_RADII_PERCENT[zone]
     return { left: `${50 + Math.cos(radians) * radius}%`, top: `${50 + Math.sin(radians) * radius}%` }
   }
-  const positionStyle = (p: GameParticipant) => cellPositionStyle({ zone: zoneOf(p), angle: angleOf(p) })
+  const positionStyle = (p: GameParticipant) => {
+    const base = cellPositionStyle({ zone: zoneOf(p), angle: angleOf(p) })
+    const peers = participants.filter(candidate => zoneOf(candidate) === zoneOf(p)
+      && angleOf(candidate) === angleOf(p))
+    const stackIndex = peers.findIndex(candidate => candidate.id === p.id)
+    if (stackIndex <= 0) return base
+    const direction = (stackIndex - 1) % 8
+    const layer = Math.floor((stackIndex - 1) / 8) + 1
+    const radians = direction * Math.PI / 4
+    const offsetX = Math.round(Math.cos(radians) * 9 * layer)
+    const offsetY = Math.round(Math.sin(radians) * 9 * layer)
+    return { ...base, translate: `calc(-50% + ${offsetX}px) calc(-50% + ${offsetY}px)`, zIndex: 2 + stackIndex }
+  }
   const updateDragPreview = (p: GameParticipant, clientX: number, clientY: number) => {
     const board = rangeBoardRef.current?.getBoundingClientRect()
     if (!board) return
@@ -700,22 +694,9 @@ function ParticipantCard({ p, campaignId, isGm, canEditVitals, onRun, onUpdatePa
   )
 }
 
-function QuickActionsPanel({ session, isGm, members, onRun, campaignId, abilities, onActivate }:
-  BlockProps & { members: CampaignMember[]; abilities: HeroicAbility[]
-    onActivate: (participantId: string, code: string) => Promise<ActivateAbilityResult | null> }) {
+function QuickActionsPanel({ session, isGm, members, onRun, campaignId }:
+  BlockProps & { members: CampaignMember[] }) {
   const [removeParticipantId, setRemoveParticipantId] = useState('')
-  const [abilityParticipantId, setAbilityParticipantId] = useState('')
-  const [abilityId, setAbilityId] = useState('')
-  const [outcome, setOutcome] = useState<ActivateAbilityResult | null>(null)
-  const participant = session.participants.find(p => p.id === abilityParticipantId)
-
-  async function activate() {
-    if (!participant) return
-    const ability = abilities.find(x => x.id === abilityId)
-    if (!ability) return
-    const result = await onActivate(participant.id, ability.code)
-    if (result) setOutcome(result)
-  }
 
   return (
     <section className="panel quick-panel">
@@ -732,26 +713,6 @@ function QuickActionsPanel({ session, isGm, members, onRun, campaignId, abilitie
         <button className="danger small" disabled={!removeParticipantId}
           onClick={() => void onRun(() => api.removeParticipant(campaignId, removeParticipantId))}>{t('Убрать', 'Remove')}</button>
       </div>}
-      {abilities.length > 0 && (
-        <div className="quick-ability">
-          <select className="grow" value={abilityParticipantId} onChange={e => setAbilityParticipantId(e.target.value)}>
-            <option value="">{t('— участник для способности —', '— ability participant —')}</option>
-            {session.participants.map(p => <option key={p.id} value={p.id}>{participantNameWithCount(p)}</option>)}
-          </select>
-          <select className="grow" value={abilityId} onChange={e => setAbilityId(e.target.value)}>
-            <option value="">{t('— способность —', '— ability —')}</option>
-            {abilities.map(a => <option key={a.id} value={a.id}>{t(a.nameRu || a.name, a.name || a.nameRu)}</option>)}
-          </select>
-          <button className="small" disabled={!abilityParticipantId || !abilityId} onClick={() => void activate()}>{t('Активировать', 'Activate')}</button>
-        </div>
-      )}
-      {outcome && (
-        <div className="pc-activate-result small-text">
-          <strong>{outcome.abilityName}.</strong>
-          {outcome.applied.map((a, i) => <span key={`a${i}`}> {a}.</span>)}
-          {outcome.manual.map((m, i) => <span key={`m${i}`} className="muted"> {m}</span>)}
-        </div>
-      )}
     </section>
   )
 }

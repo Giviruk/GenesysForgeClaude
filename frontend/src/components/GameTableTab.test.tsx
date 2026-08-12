@@ -105,6 +105,15 @@ describe('GameTableTab — статблок и броски NPC', () => {
     localStorage.removeItem('genesysforge.sheet-tab.character-1')
   })
 
+  it('не показывает устаревшие селекторы активации способности', async () => {
+    render(<GameTableTab campaignId="campaign-1" isGm members={[ownMember]} />)
+    await screen.findByText('Засада')
+    expect(screen.queryByText('— участник для способности —')).toBeNull()
+    expect(screen.queryByText('— способность —')).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Активировать' })).toBeNull()
+    expect(screen.getByText('Быстрые действия')).toBeTruthy()
+  })
+
   it('сохраняет позиции трекера дистанций при повторном открытии игрового стола', async () => {
     const rangeSession = { ...session, participants: [playerParticipant, session.participants[0]] }
     sessionMock.mockResolvedValue(rangeSession)

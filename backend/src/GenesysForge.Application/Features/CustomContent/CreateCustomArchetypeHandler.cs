@@ -12,6 +12,8 @@ public class CreateCustomArchetypeHandler(IAppDbContext db) : ICommandHandler<Cr
     public async Task<ArchetypeDto> Handle(CreateCustomArchetypeCommand command, CancellationToken ct = default)
     {
         var req = command.Request;
+        var packId = await CampaignCustomContent.GetOrCreatePackIdAsync(
+            db, command.CampaignId, command.UserId, req.System, ct);
         CustomArchetypeValidator.Validate(req);
         var name = req.Name.Trim();
 
@@ -38,6 +40,7 @@ public class CreateCustomArchetypeHandler(IAppDbContext db) : ICommandHandler<Cr
             SafeDescription = req.Description?.Trim() ?? "",
             Source = "Custom",
             OwnerUserId = command.UserId,
+            HomebrewPackId = packId,
         };
 
         AddAbility(def, req);

@@ -129,20 +129,20 @@ describe('api client — обработка 401', () => {
       startingMoneyDice: '',
     }
 
-    await api.createCustomArchetype(archetypePayload)
-    await api.createCustomCareer(careerPayload)
-    await api.updateCustomArchetype('a1', archetypePayload)
-    await api.updateCustomCareer('c1', careerPayload)
-    await api.deleteCustomArchetype('a1')
-    await api.deleteCustomCareer('c1')
+    await api.createCustomArchetype('campaign-1', archetypePayload)
+    await api.createCustomCareer('campaign-1', careerPayload)
+    await api.updateCustomArchetype('campaign-1', 'a1', archetypePayload)
+    await api.updateCustomCareer('campaign-1', 'c1', careerPayload)
+    await api.deleteCustomArchetype('campaign-1', 'a1')
+    await api.deleteCustomCareer('campaign-1', 'c1')
 
     expect(fetchMock.mock.calls.map(([url, init]) => [url, init?.method])).toEqual([
-      ['/api/custom/archetypes', 'POST'],
-      ['/api/custom/careers', 'POST'],
-      ['/api/custom/archetypes/a1', 'PUT'],
-      ['/api/custom/careers/c1', 'PUT'],
-      ['/api/custom/archetypes/a1', 'DELETE'],
-      ['/api/custom/careers/c1', 'DELETE'],
+      ['/api/campaigns/campaign-1/custom/archetypes', 'POST'],
+      ['/api/campaigns/campaign-1/custom/careers', 'POST'],
+      ['/api/campaigns/campaign-1/custom/archetypes/a1', 'PUT'],
+      ['/api/campaigns/campaign-1/custom/careers/c1', 'PUT'],
+      ['/api/campaigns/campaign-1/custom/archetypes/a1', 'DELETE'],
+      ['/api/campaigns/campaign-1/custom/careers/c1', 'DELETE'],
     ])
   })
 
@@ -239,7 +239,7 @@ describe('api client — кэш справочника', () => {
     const fetchMock = vi.spyOn(globalThis, 'fetch').mockImplementation(() => Promise.resolve(refBody()))
 
     await api.reference('realmsOfTerrinoth')
-    await api.deleteCustomItem('i9')
+    await api.deleteCustomItem('campaign-1', 'i9')
     await api.reference('realmsOfTerrinoth')
 
     const referenceCalls = fetchMock.mock.calls.filter(([url]) => String(url).includes('/api/reference/'))
@@ -262,12 +262,12 @@ describe('api client — кэш справочника', () => {
   it('неудачная правка кэш не сбрасывает', async () => {
     tokenStorage.set('t')
     const fetchMock = vi.spyOn(globalThis, 'fetch').mockImplementation((url) =>
-      Promise.resolve(String(url).includes('/api/custom/')
+      Promise.resolve(String(url).includes('/custom/')
         ? new Response(JSON.stringify({ message: 'нет' }), { status: 400 })
         : refBody()))
 
     await api.reference('realmsOfTerrinoth')
-    await expect(api.deleteCustomItem('x')).rejects.toMatchObject({ status: 400 })
+    await expect(api.deleteCustomItem('campaign-1', 'x')).rejects.toMatchObject({ status: 400 })
     await api.reference('realmsOfTerrinoth')
 
     const referenceCalls = fetchMock.mock.calls.filter(([url]) => String(url).includes('/api/reference/'))

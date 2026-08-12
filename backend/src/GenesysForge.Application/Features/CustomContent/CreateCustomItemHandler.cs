@@ -11,6 +11,8 @@ public class CreateCustomItemHandler(IAppDbContext db) : ICommandHandler<CreateC
     public async Task<ItemDefDto> Handle(CreateCustomItemCommand command, CancellationToken ct = default)
     {
         var req = command.Request;
+        var packId = await CampaignCustomContent.GetOrCreatePackIdAsync(
+            db, command.CampaignId, command.UserId, req.System, ct);
         if (string.IsNullOrWhiteSpace(req.Name))
             throw new DomainRuleException("Название предмета не может быть пустым.");
         if (req.Encumbrance < 0)
@@ -25,6 +27,7 @@ public class CreateCustomItemHandler(IAppDbContext db) : ICommandHandler<CreateC
             SkillName = req.SkillName ?? "", Damage = req.Damage ?? "", Crit = req.Crit ?? "",
             RangeBand = req.RangeBand ?? "", Properties = req.Properties ?? "",
             OwnerUserId = command.UserId,
+            HomebrewPackId = packId,
         };
         db.ItemDefs.Add(def);
         await db.SaveChangesAsync(ct);

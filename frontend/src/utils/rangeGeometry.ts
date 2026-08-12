@@ -72,44 +72,40 @@ export function rangeCellFromBoardPoint(
   }
 }
 
-/**
- * Выбирает ближайший свободный угловой сектор в нужном кольце. При заполненном кольце
- * возвращает запрошенный сектор: это лучше, чем самовольно переносить участника в другой диапазон.
- */
+/** Сектор — область сцены: несколько участников могут занимать его одновременно. */
 export function nearestFreeRangeAngle(
   desiredAngle: number,
   zone: RangeZone,
   occupied: RangeCellPosition[],
 ): number {
-  const desired = snapRangeAngle(desiredAngle)
-  const used = new Set(occupied
-    .filter(position => position.zone === zone)
-    .map(position => snapRangeAngle(position.angle)))
-  for (let distance = 0; distance <= RANGE_CELL_COUNT / 2; distance += 1) {
-    const candidates = distance === 0 ? [desired] : [desired + distance * RANGE_CELL_ANGLE, desired - distance * RANGE_CELL_ANGLE]
-    const available = candidates.map(snapRangeAngle).find(candidate => !used.has(candidate))
-    if (available !== undefined) return available
-  }
-  return desired
+  void zone
+  void occupied
+  return snapRangeAngle(desiredAngle)
 }
 
 export function estimateRangeBetween(from: RangeCellPosition, to: RangeCellPosition): EstimatedRange {
-  // Кольца — игровые категории, а не физические окружности разного масштаба. Поэтому радиальная
-  // часть равна числу диапазонов между кольцами, а одинаковый угловой разнос должен весить
-  // одинаково и на ближнем, и на предельном кольце. Хорда единичной окружности даёт углу вес
-  // от 0 (один сектор) до 2 (противоположные стороны), не раздувая внешние кольца.
-  const radialUnits = Math.abs(ZONES.indexOf(from.zone) - ZONES.indexOf(to.zone))
-  const angleDelta = Math.abs(normalizeAngle(from.angle) - normalizeAngle(to.angle))
-  const shortestAngle = Math.min(angleDelta, 360 - angleDelta)
-  const angularUnits = 2 * Math.sin(shortestAngle * Math.PI / 360)
-  const bandUnits = Math.hypot(radialUnits, angularUnits)
+  const fromIndex = ZONES.indexOf(from.zone)
+  const toIndex = ZONES.indexOf(to.zone)
+  const low = Math.min(fromIndex, toIndex)
+  const high = Math.max(fromIndex, toIndex)
+  // Стоимость границ в манёврах: два внешних перехода требуют по два манёвра.
+  const boundaryCosts = [1, 1, 2, 2]
+  let bandUnits = boundaryCosts.slice(low, high).reduce((sum, cost) => sum + cost, 0)
 
-  // Границы проходят посередине между целыми шагами дистанций. Так чистое перемещение на одно
-  // кольцо остаётся ближней дистанцией, на два — средней, а погрешность float не сдвигает ступень.
-  const zone: RangeZone = bandUnits < 0.75 ? 'engaged'
-    : bandUnits < 1.5 ? 'short'
-      : bandUnits < 2.5 ? 'medium'
-        : bandUnits < 3.5 ? 'long'
+  // Центральная зона не имеет направления относительно внешних колец. Между двумя
+  // центральными точками сектор важен: вплотную они только в одном секторе.
+  if ((from.zone !== 'engaged' && to.zone !== 'engaged') || from.zone === to.zone) {
+    const fromSector = Math.round((snapRangeAngle(from.angle) - RANGE_CELL_OFFSET) / RANGE_CELL_ANGLE)
+    const toSector = Math.round((snapRangeAngle(to.angle) - RANGE_CELL_OFFSET) / RANGE_CELL_ANGLE)
+    const sectorDelta = Math.abs(fromSector - toSector)
+    const shortestSectorDelta = Math.min(sectorDelta, RANGE_CELL_COUNT - sectorDelta)
+    bandUnits += Math.ceil(shortestSectorDelta / 3)
+  }
+
+  const zone: RangeZone = bandUnits === 0 ? 'engaged'
+    : bandUnits === 1 ? 'short'
+      : bandUnits === 2 ? 'medium'
+        : bandUnits === 3 ? 'long'
           : 'extreme'
   return { zone, bandUnits }
 }
