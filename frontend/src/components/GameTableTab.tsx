@@ -1,29 +1,32 @@
-import { useCallback, useEffect, useState, type FormEvent } from 'react'
+import { useCallback, useEffect, useState, type FormEvent, type MouseEvent } from 'react'
 import { api } from '../api/client'
 import type {
   ActivateAbilityResult, CampaignMember, GameParticipant, GameSession, HeroicAbility,
   InitiativeSlotType, NpcListItem, RollLogEntry,
 } from '../api/types'
-import { PARTICIPANT_TYPE_LABELS, SLOT_TYPE_LABELS } from '../utils/labels'
-import { DiceRoller, RollSymbolsView, type RollLogRequest } from './DiceRoller'
+import { SLOT_TYPE_LABELS } from '../utils/labels'
+import { RollSymbolsView, type RollLogRequest } from './DiceRoller'
 import type { RollSymbols } from '../utils/diceRoller'
 import { useDiceRoller } from '../dice-roller-store'
 import { t } from '../i18n'
 import { GameTableNpcStatblock } from './GameTableNpcStatblock'
 import { participantNameWithCount, participantRollPool } from '../utils/gameTable'
 import {
-  readRangeTrackerState, writeRangeTrackerState, type RangeZone,
+  readRangeTrackerState, writeRangeTrackerState, writeSheetTab, type RangeZone,
 } from '../utils/uiPreferences'
+import { navigate } from '../router'
 
 interface Props {
   campaignId: string
   isGm: boolean
   members: CampaignMember[]
+  /** Read-only просмотр листа участника для мастера кампании. */
+  onOpenMemberSheet?: (characterId: string, name: string) => Promise<void>
   /** Счётчик realtime-инвалидаций: при изменении сцена перечитывается (другой участник внёс правку). */
   refreshSignal?: number
 }
 
-export function GameTableTab({ campaignId, isGm, members, refreshSignal }: Props) {
+export function GameTableTab({ campaignId, isGm, members, onOpenMemberSheet, refreshSignal }: Props) {
   const [session, setSession] = useState<GameSession | null>(null)
   const [loaded, setLoaded] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -82,11 +85,6 @@ export function GameTableTab({ campaignId, isGm, members, refreshSignal }: Props
   const currentActor = currentSlot?.assignedParticipantId
     ? session.participants.find(p => p.id === currentSlot.assignedParticipantId) ?? null
     : null
-  const activeCount = session.participants.filter(p => p.isActive && !p.isDefeated).length
-  const hiddenCount = session.participants.filter(p => p.isHiddenFromPlayers).length
-  const criticalCount = session.participants.filter(p => p.criticalInjuries > 0).length
-  const defeatedCount = session.participants.filter(p => p.isDefeated).length
-
   return (
     <div className="game-table table-shell">
       {error && <div className="error floating">{error}</div>}
@@ -113,32 +111,32 @@ export function GameTableTab({ campaignId, isGm, members, refreshSignal }: Props
             <div className="round-value">{currentSlot ? session.currentTurnIndex + 1 : '—'}</div>
           </div>
         </div>
-
-        <StoryPoints session={session} isGm={isGm} onRun={run} campaignId={campaignId} />
+        {isGm && <div className="scene-command-actions">
+          <button className="primary" onClick={() => run(() => api.nextTurn(campaignId))}>{t('Следующий ход', 'Next turn')}</button>
+          <button onClick={() => { if (confirm(t('Сбросить сцену (убрать участников и слоты)?', 'Reset the scene (remove participants and slots)?'))) void run(() => api.resetSession(campaignId)) }}>{t('Сбросить', 'Reset')}</button>
+          <button className="danger" onClick={() => { if (confirm(t('Завершить сцену?', 'End the scene?'))) void run(() => api.endSession(campaignId)) }}>{t('Завершить сцену', 'End scene')}</button>
+        </div>}
       </section>
 
       <aside className="left-rail">
-        <CurrentTurnPanel session={session} isGm={isGm} currentActor={currentActor}
-          onRun={run} campaignId={campaignId} />
+        <StoryPoints session={session} isGm={isGm} onRun={run} campaignId={campaignId} />
         <InitiativeTracker session={session} isGm={isGm} onRun={run} campaignId={campaignId} />
-        <SceneStatePanel active={activeCount} hidden={hiddenCount} critical={criticalCount} defeated={defeatedCount} />
       </aside>
 
       <section className="center-stage">
         <RangeBandTracker key={session.id} campaignId={campaignId} session={session} isGm={isGm} />
-        <ParticipantsStrip session={session} campaignId={campaignId} isGm={isGm} onSessionChange={setSession} />
       </section>
 
       <aside className="right-rail">
         <RollSection campaignId={campaignId} isGm={isGm} refreshSignal={refreshSignal} />
         <NotesBlock session={session} isGm={isGm} onRun={run} campaignId={campaignId} />
-      </aside>
-
-      <section className="bottom-row">
         <QuickActionsPanel session={session} isGm={isGm} members={members}
           onRun={run} campaignId={campaignId} abilities={abilities} onActivate={activate} />
-        <SceneChangesPanel session={session} currentActor={currentActor} />
-      </section>
+      </aside>
+
+      <ParticipantsStrip session={session} campaignId={campaignId} isGm={isGm}
+        members={members} onRun={run} onSessionChange={setSession}
+        onOpenMemberSheet={onOpenMemberSheet} />
     </div>
   )
 }
@@ -159,52 +157,6 @@ function CreateSessionForm({ onCreate }: { onCreate: (b: { name: string; descrip
       </div>
       <button className="primary" type="submit" disabled={!name.trim()}>{t('Запустить сцену', 'Start the scene')}</button>
     </form>
-  )
-}
-
-function CurrentTurnPanel({ session, isGm, currentActor, onRun, campaignId }: BlockProps & {
-  currentActor: GameParticipant | null
-}) {
-  const slot = session.slots[session.currentTurnIndex]
-  return (
-    <section className="panel active-turn">
-      <div className="panel-head">
-        <h3>{t('Текущий ход', 'Current turn')}</h3>
-        {slot && <span className={`badge slot-${slot.slotType}`}>{SLOT_TYPE_LABELS[slot.slotType]}</span>}
-      </div>
-      <div className="active-name">{currentActor?.displayName ?? t('Абстрактный слот', 'Unassigned slot')}</div>
-      <div className="active-role">
-        {currentActor
-          ? `${PARTICIPANT_TYPE_LABELS[currentActor.participantType]} · ${t('раны', 'wounds')} ${currentActor.woundsCurrent}/${currentActor.woundsThreshold}`
-          : t('Назначьте участника на слот инициативы.', 'Assign a participant to the initiative slot.')}
-      </div>
-      <div className="turn-actions">
-        {isGm && <button className="primary" onClick={() => onRun(() => api.nextTurn(campaignId))}>{t('Следующий ход', 'Next turn')}</button>}
-        {isGm && <button onClick={() => { if (confirm(t('Сбросить сцену (убрать участников и слоты)?', 'Reset the scene (remove participants and slots)?'))) void onRun(() => api.resetSession(campaignId)) }}>{t('Сбросить', 'Reset')}</button>}
-        {isGm && <button className="danger" onClick={() => { if (confirm(t('Завершить сцену?', 'End the scene?'))) void onRun(() => api.endSession(campaignId)) }}>{t('Завершить сцену', 'End scene')}</button>}
-      </div>
-    </section>
-  )
-}
-
-function SceneStatePanel({ active, hidden, critical, defeated }: {
-  active: number
-  hidden: number
-  critical: number
-  defeated: number
-}) {
-  return (
-    <section className="panel">
-      <div className="panel-head">
-        <h3>{t('Состояние сцены', 'Scene state')}</h3>
-      </div>
-      <div className="conditions">
-        <div className="condition-box"><b>{active}</b><span>{t('активных', 'active')}</span></div>
-        <div className="condition-box"><b>{hidden}</b><span>{t('скрытых', 'hidden')}</span></div>
-        <div className="condition-box"><b>{critical}</b><span>{t('критический', 'critical')}</span></div>
-        <div className="condition-box"><b>{defeated}</b><span>{t('повержены', 'defeated')}</span></div>
-      </div>
-    </section>
   )
 }
 
@@ -292,17 +244,24 @@ function RangeBandTracker({ campaignId, session, isGm }: {
 }) {
   const stored = () => readRangeTrackerState(campaignId, session.id)
   const [zones, setZones] = useState<Record<string, RangeZone>>(() => stored().zones)
+  const [angles, setAngles] = useState<Record<string, number>>(() => stored().angles)
   const [log, setLog] = useState<string[]>(() => stored().log)
+  const [focusParticipantId, setFocusParticipantId] = useState<string | null>(() => stored().focusParticipantId)
   const [dragId, setDragId] = useState<string | null>(null)
   const [showLog, setShowLog] = useState(false)
 
   const participants = session.participants.filter(p => !p.isDefeated)
+  const fallbackFocus = participants.find(p => p.participantType === 'playerCharacter') ?? participants[0]
+  const focus = participants.find(p => p.id === focusParticipantId) ?? fallbackFocus ?? null
   const zoneOf = (p: GameParticipant): RangeZone => zones[p.id] ?? defaultZone(p)
+  const angleOf = (p: GameParticipant): number => angles[p.id]
+    ?? ((participants.findIndex(candidate => candidate.id === p.id) * 137 + 210) % 360)
 
-  const move = (p: GameParticipant, to: RangeZone) => {
+  const move = (p: GameParticipant, to: RangeZone, angle = angleOf(p)) => {
     const from = zoneOf(p)
-    if (from === to) return
     setZones(prev => ({ ...prev, [p.id]: to }))
+    setAngles(prev => ({ ...prev, [p.id]: angle }))
+    if (from === to) return
     const fromZone = RANGE_ZONES[ZONE_INDEX[from]]
     const toZone = RANGE_ZONES[ZONE_INDEX[to]]
     setLog(prev => [
@@ -318,63 +277,100 @@ function RangeBandTracker({ campaignId, session, isGm }: {
   }
 
   useEffect(() => {
-    writeRangeTrackerState(campaignId, session.id, { zones, log })
-  }, [campaignId, session.id, zones, log])
+    writeRangeTrackerState(campaignId, session.id, {
+      zones, angles, log, focusParticipantId: focus?.id ?? null,
+    })
+  }, [campaignId, session.id, zones, angles, log, focusParticipantId, focus?.id])
 
   if (participants.length === 0) return null
 
+  const radiusByZone: Record<RangeZone, number> = {
+    engaged: 8, short: 18, medium: 29, long: 39, extreme: 48,
+  }
+  const initials = (p: GameParticipant) => {
+    if (p.participantType === 'minionGroup') return `${p.displayName.trim().charAt(0).toUpperCase()}×${p.remainingCount ?? p.count}`
+    const words = p.displayName.trim().split(/\s+/).filter(Boolean)
+    return words.slice(0, 2).map(word => word.charAt(0).toUpperCase()).join('') || '•'
+  }
+  const sideName = (angle: number) => {
+    const normalized = ((angle % 360) + 360) % 360
+    if (normalized >= 45 && normalized < 135) return t('тыл', 'rear')
+    if (normalized >= 135 && normalized < 225) return t('слева', 'left')
+    if (normalized >= 225 && normalized < 315) return t('фронт', 'front')
+    return t('справа', 'right')
+  }
+  const positionStyle = (p: GameParticipant) => {
+    const angle = angleOf(p)
+    const radians = angle * Math.PI / 180
+    const radius = radiusByZone[zoneOf(p)]
+    return { left: `${50 + Math.cos(radians) * radius}%`, top: `${50 + Math.sin(radians) * radius}%` }
+  }
+
   return (
-    <section className="panel rb-tracker range-board">
+    <section className="panel rb-tracker range-board ring-range-board">
       <div className="rb-head range-head">
         <h3>{t('Дистанции и позиции', 'Ranges and positions')}</h3>
         <span className="muted small-text">{t('сохранено на этом устройстве', 'saved on this device')}</span>
       </div>
-      <div className="rb-bands">
-        {RANGE_ZONES.map(zone => (
-          <div key={zone.id} className={`rb-band rb-${zone.id}${dragId ? ' droppable' : ''}`}
-            onDragOver={e => { e.preventDefault(); e.dataTransfer.dropEffect = 'move' }}
-            onDrop={e => {
-              e.preventDefault()
-              const p = participants.find(x => x.id === dragId)
-              if (p) move(p, zone.id)
-              setDragId(null)
-            }}>
-            <div className="rb-band-label">
-              <div className="rb-band-name">{zoneName(zone)}</div>
-              <div className="rb-band-sub">{zone.hint}</div>
-            </div>
-            <div className="rb-band-tokens">
-              {participants.filter(p => zoneOf(p) === zone.id).map(p => {
-                const pc = p.participantType === 'playerCharacter'
-                const zi = ZONE_INDEX[zone.id]
-                return (
-                  <div key={p.id}
-                    className={`rb-token${pc ? ' pc' : ' npc'}${p.isHiddenFromPlayers ? ' hidden-token' : ''}`}
-                    draggable
-                    onDragStart={e => { setDragId(p.id); e.dataTransfer.effectAllowed = 'move' }}
-                    onDragEnd={() => setDragId(null)}>
-                    <div className="rb-token-name" title={p.displayName}>
-                      {participantNameWithCount(p)}
-                    </div>
-                    <div className="rb-token-meta muted small-text">
-                      {p.woundsThreshold > 0 && `${Math.max(0, p.woundsThreshold - p.woundsCurrent)}/${p.woundsThreshold}`}
-                      {p.strainThreshold != null && t(` · ус. ${p.strainCurrent}/${p.strainThreshold}`, ` · str. ${p.strainCurrent}/${p.strainThreshold}`)}
-                      {p.isHiddenFromPlayers && t(' · скрыт', ' · hidden')}
-                    </div>
-                    {isGm && (
-                      <div className="rb-token-move">
-                        <button type="button" className="tiny" disabled={zi === 0}
-                          title={t('Ближе (зона выше)', 'Closer (zone above)')} onClick={() => shift(p, -1)}>▲</button>
-                        <button type="button" className="tiny" disabled={zi === RANGE_ZONES.length - 1}
-                          title={t('Дальше (зона ниже)', 'Farther (zone below)')} onClick={() => shift(p, 1)}>▼</button>
-                      </div>
-                    )}
-                  </div>
-                )
-              })}
-            </div>
+      <div className="ring-focus-switch">
+        <span className="muted small-text">{t('Отсчёт от:', 'Focus:')}</span>
+        {participants.map(p => <button type="button" key={p.id}
+          className={focus?.id === p.id ? 'tiny active' : 'tiny'}
+          onClick={() => setFocusParticipantId(p.id)}>{participantNameWithCount(p)}</button>)}
+      </div>
+      <div className={`range-rings${dragId ? ' dragging' : ''}`}
+        onDragOver={e => { if (isGm) { e.preventDefault(); e.dataTransfer.dropEffect = 'move' } }}
+        onDrop={e => {
+          e.preventDefault()
+          if (!isGm) return
+          const p = participants.find(x => x.id === dragId)
+          if (!p || p.id === focus?.id) return setDragId(null)
+          const rect = e.currentTarget.getBoundingClientRect()
+          const x = e.clientX - rect.left - rect.width / 2
+          const y = e.clientY - rect.top - rect.height / 2
+          const normalizedRadius = Math.hypot(x, y) / (Math.min(rect.width, rect.height) / 2) * 100
+          const zone = normalizedRadius < 13 ? 'engaged'
+            : normalizedRadius < 24 ? 'short'
+              : normalizedRadius < 34 ? 'medium'
+                : normalizedRadius < 44 ? 'long' : 'extreme'
+          move(p, zone, Math.atan2(y, x) * 180 / Math.PI)
+          setDragId(null)
+        }}>
+        {RANGE_ZONES.slice().reverse().map(zone => (
+          <div key={zone.id} className={`range-ring ring-${zone.id}`}>
+            <span>{zoneName(zone)}</span>
           </div>
         ))}
+        <span className="ring-side ring-left">{t('Левый фланг', 'Left flank')}</span>
+        <span className="ring-side ring-right">{t('Правый фланг', 'Right flank')}</span>
+        <span className="ring-side ring-rear">{t('Тыл', 'Rear')}</span>
+        {focus && <div className="ring-token focus" title={`${participantNameWithCount(focus)} — ${t('фокус', 'focus')}`}>
+          <span>{initials(focus)}</span>
+        </div>}
+        {participants.filter(p => p.id !== focus?.id).map(p => {
+          const pc = p.participantType === 'playerCharacter'
+          const zi = ZONE_INDEX[zoneOf(p)]
+          return <div key={p.id} style={positionStyle(p)} draggable={isGm}
+            className={`ring-token${pc ? ' pc' : ' npc'}${p.isHiddenFromPlayers ? ' hidden-token' : ''}`}
+            title={`${participantNameWithCount(p)} — ${zoneName(RANGE_ZONES[zi])}, ${sideName(angleOf(p))}`}
+            onDragStart={e => { setDragId(p.id); e.dataTransfer.effectAllowed = 'move' }}
+            onDragEnd={() => setDragId(null)}>
+            <span>{initials(p)}</span>
+            {isGm && <span className="ring-token-actions">
+              <button type="button" className="tiny" disabled={zi === 0}
+                title={t('Ближе', 'Closer')} onClick={e => { e.stopPropagation(); shift(p, -1) }}>▲</button>
+              <button type="button" className="tiny" disabled={zi === RANGE_ZONES.length - 1}
+                title={t('Дальше', 'Farther')} onClick={e => { e.stopPropagation(); shift(p, 1) }}>▼</button>
+            </span>}
+          </div>
+        })}
+      </div>
+      <div className="ring-legend">
+        {participants.map(p => <span key={p.id} className={p.participantType === 'playerCharacter' ? 'pc' : 'npc'}>
+          <i /> <strong>{initials(p)}</strong> {participantNameWithCount(p)} · {p.id === focus?.id
+            ? t('фокус', 'focus')
+            : `${zoneName(RANGE_ZONES[ZONE_INDEX[zoneOf(p)]])}, ${sideName(angleOf(p))}`}
+        </span>)}
       </div>
       {log.length > 0 && (
         <div className="rb-log">
@@ -447,21 +443,44 @@ function InitiativeTracker({ session, isGm, onRun, campaignId }: BlockProps) {
   )
 }
 
-function ParticipantsStrip({ session, campaignId, isGm, onSessionChange }: {
+function ParticipantsStrip({ session, campaignId, isGm, members, onRun, onSessionChange,
+  onOpenMemberSheet }: {
   session: GameSession
   campaignId: string
   isGm: boolean
+  members: CampaignMember[]
+  onRun: (action: () => Promise<unknown>) => Promise<void>
   onSessionChange: (session: GameSession) => void
+  onOpenMemberSheet?: (characterId: string, name: string) => Promise<void>
 }) {
   const [openNpcId, setOpenNpcId] = useState<string | null>(null)
   const openNpc = session.participants.find(p => p.id === openNpcId) ?? null
   return (
     <>
-      <section className="participants-strip">
-        {session.participants.length === 0 && <p className="muted">{t('Участников пока нет.', 'No participants yet.')}</p>}
-        {session.participants.map(p => (
-          <CompactParticipantCard key={p.id} p={p} onOpenNpc={p.npcId ? () => setOpenNpcId(p.id) : undefined} />
-        ))}
+      <section className="panel participants-strip">
+        <div className="panel-head participants-head">
+          <h3>{t('Участники сцены', 'Scene participants')}</h3>
+          <span className="muted small-text">{t('раны · бусты · сетбеки — прямо на карточке', 'wounds · boosts · setbacks — directly on cards')}</span>
+        </div>
+        <div className="participants-grid">
+          {session.participants.length === 0 && <p className="muted">{t('Участников пока нет.', 'No participants yet.')}</p>}
+          {session.participants.map(p => {
+            const member = p.characterId ? members.find(m => m.characterId === p.characterId) : undefined
+            const onOpenCharacter = p.characterId && member && (isGm || member.isMine)
+              ? () => {
+                  if (isGm && onOpenMemberSheet) void onOpenMemberSheet(p.characterId!, member.characterName)
+                  else if (member.isMine) {
+                    writeSheetTab(p.characterId!, 'sheet')
+                    navigate(`/characters/${p.characterId}`)
+                  }
+                }
+              : undefined
+            return <ParticipantCard key={p.id} p={p} campaignId={campaignId} isGm={isGm}
+              canEditVitals={isGm || Boolean(session.allowPlayerEdits && member?.isMine)}
+              onRun={onRun} onOpenCharacter={onOpenCharacter}
+              onOpenNpc={p.npcId ? () => setOpenNpcId(p.id) : undefined} />
+          })}
+        </div>
       </section>
       {openNpc && <GameTableNpcStatblock participant={openNpc} campaignId={campaignId} isGm={isGm}
         onSessionChange={onSessionChange} onClose={() => setOpenNpcId(null)} />}
@@ -469,42 +488,97 @@ function ParticipantsStrip({ session, campaignId, isGm, onSessionChange }: {
   )
 }
 
-function CompactParticipantCard({ p, onOpenNpc }: {
+function ParticipantCard({ p, campaignId, isGm, canEditVitals, onRun, onOpenNpc, onOpenCharacter }: {
   p: GameParticipant
+  campaignId: string
+  isGm: boolean
+  canEditVitals: boolean
+  onRun: (action: () => Promise<unknown>) => Promise<void>
   onOpenNpc?: () => void
+  onOpenCharacter?: () => void
 }) {
+  const { openRoller } = useDiceRoller()
+  const onOpen = onOpenNpc ?? onOpenCharacter
+  const stop = (action: () => void) => (event: MouseEvent) => {
+    event.stopPropagation()
+    action()
+  }
+  const update = (patch: Parameters<typeof api.updateParticipant>[2]) =>
+    void onRun(() => api.updateParticipant(campaignId, p.id, patch))
+  const label = onOpenNpc
+    ? t(`Открыть статблок NPC ${p.displayName}`, `Open NPC stat block ${p.displayName}`)
+    : onOpenCharacter
+      ? t(`Открыть лист персонажа ${p.displayName}`, `Open character sheet ${p.displayName}`)
+      : undefined
   return (
-    <article className={`pc-card${onOpenNpc ? ' clickable' : ''}${p.isDefeated ? ' defeated' : ''}${p.criticalInjuries > 0 ? ' crit' : ''}`}
-      role={onOpenNpc ? 'button' : undefined} tabIndex={onOpenNpc ? 0 : undefined}
-      aria-label={onOpenNpc ? t(`Открыть статблок NPC ${p.displayName}`, `Open NPC stat block ${p.displayName}`) : undefined}
-      onClick={onOpenNpc}
-      onKeyDown={e => { if (onOpenNpc && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); onOpenNpc() } }}>
+    <article className={`pc-card participant-control-card${onOpen ? ' clickable' : ''}${p.isDefeated ? ' defeated' : ''}${p.criticalInjuries > 0 ? ' crit' : ''}`}
+      role={onOpen ? 'button' : undefined} tabIndex={onOpen ? 0 : undefined} aria-label={label}
+      onClick={onOpen}
+      onKeyDown={e => { if (onOpen && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); onOpen() } }}>
       <div className="pc-name">
         <span>{participantNameWithCount(p)}</span>
-        <span className={p.participantType === 'playerCharacter' ? 'badge slot-player' : 'badge slot-npc'}>
-          {p.participantType === 'playerCharacter' ? 'PC' : 'NPC'}
+        <span className="pc-name-badges">
+          {p.criticalInjuries > 0 && <span className="badge danger">{t('криты', 'crits')} {p.criticalInjuries}</span>}
+          <span className={p.participantType === 'playerCharacter' ? 'badge slot-player' : 'badge slot-npc'}>
+            {p.participantType === 'playerCharacter' ? 'PC' : 'NPC'}
+          </span>
         </span>
       </div>
       <div className="pc-stats">
-        <div className="mini-stat">{t('Раны', 'Wounds')} <b>{p.woundsCurrent}/{p.woundsThreshold}</b></div>
-        <div className="mini-stat">{t('Устал.', 'Strain')} <b>{p.strainThreshold == null ? '—' : `${p.strainCurrent}/${p.strainThreshold}`}</b></div>
         <div className="mini-stat">{t('Погл.', 'Soak')} <b>{p.soak}</b></div>
         <div className="mini-stat">{t('Защ.', 'Def.')} <b>{p.meleeDefense}/{p.rangedDefense}</b></div>
       </div>
-      <div className="bar-stack">
-        <div className="bar"><span className="wounds" style={{ width: `${ratio(p.woundsCurrent, p.woundsThreshold) * 100}%` }} /></div>
-        {p.strainThreshold != null ? (
-          <div className="bar"><span className="strain" style={{ width: `${ratio(p.strainCurrent, p.strainThreshold) * 100}%` }} /></div>
-        ) : (
-          <div className="bar empty-bar" aria-hidden="true"><span /></div>
-        )}
+      <div className="participant-control-grid">
+        <span>{t('Раны', 'Wounds')}</span>
+        <div className="participant-vital"><b>{p.woundsCurrent} / {p.woundsThreshold}</b><div className="bar"><span className="wounds" style={{ width: `${ratio(p.woundsCurrent, p.woundsThreshold) * 100}%` }} /></div></div>
+        <button type="button" className="tiny" disabled={!canEditVitals || p.woundsCurrent <= 0}
+          aria-label={t(`Убрать рану у ${p.displayName}`, `Remove wound from ${p.displayName}`)}
+          onClick={stop(() => update({ woundsCurrent: Math.max(0, p.woundsCurrent - 1) }))}>−</button>
+        <button type="button" className="tiny" disabled={!canEditVitals}
+          aria-label={t(`Добавить рану ${p.displayName}`, `Add wound to ${p.displayName}`)}
+          onClick={stop(() => update({ woundsCurrent: p.woundsCurrent + 1 }))}>+</button>
+
+        <span>{t('Устал.', 'Strain')}</span>
+        <div className="participant-vital"><b>{p.strainThreshold == null ? '—' : `${p.strainCurrent} / ${p.strainThreshold}`}</b>{p.strainThreshold != null && <div className="bar"><span className="strain" style={{ width: `${ratio(p.strainCurrent, p.strainThreshold) * 100}%` }} /></div>}</div>
+        <button type="button" className="tiny" disabled={!canEditVitals || p.strainThreshold == null || p.strainCurrent <= 0}
+          aria-label={t(`Убрать усталость у ${p.displayName}`, `Remove strain from ${p.displayName}`)}
+          onClick={stop(() => update({ strainCurrent: Math.max(0, p.strainCurrent - 1) }))}>−</button>
+        <button type="button" className="tiny" disabled={!canEditVitals || p.strainThreshold == null}
+          aria-label={t(`Добавить усталость ${p.displayName}`, `Add strain to ${p.displayName}`)}
+          onClick={stop(() => update({ strainCurrent: p.strainCurrent + 1 }))}>+</button>
+
+        <span className="boost-label">{t('Бусты', 'Boosts')}</span><b>{p.boostDice}</b>
+        <button type="button" className="tiny" disabled={!isGm || p.boostDice <= 0}
+          aria-label={t(`Убрать буст у ${p.displayName}`, `Remove boost from ${p.displayName}`)}
+          onClick={stop(() => update({ boostDice: p.boostDice - 1 }))}>−</button>
+        <button type="button" className="tiny" disabled={!isGm || p.boostDice >= 20}
+          aria-label={t(`Добавить буст ${p.displayName}`, `Add boost to ${p.displayName}`)}
+          onClick={stop(() => update({ boostDice: p.boostDice + 1 }))}>+</button>
+
+        <span className="setback-label">{t('Сетбеки', 'Setbacks')}</span><b>{p.setbackDice}</b>
+        <button type="button" className="tiny" disabled={!isGm || p.setbackDice <= 0}
+          aria-label={t(`Убрать сетбек у ${p.displayName}`, `Remove setback from ${p.displayName}`)}
+          onClick={stop(() => update({ setbackDice: p.setbackDice - 1 }))}>−</button>
+        <button type="button" className="tiny" disabled={!isGm || p.setbackDice >= 20}
+          aria-label={t(`Добавить сетбек ${p.displayName}`, `Add setback to ${p.displayName}`)}
+          onClick={stop(() => update({ setbackDice: p.setbackDice + 1 }))}>+</button>
       </div>
-      <div className="gt-card-flags">
-        {onOpenNpc && <span className="muted small-text">{t('нажмите: статблок', 'click: stat block')}</span>}
-        {p.boostDice > 0 && <span className="badge slot-player">{t('бусты', 'boosts')} +{p.boostDice}</span>}
-        {p.setbackDice > 0 && <span className="badge slot-npc">{t('сетбеки', 'setbacks')} +{p.setbackDice}</span>}
-        {p.isHiddenFromPlayers && <span className="badge tier">{t('скрыт', 'hidden')}</span>}
-        {p.criticalInjuries > 0 && <span className="badge danger">{t('криты', 'crits')} {p.criticalInjuries}</span>}
+      <div className="participant-card-footer" onClick={e => e.stopPropagation()}>
+        {isGm && <label><input type="checkbox" checked={p.isDefeated}
+          onChange={e => update({ isDefeated: e.target.checked })} />{t('повержен', 'defeated')}</label>}
+        {isGm && <label><input type="checkbox" checked={p.isHiddenFromPlayers}
+          onChange={e => update({ isHiddenFromPlayers: e.target.checked })} />{t('скрыт', 'hidden')}</label>}
+        <button type="button" className="tiny participant-roll"
+          aria-label={t(`Бросок участника ${p.displayName}`, `Roll for participant ${p.displayName}`)}
+          onClick={() => openRoller({
+          kind: 'roll', title: `${p.displayName} — ${t('бросок', 'roll')}`,
+          label: t('Бросок участника', 'Participant roll'), initialPool: participantRollPool({}, p),
+          onLog: req => { void onRun(() => api.createRoll(campaignId, { ...req, actorName: p.displayName })) },
+          canSecret: isGm,
+        })}>🎲</button>
+        {onOpen && <button type="button" className="tiny" onClick={onOpenNpc ?? onOpenCharacter}>
+          {onOpenNpc ? t('Статблок', 'Stat block') : t('Лист', 'Sheet')}
+        </button>}
       </div>
     </article>
   )
@@ -513,12 +587,11 @@ function CompactParticipantCard({ p, onOpenNpc }: {
 function QuickActionsPanel({ session, isGm, members, onRun, campaignId, abilities, onActivate }:
   BlockProps & { members: CampaignMember[]; abilities: HeroicAbility[]
     onActivate: (participantId: string, code: string) => Promise<ActivateAbilityResult | null> }) {
-  const [participantId, setParticipantId] = useState('')
+  const [removeParticipantId, setRemoveParticipantId] = useState('')
+  const [abilityParticipantId, setAbilityParticipantId] = useState('')
   const [abilityId, setAbilityId] = useState('')
   const [outcome, setOutcome] = useState<ActivateAbilityResult | null>(null)
-  const [showAdd, setShowAdd] = useState(false)
-  const { openRoller } = useDiceRoller()
-  const participant = session.participants.find(p => p.id === participantId)
+  const participant = session.participants.find(p => p.id === abilityParticipantId)
 
   async function activate() {
     if (!participant) return
@@ -531,77 +604,29 @@ function QuickActionsPanel({ session, isGm, members, onRun, campaignId, abilitie
   return (
     <section className="panel quick-panel">
       <div className="panel-head">
-        <h3>{t('Быстрые действия сцены', 'Quick scene actions')}</h3>
-        {isGm && (
-          <button type="button" className="small" onClick={() => setShowAdd(v => !v)}>
-            {showAdd ? t('Свернуть', 'Collapse') : t('Добавить участника', 'Add participant')}
-          </button>
-        )}
+        <h3>{t('Быстрые действия', 'Quick actions')}</h3>
+        <span className="muted small-text">{t('состав сцены', 'scene roster')}</span>
       </div>
-      <div className="quick-main">
-        <select className="grow" value={participantId} onChange={e => setParticipantId(e.target.value)}>
-          <option value="">{t('— участник для действия —', '— participant for the action —')}</option>
-          {session.participants.map(p => <option key={p.id} value={p.id}>{p.displayName}</option>)}
+      {isGm && <AddParticipant members={members} onRun={onRun} campaignId={campaignId} />}
+      {isGm && <div className="quick-main remove-participant">
+        <select className="grow" value={removeParticipantId} onChange={e => setRemoveParticipantId(e.target.value)}>
+          <option value="">{t('— участник для удаления —', '— participant to remove —')}</option>
+          {session.participants.map(p => <option key={p.id} value={p.id}>{participantNameWithCount(p)}</option>)}
         </select>
-        <div className="quick-controls">
-          {isGm && <button onClick={() => onRun(() => api.nextTurn(campaignId))}>{t('Следующий ход', 'Next turn')}</button>}
-          {participant && (
-            <button onClick={() => openRoller({
-              kind: 'roll',
-              title: `${participant.displayName} — ${t('бросок', 'roll')}`,
-              label: t('Бросок участника', 'Participant roll'),
-              initialPool: participantRollPool({}, participant),
-              onLog: req => { void onRun(() => api.createRoll(campaignId, { ...req, actorName: participant.displayName })) },
-              canSecret: isGm,
-            })}>
-              {t('🎲 Бросок участника', '🎲 Participant roll')}
-            </button>
-          )}
-          {participant && isGm && (
-            <>
-              <button onClick={() => onRun(() => api.updateParticipant(campaignId, participant.id, { woundsCurrent: Math.max(0, participant.woundsCurrent - 1) }))}>
-                {t('− рана', '− wound')}
-              </button>
-              <button onClick={() => onRun(() => api.updateParticipant(campaignId, participant.id, { woundsCurrent: participant.woundsCurrent + 1 }))}>
-                {t('+ рана', '+ wound')}
-              </button>
-              <button disabled={participant.boostDice <= 0}
-                aria-label={t('Убрать буст', 'Remove boost')}
-                onClick={() => onRun(() => api.updateParticipant(campaignId, participant.id, { boostDice: participant.boostDice - 1 }))}>
-                {t('− буст', '− boost')}
-              </button>
-              <button disabled={participant.boostDice >= 20}
-                aria-label={t('Добавить буст', 'Add boost')}
-                onClick={() => onRun(() => api.updateParticipant(campaignId, participant.id, { boostDice: participant.boostDice + 1 }))}>
-                {t('+ буст', '+ boost')}
-              </button>
-              <button disabled={participant.setbackDice <= 0}
-                aria-label={t('Убрать сетбек', 'Remove setback')}
-                onClick={() => onRun(() => api.updateParticipant(campaignId, participant.id, { setbackDice: participant.setbackDice - 1 }))}>
-                {t('− сетбек', '− setback')}
-              </button>
-              <button disabled={participant.setbackDice >= 20}
-                aria-label={t('Добавить сетбек', 'Add setback')}
-                onClick={() => onRun(() => api.updateParticipant(campaignId, participant.id, { setbackDice: participant.setbackDice + 1 }))}>
-                {t('+ сетбек', '+ setback')}
-              </button>
-              <button onClick={() => onRun(() => api.updateParticipant(campaignId, participant.id, { isHiddenFromPlayers: !participant.isHiddenFromPlayers }))}>
-                {participant.isHiddenFromPlayers ? t('Показать', 'Reveal') : t('Скрыть NPC', 'Hide NPC')}
-              </button>
-              <button onClick={() => onRun(() => api.updateParticipant(campaignId, participant.id, { isDefeated: !participant.isDefeated }))}>
-                {participant.isDefeated ? t('Вернуть', 'Restore') : t('Повержен', 'Defeated')}
-              </button>
-            </>
-          )}
-        </div>
-      </div>
+        <button className="danger small" disabled={!removeParticipantId}
+          onClick={() => void onRun(() => api.removeParticipant(campaignId, removeParticipantId))}>{t('Убрать', 'Remove')}</button>
+      </div>}
       {abilities.length > 0 && (
-        <div className="quick-main">
+        <div className="quick-ability">
+          <select className="grow" value={abilityParticipantId} onChange={e => setAbilityParticipantId(e.target.value)}>
+            <option value="">{t('— участник для способности —', '— ability participant —')}</option>
+            {session.participants.map(p => <option key={p.id} value={p.id}>{participantNameWithCount(p)}</option>)}
+          </select>
           <select className="grow" value={abilityId} onChange={e => setAbilityId(e.target.value)}>
             <option value="">{t('— способность —', '— ability —')}</option>
             {abilities.map(a => <option key={a.id} value={a.id}>{t(a.nameRu || a.name, a.name || a.nameRu)}</option>)}
           </select>
-          <button className="small" disabled={!participantId || !abilityId} onClick={() => void activate()}>{t('Активировать', 'Activate')}</button>
+          <button className="small" disabled={!abilityParticipantId || !abilityId} onClick={() => void activate()}>{t('Активировать', 'Activate')}</button>
         </div>
       )}
       {outcome && (
@@ -611,28 +636,6 @@ function QuickActionsPanel({ session, isGm, members, onRun, campaignId, abilitie
           {outcome.manual.map((m, i) => <span key={`m${i}`} className="muted"> {m}</span>)}
         </div>
       )}
-      {showAdd && isGm && <AddParticipant members={members} onRun={onRun} campaignId={campaignId} />}
-    </section>
-  )
-}
-
-function SceneChangesPanel({ session, currentActor }: { session: GameSession; currentActor: GameParticipant | null }) {
-  return (
-    <section className="panel">
-      <div className="panel-head">
-        <h3>{t('Изменения', 'Changes')}</h3>
-      </div>
-      <div className="note-list">
-        <article className="note-row">
-          <strong>{t('Раунд', 'Round')} {session.currentRound}</strong>
-          <p>
-            {currentActor
-              ? t(`${currentActor.displayName}: текущий участник хода. Активных участников: ${session.participants.filter(p => p.isActive && !p.isDefeated).length}.`,
-                  `${currentActor.displayName}: current actor. Active participants: ${session.participants.filter(p => p.isActive && !p.isDefeated).length}.`)
-              : t('Слот инициативы пока не назначен участнику.', 'The initiative slot has no assigned participant yet.')}
-          </p>
-        </article>
-      </div>
     </section>
   )
 }
@@ -702,8 +705,17 @@ function NotesBlock({ session, isGm, onRun, campaignId }: BlockProps) {
   const [pub, setPub] = useState(session.publicNotes)
   const [gm, setGm] = useState(session.gmNotes ?? '')
   return (
-    <section className="panel">
-      <h3>{t('Заметки сцены', 'Scene notes')}</h3>
+    <section className="panel scene-notes-panel">
+      <div className="panel-head">
+        <h3>{t('Заметки сцены', 'Scene notes')}</h3>
+        {isGm && (
+          <label className="checkbox compact-checkbox">
+            <input type="checkbox" checked={session.allowPlayerEdits}
+              onChange={e => onRun(() => api.updateSession(campaignId, { allowPlayerEdits: e.target.checked }))} />
+            {t('Игроки меняют раны/усталость', 'Players edit wounds/strain')}
+          </label>
+        )}
+      </div>
       <label>{t('Публичные (видят игроки)', 'Public (players can see)')}
         <textarea rows={2} value={pub} disabled={!isGm} onChange={e => setPub(e.target.value)}
           onBlur={() => isGm && pub !== session.publicNotes && onRun(() => api.updateSession(campaignId, { publicNotes: pub }))} />
@@ -712,13 +724,6 @@ function NotesBlock({ session, isGm, onRun, campaignId }: BlockProps) {
         <label>{t('Приватные (только мастер)', 'Private (GM only)')}
           <textarea rows={2} value={gm} onChange={e => setGm(e.target.value)}
             onBlur={() => gm !== (session.gmNotes ?? '') && onRun(() => api.updateSession(campaignId, { gmNotes: gm }))} />
-        </label>
-      )}
-      {isGm && (
-        <label className="checkbox">
-          <input type="checkbox" checked={session.allowPlayerEdits}
-            onChange={e => onRun(() => api.updateSession(campaignId, { allowPlayerEdits: e.target.checked }))} />
-          {t('Разрешить игрокам менять раны/усталость своих персонажей', 'Allow players to change their characters’ wounds/strain')}
         </label>
       )}
     </section>
@@ -760,8 +765,6 @@ function RollSection({ campaignId, isGm, refreshSignal }: { campaignId: string; 
         </button>
       </div>
       {error && <div className="error">{error}</div>}
-      <DiceRoller label={t('Бросок стола', 'Table roll')} onLog={log} canSecret={isGm} />
-
       <div className="roll-log">
         {rolls.length === 0 && <p className="muted">{t('Бросков пока нет.', 'No rolls yet.')}</p>}
         {rolls.map(r => (

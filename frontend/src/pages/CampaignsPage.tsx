@@ -241,7 +241,8 @@ function CampaignDetailView({ campaignId, view, openEncounterId, onBack, onView,
       </div>
 
       {view === 'table' ? (
-        <GameTableTab campaignId={c.id} isGm={c.isGm} members={c.members} refreshSignal={liveSignal} />
+        <GameTableTab campaignId={c.id} isGm={c.isGm} members={c.members}
+          onOpenMemberSheet={openMemberSheet} refreshSignal={liveSignal} />
       ) : view === 'handbook' ? (
         <HandbookTab campaignId={c.id} isGm={c.isGm} />
       ) : view === 'encounters' ? (
