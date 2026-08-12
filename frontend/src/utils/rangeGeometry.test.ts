@@ -1,8 +1,9 @@
 import { describe, expect, it } from 'vitest'
 import {
-  estimateRangeBetween, nearestFreeRangeAngle, rangeCellFromBoardPoint, rangeZoneFromRadius,
+  estimateRangeBetween, nearestFreeRangeAngle, RANGE_ZONE_RADII_PERCENT, rangeCellFromBoardPoint, rangeZoneFromRadius,
   snapRangeAngle,
 } from './rangeGeometry'
+import type { RangeZone } from './uiPreferences'
 
 describe('range tracker geometry', () => {
   it('snaps angles to one of twelve stable cells', () => {
@@ -22,15 +23,28 @@ describe('range tracker geometry', () => {
   it('converts pointer coordinates to the intended ring cell', () => {
     const board = { left: 100, top: 50, width: 400, height: 400 }
     expect(rangeCellFromBoardPoint(300, 50 + 200 - 30, board)).toEqual({
-      zone: 'short', angle: 285, leftPercent: 50, topPercent: 42.5,
+      zone: 'engaged', angle: 285, leftPercent: 50, topPercent: 42.5,
     })
     expect(rangeCellFromBoardPoint(300 + 50, 250, board)).toEqual({
-      zone: 'medium', angle: 15, leftPercent: 62.5, topPercent: 50,
+      zone: 'short', angle: 15, leftPercent: 62.5, topPercent: 50,
     })
     expect(rangeCellFromBoardPoint(300 - 190, 250, board)).toEqual({
       zone: 'extreme', angle: 195, leftPercent: 2.5, topPercent: 50,
     })
   })
+
+  it.each(Object.entries(RANGE_ZONE_RADII_PERCENT) as [RangeZone, number][])(
+    'maps the center of the %s ring back to that same ring',
+    (zone, radiusPercent) => {
+      const board = { left: 100, top: 50, width: 400, height: 400 }
+      const point = rangeCellFromBoardPoint(
+        board.left + board.width / 2 + board.width * radiusPercent / 100,
+        board.top + board.height / 2,
+        board,
+      )
+      expect(point).toMatchObject({ zone, angle: 15 })
+    },
+  )
 
   it('uses the nearest free cell in the selected band', () => {
     expect(nearestFreeRangeAngle(3, 'medium', [

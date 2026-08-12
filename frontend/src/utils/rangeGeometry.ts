@@ -59,8 +59,11 @@ export function rangeCellFromBoardPoint(
 ): RangeBoardPoint {
   const x = clientX - board.left - board.width / 2
   const y = clientY - board.top - board.height / 2
-  const boardRadius = Math.min(board.width, board.height) / 2
-  const radiusPercent = boardRadius > 0 ? Math.hypot(x, y) / boardRadius * 100 : 0
+  // CSS и RANGE_ZONE_RADII_PERCENT задают позиции в процентах полной ширины доски. Раньше здесь
+  // использовался процент от радиуса, поэтому значение было вдвое больше и после drop жетон
+  // прыгал в центр ячейки примерно в два раза дальше от курсора.
+  const boardDiameter = Math.min(board.width, board.height)
+  const radiusPercent = boardDiameter > 0 ? Math.hypot(x, y) / boardDiameter * 100 : 0
   return {
     zone: rangeZoneFromRadius(radiusPercent),
     angle: snapRangeAngle(Math.atan2(y, x) * 180 / Math.PI),
