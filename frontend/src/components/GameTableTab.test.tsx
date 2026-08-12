@@ -1,6 +1,6 @@
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import type { GameSession, NpcDetail, Reference } from '../api/types'
+import type { CampaignMember, GameParticipant, GameSession, NpcDetail, Reference } from '../api/types'
 import type { DiceRollerRequest } from '../dice-roller-store'
 import { GameTableTab } from './GameTableTab'
 
@@ -11,6 +11,7 @@ const rollsMock = vi.fn()
 const createRollMock = vi.fn()
 const updateParticipantMock = vi.fn()
 const openRollerMock = vi.fn()
+const npcsMock = vi.fn()
 
 vi.mock('../api/client', () => ({
   api: {
@@ -20,6 +21,7 @@ vi.mock('../api/client', () => ({
     rolls: (...args: unknown[]) => rollsMock(...args),
     createRoll: (...args: unknown[]) => createRollMock(...args),
     updateParticipant: (...args: unknown[]) => updateParticipantMock(...args),
+    npcs: (...args: unknown[]) => npcsMock(...args),
     rules: vi.fn().mockResolvedValue({ entries: [] }),
   },
 }))
@@ -63,6 +65,18 @@ const reference = {
   heroicSecondaryEffects: [], attachments: [], mounts: [],
 } as Reference
 
+const playerParticipant: GameParticipant = {
+  ...session.participants[0], id: 'participant-pc', characterId: 'character-1', npcId: null,
+  displayName: 'Элира', participantType: 'playerCharacter', initiativeSlotType: 'player', count: 1,
+  woundsCurrent: 1, woundsThreshold: 12, strainCurrent: 2, strainThreshold: 11,
+  soak: 2, meleeDefense: 1, rangedDefense: 0, boostDice: 0, setbackDice: 0,
+}
+
+const ownMember: CampaignMember = {
+  characterId: 'character-1', characterName: 'Элира', system: 'realmsOfTerrinoth',
+  archetype: 'Human', career: 'Warrior', isMine: true,
+}
+
 describe('GameTableTab — статблок и броски NPC', () => {
   beforeEach(() => {
     localStorage.removeItem('genesysforge.game-table.range.campaign-1.session-1')
@@ -73,24 +87,27 @@ describe('GameTableTab — статблок и броски NPC', () => {
     createRollMock.mockReset().mockResolvedValue({})
     updateParticipantMock.mockReset().mockResolvedValue(session)
     openRollerMock.mockReset()
+    npcsMock.mockReset().mockResolvedValue([])
+    window.history.replaceState(null, '', '/')
+    localStorage.removeItem('genesysforge.sheet-tab.character-1')
   })
 
   it('сохраняет позиции трекера дистанций при повторном открытии игрового стола', async () => {
-    const first = render(<GameTableTab campaignId="campaign-1" isGm members={[]} />)
+    const rangeSession = { ...session, participants: [playerParticipant, session.participants[0]] }
+    sessionMock.mockResolvedValue(rangeSession)
+    const first = render(<GameTableTab campaignId="campaign-1" isGm members={[ownMember]} />)
     await screen.findByText('Засада')
-    const token = document.querySelector('.rb-token-name') as HTMLElement
-    expect(token.textContent).toContain('Гоблины')
-    expect(token.closest('.rb-band')?.className).toContain('rb-medium')
+    const token = document.querySelector('.ring-token.npc') as HTMLElement
+    expect(token.title).toContain('Средняя')
 
-    fireEvent.click(within(token.closest('.rb-token') as HTMLElement)
-      .getByTitle('Дальше (зона ниже)'))
-    expect(document.querySelector('.rb-long .rb-token-name')?.textContent).toContain('Гоблины')
+    fireEvent.click(within(token).getByTitle('Дальше'))
+    expect((document.querySelector('.ring-token.npc') as HTMLElement).title).toContain('Дальняя')
     first.unmount()
 
-    render(<GameTableTab campaignId="campaign-1" isGm members={[]} />)
+    render(<GameTableTab campaignId="campaign-1" isGm members={[ownMember]} />)
     await screen.findByText('Засада')
-    const restored = document.querySelector('.rb-token-name') as HTMLElement
-    expect(restored.closest('.rb-band')?.className).toContain('rb-long')
+    const restored = document.querySelector('.ring-token.npc') as HTMLElement
+    expect(restored.title).toContain('Дальняя')
     expect(screen.getByText(/Средняя → Дальняя/)).toBeTruthy()
   })
 
@@ -183,16 +200,41 @@ describe('GameTableTab — статблок и броски NPC', () => {
     updateParticipantMock.mockResolvedValue(updated)
     render(<GameTableTab campaignId="campaign-1" isGm members={[]} />)
 
-    const participantOption = await screen.findByRole('option', { name: 'Гоблины' })
-    fireEvent.change(participantOption.parentElement!, { target: { value: 'participant-1' } })
-    fireEvent.click(screen.getByRole('button', { name: 'Добавить буст' }))
+    fireEvent.click(await screen.findByRole('button', { name: 'Добавить буст Гоблины' }))
     await waitFor(() => expect(updateParticipantMock).toHaveBeenCalledWith(
       'campaign-1', 'participant-1', { boostDice: 3 },
     ))
 
-    fireEvent.click(screen.getByRole('button', { name: '🎲 Бросок участника' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Бросок участника Гоблины' }))
     expect(openRollerMock).toHaveBeenCalledWith(expect.objectContaining({
       kind: 'roll', initialPool: { boost: 3, setback: 1 },
     }))
+  })
+
+  it('открывает собственный лист игрока на вкладке «Лист»', async () => {
+    sessionMock.mockResolvedValue({ ...session, participants: [playerParticipant] })
+    localStorage.setItem('genesysforge.sheet-tab.character-1', 'inventory')
+    render(<GameTableTab campaignId="campaign-1" isGm={false} members={[ownMember]} />)
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Открыть лист персонажа Элира' }))
+
+    expect(window.location.pathname).toBe('/characters/character-1')
+    expect(localStorage.getItem('genesysforge.sheet-tab.character-1')).toBe('sheet')
+  })
+
+  it('не открывает чужой лист игроку, но передаёт его мастеру для read-only просмотра', async () => {
+    const otherMember = { ...ownMember, isMine: false }
+    const pcSession = { ...session, participants: [playerParticipant] }
+    sessionMock.mockResolvedValue(pcSession)
+    const playerView = render(<GameTableTab campaignId="campaign-1" isGm={false} members={[otherMember]} />)
+    expect((await screen.findAllByText('Элира')).length).toBeGreaterThan(0)
+    expect(screen.queryByRole('button', { name: 'Открыть лист персонажа Элира' })).toBeNull()
+    playerView.unmount()
+
+    const openMemberSheet = vi.fn().mockResolvedValue(undefined)
+    render(<GameTableTab campaignId="campaign-1" isGm members={[otherMember]}
+      onOpenMemberSheet={openMemberSheet} />)
+    fireEvent.click(await screen.findByRole('button', { name: 'Открыть лист персонажа Элира' }))
+    expect(openMemberSheet).toHaveBeenCalledWith('character-1', 'Элира')
   })
 })
