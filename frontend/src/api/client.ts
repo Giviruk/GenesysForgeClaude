@@ -39,6 +39,25 @@ export class ApiError extends Error {
   }
 }
 
+export const API_TIMING_EVENT = 'genesysforge:api-timing'
+
+export interface ApiTimingDetail {
+  method: string
+  url: string
+  durationMs: number
+  ok: boolean
+  status?: number
+  responseBytes?: number
+  serverTiming?: string
+}
+
+const timingNow = () => globalThis.performance?.now?.() ?? Date.now()
+
+function reportApiTiming(detail: ApiTimingDetail) {
+  if (typeof window === 'undefined' || typeof CustomEvent === 'undefined') return
+  window.dispatchEvent(new CustomEvent<ApiTimingDetail>(API_TIMING_EVENT, { detail }))
+}
+
 // Вызывается при 401 на запросе с токеном (протухшая/невалидная сессия).
 let onUnauthorized: (() => void) | null = null
 export const setUnauthorizedHandler = (handler: (() => void) | null) => { onUnauthorized = handler }
@@ -154,16 +173,25 @@ export function takeFreshSlices(characterId: string): SheetSlices | null {
   return hit
 }
 
-async function request<T>(method: string, url: string, body?: unknown, retried = false): Promise<T> {
+type RequestMetrics = Pick<ApiTimingDetail, 'status' | 'responseBytes' | 'serverTiming'>
+
+async function requestCore<T>(
+  method: string, url: string, body?: unknown, retried = false, metrics: RequestMetrics = {},
+): Promise<T> {
   const hadToken = tokenStorage.get() !== null
   const response = await rawFetch(method, url, body)
+  metrics.status = response.status
+  const contentLengthHeader = response.headers.get('Content-Length')
+  const contentLength = contentLengthHeader === null ? Number.NaN : Number(contentLengthHeader)
+  metrics.responseBytes = Number.isFinite(contentLength) && contentLength >= 0 ? contentLength : undefined
+  metrics.serverTiming = response.headers.get('Server-Timing') ?? undefined
 
   if (!response.ok) {
     // 401 на защищённом запросе: пробуем тихо обновить access-токен по refresh-cookie и повторить.
     // (на /api/auth/* не обновляем — там неверный логин/refresh сам по себе)
     if (response.status === 401 && !isAuthPath(url)) {
       if (!retried && await tryRefresh()) {
-        return request<T>(method, url, body, true)
+        return requestCore<T>(method, url, body, true, metrics)
       }
       if (hadToken) {
         tokenStorage.clear()
@@ -190,6 +218,26 @@ async function request<T>(method: string, url: string, body?: unknown, retried =
     freshSlices = { characterId: editedCharacterId, slices: data }
   }
   return data as T
+}
+
+/**
+ * Клиентская длительность полного API-действия, включая чтение JSON и прозрачный refresh/retry.
+ * Событие можно собирать в devtools/телеметрии без привязки API-клиента к конкретному провайдеру.
+ */
+async function request<T>(method: string, url: string, body?: unknown): Promise<T> {
+  const startedAt = timingNow()
+  const metrics: RequestMetrics = {}
+  try {
+    const result = await requestCore<T>(method, url, body, false, metrics)
+    reportApiTiming({ method, url, durationMs: timingNow() - startedAt, ok: true, ...metrics })
+    return result
+  } catch (error) {
+    reportApiTiming({
+      method, url, durationMs: timingNow() - startedAt, ok: false,
+      ...metrics, status: error instanceof ApiError ? error.status : metrics.status,
+    })
+    throw error
+  }
 }
 
 /**

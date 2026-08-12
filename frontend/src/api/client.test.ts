@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { api, invalidateReference, setActiveSlices, setUnauthorizedHandler, takeFreshSlices, tokenStorage } from './client'
+import { API_TIMING_EVENT, api, invalidateReference, setActiveSlices, setUnauthorizedHandler, takeFreshSlices, tokenStorage } from './client'
 
 describe('api client — обработка 401', () => {
   afterEach(() => {
@@ -36,6 +36,29 @@ describe('api client — обработка 401', () => {
       new Response(JSON.stringify([{ id: '1', name: 'X' }]), { status: 200 }))
     const list = await api.characters()
     expect(list).toHaveLength(1)
+  })
+
+  it('публикует длительность полного API-действия', async () => {
+    const timings: unknown[] = []
+    const listener = (event: Event) => timings.push((event as CustomEvent).detail)
+    window.addEventListener(API_TIMING_EVENT, listener)
+    const response = new Response(JSON.stringify([{ id: '1', name: 'X' }]), { status: 200 })
+    vi.spyOn(response.headers, 'get').mockImplementation(name => {
+      if (name.toLowerCase() === 'content-length') return '42'
+      if (name.toLowerCase() === 'server-timing') return 'app;dur=3.1'
+      return null
+    })
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(response)
+
+    await api.characters()
+
+    window.removeEventListener(API_TIMING_EVENT, listener)
+    expect(timings).toHaveLength(1)
+    expect(timings[0]).toMatchObject({
+      method: 'GET', url: '/api/characters/', ok: true, status: 200,
+      responseBytes: 42, serverTiming: 'app;dur=3.1',
+    })
+    expect(timings[0]).toEqual(expect.objectContaining({ durationMs: expect.any(Number) }))
   })
 
   it('spells() обращается к /api/spells/<System> с токеном', async () => {

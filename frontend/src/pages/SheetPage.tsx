@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent } from 'react'
 import { api, setActiveSlices, takeFreshSlices } from '../api/client'
-import type { CharacterSheet, Reference, SheetSliceName, SheetSlices } from '../api/types'
+import type { BaseSheet, CharacterSheet, Reference, SheetSliceName, SheetSlices } from '../api/types'
 import { SYSTEM_LABELS } from '../utils/labels'
 import { SheetTab } from '../components/SheetTab'
 import { TalentsTab } from '../components/TalentsTab'
@@ -185,6 +185,27 @@ export function SheetPage({ characterId, printing, onOpenPrint, onClosePrint, on
     setLoaded({ characterId, slices: fresh ?? await api.sheetSlices(characterId, needed) })
   }, [characterId, needed])
 
+  const optimisticVersion = useRef(0)
+  const updateBaseOptimistically = useCallback(async (
+    patch: Partial<BaseSheet>, action: () => Promise<unknown>,
+  ) => {
+    const before = loaded.characterId === characterId ? loaded.slices.base : null
+    if (!before) {
+      await action()
+      await refresh()
+      return
+    }
+    const version = ++optimisticVersion.current
+    mergeSlices({ base: { ...before, ...patch } })
+    try {
+      await action()
+      await refresh()
+    } catch (error) {
+      if (optimisticVersion.current === version) mergeSlices({ base: before })
+      throw error
+    }
+  }, [characterId, loaded, mergeSlices, refresh])
+
   /**
    * Лист, каким его видят вкладки. Части, которые этой вкладке не нужны, подставляются пустыми:
    * читать их здесь всё равно некому — рендер ниже ждёт, пока приедет всё нужное по таблице.
@@ -316,8 +337,11 @@ export function SheetPage({ characterId, printing, onOpenPrint, onClosePrint, on
     setXpEdit(null)
     if (!Number.isFinite(value) || value === sheet.totalXp) return
     try {
-      await api.updateCharacter(sheet.id, { totalXp: Math.trunc(value) })
-      await refresh()
+      const totalXp = Math.trunc(value)
+      await updateBaseOptimistically(
+        { totalXp, availableXp: totalXp - sheet.spentXp },
+        () => api.updateCharacter(sheet.id, { totalXp }),
+      )
     } catch (err) {
       setError(err instanceof Error ? err.message : t('Ошибка', 'Error'))
     }
@@ -424,10 +448,12 @@ export function SheetPage({ characterId, printing, onOpenPrint, onClosePrint, on
       {/* Шапка уже на экране — ждём только те части, которые нужны самой вкладке. */}
       {!ready ? <p className="muted">{t('Загрузка…', 'Loading…')}</p> : (
         <>
-          {tab === 'sheet' && <SheetTab sheet={sheet} onError={setError} refresh={refresh} />}
+          {tab === 'sheet' && <SheetTab sheet={sheet} onError={setError} refresh={refresh}
+            updateBaseOptimistically={updateBaseOptimistically} />}
           {tab === 'talents' && <TalentsTab sheet={sheet} reference={reference} onError={setError} refresh={refresh} />}
           {tab === 'heroic' && <HeroicTab sheet={sheet} reference={reference} onError={setError} refresh={refresh} />}
-          {tab === 'inventory' && <InventoryTab sheet={sheet} reference={reference} onError={setError} refresh={refresh} />}
+          {tab === 'inventory' && <InventoryTab sheet={sheet} reference={reference} onError={setError} refresh={refresh}
+            updateBaseOptimistically={updateBaseOptimistically} />}
           {tab === 'attachments' && <AttachmentsTab sheet={sheet} reference={reference} onError={setError} refresh={refresh} />}
           {tab === 'transport' && <TransportTab sheet={sheet} reference={reference} onError={setError} refresh={refresh} />}
           {tab === 'crafting' && <CraftingTab sheet={sheet} reference={reference} onError={setError} refresh={refresh} />}

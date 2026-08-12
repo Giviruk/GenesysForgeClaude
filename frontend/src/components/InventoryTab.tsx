@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { api } from '../api/client'
 import type {
-  CharacterSheet, ImplementMaterial, ItemCheckModifier, ItemDef, ItemKind, ItemState, Reference,
+  BaseSheet, CharacterSheet, ImplementMaterial, ItemCheckModifier, ItemDef, ItemKind, ItemState, Reference,
   SheetItem, WeaponAttackProfile, WeaponCraftsmanship, WeaponRange,
 } from '../api/types'
 import {
@@ -34,6 +34,7 @@ interface Props {
   reference: Reference
   onError: (message: string) => void
   refresh: () => Promise<void>
+  updateBaseOptimistically?: (patch: Partial<BaseSheet>, action: () => Promise<unknown>) => Promise<void>
 }
 
 const STATES: ItemState[] = ['equipped', 'carried', 'backpack']
@@ -76,7 +77,7 @@ const matchesShopFilter = (item: ItemDef, filter: ShopFilter): boolean => {
 // Поиск: регистронезависимо и устойчиво к лишним пробелам.
 const normalize = (s: string) => s.toLowerCase().replace(/\s+/g, ' ').trim()
 
-export function InventoryTab({ sheet, reference, onError, refresh }: Props) {
+export function InventoryTab({ sheet, reference, onError, refresh, updateBaseOptimistically }: Props) {
   const [search, setSearch] = useState('')
   const [kindFilter, setKindFilter] = useState<ShopFilter>('all')
   const [ownedFilter, setOwnedFilter] = useState<ShopFilter>('all')
@@ -150,7 +151,9 @@ export function InventoryTab({ sheet, reference, onError, refresh }: Props) {
 
   return (
     <div className="inv-page">
-      <MoneyPanel sheet={sheet} run={run} d={d} />
+      <MoneyPanel sheet={sheet} onError={onError}
+        updateBaseOptimistically={updateBaseOptimistically ?? (async (_patch, action) => { await action(); await refresh() })}
+        d={d} />
 
       <div className="inv-layout">
         {/* ── Инвентарь персонажа ── */}
@@ -261,23 +264,41 @@ export function InventoryTab({ sheet, reference, onError, refresh }: Props) {
 
 type Run = (action: () => Promise<unknown>) => Promise<void>
 
-function MoneyPanel({ sheet, run, d }: { sheet: CharacterSheet; run: Run; d: CharacterSheet['derived'] }) {
+function MoneyPanel({ sheet, onError, updateBaseOptimistically, d }: {
+  sheet: CharacterSheet
+  onError: (message: string) => void
+  updateBaseOptimistically: (patch: Partial<BaseSheet>, action: () => Promise<unknown>) => Promise<void>
+  d: CharacterSheet['derived']
+}) {
   const [edit, setEdit] = useState<string | null>(null)
   const [delta, setDelta] = useState('')
+  const [busy, setBusy] = useState(false)
+
+  async function updateMoney(money: number) {
+    if (busy) return
+    setBusy(true)
+    try {
+      await updateBaseOptimistically({ money }, () => api.updateCharacter(sheet.id, { money }))
+    } catch (err) {
+      onError(err instanceof Error ? err.message : t('Ошибка', 'Error'))
+    } finally {
+      setBusy(false)
+    }
+  }
 
   function saveExact() {
     if (edit === null) return
     const value = Number(edit)
     setEdit(null)
     if (!Number.isFinite(value) || value === sheet.money) return
-    void run(() => api.updateCharacter(sheet.id, { money: Math.max(0, Math.trunc(value)) }))
+    void updateMoney(Math.max(0, Math.trunc(value)))
   }
 
   function adjust(sign: 1 | -1) {
     const amount = Math.trunc(Number(delta))
     if (!Number.isFinite(amount) || amount <= 0) return
     setDelta('')
-    void run(() => api.updateCharacter(sheet.id, { money: Math.max(0, sheet.money + sign * amount) }))
+    void updateMoney(Math.max(0, sheet.money + sign * amount))
   }
 
   return (
@@ -298,8 +319,8 @@ function MoneyPanel({ sheet, run, d }: { sheet: CharacterSheet; run: Run; d: Cha
       <div className="money-adjust">
         <input type="number" min={1} placeholder={t('сумма', 'amount')} value={delta}
           onChange={e => setDelta(e.target.value)} />
-        <button className="small" onClick={() => adjust(1)} disabled={!delta}>{t('+ Прибавить', '+ Add')}</button>
-        <button className="small" onClick={() => adjust(-1)} disabled={!delta}>{t('− Списать', '− Spend')}</button>
+        <button className="small" onClick={() => adjust(1)} disabled={!delta || busy}>{t('+ Прибавить', '+ Add')}</button>
+        <button className="small" onClick={() => adjust(-1)} disabled={!delta || busy}>{t('− Списать', '− Spend')}</button>
       </div>
       <div className="money-derived muted">
         {t('Переносимый вес', 'Encumbrance')} <strong className={d.encumbered ? 'error' : ''}>{d.encumbranceLoad}/{d.encumbranceThreshold}</strong>

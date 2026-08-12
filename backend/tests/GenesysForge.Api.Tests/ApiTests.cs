@@ -66,6 +66,11 @@ public class AuthTests : IClassFixture<ApiFactory>
         var body = await response.Content.ReadFromJsonAsync<Dictionary<string, string>>();
         Assert.Equal("ok", body!["status"]);
         Assert.Equal("ok", body["database"]);
+        Assert.True(response.Headers.TryGetValues("Server-Timing", out var timings));
+        var timing = Assert.Single(timings);
+        Assert.Contains("app;dur=", timing, StringComparison.Ordinal);
+        Assert.Contains("db;dur=", timing, StringComparison.Ordinal);
+        Assert.Contains("queries", timing, StringComparison.Ordinal);
     }
 }
 

@@ -1,4 +1,4 @@
-import type { GameParticipant } from '../api/types'
+import type { GameParticipant, GameSession, UpdateParticipantRequest } from '../api/types'
 import type { RollPool } from './diceRoller'
 
 export interface MinionGroupState {
@@ -6,6 +6,28 @@ export interface MinionGroupState {
   remainingCount: number
   defeatedCount: number
   perMemberWoundThreshold: number
+}
+
+/** Локальная проекция безопасной числовой команды до подтверждения сервера. */
+export function applyParticipantPatch(
+  session: GameSession, participantId: string, patch: UpdateParticipantRequest,
+): GameSession {
+  return {
+    ...session,
+    participants: session.participants.map(participant => {
+      if (participant.id !== participantId) return participant
+      const present = Object.fromEntries(
+        Object.entries(patch).filter(([, value]) => value !== null && value !== undefined),
+      ) as Partial<GameParticipant>
+      const next: GameParticipant = { ...participant, ...present }
+      if (next.participantType === 'minionGroup' && next.perMemberWoundThreshold && patch.woundsCurrent != null) {
+        const defeated = Math.min(next.count,
+          Math.floor(Math.max(0, next.woundsCurrent - 1) / next.perMemberWoundThreshold))
+        next.remainingCount = next.isDefeated ? 0 : next.count - defeated
+      }
+      return next
+    }),
+  }
 }
 
 /**

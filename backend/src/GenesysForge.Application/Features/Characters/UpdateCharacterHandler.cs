@@ -2,6 +2,7 @@ using GenesysForge.Application.Abstractions;
 using GenesysForge.Application.Common;
 using GenesysForge.Domain;
 using GenesysForge.Domain.Entities;
+using Microsoft.EntityFrameworkCore;
 
 namespace GenesysForge.Application.Features.Characters;
 
@@ -10,7 +11,9 @@ public class UpdateCharacterHandler(IAppDbContext db) : ICommandHandler<UpdateCh
     public async Task<Unit> Handle(UpdateCharacterCommand command, CancellationToken ct = default)
     {
         var req = command.Request;
-        var c = await db.GetOwnedAsync(command.UserId, command.CharacterId, ct: ct);
+        var c = await db.UpdateQuery(req.TotalXp is not null)
+            .FirstOrDefaultAsync(x => x.Id == command.CharacterId && x.OwnerUserId == command.UserId, ct)
+            ?? throw new DomainRuleException("Персонаж не найден.");
 
         if (req.Name is not null)
         {

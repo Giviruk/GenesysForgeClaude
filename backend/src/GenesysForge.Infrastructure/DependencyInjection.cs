@@ -1,6 +1,7 @@
 using GenesysForge.Application.Abstractions;
 using GenesysForge.Domain;
 using GenesysForge.Infrastructure.Auth;
+using GenesysForge.Infrastructure.Diagnostics;
 using GenesysForge.Infrastructure.Persistence;
 using GenesysForge.Infrastructure.Storage;
 using Microsoft.EntityFrameworkCore;
@@ -18,7 +19,9 @@ public static class DependencyInjection
             o.Mode = Enum.TryParse<ContentMode>(config["Content:Mode"], ignoreCase: true, out var m)
                 ? m : ContentMode.PrivateFull);
 
-        services.AddDbContext<AppDbContext>(options =>
+        services.AddScoped<RequestPerformanceContext>();
+        services.AddScoped<RequestDbCommandInterceptor>();
+        services.AddDbContext<AppDbContext>((serviceProvider, options) =>
         {
             if (config.GetValue<bool>("UseInMemoryDatabase"))
                 options.UseInMemoryDatabase(config["InMemoryDatabaseName"] ?? "genesysforge-tests");
@@ -32,6 +35,7 @@ public static class DependencyInjection
                     // 7 360 000 строк вместо примерно двухсот — и в каждой едут все описания
                     // справочника. Раздельные запросы делают каждую коллекцию линейной по себе.
                     o => o.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery));
+            options.AddInterceptors(serviceProvider.GetRequiredService<RequestDbCommandInterceptor>());
         });
         services.AddScoped<IAppDbContext>(sp => sp.GetRequiredService<AppDbContext>());
 

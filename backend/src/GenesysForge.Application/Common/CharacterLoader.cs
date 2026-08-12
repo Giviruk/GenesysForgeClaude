@@ -18,6 +18,21 @@ namespace GenesysForge.Application.Common;
 public static class CharacterLoader
 {
     /// <summary>
+    /// Узкий tracking-запрос для общей правки персонажа. Большинство полей находятся в самой
+    /// строке персонажа; только изменение общего XP требует данных героической способности.
+    /// </summary>
+    public static IQueryable<Character> UpdateQuery(this IAppDbContext db, bool needsXpValidation)
+    {
+        var query = db.Characters.AsQueryable();
+        if (needsXpValidation)
+            query = query
+                .Include(c => c.Archetype)
+                .Include(c => c.HeroicAbility).ThenInclude(h => h!.Upgrades)
+                .Include(c => c.HeroicSecondaryEffects);
+        return query;
+    }
+
+    /// <summary>
     /// Карточки списка: пороги зависят от вида и талантов, но не от инвентаря. Отдельный query
     /// builder позволяет регрессионному тесту гарантировать, что тяжёлый Include предметов не вернётся.
     /// </summary>
