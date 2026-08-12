@@ -1,4 +1,7 @@
-import { useCallback, useEffect, useState, type FormEvent, type MouseEvent } from 'react'
+import {
+  useCallback, useEffect, useRef, useState, type FormEvent, type MouseEvent,
+  type PointerEvent as ReactPointerEvent,
+} from 'react'
 import { api } from '../api/client'
 import type {
   ActivateAbilityResult, CampaignMember, GameParticipant, GameSession, HeroicAbility,
@@ -16,7 +19,7 @@ import {
 } from '../utils/uiPreferences'
 import {
   estimateRangeBetween, nearestFreeRangeAngle, RANGE_ZONE_RADII_PERCENT,
-  rangeZoneFromRadius, snapRangeAngle,
+  rangeCellFromBoardPoint, snapRangeAngle,
 } from '../utils/rangeGeometry'
 import { navigate } from '../router'
 
@@ -252,7 +255,9 @@ function RangeBandTracker({ campaignId, session, isGm }: {
   const [log, setLog] = useState<string[]>(() => stored().log)
   const [focusParticipantId, setFocusParticipantId] = useState<string | null>(() => stored().focusParticipantId)
   const [dragId, setDragId] = useState<string | null>(null)
+  const [dragPreview, setDragPreview] = useState<{ id: string; zone: RangeZone; angle: number } | null>(null)
   const [showLog, setShowLog] = useState(false)
+  const rangeBoardRef = useRef<HTMLDivElement>(null)
 
   const participants = session.participants.filter(p => !p.isDefeated)
   const fallbackFocus = participants.find(p => p.participantType === 'playerCharacter') ?? participants[0]
@@ -306,11 +311,45 @@ function RangeBandTracker({ campaignId, session, isGm }: {
     if (normalized >= 225 && normalized < 315) return t('фронт', 'front')
     return t('справа', 'right')
   }
-  const positionStyle = (p: GameParticipant) => {
-    const angle = angleOf(p)
+  const cellPositionStyle = ({ zone, angle }: { zone: RangeZone; angle: number }) => {
     const radians = angle * Math.PI / 180
-    const radius = RANGE_ZONE_RADII_PERCENT[zoneOf(p)]
+    const radius = RANGE_ZONE_RADII_PERCENT[zone]
     return { left: `${50 + Math.cos(radians) * radius}%`, top: `${50 + Math.sin(radians) * radius}%` }
+  }
+  const positionStyle = (p: GameParticipant) => cellPositionStyle({ zone: zoneOf(p), angle: angleOf(p) })
+  const updateDragPreview = (p: GameParticipant, clientX: number, clientY: number) => {
+    const board = rangeBoardRef.current?.getBoundingClientRect()
+    if (!board) return
+    const cell = rangeCellFromBoardPoint(clientX, clientY, board)
+    setDragPreview({ id: p.id, zone: cell.zone, angle: freeAngle(p, cell.zone, cell.angle) })
+  }
+  const beginDrag = (e: ReactPointerEvent<HTMLDivElement>, p: GameParticipant) => {
+    if (!isGm || e.button !== 0) return
+    e.preventDefault()
+    setFocusParticipantId(p.id)
+    setDragId(p.id)
+    setDragPreview({ id: p.id, zone: zoneOf(p), angle: angleOf(p) })
+  }
+  const continueDrag = (e: ReactPointerEvent<HTMLDivElement>) => {
+    const p = participants.find(candidate => candidate.id === dragId)
+    if (!p) return
+    updateDragPreview(p, e.clientX, e.clientY)
+  }
+  const finishDrag = (e: ReactPointerEvent<HTMLDivElement>) => {
+    const p = participants.find(candidate => candidate.id === dragId)
+    if (!p) return cancelDrag()
+    updateDragPreview(p, e.clientX, e.clientY)
+    const board = rangeBoardRef.current?.getBoundingClientRect()
+    if (board) {
+      const cell = rangeCellFromBoardPoint(e.clientX, e.clientY, board)
+      move(p, cell.zone, cell.angle)
+    }
+    setDragId(null)
+    setDragPreview(null)
+  }
+  const cancelDrag = () => {
+    setDragId(null)
+    setDragPreview(null)
   }
   const distanceFromFocus = (p: GameParticipant) => focus
     ? estimateRangeBetween(
@@ -331,21 +370,8 @@ function RangeBandTracker({ campaignId, session, isGm }: {
           className={focus?.id === p.id ? 'tiny active' : 'tiny'}
           onClick={() => setFocusParticipantId(p.id)}>{participantNameWithCount(p)}</button>)}
       </div>
-      <div className={`range-rings${dragId ? ' dragging' : ''}`}
-        onDragOver={e => { if (isGm) { e.preventDefault(); e.dataTransfer.dropEffect = 'move' } }}
-        onDrop={e => {
-          e.preventDefault()
-          if (!isGm) return
-          const p = participants.find(x => x.id === dragId)
-          if (!p) return setDragId(null)
-          const rect = e.currentTarget.getBoundingClientRect()
-          const x = e.clientX - rect.left - rect.width / 2
-          const y = e.clientY - rect.top - rect.height / 2
-          const normalizedRadius = Math.hypot(x, y) / (Math.min(rect.width, rect.height) / 2) * 100
-          const zone = rangeZoneFromRadius(normalizedRadius)
-          move(p, zone, Math.atan2(y, x) * 180 / Math.PI)
-          setDragId(null)
-        }}>
+      <div ref={rangeBoardRef} data-testid="range-board" className={`range-rings${dragId ? ' dragging' : ''}`}
+        onPointerMove={continueDrag} onPointerUp={finishDrag} onPointerCancel={cancelDrag}>
         <div className="range-cell-grid" aria-hidden="true" />
         {RANGE_ZONES.slice().reverse().map(zone => (
           <div key={zone.id} className={`range-ring ring-${zone.id}`}>
@@ -358,17 +384,16 @@ function RangeBandTracker({ campaignId, session, isGm }: {
         {participants.map(p => {
           const pc = p.participantType === 'playerCharacter'
           const zi = ZONE_INDEX[zoneOf(p)]
-          return <div key={p.id} style={positionStyle(p)} draggable={isGm}
-            className={`ring-token${pc ? ' pc' : ' npc'}${p.id === focus?.id ? ' selected' : ''}${p.isHiddenFromPlayers ? ' hidden-token' : ''}`}
+          return <div key={p.id} style={positionStyle(p)}
+            className={`ring-token${pc ? ' pc' : ' npc'}${p.id === focus?.id ? ' selected' : ''}${p.id === dragId ? ' dragging-source' : ''}${p.isHiddenFromPlayers ? ' hidden-token' : ''}`}
             title={`${participantNameWithCount(p)} — ${zoneName(RANGE_ZONES[zi])}, ${sideName(angleOf(p))}`}
             aria-label={t(`Выбрать ${participantNameWithCount(p)} для расчёта расстояний`, `Select ${participantNameWithCount(p)} for range estimates`)}
             role="button" tabIndex={0}
             onClick={() => setFocusParticipantId(p.id)}
             onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setFocusParticipantId(p.id) } }}
-            onDragStart={e => { setDragId(p.id); e.dataTransfer.effectAllowed = 'move' }}
-            onDragEnd={() => setDragId(null)}>
+            onPointerDown={e => beginDrag(e, p)}>
             <span>{initials(p)}</span>
-            {isGm && <span className="ring-token-actions">
+            {isGm && <span className="ring-token-actions" onPointerDown={e => e.stopPropagation()}>
               <button type="button" className="tiny" disabled={zi === 0}
                 title={t('Ближе', 'Closer')} onClick={e => { e.stopPropagation(); shift(p, -1) }}>▲</button>
               <button type="button" className="tiny" disabled={zi === RANGE_ZONES.length - 1}
@@ -376,6 +401,14 @@ function RangeBandTracker({ campaignId, session, isGm }: {
             </span>}
           </div>
         })}
+        {dragPreview && (() => {
+          const participant = participants.find(p => p.id === dragPreview.id)
+          if (!participant) return null
+          return <div className={`ring-token drag-preview${participant.participantType === 'playerCharacter' ? ' pc' : ' npc'}`}
+            style={cellPositionStyle(dragPreview)} aria-hidden="true">
+            <span>{initials(participant)}</span>
+          </div>
+        })()}
       </div>
       <div className="ring-legend">
         {participants.map(p => <span key={p.id} className={p.participantType === 'playerCharacter' ? 'pc' : 'npc'}>

@@ -27,6 +27,11 @@ export interface EstimatedRange {
   bandUnits: number
 }
 
+export interface RangeBoardPoint {
+  zone: RangeZone
+  angle: number
+}
+
 export function normalizeAngle(angle: number): number {
   return ((angle % 360) + 360) % 360
 }
@@ -41,6 +46,22 @@ export function snapRangeAngle(angle: number): number {
 export function rangeZoneFromRadius(radiusPercent: number): RangeZone {
   const index = ZONE_BOUNDARIES_PERCENT.findIndex(boundary => radiusPercent < boundary)
   return ZONES[index < 0 ? ZONES.length - 1 : index]
+}
+
+/** Переводит координату указателя относительно доски в ближайшую кольцевую ячейку. */
+export function rangeCellFromBoardPoint(
+  clientX: number,
+  clientY: number,
+  board: { left: number; top: number; width: number; height: number },
+): RangeBoardPoint {
+  const x = clientX - board.left - board.width / 2
+  const y = clientY - board.top - board.height / 2
+  const boardRadius = Math.min(board.width, board.height) / 2
+  const radiusPercent = boardRadius > 0 ? Math.hypot(x, y) / boardRadius * 100 : 0
+  return {
+    zone: rangeZoneFromRadius(radiusPercent),
+    angle: snapRangeAngle(Math.atan2(y, x) * 180 / Math.PI),
+  }
 }
 
 /**
@@ -75,10 +96,14 @@ export function estimateRangeBetween(from: RangeCellPosition, to: RangeCellPosit
   const a = point(from.zone, from.angle)
   const b = point(to.zone, to.angle)
   const bandUnits = Math.hypot(a.x - b.x, a.y - b.y)
-  const zone: RangeZone = bandUnits < 0.75 ? 'engaged'
-    : bandUnits < 1.5 ? 'short'
-      : bandUnits < 2.5 ? 'medium'
-        : bandUnits < 3.5 ? 'long'
+  // Те же границы, что у колец доски: одна ширина кольца = «Вплотную», две = «Ближняя» и т. д.
+  // Пограничное значение относится к следующему диапазону; допуск убирает ошибки float
+  // (например, разность центров 3.5 − 1.5 должна быть ровно 2).
+  const epsilon = 1e-9
+  const zone: RangeZone = bandUnits < 1 - epsilon ? 'engaged'
+    : bandUnits < 2 - epsilon ? 'short'
+      : bandUnits < 3 - epsilon ? 'medium'
+        : bandUnits < 4 - epsilon ? 'long'
           : 'extreme'
   return { zone, bandUnits }
 }
