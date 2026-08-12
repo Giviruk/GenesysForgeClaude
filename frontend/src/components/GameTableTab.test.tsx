@@ -111,6 +111,25 @@ describe('GameTableTab — статблок и броски NPC', () => {
     expect(screen.getByText(/Средняя → Дальняя/)).toBeTruthy()
   })
 
+  it('показывает расстояния от выбранного участника, не переставляя токены', async () => {
+    const rangeSession = { ...session, participants: [playerParticipant, session.participants[0]] }
+    sessionMock.mockResolvedValue(rangeSession)
+    render(<GameTableTab campaignId="campaign-1" isGm members={[ownMember]} />)
+
+    const npcToken = await screen.findByRole('button', { name: 'Выбрать Гоблины ×3/3 для расчёта расстояний' })
+    const pcToken = screen.getByRole('button', { name: 'Выбрать Элира для расчёта расстояний' })
+    const npcPosition = npcToken.getAttribute('style')
+    const pcPosition = pcToken.getAttribute('style')
+
+    expect(screen.getByText('Расчётные расстояния от Элира')).toBeTruthy()
+    expect(screen.getByText('≈ Дальняя')).toBeTruthy()
+    fireEvent.click(npcToken)
+
+    expect(screen.getByText('Расчётные расстояния от Гоблины ×3/3')).toBeTruthy()
+    expect(npcToken.getAttribute('style')).toBe(npcPosition)
+    expect(pcToken.getAttribute('style')).toBe(pcPosition)
+  })
+
   it('считает оставшихся миньонов по ранам и использует их число в навыках', async () => {
     render(<GameTableTab campaignId="campaign-1" isGm members={[]} />)
 

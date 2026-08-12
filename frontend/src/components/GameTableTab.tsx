@@ -14,6 +14,10 @@ import { participantNameWithCount, participantRollPool } from '../utils/gameTabl
 import {
   readRangeTrackerState, writeRangeTrackerState, writeSheetTab, type RangeZone,
 } from '../utils/uiPreferences'
+import {
+  estimateRangeBetween, nearestFreeRangeAngle, RANGE_ZONE_RADII_PERCENT,
+  rangeZoneFromRadius, snapRangeAngle,
+} from '../utils/rangeGeometry'
 import { navigate } from '../router'
 
 interface Props {
@@ -254,13 +258,19 @@ function RangeBandTracker({ campaignId, session, isGm }: {
   const fallbackFocus = participants.find(p => p.participantType === 'playerCharacter') ?? participants[0]
   const focus = participants.find(p => p.id === focusParticipantId) ?? fallbackFocus ?? null
   const zoneOf = (p: GameParticipant): RangeZone => zones[p.id] ?? defaultZone(p)
-  const angleOf = (p: GameParticipant): number => angles[p.id]
-    ?? ((participants.findIndex(candidate => candidate.id === p.id) * 137 + 210) % 360)
+  const angleOf = (p: GameParticipant): number => snapRangeAngle(angles[p.id]
+    ?? (participants.findIndex(candidate => candidate.id === p.id) * 90 + 210))
+
+  const freeAngle = (p: GameParticipant, zone: RangeZone, desiredAngle: number) =>
+    nearestFreeRangeAngle(desiredAngle, zone, participants
+      .filter(candidate => candidate.id !== p.id)
+      .map(candidate => ({ zone: zoneOf(candidate), angle: angleOf(candidate) })))
 
   const move = (p: GameParticipant, to: RangeZone, angle = angleOf(p)) => {
     const from = zoneOf(p)
+    const snappedAngle = freeAngle(p, to, angle)
     setZones(prev => ({ ...prev, [p.id]: to }))
-    setAngles(prev => ({ ...prev, [p.id]: angle }))
+    setAngles(prev => ({ ...prev, [p.id]: snappedAngle }))
     if (from === to) return
     const fromZone = RANGE_ZONES[ZONE_INDEX[from]]
     const toZone = RANGE_ZONES[ZONE_INDEX[to]]
@@ -284,9 +294,6 @@ function RangeBandTracker({ campaignId, session, isGm }: {
 
   if (participants.length === 0) return null
 
-  const radiusByZone: Record<RangeZone, number> = {
-    engaged: 8, short: 18, medium: 29, long: 39, extreme: 48,
-  }
   const initials = (p: GameParticipant) => {
     if (p.participantType === 'minionGroup') return `${p.displayName.trim().charAt(0).toUpperCase()}×${p.remainingCount ?? p.count}`
     const words = p.displayName.trim().split(/\s+/).filter(Boolean)
@@ -302,9 +309,15 @@ function RangeBandTracker({ campaignId, session, isGm }: {
   const positionStyle = (p: GameParticipant) => {
     const angle = angleOf(p)
     const radians = angle * Math.PI / 180
-    const radius = radiusByZone[zoneOf(p)]
+    const radius = RANGE_ZONE_RADII_PERCENT[zoneOf(p)]
     return { left: `${50 + Math.cos(radians) * radius}%`, top: `${50 + Math.sin(radians) * radius}%` }
   }
+  const distanceFromFocus = (p: GameParticipant) => focus
+    ? estimateRangeBetween(
+        { zone: zoneOf(focus), angle: angleOf(focus) },
+        { zone: zoneOf(p), angle: angleOf(p) },
+      )
+    : null
 
   return (
     <section className="panel rb-tracker range-board ring-range-board">
@@ -313,7 +326,7 @@ function RangeBandTracker({ campaignId, session, isGm }: {
         <span className="muted small-text">{t('сохранено на этом устройстве', 'saved on this device')}</span>
       </div>
       <div className="ring-focus-switch">
-        <span className="muted small-text">{t('Отсчёт от:', 'Focus:')}</span>
+        <span className="muted small-text">{t('Показать расстояния от:', 'Show distances from:')}</span>
         {participants.map(p => <button type="button" key={p.id}
           className={focus?.id === p.id ? 'tiny active' : 'tiny'}
           onClick={() => setFocusParticipantId(p.id)}>{participantNameWithCount(p)}</button>)}
@@ -324,18 +337,16 @@ function RangeBandTracker({ campaignId, session, isGm }: {
           e.preventDefault()
           if (!isGm) return
           const p = participants.find(x => x.id === dragId)
-          if (!p || p.id === focus?.id) return setDragId(null)
+          if (!p) return setDragId(null)
           const rect = e.currentTarget.getBoundingClientRect()
           const x = e.clientX - rect.left - rect.width / 2
           const y = e.clientY - rect.top - rect.height / 2
           const normalizedRadius = Math.hypot(x, y) / (Math.min(rect.width, rect.height) / 2) * 100
-          const zone = normalizedRadius < 13 ? 'engaged'
-            : normalizedRadius < 24 ? 'short'
-              : normalizedRadius < 34 ? 'medium'
-                : normalizedRadius < 44 ? 'long' : 'extreme'
+          const zone = rangeZoneFromRadius(normalizedRadius)
           move(p, zone, Math.atan2(y, x) * 180 / Math.PI)
           setDragId(null)
         }}>
+        <div className="range-cell-grid" aria-hidden="true" />
         {RANGE_ZONES.slice().reverse().map(zone => (
           <div key={zone.id} className={`range-ring ring-${zone.id}`}>
             <span>{zoneName(zone)}</span>
@@ -344,15 +355,16 @@ function RangeBandTracker({ campaignId, session, isGm }: {
         <span className="ring-side ring-left">{t('Левый фланг', 'Left flank')}</span>
         <span className="ring-side ring-right">{t('Правый фланг', 'Right flank')}</span>
         <span className="ring-side ring-rear">{t('Тыл', 'Rear')}</span>
-        {focus && <div className="ring-token focus" title={`${participantNameWithCount(focus)} — ${t('фокус', 'focus')}`}>
-          <span>{initials(focus)}</span>
-        </div>}
-        {participants.filter(p => p.id !== focus?.id).map(p => {
+        {participants.map(p => {
           const pc = p.participantType === 'playerCharacter'
           const zi = ZONE_INDEX[zoneOf(p)]
           return <div key={p.id} style={positionStyle(p)} draggable={isGm}
-            className={`ring-token${pc ? ' pc' : ' npc'}${p.isHiddenFromPlayers ? ' hidden-token' : ''}`}
+            className={`ring-token${pc ? ' pc' : ' npc'}${p.id === focus?.id ? ' selected' : ''}${p.isHiddenFromPlayers ? ' hidden-token' : ''}`}
             title={`${participantNameWithCount(p)} — ${zoneName(RANGE_ZONES[zi])}, ${sideName(angleOf(p))}`}
+            aria-label={t(`Выбрать ${participantNameWithCount(p)} для расчёта расстояний`, `Select ${participantNameWithCount(p)} for range estimates`)}
+            role="button" tabIndex={0}
+            onClick={() => setFocusParticipantId(p.id)}
+            onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setFocusParticipantId(p.id) } }}
             onDragStart={e => { setDragId(p.id); e.dataTransfer.effectAllowed = 'move' }}
             onDragEnd={() => setDragId(null)}>
             <span>{initials(p)}</span>
@@ -368,10 +380,28 @@ function RangeBandTracker({ campaignId, session, isGm }: {
       <div className="ring-legend">
         {participants.map(p => <span key={p.id} className={p.participantType === 'playerCharacter' ? 'pc' : 'npc'}>
           <i /> <strong>{initials(p)}</strong> {participantNameWithCount(p)} · {p.id === focus?.id
-            ? t('фокус', 'focus')
+            ? t('выбран', 'selected')
             : `${zoneName(RANGE_ZONES[ZONE_INDEX[zoneOf(p)]])}, ${sideName(angleOf(p))}`}
         </span>)}
       </div>
+      {focus && (
+        <div className="range-distance-panel" aria-live="polite">
+          <div className="range-distance-head">
+            <strong>{t(`Расчётные расстояния от ${participantNameWithCount(focus)}`, `Estimated ranges from ${participantNameWithCount(focus)}`)}</strong>
+            <span>{t('по положению ячеек · мастер может трактовать иначе', 'from cell positions · GM may override')}</span>
+          </div>
+          <div className="range-distance-list">
+            {participants.filter(p => p.id !== focus.id).map(p => {
+              const estimate = distanceFromFocus(p)!
+              return <button type="button" key={p.id} onClick={() => setFocusParticipantId(p.id)}
+                title={t(`Геометрическая оценка: ${estimate.bandUnits.toFixed(1)} диапазона`, `Geometric estimate: ${estimate.bandUnits.toFixed(1)} bands`)}>
+                <span>{initials(p)} · {participantNameWithCount(p)}</span>
+                <b>≈ {zoneName(RANGE_ZONES[ZONE_INDEX[estimate.zone]])}</b>
+              </button>
+            })}
+          </div>
+        </div>
+      )}
       {log.length > 0 && (
         <div className="rb-log">
           <div className="rb-log-head">
