@@ -8,12 +8,13 @@ import { GameTableTab } from '../components/GameTableTab'
 import { EncountersTab } from '../components/EncountersTab'
 import { HandbookTab } from '../components/HandbookTab'
 import { CustomTab } from '../components/CustomTab'
+import { CampaignChronicleTab } from '../components/CampaignChronicleTab'
 import { PrintPreview } from '../components/print/PrintPreview'
 import { CharacterSheetPrint } from '../components/print/CharacterSheetPrint'
 import { useCampaignHub, type CampaignHubStatus } from '../useCampaignHub'
 import { lang, t } from '../i18n'
 
-export type CampaignView = 'overview' | 'handbook' | 'encounters' | 'table' | 'custom'
+export type CampaignView = 'overview' | 'chronicle' | 'handbook' | 'encounters' | 'table' | 'custom'
 
 interface Props {
   openId: string | null
@@ -236,6 +237,7 @@ function CampaignDetailView({ campaignId, view, openEncounterId, onBack, onView,
 
       <div className="system-switch campaign-tabs">
         <button className={view === 'overview' ? 'tab active' : 'tab'} onClick={() => onView('overview')}>{t('Обзор', 'Overview')}</button>
+        <button className={view === 'chronicle' ? 'tab active' : 'tab'} onClick={() => onView('chronicle')}>{t('Хроника', 'Chronicle')}</button>
         <button className={view === 'handbook' ? 'tab active' : 'tab'} onClick={() => onView('handbook')}>{t('Материалы', 'Handbook')}</button>
         <button className={view === 'encounters' ? 'tab active' : 'tab'} onClick={() => onView('encounters')}>{t('Энкаунтеры', 'Encounters')}</button>
         <button className={view === 'table' ? 'tab active' : 'tab'} onClick={() => onView('table')}>{t('Игровой стол', 'Game table')}</button>
@@ -244,6 +246,9 @@ function CampaignDetailView({ campaignId, view, openEncounterId, onBack, onView,
 
       {view === 'custom' && c.isGm ? (
         <CampaignCustomTab campaignId={c.id} members={c.members} onError={setError} />
+      ) : view === 'chronicle' ? (
+        <CampaignChronicleTab campaignId={c.id} members={c.members} refreshSignal={liveSignal}
+          onOpenCharacter={openMemberSheet} onError={setError} />
       ) : view === 'table' ? (
         <GameTableTab campaignId={c.id} isGm={c.isGm} members={c.members}
           onOpenMemberSheet={openMemberSheet} refreshSignal={liveSignal} />

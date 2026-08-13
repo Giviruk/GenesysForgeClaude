@@ -26,7 +26,7 @@ Also implemented: Google sign-in (disabled until `Auth:Google:ClientId` is set),
 
 ## Core entities
 
-`User`; `SkillDef`; `TalentDef`; `ItemDef`; `HeroicAbilityDef`; `ArchetypeDef`; `CareerDef`; `SpellDef`; `Character`; `CharacterSkill`; `CharacterTalent`; `CharacterItem`; `CharacterNote`; `Campaign`; `CampaignCharacter`; `CampaignNote`; `Npc`; `NpcSkill`; `NpcAbility`; `Encounter`; `EncounterParticipant`; `GameSession`; `GameParticipant`; `InitiativeSlot`; `ContentPack`; `ContentPackEntry`. `OwnerUserId = null` means built-in reference content; non-null means custom content owned by one user.
+`User`; `SkillDef`; `TalentDef`; `ItemDef`; `HeroicAbilityDef`; `ArchetypeDef`; `CareerDef`; `SpellDef`; `Character`; `CharacterSkill`; `CharacterTalent`; `CharacterItem`; `CharacterNote`; `Campaign`; `CampaignCharacter`; `CampaignNote`; `CampaignChronicleChapter`; `CampaignChronicleRevision`; `Npc`; `NpcSkill`; `NpcAbility`; `Encounter`; `EncounterParticipant`; `GameSession`; `GameParticipant`; `InitiativeSlot`; `ContentPack`; `ContentPackEntry`. `OwnerUserId = null` means built-in reference content; non-null means custom content owned by one user.
 
 ## Key rules
 

@@ -150,6 +150,11 @@ public static class DependencyInjection
         services.AddScoped<ICommandHandler<CreateCampaignNoteCommand, CampaignNoteDto>, CreateCampaignNoteHandler>();
         services.AddScoped<ICommandHandler<UpdateCampaignNoteCommand, CampaignNoteDto>, UpdateCampaignNoteHandler>();
         services.AddScoped<ICommandHandler<DeleteCampaignNoteCommand, Unit>, DeleteCampaignNoteHandler>();
+        services.AddScoped<IQueryHandler<GetCampaignChronicleQuery, List<CampaignChronicleChapterDto>>, GetCampaignChronicleHandler>();
+        services.AddScoped<ICommandHandler<CreateCampaignChronicleChapterCommand, CampaignChronicleChapterDto>, CreateCampaignChronicleChapterHandler>();
+        services.AddScoped<ICommandHandler<UpdateCampaignChronicleChapterCommand, CampaignChronicleChapterDto>, UpdateCampaignChronicleChapterHandler>();
+        services.AddScoped<IQueryHandler<GetCampaignChronicleHistoryQuery, List<CampaignChronicleRevisionDto>>, GetCampaignChronicleHistoryHandler>();
+        services.AddScoped<ICommandHandler<RestoreCampaignChronicleRevisionCommand, CampaignChronicleChapterDto>, RestoreCampaignChronicleRevisionHandler>();
 
         // Spells
         services.AddScoped<IQueryHandler<GetSpellsQuery, List<SpellDto>>, GetSpellsHandler>();

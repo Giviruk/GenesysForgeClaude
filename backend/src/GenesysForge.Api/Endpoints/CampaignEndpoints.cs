@@ -40,7 +40,7 @@ public static class CampaignEndpoints
                 IQueryHandler<GetCampaignQuery, CampaignDetailDto> handler, CancellationToken ct) =>
             Results.Ok(await handler.Handle(new GetCampaignQuery(user.UserId(), id), ct)));
 
-        // GM открывает read-only лист персонажа участника своей кампании (U-20).
+        // GM или игрок открывает read-only лист персонажа своей кампании.
         group.MapGet("/{id:guid}/characters/{characterId:guid}/sheet", async (Guid id, Guid characterId,
                 ClaimsPrincipal user, IQueryHandler<GetCampaignMemberSheetQuery, CharacterSheetDto> handler,
                 CancellationToken ct) =>
@@ -77,5 +77,39 @@ public static class CampaignEndpoints
             await handler.Handle(new DeleteCampaignNoteCommand(user.UserId(), id, noteId), ct);
             return Results.NoContent();
         });
+
+        // Хроника совместная: читать и редактировать могут GM и участники кампании.
+        group.MapGet("/{id:guid}/chronicle", async (Guid id, ClaimsPrincipal user,
+                IQueryHandler<GetCampaignChronicleQuery, List<CampaignChronicleChapterDto>> handler,
+                CancellationToken ct) =>
+            Results.Ok(await handler.Handle(new GetCampaignChronicleQuery(user.UserId(), id), ct)));
+
+        group.MapPost("/{id:guid}/chronicle/chapters", async (Guid id,
+                SaveCampaignChronicleChapterRequest req, ClaimsPrincipal user,
+                ICommandHandler<CreateCampaignChronicleChapterCommand, CampaignChronicleChapterDto> handler,
+                CancellationToken ct) =>
+            Results.Ok(await handler.Handle(
+                new CreateCampaignChronicleChapterCommand(user.UserId(), id, req), ct)));
+
+        group.MapPut("/{id:guid}/chronicle/chapters/{chapterId:guid}", async (Guid id, Guid chapterId,
+                SaveCampaignChronicleChapterRequest req, ClaimsPrincipal user,
+                ICommandHandler<UpdateCampaignChronicleChapterCommand, CampaignChronicleChapterDto> handler,
+                CancellationToken ct) =>
+            Results.Ok(await handler.Handle(
+                new UpdateCampaignChronicleChapterCommand(user.UserId(), id, chapterId, req), ct)));
+
+        group.MapGet("/{id:guid}/chronicle/chapters/{chapterId:guid}/history", async (Guid id, Guid chapterId,
+                ClaimsPrincipal user,
+                IQueryHandler<GetCampaignChronicleHistoryQuery, List<CampaignChronicleRevisionDto>> handler,
+                CancellationToken ct) =>
+            Results.Ok(await handler.Handle(
+                new GetCampaignChronicleHistoryQuery(user.UserId(), id, chapterId), ct)));
+
+        group.MapPost("/{id:guid}/chronicle/chapters/{chapterId:guid}/restore/{revisionId:guid}",
+            async (Guid id, Guid chapterId, Guid revisionId, ClaimsPrincipal user,
+                ICommandHandler<RestoreCampaignChronicleRevisionCommand, CampaignChronicleChapterDto> handler,
+                CancellationToken ct) =>
+                Results.Ok(await handler.Handle(
+                    new RestoreCampaignChronicleRevisionCommand(user.UserId(), id, chapterId, revisionId), ct)));
     }
 }

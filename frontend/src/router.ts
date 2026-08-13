@@ -61,7 +61,7 @@ const ENTITY_AREAS: AppArea[] = ['characters', 'campaigns', 'npcs']
 /** Допустимые под-вью по областям; для encounters разрешён ещё и id под-сущности (:eid). */
 const SUBVIEWS: Record<string, { allowed: string[]; withId: string[] }> = {
   characters: { allowed: ['print'], withId: [] },
-  campaigns: { allowed: ['table', 'handbook', 'encounters', 'custom'], withId: ['encounters'] },
+  campaigns: { allowed: ['chronicle', 'table', 'handbook', 'encounters', 'custom'], withId: ['encounters'] },
   npcs: { allowed: [], withId: [] },
 }
 
