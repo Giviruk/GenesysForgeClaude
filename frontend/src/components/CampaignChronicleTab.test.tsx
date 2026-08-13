@@ -18,6 +18,7 @@ const npc = (id: string, name: string, overrides: Partial<NpcListItem> = {}): Np
 const campaignChronicleMock = vi.fn()
 const npcsMock = vi.fn()
 const npcMock = vi.fn()
+const uploadChronicleImageMock = vi.fn()
 const characterId = '11111111-1111-1111-1111-111111111111'
 const linkedNpcId = '22222222-2222-2222-2222-222222222222'
 
@@ -26,6 +27,7 @@ vi.mock('../api/client', () => ({
     campaignChronicle: (...args: unknown[]) => campaignChronicleMock(...args),
     npcs: (...args: unknown[]) => npcsMock(...args),
     npc: (...args: unknown[]) => npcMock(...args),
+    uploadChronicleImage: (...args: unknown[]) => uploadChronicleImageMock(...args),
   },
 }))
 
@@ -51,6 +53,7 @@ describe('CampaignChronicleTab — links', () => {
       campaignId: null, isMine: false, isBuiltIn: false, skills: [{ name: 'Скрытность', ranks: 2 }],
       abilities: [], attacks: [], talents: [], equipment: [], tags: [], warnings: [], createdAt: '', updatedAt: '',
     } satisfies NpcDetail)
+    uploadChronicleImageMock.mockResolvedValue({ imageUrl: 'https://storage.test/chronicle/map.png' })
   })
 
   function renderTab(onOpenCharacter = vi.fn()) {
@@ -142,5 +145,20 @@ describe('CampaignChronicleTab — links', () => {
     expect(npcMock).toHaveBeenCalledWith(linkedNpcId)
     expect(within(dialog).getByText('Хитрый противник.')).toBeTruthy()
     expect(window.location.pathname).toBe('/')
+  })
+
+  it('загружает изображение и вставляет Markdown в позицию курсора', async () => {
+    renderTab()
+    const editor = await screen.findByRole('textbox', { name: 'Markdown-текст главы' }) as HTMLTextAreaElement
+    editor.setSelectionRange(2, 2)
+    fireEvent.click(screen.getByRole('button', { name: /Изображение/ }))
+
+    const file = new File([new Uint8Array([0x89, 0x50, 0x4e, 0x47])], 'Карта [города].png',
+      { type: 'image/png' })
+    fireEvent.change(screen.getByTestId('chronicle-image-file'), { target: { files: [file] } })
+
+    await waitFor(() => expect(uploadChronicleImageMock).toHaveBeenCalledWith('campaign-1', file))
+    await waitFor(() => expect(editor.value).toContain('![Карта  города](https://storage.test/chronicle/map.png)'))
+    expect(editor.value.indexOf('![')).toBe(4)
   })
 })

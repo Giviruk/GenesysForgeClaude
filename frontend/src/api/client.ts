@@ -651,6 +651,8 @@ export const api = {
     request<CampaignChronicleChapter[]>('GET', `/api/campaigns/${campaignId}/chronicle`),
   createChronicleChapter: (campaignId: string, chapter: { title: string; content: string }) =>
     request<CampaignChronicleChapter>('POST', `/api/campaigns/${campaignId}/chronicle/chapters`, chapter),
+  uploadChronicleImage: (campaignId: string, file: Blob) =>
+    request<{ imageUrl: string }>('POST', `/api/campaigns/${campaignId}/chronicle/images`, file),
   updateChronicleChapter: (campaignId: string, chapterId: string, chapter: { title: string; content: string; expectedVersion: number }) =>
     request<CampaignChronicleChapter>('PUT', `/api/campaigns/${campaignId}/chronicle/chapters/${chapterId}`, chapter),
   chronicleHistory: (campaignId: string, chapterId: string) =>

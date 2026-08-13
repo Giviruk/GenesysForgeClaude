@@ -198,4 +198,34 @@ public class ImageUploadTests : IClassFixture<ApiFactory>
         Assert.Equal(HttpStatusCode.BadRequest, resp.StatusCode);
         Assert.Empty(storage.Uploaded);
     }
+
+    [Fact]
+    public async Task UploadChronicleImage_MemberAllowed_StrangerRejected()
+    {
+        var (factory, storage) = WithFakeStorage();
+        var gm = await RegisterAsync(factory);
+        var campaignResponse = await gm.PostAsJsonAsync("/api/campaigns/",
+            new CreateCampaignRequest("Иллюстрированная хроника", ""), Json.Options);
+        campaignResponse.EnsureSuccessStatusCode();
+        var campaign = (await campaignResponse.Content.ReadFromJsonAsync<CampaignDetailDto>(Json.Options))!;
+
+        var player = await RegisterAsync(factory);
+        var characterId = await CreateCharacterAsync(player);
+        var join = await player.PostAsJsonAsync("/api/campaigns/join",
+            new JoinCampaignRequest(campaign.JoinCode!, characterId), Json.Options);
+        join.EnsureSuccessStatusCode();
+
+        var uploaded = await player.PostAsync($"/api/campaigns/{campaign.Id}/chronicle/images",
+            ImageContent(ImageSignatureTests.Png));
+        uploaded.EnsureSuccessStatusCode();
+        var body = (await uploaded.Content.ReadFromJsonAsync<Dictionary<string, string>>(Json.Options))!;
+        Assert.Equal(storage.Uploaded[0], body["imageUrl"]);
+        Assert.Contains($"/campaigns/{campaign.Id}/chronicle/", body["imageUrl"]);
+
+        var stranger = await RegisterAsync(factory);
+        var rejected = await stranger.PostAsync($"/api/campaigns/{campaign.Id}/chronicle/images",
+            ImageContent(ImageSignatureTests.Webp));
+        Assert.Equal(HttpStatusCode.BadRequest, rejected.StatusCode);
+        Assert.Single(storage.Uploaded);
+    }
 }
