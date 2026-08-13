@@ -62,8 +62,10 @@ public static class NpcMapper
     {
         if (npc.IsBuiltIn) return true; // встроенный бестиарий — read-only, виден всем
         if (npc.OwnerUserId == userId) return true;
-        if (npc.Visibility == NpcVisibility.CampaignVisible && npc.CampaignId is { } cid)
-            return await db.CampaignCharacters.AnyAsync(cc => cc.CampaignId == cid && cc.PlayerUserId == userId, ct);
+        if (npc.Visibility == NpcVisibility.PublicTemplate) return true;
+        if (npc.Visibility == NpcVisibility.CampaignVisible && npc.OwnerUserId is { } ownerId)
+            return await db.CampaignCharacters.AnyAsync(cc => cc.PlayerUserId == userId
+                && db.Campaigns.Any(c => c.Id == cc.CampaignId && c.GmUserId == ownerId), ct);
         return false;
     }
 
@@ -89,7 +91,9 @@ public static class NpcMapper
         npc.Silhouette = input.Silhouette;
         npc.Tactics = input.Tactics?.Trim() ?? "";
         npc.Visibility = input.Visibility;
-        npc.CampaignId = input.CampaignId;
+        // CampaignVisible распространяется на все кампании владельца-мастера. Старое поле
+        // одной кампании сохраняется в схеме для совместимости, но больше не определяет доступ.
+        npc.CampaignId = null;
         npc.Talents = Clean(input.Talents);
         npc.Equipment = Clean(input.Equipment);
         npc.Tags = Clean(input.Tags);

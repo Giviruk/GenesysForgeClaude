@@ -736,7 +736,11 @@ DELETE /api/npcs/{id}
 
 List supports optional query filters used by the frontend: `search`, `system`, `kind`, `role`,
 `campaignId`, `tag`, `sort`. Each list item includes `silhouette`, used by the Animal Companion
-picker. Create/update use `NpcInput`. Quick draft uses `QuickDraftRequest` and is deterministic for
+picker. With `campaignId`, the list is scoped to built-in/public NPCs plus `campaignVisible` NPCs
+owned by that campaign's GM; the caller must be the GM or a campaign member. `campaignVisible`
+applies to every campaign owned by the NPC's owner rather than one stored `Npc.CampaignId`.
+Create/update use `NpcInput`; its legacy `campaignId` field is accepted for compatibility but cleared
+on save. Quick draft uses `QuickDraftRequest` and is deterministic for
 the same request. `quick-draft/preview` runs the same generator and returns the resulting
 `NpcDetail` without persisting anything — the quick draft form uses it for live preview.
 

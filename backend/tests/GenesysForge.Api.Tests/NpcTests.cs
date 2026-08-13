@@ -22,6 +22,30 @@ public class NpcTests : IClassFixture<ApiFactory>
         Attacks: null,
         Talents: ["Быстрый"], Equipment: ["Кинжал"], Tags: ["гоблин", "лес"]);
 
+    private static async Task<Guid> CreateCharacterAsync(HttpClient client, string name)
+    {
+        var reference = (await client.GetFromJsonAsync<ReferenceResponse>("/api/reference/GenesysCore", Json.Options))!;
+        var created = await client.PostAsJsonAsync("/api/characters/",
+            new CreateCharacterRequest(name, GameSystem.GenesysCore,
+                reference.Archetypes[0].Id, reference.Careers[0].Id, null), Json.Options);
+        return (await created.Content.ReadFromJsonAsync<Dictionary<string, Guid>>(Json.Options))!["id"];
+    }
+
+    private static async Task<CampaignDetailDto> CreateCampaignAsync(HttpClient gm, string name)
+    {
+        var response = await gm.PostAsJsonAsync("/api/campaigns/",
+            new CreateCampaignRequest(name, ""), Json.Options);
+        return (await response.Content.ReadFromJsonAsync<CampaignDetailDto>(Json.Options))!;
+    }
+
+    private static async Task JoinCampaignAsync(HttpClient player, CampaignDetailDto campaign, string characterName)
+    {
+        var characterId = await CreateCharacterAsync(player, characterName);
+        var response = await player.PostAsJsonAsync("/api/campaigns/join",
+            new JoinCampaignRequest(campaign.JoinCode!, characterId), Json.Options);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+    }
+
     [Fact]
     public async Task Create_Get_AppearsInLibrary()
     {
@@ -369,6 +393,52 @@ public class NpcTests : IClassFixture<ApiFactory>
 
         var list = (await stranger.GetFromJsonAsync<List<NpcListItemDto>>("/api/npcs/", Json.Options))!;
         Assert.DoesNotContain(list, n => n.Id == npc.Id);
+    }
+
+    [Fact]
+    public async Task PublicTemplate_IsVisibleToAnyUser()
+    {
+        var owner = await _factory.CreateAuthorizedClientAsync();
+        var created = await owner.PostAsJsonAsync("/api/npcs/",
+            SampleInput("Публичный проводник") with { Visibility = NpcVisibility.PublicTemplate }, Json.Options);
+        var npc = (await created.Content.ReadFromJsonAsync<NpcDetailDto>(Json.Options))!;
+
+        var stranger = await _factory.CreateAuthorizedClientAsync();
+        Assert.Equal(HttpStatusCode.OK, (await stranger.GetAsync($"/api/npcs/{npc.Id}")).StatusCode);
+        var list = (await stranger.GetFromJsonAsync<List<NpcListItemDto>>("/api/npcs/", Json.Options))!;
+        Assert.Contains(list, item => item.Id == npc.Id);
+    }
+
+    [Fact]
+    public async Task CampaignVisibleNpc_IsSharedAcrossAllCampaignsOwnedByItsGm()
+    {
+        var gm = await _factory.CreateAuthorizedClientAsync();
+        var firstCampaign = await CreateCampaignAsync(gm, "Первая кампания");
+        var secondCampaign = await CreateCampaignAsync(gm, "Вторая кампания");
+        var legacyCampaignId = Guid.NewGuid();
+        var created = await gm.PostAsJsonAsync("/api/npcs/",
+            SampleInput("Общий квартирмейстер") with {
+                Visibility = NpcVisibility.CampaignVisible, CampaignId = legacyCampaignId,
+            }, Json.Options);
+        var npc = (await created.Content.ReadFromJsonAsync<NpcDetailDto>(Json.Options))!;
+        Assert.Null(npc.CampaignId);
+
+        var firstPlayer = await _factory.CreateAuthorizedClientAsync();
+        await JoinCampaignAsync(firstPlayer, firstCampaign, "Первый герой");
+        var secondPlayer = await _factory.CreateAuthorizedClientAsync();
+        await JoinCampaignAsync(secondPlayer, secondCampaign, "Второй герой");
+        var stranger = await _factory.CreateAuthorizedClientAsync();
+
+        Assert.Equal(HttpStatusCode.OK, (await firstPlayer.GetAsync($"/api/npcs/{npc.Id}")).StatusCode);
+        Assert.Equal(HttpStatusCode.OK, (await secondPlayer.GetAsync($"/api/npcs/{npc.Id}")).StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, (await stranger.GetAsync($"/api/npcs/{npc.Id}")).StatusCode);
+
+        var firstScoped = (await firstPlayer.GetFromJsonAsync<List<NpcListItemDto>>(
+            $"/api/npcs/?campaignId={firstCampaign.Id}", Json.Options))!;
+        var secondScoped = (await secondPlayer.GetFromJsonAsync<List<NpcListItemDto>>(
+            $"/api/npcs/?campaignId={secondCampaign.Id}", Json.Options))!;
+        Assert.Contains(firstScoped, item => item.Id == npc.Id);
+        Assert.Contains(secondScoped, item => item.Id == npc.Id);
     }
 
     [Fact]

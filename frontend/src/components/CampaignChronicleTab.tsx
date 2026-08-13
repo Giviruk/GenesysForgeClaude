@@ -77,9 +77,7 @@ export function CampaignChronicleTab({ campaignId, members, refreshSignal, onOpe
     return () => window.clearTimeout(timer)
   }, [refreshSignal, dirty, load])
   useEffect(() => {
-    void api.npcs().then(items => setNpcs(items.filter(npc =>
-      npc.visibility === 'publicTemplate'
-      || (npc.visibility === 'campaignVisible' && npc.campaignId === campaignId))))
+    void api.npcs({ campaignId }).then(setNpcs)
       .catch(() => setNpcs([]))
   }, [campaignId])
 

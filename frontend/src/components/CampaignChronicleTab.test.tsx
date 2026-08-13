@@ -37,11 +37,7 @@ describe('CampaignChronicleTab — links', () => {
       npc('npc-dragon', 'Дракон'),
       npc('npc-custom', 'Хозяйский алхимик', { isBuiltIn: false, isMine: true }),
       npc('npc-campaign', 'Кампанийный проводник', {
-        isBuiltIn: false, isMine: true, visibility: 'campaignVisible', campaignId: 'campaign-1',
-      }),
-      npc('npc-private', 'Тайный советник', { isBuiltIn: false, isMine: true, visibility: 'private' }),
-      npc('npc-other-campaign', 'Чужой кампанийный NPC', {
-        isBuiltIn: false, isMine: true, visibility: 'campaignVisible', campaignId: 'campaign-2',
+        isBuiltIn: false, isMine: true, visibility: 'campaignVisible', campaignId: null,
       }),
     ])
   })
@@ -79,15 +75,14 @@ describe('CampaignChronicleTab — links', () => {
       .toContain('[Хозяйский алхимик](npc:npc-custom)')
   })
 
-  it('shows current-campaign NPCs but hides private and other-campaign NPCs', async () => {
+  it('requests NPCs in the current campaign context', async () => {
     renderTab()
     const selector = await screen.findByRole('combobox', { name: 'NPC для ссылки' })
     fireEvent.focus(selector)
     const results = await screen.findByRole('listbox', { name: 'Результаты поиска NPC' })
 
+    expect(npcsMock).toHaveBeenCalledWith({ campaignId: 'campaign-1' })
     expect(within(results).getByRole('option', { name: /Кампанийный проводник/ })).toBeTruthy()
-    expect(within(results).queryByRole('option', { name: /Тайный советник/ })).toBeNull()
-    expect(within(results).queryByRole('option', { name: /Чужой кампанийный NPC/ })).toBeNull()
   })
 
   it('inserts a character link through @ and Enter', async () => {
