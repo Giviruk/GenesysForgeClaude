@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react'
+import { useCallback, useEffect, useId, useMemo, useRef, useState, type KeyboardEvent } from 'react'
 import { api } from '../api/client'
 import type { CampaignChronicleChapter, CampaignChronicleRevision, CampaignMember, NpcListItem } from '../api/types'
 import { t } from '../i18n'
@@ -33,17 +33,13 @@ export function CampaignChronicleTab({ campaignId, members, refreshSignal, onOpe
   const [npcs, setNpcs] = useState<NpcListItem[]>([])
   const [characterTarget, setCharacterTarget] = useState('')
   const [npcTarget, setNpcTarget] = useState('')
-  const [npcSearch, setNpcSearch] = useState('')
+  const [npcPickerReset, setNpcPickerReset] = useState(0)
   const [mention, setMention] = useState<ChronicleMention | null>(null)
   const [mentionIndex, setMentionIndex] = useState(0)
   const textarea = useRef<HTMLTextAreaElement>(null)
   const selectedIdRef = useRef<string | null>(null)
 
   const selected = chapters.find(chapter => chapter.id === selectedId) ?? null
-  const filteredNpcs = useMemo(() => {
-    const query = npcSearch.trim().toLocaleLowerCase()
-    return npcs.filter(npc => !query || npc.name.toLocaleLowerCase().includes(query))
-  }, [npcs, npcSearch])
   const mentionOptions = useMemo<MentionOption[]>(() => {
     if (!mention) return []
     const query = mention.query.trim().toLocaleLowerCase()
@@ -81,10 +77,9 @@ export function CampaignChronicleTab({ campaignId, members, refreshSignal, onOpe
     return () => window.clearTimeout(timer)
   }, [refreshSignal, dirty, load])
   useEffect(() => {
-    void api.npcs().then(items => setNpcs(items.filter(npc =>
-      npc.isBuiltIn || (npc.visibility === 'campaignVisible' && npc.campaignId === campaignId))))
+    void api.npcs().then(setNpcs)
       .catch(() => setNpcs([]))
-  }, [campaignId])
+  }, [])
 
   function chooseChapter(id: string) {
     if (dirty && !confirm(t('Отменить несохранённые изменения?', 'Discard unsaved changes?'))) return
@@ -167,6 +162,7 @@ export function CampaignChronicleTab({ campaignId, members, refreshSignal, onOpe
     if (!npc) return
     insert(`[${npc.name}](npc:${npc.id})`)
     setNpcTarget('')
+    setNpcPickerReset(current => current + 1)
   }
 
   function updateMention(nextContent: string, cursor: number) {
@@ -274,13 +270,9 @@ export function CampaignChronicleTab({ campaignId, members, refreshSignal, onOpe
             {members.map(member => <option key={member.characterId} value={member.characterId}>{member.characterName}</option>)}
           </select><button onClick={insertCharacter} disabled={!characterTarget}>＋</button></span>
           <span className="chronicle-picker chronicle-npc-picker">
-            <input type="search" aria-label={t('Поиск NPC', 'Search NPC')} placeholder={t('Поиск NPC…', 'Search NPC…')}
-              value={npcSearch} onChange={event => { setNpcSearch(event.target.value); setNpcTarget('') }} />
-            <select aria-label={t('NPC для ссылки', 'NPC link')}
-            value={npcTarget} onChange={event => setNpcTarget(event.target.value)}>
-            <option value="">NPC…</option>
-            {filteredNpcs.map(npc => <option key={npc.id} value={npc.id}>{npc.name}</option>)}
-          </select><button onClick={insertNpc} disabled={!npcTarget}>＋</button></span>
+            <NpcCombobox key={npcPickerReset} items={npcs} value={npcTarget} onChange={setNpcTarget} />
+            <button onClick={insertNpc} disabled={!npcTarget}>＋</button>
+          </span>
           <span className="chronicle-mode">
             {(['write', 'split', 'preview'] as ViewMode[]).map(value => <button key={value}
               className={mode === value ? 'active' : ''} onClick={() => setMode(value)}>
@@ -330,4 +322,60 @@ export function CampaignChronicleTab({ campaignId, members, refreshSignal, onOpe
       </>}
     </section>
   </div>
+}
+
+function NpcCombobox({ items, value, onChange }: {
+  items: NpcListItem[]
+  value: string
+  onChange: (value: string) => void
+}) {
+  const listId = useId()
+  const selected = items.find(item => item.id === value)
+  const [query, setQuery] = useState(selected?.name ?? '')
+  const [open, setOpen] = useState(false)
+  const [activeIndex, setActiveIndex] = useState(0)
+  const matches = useMemo(() => {
+    const normalized = query.trim().toLocaleLowerCase()
+    return items.filter(item => !normalized || item.name.toLocaleLowerCase().includes(normalized)).slice(0, 12)
+  }, [items, query])
+
+  function choose(item: NpcListItem) {
+    onChange(item.id)
+    setQuery(item.name)
+    setOpen(false)
+  }
+
+  function handleKeyDown(event: KeyboardEvent<HTMLInputElement>) {
+    if (event.key === 'Escape') { setOpen(false); return }
+    if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+      event.preventDefault()
+      setOpen(true)
+      setActiveIndex(index => event.key === 'ArrowDown'
+        ? (index + 1) % Math.max(matches.length, 1)
+        : (index - 1 + Math.max(matches.length, 1)) % Math.max(matches.length, 1))
+    } else if (event.key === 'Enter' && open && matches.length > 0) {
+      event.preventDefault()
+      choose(matches[activeIndex] ?? matches[0])
+    }
+  }
+
+  return <span className="chronicle-combobox">
+    <input type="search" role="combobox" aria-label={t('NPC для ссылки', 'NPC link')}
+      aria-expanded={open} aria-controls={listId} aria-autocomplete="list"
+      aria-activedescendant={open && matches[activeIndex] ? `${listId}-${matches[activeIndex].id}` : undefined}
+      placeholder={t('Найти NPC…', 'Find NPC…')} value={query}
+      onFocus={event => { event.currentTarget.select(); setOpen(true); setActiveIndex(0) }}
+      onBlur={() => setOpen(false)} onKeyDown={handleKeyDown}
+      onChange={event => { setQuery(event.target.value); onChange(''); setOpen(true); setActiveIndex(0) }} />
+    {open && <span className="chronicle-combobox-options" role="listbox" id={listId}
+      aria-label={t('Результаты поиска NPC', 'NPC search results')}>
+      {matches.map((item, index) => <button type="button" role="option" id={`${listId}-${item.id}`}
+        aria-selected={item.id === value} className={index === activeIndex ? 'active' : ''} key={item.id}
+        onMouseDown={event => event.preventDefault()} onClick={() => choose(item)}>
+        <span>{item.name}</span>
+        {!item.isBuiltIn && <small>{item.isMine ? t('Свой', 'Mine') : t('Кампанийный', 'Campaign')}</small>}
+      </button>)}
+      {matches.length === 0 && <span className="chronicle-combobox-empty">{t('NPC не найдены', 'No NPC found')}</span>}
+    </span>}
+  </span>
 }
