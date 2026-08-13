@@ -77,9 +77,11 @@ export function CampaignChronicleTab({ campaignId, members, refreshSignal, onOpe
     return () => window.clearTimeout(timer)
   }, [refreshSignal, dirty, load])
   useEffect(() => {
-    void api.npcs().then(setNpcs)
+    void api.npcs().then(items => setNpcs(items.filter(npc =>
+      npc.visibility === 'publicTemplate'
+      || (npc.visibility === 'campaignVisible' && npc.campaignId === campaignId))))
       .catch(() => setNpcs([]))
-  }, [])
+  }, [campaignId])
 
   function chooseChapter(id: string) {
     if (dirty && !confirm(t('Отменить несохранённые изменения?', 'Discard unsaved changes?'))) return

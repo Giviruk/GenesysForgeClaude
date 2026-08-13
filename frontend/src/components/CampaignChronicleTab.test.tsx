@@ -35,7 +35,14 @@ describe('CampaignChronicleTab — links', () => {
       npc('npc-goblin', 'Гоблин'),
       npc('npc-baron', 'Барон'),
       npc('npc-dragon', 'Дракон'),
-      npc('npc-custom', 'Хозяйский алхимик', { isBuiltIn: false, isMine: true, visibility: 'private' }),
+      npc('npc-custom', 'Хозяйский алхимик', { isBuiltIn: false, isMine: true }),
+      npc('npc-campaign', 'Кампанийный проводник', {
+        isBuiltIn: false, isMine: true, visibility: 'campaignVisible', campaignId: 'campaign-1',
+      }),
+      npc('npc-private', 'Тайный советник', { isBuiltIn: false, isMine: true, visibility: 'private' }),
+      npc('npc-other-campaign', 'Чужой кампанийный NPC', {
+        isBuiltIn: false, isMine: true, visibility: 'campaignVisible', campaignId: 'campaign-2',
+      }),
     ])
   })
 
@@ -60,7 +67,7 @@ describe('CampaignChronicleTab — links', () => {
     expect(within(results).queryByRole('option', { name: 'Дракон' })).toBeNull()
   })
 
-  it('finds and inserts a private custom NPC returned by the API', async () => {
+  it('finds and inserts a public custom NPC returned by the API', async () => {
     renderTab()
     const selector = await screen.findByRole('combobox', { name: 'NPC для ссылки' })
     fireEvent.change(selector, { target: { value: 'алхимик' } })
@@ -70,6 +77,17 @@ describe('CampaignChronicleTab — links', () => {
 
     expect((screen.getByRole('textbox', { name: 'Markdown-текст главы' }) as HTMLTextAreaElement).value)
       .toContain('[Хозяйский алхимик](npc:npc-custom)')
+  })
+
+  it('shows current-campaign NPCs but hides private and other-campaign NPCs', async () => {
+    renderTab()
+    const selector = await screen.findByRole('combobox', { name: 'NPC для ссылки' })
+    fireEvent.focus(selector)
+    const results = await screen.findByRole('listbox', { name: 'Результаты поиска NPC' })
+
+    expect(within(results).getByRole('option', { name: /Кампанийный проводник/ })).toBeTruthy()
+    expect(within(results).queryByRole('option', { name: /Тайный советник/ })).toBeNull()
+    expect(within(results).queryByRole('option', { name: /Чужой кампанийный NPC/ })).toBeNull()
   })
 
   it('inserts a character link through @ and Enter', async () => {
