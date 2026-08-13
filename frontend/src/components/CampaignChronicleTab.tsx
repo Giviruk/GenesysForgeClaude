@@ -2,8 +2,8 @@ import { useCallback, useEffect, useId, useMemo, useRef, useState, type Keyboard
 import { api } from '../api/client'
 import type { CampaignChronicleChapter, CampaignChronicleRevision, CampaignMember, NpcListItem } from '../api/types'
 import { t } from '../i18n'
-import { navigate } from '../router'
 import { MarkdownContent, type MarkdownEntityLink } from './MarkdownContent'
+import { ChronicleNpcModal } from './ChronicleNpcModal'
 import { markdownHeadings } from '../utils/markdown'
 import { findChronicleMention, replaceChronicleMention, type ChronicleMention } from '../utils/chronicleMentions'
 
@@ -34,6 +34,7 @@ export function CampaignChronicleTab({ campaignId, members, refreshSignal, onOpe
   const [characterTarget, setCharacterTarget] = useState('')
   const [npcTarget, setNpcTarget] = useState('')
   const [npcPickerReset, setNpcPickerReset] = useState(0)
+  const [openNpcId, setOpenNpcId] = useState<string | null>(null)
   const [mention, setMention] = useState<ChronicleMention | null>(null)
   const [mentionIndex, setMentionIndex] = useState(0)
   const textarea = useRef<HTMLTextAreaElement>(null)
@@ -203,7 +204,7 @@ export function CampaignChronicleTab({ campaignId, members, refreshSignal, onOpe
   }
 
   function openEntity(link: MarkdownEntityLink) {
-    if (link.kind === 'npc') { navigate(`/npcs/${link.id}`); return }
+    if (link.kind === 'npc') { setOpenNpcId(link.id); return }
     const member = members.find(item => item.characterId === link.id)
     if (member) onOpenCharacter(member.characterId, member.characterName)
   }
@@ -228,6 +229,7 @@ export function CampaignChronicleTab({ campaignId, members, refreshSignal, onOpe
   }
 
   return <div className="chronicle-layout">
+    {openNpcId && <ChronicleNpcModal npcId={openNpcId} onClose={() => setOpenNpcId(null)} />}
     <aside className="chronicle-toc">
       <div className="chronicle-toc-head"><b>{t('Оглавление', 'Contents')}</b>
         <button className="small primary" onClick={() => void createChapter()} disabled={creating}>＋ {t('Глава', 'Chapter')}</button>

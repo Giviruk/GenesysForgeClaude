@@ -89,7 +89,7 @@ const playerParticipant: GameParticipant = {
 
 const ownMember: CampaignMember = {
   characterId: 'character-1', characterName: 'Элира', system: 'realmsOfTerrinoth',
-  archetype: 'Human', career: 'Warrior', isMine: true,
+  archetype: 'Human', career: 'Warrior', isMine: true, portraitUrl: '/portraits/character-1/hero.webp',
 }
 
 describe('GameTableTab — статблок и броски NPC', () => {
@@ -290,10 +290,22 @@ describe('GameTableTab — статблок и броски NPC', () => {
     vi.spyOn(window, 'confirm').mockReturnValue(true)
     render(<GameTableTab campaignId="campaign-1" isGm members={[ownMember]} />)
 
-    fireEvent.click(await screen.findByRole('button', { name: 'Удалить Гоблины из сцены' }))
+    const removeNpc = await screen.findByRole('button', { name: 'Удалить Гоблины из сцены' })
+    expect(removeNpc.classList.contains('participant-remove-button')).toBe(true)
+    expect(removeNpc.textContent).toBe('×')
+    expect(removeNpc.parentElement?.tagName).toBe('ARTICLE')
+    fireEvent.click(removeNpc)
     await waitFor(() => expect(removeParticipantMock).toHaveBeenCalledWith('campaign-1', 'participant-1'))
     fireEvent.click(screen.getByRole('button', { name: 'Удалить Элира из сцены' }))
     await waitFor(() => expect(removeParticipantMock).toHaveBeenCalledWith('campaign-1', 'participant-pc'))
+  })
+
+  it('показывает портрет персонажа на его карточке сцены', async () => {
+    sessionMock.mockResolvedValue({ ...session, participants: [playerParticipant] })
+    render(<GameTableTab campaignId="campaign-1" isGm members={[ownMember]} />)
+
+    const portrait = await screen.findByRole('img', { name: 'Портрет: Элира' }) as HTMLImageElement
+    expect(portrait.getAttribute('src')).toBe('/portraits/character-1/hero.webp')
   })
 
   it('не показывает игроку удаление участников со сцены', async () => {

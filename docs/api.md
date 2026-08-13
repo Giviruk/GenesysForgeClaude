@@ -709,7 +709,7 @@ GET    /api/campaigns/{id}/chronicle/chapters/{chapterId}/history
 POST   /api/campaigns/{id}/chronicle/chapters/{chapterId}/restore/{revisionId}
 ```
 
-Campaign creation uses `CreateCampaignRequest` with `name` and `description`. Join uses `JoinCampaignRequest` with `joinCode` and `characterId`. A GM receives `joinCode` in campaign detail; players do not. Campaign notes use `SaveCampaignNoteRequest` with `title`, `body` and `isPrivate`; private notes are GM-only.
+Campaign creation uses `CreateCampaignRequest` with `name` and `description`. Join uses `JoinCampaignRequest` with `joinCode` and `characterId`. A GM receives `joinCode` in campaign detail; players do not. Each campaign member includes the character's `portraitUrl` for campaign and Game Table cards. Campaign notes use `SaveCampaignNoteRequest` with `title`, `body` and `isPrivate`; private notes are GM-only.
 
 Chronicle routes are available to both the GM and players whose character belongs to the campaign.
 Create/update uses `SaveCampaignChronicleChapterRequest` with `title`, Markdown `content`, and optional

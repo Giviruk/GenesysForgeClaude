@@ -133,6 +133,7 @@ export function SheetPage({ characterId, printing, onOpenPrint, onClosePrint, on
   const [notice, setNotice] = useState<string | null>(null)
   const [shareUrl, setShareUrl] = useState<string | null>(null)
   const [xpEdit, setXpEdit] = useState<string | null>(null)
+  const [nameEdit, setNameEdit] = useState<string | null>(null)
   const [actionsOpen, setActionsOpen] = useState(false)
   const portraitFileRef = useRef<HTMLInputElement>(null)
   const actionsMenuRef = useRef<HTMLDivElement>(null)
@@ -345,6 +346,19 @@ export function SheetPage({ characterId, printing, onOpenPrint, onClosePrint, on
     }
   }
 
+  async function saveName() {
+    if (nameEdit === null || !sheet) return
+    const name = nameEdit.trim()
+    setNameEdit(null)
+    if (!name || name === sheet.name) return
+    try {
+      await updateBaseOptimistically({ name }, () => api.updateCharacter(sheet.id, { name }))
+      setNotice(t('Имя персонажа обновлено.', 'Character name updated.'))
+    } catch (err) {
+      setError(err instanceof Error ? err.message : t('Не удалось изменить имя', 'Could not update the name'))
+    }
+  }
+
   return (
     <div className="page">
       <div className="page-head">
@@ -362,7 +376,15 @@ export function SheetPage({ characterId, printing, onOpenPrint, onClosePrint, on
             </button>
             <input ref={portraitFileRef} type="file" accept="image/jpeg,image/png,image/webp" hidden
               data-testid="portrait-file" onChange={e => void uploadPortrait(e)} />
-            <h2>{sheet.name}</h2>
+            <h2>{nameEdit !== null ? <input autoFocus className="sheet-name-input"
+              aria-label={t('Имя персонажа', 'Character name')} maxLength={200} value={nameEdit}
+              onChange={e => setNameEdit(e.target.value)} onBlur={() => void saveName()}
+              onKeyDown={e => {
+                if (e.key === 'Enter') void saveName()
+                else if (e.key === 'Escape') setNameEdit(null)
+              }} /> : <button type="button" className="linklike sheet-name-button"
+                title={t('Изменить имя персонажа', 'Edit character name')}
+                onClick={() => setNameEdit(sheet.name)}>{sheet.name}</button>}</h2>
             <span className={`badge ${sheet.system}`}>{SYSTEM_LABELS[sheet.system]}</span>
           </div>
           <div className="page-sub">{sheet.archetype.name} · {sheet.career.name}</div>

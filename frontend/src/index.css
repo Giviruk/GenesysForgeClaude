@@ -360,6 +360,8 @@ h1.auth-brand { font-size: 2rem; margin: 0 0 0.2rem; }
   font-size: 1.5rem;
   line-height: 1.15;
 }
+.sheet-name-button { padding: 0; font: inherit; color: inherit; }
+.sheet-name-input { width: min(22rem, 60vw); padding: 0.2rem 0.4rem; font: inherit; }
 /* Портрет персонажа в шапке листа: кнопка-картинка, клик открывает выбор файла. */
 .sheet-portrait {
   width: 48px; height: 48px; padding: 0; flex-shrink: 0;
@@ -1865,6 +1867,7 @@ button.tiny { font-size: 0.75rem; padding: 0.05rem 0.4rem 0.15rem; }
 .participants-head { flex-wrap: wrap; margin-bottom: 0.4rem; }
 .participants-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(19rem, 1fr)); gap: 0.4rem; }
 .pc-card {
+  position: relative;
   min-width: 0;
   min-height: 0;
   height: auto;
@@ -1876,6 +1879,13 @@ button.tiny { font-size: 0.75rem; padding: 0.05rem 0.4rem 0.15rem; }
   flex-direction: column;
   gap: 0.35rem;
 }
+.participant-remove-button {
+  position: absolute; z-index: 2; top: 0.32rem; right: 0.32rem;
+  width: 1.45rem; height: 1.45rem; min-width: 0; min-height: 0; padding: 0;
+  border: 0; border-radius: 50%; background: transparent; color: var(--red);
+  font-size: 1.25rem; font-weight: 700; line-height: 1;
+}
+.participant-remove-button:hover { color: #fff; background: var(--red); border-color: transparent; }
 .pc-card.crit { border-color: var(--red); }
 .pc-card.warn { border-color: var(--yellow); }
 .pc-card.defeated { opacity: 0.55; }
@@ -1883,8 +1893,10 @@ button.tiny { font-size: 0.75rem; padding: 0.05rem 0.4rem 0.15rem; }
 .pc-card.clickable:hover, .pc-card.clickable:focus-visible {
   border-color: var(--accent); box-shadow: 0 0 0 1px rgba(200, 162, 74, 0.25); outline: none;
 }
-.pc-name { display: flex; align-items: baseline; justify-content: space-between; gap: 0.35rem; color: #efeaf6; font-weight: 600; font-size: 0.88rem; }
+.pc-name { display: flex; align-items: center; justify-content: space-between; gap: 0.35rem; padding-right: 1.45rem; color: #efeaf6; font-weight: 600; font-size: 0.88rem; }
 .pc-name span:first-child { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pc-identity { display:flex; align-items:center; gap:0.45rem; min-width:0; }
+.participant-portrait { width:2rem; height:2rem; flex:0 0 2rem; border-radius:50%; border:1px solid var(--border); object-fit:cover; }
 .pc-name-badges { display: flex; align-items: center; gap: 0.25rem; flex-shrink: 0; }
 .pc-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 0.25rem; }
 .mini-stat { padding: 0.22rem 0.3rem; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; color: var(--muted); font-size: 0.7rem; }
