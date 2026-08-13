@@ -574,43 +574,43 @@ export const api = {
   removeCriticalInjury: (id: string, injuryId: string) =>
     request<void>('DELETE', `/api/characters/${id}/critical-injuries/${injuryId}`),
 
-  createCustomSkill: (skill: { system: GameSystem; name: string; characteristic: string; kind: string }) =>
-    request<SkillDef>('POST', '/api/custom/skills', skill),
-  createCustomTalent: (talent: {
+  createCustomSkill: (campaignId: string, skill: { system: GameSystem; name: string; characteristic: string; kind: string }) =>
+    request<SkillDef>('POST', `/api/campaigns/${campaignId}/custom/skills`, skill),
+  createCustomTalent: (campaignId: string, talent: {
     system: GameSystem; name: string; tier: number; isRanked: boolean; category: TalentCategory; activation: string; description: string
     woundBonus: number; strainBonus: number; soakBonus: number; meleeDefenseBonus: number; rangedDefenseBonus: number
-  }) => request<TalentDef>('POST', '/api/custom/talents', talent),
-  createCustomItem: (item: {
+  }) => request<TalentDef>('POST', `/api/campaigns/${campaignId}/custom/talents`, talent),
+  createCustomItem: (campaignId: string, item: {
     system: GameSystem; name: string; kind: string; encumbrance: number; soakBonus: number
     meleeDefense: number; rangedDefense: number; encumbranceThresholdBonus: number
     description: string; price: number; rarity: number
     skillName?: string; damage?: string; crit?: string; rangeBand?: string; properties?: string
-  }) => request<ItemDef>('POST', '/api/custom/items', item),
-  createCustomHeroicAbility: (ability: { name: string; description: string }) =>
-    request<HeroicAbility>('POST', '/api/custom/heroic-abilities', ability),
-  createCustomArchetype: (archetype: CustomArchetypeInput) =>
-    request<Archetype>('POST', '/api/custom/archetypes', archetype),
-  createCustomCareer: (career: CustomCareerInput) =>
-    request<Career>('POST', '/api/custom/careers', career),
+  }) => request<ItemDef>('POST', `/api/campaigns/${campaignId}/custom/items`, item),
+  createCustomHeroicAbility: (campaignId: string, ability: { name: string; description: string }) =>
+    request<HeroicAbility>('POST', `/api/campaigns/${campaignId}/custom/heroic-abilities`, ability),
+  createCustomArchetype: (campaignId: string, archetype: CustomArchetypeInput) =>
+    request<Archetype>('POST', `/api/campaigns/${campaignId}/custom/archetypes`, archetype),
+  createCustomCareer: (campaignId: string, career: CustomCareerInput) =>
+    request<Career>('POST', `/api/campaigns/${campaignId}/custom/careers`, career),
 
-  updateCustomSkill: (id: string, skill: { system: GameSystem; name: string; characteristic: string; kind: string }) =>
-    request<SkillDef>('PUT', `/api/custom/skills/${id}`, skill),
-  updateCustomTalent: (id: string, talent: {
+  updateCustomSkill: (campaignId: string, id: string, skill: { system: GameSystem; name: string; characteristic: string; kind: string }) =>
+    request<SkillDef>('PUT', `/api/campaigns/${campaignId}/custom/skills/${id}`, skill),
+  updateCustomTalent: (campaignId: string, id: string, talent: {
     system: GameSystem; name: string; tier: number; isRanked: boolean; category: TalentCategory; activation: string; description: string
     woundBonus: number; strainBonus: number; soakBonus: number; meleeDefenseBonus: number; rangedDefenseBonus: number
-  }) => request<TalentDef>('PUT', `/api/custom/talents/${id}`, talent),
-  updateCustomItem: (id: string, item: {
+  }) => request<TalentDef>('PUT', `/api/campaigns/${campaignId}/custom/talents/${id}`, talent),
+  updateCustomItem: (campaignId: string, id: string, item: {
     system: GameSystem; name: string; kind: string; encumbrance: number; soakBonus: number
     meleeDefense: number; rangedDefense: number; encumbranceThresholdBonus: number
     description: string; price: number; rarity: number
     skillName?: string; damage?: string; crit?: string; rangeBand?: string; properties?: string
-  }) => request<ItemDef>('PUT', `/api/custom/items/${id}`, item),
-  updateCustomHeroicAbility: (id: string, ability: { name: string; description: string }) =>
-    request<HeroicAbility>('PUT', `/api/custom/heroic-abilities/${id}`, ability),
-  updateCustomArchetype: (id: string, archetype: CustomArchetypeInput) =>
-    request<Archetype>('PUT', `/api/custom/archetypes/${id}`, archetype),
-  updateCustomCareer: (id: string, career: CustomCareerInput) =>
-    request<Career>('PUT', `/api/custom/careers/${id}`, career),
+  }) => request<ItemDef>('PUT', `/api/campaigns/${campaignId}/custom/items/${id}`, item),
+  updateCustomHeroicAbility: (campaignId: string, id: string, ability: { name: string; description: string }) =>
+    request<HeroicAbility>('PUT', `/api/campaigns/${campaignId}/custom/heroic-abilities/${id}`, ability),
+  updateCustomArchetype: (campaignId: string, id: string, archetype: CustomArchetypeInput) =>
+    request<Archetype>('PUT', `/api/campaigns/${campaignId}/custom/archetypes/${id}`, archetype),
+  updateCustomCareer: (campaignId: string, id: string, career: CustomCareerInput) =>
+    request<Career>('PUT', `/api/campaigns/${campaignId}/custom/careers/${id}`, career),
 
   notes: (characterId: string) =>
     request<CharacterNote[]>('GET', `/api/characters/${characterId}/notes/`),
@@ -765,10 +765,10 @@ export const api = {
   setCampaignHomebrewPack: (campaignId: string, packId: string, isEnabled: boolean) =>
     request<void>('PUT', `/api/campaigns/${campaignId}/homebrew-packs/${packId}`, { isEnabled }),
 
-  deleteCustomSkill: (id: string) => request<void>('DELETE', `/api/custom/skills/${id}`),
-  deleteCustomTalent: (id: string) => request<void>('DELETE', `/api/custom/talents/${id}`),
-  deleteCustomItem: (id: string) => request<void>('DELETE', `/api/custom/items/${id}`),
-  deleteCustomHeroicAbility: (id: string) => request<void>('DELETE', `/api/custom/heroic-abilities/${id}`),
-  deleteCustomArchetype: (id: string) => request<void>('DELETE', `/api/custom/archetypes/${id}`),
-  deleteCustomCareer: (id: string) => request<void>('DELETE', `/api/custom/careers/${id}`),
+  deleteCustomSkill: (campaignId: string, id: string) => request<void>('DELETE', `/api/campaigns/${campaignId}/custom/skills/${id}`),
+  deleteCustomTalent: (campaignId: string, id: string) => request<void>('DELETE', `/api/campaigns/${campaignId}/custom/talents/${id}`),
+  deleteCustomItem: (campaignId: string, id: string) => request<void>('DELETE', `/api/campaigns/${campaignId}/custom/items/${id}`),
+  deleteCustomHeroicAbility: (campaignId: string, id: string) => request<void>('DELETE', `/api/campaigns/${campaignId}/custom/heroic-abilities/${id}`),
+  deleteCustomArchetype: (campaignId: string, id: string) => request<void>('DELETE', `/api/campaigns/${campaignId}/custom/archetypes/${id}`),
+  deleteCustomCareer: (campaignId: string, id: string) => request<void>('DELETE', `/api/campaigns/${campaignId}/custom/careers/${id}`),
 }

@@ -25,37 +25,47 @@ public static class HomebrewVisibility
         if (campaignId is not null)
             await CampaignMapper.GetAccessibleAsync(db, userId, campaignId.Value, ct);
 
-        var packs = await db.HomebrewPacks.AsNoTracking()
+        var personalPacks = await db.HomebrewPacks.AsNoTracking()
             .Where(p => p.OwnerUserId == userId && p.System == system)
             .Select(p => new { p.Id, p.IsEnabledByDefault })
             .ToListAsync(ct);
 
-        var visible = packs.Where(p => p.IsEnabledByDefault).Select(p => p.Id).ToHashSet();
-        var packIds = packs.Select(p => p.Id).ToHashSet();
+        var visible = personalPacks.Where(p => p.IsEnabledByDefault).Select(p => p.Id).ToHashSet();
+        var personalPackIds = personalPacks.Select(p => p.Id).ToHashSet();
 
         if (characterId is not null)
         {
             var toggles = await db.HomebrewPackCharacters.AsNoTracking()
-                .Where(x => x.CharacterId == characterId.Value && packIds.Contains(x.HomebrewPackId))
+                .Where(x => x.CharacterId == characterId.Value && personalPackIds.Contains(x.HomebrewPackId))
                 .Select(x => new { x.HomebrewPackId, x.IsEnabled })
                 .ToListAsync(ct);
             ApplyToggles(visible, toggles.Select(x => (x.HomebrewPackId, x.IsEnabled)));
+
+            var campaignIds = db.CampaignCharacters.AsNoTracking()
+                .Where(x => x.CharacterId == characterId.Value)
+                .Select(x => x.CampaignId);
+            var campaignPacks = await (from link in db.HomebrewPackCampaigns.AsNoTracking()
+                join pack in db.HomebrewPacks.AsNoTracking() on link.HomebrewPackId equals pack.Id
+                where campaignIds.Contains(link.CampaignId) && link.IsEnabled && pack.System == system
+                select pack.Id).ToListAsync(ct);
+            visible.UnionWith(campaignPacks);
         }
 
         if (campaignId is not null)
         {
-            var toggles = await db.HomebrewPackCampaigns.AsNoTracking()
-                .Where(x => x.CampaignId == campaignId.Value && packIds.Contains(x.HomebrewPackId))
-                .Select(x => new { x.HomebrewPackId, x.IsEnabled })
+            var campaignToggles = await (from link in db.HomebrewPackCampaigns.AsNoTracking()
+                join pack in db.HomebrewPacks.AsNoTracking() on link.HomebrewPackId equals pack.Id
+                where link.CampaignId == campaignId.Value && pack.System == system
+                select new { link.HomebrewPackId, link.IsEnabled })
                 .ToListAsync(ct);
-            ApplyToggles(visible, toggles.Select(x => (x.HomebrewPackId, x.IsEnabled)));
+            ApplyToggles(visible, campaignToggles.Select(x => (x.HomebrewPackId, x.IsEnabled)));
         }
 
         return visible;
     }
 
     public static bool IsVisibleCustom(Guid ownerUserId, Guid? packId, Guid userId, HashSet<Guid> visiblePackIds) =>
-        ownerUserId == userId && (packId is null || visiblePackIds.Contains(packId.Value));
+        packId is null ? ownerUserId == userId : visiblePackIds.Contains(packId.Value);
 
     private static void ApplyToggles(HashSet<Guid> visible, IEnumerable<(Guid PackId, bool IsEnabled)> toggles)
     {

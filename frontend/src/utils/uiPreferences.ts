@@ -1,6 +1,6 @@
 export const SHEET_TABS = [
   'sheet', 'talents', 'heroic', 'inventory', 'attachments', 'transport', 'crafting', 'magic',
-  'bio', 'history', 'notes', 'custom',
+  'bio', 'history', 'notes',
 ] as const
 
 export type CharacterSheetTab = typeof SHEET_TABS[number]

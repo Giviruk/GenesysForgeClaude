@@ -573,11 +573,20 @@ public class CustomContentTests : IClassFixture<ApiFactory>
     private readonly ApiFactory _factory;
     public CustomContentTests(ApiFactory factory) => _factory = factory;
 
+    private static async Task<string> CustomPathAsync(HttpClient gm)
+    {
+        var response = await gm.PostAsJsonAsync("/api/campaigns/",
+            new CreateCampaignRequest($"Custom {Guid.NewGuid():N}", ""), Json.Options);
+        var campaign = (await response.Content.ReadFromJsonAsync<CampaignDetailDto>(Json.Options))!;
+        return $"/api/campaigns/{campaign.Id}/custom";
+    }
+
     [Fact]
     public async Task CustomSkill_AppearsInReference_AndOnSheet()
     {
         var client = await _factory.CreateAuthorizedClientAsync();
-        var create = await client.PostAsJsonAsync("/api/custom/skills",
+        var custom = await CustomPathAsync(client);
+        var create = await client.PostAsJsonAsync($"{custom}/skills",
             new CreateCustomSkillRequest(GameSystem.RealmsOfTerrinoth, "Sailing", CharacteristicType.Agility, SkillKind.General),
             Json.Options);
         Assert.Equal(HttpStatusCode.OK, create.StatusCode);
@@ -610,7 +619,8 @@ public class CustomContentTests : IClassFixture<ApiFactory>
     public async Task CustomTalent_InvalidTier_Rejected()
     {
         var client = await _factory.CreateAuthorizedClientAsync();
-        var response = await client.PostAsJsonAsync("/api/custom/talents",
+        var custom = await CustomPathAsync(client);
+        var response = await client.PostAsJsonAsync($"{custom}/talents",
             new CreateCustomTalentRequest(GameSystem.GenesysCore, "Broken", 6, false, "", "", 0, 0, 0, 0, 0),
             Json.Options);
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
@@ -620,7 +630,8 @@ public class CustomContentTests : IClassFixture<ApiFactory>
     public async Task CustomItem_WorksInInventoryWithRecalculation()
     {
         var client = await _factory.CreateAuthorizedClientAsync();
-        var create = await client.PostAsJsonAsync("/api/custom/items",
+        var custom = await CustomPathAsync(client);
+        var create = await client.PostAsJsonAsync($"{custom}/items",
             new CreateCustomItemRequest(GameSystem.GenesysCore, "Dwarven Cuirass", ItemKind.Armor,
                 5, 3, 1, 1, 0, "Кастомная броня", 0, 5),
             Json.Options);
@@ -642,7 +653,8 @@ public class CustomContentTests : IClassFixture<ApiFactory>
     public async Task CustomHeroicAbility_CanBeAssigned()
     {
         var client = await _factory.CreateAuthorizedClientAsync();
-        var create = await client.PostAsJsonAsync("/api/custom/heroic-abilities",
+        var custom = await CustomPathAsync(client);
+        var create = await client.PostAsJsonAsync($"{custom}/heroic-abilities",
             new CreateCustomHeroicAbilityRequest("Гнев Предков", "Раз в сессию призовите духов предков."));
         var ability = (await create.Content.ReadFromJsonAsync<HeroicAbilityDto>(Json.Options))!;
 

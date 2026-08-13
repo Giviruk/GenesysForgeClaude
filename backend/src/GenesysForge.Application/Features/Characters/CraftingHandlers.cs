@@ -56,8 +56,8 @@ public static class CraftingCalc
             s.System == c.System && !s.Retired && s.Kind == SkillKind.Magic
             && s.Name.ToLower() == requested.ToLower()
             && (s.OwnerUserId == null
-                || (s.OwnerUserId == userId
-                    && (s.HomebrewPackId == null || visiblePackIds.Contains(s.HomebrewPackId.Value)))), ct);
+                || (s.HomebrewPackId == null ? s.OwnerUserId == userId
+                    : visiblePackIds.Contains(s.HomebrewPackId.Value))), ct);
         if (skill is null)
             throw new DomainRuleException(
                 "Для зачарования выберите магический навык персонажа.", "crafting.magic_skill_required");
@@ -76,8 +76,8 @@ public static class CraftingCalc
         return await db.ItemDefs.FirstOrDefaultAsync(i =>
                 i.Id == itemDefId && i.System == c.System
                 && (i.OwnerUserId == null
-                    || (i.OwnerUserId == userId
-                        && (i.HomebrewPackId == null || visiblePackIds.Contains(i.HomebrewPackId.Value)))), ct)
+                    || (i.HomebrewPackId == null ? i.OwnerUserId == userId
+                        : visiblePackIds.Contains(i.HomebrewPackId.Value))), ct)
             ?? throw new DomainRuleException("Предмет не найден.", "crafting.target_not_found");
     }
 

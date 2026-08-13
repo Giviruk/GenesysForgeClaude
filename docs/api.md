@@ -614,34 +614,35 @@ DELETE /api/characters/{id}/notes/{noteId}
 
 Create/update use `SaveCharacterNoteRequest` with `title` and `body`. Responses return `CharacterNoteDto`; delete returns `204`.
 
-## Custom content
+## Campaign custom content
 
-All routes are protected and scoped to current user.
+All routes are protected. Creation is restricted to the campaign GM. Created definitions are placed
+in an enabled campaign homebrew pack and become visible to characters joined to that campaign.
 
 ```text
-POST   /api/custom/skills
-PUT    /api/custom/skills/{id}
-DELETE /api/custom/skills/{id}
+POST   /api/campaigns/{campaignId}/custom/skills
+PUT    /api/campaigns/{campaignId}/custom/skills/{id}
+DELETE /api/campaigns/{campaignId}/custom/skills/{id}
 
-POST   /api/custom/talents
-PUT    /api/custom/talents/{id}
-DELETE /api/custom/talents/{id}
+POST   /api/campaigns/{campaignId}/custom/talents
+PUT    /api/campaigns/{campaignId}/custom/talents/{id}
+DELETE /api/campaigns/{campaignId}/custom/talents/{id}
 
-POST   /api/custom/items
-PUT    /api/custom/items/{id}
-DELETE /api/custom/items/{id}
+POST   /api/campaigns/{campaignId}/custom/items
+PUT    /api/campaigns/{campaignId}/custom/items/{id}
+DELETE /api/campaigns/{campaignId}/custom/items/{id}
 
-POST   /api/custom/heroic-abilities
-PUT    /api/custom/heroic-abilities/{id}
-DELETE /api/custom/heroic-abilities/{id}
+POST   /api/campaigns/{campaignId}/custom/heroic-abilities
+PUT    /api/campaigns/{campaignId}/custom/heroic-abilities/{id}
+DELETE /api/campaigns/{campaignId}/custom/heroic-abilities/{id}
 
-POST   /api/custom/archetypes
-PUT    /api/custom/archetypes/{id}
-DELETE /api/custom/archetypes/{id}
+POST   /api/campaigns/{campaignId}/custom/archetypes
+PUT    /api/campaigns/{campaignId}/custom/archetypes/{id}
+DELETE /api/campaigns/{campaignId}/custom/archetypes/{id}
 
-POST   /api/custom/careers
-PUT    /api/custom/careers/{id}
-DELETE /api/custom/careers/{id}
+POST   /api/campaigns/{campaignId}/custom/careers
+PUT    /api/campaigns/{campaignId}/custom/careers/{id}
+DELETE /api/campaigns/{campaignId}/custom/careers/{id}
 ```
 
 Create/update responses return the created/updated DTO. Delete responses return `204`.
@@ -651,7 +652,8 @@ Known limitation: delete is blocked by handlers when content is used by a charac
 Custom archetypes use `CreateCustomArchetypeRequest`: system, names, six characteristics, wound/strain bases,
 starting XP, copyright-safe description and one optional manual archetype ability. Custom careers use
 `CreateCustomCareerRequest`: system, names, description, career skill names and optional starting money. Both are
-scoped to `OwnerUserId`; only the owner sees them in reference data and can create characters from them.
+scoped to `OwnerUserId` and the campaign pack. The GM owns them; campaign member characters receive
+them through `HomebrewPackCampaigns`.
 
 ## Homebrew JSON packs
 

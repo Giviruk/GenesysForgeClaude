@@ -149,6 +149,17 @@ h1.auth-brand { font-size: 2rem; margin: 0 0 0.2rem; }
   border-color: var(--accent);
 }
 .main-tabs { border-bottom: 1px solid var(--border); padding-bottom: 0; }
+.main-tabs .sheet-tab-divider { width: 0.75rem; flex: 0 0 0.75rem; }
+.main-tabs .sheet-secondary-tab {
+  color: #75c8ee;
+  border-color: rgba(117, 200, 238, 0.55);
+  background: rgba(117, 200, 238, 0.08);
+}
+.main-tabs .sheet-secondary-tab.active {
+  color: #a7e2ff;
+  border-color: #75c8ee;
+  background: rgba(117, 200, 238, 0.18);
+}
 
 /* ---------- Layout ---------- */
 .app-shell {

@@ -26,8 +26,8 @@ public class BuyServiceHandler(IAppDbContext db) : ICommandHandler<BuyServiceCom
         var service = await db.ItemDefs.AsNoTracking().FirstOrDefaultAsync(i =>
                 i.Id == req.ItemDefId && i.System == character.System
                 && (i.OwnerUserId == null
-                    || (i.OwnerUserId == command.UserId
-                        && (i.HomebrewPackId == null || visiblePackIds.Contains(i.HomebrewPackId.Value)))), ct)
+                    || (i.HomebrewPackId == null ? i.OwnerUserId == command.UserId
+                        : visiblePackIds.Contains(i.HomebrewPackId.Value))), ct)
             ?? throw new DomainRuleException("Услуга не найдена.", "service.not_found");
 
         if (!ShopCatalogRules.IsService(service.Code))

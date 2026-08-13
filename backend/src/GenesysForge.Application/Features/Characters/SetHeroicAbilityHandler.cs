@@ -22,8 +22,8 @@ public class SetHeroicAbilityHandler(IAppDbContext db) : ICommandHandler<SetHero
             var ability = await db.HeroicAbilityDefs.FirstOrDefaultAsync(h =>
                 h.Id == command.HeroicAbilityId
                 && (h.OwnerUserId == null
-                    || (h.OwnerUserId == command.UserId
-                        && (h.HomebrewPackId == null || visiblePackIds.Contains(h.HomebrewPackId.Value)))), ct);
+                    || (h.HomebrewPackId == null ? h.OwnerUserId == command.UserId
+                        : visiblePackIds.Contains(h.HomebrewPackId.Value))), ct);
             if (ability is null) throw new DomainRuleException("Героическая способность не найдена.");
             abilityName = ability.Name;
         }

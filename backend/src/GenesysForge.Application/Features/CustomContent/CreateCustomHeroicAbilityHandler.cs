@@ -12,6 +12,8 @@ public class CreateCustomHeroicAbilityHandler(IAppDbContext db)
     public async Task<HeroicAbilityDto> Handle(CreateCustomHeroicAbilityCommand command, CancellationToken ct = default)
     {
         var req = command.Request;
+        var packId = await CampaignCustomContent.GetOrCreatePackIdAsync(
+            db, command.CampaignId, command.UserId, GameSystem.RealmsOfTerrinoth, ct);
         if (string.IsNullOrWhiteSpace(req.Name))
             throw new DomainRuleException("Название способности не может быть пустым.");
 
@@ -19,6 +21,7 @@ public class CreateCustomHeroicAbilityHandler(IAppDbContext db)
         {
             Id = Guid.NewGuid(), Name = req.Name.Trim(), Description = req.Description ?? "",
             OwnerUserId = command.UserId,
+            HomebrewPackId = packId,
         };
         db.HeroicAbilityDefs.Add(def);
         await db.SaveChangesAsync(ct);

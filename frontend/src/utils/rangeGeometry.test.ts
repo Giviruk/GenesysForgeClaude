@@ -46,13 +46,13 @@ describe('range tracker geometry', () => {
     },
   )
 
-  it('uses the nearest free cell in the selected band', () => {
+  it('allows several participants in the same sector', () => {
     expect(nearestFreeRangeAngle(3, 'medium', [
       { zone: 'medium', angle: 15 }, { zone: 'medium', angle: 45 },
-    ])).toBe(345)
+    ])).toBe(15)
   })
 
-  it('estimates pair distance from both radii and angles', () => {
+  it('estimates distance from maneuver cost and sectors', () => {
     expect(estimateRangeBetween(
       { zone: 'short', angle: 0 }, { zone: 'medium', angle: 0 },
     ).zone).toBe('short')
@@ -65,11 +65,11 @@ describe('range tracker geometry', () => {
   })
 
   it.each(['engaged', 'short', 'medium', 'long', 'extreme'] as const)(
-    'does not inflate the same angular separation in the %s band',
+    'uses the same angular separation in the %s band',
     zone => {
       expect(estimateRangeBetween(
         { zone, angle: 15 }, { zone, angle: 45 },
-      )).toMatchObject({ zone: 'engaged' })
+      )).toMatchObject({ zone: 'short' })
       expect(estimateRangeBetween(
         { zone, angle: 15 }, { zone, angle: 105 },
       )).toMatchObject({ zone: 'short' })
@@ -79,27 +79,39 @@ describe('range tracker geometry', () => {
     },
   )
 
-  it('combines radial and normalized angular separation', () => {
+  it('combines radial maneuver cost and sector separation', () => {
     expect(estimateRangeBetween(
       { zone: 'short', angle: 15 }, { zone: 'medium', angle: 105 },
     ).zone).toBe('medium')
     expect(estimateRangeBetween(
       { zone: 'engaged', angle: 15 }, { zone: 'short', angle: 195 },
-    ).zone).toBe('medium')
+    ).zone).toBe('short')
     expect(estimateRangeBetween(
       { zone: 'short', angle: 15 }, { zone: 'long', angle: 15 },
-    ).zone).toBe('medium')
+    ).zone).toBe('long')
   })
 
-  it('uses the visible ring boundaries without a one-step offset', () => {
+  it('charges two maneuvers for medium-long and long-extreme', () => {
     expect(estimateRangeBetween(
-      { zone: 'short', angle: 0 }, { zone: 'medium', angle: 90 },
-    )).toMatchObject({ zone: 'medium' })
+      { zone: 'medium', angle: 15 }, { zone: 'long', angle: 15 },
+    )).toMatchObject({ zone: 'medium', bandUnits: 2 })
     expect(estimateRangeBetween(
-      { zone: 'engaged', angle: 0 }, { zone: 'short', angle: 180 },
-    )).toMatchObject({ zone: 'medium' })
+      { zone: 'long', angle: 15 }, { zone: 'extreme', angle: 15 },
+    )).toMatchObject({ zone: 'medium', bandUnits: 2 })
+  })
+
+  it('treats every engaged point as the same origin relative to outer rings', () => {
+    const target = { zone: 'long', angle: 105 } as const
+    expect(estimateRangeBetween({ zone: 'engaged', angle: 15 }, target))
+      .toEqual(estimateRangeBetween({ zone: 'engaged', angle: 195 }, target))
+  })
+
+  it('counts engaged participants as engaged only in the same sector', () => {
     expect(estimateRangeBetween(
-      { zone: 'short', angle: 0 }, { zone: 'long', angle: 0 },
-    )).toMatchObject({ zone: 'medium' })
+      { zone: 'engaged', angle: 15 }, { zone: 'engaged', angle: 15 },
+    ).zone).toBe('engaged')
+    expect(estimateRangeBetween(
+      { zone: 'engaged', angle: 15 }, { zone: 'engaged', angle: 45 },
+    ).zone).toBe('short')
   })
 })
