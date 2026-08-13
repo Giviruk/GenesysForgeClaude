@@ -105,7 +105,7 @@ export function estimateRangeBetween(from: RangeCellPosition, to: RangeCellPosit
   const zone: RangeZone = bandUnits === 0 ? 'engaged'
     : bandUnits === 1 ? 'short'
       : bandUnits === 2 ? 'medium'
-        : bandUnits <= 4 ? 'long'
+        : bandUnits <= 5 ? 'long'
           : 'extreme'
   return { zone, bandUnits }
 }
