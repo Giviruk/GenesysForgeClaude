@@ -59,6 +59,7 @@ describe('parseRoute', () => {
     expect(parseRoute('/campaigns/c1/table')).toEqual(route({ area: 'campaigns', id: 'c1', sub: 'table' }))
     expect(parseRoute('/campaigns/c1/handbook')).toEqual(route({ area: 'campaigns', id: 'c1', sub: 'handbook' }))
     expect(parseRoute('/campaigns/c1/encounters')).toEqual(route({ area: 'campaigns', id: 'c1', sub: 'encounters' }))
+    expect(parseRoute('/campaigns/c1/custom')).toEqual(route({ area: 'campaigns', id: 'c1', sub: 'custom' }))
   })
 
   it('parses a specific encounter deep link', () => {

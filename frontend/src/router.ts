@@ -48,7 +48,7 @@ export interface AppRoute {
   area: AppArea
   /** id выбранной сущности для characters/campaigns/npcs, иначе null */
   id: string | null
-  /** под-вью сущности: 'print' (характер), 'table'/'handbook'/'encounters' (кампания); иначе null */
+  /** под-вью сущности: 'print' (характер), 'table'/'handbook'/'encounters'/'custom' (кампания); иначе null */
   sub: string | null
   /** id под-сущности: энкаунтер для /campaigns/:id/encounters/:eid; иначе null */
   subId: string | null
@@ -61,7 +61,7 @@ const ENTITY_AREAS: AppArea[] = ['characters', 'campaigns', 'npcs']
 /** Допустимые под-вью по областям; для encounters разрешён ещё и id под-сущности (:eid). */
 const SUBVIEWS: Record<string, { allowed: string[]; withId: string[] }> = {
   characters: { allowed: ['print'], withId: [] },
-  campaigns: { allowed: ['table', 'handbook', 'encounters'], withId: ['encounters'] },
+  campaigns: { allowed: ['table', 'handbook', 'encounters', 'custom'], withId: ['encounters'] },
   npcs: { allowed: [], withId: [] },
 }
 
@@ -73,7 +73,7 @@ const base = (area: AppArea, id: string | null = null, unknown = false): AppRout
  *   /                                          → характеры (по умолчанию)
  *   /login | /register                         → характеры (экран авторизации обрабатывается отдельно)
  *   /characters[/:id[/print]]
- *   /campaigns[/:id[/table|handbook|encounters[/:eid]]]
+ *   /campaigns[/:id[/table|handbook|encounters[/:eid]|custom]]
  *   /npcs[/:id]
  *   /magic
  *   /shop
