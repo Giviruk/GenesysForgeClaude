@@ -100,6 +100,21 @@ describe('range tracker geometry', () => {
     )).toMatchObject({ zone: 'medium', bandUnits: 2 })
   })
 
+  it('counts medium to extreme as long inside the same sector', () => {
+    expect(estimateRangeBetween(
+      { zone: 'medium', angle: 15 }, { zone: 'extreme', angle: 15 },
+    )).toMatchObject({ zone: 'long', bandUnits: 4 })
+    expect(estimateRangeBetween(
+      { zone: 'extreme', angle: 15 }, { zone: 'medium', angle: 15 },
+    )).toMatchObject({ zone: 'long', bandUnits: 4 })
+
+    // Выход в соседний сектор добавляет ещё один манёвр и сохраняет предельную
+    // дистанцию для действительно разнесённых позиций.
+    expect(estimateRangeBetween(
+      { zone: 'medium', angle: 15 }, { zone: 'extreme', angle: 45 },
+    )).toMatchObject({ zone: 'extreme', bandUnits: 5 })
+  })
+
   it('treats every engaged point as the same origin relative to outer rings', () => {
     const target = { zone: 'long', angle: 105 } as const
     expect(estimateRangeBetween({ zone: 'engaged', angle: 15 }, target))
