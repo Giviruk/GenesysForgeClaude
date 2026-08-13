@@ -148,7 +148,7 @@ public class CampaignTests : IClassFixture<ApiFactory>
     }
 
     [Fact]
-    public async Task NonGm_CannotViewMemberSheet()
+    public async Task CampaignMember_CanViewMemberSheet_ButStrangerCannot()
     {
         var gm = await _factory.CreateAuthorizedClientAsync();
         var campaign = await CreateCampaignAsync(gm);
@@ -156,9 +156,9 @@ public class CampaignTests : IClassFixture<ApiFactory>
         var charId = await CreateCharacterAsync(player, "Бард");
         await player.PostAsJsonAsync("/api/campaigns/join", new JoinCampaignRequest(campaign.JoinCode!, charId), Json.Options);
 
-        // Игрок (не мастер) не может смотреть лист через GM-эндпоинт.
+        // Участники открывают листы из ссылок совместной хроники.
         var asPlayer = await player.GetAsync($"/api/campaigns/{campaign.Id}/characters/{charId}/sheet");
-        Assert.Equal(HttpStatusCode.BadRequest, asPlayer.StatusCode);
+        Assert.Equal(HttpStatusCode.OK, asPlayer.StatusCode);
 
         // Посторонний тоже не может.
         var stranger = await _factory.CreateAuthorizedClientAsync();

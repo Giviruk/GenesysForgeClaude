@@ -1200,6 +1200,26 @@ export interface CampaignDetail {
   notes: CampaignNote[]
 }
 
+export interface CampaignChronicleChapter {
+  id: string
+  title: string
+  content: string
+  sortOrder: number
+  currentVersion: number
+  createdAt: string
+  updatedAt: string
+  updatedBy: string
+}
+
+export interface CampaignChronicleRevision {
+  id: string
+  version: number
+  title: string
+  content: string
+  editedAt: string
+  editedBy: string
+}
+
 export interface CharacterNote {
   id: string
   title: string

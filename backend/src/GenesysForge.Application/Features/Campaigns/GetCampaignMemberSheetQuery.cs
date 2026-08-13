@@ -3,6 +3,6 @@ using GenesysForge.Application.Dtos;
 
 namespace GenesysForge.Application.Features.Campaigns;
 
-/// <summary>GM запрашивает read-only лист персонажа участника своей кампании (U-20).</summary>
-public record GetCampaignMemberSheetQuery(Guid GmUserId, Guid CampaignId, Guid CharacterId)
+/// <summary>Участник кампании запрашивает read-only лист одного из её персонажей.</summary>
+public record GetCampaignMemberSheetQuery(Guid UserId, Guid CampaignId, Guid CharacterId)
     : IQuery<CharacterSheetDto>;

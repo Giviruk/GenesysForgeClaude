@@ -701,9 +701,23 @@ DELETE /api/campaigns/{id}/characters/{characterId}
 POST   /api/campaigns/{id}/notes
 PUT    /api/campaigns/{id}/notes/{noteId}
 DELETE /api/campaigns/{id}/notes/{noteId}
+
+GET    /api/campaigns/{id}/chronicle
+POST   /api/campaigns/{id}/chronicle/chapters
+PUT    /api/campaigns/{id}/chronicle/chapters/{chapterId}
+GET    /api/campaigns/{id}/chronicle/chapters/{chapterId}/history
+POST   /api/campaigns/{id}/chronicle/chapters/{chapterId}/restore/{revisionId}
 ```
 
 Campaign creation uses `CreateCampaignRequest` with `name` and `description`. Join uses `JoinCampaignRequest` with `joinCode` and `characterId`. A GM receives `joinCode` in campaign detail; players do not. Campaign notes use `SaveCampaignNoteRequest` with `title`, `body` and `isPrivate`; private notes are GM-only.
+
+Chronicle routes are available to both the GM and players whose character belongs to the campaign.
+Create/update uses `SaveCampaignChronicleChapterRequest` with `title`, Markdown `content`, and optional
+`expectedVersion`. A mismatched version returns `409`, preventing one participant from silently
+overwriting another participant's newer edit. Every create, changed update, and restore appends an
+immutable revision. Restoring a historical revision creates a new current version; it never deletes
+later history. Chronicle entity links use `character:<guid>` and `npc:<guid>` targets inside ordinary
+Markdown links. Access to the linked entity is still checked by its endpoint.
 
 ## NPCs / adversaries
 

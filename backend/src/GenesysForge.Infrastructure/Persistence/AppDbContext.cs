@@ -42,6 +42,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<Campaign> Campaigns => Set<Campaign>();
     public DbSet<CampaignCharacter> CampaignCharacters => Set<CampaignCharacter>();
     public DbSet<CampaignNote> CampaignNotes => Set<CampaignNote>();
+    public DbSet<CampaignChronicleChapter> CampaignChronicleChapters => Set<CampaignChronicleChapter>();
+    public DbSet<CampaignChronicleRevision> CampaignChronicleRevisions => Set<CampaignChronicleRevision>();
     public DbSet<SpellDef> SpellDefs => Set<SpellDef>();
     public DbSet<Npc> Npcs => Set<Npc>();
     public DbSet<NpcAttack> NpcAttacks => Set<NpcAttack>();
@@ -235,6 +237,21 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             e.HasIndex(cc => new { cc.CampaignId, cc.CharacterId }).IsUnique();
         });
         b.Entity<CampaignNote>().Property(n => n.Title).HasMaxLength(200);
+        b.Entity<CampaignChronicleChapter>(e =>
+        {
+            e.HasIndex(x => new { x.CampaignId, x.SortOrder });
+            e.Property(x => x.Title).HasMaxLength(200);
+            e.HasOne<Campaign>().WithMany().HasForeignKey(x => x.CampaignId).OnDelete(DeleteBehavior.Cascade);
+            e.HasOne<User>().WithMany().HasForeignKey(x => x.CreatedByUserId).OnDelete(DeleteBehavior.Restrict);
+            e.HasOne<User>().WithMany().HasForeignKey(x => x.UpdatedByUserId).OnDelete(DeleteBehavior.Restrict);
+            e.HasMany(x => x.Revisions).WithOne().HasForeignKey(x => x.ChapterId).OnDelete(DeleteBehavior.Cascade);
+        });
+        b.Entity<CampaignChronicleRevision>(e =>
+        {
+            e.HasIndex(x => new { x.ChapterId, x.Version }).IsUnique();
+            e.Property(x => x.Title).HasMaxLength(200);
+            e.HasOne<User>().WithMany().HasForeignKey(x => x.EditedByUserId).OnDelete(DeleteBehavior.Restrict);
+        });
 
         b.Entity<SpellDef>(e =>
         {

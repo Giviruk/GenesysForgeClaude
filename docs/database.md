@@ -32,8 +32,21 @@ DbSets:
 - `HomebrewPackCharacters`
 - `HomebrewPackCampaigns`
 - `RollLogEntries`
+- `CampaignChronicleChapters`
+- `CampaignChronicleRevisions`
 
 ## Tables and purpose
+
+### CampaignChronicleChapters / CampaignChronicleRevisions
+
+`CampaignChronicleChapters` stores ordered, jointly editable Markdown chapters scoped to a campaign.
+Important fields: `CampaignId`, `Title`, `Content`, `SortOrder`, `CurrentVersion`, creator/editor user ids,
+and timestamps. Index: non-unique `(CampaignId, SortOrder)`.
+
+`CampaignChronicleRevisions` stores immutable snapshots created with every meaningful save and restore.
+Important fields: `ChapterId`, `Version`, `Title`, `Content`, `EditedByUserId`, `EditedAt`. Index: unique
+`(ChapterId, Version)`. Deleting a campaign cascades to chapters and revisions; user references are
+restricted so authorship is not silently lost.
 
 ### Users
 
@@ -588,6 +601,7 @@ Found migrations:
 - `20260630115739_AddCustomArchetypeCareerOwnership` — adds nullable `OwnerUserId` plus indexes to `ArchetypeDefs` and `CareerDefs` so user-owned homebrew archetypes/careers can coexist with built-ins. Non-destructive (`AddColumn` + `CreateIndex`).
 - `20260630123634_AddHomebrewPacks` — creates `HomebrewPacks`, `HomebrewPackCharacters`, `HomebrewPackCampaigns`, and adds nullable `HomebrewPackId` indexes to custom-capable reference tables for imported JSON packs. Non-destructive (`CreateTable` + nullable `AddColumn` + `CreateIndex`).
 - `20260630182613_AddApiV1Indexes` — adds hot-path indexes for U-27: NPC filters (`System/Kind/Role`, scoped visibility, GIN `Tags`), reference content visibility (`System/OwnerUserId`), and token cleanup/lookups. Non-destructive (`CreateIndex` only).
+- `20260813120518_AddCampaignChronicle` — creates campaign chronicle chapters and immutable revision history with campaign-order and unique chapter-version indexes. Non-destructive (`CreateTable` only).
 - `20260701151637_AddTalentCategory` — adds `Category` (`int`, default `0` = `General`) to `TalentDefs` for UI filtering by common/social/combat/magic tags. Non-destructive (`AddColumn` only); built-in category values are provided by the next idempotent seed run from `talents.catalog.json`.
 - `20260726114049_CompleteHeroicAbilityProgression` — adds Duration/Frequency/Story state to `Characters`,
   creates the standard secondary-effect catalog and character selection table, and corrects legacy

@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 namespace GenesysForge.Application.Features.Campaigns;
 
 /// <summary>
-/// Отдаёт мастеру read-only лист персонажа участника кампании (U-20). Доступ — только GM кампании,
+/// Отдаёт участнику или мастеру read-only лист персонажа кампании.
 /// и только если персонаж действительно в ней состоит. Лист строится под владельца-игрока, чтобы
 /// его кастомный контент (навыки) разрешался корректно.
 /// </summary>
@@ -16,8 +16,7 @@ public class GetCampaignMemberSheetHandler(IAppDbContext db)
 {
     public async Task<CharacterSheetDto> Handle(GetCampaignMemberSheetQuery query, CancellationToken ct = default)
     {
-        // Проверка роли GM кампании (бросает, если запрашивающий не мастер).
-        await CampaignMapper.GetAsGmAsync(db, query.GmUserId, query.CampaignId, ct);
+        await CampaignMapper.GetAccessibleAsync(db, query.UserId, query.CampaignId, ct);
 
         // Персонаж должен состоять в этой кампании; заодно узнаём владельца-игрока.
         var member = await db.CampaignCharacters.AsNoTracking()

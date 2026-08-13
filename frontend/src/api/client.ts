@@ -1,6 +1,6 @@
 import type {
   Account,
-  AuthResponse, AuthProviders, CampaignDetail, CampaignListItem, CampaignNote, CharacterListItem, CharacterNote,
+  AuthResponse, AuthProviders, CampaignChronicleChapter, CampaignChronicleRevision, CampaignDetail, CampaignListItem, CampaignNote, CharacterListItem, CharacterNote,
   ActivateAbilityResult, ActivateCharacterAbilityResult, AddParticipantRequest, CharacterBio, CharacterSheet, CharacterShareResponse, CreatureTemplate, GameSession, GameSystem, HeroicAbility, HeroicOriginMode, HeroicOriginRollResult, HeroicOriginType, InitiativeSlotType, SignatureWeaponImprovement, SignatureWeaponProfile, WeaponCraftsmanship,
   Archetype, Career, CustomArchetypeInput, CustomCareerInput, ItemDef, ItemState, NpcDetail, NpcFilter, NpcInput, NpcListItem, QuickDraftRequest, Reference,
   SkillDef, Spell, TalentCategory, TalentDef, UpdateParticipantRequest,
@@ -647,6 +647,16 @@ export const api = {
     request<CampaignNote>('PUT', `/api/campaigns/${campaignId}/notes/${noteId}`, note),
   deleteCampaignNote: (campaignId: string, noteId: string) =>
     request<void>('DELETE', `/api/campaigns/${campaignId}/notes/${noteId}`),
+  campaignChronicle: (campaignId: string) =>
+    request<CampaignChronicleChapter[]>('GET', `/api/campaigns/${campaignId}/chronicle`),
+  createChronicleChapter: (campaignId: string, chapter: { title: string; content: string }) =>
+    request<CampaignChronicleChapter>('POST', `/api/campaigns/${campaignId}/chronicle/chapters`, chapter),
+  updateChronicleChapter: (campaignId: string, chapterId: string, chapter: { title: string; content: string; expectedVersion: number }) =>
+    request<CampaignChronicleChapter>('PUT', `/api/campaigns/${campaignId}/chronicle/chapters/${chapterId}`, chapter),
+  chronicleHistory: (campaignId: string, chapterId: string) =>
+    request<CampaignChronicleRevision[]>('GET', `/api/campaigns/${campaignId}/chronicle/chapters/${chapterId}/history`),
+  restoreChronicleRevision: (campaignId: string, chapterId: string, revisionId: string) =>
+    request<CampaignChronicleChapter>('POST', `/api/campaigns/${campaignId}/chronicle/chapters/${chapterId}/restore/${revisionId}`),
 
   npcs: (filter: NpcFilter = {}) => {
     const params = new URLSearchParams()

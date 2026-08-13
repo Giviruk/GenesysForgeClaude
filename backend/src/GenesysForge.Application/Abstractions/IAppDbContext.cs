@@ -41,6 +41,8 @@ public interface IAppDbContext
     DbSet<Campaign> Campaigns { get; }
     DbSet<CampaignCharacter> CampaignCharacters { get; }
     DbSet<CampaignNote> CampaignNotes { get; }
+    DbSet<CampaignChronicleChapter> CampaignChronicleChapters { get; }
+    DbSet<CampaignChronicleRevision> CampaignChronicleRevisions { get; }
     DbSet<SpellDef> SpellDefs { get; }
     DbSet<Npc> Npcs { get; }
     DbSet<NpcAttack> NpcAttacks { get; }
