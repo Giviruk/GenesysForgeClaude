@@ -1179,6 +1179,7 @@ export interface CampaignMember {
   archetype: string
   career: string
   isMine: boolean
+  portraitUrl?: string | null
 }
 
 export interface CampaignNote {

@@ -581,6 +581,7 @@ function ParticipantsStrip({ session, campaignId, isGm, members, onRun,
             return <ParticipantCard key={p.id} p={p} campaignId={campaignId} isGm={isGm}
               canEditVitals={isGm || Boolean(session.allowPlayerEdits && member?.isMine)}
               onRun={onRun} onUpdateParticipant={onUpdateParticipant} updatePending={updatePending}
+              characterName={member?.characterName} portraitUrl={member?.portraitUrl}
               onOpenCharacter={onOpenCharacter}
               onOpenNpc={p.npcId ? () => setOpenNpcId(p.id) : undefined} />
           })}
@@ -594,7 +595,7 @@ function ParticipantsStrip({ session, campaignId, isGm, members, onRun,
 }
 
 function ParticipantCard({ p, campaignId, isGm, canEditVitals, onRun, onUpdateParticipant,
-  updatePending, onOpenNpc, onOpenCharacter }: {
+  updatePending, characterName, portraitUrl, onOpenNpc, onOpenCharacter }: {
   p: GameParticipant
   campaignId: string
   isGm: boolean
@@ -602,11 +603,14 @@ function ParticipantCard({ p, campaignId, isGm, canEditVitals, onRun, onUpdatePa
   onRun: (action: () => Promise<unknown>) => Promise<void>
   onUpdateParticipant: (participantId: string, patch: UpdateParticipantRequest) => Promise<void>
   updatePending: boolean
+  characterName?: string
+  portraitUrl?: string | null
   onOpenNpc?: () => void
   onOpenCharacter?: () => void
 }) {
   const { openRoller } = useDiceRoller()
   const onOpen = onOpenNpc ?? onOpenCharacter
+  const visibleName = characterName ?? p.displayName
   const stop = (action: () => void) => (event: MouseEvent) => {
     event.stopPropagation()
     action()
@@ -623,8 +627,18 @@ function ParticipantCard({ p, campaignId, isGm, canEditVitals, onRun, onUpdatePa
       role={onOpen ? 'button' : undefined} tabIndex={onOpen ? 0 : undefined} aria-label={label}
       onClick={onOpen}
       onKeyDown={e => { if (onOpen && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); onOpen() } }}>
+      {isGm && <button type="button" className="participant-remove-button"
+        aria-label={t(`Удалить ${visibleName} из сцены`, `Remove ${visibleName} from scene`)}
+        onClick={stop(() => {
+          if (confirm(t(`Удалить ${visibleName} из сцены?`, `Remove ${visibleName} from the scene?`)))
+            void onRun(() => api.removeParticipant(campaignId, p.id))
+        })}>×</button>}
       <div className="pc-name">
-        <span>{participantNameWithCount(p)}</span>
+        <span className="pc-identity">
+          {portraitUrl && <img className="participant-portrait" src={portraitUrl}
+            alt={t(`Портрет: ${visibleName}`, `Portrait: ${visibleName}`)} />}
+          <span>{participantNameWithCount({ ...p, displayName: visibleName })}</span>
+        </span>
         <span className="pc-name-badges">
           {p.criticalInjuries > 0 && <span className="badge danger">{t('криты', 'crits')} {p.criticalInjuries}</span>}
           <span className={p.participantType === 'playerCharacter' ? 'badge slot-player' : 'badge slot-npc'}>
@@ -688,12 +702,6 @@ function ParticipantCard({ p, campaignId, isGm, canEditVitals, onRun, onUpdatePa
             onLog: req => { void onRun(() => api.createRoll(campaignId, { ...req, actorName: p.displayName })) },
             canSecret: isGm,
           })}>🎲</button>
-          {isGm && <button type="button" className="danger tiny"
-            aria-label={t(`Удалить ${p.displayName} из сцены`, `Remove ${p.displayName} from scene`)}
-            onClick={stop(() => {
-              if (confirm(t(`Удалить ${p.displayName} из сцены?`, `Remove ${p.displayName} from the scene?`)))
-                void onRun(() => api.removeParticipant(campaignId, p.id))
-            })}>{t('Удалить', 'Remove')}</button>}
         </span>
       </div>
     </article>

@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { BaseSheet, Reference, SheetSliceName, SheetSlices } from '../api/types'
 
 const sheetSlices = vi.fn<(id: string, include: SheetSliceName[]) => Promise<SheetSlices>>()
-const updateCharacter = vi.fn(() => Promise.resolve())
+const updateCharacter = vi.fn<(id: string, patch: unknown) => Promise<void>>().mockResolvedValue(undefined)
 const reference = vi.fn(() => Promise.resolve({ items: [], talents: [], qualities: [] } as unknown as Reference))
 const takeFreshSlices = vi.fn<(id: string) => SheetSlices | null>(() => null)
 const setActiveSlices = vi.fn()
@@ -12,7 +12,7 @@ vi.mock('../api/client', () => ({
   api: {
     sheetSlices: (id: string, include: SheetSliceName[]) => sheetSlices(id, include),
     reference: () => reference(),
-    updateCharacter: () => updateCharacter(),
+    updateCharacter: (id: string, patch: unknown) => updateCharacter(id, patch),
     sheet: () => Promise.resolve(null),
   },
   takeFreshSlices: (id: string) => takeFreshSlices(id),
@@ -76,6 +76,19 @@ describe('SheetPage — части листа грузятся по надобн
 
     await screen.findByText('вкладка листа')
     expect(includesOf()).toEqual(['base'])
+  })
+
+  it('позволяет изменить имя персонажа из заголовка листа', async () => {
+    renderPage()
+    await screen.findByText('вкладка листа')
+
+    fireEvent.click(screen.getByRole('button', { name: 'Гарет' }))
+    const input = screen.getByRole('textbox', { name: 'Имя персонажа' })
+    fireEvent.change(input, { target: { value: 'Гарет Серый' } })
+    fireEvent.keyDown(input, { key: 'Enter' })
+
+    await waitFor(() => expect(updateCharacter).toHaveBeenCalledWith('c1', { name: 'Гарет Серый' }))
+    expect(await screen.findByText('Имя персонажа обновлено.')).toBeTruthy()
   })
 
   it('показывает основные вкладки первыми в заданном порядке', async () => {

@@ -47,7 +47,8 @@ public class CampaignTests : IClassFixture<ApiFactory>
         Assert.Equal(HttpStatusCode.OK, join.StatusCode);
 
         var gmView = (await gm.GetFromJsonAsync<CampaignDetailDto>($"/api/campaigns/{campaign.Id}", Json.Options))!;
-        Assert.Contains(gmView.Members, m => m.CharacterId == charId && m.CharacterName == "Бард");
+        var member = Assert.Single(gmView.Members, m => m.CharacterId == charId && m.CharacterName == "Бард");
+        Assert.Null(member.PortraitUrl);
     }
 
     [Fact]

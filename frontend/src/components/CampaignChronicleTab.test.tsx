@@ -1,6 +1,6 @@
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import type { CampaignChronicleChapter, NpcListItem } from '../api/types'
+import type { CampaignChronicleChapter, NpcDetail, NpcListItem } from '../api/types'
 import { CampaignChronicleTab } from './CampaignChronicleTab'
 
 const chapter: CampaignChronicleChapter = {
@@ -17,12 +17,15 @@ const npc = (id: string, name: string, overrides: Partial<NpcListItem> = {}): Np
 
 const campaignChronicleMock = vi.fn()
 const npcsMock = vi.fn()
+const npcMock = vi.fn()
 const characterId = '11111111-1111-1111-1111-111111111111'
+const linkedNpcId = '22222222-2222-2222-2222-222222222222'
 
 vi.mock('../api/client', () => ({
   api: {
     campaignChronicle: (...args: unknown[]) => campaignChronicleMock(...args),
     npcs: (...args: unknown[]) => npcsMock(...args),
+    npc: (...args: unknown[]) => npcMock(...args),
   },
 }))
 
@@ -40,6 +43,14 @@ describe('CampaignChronicleTab — links', () => {
         isBuiltIn: false, isMine: true, visibility: 'campaignVisible', campaignId: null,
       }),
     ])
+    npcMock.mockResolvedValue({
+      id: linkedNpcId, name: 'Гоблин', system: 'realmsOfTerrinoth', kind: 'rival', role: 'custom',
+      description: 'Хитрый противник.', source: 'Test', brawn: 2, agility: 3, intellect: 1,
+      cunning: 2, willpower: 1, presence: 1, woundThreshold: 8, strainThreshold: 6, soak: 2,
+      meleeDefense: 0, rangedDefense: 0, silhouette: 1, tactics: 'Прячется.', visibility: 'publicTemplate',
+      campaignId: null, isMine: false, isBuiltIn: false, skills: [{ name: 'Скрытность', ranks: 2 }],
+      abilities: [], attacks: [], talents: [], equipment: [], tags: [], warnings: [], createdAt: '', updatedAt: '',
+    } satisfies NpcDetail)
   })
 
   function renderTab(onOpenCharacter = vi.fn()) {
@@ -119,5 +130,17 @@ describe('CampaignChronicleTab — links', () => {
     fireEvent.click(await screen.findByRole('link', { name: 'Бард' }))
 
     expect(onOpenCharacter).toHaveBeenCalledWith(characterId, 'Бард')
+  })
+
+  it('открывает ссылку NPC в модальной карточке, не меняя страницу', async () => {
+    campaignChronicleMock.mockResolvedValue([{ ...chapter, content: `[Гоблин](npc:${linkedNpcId})` }])
+    renderTab()
+
+    fireEvent.click(await screen.findByRole('link', { name: 'Гоблин' }))
+
+    const dialog = await screen.findByRole('dialog', { name: 'Карточка NPC: Гоблин' })
+    expect(npcMock).toHaveBeenCalledWith(linkedNpcId)
+    expect(within(dialog).getByText('Хитрый противник.')).toBeTruthy()
+    expect(window.location.pathname).toBe('/')
   })
 })
