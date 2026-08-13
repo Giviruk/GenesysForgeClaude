@@ -11,6 +11,7 @@ const referenceMock = vi.fn()
 const rollsMock = vi.fn()
 const createRollMock = vi.fn()
 const updateParticipantMock = vi.fn()
+const removeParticipantMock = vi.fn()
 const openRollerMock = vi.fn()
 const npcsMock = vi.fn()
 
@@ -22,6 +23,7 @@ vi.mock('../api/client', () => ({
     rolls: (...args: unknown[]) => rollsMock(...args),
     createRoll: (...args: unknown[]) => createRollMock(...args),
     updateParticipant: (...args: unknown[]) => updateParticipantMock(...args),
+    removeParticipant: (...args: unknown[]) => removeParticipantMock(...args),
     npcs: (...args: unknown[]) => npcsMock(...args),
     rules: vi.fn().mockResolvedValue({ entries: [] }),
   },
@@ -99,6 +101,7 @@ describe('GameTableTab — статблок и броски NPC', () => {
     rollsMock.mockReset().mockResolvedValue([])
     createRollMock.mockReset().mockResolvedValue({})
     updateParticipantMock.mockReset().mockResolvedValue(session)
+    removeParticipantMock.mockReset().mockResolvedValue(undefined)
     openRollerMock.mockReset()
     npcsMock.mockReset().mockResolvedValue([])
     window.history.replaceState(null, '', '/')
@@ -280,6 +283,25 @@ describe('GameTableTab — статблок и броски NPC', () => {
     expect(openRollerMock).toHaveBeenCalledWith(expect.objectContaining({
       kind: 'roll', initialPool: { boost: 3, setback: 1 },
     }))
+  })
+
+  it('позволяет мастеру удалить NPC и персонажа прямо с их карточек', async () => {
+    sessionMock.mockResolvedValue({ ...session, participants: [session.participants[0], playerParticipant] })
+    vi.spyOn(window, 'confirm').mockReturnValue(true)
+    render(<GameTableTab campaignId="campaign-1" isGm members={[ownMember]} />)
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Удалить Гоблины из сцены' }))
+    await waitFor(() => expect(removeParticipantMock).toHaveBeenCalledWith('campaign-1', 'participant-1'))
+    fireEvent.click(screen.getByRole('button', { name: 'Удалить Элира из сцены' }))
+    await waitFor(() => expect(removeParticipantMock).toHaveBeenCalledWith('campaign-1', 'participant-pc'))
+  })
+
+  it('не показывает игроку удаление участников со сцены', async () => {
+    sessionMock.mockResolvedValue({ ...session, participants: [session.participants[0], playerParticipant] })
+    render(<GameTableTab campaignId="campaign-1" isGm={false} members={[ownMember]} />)
+
+    await screen.findByText('Засада')
+    expect(screen.queryByRole('button', { name: /Удалить .* из сцены/ })).toBeNull()
   })
 
   it('сразу показывает изменение участника и откатывает его при ошибке сервера', async () => {
