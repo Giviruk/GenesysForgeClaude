@@ -7,12 +7,13 @@ interface Props {
   sheet: CharacterSheet
   onError: (message: string) => void
   refresh: () => Promise<void>
+  readOnly?: boolean
 }
 
 const MANUAL = '__manual__'
 
 /** Секция критических ранений на листе (U-23). Выбор из таблицы U-11 или ручной ввод. */
-export function CriticalInjuriesSection({ sheet, onError, refresh }: Props) {
+export function CriticalInjuriesSection({ sheet, onError, refresh, readOnly = false }: Props) {
   const [table, setTable] = useState<RuleTableEntry[]>([])
   const [code, setCode] = useState('')
   const [manualName, setManualName] = useState('')
@@ -92,12 +93,12 @@ export function CriticalInjuriesSection({ sheet, onError, refresh }: Props) {
               {ci.rollResult != null && <span className="muted small-text"> · {t('бросок', 'roll')} {ci.rollResult}</span>}
               {ci.notes && <div className="muted small-text">{ci.notes}</div>}
             </div>
-            <button className="danger small" onClick={() => void remove(ci.id, ci.nameRu)}>{t('Снять', 'Remove')}</button>
+            {!readOnly && <button className="danger small" onClick={() => void remove(ci.id, ci.nameRu)}>{t('Снять', 'Remove')}</button>}
           </div>
         ))}
       </div>
 
-      <form className="crit-form" onSubmit={submit}>
+      {!readOnly && <form className="crit-form" onSubmit={submit}>
         <select value={code} onChange={e => setCode(e.target.value)} aria-label={t('Крит-ранение', 'Critical injury')}>
           <option value="" disabled>{t('— выберите ранение —', '— pick an injury —')}</option>
           {groups.map(([group, entries]) => (
@@ -118,7 +119,7 @@ export function CriticalInjuriesSection({ sheet, onError, refresh }: Props) {
         <input className="grow" value={notes} onChange={e => setNotes(e.target.value)}
           maxLength={1000} placeholder={t('Заметки (необязательно)', 'Notes (optional)')} aria-label={t('Заметки', 'Notes')} />
         <button className="primary small" type="submit" disabled={busy || !code}>{t('Добавить', 'Add')}</button>
-      </form>
+      </form>}
       {selected?.body && <p className="hint small-text">{t(selected.body, selected.bodyEn || selected.body)}</p>}
     </section>
   )

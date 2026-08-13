@@ -27,6 +27,8 @@ const sheet = {
   woundsCurrent: 4,
   strainCurrent: 3,
   derived: { woundThreshold: 12, strainThreshold: 11 },
+  archetype: { name: 'Человек' },
+  career: { name: 'Бард' },
 } as unknown as CharacterSheet
 const memberSheetMock = vi.fn().mockResolvedValue(sheet)
 const referenceMock = vi.fn().mockResolvedValue({})
@@ -72,19 +74,17 @@ vi.mock('../api/client', () => ({
 }))
 // Хаб реального времени (SignalR) в jsdom не нужен.
 vi.mock('../useCampaignHub', () => ({ useCampaignHub: () => {} }))
-// Печатный лист и оверлей мокаем — проверяем факт рендера, а не полный статблок.
-vi.mock('../components/print/PrintPreview', () => ({
-  PrintPreview: ({ title, children }: { title: string; children: (v: string) => React.ReactNode }) =>
-    <div data-testid="print-preview">{title}{children('gm')}</div>,
-}))
-vi.mock('../components/print/CharacterSheetPrint', () => ({
-  CharacterSheetPrint: ({ sheet }: { sheet: { name: string } }) => <div>SHEET:{sheet.name}</div>,
+vi.mock('../components/SheetTab', () => ({
+  SheetTab: ({ sheet, readOnly }: { sheet: { name: string }; readOnly?: boolean }) =>
+    <div data-testid="campaign-sheet-page">SHEET:{sheet.name}:{readOnly ? 'READONLY' : 'EDIT'}</div>,
 }))
 
 const noop = () => {}
+const openCharacterMock = vi.fn()
 const props = {
-  openId: 'c1', view: 'overview' as const, openEncounterId: null,
+  openId: 'c1', view: 'overview' as const, openEncounterId: null, openCharacterId: null,
   onOpen: noop, onBack: noop, onView: noop, onOpenEncounter: noop, onCloseEncounter: noop,
+  onOpenCharacter: openCharacterMock, onCloseCharacter: noop,
 }
 
 describe('CampaignsPage — GM просмотр листа участника (U-20)', () => {
@@ -99,9 +99,10 @@ describe('CampaignsPage — GM просмотр листа участника (U
     updateSessionMock.mockResolvedValue(session)
     nextTurnMock.mockReset()
     nextTurnMock.mockResolvedValue(session)
+    openCharacterMock.mockClear()
   })
 
-  it('GM видит кнопку «Лист» и открывает read-only лист участника', async () => {
+  it('GM видит кнопку «Лист» и переходит на страницу участника', async () => {
     campaignMock.mockResolvedValue(detail(true))
     render(<CampaignsPage {...props} />)
 
@@ -109,9 +110,17 @@ describe('CampaignsPage — GM просмотр листа участника (U
     const sheetBtn = screen.getByRole('button', { name: 'Лист' })
     fireEvent.click(sheetBtn)
 
+    expect(openCharacterMock).toHaveBeenCalledWith('ch1')
+    expect(screen.queryByTestId('print-preview')).toBeNull()
+  })
+
+  it('deep link открывает экранный read-only лист без печатного оверлея', async () => {
+    render(<CampaignsPage {...props} openCharacterId="ch1" />)
+
     await waitFor(() => expect(memberSheetMock).toHaveBeenCalledWith('c1', 'ch1'))
-    await waitFor(() => expect(screen.getByTestId('print-preview')).toBeTruthy())
-    expect(screen.getByText('SHEET:Бард')).toBeTruthy()
+    expect((await screen.findByTestId('campaign-sheet-page')).textContent).toContain('SHEET:Бард:READONLY')
+    expect(screen.getByText('Только просмотр')).toBeTruthy()
+    expect(screen.queryByTestId('print-preview')).toBeNull()
   })
 
   it('игрок не видит кнопку «Лист»', async () => {

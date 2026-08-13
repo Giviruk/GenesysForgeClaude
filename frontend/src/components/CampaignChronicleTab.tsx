@@ -1,10 +1,11 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react'
 import { api } from '../api/client'
 import type { CampaignChronicleChapter, CampaignChronicleRevision, CampaignMember, NpcListItem } from '../api/types'
 import { t } from '../i18n'
 import { navigate } from '../router'
 import { MarkdownContent, type MarkdownEntityLink } from './MarkdownContent'
 import { markdownHeadings } from '../utils/markdown'
+import { findChronicleMention, replaceChronicleMention, type ChronicleMention } from '../utils/chronicleMentions'
 
 interface Props {
   campaignId: string
@@ -15,6 +16,7 @@ interface Props {
 }
 
 type ViewMode = 'write' | 'preview' | 'split'
+type MentionOption = { kind: 'character' | 'npc'; id: string; name: string }
 
 export function CampaignChronicleTab({ campaignId, members, refreshSignal, onOpenCharacter, onError }: Props) {
   const [chapters, setChapters] = useState<CampaignChronicleChapter[]>([])
@@ -31,10 +33,25 @@ export function CampaignChronicleTab({ campaignId, members, refreshSignal, onOpe
   const [npcs, setNpcs] = useState<NpcListItem[]>([])
   const [characterTarget, setCharacterTarget] = useState('')
   const [npcTarget, setNpcTarget] = useState('')
+  const [npcSearch, setNpcSearch] = useState('')
+  const [mention, setMention] = useState<ChronicleMention | null>(null)
+  const [mentionIndex, setMentionIndex] = useState(0)
   const textarea = useRef<HTMLTextAreaElement>(null)
   const selectedIdRef = useRef<string | null>(null)
 
   const selected = chapters.find(chapter => chapter.id === selectedId) ?? null
+  const filteredNpcs = useMemo(() => {
+    const query = npcSearch.trim().toLocaleLowerCase()
+    return npcs.filter(npc => !query || npc.name.toLocaleLowerCase().includes(query))
+  }, [npcs, npcSearch])
+  const mentionOptions = useMemo<MentionOption[]>(() => {
+    if (!mention) return []
+    const query = mention.query.trim().toLocaleLowerCase()
+    return [
+      ...members.map(member => ({ kind: 'character' as const, id: member.characterId, name: member.characterName })),
+      ...npcs.map(npc => ({ kind: 'npc' as const, id: npc.id, name: npc.name })),
+    ].filter(option => !query || option.name.toLocaleLowerCase().includes(query)).slice(0, 8)
+  }, [members, npcs, mention])
 
   const load = useCallback(async () => {
     try {
@@ -46,6 +63,7 @@ export function CampaignChronicleTab({ campaignId, members, refreshSignal, onOpe
       selectedIdRef.current = nextId
       setSelectedId(nextId)
       if (chapter) { setTitle(chapter.title); setContent(chapter.content); setHistory(null) }
+      setMention(null)
       setLoading(false)
     } catch (error) {
       setLoading(false)
@@ -77,6 +95,7 @@ export function CampaignChronicleTab({ campaignId, members, refreshSignal, onOpe
     if (chapter) { setTitle(chapter.title); setContent(chapter.content) }
     setHistoryOpen(false)
     setHistory(null)
+    setMention(null)
   }
 
   async function createChapter() {
@@ -91,6 +110,7 @@ export function CampaignChronicleTab({ campaignId, members, refreshSignal, onOpe
       setTitle(chapter.title)
       setContent(chapter.content)
       setDirty(false)
+      setMention(null)
     } catch (error) {
       onError(error instanceof Error ? error.message : t('Не удалось создать главу', 'Could not create chapter'))
     } finally { setCreating(false) }
@@ -147,6 +167,43 @@ export function CampaignChronicleTab({ campaignId, members, refreshSignal, onOpe
     if (!npc) return
     insert(`[${npc.name}](npc:${npc.id})`)
     setNpcTarget('')
+  }
+
+  function updateMention(nextContent: string, cursor: number) {
+    setMention(findChronicleMention(nextContent, cursor))
+    setMentionIndex(0)
+  }
+
+  function selectMention(option: MentionOption) {
+    if (!mention) return
+    const target = option.kind === 'character' ? `character:${option.id}` : `npc:${option.id}`
+    const result = replaceChronicleMention(content, mention, option.name, target)
+    setContent(result.text)
+    setDirty(true)
+    setMention(null)
+    requestAnimationFrame(() => {
+      textarea.current?.focus()
+      textarea.current?.setSelectionRange(result.cursor, result.cursor)
+    })
+  }
+
+  function handleEditorKeyDown(event: KeyboardEvent<HTMLTextAreaElement>) {
+    if (!mention) return
+    if (event.key === 'Escape') { event.preventDefault(); setMention(null); return }
+    if (mentionOptions.length === 0) {
+      if (event.key === 'Enter' || event.key === 'Tab') setMention(null)
+      return
+    }
+    if (event.key === 'ArrowDown') {
+      event.preventDefault()
+      setMentionIndex(index => (index + 1) % mentionOptions.length)
+    } else if (event.key === 'ArrowUp') {
+      event.preventDefault()
+      setMentionIndex(index => (index - 1 + mentionOptions.length) % mentionOptions.length)
+    } else if (event.key === 'Enter' || event.key === 'Tab') {
+      event.preventDefault()
+      selectMention(mentionOptions[mentionIndex] ?? mentionOptions[0])
+    }
   }
 
   function openEntity(link: MarkdownEntityLink) {
@@ -216,10 +273,13 @@ export function CampaignChronicleTab({ campaignId, members, refreshSignal, onOpe
             <option value="">{t('Персонаж…', 'Character…')}</option>
             {members.map(member => <option key={member.characterId} value={member.characterId}>{member.characterName}</option>)}
           </select><button onClick={insertCharacter} disabled={!characterTarget}>＋</button></span>
-          <span className="chronicle-picker"><select aria-label={t('NPC для ссылки', 'NPC link')}
+          <span className="chronicle-picker chronicle-npc-picker">
+            <input type="search" aria-label={t('Поиск NPC', 'Search NPC')} placeholder={t('Поиск NPC…', 'Search NPC…')}
+              value={npcSearch} onChange={event => { setNpcSearch(event.target.value); setNpcTarget('') }} />
+            <select aria-label={t('NPC для ссылки', 'NPC link')}
             value={npcTarget} onChange={event => setNpcTarget(event.target.value)}>
             <option value="">NPC…</option>
-            {npcs.map(npc => <option key={npc.id} value={npc.id}>{npc.name}</option>)}
+            {filteredNpcs.map(npc => <option key={npc.id} value={npc.id}>{npc.name}</option>)}
           </select><button onClick={insertNpc} disabled={!npcTarget}>＋</button></span>
           <span className="chronicle-mode">
             {(['write', 'split', 'preview'] as ViewMode[]).map(value => <button key={value}
@@ -230,9 +290,29 @@ export function CampaignChronicleTab({ campaignId, members, refreshSignal, onOpe
         </div>
 
         <div className={`chronicle-editor mode-${mode}`}>
-          {mode !== 'preview' && <textarea ref={textarea} value={content} spellCheck
+          {mode !== 'preview' && <div className="chronicle-write-pane"><textarea ref={textarea} value={content} spellCheck
             aria-label={t('Markdown-текст главы', 'Chapter Markdown')}
-            onChange={event => { setContent(event.target.value); setDirty(true) }} />}
+            onChange={event => {
+              setContent(event.target.value); setDirty(true)
+              updateMention(event.target.value, event.target.selectionStart)
+            }}
+            onClick={event => updateMention(event.currentTarget.value, event.currentTarget.selectionStart)}
+            onKeyUp={event => {
+              if (!['ArrowDown', 'ArrowUp', 'Enter', 'Tab', 'Escape'].includes(event.key))
+                updateMention(event.currentTarget.value, event.currentTarget.selectionStart)
+            }}
+            onKeyDown={handleEditorKeyDown} />
+            {mention && <div className="chronicle-mentions" role="listbox" aria-label={t('Упоминания', 'Mentions')}>
+              {mentionOptions.map((option, index) => <button type="button" role="option"
+                aria-selected={index === mentionIndex} className={index === mentionIndex ? 'active' : ''}
+                key={`${option.kind}-${option.id}`} onMouseDown={event => event.preventDefault()}
+                onClick={() => selectMention(option)}>
+                <span className="chronicle-mention-kind">{option.kind === 'character' ? t('Персонаж', 'Character') : 'NPC'}</span>
+                <b>{option.name}</b>
+              </button>)}
+              {mentionOptions.length === 0 && <div className="chronicle-mention-empty">{t('Совпадений нет', 'No matches')}</div>}
+            </div>}
+          </div>}
           {mode !== 'write' && <div className="chronicle-preview"><MarkdownContent markdown={content} onEntityLink={openEntity} /></div>}
         </div>
 

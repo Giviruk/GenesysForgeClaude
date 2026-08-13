@@ -9,8 +9,7 @@ import { EncountersTab } from '../components/EncountersTab'
 import { HandbookTab } from '../components/HandbookTab'
 import { CustomTab } from '../components/CustomTab'
 import { CampaignChronicleTab } from '../components/CampaignChronicleTab'
-import { PrintPreview } from '../components/print/PrintPreview'
-import { CharacterSheetPrint } from '../components/print/CharacterSheetPrint'
+import { SheetTab } from '../components/SheetTab'
 import { useCampaignHub, type CampaignHubStatus } from '../useCampaignHub'
 import { lang, t } from '../i18n'
 
@@ -20,15 +19,19 @@ interface Props {
   openId: string | null
   view: CampaignView
   openEncounterId: string | null
+  openCharacterId: string | null
   onOpen: (id: string) => void
   onBack: () => void
   onView: (view: CampaignView) => void
   onOpenEncounter: (eid: string) => void
   onCloseEncounter: () => void
+  onOpenCharacter: (characterId: string) => void
+  onCloseCharacter: () => void
 }
 
 export function CampaignsPage({
-  openId, view, openEncounterId, onOpen, onBack, onView, onOpenEncounter, onCloseEncounter,
+  openId, view, openEncounterId, openCharacterId, onOpen, onBack, onView, onOpenEncounter,
+  onCloseEncounter, onOpenCharacter, onCloseCharacter,
 }: Props) {
   const [campaigns, setCampaigns] = useState<CampaignListItem[] | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -42,7 +45,9 @@ export function CampaignsPage({
   useEffect(() => { if (!openId) void reload() }, [openId, reload])
 
   if (openId) return <CampaignDetailView campaignId={openId} view={view} openEncounterId={openEncounterId}
-    onBack={onBack} onView={onView} onOpenEncounter={onOpenEncounter} onCloseEncounter={onCloseEncounter} />
+    openCharacterId={openCharacterId} onBack={onBack} onView={onView}
+    onOpenEncounter={onOpenEncounter} onCloseEncounter={onCloseEncounter}
+    onOpenCharacter={onOpenCharacter} onCloseCharacter={onCloseCharacter} />
 
   return (
     <div className="page">
@@ -129,33 +134,27 @@ function JoinCampaignForm({ onDone, onError }: { onDone: () => void; onError: (m
   )
 }
 
-function CampaignDetailView({ campaignId, view, openEncounterId, onBack, onView, onOpenEncounter, onCloseEncounter }: {
+function CampaignDetailView({ campaignId, view, openEncounterId, openCharacterId, onBack, onView,
+  onOpenEncounter, onCloseEncounter, onOpenCharacter, onCloseCharacter }: {
   campaignId: string
   view: CampaignView
   openEncounterId: string | null
+  openCharacterId: string | null
   onBack: () => void
   onView: (view: CampaignView) => void
   onOpenEncounter: (eid: string) => void
   onCloseEncounter: () => void
+  onOpenCharacter: (characterId: string) => void
+  onCloseCharacter: () => void
 }) {
   const [c, setC] = useState<CampaignDetail | null>(null)
   const [error, setError] = useState<string | null>(null)
   // Счётчик realtime-инвалидаций: меняется на событиях хаба, вкладки перечитывают данные.
   const [liveSignal, setLiveSignal] = useState(0)
   const [hubStatus, setHubStatus] = useState<CampaignHubStatus>('connecting')
-  // GM открыл read-only лист персонажа участника (U-20).
-  const [memberSheet, setMemberSheet] = useState<{ name: string; sheet: CharacterSheet; reference: Reference } | null>(null)
   const [memberSheets, setMemberSheets] = useState<Record<string, CharacterSheet>>({})
   const [session, setSession] = useState<GameSession | null>(null)
   const [sessionLoaded, setSessionLoaded] = useState(false)
-
-  async function openMemberSheet(characterId: string, name: string) {
-    try {
-      const sheet = await api.campaignMemberSheet(campaignId, characterId)
-      const reference = await api.reference(sheet.system, { campaignId })
-      setMemberSheet({ name, sheet, reference })
-    } catch (err) { setError(err instanceof Error ? err.message : t('Не удалось открыть лист', 'Could not open the sheet')) }
-  }
 
   const reload = useCallback(
     () => api.campaign(campaignId).then(setC).catch((e: unknown) =>
@@ -218,6 +217,13 @@ function CampaignDetailView({ campaignId, view, openEncounterId, onBack, onView,
     return <div className="page"><button onClick={onBack}>{t('← Кампании', '← Campaigns')}</button>{error && <div className="error">{error}</div>}</div>
   }
 
+  if (openCharacterId) {
+    return <CampaignMemberSheetPage campaignId={campaignId} characterId={openCharacterId}
+      campaignName={c.name} onBack={onCloseCharacter} />
+  }
+
+  const openMemberSheet = (characterId: string) => onOpenCharacter(characterId)
+
   return (
     <div className="page">
       <div className="page-head">
@@ -272,13 +278,57 @@ function CampaignDetailView({ campaignId, view, openEncounterId, onBack, onView,
         />
       )}
 
-      {memberSheet && (
-        <PrintPreview title={t(`Лист персонажа — ${memberSheet.name}`, `Character sheet — ${memberSheet.name}`)} onClose={() => setMemberSheet(null)}>
-          {() => <CharacterSheetPrint sheet={memberSheet.sheet} reference={memberSheet.reference} />}
-        </PrintPreview>
-      )}
     </div>
   )
+}
+
+function CampaignMemberSheetPage({ campaignId, characterId, campaignName, onBack }: {
+  campaignId: string
+  characterId: string
+  campaignName: string
+  onBack: () => void
+}) {
+  const [sheet, setSheet] = useState<CharacterSheet | null>(null)
+  const [error, setError] = useState<string | null>(null)
+  const refresh = useCallback(async () => {
+    setSheet(await api.campaignMemberSheet(campaignId, characterId))
+  }, [campaignId, characterId])
+
+  useEffect(() => {
+    let cancelled = false
+    api.campaignMemberSheet(campaignId, characterId)
+      .then(result => { if (!cancelled) setSheet(result) })
+      .catch((err: unknown) => {
+        if (!cancelled) setError(err instanceof Error ? err.message : t('Не удалось открыть лист', 'Could not open the sheet'))
+      })
+    return () => { cancelled = true }
+  }, [campaignId, characterId])
+
+  if (!sheet) return <div className="page">
+    <button onClick={onBack}>{t('← Кампания', '← Campaign')}</button>
+    {error ? <div className="error">{error}</div> : <p className="muted">{t('Загрузка…', 'Loading…')}</p>}
+  </div>
+
+  return <div className="page campaign-member-sheet-page">
+    <div className="page-head">
+      <div>
+        <button className="back-link" onClick={onBack}>{t('← Кампания', '← Campaign')}</button>
+        <div className="sheet-title-row">
+          {sheet.portraitUrl && <span className="sheet-portrait static"><img src={sheet.portraitUrl} alt="" /></span>}
+          <h2>{sheet.name}</h2>
+          <span className={`badge ${sheet.system}`}>{SYSTEM_LABELS[sheet.system]}</span>
+          <span className="badge">{t('Только просмотр', 'Read only')}</span>
+        </div>
+        <div className="page-sub">{campaignName} · {sheet.archetype.name} · {sheet.career.name}</div>
+      </div>
+      <div className="xp-block">
+        XP: {sheet.totalXp} · <span className="muted">{t('доступно', 'available')} {sheet.availableXp}</span>
+      </div>
+    </div>
+    {error && <div className="error floating">{error}</div>}
+    <div className="tabs main-tabs"><span className="tab active">{t('Лист', 'Sheet')}</span></div>
+    <SheetTab sheet={sheet} onError={setError} refresh={refresh} readOnly />
+  </div>
 }
 
 function CampaignCustomTab({ campaignId, members, onError }: {
@@ -325,7 +375,7 @@ function CampaignOverview({ campaign, session, sessionLoaded, memberSheets, onVi
   sessionLoaded: boolean
   memberSheets: Record<string, CharacterSheet>
   onView: (view: CampaignView) => void
-  onOpenMemberSheet: (characterId: string, name: string) => Promise<void>
+  onOpenMemberSheet: (characterId: string, name: string) => void
   onRemoveMember: (characterId: string) => Promise<void>
   onCampaignRun: (a: () => Promise<unknown>) => Promise<void>
   onSessionRun: (a: () => Promise<unknown>) => Promise<void>
@@ -406,7 +456,7 @@ function CampaignMemberCard({ member, sheet, isGm, onOpenSheet, onRemove }: {
   member: CampaignMember
   sheet?: CharacterSheet
   isGm: boolean
-  onOpenSheet: (characterId: string, name: string) => Promise<void>
+  onOpenSheet: (characterId: string, name: string) => void
   onRemove: (characterId: string) => Promise<void>
 }) {
   const woundRatio = sheet ? ratio(sheet.woundsCurrent, sheet.derived.woundThreshold) : 0
@@ -427,7 +477,7 @@ function CampaignMemberCard({ member, sheet, isGm, onOpenSheet, onRemove }: {
       <div className="campaign-pc-foot">
         <span>{t('Свободно XP:', 'Available XP:')} <b>{sheet?.availableXp ?? '—'}</b></span>
         <span className="campaign-pc-actions">
-          {isGm && <button className="small" onClick={() => void onOpenSheet(member.characterId, member.characterName)}>{t('Лист', 'Sheet')}</button>}
+          {isGm && <button className="small" onClick={() => onOpenSheet(member.characterId, member.characterName)}>{t('Лист', 'Sheet')}</button>}
           {(isGm || member.isMine) && <button className="danger small" onClick={() => void onRemove(member.characterId)}>{t('Убрать', 'Remove')}</button>}
         </span>
       </div>

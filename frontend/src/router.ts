@@ -48,9 +48,9 @@ export interface AppRoute {
   area: AppArea
   /** id выбранной сущности для characters/campaigns/npcs, иначе null */
   id: string | null
-  /** под-вью сущности: 'print' (характер), 'table'/'handbook'/'encounters'/'custom' (кампания); иначе null */
+  /** под-вью сущности: 'print' (характер), campaign views или campaign character sheet; иначе null */
   sub: string | null
-  /** id под-сущности: энкаунтер для /campaigns/:id/encounters/:eid; иначе null */
+  /** id под-сущности: энкаунтер или персонаж кампании; иначе null */
   subId: string | null
   /** путь не распознан — показываем «не найдено» */
   unknown: boolean
@@ -61,7 +61,7 @@ const ENTITY_AREAS: AppArea[] = ['characters', 'campaigns', 'npcs']
 /** Допустимые под-вью по областям; для encounters разрешён ещё и id под-сущности (:eid). */
 const SUBVIEWS: Record<string, { allowed: string[]; withId: string[] }> = {
   characters: { allowed: ['print'], withId: [] },
-  campaigns: { allowed: ['chronicle', 'table', 'handbook', 'encounters', 'custom'], withId: ['encounters'] },
+  campaigns: { allowed: ['chronicle', 'table', 'handbook', 'encounters', 'custom', 'characters'], withId: ['encounters', 'characters'] },
   npcs: { allowed: [], withId: [] },
 }
 
@@ -73,7 +73,7 @@ const base = (area: AppArea, id: string | null = null, unknown = false): AppRout
  *   /                                          → характеры (по умолчанию)
  *   /login | /register                         → характеры (экран авторизации обрабатывается отдельно)
  *   /characters[/:id[/print]]
- *   /campaigns[/:id[/table|handbook|encounters[/:eid]|custom]]
+ *   /campaigns[/:id[/table|handbook|encounters[/:eid]|characters/:characterId|custom]]
  *   /npcs[/:id]
  *   /magic
  *   /shop
@@ -107,8 +107,10 @@ export function parseRoute(pathname: string): AppRoute {
   const config = SUBVIEWS[area]
   const allowed = config.allowed.includes(sub)
   const allowsId = config.withId.includes(sub)
+  const requiresId = area === 'campaigns' && sub === 'characters'
   const tooDeep = fourth ? !allowsId || segments.length > 4 : segments.length > 3
-  if (!allowed || tooDeep) return { area, id, sub: null, subId: null, unknown: true }
+  if (!allowed || tooDeep || (requiresId && !fourth))
+    return { area, id, sub: null, subId: null, unknown: true }
 
   return { area, id, sub, subId: fourth ?? null, unknown: false }
 }

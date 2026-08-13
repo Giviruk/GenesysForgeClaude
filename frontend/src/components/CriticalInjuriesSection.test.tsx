@@ -60,4 +60,12 @@ describe('CriticalInjuriesSection (U-23)', () => {
 
     await waitFor(() => expect(addMock).toHaveBeenCalledWith('char-1', expect.objectContaining({ ruleCode: 'crit-ci_001_005' })))
   })
+
+  it('в read-only листе показывает ранения без действий управления', () => {
+    render(<CriticalInjuriesSection sheet={baseSheet} onError={() => {}} refresh={vi.fn()} readOnly />)
+
+    expect(screen.getByText('Небольшая царапина')).toBeTruthy()
+    expect(screen.queryByRole('button', { name: 'Снять' })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Добавить' })).toBeNull()
+  })
 })
