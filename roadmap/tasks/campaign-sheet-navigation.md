@@ -3,8 +3,8 @@
 - **Пункт ТЗ:** GEN-CAMPAIGN-SHEET-NAV — экранный лист вместо печатного оверлея
 - **Ветка:** `feature/campaign-sheet-navigation`
 - **Базовая ветка:** `feature/campaign-chronicle-mentions` (stacked PR #191)
-- **PR:** будет добавлен после создания
-- **Статус:** ✅ Реализация и проверки завершены, ожидается PR
+- **PR:** #192
+- **Статус:** ✅ Реализация завершена, draft PR открыт
 
 ## Контекст
 
@@ -19,7 +19,7 @@
 - [x] Обновить Vitest/router tests
 - [x] Запустить frontend lint/tests/build
 - [x] Copyright-проверка: seed и справочники не изменяются
-- [ ] PR открыт
+- [x] PR открыт
 
 ## Что осталось / блокеры
 
