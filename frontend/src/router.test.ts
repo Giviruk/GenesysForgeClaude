@@ -68,6 +68,13 @@ describe('parseRoute', () => {
       .toEqual(route({ area: 'campaigns', id: 'c1', sub: 'encounters', subId: 'e9' }))
   })
 
+  it('parses a campaign member sheet deep link', () => {
+    expect(parseRoute('/campaigns/c1/characters/ch1'))
+      .toEqual(route({ area: 'campaigns', id: 'c1', sub: 'characters', subId: 'ch1' }))
+    expect(parseRoute('/campaigns/c1/characters'))
+      .toEqual(route({ area: 'campaigns', id: 'c1', unknown: true }))
+  })
+
   it('flags sub-views that do not belong to the area as unknown', () => {
     expect(parseRoute('/characters/abc/table')).toEqual(route({ id: 'abc', unknown: true }))
     expect(parseRoute('/campaigns/c1/print')).toEqual(route({ area: 'campaigns', id: 'c1', unknown: true }))

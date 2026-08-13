@@ -28,7 +28,7 @@ interface Props {
   isGm: boolean
   members: CampaignMember[]
   /** Read-only просмотр листа участника для мастера кампании. */
-  onOpenMemberSheet?: (characterId: string, name: string) => Promise<void>
+  onOpenMemberSheet?: (characterId: string, name: string) => void
   /** Счётчик realtime-инвалидаций: при изменении сцена перечитывается (другой участник внёс правку). */
   refreshSignal?: number
 }
@@ -554,7 +554,7 @@ function ParticipantsStrip({ session, campaignId, isGm, members, onRun,
   onRun: (action: () => Promise<unknown>) => Promise<void>
   onUpdateParticipant: (participantId: string, patch: UpdateParticipantRequest) => Promise<void>
   updatePending: boolean
-  onOpenMemberSheet?: (characterId: string, name: string) => Promise<void>
+  onOpenMemberSheet?: (characterId: string, name: string) => void
 }) {
   const [openNpcId, setOpenNpcId] = useState<string | null>(null)
   const openNpc = session.participants.find(p => p.id === openNpcId) ?? null
@@ -571,7 +571,7 @@ function ParticipantsStrip({ session, campaignId, isGm, members, onRun,
             const member = p.characterId ? members.find(m => m.characterId === p.characterId) : undefined
             const onOpenCharacter = p.characterId && member && (isGm || member.isMine)
               ? () => {
-                  if (isGm && onOpenMemberSheet) void onOpenMemberSheet(p.characterId!, member.characterName)
+                  if (isGm && onOpenMemberSheet) onOpenMemberSheet(p.characterId!, member.characterName)
                   else if (member.isMine) {
                     writeSheetTab(p.characterId!, 'sheet')
                     navigate(`/characters/${p.characterId}`)

@@ -110,11 +110,14 @@ function Shell() {
                 : <CharactersPage onOpen={id => navigate(`/characters/${id}`)} />)
             : route.area === 'campaigns'
               ? <CampaignsPage openId={route.id}
-                  view={campaignView(route.sub)} openEncounterId={route.subId}
+                  view={campaignView(route.sub)} openEncounterId={route.sub === 'encounters' ? route.subId : null}
+                  openCharacterId={route.sub === 'characters' ? route.subId : null}
                   onOpen={id => navigate(`/campaigns/${id}`)} onBack={() => navigate('/campaigns')}
                   onView={view => navigate(view === 'overview' ? `/campaigns/${route.id}` : `/campaigns/${route.id}/${view}`)}
                   onOpenEncounter={eid => navigate(`/campaigns/${route.id}/encounters/${eid}`)}
-                  onCloseEncounter={() => navigate(`/campaigns/${route.id}/encounters`)} />
+                  onCloseEncounter={() => navigate(`/campaigns/${route.id}/encounters`)}
+                  onOpenCharacter={characterId => navigate(`/campaigns/${route.id}/characters/${characterId}`)}
+                  onCloseCharacter={() => navigate(`/campaigns/${route.id}`)} />
               : route.area === 'npcs'
                 ? <NpcsPage openId={route.id}
                     onOpen={id => navigate(`/npcs/${id}`)} onBack={() => navigate('/npcs')} />

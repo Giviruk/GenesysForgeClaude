@@ -16,6 +16,7 @@ const npc = (id: string, name: string): NpcListItem => ({
 
 const campaignChronicleMock = vi.fn()
 const npcsMock = vi.fn()
+const characterId = '11111111-1111-1111-1111-111111111111'
 
 vi.mock('../api/client', () => ({
   api: {
@@ -32,11 +33,11 @@ describe('CampaignChronicleTab — links', () => {
     npcsMock.mockResolvedValue([npc('npc-goblin', 'Гоблин'), npc('npc-baron', 'Барон'), npc('npc-dragon', 'Дракон')])
   })
 
-  function renderTab() {
+  function renderTab(onOpenCharacter = vi.fn()) {
     return render(<CampaignChronicleTab campaignId="campaign-1" refreshSignal={0}
-      members={[{ characterId: 'character-bard', characterName: 'Бард', system: 'realmsOfTerrinoth',
+      members={[{ characterId, characterName: 'Бард', system: 'realmsOfTerrinoth',
         archetype: 'Человек', career: 'Менестрель', isMine: false }]}
-      onOpenCharacter={vi.fn()} onError={vi.fn()} />)
+      onOpenCharacter={onOpenCharacter} onError={vi.fn()} />)
   }
 
   it('filters the NPC selector by name', async () => {
@@ -62,7 +63,7 @@ describe('CampaignChronicleTab — links', () => {
     expect(within(suggestions).getByRole('option', { name: /Бард/ })).toBeTruthy()
     fireEvent.keyDown(editor, { key: 'Enter' })
 
-    expect(editor.value).toBe('Встретили [Бард](character:character-bard) ')
+    expect(editor.value).toBe(`Встретили [Бард](character:${characterId}) `)
   })
 
   it('filters @ suggestions and inserts an NPC link with a click', async () => {
@@ -76,5 +77,15 @@ describe('CampaignChronicleTab — links', () => {
     fireEvent.click(within(suggestions).getByRole('option', { name: /Гоблин/ }))
 
     expect(editor.value).toBe('У ворот [Гоблин](npc:npc-goblin) ')
+  })
+
+  it('передаёт ссылку персонажа в экранную навигацию кампании', async () => {
+    campaignChronicleMock.mockResolvedValue([{ ...chapter, content: `[Бард](character:${characterId})` }])
+    const onOpenCharacter = vi.fn()
+    renderTab(onOpenCharacter)
+
+    fireEvent.click(await screen.findByRole('link', { name: 'Бард' }))
+
+    expect(onOpenCharacter).toHaveBeenCalledWith(characterId, 'Бард')
   })
 })

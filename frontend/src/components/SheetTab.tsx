@@ -17,6 +17,7 @@ interface Props {
   onError: (message: string) => void
   refresh: () => Promise<void>
   updateBaseOptimistically?: (patch: Partial<BaseSheet>, action: () => Promise<unknown>) => Promise<void>
+  readOnly?: boolean
 }
 
 // Левая колонка — крупный блок «общие»; правая — боевые, под ними знания/магия и
@@ -62,7 +63,7 @@ function careerSourcesTitle(sources: CareerSkillSource[] | undefined): string | 
     + sources.map(s => `${CAREER_SOURCE_LABELS[s.source] ?? s.source} ${s.sourceName}`).join(', ')
 }
 
-export function SheetTab({ sheet, onError, refresh, updateBaseOptimistically }: Props) {
+export function SheetTab({ sheet, onError, refresh, updateBaseOptimistically, readOnly = false }: Props) {
   const { openRoller } = useDiceRoller()
   const [vitalsBusy, setVitalsBusy] = useState(false)
   const optimisticUpdate = updateBaseOptimistically ?? (async (_patch, action) => {
@@ -100,7 +101,7 @@ export function SheetTab({ sheet, onError, refresh, updateBaseOptimistically }: 
           <div key={c} className="stat-box characteristic">
             <div className="stat-value">{sheet.characteristics[c]}</div>
             <div className="stat-label">{CHARACTERISTIC_LABELS[c]}</div>
-            {sheet.isCreationPhase && (
+            {!readOnly && sheet.isCreationPhase && (
               <div className="buy-row">
                 {sheet.characteristics[c] > sheet.archetype[c] && (
                   <button className="small" title={t(`Вернуть ${sheet.characteristics[c] * 10} XP`, `Refund ${sheet.characteristics[c] * 10} XP`)}
@@ -121,21 +122,21 @@ export function SheetTab({ sheet, onError, refresh, updateBaseOptimistically }: 
       <section className="stat-row derived">
         <DerivedBox label={t('Раны', 'Wounds')} value={`${sheet.woundsCurrent} / ${d.woundThreshold}`}
           disabled={vitalsBusy}
-          onMinus={() => void updateVital(
+          onMinus={readOnly ? undefined : () => void updateVital(
             { woundsCurrent: Math.max(0, sheet.woundsCurrent - 1) },
             () => api.updateCharacter(sheet.id, { woundsCurrent: Math.max(0, sheet.woundsCurrent - 1) }),
           )}
-          onPlus={() => void updateVital(
+          onPlus={readOnly ? undefined : () => void updateVital(
             { woundsCurrent: sheet.woundsCurrent + 1 },
             () => api.updateCharacter(sheet.id, { woundsCurrent: sheet.woundsCurrent + 1 }),
           )} />
         <DerivedBox label={t('Усталость', 'Strain')} value={`${sheet.strainCurrent} / ${d.strainThreshold}`}
           disabled={vitalsBusy}
-          onMinus={() => void updateVital(
+          onMinus={readOnly ? undefined : () => void updateVital(
             { strainCurrent: Math.max(0, sheet.strainCurrent - 1) },
             () => api.updateCharacter(sheet.id, { strainCurrent: Math.max(0, sheet.strainCurrent - 1) }),
           )}
-          onPlus={() => void updateVital(
+          onPlus={readOnly ? undefined : () => void updateVital(
             { strainCurrent: sheet.strainCurrent + 1 },
             () => api.updateCharacter(sheet.id, { strainCurrent: sheet.strainCurrent + 1 }),
           )} />
@@ -146,7 +147,7 @@ export function SheetTab({ sheet, onError, refresh, updateBaseOptimistically }: 
           warning={encumbranceWarning(d)} />
       </section>
 
-      <CriticalInjuriesSection sheet={sheet} onError={onError} refresh={refresh} />
+      <CriticalInjuriesSection sheet={sheet} onError={onError} refresh={refresh} readOnly={readOnly} />
 
       {sheet.system === 'realmsOfTerrinoth' && <HeroicSummary sheet={sheet} />}
 
@@ -222,14 +223,14 @@ export function SheetTab({ sheet, onError, refresh, updateBaseOptimistically }: 
                                   })}>
                                   🎲
                                 </button>
-                                {sheet.isCreationPhase && s.ranks > s.freeRanks && (
+                                {!readOnly && sheet.isCreationPhase && s.ranks > s.freeRanks && (
                                   <button className="small"
                                     title={t(`Вернуть ранг ${s.ranks} (+${s.ranks * 5 + (s.isCareer ? 0 : 5)} XP)`, `Refund rank ${s.ranks} (+${s.ranks * 5 + (s.isCareer ? 0 : 5)} XP)`)}
                                     onClick={() => run(() => api.refundSkillRank(sheet.id, s.skillDefId))}>
                                     −
                                   </button>
                                 )}
-                                {s.ranks < 5 && (
+                                {!readOnly && s.ranks < 5 && (
                                   <button className="small" disabled={s.nextRankCost > sheet.availableXp}
                                     title={s.nextRankCost > sheet.availableXp ? t('Недостаточно XP', 'Not enough XP') : t(`Купить ранг ${s.ranks + 1}`, `Buy rank ${s.ranks + 1}`)}
                                     onClick={() => run(() => api.buySkillRank(sheet.id, s.skillDefId))}>
