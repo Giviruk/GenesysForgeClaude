@@ -8,10 +8,11 @@ const chapter: CampaignChronicleChapter = {
   createdAt: '2026-08-13T00:00:00Z', updatedAt: '2026-08-13T00:00:00Z', updatedBy: 'Мастер',
 }
 
-const npc = (id: string, name: string): NpcListItem => ({
+const npc = (id: string, name: string, overrides: Partial<NpcListItem> = {}): NpcListItem => ({
   id, name, system: 'realmsOfTerrinoth', kind: 'rival', role: 'custom', silhouette: 1,
   soak: 2, woundThreshold: 10, strainThreshold: 10, visibility: 'publicTemplate', campaignId: null,
   isMine: false, isBuiltIn: true, skills: [], tags: [], createdAt: '2026-08-13T00:00:00Z',
+  ...overrides,
 })
 
 const campaignChronicleMock = vi.fn()
@@ -30,7 +31,15 @@ vi.mock('../router', () => ({ navigate: vi.fn() }))
 describe('CampaignChronicleTab — links', () => {
   beforeEach(() => {
     campaignChronicleMock.mockResolvedValue([chapter])
-    npcsMock.mockResolvedValue([npc('npc-goblin', 'Гоблин'), npc('npc-baron', 'Барон'), npc('npc-dragon', 'Дракон')])
+    npcsMock.mockResolvedValue([
+      npc('npc-goblin', 'Гоблин'),
+      npc('npc-baron', 'Барон'),
+      npc('npc-dragon', 'Дракон'),
+      npc('npc-custom', 'Хозяйский алхимик', { isBuiltIn: false, isMine: true }),
+      npc('npc-campaign', 'Кампанийный проводник', {
+        isBuiltIn: false, isMine: true, visibility: 'campaignVisible', campaignId: null,
+      }),
+    ])
   })
 
   function renderTab(onOpenCharacter = vi.fn()) {
@@ -40,17 +49,40 @@ describe('CampaignChronicleTab — links', () => {
       onOpenCharacter={onOpenCharacter} onError={vi.fn()} />)
   }
 
-  it('filters the NPC selector by name', async () => {
+  it('searches inside the NPC selector', async () => {
     renderTab()
-    const search = await screen.findByRole('searchbox', { name: 'Поиск NPC' })
-    await waitFor(() => expect(within(screen.getByRole('combobox', { name: 'NPC для ссылки' }))
+    const selector = await screen.findByRole('combobox', { name: 'NPC для ссылки' })
+    fireEvent.focus(selector)
+    await waitFor(() => expect(within(screen.getByRole('listbox', { name: 'Результаты поиска NPC' }))
       .getByRole('option', { name: 'Гоблин' })).toBeTruthy())
 
-    fireEvent.change(search, { target: { value: 'гоб' } })
+    fireEvent.change(selector, { target: { value: 'гоб' } })
 
-    const selector = screen.getByRole('combobox', { name: 'NPC для ссылки' })
-    expect(within(selector).getByRole('option', { name: 'Гоблин' })).toBeTruthy()
-    expect(within(selector).queryByRole('option', { name: 'Дракон' })).toBeNull()
+    const results = screen.getByRole('listbox', { name: 'Результаты поиска NPC' })
+    expect(within(results).getByRole('option', { name: 'Гоблин' })).toBeTruthy()
+    expect(within(results).queryByRole('option', { name: 'Дракон' })).toBeNull()
+  })
+
+  it('finds and inserts a public custom NPC returned by the API', async () => {
+    renderTab()
+    const selector = await screen.findByRole('combobox', { name: 'NPC для ссылки' })
+    fireEvent.change(selector, { target: { value: 'алхимик' } })
+    fireEvent.click(within(screen.getByRole('listbox', { name: 'Результаты поиска NPC' }))
+      .getByRole('option', { name: /Хозяйский алхимик/ }))
+    fireEvent.click(within(selector.closest('.chronicle-npc-picker') as HTMLElement).getByRole('button', { name: '＋' }))
+
+    expect((screen.getByRole('textbox', { name: 'Markdown-текст главы' }) as HTMLTextAreaElement).value)
+      .toContain('[Хозяйский алхимик](npc:npc-custom)')
+  })
+
+  it('requests NPCs in the current campaign context', async () => {
+    renderTab()
+    const selector = await screen.findByRole('combobox', { name: 'NPC для ссылки' })
+    fireEvent.focus(selector)
+    const results = await screen.findByRole('listbox', { name: 'Результаты поиска NPC' })
+
+    expect(npcsMock).toHaveBeenCalledWith({ campaignId: 'campaign-1' })
+    expect(within(results).getByRole('option', { name: /Кампанийный проводник/ })).toBeTruthy()
   })
 
   it('inserts a character link through @ and Enter', async () => {

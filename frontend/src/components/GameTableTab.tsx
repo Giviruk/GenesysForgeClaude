@@ -688,6 +688,12 @@ function ParticipantCard({ p, campaignId, isGm, canEditVitals, onRun, onUpdatePa
             onLog: req => { void onRun(() => api.createRoll(campaignId, { ...req, actorName: p.displayName })) },
             canSecret: isGm,
           })}>🎲</button>
+          {isGm && <button type="button" className="danger tiny"
+            aria-label={t(`Удалить ${p.displayName} из сцены`, `Remove ${p.displayName} from scene`)}
+            onClick={stop(() => {
+              if (confirm(t(`Удалить ${p.displayName} из сцены?`, `Remove ${p.displayName} from the scene?`)))
+                void onRun(() => api.removeParticipant(campaignId, p.id))
+            })}>{t('Удалить', 'Remove')}</button>}
         </span>
       </div>
     </article>

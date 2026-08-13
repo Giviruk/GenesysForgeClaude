@@ -14,7 +14,7 @@ public class DuplicateNpcHandler(IAppDbContext db) : ICommandHandler<DuplicateNp
         {
             Id = Guid.NewGuid(),
             OwnerUserId = command.UserId,
-            CampaignId = src.OwnerUserId == command.UserId ? src.CampaignId : null,
+            CampaignId = null,
             System = src.System,
             Name = $"{src.Name} (копия)",
             Kind = src.Kind,

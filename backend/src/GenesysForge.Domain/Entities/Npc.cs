@@ -19,7 +19,10 @@ public class Npc
     /// по прежнему id и коду. Ср. <see cref="IContentDef.Retired"/>.
     /// </summary>
     public bool Retired { get; set; }
-    /// <summary>Кампания, к которой привязан NPC (необязательно).</summary>
+    /// <summary>
+    /// Legacy-привязка к одной кампании. Новая логика CampaignVisible показывает NPC во всех
+    /// кампаниях владельца-мастера и не использует это поле; оно сохранено для совместимости БД.
+    /// </summary>
     public Guid? CampaignId { get; set; }
 
     public GameSystem System { get; set; }

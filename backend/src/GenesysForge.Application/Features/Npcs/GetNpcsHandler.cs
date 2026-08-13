@@ -18,14 +18,27 @@ public class GetNpcsHandler(IAppDbContext db) : IQueryHandler<GetNpcsQuery, List
             .Where(n => !n.Retired)
             .Where(n => n.OwnerUserId == uid
                 || n.IsBuiltIn
-                || (n.Visibility == NpcVisibility.CampaignVisible && n.CampaignId != null
+                || n.Visibility == NpcVisibility.PublicTemplate
+                || (n.Visibility == NpcVisibility.CampaignVisible && n.OwnerUserId != null
                     && db.CampaignCharacters.Any(cc => cc.PlayerUserId == uid
-                        && cc.CampaignId == n.CampaignId.Value)));
+                        && db.Campaigns.Any(c => c.Id == cc.CampaignId
+                            && c.GmUserId == n.OwnerUserId.Value))));
 
         if (q.System is { } system) query = query.Where(n => n.System == system);
         if (q.Kind is { } kind) query = query.Where(n => n.Kind == kind);
         if (q.Role is { } role) query = query.Where(n => n.Role == role);
-        if (q.CampaignId is { } cid) query = query.Where(n => n.CampaignId == cid);
+        if (q.CampaignId is { } cid)
+        {
+            var canAccessCampaign = await db.Campaigns.AsNoTracking().AnyAsync(c => c.Id == cid
+                && (c.GmUserId == uid || db.CampaignCharacters.Any(cc => cc.CampaignId == cid
+                    && cc.PlayerUserId == uid)), ct);
+            if (!canAccessCampaign) throw new DomainRuleException("Кампания не найдена.");
+
+            query = query.Where(n => n.IsBuiltIn
+                || n.Visibility == NpcVisibility.PublicTemplate
+                || (n.Visibility == NpcVisibility.CampaignVisible && n.OwnerUserId != null
+                    && db.Campaigns.Any(c => c.Id == cid && c.GmUserId == n.OwnerUserId.Value)));
+        }
         if (!string.IsNullOrWhiteSpace(q.Search))
         {
             var term = q.Search.Trim().ToLower();
