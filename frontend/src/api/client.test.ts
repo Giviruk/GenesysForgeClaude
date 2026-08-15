@@ -97,12 +97,15 @@ describe('api client — обработка 401', () => {
     const fetchMock = vi.spyOn(globalThis, 'fetch')
       .mockResolvedValueOnce(new Response(JSON.stringify([]), { status: 200 }))
       .mockResolvedValueOnce(new Response(JSON.stringify({ id: 'ch1' }), { status: 200 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ imageUrl: 'https://storage.test/image.png' }), { status: 200 }))
       .mockResolvedValueOnce(new Response(JSON.stringify({ id: 'ch1' }), { status: 200 }))
       .mockResolvedValueOnce(new Response(JSON.stringify([]), { status: 200 }))
       .mockResolvedValueOnce(new Response(JSON.stringify({ id: 'ch1' }), { status: 200 }))
 
     await api.campaignChronicle('c1')
     await api.createChronicleChapter('c1', { title: 'Пролог', content: '# Пролог' })
+    const image = new Blob(['png'])
+    await api.uploadChronicleImage('c1', image)
     await api.updateChronicleChapter('c1', 'ch1', { title: 'Пролог', content: 'Текст', expectedVersion: 1 })
     await api.chronicleHistory('c1', 'ch1')
     await api.restoreChronicleRevision('c1', 'ch1', 'r1')
@@ -110,11 +113,13 @@ describe('api client — обработка 401', () => {
     expect(fetchMock.mock.calls.map(([url, init]) => [url, init?.method])).toEqual([
       ['/api/campaigns/c1/chronicle', 'GET'],
       ['/api/campaigns/c1/chronicle/chapters', 'POST'],
+      ['/api/campaigns/c1/chronicle/images', 'POST'],
       ['/api/campaigns/c1/chronicle/chapters/ch1', 'PUT'],
       ['/api/campaigns/c1/chronicle/chapters/ch1/history', 'GET'],
       ['/api/campaigns/c1/chronicle/chapters/ch1/restore/r1', 'POST'],
     ])
-    expect(fetchMock.mock.calls[2][1]?.body).toBe(JSON.stringify({ title: 'Пролог', content: 'Текст', expectedVersion: 1 }))
+    expect(fetchMock.mock.calls[2][1]?.body).toBe(image)
+    expect(fetchMock.mock.calls[3][1]?.body).toBe(JSON.stringify({ title: 'Пролог', content: 'Текст', expectedVersion: 1 }))
   })
 
   it('custom archetype/career methods use the expected endpoints', async () => {

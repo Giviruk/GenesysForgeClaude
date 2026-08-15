@@ -91,6 +91,16 @@ public static class CampaignEndpoints
             Results.Ok(await handler.Handle(
                 new CreateCampaignChronicleChapterCommand(user.UserId(), id, req), ct)));
 
+        // Изображения отправляются сырым телом и проверяются по сигнатуре, а не по имени файла.
+        group.MapPost("/{id:guid}/chronicle/images", async (Guid id, HttpRequest request, ClaimsPrincipal user,
+            ICommandHandler<UploadCampaignChronicleImageCommand, string> handler, CancellationToken ct) =>
+        {
+            var content = await UploadBody.ReadImageAsync(request, ct);
+            var url = await handler.Handle(
+                new UploadCampaignChronicleImageCommand(user.UserId(), id, content), ct);
+            return Results.Ok(new { ImageUrl = url });
+        }).RequireRateLimiting(AuthRateLimiting.SessionPolicy);
+
         group.MapPut("/{id:guid}/chronicle/chapters/{chapterId:guid}", async (Guid id, Guid chapterId,
                 SaveCampaignChronicleChapterRequest req, ClaimsPrincipal user,
                 ICommandHandler<UpdateCampaignChronicleChapterCommand, CampaignChronicleChapterDto> handler,

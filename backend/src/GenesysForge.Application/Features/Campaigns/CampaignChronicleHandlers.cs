@@ -1,6 +1,7 @@
 using GenesysForge.Application.Abstractions;
 using GenesysForge.Application.Dtos;
 using GenesysForge.Application.Exceptions;
+using GenesysForge.Application.Media;
 using GenesysForge.Domain;
 using GenesysForge.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
@@ -25,6 +26,9 @@ public record RestoreCampaignChronicleRevisionCommand(
     Guid UserId, Guid CampaignId, Guid ChapterId, Guid RevisionId)
     : ICommand<CampaignChronicleChapterDto>;
 
+public record UploadCampaignChronicleImageCommand(Guid UserId, Guid CampaignId, byte[] Content)
+    : ICommand<string>;
+
 internal static class CampaignChronicleMapping
 {
     public const int MaxContentLength = 200_000;
@@ -42,6 +46,21 @@ internal static class CampaignChronicleMapping
     public static CampaignChronicleChapterDto ToDto(CampaignChronicleChapter chapter, string editor) =>
         new(chapter.Id, chapter.Title, chapter.Content, chapter.SortOrder, chapter.CurrentVersion,
             chapter.CreatedAt, chapter.UpdatedAt, editor);
+}
+
+/// <summary>Загружает публичное изображение, которое участник затем вставляет в Markdown хроники.</summary>
+public class UploadCampaignChronicleImageHandler(IAppDbContext db, IObjectStorage storage)
+    : ICommandHandler<UploadCampaignChronicleImageCommand, string>
+{
+    public async Task<string> Handle(UploadCampaignChronicleImageCommand command, CancellationToken ct = default)
+    {
+        await CampaignMapper.GetAccessibleAsync(db, command.UserId, command.CampaignId, ct);
+        ImageUpload.Validate(storage, command.Content, out var contentType, out var extension);
+
+        using var content = new MemoryStream(command.Content, writable: false);
+        return await storage.UploadPublicAsync(content,
+            $"campaigns/{command.CampaignId}/chronicle/{Guid.NewGuid():N}.{extension}", contentType, ct);
+    }
 }
 
 public class GetCampaignChronicleHandler(IAppDbContext db)

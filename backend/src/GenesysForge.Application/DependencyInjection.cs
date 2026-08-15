@@ -155,6 +155,7 @@ public static class DependencyInjection
         services.AddScoped<ICommandHandler<UpdateCampaignChronicleChapterCommand, CampaignChronicleChapterDto>, UpdateCampaignChronicleChapterHandler>();
         services.AddScoped<IQueryHandler<GetCampaignChronicleHistoryQuery, List<CampaignChronicleRevisionDto>>, GetCampaignChronicleHistoryHandler>();
         services.AddScoped<ICommandHandler<RestoreCampaignChronicleRevisionCommand, CampaignChronicleChapterDto>, RestoreCampaignChronicleRevisionHandler>();
+        services.AddScoped<ICommandHandler<UploadCampaignChronicleImageCommand, string>, UploadCampaignChronicleImageHandler>();
 
         // Spells
         services.AddScoped<IQueryHandler<GetSpellsQuery, List<SpellDto>>, GetSpellsHandler>();

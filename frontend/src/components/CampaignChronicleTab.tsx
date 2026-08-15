@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useId, useMemo, useRef, useState, type KeyboardEvent } from 'react'
+import { useCallback, useEffect, useId, useMemo, useRef, useState, type ChangeEvent, type KeyboardEvent } from 'react'
 import { api } from '../api/client'
 import type { CampaignChronicleChapter, CampaignChronicleRevision, CampaignMember, NpcListItem } from '../api/types'
 import { t } from '../i18n'
@@ -17,6 +17,9 @@ interface Props {
 
 type ViewMode = 'write' | 'preview' | 'split'
 type MentionOption = { kind: 'character' | 'npc'; id: string; name: string }
+type TextRange = { start: number; end: number }
+
+const MAX_IMAGE_BYTES = 5 * 1024 * 1024
 
 export function CampaignChronicleTab({ campaignId, members, refreshSignal, onOpenCharacter, onError }: Props) {
   const [chapters, setChapters] = useState<CampaignChronicleChapter[]>([])
@@ -26,6 +29,7 @@ export function CampaignChronicleTab({ campaignId, members, refreshSignal, onOpe
   const [dirty, setDirty] = useState(false)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+  const [uploadingImage, setUploadingImage] = useState(false)
   const [creating, setCreating] = useState(false)
   const [mode, setMode] = useState<ViewMode>('split')
   const [history, setHistory] = useState<CampaignChronicleRevision[] | null>(null)
@@ -38,6 +42,8 @@ export function CampaignChronicleTab({ campaignId, members, refreshSignal, onOpe
   const [mention, setMention] = useState<ChronicleMention | null>(null)
   const [mentionIndex, setMentionIndex] = useState(0)
   const textarea = useRef<HTMLTextAreaElement>(null)
+  const imageInput = useRef<HTMLInputElement>(null)
+  const imageInsertionRange = useRef<TextRange | null>(null)
   const selectedIdRef = useRef<string | null>(null)
 
   const selected = chapters.find(chapter => chapter.id === selectedId) ?? null
@@ -129,10 +135,10 @@ export function CampaignChronicleTab({ campaignId, members, refreshSignal, onOpe
     } finally { setSaving(false) }
   }
 
-  function insert(markdown: string, selectPlaceholder?: string) {
+  function insert(markdown: string, selectPlaceholder?: string, range?: TextRange | null) {
     const element = textarea.current
-    const start = element?.selectionStart ?? content.length
-    const end = element?.selectionEnd ?? start
+    const start = range?.start ?? element?.selectionStart ?? content.length
+    const end = range?.end ?? element?.selectionEnd ?? start
     const next = content.slice(0, start) + markdown + content.slice(end)
     setContent(next)
     setDirty(true)
@@ -149,6 +155,40 @@ export function CampaignChronicleTab({ campaignId, members, refreshSignal, onOpe
     if (!label) return
     const href = prompt(t('Адрес ссылки (https://…)', 'Link address (https://…)'), 'https://')
     if (href) insert(`[${label}](${href})`)
+  }
+
+  function chooseImage() {
+    const element = textarea.current
+    imageInsertionRange.current = {
+      start: element?.selectionStart ?? content.length,
+      end: element?.selectionEnd ?? element?.selectionStart ?? content.length,
+    }
+    imageInput.current?.click()
+  }
+
+  async function uploadImage(event: ChangeEvent<HTMLInputElement>) {
+    const input = event.currentTarget
+    const file = input.files?.[0]
+    if (!file) return
+    if (file.size > MAX_IMAGE_BYTES) {
+      onError(t('Изображение должно быть не больше 5 МБ.', 'The image must be no larger than 5 MB.'))
+      input.value = ''
+      return
+    }
+    try {
+      setUploadingImage(true)
+      const { imageUrl } = await api.uploadChronicleImage(campaignId, file)
+      const alt = file.name.replace(/\.[^.]+$/, '').replaceAll('[', ' ').replaceAll(']', ' ')
+        .replace(/[\r\n]/g, ' ').trim()
+        || t('Изображение', 'Image')
+      insert(`\n\n![${alt}](${imageUrl})\n\n`, undefined, imageInsertionRange.current)
+    } catch (error) {
+      onError(error instanceof Error ? error.message : t('Не удалось загрузить изображение', 'Could not upload image'))
+    } finally {
+      setUploadingImage(false)
+      imageInsertionRange.current = null
+      input.value = ''
+    }
   }
 
   function insertCharacter() {
@@ -266,6 +306,11 @@ export function CampaignChronicleTab({ campaignId, members, refreshSignal, onOpe
           <button onClick={() => insert('\n\nНовый абзац\n\n', 'Новый абзац')}>¶ {t('Абзац', 'Paragraph')}</button>
           <button onClick={() => insert('\n- Первый пункт\n- Второй пункт\n', 'Первый пункт')}>• {t('Список', 'List')}</button>
           <button onClick={insertWebLink}>🔗 {t('Ссылка', 'Link')}</button>
+          <input ref={imageInput} type="file" accept="image/jpeg,image/png,image/webp" hidden
+            data-testid="chronicle-image-file" onChange={event => void uploadImage(event)} />
+          <button onClick={chooseImage} disabled={uploadingImage}>
+            🖼 {uploadingImage ? t('Загрузка…', 'Uploading…') : t('Изображение', 'Image')}
+          </button>
           <span className="chronicle-picker"><select aria-label={t('Персонаж для ссылки', 'Character link')}
             value={characterTarget} onChange={event => setCharacterTarget(event.target.value)}>
             <option value="">{t('Персонаж…', 'Character…')}</option>
