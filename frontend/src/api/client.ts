@@ -641,6 +641,9 @@ export const api = {
   // GM открывает read-only лист персонажа участника своей кампании (U-20).
   campaignMemberSheet: (campaignId: string, characterId: string) =>
     request<CharacterSheet>('GET', `/api/campaigns/${campaignId}/characters/${characterId}/sheet`),
+  campaignMemberAudit: (campaignId: string, characterId: string, take = 100) =>
+    request<CharacterAuditEntry[]>('GET',
+      `/api/campaigns/${campaignId}/characters/${characterId}/audit?take=${take}`),
   createCampaignNote: (campaignId: string, note: { title: string; body: string; isPrivate: boolean }) =>
     request<CampaignNote>('POST', `/api/campaigns/${campaignId}/notes`, note),
   updateCampaignNote: (campaignId: string, noteId: string, note: { title: string; body: string; isPrivate: boolean }) =>

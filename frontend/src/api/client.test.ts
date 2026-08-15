@@ -122,6 +122,18 @@ describe('api client — обработка 401', () => {
     expect(fetchMock.mock.calls[3][1]?.body).toBe(JSON.stringify({ title: 'Пролог', content: 'Текст', expectedVersion: 1 }))
   })
 
+  it('loads campaign member audit through the campaign-scoped endpoint', async () => {
+    const fetchMock = vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+      new Response(JSON.stringify([]), { status: 200 }))
+
+    await api.campaignMemberAudit('campaign-1', 'character-1', 25)
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      '/api/campaigns/campaign-1/characters/character-1/audit?take=25',
+      expect.objectContaining({ method: 'GET' }),
+    )
+  })
+
   it('custom archetype/career methods use the expected endpoints', async () => {
     const fetchMock = vi.spyOn(globalThis, 'fetch')
       .mockResolvedValueOnce(new Response(JSON.stringify({ id: 'archetype-id' }), { status: 200 }))

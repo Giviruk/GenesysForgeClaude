@@ -697,6 +697,8 @@ POST   /api/campaigns/
 GET    /api/campaigns/{id}
 POST   /api/campaigns/join
 DELETE /api/campaigns/{id}/characters/{characterId}
+GET    /api/campaigns/{id}/characters/{characterId}/sheet
+GET    /api/campaigns/{id}/characters/{characterId}/audit
 
 POST   /api/campaigns/{id}/notes
 PUT    /api/campaigns/{id}/notes/{noteId}
@@ -711,6 +713,10 @@ POST   /api/campaigns/{id}/chronicle/chapters/{chapterId}/restore/{revisionId}
 ```
 
 Campaign creation uses `CreateCampaignRequest` with `name` and `description`. Join uses `JoinCampaignRequest` with `joinCode` and `characterId`. A GM receives `joinCode` in campaign detail; players do not. Each campaign member includes the character's `portraitUrl` for campaign and Game Table cards. Campaign notes use `SaveCampaignNoteRequest` with `title`, `body` and `isPrivate`; private notes are GM-only.
+
+Campaign members and the GM can open a campaign character's read-only full sheet and audit history
+through the two `/characters/{characterId}` routes above. The character must belong to that campaign.
+Personal character notes remain owner-only and are not exposed by campaign routes.
 
 Chronicle routes are available to both the GM and players whose character belongs to the campaign.
 Create/update uses `SaveCampaignChronicleChapterRequest` with `title`, Markdown `content`, and optional

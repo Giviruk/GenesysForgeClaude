@@ -168,6 +168,26 @@ public class CampaignTests : IClassFixture<ApiFactory>
     }
 
     [Fact]
+    public async Task CampaignMemberAudit_AvailableToCampaign_ButNotStranger()
+    {
+        var gm = await _factory.CreateAuthorizedClientAsync();
+        var campaign = await CreateCampaignAsync(gm);
+        var player = await _factory.CreateAuthorizedClientAsync();
+        var charId = await CreateCharacterAsync(player, "Летописец");
+        await player.PostAsJsonAsync("/api/campaigns/join",
+            new JoinCampaignRequest(campaign.JoinCode!, charId), Json.Options);
+
+        var asGm = await gm.GetAsync($"/api/campaigns/{campaign.Id}/characters/{charId}/audit");
+        Assert.Equal(HttpStatusCode.OK, asGm.StatusCode);
+        var entries = (await asGm.Content.ReadFromJsonAsync<List<CharacterAuditEntryDto>>(Json.Options))!;
+        Assert.NotEmpty(entries);
+
+        var stranger = await _factory.CreateAuthorizedClientAsync();
+        var rejected = await stranger.GetAsync($"/api/campaigns/{campaign.Id}/characters/{charId}/audit");
+        Assert.Equal(HttpStatusCode.BadRequest, rejected.StatusCode);
+    }
+
+    [Fact]
     public async Task Gm_CannotViewSheet_OfCharacterNotInCampaign()
     {
         var gm = await _factory.CreateAuthorizedClientAsync();

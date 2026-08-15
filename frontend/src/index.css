@@ -70,6 +70,8 @@
 .markdown-table-wrap { overflow-x:auto; }
 .markdown-content table { width:100%; border-collapse:collapse; }
 .markdown-content th,.markdown-content td { padding:7px 9px; border:1px solid var(--border); text-align:left; }
+.readonly-character-summary { display:flex; flex-wrap:wrap; gap:12px 28px; }
+.readonly-item-group + .readonly-item-group { margin-top:18px; }
 .chronicle-history { margin-top:16px; padding:14px; border:1px solid var(--border); border-radius:10px; }
 .chronicle-history details { padding:9px 0; border-top:1px solid var(--border); }
 .chronicle-history-actions { justify-content:space-between; margin:10px 0; }

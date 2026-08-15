@@ -46,6 +46,13 @@ public static class CampaignEndpoints
                 CancellationToken ct) =>
             Results.Ok(await handler.Handle(new GetCampaignMemberSheetQuery(user.UserId(), id, characterId), ct)));
 
+        group.MapGet("/{id:guid}/characters/{characterId:guid}/audit", async (Guid id, Guid characterId,
+                int? take, ClaimsPrincipal user,
+                IQueryHandler<GetCampaignMemberAuditQuery, IReadOnlyList<CharacterAuditEntryDto>> handler,
+                CancellationToken ct) =>
+            Results.Ok(await handler.Handle(
+                new GetCampaignMemberAuditQuery(user.UserId(), id, characterId, take ?? 100), ct)));
+
         group.MapPost("/join", async (JoinCampaignRequest req, ClaimsPrincipal user,
             ICommandHandler<JoinCampaignCommand, CampaignDetailDto> handler, ICampaignNotifier notifier,
             CancellationToken ct) =>

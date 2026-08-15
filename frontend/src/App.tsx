@@ -117,6 +117,7 @@ function Shell() {
                   onOpenEncounter={eid => navigate(`/campaigns/${route.id}/encounters/${eid}`)}
                   onCloseEncounter={() => navigate(`/campaigns/${route.id}/encounters`)}
                   onOpenCharacter={characterId => navigate(`/campaigns/${route.id}/characters/${characterId}`)}
+                  onOpenOwnCharacter={characterId => navigate(`/characters/${characterId}`)}
                   onCloseCharacter={() => navigate(`/campaigns/${route.id}`)} />
               : route.area === 'npcs'
                 ? <NpcsPage openId={route.id}
