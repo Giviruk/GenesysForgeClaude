@@ -146,6 +146,7 @@ describe('GameTableTab — статблок и броски NPC', () => {
     const npcPosition = npcToken.getAttribute('style')
     const pcPosition = pcToken.getAttribute('style')
 
+    expect(document.querySelector('.ring-legend')).toBeNull()
     expect(screen.getByText('Расчётные расстояния от Элира')).toBeTruthy()
     expect(screen.getByText('≈ Средняя')).toBeTruthy()
     fireEvent.click(npcToken)

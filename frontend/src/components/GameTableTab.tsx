@@ -448,13 +448,6 @@ function RangeBandTracker({ campaignId, session, isGm }: {
           </>
         })()}
       </div>
-      <div className="ring-legend">
-        {participants.map(p => <span key={p.id} className={p.participantType === 'playerCharacter' ? 'pc' : 'npc'}>
-          <i /> <strong>{initials(p)}</strong> {participantNameWithCount(p)} · {p.id === focus?.id
-            ? t('выбран', 'selected')
-            : `${zoneName(RANGE_ZONES[ZONE_INDEX[zoneOf(p)]])}, ${sideName(angleOf(p))}`}
-        </span>)}
-      </div>
       {focus && (
         <div className="range-distance-panel" aria-live="polite">
           <div className="range-distance-head">
