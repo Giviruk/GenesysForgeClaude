@@ -708,6 +708,7 @@ GET    /api/campaigns/{id}/chronicle
 POST   /api/campaigns/{id}/chronicle/chapters
 POST   /api/campaigns/{id}/chronicle/images
 PUT    /api/campaigns/{id}/chronicle/chapters/{chapterId}
+DELETE /api/campaigns/{id}/chronicle/chapters/{chapterId}
 GET    /api/campaigns/{id}/chronicle/chapters/{chapterId}/history
 POST   /api/campaigns/{id}/chronicle/chapters/{chapterId}/restore/{revisionId}
 ```
@@ -725,6 +726,9 @@ overwriting another participant's newer edit. Every create, changed update, and 
 immutable revision. Restoring a historical revision creates a new current version; it never deletes
 later history. Chronicle entity links use `character:<guid>` and `npc:<guid>` targets inside ordinary
 Markdown links. Access to the linked entity is still checked by its endpoint.
+
+The GM and every campaign member may delete any chronicle chapter. Deletion permanently removes the
+chapter together with its revision history; the database relationship already uses cascading delete.
 
 `POST /api/campaigns/{id}/chronicle/images` accepts a raw JPEG, PNG, or WebP body up to 5 MB and
 returns `{ "imageUrl": "https://..." }`. The GM and campaign members may upload. The server checks

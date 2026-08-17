@@ -658,6 +658,8 @@ export const api = {
     request<{ imageUrl: string }>('POST', `/api/campaigns/${campaignId}/chronicle/images`, file),
   updateChronicleChapter: (campaignId: string, chapterId: string, chapter: { title: string; content: string; expectedVersion: number }) =>
     request<CampaignChronicleChapter>('PUT', `/api/campaigns/${campaignId}/chronicle/chapters/${chapterId}`, chapter),
+  deleteChronicleChapter: (campaignId: string, chapterId: string) =>
+    request<void>('DELETE', `/api/campaigns/${campaignId}/chronicle/chapters/${chapterId}`),
   chronicleHistory: (campaignId: string, chapterId: string) =>
     request<CampaignChronicleRevision[]>('GET', `/api/campaigns/${campaignId}/chronicle/chapters/${chapterId}/history`),
   restoreChronicleRevision: (campaignId: string, chapterId: string, revisionId: string) =>

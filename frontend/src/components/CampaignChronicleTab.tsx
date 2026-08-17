@@ -29,6 +29,7 @@ export function CampaignChronicleTab({ campaignId, members, refreshSignal, onOpe
   const [dirty, setDirty] = useState(false)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+  const [deleting, setDeleting] = useState(false)
   const [uploadingImage, setUploadingImage] = useState(false)
   const [creating, setCreating] = useState(false)
   const [mode, setMode] = useState<ViewMode>('split')
@@ -133,6 +134,31 @@ export function CampaignChronicleTab({ campaignId, members, refreshSignal, onOpe
     } catch (error) {
       onError(error instanceof Error ? error.message : t('Не удалось сохранить главу', 'Could not save chapter'))
     } finally { setSaving(false) }
+  }
+
+  async function deleteChapter() {
+    if (!selectedId || !selected || !confirm(t(
+      `Удалить главу «${selected.title}» вместе со всей историей изменений? Это действие нельзя отменить.`,
+      `Delete “${selected.title}” with its entire change history? This action cannot be undone.`,
+    ))) return
+    try {
+      setDeleting(true)
+      await api.deleteChronicleChapter(campaignId, selectedId)
+      const deletedIndex = chapters.findIndex(chapter => chapter.id === selectedId)
+      const remaining = chapters.filter(chapter => chapter.id !== selectedId)
+      const next = remaining[Math.min(Math.max(deletedIndex, 0), remaining.length - 1)] ?? null
+      setChapters(remaining)
+      selectedIdRef.current = next?.id ?? null
+      setSelectedId(next?.id ?? null)
+      setTitle(next?.title ?? '')
+      setContent(next?.content ?? '')
+      setDirty(false)
+      setHistoryOpen(false)
+      setHistory(null)
+      setMention(null)
+    } catch (error) {
+      onError(error instanceof Error ? error.message : t('Не удалось удалить главу', 'Could not delete chapter'))
+    } finally { setDeleting(false) }
   }
 
   function insert(markdown: string, selectPlaceholder?: string, range?: TextRange | null) {
@@ -296,6 +322,9 @@ export function CampaignChronicleTab({ campaignId, members, refreshSignal, onOpe
             onChange={event => { setTitle(event.target.value); setDirty(true) }} />
           <span className="muted">v{selected.currentVersion} · {selected.updatedBy}</span>
           <button onClick={() => void toggleHistory()}>{t('История', 'History')}</button>
+          <button className="danger" onClick={() => void deleteChapter()} disabled={deleting}>
+            {deleting ? t('Удаление…', 'Deleting…') : t('Удалить', 'Delete')}
+          </button>
           <button className="primary" onClick={() => void save()} disabled={!dirty || saving || !title.trim()}>
             {saving ? t('Сохранение…', 'Saving…') : t('Сохранить', 'Save')}
           </button>

@@ -84,4 +84,26 @@ public class CampaignChronicleTests : IClassFixture<ApiFactory>
         Assert.Equal(HttpStatusCode.BadRequest,
             (await stranger.GetAsync($"/api/campaigns/{campaign.Id}/chronicle")).StatusCode);
     }
+
+    [Fact]
+    public async Task GmAndMemberCanDeleteAnyChapter_ButStrangerCannot()
+    {
+        var (gm, player, stranger, campaign) = await SetupAsync();
+        var gmCreatedResponse = await gm.PostAsJsonAsync($"/api/campaigns/{campaign.Id}/chronicle/chapters",
+            new SaveCampaignChronicleChapterRequest("Глава мастера", "Текст"), Json.Options);
+        var gmCreated = (await gmCreatedResponse.Content.ReadFromJsonAsync<CampaignChronicleChapterDto>(Json.Options))!;
+        var playerCreatedResponse = await player.PostAsJsonAsync($"/api/campaigns/{campaign.Id}/chronicle/chapters",
+            new SaveCampaignChronicleChapterRequest("Глава игрока", "Текст"), Json.Options);
+        var playerCreated = (await playerCreatedResponse.Content.ReadFromJsonAsync<CampaignChronicleChapterDto>(Json.Options))!;
+
+        Assert.Equal(HttpStatusCode.BadRequest, (await stranger.DeleteAsync(
+            $"/api/campaigns/{campaign.Id}/chronicle/chapters/{gmCreated.Id}")).StatusCode);
+        Assert.Equal(HttpStatusCode.NoContent, (await player.DeleteAsync(
+            $"/api/campaigns/{campaign.Id}/chronicle/chapters/{gmCreated.Id}")).StatusCode);
+        Assert.Equal(HttpStatusCode.NoContent, (await gm.DeleteAsync(
+            $"/api/campaigns/{campaign.Id}/chronicle/chapters/{playerCreated.Id}")).StatusCode);
+
+        Assert.Empty((await gm.GetFromJsonAsync<List<CampaignChronicleChapterDto>>(
+            $"/api/campaigns/{campaign.Id}/chronicle", Json.Options))!);
+    }
 }
