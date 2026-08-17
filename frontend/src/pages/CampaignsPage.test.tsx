@@ -3,11 +3,11 @@ import { describe, expect, it, vi, beforeEach } from 'vitest'
 import type { CampaignDetail, CharacterSheet, GameSession } from '../api/types'
 import { CampaignsPage } from './CampaignsPage'
 
-function detail(isGm: boolean): CampaignDetail {
+function detail(isGm: boolean, isMine = false): CampaignDetail {
   return {
     id: 'c1', name: 'Поход', description: '', isGm, joinCode: isGm ? 'ABC123' : null,
     members: [{ characterId: 'ch1', characterName: 'Бард', system: 'genesysCore',
-      archetype: 'Человек', career: 'Бард', isMine: false }],
+      archetype: 'Человек', career: 'Бард', isMine }],
     notes: [],
   }
 }
@@ -65,6 +65,7 @@ vi.mock('../api/client', () => ({
   api: {
     campaign: () => campaignMock(),
     campaignMemberSheet: (...a: unknown[]) => memberSheetMock(...a),
+    campaignMemberAudit: vi.fn().mockResolvedValue([]),
     reference: (...a: unknown[]) => referenceMock(...a),
     session: () => sessionMock(),
     removeCampaignCharacter: (...a: unknown[]) => removeCampaignCharacterMock(...a),
@@ -78,13 +79,25 @@ vi.mock('../components/SheetTab', () => ({
   SheetTab: ({ sheet, readOnly }: { sheet: { name: string }; readOnly?: boolean }) =>
     <div data-testid="campaign-sheet-page">SHEET:{sheet.name}:{readOnly ? 'READONLY' : 'EDIT'}</div>,
 }))
+vi.mock('../components/MagicTab', () => ({ MagicTab: () => <div data-testid="readonly-magic">MAGIC</div> }))
+vi.mock('../components/HistoryTab', () => ({ HistoryTab: () => <div data-testid="readonly-history">HISTORY</div> }))
+vi.mock('../components/CampaignMemberReadOnlyTabs', () => ({
+  ReadOnlyTalentsTab: () => <div data-testid="readonly-talents">TALENTS</div>,
+  ReadOnlyInventoryTab: () => <div data-testid="readonly-inventory">INVENTORY</div>,
+  ReadOnlyHeroicTab: () => <div>HEROIC</div>,
+  ReadOnlyAttachmentsTab: () => <div>ATTACHMENTS</div>,
+  ReadOnlyTransportTab: () => <div>TRANSPORT</div>,
+  ReadOnlyBioTab: () => <div data-testid="readonly-bio">BIO</div>,
+}))
 
 const noop = () => {}
 const openCharacterMock = vi.fn()
+const openOwnCharacterMock = vi.fn()
 const props = {
   openId: 'c1', view: 'overview' as const, openEncounterId: null, openCharacterId: null,
   onOpen: noop, onBack: noop, onView: noop, onOpenEncounter: noop, onCloseEncounter: noop,
   onOpenCharacter: openCharacterMock, onCloseCharacter: noop,
+  onOpenOwnCharacter: openOwnCharacterMock,
 }
 
 describe('CampaignsPage — GM просмотр листа участника (U-20)', () => {
@@ -100,6 +113,7 @@ describe('CampaignsPage — GM просмотр листа участника (U
     nextTurnMock.mockReset()
     nextTurnMock.mockResolvedValue(session)
     openCharacterMock.mockClear()
+    openOwnCharacterMock.mockClear()
   })
 
   it('GM видит кнопку «Лист» и переходит на страницу участника', async () => {
@@ -121,6 +135,26 @@ describe('CampaignsPage — GM просмотр листа участника (U
     expect((await screen.findByTestId('campaign-sheet-page')).textContent).toContain('SHEET:Бард:READONLY')
     expect(screen.getByText('Только просмотр')).toBeTruthy()
     expect(screen.queryByTestId('print-preview')).toBeNull()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Таланты' }))
+    expect(screen.getByTestId('readonly-talents')).toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: 'Инвентарь' }))
+    expect(screen.getByTestId('readonly-inventory')).toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: 'Образ' }))
+    expect(screen.getByTestId('readonly-bio')).toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: 'История' }))
+    expect(screen.getByTestId('readonly-history')).toBeTruthy()
+  })
+
+  it('открывает собственного персонажа на обычной странице со всеми вкладками', async () => {
+    campaignMock.mockResolvedValue(detail(false, true))
+    render(<CampaignsPage {...props} />)
+
+    const sheetButton = await screen.findByRole('button', { name: 'Лист' })
+    fireEvent.click(sheetButton)
+
+    expect(openOwnCharacterMock).toHaveBeenCalledWith('ch1')
+    expect(openCharacterMock).not.toHaveBeenCalled()
   })
 
   it('игрок не видит кнопку «Лист»', async () => {

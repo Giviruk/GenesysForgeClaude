@@ -10,8 +10,15 @@ import { HandbookTab } from '../components/HandbookTab'
 import { CustomTab } from '../components/CustomTab'
 import { CampaignChronicleTab } from '../components/CampaignChronicleTab'
 import { SheetTab } from '../components/SheetTab'
+import { MagicTab } from '../components/MagicTab'
+import { HistoryTab } from '../components/HistoryTab'
+import {
+  ReadOnlyAttachmentsTab, ReadOnlyBioTab, ReadOnlyHeroicTab, ReadOnlyInventoryTab,
+  ReadOnlyTalentsTab, ReadOnlyTransportTab,
+} from '../components/CampaignMemberReadOnlyTabs'
 import { useCampaignHub, type CampaignHubStatus } from '../useCampaignHub'
 import { lang, t } from '../i18n'
+import { readSheetTab, writeSheetTab, type CharacterSheetTab } from '../utils/uiPreferences'
 
 export type CampaignView = 'overview' | 'chronicle' | 'handbook' | 'encounters' | 'table' | 'custom'
 
@@ -26,12 +33,14 @@ interface Props {
   onOpenEncounter: (eid: string) => void
   onCloseEncounter: () => void
   onOpenCharacter: (characterId: string) => void
+  onOpenOwnCharacter: (characterId: string) => void
   onCloseCharacter: () => void
 }
 
 export function CampaignsPage({
   openId, view, openEncounterId, openCharacterId, onOpen, onBack, onView, onOpenEncounter,
   onCloseEncounter, onOpenCharacter, onCloseCharacter,
+  onOpenOwnCharacter,
 }: Props) {
   const [campaigns, setCampaigns] = useState<CampaignListItem[] | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -47,7 +56,8 @@ export function CampaignsPage({
   if (openId) return <CampaignDetailView campaignId={openId} view={view} openEncounterId={openEncounterId}
     openCharacterId={openCharacterId} onBack={onBack} onView={onView}
     onOpenEncounter={onOpenEncounter} onCloseEncounter={onCloseEncounter}
-    onOpenCharacter={onOpenCharacter} onCloseCharacter={onCloseCharacter} />
+    onOpenCharacter={onOpenCharacter} onOpenOwnCharacter={onOpenOwnCharacter}
+    onCloseCharacter={onCloseCharacter} />
 
   return (
     <div className="page">
@@ -135,7 +145,7 @@ function JoinCampaignForm({ onDone, onError }: { onDone: () => void; onError: (m
 }
 
 function CampaignDetailView({ campaignId, view, openEncounterId, openCharacterId, onBack, onView,
-  onOpenEncounter, onCloseEncounter, onOpenCharacter, onCloseCharacter }: {
+  onOpenEncounter, onCloseEncounter, onOpenCharacter, onOpenOwnCharacter, onCloseCharacter }: {
   campaignId: string
   view: CampaignView
   openEncounterId: string | null
@@ -145,6 +155,7 @@ function CampaignDetailView({ campaignId, view, openEncounterId, openCharacterId
   onOpenEncounter: (eid: string) => void
   onCloseEncounter: () => void
   onOpenCharacter: (characterId: string) => void
+  onOpenOwnCharacter: (characterId: string) => void
   onCloseCharacter: () => void
 }) {
   const [c, setC] = useState<CampaignDetail | null>(null)
@@ -218,11 +229,17 @@ function CampaignDetailView({ campaignId, view, openEncounterId, openCharacterId
   }
 
   if (openCharacterId) {
-    return <CampaignMemberSheetPage campaignId={campaignId} characterId={openCharacterId}
+    return <CampaignMemberSheetPage key={openCharacterId} campaignId={campaignId} characterId={openCharacterId}
       campaignName={c.name} onBack={onCloseCharacter} />
   }
 
-  const openMemberSheet = (characterId: string) => onOpenCharacter(characterId)
+  const openMemberSheet = (characterId: string) => {
+    const member = c.members.find(value => value.characterId === characterId)
+    if (member?.isMine) {
+      writeSheetTab(characterId, 'sheet')
+      onOpenOwnCharacter(characterId)
+    } else onOpenCharacter(characterId)
+  }
 
   return (
     <div className="page">
@@ -282,6 +299,17 @@ function CampaignDetailView({ campaignId, view, openEncounterId, openCharacterId
   )
 }
 
+const CAMPAIGN_MEMBER_TABS = [
+  'sheet', 'inventory', 'talents', 'magic', 'heroic', 'attachments', 'transport', 'bio', 'history',
+] as const satisfies readonly CharacterSheetTab[]
+type CampaignMemberTab = typeof CAMPAIGN_MEMBER_TABS[number]
+
+const campaignMemberInitialTab = (characterId: string): CampaignMemberTab => {
+  const stored = readSheetTab(characterId)
+  return (CAMPAIGN_MEMBER_TABS as readonly CharacterSheetTab[]).includes(stored)
+    ? stored as CampaignMemberTab : 'sheet'
+}
+
 function CampaignMemberSheetPage({ campaignId, characterId, campaignName, onBack }: {
   campaignId: string
   characterId: string
@@ -290,6 +318,7 @@ function CampaignMemberSheetPage({ campaignId, characterId, campaignName, onBack
 }) {
   const [sheet, setSheet] = useState<CharacterSheet | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [tab, setTab] = useState<CampaignMemberTab>(() => campaignMemberInitialTab(characterId))
   const refresh = useCallback(async () => {
     setSheet(await api.campaignMemberSheet(campaignId, characterId))
   }, [campaignId, characterId])
@@ -303,6 +332,15 @@ function CampaignMemberSheetPage({ campaignId, characterId, campaignName, onBack
       })
     return () => { cancelled = true }
   }, [campaignId, characterId])
+
+  const loadAudit = useCallback(
+    () => api.campaignMemberAudit(campaignId, characterId),
+    [campaignId, characterId])
+
+  function selectTab(next: CampaignMemberTab) {
+    setTab(next)
+    writeSheetTab(characterId, next)
+  }
 
   if (!sheet) return <div className="page">
     <button onClick={onBack}>{t('← Кампания', '← Campaign')}</button>
@@ -326,8 +364,34 @@ function CampaignMemberSheetPage({ campaignId, characterId, campaignName, onBack
       </div>
     </div>
     {error && <div className="error floating">{error}</div>}
-    <div className="tabs main-tabs"><span className="tab active">{t('Лист', 'Sheet')}</span></div>
-    <SheetTab sheet={sheet} onError={setError} refresh={refresh} readOnly />
+    <div className="tabs main-tabs">
+      <button className={tab === 'sheet' ? 'tab active' : 'tab'} onClick={() => selectTab('sheet')}>{t('Лист', 'Sheet')}</button>
+      <button className={tab === 'inventory' ? 'tab active' : 'tab'} onClick={() => selectTab('inventory')}>{t('Инвентарь', 'Inventory')}</button>
+      <button className={tab === 'talents' ? 'tab active' : 'tab'} onClick={() => selectTab('talents')}>{t('Таланты', 'Talents')}</button>
+      <button className={tab === 'magic' ? 'tab active' : 'tab'} onClick={() => selectTab('magic')}>{t('Магия', 'Magic')}</button>
+      <span className="sheet-tab-divider" aria-hidden="true" />
+      {sheet.system === 'realmsOfTerrinoth' && <button
+        className={`sheet-secondary-tab ${tab === 'heroic' ? 'tab active' : 'tab'}`}
+        onClick={() => selectTab('heroic')}>{t('Героика', 'Heroic')}</button>}
+      <button className={`sheet-secondary-tab ${tab === 'attachments' ? 'tab active' : 'tab'}`}
+        onClick={() => selectTab('attachments')}>{t('Улучшения', 'Attachments')}</button>
+      <button className={`sheet-secondary-tab ${tab === 'transport' ? 'tab active' : 'tab'}`}
+        onClick={() => selectTab('transport')}>{t('Транспорт', 'Transport')}</button>
+      <button className={`sheet-secondary-tab ${tab === 'bio' ? 'tab active' : 'tab'}`}
+        onClick={() => selectTab('bio')}>{t('Образ', 'Bio')}</button>
+      <button className={`sheet-secondary-tab ${tab === 'history' ? 'tab active' : 'tab'}`}
+        onClick={() => selectTab('history')}>{t('История', 'History')}</button>
+    </div>
+    {tab === 'sheet' && <SheetTab sheet={sheet} onError={setError} refresh={refresh} readOnly />}
+    {tab === 'inventory' && <ReadOnlyInventoryTab sheet={sheet} />}
+    {tab === 'talents' && <ReadOnlyTalentsTab sheet={sheet} />}
+    {tab === 'magic' && <MagicTab sheet={sheet} onError={setError} />}
+    {tab === 'heroic' && <ReadOnlyHeroicTab sheet={sheet} />}
+    {tab === 'attachments' && <ReadOnlyAttachmentsTab sheet={sheet} />}
+    {tab === 'transport' && <ReadOnlyTransportTab sheet={sheet} />}
+    {tab === 'bio' && <ReadOnlyBioTab sheet={sheet} />}
+    {tab === 'history' && <HistoryTab characterId={characterId} onError={setError}
+      refresh={refresh} readOnly loadEntries={loadAudit} />}
   </div>
 }
 
@@ -477,7 +541,7 @@ function CampaignMemberCard({ member, sheet, isGm, onOpenSheet, onRemove }: {
       <div className="campaign-pc-foot">
         <span>{t('Свободно XP:', 'Available XP:')} <b>{sheet?.availableXp ?? '—'}</b></span>
         <span className="campaign-pc-actions">
-          {isGm && <button className="small" onClick={() => onOpenSheet(member.characterId, member.characterName)}>{t('Лист', 'Sheet')}</button>}
+          {(isGm || member.isMine) && <button className="small" onClick={() => onOpenSheet(member.characterId, member.characterName)}>{t('Лист', 'Sheet')}</button>}
           {(isGm || member.isMine) && <button className="danger small" onClick={() => void onRemove(member.characterId)}>{t('Убрать', 'Remove')}</button>}
         </span>
       </div>

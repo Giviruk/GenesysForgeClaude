@@ -8,6 +8,8 @@ interface Props {
   onError: (message: string) => void
   /** Перечитать лист (после выдачи XP меняется totalXp в шапке). */
   refresh: () => Promise<void>
+  readOnly?: boolean
+  loadEntries?: () => Promise<CharacterAuditEntry[]>
 }
 
 const ACTION_LABELS: Record<CharacterAuditAction, string> = t({
@@ -50,16 +52,16 @@ const ACTION_LABELS: Record<CharacterAuditAction, string> = t({
   manualEdit: 'Edit',
 })
 
-export function HistoryTab({ characterId, onError, refresh }: Props) {
+export function HistoryTab({ characterId, onError, refresh, readOnly = false, loadEntries }: Props) {
   const [entries, setEntries] = useState<CharacterAuditEntry[] | null>(null)
   const [amount, setAmount] = useState('')
   const [note, setNote] = useState('')
 
   const reload = useCallback(() =>
-    api.characterAudit(characterId)
+    (loadEntries ? loadEntries() : api.characterAudit(characterId))
       .then(setEntries)
       .catch((e: unknown) => onError(e instanceof Error ? e.message : t('Ошибка загрузки истории', 'Failed to load history'))),
-    [characterId, onError])
+    [characterId, loadEntries, onError])
 
   useEffect(() => { void reload() }, [reload])
 
@@ -79,7 +81,7 @@ export function HistoryTab({ characterId, onError, refresh }: Props) {
 
   return (
     <div className="history-tab">
-      <section className="panel award-xp">
+      {!readOnly && <section className="panel award-xp">
         <h3>{t('Выдать XP', 'Award XP')}</h3>
         <div className="form-row">
           <input className="ranks-input" type="number" placeholder="±XP" value={amount}
@@ -91,7 +93,7 @@ export function HistoryTab({ characterId, onError, refresh }: Props) {
             {t('Выдать', 'Award')}
           </button>
         </div>
-      </section>
+      </section>}
 
       <section className="panel">
         <h3>{t('История изменений', 'Change history')}</h3>
