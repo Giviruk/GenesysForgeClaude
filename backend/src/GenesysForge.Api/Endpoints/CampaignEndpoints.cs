@@ -115,6 +115,14 @@ public static class CampaignEndpoints
             Results.Ok(await handler.Handle(
                 new UpdateCampaignChronicleChapterCommand(user.UserId(), id, chapterId, req), ct)));
 
+        group.MapDelete("/{id:guid}/chronicle/chapters/{chapterId:guid}", async (Guid id, Guid chapterId,
+            ClaimsPrincipal user, ICommandHandler<DeleteCampaignChronicleChapterCommand, Unit> handler,
+            CancellationToken ct) =>
+        {
+            await handler.Handle(new DeleteCampaignChronicleChapterCommand(user.UserId(), id, chapterId), ct);
+            return Results.NoContent();
+        });
+
         group.MapGet("/{id:guid}/chronicle/chapters/{chapterId:guid}/history", async (Guid id, Guid chapterId,
                 ClaimsPrincipal user,
                 IQueryHandler<GetCampaignChronicleHistoryQuery, List<CampaignChronicleRevisionDto>> handler,

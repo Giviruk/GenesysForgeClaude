@@ -88,7 +88,37 @@ describe('range tracker geometry', () => {
     ).zone).toBe('short')
     expect(estimateRangeBetween(
       { zone: 'short', angle: 15 }, { zone: 'long', angle: 15 },
-    ).zone).toBe('long')
+    )).toMatchObject({ zone: 'medium', bandUnits: 3 })
+  })
+
+  it('maps two and three maneuver units to medium range', () => {
+    expect(estimateRangeBetween(
+      { zone: 'medium', angle: 15 }, { zone: 'long', angle: 15 },
+    )).toMatchObject({ zone: 'medium', bandUnits: 2 })
+    expect(estimateRangeBetween(
+      { zone: 'short', angle: 15 }, { zone: 'long', angle: 15 },
+    )).toMatchObject({ zone: 'medium', bandUnits: 3 })
+  })
+
+  it('never estimates more than medium between short and medium rings', () => {
+    const sectorAngles = Array.from({ length: 12 }, (_, index) => index * 30 + 15)
+
+    for (const shortAngle of sectorAngles) {
+      for (const mediumAngle of sectorAngles) {
+        const forward = estimateRangeBetween(
+          { zone: 'short', angle: shortAngle },
+          { zone: 'medium', angle: mediumAngle },
+        )
+        const backward = estimateRangeBetween(
+          { zone: 'medium', angle: mediumAngle },
+          { zone: 'short', angle: shortAngle },
+        )
+        for (const estimate of [forward, backward]) {
+          expect(estimate.bandUnits).toBeLessThanOrEqual(3)
+          expect(['short', 'medium']).toContain(estimate.zone)
+        }
+      }
+    }
   })
 
   it('charges two maneuvers for medium-long and long-extreme', () => {

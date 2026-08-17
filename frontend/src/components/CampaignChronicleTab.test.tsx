@@ -19,6 +19,7 @@ const campaignChronicleMock = vi.fn()
 const npcsMock = vi.fn()
 const npcMock = vi.fn()
 const uploadChronicleImageMock = vi.fn()
+const deleteChronicleChapterMock = vi.fn()
 const characterId = '11111111-1111-1111-1111-111111111111'
 const linkedNpcId = '22222222-2222-2222-2222-222222222222'
 
@@ -28,6 +29,7 @@ vi.mock('../api/client', () => ({
     npcs: (...args: unknown[]) => npcsMock(...args),
     npc: (...args: unknown[]) => npcMock(...args),
     uploadChronicleImage: (...args: unknown[]) => uploadChronicleImageMock(...args),
+    deleteChronicleChapter: (...args: unknown[]) => deleteChronicleChapterMock(...args),
   },
 }))
 
@@ -54,6 +56,7 @@ describe('CampaignChronicleTab — links', () => {
       abilities: [], attacks: [], talents: [], equipment: [], tags: [], warnings: [], createdAt: '', updatedAt: '',
     } satisfies NpcDetail)
     uploadChronicleImageMock.mockResolvedValue({ imageUrl: 'https://storage.test/chronicle/map.png' })
+    deleteChronicleChapterMock.mockResolvedValue(undefined)
   })
 
   function renderTab(onOpenCharacter = vi.fn()) {
@@ -160,5 +163,20 @@ describe('CampaignChronicleTab — links', () => {
     await waitFor(() => expect(uploadChronicleImageMock).toHaveBeenCalledWith('campaign-1', file))
     await waitFor(() => expect(editor.value).toContain('![Карта  города](https://storage.test/chronicle/map.png)'))
     expect(editor.value.indexOf('![')).toBe(4)
+  })
+
+  it('удаляет выбранную главу после подтверждения и открывает следующую', async () => {
+    const secondChapter = { ...chapter, id: 'chapter-2', title: 'Глава II', sortOrder: 1 }
+    campaignChronicleMock.mockResolvedValue([chapter, secondChapter])
+    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true)
+    renderTab()
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Удалить' }))
+
+    await waitFor(() => expect(deleteChronicleChapterMock).toHaveBeenCalledWith('campaign-1', 'chapter-1'))
+    expect(confirmSpy).toHaveBeenCalledWith(expect.stringContaining('Это действие нельзя отменить'))
+    expect(screen.queryByRole('button', { name: '1. Пролог' })).toBeNull()
+    expect((screen.getByRole('textbox', { name: 'Название главы' }) as HTMLInputElement).value).toBe('Глава II')
+    confirmSpy.mockRestore()
   })
 })

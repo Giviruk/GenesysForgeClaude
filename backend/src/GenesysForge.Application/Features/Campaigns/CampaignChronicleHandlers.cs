@@ -19,6 +19,9 @@ public record UpdateCampaignChronicleChapterCommand(
     Guid UserId, Guid CampaignId, Guid ChapterId, SaveCampaignChronicleChapterRequest Request)
     : ICommand<CampaignChronicleChapterDto>;
 
+public record DeleteCampaignChronicleChapterCommand(Guid UserId, Guid CampaignId, Guid ChapterId)
+    : ICommand<Unit>;
+
 public record GetCampaignChronicleHistoryQuery(Guid UserId, Guid CampaignId, Guid ChapterId)
     : IQuery<List<CampaignChronicleRevisionDto>>;
 
@@ -157,6 +160,22 @@ public class UpdateCampaignChronicleChapterHandler(IAppDbContext db)
         });
         await db.SaveChangesAsync(ct);
         return CampaignChronicleMapping.ToDto(chapter, editor);
+    }
+}
+
+public class DeleteCampaignChronicleChapterHandler(IAppDbContext db)
+    : ICommandHandler<DeleteCampaignChronicleChapterCommand, Unit>
+{
+    public async Task<Unit> Handle(DeleteCampaignChronicleChapterCommand command, CancellationToken ct = default)
+    {
+        await CampaignMapper.GetAccessibleAsync(db, command.UserId, command.CampaignId, ct);
+        var chapter = await db.CampaignChronicleChapters.FirstOrDefaultAsync(
+                x => x.Id == command.ChapterId && x.CampaignId == command.CampaignId, ct)
+            ?? throw new DomainRuleException("Глава хроники не найдена.");
+
+        db.CampaignChronicleChapters.Remove(chapter);
+        await db.SaveChangesAsync(ct);
+        return Unit.Value;
     }
 }
 

@@ -99,6 +99,7 @@ describe('api client — обработка 401', () => {
       .mockResolvedValueOnce(new Response(JSON.stringify({ id: 'ch1' }), { status: 200 }))
       .mockResolvedValueOnce(new Response(JSON.stringify({ imageUrl: 'https://storage.test/image.png' }), { status: 200 }))
       .mockResolvedValueOnce(new Response(JSON.stringify({ id: 'ch1' }), { status: 200 }))
+      .mockResolvedValueOnce(new Response(null, { status: 204 }))
       .mockResolvedValueOnce(new Response(JSON.stringify([]), { status: 200 }))
       .mockResolvedValueOnce(new Response(JSON.stringify({ id: 'ch1' }), { status: 200 }))
 
@@ -107,6 +108,7 @@ describe('api client — обработка 401', () => {
     const image = new Blob(['png'])
     await api.uploadChronicleImage('c1', image)
     await api.updateChronicleChapter('c1', 'ch1', { title: 'Пролог', content: 'Текст', expectedVersion: 1 })
+    await api.deleteChronicleChapter('c1', 'ch1')
     await api.chronicleHistory('c1', 'ch1')
     await api.restoreChronicleRevision('c1', 'ch1', 'r1')
 
@@ -115,6 +117,7 @@ describe('api client — обработка 401', () => {
       ['/api/campaigns/c1/chronicle/chapters', 'POST'],
       ['/api/campaigns/c1/chronicle/images', 'POST'],
       ['/api/campaigns/c1/chronicle/chapters/ch1', 'PUT'],
+      ['/api/campaigns/c1/chronicle/chapters/ch1', 'DELETE'],
       ['/api/campaigns/c1/chronicle/chapters/ch1/history', 'GET'],
       ['/api/campaigns/c1/chronicle/chapters/ch1/restore/r1', 'POST'],
     ])
