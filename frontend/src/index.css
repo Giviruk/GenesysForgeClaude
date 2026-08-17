@@ -1762,11 +1762,10 @@ button.tiny { font-size: 0.75rem; padding: 0.05rem 0.4rem 0.15rem; }
   color: #e89d9d;
   font-size: 0.72rem;
   font-weight: 700;
-  cursor: grab;
+  cursor: default;
   touch-action: none;
   user-select: none;
 }
-.range-rings.dragging .ring-token { cursor: grabbing; }
 .ring-token.dragging-source { opacity: 0.32; }
 .ring-token.drag-preview {
   z-index: 5;

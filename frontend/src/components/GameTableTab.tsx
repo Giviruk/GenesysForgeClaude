@@ -136,7 +136,8 @@ export function GameTableTab({ campaignId, isGm, members, onOpenMemberSheet, ref
       </aside>
 
       <section className="center-stage">
-        <RangeBandTracker key={session.id} campaignId={campaignId} session={session} isGm={isGm} />
+        <RangeBandTracker key={session.id} campaignId={campaignId} session={session} isGm={isGm}
+          members={members} />
       </section>
 
       <aside className="right-rail">
@@ -252,8 +253,8 @@ const defaultZone = (p: GameParticipant): RangeZone =>
  * Позиции не входят в серверную модель кампании и не синхронизируются между устройствами, но
  * сохраняются на этом устройстве отдельно для каждой сцены и переживают навигацию/перезагрузку.
  */
-function RangeBandTracker({ campaignId, session, isGm }: {
-  campaignId: string; session: GameSession; isGm: boolean
+function RangeBandTracker({ campaignId, session, isGm, members }: {
+  campaignId: string; session: GameSession; isGm: boolean; members: CampaignMember[]
 }) {
   const stored = () => readRangeTrackerState(campaignId, session.id)
   const [zones, setZones] = useState<Record<string, RangeZone>>(() => stored().zones)
@@ -277,6 +278,11 @@ function RangeBandTracker({ campaignId, session, isGm }: {
   const zoneOf = (p: GameParticipant): RangeZone => zones[p.id] ?? defaultZone(p)
   const angleOf = (p: GameParticipant): number => snapRangeAngle(angles[p.id]
     ?? (participants.findIndex(candidate => candidate.id === p.id) * 90 + 210))
+  const canMove = (p: GameParticipant) => isGm || (
+    p.participantType === 'playerCharacter'
+    && p.characterId !== null
+    && members.some(member => member.isMine && member.characterId === p.characterId)
+  )
 
   const freeAngle = (p: GameParticipant, zone: RangeZone, desiredAngle: number) =>
     nearestFreeRangeAngle(desiredAngle, zone, participants
@@ -354,7 +360,7 @@ function RangeBandTracker({ campaignId, session, isGm }: {
     })
   }
   const beginDrag = (e: ReactPointerEvent<HTMLDivElement>, p: GameParticipant) => {
-    if (!isGm || e.button !== 0) return
+    if (!canMove(p) || e.button !== 0) return
     e.preventDefault()
     // После захвата события продолжают приходить, даже если быстрый курсор вышел за жетон или
     // границу доски. Без этого preview на мгновение отставал и затем перескакивал к pointerup.
@@ -419,6 +425,7 @@ function RangeBandTracker({ campaignId, session, isGm }: {
           const zi = ZONE_INDEX[zoneOf(p)]
           return <div key={p.id} style={positionStyle(p)}
             className={`ring-token${pc ? ' pc' : ' npc'}${p.id === focus?.id ? ' selected' : ''}${p.id === dragId ? ' dragging-source' : ''}${p.isHiddenFromPlayers ? ' hidden-token' : ''}`}
+            data-movable={canMove(p)}
             title={`${participantNameWithCount(p)} — ${zoneName(RANGE_ZONES[zi])}, ${sideName(angleOf(p))}`}
             aria-label={t(`Выбрать ${participantNameWithCount(p)} для расчёта расстояний`, `Select ${participantNameWithCount(p)} for range estimates`)}
             role="button" tabIndex={0}

@@ -92,6 +92,14 @@ const ownMember: CampaignMember = {
   archetype: 'Human', career: 'Warrior', isMine: true, portraitUrl: '/portraits/character-1/hero.webp',
 }
 
+const otherPlayerParticipant: GameParticipant = {
+  ...playerParticipant, id: 'participant-pc-2', characterId: 'character-2', displayName: 'Торен',
+}
+
+const otherMember: CampaignMember = {
+  ...ownMember, characterId: 'character-2', characterName: 'Торен', isMine: false,
+}
+
 describe('GameTableTab — статблок и броски NPC', () => {
   beforeEach(() => {
     localStorage.removeItem('genesysforge.game-table.range.campaign-1.session-1')
@@ -184,6 +192,44 @@ describe('GameTableTab — статблок и броски NPC', () => {
     expect(npcToken.title).toContain('Вплотную, справа')
     expect(Number.parseFloat(npcToken.style.left)).toBeCloseTo(54.73, 2)
     expect(Number.parseFloat(npcToken.style.top)).toBeCloseTo(51.268, 2)
+  })
+
+  it('разрешает игроку перемещать только своего персонажа', async () => {
+    const rangeSession = {
+      ...session,
+      participants: [playerParticipant, otherPlayerParticipant, session.participants[0]],
+    }
+    sessionMock.mockResolvedValue(rangeSession)
+    render(<GameTableTab campaignId="campaign-1" isGm={false} members={[ownMember, otherMember]} />)
+
+    const ownToken = await screen.findByRole('button', { name: 'Выбрать Элира для расчёта расстояний' })
+    const otherToken = screen.getByRole('button', { name: 'Выбрать Торен для расчёта расстояний' })
+    const npcToken = screen.getByRole('button', { name: 'Выбрать Гоблины ×3/3 для расчёта расстояний' })
+    const board = screen.getByTestId('range-board')
+    vi.spyOn(board, 'getBoundingClientRect').mockReturnValue({
+      left: 100, top: 50, width: 400, height: 400, right: 500, bottom: 450,
+      x: 100, y: 50, toJSON: () => ({}),
+    })
+    const ownCapture = vi.fn()
+    const otherCapture = vi.fn()
+    const npcCapture = vi.fn()
+    Object.defineProperty(ownToken, 'setPointerCapture', { value: ownCapture })
+    Object.defineProperty(otherToken, 'setPointerCapture', { value: otherCapture })
+    Object.defineProperty(npcToken, 'setPointerCapture', { value: npcCapture })
+
+    expect(ownToken.getAttribute('data-movable')).toBe('true')
+    expect(otherToken.getAttribute('data-movable')).toBe('false')
+    expect(npcToken.getAttribute('data-movable')).toBe('false')
+
+    fireEvent.pointerDown(otherToken, { button: 0, pointerId: 1, clientX: 300, clientY: 250 })
+    fireEvent.pointerDown(npcToken, { button: 0, pointerId: 2, clientX: 300, clientY: 250 })
+    expect(otherCapture).not.toHaveBeenCalled()
+    expect(npcCapture).not.toHaveBeenCalled()
+    expect(document.querySelector('.ring-token.drag-preview')).toBeNull()
+
+    fireEvent.pointerDown(ownToken, { button: 0, pointerId: 3, clientX: 300, clientY: 250 })
+    expect(ownCapture).toHaveBeenCalledWith(3)
+    expect(document.querySelector('.ring-token.drag-preview')).not.toBeNull()
   })
 
   it('считает оставшихся миньонов по ранам и использует их число в навыках', async () => {
