@@ -29,9 +29,11 @@ public class CharacterMutationQueryShapeTests
     {
         using var db = RealProviderContext();
 
-        // Проверяем SQL, который реально сгенерирует EF, а не строковое представление LINQ expression.
-        // Expression.ToString() не обязан печатать Include/ThenInclude и меняется между версиями EF.
+        // AddItemQuery в production остаётся split query. Для проверки формы полного Include-графа
+        // тест временно переводит только диагностический запрос в single-query режим, потому что
+        // ToQueryString() для split query показывает лишь первый SELECT.
         var sql = db.AddItemQuery(Guid.NewGuid(), needsEquipmentValidation: false)
+            .AsSingleQuery()
             .Where(c => c.Id == Guid.NewGuid())
             .ToQueryString();
 
@@ -56,9 +58,11 @@ public class CharacterMutationQueryShapeTests
 
         var itemDefId = Guid.NewGuid();
         var withoutSlotValidation = db.AddItemQuery(itemDefId, needsEquipmentValidation: false)
+            .AsSingleQuery()
             .Where(c => c.Id == Guid.NewGuid())
             .ToQueryString();
         var withSlotValidation = db.AddItemQuery(itemDefId, needsEquipmentValidation: true)
+            .AsSingleQuery()
             .Where(c => c.Id == Guid.NewGuid())
             .ToQueryString();
 
