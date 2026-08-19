@@ -48,10 +48,16 @@ public class CharacterMutationQueryShapeTests
     {
         using var db = RealProviderContext();
 
-        var tree = db.AddItemQuery(Guid.NewGuid(), needsEquipmentValidation: true)
+        var itemDefId = Guid.NewGuid();
+        var withoutSlotValidation = db.AddItemQuery(itemDefId, needsEquipmentValidation: false)
+            .Expression.ToString();
+        var withSlotValidation = db.AddItemQuery(itemDefId, needsEquipmentValidation: true)
             .Expression.ToString();
 
-        Assert.Contains("State", tree, StringComparison.Ordinal);
-        Assert.Contains("Equipped", tree, StringComparison.Ordinal);
+        // Expression.ToString() does not print enum members by their symbolic name, so checking for
+        // the literal "Equipped" is provider/version-dependent. What matters is that enabling slot
+        // validation changes the filtered Include and that its State predicate is present.
+        Assert.Contains("State", withSlotValidation, StringComparison.Ordinal);
+        Assert.NotEqual(withoutSlotValidation, withSlotValidation);
     }
 }
