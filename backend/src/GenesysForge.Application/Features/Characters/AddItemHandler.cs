@@ -12,7 +12,12 @@ public class AddItemHandler(IAppDbContext db) : ICommandHandler<AddItemCommand, 
     public async Task<Guid> Handle(AddItemCommand command, CancellationToken ct = default)
     {
         var req = command.Request;
-        var c = await db.GetOwnedAsync(command.UserId, command.CharacterId, ct: ct);
+        // Горячий путь магазина: раньше здесь грузился полный WithRelations() персонажа — навыки,
+        // таланты, транспорт, героика и весь остальной граф. Для покупки нужны только кандидаты
+        // на stacking и, при покупке сразу в руки, уже занятые слоты экипировки.
+        var c = await db.AddItemQuery(req.ItemDefId, req.State == ItemState.Equipped)
+            .FirstOrDefaultAsync(x => x.Id == command.CharacterId && x.OwnerUserId == command.UserId, ct)
+            ?? throw new DomainRuleException("Персонаж не найден.");
         var visiblePackIds = await HomebrewVisibility.GetVisiblePackIdsAsync(
             db, command.UserId, c.System, command.CharacterId, ct: ct);
         var itemDef = await db.ItemDefs.FirstOrDefaultAsync(i =>
