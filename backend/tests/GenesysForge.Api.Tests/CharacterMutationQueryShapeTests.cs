@@ -1,6 +1,7 @@
 using GenesysForge.Application.Common;
 using GenesysForge.Infrastructure;
 using GenesysForge.Infrastructure.Persistence;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -28,19 +29,24 @@ public class CharacterMutationQueryShapeTests
     {
         using var db = RealProviderContext();
 
-        var tree = db.AddItemQuery(Guid.NewGuid(), needsEquipmentValidation: false)
-            .Expression.ToString();
+        // Проверяем SQL, который реально сгенерирует EF, а не строковое представление LINQ expression.
+        // Expression.ToString() не обязан печатать Include/ThenInclude и меняется между версиями EF.
+        var sql = db.AddItemQuery(Guid.NewGuid(), needsEquipmentValidation: false)
+            .Where(c => c.Id == Guid.NewGuid())
+            .ToQueryString();
 
-        Assert.Contains("Items", tree, StringComparison.Ordinal);
-        Assert.Contains("Attachments", tree, StringComparison.Ordinal);
-        Assert.Contains("ItemDefId", tree, StringComparison.Ordinal);
+        Assert.Contains("\"CharacterItems\"", sql, StringComparison.Ordinal);
+        Assert.Contains("\"ItemDefs\"", sql, StringComparison.Ordinal);
+        Assert.Contains("\"CharacterAttachments\"", sql, StringComparison.Ordinal);
+        Assert.Contains("\"ItemDefId\"", sql, StringComparison.Ordinal);
 
-        foreach (var relation in new[]
+        foreach (var relationTable in new[]
                  {
-                     "Skills", "Talents", "Mounts", "HeroicAbility", "CriticalInjuries",
-                     "HeroicConfiguration", "SignatureWeapon", "AttackProfiles", "Qualities",
+                     "CharacterSkills", "CharacterTalents", "CharacterMounts", "CharacterCriticalInjuries",
+                     "CharacterHeroicSecondaryEffects", "CharacterHeroicConfigurations", "CharacterSignatureWeapons",
+                     "WeaponAttackProfiles", "ItemQualityValues",
                  })
-            Assert.DoesNotContain(relation, tree, StringComparison.Ordinal);
+            Assert.DoesNotContain($"\"{relationTable}\"", sql, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -50,14 +56,16 @@ public class CharacterMutationQueryShapeTests
 
         var itemDefId = Guid.NewGuid();
         var withoutSlotValidation = db.AddItemQuery(itemDefId, needsEquipmentValidation: false)
-            .Expression.ToString();
+            .Where(c => c.Id == Guid.NewGuid())
+            .ToQueryString();
         var withSlotValidation = db.AddItemQuery(itemDefId, needsEquipmentValidation: true)
-            .Expression.ToString();
+            .Where(c => c.Id == Guid.NewGuid())
+            .ToQueryString();
 
-        // Expression.ToString() does not print enum members by their symbolic name, so checking for
-        // the literal "Equipped" is provider/version-dependent. What matters is that enabling slot
-        // validation changes the filtered Include and that its State predicate is present.
-        Assert.Contains("State", withSlotValidation, StringComparison.Ordinal);
+        // Оба варианта загружают сущность CharacterItem целиком, поэтому поле State будет в SELECT.
+        // Нас интересует именно дополнительное условие фильтра Include для уже экипированных строк.
+        Assert.Contains(" OR ", withSlotValidation, StringComparison.Ordinal);
+        Assert.DoesNotContain(" OR ", withoutSlotValidation, StringComparison.Ordinal);
         Assert.NotEqual(withoutSlotValidation, withSlotValidation);
     }
 }
