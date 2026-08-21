@@ -506,7 +506,25 @@ function RangeBandTracker({ campaignId, session, isGm, members }: {
 
 function InitiativeTracker({ session, isGm, onRun, campaignId }: BlockProps) {
   const [slotType, setSlotType] = useState<InitiativeSlotType>('player')
+  const [draggedSlotId, setDraggedSlotId] = useState<string | null>(null)
+  const [dragOverSlotId, setDragOverSlotId] = useState<string | null>(null)
   const nameOf = (pid: string | null) => session.participants.find(p => p.id === pid)?.displayName
+
+  const dropSlot = (targetSlotId: string) => {
+    const sourceSlotId = draggedSlotId
+    setDraggedSlotId(null)
+    setDragOverSlotId(null)
+    if (!isGm || sourceSlotId === null || sourceSlotId === targetSlotId) return
+
+    const sourceIndex = session.slots.findIndex(slot => slot.id === sourceSlotId)
+    const targetIndex = session.slots.findIndex(slot => slot.id === targetSlotId)
+    if (sourceIndex < 0 || targetIndex < 0) return
+
+    // Drop inserts before the target row. The API removes the source first,
+    // so a source above the target shifts the requested index by one.
+    const order = sourceIndex < targetIndex ? targetIndex - 1 : targetIndex
+    void onRun(() => api.updateSlot(campaignId, sourceSlotId, { order }))
+  }
 
   return (
     <section className="panel initiative-panel">
@@ -517,7 +535,27 @@ function InitiativeTracker({ session, isGm, onRun, campaignId }: BlockProps) {
       {session.slots.length === 0 && <p className="muted">{t('Слотов нет.', 'No slots.')}{isGm && t(' Добавьте слоты ниже.', ' Add slots below.')}</p>}
       <ol className="initiative-list">
         {session.slots.map((slot, i) => (
-          <li key={slot.id} className={i === session.currentTurnIndex ? 'init-row current' : 'init-row'}>
+          <li key={slot.id}
+            data-slot-id={slot.id}
+            className={`init-row${i === session.currentTurnIndex ? ' current' : ''}${draggedSlotId === slot.id ? ' dragging' : ''}${dragOverSlotId === slot.id && draggedSlotId !== slot.id ? ' drag-over' : ''}`}
+            draggable={isGm}
+            title={isGm ? t('Перетащите слот, чтобы изменить порядок', 'Drag the slot to reorder initiative') : undefined}
+            onDragStart={event => {
+              if (!isGm) return
+              if (event.dataTransfer) event.dataTransfer.effectAllowed = 'move'
+              setDraggedSlotId(slot.id)
+            }}
+            onDragOver={event => {
+              if (!isGm || draggedSlotId === null || draggedSlotId === slot.id) return
+              event.preventDefault()
+              if (event.dataTransfer) event.dataTransfer.dropEffect = 'move'
+              setDragOverSlotId(slot.id)
+            }}
+            onDrop={event => {
+              event.preventDefault()
+              dropSlot(slot.id)
+            }}
+            onDragEnd={() => { setDraggedSlotId(null); setDragOverSlotId(null) }}>
             <span className="init-num">{i + 1}</span>
             {isGm ? (
               <select className="slot-assign" value={slot.assignedParticipantId ?? ''}
@@ -670,18 +708,18 @@ function ParticipantCard({ p, campaignId, isGm, canEditVitals, onRun, onUpdatePa
           onClick={stop(() => update({ strainCurrent: p.strainCurrent + 1 }))}>+</button>
 
         <span className="boost-label">{t('Бусты', 'Boosts')}</span><b>{p.boostDice}</b>
-        <button type="button" className="tiny" disabled={updatePending || !isGm || p.boostDice <= 0}
+        <button type="button" className="tiny" disabled={updatePending || !canEditVitals || p.boostDice <= 0}
           aria-label={t(`Убрать буст у ${p.displayName}`, `Remove boost from ${p.displayName}`)}
           onClick={stop(() => update({ boostDice: p.boostDice - 1 }))}>−</button>
-        <button type="button" className="tiny" disabled={updatePending || !isGm || p.boostDice >= 20}
+        <button type="button" className="tiny" disabled={updatePending || !canEditVitals || p.boostDice >= 20}
           aria-label={t(`Добавить буст ${p.displayName}`, `Add boost to ${p.displayName}`)}
           onClick={stop(() => update({ boostDice: p.boostDice + 1 }))}>+</button>
 
         <span className="setback-label">{t('Сетбеки', 'Setbacks')}</span><b>{p.setbackDice}</b>
-        <button type="button" className="tiny" disabled={updatePending || !isGm || p.setbackDice <= 0}
+        <button type="button" className="tiny" disabled={updatePending || !canEditVitals || p.setbackDice <= 0}
           aria-label={t(`Убрать сетбек у ${p.displayName}`, `Remove setback from ${p.displayName}`)}
           onClick={stop(() => update({ setbackDice: p.setbackDice - 1 }))}>−</button>
-        <button type="button" className="tiny" disabled={updatePending || !isGm || p.setbackDice >= 20}
+        <button type="button" className="tiny" disabled={updatePending || !canEditVitals || p.setbackDice >= 20}
           aria-label={t(`Добавить сетбек ${p.displayName}`, `Add setback to ${p.displayName}`)}
           onClick={stop(() => update({ setbackDice: p.setbackDice + 1 }))}>+</button>
       </div>
@@ -803,7 +841,7 @@ function NotesBlock({ session, isGm, onRun, campaignId }: BlockProps) {
           <label className="checkbox compact-checkbox">
             <input type="checkbox" checked={session.allowPlayerEdits}
               onChange={e => onRun(() => api.updateSession(campaignId, { allowPlayerEdits: e.target.checked }))} />
-            {t('Игроки меняют раны/усталость', 'Players edit wounds/strain')}
+            {t('Игроки меняют состояние и модификаторы', 'Players edit status and modifiers')}
           </label>
         )}
       </div>

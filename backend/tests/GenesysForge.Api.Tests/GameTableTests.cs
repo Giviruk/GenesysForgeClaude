@@ -286,7 +286,31 @@ public class GameTableTests : IClassFixture<ApiFactory>
         var updated = (await ok.Content.ReadFromJsonAsync<GameSessionDto>(Json.Options))!;
         var participant = updated.Participants.First(p => p.Id == pid);
         Assert.Equal(3, participant.WoundsCurrent);
-        Assert.Equal(0, participant.BoostDice); // разрешение игроку относится только к wounds/strain
+        Assert.Equal(4, participant.BoostDice);
+        Assert.Equal(3, participant.SetbackDice);
+    }
+
+    [Fact]
+    public async Task PlayerEdit_CannotChangeNpcModifiers()
+    {
+        var (gm, player, campaignId, _) = await SetupCampaignWithPlayerAsync(_factory);
+        await CreateSessionAsync(gm, campaignId);
+        var addResp = await gm.PostAsJsonAsync($"/api/campaigns/{campaignId}/session/participants",
+            new AddParticipantRequest(null, null, "Страж", ParticipantType.Npc, null, null, 8, null, 2, 0, 0), Json.Options);
+        var session = (await addResp.Content.ReadFromJsonAsync<GameSessionDto>(Json.Options))!;
+        var participantId = session.Participants.Single().Id;
+
+        await gm.PatchAsJsonAsync($"/api/campaigns/{campaignId}/session",
+            new UpdateSessionRequest(null, null, null, null, null, null, true), Json.Options);
+        var denied = await player.PatchAsJsonAsync($"/api/campaigns/{campaignId}/session/participants/{participantId}",
+            new UpdateParticipantRequest(null, null, null, null, null, null, null, null, null, null, null, null, null, null,
+                BoostDice: 4, SetbackDice: 3), Json.Options);
+
+        Assert.Equal(HttpStatusCode.BadRequest, denied.StatusCode);
+        var unchanged = (await gm.GetFromJsonAsync<GameSessionDto>(
+            $"/api/campaigns/{campaignId}/session", Json.Options))!;
+        var participant = unchanged.Participants.Single();
+        Assert.Equal(0, participant.BoostDice);
         Assert.Equal(0, participant.SetbackDice);
     }
 
@@ -417,6 +441,38 @@ public class GameTableTests : IClassFixture<ApiFactory>
         var view = (await gm.GetFromJsonAsync<GameSessionDto>($"/api/campaigns/{campaign.Id}/session", Json.Options))!;
         Assert.Single(view.Slots);
         Assert.Equal(0, view.Slots[0].Order); // порядок перенормирован
+    }
+
+    [Fact]
+    public async Task UpdateSlot_ReordersAndKeepsCurrentSlot()
+    {
+        var gm = await _factory.CreateAuthorizedClientAsync();
+        var campaign = await CreateCampaignAsync(gm);
+        await CreateSessionAsync(gm, campaign.Id);
+
+        var firstResponse = await gm.PostAsJsonAsync($"/api/campaigns/{campaign.Id}/session/slots",
+            new AddSlotRequest(InitiativeSlotType.Player, null, "first"), Json.Options);
+        var first = (await firstResponse.Content.ReadFromJsonAsync<GameSessionDto>(Json.Options))!;
+        var secondResponse = await gm.PostAsJsonAsync($"/api/campaigns/{campaign.Id}/session/slots",
+            new AddSlotRequest(InitiativeSlotType.Npc, null, "second"), Json.Options);
+        var second = (await secondResponse.Content.ReadFromJsonAsync<GameSessionDto>(Json.Options))!;
+        var thirdResponse = await gm.PostAsJsonAsync($"/api/campaigns/{campaign.Id}/session/slots",
+            new AddSlotRequest(InitiativeSlotType.Neutral, null, "third"), Json.Options);
+        var third = (await thirdResponse.Content.ReadFromJsonAsync<GameSessionDto>(Json.Options))!;
+        var secondSlotId = second.Slots.Single(s => s.Notes == "second").Id;
+        var thirdSlotId = third.Slots.Single(s => s.Notes == "third").Id;
+        var firstSlotId = first.Slots.Single(s => s.Notes == "first").Id;
+
+        await Post<GameSessionDto>(gm, $"/api/campaigns/{campaign.Id}/session/next-turn");
+        var moved = await gm.PatchAsJsonAsync(
+            $"/api/campaigns/{campaign.Id}/session/slots/{secondSlotId}",
+            new UpdateSlotRequest(null, 3, null, null), Json.Options);
+        var view = (await moved.Content.ReadFromJsonAsync<GameSessionDto>(Json.Options))!;
+
+        Assert.Equal([firstSlotId, thirdSlotId, secondSlotId], view.Slots.Select(s => s.Id));
+        Assert.Equal(2, view.CurrentTurnIndex);
+        Assert.Equal(secondSlotId, view.Slots[view.CurrentTurnIndex].Id);
+        Assert.Equal([0, 1, 2], view.Slots.Select(s => s.Order));
     }
 
     private static async Task<T> Post<T>(HttpClient client, string url)
