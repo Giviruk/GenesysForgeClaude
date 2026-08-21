@@ -11,6 +11,7 @@ const referenceMock = vi.fn()
 const rollsMock = vi.fn()
 const createRollMock = vi.fn()
 const updateParticipantMock = vi.fn()
+const updateSlotMock = vi.fn()
 const removeParticipantMock = vi.fn()
 const openRollerMock = vi.fn()
 const npcsMock = vi.fn()
@@ -23,6 +24,7 @@ vi.mock('../api/client', () => ({
     rolls: (...args: unknown[]) => rollsMock(...args),
     createRoll: (...args: unknown[]) => createRollMock(...args),
     updateParticipant: (...args: unknown[]) => updateParticipantMock(...args),
+    updateSlot: (...args: unknown[]) => updateSlotMock(...args),
     removeParticipant: (...args: unknown[]) => removeParticipantMock(...args),
     npcs: (...args: unknown[]) => npcsMock(...args),
     rules: vi.fn().mockResolvedValue({ entries: [] }),
@@ -109,6 +111,7 @@ describe('GameTableTab — статблок и броски NPC', () => {
     rollsMock.mockReset().mockResolvedValue([])
     createRollMock.mockReset().mockResolvedValue({})
     updateParticipantMock.mockReset().mockResolvedValue(session)
+    updateSlotMock.mockReset().mockResolvedValue(session)
     removeParticipantMock.mockReset().mockResolvedValue(undefined)
     openRollerMock.mockReset()
     npcsMock.mockReset().mockResolvedValue([])
@@ -162,6 +165,30 @@ describe('GameTableTab — статблок и броски NPC', () => {
     expect(screen.getByText('Расчётные расстояния от Гоблины ×3/3')).toBeTruthy()
     expect(npcToken.getAttribute('style')).toBe(npcPosition)
     expect(pcToken.getAttribute('style')).toBe(pcPosition)
+  })
+
+  it('позволяет мастеру перетащить слот инициативы перед другим слотом', async () => {
+    const slots = [
+      { id: 'slot-a', slotType: 'player' as const, order: 0, assignedParticipantId: null, notes: '' },
+      { id: 'slot-b', slotType: 'npc' as const, order: 1, assignedParticipantId: null, notes: '' },
+      { id: 'slot-c', slotType: 'neutral' as const, order: 2, assignedParticipantId: null, notes: '' },
+    ]
+    const initial = { ...session, slots, currentTurnIndex: 0 }
+    const reordered = { ...initial, slots: [slots[1], slots[0], slots[2]], currentTurnIndex: 1 }
+    sessionMock.mockResolvedValue(initial)
+    updateSlotMock.mockResolvedValue(reordered)
+    render(<GameTableTab campaignId="campaign-1" isGm members={[]} />)
+
+    const rows = await screen.findAllByRole('listitem')
+    fireEvent.dragStart(rows[0])
+    fireEvent.dragOver(rows[2])
+    fireEvent.drop(rows[2])
+
+    await waitFor(() => expect(updateSlotMock).toHaveBeenCalledWith(
+      'campaign-1', 'slot-a', { order: 1 },
+    ))
+    await waitFor(() => expect(Array.from(document.querySelectorAll('.init-row')).map(row => row.getAttribute('data-slot-id')))
+      .toEqual(['slot-b', 'slot-a', 'slot-c']))
   })
 
   it('перетаскивает токен указателем в центр выбранной ячейки', async () => {

@@ -782,6 +782,10 @@ DELETE /api/campaigns/{campaignId}/session/slots/{slotId}
 
 `GET` returns `204` when there is no active session. GMs can create/reset/end scenes and manage participants/slots. Player edits are limited by campaign membership and session settings.
 
+Initiative slots are returned in `order` sequence. GMs can change a slot's `order` through the
+participant-independent slot `PATCH`; the Game Table exposes this as drag-and-drop reordering and
+keeps the currently active slot selected after a move.
+
 Each `GameParticipant` includes the initial `count`, authoritative derived `remainingCount`, and
 nullable `perMemberWoundThreshold`. For a valid minion-group snapshot the individual threshold is
 `woundsThreshold / count`; a member is lost only after that threshold is exceeded. The UI rebuilds

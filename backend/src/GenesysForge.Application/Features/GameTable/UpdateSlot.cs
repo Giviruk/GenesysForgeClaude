@@ -32,10 +32,18 @@ public class UpdateSlotHandler(IAppDbContext db) : ICommandHandler<UpdateSlotCom
         {
             // Перемещение слота: переупорядочиваем по новой позиции.
             var ordered = session.Slots.OrderBy(s => s.Order).ToList();
+            var currentSlotId = session.CurrentTurnIndex >= 0 && session.CurrentTurnIndex < ordered.Count
+                ? ordered[session.CurrentTurnIndex].Id
+                : (Guid?)null;
             ordered.Remove(slot);
             var target = Math.Clamp(order, 0, ordered.Count);
             ordered.Insert(target, slot);
             for (var i = 0; i < ordered.Count; i++) ordered[i].Order = i;
+            if (currentSlotId is { } currentId)
+            {
+                var currentIndex = ordered.FindIndex(s => s.Id == currentId);
+                if (currentIndex >= 0) session.CurrentTurnIndex = currentIndex;
+            }
         }
         session.UpdatedAt = DateTime.UtcNow;
 

@@ -1618,6 +1618,9 @@ button.tiny { font-size: 0.75rem; padding: 0.05rem 0.4rem 0.15rem; }
   border: 1px solid var(--border);
   border-radius: 8px;
 }
+.init-row[draggable="true"] { cursor: grab; }
+.init-row.dragging { opacity: 0.45; cursor: grabbing; }
+.init-row.drag-over { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
 .init-row.current { border-color: var(--accent); background: rgba(200, 162, 74, 0.12); }
 .init-num { color: var(--muted); text-align: right; font-size: 0.75rem; }
 .init-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

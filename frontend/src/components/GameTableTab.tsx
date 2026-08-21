@@ -506,7 +506,25 @@ function RangeBandTracker({ campaignId, session, isGm, members }: {
 
 function InitiativeTracker({ session, isGm, onRun, campaignId }: BlockProps) {
   const [slotType, setSlotType] = useState<InitiativeSlotType>('player')
+  const [draggedSlotId, setDraggedSlotId] = useState<string | null>(null)
+  const [dragOverSlotId, setDragOverSlotId] = useState<string | null>(null)
   const nameOf = (pid: string | null) => session.participants.find(p => p.id === pid)?.displayName
+
+  const dropSlot = (targetSlotId: string) => {
+    const sourceSlotId = draggedSlotId
+    setDraggedSlotId(null)
+    setDragOverSlotId(null)
+    if (!isGm || sourceSlotId === null || sourceSlotId === targetSlotId) return
+
+    const sourceIndex = session.slots.findIndex(slot => slot.id === sourceSlotId)
+    const targetIndex = session.slots.findIndex(slot => slot.id === targetSlotId)
+    if (sourceIndex < 0 || targetIndex < 0) return
+
+    // Drop inserts before the target row. The API removes the source first,
+    // so a source above the target shifts the requested index by one.
+    const order = sourceIndex < targetIndex ? targetIndex - 1 : targetIndex
+    void onRun(() => api.updateSlot(campaignId, sourceSlotId, { order }))
+  }
 
   return (
     <section className="panel initiative-panel">
@@ -517,7 +535,27 @@ function InitiativeTracker({ session, isGm, onRun, campaignId }: BlockProps) {
       {session.slots.length === 0 && <p className="muted">{t('Слотов нет.', 'No slots.')}{isGm && t(' Добавьте слоты ниже.', ' Add slots below.')}</p>}
       <ol className="initiative-list">
         {session.slots.map((slot, i) => (
-          <li key={slot.id} className={i === session.currentTurnIndex ? 'init-row current' : 'init-row'}>
+          <li key={slot.id}
+            data-slot-id={slot.id}
+            className={`init-row${i === session.currentTurnIndex ? ' current' : ''}${draggedSlotId === slot.id ? ' dragging' : ''}${dragOverSlotId === slot.id && draggedSlotId !== slot.id ? ' drag-over' : ''}`}
+            draggable={isGm}
+            title={isGm ? t('Перетащите слот, чтобы изменить порядок', 'Drag the slot to reorder initiative') : undefined}
+            onDragStart={event => {
+              if (!isGm) return
+              if (event.dataTransfer) event.dataTransfer.effectAllowed = 'move'
+              setDraggedSlotId(slot.id)
+            }}
+            onDragOver={event => {
+              if (!isGm || draggedSlotId === null || draggedSlotId === slot.id) return
+              event.preventDefault()
+              if (event.dataTransfer) event.dataTransfer.dropEffect = 'move'
+              setDragOverSlotId(slot.id)
+            }}
+            onDrop={event => {
+              event.preventDefault()
+              dropSlot(slot.id)
+            }}
+            onDragEnd={() => { setDraggedSlotId(null); setDragOverSlotId(null) }}>
             <span className="init-num">{i + 1}</span>
             {isGm ? (
               <select className="slot-assign" value={slot.assignedParticipantId ?? ''}
