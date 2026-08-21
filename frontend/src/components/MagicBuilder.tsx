@@ -20,6 +20,7 @@ import { t } from '../i18n'
 import { useDiceRoller } from '../dice-roller-store'
 import { magicAdvantageSpends } from '../utils/magicRoller'
 import { PropertyText } from './PropertyText'
+import { canonicalQualityName } from '../data/itemQualities'
 import { talentSpellEffects, type TalentSpellEffect } from '../utils/talentSpellEffects'
 
 export interface MagicSkillPool {
@@ -273,7 +274,7 @@ export function MagicBuilder({
     const rating = ratingFor(effect)
     if (rating == null) return ''
     return effect.ratedQualities.length > 0
-      ? effect.ratedQualities.map(q => `${t(q.nameRu, q.nameEn)} ${rating}`).join(', ')
+      ? effect.ratedQualities.map(q => `${canonicalQualityName(q.nameEn || q.nameRu)} ${rating}`).join(', ')
       : t(`по Знанию ${rating}`, `Knowledge ${rating}`)
   }
   /** У этого действия есть эффекты, чьи числа зависят от Знания. */
@@ -751,7 +752,7 @@ export function MagicBuilder({
                       {mandatory && <span className="effect-chip-free"> {t('обязательно', 'mandatory')}</span>}
                       {/* Рейтинг по Знанию — числом на чипе, а не отсылкой «равен рангу Знания». */}
                       {ratingLabel(a) && (
-                        <span className="effect-chip-rating"> · {ratingLabel(a)}</span>
+                        <span className="effect-chip-rating"> · <PropertyText text={ratingLabel(a)} qualities={qualities} /></span>
                       )}
                       {/* Ограничение видно на самом чипе: подсказка по наведению есть не везде. */}
                       {unavailable && (
@@ -779,7 +780,7 @@ export function MagicBuilder({
                         </span>
                       )}
                       {ratingLabel(a) && (
-                        <span className="muted small-text"> · {ratingLabel(a)}</span>
+                        <span className="muted small-text"> · <PropertyText text={ratingLabel(a)} qualities={qualities} /></span>
                       )}
                       {a.exclusions.length > 0 && (
                         <span className="muted small-text">
