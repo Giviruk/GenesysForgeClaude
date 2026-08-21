@@ -3,7 +3,7 @@
 - **Пункт ТЗ:** ROT-EQP-ATT-02 — полный fantasy/RoT weapon attachment catalog (объём — [rot-rules-remediation-tasks.md](rot-rules-remediation-tasks.md))
 - **Ветка:** `feature/audit-weapon-attachments`
 - **Базовая ветка:** `feature/fix-explosive-missile-description` (стек PR #216)
-- **PR:** #<номер> (после создания)
+- **PR:** [#217](https://github.com/Giviruk/GenesysForgeClaude/pull/217) (draft, stacked on #216)
 - **Статус:** 🚧 In progress
 
 ## Контекст
@@ -22,7 +22,7 @@
 - [x] Добавить регрессионные проверки каталога и совместимости.
 - [x] Выполнить тесты и copyright-проверку seed-данных.
 - [ ] Строка пункта в `rot-rules-remediation-progress.md` обновлена.
-- [ ] PR открыт.
+- [x] PR открыт.
 
 ## Что осталось / блокеры
 
