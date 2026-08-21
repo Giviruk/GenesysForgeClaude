@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { api } from '../api/client'
-import type { CharacterSheet } from '../api/types'
+import type { CharacterSheet, Quality } from '../api/types'
 import { SpellsTab } from './SpellsTab'
 import { localizedName } from '../utils/labels'
 import { t } from '../i18n'
@@ -12,9 +12,11 @@ import {
  * Вкладка «Магия» листа персонажа: переключатель между справочником эффектов и
  * сборщиком магического действия. Сборщику передаются магические навыки персонажа с пулами кубов.
  */
-export function MagicTab({ sheet, onError, refresh }: {
+export function MagicTab({ sheet, onError, refresh, qualities }: {
   sheet: CharacterSheet
   onError: (m: string) => void
+  /** Качества из уже загруженного справочника; standalone/campaign режимы используют fallback. */
+  qualities?: Quality[]
   /** Перечитать лист после настройки инструмента; без неё выбор эффектов не предлагается. */
   refresh?: () => Promise<void>
 }) {
@@ -53,7 +55,7 @@ export function MagicTab({ sheet, onError, refresh }: {
       </div>
       {mode === 'builder'
         ? <MagicBuilder system={sheet.system} characterSkills={magicSkills}
-          knowledgeRating={sheet.knowledgeRating}
+          knowledgeRating={sheet.knowledgeRating} qualities={qualities}
           implements={implementsInHand} shards={shardsInHand} onError={onError}
           onConfigureImplement={refresh
             ? async (itemId, codes) => {
@@ -67,7 +69,7 @@ export function MagicTab({ sheet, onError, refresh }: {
               await refresh()
             }
             : undefined} />
-        : <SpellsTab system={sheet.system} onError={onError} />}
+        : <SpellsTab system={sheet.system} onError={onError} qualities={qualities} />}
     </div>
   )
 }

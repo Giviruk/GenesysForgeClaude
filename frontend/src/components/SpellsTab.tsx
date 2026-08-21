@@ -1,12 +1,14 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { api } from '../api/client'
-import type { GameSystem, Spell } from '../api/types'
+import type { GameSystem, Quality, Spell } from '../api/types'
 import { localizedDescription, localizedName, magicSkillLabel } from '../utils/labels'
 import { t } from '../i18n'
+import { PropertyText } from './PropertyText'
 
 interface Props {
   system: GameSystem
   onError: (message: string) => void
+  qualities?: Quality[]
 }
 
 /**
@@ -14,7 +16,7 @@ interface Props {
  * список доступных базовых эффектов. Затем выбирается базовый эффект по названию: для него
  * показываются описание и таблица дополнительных эффектов, привязанных именно к нему.
  */
-export function SpellsTab({ system, onError }: Props) {
+export function SpellsTab({ system, onError, qualities }: Props) {
   const [spells, setSpells] = useState<Spell[] | null>(null)
   const [skill, setSkill] = useState<string>('')
   const [effectCode, setEffectCode] = useState<string>('')
@@ -102,7 +104,7 @@ export function SpellsTab({ system, onError }: Props) {
             <h3>{t(selectedEffect.nameRu, selectedEffect.nameEn)} <span className="muted">· {t(selectedEffect.nameEn, selectedEffect.nameRu)}</span></h3>
             <span className="difficulty-badge">{t('Сложность:', 'Difficulty:')} {selectedEffect.difficulty}</span>
           </div>
-          <p>{localizedDescription(selectedEffect)}</p>
+          <p><PropertyText text={localizedDescription(selectedEffect)} qualities={qualities} /></p>
           <div className="muted small-text">
             {t('Доступно направлениям:', 'Available to:')}{' '}
             {selectedEffect.allowedSkills.map(magicSkillLabel).join(', ')}
@@ -193,7 +195,7 @@ export function SpellsTab({ system, onError }: Props) {
                           </div>
                         )}
                       </td>
-                      <td>{localizedDescription(m)}</td>
+                      <td><PropertyText text={localizedDescription(m)} qualities={qualities} /></td>
                       <td className="muted small-text">{m.source}</td>
                     </tr>
                   ))}

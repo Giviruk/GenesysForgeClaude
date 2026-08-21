@@ -989,6 +989,18 @@ table.ref-table td.ref-cost { white-space: nowrap; color: var(--accent); }
 }
 .prop-tag:hover, .prop-tag:focus-visible { border-color: var(--accent); outline: none; }
 .prop-tag.pinned { border-color: var(--accent); background: var(--accent-dark); color: #fff; }
+.prop-tag.spell-property {
+  padding: 0 0.12rem;
+  border-color: transparent;
+  border-radius: 3px;
+  background: transparent;
+  color: var(--accent);
+  font-size: inherit;
+  line-height: inherit;
+  text-decoration: underline dotted;
+  white-space: normal;
+}
+.prop-tag.spell-property:hover, .prop-tag.spell-property:focus-visible { border-color: var(--accent); }
 
 .prop-tooltip {
   position: absolute;
