@@ -3,7 +3,7 @@
 - **Пункт ТЗ:** ROT-HA-02 — именное оружие в параметре героической способности
 - **Ветка:** `feature/signature-weapon-quality-tooltips`
 - **Базовая ветка:** `master`
-- **PR:** #<номер> (после создания)
+- **PR:** [#207](https://github.com/Giviruk/GenesysForgeClaude/pull/207)
 - **Статус:** 🚧 In progress
 
 ## Контекст
