@@ -490,7 +490,13 @@ export function CreateCharacterForm({ onCancel, onCreated }: { onCancel: () => v
 
         <label>
           {t('Карьера', 'Career')}
-          <select value={careerId} onChange={e => { setCareerId(e.target.value); setGearChoices({}); setEquipmentMode('standardMoney') }} required>
+          <select value={careerId} onChange={e => {
+            setCareerId(e.target.value)
+            setFreeSkills([])
+            setSkillChoices({})
+            setGearChoices({})
+            setEquipmentMode('standardMoney')
+          }} required>
             <option value="" disabled>{t('— выберите —', '— select —')}</option>
             {reference?.careers.map(c => <option key={c.id} value={c.id}>{localizedName(c)}</option>)}
           </select>
