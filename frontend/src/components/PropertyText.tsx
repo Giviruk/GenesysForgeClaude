@@ -1,5 +1,5 @@
 import type { Quality } from '../api/types'
-import { ITEM_QUALITIES, type ItemQuality } from '../data/itemQualities'
+import { findQuality, ITEM_QUALITIES, type ItemQuality } from '../data/itemQualities'
 import { localizedDescription } from '../utils/labels'
 import { t } from '../i18n'
 import { InfoTip } from './InfoTip'
@@ -58,14 +58,28 @@ function descriptors(qualities: QualityLike[]): PropertyDescriptor[] {
 
   // Серверный справочник первым: он включает пользовательские качества и актуальные переводы.
   for (const quality of qualities) {
+    const fallback = findQuality(quality.nameEn || quality.nameRu)
+    const serverNameRu = quality.nameRu?.trim() ?? ''
+    const serverNameEn = quality.nameEn?.trim() ?? ''
+    // Старые ссылки иногда сохраняют английское имя в nameRu. Для встроенных качеств
+    // в этом случае берём каноничный перевод, но оставляем серверное описание.
+    const normalizedRu = serverNameRu.toLocaleLowerCase()
+    const normalizedEn = serverNameEn.toLocaleLowerCase()
+    const isEnglishFallback = fallback && (!normalizedRu
+      || normalizedRu === normalizedEn
+      || normalizedRu === fallback.nameEn.toLocaleLowerCase())
+    const nameRu = isEnglishFallback
+      ? fallback.nameRu
+      : serverNameRu || fallback?.nameRu || serverNameEn
+    const nameEn = serverNameEn || fallback?.nameEn || nameRu
     add({
-      nameRu: quality.nameRu,
-      nameEn: quality.nameEn,
+      nameRu,
+      nameEn,
       description: localizedDescription({
-        description: quality.description || quality.safeDescription,
-        descriptionEn: quality.descriptionEn || quality.safeDescription,
+        description: quality.description || quality.safeDescription || fallback?.description,
+        descriptionEn: quality.descriptionEn || fallback?.description,
       }),
-      hasRating: quality.hasRating,
+      hasRating: fallback?.rated ?? quality.hasRating,
     })
   }
   // В справочнике магии и в кампаниях без Reference остаётся встроенный fallback.

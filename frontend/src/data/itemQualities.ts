@@ -29,6 +29,12 @@ export interface ItemQuality {
 /** Название свойства на языке интерфейса. */
 export const qualityName = (q: ItemQuality) => t(q.nameRu, q.nameEn)
 
+/** Каноничное имя качества по русскому или английскому названию. */
+export const canonicalQualityName = (name: string): string => {
+  const quality = findQuality(name)
+  return quality ? qualityName(quality) : name
+}
+
 export const ITEM_QUALITIES: ItemQuality[] = [
   {
     nameRu: 'Автоматическое', nameEn: 'Auto-fire', rated: false,

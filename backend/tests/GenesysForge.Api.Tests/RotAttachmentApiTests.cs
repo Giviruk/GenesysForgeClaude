@@ -63,11 +63,11 @@ public class RotAttachmentApiTests(ApiFactory factory) : IClassFixture<ApiFactor
     // ── Каталог ──
 
     [Fact]
-    public async Task Catalog_HasAllTwentyOneAttachments_AndTheyAreNotGearAnyMore()
+    public async Task Catalog_HasAllTwentyTwoAttachments_AndTheyAreNotGearAnyMore()
     {
         var (_, _, reference) = await CreateCharacterAsync();
 
-        Assert.Equal(21, reference.Attachments!.Count);
+        Assert.Equal(22, reference.Attachments!.Count);
         // Улучшения ушли из каталога снаряжения: покупать их «как мешок» больше нельзя.
         foreach (var code in new[] { "spikes", "razor-edge", "gilded", "balanced-hilt" })
             Assert.DoesNotContain(reference.Items, i => i.Name.Contains(code, StringComparison.OrdinalIgnoreCase));
@@ -83,6 +83,7 @@ public class RotAttachmentApiTests(ApiFactory factory) : IClassFixture<ApiFactor
     [InlineData("explosive-missile", 1, 1250, 7, false, ItemKind.Weapon)]
     [InlineData("duelist-cross-guard", 1, 800, 5, false, ItemKind.Weapon)]
     [InlineData("superior-weapon-customization", 1, 750, 7, false, ItemKind.Weapon)]
+    [InlineData("weapon-sling", 1, 25, 1, false, ItemKind.Weapon)]
     [InlineData("runic-flame", 1, 2000, 8, true, ItemKind.Weapon)]
     [InlineData("runic-frost", 1, 1750, 8, true, ItemKind.Weapon)]
     [InlineData("runic-thunder", 2, 2000, 8, true, ItemKind.Weapon)]
@@ -108,6 +109,74 @@ public class RotAttachmentApiTests(ApiFactory factory) : IClassFixture<ApiFactor
         Assert.Equal(enchantment, def.IsEnchantment);
         Assert.Equal(host, def.HostKind);
         Assert.NotEmpty(def.Source);
+    }
+
+    [Fact]
+    public async Task WeaponAttachmentSources_MatchTheBookTables()
+    {
+        var (_, _, reference) = await CreateCharacterAsync();
+        var expected = new Dictionary<string, string>(StringComparer.Ordinal)
+        {
+            ["balanced-hilt"] = "Genesys Core Rulebook, p. 207",
+            ["duelist-cross-guard"] = "Genesys Core Rulebook, p. 207",
+            ["explosive-missile"] = "Realms of Terrinoth, pp. 106-107",
+            ["razor-edge"] = "Genesys Core Rulebook, p. 208",
+            ["recurve-limbs"] = "Genesys Core Rulebook, p. 208",
+            ["weapon-sling"] = "Genesys Core Rulebook, p. 208",
+            ["rune-of-blades"] = "Realms of Terrinoth, pp. 106-107",
+            ["runic-flame"] = "Realms of Terrinoth, pp. 106-107",
+            ["runic-frost"] = "Realms of Terrinoth, pp. 106-107",
+            ["runic-thunder"] = "Realms of Terrinoth, pp. 106-107",
+            ["rune-of-severing"] = "Realms of Terrinoth, pp. 106-107",
+            ["serrated-edge"] = "Genesys Core Rulebook, p. 208",
+            ["superior-weapon-customization"] = "Genesys Core Rulebook, p. 208",
+            ["weighted-head"] = "Genesys Core Rulebook, p. 209",
+            ["ynfernael-corruption"] = "Realms of Terrinoth, pp. 106-107",
+        };
+
+        foreach (var (code, source) in expected)
+            Assert.Equal(source, Attachment(reference, code).Source);
+    }
+
+    [Fact]
+    public async Task WeaponAttachmentDescriptions_ExposeBookModifiers()
+    {
+        var (_, _, reference) = await CreateCharacterAsync();
+        var expectedFragments = new Dictionary<string, string[]>(StringComparer.Ordinal)
+        {
+            ["duelist-cross-guard"] = ["1 усталость", "2 угрозы"],
+            ["explosive-missile"] = ["дальнобойного", "рейтингом 5"],
+            ["recurve-limbs"] = ["Pierce 2", "Unwieldy 2", "на 1"],
+            ["weapon-sling"] = ["две руки", "нагрузку на 2"],
+            ["rune-of-blades"] = ["Истекает кровью"],
+            ["runic-flame"] = ["ближнего боя", "рейтингом 1"],
+            ["runic-frost"] = ["«Сковывание» 1", "«Оглушение» 4"],
+            ["runic-thunder"] = ["«Ошеломление» с рейтингом 1"],
+            ["rune-of-severing"] = ["рейтингом 5"],
+            ["ynfernael-corruption"] = ["+2 к базовому урону", "усталости увеличивается на 1"],
+        };
+
+        foreach (var (code, fragments) in expectedFragments)
+        {
+            var description = Attachment(reference, code).Description;
+            foreach (var fragment in fragments)
+                Assert.Contains(fragment, description, StringComparison.Ordinal);
+        }
+    }
+
+    [Fact]
+    public async Task RunicFlameAndFrost_RequireMeleeForm()
+    {
+        var (_, _, reference) = await CreateCharacterAsync();
+
+        foreach (var code in new[] { "runic-flame", "runic-frost" })
+        {
+            var def = Attachment(reference, code);
+            Assert.Equal(
+                WeaponFormTraits.Brawl | WeaponFormTraits.OneHanded | WeaponFormTraits.TwoHanded,
+                def.RequiredAnyTraits);
+            Assert.Equal(WeaponFormTraits.Ranged, def.ForbiddenTraits);
+        }
     }
 
     [Fact]
@@ -141,6 +210,11 @@ public class RotAttachmentApiTests(ApiFactory factory) : IClassFixture<ApiFactor
 
         var serrated = Attachment(reference, "serrated-edge");
         Assert.Equal("vicious", Assert.Single(serrated.Effects).QualityCode);
+
+        var explosive = Attachment(reference, "explosive-missile");
+        Assert.Contains("Взрыв", explosive.Description, StringComparison.Ordinal);
+        Assert.Contains("5", explosive.Description, StringComparison.Ordinal);
+        Assert.Contains(explosive.Effects, e => e.QualityCode == "blast" && e.Value == 5);
     }
 
     // ── Установка ──
@@ -190,6 +264,39 @@ public class RotAttachmentApiTests(ApiFactory factory) : IClassFixture<ApiFactor
             .AttackProfiles!.Single(p => p.IsDefault);
         Assert.Equal(baseDamage + 2, profile.BaseDamage);
         Assert.Contains(profile.Qualities, q => q.Code == "cumbersome" && q.Rating == 2);
+    }
+
+    [Fact]
+    public async Task WeaponSling_ReducesEncumbrance_OfTwoHandedRangedWeapon()
+    {
+        var (client, id, reference) = await CreateCharacterAsync();
+        var crossbow = Item(reference, "Crossbow, Heavy", ItemKind.Weapon);
+        var hostId = await AddItemAsync(client, id, crossbow.Id);
+        var sling = await BuyAttachmentAsync(client, id, Attachment(reference, "weapon-sling").Id);
+
+        var before = await SheetAsync(client, id);
+        var beforeItem = before.Items!.Single(i => i.Id == hostId);
+        Assert.Equal(4, beforeItem.Encumbrance);
+
+        Assert.Equal(HttpStatusCode.NoContent, (await InstallAsync(client, id, sling, hostId)).StatusCode);
+
+        var after = await SheetAsync(client, id);
+        var item = after.Items!.Single(i => i.Id == hostId);
+        Assert.Equal(2, item.Encumbrance);
+        Assert.Equal(before.Derived.EncumbranceLoad - 2, after.Derived.EncumbranceLoad);
+    }
+
+    [Fact]
+    public async Task WeaponSling_RejectsOneHandedRangedWeapon()
+    {
+        var (client, id, reference) = await CreateCharacterAsync();
+        var handCrossbow = Item(reference, "Crossbow, Hand", ItemKind.Weapon);
+        var hostId = await AddItemAsync(client, id, handCrossbow.Id);
+        var sling = await BuyAttachmentAsync(client, id, Attachment(reference, "weapon-sling").Id);
+
+        var response = await InstallAsync(client, id, sling, hostId);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
     [Fact]
