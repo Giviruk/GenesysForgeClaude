@@ -14,6 +14,7 @@ import {
 } from '../utils/labels'
 import { t } from '../i18n'
 import { PropertyText } from './PropertyText'
+import { canonicalQualityName } from '../data/itemQualities'
 
 interface Props {
   sheet: CharacterSheet
@@ -450,7 +451,10 @@ export function HeroicParameterSection({ sheet, reference, run }: {
             <>
               {' · '}
               <PropertyText
-                text={weapon.qualities.map(q => q.rating ? `${q.nameRu} ${q.rating}` : q.nameRu).join(', ')}
+                text={weapon.qualities.map(q => {
+                  const name = canonicalQualityName(q.nameEn || q.nameRu)
+                  return q.rating ? `${name} ${q.rating}` : name
+                }).join(', ')}
                 qualities={reference.qualities} />
             </>
           )}

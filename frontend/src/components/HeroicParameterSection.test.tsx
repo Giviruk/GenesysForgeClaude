@@ -38,6 +38,11 @@ const reference = {
     kind: 'itemQuality', isActive: true, hasRating: false, activationCost: '', category: 'combat',
     description: 'Оружие получает дополнительный эффект превосходного изготовления.',
     safeDescription: 'Дополнительный эффект изготовления.', descriptionEn: '', source: 'Test',
+  } as Quality, {
+    id: 'quality-vicious', code: 'vicious', nameEn: 'Vicious', nameRu: 'Vicious',
+    kind: 'itemQuality', isActive: false, hasRating: true, activationCost: '', category: 'combat',
+    description: 'Добавляет бонус к броску критической травмы.',
+    safeDescription: 'Бонус к броску критической травмы.', descriptionEn: '', source: 'Test',
   } as Quality],
 } as unknown as Reference
 
@@ -65,8 +70,12 @@ const weaponFixture: SignatureWeapon = {
   profile: 'ranged', craftsmanship: 'elven', narrativeForm: 'Лук предков',
   formTraits: 'ranged, bowOrCrossbow', isLost: false, skillName: 'Ranged',
   damage: '8', crit: 3, rangeBand: 'Long', encumbrance: 2, hardPoints: 2,
-  qualities: [{ code: 'superior', nameRu: 'Превосходное', nameEn: 'Superior', rating: null,
-    hasRating: false, isActive: false, activationCost: '' }],
+  qualities: [
+    { code: 'superior', nameRu: 'Превосходное', nameEn: 'Superior', rating: null,
+      hasRating: false, isActive: false, activationCost: '' },
+    { code: 'vicious', nameRu: 'Vicious', nameEn: 'Vicious', rating: 3,
+      hasRating: true, isActive: false, activationCost: '' },
+  ],
   baseAttachment: {
     defId: 'att-thunder', code: 'rot.attachment.runic-thunder', name: 'Runic Thunder',
     nameRu: 'Рунический гром', description: '', effects: [],
@@ -198,10 +207,17 @@ describe('HeroicParameterSection (ROT-HA-02)', () => {
     const summary = screen.getByText(/Лук предков/)
     expect(summary.textContent).toContain('Ranged')
     expect(summary.textContent).toContain('Превосходное')
+    expect(summary.textContent).toContain('Высококритичное 3')
+    expect(summary.textContent).not.toContain('Vicious')
 
     const quality = screen.getByRole('button', { name: /Превосходное/ })
     fireEvent.mouseEnter(quality)
     expect(screen.getByRole('tooltip').textContent).toContain('дополнительный эффект')
+
+    fireEvent.mouseLeave(quality)
+    const vicious = screen.getByRole('button', { name: /Высококритичное/ })
+    fireEvent.mouseEnter(vicious)
+    expect(screen.getByRole('tooltip').textContent).toContain('критической травмы')
 
     fireEvent.click(screen.getByRole('button', { name: 'Отметить потерянным' }))
     await waitFor(() => expect(replaceMock).toHaveBeenCalledWith('char-1', { lost: true }))
