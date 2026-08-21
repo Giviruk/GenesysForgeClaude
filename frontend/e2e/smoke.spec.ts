@@ -250,8 +250,8 @@ test.describe('U-29 smoke E2E', () => {
     const { id } = await createCharacter(request, user.token, characterName, 'realmsOfTerrinoth')
 
     const exported = await apiGet<CharacterExport>(request, user.token, `/api/characters/${id}/export`)
-    // v7 добавляет выбор Improved и бесплатное улучшение Supreme именного оружия (ROT-HA-05).
-    expect(exported.format).toBe('genesysforge.character.v7')
+    // v8 больше не содержит устаревшее поле стартового бюджета.
+    expect(exported.format).toBe('genesysforge.character.v8')
     const imported = await apiPost<ImportResult>(request, user.token, '/api/characters/import', exported)
     await openAs(page, user.token, `/characters/${imported.characterId}`)
     await expect(page.getByText(characterName).first()).toBeVisible()
