@@ -55,7 +55,7 @@ export function MagicTab({ sheet, onError, refresh, qualities }: {
       </div>
       {mode === 'builder'
         ? <MagicBuilder system={sheet.system} characterSkills={magicSkills}
-          knowledgeRating={sheet.knowledgeRating} qualities={qualities}
+          knowledgeRating={sheet.knowledgeRating} qualities={qualities} talents={sheet.talents}
           implements={implementsInHand} shards={shardsInHand} onError={onError}
           onConfigureImplement={refresh
             ? async (itemId, codes) => {

@@ -90,6 +90,7 @@ public class TalentChoiceApiTests(ApiFactory factory) : IClassFixture<ApiFactory
         var sheet = (await client.GetFromJsonAsync<CharacterSheetDto>(
             $"/api/characters/{id}", Json.Options))!;
         var owned = Assert.Single(sheet.Talents!, t => t.TalentDefId == companion.Id);
+        Assert.Equal("zhivotnoe-sputnik", owned.LinkCode);
         var choice = Assert.Single(owned.Choices!);
         Assert.Equal(TalentChoiceKind.AnimalCompanion, choice.Kind);
         Assert.Equal(selectedCompanion.Id.ToString(), choice.Value);

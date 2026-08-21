@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { api } from '../api/client'
 import type {
-  DicePool, GameSystem, ItemImplement, ItemRuneboundShard, KnowledgeRating, Quality, ShardSpellEffect, Spell,
+  DicePool, GameSystem, ItemImplement, ItemRuneboundShard, KnowledgeRating, Quality, ShardSpellEffect,
+  SheetTalent, Spell,
 } from '../api/types'
 import {
   difficultyLabel, localizedDescription, magicSkillLabel, MAX_SPELL_DIFFICULTY,
@@ -19,6 +20,7 @@ import { t } from '../i18n'
 import { useDiceRoller } from '../dice-roller-store'
 import { magicAdvantageSpends } from '../utils/magicRoller'
 import { PropertyText } from './PropertyText'
+import { talentSpellEffects, type TalentSpellEffect } from '../utils/talentSpellEffects'
 
 export interface MagicSkillPool {
   name: string
@@ -63,6 +65,8 @@ interface Props {
   knowledgeRating?: KnowledgeRating | null
   /** Качества из справочника для inline-тултипов в тексте эффекта. */
   qualities?: Quality[]
+  /** Купленные таланты, чьи структурные правила могут удешевлять эффекты заклинания. */
+  talents?: SheetTalent[]
   /** Настройка фолианта и палочки ведущим; без неё выбор эффектов не предлагается. */
   onConfigureImplement?: (itemId: string, effectCodes: string[]) => Promise<void>
   onConfigureLesserRune?: (
@@ -78,7 +82,7 @@ interface Props {
  */
 export function MagicBuilder({
   system, characterSkills, knowledgeRating, implements: tools, shards,
-  onConfigureImplement, onConfigureLesserRune, onError, qualities,
+  onConfigureImplement, onConfigureLesserRune, onError, qualities, talents,
 }: Props) {
   const { openRoller } = useDiceRoller()
   // Инструмент выбирается явно: на одну магическую проверку работает ровно один, и складывать
@@ -147,9 +151,15 @@ export function MagicBuilder({
     return [...activeShard.shard.spec.spellEffects, ...configured]
       .filter(e => !e.action || e.action === activeEffectCode)
   }, [activeShard, activeEffectCode])
+  const talentEffects = useMemo<TalentSpellEffect[]>(
+    () => talentSpellEffects(talents), [talents])
+  const talentEffectsForAction = useMemo(
+    () => talentEffects.filter(e => !e.action || e.action === activeEffectCode),
+    [talentEffects, activeEffectCode])
   const shardEffect = (effect: Spell) =>
     shardEffects.find(e => e.effectCode === effect.nameEn) ?? null
-  const mandatoryCodes = new Set(shardEffects
+  const spellEffectRules = [...shardEffects, ...talentEffectsForAction]
+  const mandatoryCodes = new Set(spellEffectRules
     .filter(e => e.mode === 'mandatoryFree').map(e => e.effectCode))
 
   // Доступность эффекта направлению — правило книги, а не оформление: «Рок» умеет только Магия,
@@ -171,7 +181,7 @@ export function MagicBuilder({
   const mandatoryConflict = chosen.some(effect =>
     mandatoryCodes.has(effect.nameEn)
     && effect.exclusions.some(code => chosenCodes.has(code)))
-  const shardBuildInvalid = shardRequired || missingMandatory || mandatoryConflict
+  const buildInvalid = shardRequired || missingMandatory || mandatoryConflict
   /** Эффект не сочетается с уже выбранным: «Отчаяние» и «Дополнительная цель» вместе не берутся. */
   const conflicts = (effect: Spell) => effect.exclusions
     .filter(code => chosenCodes.has(code) && code !== effect.nameEn)
@@ -190,22 +200,34 @@ export function MagicBuilder({
     const occurrence = all.slice(0, index + 1).filter(x => x.nameEn === effect.nameEn).length
     return sum + (occurrence <= rule.freeUses ? effect.difficultyIncrease : 0)
   }, 0)
+  const talentDiscount = chosen.reduce((sum, effect, index, all) => {
+    const rule = talentEffectsForAction.find(e => e.effectCode === effect.nameEn)
+    if (!rule) return sum
+    const occurrence = all.slice(0, index + 1).filter(x => x.nameEn === effect.nameEn).length
+    return sum + (occurrence <= rule.freeUses ? effect.difficultyIncrease : 0)
+  }, 0)
   const flatShardReduction = activeShard?.shard.spec.difficultyReductions
     .filter(x => !x.action || x.action === activeEffectCode)
     .reduce((sum, x) => sum + x.amount, 0) ?? 0
-  const discounted = discounts.reduce((sum, d) => sum + d.reduction, 0) + shardDiscount
+  const discounted = discounts.reduce((sum, d) => sum + d.reduction, 0) + shardDiscount + talentDiscount
   const calculateDifficulty = (effects: Spell[]) => {
-    if (activeShard) {
-      const raw = baseDifficulty + effects.reduce((sum, x) => sum + x.difficultyIncrease, 0)
-      const free = effects.reduce((sum, effect, index, all) => {
-        const rule = shardEffect(effect)
-        if (!rule) return sum
-        const occurrence = all.slice(0, index + 1).filter(x => x.nameEn === effect.nameEn).length
-        return sum + (occurrence <= rule.freeUses ? effect.difficultyIncrease : 0)
-      }, 0)
-      return Math.max(0, raw - free - flatShardReduction)
-    }
-    return effectiveSpellDifficulty(baseDifficulty, effects, activeTool?.implement ?? null, activeSkill)
+    const raw = baseDifficulty + effects.reduce((sum, x) => sum + x.difficultyIncrease, 0)
+    const shardFree = effects.reduce((sum, effect, index, all) => {
+      const rule = shardEffect(effect)
+      if (!rule) return sum
+      const occurrence = all.slice(0, index + 1).filter(x => x.nameEn === effect.nameEn).length
+      return sum + (occurrence <= rule.freeUses ? effect.difficultyIncrease : 0)
+    }, 0)
+    const talentFree = effects.reduce((sum, effect, index, all) => {
+      const rule = talentEffectsForAction.find(e => e.effectCode === effect.nameEn)
+      if (!rule) return sum
+      const occurrence = all.slice(0, index + 1).filter(x => x.nameEn === effect.nameEn).length
+      return sum + (occurrence <= rule.freeUses ? effect.difficultyIncrease : 0)
+    }, 0)
+    const withImplement = activeShard
+      ? raw - shardFree - flatShardReduction
+      : effectiveSpellDifficulty(baseDifficulty, effects, activeTool?.implement ?? null, activeSkill)
+    return Math.max(baseDifficulty, withImplement - talentFree)
   }
   const activeToolWorks = activeTool != null && implementWorks(activeTool.implement, activeSkill)
   const toolDamageDifficulty = activeToolWorks
@@ -223,12 +245,14 @@ export function MagicBuilder({
   // Что инструмент удешевляет — известно заранее, до выбора эффектов: у посоха и скипетра это
   // фиксированные эффекты, у фолианта и палочки — выбор ведущего.
   const toolActive = activeToolWorks && !activeTool.implement.pending
-  const freeEffectCodes = activeShard
+  const toolFreeEffectCodes = activeShard
     ? shardEffects.map(x => x.effectCode)
     : !toolActive ? [] : (
     activeTool!.implement.discount === 'chosenEffects'
       ? activeTool!.implement.chosenEffects
       : activeTool!.implement.discountEffects)
+  const talentFreeEffectCodes = talentEffectsForAction.map(x => x.effectCode)
+  const freeEffectCodes = [...new Set([...toolFreeEffectCodes, ...talentFreeEffectCodes])]
   const toolBoost = activeToolWorks && !activeTool.implement.pending
     ? activeTool.implement.boostDice
     : 0
@@ -291,7 +315,7 @@ export function MagicBuilder({
   // Снять эффект можно всегда; добавить — только доступный направлению, сочетаемый с уже
   // выбранными и не выводящий сложность за потолок 5.
   const add = (effect: Spell) => {
-    if (shardBuildInvalid) return
+    if (buildInvalid) return
     if (!availableToSkill(effect) || conflicts(effect).length > 0) return
     if (selectedEffect && wouldExceedCap(effect)) return
     setCounts(prev => ({ ...prev, [effect.id]: (prev[effect.id] ?? 0) + 1 }))
@@ -517,8 +541,8 @@ export function MagicBuilder({
                 {activeTool!.implement.boostDice > 0
                   && t(` · +${activeTool!.implement.boostDice} бонусная кость`,
                     ` · +${activeTool!.implement.boostDice} boost`)}
-                {freeEffectCodes.length > 0 && (
-                  <> · {t('бесплатно', 'free')}: {freeEffectCodes
+                {toolFreeEffectCodes.length > 0 && (
+                  <> · {t('бесплатно', 'free')}: {toolFreeEffectCodes
                     .map(code => t(
                       additional.find(e => e.nameEn === code)?.nameRu || code,
                       code))
@@ -544,17 +568,27 @@ export function MagicBuilder({
             )}
           </div>
         )}
+        {talentFreeEffectCodes.length > 0 && (
+          <div className="talent-spell-summary muted small-text">
+            {t('Таланты дают бесплатные эффекты:', 'Talents grant free effects:')}{' '}
+            {talentEffectsForAction.map(effect => {
+              const spell = additional.find(x => x.nameEn === effect.effectCode)
+              return `${t(spell?.nameRu || effect.effectCode, effect.effectCode)}${effect.mode === 'mandatoryFree'
+                ? t(' (обязательно)', ' (mandatory)') : t(' (по выбору)', ' (optional)')}`
+            }).join(', ')}
+          </div>
+        )}
       </section>
 
       {selectedEffect && (
         <section className="panel magic-result">
-          {shardBuildInvalid && (
+          {buildInvalid && (
             <div className="damage-warn">
               {shardRequired
                 ? t('Сборка недействительна: выберите и настройте runebound shard. Проверка и стоимость не исполняются.',
                     'Invalid build: select and configure a runebound shard. No check or cost is resolved.')
-                : t('Сборка недействительна: обязательный эффект руны отсутствует или конфликтует с выбранным эффектом.',
-                    'Invalid build: a mandatory shard effect is missing or conflicts with a selected effect.')}
+                : t('Сборка недействительна: обязательный бесплатный эффект отсутствует или конфликтует с выбранным эффектом.',
+                    'Invalid build: a mandatory free effect is missing or conflicts with a selected effect.')}
             </div>
           )}
           <div className="spell-detail-head">
@@ -570,7 +604,7 @@ export function MagicBuilder({
           {added > 0 && (
             <div className="muted small-text">
               {t('Базовая', 'Base')} {baseDifficulty} {t('+ дополнительные', '+ additional')} {added}
-              {discounted > 0 && t(` − implement/shard ${discounted}`, ` − implement/shard ${discounted}`)}
+              {discounted > 0 && t(` − скидки ${discounted}`, ` − discounts ${discounted}`)}
               {flatShardReduction > 0 && ` − ${flatShardReduction}`}
             </div>
           )}
@@ -607,7 +641,7 @@ export function MagicBuilder({
           )}
           <p><PropertyText text={localizedDescription(selectedEffect)} qualities={qualities} /></p>
           <div className="muted small-text">{t('Источник:', 'Source:')} {selectedEffect.source}</div>
-          {!shardBuildInvalid && (
+          {!buildInvalid && (
             <div className="card-actions">
               {activeCharacterSkill && (
                 <button type="button" className="primary small"
@@ -666,14 +700,19 @@ export function MagicBuilder({
                   // а не только при первом выборе.
                   const overCap = (!on || a.repeatable) && selectedEffect != null && wouldExceedCap(a)
                   const mandatory = mandatoryCodes.has(a.nameEn)
-                  const blocked = shardBuildInvalid || unavailable || conflicting.length > 0 || overCap || mandatory
-                  // Инструмент делает эффект бесплатным — это видно на самом чипе, а не только
-                  // в итоговой сложности (ROT-MAG-IMP-01).
-                  const freeByTool = freeEffectCodes.includes(a.nameEn)
+                  const blocked = buildInvalid || unavailable || conflicting.length > 0 || overCap || mandatory
+                  // Источник бесплатного эффекта виден на самом чипе, а не только в итоговой
+                  // сложности: это может быть инструмент, руна или талант.
+                  const freeByTool = toolFreeEffectCodes.includes(a.nameEn)
+                  const freeByTalent = talentFreeEffectCodes.includes(a.nameEn)
+                  const freeBySource = freeEffectCodes.includes(a.nameEn)
                   const description = localizedDescription(a)
-                  const freeNote = freeByTool
-                    ? t('\nИнструмент делает этот эффект бесплатным.',
-                      '\nThe implement makes this effect free.')
+                  const freeNote = freeByTalent
+                    ? t('\nТалант делает этот эффект бесплатным.',
+                      '\nA talent makes this effect free.')
+                    : freeByTool
+                      ? t('\nИнструмент делает этот эффект бесплатным.',
+                        '\nThe implement makes this effect free.')
                     : ''
                   // Причина недоступности называется прямо: иначе непонятно, эффект вообще не для
                   // этого направления, мешает уже выбранный или дело в потолке сложности.
@@ -692,7 +731,7 @@ export function MagicBuilder({
                         : `${t(a.nameEn, a.nameRu)} · ${a.difficulty}${description ? ` — ${description}` : ''}${freeNote}`
                   return (
                     <button key={a.id} type="button"
-                      className={`chip effect-chip${on ? ' active' : ''}${blocked ? ' blocked' : ''}${freeByTool ? ' free' : ''}`}
+                      className={`chip effect-chip${on ? ' active' : ''}${blocked ? ' blocked' : ''}${freeBySource ? ' free' : ''}`}
                       disabled={blocked}
                       aria-pressed={on}
                       title={a.repeatable && on
@@ -703,12 +742,12 @@ export function MagicBuilder({
                       {t(a.nameRu, a.nameEn)}{' '}
                       <span className="effect-chip-diff">
                         {/* Зачёркнутая надбавка вместо просто «+1»: инструмент её снимает. */}
-                        {freeByTool ? <s>{a.difficulty}</s> : a.difficulty}
+                        {freeBySource ? <s>{a.difficulty}</s> : a.difficulty}
                       </span>
                       {/* Дистанцию и Размер книга разрешает добавлять несколько раз — счётчик
                           показывает, сколько уже добавлено. */}
                       {count > 1 && <span className="effect-chip-count"> ×{count}</span>}
-                      {freeByTool && <span className="effect-chip-free"> {t('бесплатно', 'free')}</span>}
+                      {freeBySource && <span className="effect-chip-free"> {t('бесплатно', 'free')}</span>}
                       {mandatory && <span className="effect-chip-free"> {t('обязательно', 'mandatory')}</span>}
                       {/* Рейтинг по Знанию — числом на чипе, а не отсылкой «равен рангу Знания». */}
                       {ratingLabel(a) && (
