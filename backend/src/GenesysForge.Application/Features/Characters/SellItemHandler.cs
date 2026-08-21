@@ -75,11 +75,7 @@ public class SellItemHandler(IAppDbContext db) : ICommandHandler<SellItemCommand
         }
         var proceeds = TradeRules.FinalProceeds(bookSubtotal, req.ConditionMultiplier ?? 1.0);
 
-        // Во время создания выручка сначала восстанавливает бюджет: иначе цикл «купить → продать»
-        // превращал бы бюджет 500 в реальные деньги.
-        var refund = StartingWallet.Refund(proceeds, c.StartingPurchaseBudget, c.StartingEquipmentMode, c.IsCreationPhase);
-        c.StartingPurchaseBudget += refund.FromBudget;
-        c.Money += refund.FromMoney;
+        c.Money += proceeds;
         var itemName = item.ItemDef?.Name ?? "предмет";
 
         if (req.Quantity == item.Quantity)
@@ -100,7 +96,7 @@ public class SellItemHandler(IAppDbContext db) : ICommandHandler<SellItemCommand
             new
             {
                 item = itemName, quantity = req.Quantity, proceeds,
-                toBudget = refund.FromBudget, toMoney = refund.FromMoney,
+                toMoney = proceeds,
                 // История хранит всё, из чего сложилась сумма: цену, долю, промежуточный итог и поправку.
                 listedUnitPrice, netSuccesses = req.NetSuccesses, percent, bookSubtotal,
                 catalogUnitPrice = item.ItemDef?.Price ?? 0, craftsmanship = item.Craftsmanship.ToString(),

@@ -12,7 +12,7 @@ public class RotEconomyApiTests(ApiFactory factory) : IClassFixture<ApiFactory>
     private static async Task<CharacterSheetDto> SheetAsync(HttpClient client, Guid id) =>
         (await client.GetFromJsonAsync<CharacterSheetDto>($"/api/characters/{id}", Json.Options))!;
 
-    /// <summary>Завершённый персонаж Core: стартовый бюджет уже не действует, тратится кошелёк.</summary>
+    /// <summary>Завершённый персонаж Core тратит обычный кошелёк.</summary>
     private async Task<(HttpClient Client, Guid Id, ItemDefDto Item)> CreateBuyerAsync()
     {
         var client = await factory.CreateAuthorizedClientAsync();
@@ -25,8 +25,7 @@ public class RotEconomyApiTests(ApiFactory factory) : IClassFixture<ApiFactory>
         var id = (await resp.Content.ReadFromJsonAsync<Dictionary<string, Guid>>(Json.Options))!["id"];
         await client.PostAsync($"/api/characters/{id}/complete-creation", null);
 
-        // Стартовые карманные деньги — бросок 1d100 (ROT-CRE-03), поэтому для проверок расчёта
-        // кошелёк выставляется явно: иначе тест зависел бы от случайного броска.
+        // Кошелёк выставляется явно, чтобы тест не зависел от стартового режима.
         await client.PatchAsJsonAsync($"/api/characters/{id}",
             new UpdateCharacterRequest(null, null, null, null, Money: 1000), Json.Options);
 

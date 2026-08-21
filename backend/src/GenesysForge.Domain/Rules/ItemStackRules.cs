@@ -24,7 +24,7 @@ public static class ItemStackRules
     /// <param name="state">Состояние, в котором добавляют предмет.</param>
     /// <param name="craftsmanship">Качество изготовления нового экземпляра.</param>
     /// <param name="material">Материал магического инструмента.</param>
-    /// <param name="provenance">Происхождение: выдача, покупка или стартовый бюджет.</param>
+    /// <param name="provenance">Происхождение: выдача, покупка или импорт.</param>
     /// <param name="hasInstalledAttachments">На строке стоят улучшения.</param>
     public static bool CanStack(
         CharacterItem existing,

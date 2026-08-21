@@ -63,7 +63,7 @@ const sword = (over: Partial<SheetItem> = {}): SheetItem => ({
 } as unknown as SheetItem)
 
 const sheetWith = (item: SheetItem, money = 10000) => ({
-  id: 'char-1', money, startingPurchaseBudget: 0, isCreationPhase: false, items: [item],
+  id: 'char-1', money, isCreationPhase: false, items: [item],
   skills: [{
     id: 'skill-melee', name: 'Melee', nameRu: 'Ближний бой', kind: 'combat',
     characteristic: 'brawn', ranks: 2, isCareer: true, pool: { ability: 1, proficiency: 2 },

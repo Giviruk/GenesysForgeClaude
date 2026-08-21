@@ -20,7 +20,7 @@ public record ItemStatAdjustmentDto(
 /// Стоимость материалов, которую спишет кнопка ремонта. <c>null</c> — у записи нет обычной цены,
 /// и сумму называет ведущий.
 /// </param>
-/// <param name="Affordable">Денег хватает: бюджет создания плюс кошелёк.</param>
+/// <param name="Affordable">Денег в обычном кошельке хватает на ремонт.</param>
 public record ItemRepairDto(
     ItemDamageState State,
     bool CanRepair,

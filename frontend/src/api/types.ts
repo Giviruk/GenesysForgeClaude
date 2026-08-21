@@ -682,7 +682,7 @@ export type StartingEquipmentMode = 'standardMoney' | 'careerPackage'
 
 /** Откуда позиция инвентаря появилась у персонажа (ROT-CRE-03). */
 export type ItemProvenance =
-  | 'purchased' | 'careerPackage' | 'startingBudget' | 'imported'
+  | 'purchased' | 'careerPackage' | 'imported'
   /** Изготовлено персонажем (ROT-CRAFT-01) — метка «создано персонажем» на карточке. */
   | 'crafted'
   /** Сделано грубо, Выживанием: ведущий может сломать вещь на отчаянии проверки с ней. */
@@ -1034,7 +1034,7 @@ export interface ItemRepair {
   materialCost: number | null
   /** Навык ремонта по умолчанию (английское имя). */
   skillName: string
-  /** Денег хватает: бюджет создания плюс кошелёк. */
+  /** Денег в обычном кошельке хватает. */
   affordable: boolean
 }
 
@@ -1740,11 +1740,6 @@ export interface CharacterSheet {
   // Критические ранения (U-23)
   criticalInjuries: CriticalInjury[]
   portraitUrl: string | null
-  /**
-   * Остаток бюджета стартовых покупок: в фазе создания он тратится раньше кошелька
-   * (ROT-CRE-03). Вне фазы создания смысла не имеет.
-   */
-  startingPurchaseBudget: number
   /** Откуда персонаж берёт рейтинг эффектов заклинания (ROT-MAG-10). */
   knowledgeRating: KnowledgeRating | null
   /** Скакуны персонажа (ROT-MOUNT-ITEM-01): в переносимый вес не входят. */

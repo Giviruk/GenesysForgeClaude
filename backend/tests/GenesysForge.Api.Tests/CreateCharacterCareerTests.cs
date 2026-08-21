@@ -7,7 +7,7 @@ namespace GenesysForge.Api.Tests;
 
 /// <summary>
 /// U-13 + ROT-CRE-03: взаимоисключающие режимы стартового снаряжения. В режиме стандартных денег
-/// комплект не выдаётся; в режиме комплекта он выдаётся целиком и бюджета 500 нет.
+/// комплект не выдаётся; в режиме комплекта он выдаётся целиком.
 /// </summary>
 public class CreateCharacterCareerTests(ApiFactory factory) : IClassFixture<ApiFactory>
 {
@@ -36,7 +36,7 @@ public class CreateCharacterCareerTests(ApiFactory factory) : IClassFixture<ApiF
     }
 
     [Fact]
-    public async Task StandardMoney_IsDefault_GivesBudgetAndPocketMoney_ButNoPackage()
+    public async Task StandardMoney_IsDefault_Gives500Wallet_ButNoPackage()
     {
         var (client, reference) = await SetupAsync();
         var warrior = reference.Careers.First(c => c.Name == "Warrior");
@@ -47,8 +47,7 @@ public class CreateCharacterCareerTests(ApiFactory factory) : IClassFixture<ApiF
 
         var sheet = await SheetAsync(client, id);
         Assert.Equal(StartingEquipmentMode.StandardMoney, sheet.StartingEquipmentMode);
-        Assert.Equal(500, sheet.StartingPurchaseBudget);
-        Assert.InRange(sheet.Money, 1, 100); // карманные 1d100, а не 500 и не 500+1d100
+        Assert.Equal(500, sheet.Money);
         Assert.Empty(sheet.Items!);
     }
 
@@ -80,7 +79,6 @@ public class CreateCharacterCareerTests(ApiFactory factory) : IClassFixture<ApiF
 
         var sheet = await SheetAsync(client, id);
         Assert.Equal(StartingEquipmentMode.CareerPackage, sheet.StartingEquipmentMode);
-        Assert.Equal(0, sheet.StartingPurchaseBudget); // бюджета 500 в этом режиме нет
         Assert.InRange(sheet.Money, 1, 100);           // 1d100 по формуле карьеры
 
         // Комплект Warrior: кожаная броня, 2 целебных эликсира, Traveling Gear и выбранный набор оружия.
@@ -229,9 +227,9 @@ public class CreateCharacterCareerTests(ApiFactory factory) : IClassFixture<ApiF
         Assert.DoesNotContain(reference.Items, i => i.Name == "Adventuring Pack");
     }
 
-    /// <summary>Бюджет создания тратится раньше кошелька и не смешивается с карманными деньгами.</summary>
+    /// <summary>Покупки и продажи используют единый кошелёк персонажа.</summary>
     [Fact]
-    public async Task StartingBudget_IsSpentBeforeWallet_AndRestoredOnSale()
+    public async Task StandardMoney_IsSpentFromWallet_AndSaleReturnsToWallet()
     {
         var (client, reference) = await SetupAsync();
         var career = reference.Careers.First(c => c.Name == "Warrior");
@@ -246,18 +244,16 @@ public class CreateCharacterCareerTests(ApiFactory factory) : IClassFixture<ApiF
         Assert.Equal(HttpStatusCode.Created, add.StatusCode);
 
         var afterBuy = await SheetAsync(client, id);
-        Assert.Equal(before.StartingPurchaseBudget - item.Price, afterBuy.StartingPurchaseBudget);
-        Assert.Equal(before.Money, afterBuy.Money); // кошелёк не тронут
+        Assert.Equal(before.Money - item.Price, afterBuy.Money);
 
         var bought = afterBuy.Items!.Single(i => i.ItemDefId == item.Id);
         var sell = await client.PostAsJsonAsync($"/api/characters/{id}/items/{bought.Id}/sell",
             new SellItemRequest(1, NetSuccesses: 3), Json.Options);
         sell.EnsureSuccessStatusCode();
 
-        // Три успеха дают 75 % от цены (ROT-ECO-01), и вся выручка идёт в бюджет, а не в кошелёк.
+        // Три успеха дают 75 % от цены (ROT-ECO-01), и вся выручка идёт в кошелёк.
         var proceeds = item.Price * 75 / 100;
         var afterSell = await SheetAsync(client, id);
-        Assert.Equal(afterBuy.StartingPurchaseBudget + proceeds, afterSell.StartingPurchaseBudget);
-        Assert.Equal(before.Money, afterSell.Money);
+        Assert.Equal(afterBuy.Money + proceeds, afterSell.Money);
     }
 }

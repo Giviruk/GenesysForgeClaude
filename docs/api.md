@@ -274,9 +274,10 @@ Protected. Ends creation phase. Response: `204`.
 ### `GET /api/characters/{id}/export`
 
 Protected (owner only). Returns the character as a portable JSON document
-(`CharacterExportDto`, current format `genesysforge.character.v7` — v7 adds the signature weapon's
+(`CharacterExportDto`, current format `genesysforge.character.v8` — v8 removes the obsolete starting
+purchase-budget field; v7 added the signature weapon's
 Improved choice and its free Supreme attachment, ROT-HA-05; v6 added the base attachment by code;
-v5 added per-item transport cargo and traction; v4 added mounts; v1–v6 are still accepted on import).
+v5 added per-item transport cargo and traction; v4 added mounts; v1–v7 are still accepted on import).
 Cargo and
 traction reference transport by its index in the `mounts` list, never by id. References to reference content use the
 stable `Code` + `Name` instead of internal ids; `OwnerUserId` and database ids are not included.

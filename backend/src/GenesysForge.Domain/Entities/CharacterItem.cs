@@ -8,7 +8,7 @@ public class CharacterItem
     public ItemDef? ItemDef { get; set; }
     public int Quantity { get; set; } = 1;
     public ItemState State { get; set; } = ItemState.Carried;
-    /// <summary>Откуда позиция появилась: покупка, карьерный комплект, стартовый бюджет или импорт.</summary>
+    /// <summary>Откуда позиция появилась: покупка, карьерный комплект или импорт.</summary>
     public ItemProvenance Provenance { get; set; } = ItemProvenance.Purchased;
 
     /// <summary>

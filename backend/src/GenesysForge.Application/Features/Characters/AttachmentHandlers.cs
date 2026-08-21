@@ -37,12 +37,11 @@ public class BuyAttachmentHandler(IAppDbContext db) : ICommandHandler<BuyAttachm
         var unitPrice = req.PriceOverride ?? def.Price ?? 0;
         var total = req.Free ? 0 : unitPrice;
 
-        var charge = StartingWallet.Charge(total, c.StartingPurchaseBudget, c.Money, c.IsCreationPhase)
+        var charge = MoneyRules.Charge(total, c.Money)
             ?? throw new DomainRuleException(
-                $"Недостаточно средств: нужно {total}, доступно {c.StartingPurchaseBudget + c.Money}.",
+                $"Недостаточно средств: нужно {total}, доступно {c.Money} монет.",
                 "character.funds.insufficient");
-        c.StartingPurchaseBudget -= charge.FromBudget;
-        c.Money -= charge.FromMoney;
+        c.Money -= charge;
 
         var attachment = new CharacterAttachment
         {
@@ -50,20 +49,17 @@ public class BuyAttachmentHandler(IAppDbContext db) : ICommandHandler<BuyAttachm
             CharacterId = c.Id,
             AttachmentDefId = def.Id,
             AttachmentDef = def,
-            Provenance = req.Free
-                ? ItemProvenance.Imported
-                : charge.FromBudget > 0 ? ItemProvenance.StartingBudget : ItemProvenance.Purchased,
+            Provenance = req.Free ? ItemProvenance.Imported : ItemProvenance.Purchased,
         };
         db.CharacterAttachments.Add(attachment);
         c.Attachments.Add(attachment);
 
-        var costNote = charge.Total > 0 ? $", −{charge.Total}" : "";
+        var costNote = charge > 0 ? $", −{charge} монет" : "";
         CharacterAudit.Record(db, c, command.UserId, CharacterAuditAction.AttachmentBought,
             $"Куплено улучшение «{def.Name}»{costNote}", null,
             new
             {
-                attachment = def.Name, code = def.Code, cost = charge.Total,
-                fromBudget = charge.FromBudget, fromMoney = charge.FromMoney,
+                attachment = def.Name, code = def.Code, cost = charge,
                 listedPrice = def.Price, unitPrice, priceOverride = req.PriceOverride,
                 overrideReason = req.OverrideReason, free = req.Free,
             });

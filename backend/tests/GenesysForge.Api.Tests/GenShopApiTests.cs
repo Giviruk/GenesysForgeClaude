@@ -38,8 +38,8 @@ public class GenShopApiTests(ApiFactory factory) : IClassFixture<ApiFactory>
         Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
         var after = await SheetAsync(client, id);
         Assert.Equal(
-            before.Money + before.StartingPurchaseBudget - service.Price * 2,
-            after.Money + after.StartingPurchaseBudget);
+            before.Money - service.Price * 2,
+            after.Money);
         Assert.Equal(before.Items!.Count, after.Items!.Count);
     }
 

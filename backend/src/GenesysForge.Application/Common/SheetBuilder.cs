@@ -38,8 +38,8 @@ public static class SheetBuilder
     {
         var ch = c.Characteristics;
         // Чем персонаж может заплатить за материалы ремонта (GEN-EQP-DMG-01): в фазе создания
-        // сначала тратится бюджет стартовых покупок, поэтому он входит в доступную сумму.
-        var availableFunds = c.Money + (c.IsCreationPhase ? c.StartingPurchaseBudget : 0);
+        // Ремонт оплачивается из обычного кошелька персонажа.
+        var availableFunds = c.Money;
 
         // Качества альтернативных профилей хранятся кодами (ROT-WPN-01) — справочник резолвится
         // один раз и только там, где рисуются карточки предметов.
@@ -208,7 +208,6 @@ public static class SheetBuilder
                 .ToList(),
             c.PortraitUrl,
             c.StartingEquipmentMode,
-            c.StartingPurchaseBudget,
             c.ThresholdSnapshotProvenance,
             c.RulesReviewRequired,
             c.SpeciesAbilityChoiceCode,

@@ -243,7 +243,7 @@ describe('CreateCharacterForm — стартовое снаряжение кар
     await waitFor(() => expect(screen.getByRole('option', { name: 'Воин' })).toBeTruthy())
     pickWarrior()
 
-    expect(screen.getByText(/Бюджет 500 серебра/)).toBeTruthy()
+    expect(screen.getByText(/Стандартные деньги: 500 монет/)).toBeTruthy()
     expect(screen.queryByRole('button', { name: 'алебарда' })).toBeNull() // слоты комплекта скрыты
     expect(screen.getByText(/Замена Melee/)).toBeTruthy()
 
@@ -264,7 +264,7 @@ describe('CreateCharacterForm — стартовое снаряжение кар
 
     fireEvent.click(screen.getByRole('button', { name: /Карьерный комплект/ }))
 
-    expect(screen.getByText(/1d100 серебра/)).toBeTruthy()
+    expect(screen.getByText(/1d100 монет/)).toBeTruthy()
     expect(screen.getByText(/Всегда входит: кожаная броня/)).toBeTruthy()
 
     // вариант снаряжения не выбран → «Создать» заблокирована
@@ -292,7 +292,7 @@ describe('CreateCharacterForm — стартовое снаряжение кар
     fireEvent.change(careerSelect, { target: { value: 'career-soldier' } })
     fireEvent.change(careerSelect, { target: { value: 'career-warrior' } })
 
-    expect(screen.getByText(/Бюджет 500 серебра/)).toBeTruthy()      // режим сброшен
+    expect(screen.getByText(/Стандартные деньги: 500 монет/)).toBeTruthy()      // режим сброшен
     expect(screen.queryByRole('button', { name: 'алебарда' })).toBeNull()
   })
 

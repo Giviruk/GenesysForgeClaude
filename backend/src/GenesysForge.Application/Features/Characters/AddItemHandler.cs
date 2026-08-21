@@ -84,18 +84,14 @@ public class AddItemHandler(IAppDbContext db) : ICommandHandler<AddItemCommand, 
                 ? TradeRules.PurchaseTotal(unitPrice, req.Quantity)
                 : TradeRules.PurchaseTotal(listedUnitPrice, req.Quantity, percent);
 
-        // Покупка: сначала бюджет стартовых покупок (только в фазе создания), затем кошелёк.
-        var charge = StartingWallet.Charge(total, c.StartingPurchaseBudget, c.Money, c.IsCreationPhase)
+        // Любая платная позиция списывается из обычного кошелька.
+        var charge = MoneyRules.Charge(total, c.Money)
             ?? throw new DomainRuleException(
-                $"Недостаточно средств: нужно {total}, доступно {c.StartingPurchaseBudget + c.Money} "
-                + $"(бюджет создания {c.StartingPurchaseBudget}, монеты {c.Money}).",
+                $"Недостаточно средств: нужно {total}, доступно {c.Money} монет.",
                 "character.funds.insufficient");
-        c.StartingPurchaseBudget -= charge.FromBudget;
-        c.Money -= charge.FromMoney;
+        c.Money -= charge;
 
-        var provenance = req.Free
-            ? ItemProvenance.Imported
-            : charge.FromBudget > 0 ? ItemProvenance.StartingBudget : ItemProvenance.Purchased;
+        var provenance = req.Free ? ItemProvenance.Imported : ItemProvenance.Purchased;
 
         // Одинаковое кладётся в ту же строку и увеличивает счётчик: две записи «Верёвка ×1» —
         // это не два разных мотка, а сломанный список. Раздельными остаются только экземпляры,
@@ -129,16 +125,15 @@ public class AddItemHandler(IAppDbContext db) : ICommandHandler<AddItemCommand, 
         if (item.State == ItemState.Equipped && itemDef.Kind == ItemKind.Armor)
             c.ActiveArmorCharacterItemId = item.Id;
 
-        var costNote = charge.Total > 0
-            ? $", −{charge.Total}" + (charge.FromBudget > 0 ? $" (бюджет {charge.FromBudget}, монеты {charge.FromMoney})" : " монет")
+        var costNote = charge > 0
+            ? $", −{charge} монет"
             : "";
         var qtyNote = req.Quantity > 1 ? $" ×{req.Quantity}" : "";
         CharacterAudit.Record(db, c, command.UserId, CharacterAuditAction.ItemBought,
             $"Добавлен предмет «{itemDef.Name}»{qtyNote}{costNote}", null,
             new
             {
-                item = itemDef.Name, quantity = req.Quantity, cost = charge.Total,
-                fromBudget = charge.FromBudget, fromMoney = charge.FromMoney,
+                item = itemDef.Name, quantity = req.Quantity, cost = charge,
                 catalogUnitPrice = itemDef.Price, listedUnitPrice, unitPrice,
                 priceOverride = req.PriceOverride, overrideReason = req.OverrideReason,
                 free = req.Free, craftsmanship = craftsmanship.ToString(),

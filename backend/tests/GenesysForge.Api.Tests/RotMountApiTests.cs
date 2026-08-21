@@ -36,7 +36,7 @@ public class RotMountApiTests(ApiFactory factory) : IClassFixture<ApiFactory>
     private static MountDefDto Vehicle(ReferenceResponse reference, string bareCode) =>
         reference.Mounts!.Single(m => m.Code == $"rot.vehicle.{bareCode}");
 
-    private static int Funds(CharacterSheetDto sheet) => sheet.Money + sheet.StartingPurchaseBudget;
+    private static int Funds(CharacterSheetDto sheet) => sheet.Money;
 
     /// <summary>Кладёт предмет каталога в инвентарь и возвращает id позиции.</summary>
     private static async Task<Guid> AddItemAsync(

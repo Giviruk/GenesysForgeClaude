@@ -292,16 +292,13 @@ Both choices are fixed at purchase, and while an upgrade is bought but unchosen 
 reports `SignatureWeaponUpgradeIncomplete` and cannot buy further heroic upgrades.
 
 Starting equipment (ROT-CRE-03): `StartingEquipmentMode` (`StandardMoney` / `CareerPackage`) records
-the mutually exclusive mode chosen at creation, and `StartingPurchaseBudget` holds what is left of it.
-The modes never mix. `StandardMoney` gives a 500-silver purchase budget plus separate `1d100` pocket
-money in `Money`; the budget and the pocket money are deliberately two accounts, so 500 and the roll
-are never summed into one balance. `CareerPackage` gives the whole career package and the career's own
-money formula instead, with no budget. During the creation phase a purchase draws on the budget first
-and the wallet second, and a sale restores the budget before the wallet — otherwise buy-then-sell
-would launder the budget into spendable cash. The money roll goes through the injected `IDiceRoller`,
-and both the formula and the rolled result are written to the audit log as `CharacterCreated`.
+the mutually exclusive mode chosen at creation. `StandardMoney` gives 500 coins directly in `Money`,
+while `CareerPackage` gives the whole career package and the career's own money formula. All purchases
+and sales use the same wallet; there is no separate starting-purchase budget. The money roll for a
+career package goes through the injected `IDiceRoller`, and both the formula and rolled result are
+written to the audit log as `CharacterCreated`.
 
-`CharacterItems.Provenance` (`Purchased`, `CareerPackage`, `StartingBudget`, `Imported`) keeps
+`CharacterItems.Provenance` (`Purchased`, `CareerPackage`, `Imported`) keeps
 duplicate, audit and legacy repair from treating granted starting gear as an ordinary purchase.
 
 Relationships:
@@ -621,13 +618,15 @@ Found migrations:
   backfill can lower a displayed threshold for a character who raised Brawn/Willpower after
   creation — that is the rule being fixed, not a regression.
 - `20260726163445_RotStartingEquipmentModes` — ROT-CRE-03/04 and ROT-CLEAN-3.7. Adds
-  `Characters.StartingEquipmentMode` / `StartingPurchaseBudget`, `CharacterItems.Provenance`, and a
+  `Characters.StartingEquipmentMode`, `CharacterItems.Provenance`, and a
   `Retired` flag to every remaining content table (`SkillDefs`, `TalentDefs`, `ItemDefs`,
   `CareerDefs`, `HeroicAbilityDefs`, `HeroicSecondaryEffectDefs`, `QualityDefs`; `ArchetypeDefs`
   already had one). Non-destructive (only `AddColumn`) and deliberately without a data backfill:
   existing characters already received money under the old rule, so granting them a 500 budget
   retroactively would invent funds, and starting gear cannot be told apart from purchases in
   historical inventories — ROT-CRE-04 explicitly forbids rewriting them.
+- `20260821170811_RemoveStartingPurchaseBudget` — removes the obsolete
+  `Characters.StartingPurchaseBudget` column now that all money uses one wallet.
 - `20260726172948_RotSpeciesAbilityRules` — ROT-SPECIES-01. Adds `ArchetypeDefs.Silhouette`,
   typed rule metadata on `ArchetypeAbilityDefs` (`RuleKind`, `RuleValue`, `RuleParameters`,
   `UsesPerScope`, `UseScope`, `StoryPointCost`), and `Characters.SpeciesAbilityChoiceCode`.

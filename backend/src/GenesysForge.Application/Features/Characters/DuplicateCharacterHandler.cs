@@ -40,7 +40,6 @@ public class DuplicateCharacterHandler(IAppDbContext db) : ICommandHandler<Dupli
             Money = src.Money,
             SpeciesAbilityChoiceCode = src.SpeciesAbilityChoiceCode,
             StartingEquipmentMode = src.StartingEquipmentMode,
-            StartingPurchaseBudget = src.StartingPurchaseBudget,
             HeroicAbilityId = src.HeroicAbilityId,
             HeroicUpgradeRank = src.HeroicUpgradeRank,
             HeroicDurationRanks = src.HeroicDurationRanks,

@@ -67,8 +67,6 @@ public static class CharacterImporter
             Money = Math.Max(0, data.Money),
             SpeciesAbilityChoiceCode = data.SpeciesAbilityChoiceCode ?? "",
             StartingEquipmentMode = data.StartingEquipmentMode,
-            // Бюджет создания переносится только пока персонаж не завершил создание.
-            StartingPurchaseBudget = data.IsCreationPhase ? Math.Max(0, data.StartingPurchaseBudget) : 0,
             HeroicUpgradeRank = 0,
         };
 
@@ -180,9 +178,9 @@ public static class CharacterImporter
                     ? it.ShardEffectChoice ?? ""
                     : "",
                 ShardConfigured = validShardConfiguration,
-                // Комплект и стартовый бюджет сохраняются как провенанс; всё остальное — Imported,
+                // Комплект сохраняется как провенанс; всё остальное — Imported,
                 // чтобы импорт не выглядел покупкой в истории нового персонажа.
-                Provenance = it.Provenance is ItemProvenance.CareerPackage or ItemProvenance.StartingBudget
+                Provenance = it.Provenance is ItemProvenance.CareerPackage
                     ? it.Provenance
                     : ItemProvenance.Imported,
             };

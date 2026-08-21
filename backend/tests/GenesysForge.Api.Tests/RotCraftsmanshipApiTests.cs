@@ -195,8 +195,7 @@ public class RotCraftsmanshipApiTests(ApiFactory factory) : IClassFixture<ApiFac
         Assert.Equal(HttpStatusCode.Created, resp.StatusCode);
 
         var after = await SheetAsync(client, id);
-        var spent = (before.Money + before.StartingPurchaseBudget)
-            - (after.Money + after.StartingPurchaseBudget);
+        var spent = before.Money - after.Money;
         Assert.Equal(sword.Price / 2, spent);
     }
 
@@ -217,8 +216,7 @@ public class RotCraftsmanshipApiTests(ApiFactory factory) : IClassFixture<ApiFac
         Assert.Equal(HttpStatusCode.Created, resp.StatusCode);
 
         var after = await SheetAsync(client, id);
-        var spent = (before.Money + before.StartingPurchaseBudget)
-            - (after.Money + after.StartingPurchaseBudget);
+        var spent = before.Money - after.Money;
         // Доля берётся от цены экземпляра (гномья работа — вдвое дороже) и округляется вниз.
         Assert.Equal((int)Math.Floor(dagger.Price!.Value * 2 * (percent / 100.0)), spent);
     }
@@ -267,8 +265,7 @@ public class RotCraftsmanshipApiTests(ApiFactory factory) : IClassFixture<ApiFac
         Assert.Equal(HttpStatusCode.Created, resp.StatusCode);
 
         var after = await SheetAsync(client, id);
-        var spent = (before.Money + before.StartingPurchaseBudget)
-            - (after.Money + after.StartingPurchaseBudget);
+        var spent = before.Money - after.Money;
         Assert.Equal(20, spent);
     }
 
@@ -285,8 +282,7 @@ public class RotCraftsmanshipApiTests(ApiFactory factory) : IClassFixture<ApiFac
         Assert.Equal(HttpStatusCode.NoContent, resp.StatusCode);
 
         var after = await SheetAsync(client, id);
-        var gained = (after.Money + after.StartingPurchaseBudget)
-            - (before.Money + before.StartingPurchaseBudget);
+        var gained = after.Money - before.Money;
         Assert.Equal(sword.Price * 2, gained);
     }
 

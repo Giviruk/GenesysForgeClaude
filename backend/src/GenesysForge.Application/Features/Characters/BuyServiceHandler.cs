@@ -38,18 +38,16 @@ public class BuyServiceHandler(IAppDbContext db) : ICommandHandler<BuyServiceCom
                 "У услуги нет обычной цены.", "service.not_purchasable");
 
         var total = req.Free ? 0 : TradeRules.PurchaseTotal(service.Price!.Value, req.Quantity);
-        var charge = StartingWallet.Charge(
-                total, character.StartingPurchaseBudget, character.Money, character.IsCreationPhase)
+        var charge = MoneyRules.Charge(total, character.Money)
             ?? throw new DomainRuleException(
                 $"Недостаточно средств: нужно {total}, доступно "
-                + $"{character.StartingPurchaseBudget + character.Money}.",
+                + $"{character.Money} монет.",
                 "character.funds.insufficient");
 
-        character.StartingPurchaseBudget -= charge.FromBudget;
-        character.Money -= charge.FromMoney;
+        character.Money -= charge;
 
         var quantityNote = req.Quantity > 1 ? $" ×{req.Quantity}" : "";
-        var costNote = charge.Total > 0 ? $", −{charge.Total}" : ", без оплаты";
+        var costNote = charge > 0 ? $", −{charge} монет" : ", без оплаты";
         CharacterAudit.Record(db, character, command.UserId, CharacterAuditAction.ServiceBought,
             $"Получена услуга «{service.Name}»{quantityNote}{costNote}", null,
             new
@@ -58,9 +56,7 @@ public class BuyServiceHandler(IAppDbContext db) : ICommandHandler<BuyServiceCom
                 code = service.Code,
                 quantity = req.Quantity,
                 unitPrice = service.Price,
-                cost = charge.Total,
-                fromBudget = charge.FromBudget,
-                fromMoney = charge.FromMoney,
+                cost = charge,
                 free = req.Free,
             });
 

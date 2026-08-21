@@ -57,12 +57,11 @@ public class BuyMountHandler(IAppDbContext db) : ICommandHandler<BuyMountCommand
                 ? TradeRules.PurchaseTotal(overridePrice, 1)
                 : TradeRules.PurchaseTotal(listedPrice, 1, percent);
 
-        var charge = StartingWallet.Charge(total, c.StartingPurchaseBudget, c.Money, c.IsCreationPhase)
+        var charge = MoneyRules.Charge(total, c.Money)
             ?? throw new DomainRuleException(
-                $"Недостаточно средств: нужно {total}, доступно {c.StartingPurchaseBudget + c.Money}.",
+                $"Недостаточно средств: нужно {total}, доступно {c.Money} монет.",
                 "character.funds.insufficient");
-        c.StartingPurchaseBudget -= charge.FromBudget;
-        c.Money -= charge.FromMoney;
+        c.Money -= charge;
 
         var mount = new CharacterMount
         {
@@ -71,23 +70,19 @@ public class BuyMountHandler(IAppDbContext db) : ICommandHandler<BuyMountCommand
             MountDefId = def.Id,
             MountDef = def,
             Name = (req.Name ?? "").Trim(),
-            Provenance = req.Free
-                ? ItemProvenance.Imported
-                : charge.FromBudget > 0 ? ItemProvenance.StartingBudget : ItemProvenance.Purchased,
+            Provenance = req.Free ? ItemProvenance.Imported : ItemProvenance.Purchased,
         };
         db.CharacterMounts.Add(mount);
         c.Mounts.Add(mount);
 
-        var costNote = charge.Total > 0
-            ? $", −{charge.Total}"
-              + (charge.FromBudget > 0 ? $" (бюджет {charge.FromBudget}, монеты {charge.FromMoney})" : " монет")
+        var costNote = charge > 0
+            ? $", −{charge} монет"
             : ", без оплаты";
         CharacterAudit.Record(db, c, command.UserId, CharacterAuditAction.MountBought,
             $"Приобретён скакун «{def.Name}»{costNote}", null,
             new
             {
-                mount = def.Name, code = def.Code, cost = charge.Total,
-                fromBudget = charge.FromBudget, fromMoney = charge.FromMoney,
+                mount = def.Name, code = def.Code, cost = charge,
                 catalogPrice = def.Price, unitPrice = req.PriceOverride ?? listedPrice,
                 priceOverride = req.PriceOverride, overrideReason = req.OverrideReason,
                 free = req.Free, percent,
@@ -171,10 +166,7 @@ public class SellMountHandler(IAppDbContext db) : ICommandHandler<SellMountComma
         }
 
         var proceeds = TradeRules.FinalProceeds(bookSubtotal, req.ConditionMultiplier ?? 1.0);
-        var refund = StartingWallet.Refund(
-            proceeds, c.StartingPurchaseBudget, c.StartingEquipmentMode, c.IsCreationPhase);
-        c.StartingPurchaseBudget += refund.FromBudget;
-        c.Money += refund.FromMoney;
+        c.Money += proceeds;
 
         var displayName = string.IsNullOrWhiteSpace(mount.Name) ? def.Name : mount.Name;
         c.Mounts.Remove(mount);
@@ -185,7 +177,7 @@ public class SellMountHandler(IAppDbContext db) : ICommandHandler<SellMountComma
             new
             {
                 mount = def.Name, code = def.Code, name = mount.Name, proceeds,
-                toBudget = refund.FromBudget, toMoney = refund.FromMoney,
+                toMoney = proceeds,
                 listedPrice, netSuccesses = req.NetSuccesses, percent, bookSubtotal,
                 mode = req.PriceOverride is not null ? "override"
                     : req.NetSuccesses is not null ? "check" : "direct",

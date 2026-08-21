@@ -61,10 +61,9 @@ public class GenDamageStateApiTests(ApiFactory factory) : IClassFixture<ApiFacto
             new UpdateCharacterRequest(null, null, null, null, money), Json.Options);
 
     /// <summary>
-    /// Чем персонаж может заплатить: в фазе создания сначала тратится бюджет стартовых покупок,
-    /// поэтому проверять надо общую сумму, а не один кошелёк.
+    /// Чем персонаж может заплатить: из обычного кошелька.
     /// </summary>
-    private static int Funds(CharacterSheetDto sheet) => sheet.Money + sheet.StartingPurchaseBudget;
+    private static int Funds(CharacterSheetDto sheet) => sheet.Money;
 
     private static ItemDefDto Item(ReferenceResponse reference, string name, ItemKind kind) =>
         reference.Items.Single(i => i.Name == name && i.Kind == kind);

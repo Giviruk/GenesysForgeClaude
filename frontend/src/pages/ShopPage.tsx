@@ -315,7 +315,7 @@ function ProductModal({ product, characters, onClose }: {
   const units = attachment || mount ? 1 : quantity
   const total = effectivePrice == null ? null : effectivePrice * units
   const funds = sheet
-    ? sheet.money + (sheet.isCreationPhase ? sheet.startingPurchaseBudget : 0)
+    ? sheet.money
     : 0
   const canBuy = !!characterId && !busy && effectivePrice != null
     && total != null && total <= funds && (item?.purchasable ?? true)

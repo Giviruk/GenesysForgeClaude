@@ -215,11 +215,10 @@ ROT-TAL-05, ROT-HA-08/10, ROT-MAG-05/07/08 и ROT-EQP-AMMO-01 — всем, чт
 
 ### ROT-CRE-03 / ROT-CRE-04 / ROT-CLEAN-3.7 — стартовое снаряжение
 
-- `StartingEquipmentMode` (`StandardMoney` | `CareerPackage`), `Character.StartingPurchaseBudget`,
-  `CharacterItem.Provenance`. Отсутствие поля режима у старого клиента = `StandardMoney`.
-- Бюджет 500 и карманные 1d100 — **два разных счёта** (`StartingWallet`): покупка при создании
-  тратит бюджет первым, продажа возвращает в бюджет первым, иначе цикл «купить → продать» превращал
-  бы бюджет в реальные деньги.
+- `StartingEquipmentMode` (`StandardMoney` | `CareerPackage`) и `CharacterItem.Provenance`.
+  Отсутствие поля режима у старого клиента = `StandardMoney`.
+- `StandardMoney` выдаёт 500 монет в единый кошелёк; отдельный бюджет стартовых покупок и бросок
+  карманных денег удалены. `CareerPackage` сохраняет формулу денег и комплект.
 - `MoneyFormula` разбирает `200 + 1d100` и бросает через инъецированный `IDiceRoller`
   (`SystemDiceRoller` на криптостойком RNG); формула и фактический бросок пишутся в audit
   (`CharacterAuditAction.CharacterCreated`).
