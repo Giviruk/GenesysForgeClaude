@@ -253,6 +253,7 @@ export function InventoryTab({ sheet, reference, onError, refresh, updateBaseOpt
             {catalogue.length === 0 && <p className="muted">{t('Ничего не найдено.', 'Nothing found.')}</p>}
             {catalogue.map(it => (
               <ShopRow key={it.id} item={it} money={sheet.money} run={run} sheetId={sheet.id}
+                qualityDefinitions={reference.qualities}
                 open={buyOpen === it.id} onToggle={() => setBuyOpen(buyOpen === it.id ? null : it.id)} />
             ))}
           </div>
@@ -331,8 +332,9 @@ function MoneyPanel({ sheet, onError, updateBaseOptimistically, d }: {
   )
 }
 
-function ShopRow({ item, money, run, sheetId, open, onToggle }: {
-  item: ItemDef; money: number; run: Run; sheetId: string; open: boolean; onToggle: () => void
+function ShopRow({ item, money, run, sheetId, qualityDefinitions, open, onToggle }: {
+  item: ItemDef; money: number; run: Run; sheetId: string; qualityDefinitions: Reference['qualities']
+  open: boolean; onToggle: () => void
 }) {
   const itemLabel = localizedName(item)
   const itemOriginal = secondaryName(item)
@@ -375,7 +377,8 @@ function ShopRow({ item, money, run, sheetId, open, onToggle }: {
           </div>
           {itemDescription(item) &&
             <div className="muted small-text shop-desc">{itemDescription(item)}</div>}
-          {item.properties && <PropertyTags properties={item.properties} className="shop-props small-text" />}
+          {item.properties && <PropertyTags properties={item.properties} className="shop-props small-text"
+            qualityDefinitions={qualityDefinitions} />}
         </div>
         <div className="shop-row-actions">
           {/* Работа выбирается до любого из действий: и покупка, и бесплатная выдача берут её. */}
@@ -535,7 +538,7 @@ function InventoryCard({ item, sheet, skillNames, run, reference, funds, sellOpe
       )}
 
       {item.kind !== 'weapon' && item.properties && (
-        <PropertyTags properties={item.properties} className="small-text" />
+        <PropertyTags properties={item.properties} className="small-text" qualityDefinitions={reference.qualities} />
       )}
 
       {hasBonus && (
@@ -852,7 +855,8 @@ function WeaponLine({ item, sheet, skill, skillLabel, reference, run }: {
           {t(`навык ${profileSkillLabel} не освоен`, `skill ${profileSkillLabel} not trained`)}
         </span>
       ) : null}
-      {qualities && <PropertyTags properties={qualities} className="weapon-props" />}
+      {qualities && <PropertyTags properties={qualities} className="weapon-props"
+        qualityDefinitions={reference.qualities} />}
 
       {!item.isUsable ? (
         // Сломанным оружием не атакуют: кнопки броска нет вовсе, чтобы её нельзя было нажать

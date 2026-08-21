@@ -6,6 +6,7 @@ import {
   TRANSPORT_KIND_LABELS, mountGearLabel,
 } from '../utils/labels'
 import { BuyControl, SellControl } from './PriceControls'
+import { PropertyTags } from './PropertyTags'
 import { lang, t } from '../i18n'
 
 interface Props {
@@ -78,6 +79,7 @@ export function TransportTab({ sheet, reference, onError, refresh }: Props) {
               {sheet.mounts.map(mount => (
                 <MountCard key={mount.id} mount={mount} sheet={sheet} busy={busy} run={run}
                   qualityLabel={qualityLabel}
+                  qualityDefinitions={reference.qualities}
                   sellOpen={openSell === mount.id}
                   onToggleSell={() => setOpenSell(openSell === mount.id ? null : mount.id)} />
               ))}
@@ -105,7 +107,7 @@ export function TransportTab({ sheet, reference, onError, refresh }: Props) {
                     {` · ${t('редкость', 'rarity')} ${def.rarity}`}
                     {` · ${t('вместимость', 'capacity')} ${def.capacity}`}
                   </div>
-                  <MountStatline def={def} qualityLabel={qualityLabel} />
+                  <MountStatline def={def} qualityLabel={qualityLabel} qualityDefinitions={reference.qualities} />
                   {mountDescription(def) &&
                     <div className="muted small-text shop-desc">{mountDescription(def)}</div>}
                   <div className="muted small-text">{def.source}</div>
@@ -141,9 +143,10 @@ export function TransportTab({ sheet, reference, onError, refresh }: Props) {
 }
 
 /** Статблок профиля одной строкой: характеристики, пороги, защита, навыки, атака, способности. */
-function MountStatline({ def, qualityLabel }: {
+function MountStatline({ def, qualityLabel, qualityDefinitions }: {
   def: MountDef
   qualityLabel: (code: string) => string
+  qualityDefinitions: Reference['qualities']
 }) {
   const isVehicle = def.transportKind === 'vehicle'
   return (
@@ -180,7 +183,13 @@ function MountStatline({ def, qualityLabel }: {
           {t('Атака', 'Attack')}: {lang === 'ru' ? attack.nameRu || attack.name : attack.name}
           {` · ${attack.skillName} · ${t('урон', 'damage')} ${attack.damage} · `}
           {t('крит', 'crit')} {attack.critical}
-          {attack.qualityCodes.length > 0 && ` · ${attack.qualityCodes.map(qualityLabel).join(', ')}`}
+          {attack.qualityCodes.length > 0 && (
+            <>
+              {' · '}
+              <PropertyTags properties={attack.qualityCodes.map(qualityLabel).join(', ')}
+                qualityDefinitions={qualityDefinitions} />
+            </>
+          )}
         </div>
       ))}
       {def.abilities.map(ability => (
@@ -207,12 +216,13 @@ function MountStatline({ def, qualityLabel }: {
 }
 
 /** Карточка транспорта: состояние, тяга, груз, установленное снаряжение, продажа и удаление. */
-function MountCard({ mount, sheet, busy, run, qualityLabel, sellOpen, onToggleSell }: {
+function MountCard({ mount, sheet, busy, run, qualityLabel, qualityDefinitions, sellOpen, onToggleSell }: {
   mount: CharacterMount
   sheet: CharacterSheet
   busy: boolean
   run: (action: () => Promise<unknown>) => Promise<void>
   qualityLabel: (code: string) => string
+  qualityDefinitions: Reference['qualities']
   sellOpen: boolean
   onToggleSell: () => void
 }) {
@@ -312,7 +322,7 @@ function MountCard({ mount, sheet, busy, run, qualityLabel, sellOpen, onToggleSe
         </div>
       )}
 
-      <MountStatline def={def} qualityLabel={qualityLabel} />
+      <MountStatline def={def} qualityLabel={qualityLabel} qualityDefinitions={qualityDefinitions} />
 
       <CargoSection sheet={sheet} mount={mount} busy={busy} run={run}
         cargo={cargo} installed={installed} loadable={loadable} />

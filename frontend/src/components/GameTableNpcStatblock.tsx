@@ -10,6 +10,7 @@ import { npcAttackViews, npcSkillViews, skillIndex } from '../utils/npcStats'
 import { resolveQualityCosts } from '../utils/combat'
 import { effectiveParticipantCount, minionGroupState, participantNameWithCount, participantRollPool } from '../utils/gameTable'
 import { DicePoolView } from './DicePoolView'
+import { PropertyTags } from './PropertyTags'
 import type { RollLogRequest } from './DiceRoller'
 
 interface Props {
@@ -211,7 +212,12 @@ export function GameTableNpcStatblock({ participant, campaignId, isGm,
                         {attack.crit && <span className="weapon-stat">{t('Крит', 'Crit')} <strong>{attack.crit}</strong></span>}
                         {attack.rangeBand && <span className="weapon-stat">{attack.rangeBand}</span>}
                       </div>
-                      {attack.qualities.length > 0 && <div className="chips small-text">{attack.qualities.map((q, j) => <span className="chip" key={j}>{q.label}</span>)}</div>}
+                      {attack.qualities.length > 0 && (
+                        <PropertyTags
+                          properties={attack.qualities.map(q => q.label).join(', ')}
+                          className="small-text"
+                          qualityDefinitions={reference?.qualities ?? []} />
+                      )}
                       {attack.notes && <div className="muted small-text">{attack.notes}</div>}
                     </li>
                   ))}

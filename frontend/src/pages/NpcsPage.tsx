@@ -353,9 +353,10 @@ function NpcDetailView({ npcId, reloadToken, onEdit, onDuplicated, onDeleted }: 
                     {w.rangeBand && <span className="weapon-stat">{w.rangeBand}</span>}
                   </div>
                   {w.qualities.length > 0 && (
-                    <div className="chips weapon-props small-text">
-                      {w.qualities.map((q, j) => <span key={j} className="chip">{q.label}</span>)}
-                    </div>
+                    <PropertyTags
+                      properties={w.qualities.map(q => q.label).join(', ')}
+                      className="weapon-props small-text"
+                      qualityDefinitions={reference?.qualities ?? []} />
                   )}
                   {w.notes && <div className="muted small-text">{w.notes}</div>}
                 </li>
@@ -377,7 +378,7 @@ function NpcDetailView({ npcId, reloadToken, onEdit, onDuplicated, onDeleted }: 
           <div className="npc-section">
             <h4>{t('Снаряжение', 'Gear')}</h4>
             <ul className="npc-gear-list">
-              {gear.map((g, i) => <NpcGearRow key={i} gear={g} />)}
+              {gear.map((g, i) => <NpcGearRow key={i} gear={g} qualityDefinitions={reference?.qualities ?? []} />)}
             </ul>
           </div>
         )}
@@ -395,7 +396,10 @@ function NpcDetailView({ npcId, reloadToken, onEdit, onDuplicated, onDeleted }: 
 }
 
 /** Строка снаряжения NPC: имя, тип, бонусы брони и описание из каталога (если найдено). */
-function NpcGearRow({ gear }: { gear: NpcGearView }) {
+function NpcGearRow({ gear, qualityDefinitions }: {
+  gear: NpcGearView
+  qualityDefinitions: Reference['qualities']
+}) {
   const { name, item } = gear
   const bonuses = item ? [
     item.soakBonus > 0 && t(`Поглощение +${item.soakBonus}`, `Soak +${item.soakBonus}`),
@@ -413,7 +417,8 @@ function NpcGearRow({ gear }: { gear: NpcGearView }) {
         {bonuses.length > 0 && <span className="npc-gear-bonus">{bonuses.join(' · ')}</span>}
       </div>
       {description && <div className="muted small-text npc-gear-desc">{description}</div>}
-      {item?.properties && <PropertyTags properties={item.properties} className="small-text" />}
+      {item?.properties && <PropertyTags properties={item.properties} className="small-text"
+        qualityDefinitions={qualityDefinitions} />}
     </li>
   )
 }

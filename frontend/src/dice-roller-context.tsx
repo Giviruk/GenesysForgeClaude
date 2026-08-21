@@ -8,6 +8,7 @@ import { t } from './i18n'
 import {
   DiceRollerContext, type DiceRollerContextValue, type DiceRollerRequest,
 } from './dice-roller-store'
+import { PropertyTags } from './components/PropertyTags'
 
 type DrawerState = DiceRollerRequest & { id: number }
 
@@ -171,7 +172,7 @@ function CombatRollerContent({ request }: {
           <ul className="combat-qualities">
             {request.qualities.map((q, i) => (
               <li key={i}>
-                <strong>{q.label}</strong>
+                <PropertyTags properties={q.label} />
                 {q.activationCost && <span className="muted small-text"> — {q.activationCost}</span>}
               </li>
             ))}
