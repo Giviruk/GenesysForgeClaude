@@ -68,8 +68,8 @@
     ],
     "requiredAnyTraits": [],
     "forbiddenTraits": [],
-    "desc": "Боеприпас/наконечник со взрывным эффектом; добавляет взрывной урон к подходящему оружию.",
-    "descEn": "Ammunition/warhead with an explosive effect; adds blast damage to a suitable weapon.",
+    "desc": "Боеприпас/наконечник со взрывным эффектом; добавляет свойство «Взрыв» с рейтингом 5 к подходящему оружию.",
+    "descEn": "Ammunition/warhead with an explosive effect; adds Blast 5 to a suitable weapon.",
     "source": "Realms of Terrinoth, pp. 106-107",
     "effects": [
       {

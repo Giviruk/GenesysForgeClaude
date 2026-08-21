@@ -141,6 +141,11 @@ public class RotAttachmentApiTests(ApiFactory factory) : IClassFixture<ApiFactor
 
         var serrated = Attachment(reference, "serrated-edge");
         Assert.Equal("vicious", Assert.Single(serrated.Effects).QualityCode);
+
+        var explosive = Attachment(reference, "explosive-missile");
+        Assert.Contains("Взрыв", explosive.Description, StringComparison.Ordinal);
+        Assert.Contains("5", explosive.Description, StringComparison.Ordinal);
+        Assert.Contains(explosive.Effects, e => e.QualityCode == "blast" && e.Value == 5);
     }
 
     // ── Установка ──
