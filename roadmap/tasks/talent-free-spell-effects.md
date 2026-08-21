@@ -3,7 +3,7 @@
 - **Пункт ТЗ:** ROT-MAG — учёт талантов при сборке заклинаний
 - **Ветка:** `feature/talent-free-spell-effects`
 - **Базовая ветка:** `master`
-- **PR:** #<номер> (после создания)
+- **PR:** [#206](https://github.com/Giviruk/GenesysForgeClaude/pull/206)
 - **Статус:** 🚧 In progress
 
 ## Контекст
