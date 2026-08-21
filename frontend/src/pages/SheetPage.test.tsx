@@ -25,6 +25,7 @@ vi.mock('../api/client', () => ({
 vi.mock('../components/SheetTab', () => ({ SheetTab: () => <div>вкладка листа</div> }))
 vi.mock('../components/TalentsTab', () => ({ TalentsTab: () => <div>вкладка талантов</div> }))
 vi.mock('../components/InventoryTab', () => ({ InventoryTab: () => <div>вкладка инвентаря</div> }))
+vi.mock('../components/MagicTab', () => ({ MagicTab: () => <div>вкладка магии</div> }))
 
 const { SheetPage } = await import('./SheetPage')
 
@@ -151,6 +152,16 @@ describe('SheetPage — части листа грузятся по надобн
     await screen.findByText('вкладка инвентаря')
     // Базовая часть уже есть — заново её не просят.
     expect(includesOf()).toEqual(['base', 'items'])
+  })
+
+  it('для вкладки магии догружает таланты вместе с инвентарём', async () => {
+    renderPage()
+    await screen.findByText('вкладка листа')
+
+    fireEvent.click(screen.getByRole('button', { name: 'Магия' }))
+
+    await screen.findByText('вкладка магии')
+    expect(includesOf()).toEqual(['base', 'items,talents'])
   })
 
   it('восстанавливает последнюю вкладку персонажа после повторного монтирования', async () => {

@@ -1,6 +1,6 @@
 import { fireEvent, render, screen } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import type { Spell } from '../api/types'
+import type { SheetTalent, Spell } from '../api/types'
 import { parseDifficulty } from '../utils/labels'
 import { api } from '../api/client'
 import { MagicBuilder } from './MagicBuilder'
@@ -87,6 +87,42 @@ describe('MagicBuilder — потолок сложности 5', () => {
     fireEvent.click(screen.getByRole('button', { name: /Огонь \+2/ }))
     expect(screen.getByText(/Сложность: 3/)).toBeTruthy()
     expect((screen.getByRole('button', { name: /Лёд \+2/ }) as HTMLButtonElement).disabled).toBe(false)
+  })
+})
+
+describe('MagicBuilder — бесплатные эффекты талантов', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
+  it('«Пламя Келлоса» делает выбранный Огонь бесплатным', async () => {
+    vi.mocked(api.spells).mockResolvedValue(spells)
+    const flames = { linkCode: 'flames-of-kellos', needsChoice: false } as unknown as SheetTalent
+    render(<MagicBuilder system="realmsOfTerrinoth" talents={[flames]} onError={() => {}} />)
+    await screen.findByText(/Сложность: 2/)
+
+    const fire = screen.getByRole('button', { name: /Огонь/ })
+    expect(fire.className).toContain('free')
+    fireEvent.click(fire)
+
+    // Базовая Атака остаётся со сложностью 2: +2 Огня снят талантом.
+    expect(screen.getByText(/Сложность: 2/)).toBeTruthy()
+    expect(fire.getAttribute('title')).toContain('Талант делает этот эффект бесплатным')
+  })
+
+  it('«Природное единение» добавляет обязательный бесплатный Призыв союзника', async () => {
+    const conjureSpells = [
+      spell({ id: 'conjure', kind: 'effect', magicSkill: 'Arcana', nameRu: 'Призыв', nameEn: 'Conjure', difficulty: '1 (Easy)' }),
+      spell({ id: 'ally', kind: 'additionalEffect', parentEffect: 'Conjure', nameRu: 'Призыв союзника', nameEn: 'Summon Ally', difficulty: '+1' }),
+    ]
+    vi.mocked(api.spells).mockResolvedValue(conjureSpells)
+    const communion = { linkCode: 'natural-communion', needsChoice: false } as unknown as SheetTalent
+    render(<MagicBuilder system="realmsOfTerrinoth" talents={[communion]} onError={() => {}} />)
+
+    await screen.findByText(/Сложность: 1/)
+    expect(document.querySelector('.effect-summary')?.textContent).toContain('Призыв союзника')
+    expect(document.querySelector('.effect-summary')?.textContent).toContain('обязательно')
+    expect(screen.getByText(/Сложность: 1/)).toBeTruthy()
   })
 })
 

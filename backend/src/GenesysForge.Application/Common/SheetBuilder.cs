@@ -86,7 +86,8 @@ public static class SheetBuilder
             t.Choices.OrderBy(x => x.RankIndex).ThenBy(x => x.Value, StringComparer.Ordinal)
                 .Select(x => new CharacterTalentChoiceDto(x.RankIndex, x.Kind, x.Value, x.DisplayName))
                 .ToList(),
-            t.NeedsChoice, t.TalentDef.ActivationEn, t.TalentDef.CanUseOutOfTurn))
+            t.NeedsChoice, t.TalentDef.ActivationEn, t.TalentDef.CanUseOutOfTurn,
+            TalentPurchasePolicy.BareCode(t.TalentDef.Code)))
         .ToList();
 
     /// <summary>

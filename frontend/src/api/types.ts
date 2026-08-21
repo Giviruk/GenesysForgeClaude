@@ -819,6 +819,8 @@ export interface SheetTalent {
   /** Английский тайминг активации и возможность применения вне хода (ROT-TAL-01). */
   activationEn: string
   canUseOutOfTurn: boolean
+  /** Стабильный bare-код определения таланта для структурных правил магии. */
+  linkCode: string
 }
 
 export interface SheetItem {

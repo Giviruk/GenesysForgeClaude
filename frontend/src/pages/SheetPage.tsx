@@ -45,7 +45,7 @@ const SLICES_BY_TAB: Record<CharacterSheetTab, SheetSliceName[]> = {
   attachments: ['base', 'items', 'attachments'],
   transport: ['base', 'items', 'mounts'],
   crafting: ['base', 'items'],
-  magic: ['base', 'items'],
+  magic: ['base', 'items', 'talents'],
   bio: ['base'],
   history: ['base'],
   notes: ['base'],
