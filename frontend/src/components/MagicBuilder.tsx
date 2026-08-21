@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { api } from '../api/client'
 import type {
-  DicePool, GameSystem, ItemImplement, ItemRuneboundShard, KnowledgeRating, ShardSpellEffect, Spell,
+  DicePool, GameSystem, ItemImplement, ItemRuneboundShard, KnowledgeRating, Quality, ShardSpellEffect, Spell,
 } from '../api/types'
 import {
   difficultyLabel, localizedDescription, magicSkillLabel, MAX_SPELL_DIFFICULTY,
@@ -18,6 +18,7 @@ import { magicMarkdown } from './print/markdown'
 import { t } from '../i18n'
 import { useDiceRoller } from '../dice-roller-store'
 import { magicAdvantageSpends } from '../utils/magicRoller'
+import { PropertyText } from './PropertyText'
 
 export interface MagicSkillPool {
   name: string
@@ -60,6 +61,8 @@ interface Props {
    * между Преданиями и Запретным открывает талант, и решать это на клиенте нельзя.
    */
   knowledgeRating?: KnowledgeRating | null
+  /** Качества из справочника для inline-тултипов в тексте эффекта. */
+  qualities?: Quality[]
   /** Настройка фолианта и палочки ведущим; без неё выбор эффектов не предлагается. */
   onConfigureImplement?: (itemId: string, effectCodes: string[]) => Promise<void>
   onConfigureLesserRune?: (
@@ -75,7 +78,7 @@ interface Props {
  */
 export function MagicBuilder({
   system, characterSkills, knowledgeRating, implements: tools, shards,
-  onConfigureImplement, onConfigureLesserRune, onError,
+  onConfigureImplement, onConfigureLesserRune, onError, qualities,
 }: Props) {
   const { openRoller } = useDiceRoller()
   // Инструмент выбирается явно: на одну магическую проверку работает ровно один, и складывать
@@ -602,7 +605,7 @@ export function MagicBuilder({
               ))}
             </div>
           )}
-          <p>{localizedDescription(selectedEffect)}</p>
+          <p><PropertyText text={localizedDescription(selectedEffect)} qualities={qualities} /></p>
           <div className="muted small-text">{t('Источник:', 'Source:')} {selectedEffect.source}</div>
           {!shardBuildInvalid && (
             <div className="card-actions">
@@ -746,7 +749,7 @@ export function MagicBuilder({
                             additional.find(x => x.nameEn === code)?.nameRu || code, code)).join(', ')}
                         </span>
                       )}
-                      <div className="small-text">{localizedDescription(a)}</div>
+                      <div className="small-text"><PropertyText text={localizedDescription(a)} qualities={qualities} /></div>
                     </li>
                   ))}
                 </ul>
