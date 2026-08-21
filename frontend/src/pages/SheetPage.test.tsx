@@ -4,6 +4,7 @@ import type { BaseSheet, Reference, SheetSliceName, SheetSlices } from '../api/t
 
 const sheetSlices = vi.fn<(id: string, include: SheetSliceName[]) => Promise<SheetSlices>>()
 const updateCharacter = vi.fn<(id: string, patch: unknown) => Promise<void>>().mockResolvedValue(undefined)
+const completeCreation = vi.fn<(id: string) => Promise<void>>().mockResolvedValue(undefined)
 const reference = vi.fn(() => Promise.resolve({ items: [], talents: [], qualities: [] } as unknown as Reference))
 const takeFreshSlices = vi.fn<(id: string) => SheetSlices | null>(() => null)
 const setActiveSlices = vi.fn()
@@ -13,6 +14,7 @@ vi.mock('../api/client', () => ({
     sheetSlices: (id: string, include: SheetSliceName[]) => sheetSlices(id, include),
     reference: () => reference(),
     updateCharacter: (id: string, patch: unknown) => updateCharacter(id, patch),
+    completeCreation: (id: string) => completeCreation(id),
     sheet: () => Promise.resolve(null),
   },
   takeFreshSlices: (id: string) => takeFreshSlices(id),
@@ -28,6 +30,7 @@ const { SheetPage } = await import('./SheetPage')
 
 const base = {
   id: 'c1', name: 'Гарет', system: 'realmsOfTerrinoth', totalXp: 100, spentXp: 0, availableXp: 100,
+  isCreationPhase: true,
   money: 10, portraitUrl: null, archetype: { name: 'Человек' }, career: { name: 'Воин' },
   derived: {}, skills: [], characteristics: {},
 } as unknown as BaseSheet
@@ -66,6 +69,7 @@ function renderPage(onOpenPrint = () => {}) {
 describe('SheetPage — части листа грузятся по надобности', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    completeCreation.mockReset().mockResolvedValue(undefined)
     localStorage.removeItem('genesysforge.sheet-tab.c1')
     takeFreshSlices.mockReturnValue(null)
     sheetSlices.mockImplementation((_id, include) => Promise.resolve(serve(include)))
@@ -89,6 +93,21 @@ describe('SheetPage — части листа грузятся по надобн
 
     await waitFor(() => expect(updateCharacter).toHaveBeenCalledWith('c1', { name: 'Гарет Серый' }))
     expect(await screen.findByText('Имя персонажа обновлено.')).toBeTruthy()
+  })
+
+  it('показывает понятную причину, если завершение создания отклонено', async () => {
+    completeCreation.mockRejectedValueOnce({
+      status: 400,
+      reasonCode: 'heroic.identity.incomplete',
+      message: 'Укажите личное название и происхождение героической способности до завершения создания.',
+    })
+    renderPage()
+    await screen.findByText('вкладка листа')
+
+    fireEvent.click(screen.getByRole('button', { name: 'Завершить создание' }))
+
+    await waitFor(() => expect(completeCreation).toHaveBeenCalledWith('c1'))
+    expect((await screen.findByRole('alert')).textContent).toMatch(/личное название и происхождение/)
   })
 
   it('показывает основные вкладки первыми в заданном порядке', async () => {

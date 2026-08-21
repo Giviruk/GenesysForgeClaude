@@ -33,9 +33,11 @@ export const tokenStorage = {
 
 export class ApiError extends Error {
   status: number
-  constructor(status: number, message: string) {
+  reasonCode?: string
+  constructor(status: number, message: string, reasonCode?: string) {
     super(message)
     this.status = status
+    this.reasonCode = reasonCode
   }
 }
 
@@ -199,13 +201,15 @@ async function requestCore<T>(
       }
     }
     let message = t(`Ошибка ${response.status}`, `Error ${response.status}`)
+    let reasonCode: string | undefined
     try {
-      const data = await response.json()
-      if (data?.message) message = data.message
+      const data = await response.json() as { message?: unknown; reasonCode?: unknown }
+      if (typeof data?.message === 'string' && data.message) message = data.message
+      if (typeof data?.reasonCode === 'string' && data.reasonCode) reasonCode = data.reasonCode
     } catch {
       // тело не JSON — оставляем статус
     }
-    throw new ApiError(response.status, message)
+    throw new ApiError(response.status, message, reasonCode)
   }
   // Сбрасываем только после успеха: неудавшаяся правка каталог не меняла.
   if (invalidatesReference(method, url)) invalidateReference()

@@ -19,6 +19,7 @@ import { Icon } from '../components/Icon'
 import { navigate } from '../router'
 import { t } from '../i18n'
 import { readSheetTab, writeSheetTab, type CharacterSheetTab } from '../utils/uiPreferences'
+import { formatCharacterCreationCompletionError } from '../utils/characterCreationErrors'
 
 interface Props {
   characterId: string
@@ -134,6 +135,7 @@ export function SheetPage({ characterId, printing, onOpenPrint, onClosePrint, on
   const [shareUrl, setShareUrl] = useState<string | null>(null)
   const [xpEdit, setXpEdit] = useState<string | null>(null)
   const [nameEdit, setNameEdit] = useState<string | null>(null)
+  const [completing, setCompleting] = useState(false)
   const [actionsOpen, setActionsOpen] = useState(false)
   const portraitFileRef = useRef<HTMLInputElement>(null)
   const actionsMenuRef = useRef<HTMLDivElement>(null)
@@ -253,7 +255,7 @@ export function SheetPage({ characterId, printing, onOpenPrint, onClosePrint, on
     return (
       <div className="page">
         <button onClick={onBack}>{t('← Назад', '← Back')}</button>
-        {error ? <div className="error">{error}</div> : <p className="muted">{t('Загрузка…', 'Loading…')}</p>}
+      {error ? <div className="error" role="alert">{error}</div> : <p className="muted">{t('Загрузка…', 'Loading…')}</p>}
       </div>
     )
   }
@@ -359,6 +361,21 @@ export function SheetPage({ characterId, printing, onOpenPrint, onClosePrint, on
     }
   }
 
+  async function completeCreation() {
+    if (!sheet || completing) return
+    setError(null)
+    setCompleting(true)
+    try {
+      await api.completeCreation(sheet.id)
+      await refresh()
+      setNotice(t('Создание персонажа завершено.', 'Character creation completed.'))
+    } catch (err) {
+      setError(formatCharacterCreationCompletionError(err))
+    } finally {
+      setCompleting(false)
+    }
+  }
+
   return (
     <div className="page">
       <div className="page-head">
@@ -407,8 +424,8 @@ export function SheetPage({ characterId, printing, onOpenPrint, onClosePrint, on
           <div className="sheet-action-buttons">
             {sheet.isCreationPhase && (
               <button className="small" title={t('Завершить создание: зафиксировать характеристики и снять лимит рангов', 'Complete creation: lock characteristics and lift the rank limit')}
-                onClick={async () => { await api.completeCreation(sheet.id); await refresh() }}>
-                {t('Завершить создание', 'Complete creation')}
+                disabled={completing} onClick={() => void completeCreation()}>
+                {completing ? t('Завершение…', 'Completing…') : t('Завершить создание', 'Complete creation')}
               </button>
             )}
             <div className="sheet-actions-menu" ref={actionsMenuRef}>
@@ -440,7 +457,7 @@ export function SheetPage({ characterId, printing, onOpenPrint, onClosePrint, on
         </div>
       </div>
 
-      {error && <div className="error floating">{error}</div>}
+      {error && <div className="error floating" role="alert">{error}</div>}
       {notice && <div className="notice">{notice}</div>}
       {shareUrl && (
         <div className="notice share-link">

@@ -38,6 +38,15 @@ describe('api client — обработка 401', () => {
     expect(list).toHaveLength(1)
   })
 
+  it('сохраняет машинный код причины из ответа API', async () => {
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+      new Response(JSON.stringify({ message: 'Выберите параметр.', reasonCode: 'heroic.parameter.incomplete' }), { status: 400 }))
+
+    await expect(api.characters()).rejects.toMatchObject({
+      status: 400, reasonCode: 'heroic.parameter.incomplete', message: 'Выберите параметр.',
+    })
+  })
+
   it('публикует длительность полного API-действия', async () => {
     const timings: unknown[] = []
     const listener = (event: Event) => timings.push((event as CustomEvent).detail)
