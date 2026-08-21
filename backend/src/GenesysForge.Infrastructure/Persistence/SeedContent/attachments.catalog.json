@@ -18,7 +18,7 @@
     ],
     "desc": "Для одноручного оружия ближнего боя; получает Accurate 1 или снижает Inaccurate на 1.",
     "descEn": "For one-handed melee weapons; gains Accurate 1 or reduces Inaccurate by 1.",
-    "source": "Realms of Terrinoth, pp. 106-107",
+    "source": "Genesys Core Rulebook, p. 207",
     "effects": [
       {
         "kind": "GrantQualityOrCancelOpposite",
@@ -43,9 +43,9 @@
     ],
     "requiredAnyTraits": [],
     "forbiddenTraits": [],
-    "desc": "Подходит к мечам; помогает парировать, добавляя угрозы к атаке ближнего боя против владельца.",
-    "descEn": "Fits swords; helps parry by adding threat to melee attacks against the wielder.",
-    "source": "Realms of Terrinoth, pp. 106-107",
+    "desc": "Для меча; если проверка ближнего боя против владельца дала неотменённую угрозу, владелец может получить 1 усталость и добавить 2 угрозы к результату.",
+    "descEn": "For swords; if a melee check against the wielder generates uncanceled Threat, the wielder may suffer 1 strain to add 2 Threat to the result.",
+    "source": "Genesys Core Rulebook, p. 207",
     "effects": [
       {
         "kind": "NarrativeOnly",
@@ -68,8 +68,8 @@
     ],
     "requiredAnyTraits": [],
     "forbiddenTraits": [],
-    "desc": "Боеприпас/наконечник со взрывным эффектом; добавляет свойство «Взрыв» с рейтингом 5 к подходящему оружию.",
-    "descEn": "Ammunition/warhead with an explosive effect; adds Blast 5 to a suitable weapon.",
+    "desc": "Постоянная насадка для любого дальнобойного оружия; добавляет свойство «Взрыв» с рейтингом 5.",
+    "descEn": "A permanent attachment for any ranged weapon; adds the Blast 5 quality.",
     "source": "Realms of Terrinoth, pp. 106-107",
     "effects": [
       {
@@ -98,7 +98,7 @@
     ],
     "desc": "Для клинкового оружия ближнего боя: получает Проникающее 2, а если оно уже есть — повышает его на 1; критическое значение уменьшается на 1, но не ниже 1.",
     "descEn": "For bladed melee weapons: gains Pierce 2, or increases existing Pierce by 1; the critical rating drops by 1, to a minimum of 1.",
-    "source": "Realms of Terrinoth, pp. 106-107",
+    "source": "Genesys Core Rulebook, p. 208",
     "effects": [
       {
         "kind": "GrantOrIncreaseQuality",
@@ -127,9 +127,9 @@
     ],
     "requiredAnyTraits": [],
     "forbiddenTraits": [],
-    "desc": "Для луков/арбалетов; получает Pierce 2 или повышает Pierce; получает/повышает Unwieldy 2.",
-    "descEn": "For bows/crossbows; gains Pierce 2 or increases Pierce; gains/increases Unwieldy 2.",
-    "source": "Realms of Terrinoth, pp. 106-107",
+    "desc": "Для лука или арбалета; получает Pierce 2 или повышает существующее Pierce на 1, а также получает Unwieldy 2 или повышает его на 1.",
+    "descEn": "For bows or crossbows; gains Pierce 2 or increases existing Pierce by 1, and gains Unwieldy 2 or increases it by 1.",
+    "source": "Genesys Core Rulebook, p. 208",
     "effects": [
       {
         "kind": "GrantOrIncreaseQuality",
@@ -142,6 +142,32 @@
         "quality": "unwieldy",
         "value": 2,
         "increment": 1
+      }
+    ]
+  },
+  {
+    "code": "weapon-sling",
+    "name": "Weapon Sling",
+    "nameRu": "Оружейный подвес",
+    "setting": "Any",
+    "hardPointCost": 1,
+    "price": 25,
+    "rarity": 1,
+    "isEnchantment": false,
+    "hostKind": "weapon",
+    "requiredTraits": [
+      "Ranged",
+      "TwoHanded"
+    ],
+    "requiredAnyTraits": [],
+    "forbiddenTraits": [],
+    "desc": "Для тяжёлого дальнобойного оружия или другого дальнобойного оружия, для которого нужны две руки; уменьшает нагрузку на 2.",
+    "descEn": "For Ranged (Heavy) weapons or other ranged weapons requiring two hands; reduces encumbrance by 2.",
+    "source": "Genesys Core Rulebook, p. 208",
+    "effects": [
+      {
+        "kind": "Encumbrance",
+        "value": -2
       }
     ]
   },
@@ -162,8 +188,8 @@
     "forbiddenTraits": [
       "WoodenWorkingEdge"
     ],
-    "desc": "Рунная модификация, усиливающая клинок магическим эффектом.",
-    "descEn": "A runic modification that empowers the blade with a magical effect.",
+    "desc": "Для клинкового оружия без деревянной рабочей кромки; при критическом ранении фиксирует результат «Истекает кровью» вместо броска по таблице.",
+    "descEn": "For bladed weapons without a wooden working edge; a Critical Injury uses the fixed Bleeding Out result instead of a table roll.",
     "source": "Realms of Terrinoth, pp. 106-107",
     "effects": [
       {
@@ -183,12 +209,16 @@
     "isEnchantment": true,
     "hostKind": "weapon",
     "requiredTraits": [],
-    "requiredAnyTraits": [],
+    "requiredAnyTraits": [
+      "Brawl",
+      "OneHanded",
+      "TwoHanded"
+    ],
     "forbiddenTraits": [
       "Ranged"
     ],
-    "desc": "Добавляет огненный/жгущий рунический эффект.",
-    "descEn": "Adds a fire/burning runic effect.",
+    "desc": "Для любого оружия ближнего боя; добавляет свойство «Жжение» с рейтингом 1.",
+    "descEn": "For any melee weapon; adds the Burn 1 quality.",
     "source": "Realms of Terrinoth, pp. 106-107",
     "effects": [
       {
@@ -209,12 +239,16 @@
     "isEnchantment": true,
     "hostKind": "weapon",
     "requiredTraits": [],
-    "requiredAnyTraits": [],
+    "requiredAnyTraits": [
+      "Brawl",
+      "OneHanded",
+      "TwoHanded"
+    ],
     "forbiddenTraits": [
       "Ranged"
     ],
-    "desc": "Добавляет ледяной/замедляющий рунический эффект.",
-    "descEn": "Adds an ice/slowing runic effect.",
+    "desc": "Для любого оружия ближнего боя; добавляет свойства «Сковывание» 1 и «Оглушение» 4.",
+    "descEn": "For any melee weapon; adds Ensnare 1 and Stun 4.",
     "source": "Realms of Terrinoth, pp. 106-107",
     "effects": [
       {
@@ -242,8 +276,8 @@
     "requiredTraits": [],
     "requiredAnyTraits": [],
     "forbiddenTraits": [],
-    "desc": "Добавляет громовой/молниевый рунический эффект.",
-    "descEn": "Adds a thunder/lightning runic effect.",
+    "desc": "Для любого оружия; добавляет свойство «Ошеломление» с рейтингом 1.",
+    "descEn": "For any weapon; adds the Concussive 1 quality.",
     "source": "Realms of Terrinoth, pp. 106-107",
     "effects": [
       {
@@ -270,8 +304,8 @@
     "forbiddenTraits": [
       "Ranged"
     ],
-    "desc": "Усиливает способность оружия рассекать и повреждать.",
-    "descEn": "Enhances the weapon's ability to cut and damage.",
+    "desc": "Для клинкового оружия ближнего боя; добавляет свойство Vicious с рейтингом 5.",
+    "descEn": "For bladed melee weapons; adds the Vicious 5 quality.",
     "source": "Realms of Terrinoth, pp. 106-107",
     "effects": [
       {
@@ -300,7 +334,7 @@
     ],
     "desc": "Для клинкового оружия ближнего боя; получает Vicious 1 или повышает Vicious на 1.",
     "descEn": "For bladed melee weapons; gains Vicious 1 or increases Vicious by 1.",
-    "source": "Realms of Terrinoth, pp. 106-107",
+    "source": "Genesys Core Rulebook, p. 208",
     "effects": [
       {
         "kind": "GrantOrIncreaseQuality",
@@ -325,7 +359,7 @@
     "forbiddenTraits": [],
     "desc": "Оружие получает качество Superior.",
     "descEn": "The weapon gains the Superior quality.",
-    "source": "Genesys Core Rulebook, pp. 207-209",
+    "source": "Genesys Core Rulebook, p. 208",
     "effects": [
       {
         "kind": "GrantOrIncreaseQuality",
@@ -353,9 +387,9 @@
       "HasCuttingEdge",
       "Ranged"
     ],
-    "desc": "Для дробящего оружия ближнего боя; +2 урона и Cumbersome 2/повышение Cumbersome.",
-    "descEn": "For blunt melee weapons; +2 damage and Cumbersome 2 or increases Cumbersome.",
-    "source": "Realms of Terrinoth, pp. 106-107",
+    "desc": "Для дробящего оружия ближнего боя без режущей кромки; +2 к урону и Cumbersome 2 либо повышение существующего Cumbersome на 1.",
+    "descEn": "For close-combat bludgeoning weapons without a cutting edge; +2 damage and Cumbersome 2 or +1 to existing Cumbersome.",
+    "source": "Genesys Core Rulebook, p. 209",
     "effects": [
       {
         "kind": "Damage",
@@ -382,8 +416,8 @@
     "requiredTraits": [],
     "requiredAnyTraits": [],
     "forbiddenTraits": [],
-    "desc": "Демоническая скверна, усиливающая вредоносный эффект оружия ценой опасных последствий.",
-    "descEn": "A demonic taint that empowers the weapon's harmful effect at the cost of dangerous consequences.",
+    "desc": "Для любого оружия; +2 к базовому урону. Пока персонаж владеет оружием или носит его, каждое получение усталости увеличивается на 1.",
+    "descEn": "For any weapon; +2 base damage. While the character wields or wears it, each instance of strain suffered increases by 1.",
     "source": "Realms of Terrinoth, pp. 106-107",
     "effects": [
       {
@@ -392,7 +426,7 @@
       },
       {
         "kind": "NarrativeOnly",
-        "note": "Пока оружие в руках, каждое отдельное событие усталости увеличивается на 1. На нули, раны и просто ношение не действует."
+        "note": "Пока персонаж владеет оружием или носит его, каждое отдельное получение усталости увеличивается на 1. Простое нахождение в запасе не срабатывает."
       }
     ]
   },
