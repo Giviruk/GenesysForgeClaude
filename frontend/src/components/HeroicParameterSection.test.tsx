@@ -1,6 +1,6 @@
 import { render, screen, waitFor, fireEvent } from '@testing-library/react'
 import { describe, expect, it, vi, beforeEach } from 'vitest'
-import type { CharacterSheet, HeroicConfiguration, Reference, SignatureWeapon } from '../api/types'
+import type { CharacterSheet, HeroicConfiguration, Quality, Reference, SignatureWeapon } from '../api/types'
 import { HeroicParameterSection } from './HeroicTab'
 
 const setConfigMock = vi.fn()
@@ -33,6 +33,12 @@ const reference = {
       requiredTraits: 'ranged', requiredAnyTraits: 'none', forbiddenTraits: 'none',
     },
   ],
+  qualities: [{
+    id: 'quality-superior', code: 'superior', nameEn: 'Superior', nameRu: 'Превосходное',
+    kind: 'itemQuality', isActive: true, hasRating: false, activationCost: '', category: 'combat',
+    description: 'Оружие получает дополнительный эффект превосходного изготовления.',
+    safeDescription: 'Дополнительный эффект изготовления.', descriptionEn: '', source: 'Test',
+  } as Quality],
 } as unknown as Reference
 
 function sheetWith(config: HeroicConfiguration, overrides: Partial<CharacterSheet> = {}): CharacterSheet {
@@ -192,6 +198,10 @@ describe('HeroicParameterSection (ROT-HA-02)', () => {
     const summary = screen.getByText(/Лук предков/)
     expect(summary.textContent).toContain('Ranged')
     expect(summary.textContent).toContain('Превосходное')
+
+    const quality = screen.getByRole('button', { name: /Превосходное/ })
+    fireEvent.mouseEnter(quality)
+    expect(screen.getByRole('tooltip').textContent).toContain('дополнительный эффект')
 
     fireEvent.click(screen.getByRole('button', { name: 'Отметить потерянным' }))
     await waitFor(() => expect(replaceMock).toHaveBeenCalledWith('char-1', { lost: true }))
