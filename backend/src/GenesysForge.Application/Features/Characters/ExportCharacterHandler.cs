@@ -89,7 +89,6 @@ public class ExportCharacterHandler(IAppDbContext db) : IQueryHandler<ExportChar
             ThresholdSnapshotProvenance: c.ThresholdSnapshotProvenance,
             RulesReviewRequired: c.RulesReviewRequired,
             StartingEquipmentMode: c.StartingEquipmentMode,
-            StartingPurchaseBudget: c.StartingPurchaseBudget,
             SpeciesAbilityChoiceCode: c.SpeciesAbilityChoiceCode,
             HeroicCustomName: c.HeroicCustomName,
             HeroicOriginMode: c.HeroicOriginMode,

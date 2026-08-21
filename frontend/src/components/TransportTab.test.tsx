@@ -77,7 +77,7 @@ const owned = (over: Partial<CharacterMount> = {}): CharacterMount => ({
 })
 
 const sheetWith = (mounts: CharacterMount[], money = 5000, items: SheetItem[] = []) => ({
-  id: 'char-1', money, startingPurchaseBudget: 0, isCreationPhase: false, mounts, items,
+  id: 'char-1', money, isCreationPhase: false, mounts, items,
 } as unknown as CharacterSheet)
 
 const reference = {

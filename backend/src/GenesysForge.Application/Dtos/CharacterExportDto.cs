@@ -12,10 +12,12 @@ public record CharacterExportDto(
     CharacterExportData Character)
 {
     /// <summary>
-    /// Текущая версия формата: v7 переносит выбор Improved и бесплатное улучшение Supreme
-    /// именного оружия (ROT-HA-05).
+    /// Текущая версия формата: v8 удаляет устаревшее поле стартового бюджета.
     /// </summary>
-    public const string CurrentFormat = "genesysforge.character.v7";
+    public const string CurrentFormat = "genesysforge.character.v8";
+
+    /// <summary>v7 переносил выбор Improved и бесплатное улучшение Supreme именного оружия.</summary>
+    public const string LegacyFormatV7 = "genesysforge.character.v7";
 
     /// <summary>v6 знал базовое улучшение именного оружия, но не его Improved и Supreme.</summary>
     public const string LegacyFormatV6 = "genesysforge.character.v6";
@@ -39,7 +41,7 @@ public record CharacterExportDto(
 
     /// <summary>Все форматы, которые импорт умеет читать.</summary>
     public static readonly string[] SupportedFormats =
-        [CurrentFormat, LegacyFormatV6, LegacyFormatV5, LegacyFormatV4, LegacyFormatV3, LegacyFormatV2, LegacyFormatV1];
+        [CurrentFormat, LegacyFormatV7, LegacyFormatV6, LegacyFormatV5, LegacyFormatV4, LegacyFormatV3, LegacyFormatV2, LegacyFormatV1];
 }
 
 public record CharacterExportData(
@@ -73,9 +75,8 @@ public record CharacterExportData(
     int? CreationStrainThreshold = null,
     ThresholdSnapshotProvenance ThresholdSnapshotProvenance = ThresholdSnapshotProvenance.None,
     bool RulesReviewRequired = false,
-    // v2: режим стартового снаряжения и остаток бюджета создания (ROT-CRE-03).
+    // v2: режим стартового снаряжения (ROT-CRE-03).
     StartingEquipmentMode StartingEquipmentMode = StartingEquipmentMode.StandardMoney,
-    int StartingPurchaseBudget = 0,
     // v2: обязательный видовой выбор (Half-Catfolk). Пусто — вид выбора не требует либо
     // legacy-персонаж, которому выбор нужно сделать вручную (ROT-SPECIES-01).
     string SpeciesAbilityChoiceCode = "",

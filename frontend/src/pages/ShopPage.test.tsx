@@ -119,7 +119,6 @@ const reference = {
 const sheet = {
   id: 'char-1',
   money: 5000,
-  startingPurchaseBudget: 0,
   isCreationPhase: false,
   items: [],
 } as unknown as CharacterSheet

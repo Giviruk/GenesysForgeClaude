@@ -108,8 +108,8 @@ export function AttachmentsTab({ sheet, reference, onError, refresh }: Props) {
     }
   }
 
-  // Чем можно заплатить за материалы ремонта: в фазе создания сначала тратится бюджет покупок.
-  const funds = sheet.money + (sheet.isCreationPhase ? sheet.startingPurchaseBudget : 0)
+  // Чем можно заплатить за материалы ремонта: из обычного кошелька.
+  const funds = sheet.money
 
   // Счётчик в заголовке закрытого раздела: сколько улучшений стоит на предметах.
   const installedCount = useMemo(

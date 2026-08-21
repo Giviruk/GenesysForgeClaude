@@ -146,7 +146,7 @@ public class RotEquipmentSlotApiTests(ApiFactory factory) : IClassFixture<ApiFac
         var after = (await client.GetFromJsonAsync<CharacterSheetDto>(
             $"/api/characters/{id}", Json.Options))!;
         Assert.Equal(before.Money, after.Money);
-        Assert.Equal(before.StartingPurchaseBudget, after.StartingPurchaseBudget);
+        Assert.Equal(before.Money, after.Money);
         Assert.Equal(before.Items!.Count, after.Items!.Count);
     }
 

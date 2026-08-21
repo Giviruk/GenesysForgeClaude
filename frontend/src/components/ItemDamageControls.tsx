@@ -68,7 +68,7 @@ export function RepairMemo({ repair }: { repair: ItemRepair }) {
 export function DamageStateControls({ state, repair, funds, reinforced, onSetState, onRepair }: {
   state: ItemDamageState
   repair: ItemRepair
-  /** Чем персонаж может заплатить за материалы: кошелёк плюс бюджет создания. */
+  /** Чем персонаж может заплатить за материалы: обычный кошелёк. */
   funds: number
   /** Укреплённый экземпляр: Разрушающее его не берёт — но пожар и кислота берут. */
   reinforced?: boolean

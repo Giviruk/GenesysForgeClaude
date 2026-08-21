@@ -69,11 +69,10 @@ public class CreateCharacterHandler(IAppDbContext db, IDiceRoller dice)
             Willpower = archetype.Willpower,
             Presence = archetype.Presence,
             TotalXp = archetype.StartingXp,
-            // Бюджет покупок и карманные деньги — два разных счёта; складывать их нельзя.
+            // Стандартные и карьерные деньги хранятся в обычном кошельке.
             Money = startingGear.Money,
             SpeciesAbilityChoiceCode = speciesChoice,
             StartingEquipmentMode = mode,
-            StartingPurchaseBudget = startingGear.PurchaseBudget,
             Desire = Clean(req.Desire),
             Fear = Clean(req.Fear),
             Strength = Clean(req.Strength),
@@ -187,7 +186,6 @@ public class CreateCharacterHandler(IAppDbContext db, IDiceRoller dice)
                 startingEquipmentMode = mode.ToString(),
                 moneyFormula = startingGear.MoneyFormula,
                 moneyRolled = startingGear.Money,
-                purchaseBudget = startingGear.PurchaseBudget,
                 packageItems = startingGear.Items.Count,
             });
 
@@ -226,15 +224,15 @@ public class CreateCharacterHandler(IAppDbContext db, IDiceRoller dice)
         return code;
     }
 
-    /// <summary>Разрешённое стартовое снаряжение: деньги, бюджет и позиции комплекта.</summary>
+    /// <summary>Разрешённое стартовое снаряжение: деньги и позиции комплекта.</summary>
     private sealed record StartingGearPlan(
-        int Money, int PurchaseBudget, string MoneyFormula, string Summary,
+        int Money, string MoneyFormula, string Summary,
         IReadOnlyList<(Guid ItemDefId, int Quantity)> Items);
 
     /// <summary>
     /// Полностью разрешает стартовое снаряжение до первой мутации (ROT-CRE-03). В режиме
     /// стандартных денег комплект не выдаётся и любые package choices — ошибка. В режиме комплекта
-    /// требуется точное множество групп с ровно одной допустимой опцией каждая; бюджета 500 нет.
+    /// требуется точное множество групп с ровно одной допустимой опцией каждая.
     /// </summary>
     private async Task<StartingGearPlan> ResolveStartingGearAsync(
         CareerDef career, CreateCharacterRequest req, StartingEquipmentMode mode, CancellationToken ct)
@@ -247,10 +245,8 @@ public class CreateCharacterHandler(IAppDbContext db, IDiceRoller dice)
                 throw new DomainRuleException(
                     "В режиме стандартных денег карьерный комплект не выдаётся — выбор снаряжения недопустим.");
 
-            var pocket = StartingWallet.PocketMoneyFormula;
-            var rolled = pocket.Roll(dice.Roll);
-            return new StartingGearPlan(rolled, StartingWallet.StandardPurchaseBudget, pocket.Describe(),
-                $"бюджет {StartingWallet.StandardPurchaseBudget} и карманные {rolled} ({pocket.Describe()})",
+            return new StartingGearPlan(MoneyRules.StandardStartingMoney, MoneyRules.StandardStartingMoney.ToString(),
+                $"стандартные деньги {MoneyRules.StandardStartingMoney}",
                 []);
         }
 
@@ -286,7 +282,7 @@ public class CreateCharacterHandler(IAppDbContext db, IDiceRoller dice)
 
         var formula = MoneyFormula.Parse(career.StartingMoneyFixed, career.StartingMoneyDice);
         var money = formula.Roll(dice.Roll);
-        return new StartingGearPlan(money, 0, formula.Describe(),
+        return new StartingGearPlan(money, formula.Describe(),
             $"комплект карьеры {career.Name} ({resolved.Count} позиций) и {money} ({formula.Describe()})",
             resolved);
     }

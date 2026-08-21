@@ -56,7 +56,7 @@ public class RotImplementApiTests(ApiFactory factory) : IClassFixture<ApiFactory
         return (await resp.Content.ReadFromJsonAsync<Dictionary<string, Guid>>(Json.Options))!["id"];
     }
 
-    private static int Funds(CharacterSheetDto sheet) => sheet.Money + sheet.StartingPurchaseBudget;
+    private static int Funds(CharacterSheetDto sheet) => sheet.Money;
 
     private static Task SetMoneyAsync(HttpClient client, Guid characterId, int money) =>
         client.PatchAsJsonAsync($"/api/characters/{characterId}",

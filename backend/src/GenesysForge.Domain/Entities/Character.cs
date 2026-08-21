@@ -49,8 +49,7 @@ public class Character
 
     /// <summary>
     /// Кошелёк персонажа (нейтральные «монеты») — реальная валюта. В режиме <c>StandardMoney</c>
-    /// это стартовые карманные деньги 1d100, в режиме <c>CareerPackage</c> — сумма комплекта.
-    /// Бюджет стартовых покупок сюда не прибавляется: см. <see cref="StartingPurchaseBudget"/>.
+    /// это 500 стартовых монет, в режиме <c>CareerPackage</c> — сумма комплекта.
     /// </summary>
     public int Money { get; set; }
 
@@ -63,13 +62,6 @@ public class Character
 
     /// <summary>Выбранный при создании режим стартового снаряжения (ROT-CRE-03).</summary>
     public StartingEquipmentMode StartingEquipmentMode { get; set; } = StartingEquipmentMode.StandardMoney;
-
-    /// <summary>
-    /// Остаток бюджета стартовых покупок. В режиме <c>StandardMoney</c> начинается с 500 и тратится
-    /// только до завершения создания; в режиме <c>CareerPackage</c> равен нулю. Это отдельный от
-    /// <see cref="Money"/> счёт — сумма 500 и карманных денег в один баланс не складывается.
-    /// </summary>
-    public int StartingPurchaseBudget { get; set; }
 
     public Guid? HeroicAbilityId { get; set; }
     public HeroicAbilityDef? HeroicAbility { get; set; }

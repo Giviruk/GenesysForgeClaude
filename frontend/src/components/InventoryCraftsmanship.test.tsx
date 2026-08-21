@@ -55,7 +55,7 @@ const ironPlate = {
 } as unknown as SheetItem
 
 const sheet = {
-  id: 'char-1', money: 10000, startingPurchaseBudget: 0, isCreationPhase: false,
+  id: 'char-1', money: 10000, isCreationPhase: false,
   items: [ironPlate], skills: [],
   derived: {
     soak: 4, meleeDefense: 0, rangedDefense: 0, encumbranceThreshold: 10, encumbranceLoad: 5,
@@ -124,13 +124,13 @@ describe('Инвентарь: качество изготовления (ROT-WPN
     addItemMock.mockResolvedValue({ id: 'new' })
   })
 
-  it('показывает отдельный бюджет стартовых покупок рядом с карманными деньгами', () => {
-    render(<InventoryTab sheet={{ ...sheet, money: 37, startingPurchaseBudget: 500, isCreationPhase: true }}
+  it('показывает единый баланс обычных монет', () => {
+    render(<InventoryTab sheet={{ ...sheet, money: 500, isCreationPhase: true }}
       reference={reference} onError={() => {}} refresh={() => Promise.resolve()} />)
 
-    expect(screen.getByLabelText('Бюджет стартовых покупок').textContent).toContain('500 монеты')
-    expect(screen.getByText('37')).toBeTruthy()
-    expect(screen.getByText('карманные монеты')).toBeTruthy()
+    expect(screen.getByText('500')).toBeTruthy()
+    expect(screen.getByText('монеты')).toBeTruthy()
+    expect(screen.queryByText('Бюджет стартовых покупок')).toBeNull()
   })
 
   it('показывает работу экземпляра и разбор поправок', () => {

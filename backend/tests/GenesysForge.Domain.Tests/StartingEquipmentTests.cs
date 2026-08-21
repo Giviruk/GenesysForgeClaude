@@ -3,7 +3,7 @@ using GenesysForge.Domain.Rules;
 
 namespace GenesysForge.Domain.Tests;
 
-/// <summary>ROT-CRE-03/04: денежные формулы, бюджет создания и целостность карьерного комплекта.</summary>
+/// <summary>ROT-CRE-03/04: денежные формулы и целостность карьерного комплекта.</summary>
 public class StartingEquipmentTests
 {
     // ---- MoneyFormula ----
@@ -49,50 +49,27 @@ public class StartingEquipmentTests
         Assert.Throws<InvalidOperationException>(() => formula.Roll(_ => 0));
     }
 
-    // ---- StartingWallet ----
+    // ---- MoneyRules ----
 
     [Fact]
-    public void Charge_SpendsBudgetFirst_ThenWallet()
+    public void StandardStartingMoney_Is500()
     {
-        var charge = StartingWallet.Charge(cost: 120, budget: 100, money: 50, isCreationPhase: true);
-
-        Assert.Equal(100, charge!.Value.FromBudget);
-        Assert.Equal(20, charge.Value.FromMoney);
+        Assert.Equal(500, MoneyRules.StandardStartingMoney);
     }
 
     [Fact]
-    public void Charge_AfterCreation_IgnoresBudget()
+    public void Charge_UsesWalletOnly()
     {
-        var charge = StartingWallet.Charge(cost: 40, budget: 500, money: 40, isCreationPhase: false);
+        var charge = MoneyRules.Charge(cost: 40, money: 40);
 
-        Assert.Equal(0, charge!.Value.FromBudget);
-        Assert.Equal(40, charge.Value.FromMoney);
+        Assert.Equal(40, charge);
     }
 
     [Fact]
     public void Charge_ReturnsNull_WhenTotalIsInsufficient()
     {
-        Assert.Null(StartingWallet.Charge(cost: 200, budget: 100, money: 50, isCreationPhase: true));
-        Assert.Null(StartingWallet.Charge(cost: 10, budget: 500, money: 0, isCreationPhase: false));
-    }
-
-    [Fact]
-    public void Refund_DuringCreation_RestoresBudgetBeforeWallet()
-    {
-        // Из 500 потрачено 120; продажа на 200 возвращает 120 в бюджет и 80 в кошелёк.
-        var refund = StartingWallet.Refund(200, budget: 380, StartingEquipmentMode.StandardMoney, isCreationPhase: true);
-
-        Assert.Equal(120, refund.FromBudget);
-        Assert.Equal(80, refund.FromMoney);
-    }
-
-    [Fact]
-    public void Refund_InPackageModeOrAfterCreation_GoesEntirelyToWallet()
-    {
-        Assert.Equal(90, StartingWallet
-            .Refund(90, budget: 0, StartingEquipmentMode.CareerPackage, isCreationPhase: true).FromMoney);
-        Assert.Equal(90, StartingWallet
-            .Refund(90, budget: 380, StartingEquipmentMode.StandardMoney, isCreationPhase: false).FromMoney);
+        Assert.Null(MoneyRules.Charge(cost: 200, money: 50));
+        Assert.Null(MoneyRules.Charge(cost: 10, money: 0));
     }
 
     // ---- CareerPackageResolver ----

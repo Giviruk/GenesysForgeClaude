@@ -368,8 +368,7 @@ public class RotAttachmentApiTests(ApiFactory factory) : IClassFixture<ApiFactor
         Assert.Equal(HttpStatusCode.Created, resp.StatusCode);
 
         var after = await SheetAsync(client, id);
-        var spent = (before.Money + before.StartingPurchaseBudget)
-            - (after.Money + after.StartingPurchaseBudget);
+        var spent = before.Money - after.Money;
         Assert.Equal(edge.Price, spent);
 
         // Бесценная руна обычной покупкой не берётся.

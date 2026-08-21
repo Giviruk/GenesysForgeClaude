@@ -35,7 +35,7 @@ export function TransportTab({ sheet, reference, onError, refresh }: Props) {
   const [openSell, setOpenSell] = useState<string | null>(null)
 
   const catalog = reference.mounts ?? []
-  const funds = sheet.money + (sheet.isCreationPhase ? sheet.startingPurchaseBudget : 0)
+  const funds = sheet.money
 
   async function run(action: () => Promise<unknown>) {
     setBusy(true)

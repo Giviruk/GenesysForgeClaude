@@ -241,13 +241,12 @@ internal static class RepairCharge
             : req.CostOverride
                 ?? DamageStateRules.MaterialCost(basePrice ?? 0, state, req.NetAdvantages);
 
-        var charge = StartingWallet.Charge(total, c.StartingPurchaseBudget, c.Money, c.IsCreationPhase)
+        var charge = MoneyRules.Charge(total, c.Money)
             ?? throw new DomainRuleException(
                 $"Недостаточно средств на материалы: нужно {total}, "
-                + $"доступно {c.StartingPurchaseBudget + c.Money}.",
+                + $"доступно {c.Money} монет.",
                 "character.funds.insufficient");
-        c.StartingPurchaseBudget -= charge.FromBudget;
-        c.Money -= charge.FromMoney;
-        return charge.Total;
+        c.Money -= charge;
+        return charge;
     }
 }

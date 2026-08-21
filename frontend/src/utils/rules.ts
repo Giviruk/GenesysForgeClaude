@@ -10,5 +10,5 @@ export const MAX_SKILL_RANK_AT_CREATION = 2
 /** Сколько карьерных навыков можно отметить при создании для бесплатного ранга. */
 export const MAX_FREE_CAREER_SKILLS = 4
 
-/** Бюджет стартовых покупок в режиме стандартных денег (ROT-CRE-03). */
-export const MAX_STARTING_BUDGET = 500
+/** Стандартное количество денег в кошельке при создании персонажа. */
+export const STANDARD_STARTING_MONEY = 500

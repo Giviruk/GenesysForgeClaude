@@ -50,7 +50,7 @@ const mace = {
 } as unknown as SheetItem
 
 const sheet = {
-  id: 'char-1', money: 5000, startingPurchaseBudget: 0, isCreationPhase: false,
+  id: 'char-1', money: 5000, isCreationPhase: false,
   items: [sword, mace], skills: [],
   attachments: [spare('att-1', 'def-razor')],
 } as unknown as CharacterSheet

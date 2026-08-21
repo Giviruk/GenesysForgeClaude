@@ -5,7 +5,7 @@ import type {
 } from '../api/types'
 import { Icon } from '../components/Icon'
 import { CHARACTERISTICS, CHARACTERISTIC_LABELS, dualName, localizedDescription, localizedName, SYSTEM_LABELS } from '../utils/labels'
-import { MAX_FREE_CAREER_SKILLS, MAX_SKILL_RANK_AT_CREATION, MAX_STARTING_BUDGET } from '../utils/rules'
+import { MAX_FREE_CAREER_SKILLS, MAX_SKILL_RANK_AT_CREATION, STANDARD_STARTING_MONEY } from '../utils/rules'
 import { t } from '../i18n'
 
 interface Props {
@@ -561,16 +561,16 @@ export function CreateCharacterForm({ onCancel, onCreated }: { onCancel: () => v
             {equipmentMode === 'standardMoney' ? (
               <div className="hint">
                 {t(
-                  `Бюджет ${MAX_STARTING_BUDGET} серебра на стартовые покупки и отдельно карманные 1d100. Карьерный комплект не выдаётся.`,
-                  `A ${MAX_STARTING_BUDGET} silver budget for starting purchases plus separate 1d100 pocket money. No career package is granted.`,
+                  `Стандартные деньги: ${STANDARD_STARTING_MONEY} монет. Карьерный комплект не выдаётся.`,
+                  `Standard money: ${STANDARD_STARTING_MONEY} coins. No career package is granted.`,
                 )}
               </div>
             ) : (
               <>
                 <div className="hint">
                   {t(
-                    `Вместо бюджета ${MAX_STARTING_BUDGET} — весь комплект карьеры и его деньги${moneyLabel ? `: ${moneyLabel} серебра` : ''}. Нужно выбрать вариант в каждой группе.`,
-                    `Instead of the ${MAX_STARTING_BUDGET} budget — the whole career package and its money${moneyLabel ? `: ${moneyLabel} silver` : ''}. One option must be picked in every group.`,
+                    `Вместо стандартных денег — весь комплект карьеры и его деньги${moneyLabel ? `: ${moneyLabel} монет` : ''}. Нужно выбрать вариант в каждой группе.`,
+                    `Instead of standard money — the whole career package and its money${moneyLabel ? `: ${moneyLabel} coins` : ''}. One option must be picked in every group.`,
                   )}
                 </div>
                 {fixedGear.length > 0 && <div className="hint">{t('Всегда входит:', 'Always included:')} {fixedGear.map(gearLabel).join(', ')}</div>}
