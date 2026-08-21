@@ -332,6 +332,40 @@ describe('GameTableTab — статблок и броски NPC', () => {
     }))
   })
 
+  it('разрешает игроку менять бусты и сетбеки своего персонажа', async () => {
+    const playerSession = {
+      ...session,
+      allowPlayerEdits: true,
+      participants: [playerParticipant, otherPlayerParticipant],
+    }
+    const afterBoost = {
+      ...playerSession,
+      participants: [{ ...playerParticipant, boostDice: 1 }, otherPlayerParticipant],
+    }
+    const afterSetback = {
+      ...playerSession,
+      participants: [{ ...playerParticipant, boostDice: 1, setbackDice: 1 }, otherPlayerParticipant],
+    }
+    sessionMock.mockResolvedValue(playerSession)
+    updateParticipantMock.mockResolvedValueOnce(afterBoost).mockResolvedValueOnce(afterSetback)
+    render(<GameTableTab campaignId="campaign-1" isGm={false} members={[ownMember, otherMember]} />)
+
+    const ownBoost = await screen.findByRole('button', { name: 'Добавить буст Элира' }) as HTMLButtonElement
+    const otherBoost = screen.getByRole('button', { name: 'Добавить буст Торен' }) as HTMLButtonElement
+    expect(ownBoost.disabled).toBe(false)
+    expect(otherBoost.disabled).toBe(true)
+
+    fireEvent.click(ownBoost)
+    await waitFor(() => expect(updateParticipantMock).toHaveBeenCalledWith(
+      'campaign-1', 'participant-pc', { boostDice: 1 },
+    ))
+
+    fireEvent.click(screen.getByRole('button', { name: 'Добавить сетбек Элира' }))
+    await waitFor(() => expect(updateParticipantMock).toHaveBeenCalledWith(
+      'campaign-1', 'participant-pc', { setbackDice: 1 },
+    ))
+  })
+
   it('позволяет мастеру удалить NPC и персонажа прямо с их карточек', async () => {
     sessionMock.mockResolvedValue({ ...session, participants: [session.participants[0], playerParticipant] })
     vi.spyOn(window, 'confirm').mockReturnValue(true)

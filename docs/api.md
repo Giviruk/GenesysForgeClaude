@@ -786,13 +786,15 @@ Each `GameParticipant` includes the initial `count`, authoritative derived `rema
 nullable `perMemberWoundThreshold`. For a valid minion-group snapshot the individual threshold is
 `woundsThreshold / count`; a member is lost only after that threshold is exceeded. The UI rebuilds
 group-skill pools from `remainingCount`. These fields are response-only derivations and require no
-database columns. GMs can update wounds and strain through the participant `PATCH`; minions have no
-separate strain tracker.
+database columns. GMs can update wounds and strain through the participant `PATCH`; players can
+update those fields for their own player-character when `allowPlayerEdits` is enabled. Minions have
+no separate strain tracker.
 
 Each participant also exposes persistent `boostDice` and `setbackDice` counters. A GM can change
-them through the participant `PATCH` (values are clamped to `0..20`). The Game Table adds these dice
-to generic participant rolls and to NPC skill/attack pools. Player self-edit permission does not
-grant permission to change these counters.
+them through the participant `PATCH`, and a player can change them only for their own player-character
+participant when `allowPlayerEdits` is enabled (values are clamped to `0..20`). The Game Table adds
+these dice to generic participant rolls and to NPC skill/attack pools. Players cannot change the
+counters of NPCs or other characters.
 
 ## Encounters
 

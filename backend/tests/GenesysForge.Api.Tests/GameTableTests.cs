@@ -286,7 +286,31 @@ public class GameTableTests : IClassFixture<ApiFactory>
         var updated = (await ok.Content.ReadFromJsonAsync<GameSessionDto>(Json.Options))!;
         var participant = updated.Participants.First(p => p.Id == pid);
         Assert.Equal(3, participant.WoundsCurrent);
-        Assert.Equal(0, participant.BoostDice); // разрешение игроку относится только к wounds/strain
+        Assert.Equal(4, participant.BoostDice);
+        Assert.Equal(3, participant.SetbackDice);
+    }
+
+    [Fact]
+    public async Task PlayerEdit_CannotChangeNpcModifiers()
+    {
+        var (gm, player, campaignId, _) = await SetupCampaignWithPlayerAsync(_factory);
+        await CreateSessionAsync(gm, campaignId);
+        var addResp = await gm.PostAsJsonAsync($"/api/campaigns/{campaignId}/session/participants",
+            new AddParticipantRequest(null, null, "Страж", ParticipantType.Npc, null, null, 8, null, 2, 0, 0), Json.Options);
+        var session = (await addResp.Content.ReadFromJsonAsync<GameSessionDto>(Json.Options))!;
+        var participantId = session.Participants.Single().Id;
+
+        await gm.PatchAsJsonAsync($"/api/campaigns/{campaignId}/session",
+            new UpdateSessionRequest(null, null, null, null, null, null, true), Json.Options);
+        var denied = await player.PatchAsJsonAsync($"/api/campaigns/{campaignId}/session/participants/{participantId}",
+            new UpdateParticipantRequest(null, null, null, null, null, null, null, null, null, null, null, null, null, null,
+                BoostDice: 4, SetbackDice: 3), Json.Options);
+
+        Assert.Equal(HttpStatusCode.BadRequest, denied.StatusCode);
+        var unchanged = (await gm.GetFromJsonAsync<GameSessionDto>(
+            $"/api/campaigns/{campaignId}/session", Json.Options))!;
+        var participant = unchanged.Participants.Single();
+        Assert.Equal(0, participant.BoostDice);
         Assert.Equal(0, participant.SetbackDice);
     }
 

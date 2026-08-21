@@ -21,7 +21,7 @@ public class GameSession
     /// <summary>Приватные заметки мастера.</summary>
     public string GmNotes { get; set; } = "";
 
-    /// <summary>Разрешено ли игрокам менять wounds/strain своего персонажа.</summary>
+    /// <summary>Разрешено ли игрокам менять состояние и временные модификаторы своего персонажа.</summary>
     public bool AllowPlayerEdits { get; set; }
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

@@ -670,18 +670,18 @@ function ParticipantCard({ p, campaignId, isGm, canEditVitals, onRun, onUpdatePa
           onClick={stop(() => update({ strainCurrent: p.strainCurrent + 1 }))}>+</button>
 
         <span className="boost-label">{t('Бусты', 'Boosts')}</span><b>{p.boostDice}</b>
-        <button type="button" className="tiny" disabled={updatePending || !isGm || p.boostDice <= 0}
+        <button type="button" className="tiny" disabled={updatePending || !canEditVitals || p.boostDice <= 0}
           aria-label={t(`Убрать буст у ${p.displayName}`, `Remove boost from ${p.displayName}`)}
           onClick={stop(() => update({ boostDice: p.boostDice - 1 }))}>−</button>
-        <button type="button" className="tiny" disabled={updatePending || !isGm || p.boostDice >= 20}
+        <button type="button" className="tiny" disabled={updatePending || !canEditVitals || p.boostDice >= 20}
           aria-label={t(`Добавить буст ${p.displayName}`, `Add boost to ${p.displayName}`)}
           onClick={stop(() => update({ boostDice: p.boostDice + 1 }))}>+</button>
 
         <span className="setback-label">{t('Сетбеки', 'Setbacks')}</span><b>{p.setbackDice}</b>
-        <button type="button" className="tiny" disabled={updatePending || !isGm || p.setbackDice <= 0}
+        <button type="button" className="tiny" disabled={updatePending || !canEditVitals || p.setbackDice <= 0}
           aria-label={t(`Убрать сетбек у ${p.displayName}`, `Remove setback from ${p.displayName}`)}
           onClick={stop(() => update({ setbackDice: p.setbackDice - 1 }))}>−</button>
-        <button type="button" className="tiny" disabled={updatePending || !isGm || p.setbackDice >= 20}
+        <button type="button" className="tiny" disabled={updatePending || !canEditVitals || p.setbackDice >= 20}
           aria-label={t(`Добавить сетбек ${p.displayName}`, `Add setback to ${p.displayName}`)}
           onClick={stop(() => update({ setbackDice: p.setbackDice + 1 }))}>+</button>
       </div>
@@ -803,7 +803,7 @@ function NotesBlock({ session, isGm, onRun, campaignId }: BlockProps) {
           <label className="checkbox compact-checkbox">
             <input type="checkbox" checked={session.allowPlayerEdits}
               onChange={e => onRun(() => api.updateSession(campaignId, { allowPlayerEdits: e.target.checked }))} />
-            {t('Игроки меняют раны/усталость', 'Players edit wounds/strain')}
+            {t('Игроки меняют состояние и модификаторы', 'Players edit status and modifiers')}
           </label>
         )}
       </div>
