@@ -1,6 +1,11 @@
 import { useEffect, useId, useRef, useState } from 'react'
-import { parseProperties, qualityName, type ParsedProperty } from '../data/itemQualities'
+import type { Quality } from '../api/types'
+import { parseProperties, qualityName, type ItemQuality, type ParsedProperty } from '../data/itemQualities'
 import { t } from '../i18n'
+import { localizedDescription } from '../utils/labels'
+
+type QualityDefinition = Pick<Quality,
+  'code' | 'nameRu' | 'nameEn' | 'description' | 'safeDescription' | 'descriptionEn' | 'hasRating'>
 
 /**
  * Рендерит строку свойств предмета («Точное 1, Оборонительное 2») как набор тегов.
@@ -9,18 +14,41 @@ import { t } from '../i18n'
  *  - при нажатии — закрепляется и держится открытым, пока пользователь не нажмёт
  *    в любом другом месте экрана (или на сам тег ещё раз).
  */
-export function PropertyTags({ properties, className }: { properties: string | null | undefined; className?: string }) {
+export function PropertyTags({ properties, className, qualityDefinitions = [] }: {
+  properties: string | null | undefined
+  className?: string
+  /** Дополнительные серверные качества, включая пользовательские записи приватной кампании. */
+  qualityDefinitions?: QualityDefinition[]
+}) {
   const parsed = parseProperties(properties)
   if (parsed.length === 0) return null
   return (
     <span className={`prop-tags${className ? ` ${className}` : ''}`}>
-      {parsed.map((p, i) => <PropertyTag key={`${p.raw}-${i}`} property={p} />)}
+      {parsed.map((p, i) => <PropertyTag key={`${p.raw}-${i}`} property={p} qualityDefinitions={qualityDefinitions} />)}
     </span>
   )
 }
 
-function PropertyTag({ property }: { property: ParsedProperty }) {
-  const { raw, quality } = property
+function PropertyTag({ property, qualityDefinitions }: {
+  property: ParsedProperty
+  qualityDefinitions: QualityDefinition[]
+}) {
+  const { raw, rating } = property
+  const serverDefinition = qualityDefinitions.find(q => [q.code, q.nameRu, q.nameEn]
+    .filter(Boolean)
+    .some(name => normalizeQualityToken(name) === normalizeQualityToken(raw)))
+  const quality: ResolvedQuality | null = property.quality
+    ? { local: property.quality }
+    : serverDefinition ? { server: serverDefinition } : null
+  const display = quality
+    ? quality.local ? qualityName(quality.local) : localizedServerName(quality.server)
+    : raw
+  const description = quality
+    ? quality.local?.description ?? (quality.server ? localizedDescription(quality.server) : '')
+    : ''
+  const hasRating = quality
+    ? quality.local?.rated ?? quality.server?.hasRating ?? false
+    : false
   const [hovered, setHovered] = useState(false)
   const [pinned, setPinned] = useState(false)
   const wrapRef = useRef<HTMLSpanElement>(null)
@@ -47,6 +75,9 @@ function PropertyTag({ property }: { property: ParsedProperty }) {
   if (!quality) return <span className="prop-tag prop-tag-plain">{raw}</span>
 
   const open = hovered || pinned
+  const label = `${display}${rating != null ? ` ${rating}` : ''}`
+  const title = quality.local ? qualityName(quality.local) : display
+  const englishName = quality.local ? quality.local.nameEn : quality.server.nameEn
 
   return (
     <span
@@ -65,17 +96,35 @@ function PropertyTag({ property }: { property: ParsedProperty }) {
         if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setPinned(p => !p) }
       }}
     >
-      {raw}
+      {label}
       {open && (
         <span id={tipId} role="tooltip" className="prop-tooltip" onClick={e => e.stopPropagation()}>
           <span className="prop-tooltip-title">
-            {qualityName(quality)}
-            {quality.nameRu !== quality.nameEn && <span className="prop-tooltip-en"> · {t(quality.nameEn, quality.nameRu)}</span>}
-            {quality.rated && <span className="prop-tooltip-en"> · {t('рейтинг', 'rated')}</span>}
+            {title}
+            {title !== englishName && <span className="prop-tooltip-en"> · {t(englishName, title)}</span>}
+            {hasRating && <span className="prop-tooltip-en"> · {t('рейтинг', 'rated')}</span>}
           </span>
-          <span className="prop-tooltip-body">{quality.description}</span>
+          {description && <span className="prop-tooltip-body">{description}</span>}
         </span>
       )}
     </span>
   )
+}
+
+type ResolvedQuality =
+  | { local: ItemQuality; server?: never }
+  | { local?: never; server: QualityDefinition }
+
+function normalizeQualityToken(value: string): string {
+  return value.toLocaleLowerCase().replace(/ё/g, 'е').replace(/\s+\d+\s*$/, '').trim()
+}
+
+function localizedServerName(definition: QualityDefinition): string {
+  const ru = definition.nameRu?.trim() ?? ''
+  const en = definition.nameEn?.trim() ?? ''
+  const normalizedRu = ru.toLocaleLowerCase()
+  const normalizedEn = en.toLocaleLowerCase()
+  // PrivateFull data from older seeds may repeat the English name in nameRu. The
+  // built-in parser handles those known qualities before this server-only fallback.
+  return ru && normalizedRu !== normalizedEn ? t(ru, en) : t(ru || en, en || ru)
 }

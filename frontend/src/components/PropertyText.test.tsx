@@ -25,4 +25,10 @@ describe('PropertyText', () => {
     expect(screen.queryByRole('button')).toBeNull()
     expect(screen.getByText(/Взрывное заклинание/)).toBeTruthy()
   })
+
+  it('локализует английское имя качества внутри приватного описания', () => {
+    render(<PropertyText text="Blast наносит урон соседним целям." qualities={[blast]} />)
+    expect(screen.getByText('Взрыв')).toBeTruthy()
+    expect(screen.queryByText(/Blast/)).toBeNull()
+  })
 })

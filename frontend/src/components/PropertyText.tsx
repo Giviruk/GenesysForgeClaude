@@ -33,7 +33,7 @@ export function PropertyText({ text, qualities = [] }: { text: string; qualities
     const displayName = t(match.quality.nameRu, match.quality.nameEn)
     const alternateName = t(match.quality.nameEn, match.quality.nameRu)
     parts.push(
-      <InfoTip key={`${match.start}-${match.end}`} label={text.slice(match.start, match.end)}
+      <InfoTip key={`${match.start}-${match.end}`} label={displayName}
         title={displayName === alternateName ? displayName : `${displayName} · ${alternateName}`}
         className="spell-property">
         {match.quality.description}
