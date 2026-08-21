@@ -1,5 +1,8 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { API_TIMING_EVENT, api, invalidateReference, setActiveSlices, setUnauthorizedHandler, takeFreshSlices, tokenStorage } from './client'
+import {
+  API_TIMING_EVENT, api, invalidateCharacterCache, invalidateCharacterList, invalidateReference,
+  setActiveSlices, setUnauthorizedHandler, takeFreshSlices, tokenStorage,
+} from './client'
 
 describe('api client — обработка 401', () => {
   afterEach(() => {
@@ -471,5 +474,123 @@ describe('api client — части листа в ответе на правку
     await api.sheetSlices('c1', ['base', 'items'])
 
     expect(fetchMock.mock.calls[0][0]).toBe('/api/characters/c1/slices?include=base,items')
+  })
+})
+
+describe('api client — кэш листа персонажа', () => {
+  const fullBody = () => new Response(JSON.stringify({
+    id: 'c1', name: 'Герой', items: [], talents: [], talentTierCounts: {}, mounts: [], attachments: [],
+  }), { status: 200 })
+  const slicesBody = (money: number) => new Response(JSON.stringify({
+    base: { id: 'c1', money }, items: [],
+  }), { status: 200 })
+
+  afterEach(() => {
+    vi.restoreAllMocks()
+    invalidateCharacterCache()
+    invalidateCharacterList()
+    setActiveSlices(['base'])
+    tokenStorage.clear()
+  })
+
+  it('повторно открытый полный лист берётся из кэша', async () => {
+    tokenStorage.set('t')
+    const fetchMock = vi.spyOn(globalThis, 'fetch').mockImplementation(() => Promise.resolve(fullBody()))
+
+    await api.sheet('c1')
+    await api.sheet('c1')
+
+    expect(fetchMock).toHaveBeenCalledOnce()
+  })
+
+  it('параллельные запросы одного листа склеиваются', async () => {
+    tokenStorage.set('t')
+    const fetchMock = vi.spyOn(globalThis, 'fetch').mockImplementation(() => Promise.resolve(fullBody()))
+
+    await Promise.all([api.sheet('c1'), api.sheet('c1')])
+
+    expect(fetchMock).toHaveBeenCalledOnce()
+  })
+
+  it('полный лист заполняет кэш частей, а части догружаются только один раз', async () => {
+    tokenStorage.set('t')
+    const fetchMock = vi.spyOn(globalThis, 'fetch')
+      .mockImplementationOnce(() => Promise.resolve(fullBody()))
+      .mockImplementationOnce(() => Promise.resolve(slicesBody(10)))
+
+    await api.sheet('c1')
+    await api.sheetSlices('c1', ['base', 'items', 'talents'])
+    await api.sheetSlices('c1', ['base', 'items', 'talents'])
+
+    // Полный ответ уже содержит base/items, но в нём также есть talents — второй вызов не нужен.
+    expect(fetchMock).toHaveBeenCalledOnce()
+  })
+
+  it('успешная правка очищает старый лист, а ответ с частями снова заполняет кэш', async () => {
+    tokenStorage.set('t')
+    const fetchMock = vi.spyOn(globalThis, 'fetch')
+      .mockImplementationOnce(() => Promise.resolve(slicesBody(1)))
+      .mockImplementationOnce(() => Promise.resolve(slicesBody(2)))
+
+    await api.sheetSlices('c1', ['base', 'items'])
+    await api.updateCharacter('c1', { money: 2 })
+    await api.sheetSlices('c1', ['base', 'items'])
+
+    expect(fetchMock).toHaveBeenCalledTimes(2)
+    expect((await api.sheetSlices('c1', ['base'])).base).toMatchObject({ money: 2 })
+    expect(fetchMock).toHaveBeenCalledTimes(2)
+  })
+
+  it('ошибка загрузки не оставляет битую запись в кэше', async () => {
+    tokenStorage.set('t')
+    const fetchMock = vi.spyOn(globalThis, 'fetch')
+      .mockImplementationOnce(() => Promise.resolve(new Response('{}', { status: 500 })))
+      .mockImplementationOnce(() => Promise.resolve(fullBody()))
+
+    await expect(api.sheet('c1')).rejects.toMatchObject({ status: 500 })
+    await api.sheet('c1')
+
+    expect(fetchMock).toHaveBeenCalledTimes(2)
+  })
+
+  it('список персонажей также не перечитывается без успешной правки', async () => {
+    tokenStorage.set('t')
+    const fetchMock = vi.spyOn(globalThis, 'fetch').mockImplementation(() => Promise.resolve(
+      new Response(JSON.stringify([{ id: 'c1', name: 'Герой' }]), { status: 200 }),
+    ))
+
+    await api.characters()
+    await api.characters()
+
+    expect(fetchMock).toHaveBeenCalledOnce()
+  })
+
+  it('кэширует заметки, историю и проекты отдельно', async () => {
+    tokenStorage.set('t')
+    const fetchMock = vi.spyOn(globalThis, 'fetch').mockImplementation(() => Promise.resolve(
+      new Response(JSON.stringify([]), { status: 200 }),
+    ))
+
+    await api.notes('c1')
+    await api.notes('c1')
+    await api.characterAudit('c1')
+    await api.characterAudit('c1')
+    await api.crafting('c1')
+    await api.crafting('c1')
+
+    expect(fetchMock).toHaveBeenCalledTimes(3)
+  })
+
+  it('правка заметки инвалидирует только кэш листа этого персонажа', async () => {
+    tokenStorage.set('t')
+    const fetchMock = vi.spyOn(globalThis, 'fetch').mockImplementation(() => Promise.resolve(
+      new Response(JSON.stringify([]), { status: 200 }),
+    ))
+
+    await api.notes('c1')
+    await api.createNote('c1', 'Заголовок', 'Текст')
+    await api.notes('c1')
+
+    expect(fetchMock).toHaveBeenCalledTimes(3)
   })
 })
