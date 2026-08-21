@@ -314,8 +314,17 @@ function MoneyPanel({ sheet, onError, updateBaseOptimistically, d }: {
           <button className="linklike money-value" title={t('Кликните, чтобы задать точный баланс', 'Click to set the exact balance')}
             onClick={() => setEdit(String(sheet.money))}>{sheet.money}</button>
         )}
-        <span className="muted">{CURRENCY_LABEL}</span>
+        <span className="muted">{sheet.isCreationPhase && sheet.startingPurchaseBudget > 0
+          ? t('карманные монеты', 'pocket coins')
+          : CURRENCY_LABEL}</span>
       </div>
+      {sheet.isCreationPhase && sheet.startingPurchaseBudget > 0 && (
+        <div className="money-budget" aria-label={t('Бюджет стартовых покупок', 'Starting purchase budget')}>
+          <span>{t('Бюджет стартовых покупок', 'Starting purchase budget')}</span>
+          <strong>{sheet.startingPurchaseBudget}</strong>
+          <span className="muted">{' '}{CURRENCY_LABEL}</span>
+        </div>
+      )}
       <div className="money-adjust">
         <input type="number" min={1} placeholder={t('сумма', 'amount')} value={delta}
           onChange={e => setDelta(e.target.value)} />

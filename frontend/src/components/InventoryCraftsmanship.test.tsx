@@ -124,6 +124,15 @@ describe('Инвентарь: качество изготовления (ROT-WPN
     addItemMock.mockResolvedValue({ id: 'new' })
   })
 
+  it('показывает отдельный бюджет стартовых покупок рядом с карманными деньгами', () => {
+    render(<InventoryTab sheet={{ ...sheet, money: 37, startingPurchaseBudget: 500, isCreationPhase: true }}
+      reference={reference} onError={() => {}} refresh={() => Promise.resolve()} />)
+
+    expect(screen.getByLabelText('Бюджет стартовых покупок').textContent).toContain('500 монеты')
+    expect(screen.getByText('37')).toBeTruthy()
+    expect(screen.getByText('карманные монеты')).toBeTruthy()
+  })
+
   it('показывает работу экземпляра и разбор поправок', () => {
     const { container } = render(<InventoryTab sheet={sheet} reference={reference} onError={() => {}}
       refresh={() => Promise.resolve()} />)

@@ -76,6 +76,10 @@ const reference: Reference = {
         { itemCode: 'halberd', itemNameRu: 'алебарда', quantity: 1, isChoice: true, choiceGroup: 'slot-1', choiceOption: 1 },
       ],
       rules: [{ code: 'r1', kind: 'advisory', description: 'Замена Melee на Melee (Light).' }] },
+    { id: 'career-generalist', name: 'Generalist', nameRu: 'Универсал', description: 'универсал',
+      safeDescription: '', source: '', isCustom: false,
+      careerSkillNames: ['Athletics', 'Cool', 'Stealth', 'Coordination'],
+      startingMoneyFixed: 0, startingMoneyDice: '', startingGear: [], rules: [] },
   ],
   skills: [
     { id: 's1', name: 'Athletics', nameRu: 'Атлетика', characteristic: 'brawn', kind: 'general', safeDescription: '', source: '', isCustom: false },
@@ -290,5 +294,25 @@ describe('CreateCharacterForm — стартовое снаряжение кар
 
     expect(screen.getByText(/Бюджет 500 серебра/)).toBeTruthy()      // режим сброшен
     expect(screen.queryByRole('button', { name: 'алебарда' })).toBeNull()
+  })
+
+  it('смена карьеры очищает бесплатные навыки и не мешает выбрать четыре навыка новой карьеры', async () => {
+    render(<CreateCharacterForm onCancel={() => {}} onCreated={() => {}} />)
+    await waitFor(() => expect(screen.getByRole('option', { name: 'Универсал' })).toBeTruthy())
+
+    const [archetypeSelect, careerSelect] = screen.getAllByRole('combobox')
+    fireEvent.change(archetypeSelect, { target: { value: 'arch-fixed' } })
+    fireEvent.change(careerSelect, { target: { value: 'career-soldier' } })
+    fireEvent.click(screen.getByRole('button', { name: /Атлетика/ }))
+    fireEvent.click(screen.getByRole('button', { name: /Хладнокровие/ }))
+
+    fireEvent.change(careerSelect, { target: { value: 'career-generalist' } })
+    for (const name of ['Атлетика', 'Хладнокровие', 'Скрытность', 'Координация']) {
+      expect(screen.getByRole('button', { name: new RegExp(name) }).className).not.toContain('active')
+      fireEvent.click(screen.getByRole('button', { name: new RegExp(name) }))
+    }
+
+    expect(screen.getByText(/отметьте до 4.*\(4\/4\)/)).toBeTruthy()
+    expect(screen.getByRole('button', { name: /Атлетика/ }).className).toContain('active')
   })
 })
