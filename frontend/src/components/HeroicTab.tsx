@@ -13,6 +13,7 @@ import {
   WEAPON_TRAIT_LABELS,
 } from '../utils/labels'
 import { t } from '../i18n'
+import { PropertyText } from './PropertyText'
 
 interface Props {
   sheet: CharacterSheet
@@ -445,8 +446,14 @@ export function HeroicParameterSection({ sheet, reference, run }: {
           {' · '}{weapon.skillName} · {t('урон', 'damage')} {weapon.damage}
           {' · '}{t('крит', 'crit')} {weapon.crit} · {weapon.rangeBand}
           {' · '}{t('вес', 'enc')} {weapon.encumbrance} · HP {weapon.hardPoints}
-          {weapon.qualities.length > 0 && ` · ${weapon.qualities
-            .map(q => q.rating ? `${q.nameRu} ${q.rating}` : q.nameRu).join(', ')}`}
+          {weapon.qualities.length > 0 && (
+            <>
+              {' · '}
+              <PropertyText
+                text={weapon.qualities.map(q => q.rating ? `${q.nameRu} ${q.rating}` : q.nameRu).join(', ')}
+                qualities={reference.qualities} />
+            </>
+          )}
           {weapon.isLost && ` · ${t('потеряно', 'lost')}`}
           {weapon.baseAttachment && (
             <div>
