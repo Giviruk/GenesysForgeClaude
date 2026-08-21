@@ -16,6 +16,7 @@ import {
 import { DicePoolView } from '../components/DicePoolView'
 import { resolveQualityCosts } from '../utils/combat'
 import { PropertyTags } from '../components/PropertyTags'
+import { qualityProperties } from '../data/itemQualities'
 import { PrintPreview } from '../components/print/PrintPreview'
 import { AdversaryCard } from '../components/print/cards'
 import { adversaryMarkdown } from '../components/print/markdown'
@@ -417,7 +418,8 @@ function NpcGearRow({ gear, qualityDefinitions }: {
         {bonuses.length > 0 && <span className="npc-gear-bonus">{bonuses.join(' · ')}</span>}
       </div>
       {description && <div className="muted small-text npc-gear-desc">{description}</div>}
-      {item?.properties && <PropertyTags properties={item.properties} className="small-text"
+      {item && (item.properties || qualityProperties(item.qualities)) && <PropertyTags
+        properties={item.properties || qualityProperties(item.qualities)} className="small-text"
         qualityDefinitions={qualityDefinitions} />}
     </li>
   )

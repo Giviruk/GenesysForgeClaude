@@ -19,6 +19,7 @@ import {
   buildShopProducts, productPrice, productRarity, type ShopCategory, type ShopProduct,
 } from '../utils/shopCatalog'
 import { PropertyTags } from '../components/PropertyTags'
+import { qualityProperties } from '../data/itemQualities'
 import { lang, t } from '../i18n'
 import { catalogWeaponStats } from '../utils/itemCombatStats'
 
@@ -229,8 +230,10 @@ export function ShopPage() {
                   <span className="muted small-text shop-product-category">
                     {CATEGORY_LABELS[product.category]}
                   </span>
-                  {product.type === 'item' && product.item.kind === 'weapon' && product.item.properties && (
-                    <PropertyTags properties={product.item.properties} className="shop-props small-text" />
+                  {product.type === 'item' && (product.item.kind === 'weapon' || product.item.kind === 'armor')
+                    && (product.item.properties || qualityProperties(product.item.qualities)) && (
+                    <PropertyTags properties={product.item.properties || qualityProperties(product.item.qualities)}
+                      className="shop-props small-text" qualityDefinitions={reference?.qualities ?? []} />
                   )}
                 </span>
                 <span className="shop-product-stats">
@@ -265,15 +268,17 @@ export function ShopPage() {
       {selected && (
         <ProductModal product={selected}
           characters={characters.filter(character => character.system === system)}
+          qualityDefinitions={reference?.qualities ?? []}
           onClose={() => setSelected(null)} />
       )}
     </div>
   )
 }
 
-function ProductModal({ product, characters, onClose }: {
+function ProductModal({ product, characters, qualityDefinitions, onClose }: {
   product: ShopProduct
   characters: CharacterListItem[]
+  qualityDefinitions: Reference['qualities']
   onClose: () => void
 }) {
   const [characterId, setCharacterId] = useState(characters[0]?.id ?? '')
@@ -388,8 +393,10 @@ function ProductModal({ product, characters, onClose }: {
           <p className="muted">{productSecondaryName(product)}</p>
         )}
         <p>{productDescription(product) || t('Описание отсутствует.', 'No description available.')}</p>
-        {item?.kind === 'weapon' && item.properties && (
-          <PropertyTags properties={item.properties} className="shop-props" />
+        {(item?.kind === 'weapon' || item?.kind === 'armor')
+          && item && (item.properties || qualityProperties(item.qualities)) && (
+          <PropertyTags properties={item.properties || qualityProperties(item.qualities)} className="shop-props"
+            qualityDefinitions={qualityDefinitions} />
         )}
         {productSource(product) && <p className="muted small-text">{productSource(product)}</p>}
 

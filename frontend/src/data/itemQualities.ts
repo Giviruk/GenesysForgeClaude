@@ -35,6 +35,21 @@ export const canonicalQualityName = (name: string): string => {
   return quality ? qualityName(quality) : name
 }
 
+/** Строка структурных качеств предмета для общего компонента тегов. */
+export function qualityProperties(qualities: readonly {
+  nameRu?: string | null
+  nameEn?: string | null
+  rating?: number | null
+}[] | null | undefined): string {
+  return (qualities ?? [])
+    .map(q => {
+      const name = canonicalQualityName(q.nameEn || q.nameRu || '')
+      return name && q.rating != null && q.rating > 0 ? `${name} ${q.rating}` : name
+    })
+    .filter(Boolean)
+    .join(', ')
+}
+
 export const ITEM_QUALITIES: ItemQuality[] = [
   {
     nameRu: 'Автоматическое', nameEn: 'Auto-fire', rated: false,

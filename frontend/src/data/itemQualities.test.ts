@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { itemTags, repeatsProperties } from './itemQualities'
+import { itemTags, qualityProperties, repeatsProperties } from './itemQualities'
 
 describe('itemTags — нормализованные теги из свойств', () => {
   it('убирает числовой рейтинг и берёт каноничное имя свойства', () => {
@@ -23,6 +23,18 @@ describe('itemTags — нормализованные теги из свойст
     expect(itemTags('')).toEqual([])
     expect(itemTags(null)).toEqual([])
     expect(itemTags(undefined)).toEqual([])
+  })
+})
+
+describe('qualityProperties — структурные качества предмета', () => {
+  it('канонизирует английское имя и сохраняет рейтинг', () => {
+    expect(qualityProperties([{ nameRu: 'Vicious', nameEn: 'Vicious', rating: 2 }]))
+      .toBe('Высококритичное 2')
+  })
+
+  it('не добавляет нулевой рейтинг безымянному качеству', () => {
+    expect(qualityProperties([{ nameRu: 'Превосходное', nameEn: 'Superior', rating: 0 }]))
+      .toBe('Превосходное')
   })
 })
 

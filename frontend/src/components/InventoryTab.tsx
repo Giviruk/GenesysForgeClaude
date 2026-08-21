@@ -19,7 +19,7 @@ import {
   craftsmanshipApplies, craftsmanshipPrice, craftsmanshipRarity,
 } from '../utils/craftsmanship'
 import { IMPLEMENT_MATERIALS, implementPrice, implementRarity } from '../utils/implements'
-import { itemTags } from '../data/itemQualities'
+import { itemTags, qualityProperties } from '../data/itemQualities'
 import { DicePoolView } from './DicePoolView'
 import { qualitiesFromProperties } from '../utils/combat'
 import { PropertyTags } from './PropertyTags'
@@ -352,6 +352,7 @@ function ShopRow({ item, money, run, sheetId, qualityDefinitions, open, onToggle
     ? implementRarity(item.rarity, material)
     : canChoose ? craftsmanshipRarity(item.rarity, craftsmanship) : item.rarity
   const weaponStats = item.kind === 'weapon' ? catalogWeaponStats(item) : null
+  const properties = item.properties || qualityProperties(item.qualities)
   return (
     <div className="shop-row">
       <div className="shop-row-head">
@@ -377,7 +378,7 @@ function ShopRow({ item, money, run, sheetId, qualityDefinitions, open, onToggle
           </div>
           {itemDescription(item) &&
             <div className="muted small-text shop-desc">{itemDescription(item)}</div>}
-          {item.properties && <PropertyTags properties={item.properties} className="shop-props small-text"
+          {properties && <PropertyTags properties={properties} className="shop-props small-text"
             qualityDefinitions={qualityDefinitions} />}
         </div>
         <div className="shop-row-actions">
@@ -489,6 +490,8 @@ function InventoryCard({ item, sheet, skillNames, run, reference, funds, sellOpe
   const skillName = resolveWeaponSkillName(item.skillName, skillNames)
   // Запись каталога нужна памятке материала: она показывает, во что материал превратил цену.
   const catalogueDef = reference.items.find(d => d.id === item.itemDefId) ?? null
+  // У брони структурные качества могут быть только в справочнике, без legacy-строки properties.
+  const properties = item.properties || (item.kind === 'armor' ? qualityProperties(catalogueDef?.qualities) : '')
   const skill = skillName ? sheet.skills.find(s => s.name === skillName) ?? null : null
   const skillLabel = skill ? localizedName(skill) : item.skillName
 
@@ -520,7 +523,6 @@ function InventoryCard({ item, sheet, skillNames, run, reference, funds, sellOpe
             {item.hardPoints != null && ` · HP ${item.usedHardPoints}/${item.hardPoints}`}
             {/* Работа обычной стали ничего не меняет — её и не показываем (ROT-WPN-02). */}
             {item.craftsmanship !== 'steel' && ` · ${WEAPON_CRAFTSMANSHIP_LABELS[item.craftsmanship]}`}
-            {item.reinforced && t(' · укреплённое', ' · reinforced')}
           </span>
         </div>
         <div className="inv-card-qty">
@@ -537,9 +539,11 @@ function InventoryCard({ item, sheet, skillNames, run, reference, funds, sellOpe
           reference={reference} run={run} />
       )}
 
-      {item.kind !== 'weapon' && item.properties && (
-        <PropertyTags properties={item.properties} className="small-text" qualityDefinitions={reference.qualities} />
+      {item.kind !== 'weapon' && properties && (
+        <PropertyTags properties={properties} className="small-text" qualityDefinitions={reference.qualities} />
       )}
+      {item.reinforced && <PropertyTags properties="Reinforced" className="small-text"
+        qualityDefinitions={reference.qualities} />}
 
       {hasBonus && (
         <div className="muted small-text">
