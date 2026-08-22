@@ -7,7 +7,7 @@ function detail(isGm: boolean, isMine = false): CampaignDetail {
   return {
     id: 'c1', name: 'Поход', description: '', isGm, joinCode: isGm ? 'ABC123' : null,
     members: [{ characterId: 'ch1', characterName: 'Бард', system: 'genesysCore',
-      archetype: 'Человек', career: 'Бард', isMine }],
+      archetype: 'Человек', career: 'Бард', isMine, availableXp: isMine ? 40 : null }],
     notes: [],
   }
 }
@@ -163,6 +163,14 @@ describe('CampaignsPage — GM просмотр листа участника (U
 
     await waitFor(() => expect(screen.getAllByText('Бард').length).toBeGreaterThan(0))
     expect(screen.queryByRole('button', { name: 'Лист' })).toBeNull()
+  })
+
+  it('игрок видит доступный XP своего персонажа на обзоре', async () => {
+    campaignMock.mockResolvedValue(detail(false, true))
+    render(<CampaignsPage {...props} />)
+
+    await waitFor(() => expect(screen.getByText('Персонажи группы')).toBeTruthy())
+    expect(screen.getByText('Свободно XP:').parentElement?.textContent).toContain('40')
   })
 
   it('показывает вкладку кастома только мастеру', async () => {

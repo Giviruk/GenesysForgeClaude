@@ -1182,6 +1182,8 @@ export interface CampaignMember {
   career: string
   isMine: boolean
   portraitUrl?: string | null
+  /** Доступный XP показываем только владельцу персонажа. */
+  availableXp?: number | null
 }
 
 export interface CampaignNote {

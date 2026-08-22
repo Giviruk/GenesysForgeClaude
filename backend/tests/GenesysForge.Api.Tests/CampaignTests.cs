@@ -49,6 +49,12 @@ public class CampaignTests : IClassFixture<ApiFactory>
         var gmView = (await gm.GetFromJsonAsync<CampaignDetailDto>($"/api/campaigns/{campaign.Id}", Json.Options))!;
         var member = Assert.Single(gmView.Members, m => m.CharacterId == charId && m.CharacterName == "Бард");
         Assert.Null(member.PortraitUrl);
+        Assert.Null(member.AvailableXp);
+
+        var playerView = (await player.GetFromJsonAsync<CampaignDetailDto>($"/api/campaigns/{campaign.Id}", Json.Options))!;
+        var playerMember = Assert.Single(playerView.Members, m => m.CharacterId == charId);
+        var playerCharacters = (await player.GetFromJsonAsync<List<CharacterListItemDto>>("/api/characters/", Json.Options))!;
+        Assert.Equal(playerCharacters.Single(c => c.Id == charId).AvailableXp, playerMember.AvailableXp);
     }
 
     [Fact]

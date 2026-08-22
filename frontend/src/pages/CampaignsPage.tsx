@@ -539,7 +539,7 @@ function CampaignMemberCard({ member, sheet, isGm, onOpenSheet, onRemove }: {
         <div className="campaign-pc-fallback">{SYSTEM_LABELS[member.system]}</div>
       )}
       <div className="campaign-pc-foot">
-        <span>{t('Свободно XP:', 'Available XP:')} <b>{sheet?.availableXp ?? '—'}</b></span>
+        <span>{t('Свободно XP:', 'Available XP:')} <b>{sheet?.availableXp ?? member.availableXp ?? '—'}</b></span>
         <span className="campaign-pc-actions">
           {(isGm || member.isMine) && <button className="small" onClick={() => onOpenSheet(member.characterId, member.characterName)}>{t('Лист', 'Sheet')}</button>}
           {(isGm || member.isMine) && <button className="danger small" onClick={() => void onRemove(member.characterId)}>{t('Убрать', 'Remove')}</button>}
