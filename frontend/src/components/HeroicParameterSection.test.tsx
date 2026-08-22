@@ -172,6 +172,17 @@ describe('HeroicParameterSection (ROT-HA-02)', () => {
     expect(screen.getByRole('option', { name: 'Гномья работа' })).toBeTruthy()
   })
 
+  it('показывает свойства выбранного качества изготовления', () => {
+    render(<HeroicParameterSection
+      sheet={sheetWith({ ...emptyConfig, kind: 'signatureWeapon', complete: false })}
+      reference={reference} run={run} />)
+
+    expect(screen.getByText(/Без изменений: базовые характеристики профиля/)).toBeTruthy()
+
+    fireEvent.change(screen.getAllByRole('combobox')[0], { target: { value: 'dwarven' } })
+    expect(screen.getByText(/Урон \+1, вес \+1, редкость \+2/)).toBeTruthy()
+  })
+
   it('после покупки Improved просит выбрать Укреплённое или древнюю работу', async () => {
     render(<HeroicParameterSection
       sheet={sheetWith({

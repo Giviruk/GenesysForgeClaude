@@ -574,6 +574,21 @@ export const WEAPON_CRAFTSMANSHIP_LABELS: Record<WeaponCraftsmanship, string> = 
   ancient: 'Ancient',
 })
 
+/** Краткая расшифровка поправок качества изготовления для оружия (ROT-WPN-02). */
+export const SIGNATURE_WEAPON_CRAFTSMANSHIP_HINTS: Record<WeaponCraftsmanship, string> = t({
+  steel: 'Без изменений: базовые характеристики профиля.',
+  dwarven: 'Урон +1, вес +1, редкость +2, цена ×2; слоты не меняются.',
+  elven: 'Урон −1, крит −1, редкость +3, цена ×2; вес и слоты не меняются.',
+  iron: 'Улучшение недоступно при создании именного оружия.',
+  ancient: 'Выбирается только улучшением Improved: урон +1, крит −1, слоты −1 и качество «Укреплённое».',
+}, {
+  steel: 'No changes: the profile’s base statistics stay the same.',
+  dwarven: 'Damage +1, encumbrance +1, rarity +2, price ×2; hard points are unchanged.',
+  elven: 'Damage −1, crit −1, rarity +3, price ×2; encumbrance and hard points are unchanged.',
+  iron: 'Not available when creating a signature weapon.',
+  ancient: 'Only chosen through the Improved upgrade: damage +1, crit −1, hard points −1 and the Reinforced quality.',
+})
+
 /**
  * Прилагательное для строки разбора поправок: «эльфийское · Вес 6 → 8». Отдельно от
  * <see cref="WEAPON_CRAFTSMANSHIP_LABELS"/>: там названия работы, а здесь свойство предмета.
