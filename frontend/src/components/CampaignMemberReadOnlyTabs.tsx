@@ -76,7 +76,9 @@ function ReadOnlyItem({ item }: { item: SheetItem }) {
     {item.kind === 'armor' && <div className="muted small-text">
       {t('Поглощение', 'Soak')} +{item.soakBonus} · {t('Защита', 'Defense')} {item.meleeDefense}/{item.rangedDefense}
     </div>}
-    {item.properties && <PropertyTags properties={item.properties} className="small-text" />}
+    {(item.properties || item.reinforced) && <PropertyTags
+      properties={[item.properties, item.reinforced ? 'Reinforced' : ''].filter(Boolean).join(', ')}
+      className="small-text" />}
     {item.attachments.length > 0 && <div className="muted small-text">
       {t('Улучшения', 'Attachments')}: {item.attachments.map(value => localizedName(value)).join(' · ')}
     </div>}

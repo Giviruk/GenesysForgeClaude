@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { fireEvent, render, screen } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 import type { CharacterSheet } from '../api/types'
 import { ReadOnlyBioTab, ReadOnlyInventoryTab, ReadOnlyTalentsTab } from './CampaignMemberReadOnlyTabs'
@@ -33,5 +33,21 @@ describe('campaign member read-only tabs', () => {
     render(<ReadOnlyBioTab sheet={sheet} />)
     expect(screen.getByText('Защитить город')).toBeTruthy()
     expect(screen.getByText('Бывший стражник.')).toBeTruthy()
+  })
+
+  it('показывает укреплённую броню русским тегом с тултипом', () => {
+    const armorSheet = {
+      ...sheet,
+      items: [{
+        id: 'armor-1', name: 'Plate', nameRu: 'Латы', kind: 'armor', state: 'equipped', quantity: 1,
+        damageState: 'undamaged', isUsable: true, attackProfiles: [], damage: '', crit: '', rangeBand: '',
+        properties: '', reinforced: true, attachments: [], description: '', descriptionEn: '', safeDescription: '', load: 4,
+      }],
+    } as unknown as CharacterSheet
+
+    render(<ReadOnlyInventoryTab sheet={armorSheet} />)
+    const quality = screen.getByRole('button', { name: /Укреплённое/ })
+    fireEvent.mouseEnter(quality)
+    expect(screen.getByRole('tooltip').textContent).toMatch(/Броня с этим свойством/)
   })
 })
