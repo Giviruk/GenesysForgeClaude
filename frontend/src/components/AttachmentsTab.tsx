@@ -270,7 +270,9 @@ export function AttachmentsTab({ sheet, reference, onError, refresh }: Props) {
             ))}
             {i.attachmentNotes.length > 0 && (
               <ul className="muted small-text attach-notes">
-                {i.attachmentNotes.map((n, idx) => <li key={idx}>{n}</li>)}
+                {i.attachmentNotes.map((n, idx) => <li key={idx}>
+                  <PropertyText text={n} qualities={reference.qualities} />
+                </li>)}
               </ul>
             )}
           </div>
