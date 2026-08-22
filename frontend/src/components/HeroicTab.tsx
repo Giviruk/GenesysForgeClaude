@@ -411,6 +411,8 @@ export function HeroicParameterSection({ sheet, reference, run }: {
   // у профиля уже есть, отсеивает сервер: своей таблицы качеств профилей у клиента нет.
   const compatibleAttachments = (reference.attachments ?? []).filter(def =>
     isAttachmentCompatible('weapon', signatureWeaponTraits(profile, traits), def))
+  const selectedBaseAttachment = (reference.attachments ?? [])
+    .find(def => def.id === baseAttachmentId)
 
   // Supreme считает совместимость по уже подтверждённой форме оружия и знает про предел редкости;
   // вместимость по слотам и повтор базового проверяет сервер.
@@ -618,6 +620,12 @@ export function HeroicParameterSection({ sheet, reference, run }: {
               ))}
             </select>
           </div>
+          {selectedBaseAttachment?.description && (
+            <p className="hint small-text">
+              <b>{t('Что даёт улучшение:', 'What the attachment gives:')}</b>{' '}
+              <PropertyText text={localizedDescription(selectedBaseAttachment)} qualities={reference.qualities} />
+            </p>
+          )}
           <p className="hint small-text">
             {compatibleAttachments.length === 0
               ? t('Под выбранную форму улучшений нет — измените профиль или признаки формы.',

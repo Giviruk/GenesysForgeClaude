@@ -26,11 +26,13 @@ const reference = {
       id: 'att-thunder', code: 'rot.attachment.runic-thunder', name: 'Runic Thunder',
       nameRu: 'Рунический гром', hostKind: 'weapon',
       requiredTraits: 'none', requiredAnyTraits: 'none', forbiddenTraits: 'none',
+      description: 'Добавляет свойство «Ошеломление» 1.', descriptionEn: 'Adds the Disorient 1 quality.',
     },
     {
       id: 'att-missile', code: 'rot.attachment.explosive-missile', name: 'Explosive Missile',
       nameRu: 'Взрывной снаряд', hostKind: 'weapon',
       requiredTraits: 'ranged', requiredAnyTraits: 'none', forbiddenTraits: 'none',
+      description: 'Добавляет свойство «Взрыв» 5.', descriptionEn: 'Adds the Blast 5 quality.',
     },
   ],
   qualities: [{
@@ -181,6 +183,16 @@ describe('HeroicParameterSection (ROT-HA-02)', () => {
 
     fireEvent.change(screen.getAllByRole('combobox')[0], { target: { value: 'dwarven' } })
     expect(screen.getByText(/Урон \+1, вес \+1, редкость \+2/)).toBeTruthy()
+  })
+
+  it('показывает описание выбранного базового улучшения', () => {
+    render(<HeroicParameterSection
+      sheet={sheetWith({ ...emptyConfig, kind: 'signatureWeapon', complete: false })}
+      reference={reference} run={run} />)
+
+    fireEvent.change(screen.getByLabelText('Базовое улучшение'), { target: { value: 'att-thunder' } })
+
+    expect(screen.getByText(/Добавляет свойство/)).toBeTruthy()
   })
 
   it('после покупки Improved просит выбрать Укреплённое или древнюю работу', async () => {
