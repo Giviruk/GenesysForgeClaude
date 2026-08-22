@@ -4,11 +4,9 @@ import type { CharacterSheet, HeroicIdentity } from '../api/types'
 import { HeroicIdentitySection } from './HeroicTab'
 
 const setIdentityMock = vi.fn()
-const rollOriginMock = vi.fn()
 vi.mock('../api/client', () => ({
   api: {
     setHeroicIdentity: (...a: unknown[]) => setIdentityMock(...a),
-    rollHeroicOrigin: (...a: unknown[]) => rollOriginMock(...a),
   },
 }))
 
@@ -38,9 +36,6 @@ const run = (action: () => Promise<unknown>) => action().then(() => {})
 describe('HeroicIdentitySection (ROT-HA-01)', () => {
   beforeEach(() => {
     setIdentityMock.mockReset().mockResolvedValue(undefined)
-    rollOriginMock.mockReset().mockResolvedValue({
-      rolls: [0, 4, 7], originMode: 'doubleStandard', originPrimary: 'patron', originSecondary: 'blessingOrCurse',
-    })
   })
 
   it('требует и название, и происхождение до сохранения', async () => {
@@ -61,39 +56,14 @@ describe('HeroicIdentitySection (ROT-HA-01)', () => {
     }))
   })
 
-  it('собственное происхождение уходит текстом, а не категорией таблицы', async () => {
+  it('оставляет только селект происхождения из таблицы', () => {
     render(<HeroicIdentitySection sheet={sheetWith(emptyIdentity)} run={run} />)
 
-    fireEvent.change(screen.getByPlaceholderText('Личное название'), { target: { value: 'Дар предков' } })
-    fireEvent.click(screen.getByRole('radio', { name: /описать/ }))
-    fireEvent.change(screen.getByPlaceholderText('Откуда взялась сила'), { target: { value: 'Клятва мести' } })
-
-    fireEvent.click(screen.getByRole('button', { name: 'Сохранить' }))
-    await waitFor(() => expect(setIdentityMock).toHaveBeenCalledWith('char-1', {
-      customName: 'Дар предков', originMode: 'custom', originNarrative: 'Клятва мести',
-    }))
-  })
-
-  it('бросок выполняет сервер, а сохранение названия не переписывает происхождение', async () => {
-    const { rerender } = render(<HeroicIdentitySection sheet={sheetWith(emptyIdentity)} run={run} />)
-
-    fireEvent.click(screen.getByRole('radio', { name: /бросить/ }))
-    fireEvent.click(screen.getByRole('button', { name: /Бросить d10/ }))
-    await waitFor(() => expect(rollOriginMock).toHaveBeenCalledWith('char-1'))
-
-    // Сервер вернул специальный результат: лист перезагружается уже с двумя категориями.
-    const rolled: HeroicIdentity = {
-      ...emptyIdentity,
-      originMode: 'doubleStandard',
-      originPrimary: 'patron',
-      originSecondary: 'blessingOrCurse',
-      originRolls: [0, 4, 7],
-    }
-    rerender(<HeroicIdentitySection sheet={sheetWith(rolled)} run={run} />)
-
-    fireEvent.change(screen.getByPlaceholderText('Личное название'), { target: { value: 'Наследие' } })
-    fireEvent.click(screen.getByRole('button', { name: 'Сохранить' }))
-    await waitFor(() => expect(setIdentityMock).toHaveBeenCalledWith('char-1', { customName: 'Наследие' }))
+    expect(screen.getAllByRole('combobox')).toHaveLength(1)
+    expect(screen.queryByRole('radio')).toBeNull()
+    expect(screen.queryByPlaceholderText('Откуда взялась сила')).toBeNull()
+    expect(screen.queryByRole('button', { name: /Бросить d10/ })).toBeNull()
+    expect(screen.queryByText(/обязательны для завершения создания/)).toBeNull()
   })
 
   it('показывает обе категории и грани специального броска', () => {
@@ -108,7 +78,7 @@ describe('HeroicIdentitySection (ROT-HA-01)', () => {
     }
     render(<HeroicIdentitySection sheet={sheetWith(complete)} run={run} />)
 
-    const summary = screen.getByText(/Покровительство/)
+    const summary = screen.getByText(/Покровительство/, { selector: '.hint' })
     expect(summary.textContent).toContain('Благословение либо проклятие')
     expect(summary.textContent).toContain('0, 4, 7')
     expect(summary.textContent).toContain('0 — бросить ещё дважды')

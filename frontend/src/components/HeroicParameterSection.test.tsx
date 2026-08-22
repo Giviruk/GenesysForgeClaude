@@ -26,11 +26,13 @@ const reference = {
       id: 'att-thunder', code: 'rot.attachment.runic-thunder', name: 'Runic Thunder',
       nameRu: 'Рунический гром', hostKind: 'weapon',
       requiredTraits: 'none', requiredAnyTraits: 'none', forbiddenTraits: 'none',
+      description: 'Добавляет свойство «Ошеломление» 1.', descriptionEn: 'Adds the Disorient 1 quality.',
     },
     {
       id: 'att-missile', code: 'rot.attachment.explosive-missile', name: 'Explosive Missile',
       nameRu: 'Взрывной снаряд', hostKind: 'weapon',
       requiredTraits: 'ranged', requiredAnyTraits: 'none', forbiddenTraits: 'none',
+      description: 'Добавляет свойство «Взрыв» 5.', descriptionEn: 'Adds the Blast 5 quality.',
     },
   ],
   qualities: [{
@@ -141,9 +143,10 @@ describe('HeroicParameterSection (ROT-HA-02)', () => {
       sheet={sheetWith({ ...emptyConfig, kind: 'signatureWeapon', complete: false })}
       reference={reference} run={run} />)
 
-    fireEvent.click(screen.getByRole('radio', { name: /Двуручный/ }))
-    fireEvent.change(screen.getByPlaceholderText('форма оружия'), { target: { value: 'Родовой молот' } })
-    fireEvent.click(screen.getByRole('checkbox', { name: /дробящее/ }))
+    fireEvent.change(screen.getByLabelText('Профиль оружия'), { target: { value: 'twoHanded' } })
+    const traitSelect = screen.getByLabelText('Признаки формы') as HTMLSelectElement
+    traitSelect.options[3].selected = true
+    fireEvent.change(traitSelect)
 
     // Ближней форме предлагают только подходящее улучшение: дальнобойного в списке нет.
     const attachmentPicker = screen.getByLabelText('Базовое улучшение')
@@ -155,7 +158,7 @@ describe('HeroicParameterSection (ROT-HA-02)', () => {
     await waitFor(() => expect(setConfigMock).toHaveBeenCalledWith('char-1', {
       weaponProfile: 'twoHanded',
       craftsmanship: 'steel',
-      narrativeForm: 'Родовой молот',
+      narrativeForm: 'Двуручный',
       formTraits: 'bluntOrCrushing',
       baseAttachmentDefId: 'att-thunder',
     }))
@@ -179,8 +182,18 @@ describe('HeroicParameterSection (ROT-HA-02)', () => {
 
     expect(screen.getByText(/Без изменений: базовые характеристики профиля/)).toBeTruthy()
 
-    fireEvent.change(screen.getAllByRole('combobox')[0], { target: { value: 'dwarven' } })
+    fireEvent.change(screen.getByLabelText('Качество изготовления'), { target: { value: 'dwarven' } })
     expect(screen.getByText(/Урон \+1, вес \+1, редкость \+2/)).toBeTruthy()
+  })
+
+  it('показывает описание выбранного базового улучшения', () => {
+    render(<HeroicParameterSection
+      sheet={sheetWith({ ...emptyConfig, kind: 'signatureWeapon', complete: false })}
+      reference={reference} run={run} />)
+
+    fireEvent.change(screen.getByLabelText('Базовое улучшение'), { target: { value: 'att-thunder' } })
+
+    expect(screen.getByText(/Добавляет свойство/)).toBeTruthy()
   })
 
   it('после покупки Improved просит выбрать Укреплённое или древнюю работу', async () => {
@@ -201,8 +214,6 @@ describe('HeroicParameterSection (ROT-HA-02)', () => {
     render(<HeroicParameterSection
       sheet={sheetWith({ ...emptyConfig, kind: 'signatureWeapon', complete: false })}
       reference={reference} run={run} />)
-
-    fireEvent.change(screen.getByPlaceholderText('форма оружия'), { target: { value: 'Фамильный меч' } })
 
     expect(screen.getByRole('button', { name: 'Сохранить' })).toHaveProperty('disabled', true)
   })
