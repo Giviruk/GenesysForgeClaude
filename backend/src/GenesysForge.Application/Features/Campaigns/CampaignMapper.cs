@@ -26,7 +26,10 @@ public static class CampaignMapper
                 cc.Character.Archetype!.NameRu,
                 cc.Character.Career!.NameRu,
                 cc.PlayerUserId == userId,
-                cc.Character.PortraitUrl))
+                cc.Character.PortraitUrl,
+                cc.PlayerUserId == userId
+                    ? cc.Character.TotalXp - cc.Character.SpentXp
+                    : null))
             .ToListAsync(ct);
 
         // GM видит все заметки; игрок — только общие (не приватные)
