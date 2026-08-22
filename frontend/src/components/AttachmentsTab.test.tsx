@@ -165,6 +165,27 @@ describe('Улучшения предметов (ROT-EQP-ATT-01)', () => {
     expect(installedSection().textContent).toContain('Бритвенная кромка')
   })
 
+  it('делает качество в описании установленного улучшения интерактивным', () => {
+    const describedRazor = {
+      ...razorDef,
+      description: 'Для клинкового оружия: получает Pierce 2.',
+    } as unknown as AttachmentDef
+    const installedAttachment = spare('att-1', 'def-razor', { hostCharacterItemId: 'item-sword' })
+    const installed = {
+      ...sheet,
+      items: [{ ...sword, usedHardPoints: 1, attachments: [installedAttachment] }, mace],
+      attachments: [installedAttachment],
+    } as unknown as CharacterSheet
+
+    render(<AttachmentsTab sheet={installed}
+      reference={{ attachments: [describedRazor], qualities: [] } as unknown as Reference}
+      onError={() => {}} refresh={() => Promise.resolve()} />)
+
+    const quality = screen.getByRole('button', { name: /Проникающее/ })
+    fireEvent.mouseEnter(quality)
+    expect(screen.getByRole('tooltip').textContent).toMatch(/игнорирует поглощение/)
+  })
+
   it('держит каталог закрытым, пока его не откроют', () => {
     render(<AttachmentsTab sheet={sheet} reference={reference} onError={() => {}}
       refresh={() => Promise.resolve()} />)

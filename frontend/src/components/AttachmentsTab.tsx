@@ -9,6 +9,7 @@ import {
   localizedName, parseWeaponTraits,
 } from '../utils/labels'
 import { DamageStateControls } from './ItemDamageControls'
+import { PropertyText } from './PropertyText'
 import { t } from '../i18n'
 
 interface Props {
@@ -260,6 +261,7 @@ export function AttachmentsTab({ sheet, reference, onError, refresh }: Props) {
             </span>
             {i.attachments.map(a => (
               <AttachmentRow key={a.id} attachment={a} def={defsById.get(a.attachmentDefId)}
+                qualityDefinitions={reference.qualities}
                 funds={funds}
                 onDetach={outcome => run(() => api.detachAttachment(sheet.id, a.id, outcome))}
                 onSetDamageState={state =>
@@ -282,6 +284,7 @@ export function AttachmentsTab({ sheet, reference, onError, refresh }: Props) {
           )}
           {spareShown.map(a => (
             <AttachmentRow key={a.id} attachment={a} def={defsById.get(a.attachmentDefId)}
+              qualityDefinitions={reference.qualities}
               onRemove={() => run(() => api.removeAttachment(sheet.id, a.id))} />
           ))}
         </Section>
@@ -303,7 +306,9 @@ export function AttachmentsTab({ sheet, reference, onError, refresh }: Props) {
                 {d.price === null ? t(' · бесценно', ' · priceless') : ` · ${d.price} 🪙`}
                 {d.isEnchantment && t(' · чары', ' · enchantment')}
               </span>
-              {d.description && <div className="muted small-text">{d.description}</div>}
+              {d.description && <div className="muted small-text">
+                <PropertyText text={d.description} qualities={reference.qualities} />
+              </div>}
             </div>
             <div className="attach-row-actions">
               <button className="primary small"
@@ -331,9 +336,10 @@ function hasMagicRank(sheet: CharacterSheet): boolean {
   return sheet.skills.some(s => s.kind === 'magic' && s.ranks > 0)
 }
 
-function AttachmentRow({ attachment, def, funds, onDetach, onRemove, onSetDamageState, onRepair }: {
+function AttachmentRow({ attachment, def, qualityDefinitions, funds, onDetach, onRemove, onSetDamageState, onRepair }: {
   attachment: CharacterAttachment
   def?: AttachmentDef
+  qualityDefinitions?: Reference['qualities']
   /** Чем персонаж может заплатить за материалы ремонта. */
   funds?: number
   onDetach?: (outcome: 'returned' | 'destroyed' | 'unusable') => void
@@ -358,8 +364,12 @@ function AttachmentRow({ attachment, def, funds, onDetach, onRemove, onSetDamage
             ? t(' · бесценно', ' · priceless')
             : ` · ${attachment.price} 🪙`}
         </span>
-        {def?.description && <div className="muted small-text">{def.description}</div>}
-        {attachment.note && <div className="muted small-text">{attachment.note}</div>}
+        {def?.description && <div className="muted small-text">
+          <PropertyText text={def.description} qualities={qualityDefinitions} />
+        </div>}
+        {attachment.note && <div className="muted small-text">
+          <PropertyText text={attachment.note} qualities={qualityDefinitions} />
+        </div>}
         {/* Сломанное улучшение молчит, но слот не отдаёт: об этом надо сказать прямо, иначе
             непонятно, почему свободных слотов не прибавилось (GEN-EQP-DMG-01). */}
         {!attachment.isUsable && (
