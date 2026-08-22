@@ -1,4 +1,4 @@
-import { useState, type ChangeEvent } from 'react'
+import { useState } from 'react'
 import { api } from '../api/client'
 import type {
   ActivateCharacterAbilityResult, CharacterSheet, HeroicIdentity, HeroicOriginType, Reference,
@@ -331,6 +331,58 @@ export function HeroicIdentitySection({ sheet, run }: {
   )
 }
 
+function WeaponTraitsPicker({ selected, onChange }: {
+  selected: WeaponFormTrait[]
+  onChange: (traits: WeaponFormTrait[]) => void
+}) {
+  const [open, setOpen] = useState(false)
+  const selectedLabels = CONFIRMABLE_WEAPON_TRAITS
+    .filter(trait => selected.includes(trait))
+    .map(trait => WEAPON_TRAIT_LABELS[trait])
+
+  function toggle(trait: WeaponFormTrait) {
+    onChange(selected.includes(trait)
+      ? selected.filter(value => value !== trait)
+      : [...selected, trait])
+  }
+
+  return (
+    <div className="weapon-traits-picker">
+      <button type="button" className="weapon-traits-trigger"
+        aria-label={t('Признаки формы', 'Form traits')}
+        aria-haspopup="listbox" aria-expanded={open}
+        onClick={() => setOpen(value => !value)}>
+        <span>
+          {selectedLabels.length > 0
+            ? selectedLabels.join(', ')
+            : t('— выбрать признаки формы —', '— choose form traits —')}
+        </span>
+        <span className="weapon-traits-chevron" aria-hidden="true">▾</span>
+      </button>
+      {open && (
+        <div className="weapon-traits-menu" role="listbox"
+          aria-label={t('Признаки формы', 'Form traits')}>
+          {CONFIRMABLE_WEAPON_TRAITS.map(trait => {
+            const isSelected = selected.includes(trait)
+            return (
+              <button key={trait} type="button" role="option"
+                aria-selected={isSelected} className={`weapon-trait-option${isSelected ? ' selected' : ''}`}
+                onClick={() => toggle(trait)}>
+                <span aria-hidden="true">{isSelected ? '✓' : ''}</span>
+                {WEAPON_TRAIT_LABELS[trait]}
+              </button>
+            )
+          })}
+          <button type="button" className="small weapon-traits-done"
+            onClick={() => setOpen(false)}>
+            {t('Готово', 'Done')}
+          </button>
+        </div>
+      )}
+    </div>
+  )
+}
+
 /**
  * Параметр primary effect (ROT-HA-02): навык Paragon, категория Sixth Sense или именное оружие.
  * Выбирается вместе со способностью и после завершения создания не меняется; отдельная команда
@@ -371,10 +423,6 @@ export function HeroicParameterSection({ sheet, reference, run }: {
     && def.code !== weapon.baseAttachment?.code)
 
   if (!config || config.kind === 'none') return null
-
-  function selectTraits(event: ChangeEvent<HTMLSelectElement>) {
-    setTraits(Array.from(event.target.selectedOptions, option => option.value as WeaponFormTrait))
-  }
 
   const title = config.kind === 'paragonSkill' ? t('Навык способности', 'Ability skill')
     : config.kind === 'sixthSenseSubject' ? t('Что воспринимает способность', 'What the ability senses')
@@ -540,14 +588,10 @@ export function HeroicParameterSection({ sheet, reference, run }: {
             <b>{t('Что даёт качество:', 'What the craftsmanship gives:')}</b>{' '}
             {SIGNATURE_WEAPON_CRAFTSMANSHIP_HINTS[craftsmanship]}
           </p>
-          <select multiple size={CONFIRMABLE_WEAPON_TRAITS.length}
-            aria-label={t('Признаки формы', 'Form traits')}
-            value={traits.filter(trait => CONFIRMABLE_WEAPON_TRAITS.includes(trait))}
-            onChange={selectTraits}>
-            {CONFIRMABLE_WEAPON_TRAITS.map(trait => (
-              <option key={trait} value={trait}>{WEAPON_TRAIT_LABELS[trait]}</option>
-            ))}
-          </select>
+          <WeaponTraitsPicker
+            selected={traits.filter(trait => CONFIRMABLE_WEAPON_TRAITS.includes(trait))}
+            onChange={setTraits}
+          />
           <p className="hint small-text">
             {t('Признаки формы подтверждает ведущий: по ним, а не по названию, считается совместимость улучшений.',
               'The GM confirms the form traits: attachment compatibility follows them, not the name.')}

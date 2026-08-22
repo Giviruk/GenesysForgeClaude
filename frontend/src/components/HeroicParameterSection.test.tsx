@@ -144,9 +144,10 @@ describe('HeroicParameterSection (ROT-HA-02)', () => {
       reference={reference} run={run} />)
 
     fireEvent.change(screen.getByLabelText('Профиль оружия'), { target: { value: 'twoHanded' } })
-    const traitSelect = screen.getByLabelText('Признаки формы') as HTMLSelectElement
-    traitSelect.options[3].selected = true
-    fireEvent.change(traitSelect)
+    const traitPicker = screen.getByRole('button', { name: 'Признаки формы' })
+    expect(screen.queryByRole('option', { name: 'дробящее' })).toBeNull()
+    fireEvent.click(traitPicker)
+    fireEvent.click(screen.getByRole('option', { name: 'дробящее' }))
 
     // Ближней форме предлагают только подходящее улучшение: дальнобойного в списке нет.
     const attachmentPicker = screen.getByLabelText('Базовое улучшение')
