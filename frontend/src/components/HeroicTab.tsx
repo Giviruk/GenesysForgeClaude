@@ -10,7 +10,7 @@ import {
   parseWeaponTraits, signatureWeaponTraits,
   SIGNATURE_WEAPON_CRAFTSMANSHIPS, SIGNATURE_WEAPON_IMPROVEMENT_LABELS, SUPREME_ATTACHMENT_MAX_RARITY,
   SIGNATURE_WEAPON_PROFILE_LABELS, SIGNATURE_WEAPON_PROFILES, WEAPON_CRAFTSMANSHIP_LABELS,
-  WEAPON_TRAIT_LABELS,
+  WEAPON_TRAIT_LABELS, SIGNATURE_WEAPON_CRAFTSMANSHIP_HINTS,
 } from '../utils/labels'
 import { t } from '../i18n'
 import { PropertyText } from './PropertyText'
@@ -65,10 +65,13 @@ export function HeroicTab({ sheet, reference, onError, refresh }: Props) {
             </button>
           </div>
           {heroicPick && (
-            <p className="hint">{(() => {
-              const h = reference.heroicAbilities.find(x => x.id === heroicPick)
-              return h ? localizedDescription(h) : ''
-            })()}</p>
+            <div className="heroic-ability-preview">
+              <div className="hint small-text"><b>{t('Что даёт способность:', 'What the ability gives:')}</b></div>
+              <p className="hint">{(() => {
+                const h = reference.heroicAbilities.find(x => x.id === heroicPick)
+                return h ? localizedDescription(h) : ''
+              })()}</p>
+            </div>
           )}
         </>
       )}
@@ -123,6 +126,7 @@ function HeroicAbilityCard({ sheet, reference, run }: {
       {sheet.heroicIdentity?.customName && (
         <div className="hint small-text">{t('Эффект:', 'Effect:')} {localizedName(h)}</div>
       )}
+      <div className="hint small-text"><b>{t('Что даёт способность:', 'What the ability gives:')}</b></div>
       <p>{localizedDescription(h)}</p>
       {meta.filter(([, v]) => v).map(([k, v]) => (
         <div key={k} className="hint small-text"><b>{k}:</b> {v}</div>
@@ -589,6 +593,10 @@ export function HeroicParameterSection({ sheet, reference, run }: {
             <input value={form} maxLength={200} placeholder={t('форма оружия', 'weapon form')}
               onChange={e => setForm(e.target.value)} />
           </div>
+          <p className="hint small-text craftsmanship-hint">
+            <b>{t('Что даёт качество:', 'What the craftsmanship gives:')}</b>{' '}
+            {SIGNATURE_WEAPON_CRAFTSMANSHIP_HINTS[craftsmanship]}
+          </p>
           <div className="inline-form">
             {CONFIRMABLE_WEAPON_TRAITS.map(trait => (
               <label key={trait}>
