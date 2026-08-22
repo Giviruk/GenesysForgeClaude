@@ -898,6 +898,7 @@ table.ref-table td.ref-cost { white-space: nowrap; color: var(--accent); }
 .heroic-upgrade.bought { opacity: 1; border-color: var(--terrinoth); }
 .heroic-upgrade p { margin: 0.25rem 0 0; }
 .heroic-upgrade-head { display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap; }
+.heroic-identity-save { margin-top: 0.4rem; }
 
 /* ---------- Inventory ---------- */
 .inv-page { display: flex; flex-direction: column; }

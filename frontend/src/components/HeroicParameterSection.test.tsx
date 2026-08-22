@@ -143,9 +143,10 @@ describe('HeroicParameterSection (ROT-HA-02)', () => {
       sheet={sheetWith({ ...emptyConfig, kind: 'signatureWeapon', complete: false })}
       reference={reference} run={run} />)
 
-    fireEvent.click(screen.getByRole('radio', { name: /Двуручный/ }))
-    fireEvent.change(screen.getByPlaceholderText('форма оружия'), { target: { value: 'Родовой молот' } })
-    fireEvent.click(screen.getByRole('checkbox', { name: /дробящее/ }))
+    fireEvent.change(screen.getByLabelText('Профиль оружия'), { target: { value: 'twoHanded' } })
+    const traitSelect = screen.getByLabelText('Признаки формы') as HTMLSelectElement
+    traitSelect.options[3].selected = true
+    fireEvent.change(traitSelect)
 
     // Ближней форме предлагают только подходящее улучшение: дальнобойного в списке нет.
     const attachmentPicker = screen.getByLabelText('Базовое улучшение')
@@ -157,7 +158,7 @@ describe('HeroicParameterSection (ROT-HA-02)', () => {
     await waitFor(() => expect(setConfigMock).toHaveBeenCalledWith('char-1', {
       weaponProfile: 'twoHanded',
       craftsmanship: 'steel',
-      narrativeForm: 'Родовой молот',
+      narrativeForm: 'Двуручный',
       formTraits: 'bluntOrCrushing',
       baseAttachmentDefId: 'att-thunder',
     }))
@@ -181,7 +182,7 @@ describe('HeroicParameterSection (ROT-HA-02)', () => {
 
     expect(screen.getByText(/Без изменений: базовые характеристики профиля/)).toBeTruthy()
 
-    fireEvent.change(screen.getAllByRole('combobox')[0], { target: { value: 'dwarven' } })
+    fireEvent.change(screen.getByLabelText('Качество изготовления'), { target: { value: 'dwarven' } })
     expect(screen.getByText(/Урон \+1, вес \+1, редкость \+2/)).toBeTruthy()
   })
 
@@ -213,8 +214,6 @@ describe('HeroicParameterSection (ROT-HA-02)', () => {
     render(<HeroicParameterSection
       sheet={sheetWith({ ...emptyConfig, kind: 'signatureWeapon', complete: false })}
       reference={reference} run={run} />)
-
-    fireEvent.change(screen.getByPlaceholderText('форма оружия'), { target: { value: 'Фамильный меч' } })
 
     expect(screen.getByRole('button', { name: 'Сохранить' })).toHaveProperty('disabled', true)
   })

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, type ChangeEvent } from 'react'
 import { api } from '../api/client'
 import type {
   ActivateCharacterAbilityResult, CharacterSheet, HeroicIdentity, HeroicOriginType, Reference,
@@ -9,7 +9,7 @@ import {
   HEROIC_UPGRADE_LABELS, heroicOriginFace, isAttachmentCompatible, localizedDescription, localizedName,
   parseWeaponTraits, signatureWeaponTraits,
   SIGNATURE_WEAPON_CRAFTSMANSHIPS, SIGNATURE_WEAPON_IMPROVEMENT_LABELS, SUPREME_ATTACHMENT_MAX_RARITY,
-  SIGNATURE_WEAPON_PROFILE_LABELS, SIGNATURE_WEAPON_PROFILES, WEAPON_CRAFTSMANSHIP_LABELS,
+  SIGNATURE_WEAPON_PROFILE_LABELS, WEAPON_CRAFTSMANSHIP_LABELS,
   WEAPON_TRAIT_LABELS, SIGNATURE_WEAPON_CRAFTSMANSHIP_HINTS,
 } from '../utils/labels'
 import { t } from '../i18n'
@@ -256,9 +256,6 @@ function HeroicAbilityCard({ sheet, reference, run }: {
   )
 }
 
-/** Как игрок задаёт происхождение: категория таблицы, собственный текст или бросок. */
-type OriginSource = 'table' | 'custom' | 'rolled'
-
 /** Категории и грани сохранённого происхождения одной строкой. */
 function originSummary(identity: HeroicIdentity): string {
   if (identity.originMode === 'custom') return identity.originNarrative ?? ''
@@ -281,25 +278,13 @@ export function HeroicIdentitySection({ sheet, run }: {
   const editable = sheet.isCreationPhase || sheet.heroicIdentityIncomplete
 
   const [name, setName] = useState(identity?.customName ?? '')
-  const [source, setSource] = useState<OriginSource>(
-    identity?.originRolls.length ? 'rolled' : identity?.originMode === 'custom' ? 'custom' : 'table')
   const [origin, setOrigin] = useState<HeroicOriginType | ''>(identity?.originPrimary ?? '')
-  const [narrative, setNarrative] = useState(identity?.originNarrative ?? '')
-
-  const hasRolledOrigin = (identity?.originRolls.length ?? 0) > 0
-  const canSave = name.trim().length > 0 && (
-    source === 'table' ? origin !== ''
-      : source === 'custom' ? narrative.trim().length > 0
-        : hasRolledOrigin)
+  const canSave = name.trim().length > 0 && origin !== ''
 
   function save() {
-    // Для брошенного происхождения режим не отправляется: сохранённые категории и грани
-    // остаются серверными, клиент меняет только личное название.
-    return api.setHeroicIdentity(sheet.id, source === 'rolled'
-      ? { customName: name.trim() }
-      : source === 'custom'
-        ? { customName: name.trim(), originMode: 'custom', originNarrative: narrative.trim() }
-        : { customName: name.trim(), originMode: 'standard', originPrimary: origin as HeroicOriginType })
+    return api.setHeroicIdentity(sheet.id, {
+      customName: name.trim(), originMode: 'standard', originPrimary: origin as HeroicOriginType,
+    })
   }
 
   return (
@@ -317,13 +302,10 @@ export function HeroicIdentitySection({ sheet, run }: {
         </div>
       )}
 
-      {sheet.heroicIdentityIncomplete && (
+      {sheet.heroicIdentityIncomplete && !sheet.isCreationPhase && (
         <p className="hint small-text">
-          {sheet.isCreationPhase
-            ? t('Личное название и происхождение обязательны для завершения создания.',
-              'The personal name and origin are required to finish character creation.')
-            : t('Данные не заполнены: укажите их один раз — после этого они станут неизменяемыми.',
-              'These are missing: fill them in once — afterwards they become immutable.')}
+          {t('Данные не заполнены: укажите их один раз — после этого они станут неизменяемыми.',
+            'These are missing: fill them in once — afterwards they become immutable.')}
         </p>
       )}
 
@@ -332,48 +314,15 @@ export function HeroicIdentitySection({ sheet, run }: {
           <input value={name} maxLength={120} placeholder={t('Личное название', 'Personal name')}
             onChange={e => setName(e.target.value)} />
 
-          <div className="inline-form">
-            {(['table', 'custom', 'rolled'] as OriginSource[]).map(kind => (
-              <label key={kind}>
-                <input type="radio" name={`origin-source-${sheet.id}`} checked={source === kind}
-                  onChange={() => setSource(kind)} />
-                {kind === 'table' ? t(' выбрать', ' choose')
-                  : kind === 'custom' ? t(' описать', ' describe')
-                    : t(' бросить', ' roll')}
-              </label>
+          <select aria-label={t('Происхождение', 'Origin')} value={origin}
+            onChange={e => setOrigin(e.target.value as HeroicOriginType)}>
+            <option value="" disabled>{t('— категория происхождения —', '— origin category —')}</option>
+            {HEROIC_ORIGIN_TYPES.map(x => (
+              <option key={x} value={x}>{heroicOriginFace(x)} — {HEROIC_ORIGIN_LABELS[x]}</option>
             ))}
-          </div>
+          </select>
 
-          {source === 'table' && (
-            <select value={origin} onChange={e => setOrigin(e.target.value as HeroicOriginType)}>
-              <option value="" disabled>{t('— категория происхождения —', '— origin category —')}</option>
-              {HEROIC_ORIGIN_TYPES.map(x => (
-                <option key={x} value={x}>{heroicOriginFace(x)} — {HEROIC_ORIGIN_LABELS[x]}</option>
-              ))}
-            </select>
-          )}
-
-          {source === 'custom' && (
-            <textarea value={narrative} maxLength={2000} rows={3}
-              placeholder={t('Откуда взялась сила', 'Where the power came from')}
-              onChange={e => setNarrative(e.target.value)} />
-          )}
-
-          {source === 'rolled' && (
-            <div className="inline-form">
-              <button className="small" onClick={() => run(() => api.rollHeroicOrigin(sheet.id))}>
-                {t('🎲 Бросить d10', '🎲 Roll d10')}
-              </button>
-              {!hasRolledOrigin && (
-                <span className="hint small-text">
-                  {t('Специальный результат «0» даёт два происхождения.',
-                    'The special result “0” yields two origins.')}
-                </span>
-              )}
-            </div>
-          )}
-
-          <button className="small primary" disabled={!canSave} onClick={() => run(save)}>
+          <button className="small primary heroic-identity-save" disabled={!canSave} onClick={() => run(save)}>
             {t('Сохранить', 'Save')}
           </button>
         </div>
@@ -400,7 +349,6 @@ export function HeroicParameterSection({ sheet, reference, run }: {
   const weapon = config?.signatureWeapon ?? null
   const [profile, setProfile] = useState<SignatureWeaponProfile>(weapon?.profile ?? 'oneHanded')
   const [craftsmanship, setCraftsmanship] = useState<WeaponCraftsmanship>(weapon?.craftsmanship ?? 'steel')
-  const [form, setForm] = useState(weapon?.narrativeForm ?? '')
   const [traits, setTraits] = useState<WeaponFormTrait[]>(parseWeaponTraits(weapon?.formTraits))
   const [baseAttachmentId, setBaseAttachmentId] = useState(weapon?.baseAttachment?.defId ?? '')
   const [improvement, setImprovement] = useState<SignatureWeaponImprovement>(
@@ -424,8 +372,8 @@ export function HeroicParameterSection({ sheet, reference, run }: {
 
   if (!config || config.kind === 'none') return null
 
-  function toggleTrait(trait: WeaponFormTrait) {
-    setTraits(prev => prev.includes(trait) ? prev.filter(x => x !== trait) : [...prev, trait])
+  function selectTraits(event: ChangeEvent<HTMLSelectElement>) {
+    setTraits(Array.from(event.target.selectedOptions, option => option.value as WeaponFormTrait))
   }
 
   const title = config.kind === 'paragonSkill' ? t('Навык способности', 'Ability skill')
@@ -575,38 +523,31 @@ export function HeroicParameterSection({ sheet, reference, run }: {
       {config.kind === 'signatureWeapon' && (editable || weapon?.isLost) && (
         <div className="heroic-weapon-form">
           <div className="inline-form">
-            {SIGNATURE_WEAPON_PROFILES.map(p => {
-              const spec = SIGNATURE_WEAPON_PROFILE_LABELS[p]
-              return (
-                <label key={p}>
-                  <input type="radio" name={`weapon-profile-${sheet.id}`} checked={profile === p}
-                    onChange={() => setProfile(p)} /> {spec}
-                </label>
-              )
-            })}
-          </div>
-          <div className="inline-form">
-            <select value={craftsmanship}
+            <select aria-label={t('Профиль оружия', 'Weapon profile')} value={profile}
+              onChange={e => setProfile(e.target.value as SignatureWeaponProfile)}>
+              {Object.entries(SIGNATURE_WEAPON_PROFILE_LABELS).map(([value, label]) => (
+                <option key={value} value={value}>{label}</option>
+              ))}
+            </select>
+            <select aria-label={t('Качество изготовления', 'Craftsmanship')} value={craftsmanship}
               onChange={e => setCraftsmanship(e.target.value as WeaponCraftsmanship)}>
               {SIGNATURE_WEAPON_CRAFTSMANSHIPS.map(c => (
                 <option key={c} value={c}>{WEAPON_CRAFTSMANSHIP_LABELS[c]}</option>
               ))}
             </select>
-            <input value={form} maxLength={200} placeholder={t('форма оружия', 'weapon form')}
-              onChange={e => setForm(e.target.value)} />
           </div>
           <p className="hint small-text craftsmanship-hint">
             <b>{t('Что даёт качество:', 'What the craftsmanship gives:')}</b>{' '}
             {SIGNATURE_WEAPON_CRAFTSMANSHIP_HINTS[craftsmanship]}
           </p>
-          <div className="inline-form">
+          <select multiple size={CONFIRMABLE_WEAPON_TRAITS.length}
+            aria-label={t('Признаки формы', 'Form traits')}
+            value={traits.filter(trait => CONFIRMABLE_WEAPON_TRAITS.includes(trait))}
+            onChange={selectTraits}>
             {CONFIRMABLE_WEAPON_TRAITS.map(trait => (
-              <label key={trait}>
-                <input type="checkbox" checked={traits.includes(trait)} onChange={() => toggleTrait(trait)} />
-                {' '}{WEAPON_TRAIT_LABELS[trait]}
-              </label>
+              <option key={trait} value={trait}>{WEAPON_TRAIT_LABELS[trait]}</option>
             ))}
-          </div>
+          </select>
           <p className="hint small-text">
             {t('Признаки формы подтверждает ведущий: по ним, а не по названию, считается совместимость улучшений.',
               'The GM confirms the form traits: attachment compatibility follows them, not the name.')}
@@ -634,12 +575,12 @@ export function HeroicParameterSection({ sheet, reference, run }: {
                 'The attachment is transient: it works only together with the ability, costs nothing and uses no hard points. What the weapon already has cannot be taken.')}
           </p>
           <div className="inline-form">
-            <button className="small primary" disabled={!form.trim() || !baseAttachmentId}
+            <button className="small primary" disabled={!baseAttachmentId}
               onClick={() => run(() => (editable
                 ? api.setHeroicConfiguration(sheet.id, {
                   weaponProfile: profile,
                   craftsmanship,
-                  narrativeForm: form.trim(),
+                  narrativeForm: SIGNATURE_WEAPON_PROFILE_LABELS[profile],
                   formTraits: formatWeaponTraits(traits),
                   baseAttachmentDefId: baseAttachmentId,
                 })
@@ -647,7 +588,7 @@ export function HeroicParameterSection({ sheet, reference, run }: {
                   lost: false,
                   weaponProfile: profile,
                   craftsmanship,
-                  narrativeForm: form.trim(),
+                  narrativeForm: SIGNATURE_WEAPON_PROFILE_LABELS[profile],
                   formTraits: formatWeaponTraits(traits),
                   baseAttachmentDefId: baseAttachmentId,
                 })))}>
