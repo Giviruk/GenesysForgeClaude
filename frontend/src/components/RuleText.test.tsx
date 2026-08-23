@@ -31,4 +31,14 @@ describe('RuleText', () => {
     expect(screen.getByText(/Фигура 0/)).toBeTruthy()
     expect(screen.getByLabelText('Бонусная кость')).toBeTruthy()
   })
+
+  it('does not turn the Russian conjunction «а» into an advantage symbol', () => {
+    const { rerender } = render(<p><RuleText text="◻ к проверкам, а союзники получают ◻ ◻." /></p>)
+
+    expect(screen.getAllByLabelText('Бонусная кость')).toHaveLength(3)
+    expect(screen.queryByLabelText('Преимущество')).toBeNull()
+
+    rerender(<p><RuleText text="Старый текст с А." /></p>)
+    expect(screen.getByLabelText('Преимущество')).toBeTruthy()
+  })
 })
