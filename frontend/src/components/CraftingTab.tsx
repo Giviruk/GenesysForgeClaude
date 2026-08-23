@@ -357,10 +357,11 @@ export function CraftingTab({ sheet, reference, onError, refresh }: Props) {
                 onClick={() => setPercent(m)}>{m}%</button>
             ))}
           </div>
-          <div className="price-row">
+          <div className="price-row crafting-override-row">
             <label>{t('Своя стоимость', 'Own cost')}
-              <input type="number" min={0} value={ownCost} placeholder={t('по доле', 'by fraction')}
-                onChange={e => setOwnCost(e.target.value)} style={{ width: '5rem' }} />
+              <input className="crafting-override-input" type="number" min={0} value={ownCost}
+                placeholder={t('по доле', 'by fraction')}
+                onChange={e => setOwnCost(e.target.value)} />
             </label>
             <label>{t('Причина', 'Reason')}
               <input value={costReason} maxLength={200} disabled={!hasOwnCost}
@@ -370,10 +371,11 @@ export function CraftingTab({ sheet, reference, onError, refresh }: Props) {
           </div>
         </div>
 
-        <div className="price-row">
+        <div className="price-row crafting-override-row">
           <label>{t('Своя сложность', 'Own difficulty')}
-            <input type="number" min={0} max={5} value={difficulty} placeholder={t('по правилу', 'by rule')}
-              onChange={e => setDifficulty(e.target.value)} style={{ width: '4rem' }} />
+            <input className="crafting-override-input" type="number" min={0} max={5} value={difficulty}
+              placeholder={t('по правилу', 'by rule')}
+              onChange={e => setDifficulty(e.target.value)} />
           </label>
           <label>{t('Причина', 'Reason')}
             <input value={difficultyReason} maxLength={200} disabled={difficulty.trim() === ''}
@@ -381,10 +383,11 @@ export function CraftingTab({ sheet, reference, onError, refresh }: Props) {
           </label>
         </div>
 
-        <div className="price-row">
+        <div className="price-row crafting-override-row">
           <label>{t('Своё время', 'Own time')}
-            <input type="number" min={1} value={time} placeholder={t('по правилу', 'by rule')}
-              onChange={e => setTime(e.target.value)} style={{ width: '4rem' }} />
+            <input className="crafting-override-input" type="number" min={1} value={time}
+              placeholder={t('по правилу', 'by rule')}
+              onChange={e => setTime(e.target.value)} />
           </label>
           <label>{t('Причина', 'Reason')}
             <input value={timeReason} maxLength={200} disabled={time.trim() === ''}
