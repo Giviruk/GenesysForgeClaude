@@ -4,7 +4,7 @@ namespace GenesysForge.Domain.Rules;
 /// Один вклад в помехи конкретной проверки. Источник называется явно, чтобы игрок видел не просто
 /// «+2 помехи», а из-за чего именно они появились.
 /// </summary>
-/// <param name="SourceType">Тип источника: <c>Item</c>, <c>Encumbrance</c>.</param>
+/// <param name="SourceType">Тип источника: <c>Item</c>, <c>Encumbrance</c>, <c>CriticalInjury</c>.</param>
 /// <param name="SourceName">Английское имя источника (название брони и т. п.).</param>
 /// <param name="SourceNameRu">Русское имя источника; пусто — использовать <see cref="SourceName"/>.</param>
 /// <param name="Setback">Сколько костей помех добавляет (&gt;0) или убирает (&lt;0) источник.</param>
@@ -13,9 +13,12 @@ namespace GenesysForge.Domain.Rules;
 /// приложение не проверяет и в пул автоматически не подставляет.
 /// </param>
 /// <param name="Boost">Сколько костей умения добавляет источник (улучшения брони, ROT-EQP-ATT-01).</param>
+/// <param name="Difficulty">Сколько фиолетовых костей сложности добавляет источник.</param>
+/// <param name="DifficultyUpgrades">Сколько раз источник усиливает сложность.</param>
+/// <param name="RemoveBoosts">Источник запрещает бонусные кости этого броска.</param>
 public sealed record CheckModifierSource(
     string SourceType, string SourceName, string SourceNameRu, int Setback, string Condition = "",
-    int Boost = 0)
+    int Boost = 0, int Difficulty = 0, int DifficultyUpgrades = 0, bool RemoveBoosts = false)
 {
     public bool IsConditional => !string.IsNullOrEmpty(Condition);
 }
@@ -26,8 +29,12 @@ public sealed record CheckModifierSource(
 /// <param name="SetbackDice">Безусловные помехи; уже с учётом снятий и не ниже нуля.</param>
 /// <param name="Sources">Все вклады, включая условные — их видно в подсказке.</param>
 /// <param name="BoostDice">Безусловные кости умения от снаряжения (ROT-EQP-ATT-01).</param>
+/// <param name="DifficultyDice">Безусловные кости сложности от критических травм.</param>
+/// <param name="DifficultyUpgrades">Безусловные усиления сложности от критических травм.</param>
+/// <param name="RemoveBoosts">Нужно ли убрать все бонусные кости из пула.</param>
 public sealed record CheckPenalty(
-    int SetbackDice, IReadOnlyList<CheckModifierSource> Sources, int BoostDice = 0)
+    int SetbackDice, IReadOnlyList<CheckModifierSource> Sources, int BoostDice = 0,
+    int DifficultyDice = 0, int DifficultyUpgrades = 0, bool RemoveBoosts = false)
 {
     public static readonly CheckPenalty None = new(0, []);
 }
@@ -72,7 +79,8 @@ public static class CheckModifierAggregator
         CharacteristicType characteristic,
         IReadOnlyList<ItemCheckModifierInput>? itemModifiers = null,
         EncumbranceState? encumbrance = null,
-        IReadOnlyList<AttachmentSkillBoost>? skillBoosts = null)
+        IReadOnlyList<AttachmentSkillBoost>? skillBoosts = null,
+        IReadOnlyList<CriticalInjuryRules.CheckModifier>? criticalInjuries = null)
     {
         var sources = new List<CheckModifierSource>();
 
@@ -97,9 +105,24 @@ public static class CheckModifierAggregator
             sources.Add(new CheckModifierSource("Attachment", b.SourceName, b.SourceNameRu, 0, "", b.Boost));
         }
 
+        foreach (var injury in criticalInjuries ?? [])
+        {
+            if (!Applies(injury, skillNameEn, characteristic)) continue;
+            if (injury.Setback == 0 && injury.Difficulty == 0 && injury.DifficultyUpgrades == 0
+                && !injury.RemoveBoosts) continue;
+            sources.Add(new CheckModifierSource(
+                "CriticalInjury", injury.SourceName, injury.SourceNameRu, injury.Setback, "",
+                0, injury.Difficulty, injury.DifficultyUpgrades, injury.RemoveBoosts));
+        }
+
         var total = sources.Where(s => !s.IsConditional).Sum(s => s.Setback);
         var boost = sources.Where(s => !s.IsConditional).Sum(s => s.Boost);
-        return new CheckPenalty(Math.Max(0, total), sources, Math.Max(0, boost));
+        var difficulty = sources.Where(s => !s.IsConditional).Sum(s => s.Difficulty);
+        var upgrades = sources.Where(s => !s.IsConditional).Sum(s => s.DifficultyUpgrades);
+        var removeBoosts = sources.Any(s => !s.IsConditional && s.RemoveBoosts);
+        return new CheckPenalty(
+            Math.Max(0, total), sources, removeBoosts ? 0 : Math.Max(0, boost),
+            Math.Max(0, difficulty), Math.Max(0, upgrades), removeBoosts);
     }
 
     private static bool Applies(ItemCheckModifierInput m, string skillNameEn, CharacteristicType characteristic)
@@ -107,5 +130,13 @@ public static class CheckModifierAggregator
         if (!string.IsNullOrEmpty(m.SkillName))
             return string.Equals(m.SkillName, skillNameEn, StringComparison.OrdinalIgnoreCase);
         return m.Characteristic == characteristic;
+    }
+
+    private static bool Applies(
+        CriticalInjuryRules.CheckModifier m, string skillNameEn, CharacteristicType characteristic)
+    {
+        if (!string.IsNullOrEmpty(m.SkillName))
+            return string.Equals(m.SkillName, skillNameEn, StringComparison.OrdinalIgnoreCase);
+        return m.Characteristic is null || m.Characteristic == characteristic;
     }
 }

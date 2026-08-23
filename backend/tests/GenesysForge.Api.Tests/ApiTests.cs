@@ -197,6 +197,7 @@ public class CharacterFlowTests : IClassFixture<ApiFactory>
         Assert.Equal(tableCrit.NameRu, fromTable.NameRu); // снимок из справочника
         Assert.Equal(tableCrit.GroupRu, fromTable.Severity);
         Assert.Equal(17, fromTable.RollResult);
+        Assert.Equal(tableCrit.Body, fromTable.Effect);
         Assert.Contains(sheet.CriticalInjuries, c => c.NameRu == "Сломанная рука" && c.Severity == "Сложная");
 
         // Снятие.

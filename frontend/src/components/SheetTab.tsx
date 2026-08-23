@@ -41,18 +41,35 @@ function modifierSourceName(s: CheckModifierSource): string {
 }
 
 /**
- * Подсказка «откуда помехи»: броня, перегруз и прочее снаряжение (ROT-ARM-01, ROT-EQP-01).
+ * Подсказка «откуда модификаторы»: броня, перегруз, снаряжение и критические травмы.
  * Условные вклады отмечены отдельно — их приложение в пул не подставляет.
  */
 function setbackTitle(skill: SheetSkill): string | undefined {
   const sources = skill.setbackSources ?? []
   if (sources.length === 0) return undefined
   const line = (s: CheckModifierSource) => {
-    const sign = s.setback > 0 ? '+' : '−'
-    const body = `${modifierSourceName(s)}: ${sign}${Math.abs(s.setback)} ${t('помех', 'setback')}`
+    const parts: string[] = []
+    if (s.setback !== 0) {
+      const sign = s.setback > 0 ? '+' : '−'
+      parts.push(`${sign}${Math.abs(s.setback)} ${t('помех', 'setback')}`)
+    }
+    if ((s.difficulty ?? 0) !== 0) parts.push(`+${s.difficulty} ${t('сложности', 'difficulty')}`)
+    if ((s.difficultyUpgrades ?? 0) !== 0) {
+      parts.push(`+${s.difficultyUpgrades} ${t('усил. сложности', 'difficulty upgrades')}`)
+    }
+    const boost = s.boost ?? 0
+    if (boost !== 0) {
+      const sign = boost > 0 ? '+' : '−'
+      parts.push(`${sign}${Math.abs(boost)} ${t('бонусных', 'boost')}`)
+    }
+    if (s.removeBoosts) parts.push(t('без бонусных костей', 'no boost dice'))
+    const body = `${modifierSourceName(s)}: ${parts.join(', ')}`
     return s.condition ? `${body} (${t('только', 'only')} ${s.condition})` : body
   }
-  const head = t(`Помехи к проверке: ${skill.setbackDice}`, `Setback on this check: ${skill.setbackDice}`)
+  const head = t(
+    `Модификаторы проверки: ${skill.setbackDice} помех, +${skill.difficultyDice ?? 0} сложности, +${skill.difficultyUpgrades ?? 0} усил.`,
+    `Check modifiers: ${skill.setbackDice} setback, +${skill.difficultyDice ?? 0} difficulty, +${skill.difficultyUpgrades ?? 0} upgrades`,
+  )
   return [head, ...sources.map(line)].join('\n')
 }
 
@@ -199,6 +216,7 @@ export function SheetTab({ sheet, onError, refresh, updateBaseOptimistically, re
                               <td>{'●'.repeat(s.ranks)}{'○'.repeat(Math.max(0, 5 - s.ranks))}</td>
                               <td>
                                 <DicePoolView pool={s.pool} setback={s.setbackDice} boost={s.boostDice}
+                                  difficulty={s.difficultyDice} challenge={s.difficultyUpgrades}
                                   setbackTitle={setbackTitle(s)} />
                               </td>
                               <td className="right">
@@ -219,6 +237,8 @@ export function SheetTab({ sheet, onError, refresh, updateBaseOptimistically, re
                                       proficiency: s.pool.proficiency,
                                       setback: s.setbackDice,
                                       boost: s.boostDice,
+                                      difficulty: s.difficultyDice ?? 0,
+                                      challenge: s.difficultyUpgrades ?? 0,
                                     },
                                   })}>
                                   🎲

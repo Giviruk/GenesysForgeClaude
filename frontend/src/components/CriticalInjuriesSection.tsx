@@ -40,6 +40,10 @@ export function CriticalInjuriesSection({ sheet, onError, refresh, readOnly = fa
   }, [table])
 
   const selected = table.find(e => e.code === code)
+  const rulesByCode = useMemo(
+    () => new Map(table.map(entry => [entry.code, entry] as const)),
+    [table],
+  )
 
   async function submit(e: FormEvent) {
     e.preventDefault()
@@ -85,17 +89,30 @@ export function CriticalInjuriesSection({ sheet, onError, refresh, readOnly = fa
 
       {injuries.length === 0 && <p className="muted">{t('Ранений нет.', 'No injuries.')}</p>}
       <div className="crit-list">
-        {injuries.map(ci => (
-          <div key={ci.id} className="crit-item">
-            <div className="crit-item-main">
-              {ci.severity && <span className="badge tier">{ci.severity}</span>}
-              <strong>{ci.nameRu}</strong>
-              {ci.rollResult != null && <span className="muted small-text"> · {t('бросок', 'roll')} {ci.rollResult}</span>}
-              {ci.notes && <div className="muted small-text">{ci.notes}</div>}
+        {injuries.map(ci => {
+          const rule = rulesByCode.get(ci.ruleCode ?? '')
+          const effect = ci.effect || rule?.body
+          const effectEn = ci.effectEn || rule?.bodyEn || effect
+          return (
+            <div key={ci.id} className="crit-item">
+              <div className="crit-item-main">
+                <div className="crit-item-label">
+                  {ci.severity && <span className="badge tier">{ci.severity}</span>}
+                  <strong>{ci.nameRu}</strong>
+                  {ci.rollResult != null && <span className="muted small-text">{t('Бросок', 'Roll')} {ci.rollResult}</span>}
+                </div>
+                {effect && (
+                  <div className="crit-item-effect">
+                    <span className="muted small-text">{t('Эффект:', 'Effect:')} </span>
+                    {t(effect, effectEn)}
+                  </div>
+                )}
+                {ci.notes && <div className="muted small-text">{t('Заметки:', 'Notes:')} {ci.notes}</div>}
+              </div>
+              {!readOnly && <button className="danger small" onClick={() => void remove(ci.id, ci.nameRu)}>{t('Снять', 'Remove')}</button>}
             </div>
-            {!readOnly && <button className="danger small" onClick={() => void remove(ci.id, ci.nameRu)}>{t('Снять', 'Remove')}</button>}
-          </div>
-        ))}
+          )
+        })}
       </div>
 
       {!readOnly && <form className="crit-form" onSubmit={submit}>
@@ -120,7 +137,12 @@ export function CriticalInjuriesSection({ sheet, onError, refresh, readOnly = fa
           maxLength={1000} placeholder={t('Заметки (необязательно)', 'Notes (optional)')} aria-label={t('Заметки', 'Notes')} />
         <button className="primary small" type="submit" disabled={busy || !code}>{t('Добавить', 'Add')}</button>
       </form>}
-      {selected?.body && <p className="hint small-text">{t(selected.body, selected.bodyEn || selected.body)}</p>}
+      {selected?.body && (
+        <p className="hint small-text">
+          <strong>{t('Эффект:', 'Effect:')} </strong>
+          {t(selected.body, selected.bodyEn || selected.body)}
+        </p>
+      )}
     </section>
   )
 }

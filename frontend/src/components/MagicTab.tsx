@@ -31,6 +31,8 @@ export function MagicTab({ sheet, onError, refresh, qualities }: {
       characteristicValue: sheet.characteristics?.[s.characteristic] ?? 0,
       pool: s.pool, ranks: s.ranks, isCareer: s.isCareer,
       setbackDice: s.setbackDice, boostDice: s.boostDice,
+      difficultyDice: s.difficultyDice, difficultyUpgrades: s.difficultyUpgrades,
+      removeBoosts: s.removeBoosts,
     })),
     [sheet.skills, sheet.characteristics])
 

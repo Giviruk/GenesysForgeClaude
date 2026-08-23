@@ -12,7 +12,10 @@ public record CareerSkillSourceDto(string Source, string SourceName);
 /// <param name="Boost">Кости умения от источника (улучшения брони, ROT-EQP-ATT-01).</param>
 public record CheckModifierSourceDto(
     string SourceType, string SourceName, string SourceNameRu, int Setback, string Condition,
-    int Boost = 0);
+    int Boost = 0,
+    int Difficulty = 0,
+    int DifficultyUpgrades = 0,
+    bool RemoveBoosts = false);
 
 public record CharacterSkillDto(Guid SkillDefId, string Name, string NameRu, SkillKind Kind, CharacteristicType Characteristic,
     int Ranks, bool IsCareer, DicePoolDto Pool, int NextRankCost, int FreeRanks,
@@ -33,4 +36,10 @@ public record CharacterSkillDto(Guid SkillDefId, string Name, string NameRu, Ski
     /// Безусловные кости умения к этой проверке от установленных улучшений (ROT-EQP-ATT-01).
     /// Ровно столько синих кубов роллер подставляет сам.
     /// </summary>
-    int BoostDice = 0);
+    int BoostDice = 0,
+    /// <summary>Фиолетовые кости сложности от длительных эффектов критических травм.</summary>
+    int DifficultyDice = 0,
+    /// <summary>Усиления сложности от длительных эффектов критических травм.</summary>
+    int DifficultyUpgrades = 0,
+    /// <summary>Критическая травма убирает все бонусные кости этого броска.</summary>
+    bool RemoveBoosts = false);

@@ -716,6 +716,12 @@ export interface SheetSkill {
   boostDice: number
   /** Из чего сложились помехи, включая условные вклады (их в пул не подставляют). */
   setbackSources: CheckModifierSource[]
+  /** Фиолетовые кости сложности от длительных эффектов критических травм. */
+  difficultyDice?: number
+  /** Усиления сложности от длительных эффектов критических травм. */
+  difficultyUpgrades?: number
+  /** Критическая травма убирает все бонусные кости этого броска. */
+  removeBoosts?: boolean
 }
 
 /** Один источник помех к проверке: снаряжение или перегруз. */
@@ -727,6 +733,14 @@ export interface CheckModifierSource {
   setback: number
   /** Условие из книги; непустое — вклад показывается, но автоматически не применяется. */
   condition: string
+  /** Кости умения от источника (например, установленного улучшения). */
+  boost?: number
+  /** Фиолетовые кости сложности от источника. */
+  difficulty?: number
+  /** Усиления сложности от источника. */
+  difficultyUpgrades?: number
+  /** Источник убирает все бонусные кости этого броска. */
+  removeBoosts?: boolean
 }
 
 /** Как считается урон профиля: прибавка к Мощи или итоговое число (ROT-WPN-01). */
@@ -1807,6 +1821,9 @@ export interface CriticalInjury {
   severity: string | null
   rollResult: number | null
   notes: string | null
+  /** Эффект строки справочника; null у ручной травмы или старого ответа. */
+  effect?: string | null
+  effectEn?: string | null
 }
 
 /** Опциональные текстовые поля мотиваций/предыстории (U-22) для create/update. */

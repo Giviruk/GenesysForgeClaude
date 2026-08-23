@@ -6,7 +6,7 @@ import { t } from '../i18n'
  * персонаж тащит на себе постоянно (ROT-ARM-01, ROT-EQP-01): броня и перегруз. Помехи —
  * часть пула, поэтому они видны рядом с ним, а не только в блоке веса.
  */
-export function DicePoolView({ pool, setback = 0, setbackTitle, boost = 0, difficulty = 0 }: {
+export function DicePoolView({ pool, setback = 0, setbackTitle, boost = 0, difficulty = 0, challenge = 0 }: {
   pool: DicePool
   setback?: number
   /** Расшифровка источников помех для подсказки. */
@@ -15,6 +15,8 @@ export function DicePoolView({ pool, setback = 0, setbackTitle, boost = 0, diffi
   boost?: number
   /** Сложность, которую задаёт само оружие или нехватка характеристики (Громоздкое, Сноровка). */
   difficulty?: number
+  /** Красные кости после усиления сложности (критические травмы). */
+  challenge?: number
 }) {
   const poolTitle = t(`${pool.proficiency} мастерства + ${pool.ability} способности`,
     `${pool.proficiency} proficiency + ${pool.ability} ability`)
@@ -35,7 +37,10 @@ export function DicePoolView({ pool, setback = 0, setbackTitle, boost = 0, diffi
       {Array.from({ length: Math.max(0, difficulty) }).map((_, i) => (
         <span key={`d${i}`} className="die difficulty">◆</span>
       ))}
-      {pool.proficiency === 0 && pool.ability === 0 && setback === 0 && boost === 0 && difficulty === 0
+      {Array.from({ length: Math.max(0, challenge) }).map((_, i) => (
+        <span key={`c${i}`} className="die challenge">⬣</span>
+      ))}
+      {pool.proficiency === 0 && pool.ability === 0 && setback === 0 && boost === 0 && difficulty === 0 && challenge === 0
         && <span className="muted">—</span>}
     </span>
   )
