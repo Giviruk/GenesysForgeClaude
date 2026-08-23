@@ -14,6 +14,7 @@ import { talentBonusSummary } from '../utils/talentBonuses'
 import { Icon } from './Icon'
 import { PrintPreview } from './print/PrintPreview'
 import { TalentCard } from './print/cards'
+import { RuleText } from './RuleText'
 
 interface Props {
   sheet: CharacterSheet
@@ -233,7 +234,7 @@ export function TalentsTab({ sheet, reference, onError, refresh }: Props) {
                             {isPassive ? t('Пассивный', 'Passive') : `${t('Активный', 'Active')} · ${c.activation}`}
                           </span>
                         </div>
-                        <p className="owned-talent-desc">{c.description}</p>
+                        <p className="owned-talent-desc"><RuleText text={c.description} /></p>
                         {c.grant && (
                           <div className="bonus-line" title={t('Характеристика увеличена этим талантом', 'Characteristic increased by this talent')}>
                             ⬆ +1 {CHARACTERISTIC_LABELS[c.grant]}
@@ -283,7 +284,7 @@ export function TalentsTab({ sheet, reference, onError, refresh }: Props) {
                         {isPassive ? t('Пассивный', 'Passive') : tal.activation}
                       </span>
                     </div>
-                    <p className="owned-talent-desc muted">{localizedDescription(tal)}</p>
+                    <p className="owned-talent-desc muted"><RuleText text={localizedDescription(tal)} /></p>
                     {(tal.choices ?? []).length > 0 && (
                       <div className="bonus-line">
                         {t('Выбор:', 'Choice:')}{' '}
@@ -391,7 +392,7 @@ export function TalentsTab({ sheet, reference, onError, refresh }: Props) {
                         )}
                       </div>
                       {tal.trigger && <p className="hint">{t('Триггер:', 'Trigger:')} {tal.trigger}</p>}
-                      <p className="muted">{localizedDescription(tal)}</p>
+                      <p className="muted"><RuleText text={localizedDescription(tal)} /></p>
                     </div>
                     <div className="talent-actions">
                       {sheet.isCreationPhase && ranksOwned > 0 && (() => {

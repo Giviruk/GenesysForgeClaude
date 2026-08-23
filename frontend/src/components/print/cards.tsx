@@ -10,6 +10,7 @@ import {
 } from '../../utils/labels'
 import type { PrintVersion } from './PrintPreview'
 import { t } from '../../i18n'
+import { RuleText } from '../RuleText'
 
 const CHARS: Characteristic[] = ['brawn', 'agility', 'intellect', 'cunning', 'willpower', 'presence']
 
@@ -221,7 +222,7 @@ export function TalentCard({ talent }: { talent: SheetTalent }) {
           {talent.activation && ` · ${talent.activation}`}
         </span>
       </header>
-      {localizedDescription(talent) && <p>{localizedDescription(talent)}</p>}
+      {localizedDescription(talent) && <p><RuleText text={localizedDescription(talent)} /></p>}
     </article>
   )
 }

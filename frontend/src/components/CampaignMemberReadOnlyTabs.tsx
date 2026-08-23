@@ -5,6 +5,7 @@ import {
   localizedName, MOVEMENT_MODE_LABELS, secondaryName, TRANSPORT_KIND_LABELS,
 } from '../utils/labels'
 import { PropertyTags } from './PropertyTags'
+import { RuleText } from './RuleText'
 
 export function ReadOnlyTalentsTab({ sheet }: { sheet: CharacterSheet }) {
   const talents = sheet.talents.toSorted((a, b) => a.tier - b.tier || localizedName(a).localeCompare(localizedName(b), lang))
@@ -27,7 +28,7 @@ function ReadOnlyTalent({ talent }: { talent: SheetTalent }) {
         {talent.activation && <span className="badge">{talent.activation}</span>}
         {talent.needsChoice && <span className="badge warn">{t('Нужен выбор', 'Choice required')}</span>}
       </div>
-      {localizedDescription(talent) && <p className="muted">{localizedDescription(talent)}</p>}
+      {localizedDescription(talent) && <p className="muted"><RuleText text={localizedDescription(talent)} /></p>}
       {(talent.choices ?? []).length > 0 && <div className="small-text">
         {t('Выборы:', 'Choices:')} {talent.choices.map(choice => choice.displayName).join(' · ')}
       </div>}
