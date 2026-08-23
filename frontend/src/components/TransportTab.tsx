@@ -91,52 +91,54 @@ export function TransportTab({ sheet, reference, onError, refresh }: Props) {
         <h3>{t('Купить транспорт', 'Buy transport')}</h3>
         {catalog.length === 0
           ? <p className="muted">{t('В этой системе транспорта нет.', 'This system has no transport.')}</p>
-          : catalog.map(def => (
-            <div className="shop-row" key={def.id}>
-              <div className="shop-row-head">
-                <div className="shop-row-info">
-                  <strong>{mountName(def)}</strong>
-                  {lang === 'ru' && def.name !== mountName(def) &&
-                    <span className="muted small-text name-secondary"> · {def.name}</span>}
-                  <div className="muted small-text">
-                    {TRANSPORT_KIND_LABELS[def.transportKind]}
-                    {def.transportKind === 'mount' && ` · ${NPC_KIND_LABELS[def.kind]}`}
-                    {def.price == null
-                      ? t(' · без обычной цены', ' · no ordinary price')
-                      : ` · ${t('цена', 'price')} ${def.price}`}
-                    {` · ${t('редкость', 'rarity')} ${def.rarity}`}
-                    {` · ${t('вместимость', 'capacity')} ${def.capacity}`}
+          : <div className="mount-catalog-list">
+            {catalog.map(def => (
+              <div className="shop-row" key={def.id}>
+                <div className="shop-row-head">
+                  <div className="shop-row-info">
+                    <strong>{mountName(def)}</strong>
+                    {lang === 'ru' && def.name !== mountName(def) &&
+                      <span className="muted small-text name-secondary"> · {def.name}</span>}
+                    <div className="muted small-text">
+                      {TRANSPORT_KIND_LABELS[def.transportKind]}
+                      {def.transportKind === 'mount' && ` · ${NPC_KIND_LABELS[def.kind]}`}
+                      {def.price == null
+                        ? t(' · без обычной цены', ' · no ordinary price')
+                        : ` · ${t('цена', 'price')} ${def.price}`}
+                      {` · ${t('редкость', 'rarity')} ${def.rarity}`}
+                      {` · ${t('вместимость', 'capacity')} ${def.capacity}`}
+                    </div>
+                    <MountStatline def={def} qualityLabel={qualityLabel} qualityDefinitions={reference.qualities} />
+                    {mountDescription(def) &&
+                      <div className="muted small-text shop-desc">{mountDescription(def)}</div>}
+                    <div className="muted small-text">{def.source}</div>
                   </div>
-                  <MountStatline def={def} qualityLabel={qualityLabel} qualityDefinitions={reference.qualities} />
-                  {mountDescription(def) &&
-                    <div className="muted small-text shop-desc">{mountDescription(def)}</div>}
-                  <div className="muted small-text">{def.source}</div>
-                </div>
-                <div className="shop-row-actions">
-                  {def.price != null && (
-                    <button className="primary tiny" disabled={busy}
-                      onClick={() => setOpenBuy(openBuy === def.id ? null : def.id)}>
-                      {openBuy === def.id ? t('Отмена', 'Cancel') : t('Купить', 'Buy')}
+                  <div className="shop-row-actions">
+                    {def.price != null && (
+                      <button className="primary tiny" disabled={busy}
+                        onClick={() => setOpenBuy(openBuy === def.id ? null : def.id)}>
+                        {openBuy === def.id ? t('Отмена', 'Cancel') : t('Купить', 'Buy')}
+                      </button>
+                    )}
+                    {/* Выдача без оплаты: находка, награда, транспорт от ведущего. */}
+                    <button className="tiny" disabled={busy}
+                      title={t('Выдать без оплаты', 'Grant without paying')}
+                      onClick={() => run(() => api.buyMount(sheet.id, def.id, { free: true }))}>
+                      {t('+ Выдать', '+ Grant')}
                     </button>
-                  )}
-                  {/* Выдача без оплаты: находка, награда, транспорт от ведущего. */}
-                  <button className="tiny" disabled={busy}
-                    title={t('Выдать без оплаты', 'Grant without paying')}
-                    onClick={() => run(() => api.buyMount(sheet.id, def.id, { free: true }))}>
-                    {t('+ Выдать', '+ Grant')}
-                  </button>
+                  </div>
                 </div>
+                {openBuy === def.id && def.price != null && (
+                  <BuyControl unitPrice={def.price} money={funds}
+                    onConfirm={(_quantity, opts) => run(async () => {
+                      // Транспорт покупается по одному: это экземпляр, а не стопка вещей.
+                      await api.buyMount(sheet.id, def.id, opts)
+                      setOpenBuy(null)
+                    })} />
+                )}
               </div>
-              {openBuy === def.id && def.price != null && (
-                <BuyControl unitPrice={def.price} money={funds}
-                  onConfirm={(_quantity, opts) => run(async () => {
-                    // Транспорт покупается по одному: это экземпляр, а не стопка вещей.
-                    await api.buyMount(sheet.id, def.id, opts)
-                    setOpenBuy(null)
-                  })} />
-              )}
-            </div>
-          ))}
+            ))}
+          </div>}
       </section>
     </div>
   )

@@ -1057,6 +1057,7 @@ table.ref-table td.ref-cost { white-space: nowrap; color: var(--accent); }
 /* Скакуны (ROT-MOUNT-ITEM-01): существо со статблоком, а не строка инвентаря */
 .mounts-tab { display: grid; gap: 0.9rem; }
 .mount-list { display: flex; flex-direction: column; gap: 0.6rem; }
+.mount-catalog-list { display: flex; flex-direction: column; gap: 0.6rem; }
 .mount-card { display: grid; gap: 0.45rem; }
 .mount-card-head { display: flex; justify-content: space-between; gap: 0.6rem; align-items: flex-start; }
 .mount-card-actions { display: flex; align-items: center; gap: 0.5rem; flex-shrink: 0; flex-wrap: wrap; }
