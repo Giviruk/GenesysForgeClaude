@@ -22,6 +22,10 @@ public class RuleReferenceTests : IClassFixture<ApiFactory>
 
         // d100 крит-таблица несёт диапазон броска.
         Assert.Contains(rules.Entries, e => e.Kind == RuleTableKind.CriticalInjury && e.RollRange.Length > 0);
+        Assert.Contains(rules.Entries, e => e.Kind == RuleTableKind.WeaponProperty && e.NameRu == "Взрыв");
+        Assert.Contains(rules.Entries, e => e.Kind == RuleTableKind.CombatActionManeuver && e.NameRu == "Боевая проверка (атака)");
+        Assert.Contains(rules.Entries, e => e.Kind == RuleTableKind.MagicActionManeuver && e.NameRu == "Атака");
+        Assert.Contains(rules.Entries, e => e.Kind == RuleTableKind.SymbolSpend && e.GroupRu == "Магия");
     }
 
     [Fact]

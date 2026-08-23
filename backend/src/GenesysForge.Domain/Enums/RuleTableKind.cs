@@ -11,4 +11,10 @@ public enum RuleTableKind
     RangeBand,
     /// <summary>Таблица критических ранений (d100).</summary>
     CriticalInjury,
+    /// <summary>Свойства оружия и предметов, применимые к оружию.</summary>
+    WeaponProperty,
+    /// <summary>Боевые действия и манёвры персонажа.</summary>
+    CombatActionManeuver,
+    /// <summary>Магические действия и манёвры заклинателя.</summary>
+    MagicActionManeuver,
 }
