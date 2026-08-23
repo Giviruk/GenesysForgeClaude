@@ -24,6 +24,22 @@ public class RotTalentCatalogTests(ApiFactory factory) : IClassFixture<ApiFactor
     private static readonly string[] ErrataTalents =
         ["Second Wind", "Side Step", "Swift", "Toughened", "Unremarkable"];
 
+    private static readonly string[] KnownRussianOcrFragments =
+    [
+        "сде ланной", "реа гирования", "совер шавших", "лег кодоступное", "дей ствием", "ору жия",
+        "навы ков", "провер кам", "ближ нем", "добав ляет", "совер шить", "вме сто", "уби рает",
+        "пер сонаж", "использо ванием", "пер сонажа", "про верка", "про верке", "посмо трите",
+        "состав ляет", "исполь зовать", "переме ститься", "персо наж", "недо ступна", "веду щим",
+        "коли чество", "сту пень", "характе ристики", "Хлёст кая", "Воодушевля ющая",
+        "Воо душевляющая", "кри тических", "использую щих", "игнори рует", "одобрен ным",
+        "суще ствует", "реше нию", "гру бого", "следую щим", "совер шать", "съе дать",
+        "потра тить", "Осо бенности", "при сутствовать", "высту пать", "даль него", "дистан ции",
+        "использо вания", "спо собностей", "опре делённое", "слож ность", "уста лости",
+        "задействован ное", "сте чением", "кри тическую", "пре делах", "извест ных", "неко торые",
+        "туре лью", "увеличива ются", "значе ния", "персо нажа", "увели чить", "харак теристику",
+        "преде лах", "выве дена", "отпущен ных", "футуристи ческом",
+    ];
+
     private async Task<List<TalentDefDto>> RotTalentsAsync()
     {
         var client = await factory.CreateAuthorizedClientAsync();
@@ -201,5 +217,22 @@ public class RotTalentCatalogTests(ApiFactory factory) : IClassFixture<ApiFactor
             talent.Description);
         Assert.Contains("boost die", talent.DescriptionEn, StringComparison.Ordinal);
         Assert.Contains("two boost dice", talent.DescriptionEn, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task RussianTalentDescriptionsContainNoKnownOcrFragments()
+    {
+        var descriptions = (await RotTalentsAsync()).Concat(await CoreTalentsAsync())
+            .Select(t => t.Description)
+            .Distinct(StringComparer.Ordinal);
+
+        foreach (var description in descriptions)
+        {
+            foreach (var fragment in KnownRussianOcrFragments)
+                Assert.DoesNotContain(fragment, description, StringComparison.Ordinal);
+            Assert.DoesNotContain(" Х ", description, StringComparison.Ordinal);
+            Assert.DoesNotContain("на l.", description, StringComparison.Ordinal);
+            Assert.DoesNotContain("[]", description, StringComparison.Ordinal);
+        }
     }
 }
