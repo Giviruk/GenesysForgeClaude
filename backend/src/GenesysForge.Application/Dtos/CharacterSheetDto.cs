@@ -96,4 +96,5 @@ public record HeroicUpgradeStateDto(
 
 /// <summary>Критическое ранение персонажа (U-23).</summary>
 public record CharacterCriticalInjuryDto(
-    Guid Id, string? RuleCode, string NameRu, string? Severity, int? RollResult, string? Notes);
+    Guid Id, string? RuleCode, string NameRu, string? Severity, int? RollResult, string? Notes,
+    string? Effect = null, string? EffectEn = null);

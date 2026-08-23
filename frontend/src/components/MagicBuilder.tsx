@@ -32,6 +32,9 @@ export interface MagicSkillPool {
   isCareer: boolean
   setbackDice: number
   boostDice: number
+  difficultyDice?: number
+  difficultyUpgrades?: number
+  removeBoosts?: boolean
 }
 
 /** Магический инструмент персонажа, доступный сборщику: только то, что в руках. */
@@ -419,8 +422,12 @@ export function MagicBuilder({
           <div className="muted small-text">
             {t(`Ваш пул для «${magicSkillLabel(activeSkill)}»:`, `Your pool for “${magicSkillLabel(activeSkill)}”:`)} <DicePoolView
               pool={charPool}
-              boost={(activeCharacterSkill?.boostDice ?? 0) + toolBoost}
-              setback={(activeCharacterSkill?.setbackDice ?? 0) + toolDamageSetback} />
+              boost={activeCharacterSkill?.removeBoosts
+                ? 0
+                : (activeCharacterSkill?.boostDice ?? 0) + toolBoost}
+              setback={(activeCharacterSkill?.setbackDice ?? 0) + toolDamageSetback}
+              difficulty={activeCharacterSkill?.difficultyDice}
+              challenge={activeCharacterSkill?.difficultyUpgrades} />
           </div>
         )}
         {/* Откуда берётся рейтинг свойств (ROT-MAG-10). Выбор показывается только тогда, когда он
@@ -655,8 +662,13 @@ export function MagicBuilder({
                     basePool: {
                       ability: activeCharacterSkill.pool.ability,
                       proficiency: activeCharacterSkill.pool.proficiency,
-                      difficulty: totalDifficulty,
-                      boost: activeCharacterSkill.boostDice + toolBoost,
+                      difficulty: totalDifficulty + (activeCharacterSkill.difficultyDice ?? 0),
+                      ...((activeCharacterSkill.difficultyUpgrades ?? 0) > 0
+                        ? { challenge: activeCharacterSkill.difficultyUpgrades }
+                        : {}),
+                      boost: activeCharacterSkill.removeBoosts
+                        ? 0
+                        : activeCharacterSkill.boostDice + toolBoost,
                       setback: activeCharacterSkill.setbackDice + toolDamageSetback,
                     },
                     damage: magicDamage,

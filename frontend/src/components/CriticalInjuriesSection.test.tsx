@@ -44,6 +44,8 @@ describe('CriticalInjuriesSection (U-23)', () => {
     render(<CriticalInjuriesSection sheet={baseSheet} onError={() => {}} refresh={refresh} />)
 
     expect(screen.getByText('Небольшая царапина')).toBeTruthy()
+    await waitFor(() => expect(screen.getByText('Цель получает 1 усталость.')).toBeTruthy())
+    expect(screen.getByText('Лёгкая')).toBeTruthy()
     fireEvent.click(screen.getByRole('button', { name: 'Снять' }))
     await waitFor(() => expect(removeMock).toHaveBeenCalledWith('char-1', 'ci-1'))
     expect(refresh).toHaveBeenCalled()

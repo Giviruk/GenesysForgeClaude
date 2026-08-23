@@ -845,8 +845,9 @@ function WeaponLine({ item, sheet, skill, skillLabel, reference, run }: {
             .filter(Boolean).join('\n')}>
           <DicePoolView pool={profileSkill.pool}
             setback={profileSkill.setbackDice + (mods?.setback ?? 0)}
-            boost={mods?.boost ?? 0}
-            difficulty={mods?.difficultyIncrease ?? 0} />
+            boost={profileSkill.removeBoosts ? 0 : (mods?.boost ?? 0)}
+            difficulty={(profileSkill.difficultyDice ?? 0) + (mods?.difficultyIncrease ?? 0)}
+            challenge={profileSkill.difficultyUpgrades} />
           {' '}<span className="muted small-text">{profileSkillLabel}</span>
           {(mods?.automaticAdvantage ?? 0) > 0 && (
             <span className="muted small-text">
@@ -894,10 +895,16 @@ function WeaponLine({ item, sheet, skill, skillLabel, reference, run }: {
                   setback: profileSkill.setbackDice + (mods?.setback ?? 0),
                 }
                 : { setback: mods?.setback ?? 0 }),
-              ...(mods?.boost ? { boost: mods.boost } : {}),
+              ...(mods?.boost && !profileSkill?.removeBoosts ? { boost: mods.boost } : {}),
               // Сложность оружия и надбавка за нехватку Мощи/Ловкости складываются.
               ...((profile?.fixedDifficulty ?? 0) + (mods?.difficultyIncrease ?? 0) > 0
-                ? { difficulty: (profile?.fixedDifficulty ?? 0) + (mods?.difficultyIncrease ?? 0) }
+                ? { difficulty: (profile?.fixedDifficulty ?? 0) + (mods?.difficultyIncrease ?? 0)
+                    + (profileSkill?.difficultyDice ?? 0) }
+                : (profileSkill?.difficultyDice ?? 0) > 0
+                  ? { difficulty: profileSkill?.difficultyDice }
+                  : {}),
+              ...((profileSkill?.difficultyUpgrades ?? 0) > 0
+                ? { challenge: profileSkill?.difficultyUpgrades }
                 : {}),
             },
             // Урон уже посчитан сервером под Мощь персонажа — клиенту его разбирать не нужно.

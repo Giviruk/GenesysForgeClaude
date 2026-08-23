@@ -123,6 +123,23 @@ public static class SheetBuilder
         // Помехи от снаряжения и перегруза считаются один раз на персонажа и раскладываются
         // по каждой проверке (ROT-ARM-01): их же роллер подставляет в пул.
         var checkModifiers = CharacterDerived.CheckModifierInputs(c);
+        // Длительные эффекты критических травм также входят в пул навыка (U-23):
+        // краткие эффекты «следующей проверки» в этот список не попадают.
+        var criticalInjuryModifiers = CriticalInjuryRules.CheckModifiers(c.CriticalInjuries);
+        // Эффект уже добавленной травмы возвращается вместе с листом: клиенту не приходится
+        // отдельно искать строку справочника, а ручные травмы по-прежнему живут только в заметке.
+        var criticalRuleCodes = c.CriticalInjuries
+            .Select(ci => ci.RuleCode)
+            .Where(code => !string.IsNullOrWhiteSpace(code))
+            .Select(code => code!)
+            .Distinct(StringComparer.Ordinal)
+            .ToList();
+        var criticalRules = criticalRuleCodes.Count == 0
+            ? new Dictionary<string, RuleTableEntry>(StringComparer.Ordinal)
+            : (await db.RuleTableEntries.AsNoTracking()
+                .Where(e => e.Kind == RuleTableKind.CriticalInjury && criticalRuleCodes.Contains(e.Code))
+                .ToListAsync(ct))
+                .ToDictionary(e => e.Code, StringComparer.Ordinal);
         // Улучшения предметов поднимают навыки (ROT-EQP-ATT-01) — для этого предметы и грузятся.
         var skillBoosts = EffectiveItems.SkillBoosts(EffectiveItems.For(c));
         var skills = systemSkills.Select(def =>
@@ -132,7 +149,8 @@ public static class SheetBuilder
             var isCareer = careerSkills.IsCareer(def.Id);
             var pool = GenesysRules.BuildDicePool(ch.Get(def.Characteristic), ranks);
             var penalty = CheckModifierAggregator.For(
-                def.Name, def.Characteristic, checkModifiers, derived.Encumbrance, skillBoosts);
+                def.Name, def.Characteristic, checkModifiers, derived.Encumbrance, skillBoosts,
+                criticalInjuryModifiers);
             return new CharacterSkillDto(def.Id, def.Name, def.NameRu, def.Kind, def.Characteristic, ranks, isCareer,
                 new DicePoolDto(pool.Ability, pool.Proficiency),
                 ranks < GenesysRules.MaxSkillRank ? GenesysRules.SkillRankCost(ranks + 1, isCareer) : 0,
@@ -143,8 +161,10 @@ public static class SheetBuilder
                 def.Retired,
                 penalty.SetbackDice,
                 [.. penalty.Sources.Select(s => new CheckModifierSourceDto(
-                    s.SourceType, s.SourceName, s.SourceNameRu, s.Setback, s.Condition, s.Boost))],
-                penalty.BoostDice);
+                    s.SourceType, s.SourceName, s.SourceNameRu, s.Setback, s.Condition, s.Boost,
+                    s.Difficulty, s.DifficultyUpgrades, s.RemoveBoosts))],
+                penalty.BoostDice, penalty.DifficultyDice, penalty.DifficultyUpgrades,
+                penalty.RemoveBoosts);
         }).ToList();
 
         var configuration = await BuildConfigurationAsync(db, c, systemSkills, ct);
@@ -203,8 +223,13 @@ public static class SheetBuilder
             c.Desire, c.Fear, c.Strength, c.Flaw, c.Background,
             c.CriticalInjuries
                 .OrderBy(ci => ci.RollResult ?? int.MaxValue).ThenBy(ci => ci.CreatedAt)
-                .Select(ci => new CharacterCriticalInjuryDto(
-                    ci.Id, ci.RuleCode, ci.NameRu, ci.Severity, ci.RollResult, ci.Notes))
+                .Select(ci =>
+                {
+                    criticalRules.TryGetValue(ci.RuleCode ?? "", out var rule);
+                    return new CharacterCriticalInjuryDto(
+                        ci.Id, ci.RuleCode, ci.NameRu, ci.Severity, ci.RollResult, ci.Notes,
+                        rule?.Body, rule?.BodyEn);
+                })
                 .ToList(),
             c.PortraitUrl,
             c.StartingEquipmentMode,

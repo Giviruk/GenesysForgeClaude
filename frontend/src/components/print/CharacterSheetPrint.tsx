@@ -192,7 +192,8 @@ export function CharacterSheetPrint({ sheet, loadNotes = true }: {
                       <div className="sheet-weapon-pool">
                         <span className="sheet-weapon-pool-label">{t('Пул', 'Pool')}</span>
                         {weaponSkill
-                          ? <><DicePoolView pool={weaponSkill.pool} setback={weaponSkill.setbackDice} /><span>{localizedName(weaponSkill)}</span></>
+                          ? <><DicePoolView pool={weaponSkill.pool} setback={weaponSkill.setbackDice}
+                              difficulty={weaponSkill.difficultyDice} challenge={weaponSkill.difficultyUpgrades} /><span>{localizedName(weaponSkill)}</span></>
                           : <span className="muted">—{i.skillName ? t(` навык ${i.skillName} не найден`, ` skill ${i.skillName} not found`) : ''}</span>}
                       </div>
                     )}
@@ -261,6 +262,7 @@ export function CharacterSheetPrint({ sheet, loadNotes = true }: {
                 {ci.severity ? ` · ${ci.severity}` : ''}
                 {ci.rollResult != null ? t(` · бросок ${ci.rollResult}`, ` · roll ${ci.rollResult}`) : ''}
               </span>
+              {ci.effect && <div className="sheet-desc">{t(ci.effect, ci.effectEn || ci.effect)}</div>}
               {ci.notes && <div className="sheet-desc">{ci.notes}</div>}
             </div>
           ))}
@@ -356,8 +358,9 @@ function SkillGroup({ kind, skills }: SkillGroupData) {
               <td>{CHARACTERISTIC_LABELS[skill.characteristic]}</td>
               <td>{skill.isCareer ? '✓' : ''}</td>
               <td>{skill.ranks}</td>
-              {/* Помехи снаряжения и перегруза печатаются вместе с пулом (ROT-ARM-01). */}
-              <td><DicePoolView pool={skill.pool} setback={skill.setbackDice} /></td>
+              {/* Помехи снаряжения, перегруз и критические травмы печатаются вместе с пулом. */}
+              <td><DicePoolView pool={skill.pool} setback={skill.setbackDice}
+                difficulty={skill.difficultyDice} challenge={skill.difficultyUpgrades} /></td>
             </tr>
           ))}
         </tbody>

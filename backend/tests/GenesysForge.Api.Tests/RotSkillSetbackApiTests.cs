@@ -127,4 +127,23 @@ public class RotSkillSetbackApiTests(ApiFactory factory) : IClassFixture<ApiFact
         // Проверка Интеллекта перегрузом не штрафуется.
         Assert.Equal(0, Skill(sheet, "Knowledge (Lore)").SetbackDice);
     }
+
+    [Fact]
+    public async Task CriticalInjury_AddsItsLongTermCheckModifierToTheSkillSheet()
+    {
+        var (client, id, _) = await CreateCharacterAsync();
+        var add = await client.PostAsJsonAsync($"/api/characters/{id}/critical-injuries",
+            new AddCriticalInjuryRequest("crit-ci_046_050", null, null, null, null), Json.Options);
+        Assert.Equal(HttpStatusCode.Created, add.StatusCode);
+
+        var sheet = await SheetAsync(client, id);
+        var knowledge = Skill(sheet, "Knowledge (Lore)");
+        Assert.Equal(1, knowledge.DifficultyDice);
+        var source = Assert.Single(knowledge.SetbackSources!.Where(s => s.SourceType == "CriticalInjury"));
+        Assert.Equal("Звон в ушах", source.SourceNameRu);
+        Assert.Equal(1, source.Difficulty);
+
+        // Эффект травмы ограничен двумя характеристиками и не меняет ловкость.
+        Assert.Equal(0, Skill(sheet, "Stealth").DifficultyDice);
+    }
 }
