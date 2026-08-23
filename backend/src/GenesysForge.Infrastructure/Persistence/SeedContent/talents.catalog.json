@@ -635,7 +635,7 @@
   "soak": 0,
   "mdef": 0,
   "rdef": 0,
-  "desc": "Союзники в пределах короткой дистанции от персо нажа прибавляют ◻ к проверкам Бдительности и Вни мания, а союзники, находящиеся вплотную к персо нажу, - ◻ ◻.",
+  "desc": "Союзники в пределах короткой дистанции от персонажа прибавляют ◻ к проверкам Бдительности и Внимания, а союзники, находящиеся вплотную к персонажу, — ◻ ◻.",
   "descEn": "Allies within short range of the character add a boost die to their Perception and Vigilance checks; engaged allies add two boost dice instead.",
   "activationEn": "Passive"
  },
