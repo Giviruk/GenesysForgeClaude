@@ -70,7 +70,8 @@ public static class SeedData
         SyncBuiltinByCode(db, db.TalentDefs.Where(t => t.OwnerUserId == null && t.Code != ""), talents,
             (row, def) =>
             {
-                var same = row.Name == def.Name && row.NameRu == def.NameRu && row.DescriptionEn == def.DescriptionEn
+                var same = row.Name == def.Name && row.NameRu == def.NameRu && row.Description == def.Description
+                    && row.DescriptionEn == def.DescriptionEn
                     && row.SafeDescription == def.SafeDescription
                     && row.Tier == def.Tier && row.IsRanked == def.IsRanked
                     && row.Activation == def.Activation && row.ActivationEn == def.ActivationEn
@@ -83,6 +84,7 @@ public static class SeedData
                     && row.Trigger == def.Trigger;
                 if (same) return false;
                 row.Name = def.Name; row.NameRu = def.NameRu;
+                row.Description = def.Description;
                 row.SafeDescription = def.SafeDescription; row.DescriptionEn = def.DescriptionEn;
                 row.Tier = def.Tier; row.IsRanked = def.IsRanked;
                 row.Activation = def.Activation; row.ActivationEn = def.ActivationEn;
