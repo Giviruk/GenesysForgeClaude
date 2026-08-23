@@ -9,6 +9,7 @@ import {
   SYSTEM_LABELS, TRANSPORT_KIND_LABELS, WEAPON_CRAFTSMANSHIP_LABELS,
 } from '../../utils/labels'
 import { DicePoolView } from '../DicePoolView'
+import { RuleText } from '../RuleText'
 import { lang, t } from '../../i18n'
 
 const ITEM_STATE_ORDER: ItemState[] = ['equipped', 'carried', 'backpack']
@@ -105,7 +106,7 @@ export function CharacterSheetPrint({ sheet, loadNotes = true }: {
                 {' · '}{t('уровень', 'tier')} {tal.tier}{tal.isRanked ? t(` · рангов ${tal.ranks}`, ` · ranks ${tal.ranks}`) : ''}
                 {tal.activation ? ` · ${tal.activation}` : ''}
               </span>
-              {localizedDescription(tal) && <div className="sheet-desc">{localizedDescription(tal)}</div>}
+              {localizedDescription(tal) && <div className="sheet-desc"><RuleText text={localizedDescription(tal)} /></div>}
             </div>
           ))}
         </section>
