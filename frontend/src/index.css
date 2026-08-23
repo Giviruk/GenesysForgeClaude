@@ -2517,7 +2517,20 @@ button.tiny { font-size: 0.75rem; padding: 0.05rem 0.4rem 0.15rem; }
 /* Флажок остаётся рядом со своей подписью и не тянется на всю карточку. */
 .crafting-tab label:has(> input[type="checkbox"]) {
   flex-direction: row; align-items: center; gap: 0.4rem;
-  width: fit-content; max-width: 100%; cursor: pointer;
+  width: fit-content; max-width: 100%; cursor: pointer; white-space: nowrap;
+}
+.crafting-tab label:has(> input[type="checkbox"]) > input[type="checkbox"] {
+  width: auto; flex: 0 0 auto;
+}
+.crafting-override-row {
+  display: grid; grid-template-columns: minmax(7rem, 0.8fr) minmax(0, 1.2fr);
+  align-items: end; gap: 0.6rem;
+}
+.crafting-override-row > label { min-width: 0; }
+.crafting-override-input { width: 100% !important; }
+.crafting-override-row > label:nth-child(2) input { min-width: 0; }
+@media (max-width: 34rem) {
+  .crafting-override-row { grid-template-columns: minmax(6rem, 0.75fr) minmax(0, 1.25fr); }
 }
 .crafting-tab textarea { resize: vertical; }
 .crafting-project { border-top: 1px dashed var(--border); padding-top: 0.6rem; margin-top: 0.6rem; }
