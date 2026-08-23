@@ -7,6 +7,8 @@ interface RuleTokenDefinition {
   pattern: string
   kind: RuleTokenKind
   display?: string
+  /** Some legacy OCR fallbacks are only valid in their original case. */
+  caseSensitive?: boolean
 }
 
 interface RuleMatch extends RuleTokenDefinition {
@@ -65,7 +67,7 @@ const WORD_TOKENS: RuleTokenDefinition[] = [
 const SYMBOL_TOKENS: RuleTokenDefinition[] = [
   { pattern: '✶', kind: 'success' }, { pattern: '*', kind: 'success', display: '✶' },
   { pattern: '✸', kind: 'failure' },
-  { pattern: '▲', kind: 'advantage' }, { pattern: 'А', kind: 'advantage', display: '▲' },
+  { pattern: '▲', kind: 'advantage' }, { pattern: 'А', kind: 'advantage', display: '▲', caseSensitive: true },
   { pattern: '▼', kind: 'threat' },
   { pattern: '★', kind: 'triumph' }, { pattern: '@', kind: 'triumph', display: '★' },
   { pattern: '☠', kind: 'despair' },
@@ -104,10 +106,11 @@ function findMatches(text: string): RuleMatch[] {
   const lower = text.toLocaleLowerCase()
   const found: RuleMatch[] = []
   for (const token of ALL_TOKENS) {
-    const needle = token.pattern.toLocaleLowerCase()
+    const haystack = token.caseSensitive ? text : lower
+    const needle = token.caseSensitive ? token.pattern : token.pattern.toLocaleLowerCase()
     let from = 0
-    while (from < lower.length) {
-      const start = lower.indexOf(needle, from)
+    while (from < haystack.length) {
+      const start = haystack.indexOf(needle, from)
       if (start < 0) break
       const end = start + needle.length
       // Symbols may touch punctuation; words must be standalone so «успех» does not match «успешный».
