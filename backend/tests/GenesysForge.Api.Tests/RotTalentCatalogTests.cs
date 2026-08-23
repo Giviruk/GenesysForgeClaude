@@ -190,4 +190,16 @@ public class RotTalentCatalogTests(ApiFactory factory) : IClassFixture<ApiFactor
         foreach (var talent in await RotTalentsAsync())
             Assert.InRange(talent.Tier, 1, 5);
     }
+
+    [Fact]
+    public async Task HeightenedAwareness_UsesReadableBoostNotation()
+    {
+        var talent = (await RotTalentsAsync()).Single(t => t.Name == "Heightened Awareness");
+
+        Assert.Equal(
+            "Союзники в пределах короткой дистанции от персонажа прибавляют ◻ к проверкам Бдительности и Внимания, а союзники, находящиеся вплотную к персонажу, — ◻ ◻.",
+            talent.Description);
+        Assert.Contains("boost die", talent.DescriptionEn, StringComparison.Ordinal);
+        Assert.Contains("two boost dice", talent.DescriptionEn, StringComparison.Ordinal);
+    }
 }
