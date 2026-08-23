@@ -9,18 +9,27 @@ import { t } from '../i18n'
  * + глобальный поиск по справочнику, контенту системы и сущностям пользователя.
  */
 
-const KIND_ORDER: RuleTableKind[] = ['difficulty', 'symbolSpend', 'rangeBand', 'criticalInjury']
+const KIND_ORDER: RuleTableKind[] = [
+  'difficulty', 'symbolSpend', 'rangeBand', 'criticalInjury',
+  'weaponProperty', 'combatActionManeuver', 'magicActionManeuver',
+]
 
 const KIND_LABELS: Record<RuleTableKind, string> = t({
   difficulty: 'Сложности',
   symbolSpend: 'Траты символов',
   rangeBand: 'Дистанции',
   criticalInjury: 'Критические ранения (d100)',
+  weaponProperty: 'Свойства оружия',
+  combatActionManeuver: 'Боевые действия и манёвры',
+  magicActionManeuver: 'Магические действия и манёвры',
 }, {
   difficulty: 'Difficulties',
   symbolSpend: 'Spending symbols',
   rangeBand: 'Range bands',
   criticalInjury: 'Critical injuries (d100)',
+  weaponProperty: 'Weapon properties',
+  combatActionManeuver: 'Combat actions and maneuvers',
+  magicActionManeuver: 'Magic actions and maneuvers',
 })
 
 // Короткие подписи для переключателя разделов.
@@ -29,11 +38,17 @@ const KIND_TAB_LABELS: Record<RuleTableKind, string> = t({
   symbolSpend: 'Траты',
   rangeBand: 'Дистанции',
   criticalInjury: 'Криты',
+  weaponProperty: 'Оружие',
+  combatActionManeuver: 'Боевые',
+  magicActionManeuver: 'Магия',
 }, {
   difficulty: 'Difficulties',
   symbolSpend: 'Spends',
   rangeBand: 'Ranges',
   criticalInjury: 'Crits',
+  weaponProperty: 'Weapons',
+  combatActionManeuver: 'Combat',
+  magicActionManeuver: 'Magic',
 })
 
 type Section = RuleTableKind | 'all'
@@ -284,10 +299,13 @@ function RuleTable({ kind, entries, showCost = true }:
   const firstCol = kind === 'criticalInjury' ? t('Бросок', 'Roll')
     : kind === 'symbolSpend' ? t('Ситуация', 'Situation')
     : kind === 'difficulty' ? t('Сложность', 'Difficulty')
-    : kind === 'rangeBand' ? t('Название', 'Name') : t('Диапазон', 'Range')
+    : kind === 'rangeBand' ? t('Название', 'Name') : t('Название', 'Name')
   const costCol = kind === 'criticalInjury' ? t('Сложность', 'Difficulty')
     : kind === 'difficulty' ? t('Кубы', 'Dice')
-    : kind === 'rangeBand' ? t('Манёвры', 'Maneuvers') : t('Стоимость', 'Cost')
+    : kind === 'rangeBand' ? t('Манёвры', 'Maneuvers')
+    : kind === 'weaponProperty' ? t('Активация', 'Activation')
+    : kind === 'combatActionManeuver' || kind === 'magicActionManeuver'
+      ? t('Тип', 'Type') : t('Стоимость', 'Cost')
 
   // Основное имя — на языке интерфейса, второе имя показывается рядом серым.
   const entryName = (e: RuleTableEntry) => t(e.nameRu, e.nameEn || e.nameRu)
@@ -318,6 +336,9 @@ function RuleTable({ kind, entries, showCost = true }:
                 {firstValue(e)}
                 {kind !== 'symbolSpend' && kind !== 'criticalInjury' && entrySecondary(e) && (
                   <span className="muted small-text name-secondary"> · {entrySecondary(e)}</span>
+                )}
+                {(kind === 'weaponProperty' || kind === 'combatActionManeuver' || kind === 'magicActionManeuver') && e.groupRu && (
+                  <span className="muted small-text name-secondary"> · {entryGroup(e)}</span>
                 )}
               </td>
               {kind === 'criticalInjury' && (

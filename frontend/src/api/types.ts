@@ -1869,6 +1869,7 @@ export interface ImportResult {
 
 // Справочные таблицы правил (U-11).
 export type RuleTableKind = 'difficulty' | 'symbolSpend' | 'rangeBand' | 'criticalInjury'
+  | 'weaponProperty' | 'combatActionManeuver' | 'magicActionManeuver'
 
 export interface RuleTableEntry {
   id: string

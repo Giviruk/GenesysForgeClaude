@@ -26,6 +26,18 @@ const rules: RulesResponse = {
     { id: '7', kind: 'rangeBand', code: 'range-move', nameRu: 'Короткая <-> Средняя', nameEn: '',
       groupRu: 'Перемещение', sortOrder: 7, rollRange: '', symbolCost: '1 манёвр(ов)',
       body: 'Переход между дистанциями.', notes: '', source: 'Core', sourcePage: '105' },
+    { id: '8', kind: 'weaponProperty', code: 'weapon-property-blast', nameRu: 'Взрыв', nameEn: 'Blast',
+      groupRu: 'Оружие', sortOrder: 1, rollRange: '', symbolCost: '2 преимущества',
+      body: 'Задевает цели рядом с исходной.', notes: 'Активное свойство.', source: 'Core', sourcePage: '87' },
+    { id: '9', kind: 'combatActionManeuver', code: 'combat-action-attack', nameRu: 'Атака', nameEn: 'Attack',
+      groupRu: 'Действие', sortOrder: 1, rollRange: '', symbolCost: '1 действие',
+      body: 'Совершите боевую проверку.', notes: '', source: 'Core', sourcePage: '101' },
+    { id: '10', kind: 'magicActionManeuver', code: 'magic-action-attack', nameRu: 'Атака', nameEn: 'Attack',
+      groupRu: 'Действие', sortOrder: 1, rollRange: '', symbolCost: 'Действие · проверка',
+      body: 'Совершите магическую атаку.', notes: 'Навыки: Магия.', source: 'Core', sourcePage: '215' },
+    { id: '11', kind: 'symbolSpend', code: 'spend-magic-neg', nameRu: 'Магическая отдача', nameEn: '',
+      groupRu: 'Магия', sortOrder: 4, rollRange: '', symbolCost: '1 Threat или 1 Despair',
+      body: 'Заклинатель получает усталость.', notes: '', source: 'Core', sourcePage: '212' },
   ],
 }
 
@@ -63,6 +75,9 @@ describe('ReferencePage', () => {
     fireEvent.click(screen.getByRole('tab', { name: /Все/ }))
     expect(screen.getByRole('heading', { name: /Сложности/ })).toBeTruthy()
     expect(screen.getByRole('heading', { name: /Критические ранения/ })).toBeTruthy()
+    expect(screen.getByRole('heading', { name: /Свойства оружия/ })).toBeTruthy()
+    expect(screen.getByRole('heading', { name: /Боевые действия и манёвры/ })).toBeTruthy()
+    expect(screen.getByRole('heading', { name: /Магические действия и манёвры/ })).toBeTruthy()
   })
 
   it('filters spends by situation and by symbol polarity', async () => {
@@ -86,6 +101,21 @@ describe('ReferencePage', () => {
     // Любые символы + социальная сцена — видна светская деталь.
     fireEvent.click(screen.getByRole('tab', { name: /Любые символы/ }))
     expect(screen.getByText('Узнать деталь о собеседнике.')).toBeTruthy()
+  })
+
+  it('shows weapon properties and combat/magic action sections', async () => {
+    render(<ReferencePage onNavigate={() => {}} />)
+    await waitFor(() => expect(screen.getByRole('tab', { name: /Оружие/ })).toBeTruthy())
+
+    fireEvent.click(screen.getByRole('tab', { name: /Оружие/ }))
+    expect(screen.getByText('Взрыв')).toBeTruthy()
+    expect(screen.getByText('2 преимущества')).toBeTruthy()
+
+    fireEvent.click(screen.getByRole('tab', { name: /Боевые/ }))
+    expect(screen.getByText('Совершите боевую проверку.')).toBeTruthy()
+
+    fireEvent.click(screen.getByRole('tab', { name: /Магия/ }))
+    expect(screen.getByText('Совершите магическую атаку.')).toBeTruthy()
   })
 
   it('splits ranges into «Общая информация» (no cost) and «Перемещение» (with maneuvers)', async () => {
