@@ -1,4 +1,4 @@
-import { lazy, Suspense } from 'react'
+import { lazy, Suspense, useEffect, useState } from 'react'
 import { AuthProvider } from './auth'
 import { useAuth } from './auth-context'
 import { Footer } from './components/Footer'
@@ -44,10 +44,38 @@ const FOOTER_NAV_ITEMS: Array<{ area: AppArea; label: string; path: string; icon
 function Shell() {
   const { token, logout } = useAuth()
   const [lang, setLang] = useLang()
+  const [mobileNavOpen, setMobileNavOpen] = useState(false)
   const path = usePath()
 
   const route = parseRoute(path)
   useSeo(route, path)
+
+  useEffect(() => {
+    setMobileNavOpen(false)
+  }, [path])
+
+  useEffect(() => {
+    if (!mobileNavOpen) return
+
+    const previousOverflow = document.body.style.overflow
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setMobileNavOpen(false)
+    }
+
+    document.body.style.overflow = 'hidden'
+    window.addEventListener('keydown', handleKeyDown)
+
+    return () => {
+      document.body.style.overflow = previousOverflow
+      window.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [mobileNavOpen])
+
+  const activeNavItem = [...NAV_ITEMS, ...FOOTER_NAV_ITEMS].find(item => item.area === route.area)
+  const navigateFromShell = (nextPath: string) => {
+    setMobileNavOpen(false)
+    navigate(nextPath)
+  }
 
   // «О проекте» доступна публично — до проверки токена (виден дисклеймер до входа).
   if (route.area === 'about') return <AboutPage loggedIn={!!token} />
@@ -63,14 +91,34 @@ function Shell() {
   if (!token) return <AuthPage />
 
   return (
-    <div className="app-shell">
+    <div className={mobileNavOpen ? 'app-shell mobile-nav-open' : 'app-shell'}>
+      {mobileNavOpen && (
+        <button
+          type="button"
+          className="mobile-nav-backdrop no-print"
+          aria-label={t('Закрыть меню', 'Close menu')}
+          onClick={() => setMobileNavOpen(false)}
+        />
+      )}
+
       <aside className="app-sidebar no-print" aria-label={t('Основная навигация', 'Main navigation')}>
-        <button type="button" className="app-brand" onClick={() => navigate('/characters')}>GENESYSFORGE</button>
-        <nav className="side-nav">
+        <div className="app-sidebar-head">
+          <button type="button" className="app-brand" onClick={() => navigateFromShell('/characters')}>GENESYSFORGE</button>
+          <button
+            type="button"
+            className="mobile-nav-close"
+            aria-label={t('Закрыть меню', 'Close menu')}
+            onClick={() => setMobileNavOpen(false)}
+          >
+            <Icon name="close" />
+          </button>
+        </div>
+
+        <nav id="primary-navigation" className="side-nav">
           {NAV_ITEMS.map(item => (
             <button key={item.area} type="button"
               className={route.area === item.area ? 'side-nav-item active' : 'side-nav-item'}
-              onClick={() => navigate(item.path)}>
+              onClick={() => navigateFromShell(item.path)}>
               <Icon name={item.icon} className="side-nav-icon" />
               {item.label}
             </button>
@@ -80,17 +128,17 @@ function Shell() {
           {FOOTER_NAV_ITEMS.map(item => (
             <button key={item.area} type="button"
               className={route.area === item.area ? 'side-nav-item active' : 'side-nav-item'}
-              onClick={() => navigate(item.path)}>
+              onClick={() => navigateFromShell(item.path)}>
               <Icon name={item.icon} className="side-nav-icon" />
               {item.label}
             </button>
           ))}
           <button type="button" className="side-nav-item"
-            onClick={() => setLang(lang === 'ru' ? 'en' : 'ru')}>
+            onClick={() => { setMobileNavOpen(false); setLang(lang === 'ru' ? 'en' : 'ru') }}>
             <Icon name="globe" className="side-nav-icon" />
             {lang === 'ru' ? 'English' : 'Русский'}
           </button>
-          <button type="button" className="side-nav-item" onClick={() => { logout(); navigate('/login') }}>
+          <button type="button" className="side-nav-item" onClick={() => { setMobileNavOpen(false); logout(); navigate('/login') }}>
             <Icon name="logout" className="side-nav-icon" />
             {t('Выйти', 'Sign out')}
           </button>
@@ -98,6 +146,24 @@ function Shell() {
       </aside>
 
       <div className="shell">
+        <header className="mobile-topbar no-print">
+          <button
+            type="button"
+            className="mobile-menu-trigger"
+            aria-expanded={mobileNavOpen}
+            aria-controls="primary-navigation"
+            aria-label={t('Открыть меню', 'Open menu')}
+            onClick={() => setMobileNavOpen(true)}
+          >
+            <Icon name="menu" />
+            <span>{t('Меню', 'Menu')}</span>
+          </button>
+          <button type="button" className="mobile-topbar-brand" onClick={() => navigateFromShell('/characters')}>
+            GENESYSFORGE
+          </button>
+          <span className="mobile-topbar-title">{activeNavItem?.label}</span>
+        </header>
+
         {route.unknown
           ? <NotFound />
           : route.area === 'characters'
