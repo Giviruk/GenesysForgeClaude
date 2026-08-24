@@ -3437,3 +3437,185 @@ button.back-link,
   overflow-wrap: normal;
   word-break: normal;
 }
+
+/* ---------- Character sheet and inventory layout polish ---------- */
+/*
+ * The shared responsive layer keeps controls touchable. Reduce that common
+ * footprint by 10% while preserving a usable target on narrow screens.
+ */
+:root {
+  --touch-target: 2.475rem;
+}
+
+button {
+  padding: 0.34rem 0.81rem 0.47rem;
+  font-size: 0.81rem;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+
+button.small {
+  padding: 0.09rem 0.5rem 0.27rem;
+  font-size: 0.72rem;
+}
+
+button.tiny {
+  padding: 0.045rem 0.4rem 0.135rem;
+  font-size: 0.72rem;
+}
+
+button:not(.linklike):not(.back-link),
+select {
+  min-height: var(--touch-target);
+}
+
+.chip {
+  padding: 0.09rem 0.5rem 0.18rem;
+  font-size: 0.675rem;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+
+/* Действия создания относятся к XP, поэтому находятся сразу после XP справа. */
+.sheet-head-controls {
+  align-items: flex-end;
+}
+
+.sheet-head-controls .xp-block {
+  justify-content: flex-end;
+}
+
+.sheet-action-buttons {
+  width: auto;
+  max-width: 100%;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.sheet-action-buttons > button,
+.sheet-action-buttons .sheet-actions-menu {
+  flex: 0 1 auto;
+  max-width: 100%;
+}
+
+.sheet-action-buttons > button {
+  white-space: nowrap;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+
+.sheet-actions-menu {
+  display: block;
+}
+
+.sheet-actions-trigger {
+  min-width: 2.16rem;
+  white-space: nowrap;
+}
+
+/* В производных характеристиках высота строки может отличаться из-за кнопок
+ * изменения ран и предупреждения о перегрузе. Группа центрируется целиком. */
+.stat-row.derived .stat-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 4.5rem;
+}
+
+.stat-row.derived .stat-value,
+.stat-row.derived .stat-label {
+  flex: 0 0 auto;
+}
+
+/* Действия навыка — самостоятельный переносимый блок внутри карточки. */
+.skill-action-buttons {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.3rem;
+  max-width: 100%;
+  min-width: 0;
+  flex-wrap: wrap;
+  vertical-align: middle;
+}
+
+.skill-action-buttons > button {
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: 100%;
+  white-space: nowrap;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+
+/* Состояния предмета и оба набора фильтров — прямоугольные табы, а не pills. */
+.state-switch .chip,
+.damage-switch .chip,
+.shop-filters .chip {
+  border-radius: 6px;
+}
+
+/* Никаких переносов по одному символу в мобильных карточках и таблицах. */
+@media (max-width: 48rem) {
+  .sheet-head-controls {
+    width: 100%;
+    align-items: flex-end;
+    margin-left: 0;
+  }
+
+  .sheet-head-controls .xp-block {
+    width: 100%;
+    justify-content: flex-end;
+  }
+
+  .sheet-action-buttons {
+    width: auto;
+    align-self: flex-end;
+    justify-content: flex-end;
+  }
+
+  .sheet-action-buttons > button,
+  .sheet-action-buttons .sheet-actions-menu {
+    width: auto;
+    flex: 0 1 auto;
+  }
+
+  .sheet-action-buttons .sheet-actions-menu {
+    display: block;
+  }
+
+  .sheet-actions-trigger {
+    width: 2.16rem;
+    min-width: 2.16rem;
+    padding-inline: 0.23rem;
+  }
+
+  table.skills.fixed td.right {
+    box-sizing: border-box;
+    width: 100%;
+    min-width: 0;
+  }
+
+  table.skills.fixed td.right .skill-action-buttons {
+    display: flex;
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  table.skills.fixed td.right .skill-action-buttons > button {
+    flex: 0 1 auto;
+  }
+
+  table.skills.fixed td,
+  .inv-card-title,
+  .inv-card-desc,
+  .shop-row-info,
+  .panel h1,
+  .panel h2,
+  .panel h3,
+  .panel h4 {
+    overflow-wrap: break-word;
+    word-break: normal;
+  }
+}

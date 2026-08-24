@@ -143,6 +143,16 @@ describe('SheetPage — части листа грузятся по надобн
     expect(screen.queryByRole('menu')).toBeNull()
   })
 
+  it('ставит действия создания справа после блока опыта', async () => {
+    renderPage()
+    await screen.findByText('вкладка листа')
+
+    const controls = document.querySelector('.sheet-head-controls')
+    expect(controls?.children[0].classList.contains('xp-block')).toBe(true)
+    expect(controls?.children[1].classList.contains('sheet-action-buttons')).toBe(true)
+    expect(document.querySelector('.sheet-title-row .sheet-action-buttons')).toBeNull()
+  })
+
   it('переход на вкладку догружает только недостающее', async () => {
     renderPage()
     await screen.findByText('вкладка листа')
