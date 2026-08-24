@@ -408,39 +408,6 @@ export function SheetPage({ characterId, printing, onOpenPrint, onClosePrint, on
               </div>
               <div className="page-sub">{sheet.archetype.name} · {sheet.career.name}</div>
             </div>
-            <div className="sheet-action-buttons">
-              {sheet.isCreationPhase && (
-                <button className="small" title={t('Завершить создание: зафиксировать характеристики и снять лимит рангов', 'Complete creation: lock characteristics and lift the rank limit')}
-                  disabled={completing} onClick={() => void completeCreation()}>
-                  {completing ? t('Завершение…', 'Completing…') : t('Завершить создание', 'Complete creation')}
-                </button>
-              )}
-              <div className="sheet-actions-menu" ref={actionsMenuRef}>
-                <button type="button" className="small sheet-actions-trigger"
-                  aria-label={t('Дополнительные действия', 'More actions')}
-                  aria-haspopup="menu" aria-expanded={actionsOpen}
-                  onClick={() => setActionsOpen(open => !open)}>•••</button>
-                {actionsOpen && (
-                  <div className="sheet-actions-popover" role="menu">
-                    <button type="button" role="menuitem" onClick={() => { setActionsOpen(false); onOpenPrint() }}>
-                      <Icon name="printer" className="button-icon" />{t('Печать', 'Print')}
-                    </button>
-                    <button type="button" role="menuitem" onClick={() => { setActionsOpen(false); void duplicateCurrent() }}>
-                      <Icon name="copy" className="button-icon" />{t('Клонировать', 'Duplicate')}
-                    </button>
-                    <button type="button" role="menuitem" onClick={() => { setActionsOpen(false); void shareCurrent() }}>
-                      <Icon name="share" className="button-icon" />{t('Ссылка', 'Share link')}
-                    </button>
-                    <button type="button" role="menuitem" onClick={() => { setActionsOpen(false); void revokeShares() }}>
-                      {t('Отозвать ссылки', 'Revoke links')}
-                    </button>
-                    <button type="button" role="menuitem" onClick={() => { setActionsOpen(false); void exportJson() }}>
-                      <Icon name="file-import" className="button-icon" />{t('Экспорт JSON', 'Export JSON')}
-                    </button>
-                  </div>
-                )}
-              </div>
-            </div>
           </div>
         </div>
         <div className="sheet-head-controls">
@@ -457,6 +424,39 @@ export function SheetPage({ characterId, printing, onOpenPrint, onClosePrint, on
             </span>
             <span className="muted"> {t('потрачено', 'spent')} {sheet.spentXp} · </span>
             <strong className="xp-available">{t('доступно', 'available')} {sheet.availableXp}</strong>
+          </div>
+          <div className="sheet-action-buttons">
+            {sheet.isCreationPhase && (
+              <button className="small" title={t('Завершить создание: зафиксировать характеристики и снять лимит рангов', 'Complete creation: lock characteristics and lift the rank limit')}
+                disabled={completing} onClick={() => void completeCreation()}>
+                {completing ? t('Завершение…', 'Completing…') : t('Завершить создание', 'Complete creation')}
+              </button>
+            )}
+            <div className="sheet-actions-menu" ref={actionsMenuRef}>
+              <button type="button" className="small sheet-actions-trigger"
+                aria-label={t('Дополнительные действия', 'More actions')}
+                aria-haspopup="menu" aria-expanded={actionsOpen}
+                onClick={() => setActionsOpen(open => !open)}>•••</button>
+              {actionsOpen && (
+                <div className="sheet-actions-popover" role="menu">
+                  <button type="button" role="menuitem" onClick={() => { setActionsOpen(false); onOpenPrint() }}>
+                    <Icon name="printer" className="button-icon" />{t('Печать', 'Print')}
+                  </button>
+                  <button type="button" role="menuitem" onClick={() => { setActionsOpen(false); void duplicateCurrent() }}>
+                    <Icon name="copy" className="button-icon" />{t('Клонировать', 'Duplicate')}
+                  </button>
+                  <button type="button" role="menuitem" onClick={() => { setActionsOpen(false); void shareCurrent() }}>
+                    <Icon name="share" className="button-icon" />{t('Ссылка', 'Share link')}
+                  </button>
+                  <button type="button" role="menuitem" onClick={() => { setActionsOpen(false); void revokeShares() }}>
+                    {t('Отозвать ссылки', 'Revoke links')}
+                  </button>
+                  <button type="button" role="menuitem" onClick={() => { setActionsOpen(false); void exportJson() }}>
+                    <Icon name="file-import" className="button-icon" />{t('Экспорт JSON', 'Export JSON')}
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>

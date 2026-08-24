@@ -220,43 +220,45 @@ export function SheetTab({ sheet, onError, refresh, updateBaseOptimistically, re
                                   setbackTitle={setbackTitle(s)} />
                               </td>
                               <td className="right" data-label={t('Действия', 'Actions')}>
-                                <button className="small" title={t(`Бросить пул навыка «${label}»`, `Roll the "${label}" skill pool`)}
-                                  onClick={() => openRoller({
-                                    kind: 'roll',
-                                    title: t('Бросок навыка', 'Skill check'),
-                                    label,
-                                    spendContext: s.kind === 'social'
-                                      ? 'social'
-                                      : s.kind === 'combat'
-                                        ? 'combat'
-                                        : s.kind === 'magic' ? 'magic' : 'general',
-                                    // Помехи снаряжения и перегруза едут в пул сами: игрок не обязан
-                                    // помнить, что на нём латы (ROT-ARM-01).
-                                    initialPool: {
-                                      ability: s.pool.ability,
-                                      proficiency: s.pool.proficiency,
-                                      setback: s.setbackDice,
-                                      boost: s.boostDice,
-                                      difficulty: s.difficultyDice ?? 0,
-                                      challenge: s.difficultyUpgrades ?? 0,
-                                    },
-                                  })}>
-                                  🎲
-                                </button>
-                                {!readOnly && sheet.isCreationPhase && s.ranks > s.freeRanks && (
-                                  <button className="small"
-                                    title={t(`Вернуть ранг ${s.ranks} (+${s.ranks * 5 + (s.isCareer ? 0 : 5)} XP)`, `Refund rank ${s.ranks} (+${s.ranks * 5 + (s.isCareer ? 0 : 5)} XP)`)}
-                                    onClick={() => run(() => api.refundSkillRank(sheet.id, s.skillDefId))}>
-                                    −
+                                <span className="skill-action-buttons">
+                                  <button className="small" title={t(`Бросить пул навыка «${label}»`, `Roll the "${label}" skill pool`)}
+                                    onClick={() => openRoller({
+                                      kind: 'roll',
+                                      title: t('Бросок навыка', 'Skill check'),
+                                      label,
+                                      spendContext: s.kind === 'social'
+                                        ? 'social'
+                                        : s.kind === 'combat'
+                                          ? 'combat'
+                                          : s.kind === 'magic' ? 'magic' : 'general',
+                                      // Помехи снаряжения и перегруза едут в пул сами: игрок не обязан
+                                      // помнить, что на нём латы (ROT-ARM-01).
+                                      initialPool: {
+                                        ability: s.pool.ability,
+                                        proficiency: s.pool.proficiency,
+                                        setback: s.setbackDice,
+                                        boost: s.boostDice,
+                                        difficulty: s.difficultyDice ?? 0,
+                                        challenge: s.difficultyUpgrades ?? 0,
+                                      },
+                                    })}>
+                                    🎲
                                   </button>
-                                )}
-                                {!readOnly && s.ranks < 5 && (
-                                  <button className="small" disabled={s.nextRankCost > sheet.availableXp}
-                                    title={s.nextRankCost > sheet.availableXp ? t('Недостаточно XP', 'Not enough XP') : t(`Купить ранг ${s.ranks + 1}`, `Buy rank ${s.ranks + 1}`)}
-                                    onClick={() => run(() => api.buySkillRank(sheet.id, s.skillDefId))}>
-                                    +{s.nextRankCost} XP
-                                  </button>
-                                )}
+                                  {!readOnly && sheet.isCreationPhase && s.ranks > s.freeRanks && (
+                                    <button className="small"
+                                      title={t(`Вернуть ранг ${s.ranks} (+${s.ranks * 5 + (s.isCareer ? 0 : 5)} XP)`, `Refund rank ${s.ranks} (+${s.ranks * 5 + (s.isCareer ? 0 : 5)} XP)`)}
+                                      onClick={() => run(() => api.refundSkillRank(sheet.id, s.skillDefId))}>
+                                      −
+                                    </button>
+                                  )}
+                                  {!readOnly && s.ranks < 5 && (
+                                    <button className="small" disabled={s.nextRankCost > sheet.availableXp}
+                                      title={s.nextRankCost > sheet.availableXp ? t('Недостаточно XP', 'Not enough XP') : t(`Купить ранг ${s.ranks + 1}`, `Buy rank ${s.ranks + 1}`)}
+                                      onClick={() => run(() => api.buySkillRank(sheet.id, s.skillDefId))}>
+                                      +{s.nextRankCost} XP
+                                    </button>
+                                  )}
+                                </span>
                               </td>
                             </tr>
                           )
