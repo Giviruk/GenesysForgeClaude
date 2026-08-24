@@ -3,8 +3,8 @@
 - **Пункт ТЗ:** Адаптивная вёрстка — пункт 1: общий shell и навигация
 - **Ветка:** `feature/responsive-shell-navigation`
 - **Базовая ветка:** `master`
-- **PR:** будет открыт после проверки
-- **Статус:** 🚧 In progress
+- **PR:** [#237](https://github.com/Giviruk/GenesysForgeClaude/pull/237)
+- **Статус:** 🚧 In progress — код и CI готовы, нужна визуальная проверка PR-превью
 
 ## Контекст
 
@@ -29,15 +29,25 @@
 - [x] Добавить мобильный topbar и drawer-состояние в `frontend/src/App.tsx`.
 - [x] Добавить menu/close icons в `frontend/src/components/Icon.tsx`.
 - [x] Добавить CSS shell/drawer/backdrop в `frontend/src/index.css`.
-- [ ] Проверить lint, unit tests и production build.
-- [ ] Проверить desktop/tablet/mobile сценарии браузером.
-- [ ] Открыть PR.
+- [x] Проверить lint, unit tests и production build.
+- [~] Проверить desktop/tablet/mobile сценарии браузером — desktop-аудит выполнен; PR preview для новых mobile-стилей пока не развернут.
+- [x] Открыть PR.
+
+## Проверки
+
+CI run 580 успешно завершил:
+
+- Frontend: lint, tests, build.
+- Backend: build, tests, PublicSafe publish check.
+- Migrations: non-empty DB.
+- E2E smoke: full-stack startup и Playwright smoke tests.
 
 ## Что осталось / блокеры
 
-Проверка реальных viewport 360–430px и 768px выполняется после прохождения CI/локальной сборки.
+Нужно открыть PR-превью или развернуть ветку на тестовом окружении и проверить viewport 360–430px и 768px: открытие drawer, backdrop, Escape, переход по пункту, блокировку scroll и сохранение desktop sidebar.
 
 ## Заметки / решения
 
 - Assumption: breakpoint `48rem` остаётся границей drawer-режима, чтобы не ломать существующие page-level responsive rules.
 - Существующие page-level media rules не удаляются на этом этапе; shell overrides добавляются отдельно, чтобы снизить риск регрессии.
+- Изменения ограничены frontend shell/navigation и task-документацией; бизнес-логика, API, auth, seed, package versions и deployment files не менялись.
