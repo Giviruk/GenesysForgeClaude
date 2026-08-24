@@ -3,8 +3,8 @@
 - **Пункт ТЗ:** UI polish — лист персонажа и вкладка инвентаря (формальный ID в текущем коде не найден)
 - **Ветка:** `feature/character-sheet-mobile-layout`
 - **Базовая ветка:** `master`
-- **PR:** будет добавлен после завершения
-- **Статус:** 🚧 In progress
+- **PR:** [#243](https://github.com/Giviruk/GenesysForgeClaude/pull/243)
+- **Статус:** 🚧 In progress — PR открыт, ожидает слияния
 
 ## Контекст
 
@@ -21,7 +21,7 @@
 - [x] Запустить `npm run lint`, `npm test`, `npm run build`
 - [ ] Copyright-проверка seed/справочников (не применимо: seed не меняется)
 - [ ] Строка пункта в `rot-rules-remediation-progress.md` обновлена (не применимо: UI-задача вне списка правил)
-- [ ] PR открыт
+- [x] PR открыт
 
 ## Что осталось / блокеры
 
