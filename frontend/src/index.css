@@ -3219,7 +3219,7 @@ textarea {
   gap: 0.5rem;
 }
 
-button:not(.linklike):not(.back-link):not(.chip.removable button),
+button:not(.linklike):not(.back-link),
 select {
   min-height: var(--touch-target);
 }
