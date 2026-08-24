@@ -51,10 +51,6 @@ function Shell() {
   useSeo(route, path)
 
   useEffect(() => {
-    setMobileNavOpen(false)
-  }, [path])
-
-  useEffect(() => {
     if (!mobileNavOpen) return
 
     const previousOverflow = document.body.style.overflow
