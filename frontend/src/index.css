@@ -2742,6 +2742,149 @@ button.tiny { font-size: 0.75rem; padding: 0.05rem 0.4rem 0.15rem; }
   }
 }
 
+/* ---------- UI follow-up: consistent controls and text ---------- */
+:root {
+  --ui-text-size: 1rem;
+  --ui-control-text-size: 0.9rem;
+  --ui-meta-text-size: 0.8rem;
+  --ui-caption-text-size: 0.75rem;
+}
+
+/* Все настоящие табы и кнопки фильтров используют форму обычной кнопки инвентаря. */
+.tab,
+.state-switch .chip,
+.damage-switch .chip,
+.shop-filters .chip,
+.attach-filters .chip,
+.ring-focus-switch button,
+.filters > button {
+  border-radius: 8px;
+}
+
+/* При возврате ранга кубик остаётся слева, а «−» занимает его прежнюю позицию. */
+.skill-action-buttons.has-refund .skill-roll-button { order: 1; }
+.skill-action-buttons.has-refund .skill-refund-button { order: 2; }
+.skill-action-buttons.has-refund .skill-buy-button { order: 3; }
+
+/* Все пять блоков делаем компактнее и сохраняем одинаковый визуальный ритм. */
+.stat-row.derived .stat-box.derived-compact {
+  width: 80%;
+  justify-self: center;
+  min-height: 3.6rem;
+  padding: 0.48rem 0.8rem;
+}
+
+.stat-row.derived .stat-box.derived-compact .stat-value {
+  font-size: 1.2rem;
+}
+
+.stat-row.derived .stat-box.derived-compact .stat-label {
+  font-size: 0.64rem;
+}
+
+/* Обзор кампании: содержимое каждого dashboard-блока читается по центру. */
+.campaign-dashboard .campaign-alert,
+.campaign-dashboard .campaign-dash-block,
+.campaign-dashboard .campaign-pc-card,
+.campaign-dashboard .campaign-empty {
+  text-align: center;
+}
+
+.campaign-dashboard .campaign-pc-name,
+.campaign-dashboard .campaign-pc-foot,
+.campaign-dashboard .campaign-block-head {
+  justify-content: center;
+}
+
+.campaign-dashboard .campaign-pc-foot,
+.campaign-dashboard .campaign-block-head {
+  flex-wrap: wrap;
+}
+
+.campaign-dashboard .campaign-pc-actions,
+.campaign-dashboard .campaign-hp-row {
+  justify-content: center;
+}
+
+.campaign-dashboard .campaign-bar-meta {
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.campaign-dashboard .campaign-npc-row,
+.campaign-dashboard .campaign-init-slot {
+  text-align: center;
+}
+
+.campaign-dashboard .campaign-init-num {
+  text-align: center;
+}
+
+/* Единая типографическая шкала для повторяющихся UI-ролей. */
+body,
+.page,
+.panel,
+.campaign-dashboard,
+.magic-builder {
+  font-size: var(--ui-text-size);
+}
+
+label,
+.label-line,
+.inline-label {
+  font-size: var(--ui-control-text-size);
+}
+
+input:not([type="checkbox"]):not([type="radio"]),
+select,
+textarea {
+  font-size: var(--ui-control-text-size);
+}
+
+.small-text,
+.hint,
+.page-sub,
+.campaign-sub,
+.campaign-section-label,
+.campaign-pc-role,
+.campaign-pc-foot,
+.campaign-bar-meta,
+.campaign-scene-sub,
+.campaign-npc-sub,
+.campaign-hp-row,
+.campaign-story-count,
+.campaign-init-num,
+.campaign-stat-lbl {
+  font-size: var(--ui-meta-text-size);
+}
+
+.campaign-dashboard .campaign-dash-block h3,
+.campaign-dashboard .campaign-dash-block h4,
+.campaign-dashboard .campaign-pc-name,
+.campaign-dashboard .campaign-npc-name {
+  font-size: var(--ui-control-text-size);
+}
+
+.campaign-dashboard .campaign-stat-val {
+  font-size: 1.2rem;
+}
+
+.magic-rating.has-selector {
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.magic-rating.has-selector .inline-label {
+  justify-content: center;
+}
+
+.magic-rating-note {
+  align-self: center;
+  max-width: 100%;
+  text-align: center;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .app-sidebar {
     transition: none;
