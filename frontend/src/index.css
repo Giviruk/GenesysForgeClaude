@@ -3151,3 +3151,216 @@ button.tiny { font-size: 0.75rem; padding: 0.05rem 0.4rem 0.15rem; }
     font-size: 0.72rem;
   }
 }
+/* ---------- Shared responsive primitives ---------- */
+/*
+ * Единственный источник внешних gutters и touch-метрик для приватного UI.
+ * Блок находится в конце файла, чтобы выровнять исторические компонентные
+ * правила без переписывания бизнес-экранов.
+ */
+:root {
+  --page-gutter: clamp(0.75rem, 2vw, 2rem);
+  --page-gutter-start: max(var(--page-gutter), env(safe-area-inset-left));
+  --page-gutter-end: max(var(--page-gutter), env(safe-area-inset-right));
+  --touch-target: 2.75rem;
+}
+
+.shell {
+  padding-inline: var(--page-gutter-start) var(--page-gutter-end);
+}
+
+.page,
+.page-head,
+.page-head > *,
+.topbar > *,
+.panel,
+.panel > *,
+.panel-head,
+.panel-head > *,
+.panel-head-row,
+.panel-head-row > *,
+.form-row,
+.form-row > *,
+.head-actions,
+.head-actions > *,
+.sheet-action-buttons,
+.sheet-action-buttons > *,
+.action-bar,
+.action-bar > *,
+.form-actions,
+.form-actions > *,
+.grid > *,
+[class$="-grid"] > *,
+[class*="-grid"] > * {
+  min-width: 0;
+}
+
+input,
+select,
+textarea {
+  min-width: 0;
+}
+
+.page-head h2,
+.page-head h3,
+.panel-head h3,
+.panel-head h4,
+.panel-head-row h3,
+.panel-head-row h4 {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.head-actions,
+.sheet-action-buttons,
+.action-bar,
+.form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+button:not(.linklike):not(.back-link):not(.chip.removable button),
+select {
+  min-height: var(--touch-target);
+}
+
+button.linklike,
+button.back-link,
+.chip.removable button {
+  min-height: 0;
+}
+
+.modal-backdrop {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.modal,
+.modal > *,
+.modal-header > *,
+.modal-actions > * {
+  min-width: 0;
+}
+
+@media (max-width: 48rem) {
+  .shell {
+    padding-block: max(0.75rem, env(safe-area-inset-top))
+      max(2.5rem, env(safe-area-inset-bottom));
+  }
+
+  .mobile-topbar {
+    margin-inline: calc(-1 * var(--page-gutter-start)) calc(-1 * var(--page-gutter-end));
+    padding-inline: var(--page-gutter-start) var(--page-gutter-end);
+  }
+
+  .page-head {
+    align-items: stretch;
+    gap: 0.75rem;
+  }
+
+  .page-head .head-actions,
+  .page-head .sheet-action-buttons,
+  .page-head .action-bar,
+  .page-head > .action-bar,
+  .form-actions {
+    width: 100%;
+    align-items: stretch;
+  }
+
+  .page-head .head-actions > button,
+  .page-head .sheet-action-buttons > button,
+  .page-head .action-bar > button,
+  .page-head > .action-bar > button,
+  .form-actions > button {
+    flex: 1 1 12rem;
+  }
+
+  .form-row {
+    align-items: stretch;
+  }
+
+  .form-row > label,
+  .form-row > input,
+  .form-row > select,
+  .form-row > textarea {
+    min-width: 0;
+  }
+
+  .form-row > label.grow,
+  .form-row > input.grow,
+  .form-row > select.grow,
+  .form-row > textarea.grow {
+    flex-basis: 100%;
+  }
+
+  .panel {
+    margin-block: 0.75rem;
+    padding: 0.75rem;
+  }
+
+  .panel-head,
+  .panel-head-row {
+    align-items: flex-start;
+    flex-wrap: wrap;
+    row-gap: 0.45rem;
+  }
+
+  input:not([type="checkbox"]):not([type="radio"]),
+  select {
+    min-height: var(--touch-target);
+  }
+
+  .modal-backdrop {
+    place-items: stretch;
+    padding: 0;
+  }
+
+  .modal,
+  .modal.wide,
+  .modal.xwide {
+    --modal-pad: 0.85rem;
+    width: 100%;
+    max-width: none;
+    height: 100%;
+    max-height: 100dvh;
+    border-width: 0;
+    border-radius: 0;
+    padding: max(var(--modal-pad), env(safe-area-inset-top))
+      max(var(--modal-pad), env(safe-area-inset-right))
+      max(var(--modal-pad), env(safe-area-inset-bottom))
+      max(var(--modal-pad), env(safe-area-inset-left));
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  .modal-header {
+    top: calc(-1 * max(var(--modal-pad), env(safe-area-inset-top)));
+    margin-top: calc(-1 * max(var(--modal-pad), env(safe-area-inset-top)));
+    margin-right: calc(-1 * max(var(--modal-pad), env(safe-area-inset-right)));
+    margin-left: calc(-1 * max(var(--modal-pad), env(safe-area-inset-left)));
+    padding-top: max(var(--modal-pad), env(safe-area-inset-top));
+    padding-right: max(var(--modal-pad), env(safe-area-inset-right));
+    padding-left: max(var(--modal-pad), env(safe-area-inset-left));
+  }
+
+  .modal-actions {
+    position: sticky;
+    bottom: calc(-1 * var(--modal-pad));
+    margin-right: calc(-1 * max(var(--modal-pad), env(safe-area-inset-right)));
+    margin-bottom: calc(-1 * var(--modal-pad));
+    margin-left: calc(-1 * max(var(--modal-pad), env(safe-area-inset-left)));
+    padding: 0.65rem max(var(--modal-pad), env(safe-area-inset-right))
+      max(0.65rem, env(safe-area-inset-bottom))
+      max(var(--modal-pad), env(safe-area-inset-left));
+    background: linear-gradient(
+      to bottom,
+      rgba(29, 24, 36, 0.78),
+      var(--panel) 42%
+    );
+  }
+
+  .modal-actions > button {
+    flex: 1 1 10rem;
+  }
+}
+
