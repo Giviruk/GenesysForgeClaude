@@ -3383,3 +3383,57 @@ button.back-link,
   word-break: normal;
 }
 
+
+
+/* ---------- Mobile sheet name and critical action wrapping ---------- */
+/*
+ * Keep the sheet title in the space left between the portrait and header
+ * actions. The inherited anywhere rule must not collapse the title/button
+ * into one-character columns on narrow screens.
+ */
+.sheet-title-copy {
+  flex: 1 1 0;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.sheet-name-line {
+  width: 100%;
+  max-width: 100%;
+}
+
+.sheet-name-line h2 {
+  flex: 1 1 0;
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: break-word;
+  word-break: normal;
+}
+
+.sheet-name-button {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  white-space: normal;
+  overflow-wrap: break-word;
+  word-break: normal;
+}
+
+.sheet-name-input {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.crit-item-main {
+  flex: 1 1 auto;
+}
+
+.crit-item > button.small {
+  flex: 0 0 auto;
+  min-width: 4.5rem;
+  white-space: nowrap;
+  overflow-wrap: normal;
+  word-break: normal;
+}
