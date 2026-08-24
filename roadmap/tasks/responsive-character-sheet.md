@@ -34,7 +34,7 @@
 - [x] Уменьшить и разделить карточки навыков на экранах до 30rem.
 - [x] Проверить lint, unit tests и production build.
 - [x] Проверить backend, миграции и E2E smoke в CI.
-- [x] Открыть draft PR #238.
+- [x] Открыть draft PR #239.
 - [ ] Проверить desktop/360/390/430/768 сценарии браузером после деплоя.
 - [ ] Проверить на Google Pixel 10 Pro: положение действий, dropdown вкладок и плотность карточек.
 
@@ -57,4 +57,4 @@
 - На этом этапе не меняем API, состояние листа и обработчики действий; меняем только структуру presentation markup и CSS-адаптацию.
 - Для desktop сохранена исходная группа кнопок-вкладок; dropdown включается только в mobile breakpoint.
 - Точка компактности skill cards выбрана как `max-width: 30rem`, чтобы покрыть ширину Pixel 10 Pro и близкие телефоны.
-- Базовый CI run #584 для предыдущего responsive-PR был успешен; для этой полировки нужно прогнать новый CI после создания PR.
+- CI run #586: frontend lint/test/build, backend tests, non-empty DB migrations и E2E smoke — успешно.
