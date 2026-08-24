@@ -3363,4 +3363,23 @@ button.back-link,
     flex: 1 1 10rem;
   }
 }
+/* ---------- Mobile character card name wrapping ---------- */
+/*
+ * Flex-раскладка должна выдавать имени всю оставшуюся ширину карточки.
+ * overflow-wrap:anywhere на flex-item с min-width: 0 мог сжать его
+ * до минимальной ширины и визуально переносить имя по одному символу.
+ */
+.char-card-identity {
+  width: 100%;
+}
+
+.char-title-block {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.char-title-block strong {
+  overflow-wrap: break-word;
+  word-break: normal;
+}
 
