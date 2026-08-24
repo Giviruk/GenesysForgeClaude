@@ -205,21 +205,21 @@ export function SheetTab({ sheet, onError, refresh, updateBaseOptimistically, re
                           const original = secondaryName(s)
                           return (
                             <tr key={s.skillDefId}>
-                              <td className="ellipsis" title={original ? `${label} / ${original}` : label}>
+                              <td className="ellipsis" data-label={t('Навык', 'Skill')} title={original ? `${label} / ${original}` : label}>
                                 {label}
                                 {original && <span className="muted small-text name-secondary"> · {original}</span>}
                               </td>
-                              <td className="muted" title={CHARACTERISTIC_LABELS[s.characteristic]}>
+                              <td className="muted" data-label={t('Хар-ка', 'Char.')} title={CHARACTERISTIC_LABELS[s.characteristic]}>
                                 {CHARACTERISTIC_SHORT_LABELS[s.characteristic]}
                               </td>
-                              <td className="centered" title={careerSourcesTitle(s.careerSources)}>{s.isCareer ? '✓' : ''}</td>
-                              <td>{'●'.repeat(s.ranks)}{'○'.repeat(Math.max(0, 5 - s.ranks))}</td>
-                              <td>
+                              <td className="centered" data-label={t('Карьерный', 'Career')} title={careerSourcesTitle(s.careerSources)}>{s.isCareer ? '✓' : ''}</td>
+                              <td data-label={t('Ранги', 'Ranks')}>{'●'.repeat(s.ranks)}{'○'.repeat(Math.max(0, 5 - s.ranks))}</td>
+                              <td data-label={t('Пул кубов', 'Dice pool')}>
                                 <DicePoolView pool={s.pool} setback={s.setbackDice} boost={s.boostDice}
                                   difficulty={s.difficultyDice} challenge={s.difficultyUpgrades}
                                   setbackTitle={setbackTitle(s)} />
                               </td>
-                              <td className="right">
+                              <td className="right" data-label={t('Действия', 'Actions')}>
                                 <button className="small" title={t(`Бросить пул навыка «${label}»`, `Roll the "${label}" skill pool`)}
                                   onClick={() => openRoller({
                                     kind: 'roll',
