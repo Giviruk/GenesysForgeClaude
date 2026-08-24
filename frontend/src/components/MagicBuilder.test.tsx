@@ -253,6 +253,16 @@ describe('MagicBuilder — рейтинг по Знанию', () => {
     expect(screen.getByRole('button', { name: /Ядовитый.*по Знанию 4/ })).toBeTruthy()
   })
 
+  it('помещает пояснение о Тёмном прозрении в центр относительно выбора навыка', async () => {
+    render(<MagicBuilder system="realmsOfTerrinoth" knowledgeRating={{ options: [lore, forbidden] }} onError={() => {}} />)
+    await screen.findByText(/Сложность: 1/)
+
+    const rating = document.querySelector('.magic-rating')
+    const note = screen.getByText(/Тёмное прозрение/)
+    expect(rating?.className).toContain('has-selector')
+    expect(note.className).toContain('magic-rating-note')
+  })
+
   it('без листа персонажа сборщик работает и рейтинг не выдумывает', async () => {
     render(<MagicBuilder system="realmsOfTerrinoth" onError={() => {}} />)
     await screen.findByText(/Сложность: 1/)

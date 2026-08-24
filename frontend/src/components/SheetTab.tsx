@@ -137,7 +137,7 @@ export function SheetTab({ sheet, onError, refresh, updateBaseOptimistically, re
       </section>
 
       <section className="stat-row derived">
-        <DerivedBox label={t('Раны', 'Wounds')} value={`${sheet.woundsCurrent} / ${d.woundThreshold}`}
+        <DerivedBox className="derived-compact" label={t('Раны', 'Wounds')} value={`${sheet.woundsCurrent} / ${d.woundThreshold}`}
           disabled={vitalsBusy}
           onMinus={readOnly ? undefined : () => void updateVital(
             { woundsCurrent: Math.max(0, sheet.woundsCurrent - 1) },
@@ -147,7 +147,7 @@ export function SheetTab({ sheet, onError, refresh, updateBaseOptimistically, re
             { woundsCurrent: sheet.woundsCurrent + 1 },
             () => api.updateCharacter(sheet.id, { woundsCurrent: sheet.woundsCurrent + 1 }),
           )} />
-        <DerivedBox label={t('Усталость', 'Strain')} value={`${sheet.strainCurrent} / ${d.strainThreshold}`}
+        <DerivedBox className="derived-compact" label={t('Усталость', 'Strain')} value={`${sheet.strainCurrent} / ${d.strainThreshold}`}
           disabled={vitalsBusy}
           onMinus={readOnly ? undefined : () => void updateVital(
             { strainCurrent: Math.max(0, sheet.strainCurrent - 1) },
@@ -157,10 +157,10 @@ export function SheetTab({ sheet, onError, refresh, updateBaseOptimistically, re
             { strainCurrent: sheet.strainCurrent + 1 },
             () => api.updateCharacter(sheet.id, { strainCurrent: sheet.strainCurrent + 1 }),
           )} />
-        <DerivedBox label={t('Поглощение', 'Soak')} value={String(d.soak)} />
-        <DerivedBox label={t('Защита (ближ/дальн)', 'Defense (melee/ranged)')} value={`${d.meleeDefense} / ${d.rangedDefense}`}
+        <DerivedBox className="derived-compact" label={t('Поглощение', 'Soak')} value={String(d.soak)} />
+        <DerivedBox className="derived-compact" label={t('Защита (ближ/дальн)', 'Defense (melee/ranged)')} value={`${d.meleeDefense} / ${d.rangedDefense}`}
           title={defenseTitle(d)} />
-        <DerivedBox label={t('Переносимый вес', 'Encumbrance')} value={`${d.encumbranceLoad} / ${d.encumbranceThreshold}`}
+        <DerivedBox className="derived-compact" label={t('Переносимый вес', 'Encumbrance')} value={`${d.encumbranceLoad} / ${d.encumbranceThreshold}`}
           warning={encumbranceWarning(d)} />
       </section>
 
@@ -203,6 +203,7 @@ export function SheetTab({ sheet, onError, refresh, updateBaseOptimistically, re
                         {skills.map(s => {
                           const label = localizedName(s)
                           const original = secondaryName(s)
+                          const canRefund = !readOnly && sheet.isCreationPhase && s.ranks > s.freeRanks
                           return (
                             <tr key={s.skillDefId}>
                               <td className="ellipsis" data-label={t('Навык', 'Skill')} title={original ? `${label} / ${original}` : label}>
@@ -220,8 +221,15 @@ export function SheetTab({ sheet, onError, refresh, updateBaseOptimistically, re
                                   setbackTitle={setbackTitle(s)} />
                               </td>
                               <td className="right" data-label={t('Действия', 'Actions')}>
-                                <span className="skill-action-buttons">
-                                  <button className="small" title={t(`Бросить пул навыка «${label}»`, `Roll the "${label}" skill pool`)}
+                                <span className={`skill-action-buttons${canRefund ? ' has-refund' : ''}`}>
+                                  {canRefund && (
+                                    <button className="small skill-refund-button"
+                                      title={t(`Вернуть ранг ${s.ranks} (+${s.ranks * 5 + (s.isCareer ? 0 : 5)} XP)`, `Refund rank ${s.ranks} (+${s.ranks * 5 + (s.isCareer ? 0 : 5)} XP)`)}
+                                      onClick={() => run(() => api.refundSkillRank(sheet.id, s.skillDefId))}>
+                                      −
+                                    </button>
+                                  )}
+                                  <button className="small skill-roll-button" title={t(`Бросить пул навыка «${label}»`, `Roll the "${label}" skill pool`)}
                                     onClick={() => openRoller({
                                       kind: 'roll',
                                       title: t('Бросок навыка', 'Skill check'),
@@ -244,15 +252,8 @@ export function SheetTab({ sheet, onError, refresh, updateBaseOptimistically, re
                                     })}>
                                     🎲
                                   </button>
-                                  {!readOnly && sheet.isCreationPhase && s.ranks > s.freeRanks && (
-                                    <button className="small"
-                                      title={t(`Вернуть ранг ${s.ranks} (+${s.ranks * 5 + (s.isCareer ? 0 : 5)} XP)`, `Refund rank ${s.ranks} (+${s.ranks * 5 + (s.isCareer ? 0 : 5)} XP)`)}
-                                      onClick={() => run(() => api.refundSkillRank(sheet.id, s.skillDefId))}>
-                                      −
-                                    </button>
-                                  )}
                                   {!readOnly && s.ranks < 5 && (
-                                    <button className="small" disabled={s.nextRankCost > sheet.availableXp}
+                                    <button className="small skill-buy-button" disabled={s.nextRankCost > sheet.availableXp}
                                       title={s.nextRankCost > sheet.availableXp ? t('Недостаточно XP', 'Not enough XP') : t(`Купить ранг ${s.ranks + 1}`, `Buy rank ${s.ranks + 1}`)}
                                       onClick={() => run(() => api.buySkillRank(sheet.id, s.skillDefId))}>
                                       +{s.nextRankCost} XP
@@ -277,7 +278,8 @@ export function SheetTab({ sheet, onError, refresh, updateBaseOptimistically, re
   )
 }
 
-function DerivedBox({ label, value, warning, title, onMinus, onPlus, disabled }: {
+function DerivedBox({ className, label, value, warning, title, onMinus, onPlus, disabled }: {
+  className?: string
   label: string
   value: string
   warning?: string
@@ -288,7 +290,7 @@ function DerivedBox({ label, value, warning, title, onMinus, onPlus, disabled }:
   disabled?: boolean
 }) {
   return (
-    <div className={warning ? 'stat-box warn' : 'stat-box'} title={title}>
+    <div className={`stat-box${warning ? ' warn' : ''}${className ? ` ${className}` : ''}`} title={title}>
       <div className="stat-value">
         {onMinus && <button className="tiny" disabled={disabled} onClick={onMinus}>−</button>}
         <span>{value}</span>

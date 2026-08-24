@@ -433,7 +433,7 @@ export function MagicBuilder({
         {/* Откуда берётся рейтинг свойств (ROT-MAG-10). Выбор показывается только тогда, когда он
             действительно есть: «Тёмное прозрение» разрешает считать по Запретному знанию. */}
         {activeRating && ratingMatters && (
-          <div className="magic-rating small-text">
+          <div className={`magic-rating small-text${ratingOptions.length > 1 ? ' has-selector' : ''}`}>
             {ratingOptions.length > 1
               ? (
                 <>
@@ -446,7 +446,7 @@ export function MagicBuilder({
                       ))}
                     </select>
                   </label>
-                  <span className="muted">
+                  <span className="muted magic-rating-note">
                     {t('«Тёмное прозрение» разрешает считать рейтинг по Запретному знанию.',
                       'Dark Insight lets the rating come from Knowledge (Forbidden).')}
                   </span>
