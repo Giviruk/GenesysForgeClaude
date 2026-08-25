@@ -4,7 +4,7 @@
 - **Ветка:** `feature/character-sheet-ui-followup`
 - **Базовая ветка:** `master`
 - **PR:** [#244](https://github.com/Giviruk/GenesysForgeClaude/pull/244)
-- **Статус:** 🚧 In progress — PR открыт, ожидает слияния
+- **Статус:** ✅ Done — PR #244 слит
 
 ## Контекст
 
@@ -22,7 +22,7 @@
 - [x] Запустить `npm run lint`, `npm test`, `npm run build`
 - [ ] Copyright-проверка seed/справочников (не применимо: seed не меняется)
 - [ ] Строка пункта в `rot-rules-remediation-progress.md` обновлена (не применимо: UI-задача вне списка правил)
-- [x] PR открыт
+- [x] PR #244 открыт и слит
 
 ## Что осталось / блокеры
 
