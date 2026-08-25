@@ -149,6 +149,17 @@ describe('api client — обработка 401', () => {
     )
   })
 
+  it('undoes a character audit purchase through the owner endpoint', async () => {
+    const fetchMock = vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response(null, { status: 204 }))
+
+    await api.undoCharacterAudit('character-1', 'audit-1')
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      '/api/characters/character-1/audit/audit-1/undo',
+      expect.objectContaining({ method: 'POST' }),
+    )
+  })
+
   it('custom archetype/career methods use the expected endpoints', async () => {
     const fetchMock = vi.spyOn(globalThis, 'fetch')
       .mockResolvedValueOnce(new Response(JSON.stringify({ id: 'archetype-id' }), { status: 200 }))

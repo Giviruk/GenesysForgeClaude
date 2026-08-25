@@ -57,6 +57,14 @@ public class RefundValidatorTests
         Assert.False(PurchaseValidator.RefundSkillRank(2, 0, true, isCreationPhase: false).Allowed);
     }
 
+    [Fact]
+    public void UndoSkillRank_AllowsAnExactPurchaseAfterCreation()
+    {
+        var result = PurchaseValidator.UndoSkillRank(currentRank: 2, freeRanks: 0, isCareer: true);
+        Assert.True(result.Allowed);
+        Assert.Equal(10, result.Cost);
+    }
+
     private static Dictionary<int, int> Tiers(params (int Tier, int Count)[] counts) =>
         counts.ToDictionary(c => c.Tier, c => c.Count);
 
@@ -106,6 +114,14 @@ public class RefundValidatorTests
     public void RefundTalent_OnlyDuringCreation()
     {
         Assert.False(PurchaseValidator.RefundTalent(1, 1, Tiers((1, 1)), isCreationPhase: false).Allowed);
+    }
+
+    [Fact]
+    public void UndoTalent_AllowsAnExactPurchaseAfterCreation()
+    {
+        var result = PurchaseValidator.UndoTalent(1, 1, Tiers((1, 1)));
+        Assert.True(result.Allowed);
+        Assert.Equal(5, result.Cost);
     }
 
     [Fact]

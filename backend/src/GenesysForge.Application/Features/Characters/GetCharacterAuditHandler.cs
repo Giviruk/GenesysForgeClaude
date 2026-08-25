@@ -16,15 +16,19 @@ public class GetCharacterAuditHandler(IAppDbContext db)
         GetCharacterAuditQuery query, CancellationToken ct = default)
     {
         // Проверка владельца (бросит, если персонаж чужой/не найден).
-        await db.GetOwnedAsync(query.UserId, query.CharacterId, tracking: false, ct);
+        var character = await db.GetOwnedAsync(query.UserId, query.CharacterId, tracking: false, ct);
         var take = Math.Clamp(query.Take, 1, 500);
 
-        return await db.CharacterAuditEntries.AsNoTracking()
+        var entries = await db.CharacterAuditEntries.AsNoTracking()
             .Where(a => a.CharacterId == query.CharacterId)
             .OrderByDescending(a => a.CreatedAt)
             .Take(take)
-            .Select(a => new CharacterAuditEntryDto(
-                a.Id, a.CreatedAt, a.Action, a.Summary, a.XpDelta, a.TotalXpAfter, a.SpentXpAfter))
             .ToListAsync(ct);
+
+        return entries
+            .Select(a => new CharacterAuditEntryDto(
+                a.Id, a.CreatedAt, a.Action, a.Summary, a.XpDelta, a.TotalXpAfter, a.SpentXpAfter,
+                CharacterAuditUndo.CanUndo(a, character, entries)))
+            .ToList();
     }
 }

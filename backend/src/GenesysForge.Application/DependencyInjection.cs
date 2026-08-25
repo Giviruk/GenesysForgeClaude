@@ -110,6 +110,7 @@ public static class DependencyInjection
         services.AddScoped<ICommandHandler<AddCriticalInjuryCommand, Guid>, AddCriticalInjuryHandler>();
         services.AddScoped<ICommandHandler<RemoveCriticalInjuryCommand, Unit>, RemoveCriticalInjuryHandler>();
         services.AddScoped<IQueryHandler<GetCharacterAuditQuery, IReadOnlyList<CharacterAuditEntryDto>>, GetCharacterAuditHandler>();
+        services.AddScoped<ICommandHandler<UndoCharacterAuditCommand, Unit>, UndoCharacterAuditHandler>();
         services.AddScoped<ICommandHandler<AwardXpCommand, Unit>, AwardXpHandler>();
         services.AddScoped<ICommandHandler<ActivateCharacterAbilityCommand, ActivateCharacterAbilityResult>,
             ActivateCharacterAbilityHandler>();

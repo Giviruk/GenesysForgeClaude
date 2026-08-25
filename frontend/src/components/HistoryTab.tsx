@@ -79,6 +79,22 @@ export function HistoryTab({ characterId, onError, refresh, readOnly = false, lo
     }
   }
 
+  async function undo(entry: CharacterAuditEntry) {
+    if (!entry.canUndo || readOnly) return
+    if (typeof window !== 'undefined' && !window.confirm(
+      t('Отменить эту покупку и вернуть XP?', 'Undo this purchase and return the XP?'),
+    )) return
+    try {
+      await api.undoCharacterAudit(characterId, entry.id)
+      await reload()
+      await refresh()
+    } catch (e) {
+      onError(e instanceof Error ? e.message : t('Ошибка отката покупки', 'Failed to undo purchase'))
+    }
+  }
+
+  const showUndo = !readOnly && entries?.some(entry => entry.canUndo) === true
+
   return (
     <div className="history-tab">
       {!readOnly && <section className="panel award-xp">
@@ -108,6 +124,7 @@ export function HistoryTab({ characterId, onError, refresh, readOnly = false, lo
                 <th>{t('Описание', 'Description')}</th>
                 <th className="right">ΔXP</th>
                 <th className="right" title={t('Доступно / Всего после операции', 'Available / Total after the operation')}>{t('После', 'After')}</th>
+                {showUndo && <th>{t('Действие', 'Action')}</th>}
               </tr>
             </thead>
             <tbody>
@@ -126,6 +143,12 @@ export function HistoryTab({ characterId, onError, refresh, readOnly = false, lo
                   <td className="right muted small-text nowrap">
                     {e.totalXpAfter - e.spentXpAfter} / {e.totalXpAfter}
                   </td>
+                  {showUndo && <td>
+                    {e.canUndo && <button className="small danger" onClick={() => void undo(e)}
+                      title={t('Вернуть XP за эту покупку', 'Return XP for this purchase')}>
+                      {t('Отменить', 'Undo')}
+                    </button>}
+                  </td>}
                 </tr>
               ))}
             </tbody>

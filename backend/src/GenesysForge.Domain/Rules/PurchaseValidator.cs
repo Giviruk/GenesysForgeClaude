@@ -45,6 +45,16 @@ public static class PurchaseValidator
     {
         if (!isCreationPhase)
             return PurchaseResult.Fail("Откат покупок доступен только до завершения создания персонажа.");
+        return UndoSkillRank(currentRank, freeRanks, isCareer);
+    }
+
+    /// <summary>
+    /// Откат конкретной покупки ранга из истории. В отличие от обычного refund это действие
+    /// разрешено и после создания, потому что отменяет уже записанную ошибочную покупку, а не
+    /// открывает общий режим возврата прогрессии.
+    /// </summary>
+    public static PurchaseResult UndoSkillRank(int currentRank, int freeRanks, bool isCareer)
+    {
         if (currentRank <= 0)
             return PurchaseResult.Fail("У навыка нет рангов для возврата.");
         if (currentRank <= freeRanks)
@@ -64,6 +74,15 @@ public static class PurchaseValidator
     {
         if (!isCreationPhase)
             return PurchaseResult.Fail("Откат покупок доступен только до завершения создания персонажа.");
+        return UndoTalent(baseTier, ranksOwned, tierCounts);
+    }
+
+    /// <summary>Проверяет возврат конкретной покупки таланта из истории, в том числе после создания.</summary>
+    public static PurchaseResult UndoTalent(
+        int baseTier,
+        int ranksOwned,
+        IReadOnlyDictionary<int, int> tierCounts)
+    {
         if (ranksOwned < 1)
             return PurchaseResult.Fail("Этот талант не куплен.");
 
