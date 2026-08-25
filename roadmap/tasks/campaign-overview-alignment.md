@@ -3,8 +3,8 @@
 - **Пункт ТЗ:** UI follow-up — восстановить выравнивание обзора кампании и центрировать только статистику группы (формальный ID в текущем коде не найден)
 - **Ветка:** `feature/campaign-overview-alignment`
 - **Базовая ветка:** `master`
-- **PR:** будет добавлен после завершения
-- **Статус:** 🚧 In progress
+- **PR:** [#245](https://github.com/Giviruk/GenesysForgeClaude/pull/245)
+- **Статус:** 🚧 In progress — PR открыт, ожидает слияния
 
 ## Контекст
 
@@ -18,7 +18,7 @@
 - [x] Запустить frontend lint, Vitest и production build
 - [ ] Copyright-проверка seed/справочников (не применимо: seed не меняется)
 - [ ] Строка пункта в `rot-rules-remediation-progress.md` обновлена (не применимо: UI-задача вне списка правил)
-- [ ] PR открыт
+- [x] PR открыт
 
 ## Что осталось / блокеры
 
