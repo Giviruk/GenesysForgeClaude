@@ -2782,41 +2782,8 @@ button.tiny { font-size: 0.75rem; padding: 0.05rem 0.4rem 0.15rem; }
   font-size: 0.64rem;
 }
 
-/* Обзор кампании: содержимое каждого dashboard-блока читается по центру. */
-.campaign-dashboard .campaign-alert,
-.campaign-dashboard .campaign-dash-block,
-.campaign-dashboard .campaign-pc-card,
-.campaign-dashboard .campaign-empty {
-  text-align: center;
-}
-
-.campaign-dashboard .campaign-pc-name,
-.campaign-dashboard .campaign-pc-foot,
-.campaign-dashboard .campaign-block-head {
-  justify-content: center;
-}
-
-.campaign-dashboard .campaign-pc-foot,
-.campaign-dashboard .campaign-block-head {
-  flex-wrap: wrap;
-}
-
-.campaign-dashboard .campaign-pc-actions,
-.campaign-dashboard .campaign-hp-row {
-  justify-content: center;
-}
-
-.campaign-dashboard .campaign-bar-meta {
-  justify-content: center;
-  gap: 0.5rem;
-}
-
-.campaign-dashboard .campaign-npc-row,
-.campaign-dashboard .campaign-init-slot {
-  text-align: center;
-}
-
-.campaign-dashboard .campaign-init-num {
+/* На обзоре кампании центрируем только содержимое блока статистики группы. */
+.campaign-dashboard .campaign-party-stats {
   text-align: center;
 }
 
