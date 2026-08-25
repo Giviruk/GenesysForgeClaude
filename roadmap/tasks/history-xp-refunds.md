@@ -3,8 +3,8 @@
 - **Пункт ТЗ:** UI/API follow-up — откат покупок навыков и талантов из истории персонажа (формальный ID в текущем коде не найден)
 - **Ветка:** `feature/history-xp-refunds`
 - **Базовая ветка:** `feature/campaign-overview-alignment` (стек поверх открытого PR #245)
-- **PR:** будет добавлен после завершения
-- **Статус:** 🚧 In progress
+- **PR:** [#246](https://github.com/Giviruk/GenesysForgeClaude/pull/246), stacked on [#245](https://github.com/Giviruk/GenesysForgeClaude/pull/245)
+- **Статус:** 🚧 In progress — PR открыт, ожидает слияния базового PR #245
 
 ## Контекст
 
@@ -21,7 +21,7 @@
 - [ ] Copyright-проверка seed/справочников (не применимо: seed не меняется)
 - [ ] Строка пункта в `rot-rules-remediation-progress.md` обновлена (не применимо: UI-задача вне списка правил)
 - [x] Запустить backend tests и frontend lint/test/build
-- [ ] PR открыт
+- [x] PR #246 открыт
 
 ## Что осталось / блокеры
 
