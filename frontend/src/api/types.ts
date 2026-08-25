@@ -1853,6 +1853,7 @@ export interface CharacterAuditEntry {
   xpDelta: number | null
   totalXpAfter: number
   spentXpAfter: number
+  canUndo: boolean
 }
 
 // ── Экспорт / импорт персонажа (формат genesysforge.character.v1) ──

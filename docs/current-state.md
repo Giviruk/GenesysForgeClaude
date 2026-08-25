@@ -30,8 +30,9 @@
 - Magic/spell reference: spell effects and additional-effect modifiers per magic skill, with system differences (Runes/Verse for Terrinoth), Russian names, safe descriptions and source references; browsable in a frontend "Магия" tab with a magic-skill dropdown.
 - Character creation phase with XP spending restrictions.
 - Characteristic buy/refund during creation.
-- Skill rank buy/refund with career/non-career XP cost and creation cap.
-- Talent buy/refund with ranked/unranked handling and talent pyramid validation.
+- Skill rank buy/refund with career/non-career XP cost and creation cap; exact purchase rollback from history.
+- Talent buy/refund with ranked/unranked handling and talent pyramid validation; exact purchase rollback from history.
+- Character audit history with owner-only XP rollback for the latest valid skill/talent purchase.
 - Realms of Terrinoth heroic ability assignment.
 - Inventory add/update/delete.
 - Money tracking, paid item purchase and item sale.
@@ -86,7 +87,6 @@
 
 - Deep links for every sub-view (printable sheet, Game Table, encounter detail).
 - Shareable character sheets by URL.
-- Audit log or XP history.
 - Full E2E browser test suite.
 - Role-based administration.
 - Multi-language/i18n system.

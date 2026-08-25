@@ -515,7 +515,7 @@ Indexes: unique `Code`, non-unique `(Kind, SortOrder)`. Dedup on seed is by `Cod
 
 Per-character history / audit log (U-09). A row is written in the same transaction as the operation it records (buy/refund of characteristics/skills/talents, item add/sell/remove, creation completed, manual XP edit, XP award), so it reflects the post-operation state.
 
-Fields: `Id`, `CharacterId`, `UserId`, `CreatedAt`, `Action` (`CharacterAuditAction` enum), `Summary` (human-readable), `XpDelta` (nullable — change in *available* XP; negative for purchases, positive for refunds/awards; null for non-XP actions), `TotalXpAfter`, `SpentXpAfter`, `DataJson` (structured detail).
+Fields: `Id`, `CharacterId`, `UserId`, `CreatedAt`, `Action` (`CharacterAuditAction` enum), `Summary` (human-readable), `XpDelta` (nullable — change in *available* XP; negative for purchases, positive for refunds/awards; null for non-XP actions), `TotalXpAfter`, `SpentXpAfter`, `DataJson` (structured detail). Skill/talent purchase rows include the definition id and rank; a history rollback audit row also stores `revertedAuditId` so the same purchase cannot be undone twice.
 
 Indexes:
 

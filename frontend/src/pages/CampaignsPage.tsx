@@ -502,7 +502,7 @@ function CampaignOverview({ campaign, session, sessionLoaded, memberSheets, onVi
 
       <div className="campaign-wide-grid">
         <CampaignNotesSection campaign={campaign} onRun={onCampaignRun} variant="dashboard" />
-        <div className="campaign-dash-block">
+        <div className="campaign-dash-block campaign-party-stats">
           <h4>{t('Статистика группы', 'Party stats')}</h4>
           <div className="campaign-stats-grid">
             <div className="campaign-stat"><div className="campaign-stat-val">{sheets.length > 0 ? totalXp : '—'}</div><div className="campaign-stat-lbl">{t('суммарный XP', 'total XP')}</div></div>

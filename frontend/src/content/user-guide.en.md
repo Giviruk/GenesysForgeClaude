@@ -12,7 +12,7 @@ GenesysForge does not replace the rulebooks. The app uses structural data, numer
 - Mark your free career skills if the GM allows the standard starting set.
 - Check the available XP and finish creation once the starting sheet is ready.
 
-During creation some purchases can be undone. After creation is completed, refunds of starting purchases become unavailable: further advancement happens through XP awards and new purchases.
+During creation some purchases can be undone. After creation, ordinary refunds of starting purchases are unavailable, but the latest valid skill or talent purchase can be undone from the History tab as an explicit rollback action.
 
 ## Characteristics, skills and career skills
 

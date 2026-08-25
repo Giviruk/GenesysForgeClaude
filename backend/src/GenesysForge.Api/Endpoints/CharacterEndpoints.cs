@@ -116,6 +116,14 @@ public static class CharacterEndpoints
                 CancellationToken ct) =>
             Results.Ok(await handler.Handle(new GetCharacterAuditQuery(user.UserId(), id, take ?? 100), ct)));
 
+        group.MapPost("/{id:guid}/audit/{entryId:guid}/undo", async (Guid id, Guid entryId,
+                ClaimsPrincipal user, ICommandHandler<UndoCharacterAuditCommand, Unit> handler,
+                CancellationToken ct) =>
+        {
+            await handler.Handle(new UndoCharacterAuditCommand(user.UserId(), id, entryId), ct);
+            return Results.NoContent();
+        });
+
         group.MapPost("/{id:guid}/xp-awards", async (Guid id, AwardXpRequest req, ClaimsPrincipal user,
             ICommandHandler<AwardXpCommand, Unit> handler, CancellationToken ct) =>
         {

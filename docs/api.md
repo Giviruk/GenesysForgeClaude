@@ -271,6 +271,19 @@ read-only from the frontend perspective; character notes are not exposed by this
 
 Protected. Ends creation phase. Response: `204`.
 
+### `GET /api/characters/{id}/audit`
+
+Protected (owner only). Returns the character's audit history, newest first. Each entry contains
+`id`, `createdAt`, `action`, `summary`, `xpDelta`, `totalXpAfter`, `spentXpAfter` and `canUndo`.
+`canUndo` is true only for the latest still-valid purchase of a skill rank or talent rank.
+
+### `POST /api/characters/{id}/audit/{entryId}/undo`
+
+Protected (owner only). Reverses the exact skill/talent purchase represented by `entryId` and returns
+`204`. This explicit history action is available after creation as well as during creation, but it
+cannot return free ranks, undo an outdated/already reverted entry, or break the talent pyramid or
+talent dependencies. Read-only campaign audit history never exposes this action.
+
 ### `GET /api/characters/{id}/export`
 
 Protected (owner only). Returns the character as a portable JSON document

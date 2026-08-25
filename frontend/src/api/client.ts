@@ -496,6 +496,8 @@ export const api = {
     characterAuditCache.set(key, pending)
     return pending
   },
+  undoCharacterAudit: (id: string, entryId: string) =>
+    request<void>('POST', `/api/characters/${id}/audit/${entryId}/undo`),
   awardXp: (id: string, body: { amount: number; note?: string }) =>
     request<void>('POST', `/api/characters/${id}/xp-awards`, body),
 

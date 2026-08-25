@@ -14,11 +14,16 @@ public class RefundTalentHandler(IAppDbContext db) : ICommandHandler<RefundTalen
         var row = c.Talents.FirstOrDefault(t => t.TalentDefId == command.TalentDefId)
             ?? throw new DomainRuleException("Этот талант не куплен.");
 
-        var result = PurchaseValidator.RefundTalent(
-            row.TalentDef!.Tier,
-            row.Ranks,
-            TalentTierCounter.Count(c.Talents),
-            c.IsCreationPhase);
+        if (command.ExpectedRank is { } expectedRank && row.Ranks != expectedRank)
+            throw new DomainRuleException("Эта запись истории больше не соответствует текущему рангу таланта.");
+
+        var result = command.AllowAfterCreation
+            ? PurchaseValidator.UndoTalent(row.TalentDef!.Tier, row.Ranks, TalentTierCounter.Count(c.Talents))
+            : PurchaseValidator.RefundTalent(
+                row.TalentDef!.Tier,
+                row.Ranks,
+                TalentTierCounter.Count(c.Talents),
+                c.IsCreationPhase);
         if (!result.Allowed) throw new DomainRuleException(result.Error!, TalentPurchasePolicy.ReasonPyramidOrXp);
 
         // Последний ранг нельзя вернуть, пока он остаётся основанием уже купленного таланта:
@@ -59,9 +64,14 @@ public class RefundTalentHandler(IAppDbContext db) : ICommandHandler<RefundTalen
         c.SpentXp -= result.Cost;
 
         var talentName = row.TalentDef!.Name;
+        var summary = command.RevertedAuditId is null ? "Возврат" : "Откат покупки";
         CharacterAudit.Record(db, c, command.UserId, CharacterAuditAction.TalentRefunded,
-            $"Возврат таланта «{talentName}» (→{row.Ranks})", result.Cost,
-            new { talent = talentName, rank = row.Ranks, cost = result.Cost });
+            $"{summary} таланта «{talentName}» (→{row.Ranks})", result.Cost,
+            new
+            {
+                talentDefId = row.TalentDefId, talent = talentName, rank = row.Ranks, cost = result.Cost,
+                revertedAuditId = command.RevertedAuditId,
+            });
 
         await db.SaveChangesAsync(ct);
         return Unit.Value;
