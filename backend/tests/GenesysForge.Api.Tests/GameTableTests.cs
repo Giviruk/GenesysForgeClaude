@@ -379,6 +379,41 @@ public class GameTableTests : IClassFixture<ApiFactory>
     }
 
     [Fact]
+    public async Task RangePosition_Persists_AndPlayerCanMoveOwnToken()
+    {
+        var (gm, player, campaignId, charId) = await SetupCampaignWithPlayerAsync(_factory);
+        await CreateSessionAsync(gm, campaignId);
+        var addResp = await gm.PostAsJsonAsync($"/api/campaigns/{campaignId}/session/participants",
+            new AddParticipantRequest(charId, null, null, null, null, null, null, null, null, null, null), Json.Options);
+        var created = (await addResp.Content.ReadFromJsonAsync<GameSessionDto>(Json.Options))!;
+        var participantId = created.Participants.Single().Id;
+
+        var gmUpdate = await gm.PatchAsJsonAsync(
+            $"/api/campaigns/{campaignId}/session/participants/{participantId}",
+            new UpdateParticipantRequest(null, null, null, null, null, null, null, null, null, null, null, null, null, null,
+                RangeZone: "long", RangeAngle: 450), Json.Options);
+        gmUpdate.EnsureSuccessStatusCode();
+        var gmView = (await gmUpdate.Content.ReadFromJsonAsync<GameSessionDto>(Json.Options))!;
+        var gmParticipant = gmView.Participants.Single();
+        Assert.Equal("long", gmParticipant.RangeZone);
+        Assert.Equal(90, gmParticipant.RangeAngle);
+
+        var playerView = (await player.GetFromJsonAsync<GameSessionDto>(
+            $"/api/campaigns/{campaignId}/session", Json.Options))!;
+        Assert.Equal("long", playerView.Participants.Single().RangeZone);
+
+        // Перемещение собственного токена не зависит от разрешения менять HP/модификаторы.
+        var playerUpdate = await player.PatchAsJsonAsync(
+            $"/api/campaigns/{campaignId}/session/participants/{participantId}",
+            new UpdateParticipantRequest(null, null, null, null, null, null, null, null, null, null, null, null, null, null,
+                RangeZone: "extreme", RangeAngle: -90), Json.Options);
+        playerUpdate.EnsureSuccessStatusCode();
+        var moved = (await playerUpdate.Content.ReadFromJsonAsync<GameSessionDto>(Json.Options))!;
+        Assert.Equal("extreme", moved.Participants.Single().RangeZone);
+        Assert.Equal(270, moved.Participants.Single().RangeAngle);
+    }
+
+    [Fact]
     public async Task ResetAndEnd_Session()
     {
         var gm = await _factory.CreateAuthorizedClientAsync();

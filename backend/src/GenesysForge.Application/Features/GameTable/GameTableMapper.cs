@@ -43,7 +43,7 @@ public static class GameTableMapper
                     p.WoundsCurrent, p.WoundsThreshold, p.StrainCurrent, p.StrainThreshold,
                     p.Soak, p.MeleeDefense, p.RangedDefense, p.BoostDice, p.SetbackDice,
                     p.CriticalInjuries, p.IsActive, p.IsDefeated,
-                    p.IsHiddenFromPlayers, isGm ? p.Notes : "", p.Order);
+                    p.IsHiddenFromPlayers, isGm ? p.Notes : "", p.RangeZone, p.RangeAngle, p.Order);
             })
             .ToList();
 

@@ -29,6 +29,8 @@ public record GameParticipantDto(
     bool IsDefeated,
     bool IsHiddenFromPlayers,
     string Notes,
+    string? RangeZone,
+    double? RangeAngle,
     int Order);
 
 public record GameSessionDto(
@@ -89,7 +91,9 @@ public record UpdateParticipantRequest(
     string? Notes,
     InitiativeSlotType? InitiativeSlotType,
     int? BoostDice = null,
-    int? SetbackDice = null);
+    int? SetbackDice = null,
+    string? RangeZone = null,
+    double? RangeAngle = null);
 
 public record AddSlotRequest(InitiativeSlotType SlotType, Guid? AssignedParticipantId, string? Notes);
 

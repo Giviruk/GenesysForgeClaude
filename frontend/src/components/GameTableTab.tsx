@@ -137,7 +137,7 @@ export function GameTableTab({ campaignId, isGm, members, onOpenMemberSheet, ref
 
       <section className="center-stage">
         <RangeBandTracker key={session.id} campaignId={campaignId} session={session} isGm={isGm}
-          members={members} />
+          members={members} onRun={run} />
       </section>
 
       <aside className="right-rail">
@@ -228,7 +228,7 @@ function StoryPoints({ session, isGm, onRun, campaignId }: BlockProps) {
   )
 }
 
-// ── Range Band Tracker (локальный инструмент мастера, без серверного состояния) ──
+// ── Range Band Tracker (позиция хранится в GameParticipant и синхронизируется через API) ──
 
 const RANGE_ZONES: { id: RangeZone; nameEn: string; nameRu: string; hint: string }[] = [
   { id: 'engaged', nameEn: 'Engaged', nameRu: 'Вплотную', hint: t('ближний бой', 'melee') },
@@ -249,16 +249,19 @@ const defaultZone = (p: GameParticipant): RangeZone =>
 
 /**
  * Трекер дистанций по прототипу range-band-tracker: зоны Engaged…Extreme, токены участников
- * сцены, перемещение перетаскиванием или кнопками, локальный лог перемещений.
- * Позиции не входят в серверную модель кампании и не синхронизируются между устройствами, но
- * сохраняются на этом устройстве отдельно для каждой сцены и переживают навигацию/перезагрузку.
+ * сцены, перемещение перетаскиванием или кнопками, лог перемещений.
+ * Позиции хранятся на участнике сцены и приходят через REST после realtime-инвалидации;
+ * localStorage оставляет только локальные настройки фокуса и журнал перемещений.
  */
-function RangeBandTracker({ campaignId, session, isGm, members }: {
+function RangeBandTracker({ campaignId, session, isGm, members, onRun }: {
   campaignId: string; session: GameSession; isGm: boolean; members: CampaignMember[]
+  onRun: (action: () => Promise<unknown>) => Promise<void>
 }) {
   const stored = () => readRangeTrackerState(campaignId, session.id)
-  const [zones, setZones] = useState<Record<string, RangeZone>>(() => stored().zones)
-  const [angles, setAngles] = useState<Record<string, number>>(() => stored().angles)
+  // Позиции больше не восстанавливаются из localStorage: источником истины является сервер.
+  // Эти два состояния нужны только как optimistic fallback до ответа PATCH.
+  const [zones, setZones] = useState<Record<string, RangeZone>>({})
+  const [angles, setAngles] = useState<Record<string, number>>({})
   const [log, setLog] = useState<string[]>(() => stored().log)
   const [focusParticipantId, setFocusParticipantId] = useState<string | null>(() => stored().focusParticipantId)
   const [dragId, setDragId] = useState<string | null>(null)
@@ -275,8 +278,9 @@ function RangeBandTracker({ campaignId, session, isGm, members }: {
   const participants = session.participants.filter(p => !p.isDefeated)
   const fallbackFocus = participants.find(p => p.participantType === 'playerCharacter') ?? participants[0]
   const focus = participants.find(p => p.id === focusParticipantId) ?? fallbackFocus ?? null
-  const zoneOf = (p: GameParticipant): RangeZone => zones[p.id] ?? defaultZone(p)
-  const angleOf = (p: GameParticipant): number => snapRangeAngle(angles[p.id]
+  const zoneOf = (p: GameParticipant): RangeZone => p.rangeZone ?? zones[p.id] ?? defaultZone(p)
+  const angleOf = (p: GameParticipant): number => snapRangeAngle(p.rangeAngle
+    ?? angles[p.id]
     ?? (participants.findIndex(candidate => candidate.id === p.id) * 90 + 210))
   const canMove = (p: GameParticipant) => isGm || (
     p.participantType === 'playerCharacter'
@@ -291,9 +295,15 @@ function RangeBandTracker({ campaignId, session, isGm, members }: {
 
   const move = (p: GameParticipant, to: RangeZone, angle = angleOf(p)) => {
     const from = zoneOf(p)
+    const fromAngle = angleOf(p)
     const snappedAngle = freeAngle(p, to, angle)
     setZones(prev => ({ ...prev, [p.id]: to }))
     setAngles(prev => ({ ...prev, [p.id]: snappedAngle }))
+    if (from === to && snappedAngle === fromAngle) return
+    void onRun(() => api.updateParticipant(campaignId, p.id, {
+      rangeZone: to,
+      rangeAngle: snappedAngle,
+    }))
     if (from === to) return
     const fromZone = RANGE_ZONES[ZONE_INDEX[from]]
     const toZone = RANGE_ZONES[ZONE_INDEX[to]]
@@ -311,9 +321,9 @@ function RangeBandTracker({ campaignId, session, isGm, members }: {
 
   useEffect(() => {
     writeRangeTrackerState(campaignId, session.id, {
-      zones, angles, log, focusParticipantId: focus?.id ?? null,
+      zones: {}, angles: {}, log, focusParticipantId: focus?.id ?? null,
     })
-  }, [campaignId, session.id, zones, angles, log, focusParticipantId, focus?.id])
+  }, [campaignId, session.id, log, focusParticipantId, focus?.id])
 
   if (participants.length === 0) return null
 
@@ -401,7 +411,7 @@ function RangeBandTracker({ campaignId, session, isGm, members }: {
     <section className="panel rb-tracker range-board ring-range-board">
       <div className="rb-head range-head">
         <h3>{t('Дистанции и позиции', 'Ranges and positions')}</h3>
-        <span className="muted small-text">{t('сохранено на этом устройстве', 'saved on this device')}</span>
+        <span className="muted small-text">{t('синхронизировано с игровым столом', 'synced with the game table')}</span>
       </div>
       <div className="ring-focus-switch">
         <span className="muted small-text">{t('Показать расстояния от:', 'Show distances from:')}</span>

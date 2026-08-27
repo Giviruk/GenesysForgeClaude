@@ -130,7 +130,13 @@ describe('GameTableTab — статблок и броски NPC', () => {
 
   it('сохраняет позиции трекера дистанций при повторном открытии игрового стола', async () => {
     const rangeSession = { ...session, participants: [playerParticipant, session.participants[0]] }
-    sessionMock.mockResolvedValue(rangeSession)
+    const restoredSession = {
+      ...rangeSession,
+      participants: rangeSession.participants.map(participant => participant.id === 'participant-1'
+        ? { ...participant, rangeZone: 'long' as const, rangeAngle: 90 }
+        : participant),
+    }
+    sessionMock.mockReset().mockResolvedValueOnce(rangeSession).mockResolvedValueOnce(restoredSession)
     const first = render(<GameTableTab campaignId="campaign-1" isGm members={[ownMember]} />)
     await screen.findByText('Засада')
     const token = document.querySelector('.ring-token.npc') as HTMLElement
@@ -165,6 +171,33 @@ describe('GameTableTab — статблок и броски NPC', () => {
     expect(screen.getByText('Расчётные расстояния от Гоблины ×3/3')).toBeTruthy()
     expect(npcToken.getAttribute('style')).toBe(npcPosition)
     expect(pcToken.getAttribute('style')).toBe(pcPosition)
+  })
+
+  it('подхватывает сохранённую сервером позицию токена после realtime-перезагрузки', async () => {
+    const movedSession = {
+      ...session,
+      participants: [{ ...session.participants[0], rangeZone: 'long' as const, rangeAngle: 90 }],
+    }
+    sessionMock.mockReset().mockResolvedValueOnce(session).mockResolvedValueOnce(movedSession)
+    const view = render(<GameTableTab campaignId="campaign-1" isGm members={[]} refreshSignal={0} />)
+
+    const token = await screen.findByRole('button', { name: 'Выбрать Гоблины ×3/3 для расчёта расстояний' })
+    expect(token.getAttribute('title')).toContain('Средняя')
+
+    view.rerender(<GameTableTab campaignId="campaign-1" isGm members={[]} refreshSignal={1} />)
+
+    await waitFor(() => expect(token.getAttribute('title')).toContain('Дальняя'))
+  })
+
+  it('убирает участника после realtime-перезагрузки скрытой сцены', async () => {
+    const hiddenSession = { ...session, participants: [] }
+    sessionMock.mockReset().mockResolvedValueOnce(session).mockResolvedValueOnce(hiddenSession)
+    const view = render(<GameTableTab campaignId="campaign-1" isGm={false} members={[]} refreshSignal={0} />)
+
+    await screen.findByRole('button', { name: 'Выбрать Гоблины ×3/3 для расчёта расстояний' })
+    view.rerender(<GameTableTab campaignId="campaign-1" isGm={false} members={[]} refreshSignal={1} />)
+
+    await waitFor(() => expect(screen.queryByRole('button', { name: 'Выбрать Гоблины ×3/3 для расчёта расстояний' })).toBeNull())
   })
 
   it('позволяет мастеру перетащить слот инициативы перед другим слотом', async () => {

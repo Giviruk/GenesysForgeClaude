@@ -12,6 +12,8 @@ public record UpdateParticipantCommand(
 
 public class UpdateParticipantHandler(IAppDbContext db) : ICommandHandler<UpdateParticipantCommand, GameSessionDto>
 {
+    private static readonly string[] RangeZones = ["engaged", "short", "medium", "long", "extreme"];
+
     public async Task<GameSessionDto> Handle(UpdateParticipantCommand command, CancellationToken ct = default)
     {
         var campaign = await CampaignMapper.GetAccessibleAsync(db, command.UserId, command.CampaignId, ct);
@@ -24,18 +26,25 @@ public class UpdateParticipantHandler(IAppDbContext db) : ICommandHandler<Update
 
         if (!isGm)
         {
-            // Игрок может менять только состояние и модификаторы своего персонажа и только если разрешено.
-            if (!session.AllowPlayerEdits)
+            // Позицию собственного токена можно менять всегда; состояние и модификаторы — только
+            // если мастер включил редактирование игроками.
+            var positionOnly = r.RangeZone is not null || r.RangeAngle is not null;
+            if (!session.AllowPlayerEdits && !positionOnly)
                 throw new DomainRuleException("Мастер не разрешил игрокам менять состояние.");
             var ownsCharacter = p.CharacterId is { } cid && await db.Characters.AsNoTracking()
                 .AnyAsync(c => c.Id == cid && c.OwnerUserId == command.UserId, ct);
             if (!ownsCharacter)
                 throw new DomainRuleException("Можно менять только своего персонажа.");
-            ApplyVitals(p, r);
-            ApplyDiceModifiers(p, r);
+            ApplyRangePosition(p, r);
+            if (session.AllowPlayerEdits)
+            {
+                ApplyVitals(p, r);
+                ApplyDiceModifiers(p, r);
+            }
         }
         else
         {
+            ApplyRangePosition(p, r);
             ApplyVitals(p, r);
             if (r.DisplayName is not null && !string.IsNullOrWhiteSpace(r.DisplayName)) p.DisplayName = r.DisplayName.Trim();
             if (r.WoundsThreshold is { } wt) p.WoundsThreshold = Math.Max(1, wt);
@@ -67,5 +76,22 @@ public class UpdateParticipantHandler(IAppDbContext db) : ICommandHandler<Update
     {
         if (r.BoostDice is { } boost) p.BoostDice = Math.Clamp(boost, 0, 20);
         if (r.SetbackDice is { } setback) p.SetbackDice = Math.Clamp(setback, 0, 20);
+    }
+
+    private static void ApplyRangePosition(GameParticipant p, UpdateParticipantRequest r)
+    {
+        if (r.RangeZone is not null)
+        {
+            if (!RangeZones.Contains(r.RangeZone, StringComparer.Ordinal))
+                throw new DomainRuleException("Неизвестная зона дистанции.");
+            p.RangeZone = r.RangeZone;
+        }
+
+        if (r.RangeAngle is { } angle)
+        {
+            if (!double.IsFinite(angle))
+                throw new DomainRuleException("Некорректный угол позиции.");
+            p.RangeAngle = ((angle % 360) + 360) % 360;
+        }
     }
 }

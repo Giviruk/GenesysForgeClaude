@@ -96,7 +96,7 @@ builder.Services.Configure<ForwardedHeadersOptions>(options =>
 var corsOrigins = ProductionConfiguration.ParseCorsOrigins(builder.Configuration);
 if (corsOrigins.Length == 0) corsOrigins = ["http://localhost:5173"];
 builder.Services.AddCors(options => options.AddDefaultPolicy(policy =>
-    policy.WithOrigins(corsOrigins).AllowAnyHeader().AllowAnyMethod()));
+    policy.WithOrigins(corsOrigins).AllowAnyHeader().AllowAnyMethod().AllowCredentials()));
 
 builder.Services.ConfigureHttpJsonOptions(options =>
 {
