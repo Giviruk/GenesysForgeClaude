@@ -532,6 +532,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             e.HasIndex(p => p.SessionId);
             e.Property(p => p.DisplayName).HasMaxLength(200);
             e.Property(p => p.Notes).HasMaxLength(2000);
+            e.Property(p => p.RangeZone).HasMaxLength(16);
         });
         b.Entity<InitiativeSlot>(e =>
         {

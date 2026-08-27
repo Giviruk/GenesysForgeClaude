@@ -43,5 +43,10 @@ public class GameParticipant : ICombatTarget
     public bool IsHiddenFromPlayers { get; set; }
     public string Notes { get; set; } = "";
 
+    /// <summary>Зона дистанций на поле Game Table; null означает старую запись без сохранённой позиции.</summary>
+    public string? RangeZone { get; set; }
+    /// <summary>Угол токена на кольце в градусах, если позиция сохранена.</summary>
+    public double? RangeAngle { get; set; }
+
     public int Order { get; set; }
 }

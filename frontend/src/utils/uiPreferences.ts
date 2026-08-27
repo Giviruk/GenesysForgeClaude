@@ -1,3 +1,5 @@
+import type { RangeZone } from '../api/types'
+
 export const SHEET_TABS = [
   'sheet', 'talents', 'heroic', 'inventory', 'attachments', 'transport', 'crafting', 'magic',
   'bio', 'history', 'notes',
@@ -6,7 +8,7 @@ export const SHEET_TABS = [
 export type CharacterSheetTab = typeof SHEET_TABS[number]
 
 export const RANGE_ZONES = ['engaged', 'short', 'medium', 'long', 'extreme'] as const
-export type RangeZone = typeof RANGE_ZONES[number]
+export type { RangeZone } from '../api/types'
 
 export interface StoredRangeTrackerState {
   zones: Record<string, RangeZone>

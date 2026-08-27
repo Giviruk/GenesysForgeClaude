@@ -1394,6 +1394,7 @@ export interface NpcFilter {
 
 export type ParticipantType = 'playerCharacter' | 'npc' | 'minionGroup' | 'hazard'
 export type InitiativeSlotType = 'player' | 'npc' | 'neutral'
+export type RangeZone = 'engaged' | 'short' | 'medium' | 'long' | 'extreme'
 
 export interface GameParticipant {
   id: string
@@ -1421,6 +1422,9 @@ export interface GameParticipant {
   isDefeated: boolean
   isHiddenFromPlayers: boolean
   notes: string
+  /** Позиция на серверном поле дистанций; null у старых участников использует defaultZone. */
+  rangeZone?: RangeZone | null
+  rangeAngle?: number | null
   order: number
 }
 
@@ -1504,6 +1508,8 @@ export interface UpdateParticipantRequest {
   initiativeSlotType?: InitiativeSlotType | null
   boostDice?: number | null
   setbackDice?: number | null
+  rangeZone?: RangeZone | null
+  rangeAngle?: number | null
 }
 
 export type EncounterType =

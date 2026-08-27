@@ -31,6 +31,9 @@ DbSets:
 - `HomebrewPacks`
 - `HomebrewPackCharacters`
 - `HomebrewPackCampaigns`
+- `GameSessions`
+- `GameParticipants`
+- `InitiativeSlots`
 - `RollLogEntries`
 - `CampaignChronicleChapters`
 - `CampaignChronicleRevisions`
@@ -567,6 +570,15 @@ Indexes:
 
 - non-unique `(CampaignId, CreatedAt)`.
 
+### GameSessions / GameParticipants
+
+`GameSessions` stores the active Game Table scene. `GameParticipants` stores the scene roster and
+temporary participant state. `RangeZone` (nullable `varchar(16)`) and `RangeAngle` (nullable
+`double precision`) on `GameParticipants` store the shared token position for the distance-band
+field. Null values are kept for participants created before realtime position sync and use the
+frontend defaults until the first move. Position updates use the existing `GameTableChanged`
+SignalR notification; they do not alter character or NPC source data.
+
 ## Migrations
 
 Migration folder:
@@ -688,6 +700,10 @@ Found migrations:
 - `20260811211543_AddCraftingProjectMaterialPricing` — adds the selected `Craftsmanship` and
   `ImplementMaterial` to `CraftingProjects`. Existing projects receive ordinary steel (`2`) and oak
   (`0`), preserving their previous effective values; no rows are removed or rewritten.
+- `20260827213855_AddGameParticipantRangePosition` — adds nullable `RangeZone` and `RangeAngle`
+  to `GameParticipants` so distance-band token positions are persisted and shared through the
+  existing Game Table realtime invalidation. Non-destructive; existing participants keep nulls and
+  continue to use the previous type-based default position.
 
 Startup behavior:
 

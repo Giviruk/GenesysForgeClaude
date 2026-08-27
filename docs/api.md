@@ -814,6 +814,12 @@ participant when `allowPlayerEdits` is enabled (values are clamped to `0..20`). 
 these dice to generic participant rolls and to NPC skill/attack pools. Players cannot change the
 counters of NPCs or other characters.
 
+Each participant also exposes nullable `rangeZone` (`engaged`, `short`, `medium`, `long`, or `extreme`)
+and `rangeAngle` fields. The participant `PATCH` persists a token position; a player may update these
+fields only for their own player-character even when `allowPlayerEdits` is disabled. Successful scene
+mutations, including position and hidden/visible changes, emit `GameTableChanged` to the campaign's
+SignalR group, after which clients reread the session.
+
 ## Encounters
 
 All routes are protected. Campaign-scoped list/create routes require access to the campaign; mutation routes enforce GM ownership through the encounter's campaign.
