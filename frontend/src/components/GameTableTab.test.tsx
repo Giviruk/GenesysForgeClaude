@@ -86,7 +86,7 @@ const playerParticipant: GameParticipant = {
   ...session.participants[0], id: 'participant-pc', characterId: 'character-1', npcId: null,
   displayName: 'Элира', participantType: 'playerCharacter', initiativeSlotType: 'player', count: 1,
   woundsCurrent: 1, woundsThreshold: 12, strainCurrent: 2, strainThreshold: 11,
-  soak: 2, meleeDefense: 1, rangedDefense: 0, boostDice: 0, setbackDice: 0,
+  soak: 2, meleeDefense: 1, rangedDefense: 0, boostDice: 0, setbackDice: 0, order: 1,
 }
 
 const ownMember: CampaignMember = {
@@ -95,7 +95,7 @@ const ownMember: CampaignMember = {
 }
 
 const otherPlayerParticipant: GameParticipant = {
-  ...playerParticipant, id: 'participant-pc-2', characterId: 'character-2', displayName: 'Торен',
+  ...playerParticipant, id: 'participant-pc-2', characterId: 'character-2', displayName: 'Торен', order: 2,
 }
 
 const otherMember: CampaignMember = {
@@ -151,6 +151,22 @@ describe('GameTableTab — статблок и броски NPC', () => {
     const restored = document.querySelector('.ring-token.npc') as HTMLElement
     expect(restored.title).toContain('Дальняя')
     expect(screen.getByText(/Средняя → Дальняя/)).toBeTruthy()
+  })
+
+  it('не сдвигает токены, когда мастер скрывает участника от игроков', async () => {
+    sessionMock.mockResolvedValue({ ...session, participants: [playerParticipant, session.participants[0]] })
+    const gmView = render(<GameTableTab campaignId="campaign-1" isGm members={[ownMember]} />)
+    await screen.findByText('Засада')
+    const gmToken = document.querySelector('.ring-token.npc') as HTMLElement
+    const position = [gmToken.style.left, gmToken.style.top]
+    gmView.unmount()
+
+    // Скрытый участник игроку не приходит — оставшийся токен обязан остаться на месте.
+    sessionMock.mockResolvedValue({ ...session, participants: [session.participants[0]] })
+    render(<GameTableTab campaignId="campaign-1" isGm={false} members={[ownMember]} />)
+    await screen.findByText('Засада')
+    const playerToken = document.querySelector('.ring-token.npc') as HTMLElement
+    expect([playerToken.style.left, playerToken.style.top]).toEqual(position)
   })
 
   it('показывает расстояния от выбранного участника, не переставляя токены', async () => {

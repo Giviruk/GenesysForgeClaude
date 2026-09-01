@@ -279,9 +279,11 @@ function RangeBandTracker({ campaignId, session, isGm, members, onRun }: {
   const fallbackFocus = participants.find(p => p.participantType === 'playerCharacter') ?? participants[0]
   const focus = participants.find(p => p.id === focusParticipantId) ?? fallbackFocus ?? null
   const zoneOf = (p: GameParticipant): RangeZone => p.rangeZone ?? zones[p.id] ?? defaultZone(p)
+  // Стартовый угол берём от Order участника, а не от позиции в списке: игроку скрытые участники
+  // не приходят, и от индекса токены съезжали, стоило мастеру кого-то скрыть.
   const angleOf = (p: GameParticipant): number => snapRangeAngle(p.rangeAngle
     ?? angles[p.id]
-    ?? (participants.findIndex(candidate => candidate.id === p.id) * 90 + 210))
+    ?? (p.order * 90 + 210))
   const canMove = (p: GameParticipant) => isGm || (
     p.participantType === 'playerCharacter'
     && p.characterId !== null
