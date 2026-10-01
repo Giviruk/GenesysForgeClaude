@@ -3,8 +3,8 @@
 - **Пункт ТЗ:** вне ROT/GEN — исправление ошибки сборки пула (найдено при проверке дайсроллера)
 - **Ветка:** `feature/dice-difficulty-upgrades`
 - **Базовая ветка:** `master`
-- **PR:** #<номер> (после создания)
-- **Статус:** 🚧 In progress
+- **PR:** [#251](https://github.com/Giviruk/GenesysForgeClaude/pull/251)
+- **Статус:** 🚧 In progress (PR открыт, ждёт ревью/слияния)
 
 ## Контекст
 
@@ -30,11 +30,11 @@
 - [x] Вызовы в `SheetTab`, `InventoryTab`, `MagicBuilder`: передавать усиления отдельно, а не красными костями
 - [x] `DicePoolView`: показывать усиление маркером, а не красной костью (база сложности на листе неизвестна)
 - [x] Тесты Vitest (`diceRoller.test.ts`, `DiceRoller.test.tsx`), `npm run lint`, `npm test`, `npm run build`
-- [ ] PR открыт
+- [x] PR открыт
 
 ## Что осталось / блокеры
 
-- Открыть PR и вписать его номер в шапку.
+- Слить PR #251.
 
 ## Проверка
 
