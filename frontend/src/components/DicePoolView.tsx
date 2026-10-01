@@ -6,7 +6,9 @@ import { t } from '../i18n'
  * персонаж тащит на себе постоянно (ROT-ARM-01, ROT-EQP-01): броня и перегруз. Помехи —
  * часть пула, поэтому они видны рядом с ним, а не только в блоке веса.
  */
-export function DicePoolView({ pool, setback = 0, setbackTitle, boost = 0, difficulty = 0, challenge = 0 }: {
+export function DicePoolView({
+  pool, setback = 0, setbackTitle, boost = 0, difficulty = 0, challenge = 0, difficultyUpgrades = 0,
+}: {
   pool: DicePool
   setback?: number
   /** Расшифровка источников помех для подсказки. */
@@ -15,8 +17,13 @@ export function DicePoolView({ pool, setback = 0, setbackTitle, boost = 0, diffi
   boost?: number
   /** Сложность, которую задаёт само оружие или нехватка характеристики (Громоздкое, Сноровка). */
   difficulty?: number
-  /** Красные кости после усиления сложности (критические травмы). */
+  /** Красные кости, уже стоящие в пуле. */
   challenge?: number
+  /**
+   * Усиления сложности (критические травмы). Это не красные кости: при броске они превращают
+   * фиолетовые кости проверки в красные, а базовой сложности здесь ещё нет — поэтому маркер.
+   */
+  difficultyUpgrades?: number
 }) {
   const poolTitle = t(`${pool.proficiency} мастерства + ${pool.ability} способности`,
     `${pool.proficiency} proficiency + ${pool.ability} ability`)
@@ -40,7 +47,14 @@ export function DicePoolView({ pool, setback = 0, setbackTitle, boost = 0, diffi
       {Array.from({ length: Math.max(0, challenge) }).map((_, i) => (
         <span key={`c${i}`} className="die challenge">⬣</span>
       ))}
+      {difficultyUpgrades > 0 && (
+        <span className="die-upgrade" title={t(
+          `Усиление сложности ×${difficultyUpgrades}: при броске кость сложности превращается в кость вызова`,
+          `Difficulty upgrade ×${difficultyUpgrades}: on the roll a difficulty die becomes a challenge die`,
+        )}>↑{difficultyUpgrades > 1 ? difficultyUpgrades : ''}</span>
+      )}
       {pool.proficiency === 0 && pool.ability === 0 && setback === 0 && boost === 0 && difficulty === 0 && challenge === 0
+        && difficultyUpgrades <= 0
         && <span className="muted">—</span>}
     </span>
   )

@@ -427,7 +427,7 @@ export function MagicBuilder({
                 : (activeCharacterSkill?.boostDice ?? 0) + toolBoost}
               setback={(activeCharacterSkill?.setbackDice ?? 0) + toolDamageSetback}
               difficulty={activeCharacterSkill?.difficultyDice}
-              challenge={activeCharacterSkill?.difficultyUpgrades} />
+              difficultyUpgrades={activeCharacterSkill?.difficultyUpgrades} />
           </div>
         )}
         {/* Откуда берётся рейтинг свойств (ROT-MAG-10). Выбор показывается только тогда, когда он
@@ -663,14 +663,13 @@ export function MagicBuilder({
                       ability: activeCharacterSkill.pool.ability,
                       proficiency: activeCharacterSkill.pool.proficiency,
                       difficulty: totalDifficulty + (activeCharacterSkill.difficultyDice ?? 0),
-                      ...((activeCharacterSkill.difficultyUpgrades ?? 0) > 0
-                        ? { challenge: activeCharacterSkill.difficultyUpgrades }
-                        : {}),
                       boost: activeCharacterSkill.removeBoosts
                         ? 0
                         : activeCharacterSkill.boostDice + toolBoost,
                       setback: activeCharacterSkill.setbackDice + toolDamageSetback,
                     },
+                    // Усиления превращают кости сложности заклинания в красные, а не добавляются поверх.
+                    difficultyUpgrades: activeCharacterSkill.difficultyUpgrades ?? 0,
                     damage: magicDamage,
                     advantageSpends: selectedEffect
                       ? magicAdvantageSpends(selectedEffect, chosen)

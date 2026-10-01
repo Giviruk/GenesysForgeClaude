@@ -217,7 +217,7 @@ export function SheetTab({ sheet, onError, refresh, updateBaseOptimistically, re
                               <td data-label={t('Ранги', 'Ranks')}>{'●'.repeat(s.ranks)}{'○'.repeat(Math.max(0, 5 - s.ranks))}</td>
                               <td data-label={t('Пул кубов', 'Dice pool')}>
                                 <DicePoolView pool={s.pool} setback={s.setbackDice} boost={s.boostDice}
-                                  difficulty={s.difficultyDice} challenge={s.difficultyUpgrades}
+                                  difficulty={s.difficultyDice} difficultyUpgrades={s.difficultyUpgrades}
                                   setbackTitle={setbackTitle(s)} />
                               </td>
                               <td className="right" data-label={t('Действия', 'Actions')}>
@@ -247,8 +247,10 @@ export function SheetTab({ sheet, onError, refresh, updateBaseOptimistically, re
                                         setback: s.setbackDice,
                                         boost: s.boostDice,
                                         difficulty: s.difficultyDice ?? 0,
-                                        challenge: s.difficultyUpgrades ?? 0,
                                       },
+                                      // Усиление превращает фиолетовую кость проверки в красную при броске,
+                                      // а не добавляет красную поверх сложности.
+                                      difficultyUpgrades: s.difficultyUpgrades ?? 0,
                                     })}>
                                     🎲
                                   </button>

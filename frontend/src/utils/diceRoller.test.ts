@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import {
-  emptyPool, poolSize, rollPool, netSymbols, summarize,
+  applyDifficultyUpgrades, emptyPool, poolSize, rollPool, netSymbols, summarize,
   type RollPool, type RollSymbols,
 } from './diceRoller'
 
@@ -17,6 +17,31 @@ function sym(p: Partial<RollSymbols>): RollSymbols {
 describe('poolSize', () => {
   it('суммирует все кубы и игнорирует отрицательные', () => {
     expect(poolSize({ ...emptyPool(), ability: 2, proficiency: 1, difficulty: 3 })).toBe(6)
+  })
+})
+
+describe('applyDifficultyUpgrades', () => {
+  const pool = (p: Partial<RollPool>): RollPool => ({ ...emptyPool(), ...p })
+
+  it('превращает фиолетовую кость в красную, а не добавляет красную поверх', () => {
+    expect(applyDifficultyUpgrades(pool({ ability: 3, difficulty: 2 }), 1))
+      .toEqual(pool({ ability: 3, difficulty: 1, challenge: 1 }))
+  })
+
+  it('без фиолетовых костей добавляет фиолетовую', () => {
+    expect(applyDifficultyUpgrades(pool({ ability: 2 }), 1)).toEqual(pool({ ability: 2, difficulty: 1 }))
+  })
+
+  it('лишние усиления сначала добавляют фиолетовую, затем превращают её', () => {
+    // 1P + 3 усиления: P→R, +P, P→R.
+    expect(applyDifficultyUpgrades(pool({ difficulty: 1 }), 3)).toEqual(pool({ challenge: 2 }))
+    expect(applyDifficultyUpgrades(pool({}), 2)).toEqual(pool({ challenge: 1 }))
+  })
+
+  it('уже красные кости не трогает; ноль и отрицательные усиления пул не меняют', () => {
+    expect(applyDifficultyUpgrades(pool({ difficulty: 1, challenge: 1 }), 1)).toEqual(pool({ challenge: 2 }))
+    expect(applyDifficultyUpgrades(pool({ difficulty: 2 }), 0)).toEqual(pool({ difficulty: 2 }))
+    expect(applyDifficultyUpgrades(pool({ difficulty: 2 }), -1)).toEqual(pool({ difficulty: 2 }))
   })
 })
 
