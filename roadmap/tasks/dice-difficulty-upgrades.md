@@ -24,17 +24,24 @@
 
 ## План выполнения
 
-- [ ] `applyDifficultyUpgrades(pool, upgrades)` в `diceRoller.ts` + тесты
-- [ ] `DiceRoller`: проп `difficultyUpgrades`, счётчик усилений с +/−, бросок и лог по итоговому пулу, показ итогового пула
-- [ ] `DiceRollerRequest` (roll/combat/magic): поле `difficultyUpgrades`, проброс в `DiceRoller`
-- [ ] Вызовы в `SheetTab`, `InventoryTab`, `MagicBuilder`: передавать усиления отдельно, а не красными костями
-- [ ] `DicePoolView`: показывать усиление маркером, а не красной костью (база сложности на листе неизвестна)
-- [ ] Тесты Vitest (`diceRoller.test.ts`, `DiceRoller.test.tsx`), `npm run lint`, `npm test`, `npm run build`
+- [x] `applyDifficultyUpgrades(pool, upgrades)` в `diceRoller.ts` + тесты
+- [x] `DiceRoller`: проп `difficultyUpgrades`, счётчик усилений с +/−, бросок и лог по итоговому пулу, показ итогового пула
+- [x] `DiceRollerRequest` (roll/combat/magic): поле `difficultyUpgrades`, проброс в `DiceRoller`
+- [x] Вызовы в `SheetTab`, `InventoryTab`, `MagicBuilder`: передавать усиления отдельно, а не красными костями
+- [x] `DicePoolView`: показывать усиление маркером, а не красной костью (база сложности на листе неизвестна)
+- [x] Тесты Vitest (`diceRoller.test.ts`, `DiceRoller.test.tsx`), `npm run lint`, `npm test`, `npm run build`
 - [ ] PR открыт
 
 ## Что осталось / блокеры
 
-—
+- Открыть PR и вписать его номер в шапку.
+
+## Проверка
+
+- `npm run lint`, `npm run build`, `npx vitest run` — 52 файла, 444 теста зелёные.
+- Визуально (Vite dev server, роллер смонтирован напрямую — бэкенд не поднимался): пул
+  3 Ability + 2 Difficulty + 1 Setback с одним усилением показывает «Бросается: ◆◆◆■◆⬣»,
+  кнопка «Бросить (6)»; статичный `DicePoolView` показывает маркер «↑» с подсказкой.
 
 ## Заметки / решения
 

@@ -194,7 +194,7 @@ export function CharacterSheetPrint({ sheet, loadNotes = true }: {
                         <span className="sheet-weapon-pool-label">{t('Пул', 'Pool')}</span>
                         {weaponSkill
                           ? <><DicePoolView pool={weaponSkill.pool} setback={weaponSkill.setbackDice}
-                              difficulty={weaponSkill.difficultyDice} challenge={weaponSkill.difficultyUpgrades} /><span>{localizedName(weaponSkill)}</span></>
+                              difficulty={weaponSkill.difficultyDice} difficultyUpgrades={weaponSkill.difficultyUpgrades} /><span>{localizedName(weaponSkill)}</span></>
                           : <span className="muted">—{i.skillName ? t(` навык ${i.skillName} не найден`, ` skill ${i.skillName} not found`) : ''}</span>}
                       </div>
                     )}
@@ -361,7 +361,7 @@ function SkillGroup({ kind, skills }: SkillGroupData) {
               <td>{skill.ranks}</td>
               {/* Помехи снаряжения, перегруз и критические травмы печатаются вместе с пулом. */}
               <td><DicePoolView pool={skill.pool} setback={skill.setbackDice}
-                difficulty={skill.difficultyDice} challenge={skill.difficultyUpgrades} /></td>
+                difficulty={skill.difficultyDice} difficultyUpgrades={skill.difficultyUpgrades} /></td>
             </tr>
           ))}
         </tbody>

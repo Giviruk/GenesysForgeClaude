@@ -89,3 +89,58 @@ describe('DiceRoller — расходы преимуществ', () => {
     expect(await screen.findByText('Повредить используемый предмет.')).toBeTruthy()
   })
 })
+
+describe('DiceRoller — усиление сложности', () => {
+  afterEach(() => vi.restoreAllMocks())
+
+  function rollAndLoggedPool() {
+    const onLog = vi.fn()
+    return {
+      onLog,
+      pool: () => JSON.parse(onLog.mock.calls.at(-1)![0].poolJson),
+    }
+  }
+
+  it('усиление превращает кость сложности в кость вызова, а не добавляет красную поверх', () => {
+    vi.spyOn(Math, 'random').mockReturnValue(0)
+    const log = rollAndLoggedPool()
+    render(<DiceRoller initialPool={{ ability: 3, difficulty: 2 }} difficultyUpgrades={1} onLog={log.onLog} />)
+
+    // В бросок уходят 3 + 1 + 1 кости, а не 3 + 2 + 1.
+    fireEvent.click(screen.getByRole('button', { name: /Бросить \(5\)/ }))
+
+    expect(log.pool()).toMatchObject({ ability: 3, difficulty: 1, challenge: 1 })
+    expect(screen.getByText(/Бросается:/)).toBeTruthy()
+  })
+
+  it('усиление применяется к сложности, которую выставили уже после открытия', () => {
+    vi.spyOn(Math, 'random').mockReturnValue(0)
+    const log = rollAndLoggedPool()
+    render(<DiceRoller initialPool={{ ability: 2 }} difficultyUpgrades={1} onLog={log.onLog} />)
+
+    // Без костей сложности усиление добавляет фиолетовую.
+    fireEvent.click(screen.getByRole('button', { name: /Бросить/ }))
+    expect(log.pool()).toMatchObject({ difficulty: 1, challenge: 0 })
+
+    // Мастер выставил Среднюю сложность — одна из двух костей становится красной.
+    fireEvent.click(screen.getByRole('button', { name: '+difficulty' }))
+    fireEvent.click(screen.getByRole('button', { name: '+difficulty' }))
+    fireEvent.click(screen.getByRole('button', { name: /Бросить/ }))
+    expect(log.pool()).toMatchObject({ difficulty: 1, challenge: 1 })
+  })
+
+  it('усиления можно добавить вручную и сбросить к исходным', () => {
+    vi.spyOn(Math, 'random').mockReturnValue(0)
+    const log = rollAndLoggedPool()
+    render(<DiceRoller initialPool={{ ability: 2, difficulty: 2 }} onLog={log.onLog} />)
+
+    fireEvent.click(screen.getByRole('button', { name: '+усиление сложности' }))
+    fireEvent.click(screen.getByRole('button', { name: /Бросить/ }))
+    expect(log.pool()).toMatchObject({ difficulty: 1, challenge: 1 })
+
+    fireEvent.click(screen.getByRole('button', { name: 'Сброс' }))
+    fireEvent.click(screen.getByRole('button', { name: /Бросить/ }))
+    expect(log.pool()).toMatchObject({ difficulty: 2, challenge: 0 })
+    expect(screen.queryByText(/Бросается:/)).toBeNull()
+  })
+})

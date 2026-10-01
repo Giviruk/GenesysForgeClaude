@@ -350,6 +350,7 @@ describe('MagicBuilder — дайсроллер', () => {
         boost: 3,
         setback: 2,
       },
+      difficultyUpgrades: 0,
       damage: {
         base: 3,
         characteristic: 3,
@@ -359,6 +360,29 @@ describe('MagicBuilder — дайсроллер', () => {
       },
       advantageSpends: [],
     })
+  })
+
+  it('усиление сложности от травмы передаёт роллеру отдельно, а не красной костью поверх сложности', async () => {
+    render(<MagicBuilder system="realmsOfTerrinoth" onError={() => {}}
+      characterSkills={[{
+        name: 'Arcana',
+        characteristic: 'intellect',
+        characteristicValue: 3,
+        pool: { ability: 1, proficiency: 2 },
+        ranks: 2,
+        isCareer: true,
+        setbackDice: 0,
+        boostDice: 0,
+        difficultyUpgrades: 1,
+      }]} />)
+    await screen.findByText(/Сложность: 2/)
+
+    fireEvent.click(screen.getByRole('button', { name: '🎲 Бросить' }))
+
+    const request = openRollerMock.mock.calls.at(-1)![0]
+    expect(request.basePool).toMatchObject({ difficulty: 2 })
+    expect(request.basePool.challenge ?? 0).toBe(0)
+    expect(request.difficultyUpgrades).toBe(1)
   })
 
   it('не предлагает бросок для Runes без выбранного runebound shard', async () => {

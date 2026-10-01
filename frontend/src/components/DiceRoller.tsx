@@ -1,11 +1,12 @@
 import { useState } from 'react'
 import {
-  DIE_KINDS, SYMBOL_ORDER, emptyPool, poolSize, rollPool, summarize,
+  DIE_KINDS, SYMBOL_ORDER, applyDifficultyUpgrades, emptyPool, poolSize, rollPool, summarize,
   type DieKind, type DieSymbol, type RollPool, type RollSymbols, type RollOutcome,
 } from '../utils/diceRoller'
 import { t } from '../i18n'
 import type { AdvantageSpendContext, AdvantageSpendOption } from '../utils/advantageSpends'
 import { OutcomeSpendGuide } from './OutcomeSpendGuide'
+import { DicePoolView } from './DicePoolView'
 
 /** Заявка на запись броска в лог стола. */
 export interface RollLogRequest {
@@ -18,6 +19,11 @@ export interface RollLogRequest {
 
 interface Props {
   initialPool?: Partial<RollPool>
+  /**
+   * Усиления сложности (например, от критических травм). Применяются к собранному пулу
+   * в момент броска: базовую сложность проверки выставляет игрок или мастер.
+   */
+  difficultyUpgrades?: number
   /** Что бросаем (навык/описание) — попадает в лог. */
   label?: string
   /** Если задан — после броска результат пишется в лог стола. Без него — локальный бросок. */
@@ -65,25 +71,34 @@ const SYMBOL_META: Record<DieSymbol, { label: string; glyph: string }> = t({
 })
 
 export function DiceRoller({
-  initialPool, label, onLog, canSecret, onResult,
+  initialPool, difficultyUpgrades = 0, label, onLog, canSecret, onResult,
   spendContext = 'general', advantageSpends = [],
 }: Props) {
   const [pool, setPool] = useState<RollPool>({ ...emptyPool(), ...initialPool })
+  const [upgrades, setUpgrades] = useState(Math.max(0, difficultyUpgrades))
   const [outcome, setOutcome] = useState<RollOutcome | null>(null)
   const [secret, setSecret] = useState(false)
 
-  const total = poolSize(pool)
+  // Бросается и пишется в лог пул уже после усилений, а счётчики показывают собранную базу.
+  const rolled = applyDifficultyUpgrades(pool, upgrades)
+  const total = poolSize(rolled)
   const bump = (kind: DieKind, delta: number) =>
     setPool(p => ({ ...p, [kind]: Math.max(0, Math.min(20, p[kind] + delta)) }))
+  const bumpUpgrades = (delta: number) => setUpgrades(u => Math.max(0, Math.min(20, u + delta)))
+
+  function reset() {
+    setPool({ ...emptyPool(), ...initialPool })
+    setUpgrades(Math.max(0, difficultyUpgrades))
+  }
 
   function roll() {
     if (total === 0) return
-    const result = rollPool(pool)
+    const result = rollPool(rolled)
     setOutcome(result)
     onResult?.(result)
     if (onLog) {
       onLog({
-        poolJson: JSON.stringify(pool),
+        poolJson: JSON.stringify(rolled),
         resultJson: JSON.stringify(result.net),
         summary: summarize(result.net),
         label: label ?? '',
@@ -107,11 +122,33 @@ export function DiceRoller({
         ))}
       </div>
 
+      <div className="dr-upgrades">
+        <span className="dr-upgrades-label" title={t(
+          'Каждое усиление превращает кость сложности в кость вызова; если костей сложности нет — добавляет кость сложности.',
+          'Each upgrade turns a difficulty die into a challenge die; with no difficulty dice left it adds a difficulty die.',
+        )}>{t('Усиление сложности', 'Difficulty upgrades')}</span>
+        <span className="dr-die-count">{upgrades}</span>
+        <span className="dr-die-btns">
+          <button type="button" className="tiny" onClick={() => bumpUpgrades(1)}
+            aria-label={t('+усиление сложности', '+difficulty upgrade')}>+</button>
+          <button type="button" className="tiny" onClick={() => bumpUpgrades(-1)}
+            aria-label={t('−усиление сложности', '−difficulty upgrade')}>−</button>
+        </span>
+        {upgrades > 0 && (
+          <span className="dr-rolled-pool">
+            {t('Бросается:', 'Rolled:')}{' '}
+            <DicePoolView pool={{ ability: rolled.ability, proficiency: rolled.proficiency }}
+              boost={rolled.boost} setback={rolled.setback}
+              difficulty={rolled.difficulty} challenge={rolled.challenge} />
+          </span>
+        )}
+      </div>
+
       <div className="dr-actions">
         <button type="button" className="primary" onClick={roll} disabled={total === 0}>
           {t('🎲 Бросить', '🎲 Roll')}{total > 0 ? ` (${total})` : ''}
         </button>
-        <button type="button" className="small" onClick={() => setPool({ ...emptyPool(), ...initialPool })}>{t('Сброс', 'Reset')}</button>
+        <button type="button" className="small" onClick={reset}>{t('Сброс', 'Reset')}</button>
         {canSecret && (
           <label className="checkbox dr-secret" title={t('Виден только мастеру', 'Visible only to the GM')}>
             <input type="checkbox" checked={secret} onChange={e => setSecret(e.target.checked)} /> {t('Секретно', 'Secret')}

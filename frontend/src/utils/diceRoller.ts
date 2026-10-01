@@ -61,6 +61,25 @@ export function poolSize(pool: RollPool): number {
 }
 
 /**
+ * Усиливает сложность пула `upgrades` раз. Каждое усиление превращает кость Difficulty
+ * в Challenge; если Difficulty не осталось — добавляет Difficulty, и следующее усиление
+ * превращает уже её. Поэтому усиление — не лишняя красная кость поверх сложности.
+ */
+export function applyDifficultyUpgrades(pool: RollPool, upgrades: number): RollPool {
+  let difficulty = Math.max(0, pool.difficulty | 0)
+  let challenge = Math.max(0, pool.challenge | 0)
+  for (let i = 0; i < Math.max(0, upgrades | 0); i++) {
+    if (difficulty > 0) {
+      difficulty--
+      challenge++
+    } else {
+      difficulty++
+    }
+  }
+  return { ...pool, difficulty, challenge }
+}
+
+/**
  * Бросает пул. `rng` — функция 0..1 (по умолчанию Math.random); в тестах передаётся seedable.
  */
 export function rollPool(pool: RollPool, rng: () => number = Math.random): RollOutcome {

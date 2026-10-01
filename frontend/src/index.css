@@ -626,6 +626,7 @@ table.ref-table td.ref-cost { white-space: nowrap; color: var(--accent); }
 .die.proficiency { color: var(--yellow); }
 .die.difficulty { color: var(--purple, #a06cd5); }
 .die.challenge { color: var(--red, #d9534f); }
+.die-upgrade { color: var(--red, #d9534f); font-weight: 700; cursor: help; }
 /* Кости помех от снаряжения и перегруза (ROT-ARM-01): чёрные, поэтому нужен видимый контур. */
 .die.setback { color: #2b2b2b; text-shadow: 0 0 1px var(--border), 0 0 2px rgba(255, 255, 255, 0.5); }
 /* Бонусные кости от качеств оружия (GEN-EQP-QUAL-01). */
@@ -2429,6 +2430,9 @@ button.tiny { font-size: 0.75rem; padding: 0.05rem 0.4rem 0.15rem; }
 .dr-challenge .dr-die-glyph { color: var(--red); }
 .dr-boost .dr-die-glyph { color: var(--core); }
 .dr-setback .dr-die-glyph { color: var(--muted); }
+.dr-upgrades { display: flex; flex-wrap: wrap; align-items: center; gap: 0.35rem 0.5rem; }
+.dr-upgrades-label { color: var(--muted); cursor: help; }
+.dr-rolled-pool { color: var(--muted); }
 .dr-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 0.6rem; }
 .dr-secret { margin-left: auto; }
 .dr-result { display: flex; flex-direction: column; align-items: stretch; gap: 0.6rem; }

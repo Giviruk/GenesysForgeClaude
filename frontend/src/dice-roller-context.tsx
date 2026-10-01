@@ -64,6 +64,7 @@ function DiceRollerDrawer({ drawer, onClose }: { drawer: DrawerState | null; onC
           <DiceRoller
             key={drawer.id}
             initialPool={drawer.initialPool}
+            difficultyUpgrades={drawer.difficultyUpgrades}
             label={drawer.label}
             onLog={drawer.onLog}
             canSecret={drawer.canSecret}
@@ -112,6 +113,7 @@ function MagicRollerContent({ request }: {
       )}</p>
       <DiceRoller
         initialPool={request.basePool}
+        difficultyUpgrades={request.difficultyUpgrades}
         label={request.label}
         onResult={setOutcome}
         onLog={request.onLog}
@@ -183,6 +185,7 @@ function CombatRollerContent({ request }: {
       <p className="hint">{t('Базовый пул собран по навыку. Добавьте сложность/бонусы/помехи и бросьте — урон не решает за вас.', 'The base pool is built from the skill. Add difficulty/boosts/setbacks and roll — damage is not applied automatically.')}</p>
       <DiceRoller
         initialPool={request.basePool}
+        difficultyUpgrades={request.difficultyUpgrades}
         label={request.title}
         onResult={onOutcome}
         onLog={request.onLog}

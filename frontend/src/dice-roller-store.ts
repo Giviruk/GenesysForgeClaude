@@ -10,6 +10,8 @@ export type DiceRollerRequest =
       title?: string
       label?: string
       initialPool?: Partial<RollPool>
+      /** Усиления сложности: применяются к пулу при броске (см. applyDifficultyUpgrades). */
+      difficultyUpgrades?: number
       spendContext?: AdvantageSpendContext
       onLog?: (req: RollLogRequest) => void
       canSecret?: boolean
@@ -19,6 +21,7 @@ export type DiceRollerRequest =
       title: string
       skillLabel: string | null
       basePool: Partial<RollPool>
+      difficultyUpgrades?: number
       damage: string
       brawn: number
       crit: string
@@ -33,6 +36,7 @@ export type DiceRollerRequest =
       label: string
       skillLabel: string
       basePool: Partial<RollPool>
+      difficultyUpgrades?: number
       /** null у неатакующего магического действия. */
       damage: {
         base: number
