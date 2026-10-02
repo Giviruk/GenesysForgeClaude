@@ -3,7 +3,7 @@
 - **Пункт ТЗ:** вне ROT/GEN — эксплуатация, по итогам мониторинга VPS 01.10.2026
 - **Ветка:** `feature/raise-api-memory-limit`
 - **Базовая ветка:** `master` (открытых PR нет)
-- **PR:** #<номер> (после создания)
+- **PR:** [#252](https://github.com/Giviruk/GenesysForgeClaude/pull/252)
 - **Статус:** 🚧 In progress
 
 ## Контекст
@@ -22,7 +22,7 @@
 - [x] `api`: `mem_limit` 320m → 512m
 - [x] `api-public`: `mem_limit` 320m → 384m (трафика почти нет, ~170 МБ)
 - [x] `docker compose -f docker-compose.prod.yml config` разбирается
-- [ ] PR открыт
+- [x] PR открыт
 - [ ] После мержа и деплоя: `memory.max` у контейнеров 512m/384m, `/api/health` отвечает 200
 
 ## Что осталось / блокеры
