@@ -88,7 +88,10 @@ services:
       postgres:
         condition: service_healthy
     restart: unless-stopped
-    mem_limit: 320m
+    # 512m, а не 320m: по замеру 01.10.2026 приватный API за вечер игровой сессии дошёл до 290 МБ
+    # и начал уходить в swap (из них ~105 МБ shmem под JIT-код). .NET берёт 75% лимита под кучу,
+    # так что при 320m на неё оставалось 240 МБ. Память освободилась после вывода beauty-study.
+    mem_limit: 512m
 
   api-public:
     image: ghcr.io/${GHCR_OWNER}/genesysforge-api-public:latest
@@ -132,7 +135,8 @@ services:
       postgres-public:
         condition: service_healthy
     restart: unless-stopped
-    mem_limit: 320m
+    # Публичный контур почти без трафика, но держит ~170 МБ и растёт медленнее — запас поменьше.
+    mem_limit: 384m
 
   web:
     image: ghcr.io/${GHCR_OWNER}/genesysforge-web:latest
