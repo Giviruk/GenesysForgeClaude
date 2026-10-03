@@ -3,7 +3,7 @@
 - **Пункт ТЗ:** ROT-TAL-03 — обязательные сохраняемые параметры талантов (объём — [rot-rules-remediation-tasks.md](rot-rules-remediation-tasks.md))
 - **Ветка:** `feature/talent-rank-choices`
 - **Базовая ветка:** `master`
-- **PR:** #<номер> (после создания)
+- **PR:** [#256](https://github.com/Giviruk/GenesysForgeClaude/pull/256)
 - **Статус:** 🚧 In progress
 
 ## Контекст
@@ -44,7 +44,7 @@ Backend (`TalentChoiceSchemas`) требует выбор при покупке 
       Vitest (форма выбора и утилиты)
 - [x] Copyright-проверка (seed и тексты справочников не меняются)
 - [x] Прогнать backend и frontend lint/tests/build
-- [ ] PR открыт
+- [x] PR открыт
 
 ## Что осталось / блокеры
 
