@@ -57,6 +57,34 @@ The script updates application containers only; it does not roll back the databa
 migrations must therefore remain backward-compatible, or a separately approved restore must be
 performed. After verification, write the previous tag to `.env` as `IMAGE_TAG`.
 
+## PostgreSQL version
+
+`postgres`, `postgres-public` and `backup` use a pinned patch tag (`postgres:17.11-alpine`), so a
+release deploy never upgrades or restarts the databases by accident. To upgrade, change the tag in all
+three services in one PR (`pg_dump` in `backup` must match the server version) and expect both
+databases to restart during that deploy.
+
+## Query statistics (pg_stat_statements)
+
+The private `postgres` service starts with `shared_preload_libraries=pg_stat_statements`. The
+extension itself is created once per database and persists in the `pgdata` volume:
+
+```sh
+docker exec genesysforge-db psql -U genesys -d genesysforge \
+  -c 'CREATE EXTENSION IF NOT EXISTS pg_stat_statements;'
+```
+
+Slowest statements by total time:
+
+```sh
+docker exec genesysforge-db psql -U genesys -d genesysforge -c "
+  SELECT calls, round(mean_exec_time::numeric, 2) AS mean_ms, round(max_exec_time::numeric, 2) AS max_ms,
+         round(total_exec_time::numeric) AS total_ms, left(regexp_replace(query, '\s+', ' ', 'g'), 120) AS query
+  FROM pg_stat_statements ORDER BY total_exec_time DESC LIMIT 20;"
+```
+
+Reset counters after a change you want to measure: `SELECT pg_stat_statements_reset();`.
+
 ## PublicSafe isolation
 
 The public stack uses:
