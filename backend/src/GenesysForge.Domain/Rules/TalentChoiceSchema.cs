@@ -49,6 +49,11 @@ public static class TalentChoiceSchemas
     public const string ReasonUnknownValue = "talent.choice.unknown_value";
     public const string ReasonForbiddenSkillKind = "talent.choice.forbidden_skill_kind";
     public const string ReasonNotApplicable = "talent.choice.not_applicable";
+    public const string ReasonTooLong = "talent.choice.too_long";
+    public const string ReasonSpellConflict = "talent.choice.spell_conflict";
+
+    /// <summary>Предел длины значения выбора — совпадает с ограничением колонки в БД.</summary>
+    public const int MaxValueLength = 200;
 
     private static readonly IReadOnlyList<SkillKind> NonCombatNonMagic =
         [SkillKind.General, SkillKind.Knowledge, SkillKind.Social];
@@ -75,6 +80,34 @@ public static class TalentChoiceSchemas
 
     /// <summary>Все таланты со схемой выбора — для тестов и генерации UI.</summary>
     public static IReadOnlyDictionary<string, TalentChoiceSchema> All => ByCode;
+
+    /// <summary>
+    /// Характеристика по стабильному значению выбора. Регистр не важен, числа и неизвестные
+    /// имена не принимаются: иначе «42» прошло бы как характеристика.
+    /// </summary>
+    public static bool TryParseCharacteristic(string value, out CharacteristicType characteristic)
+    {
+        characteristic = default;
+        return !int.TryParse(value, out _)
+            && Enum.TryParse(value, ignoreCase: true, out characteristic)
+            && Enum.IsDefined(characteristic);
+    }
+
+    /// <summary>
+    /// Приводит значения к каноническому виду до проверки повторов: характеристика — имя enum
+    /// («willpower» и «Willpower» — одно и то же), конфигурация заклинания — с отсортированными
+    /// эффектами. Нераспознанные значения остаются как есть и отклоняются в <see cref="Validate"/>.
+    /// </summary>
+    public static List<string> Normalize(TalentChoiceSchema schema, IEnumerable<string> values) =>
+    [
+        .. values.Select(value => value.Trim()).Select(value => schema.Kind switch
+        {
+            TalentChoiceKind.Characteristic when TryParseCharacteristic(value, out var ch) => ch.ToString(),
+            TalentChoiceKind.SpellConfiguration =>
+                SignatureSpellConfiguration.Parse(value)?.Format() ?? value,
+            _ => value,
+        }),
+    ];
 
     /// <summary>
     /// Проверяет значения, присланные для покупаемого ранга.
@@ -106,6 +139,10 @@ public static class TalentChoiceSchemas
             return new TalentChoiceError(ReasonCount,
                 $"Нужно выбрать ровно {expected} значений, получено {values.Count}.");
 
+        if (values.Any(v => v.Length > MaxValueLength))
+            return new TalentChoiceError(ReasonTooLong,
+                $"Значение выбора длиннее {MaxValueLength} символов.");
+
         if (values.Distinct(StringComparer.Ordinal).Count() != values.Count)
             return new TalentChoiceError(ReasonDuplicate, "Значения выбора не должны повторяться.");
 
@@ -122,7 +159,7 @@ public static class TalentChoiceSchemas
             switch (schema.Kind)
             {
                 case TalentChoiceKind.Characteristic:
-                    if (!Enum.TryParse<CharacteristicType>(value, ignoreCase: true, out _))
+                    if (!TryParseCharacteristic(value, out _))
                         return new TalentChoiceError(ReasonUnknownValue, $"Неизвестная характеристика «{value}».");
                     break;
 
@@ -136,6 +173,11 @@ public static class TalentChoiceSchemas
                     break;
 
                 case TalentChoiceKind.SpellConfiguration:
+                    if (SignatureSpellConfiguration.Parse(value) is null)
+                        return new TalentChoiceError(ReasonMissing,
+                            "Выберите магическое действие и хотя бы один дополнительный эффект.");
+                    break;
+
                 case TalentChoiceKind.AnimalCompanion:
                     if (string.IsNullOrWhiteSpace(value))
                         return new TalentChoiceError(ReasonMissing, "Пустое значение выбора.");

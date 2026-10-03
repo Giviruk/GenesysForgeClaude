@@ -5,16 +5,20 @@ import type {
   TalentCategory, TalentDef,
 } from '../api/types'
 import {
-  CHARACTERISTICS, CHARACTERISTIC_LABELS, localizedDescription, localizedName, nextRankTier, secondaryName,
-  TALENT_CATEGORIES, TALENT_CATEGORY_LABELS, talentCost,
+  CHARACTERISTIC_LABELS, localizedDescription, localizedName, nextRankTier, secondaryName,
+  SKILL_KIND_LABELS, TALENT_CATEGORIES, TALENT_CATEGORY_LABELS, talentCost,
 } from '../utils/labels'
 import { canPurchaseTier, canRemoveTier } from '../utils/pyramid'
 import { lang, t } from '../i18n'
 import { talentBonusSummary } from '../utils/talentBonuses'
+import {
+  choiceCountForNextRank, choiceLabel, TALENT_CHARACTERISTIC_MAX, talentChoiceOptions,
+} from '../utils/talentChoices'
 import { Icon } from './Icon'
 import { PrintPreview } from './print/PrintPreview'
 import { TalentCard } from './print/cards'
 import { RuleText } from './RuleText'
+import { SignatureSpellDialog, TalentChoiceDialog } from './TalentChoiceDialog'
 
 interface Props {
   sheet: CharacterSheet
@@ -29,8 +33,6 @@ const isPassiveActivation = (activation: string) => {
   const a = activation.toLowerCase()
   return a.startsWith('пассив') || a.startsWith('passive')
 }
-// Талант Dedication не поднимает характеристику выше этого значения.
-const TALENT_CHARACTERISTIC_MAX = 5
 const ANIMAL_COMPANION_TAGS = new Set(['animal', 'животное', 'зверь'])
 const isAnimalCompanion = (npc: NpcListItem) =>
   npc.tags.some(tag => ANIMAL_COMPANION_TAGS.has(tag.trim().toLocaleLowerCase()))
@@ -49,8 +51,10 @@ function usesLabel(uses: number, scope: AbilityUseScope): string {
 export function TalentsTab({ sheet, reference, onError, refresh }: Props) {
   const [activeTier, setActiveTier] = useState<number | 'all'>('all')
   const [categoryFilter, setCategoryFilter] = useState<TalentCategory | 'all'>('all')
-  // Талант, для которого открыт выбор характеристики (Dedication).
-  const [pickFor, setPickFor] = useState<TalentDef | null>(null)
+  // Талант, для которого открыт выбор характеристик или навыков ранга (ROT-TAL-03).
+  const [choiceFor, setChoiceFor] = useState<TalentDef | null>(null)
+  // Signature Spell собирает магическое действие и его эффекты в отдельной форме.
+  const [spellPickFor, setSpellPickFor] = useState<TalentDef | null>(null)
   // Animal Companion выбирает видимую запись NPC и сохраняет её стабильный id.
   const [companionPickFor, setCompanionPickFor] = useState<TalentDef | null>(null)
   const [companionId, setCompanionId] = useState('')
@@ -69,17 +73,50 @@ export function TalentsTab({ sheet, reference, onError, refresh }: Props) {
     }
   }
 
-  // Характеристики, доступные для увеличения этим талантом:
-  // нельзя повторно ту же и нельзя выше максимума.
-  function grantableCharacteristics(talent: TalentDef): Characteristic[] {
-    const taken = new Set(sheet.talents.find(t => t.talentDefId === talent.id)?.grantedCharacteristics ?? [])
-    return CHARACTERISTICS.filter(c => !taken.has(c) && sheet.characteristics[c] < TALENT_CHARACTERISTIC_MAX)
+  // Варианты выбора следующего ранга: без уже выбранных этим талантом, запрещённых видов
+  // навыков и характеристик на потолке Dedication.
+  const choiceOptions = (talent: TalentDef) =>
+    talentChoiceOptions(talent, owned.get(talent.id), sheet.characteristics, reference.skills)
+
+  /** Покупка начинается с формы выбора, если ранг его требует; иначе — сразу. */
+  function startPurchase(talent: TalentDef) {
+    if (talent.choiceKind === 'animalCompanion') void openCompanionPick(talent)
+    else if (talent.choiceKind === 'spellConfiguration') setSpellPickFor(talent)
+    else if (choiceCountForNextRank(talent, owned.get(talent.id)?.ranks ?? 0) > 0) setChoiceFor(talent)
+    else void buy(talent)
   }
 
-  async function confirmPick(characteristic: Characteristic) {
-    const talent = pickFor
-    setPickFor(null)
-    if (talent) await buy(talent, characteristic)
+  function choiceTitle(talent: TalentDef, count: number) {
+    const what = talent.choiceKind === 'characteristic'
+      ? count === 1 ? t('выбор характеристики', 'choose a characteristic') : t('выбор характеристик', 'choose characteristics')
+      : count === 1 ? t('выбор навыка', 'choose a skill') : t('выбор навыков', 'choose skills')
+    return `${localizedName(talent)}: ${what}`
+  }
+
+  function choiceHint(talent: TalentDef, count: number) {
+    const parts: string[] = []
+    if (talent.grantsCharacteristic) {
+      parts.push(t(`Талант увеличивает выбранную характеристику на 1 (не выше ${TALENT_CHARACTERISTIC_MAX}).`,
+        `The talent increases the chosen characteristic by 1 (up to ${TALENT_CHARACTERISTIC_MAX}).`))
+    } else if (talent.choiceKind === 'characteristic') {
+      parts.push(count === 1
+        ? t('Выберите характеристику.', 'Choose a characteristic.')
+        : t(`Выберите ${count} разные характеристики.`, `Choose ${count} different characteristics.`))
+    } else {
+      parts.push(count === 1
+        ? t('Выберите навык.', 'Choose a skill.')
+        : t(`Выберите ${count} разных навыка.`, `Choose ${count} different skills.`))
+      if (talent.choiceAllowedSkillKinds.length > 0) {
+        const kinds = talent.choiceAllowedSkillKinds.map(kind => SKILL_KIND_LABELS[kind]).join(', ')
+        parts.push(t(`Доступны: ${kinds}.`, `Allowed: ${kinds}.`))
+      }
+    }
+    const previous = owned.get(talent.id)?.choices ?? []
+    if (talent.choiceDistinctAcrossRanks && previous.length > 0) {
+      const names = previous.map(choice => choiceLabel(choice, reference.skills)).join(', ')
+      parts.push(t(`Уже выбрано этим талантом: ${names}.`, `Already chosen by this talent: ${names}.`))
+    }
+    return parts.join(' ')
   }
 
   async function openCompanionPick(talent: TalentDef) {
@@ -159,7 +196,7 @@ export function TalentsTab({ sheet, reference, onError, refresh }: Props) {
         // характеристика, выбранная для этого ранга (Dedication)
         grant: t.grantsCharacteristic ? t.grantedCharacteristics[r] : undefined,
         choices: (t.choices ?? []).filter(choice => choice.rankIndex === r)
-          .map(choice => choice.displayName),
+          .map(choice => choiceLabel(choice, reference.skills)),
       })
     }
   }
@@ -288,7 +325,7 @@ export function TalentsTab({ sheet, reference, onError, refresh }: Props) {
                     {(tal.choices ?? []).length > 0 && (
                       <div className="bonus-line">
                         {t('Выбор:', 'Choice:')}{' '}
-                        {(tal.choices ?? []).map(choice => choice.displayName).join(' · ')}
+                        {(tal.choices ?? []).map(choice => choiceLabel(choice, reference.skills)).join(' · ')}
                       </div>
                     )}
                     {bonuses.length > 0 && <div className="bonus-line">{bonuses.join(' · ')}</div>}
@@ -351,7 +388,10 @@ export function TalentsTab({ sheet, reference, onError, refresh }: Props) {
                 const cost = talentCost(effectiveTier)
                 const pyramidOk = canPurchaseTier(sheet.talentTierCounts, effectiveTier)
                 const affordable = cost <= sheet.availableXp
-                const noGrantsLeft = tal.grantsCharacteristic && grantableCharacteristics(tal).length === 0
+                const choiceCount = choiceCountForNextRank(tal, ranksOwned)
+                const noChoicesLeft = !maxedOut && choiceCount > 0
+                  && (tal.choiceKind === 'characteristic' || tal.choiceKind === 'skill')
+                  && choiceOptions(tal).length < choiceCount
                 // Зеркало серверной TalentPurchasePolicy: объясняем блокировку, но не заменяем проверку.
                 const missingPrerequisite = ranksOwned === 0 && tal.requiresTalentCode.length > 0
                   && !ownedBareCodes.has(tal.requiresTalentCode)
@@ -365,7 +405,9 @@ export function TalentsTab({ sheet, reference, onError, refresh }: Props) {
                     `Mutually exclusive with "${talentNameByCode(conflicting)}"`)
                   : !pyramidOk ? t('Нарушит пирамиду', 'Would break the pyramid')
                   : !affordable ? t('Недостаточно XP', 'Not enough XP')
-                  : noGrantsLeft ? t('Нет характеристик для увеличения', 'No characteristics left to increase')
+                  : noChoicesLeft ? (tal.grantsCharacteristic
+                    ? t('Нет характеристик для увеличения', 'No characteristics left to increase')
+                    : t('Не осталось вариантов для выбора', 'No options left to choose'))
                   : null
                 return (
                   <div key={tal.id} className="talent-row">
@@ -410,11 +452,7 @@ export function TalentsTab({ sheet, reference, onError, refresh }: Props) {
                         )
                       })()}
                       <button className="small" disabled={!!reason} title={reason ?? ''}
-                        onClick={() => tal.grantsCharacteristic
-                          ? setPickFor(tal)
-                          : tal.choiceKind === 'animalCompanion'
-                            ? void openCompanionPick(tal)
-                            : buy(tal)}>
+                        onClick={() => startPurchase(tal)}>
                         {maxedOut ? t('Куплен', 'Purchased') : t(`Купить (${cost} XP${tal.isRanked && ranksOwned > 0 ? `, тир ${effectiveTier}` : ''})`, `Buy (${cost} XP${tal.isRanked && ranksOwned > 0 ? `, tier ${effectiveTier}` : ''})`)}
                       </button>
                       {ownedRow && (
@@ -432,25 +470,36 @@ export function TalentsTab({ sheet, reference, onError, refresh }: Props) {
         </div>
       </section>
 
-      {pickFor && (
-        <div className="modal-backdrop" onClick={() => setPickFor(null)}>
-          <div className="modal" onClick={e => e.stopPropagation()}>
-            <h3>{localizedName(pickFor)}: {t('выбор характеристики', 'choose a characteristic')}</h3>
-            <p className="hint">{t(`Талант увеличивает выбранную характеристику на 1 (не выше ${TALENT_CHARACTERISTIC_MAX}).`, `The talent increases the chosen characteristic by 1 (up to ${TALENT_CHARACTERISTIC_MAX}).`)}</p>
-            <div className="chips">
-              {grantableCharacteristics(pickFor).map(c => (
-                <button key={c} type="button" className="chip"
-                  onClick={() => confirmPick(c)}>
-                  {CHARACTERISTIC_LABELS[c]} <span className="muted">{sheet.characteristics[c]} → {sheet.characteristics[c] + 1}</span>
-                </button>
-              ))}
-            </div>
-            <div className="modal-actions">
-              <button type="button" onClick={() => setPickFor(null)}>{t('Отмена', 'Cancel')}</button>
-            </div>
-          </div>
-        </div>
-      )}
+      {choiceFor && (() => {
+        const talent = choiceFor
+        const count = choiceCountForNextRank(talent, owned.get(talent.id)?.ranks ?? 0)
+        return (
+          <TalentChoiceDialog
+            title={choiceTitle(talent, count)}
+            hint={choiceHint(talent, count)}
+            count={count}
+            options={choiceOptions(talent)}
+            onCancel={() => setChoiceFor(null)}
+            onConfirm={values => {
+              setChoiceFor(null)
+              void buy(talent, undefined, values)
+            }} />
+        )
+      })()}
+
+      {spellPickFor && (() => {
+        const talent = spellPickFor
+        return (
+          <SignatureSpellDialog
+            title={`${localizedName(talent)}: ${t('выбор заклинания', 'choose the spell')}`}
+            system={sheet.system}
+            onCancel={() => setSpellPickFor(null)}
+            onConfirm={value => {
+              setSpellPickFor(null)
+              void buy(talent, undefined, [value])
+            }} />
+        )
+      })()}
 
       {companionPickFor && (
         <div className="modal-backdrop" onClick={() => setCompanionPickFor(null)}>
