@@ -9,6 +9,16 @@ once it reaches a tagged 1.0 release. The project is currently pre-1.0; the
 
 ## [Unreleased]
 
+### Security
+- **Dependencies updated to the latest stable releases.** Backend: ASP.NET Core / EF Core 10.0.9 → 10.0.12,
+  Npgsql 10.0.3, Serilog.AspNetCore 10, MailKit 4.18, AWSSDK.S3 4.0.104, System.IdentityModel.Tokens.Jwt 8.23,
+  test tooling (Test SDK 18, xunit runner 4, coverlet 10). This lifts the transitive `Microsoft.OpenApi`
+  from 2.0.0 (GHSA-v5pm-xwqc-g5wc, high) to 2.12.0. Frontend: React 19.3, SignalR client 10, Vite 8.3,
+  Vitest 5, jsdom 30, jest-dom 7, ESLint 10.12, Playwright 1.63; `npm audit` now reports no vulnerabilities.
+  Held back: TypeScript stays on 6.0 (typescript-eslint supports `<6.1`), `@vitejs/plugin-react` on 6.0.2
+  (6.1 fails npm peer resolution against Babel 7 used by the hooks lint plugin and Workbox), `@types/node`
+  on 24.x to match the Node 24 runtime.
+
 ### Fixed
 - **Loading a character no longer explodes into millions of database rows.** The character graph was
   read in one query with a dozen collection `Include`s, which EF joined into a single result set —
