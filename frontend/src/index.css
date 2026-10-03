@@ -900,6 +900,10 @@ table.ref-table td.ref-cost { white-space: nowrap; color: var(--accent); }
   padding: 1.5rem; width: 100%; max-width: 32rem; max-height: 90vh; overflow-y: auto;
 }
 .modal-actions { display: flex; justify-content: flex-end; gap: 0.6rem; margin-top: 1rem; flex-wrap: wrap; }
+/* Форма выбора таланта: группы навыков и счётчик выбранного слева от кнопок. */
+.talent-choice-group { margin-top: 0.6rem; }
+.talent-choice-effect { display: inline-flex; align-items: center; gap: 0.2rem; }
+.modal-actions .talent-choice-count { margin-right: auto; align-self: center; }
 .modal-header {
   display: flex; align-items: center; justify-content: space-between; gap: 0.8rem;
   position: sticky; top: -1.5rem; z-index: 1;
