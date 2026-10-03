@@ -3,7 +3,7 @@
 - **Пункт ТЗ:** вне ROT/GEN — обслуживание; явный запрос владельца 03.10.2026
 - **Ветка:** `feature/update-dependencies`
 - **Базовая ветка:** `master` (открытых PR нет)
-- **PR:** #<номер> (после создания)
+- **PR:** [#255](https://github.com/Giviruk/GenesysForgeClaude/pull/255)
 - **Статус:** 🚧 In progress
 
 ## Контекст
