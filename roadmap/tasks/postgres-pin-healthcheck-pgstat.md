@@ -3,7 +3,7 @@
 - **Пункт ТЗ:** вне ROT/GEN — эксплуатация, по итогам мониторинга VPS 01.10.2026 (пп. 3, 4, 6 списка оптимизаций)
 - **Ветка:** `feature/postgres-pin-healthcheck-pgstat`
 - **Базовая ветка:** `master` (открытых PR нет)
-- **PR:** #<номер> (после создания)
+- **PR:** [#253](https://github.com/Giviruk/GenesysForgeClaude/pull/253)
 - **Статус:** 🚧 In progress
 
 ## Контекст
