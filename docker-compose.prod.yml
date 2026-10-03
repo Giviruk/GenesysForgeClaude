@@ -7,24 +7,35 @@
 # Запуск на VPS: docker compose -f docker-compose.prod.yml up -d
 services:
   postgres:
-    image: postgres:17-alpine
+    # Тег закреплён до патча: с плавающим `17-alpine` каждый `docker compose pull` в деплое мог
+    # молча обновить и перезапустить БД вместе с релизом приложения (так было 01.10.2026).
+    # Обновлять осознанно — сменой тега здесь, вместе с сервисами postgres-public и backup.
+    image: postgres:17.11-alpine
     container_name: genesysforge-db
+    # pg_stat_statements — статистика по запросам (mean/max/calls) для поиска медленных мест;
+    # расширение в БД создаётся один раз руками, см. docs/production-operations.md.
+    command: ["postgres", "-c", "shared_preload_libraries=pg_stat_statements"]
     environment:
       POSTGRES_USER: genesys
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: genesysforge
     volumes:
       - pgdata:/var/lib/postgresql/data
+    # Проверка раз в 30 с, а не 10: каждый healthcheck — это docker exec (runc + процессы), и на
+    # общей машине такие проверки всех контейнеров съедали ~6% CPU. На старте start_interval
+    # проверяет часто, чтобы api, ждущий service_healthy, не стоял лишние полминуты.
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U genesys -d genesysforge"]
-      interval: 10s
+      interval: 30s
       timeout: 3s
       retries: 10
+      start_period: 60s
+      start_interval: 2s
     restart: unless-stopped
     mem_limit: 256m
 
   postgres-public:
-    image: postgres:17-alpine
+    image: postgres:17.11-alpine
     container_name: genesysforge-db-public
     environment:
       POSTGRES_USER: genesys
@@ -34,9 +45,11 @@ services:
       - pgdata_public:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U genesys -d genesysforge_public"]
-      interval: 10s
+      interval: 30s
       timeout: 3s
       retries: 10
+      start_period: 60s
+      start_interval: 2s
     restart: unless-stopped
     mem_limit: 256m
 
@@ -165,7 +178,8 @@ services:
       - edge
 
   backup:
-    image: postgres:17-alpine
+    # Версия pg_dump должна совпадать с сервером — тег тот же, что у postgres.
+    image: postgres:17.11-alpine
     container_name: genesysforge-backup
     environment:
       PGPASSWORD: ${POSTGRES_PASSWORD}
