@@ -10,7 +10,7 @@ public class GetCharacterNotesHandler(IAppDbContext db) : IQueryHandler<GetChara
     public async Task<List<CharacterNoteDto>> Handle(GetCharacterNotesQuery query, CancellationToken ct = default)
     {
         // проверка владения персонажем (бросит, если не его)
-        await db.GetOwnedAsync(query.UserId, query.CharacterId, tracking: false, ct);
+        await db.EnsureOwnedAsync(query.UserId, query.CharacterId, ct);
 
         return await db.CharacterNotes.AsNoTracking()
             .Where(n => n.CharacterId == query.CharacterId && n.OwnerUserId == query.UserId)

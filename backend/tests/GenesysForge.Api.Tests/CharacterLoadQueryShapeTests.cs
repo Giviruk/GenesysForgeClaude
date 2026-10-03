@@ -131,4 +131,25 @@ public class CharacterLoadQueryShapeTests
         foreach (var relation in new[] { "Items", "Talents", "Skills", "Attachments", "Mounts" })
             Assert.DoesNotContain(relation, tree, StringComparison.Ordinal);
     }
+
+    /// <summary>
+    /// История открывается часто, а решению «можно ли откатить покупку» нужны только навыки и
+    /// таланты. Раньше тут грузился весь граф — ~18 SQL на каждое открытие.
+    /// </summary>
+    [Fact]
+    public void AuditHistoryLoadsOnlySkillsAndTalents()
+    {
+        using var db = RealProviderContext();
+
+        var tree = db.AuditUndoQuery().Expression.ToString();
+
+        foreach (var relation in new[] { "Skills", "SkillDef", "Talents", "TalentDef" })
+            Assert.Contains(relation, tree, StringComparison.Ordinal);
+        foreach (var relation in new[]
+                 {
+                     "Items", "Attachments", "Mounts", "CriticalInjuries", "Archetype", "Career",
+                     "HeroicAbility", "SignatureWeapon", "Choices",
+                 })
+            Assert.DoesNotContain(relation, tree, StringComparison.Ordinal);
+    }
 }

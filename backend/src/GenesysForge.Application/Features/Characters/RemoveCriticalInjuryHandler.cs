@@ -1,6 +1,7 @@
 using GenesysForge.Application.Abstractions;
 using GenesysForge.Application.Common;
 using GenesysForge.Domain;
+using Microsoft.EntityFrameworkCore;
 
 namespace GenesysForge.Application.Features.Characters;
 
@@ -8,10 +9,10 @@ public class RemoveCriticalInjuryHandler(IAppDbContext db) : ICommandHandler<Rem
 {
     public async Task<Unit> Handle(RemoveCriticalInjuryCommand command, CancellationToken ct = default)
     {
-        var c = await db.GetOwnedAsync(command.UserId, command.CharacterId, ct: ct);
-        var injury = c.CriticalInjuries.FirstOrDefault(ci => ci.Id == command.InjuryId)
+        await db.EnsureOwnedAsync(command.UserId, command.CharacterId, ct);
+        var injury = await db.CharacterCriticalInjuries
+            .FirstOrDefaultAsync(ci => ci.Id == command.InjuryId && ci.CharacterId == command.CharacterId, ct)
             ?? throw new DomainRuleException("Крит-ранение не найдено.");
-        c.CriticalInjuries.Remove(injury);
         db.CharacterCriticalInjuries.Remove(injury);
 
         await db.SaveChangesAsync(ct);

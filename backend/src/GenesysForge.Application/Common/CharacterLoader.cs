@@ -55,6 +55,28 @@ public static class CharacterLoader
     }
 
     /// <summary>
+    /// Только проверка владельца — один <c>EXISTS</c> вместо ~37 split-запросов
+    /// <see cref="GetOwnedAsync"/>. Для команд и чтений, которым сам персонаж не нужен: заметки,
+    /// публичные ссылки, крит-ранения. Ошибка та же, что у <see cref="GetOwnedAsync"/>.
+    /// </summary>
+    public static async Task EnsureOwnedAsync(
+        this IAppDbContext db, Guid userId, Guid characterId, CancellationToken ct = default)
+    {
+        if (!await db.Characters.AnyAsync(c => c.Id == characterId && c.OwnerUserId == userId, ct))
+            throw new DomainRuleException("Персонаж не найден.");
+    }
+
+    /// <summary>
+    /// История персонажа: решению «можно ли откатить покупку» (<see cref="CharacterAuditUndo"/>)
+    /// нужны только навыки и таланты со справочниками, а не весь граф. Отдельный query builder —
+    /// чтобы регрессионный тест держал его узким.
+    /// </summary>
+    public static IQueryable<Character> AuditUndoQuery(this IAppDbContext db) =>
+        db.Characters.AsNoTracking()
+            .Include(c => c.Skills).ThenInclude(s => s.SkillDef)
+            .Include(c => c.Talents).ThenInclude(t => t.TalentDef);
+
+    /// <summary>
     /// Загружает персонажа со всеми связями <b>без</b> проверки владельца (или <c>null</c>, если не найден).
     /// Вызывающий обязан сам авторизовать доступ (напр. GM-доступ к листу участника кампании, U-20).
     /// </summary>

@@ -10,7 +10,7 @@ public class CreateCharacterNoteHandler(IAppDbContext db) : ICommandHandler<Crea
 {
     public async Task<CharacterNoteDto> Handle(CreateCharacterNoteCommand command, CancellationToken ct = default)
     {
-        await db.GetOwnedAsync(command.UserId, command.CharacterId, tracking: false, ct);
+        await db.EnsureOwnedAsync(command.UserId, command.CharacterId, ct);
         if (string.IsNullOrWhiteSpace(command.Request.Title))
             throw new DomainRuleException("Заголовок заметки не может быть пустым.");
 

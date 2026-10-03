@@ -1,6 +1,7 @@
 using GenesysForge.Application.Abstractions;
 using GenesysForge.Application.Common;
 using GenesysForge.Application.Dtos;
+using GenesysForge.Domain;
 using Microsoft.EntityFrameworkCore;
 
 namespace GenesysForge.Application.Features.Characters;
@@ -15,8 +16,11 @@ public class GetCharacterAuditHandler(IAppDbContext db)
     public async Task<IReadOnlyList<CharacterAuditEntryDto>> Handle(
         GetCharacterAuditQuery query, CancellationToken ct = default)
     {
-        // Проверка владельца (бросит, если персонаж чужой/не найден).
-        var character = await db.GetOwnedAsync(query.UserId, query.CharacterId, tracking: false, ct);
+        // Проверка владельца (бросит, если персонаж чужой/не найден). Откату нужны только навыки и
+        // таланты — полный граф здесь стоил ~18 SQL на каждое открытие истории.
+        var character = await db.AuditUndoQuery()
+            .FirstOrDefaultAsync(c => c.Id == query.CharacterId && c.OwnerUserId == query.UserId, ct)
+            ?? throw new DomainRuleException("Персонаж не найден.");
         var take = Math.Clamp(query.Take, 1, 500);
 
         var entries = await db.CharacterAuditEntries.AsNoTracking()
