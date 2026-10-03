@@ -3,6 +3,7 @@ using GenesysForge.Application.Common;
 using GenesysForge.Application.Dtos;
 using GenesysForge.Domain;
 using GenesysForge.Domain.Entities;
+using Microsoft.EntityFrameworkCore;
 
 namespace GenesysForge.Application.Features.Characters;
 
@@ -16,7 +17,11 @@ public class AwardXpHandler(IAppDbContext db) : ICommandHandler<AwardXpCommand, 
         var amount = command.Request.Amount;
         if (amount == 0) throw new DomainRuleException("Размер награды XP не может быть нулевым.");
 
-        var c = await db.GetOwnedAsync(command.UserId, command.CharacterId, ct: ct);
+        // Те же проверки, что у правки суммарного XP в UpdateCharacterHandler, — и тот же узкий запрос:
+        // полный граф здесь стоил 39 SQL и ~240 мс в БД на каждую выдачу XP.
+        var c = await db.UpdateQuery(needsXpValidation: true)
+            .FirstOrDefaultAsync(x => x.Id == command.CharacterId && x.OwnerUserId == command.UserId, ct)
+            ?? throw new DomainRuleException("Персонаж не найден.");
         if (c.TotalXp + amount < c.SpentXp)
             throw new DomainRuleException($"Суммарный XP не может стать меньше потраченного ({c.SpentXp}).");
         var targetTotal = c.TotalXp + amount;

@@ -35,6 +35,10 @@ builder.Host.UseSerilog((context, services, loggerConfiguration) =>
         .MinimumLevel.Information()
         // Серый шум фреймворка глушим: единый summary на запрос даёт UseSerilogRequestLogging.
         .MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Warning)
+        // EF Core пишет каждый SQL целиком уровнем Information: в проде это 64–82% строк лога, и
+        // `svcctl logs` (tail 200) покрывал всего 6–15 минут. Время и число запросов к БД и так
+        // есть в записи запроса (DbDurationMs/DbQueryCount) и в заголовке Server-Timing.
+        .MinimumLevel.Override("Microsoft.EntityFrameworkCore.Database.Command", LogEventLevel.Warning)
         .Enrich.FromLogContext();
 
     if (context.HostingEnvironment.IsProduction())

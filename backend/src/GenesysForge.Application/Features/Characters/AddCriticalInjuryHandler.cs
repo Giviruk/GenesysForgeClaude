@@ -10,7 +10,7 @@ public class AddCriticalInjuryHandler(IAppDbContext db) : ICommandHandler<AddCri
 {
     public async Task<Guid> Handle(AddCriticalInjuryCommand command, CancellationToken ct = default)
     {
-        var c = await db.GetOwnedAsync(command.UserId, command.CharacterId, ct: ct);
+        await db.EnsureOwnedAsync(command.UserId, command.CharacterId, ct);
         var r = command.Request;
 
         string nameRu;
@@ -35,7 +35,7 @@ public class AddCriticalInjuryHandler(IAppDbContext db) : ICommandHandler<AddCri
         var injury = new CharacterCriticalInjury
         {
             Id = Guid.NewGuid(),
-            CharacterId = c.Id,
+            CharacterId = command.CharacterId,
             RuleCode = ruleCode,
             NameRu = nameRu,
             Severity = severity,
@@ -43,7 +43,6 @@ public class AddCriticalInjuryHandler(IAppDbContext db) : ICommandHandler<AddCri
             Notes = Clean(r.Notes),
         };
         db.CharacterCriticalInjuries.Add(injury);
-        c.CriticalInjuries.Add(injury);
 
         await db.SaveChangesAsync(ct);
         return injury.Id;

@@ -9,12 +9,12 @@ public class CreateCharacterShareHandler(IAppDbContext db) : ICommandHandler<Cre
 {
     public async Task<CharacterShareResponse> Handle(CreateCharacterShareCommand command, CancellationToken ct = default)
     {
-        var character = await db.GetOwnedAsync(command.UserId, command.CharacterId, tracking: false, ct);
+        await db.EnsureOwnedAsync(command.UserId, command.CharacterId, ct);
         var raw = CharacterShareTokens.NewRawToken();
         db.CharacterShareTokens.Add(new CharacterShareToken
         {
             Id = Guid.NewGuid(),
-            CharacterId = character.Id,
+            CharacterId = command.CharacterId,
             TokenHash = CharacterShareTokens.Hash(raw),
             CreatedAt = DateTime.UtcNow,
         });
