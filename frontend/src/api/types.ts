@@ -174,6 +174,7 @@ export interface Quality {
 }
 
 export interface HeroicAbilityUpgrade {
+  source?: string
   level: number // 1 — улучшенная, 2 — высшая
   cost: number
   description: string
@@ -809,6 +810,7 @@ export interface ItemCheckModifier {
 }
 
 export interface SheetTalent {
+  source?: string
   talentDefId: string
   name: string
   nameRu: string

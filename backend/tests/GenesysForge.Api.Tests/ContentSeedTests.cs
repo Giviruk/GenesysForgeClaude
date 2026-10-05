@@ -16,7 +16,7 @@ public class ContentSeedTests
             .UseInMemoryDatabase($"content-{Guid.NewGuid():N}").Options);
 
     [Fact]
-    public void BuiltInContent_HasEnglishDescriptions_InBothModes()
+    public void BuiltInContent_HasEnglishDescriptions_ExceptBookOnlyPublicRules()
     {
         foreach (var mode in new[] { ContentMode.PrivateFull, ContentMode.PublicSafe })
         {
@@ -24,13 +24,13 @@ public class ContentSeedTests
             SeedData.Apply(db, mode);
 
             // EN-парафразы встроенного контента присутствуют независимо от режима.
-            Assert.All(db.TalentDefs, t => Assert.False(string.IsNullOrWhiteSpace(t.DescriptionEn)));
+            Assert.All(db.TalentDefs, t => Assert.Equal(mode == ContentMode.PublicSafe, string.IsNullOrWhiteSpace(t.DescriptionEn)));
             Assert.All(db.ItemDefs, i => Assert.False(string.IsNullOrWhiteSpace(i.DescriptionEn)));
             Assert.All(db.QualityDefs, q => Assert.False(string.IsNullOrWhiteSpace(q.DescriptionEn)));
             Assert.All(db.ArchetypeDefs, a => Assert.False(string.IsNullOrWhiteSpace(a.DescriptionEn)));
             Assert.All(db.CareerDefs, c => Assert.False(string.IsNullOrWhiteSpace(c.DescriptionEn)));
-            Assert.All(db.HeroicAbilityDefs, h => Assert.False(string.IsNullOrWhiteSpace(h.DescriptionEn)));
-            Assert.All(db.HeroicSecondaryEffectDefs, h => Assert.False(string.IsNullOrWhiteSpace(h.DescriptionEn)));
+            Assert.All(db.HeroicAbilityDefs, h => Assert.Equal(mode == ContentMode.PublicSafe, string.IsNullOrWhiteSpace(h.DescriptionEn)));
+            Assert.All(db.HeroicSecondaryEffectDefs, h => Assert.Equal(mode == ContentMode.PublicSafe, string.IsNullOrWhiteSpace(h.DescriptionEn)));
             Assert.All(db.SpellDefs, sp => Assert.False(string.IsNullOrWhiteSpace(sp.DescriptionEn)));
             // Таблицы правил переведены целиком (body; notes — там, где есть русские notes).
             Assert.All(db.RuleTableEntries, r => Assert.False(string.IsNullOrWhiteSpace(r.BodyEn)));
@@ -50,7 +50,7 @@ public class ContentSeedTests
     }
 
     [Fact]
-    public void Sync_UpdatesExistingRows_WithEnglishContent()
+    public void Sync_UpdatesExistingRows_WithoutPublicTalentProse()
     {
         using var db = NewDb();
         SeedData.Apply(db, ContentMode.PublicSafe);
@@ -67,7 +67,7 @@ public class ContentSeedTests
 
         var after = db.TalentDefs.First(t => t.Code == "gc.talent.uporstvo");
         Assert.Equal("Grit", after.Name);
-        Assert.False(string.IsNullOrWhiteSpace(after.DescriptionEn));
+        Assert.Empty(after.DescriptionEn);
         Assert.Equal(totalBefore, db.TalentDefs.Count());
     }
 
@@ -198,7 +198,7 @@ public class ContentSeedTests
     }
 
     [Fact]
-    public void PublicSafe_KeepsSafeDescription_NameRu_AndSource()
+    public void PublicSafe_KeepsBookReferences_AndOtherSafeDescriptions()
     {
         using var db = NewDb();
         SeedData.Apply(db, ContentMode.PublicSafe);
@@ -211,11 +211,11 @@ public class ContentSeedTests
         Assert.All(db.SpellDefs, s => Assert.False(string.IsNullOrWhiteSpace(s.Source)));
         Assert.All(db.HeroicSecondaryEffectDefs, h => Assert.False(string.IsNullOrWhiteSpace(h.Source)));
 
-        // Русские названия присутствуют, safe-описания у талантов заполнены.
+        // Русские названия присутствуют; вместо описаний талантов/героик остаётся Source.
         Assert.All(db.TalentDefs, t => Assert.False(string.IsNullOrWhiteSpace(t.NameRu)));
-        Assert.All(db.TalentDefs, t => Assert.False(string.IsNullOrWhiteSpace(t.SafeDescription)));
+        Assert.All(db.TalentDefs, t => Assert.Empty(t.SafeDescription));
         Assert.All(db.ArchetypeDefs, a => Assert.False(string.IsNullOrWhiteSpace(a.NameRu)));
-        Assert.All(db.HeroicSecondaryEffectDefs, h => Assert.False(string.IsNullOrWhiteSpace(h.SafeDescription)));
+        Assert.All(db.HeroicSecondaryEffectDefs, h => Assert.Empty(h.SafeDescription));
     }
 
     [Theory]

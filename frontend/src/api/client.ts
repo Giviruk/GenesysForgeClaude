@@ -1,3 +1,4 @@
+import { clearLegacyReferenceCaches } from './cachePrivacy'
 import type {
   Account,
   AuthResponse, AuthProviders, CampaignChronicleChapter, CampaignChronicleRevision, CampaignDetail, CampaignListItem, CampaignNote, CharacterListItem, CharacterNote,
@@ -86,6 +87,7 @@ function tryRefresh(): Promise<boolean> {
 }
 
 async function rawFetch(method: string, url: string, body: unknown): Promise<Response> {
+  await clearLegacyReferenceCaches()
   const headers: Record<string, string> = {}
   // Blob (файл) уходит сырым телом — сервер определяет формат по содержимому, не по Content-Type.
   const isBlob = typeof Blob !== 'undefined' && body instanceof Blob
@@ -103,6 +105,7 @@ async function rawFetch(method: string, url: string, body: unknown): Promise<Res
   // перечитается при открытии своей вкладки. Сервер без этого заголовка отвечает как раньше.
   if (wantsSheetBack(method, url)) headers['X-Return-Slices'] = activeSlices.join(',')
   return fetch(url, {
+    cache: 'no-store',
     method,
     headers,
     body: body === undefined ? undefined : isBlob ? body : JSON.stringify(body),

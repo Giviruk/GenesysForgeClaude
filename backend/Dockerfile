@@ -15,14 +15,17 @@ COPY src/ src/
 
 # ---- private build: embeds private-content resources ----
 FROM source AS private-build
+ARG REVISION=unknown
 # Полные private-описания (embedded resource в Infrastructure.csproj: ..\..\private-content\*.ru.json).
 COPY private-content/ private-content/
-RUN dotnet publish src/GenesysForge.Api/GenesysForge.Api.csproj -c Release -o /app --no-restore
+RUN dotnet publish src/GenesysForge.Api/GenesysForge.Api.csproj -c Release -o /app --no-restore \
+    /p:SourceRevisionId=$REVISION
 
 # ---- public build: explicitly excludes private embedded resources ----
 FROM source AS public-build
+ARG REVISION=unknown
 RUN dotnet publish src/GenesysForge.Api/GenesysForge.Api.csproj -c Release -o /app --no-restore \
-    /p:IncludePrivateContent=false
+    /p:IncludePrivateContent=false /p:SourceRevisionId=$REVISION
 
 # ---- shared runtime ----
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS runtime
@@ -35,6 +38,7 @@ FROM runtime AS private
 COPY --from=private-build /app .
 
 FROM runtime AS public
+ENV Content__Mode=PublicSafe
 COPY --from=public-build /app .
 
 # Local/default builds remain PrivateFull-compatible.

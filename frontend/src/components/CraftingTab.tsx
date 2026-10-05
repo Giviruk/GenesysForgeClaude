@@ -6,7 +6,7 @@ import type {
   WeaponCraftsmanship,
 } from '../api/types'
 import {
-  IMPLEMENT_MATERIAL_HINTS, IMPLEMENT_MATERIAL_LABELS, localizedName,
+  IMPLEMENT_MATERIAL_HINTS, IMPLEMENT_MATERIAL_LABELS, localizedName, localizedDescription,
   WEAPON_CRAFTSMANSHIPS, WEAPON_CRAFTSMANSHIP_HINTS, WEAPON_CRAFTSMANSHIP_LABELS,
 } from '../utils/labels'
 import { t } from '../i18n'
@@ -609,7 +609,7 @@ function ResolveForm({ project, sheet, onCancel, onResolved, onError }: {
                   {' '}({t('только описание', 'description only')})
                 </span>
               )}
-              <span className="muted small-text"> — {def.description}</span>
+              <span className="muted small-text"> — {localizedDescription(def)}</span>
             </span>
             <span className="crafting-costs">
               {payments(def).map(([symbol, cost]) => (

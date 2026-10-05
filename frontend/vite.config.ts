@@ -30,24 +30,14 @@ export default defineConfig({
         ],
       },
       workbox: {
+        importScripts: ['/sw-privacy.js'],
         cleanupOutdatedCaches: true,
         navigateFallback: '/index.html',
         globPatterns: ['**/*.{js,css,html,svg,png,ico,woff2}'],
         runtimeCaching: [
           {
-            urlPattern: /\/api(?:\/v1)?\/(?:reference|spells)(?:\/|$)/,
-            handler: 'NetworkFirst',
-            options: {
-              cacheName: 'genesysforge-reference-v1',
-              networkTimeoutSeconds: 5,
-              expiration: {
-                maxEntries: 80,
-                maxAgeSeconds: 7 * 24 * 60 * 60,
-              },
-              cacheableResponse: {
-                statuses: [200],
-              },
-            },
+            urlPattern: /\/api(?:\/|$)/,
+            handler: 'NetworkOnly',
           },
         ],
       },
@@ -57,6 +47,7 @@ export default defineConfig({
     port: Number(process.env.PORT) || 5173,
     proxy: {
       '/api': 'http://localhost:5080',
+      '/openapi': 'http://localhost:5080',
       // SignalR-хаб: проксируем с поддержкой WebSocket.
       '/hubs': { target: 'http://localhost:5080', ws: true },
     },

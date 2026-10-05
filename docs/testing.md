@@ -79,11 +79,11 @@ Frontend tests cover:
 Not implemented yet:
 
 - Full component tests for pages and tabs.
-- E2E tests for auth -> create character -> edit sheet.
-- E2E tests for campaign -> encounter -> send to Game Table.
+- Complete E2E coverage beyond the implemented auth/character/talent/equipment smoke.
+- Full campaign/Game Table realtime matrix beyond the implemented campaign/join/NPC/encounter smoke.
 - Visual/regression tests.
 - Tests around production nginx config.
-- Tests around migration application against real PostgreSQL in CI.
+- Migration coverage for rich user graphs; CI already runs migrations against a non-empty catalog in PostgreSQL 17, in both content modes.
 
 Partially implemented:
 
@@ -97,3 +97,7 @@ Partially implemented:
 - Add PostgreSQL-backed integration check for migrations before 1.0.
 - For every domain bug, add a failing domain test first when feasible.
 - For every public API shape change, add or update API tests and frontend types.
+
+## PublicSafe acceptance
+
+See [public-safe-release.md](public-safe-release.md) for the content policy and actual validation results, and [public-version-test-plan.md](public-version-test-plan.md) for all 373 planned cases. `PublicSafeTests` cover book-only HTTP output, reseed/custom isolation, structural parity and a no-private-resources artifact. CI runs the public artifact filter with `VERIFY_PUBLIC_ARTIFACT=1` and `/p:IncludePrivateContent=false`. E2E runs both private and public Docker targets; public-specific cases check references, cache privacy, release identity, OpenAPI and manifest. Public local compose override: `docker-compose.public-test.yml`. These checks do not replace production load, Safari/iOS or the complete manual acceptance matrix.

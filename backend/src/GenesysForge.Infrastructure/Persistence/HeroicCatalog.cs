@@ -38,6 +38,7 @@ public static class HeroicCatalog
 
         foreach (var e in entries)
         {
+            var text = PrivateRuleTextCatalog.Get($"heroic.{e.Code}", assembly);
             var source = string.IsNullOrWhiteSpace(e.Page)
                 ? "Realms of Terrinoth, гл. «Героические способности»"
                 : $"Realms of Terrinoth, с. {e.Page}";
@@ -50,25 +51,25 @@ public static class HeroicCatalog
                 NameRu = string.IsNullOrWhiteSpace(e.NameRu) ? e.Name : e.NameRu,
                 // Полный парафраз — только для PrivateFull; в PublicSafe остаётся короткая сводка,
                 // иначе полный текст правила утекал бы в публичный режим (ROT-HA-CONTENT).
-                Description = e.Desc,
-                SafeDescription = string.IsNullOrWhiteSpace(e.Safe) ? e.Desc : e.Safe,
-                DescriptionEn = e.DescEn,
-                Requirement = e.Requirement,
-                ActivationCost = e.ActivationCost,
-                Activation = e.Activation,
-                Duration = e.Duration,
-                Frequency = e.Frequency,
-                Notes = e.Notes,
+                Description = text.Desc,
+                SafeDescription = text.Safe,
+                DescriptionEn = text.DescEn,
+                Requirement = text.Requirement,
+                ActivationCost = text.ActivationCost,
+                Activation = text.Activation,
+                Duration = text.Duration,
+                Frequency = text.Frequency,
+                Notes = text.Notes,
                 Source = source,
-                Upgrades = (e.Upgrades ?? []).Select(u => new HeroicAbilityUpgradeDef
+                Upgrades = (e.Upgrades ?? []).Select((u, index) => new HeroicAbilityUpgradeDef
                 {
                     Id = Guid.NewGuid(),
                     Level = ParseLevel(u.Level),
                     Cost = u.Cost,
-                    Description = u.Desc,
-                    SafeDescription = string.IsNullOrWhiteSpace(u.Safe) ? u.Desc : u.Safe,
-                    DescriptionEn = u.DescEn,
-                    Notes = u.Notes,
+                    Description = text.Upgrades?.ElementAtOrDefault(index)?.Desc ?? "",
+                    SafeDescription = text.Upgrades?.ElementAtOrDefault(index)?.Safe ?? "",
+                    DescriptionEn = text.Upgrades?.ElementAtOrDefault(index)?.DescEn ?? "",
+                    Notes = text.Upgrades?.ElementAtOrDefault(index)?.Notes ?? "",
                 }).ToList(),
                 Effects = EffectsFor(e.Code),
             };

@@ -454,10 +454,10 @@ public class GetCraftingProjectsHandler(IAppDbContext db)
 {
     public async Task<List<CraftingProjectDto>> Handle(GetCraftingProjectsQuery q, CancellationToken ct = default)
     {
-        var c = await db.GetOwnedAsync(q.UserId, q.CharacterId, ct: ct);
+        await db.EnsureOwnedAsync(q.UserId, q.CharacterId, ct);
         var projects = await db.CraftingProjects.AsNoTracking()
             .Include(p => p.Spends)
-            .Where(p => p.CharacterId == c.Id)
+            .Where(p => p.CharacterId == q.CharacterId)
             .OrderByDescending(p => p.CreatedAt)
             .ToListAsync(ct);
         return [.. projects.Select(CraftingMapper.ToDto)];
@@ -468,7 +468,7 @@ public class GetCraftingProjectsHandler(IAppDbContext db)
 public static class CraftingMapper
 {
     public static CraftingSpendDto ToDto(CraftingSpendDef s) => new(
-        s.Code, s.RowCode, s.Table, s.NameRu, s.Name, s.Description, s.DescriptionEn,
+        s.Code, s.RowCode, s.Table, s.NameRu, s.Name, string.IsNullOrEmpty(s.Description) ? s.SafeDescription : s.Description, s.DescriptionEn,
         s.AdvantageCost, s.ThreatCost, s.TriumphCost, s.DespairCost,
         s.IsNegative, s.Repeatable, s.RequiresGmConfirmation, s.RequiresParameter,
         s.Effect, s.WeaponOnly, s.SortOrder);

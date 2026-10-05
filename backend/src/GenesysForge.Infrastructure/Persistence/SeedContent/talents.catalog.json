@@ -16,11 +16,13 @@
   "soak": 0,
   "mdef": 0,
   "rdef": 0,
-  "desc": "Персонаж может получить определённое количество усталости, чтобы добавить такое же количество ✶ к проверке Бдительности или Хладнокровия, сделанной для определения порядка инициативы. Это количество не может превышать ранг Быстрого реагирования.",
-  "descEn": "The character may suffer a number of strain to add an equal number of successes to a Vigilance or Cool check made to determine initiative order. The number may not exceed the character's ranks in Rapid Reaction.",
+  "desc": "",
+  "descEn": "",
   "retiredIn": [
    "RealmsOfTerrinoth"
-  ]
+  ],
+  "source": "Genesys Core Rulebook (RU translation)",
+  "page": "72"
  },
  {
   "code": "bystryy",
@@ -39,9 +41,11 @@
   "soak": 0,
   "mdef": 0,
   "rdef": 0,
-  "desc": "Персонаж не получает штрафы за перемещение по пересечённой местности (он движется по ней с нормальной скоростью без необходимости тратить дополнительные манёвры).",
-  "descEn": "The character suffers no penalties for moving through difficult terrain (they move through it at normal speed without spending extra maneuvers).",
-  "activationEn": "Passive"
+  "desc": "",
+  "descEn": "",
+  "activationEn": "Passive",
+  "source": "Genesys Core Rulebook (RU translation)",
+  "page": "73"
  },
  {
   "code": "bystryy-udar",
@@ -60,9 +64,11 @@
   "soak": 0,
   "mdef": 0,
   "rdef": 0,
-  "desc": "Персонаж добавляет ◻ за каждый ранг таланта ко всем боевым проверкам против всех целей, ещё не совершавших ходов в этой сцене.",
-  "descEn": "The character adds a boost die per rank of this talent to all combat checks against targets that have not yet acted this encounter.",
-  "activationEn": "Passive"
+  "desc": "",
+  "descEn": "",
+  "activationEn": "Passive",
+  "source": "Genesys Core Rulebook (RU translation)",
+  "page": "73"
  },
  {
   "code": "vtoroe-dyhanie",
@@ -81,9 +87,11 @@
   "soak": 0,
   "mdef": 0,
   "rdef": 0,
-  "desc": "Один раз за сцену персонаж может использовать этот талант, чтобы вылечить усталость в размере, равном рангу Второго дыхания.",
-  "descEn": "Once per encounter, the character may use this talent to heal strain equal to their ranks in Second Wind.",
-  "activationEn": "Incidental"
+  "desc": "",
+  "descEn": "",
+  "activationEn": "Incidental",
+  "source": "Genesys Core Rulebook (RU translation)",
+  "page": "73"
  },
  {
   "code": "vyhvatyvanie",
@@ -102,9 +110,11 @@
   "soak": 0,
   "mdef": 0,
   "rdef": 0,
-  "desc": "Один раз за раунд, в свой ход, персонаж может использовать этот талант, чтобы достать/убрать легкодоступное оружие или предмет свободным действием. Также этот талант уменьшает свойство оружия Подготовка на один, минимум до 1.",
-  "descEn": "Once per round on their turn, the character may use this talent to draw or holster an easily accessible weapon or item as an incidental instead of a maneuver.",
-  "activationEn": "Incidental"
+  "desc": "",
+  "descEn": "",
+  "activationEn": "Incidental",
+  "source": "Genesys Core Rulebook (RU translation)",
+  "page": "73"
  },
  {
   "code": "dobytchik",
@@ -123,9 +133,11 @@
   "soak": 0,
   "mdef": 0,
   "rdef": 0,
-  "desc": "Персонаж убирает ■ ■ из проверок любых навыков для поиска еды, воды или убежища. Проверки для поиска пропитания или исследования местности занимают вдвое меньше времени, чем обычно.",
-  "descEn": "The character removes two setback dice from checks of any skill made to find food, water or shelter. Checks to forage take half the usual time.",
-  "activationEn": "Passive"
+  "desc": "",
+  "descEn": "",
+  "activationEn": "Passive",
+  "source": "Genesys Core Rulebook (RU translation)",
+  "page": "73"
  },
  {
   "code": "duelyant",
@@ -144,9 +156,11 @@
   "soak": 0,
   "mdef": 0,
   "rdef": 0,
-  "desc": "Во время проверок ближнего боя только с одним противником персонаж добавляет ◻ ко всем проверкам ближнего боя. Если же персонаж находится в ближнем бою с тремя и более противниками, то он добавляет ■ ко всем проверкам ближнего боя.",
-  "descEn": "While engaged with a single opponent, the character adds a boost die to their melee combat checks; while engaged with three or more opponents, they add a setback die.",
-  "activationEn": "Passive"
+  "desc": "",
+  "descEn": "",
+  "activationEn": "Passive",
+  "source": "Genesys Core Rulebook (RU translation)",
+  "page": "73"
  },
  {
   "code": "edinenie-s-prirodoy",
@@ -165,9 +179,11 @@
   "soak": 0,
   "mdef": 0,
   "rdef": 0,
-  "desc": "Находясь в дикой местности, персонаж может совершить элементарную (-) проверку Выживания вместо Выдержки или Хладнокровия, чтобы вылечить усталость в конце сцены (смотрите стр. 117).",
-  "descEn": "While in the wilderness, the character may make a Simple (-) Survival check instead of Discipline or Cool to recover strain at the end of a scene.",
-  "activationEn": "Incidental"
+  "desc": "",
+  "descEn": "",
+  "activationEn": "Incidental",
+  "source": "Genesys Core Rulebook (RU translation)",
+  "page": "73"
  },
  {
   "code": "zakalennyy",
@@ -186,9 +202,11 @@
   "soak": 0,
   "mdef": 0,
   "rdef": 0,
-  "desc": "Персонаж увеличивает порог ран на 2 за каждый ранг таланта.",
-  "descEn": "The character increases their wound threshold by 2 per rank of this talent.",
-  "activationEn": "Passive"
+  "desc": "",
+  "descEn": "",
+  "activationEn": "Passive",
+  "source": "Genesys Core Rulebook (RU translation)",
+  "page": "73"
  },
  {
   "code": "kvalifikatsiya",
@@ -207,9 +225,11 @@
   "soak": 0,
   "mdef": 0,
   "rdef": 0,
-  "desc": "Купив талант, выберите один навык. Персонаж убирает ■ ■ из любых своих проверок с использованием этого навыка. Покупая этот талант каждый последующий раз, персонаж выбирает два дополнительных навыка и также убирает ■ ■ из любых своих проверок с использованием этих навыков. При выборе навыков для этого таланта вам недоступны боевые и магические навыки.",
-  "descEn": "When you purchase this talent, choose one skill. The character removes two setback dice from all checks using that skill. Each additional rank lets you choose an additional skill.",
-  "activationEn": "Passive"
+  "desc": "",
+  "descEn": "",
+  "activationEn": "Passive",
+  "source": "Genesys Core Rulebook (RU translation)",
+  "page": "73"
  },
  {
   "code": "krepost",
@@ -228,9 +248,11 @@
   "soak": 0,
   "mdef": 0,
   "rdef": 0,
-  "desc": "Персонаж снижает результаты всех своих критических травм на 10 за каждый ранг Крепости до минимума 1.",
-  "descEn": "The character reduces the result of all critical injuries they suffer by 10 per rank of Durable, to a minimum of 1.",
-  "activationEn": "Passive"
+  "desc": "",
+  "descEn": "",
+  "activationEn": "Passive",
+  "source": "Genesys Core Rulebook (RU translation)",
+  "page": "73"
  },
  {
   "code": "neprimetnyy",
@@ -249,9 +271,11 @@
   "soak": 0,
   "mdef": 0,
   "rdef": 0,
-  "desc": "Другие персонажи добавляют ✸ ко всем проверкам, сделанным для поиска или обнаружения вашего персонажа в толпе.",
-  "descEn": "Other characters add automatic failure to checks made to find or notice your character in a crowd.",
-  "activationEn": "Passive"
+  "desc": "",
+  "descEn": "",
+  "activationEn": "Passive",
+  "source": "Genesys Core Rulebook (RU translation)",
+  "page": "74"
  },
  {
   "code": "obezdvizhivayuschiy-vystrel",
@@ -270,9 +294,11 @@
   "soak": 0,
   "mdef": 0,
   "rdef": 0,
-  "desc": "Один раз за раунд персонаж может использовать этот талант, чтобы совершить проверку дальнего боя против одной цели, не являющейся транспортом, находящейся в пределах дистанции используемого оружия. Если проверка успешна, уменьшите урон, наносимый атакой, в два раза (прежде чем примените поглощение цели). Цель обездвижена до конца своего следующего хода.",
-  "descEn": "Once per round, the character may use this talent to make a ranged attack against one target; if it deals damage, the target loses their free maneuver on their next turn.",
-  "activationEn": "Action"
+  "desc": "",
+  "descEn": "",
+  "activationEn": "Action",
+  "source": "Genesys Core Rulebook (RU translation)",
+  "page": "74"
  },
  {
   "code": "ostroumnyy-otvet",
@@ -291,11 +317,13 @@
   "soak": 0,
   "mdef": 0,
   "rdef": 0,
-  "desc": "Один раз за сцену персонаж может использовать этот талант, чтобы автоматически добавить ▼ ▼ к проверке социального навыка другого персонажа.",
-  "descEn": "Once per encounter, the character may use this talent as an incidental to automatically add two threat to another character's social skill check.",
+  "desc": "",
+  "descEn": "",
   "activationEn": "Out-of-turn Incidental",
   "canUseOutOfTurn": true,
-  "trigger": "Кто-то оскорбил персонажа или его союзника"
+  "trigger": "",
+  "source": "Genesys Core Rulebook (RU translation)",
+  "page": "74"
  },
  {
   "code": "otchayannoe-vosstanovlenie",
@@ -314,9 +342,11 @@
   "soak": 0,
   "mdef": 0,
   "rdef": 0,
-  "desc": "Перед лечением усталости в конце сцены посмотрите общее количество усталости. Если оно составляет больше половины порога усталости персонажа, то вылечите две дополнительные усталости.",
-  "descEn": "Before healing strain at the end of a scene, check the total: if it is more than half of the character's strain threshold, they heal 2 additional strain.",
-  "activationEn": "Passive"
+  "desc": "",
+  "descEn": "",
+  "activationEn": "Passive",
+  "source": "Genesys Core Rulebook (RU translation)",
+  "page": "74"
  },
  {
   "code": "parirovanie",
@@ -335,12 +365,14 @@
   "soak": 0,
   "mdef": 0,
   "rdef": 0,
-  "desc": "Когда персонаж получает попадание в результате проверки ближнего боя, после подсчёта получаемого урона, но до применения поглощения (т. е. сразу после 3-го шага совершения боевой проверки, стр. 102), персонаж может получить 3 усталости, чтобы снизить урон от попадания на 2 плюс его ранг в Парировании. Талант можно использовать только раз за попадание, а персонаж должен использовать оружие ближнего боя.",
-  "descEn": "When the character is hit by a melee combat check, after damage is calculated but before soak is applied, they may suffer 3 strain to reduce the damage by 2 plus their ranks in Parry.",
+  "desc": "",
+  "descEn": "",
   "activationEn": "Out-of-turn Incidental",
   "canUseOutOfTurn": true,
   "strainCost": 3,
-  "trigger": "Персонаж получил попадание в ближнем бою"
+  "trigger": "",
+  "source": "Genesys Core Rulebook (RU translation)",
+  "page": "74"
  },
  {
   "code": "podskok",
@@ -359,9 +391,11 @@
   "soak": 0,
   "mdef": 0,
   "rdef": 0,
-  "desc": "Один раз за раунд, в свой ход, персонаж может использовать этот талант, чтобы свободным действием встать, будучи сидящим или распластанным.",
-  "descEn": "Once per round on their turn, the character may use this talent to stand up from prone or a seated position as an incidental.",
-  "activationEn": "Incidental"
+  "desc": "",
+  "descEn": "",
+  "activationEn": "Incidental",
+  "source": "Genesys Core Rulebook (RU translation)",
+  "page": "74"
  },
  {
   "code": "poehali",
@@ -380,9 +414,11 @@
   "soak": 0,
   "mdef": 0,
   "rdef": 0,
-  "desc": "Один раз за раунд, в свой ход, персонаж может использовать этот талант, чтобы сесть или спешиться с транспорта или животного либо сменить одну позицию в транспорте на другую (например, переместиться из кабины к пулемётной турели) свободным действием. Кроме того, при падении с транспорта или животного с короткой дистанции (смотрите стр. 112) персонаж не получает урона и приземляется на ноги.",
-  "descEn": "Once per round on their turn, the character may mount or dismount a vehicle or mount, or slide into a driver's seat, as an incidental instead of a maneuver.",
-  "activationEn": "Incidental"
+  "desc": "",
+  "descEn": "",
+  "activationEn": "Incidental",
+  "source": "Genesys Core Rulebook (RU translation)",
+  "page": "74"
  },
  {
   "code": "pokupka-informatsii",
@@ -401,9 +437,11 @@
   "soak": 0,
   "mdef": 0,
   "rdef": 0,
-  "desc": "Вместо совершения проверки навыка знаний персонаж может использовать этот талант, чтобы потратить некоторое количество денег и получить без проверки автоматический успех в проверке знаний с одним неотменённым ✶. Сумма потраченных средств в 50 раз больше сложности проверки. На усмотрение ведущего Покупка информации может быть недоступна персонажу, если это особо важная информация, или её трудно достать, или её приобретение не имеет смысла с точки зрения сюжета.",
-  "descEn": "Instead of making a Knowledge skill check, the character may use this talent to spend an amount of currency set by the GM and treat the check as if they had rolled a number of successes.",
-  "activationEn": "Action"
+  "desc": "",
+  "descEn": "",
+  "activationEn": "Action",
+  "source": "Genesys Core Rulebook (RU translation)",
+  "page": "74"
  },
  {
   "code": "pristoynoe-povedenie",
@@ -422,9 +460,11 @@
   "soak": 0,
   "mdef": 0,
   "rdef": 0,
-  "desc": "Находясь в приличном обществе (определяется ведущим) и совершая социальную проверку, персонаж может получить определённое количество усталости, чтобы добавить к результату проверки такое же количество ▲. Это количество не может быть больше ранга таланта.",
-  "descEn": "While in polite society (as determined by the GM), when making a social skill check the character may suffer strain up to their ranks in this talent to add an equal number of advantage to the check.",
-  "activationEn": "Incidental"
+  "desc": "",
+  "descEn": "",
+  "activationEn": "Incidental",
+  "source": "Genesys Core Rulebook (RU translation)",
+  "page": "74"
  },
  {
   "code": "torgovye-svyazi",
@@ -443,9 +483,11 @@
   "soak": 0,
   "mdef": 0,
   "rdef": 0,
-  "desc": "Один раз за игровую встречу, пытаясь приобрести легальный товар, персонаж может использовать этот талант, чтобы уменьшить его редкость на одну ступень за каждый ранг Торговых связей.",
-  "descEn": "Once per session, when attempting to purchase a legally available item, the character may use this talent to reduce its rarity by 1 per rank of Know Somebody.",
-  "activationEn": "Incidental"
+  "desc": "",
+  "descEn": "",
+  "activationEn": "Incidental",
+  "source": "Genesys Core Rulebook (RU translation)",
+  "page": "75"
  },
  {
   "code": "uporstvo",
@@ -464,9 +506,11 @@
   "soak": 0,
   "mdef": 0,
   "rdef": 0,
-  "desc": "Каждый ранг Упорства увеличивает порог усталости персонажа на 1.",
-  "descEn": "Each rank of Grit increases the character's strain threshold by 1.",
-  "activationEn": "Passive"
+  "desc": "",
+  "descEn": "",
+  "activationEn": "Passive",
+  "source": "Genesys Core Rulebook (RU translation)",
+  "page": "75"
  },
  {
   "code": "hirurg",
@@ -485,11 +529,13 @@
   "soak": 0,
   "mdef": 0,
   "rdef": 0,
-  "desc": "Совершая проверку Медицины для исцеления ран, персонаж исцеляет на одну рану больше за каждый ранг таланта.",
-  "descEn": "When making a Medicine check to heal wounds, the character heals one additional wound per rank of this talent.",
+  "desc": "",
+  "descEn": "",
   "retiredIn": [
    "RealmsOfTerrinoth"
-  ]
+  ],
+  "source": "Genesys Core Rulebook (RU translation)",
+  "page": "75"
  },
  {
   "code": "berserk",
@@ -509,9 +555,11 @@
   "soak": 0,
   "mdef": 0,
   "rdef": 0,
-  "desc": "Манёвром персонаж впадает в ярость до конца столкновения или до того, как будет выведен из строя. Пока ярость длится, его проверки ближнего боя получают один автоматический успех и два автоматических преимущества, а проверки противников против него — один автоматический успех. Проверки дальнего боя таланта не затрагивают. По окончании ярости персонаж получает 6 усталости.",
-  "descEn": "As a maneuver, the character goes berserk until the end of the encounter or until incapacitated. While it lasts, their melee checks gain one automatic success and two automatic advantages, and checks made against them gain one automatic success. Ranged checks are unaffected. When the rage ends the character suffers 6 strain.",
-  "activationEn": "Maneuver"
+  "desc": "",
+  "descEn": "",
+  "activationEn": "Maneuver",
+  "source": "Genesys Core Rulebook (RU translation)",
+  "page": "75"
  },
  {
   "code": "voodushevlyayuschaya-rech",
@@ -530,9 +578,11 @@
   "soak": 0,
   "mdef": 0,
   "rdef": 0,
-  "desc": "Персонаж может совершить обычную (♦ ♦) проверку Лидерства. За каждый выпавший ✶ один союзник в пределах короткой дистанции теряет одну усталость. За каждый ▲ один союзник, на которого действует Воодушевляющая речь, теряет одну дополнительную усталость.",
-  "descEn": "The character may make an Average Leadership check. For each success, one ally within short range heals 1 strain; for each advantage, one such ally adds a boost die to their next check.",
-  "activationEn": "Action"
+  "desc": "",
+  "descEn": "",
+  "activationEn": "Action",
+  "source": "Genesys Core Rulebook (RU translation)",
+  "page": "75"
  },
  {
   "code": "vstrechnoe-predlozhenie",
@@ -551,9 +601,11 @@
   "soak": 0,
   "mdef": 0,
   "rdef": 0,
-  "desc": "Один раз за игровую встречу персонаж может выбрать в пределах средней дистанции одного противника, не являющегося главарём, и совершить встречную проверку Переговоров против Выдержки. В случае успеха цель в замешательстве до конца своего следующего хода. По усмотрению ведущего вы можете потратить ★, выпавший в результате проверки, чтобы до конца сцены сделать этого противника своим союзником. Однако этот эффект может быть короче или длиннее в зависимости от того, насколько, по мнению ведущего, предложение привлекательно для противника и исполняет ли персонаж то, что обещал!",
-  "descEn": "Once per session, the character may choose one non-nemesis adversary within medium range and make an opposed Negotiation check to convince them to switch sides or stand down for the scene.",
-  "activationEn": "Action"
+  "desc": "",
+  "descEn": "",
+  "activationEn": "Action",
+  "source": "Genesys Core Rulebook (RU translation)",
+  "page": "75"
  },
  {
   "code": "izobretatel",
@@ -572,9 +624,11 @@
   "soak": 0,
   "mdef": 0,
   "rdef": 0,
-  "desc": "Создавая новые предметы или модифицируя имеющиеся, персонаж может использовать этот талант, чтобы добавить к проверке ◻ за каждый ранг таланта. Кроме того, персонаж может попытаться воссоздать устройства, про которые он слышал, но не видел и не имеет никаких связанных с ними планов или схем.",
-  "descEn": "When constructing new items or modifying existing ones, the character may use this talent to add a boost die per rank of Inventor to the check.",
-  "activationEn": "Incidental"
+  "desc": "",
+  "descEn": "",
+  "activationEn": "Incidental",
+  "source": "Genesys Core Rulebook (RU translation)",
+  "page": "75"
  },
  {
   "code": "oboerukiy",
@@ -593,9 +647,11 @@
   "soak": 0,
   "mdef": 0,
   "rdef": 0,
-  "desc": "Один раз в раунд персонаж может использовать этот талант, чтобы снизить сложность следующей комбинированной боевой проверки (смотрите Сражение с двумя оружиями, стр. 108), сделанной в этом же ходу, на один.",
-  "descEn": "Once per round, the character may use this talent to decrease the difficulty of their next combined combat check made with two weapons by 1.",
-  "activationEn": "Maneuver"
+  "desc": "",
+  "descEn": "",
+  "activationEn": "Maneuver",
+  "source": "Genesys Core Rulebook (RU translation)",
+  "page": "76"
  },
  {
   "code": "oboronitelnaya-taktika",
@@ -614,9 +670,11 @@
   "soak": 0,
   "mdef": 0,
   "rdef": 0,
-  "desc": "Один раз за раунд персонаж может получить усталость, величина которой не может превышать ранг этого таланта, чтобы до конца своего следующего хода усилить сложность всех проверок ближнего боя против него на столько ступеней, сколько усталости он получил.",
-  "descEn": "Once per round, the character may suffer strain no greater than their ranks in this talent; until the start of their next turn, upgrade the difficulty of all melee combat checks targeting the character that many times.",
-  "activationEn": "Maneuver"
+  "desc": "",
+  "descEn": "",
+  "activationEn": "Maneuver",
+  "source": "Genesys Core Rulebook (RU translation)",
+  "page": "76"
  },
  {
   "code": "povyshennoe-vnimanie",
@@ -635,9 +693,11 @@
   "soak": 0,
   "mdef": 0,
   "rdef": 0,
-  "desc": "Союзники в пределах короткой дистанции от персонажа прибавляют ◻ к проверкам Бдительности и Внимания, а союзники, находящиеся вплотную к персонажу, — ◻ ◻.",
-  "descEn": "Allies within short range of the character add a boost die to their Perception and Vigilance checks; engaged allies add two boost dice instead.",
-  "activationEn": "Passive"
+  "desc": "",
+  "descEn": "",
+  "activationEn": "Passive",
+  "source": "Genesys Core Rulebook (RU translation)",
+  "page": "76"
  },
  {
   "code": "skoordinirovannaya-ataka",
@@ -656,9 +716,11 @@
   "soak": 0,
   "mdef": 0,
   "rdef": 0,
-  "desc": "Один раз за ход персонаж может использовать этот талант, чтобы союзники, стоящие с ним вплотную, в количестве, равном его рангу Лидерства, получили ▲ к совершаемым ими боевым проверкам до начала следующего хода персонажа. Дистанция манёвра увеличивается на один диапазон за каждый ранг Скоординированной атаки после первого.",
-  "descEn": "Once per turn, the character may use this talent so that a number of engaged allies up to their ranks add an advantage to their combat checks until the start of the character's next turn.",
-  "activationEn": "Maneuver"
+  "desc": "",
+  "descEn": "",
+  "activationEn": "Maneuver",
+  "source": "Genesys Core Rulebook (RU translation)",
+  "page": "76"
  },
  {
   "code": "schastlivoe-popadanie",
@@ -677,11 +739,13 @@
   "soak": 0,
   "mdef": 0,
   "rdef": 0,
-  "desc": "Купив этот талант, выберите одну характеристику. После совершения успешной боевой проверки вы можете потратить одно очко сюжета, чтобы использовать этот талант и добавить урон, равный рейтингу этой характеристики, к одному попаданию этой проверки.",
-  "descEn": "When you purchase this talent, choose one characteristic. After making a successful combat check, you may spend a story point to add damage equal to that characteristic's rating.",
+  "desc": "",
+  "descEn": "",
   "activationEn": "Incidental",
   "storyPointCost": 1,
-  "trigger": "После успешной боевой проверки"
+  "trigger": "",
+  "source": "Genesys Core Rulebook (RU translation)",
+  "page": "76"
  },
  {
   "code": "hlestkaya-fraza",
@@ -700,11 +764,13 @@
   "soak": 0,
   "mdef": 0,
   "rdef": 0,
-  "desc": "Персонаж может использовать этот талант, чтобы совершить обычную(♦♦) проверку Запугивания. За каждый ✶ один враг в пределах короткой дистанции получает одну усталость. За каждый ▲ один враг, на которого действует Хлёсткая фраза, получает одну дополнительную усталость.",
-  "descEn": "The character may make an Average Coercion check. For each success, one enemy within short range suffers 1 strain; for each advantage, one such enemy adds a setback die to their next check.",
+  "desc": "",
+  "descEn": "",
   "retiredIn": [
    "RealmsOfTerrinoth"
-  ]
+  ],
+  "source": "Genesys Core Rulebook (RU translation)",
+  "page": "76"
  },
  {
   "code": "shag-v-storonu",
@@ -723,9 +789,11 @@
   "soak": 0,
   "mdef": 0,
   "rdef": 0,
-  "desc": "Манёвром персонаж получает усталость числом не больше своих рангов таланта. До конца своего следующего хода сложность дальних атак по нему повышается столько же раз.",
-  "descEn": "As a maneuver, suffer strain up to the character’s ranks in the talent. Until the end of their next turn, the difficulty of ranged attacks against them is upgraded that many times.",
-  "activationEn": "Maneuver"
+  "desc": "",
+  "descEn": "",
+  "activationEn": "Maneuver",
+  "source": "Genesys Core Rulebook (RU translation)",
+  "page": "77"
  },
  {
   "code": "bystraya-strelba-iz-luka",
@@ -744,10 +812,12 @@
   "soak": 0,
   "mdef": 0,
   "rdef": 0,
-  "desc": "Персонаж получает 2 усталости. Для следующей проверки дальнего боя лук получает свойство Linked с рейтингом, равным рангам персонажа в Дальнем бою. Дополнительное попадание автоматически не выдаётся — его ещё нужно оплатить преимуществами.",
-  "descEn": "Suffer 2 strain. For the next ranged check the bow gains Linked with a rating equal to the character’s ranks in Ranged. The extra hit is not granted automatically — it still has to be paid for with advantage.",
+  "desc": "",
+  "descEn": "",
   "activationEn": "Maneuver",
-  "strainCost": 2
+  "strainCost": 2,
+  "source": "Genesys Core Rulebook (RU translation)",
+  "page": "77"
  },
  {
   "code": "voodushevlyayuschaya-rech-uluchshennyyj",
@@ -766,10 +836,12 @@
   "soak": 0,
   "mdef": 0,
   "rdef": 0,
-  "desc": "Прежде вы должны приобрести талант Воодушевляющая речь. Союзники, на которых воздействует Воодушевляющая речь, добавляют ◻ ко всем проверкам навыков в течение числа раундов, равного рангу Лидерства вашего персонажа.",
-  "descEn": "Your character must have Inspiring Rhetoric to benefit from this talent. Allies affected by your Inspiring Rhetoric add a boost die to their skill checks for a number of rounds equal to your ranks in Leadership.",
+  "desc": "",
+  "descEn": "",
   "activationEn": "Passive",
-  "requiresTalent": "voodushevlyayuschaya-rech"
+  "requiresTalent": "voodushevlyayuschaya-rech",
+  "source": "Genesys Core Rulebook (RU translation)",
+  "page": "77"
  },
  {
   "code": "geroicheskaya-volya",
@@ -788,11 +860,13 @@
   "soak": 0,
   "mdef": 0,
   "rdef": 0,
-  "desc": "Купив этот талант, выберите две характеристики. Вы можете потратить очко сюжета, чтобы до конца текущей сцены игнорировать эффекты от всех критических травм на проверки навыков, использующих эти две характеристики (персонаж по-прежнему страдает от этих критических травм, просто игнорирует их эффекты. Смотрите стр. 114).",
-  "descEn": "When you purchase this talent, choose two characteristics. You may spend a story point to ignore the effects of all critical injuries on checks based on those characteristics until the end of the current scene.",
+  "desc": "",
+  "descEn": "",
   "activationEn": "Out-of-turn Incidental",
   "canUseOutOfTurn": true,
-  "storyPointCost": 1
+  "storyPointCost": 1,
+  "source": "Genesys Core Rulebook (RU translation)",
+  "page": "77"
  },
  {
   "code": "zhivotnoe-sputnik",
@@ -811,9 +885,11 @@
   "soak": 0,
   "mdef": 0,
   "rdef": 0,
-  "desc": "Персонаж создаёт связь с одним животным, одобренным ведущим. Животное должно иметь фигуру 0 (не крупнее собаки средних размеров). Связь существует так долго, как решит персонаж, хотя по решению ведущего связь может быть разорвана из-за грубого обращения или других обстоятельств. Пока существует такая связь, животным, следующим за персонажем, можно управлять (заметим, что животное привязано к персонажу, но тот не имеет над ним полной власти, поэтому зверь может совершать неугодные действия — царапать мебель, съедать пайки и метить территорию). Один раз в раунд в структурированных сценах персонаж может потратить один манёвр, чтобы во время своего хода совершить животным одно действие и один манёвр. Чтобы сделать это, животное должно находиться в пределах дистанции, позволяющей видеть и слышать персонажа (обычно средняя дистанция). В противном случае животное не участвует в текущей сцене. Особенности его поведения зависят от вас и решений ведущего. За каждый дополнительный ранг таланта персонаж увеличивает фигуру животного-спутника на один (это может означать, что персонаж получает нового спутника или старый спутник вырос в размерах). В зависимости от игрового мира талант может изменяться. Конечно, животное-спутник может присутствовать во всех игровых мирах, но в футуристическом мире в качестве «животного» может выступать робот или дрон.",
-  "descEn": "The character bonds with one animal approved by the GM. The animal must be of silhouette 0 (no larger than a dog). It obeys simple commands and acts on the character's turn once per round.",
-  "activationEn": "Passive"
+  "desc": "",
+  "descEn": "",
+  "activationEn": "Passive",
+  "source": "Genesys Core Rulebook (RU translation)",
+  "page": "78"
  },
  {
   "code": "znatok-boleutolyayuschih",
@@ -832,9 +908,11 @@
   "soak": 0,
   "mdef": 0,
   "rdef": 0,
-  "desc": "Когда персонаж применяет болеутоляющее (или его аналог в выбранном игровом мире), цель исцеляет одну дополнительную рану за каждый ранг таланта. Применение болеутоляющего шестой раз (или больше) за день не даёт никакого эффекта.",
-  "descEn": "When the character administers a painkiller (or its setting-appropriate equivalent), the target heals one additional wound. The fifth and subsequent doses per day still have no effect.",
-  "activationEn": "Passive"
+  "desc": "",
+  "descEn": "",
+  "activationEn": "Passive",
+  "source": "Genesys Core Rulebook (RU translation)",
+  "page": "78"
  },
  {
   "code": "odarennost",
@@ -853,11 +931,13 @@
   "soak": 0,
   "mdef": 0,
   "rdef": 0,
-  "desc": "Купив этот талант, выберите два навыка. Один раз за игровую встречу вы можете применить талант, чтобы перебросить одну проверку, использующую один из этих двух навыков.",
-  "descEn": "When you purchase this talent, choose two skills. Once per session, you may use this talent to reroll one check using one of those skills.",
+  "desc": "",
+  "descEn": "",
   "activationEn": "Incidental",
   "usesPerScope": 1,
-  "useScope": "Session"
+  "useScope": "Session",
+  "source": "Genesys Core Rulebook (RU translation)",
+  "page": "78"
  },
  {
   "code": "orlinyy-glaz",
@@ -876,9 +956,11 @@
   "soak": 0,
   "mdef": 0,
   "rdef": 0,
-  "desc": "Один раз за сцену перед совершением проверки дальнего боя вы можете увеличить дистанцию оружия на один диапазон (вплоть до экстремальной дистанции). Действует во время этой боевой проверки.",
-  "descEn": "Once per encounter, before making a ranged combat check, you may increase the range of the weapon by one range band.",
-  "activationEn": "Incidental"
+  "desc": "",
+  "descEn": "",
+  "activationEn": "Incidental",
+  "source": "Genesys Core Rulebook (RU translation)",
+  "page": "78"
  },
  {
   "code": "parirovanie-u-luchshennyy",
@@ -897,12 +979,14 @@
   "soak": 0,
   "mdef": 0,
   "rdef": 0,
-  "desc": "Прежде вы должны приобрести талант Парирование. Когда персонаж получает попадание атаки ближнего боя и использует Парирование для снижения урона от этого попадания, то после осуществления этой атаки персонаж может потратить ☠, или ▼ ▼ ▼ из результатов проверки противника для использования этого таланта. Тогда персонаж автоматически попадает по атакующему Грубой силой или оружием, используемым для навыка Ближний бой. Попадание наносит базовый урон оружия, а также любой урон от применимых в этой ситуации талантов или способностей. Персонаж не может использовать этот талант, если исходная атака вывела его из строя.",
-  "descEn": "Your character must have Parry to benefit from this talent. When the character is hit by a melee attack and uses Parry, they may spend a despair or three threat from the attacker's check to hit the attacker back with their own weapon at base damage.",
+  "desc": "",
+  "descEn": "",
   "activationEn": "Out-of-turn Incidental",
   "canUseOutOfTurn": true,
   "requiresTalent": "parirovanie",
-  "trigger": "Парирование снизило урон"
+  "trigger": "",
+  "source": "Genesys Core Rulebook (RU translation)",
+  "page": "78"
  },
  {
   "code": "polevoy-komandir",
@@ -921,9 +1005,11 @@
   "soak": 0,
   "mdef": 0,
   "rdef": 0,
-  "desc": "Действием персонаж совершает проверку Лидерства сложности «Средняя» (2). При успехе он выбирает союзников числом не больше своей Харизмы: каждый может получить 1 усталость и немедленно совершить манёвр вне своего хода.",
-  "descEn": "As an action, make an Average (2) Leadership check. On success, choose up to Presence allies: each may suffer 1 strain and immediately perform an out-of-turn maneuver.",
-  "activationEn": "Action"
+  "desc": "",
+  "descEn": "",
+  "activationEn": "Action",
+  "source": "Genesys Core Rulebook (RU translation)",
+  "page": "78"
  },
  {
   "code": "uklonenie",
@@ -942,11 +1028,13 @@
   "soak": 0,
   "mdef": 0,
   "rdef": 0,
-  "desc": "Являясь целью боевой проверки (будь то ближний или дальний бой), персонаж может получить определённое количество усталости, чтобы усилить сложность боевой проверки столько раз, сколько усталости он получил. Количество усталости не может превышать ранг таланта.",
-  "descEn": "When targeted by a combat check (melee or ranged), the character may suffer strain no greater than their ranks in Dodge to upgrade the difficulty of the check that many times.",
+  "desc": "",
+  "descEn": "",
   "activationEn": "Out-of-turn Incidental",
   "canUseOutOfTurn": true,
-  "trigger": "Персонаж стал целью боевой проверки"
+  "trigger": "",
+  "source": "Genesys Core Rulebook (RU translation)",
+  "page": "79"
  },
  {
   "code": "hlestkaya-fraza-uluchshennyy",
@@ -965,11 +1053,13 @@
   "soak": 0,
   "mdef": 0,
   "rdef": 0,
-  "desc": "Прежде вы должны приобрести талант Хлёсткая фраза. Враги, на которых действует Хлёсткая фраза, получают ■ ко всем проверкам навыков на число раундов, равное рангу вашего персонажа в Запугивании.",
-  "descEn": "Your character must have Scathing Tirade to benefit from this talent. Enemies affected by your Scathing Tirade add a setback die to their skill checks for a number of rounds equal to your ranks in Coercion.",
+  "desc": "",
+  "descEn": "",
   "retiredIn": [
    "RealmsOfTerrinoth"
-  ]
+  ],
+  "source": "Genesys Core Rulebook (RU translation)",
+  "page": "79"
  },
  {
   "code": "voodushevlyayuschaya-rech-masterskiyj",
@@ -988,10 +1078,12 @@
   "soak": 0,
   "mdef": 0,
   "rdef": 0,
-  "desc": "Прежде вы должны приобрести талант Воодушевляющая речь. Персонаж может получить 1 усталость, чтобы применить Воодушевляющую речь не действием, а манёвром.",
-  "descEn": "Your character must have Inspiring Rhetoric to benefit from this talent. The character may suffer 1 strain to use Inspiring Rhetoric as a maneuver instead of an action.",
+  "desc": "",
+  "descEn": "",
   "activationEn": "Incidental",
-  "requiresTalent": "voodushevlyayuschaya-rech"
+  "requiresTalent": "voodushevlyayuschaya-rech",
+  "source": "Genesys Core Rulebook (RU translation)",
+  "page": "80"
  },
  {
   "code": "vynoslivost",
@@ -1010,9 +1102,11 @@
   "soak": 1,
   "mdef": 0,
   "rdef": 0,
-  "desc": "Поглощение повышается на один за каждый ранг таланта.",
-  "descEn": "The character's soak increases by one per rank of this talent.",
-  "activationEn": "Passive"
+  "desc": "",
+  "descEn": "",
+  "activationEn": "Passive",
+  "source": "Genesys Core Rulebook (RU translation)",
+  "page": "80"
  },
  {
   "code": "kak-vovremya",
@@ -1031,11 +1125,13 @@
   "soak": 0,
   "mdef": 0,
   "rdef": 0,
-  "desc": "Один раз за игровую встречу персонаж может совершить сложную(♦♦♦) проверку Механики. Если проверка успешна, одно устройство, задействованное в текущей сцене (цель, одобренная ведущим), внезапно выходит из строя. Это может быть связано с действиями персонажа или стать невероятным стечением обстоятельств!",
-  "descEn": "Once per session, the character may make a Hard Mechanics check. If successful, a device, vehicle or mechanism within reach works just long enough to get the group out of trouble, as approved by the GM.",
+  "desc": "",
+  "descEn": "",
   "retiredIn": [
    "RealmsOfTerrinoth"
-  ]
+  ],
+  "source": "Genesys Core Rulebook (RU translation)",
+  "page": "80"
  },
  {
   "code": "metkiy-glaz",
@@ -1054,9 +1150,11 @@
   "soak": 0,
   "mdef": 0,
   "rdef": 0,
-  "desc": "После того как персонаж причинит критическую травму оружием дальнего боя и определит её результат, он может получить 2 усталости, чтобы использовать этот талант и вместо этого нанести цели любую критическую травму той же тяжести на свой выбор.",
-  "descEn": "After the character inflicts a critical injury with a ranged weapon and determines the result, they may suffer 2 strain to change the result to any other they could have rolled.",
-  "activationEn": "Incidental"
+  "desc": "",
+  "descEn": "",
+  "activationEn": "Incidental",
+  "source": "Genesys Core Rulebook (RU translation)",
+  "page": "80"
  },
  {
   "code": "mozhet-obsudim-eto",
@@ -1075,9 +1173,11 @@
   "soak": 0,
   "mdef": 0,
   "rdef": 0,
-  "desc": "Персонаж может выбрать одного противника в пределах средней дистанции, не являющегося главарём, и совершить встречную проверку Запугивания или Обаяния против Выдержки. В случае успеха цель не может атаковать вашего персонажа (или совершать другие враждебные действия против него) до конца своего следующего хода. Вы можете потратить ▲ ▲, чтобы увеличить действие эффекта на один дополнительный ход, а также потратить ★, чтобы распространить эффект на всех его известных союзников в пределах короткой дистанции. Эффект немедленно прекращается, если ваш персонаж или его известный союзник атакует цель. Кроме того, ваш ведущий может решить, что некоторые цели невосприимчивы к этой способности. Например, разрешить конфликт разговором вряд ли получится с автоматической сторожевой турелью, а также кем-то, кто охвачен яростью и желает отомстить вашему персонажу.",
-  "descEn": "The character may choose one non-nemesis adversary within medium range and make an opposed social check; if successful, the target is unwilling to fight and stands down until attacked or the scene changes.",
-  "activationEn": "Action"
+  "desc": "",
+  "descEn": "",
+  "activationEn": "Action",
+  "source": "Genesys Core Rulebook (RU translation)",
+  "page": "80"
  },
  {
   "code": "oborona",
@@ -1096,9 +1196,11 @@
   "soak": 0,
   "mdef": 1,
   "rdef": 1,
-  "desc": "Ближняя и дальняя защита персонажа увеличиваются на 1 за каждый ранг таланта.",
-  "descEn": "The character's melee and ranged defense each increase by 1 per rank of this talent.",
-  "activationEn": "Passive"
+  "desc": "",
+  "descEn": "",
+  "activationEn": "Passive",
+  "source": "Genesys Core Rulebook (RU translation)",
+  "page": "80"
  },
  {
   "code": "polevoy-komandir-uluchshennyyj",
@@ -1117,10 +1219,12 @@
   "soak": 0,
   "mdef": 0,
   "rdef": 0,
-  "desc": "Требуется Field Commander. Предел выбираемых союзников повышается до удвоенной Харизмы. За триумф один выбранный союзник вместо манёвра может получить 1 усталость и совершить действие. Тип активации остаётся действием.",
-  "descEn": "Requires Field Commander. The limit of chosen allies rises to twice Presence. On a triumph, one chosen ally may suffer 1 strain and perform an action instead of a maneuver. The activation type remains an action.",
+  "desc": "",
+  "descEn": "",
   "activationEn": "Passive",
-  "requiresTalent": "polevoy-komandir"
+  "requiresTalent": "polevoy-komandir",
+  "source": "Genesys Core Rulebook (RU translation)",
+  "page": "80"
  },
  {
   "code": "hlestkaya-fraza-masterskiy",
@@ -1139,11 +1243,13 @@
   "soak": 0,
   "mdef": 0,
   "rdef": 0,
-  "desc": "Прежде вы должны приобрести талант Хлёсткая фраза. Персонаж может получить 1 усталость, чтобы применить Хлёсткую фразу не действием, а манёвром.",
-  "descEn": "Your character must have Scathing Tirade to benefit from this talent. The character may suffer 1 strain to use Scathing Tirade as a maneuver instead of an action.",
+  "desc": "",
+  "descEn": "",
   "retiredIn": [
    "RealmsOfTerrinoth"
-  ]
+  ],
+  "source": "Genesys Core Rulebook (RU translation)",
+  "page": "81"
  },
  {
   "code": "master",
@@ -1162,12 +1268,14 @@
   "soak": 0,
   "mdef": 0,
   "rdef": 0,
-  "desc": "Купив этот талант, выберите один навык. Один раз за раунд персонаж может получить 2 усталости, чтобы использовать этот талант и снизить сложность следующей проверки этого навыка на два, минимум до лёгкой ( ♦ ).",
-  "descEn": "When you purchase this talent, choose one skill. Once per round, the character may suffer 2 strain to reduce the difficulty of their next check with that skill by 2, to a minimum of Easy.",
+  "desc": "",
+  "descEn": "",
   "activationEn": "Incidental",
   "usesPerScope": 1,
   "useScope": "Round",
-  "strainCost": 2
+  "strainCost": 2,
+  "source": "Genesys Core Rulebook (RU translation)",
+  "page": "81"
  },
  {
   "code": "neukrotimyy",
@@ -1186,11 +1294,13 @@
   "soak": 0,
   "mdef": 0,
   "rdef": 0,
-  "desc": "Один раз за сцену, в ситуации, когда ваш персонаж должен выйти из строя из-за превышения порога ран или усталости, вы можете использовать этот талант и потратить очко сюжета, чтобы персонаж не вышел из строя до конца своего следующего хода. Если он за это время снижает усталость или раны до значения ниже порога, то не выходит из строя.",
-  "descEn": "Once per encounter, when the character would be incapacitated by exceeding their wound or strain threshold, they may spend a story point to remain on their feet until the end of their next turn.",
+  "desc": "",
+  "descEn": "",
   "retiredIn": [
    "RealmsOfTerrinoth"
-  ]
+  ],
+  "source": "Genesys Core Rulebook (RU translation)",
+  "page": "81"
  },
  {
   "code": "povyshenie",
@@ -1210,9 +1320,11 @@
   "soak": 0,
   "mdef": 0,
   "rdef": 0,
-  "desc": "За каждый ранг таланта одна из характеристик персонажа увеличивается на 1. Талант не позволяет увеличить рейтинг характеристики выше 5. Вы не можете дважды увеличить этим талантом одну и ту же характеристику.",
-  "descEn": "Each rank of this talent permanently increases one of the character's characteristics by 1. This cannot raise a characteristic above 5.",
-  "activationEn": "Passive"
+  "desc": "",
+  "descEn": "",
+  "activationEn": "Passive",
+  "source": "Genesys Core Rulebook (RU translation)",
+  "page": "81"
  },
  {
   "code": "ubiystvennaya-kolkost",
@@ -1231,11 +1343,13 @@
   "soak": 0,
   "mdef": 0,
   "rdef": 0,
-  "desc": "Один раз за сцену ваш персонаж может использовать этот талант, чтобы выбрать одного персонажа в пределах средней дистанции (или в пределах слышимости) и совершить встречную проверку Запугивания или Обаяния против Выдержки. В случае успеха цель получает усталость в размере, равном двукратному рейтингу Харизмы вашего персонажа, плюс одну дополнительную усталость за каждый ✶. Ваш персонаж лечит столько усталости, сколько причинил. Если в результате действия таланта цель будет выведена из строя, она может с позором сбежать с места действия, психологически сломаться и пасть духом или в гневе наброситься на персонажа, в зависимости от решения ведущего и характера колкостей, отпущенных в адрес цели.",
-  "descEn": "Once per encounter, the character may choose one character within medium range and make an opposed Charm or Coercion check; if successful, the target suffers strain equal to twice the character's Presence and may flee the scene.",
+  "desc": "",
+  "descEn": "",
   "retiredIn": [
    "RealmsOfTerrinoth"
-  ]
+  ],
+  "source": "Genesys Core Rulebook (RU translation)",
+  "page": "81"
  },
  {
   "code": "attuned",
@@ -1254,11 +1368,13 @@
   "soak": 0,
   "mdef": 0,
   "rdef": 0,
-  "desc": "Вы находитесь в гармонии с магическими силами. Когда восстанавливаете напряжение естественным отдыхом, дополнительно восстанавливаете количество напряжения, равное рангам Attuned.",
-  "descEn": "You are in harmony with magical forces. When you recover strain through natural rest, recover additional strain equal to your ranks in Attuned.",
+  "desc": "",
+  "descEn": "",
   "retiredIn": [
    "RealmsOfTerrinoth"
-  ]
+  ],
+  "source": "Genesys (legacy catalog)",
+  "page": ""
  },
  {
   "code": "conduit",
@@ -1277,12 +1393,14 @@
   "soak": 0,
   "mdef": 0,
   "rdef": 0,
-  "desc": "Один раз за столкновение инцидентом персонаж тратит одно очко сюжета: следующее магическое действие он совершает как манёвр. Сама активация таланта манёвром не является.",
-  "descEn": "Once per encounter as an incidental, spend one Story Point: the character performs their next magic action as a maneuver instead. Activating the talent is not itself a maneuver.",
+  "desc": "",
+  "descEn": "",
   "activationEn": "Incidental",
   "usesPerScope": 1,
   "useScope": "Encounter",
-  "storyPointCost": 1
+  "storyPointCost": 1,
+  "source": "Realms of Terrinoth",
+  "page": "91"
  },
  {
   "code": "counterspell",
@@ -1301,11 +1419,13 @@
   "soak": 0,
   "mdef": 0,
   "rdef": 0,
-  "desc": "Когда персонаж в пределах средней дистанции творит заклинание, вы можете совершить встречную магическую проверку тем же магическим навыком. Если успешно, увеличьте сложность его проверки на количество успехов вашей проверки.",
-  "descEn": "When a character within medium range casts a spell, you may make an opposed magic check as an out-of-turn incidental to disrupt and cancel it.",
+  "desc": "",
+  "descEn": "",
   "retiredIn": [
    "RealmsOfTerrinoth"
-  ]
+  ],
+  "source": "Genesys (legacy catalog)",
+  "page": ""
  },
  {
   "code": "empowered-casting",
@@ -1324,11 +1444,13 @@
   "soak": 0,
   "mdef": 0,
   "rdef": 0,
-  "desc": "Один раз за ход перед сотворением заклинания вы можете использовать этот талант, чтобы увеличить сложность проверки на одну ступень. Если заклинание успешно, оно получает дополнительные преимущества по решению ведущего (обычно увеличенный эффект, длительность, область или мощность).",
-  "descEn": "Once per turn before casting a spell, you may use this talent to increase the difficulty of the check by 1 and add one additional effect to the spell without further difficulty increase.",
+  "desc": "",
+  "descEn": "",
   "retiredIn": [
    "RealmsOfTerrinoth"
-  ]
+  ],
+  "source": "Genesys (legacy catalog)",
+  "page": ""
  },
  {
   "code": "signature-spell",
@@ -1347,9 +1469,11 @@
   "soak": 0,
   "mdef": 0,
   "rdef": 0,
-  "desc": "Персонаж закрепляет одно магическое действие и точную конфигурацию его дополнительных эффектов. Итоговая сложность именно этой комбинации снижается на 1. Талант не отменяет 2 усталости за сотворение заклинания и не имеет предела применений.",
-  "descEn": "The character fixes one magic action together with the exact configuration of its additional effects. The final difficulty of that specific combination is reduced by 1. The talent does not cancel the 2 strain for casting and has no use limit.",
-  "activationEn": "Passive"
+  "desc": "",
+  "descEn": "",
+  "activationEn": "Passive",
+  "source": "Realms of Terrinoth",
+  "page": "89"
  },
  {
   "code": "apothecary",
@@ -1368,9 +1492,11 @@
   "soak": 0,
   "mdef": 0,
   "rdef": 0,
-  "desc": "Когда пациент под опекой персонажа лечит раны естественным отдыхом, он восстанавливает дополнительные раны в размере удвоенных рангов персонажа в Аптекаре.",
-  "descEn": "When a patient under the character's care heals wounds through natural rest, they heal additional wounds equal to the character's ranks in Knowledge (Lore).",
-  "activationEn": "Passive"
+  "desc": "",
+  "descEn": "",
+  "activationEn": "Passive",
+  "source": "Realms of Terrinoth",
+  "page": "84"
  },
  {
   "code": "bullrush",
@@ -1389,9 +1515,11 @@
   "soak": 0,
   "mdef": 0,
   "rdef": 0,
-  "desc": "После манёвра, которым персонаж вошёл в сцепление, при проверке Рукопашного боя, Ближнего боя (лёгкого) или Ближнего боя (тяжёлого) он может потратить 3 преимущества или триумф: цель падает ничком и отталкивается не более чем на одну дистанцию. Условия обязательного попадания у правила нет.",
-  "descEn": "After a maneuver that brought the character into engagement, on a Brawl, Melee (Light) or Melee (Heavy) check spend 3 advantage or a triumph: the target falls prone and is pushed no more than one range band. The rule has no requirement that the attack hit.",
-  "activationEn": "Incidental"
+  "desc": "",
+  "descEn": "",
+  "activationEn": "Incidental",
+  "source": "Realms of Terrinoth",
+  "page": "84"
  },
  {
   "code": "dark-insight",
@@ -1410,9 +1538,11 @@
   "soak": 0,
   "mdef": 0,
   "rdef": 0,
-  "desc": "Когда заклинание добавляет вашему заклинанию свойство, рейтинг которого определяется рангами Знания (предания), персонаж может вместо этого использовать ранги Знания (запретное).",
-  "descEn": "When a spell grants your casting a quality whose rating is based on Knowledge (Lore) ranks, the character may use their Knowledge (Forbidden) ranks instead.",
-  "activationEn": "Incidental"
+  "desc": "",
+  "descEn": "",
+  "activationEn": "Incidental",
+  "source": "Realms of Terrinoth",
+  "page": "84"
  },
  {
   "code": "dungeoneer",
@@ -1431,9 +1561,11 @@
   "soak": 0,
   "mdef": 0,
   "rdef": 0,
-  "desc": "После проверки Внимательности, Бдительности или Знания (приключения) для обнаружения, опознания или избегания угрозы в пещере, подземных руинах или похожем месте персонаж отменяет до своих рангов в Исследователе подземелий неотменённых негативных символов.",
-  "descEn": "After a Perception, Vigilance or Knowledge (Adventuring) check to spot, identify or avoid a trap or hazard, the character may reroll the check once.",
-  "activationEn": "Passive"
+  "desc": "",
+  "descEn": "",
+  "activationEn": "Passive",
+  "source": "Realms of Terrinoth",
+  "page": "84"
  },
  {
   "code": "finesse",
@@ -1452,9 +1584,11 @@
   "soak": 0,
   "mdef": 0,
   "rdef": 0,
-  "desc": "При проверке Рукопашного боя или Ближнего боя (лёгкого) персонаж может использовать Ловкость вместо Силы.",
-  "descEn": "When making a Brawl or Melee (Light) check, the character may use Agility instead of Brawn.",
-  "activationEn": "Incidental"
+  "desc": "",
+  "descEn": "",
+  "activationEn": "Incidental",
+  "source": "Realms of Terrinoth",
+  "page": "84"
  },
  {
   "code": "painful-blow",
@@ -1473,10 +1607,12 @@
   "soak": 0,
   "mdef": 0,
   "rdef": 0,
-  "desc": "При боевой проверке персонаж может добровольно повысить сложность на 1. Если цель получает хотя бы одну рану от этой атаки, она получает 2 напряжения каждый раз, когда совершает манёвр, до конца столкновения.",
-  "descEn": "When making a combat check, the character may voluntarily increase its difficulty by 1. If the target suffers at least one wound from the attack, it suffers 2 additional strain each time it performs an action until the end of the encounter.",
+  "desc": "",
+  "descEn": "",
   "activationEn": "Incidental",
-  "trigger": "Перед боевой проверкой"
+  "trigger": "",
+  "source": "Realms of Terrinoth",
+  "page": "84"
  },
  {
   "code": "precision",
@@ -1495,9 +1631,11 @@
   "soak": 0,
   "mdef": 0,
   "rdef": 0,
-  "desc": "При проверке Рукопашного боя или Дальнего боя персонаж может использовать Проницательность вместо Силы и Ловкости.",
-  "descEn": "When making a Brawl or Ranged check, the character may use Cunning instead of Brawn or Agility.",
-  "activationEn": "Incidental"
+  "desc": "",
+  "descEn": "",
+  "activationEn": "Incidental",
+  "source": "Realms of Terrinoth",
+  "page": "84"
  },
  {
   "code": "shapeshifter",
@@ -1516,9 +1654,11 @@
   "soak": 0,
   "mdef": 0,
   "rdef": 0,
-  "desc": "Когда персонаж выведен из строя из-за превышения порога напряжения в обычной форме, он внеходовым инцидентом преображается: полностью восстанавливает напряжение, повышает Силу и Ловкость на 1 (макс. 5) и снижает Интеллект и Волю на 1 (мин. 1). Безоружные атаки наносят +1 урон и имеют критическое 3, но персонаж не может использовать магические навыки и совершать дальние атаки. Возвращается в обычную форму через восемь часов или при выведении из строя.",
-  "descEn": "When the character is incapacitated by exceeding their strain threshold in their normal form, they may transform into their animal form as an out-of-turn incidental, healing strain and staying in the fight.",
-  "activationEn": "Passive"
+  "desc": "",
+  "descEn": "",
+  "activationEn": "Passive",
+  "source": "Realms of Terrinoth",
+  "page": "84"
  },
  {
   "code": "shield-slam",
@@ -1537,9 +1677,11 @@
   "soak": 0,
   "mdef": 0,
   "rdef": 0,
-  "desc": "При атаке щитом по приспешнику или сопернику персонаж может потратить 4 преимущества или триумф, чтобы ошеломить цель до конца её следующего хода. Условия обязательного попадания у правила нет.",
-  "descEn": "On a shield attack against a minion or rival, spend 4 advantage or a triumph to stagger the target until the end of its next turn. The rule has no requirement that the attack hit.",
-  "activationEn": "Incidental"
+  "desc": "",
+  "descEn": "",
+  "activationEn": "Incidental",
+  "source": "Realms of Terrinoth",
+  "page": "84"
  },
  {
   "code": "tavern-brawler",
@@ -1558,9 +1700,11 @@
   "soak": 0,
   "mdef": 0,
   "rdef": 0,
-  "desc": "Персонаж добавляет преимущество к проверкам Рукопашного боя и к боевым проверкам импровизированным оружием.",
-  "descEn": "The character adds an advantage to Brawl checks and to combat checks with improvised weapons.",
-  "activationEn": "Passive"
+  "desc": "",
+  "descEn": "",
+  "activationEn": "Passive",
+  "source": "Realms of Terrinoth",
+  "page": "87"
  },
  {
   "code": "templar",
@@ -1579,12 +1723,14 @@
   "soak": 0,
   "mdef": 0,
   "rdef": 0,
-  "desc": "Божественное теперь карьерный навык персонажа. Этим навыком он может сотворить лишь одно заклинание за столкновение.",
-  "descEn": "Divine becomes a career skill for the character. They may cast only one Divine spell per encounter with it.",
+  "desc": "",
+  "descEn": "",
   "activationEn": "Passive",
   "careerSkillNames": [
    "Divine"
-  ]
+  ],
+  "source": "Realms of Terrinoth",
+  "page": "87"
  },
  {
   "code": "tumble",
@@ -1603,9 +1749,11 @@
   "soak": 0,
   "mdef": 0,
   "rdef": 0,
-  "desc": "Раз за раунд в свой ход персонаж может получить 2 напряжения, чтобы выйти из ближнего боя со всеми сцепившимися с ним противниками.",
-  "descEn": "Once per round on their turn, the character may suffer 2 strain to disengage from all engaged opponents as an incidental.",
-  "activationEn": "Incidental"
+  "desc": "",
+  "descEn": "",
+  "activationEn": "Incidental",
+  "source": "Realms of Terrinoth",
+  "page": "87"
  },
  {
   "code": "adventurer",
@@ -1624,13 +1772,15 @@
   "soak": 0,
   "mdef": 0,
   "rdef": 0,
-  "desc": "Атлетика и Знание (приключения) теперь карьерные навыки персонажа.",
-  "descEn": "Athletics and Knowledge (Adventuring) become career skills for the character.",
+  "desc": "",
+  "descEn": "",
   "activationEn": "Passive",
   "careerSkillNames": [
    "Athletics",
    "Knowledge (Adventuring)"
-  ]
+  ],
+  "source": "Realms of Terrinoth",
+  "page": "87"
  },
  {
   "code": "bard",
@@ -1649,13 +1799,15 @@
   "soak": 0,
   "mdef": 0,
   "rdef": 0,
-  "desc": "Знание (предания) и Стих теперь карьерные навыки персонажа.",
-  "descEn": "Knowledge (Lore) and Verse become career skills for the character.",
+  "desc": "",
+  "descEn": "",
   "activationEn": "Passive",
   "careerSkillNames": [
    "Knowledge (Lore)",
    "Verse"
-  ]
+  ],
+  "source": "Realms of Terrinoth",
+  "page": "87"
  },
  {
   "code": "block",
@@ -1674,13 +1826,15 @@
   "soak": 0,
   "mdef": 0,
   "rdef": 0,
-  "desc": "Персонаж должен иметь талант Парирование. Держа щит, персонаж может использовать Парирование, чтобы снижать урон и от дальних атак, а не только от ближних.",
-  "descEn": "Your character must have Parry to benefit from this talent. While wielding a shield, the character may use Parry to reduce damage from ranged attacks as well.",
+  "desc": "",
+  "descEn": "",
   "activationEn": "Out-of-turn Incidental",
   "canUseOutOfTurn": true,
   "requiresTalent": "parirovanie",
   "strainCost": 3,
-  "trigger": "Персонаж получил попадание в ближнем бою"
+  "trigger": "",
+  "source": "Realms of Terrinoth",
+  "page": "87"
  },
  {
   "code": "blood-sacrifice",
@@ -1699,11 +1853,13 @@
   "soak": 0,
   "mdef": 0,
   "rdef": 0,
-  "desc": "Персонаж должен иметь талант Тёмное прозрение. Перед магической проверкой персонаж может получить несколько ран, чтобы добавить столько же успехов к проверке. Их количество не может превышать его рангов в Кровавой жертве.",
-  "descEn": "Your character must have Dark Insight to benefit from this talent. Before a magic check, the character may suffer several wounds to add an equal number of boost dice to the check.",
+  "desc": "",
+  "descEn": "",
   "activationEn": "Incidental",
   "requiresTalent": "dark-insight",
-  "trigger": "Перед магической проверкой"
+  "trigger": "",
+  "source": "Realms of Terrinoth",
+  "page": "87"
  },
  {
   "code": "bulwark",
@@ -1722,13 +1878,15 @@
   "soak": 0,
   "mdef": 0,
   "rdef": 0,
-  "desc": "Персонаж должен иметь талант Парирование. С оружием со свойством Defensive персонаж может использовать Парирование, чтобы снизить урон атаки, нацеленной на сцепившегося с ним союзника.",
-  "descEn": "Your character must have Parry to benefit from this talent. With a weapon that has the Defensive quality, the character may use Parry against attacks targeting an engaged ally, taking the reduced hit themselves.",
+  "desc": "",
+  "descEn": "",
   "activationEn": "Out-of-turn Incidental",
   "canUseOutOfTurn": true,
   "requiresTalent": "parirovanie",
   "strainCost": 3,
-  "trigger": "Союзник вплотную получил попадание в ближнем бою"
+  "trigger": "",
+  "source": "Realms of Terrinoth",
+  "page": "87"
  },
  {
   "code": "chill-of-nordros",
@@ -1747,12 +1905,14 @@
   "soak": 0,
   "mdef": 0,
   "rdef": 0,
-  "desc": "Персонаж не может взять этот талант, если взял Пламя Келлоса. При сотворении атакующего заклинания персонаж может добавить эффект Лёд без повышения сложности. Он никогда не может добавить эффект Огонь.",
-  "descEn": "The character cannot take this talent if they have Flames of Kellos. When casting an Attack spell, the character may add the Ensnare quality to it without increasing the difficulty.",
+  "desc": "",
+  "descEn": "",
   "activationEn": "Incidental",
   "excludesTalents": [
    "flames-of-kellos"
-  ]
+  ],
+  "source": "Realms of Terrinoth",
+  "page": "88"
  },
  {
   "code": "dirty-tricks",
@@ -1771,9 +1931,11 @@
   "soak": 0,
   "mdef": 0,
   "rdef": 0,
-  "desc": "После того как персонаж наносит противнику критическую травму, он может повысить сложность следующей проверки этого противника.",
-  "descEn": "After the character inflicts a critical injury on an opponent, they may upgrade the difficulty of the target's next check.",
-  "activationEn": "Incidental"
+  "desc": "",
+  "descEn": "",
+  "activationEn": "Incidental",
+  "source": "Realms of Terrinoth",
+  "page": "88"
  },
  {
   "code": "dominion-of-the-dimora",
@@ -1792,12 +1954,14 @@
   "soak": 0,
   "mdef": 0,
   "rdef": 0,
-  "desc": "Персонаж не может взять этот талант, если взял Благосклонность фей. При сотворении атакующего заклинания персонаж может добавить эффект Удар (Impact) без повышения сложности. Он никогда не может добавить эффект Манипуляция.",
-  "descEn": "The character cannot take this talent if they have Favor of the Fae. When casting an Attack spell, the character may add the Knockdown quality to it without increasing the difficulty.",
+  "desc": "",
+  "descEn": "",
   "activationEn": "Incidental",
   "excludesTalents": [
    "favor-of-the-fae"
-  ]
+  ],
+  "source": "Realms of Terrinoth",
+  "page": "88"
  },
  {
   "code": "encouraging-song",
@@ -1816,9 +1980,11 @@
   "soak": 0,
   "mdef": 0,
   "rdef": 0,
-  "desc": "Требуется музыкальный инструмент. Действием персонаж совершает проверку Обаяния или Стиха сложности «Средняя» (2). За каждый успех выбирается один союзник на средней дистанции: он добавляет один бонус-кубик к своей следующей проверке. За каждое преимущество один из уже выбранных союзников исцеляет 1 усталость.",
-  "descEn": "Requires a musical instrument. As an action, make an Average (2) Charm or Verse check. For each success, choose one ally at medium range: they add one boost die to their next check. For each advantage, one already-chosen ally heals 1 strain.",
-  "activationEn": "Action"
+  "desc": "",
+  "descEn": "",
+  "activationEn": "Action",
+  "source": "Realms of Terrinoth",
+  "page": "88"
  },
  {
   "code": "exploit",
@@ -1837,10 +2003,12 @@
   "soak": 0,
   "mdef": 0,
   "rdef": 0,
-  "desc": "При боевой проверке Дальним боем или Ближним боем (лёгким) персонаж может получить 2 напряжения, чтобы добавить атаке свойство Ensnare с рейтингом, равным его рангам в Использовании слабости.",
-  "descEn": "When making a Ranged or Melee (Light) combat check, the character may suffer 2 strain to add advantage to the results equal to their ranks in Skulduggery.",
+  "desc": "",
+  "descEn": "",
   "activationEn": "Incidental",
-  "strainCost": 2
+  "strainCost": 2,
+  "source": "Realms of Terrinoth",
+  "page": "88"
  },
  {
   "code": "favor-of-the-fae",
@@ -1859,12 +2027,14 @@
   "soak": 0,
   "mdef": 0,
   "rdef": 0,
-  "desc": "Персонаж не может взять этот талант, если взял Власть Диморы. При сотворении атакующего заклинания персонаж может добавить эффект Манипуляция без повышения сложности. Он никогда не может добавить эффект Удар (Impact).",
-  "descEn": "The character cannot take this talent if they have Dominion of the Dimora. When casting an Attack spell, the character may add the Stun quality to it without increasing the difficulty.",
+  "desc": "",
+  "descEn": "",
   "activationEn": "Incidental",
   "excludesTalents": [
    "dominion-of-the-dimora"
-  ]
+  ],
+  "source": "Realms of Terrinoth",
+  "page": "88"
  },
  {
   "code": "flames-of-kellos",
@@ -1883,12 +2053,14 @@
   "soak": 0,
   "mdef": 0,
   "rdef": 0,
-  "desc": "Персонаж не может взять этот талант, если взял Холод Нордроса. При сотворении атакующего заклинания персонаж может добавить эффект Огонь без повышения сложности. Он никогда не может добавить эффект Лёд.",
-  "descEn": "The character cannot take this talent if they have Chill of Nordros. When casting an Attack spell, the character may add the Burn quality to it without increasing the difficulty.",
+  "desc": "",
+  "descEn": "",
   "activationEn": "Incidental",
   "excludesTalents": [
    "chill-of-nordros"
-  ]
+  ],
+  "source": "Realms of Terrinoth",
+  "page": "88"
  },
  {
   "code": "flash-of-insight",
@@ -1907,9 +2079,11 @@
   "soak": 0,
   "mdef": 0,
   "rdef": 0,
-  "desc": "При выпадении триумфа на проверке знания персонаж отдельно бросает два бонус-кубика и добавляет их результат к проверке. Исходный триумф при этом остаётся доступен для обычной траты.",
-  "descEn": "When a triumph is rolled on a knowledge check, separately roll two boost dice and add their result to the check. The original triumph remains available to spend as usual.",
-  "activationEn": "Passive"
+  "desc": "",
+  "descEn": "",
+  "activationEn": "Passive",
+  "source": "Realms of Terrinoth",
+  "page": "88"
  },
  {
   "code": "grapple",
@@ -1928,9 +2102,11 @@
   "soak": 0,
   "mdef": 0,
   "rdef": 0,
-  "desc": "Персонаж может получить 2 напряжения, чтобы активировать этот талант. До начала следующего хода персонажа врагам нужно потратить два манёвра, чтобы выйти из ближнего боя с ним.",
-  "descEn": "The character may suffer 2 strain to activate this talent. Until the start of the character's next turn, enemies must spend 2 maneuvers instead of 1 to disengage from them.",
-  "activationEn": "Incidental"
+  "desc": "",
+  "descEn": "",
+  "activationEn": "Incidental",
+  "source": "Realms of Terrinoth",
+  "page": "88"
  },
  {
   "code": "heroic-recovery",
@@ -1949,12 +2125,14 @@
   "soak": 0,
   "mdef": 0,
   "rdef": 0,
-  "desc": "При получении этого таланта выберите характеристику. Раз за столкновение можно потратить Story Point, чтобы персонаж восстановил напряжение, равное значению выбранной характеристики.",
-  "descEn": "When you acquire this talent, choose a characteristic. Once per encounter, you may spend a story point to heal strain equal to that characteristic's rating.",
+  "desc": "",
+  "descEn": "",
   "activationEn": "Incidental",
   "usesPerScope": 1,
   "useScope": "Encounter",
-  "storyPointCost": 1
+  "storyPointCost": 1,
+  "source": "Realms of Terrinoth",
+  "page": "88"
  },
  {
   "code": "hunter",
@@ -1973,14 +2151,16 @@
   "soak": 0,
   "mdef": 0,
   "rdef": 0,
-  "desc": "Знание (география), Дальний бой и Выживание теперь карьерные навыки персонажа.",
-  "descEn": "Knowledge (Geography), Ranged and Survival become career skills for the character.",
+  "desc": "",
+  "descEn": "",
   "activationEn": "Passive",
   "careerSkillNames": [
    "Knowledge (Geography)",
    "Ranged",
    "Survival"
-  ]
+  ],
+  "source": "Realms of Terrinoth",
+  "page": "88"
  },
  {
   "code": "impaling-strike",
@@ -1999,10 +2179,12 @@
   "soak": 0,
   "mdef": 0,
   "rdef": 0,
-  "desc": "Талант доступен только после того, как оружие ближнего боя действительно нанесло критическое ранение. Инцидентом без дополнительной цены персонаж обездвиживает ту же цель до конца её следующего хода — в дополнение к самому критическому ранению. При дальней атаке и без наложенного критического ранения талант недоступен.",
-  "descEn": "Available only after a melee weapon has actually inflicted a Critical Injury. As an incidental at no further cost, immobilize that same target until the end of its next turn, in addition to the Critical Injury itself. It is unavailable on a ranged attack or without an applied critical.",
+  "desc": "",
+  "descEn": "",
   "activationEn": "Incidental",
-  "trigger": "Оружие ближнего боя нанесло критическое ранение"
+  "trigger": "",
+  "source": "Realms of Terrinoth",
+  "page": "88"
  },
  {
   "code": "natural-communion",
@@ -2021,9 +2203,11 @@
   "soak": 0,
   "mdef": 0,
   "rdef": 0,
-  "desc": "Когда персонаж использует магическое действие Призыв, заклинание получает эффект «Призыв союзника» без повышения сложности. Все призванные существа должны быть обычными животными, обитающими в данной местности.",
-  "descEn": "When the character uses the Conjure magic action, the spell gains the Summon Ally effect without increasing the difficulty.",
-  "activationEn": "Passive"
+  "desc": "",
+  "descEn": "",
+  "activationEn": "Passive",
+  "source": "Realms of Terrinoth",
+  "page": "88"
  },
  {
   "code": "reckless-charge",
@@ -2042,9 +2226,11 @@
   "soak": 0,
   "mdef": 0,
   "rdef": 0,
-  "desc": "После манёвра сближения с противником персонаж может получить 2 напряжения, чтобы добавить к результатам следующей в этом ходу боевой проверки Рукопашного боя или Ближнего боя 2 успеха и 2 угрозы.",
-  "descEn": "After a maneuver to engage an opponent, the character may suffer 2 strain to add two successes and two threat to the results of their next Brawl or Melee combat check this turn.",
-  "activationEn": "Incidental"
+  "desc": "",
+  "descEn": "",
+  "activationEn": "Incidental",
+  "source": "Realms of Terrinoth",
+  "page": "89"
  },
  {
   "code": "runic-lore",
@@ -2063,13 +2249,15 @@
   "soak": 0,
   "mdef": 0,
   "rdef": 0,
-  "desc": "Знание (предания) и Руны теперь карьерные навыки персонажа.",
-  "descEn": "Knowledge (Lore) and Runes become career skills for the character.",
+  "desc": "",
+  "descEn": "",
   "activationEn": "Passive",
   "careerSkillNames": [
    "Knowledge (Lore)",
    "Runes"
-  ]
+  ],
+  "source": "Realms of Terrinoth",
+  "page": "89"
  },
  {
   "code": "shapeshifter-improved",
@@ -2088,14 +2276,16 @@
   "soak": 0,
   "mdef": 0,
   "rdef": 0,
-  "desc": "Раз за сессию персонаж может совершить проверку Дисциплины (Hard) внеходовым инцидентом, чтобы запустить Оборотня или, наоборот, не дать ему сработать при превышении порога напряжения.",
-  "descEn": "Once per session, the character may make a Hard Discipline check as an out-of-turn incidental to trigger their transformation defensively and avoid an incoming hit.",
+  "desc": "",
+  "descEn": "",
   "activationEn": "Triggered Incidental",
   "canUseOutOfTurn": true,
   "requiresTalent": "shapeshifter",
   "usesPerScope": 1,
   "useScope": "Session",
-  "trigger": "Обязательное превращение либо решение превратиться вручную"
+  "trigger": "",
+  "source": "Realms of Terrinoth",
+  "page": "89"
  },
  {
   "code": "templar-improved",
@@ -2114,10 +2304,12 @@
   "soak": 0,
   "mdef": 0,
   "rdef": 0,
-  "desc": "Требуется Templar. Для одного божественного заклинания, разрешённого Templar, персонаж игнорирует кубики помех за тяжёлую броню (поглощение +2), щит и отсутствие свободной руки. Сложность при этом не снижается.",
-  "descEn": "Requires Templar. For one Divine spell allowed by Templar, ignore setback dice from heavy armour (soak +2), a shield, or the lack of a free hand. The difficulty is not reduced.",
+  "desc": "",
+  "descEn": "",
   "activationEn": "Passive",
-  "requiresTalent": "templar"
+  "requiresTalent": "templar",
+  "source": "Realms of Terrinoth",
+  "page": "89"
  },
  {
   "code": "threaten",
@@ -2136,12 +2328,14 @@
   "soak": 0,
   "mdef": 0,
   "rdef": 0,
-  "desc": "После того как противник в короткой дистанции наносит урон союзнику персонажа боевой проверкой, персонаж может получить 3 напряжения, чтобы нанести противнику напряжение, равное его рангам в Принуждении. Дальность таланта растёт на одну ступень за каждый ранг сверх первого.",
-  "descEn": "After an opponent within short range deals damage to the character's ally with a combat check, the character may suffer 1 strain as an out-of-turn incidental to force that opponent to suffer strain equal to the character's ranks in Coercion.",
+  "desc": "",
+  "descEn": "",
   "activationEn": "Out-of-turn Incidental",
   "canUseOutOfTurn": true,
   "strainCost": 3,
-  "trigger": "Проверка противника нанесла урон союзнику"
+  "trigger": "",
+  "source": "Realms of Terrinoth",
+  "page": "89"
  },
  {
   "code": "well-traveled",
@@ -2160,14 +2354,16 @@
   "soak": 0,
   "mdef": 0,
   "rdef": 0,
-  "desc": "Знание (география), Переговоры и Бдительность теперь карьерные навыки персонажа.",
-  "descEn": "Knowledge (Geography), Negotiation and Vigilance become career skills for the character.",
+  "desc": "",
+  "descEn": "",
   "activationEn": "Passive",
   "careerSkillNames": [
    "Knowledge (Geography)",
    "Negotiation",
    "Vigilance"
-  ]
+  ],
+  "source": "Realms of Terrinoth",
+  "page": "89"
  },
  {
   "code": "wraithbane",
@@ -2186,9 +2382,11 @@
   "soak": 0,
   "mdef": 0,
   "rdef": 0,
-  "desc": "При атаке по нежити персонаж считает критическое значение своего оружия на 1 меньше (минимум 1).",
-  "descEn": "When attacking undead, the character treats the critical rating of their weapon as 1 lower, to a minimum of 1.",
-  "activationEn": "Passive"
+  "desc": "",
+  "descEn": "",
+  "activationEn": "Passive",
+  "source": "Realms of Terrinoth",
+  "page": "89"
  },
  {
   "code": "backstab",
@@ -2207,9 +2405,11 @@
   "soak": 0,
   "mdef": 0,
   "rdef": 0,
-  "desc": "Персонаж может атаковать ничего не подозревающего противника оружием Ближнего боя (лёгким). Это ближняя атака по обычным правилам, но используется навык Плутовство вместо Ближнего боя (лёгкого). При успехе каждый неотменённый успех добавляет +2 урона вместо обычного +1.",
-  "descEn": "The character may attack an unsuspecting opponent with a Melee (Light) weapon. The attack uses Skulduggery, and each success deals +2 damage instead of +1.",
-  "activationEn": "Action"
+  "desc": "",
+  "descEn": "",
+  "activationEn": "Action",
+  "source": "Realms of Terrinoth",
+  "page": "89"
  },
  {
   "code": "battle-casting",
@@ -2228,9 +2428,11 @@
   "soak": 0,
   "mdef": 0,
   "rdef": 0,
-  "desc": "Персонаж игнорирует кубики помех за сотворение заклинания в тяжёлой броне (поглощение +2), со щитом и с занятой рукой. Наличие оружия само по себе условием не является.",
-  "descEn": "The character ignores setback dice for casting in heavy armour (soak +2), with a shield, or with an occupied hand. Merely holding a weapon is not itself a condition.",
-  "activationEn": "Passive"
+  "desc": "",
+  "descEn": "",
+  "activationEn": "Passive",
+  "source": "Realms of Terrinoth",
+  "page": "90"
  },
  {
   "code": "body-guard",
@@ -2249,11 +2451,13 @@
   "soak": 0,
   "mdef": 0,
   "rdef": 0,
-  "desc": "Раз за раунд персонаж может получить напряжение (не больше своих рангов в Телохранителе). Выберите союзника, сцепившегося с персонажем; до конца следующего хода персонажа повысьте сложность всех боевых проверок по этому союзнику столько раз, сколько получено напряжения.",
-  "descEn": "Once per round, the character may suffer strain no greater than their ranks in Body Guard. Choose an engaged ally: upgrade the difficulty of all combat checks targeting that ally that many times until the start of the character's next turn.",
+  "desc": "",
+  "descEn": "",
   "activationEn": "Maneuver",
   "usesPerScope": 1,
-  "useScope": "Round"
+  "useScope": "Round",
+  "source": "Realms of Terrinoth",
+  "page": "90"
  },
  {
   "code": "cavalier",
@@ -2272,12 +2476,14 @@
   "soak": 0,
   "mdef": 0,
   "rdef": 0,
-  "desc": "Верхом на боевом скакуне (обычно боевой или летающий скакун) раз за раунд персонаж может приказать скакуну совершить действие.",
-  "descEn": "While riding a war mount (typically a combat or flying mount), once per round the character may order the mount to perform one maneuver as an incidental.",
+  "desc": "",
+  "descEn": "",
   "activationEn": "Maneuver",
   "usesPerScope": 1,
   "useScope": "Round",
-  "trigger": "Верхом на боевом скакуне"
+  "trigger": "",
+  "source": "Realms of Terrinoth",
+  "page": "90"
  },
  {
   "code": "counterattack",
@@ -2296,12 +2502,14 @@
   "soak": 0,
   "mdef": 0,
   "rdef": 0,
-  "desc": "Персонаж должен иметь талант Парирование (улучшенное). Когда персонаж бьёт атакующего с помощью Парирования (улучшенного), он также может активировать одно свойство использованного оружия, как если бы выбросил 2 преимущества боевой проверкой этим оружием.",
-  "descEn": "Your character must have Parry (Improved) to benefit from this talent. When the character strikes an attacker using Parry (Improved), the hit also staggers the attacker until the end of its next turn.",
+  "desc": "",
+  "descEn": "",
   "activationEn": "Out-of-turn Incidental",
   "canUseOutOfTurn": true,
   "requiresTalent": "parirovanie-u-luchshennyy",
-  "trigger": "Сработало контр-попадание парирования"
+  "trigger": "",
+  "source": "Realms of Terrinoth",
+  "page": "90"
  },
  {
   "code": "dissonance",
@@ -2320,9 +2528,11 @@
   "soak": 0,
   "mdef": 0,
   "rdef": 0,
-  "desc": "Требуется музыкальный инструмент. Действием персонаж совершает проверку Обаяния или Стиха сложности «Средняя» (2). За каждый успех выбранный враг на средней дистанции получает 1 рану. За каждое преимущество один из уже затронутых врагов получает ещё 1 рану.",
-  "descEn": "Requires a musical instrument. As an action, make an Average (2) Charm or Verse check. For each success, a chosen enemy at medium range suffers 1 wound. For each advantage, one already-affected enemy suffers 1 more wound.",
-  "activationEn": "Action"
+  "desc": "",
+  "descEn": "",
+  "activationEn": "Action",
+  "source": "Realms of Terrinoth",
+  "page": "90"
  },
  {
   "code": "dual-strike",
@@ -2341,9 +2551,11 @@
   "soak": 0,
   "mdef": 0,
   "rdef": 0,
-  "desc": "При совмещённой проверке атаки двумя оружиями в ближнем бою персонаж может получить 2 напряжения, чтобы попасть вспомогательным оружием (вместо траты 2 преимуществ).",
-  "descEn": "When making a combined combat check with two melee weapons, the character may suffer 2 strain to hit with the secondary weapon as well without spending advantage.",
-  "activationEn": "Incidental"
+  "desc": "",
+  "descEn": "",
+  "activationEn": "Incidental",
+  "source": "Realms of Terrinoth",
+  "page": "90"
  },
  {
   "code": "easy-prey",
@@ -2362,10 +2574,12 @@
   "soak": 0,
   "mdef": 0,
   "rdef": 0,
-  "desc": "Манёвром персонаж получает 3 усталости. До начала своего следующего хода он и союзники на короткой дистанции добавляют два бонус-кубика к боевым проверкам, но только против обездвиженных целей. На ошеломлённые цели это не распространяется.",
-  "descEn": "As a maneuver, suffer 3 strain. Until the start of the character’s next turn, they and allies at short range add two boost dice to combat checks, but only against immobilized targets. Staggered targets are not affected.",
+  "desc": "",
+  "descEn": "",
   "activationEn": "Maneuver",
-  "strainCost": 3
+  "strainCost": 3,
+  "source": "Realms of Terrinoth",
+  "page": "90"
  },
  {
   "code": "justice-of-the-citadel",
@@ -2384,12 +2598,14 @@
   "soak": 0,
   "mdef": 0,
   "rdef": 0,
-  "desc": "Раз за раунд в свой ход персонаж может получить 3 напряжения, чтобы добавить урон, равный своим рангам в Дисциплине, к одному попаданию успешной ближней атаки.",
-  "descEn": "Once per round on their turn, the character may suffer 3 strain to add damage equal to their ranks in Discipline to one hit of a successful combat check against an undead or demonic target.",
+  "desc": "",
+  "descEn": "",
   "activationEn": "Incidental",
   "usesPerScope": 1,
   "useScope": "Round",
-  "strainCost": 3
+  "strainCost": 3,
+  "source": "Realms of Terrinoth",
+  "page": "90"
  },
  {
   "code": "potent-concoctions",
@@ -2408,9 +2624,11 @@
   "soak": 0,
   "mdef": 0,
   "rdef": 0,
-  "desc": "При выпадении триумфа на проверке Алхимии персонаж бросает один кубик умения и добавляет его результат к проверке. То же самое отдельно происходит при выпадении отчаяния. Каждое из двух срабатываний применяется не больше одного раза за проверку.",
-  "descEn": "When a triumph is rolled on an Alchemy check, roll one proficiency die and add its result to the check. The same happens separately on a despair. Each of the two triggers applies at most once per check.",
-  "activationEn": "Passive"
+  "desc": "",
+  "descEn": "",
+  "activationEn": "Passive",
+  "source": "Realms of Terrinoth",
+  "page": "90"
  },
  {
   "code": "precise-archery",
@@ -2429,9 +2647,11 @@
   "soak": 0,
   "mdef": 0,
   "rdef": 0,
-  "desc": "При дальней боевой проверке по цели, сцепленной с союзником персонажа, сложность проверки понижается один раз — это понижение ступени, а не снижение сложности.",
-  "descEn": "On a ranged combat check against a target engaged with an ally, downgrade the check’s difficulty once — this is a downgrade, not a reduction.",
-  "activationEn": "Passive"
+  "desc": "",
+  "descEn": "",
+  "activationEn": "Passive",
+  "source": "Realms of Terrinoth",
+  "page": "90"
  },
  {
   "code": "pressure-point",
@@ -2450,9 +2670,11 @@
   "soak": 0,
   "mdef": 0,
   "rdef": 0,
-  "desc": "При безоружной проверке Рукопашного боя по живому противнику персонаж может наносить урон напряжением вместо ран и дополнительно наносить напряжение, равное своим рангам в Медицине.",
-  "descEn": "When making an unarmed Brawl check against a living opponent, the character may deal strain damage instead of wounds, adding damage equal to their ranks in Medicine.",
-  "activationEn": "Incidental"
+  "desc": "",
+  "descEn": "",
+  "activationEn": "Incidental",
+  "source": "Realms of Terrinoth",
+  "page": "90"
  },
  {
   "code": "shockwave",
@@ -2471,9 +2693,11 @@
   "soak": 0,
   "mdef": 0,
   "rdef": 0,
-  "desc": "Оружие Ближнего боя (тяжёлого) в руках персонажа обладает свойством Blast с рейтингом, равным его рангам в Ближнем бою (тяжёлом). Сам персонаж невосприимчив к Blast собственного оружия.",
-  "descEn": "A Melee (Heavy) weapon wielded by the character has Blast with a rating equal to their ranks in Melee (Heavy). The character is immune to their own weapon’s Blast.",
-  "activationEn": "Passive"
+  "desc": "",
+  "descEn": "",
+  "activationEn": "Passive",
+  "source": "Realms of Terrinoth",
+  "page": "90"
  },
  {
   "code": "back-to-back",
@@ -2492,9 +2716,11 @@
   "soak": 0,
   "mdef": 0,
   "rdef": 0,
-  "desc": "Пока персонаж сцеплен хотя бы с одним союзником, он и такие союзники добавляют один бонус-кубик к боевым проверкам. Если сцепленный союзник тоже владеет этим талантом, совокупный максимум — два бонус-кубика.",
-  "descEn": "While the character is engaged with at least one ally, they and those allies add one boost die to combat checks. If an engaged ally also has this talent, the combined maximum is two boost dice.",
-  "activationEn": "Passive"
+  "desc": "",
+  "descEn": "",
+  "activationEn": "Passive",
+  "source": "Realms of Terrinoth",
+  "page": "91"
  },
  {
   "code": "death-rage",
@@ -2513,9 +2739,11 @@
   "soak": 0,
   "mdef": 0,
   "rdef": 0,
-  "desc": "Персонаж наносит +2 урона атаками ближнего боя за каждое критическое ранение, которым он страдает в данный момент. Верхнего предела у этой прибавки нет.",
-  "descEn": "The character deals +2 melee damage for each Critical Injury they currently suffer. There is no upper limit on this bonus.",
-  "activationEn": "Passive"
+  "desc": "",
+  "descEn": "",
+  "activationEn": "Passive",
+  "source": "Realms of Terrinoth",
+  "page": "91"
  },
  {
   "code": "venom-soaked-blade",
@@ -2534,9 +2762,11 @@
   "soak": 0,
   "mdef": 0,
   "rdef": 0,
-  "desc": "При проверке Ближнего боя (лёгкого) отравленным оружием персонаж считает его обладающим свойством Burn 2.",
-  "descEn": "When making a Melee (Light) check with a poisoned weapon, the character treats it as having Burn 2.",
-  "activationEn": "Passive"
+  "desc": "",
+  "descEn": "",
+  "activationEn": "Passive",
+  "source": "Realms of Terrinoth",
+  "page": "91"
  },
  {
   "code": "signature-spell-improved",
@@ -2555,10 +2785,12 @@
   "soak": 0,
   "mdef": 0,
   "rdef": 0,
-  "desc": "Требуется Signature Spell. Снижение итоговой сложности закреплённой комбинации становится равным 2 — это замена прежней величины, а не прибавка к ней.",
-  "descEn": "Requires Signature Spell. The final-difficulty reduction for the fixed combination becomes 2 — it replaces the earlier value rather than adding to it.",
+  "desc": "",
+  "descEn": "",
   "activationEn": "Passive",
-  "requiresTalent": "signature-spell"
+  "requiresTalent": "signature-spell",
+  "source": "Realms of Terrinoth",
+  "page": "91"
  },
  {
   "code": "unrelenting",
@@ -2577,9 +2809,11 @@
   "soak": 0,
   "mdef": 0,
   "rdef": 0,
-  "desc": "После успешной атаки персонаж совершает вторую атаку по той же цели. Если она делается другим оружием, её сложность выше на 1; если тем же оружием — выше на 2.",
-  "descEn": "After a successful attack, make a second attack against the same target. If it uses a different weapon its difficulty is 1 higher; with the same weapon it is 2 higher.",
-  "activationEn": "Incidental"
+  "desc": "",
+  "descEn": "",
+  "activationEn": "Incidental",
+  "source": "Realms of Terrinoth",
+  "page": "91"
  },
  {
   "code": "crushing-blow",
@@ -2598,13 +2832,15 @@
   "soak": 0,
   "mdef": 0,
   "rdef": 0,
-  "desc": "Раз за сессию после броска ближней атаки, но до разрешения проверки, персонаж может получить 4 напряжения. При разрешении проверки оружие получает свойства Breach 1 и Knockdown и уничтожает один предмет в руках цели без свойства Reinforced.",
-  "descEn": "Once per session, after rolling a melee attack but before resolving the check, the character may suffer 4 strain. If the attack hits, it gains Knockdown, Sunder and +1 damage per success.",
+  "desc": "",
+  "descEn": "",
   "activationEn": "Incidental",
   "usesPerScope": 1,
   "useScope": "Session",
   "strainCost": 4,
-  "trigger": "После броска ближнего боя, до разрешения"
+  "trigger": "",
+  "source": "Realms of Terrinoth",
+  "page": "91"
  },
  {
   "code": "whirlwind",
@@ -2623,9 +2859,11 @@
   "soak": 0,
   "mdef": 0,
   "rdef": 0,
-  "desc": "Действием персонаж атакует, используя самую высокую сложность среди сцепленных с ним противников, и затем повышает её ещё на 1. При успехе каждый сцепленный противник получает урон, равный базовому урону оружия плюс общее число успехов.",
-  "descEn": "As an action, attack using the highest difficulty among enemies engaged with the character, then increase it by 1. On success every engaged enemy suffers damage equal to the weapon’s base damage plus the total successes.",
-  "activationEn": "Action"
+  "desc": "",
+  "descEn": "",
+  "activationEn": "Action",
+  "source": "Realms of Terrinoth",
+  "page": "91"
  },
  {
   "code": "zealous-fire",
@@ -2644,9 +2882,11 @@
   "soak": 0,
   "mdef": 0,
   "rdef": 0,
-  "desc": "Каждый раз, когда ведущий тратит Story Point, персонаж восстанавливает 2 напряжения.",
-  "descEn": "Each time the GM spends a story point, the character heals 2 strain.",
-  "activationEn": "Passive"
+  "desc": "",
+  "descEn": "",
+  "activationEn": "Passive",
+  "source": "Realms of Terrinoth",
+  "page": "91"
  },
  {
   "code": "challenge",
@@ -2660,8 +2900,8 @@
   ],
   "activation": "Манёвр",
   "activationEn": "Maneuver",
-  "desc": "Раз за столкновение манёвром выбирает противников на короткой дистанции числом не больше своих рангов; группа приспешников считается одной целью. До конца столкновения выбранная цель получает один бонус-кубик, атакуя владельца таланта, и два кубика помех, атакуя любого другого.",
-  "descEn": "Once per encounter as a maneuver, mark up to as many enemies at short range as the talent’s ranks; a minion group counts as a single target. Until the end of the encounter a marked enemy adds one boost die when attacking the talent’s owner and two setback dice when attacking anyone else.",
+  "desc": "",
+  "descEn": "",
   "wt": 0,
   "st": 0,
   "soak": 0,
@@ -2669,7 +2909,9 @@
   "rdef": 0,
   "needsTranslation": false,
   "usesPerScope": 1,
-  "useScope": "Encounter"
+  "useScope": "Encounter",
+  "source": "Realms of Terrinoth",
+  "page": "84"
  },
  {
   "code": "lets-talk-this-over",
@@ -2684,8 +2926,8 @@
   "activation": "Инцидент вне хода",
   "activationEn": "Out-of-turn Incidental",
   "canUseOutOfTurn": true,
-  "desc": "Раз за сессию, прежде чем начнётся бой с разумными существами, владелец выполняет проверку Обаяния сложности «Устрашающая» (4). При успехе начинающийся бой заменяется социальным столкновением.",
-  "descEn": "Once per session, before combat with intelligent creatures begins, make a Daunting (4) Charm check. On success the fight that was about to start becomes a social encounter instead.",
+  "desc": "",
+  "descEn": "",
   "wt": 0,
   "st": 0,
   "soak": 0,
@@ -2694,7 +2936,9 @@
   "needsTranslation": false,
   "usesPerScope": 1,
   "useScope": "Session",
-  "trigger": "Перед началом боя с разумными существами"
+  "trigger": "",
+  "source": "Realms of Terrinoth",
+  "page": "91"
  },
  {
   "code": "retribution",
@@ -2709,8 +2953,8 @@
   "activation": "Инцидент вне хода",
   "activationEn": "Out-of-turn Incidental",
   "canUseOutOfTurn": true,
-  "desc": "Раз за раунд, когда противник атакует союзника на средней дистанции, владелец тратит одно очко сюжета игроков. Если противник находится в пределах дистанции готового оружия владельца, тот попадает автоматически: урон равен базовому урону оружия плюс применимые постоянные бонусы. Успехи не прибавляются, потому что броска не происходит.",
-  "descEn": "Once per round, when an enemy attacks an ally at medium range, spend one player Story Point. If the enemy is within range of the owner’s readied weapon, the owner hits automatically: damage equals the weapon’s base damage plus applicable static bonuses. No successes are added, because no check is rolled.",
+  "desc": "",
+  "descEn": "",
   "wt": 0,
   "st": 0,
   "soak": 0,
@@ -2720,6 +2964,8 @@
   "usesPerScope": 1,
   "useScope": "Round",
   "storyPointCost": 1,
-  "trigger": "Противник атакует союзника на средней дистанции"
+  "trigger": "",
+  "source": "Realms of Terrinoth",
+  "page": "91"
  }
 ]

@@ -21,7 +21,7 @@ public static class TalentCatalog
         bool CanUseOutOfTurn = false, string[]? RetiredIn = null, string[]? CareerSkillNames = null,
         string RequiresTalent = "", string[]? ExcludesTalents = null,
         int UsesPerScope = 0, string UseScope = "None", int StoryPointCost = 0, int StrainCost = 0,
-        string Trigger = "");
+        string Trigger = "", string Source = "", string Page = "");
 
     private static readonly JsonSerializerOptions JsonOptions = new() { PropertyNameCaseInsensitive = true };
 
@@ -44,9 +44,10 @@ public static class TalentCatalog
                 ? new[] { GameSystem.GenesysCore, GameSystem.RealmsOfTerrinoth }
                 : [GameSystem.RealmsOfTerrinoth];
 
-            var source = setting.HasFlag(GenesysSetting.Any)
-                ? "Genesys: расширенный список талантов"
-                : "Realms of Terrinoth, гл. «Таланты»";
+            var text = PrivateRuleTextCatalog.Get($"talent.{e.Code}", assembly);
+            var source = string.IsNullOrWhiteSpace(e.Page)
+                ? $"{e.Source}, страница не подтверждена"
+                : $"{e.Source}, с. {e.Page}";
 
             // Талант может быть исключён из активного каталога одной системы и остаться в другой:
             // ошибочная принадлежность RoT PC catalog не удаляет запись из Genesys Core.
@@ -79,11 +80,11 @@ public static class TalentCatalog
                         ? scope : AbilityUseScope.None,
                     StoryPointCost = e.StoryPointCost,
                     StrainCost = e.StrainCost,
-                    Trigger = e.Trigger,
+                    Trigger = text.Trigger,
                     Retired = retiredIn.Contains(sys),
                     GrantsCharacteristic = e.GrantsCharacteristic,
-                    SafeDescription = e.Desc,
-                    DescriptionEn = e.DescEn,
+                    SafeDescription = text.Desc,
+                    DescriptionEn = text.DescEn,
                     WoundBonus = e.Wt, StrainBonus = e.St, SoakBonus = e.Soak,
                     MeleeDefenseBonus = e.Mdef, RangedDefenseBonus = e.Rdef,
                     Source = source,

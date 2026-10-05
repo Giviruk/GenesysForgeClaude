@@ -13,4 +13,4 @@ public record CharacterTalentDto(Guid TalentDefId, string Name, string NameRu, i
     /// <summary>Английский тайминг активации и возможность применения вне хода (ROT-TAL-01).</summary>
     string ActivationEn = "", bool CanUseOutOfTurn = false,
     /// <summary>Стабильный bare-код определения таланта для структурных правил UI.</summary>
-    string LinkCode = "");
+    string LinkCode = "", string Source = "");

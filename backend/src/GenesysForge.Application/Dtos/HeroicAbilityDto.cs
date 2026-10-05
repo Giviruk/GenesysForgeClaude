@@ -2,7 +2,7 @@ using GenesysForge.Domain;
 
 namespace GenesysForge.Application.Dtos;
 
-public record HeroicAbilityUpgradeDto(int Level, int Cost, string Description, string Notes, string DescriptionEn = "");
+public record HeroicAbilityUpgradeDto(int Level, int Cost, string Description, string Notes, string DescriptionEn = "", string Source = "");
 
 /// <summary>Структурный эффект автоматизации способности (U-18).</summary>
 public record RuleEffectDto(RuleEffectKind Kind, int Amount, string Duration, string Description);

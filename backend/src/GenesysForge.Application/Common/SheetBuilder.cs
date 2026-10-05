@@ -87,7 +87,7 @@ public static class SheetBuilder
                 .Select(x => new CharacterTalentChoiceDto(x.RankIndex, x.Kind, x.Value, x.DisplayName))
                 .ToList(),
             t.NeedsChoice, t.TalentDef.ActivationEn, t.TalentDef.CanUseOutOfTurn,
-            TalentPurchasePolicy.BareCode(t.TalentDef.Code)))
+            TalentPurchasePolicy.BareCode(t.TalentDef.Code), t.TalentDef.Source))
         .ToList();
 
     /// <summary>

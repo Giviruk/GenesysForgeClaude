@@ -55,7 +55,11 @@ public static class SeedData
         ProjectContent(heroics, mode, store);
         // Улучшения Power не входят в content-model, но несут тот же полный текст правила.
         if (mode == ContentMode.PublicSafe)
-            foreach (var upgrade in heroics.SelectMany(h => h.Upgrades)) upgrade.Description = "";
+            foreach (var upgrade in heroics.SelectMany(h => h.Upgrades))
+            {
+                upgrade.Description = ""; upgrade.SafeDescription = "";
+                upgrade.DescriptionEn = ""; upgrade.Notes = "";
+            }
         ProjectContent(heroicSecondaryEffects, mode, store);
         ProjectContent(qualities, mode, store);
         ProjectContent(mounts, mode, store);
@@ -81,7 +85,7 @@ public static class SeedData
                     && row.ExcludesTalentCodes.SequenceEqual(def.ExcludesTalentCodes)
                     && row.UsesPerScope == def.UsesPerScope && row.UseScope == def.UseScope
                     && row.StoryPointCost == def.StoryPointCost && row.StrainCost == def.StrainCost
-                    && row.Trigger == def.Trigger;
+                    && row.Trigger == def.Trigger && row.Source == def.Source;
                 if (same) return false;
                 row.Name = def.Name; row.NameRu = def.NameRu;
                 row.Description = def.Description;
@@ -94,7 +98,7 @@ public static class SeedData
                 row.ExcludesTalentCodes = [.. def.ExcludesTalentCodes];
                 row.UsesPerScope = def.UsesPerScope; row.UseScope = def.UseScope;
                 row.StoryPointCost = def.StoryPointCost; row.StrainCost = def.StrainCost;
-                row.Trigger = def.Trigger;
+                row.Trigger = def.Trigger; row.Source = def.Source;
                 return true;
             });
         SyncBuiltinByCode(db, db.SkillDefs.Where(x => x.OwnerUserId == null && x.Code != ""), skills,
@@ -272,6 +276,23 @@ public static class SeedData
             d => (d.System, $"{d.MagicSkill}:{(int)d.Kind}:{d.ParentEffect}:{d.NameEn}"));
 
         if (added) db.SaveChanges();
+
+        // Older built-ins can be retired / absent from today's catalog yet still appear on
+        // an owned sheet or a share. Scrub those too; custom content is deliberately excluded.
+        if (mode == ContentMode.PublicSafe)
+        {
+            ProjectContent(db.TalentDefs.Where(t => t.OwnerUserId == null).ToList(), mode, null);
+            ProjectContent(db.HeroicSecondaryEffectDefs.ToList(), mode, null);
+            var storedHeroics = db.HeroicAbilityDefs.Include(h => h.Upgrades).Include(h => h.Effects)
+                .Where(h => h.OwnerUserId == null).ToList();
+            ProjectContent(storedHeroics, mode, null);
+            foreach (var upgrade in storedHeroics.SelectMany(h => h.Upgrades))
+            {
+                upgrade.Description = ""; upgrade.SafeDescription = "";
+                upgrade.DescriptionEn = ""; upgrade.Notes = "";
+            }
+            db.SaveChanges();
+        }
 
         // Категории встроенных талантов синхронизируются с каталогом (аддитивный SeedMissing строки не обновляет).
         SyncTalentCategories(db, talents);
@@ -577,6 +598,18 @@ public static class SeedData
             if (mode == ContentMode.PublicSafe)
             {
                 item.Description = "";
+                if (item is TalentDef or HeroicAbilityDef or HeroicSecondaryEffectDef)
+                {
+                    item.SafeDescription = "";
+                    item.DescriptionEn = "";
+                }
+                if (item is TalentDef talent) talent.Trigger = "";
+                if (item is HeroicAbilityDef heroic)
+                {
+                    heroic.Requirement = ""; heroic.ActivationCost = ""; heroic.Activation = "";
+                    heroic.Duration = ""; heroic.Frequency = ""; heroic.Notes = "";
+                    foreach (var effect in heroic.Effects) { effect.Description = ""; effect.Duration = ""; }
+                }
                 continue;
             }
 
@@ -910,7 +943,7 @@ public static class SeedData
     {
         var wanted = catalog.Where(h => h.Code != "").ToDictionary(h => h.Code);
         var changed = false;
-        foreach (var row in db.HeroicAbilityDefs.Include(h => h.Upgrades)
+        foreach (var row in db.HeroicAbilityDefs.Include(h => h.Upgrades).Include(h => h.Effects)
                      .Where(h => h.OwnerUserId == null && h.Code != "").ToList())
         {
             if (!wanted.TryGetValue(row.Code, out var def)) continue;
@@ -919,25 +952,37 @@ public static class SeedData
             // Каталог уже спроецирован под режим, поэтому в PublicSafe сюда приходит пустой Description.
             changed |= Assign(
                 row.DescriptionEn != def.DescriptionEn || row.Description != def.Description
-                || row.SafeDescription != def.SafeDescription,
+                || row.SafeDescription != def.SafeDescription || row.Source != def.Source
+                || row.Requirement != def.Requirement || row.ActivationCost != def.ActivationCost
+                || row.Activation != def.Activation || row.Duration != def.Duration
+                || row.Frequency != def.Frequency || row.Notes != def.Notes,
                 () =>
                 {
-                    row.DescriptionEn = def.DescriptionEn;
-                    row.Description = def.Description;
-                    row.SafeDescription = def.SafeDescription;
+                    row.DescriptionEn = def.DescriptionEn; row.Description = def.Description;
+                    row.SafeDescription = def.SafeDescription; row.Source = def.Source;
+                    row.Requirement = def.Requirement; row.ActivationCost = def.ActivationCost;
+                    row.Activation = def.Activation; row.Duration = def.Duration;
+                    row.Frequency = def.Frequency; row.Notes = def.Notes;
                 });
+            foreach (var effect in row.Effects)
+            {
+                var wantedEffect = def.Effects.FirstOrDefault(e => e.Kind == effect.Kind);
+                if (wantedEffect is null) continue;
+                changed |= Assign(effect.Description != wantedEffect.Description || effect.Duration != wantedEffect.Duration,
+                    () => { effect.Description = wantedEffect.Description; effect.Duration = wantedEffect.Duration; });
+            }
             foreach (var upgrade in row.Upgrades)
             {
                 var u = def.Upgrades.FirstOrDefault(x => x.Level == upgrade.Level);
                 if (u == null) continue;
                 changed |= Assign(
                     upgrade.DescriptionEn != u.DescriptionEn || upgrade.Description != u.Description
-                    || upgrade.SafeDescription != u.SafeDescription,
+                    || upgrade.SafeDescription != u.SafeDescription || upgrade.Notes != u.Notes,
                     () =>
                     {
                         upgrade.DescriptionEn = u.DescriptionEn;
                         upgrade.Description = u.Description;
-                        upgrade.SafeDescription = u.SafeDescription;
+                        upgrade.SafeDescription = u.SafeDescription; upgrade.Notes = u.Notes;
                     });
             }
         }

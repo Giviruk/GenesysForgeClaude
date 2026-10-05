@@ -46,7 +46,7 @@ public static class MountMapper
             a.Name, a.NameRu, a.Description, a.DescriptionEn))],
         [.. def.Attacks.Select(a => new MountAttackDto(
             a.Name, a.NameRu, a.SkillName, a.Damage, a.Critical, a.Range, [.. a.QualityCodes]))],
-        def.Description,
+        string.IsNullOrEmpty(def.Description) ? def.SafeDescription : def.Description,
         def.DescriptionEn,
         def.Source);
 

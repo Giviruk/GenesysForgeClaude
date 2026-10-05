@@ -1,0 +1,8 @@
+# PublicSafe acceptance: real public Docker target, without private embedded resources.
+# docker compose -f docker-compose.yml -f docker-compose.public-test.yml up -d --build
+services:
+  api:
+    build:
+      target: public
+    environment:
+      Content__Mode: PublicSafe
