@@ -1118,7 +1118,7 @@ ROT-MAG-02 или лист персонажа), проверка собирае�
 
 ## Дополнительные аудиты качества
 
-- [~] **GEN-PUB-SAFE** — реализуется публичная политика «название + книга/страница» для талантов и героик; восстановлены crafting/transport подсказки, устранены API SW cache и reconnect gaps, добавлены public artifact/CI checks. План: [public-safe-book-references.md](public-safe-book-references.md); приёмка: [public-safe-release.md](../../docs/public-safe-release.md). Остаток: решение по трём legacy-страницам, CI/ручная/нагрузочная приёмка и merge.
+- [~] **GEN-PUB-SAFE** — в draft PR #258 реализована публичная политика «название + книга/страница» для талантов и героик; восстановлены crafting/transport подсказки, устранены API SW cache и reconnect gaps, добавлены public artifact/CI checks. Первый CI прошёл во всех шести jobs, сохранён локальный Release baseline. План: [public-safe-book-references.md](public-safe-book-references.md); приёмка: [public-safe-release.md](../../docs/public-safe-release.md). Остаток: решение по трём legacy-страницам, финальный CI head, ручная/нагрузочная приёмка и merge.
 
 - [~] **GEN-PUB-AUDIT** — составлен аудит PublicSafe относительно PrivateFull по `origin/master`
   (`4da4636`): 14 приоритизированных доработок, 373 сценария тестирования и инвентаризация

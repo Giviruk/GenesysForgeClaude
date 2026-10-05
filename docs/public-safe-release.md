@@ -59,10 +59,10 @@ Effects. Улучшения Power используют страницы роди
 | PUB-02 | Crafting DTO использует SafeDescription при пустом Description; UI выбирает RU/EN | Полная ручная матрица всех исходов крафта |
 | PUB-03 | Mount DTO восстанавливает безопасное описание; числа и управление транспортом сохранены | Полная ручная матрица транспорта |
 | PUB-04 | SW NetworkOnly для API; удаление legacy caches при activate и перед API-запросами; HTTP no-store | Safari/iOS и обновление старых установленных PWA на production |
-| PUB-05 | Тесты public API, reseed, structural parity и сборки без private resources; CI E2E обоих Docker targets | Получить зелёный CI на PR |
+| PUB-05 | Тесты public API, reseed, structural parity и сборки без private resources; CI E2E обоих Docker targets | [CI commit 008d370 прошёл](https://github.com/Giviruk/GenesysForgeClaude/actions/runs/37377173867); финальные docs/tooling обновления проверяются отдельно |
 | PUB-06 | Единая политика названий/ссылок RU/EN; 120 подтверждённых талантов | Решение по трём legacy-записям / подтверждённые страницы |
 | PUB-07 | Health показывает contentMode/version; Docker получает commit от deploy workflow | После развёртывания сверить оба health с release SHA |
-| PUB-08 | Сохранён подробный план сравнительной нагрузки и требования к измерениям | Производительный профиль PostgreSQL/320 MB и репрезентативные production данные не измерялись локально |
+| PUB-08 | Добавлен read-only scripts/measure-api.mjs; сохранён локальный baseline двух Release-сборок; план сравнительной нагрузки | Профиль PostgreSQL/320 MB и репрезентативные production данные не измерялись локально |
 | PUB-09 | Crafting list проверяет ownership через EXISTS без загрузки всего персонажа | SQL/latency под PostgreSQL 17 и production объёмом |
 | PUB-10 | После SubscribeCampaign перечитываются campaign/table/roll snapshots; failure не выдаётся за connected | Длительный настоящий сетевой разрыв и ручная матрица участников |
 | PUB-11 | nginx/Vite проксируют /openapi/ на backend; E2E проверяет JSON schema | nginx Docker path проверяет CI |
@@ -74,22 +74,51 @@ Effects. Улучшения Power используют страницы роди
 
 - Backend: полный suite 744 domain + 880 API tests; финальная повторная проверка прошла.
 - Public artifact: 4 targeted tests при `IncludePrivateContent=false` и `VERIFY_PUBLIC_ARTIFACT=1`.
-- Frontend: lint и build; 454 tests прошли; после добавления последних случаев отдельно прошли 11 новых/focused checks и 4 print tests.
-- Chromium: 6 smoke-сценариев прошли, включая PublicSafe book-only API/купленный лист/ссылки;
-  отдельно прошли PWA legacy-cache/offline и OpenAPI/manifest/release-identity сценарии.
+- Frontend: после разрешённого `npm ci` прошли lint, build и все 456 tests на актуальных lock-версиях.
+- Chromium: все 8 сценариев прошли после восстановления lock-зависимостей: PublicSafe
+  book-only API/купленный лист/ссылки, PWA legacy-cache/offline, OpenAPI/manifest/release identity
+  и пять основных smoke-сценариев. Локально Playwright 1.63.0 запущен с уже имеющимся Chromium
+  1228 через `E2E_CHROMIUM_EXECUTABLE`: macOS 13 не поддерживается браузером текущего Playwright.
+  CI Linux использует штатный браузер lock-версии без этого override.
 - Локальный browser run использовал public publish без private resources, Vite preview и
   InMemory DB. Docker daemon недоступен; локально PostgreSQL/nginx container checks не выполнены.
-- Локальные node_modules отличаются от текущего lock-файла (например, Vitest 4.1.8 вместо 5.0.3).
+- До восстановления локальные node_modules отличались от текущего lock-файла (например, Vitest 4.1.8 вместо 5.0.3).
   Владелец разрешил `npm ci`; зависимости восстановлены без изменения lock-файла. Финальные
   проверки выполняются на Vitest 5.0.3 / Vite 8.3.2 / React 19.3.0 / TypeScript 6.0.3 / Playwright 1.63.0.
+- CI commit 008d370 полностью прошёл: backend/frontend, PublicSafe/PrivateFull migrations
+  на PostgreSQL 17 и Chromium smoke обоих Docker targets с nginx
+  ([run](https://github.com/Giviruk/GenesysForgeClaude/actions/runs/37377173867)).
 
 Полный [план тестирования](public-version-test-plan.md) содержит 373 сценария. Этот документ
 не объявляет их выполненными: автоматизированный smoke покрывает только часть матрицы.
 
+## Локальный baseline
+
+[Результаты](public-safe-local-baseline.json): один commit 008d370, две Release/net10.0 сборки,
+macOS 13, loopback, отдельные InMemory базы, свежие одинаковые каталоги, пустые списки
+персонажей. На каждый маршрут — 3 прогрева и 20 последовательных замеров. Все 160
+учтённых ответов успешны. Токены и тела ответов не сохраняются в отчёт.
+
+| Reference | PrivateFull, байт | PublicSafe, байт | Изменение размера | Median TTFB private / public, мс | Total p95 private / public, мс |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Genesys Core | 250778 | 156637 | −37,5% | 12,33 / 12,84 | 26,82 / 21,21 |
+| Realms of Terrinoth | 581251 | 384739 | −33,8% | 17,89 / 19,36 | 32,53 / 39,68 |
+
+Размер — декодированное тело JSON, без учёта сжатия и HTTP-заголовков. Уменьшение
+объёма связано с удалением прозы. Эти короткие последовательные замеры не подтверждают
+ускорение публичной версии и не заменяют нагрузочный тест PostgreSQL/nginx с лимитами
+production. Полный лист и крафт на репрезентативном персонаже остаются в нагрузочной матрице.
+
+Воспроизведение: задать `GENESYS_BENCH_TOKEN` вне отчёта и запустить
+`node scripts/measure-api.mjs --base-url http://localhost:8080 --samples 20`.
+Опция `--character-id <uuid>` добавляет чтение полного листа и списка крафта. Скрипт
+выполняет только GET, не создаёт пользователей и не изменяет данные; не запускать два
+профиля одновременно при сравнении ограниченных ресурсов.
+
 ## Приёмка релиза
 
 - [ ] Решить судьбу трёх legacy-талантов или добавить подтверждённые библиографические данные.
-- [ ] Получить зелёные backend/frontend/migrations и оба Docker E2E jobs на PR.
+- [x] Первый CI прошёл: backend/frontend, обе PostgreSQL 17 migration jobs и оба Docker E2E jobs ([run](https://github.com/Giviruk/GenesysForgeClaude/actions/runs/37377173867)).
 - [ ] Пройти ручные P0/P1 из полного плана (ownership, share, мобильные страницы, восстановление соединения).
 - [ ] Выполнить нагрузочный профиль и сравнение private/public при одинаковых данных и лимитах.
 - [ ] После отдельного решения о deploy проверить health SHA/mode, OpenAPI JSON, manifest MIME,

@@ -15,6 +15,10 @@ export default defineConfig({
     : 'list',
   use: {
     baseURL,
+    // Optional existing browser for older local OS versions; CI uses Playwright's locked browser.
+    launchOptions: process.env.E2E_CHROMIUM_EXECUTABLE
+      ? { executablePath: process.env.E2E_CHROMIUM_EXECUTABLE }
+      : {},
     // Смоук написан против русского UI; язык приложения определяется по navigator.language,
     // поэтому фиксируем локаль браузера (EN-путь проверяется отдельным тестом с locale-override).
     locale: 'ru-RU',

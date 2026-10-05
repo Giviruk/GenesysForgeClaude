@@ -1,0 +1,97 @@
+{
+  "environment": "Release/net10.0, macOS 13, loopback, separate InMemory DBs, fresh canonical catalogs and empty character lists; no production load",
+  "profiles": [
+    {
+      "mode": "private",
+      "at": "2026-10-05T21:45:58.017Z",
+      "base": "http://127.0.0.1:5091",
+      "identity": {
+        "status": "ok",
+        "database": "ok",
+        "contentMode": "PrivateFull",
+        "version": "1.0.0+008d370b89cf5632dc0bb9fe04ee841154e5167c"
+      },
+      "warmups": 3,
+      "metrics": [
+        {
+          "path": "/api/v1/health",
+          "samples": 20,
+          "failed": 0,
+          "ttfbMedianMs": 3.64,
+          "totalP95Ms": 4.86,
+          "decodedBytesMedian": 118
+        },
+        {
+          "path": "/api/v1/reference/GenesysCore",
+          "samples": 20,
+          "failed": 0,
+          "ttfbMedianMs": 12.33,
+          "totalP95Ms": 26.82,
+          "decodedBytesMedian": 250778
+        },
+        {
+          "path": "/api/v1/reference/RealmsOfTerrinoth",
+          "samples": 20,
+          "failed": 0,
+          "ttfbMedianMs": 17.89,
+          "totalP95Ms": 32.53,
+          "decodedBytesMedian": 581251
+        },
+        {
+          "path": "/api/v1/characters/",
+          "samples": 20,
+          "failed": 0,
+          "ttfbMedianMs": 3.99,
+          "totalP95Ms": 4.74,
+          "decodedBytesMedian": 2
+        }
+      ]
+    },
+    {
+      "mode": "public",
+      "at": "2026-10-05T21:46:01.313Z",
+      "base": "http://127.0.0.1:5090",
+      "identity": {
+        "status": "ok",
+        "database": "ok",
+        "contentMode": "PublicSafe",
+        "version": "1.0.0+008d370b89cf5632dc0bb9fe04ee841154e5167c"
+      },
+      "warmups": 3,
+      "metrics": [
+        {
+          "path": "/api/v1/health",
+          "samples": 20,
+          "failed": 0,
+          "ttfbMedianMs": 3.91,
+          "totalP95Ms": 5.88,
+          "decodedBytesMedian": 117
+        },
+        {
+          "path": "/api/v1/reference/GenesysCore",
+          "samples": 20,
+          "failed": 0,
+          "ttfbMedianMs": 12.84,
+          "totalP95Ms": 21.21,
+          "decodedBytesMedian": 156637
+        },
+        {
+          "path": "/api/v1/reference/RealmsOfTerrinoth",
+          "samples": 20,
+          "failed": 0,
+          "ttfbMedianMs": 19.36,
+          "totalP95Ms": 39.68,
+          "decodedBytesMedian": 384739
+        },
+        {
+          "path": "/api/v1/characters/",
+          "samples": 20,
+          "failed": 0,
+          "ttfbMedianMs": 4.55,
+          "totalP95Ms": 5.73,
+          "decodedBytesMedian": 2
+        }
+      ]
+    }
+  ]
+}
