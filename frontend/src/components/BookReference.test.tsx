@@ -7,12 +7,12 @@ afterEach(() => { cleanup(); vi.doUnmock('../i18n'); vi.resetModules() })
 
 describe('book references', () => {
   it.each([
-    ['Genesys Core Rulebook, с. 73', 'https://www.edge-studio.net/games/genesys-core-rulebook/'],
-    ['Genesys Core Rulebook (RU translation), с. 73', 'https://www.edge-studio.net/games/genesys-core-rulebook/'],
-    ['Realms of Terrinoth, с. 77-78', 'https://www.edge-studio.net/games/realms-of-terrinoth/'],
-  ])('links %s to the publisher, keeping the printed page', (source, url) => {
+    ['Genesys Core Rulebook, с. 73', 'Genesys Core Rulebook, с. 73', 'https://www.edge-studio.net/games/genesys-core-rulebook/'],
+    ['Genesys Core Rulebook (RU translation), с. 73', 'Genesys. Основная книга правил, с. 73', 'https://hobbyworld.ru/genesys-osnovnaja-kniga-pravil'],
+    ['Realms of Terrinoth, с. 77-78', 'Realms of Terrinoth, с. 77-78', 'https://www.edge-studio.net/games/realms-of-terrinoth/'],
+  ])('links %s to the edition whose pages it cites', (source, label, url) => {
     render(<BookReference source={source} />)
-    expect(screen.getByRole('link', { name: source })).toHaveAttribute('href', url)
+    expect(screen.getByRole('link', { name: label })).toHaveAttribute('href', url)
     expect(screen.getByRole('link')).toHaveAttribute('rel', 'noopener noreferrer')
   })
 
@@ -31,7 +31,10 @@ describe('book references', () => {
   it('localizes page notation in English', async () => {
     vi.doMock('../i18n', () => ({ t: (_ru: unknown, en: unknown) => en }))
     const { BookReference: EnglishReference } = await import('./BookReference')
-    render(<EnglishReference source="Realms of Terrinoth, с. 79" />)
+    render(<><EnglishReference source="Realms of Terrinoth, с. 79" />
+      <EnglishReference source="Genesys Core Rulebook (RU translation), с. 73" /></>)
     expect(screen.getByRole('link', { name: 'Realms of Terrinoth, p. 79' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Genesys Core Rulebook, Russian edition, p. 73' }))
+      .toHaveAttribute('href', 'https://hobbyworld.ru/genesys-osnovnaja-kniga-pravil')
   })
 })

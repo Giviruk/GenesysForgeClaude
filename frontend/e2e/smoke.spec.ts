@@ -124,9 +124,11 @@ test('PublicSafe: book references, no prose, purchased sheet and publisher links
   expect(sheet.talents.find(t => t.talentDefId === talent.id)).toMatchObject({ description: '', descriptionEn: '', source: talent.source })
   await openAs(page, user.token, `/characters/${id}`)
   await page.getByRole('button', { name: 'Таланты', exact: true }).click()
-  await expect(page.getByRole('link', { name: talent.source }).first()).toBeVisible()
-  expect(await page.getByRole('link', { name: talent.source }).first().getAttribute('href'))
-    .toBe('https://www.edge-studio.net/games/genesys-core-rulebook/')
+  // Core cites the Russian edition's pages, so the link shows that edition's title and publisher page.
+  const label = talent.source.replace('Genesys Core Rulebook (RU translation),', 'Genesys. Основная книга правил,')
+  await expect(page.getByRole('link', { name: label }).first()).toBeVisible()
+  expect(await page.getByRole('link', { name: label }).first().getAttribute('href'))
+    .toBe('https://hobbyworld.ru/genesys-osnovnaja-kniga-pravil')
 })
 
 function unique(prefix: string): string {

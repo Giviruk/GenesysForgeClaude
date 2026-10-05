@@ -21,12 +21,14 @@ beforeEach(() => {
 })
 
 describe('campaign subscription snapshots', () => {
-  it('refreshes all snapshots after subscription and reconnect, using current handlers', async () => {
+  it('does not refetch after the first subscription, refreshes all snapshots after reconnect with current handlers', async () => {
     const initial = { onCampaignChanged: vi.fn(), onGameTableChanged: vi.fn(), onRollAdded: vi.fn(), onStatus: vi.fn() }
     const current = { onCampaignChanged: vi.fn(), onGameTableChanged: vi.fn(), onRollAdded: vi.fn(), onStatus: vi.fn() }
     const hook = renderHook(({ handlers }) => useCampaignHub('campaign', handlers), { initialProps: { handlers: initial } })
     await waitFor(() => expect(initial.onStatus).toHaveBeenCalledWith('connected'))
-    expect(initial.onCampaignChanged).toHaveBeenCalledOnce()
+    expect(initial.onCampaignChanged).not.toHaveBeenCalled()
+    expect(initial.onGameTableChanged).not.toHaveBeenCalled()
+    expect(initial.onRollAdded).not.toHaveBeenCalled()
     hook.rerender({ handlers: current })
     let resolve!: () => void
     hub.invoke.mockImplementationOnce(() => new Promise<void>(r => { resolve = r }))
@@ -43,10 +45,10 @@ describe('campaign subscription snapshots', () => {
   it('reports a failed resubscription and does not apply a false fresh snapshot', async () => {
     const handlers = { onCampaignChanged: vi.fn(), onStatus: vi.fn() }
     renderHook(() => useCampaignHub('campaign', handlers))
-    await waitFor(() => expect(handlers.onCampaignChanged).toHaveBeenCalledOnce())
+    await waitFor(() => expect(handlers.onStatus).toHaveBeenCalledWith('connected'))
     hub.invoke.mockRejectedValueOnce(new Error('subscription rejected'))
     await act(async () => { hub.onreconnected.mock.calls[0][0]() })
     expect(handlers.onStatus).toHaveBeenLastCalledWith('disconnected')
-    expect(handlers.onCampaignChanged).toHaveBeenCalledOnce()
+    expect(handlers.onCampaignChanged).not.toHaveBeenCalled()
   })
 })

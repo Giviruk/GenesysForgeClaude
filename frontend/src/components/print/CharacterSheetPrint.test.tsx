@@ -152,8 +152,8 @@ describe('CharacterSheetPrint', () => {
       }] },
     }
     render(<CharacterSheetPrint sheet={bookOnly} reference={reference} />)
-    expect(screen.getByRole('link', { name: 'Genesys Core Rulebook (RU translation), с. 73' }).getAttribute('href'))
-      .toBe('https://www.edge-studio.net/games/genesys-core-rulebook/')
+    expect(screen.getByRole('link', { name: 'Genesys. Основная книга правил, с. 73' }).getAttribute('href'))
+      .toBe('https://hobbyworld.ru/genesys-osnovnaja-kniga-pravil')
     expect(screen.getAllByRole('link', { name: 'Realms of Terrinoth, с. 76' })).toHaveLength(2)
     expect(screen.getByRole('link', { name: 'Realms of Terrinoth, с. 79' })).toBeTruthy()
   })

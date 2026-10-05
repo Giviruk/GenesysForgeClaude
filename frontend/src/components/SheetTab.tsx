@@ -1,3 +1,4 @@
+import { BookReference } from './BookReference'
 import { useState } from 'react'
 import { api } from '../api/client'
 import type {
@@ -345,7 +346,8 @@ function HeroicSummary({ sheet }: { sheet: CharacterSheet }) {
         {sheet.heroicIdentity?.customName && (
           <div className="hint small-text">{t('Эффект:', 'Effect:')} {localizedName(h)}</div>
         )}
-        <p>{localizedDescription(h)}</p>
+        {localizedDescription(h) && <p>{localizedDescription(h)}</p>}
+        <BookReference source={h.source} />
         {meta && <div className="hint small-text">{meta}</div>}
 
         {purchased.map(u => (
@@ -353,14 +355,16 @@ function HeroicSummary({ sheet }: { sheet: CharacterSheet }) {
             <div className="heroic-upgrade-head">
               <strong>{HEROIC_UPGRADE_LABELS[u.level] ?? t(`Уровень ${u.level}`, `Level ${u.level}`)}</strong>
             </div>
-            <p>{localizedDescription(u)}</p>
+            {localizedDescription(u) && <p>{localizedDescription(u)}</p>}
+            <BookReference source={u.source || h.source} />
           </div>
         ))}
 
         {upgrades.secondaryEffects.map(effect => (
           <div key={effect.id} className="heroic-upgrade bought">
             <div className="heroic-upgrade-head"><strong>{localizedName(effect)}</strong></div>
-            <p>{localizedDescription(effect)}</p>
+            {localizedDescription(effect) && <p>{localizedDescription(effect)}</p>}
+            <BookReference source={effect.source} />
           </div>
         ))}
 

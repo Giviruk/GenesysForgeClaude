@@ -7,9 +7,7 @@ namespace GenesysForge.Infrastructure.Persistence;
 internal static class PrivateRuleTextCatalog
 {
     internal sealed record Text(string Desc = "", string Safe = "", string DescEn = "",
-        string Notes = "", string Requirement = "", string ActivationCost = "",
-        string Activation = "", string Duration = "", string Frequency = "", string Trigger = "",
-        List<Text>? Upgrades = null);
+        string Notes = "", string Trigger = "", List<Text>? Upgrades = null);
 
     private static readonly Dictionary<string, Text> Default = Load(typeof(PrivateRuleTextCatalog).Assembly);
 

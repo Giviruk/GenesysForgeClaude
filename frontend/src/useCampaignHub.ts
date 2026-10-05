@@ -37,24 +37,27 @@ export function useCampaignHub(campaignId: string | null, handlers: Handlers): v
     connection.on('CampaignChanged', () => h().onCampaignChanged?.())
     connection.on('RollAdded', () => h().onRollAdded?.())
     connection.onreconnecting(() => h().onStatus?.('connecting'))
-    const subscribeAndRefresh = async () => {
+    const subscribe = async (catchUp: boolean) => {
       if (stopped) return
       await connection.invoke('SubscribeCampaign', campaignId)
       if (stopped) return
-      // Events missed before subscription / during a disconnect cannot be replayed.
-      // Ask every REST snapshot consumer to catch up after the group subscription succeeds.
-      h().onGameTableChanged?.()
-      h().onCampaignChanged?.()
-      h().onRollAdded?.()
+      // События во время разрыва не воспроизводятся: после реконнекта потребители перечитывают
+      // REST-снапшоты. На первом подключении страница только что загрузила их сама — повторное
+      // чтение дублировало бы кампанию, сессию, стол и листы всех участников.
+      if (catchUp) {
+        h().onGameTableChanged?.()
+        h().onCampaignChanged?.()
+        h().onRollAdded?.()
+      }
       h().onStatus?.('connected')
     }
     connection.onreconnected(() => {
-      void subscribeAndRefresh().catch(() => { if (!stopped) h().onStatus?.('disconnected') })
+      void subscribe(true).catch(() => { if (!stopped) h().onStatus?.('disconnected') })
     })
     connection.onclose(() => h().onStatus?.('disconnected'))
 
     const started = connection.start()
-      .then(subscribeAndRefresh)
+      .then(() => subscribe(false))
       .catch(() => { if (!stopped) h().onStatus?.('disconnected') })
 
     return () => {

@@ -513,11 +513,6 @@
     "descEn": "While the ability is active, in a social encounter the character inflicts additional strain equal to the characteristic of the social skill used. If the scene is resolved with a single check, they add the same number of successes instead.",
     "safe": "Усиливает давление владельца в социальной сцене.",
     "notes": "Работает с социальными навыками и социальными сценами.",
-    "requirement": "—",
-    "activationCost": "2 очка сюжета",
-    "activation": "Свободное действие / incidental",
-    "duration": "По умолчанию до конца следующего хода; может меняться улучшением Duration",
-    "frequency": "По умолчанию 1 раз за сессию; может меняться улучшением Frequency",
     "upgrades": [
       {
         "desc": "Пока способность активна, персонаж тратит 2 преимущества, чтобы вызвать “критическое замечание” и нанести цели 5 усталости; можно вызвать несколько раз одной проверкой.",
@@ -538,11 +533,6 @@
     "descEn": "While the ability is active, on each of the character's own turns the GM gives them one important fact about a person, creature, place, object or circumstance they can observe or that is directly tied to the current situation.",
     "safe": "Раскрывает важные сведения о происходящем.",
     "notes": "Тема должна быть наблюдаема персонажем или напрямую связана с текущей ситуацией.",
-    "requirement": "—",
-    "activationCost": "2 очка сюжета",
-    "activation": "Свободное действие / incidental",
-    "duration": "По умолчанию до конца следующего хода; может меняться улучшением Duration",
-    "frequency": "По умолчанию 1 раз за сессию; может меняться улучшением Frequency",
     "upgrades": [
       {
         "desc": "Пока способность активна, персонаж один раз улучшает проверку, связанную с полученной информацией.",
@@ -563,11 +553,6 @@
     "descEn": "While the ability is active, once per round on their own turn the character spends a manoeuvre and, with no check at all, defeats exactly one live minion group within short range. Rivals, nemeses, player characters and anything further away take no damage.",
     "safe": "Сметает слабых противников рядом с владельцем.",
     "notes": "",
-    "requirement": "—",
-    "activationCost": "2 очка сюжета",
-    "activation": "Манёвр",
-    "duration": "По умолчанию до конца следующего хода; может меняться улучшением Duration",
-    "frequency": "По умолчанию 1 раз за сессию; может меняться улучшением Frequency",
     "upgrades": [
       {
         "desc": "Тот же эффект стоит свободного действия вместо манёвра; остальные ограничения не меняются.",
@@ -588,11 +573,6 @@
     "descEn": "The character owns a signature weapon. Pick one attachment it does not have; when activated, the weapon gains its effect for the ability's duration at no cost and without spending hard points.",
     "safe": "Даёт владельцу особое именное оружие.",
     "notes": "Форма оружия согласуется с ведущим и может ограничивать доступные модификации. Если оружие потеряно или уничтожено, оно возвращается или заменяется сюжетным образом; больше одного именного оружия быть не может.",
-    "requirement": "Нужно выбрать профиль оружия из таблицы Signature Weapons",
-    "activationCost": "2 очка сюжета",
-    "activation": "Свободное действие / incidental",
-    "duration": "По умолчанию до конца следующего хода; может меняться улучшением Duration",
-    "frequency": "По умолчанию 1 раз за сессию; может меняться улучшением Frequency",
     "upgrades": [
       {
         "desc": "Владелец навсегда выбирает ровно одно: именное оружие получает качество Reinforced либо становится предметом древней работы со всеми её эффектами. Выбор делается в момент покупки и потом не меняется.",
@@ -613,11 +593,6 @@
     "descEn": "On activation the character chooses one of their current Critical Injuries other than Dead; while the ability is active they ignore its effects, including its +10 to later Critical Injury rolls. The activation may be made out of turn immediately after suffering a Critical Injury.",
     "safe": "Позволяет держаться, несмотря на тяжёлые раны.",
     "notes": "",
-    "requirement": "—",
-    "activationCost": "2 очка сюжета",
-    "activation": "Свободное действие; можно вне хода при получении критической травмы",
-    "duration": "По умолчанию до конца следующего хода; может меняться улучшением Duration",
-    "frequency": "По умолчанию 1 раз за сессию; может меняться улучшением Frequency",
     "upgrades": [
       {
         "desc": "Пока способность активна, персонаж игнорирует эффекты всех своих критических травм, кроме “смерти”.",
@@ -638,11 +613,6 @@
     "descEn": "Each round while the ability is active, the player may ask the GM one yes/no question about something the character could not know normally; the GM answers truthfully.",
     "safe": "Даёт правдивые ответы о недоступном обычному знанию.",
     "notes": "Знание приходит через подходящий мистический способ: знамения, пророчество, духи, сны, хрустальный шар и т.п.",
-    "requirement": "—",
-    "activationCost": "2 очка сюжета",
-    "activation": "Свободное действие / incidental",
-    "duration": "По умолчанию до конца следующего хода; может меняться улучшением Duration",
-    "frequency": "По умолчанию 1 раз за сессию; может меняться улучшением Frequency",
     "upgrades": [
       {
         "desc": "Пока способность активна, персонаж один раз перебрасывает проверку навыка, связанную с заданным вопросом. Одну и ту же проверку этим эффектом повторно перебросить нельзя.",
@@ -663,11 +633,6 @@
     "descEn": "On activation the character picks an NPC and declares a plausible pre-existing debt or leverage. The favour need not put the NPC in mortal danger, get them killed, or visibly ruin their standing or wealth. If the GM rules that no such connection is possible, the activation is cancelled: no Story Points and no use are spent.",
     "safe": "Открывает ранее существовавшую связь с NPC.",
     "notes": "Если знакомство невозможно, способность не активируется и очки сюжета не тратятся. Услуга не обязана включать риск жизни, убийство или разрушение положения NPC.",
-    "requirement": "—",
-    "activationCost": "2 очка сюжета",
-    "activation": "Свободное действие / incidental",
-    "duration": "По умолчанию до конца следующего хода; может меняться улучшением Duration",
-    "frequency": "По умолчанию 1 раз за сессию; может меняться улучшением Frequency",
     "upgrades": [
       {
         "desc": "Пока способность активна, персонаж один раз понижает ступень сложности каждой своей социальной проверки.",
@@ -688,11 +653,6 @@
     "descEn": "While the ability is active, the character gains +4 soak.",
     "safe": "Делает владельца заметно живучее.",
     "notes": "",
-    "requirement": "—",
-    "activationCost": "2 очка сюжета",
-    "activation": "Свободное действие / incidental",
-    "duration": "По умолчанию до конца следующего хода; может меняться улучшением Duration",
-    "frequency": "По умолчанию 1 раз за сессию; может меняться улучшением Frequency",
     "upgrades": [
       {
         "desc": "Пока способность активна, сложность боевых проверок по персонажу увеличивается на 1.",
@@ -713,11 +673,6 @@
     "descEn": "On activation and at the start of each of their turns while the ability is active, the character heals 3 wounds.",
     "safe": "Быстро восстанавливает раны владельца.",
     "notes": "",
-    "requirement": "—",
-    "activationCost": "2 очка сюжета",
-    "activation": "Свободное действие / incidental",
-    "duration": "По умолчанию до конца следующего хода; может меняться улучшением Duration",
-    "frequency": "По умолчанию 1 раз за сессию; может меняться улучшением Frequency",
     "upgrades": [
       {
         "desc": "При активации персонаж вместо частичного лечения снимает все текущие раны. Периодическое лечение в начале каждого своего хода по-прежнему снимает 3 раны.",
@@ -738,11 +693,6 @@
     "descEn": "While the ability is active, the character communicates in a limited way with a chosen type of entity, receiving emotions and vague impressions; on activation they gain one piece of information important to the current scene.",
     "safe": "Даёт необычное восприятие согласованного круга сущностей.",
     "notes": "Примеры: животные, мёртвые, чужие мысли, духи.",
-    "requirement": "При выборе нужно согласовать тип сущностей/явлений с ведущим",
-    "activationCost": "2 очка сюжета",
-    "activation": "Свободное действие / incidental",
-    "duration": "По умолчанию до конца следующего хода; может меняться улучшением Duration",
-    "frequency": "По умолчанию 1 раз за сессию; может меняться улучшением Frequency",
     "upgrades": [
       {
         "desc": "Пока способность активна, персонаж понимает и передаёт простые идеи; также получает ещё одну важную информацию, относящуюся к текущей сессии.",
@@ -763,11 +713,6 @@
     "descEn": "While the ability is active, after rolling a check with the chosen skill but before resolving it, the character may remove one difficulty die from the pool.",
     "safe": "Делает выбранный навык исключительно надёжным.",
     "notes": "Игнорируются символы на убранной кости. Навык выбирается при выборе героической способности.",
-    "requirement": "При выборе способности нужно выбрать один навык",
-    "activationCost": "2 очка сюжета",
-    "activation": "Свободное действие / incidental",
-    "duration": "По умолчанию до конца следующего хода; может меняться улучшением Duration",
-    "frequency": "По умолчанию 1 раз за сессию; может меняться улучшением Frequency",
     "upgrades": [
       {
         "desc": "Пока способность активна, персонаж дополнительно убирает одну кость помех из проверки выбранного навыка.",

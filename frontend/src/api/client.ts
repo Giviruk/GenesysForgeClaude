@@ -86,8 +86,13 @@ function tryRefresh(): Promise<boolean> {
   return refreshing
 }
 
+// Старые reference-кеши удаляются один раз за загрузку страницы: новый SW их больше не создаёт,
+// а при активации сам чистит остатки (sw-privacy.js). Перебирать CacheStorage перед каждым
+// запросом незачем.
+let legacyCachesCleared: Promise<void> | undefined
+
 async function rawFetch(method: string, url: string, body: unknown): Promise<Response> {
-  await clearLegacyReferenceCaches()
+  await (legacyCachesCleared ??= clearLegacyReferenceCaches())
   const headers: Record<string, string> = {}
   // Blob (файл) уходит сырым телом — сервер определяет формат по содержимому, не по Content-Type.
   const isBlob = typeof Blob !== 'undefined' && body instanceof Blob

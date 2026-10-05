@@ -51,6 +51,11 @@ public static class SeedData
         ProjectContent(archetypes, mode, store);
         ProjectContent(careers, mode, store);
         ProjectContent(talents, mode, store);
+        // Без описания и без подтверждённой страницы игрок не узнает, что покупает: в PublicSafe такие
+        // таланты выводятся из покупки (Retired), но остаются на уже купленных листах.
+        if (mode == ContentMode.PublicSafe)
+            foreach (var talent in talents.Where(t => t.Source.EndsWith(TalentCatalog.UnconfirmedPage)))
+                talent.Retired = true;
         ProjectContent(items, mode, store);
         ProjectContent(heroics, mode, store);
         // Улучшения Power не входят в content-model, но несут тот же полный текст правила.
@@ -604,12 +609,9 @@ public static class SeedData
                     item.DescriptionEn = "";
                 }
                 if (item is TalentDef talent) talent.Trigger = "";
-                if (item is HeroicAbilityDef heroic)
-                {
-                    heroic.Requirement = ""; heroic.ActivationCost = ""; heroic.Activation = "";
-                    heroic.Duration = ""; heroic.Frequency = ""; heroic.Notes = "";
-                    foreach (var effect in heroic.Effects) { effect.Description = ""; effect.Duration = ""; }
-                }
+                // Стоимость, тип действия, длительность/частота и структурные эффекты не являются
+                // прозой правила и остаются; заметки — проза, очищаются.
+                if (item is HeroicAbilityDef heroic) heroic.Notes = "";
                 continue;
             }
 

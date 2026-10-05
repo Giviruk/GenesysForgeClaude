@@ -23,6 +23,9 @@ public static class TalentCatalog
         int UsesPerScope = 0, string UseScope = "None", int StoryPointCost = 0, int StrainCost = 0,
         string Trigger = "", string Source = "", string Page = "");
 
+    /// <summary>Хвост Source у талантов, страница которых не найдена ни в одной доступной книге.</summary>
+    public const string UnconfirmedPage = "страница не подтверждена";
+
     private static readonly JsonSerializerOptions JsonOptions = new() { PropertyNameCaseInsensitive = true };
 
     /// <summary>Разворачивает каталог в список встроенных талантов по системам.</summary>
@@ -46,7 +49,7 @@ public static class TalentCatalog
 
             var text = PrivateRuleTextCatalog.Get($"talent.{e.Code}", assembly);
             var source = string.IsNullOrWhiteSpace(e.Page)
-                ? $"{e.Source}, страница не подтверждена"
+                ? $"{e.Source}, {UnconfirmedPage}"
                 : $"{e.Source}, с. {e.Page}";
 
             // Талант может быть исключён из активного каталога одной системы и остаться в другой:

@@ -65,15 +65,18 @@ export function HeroicTab({ sheet, reference, onError, refresh }: Props) {
               {t('Выбрать', 'Choose')}
             </button>
           </div>
-          {heroicPick && (
-            <div className="heroic-ability-preview">
-
-              <p className="hint">{(() => {
-                const h = reference.heroicAbilities.find(x => x.id === heroicPick)
-                return h ? <><BookReference source={h.source} />{localizedDescription(h)}</> : ''
-              })()}</p>
-            </div>
-          )}
+          {heroicPick && (() => {
+            const h = reference.heroicAbilities.find(x => x.id === heroicPick)
+            if (!h) return null
+            const description = localizedDescription(h)
+            return (
+              <div className="heroic-ability-preview">
+                {description && <div className="hint small-text"><b>{t('Что даёт способность:', 'What the ability gives:')}</b></div>}
+                {description && <p className="hint">{description}</p>}
+                <BookReference source={h.source} />
+              </div>
+            )
+          })()}
         </>
       )}
     </section>
@@ -127,9 +130,13 @@ function HeroicAbilityCard({ sheet, reference, run }: {
       {sheet.heroicIdentity?.customName && (
         <div className="hint small-text">{t('Эффект:', 'Effect:')} {localizedName(h)}</div>
       )}
-
+      {localizedDescription(h) && (
+        <>
+          <div className="hint small-text"><b>{t('Что даёт способность:', 'What the ability gives:')}</b></div>
+          <p>{localizedDescription(h)}</p>
+        </>
+      )}
       <BookReference source={h.source} />
-      {localizedDescription(h) && <p>{localizedDescription(h)}</p>}
       {meta.filter(([, v]) => v).map(([k, v]) => (
         <div key={k} className="hint small-text"><b>{k}:</b> {v}</div>
       ))}
@@ -196,7 +203,7 @@ function HeroicAbilityCard({ sheet, reference, run }: {
               {sheet.isCreationPhase && upgrades.durationRanks > 0 && <button className="small" onClick={() => run(() => save({ durationRanks: upgrades.durationRanks - 1 }))}>{t('Вернуть', 'Refund')}</button>}
             </div>
             <BookReference source="Realms of Terrinoth, с. 79" />
-            {localizedDescription(h) && (<p className="hint small-text">{t('Каждый ранг продлевает эффект ещё на один ход.', 'Each rank extends the effect by one turn.')}</p>)}
+            <p className="hint small-text">{t('Каждый ранг продлевает эффект ещё на один ход.', 'Each rank extends the effect by one turn.')}</p>
           </div>
 
           <div className="heroic-upgrade">
@@ -207,7 +214,7 @@ function HeroicAbilityCard({ sheet, reference, run }: {
               {sheet.isCreationPhase && upgrades.frequencyRanks > 0 && <button className="small" onClick={() => run(() => save({ frequencyRanks: upgrades.frequencyRanks - 1 }))}>{t('Вернуть', 'Refund')}</button>}
             </div>
             <BookReference source="Realms of Terrinoth, с. 79" />
-            {localizedDescription(h) && (<p className="hint small-text">{t('Каждый ранг даёт ещё одно применение за сессию.', 'Each rank grants one additional use per session.')}</p>)}
+            <p className="hint small-text">{t('Каждый ранг даёт ещё одно применение за сессию.', 'Each rank grants one additional use per session.')}</p>
           </div>
 
           <div className={upgrades.story ? 'heroic-upgrade bought' : 'heroic-upgrade'}>
@@ -218,7 +225,7 @@ function HeroicAbilityCard({ sheet, reference, run }: {
               {sheet.isCreationPhase && upgrades.story && <button className="small" onClick={() => run(() => save({ story: false }))}>{t('Вернуть', 'Refund')}</button>}
             </div>
             <BookReference source="Realms of Terrinoth, с. 79" />
-            {localizedDescription(h) && <p className="hint small-text">{t('Снижает стоимость активации до одного очка сюжета.', 'Reduces activation cost to one Story Point.')}</p>}
+            <p className="hint small-text">{t('Снижает стоимость активации до одного очка сюжета.', 'Reduces activation cost to one Story Point.')}</p>
           </div>
 
           <div className="heroic-upgrade">

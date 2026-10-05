@@ -49,7 +49,11 @@ public class PublicSafeTests
         Assert.All(reference.HeroicAbilities, h =>
         {
             Assert.Empty(h.Description); Assert.Empty(h.SafeDescription); Assert.Empty(h.DescriptionEn);
-            Assert.Empty(h.Notes); Assert.Empty(h.Requirement); Assert.Empty(h.ActivationCost);
+            Assert.Empty(h.Notes);
+            // Структурные параметры не являются прозой правила и остаются в публичной версии.
+            Assert.Equal("2 очка сюжета", h.ActivationCost);
+            Assert.NotEmpty(h.Activation); Assert.NotEmpty(h.Duration); Assert.NotEmpty(h.Frequency);
+            Assert.NotEmpty(h.Requirement);
             Assert.Contains(", с. ", h.Source);
             Assert.Equal(2, h.Upgrades.Count);
             Assert.All(h.Upgrades, u =>
@@ -57,7 +61,7 @@ public class PublicSafeTests
                 Assert.Empty(u.Description); Assert.Empty(u.DescriptionEn); Assert.Empty(u.Notes);
                 Assert.Equal(h.Source, u.Source);
             });
-            Assert.All(h.Effects, e => Assert.Empty(e.Description));
+            Assert.All(h.Effects, e => Assert.NotEmpty(e.Description));
         });
         Assert.All(reference.HeroicSecondaryEffects, e =>
         {
@@ -65,6 +69,45 @@ public class PublicSafeTests
             Assert.Equal("Realms of Terrinoth, с. 79", e.Source);
         });
         Assert.All(reference.Mounts!, m => Assert.NotEmpty(m.Description));
+    }
+
+    [Fact]
+    public async Task PublicApi_HidesUnconfirmedTalentsFromPurchase_AndSearchShowsBookReference()
+    {
+        using var factory = new PublicApiFactory();
+        using var client = await factory.CreateAuthorizedClientAsync();
+        var core = (await client.GetFromJsonAsync<ReferenceResponse>("/api/v1/reference/GenesysCore", Json.Options))!;
+        Assert.NotEmpty(core.Talents);
+        // Без описания и без подтверждённой страницы талант нельзя осознанно купить.
+        Assert.All(core.Talents, t => Assert.Contains(", с. ", t.Source));
+        Assert.DoesNotContain(core.Talents, t => t.Name is "Attuned" or "Counterspell" or "Empowered Casting");
+
+        var search = (await client.GetFromJsonAsync<SearchResponse>(
+            "/api/search?system=RealmsOfTerrinoth&q=Paragon", Json.Options))!;
+        var heroic = Assert.Single(search.Hits, h => h.Type == "heroic");
+        Assert.Equal("Realms of Terrinoth, с. 76", heroic.Snippet);
+    }
+
+    [Fact]
+    public void PrivateSeed_KeepsUnconfirmedTalentsPurchasable()
+    {
+        using var db = NewDb();
+        SeedData.Apply(db, ContentMode.PrivateFull);
+        Assert.False(db.TalentDefs.Single(t => t.System == GameSystem.GenesysCore && t.Name == "Attuned").Retired);
+    }
+
+    [Fact]
+    public void SecondaryEffectHint_WithoutProse_PointsToTheBook()
+    {
+        var result = new GenesysForge.Domain.Rules.RuleEffectResult();
+        HeroicSecondaryEffectApplier.Apply(
+            [new HeroicSecondaryEffectDef
+            {
+                Code = "rot.heroic.secondary.devastating", Name = "Devastating", NameRu = "Сокрушительный",
+                Source = "Realms of Terrinoth, с. 79",
+            }],
+            new GenesysForge.Domain.Rules.MutableCombatTarget(), result);
+        Assert.Equal("Сокрушительный: см. Realms of Terrinoth, с. 79", Assert.Single(result.Manual));
     }
 
     [Fact]
@@ -160,8 +203,7 @@ public class PublicSafeTests
     {
         var node = JsonSerializer.SerializeToNode(value)!;
         var prose = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
-        { "Description", "SafeDescription", "DescriptionEn", "Trigger", "Requirement", "ActivationCost",
-          "Activation", "Duration", "Frequency", "Notes" };
+        { "Description", "SafeDescription", "DescriptionEn", "Trigger", "Notes" };
         void Walk(JsonNode? n)
         {
             if (n is JsonObject o)
