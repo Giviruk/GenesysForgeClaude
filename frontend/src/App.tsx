@@ -21,6 +21,7 @@ const ShopPage = lazy(() => import('./pages/ShopPage').then(module => ({ default
 const ReferencePage = lazy(() => import('./pages/ReferencePage').then(module => ({ default: module.ReferencePage })))
 const AboutPage = lazy(() => import('./pages/AboutPage').then(module => ({ default: module.AboutPage })))
 const HelpPage = lazy(() => import('./pages/HelpPage').then(module => ({ default: module.HelpPage })))
+const FeedbackPage = lazy(() => import('./pages/FeedbackPage').then(module => ({ default: module.FeedbackPage })))
 const ProfilePage = lazy(() => import('./pages/ProfilePage').then(module => ({ default: module.ProfilePage })))
 const SharedSheetPage = lazy(() => import('./pages/SharedSheetPage').then(module => ({ default: module.SharedSheetPage })))
 
@@ -75,6 +76,8 @@ function Shell() {
 
   // «О проекте» доступна публично — до проверки токена (виден дисклеймер до входа).
   if (route.area === 'about') return <AboutPage loggedIn={!!token} />
+  // Обратная связь — тоже без входа: написать можно и о проблеме с регистрацией.
+  if (route.area === 'feedback') return <FeedbackPage loggedIn={!!token} />
   // Публичный read-only лист по share-token не требует логина.
   if (route.area === 'share') {
     return route.unknown || !route.id

@@ -27,6 +27,7 @@ describe('parseRoute', () => {
     expect(parseRoute('/reference')).toEqual(route({ area: 'reference' }))
     expect(parseRoute('/help')).toEqual(route({ area: 'help' }))
     expect(parseRoute('/about')).toEqual(route({ area: 'about' }))
+    expect(parseRoute('/feedback')).toEqual(route({ area: 'feedback' }))
   })
 
   it('parses public share links with a token', () => {

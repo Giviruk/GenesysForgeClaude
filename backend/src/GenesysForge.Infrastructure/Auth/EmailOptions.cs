@@ -18,6 +18,9 @@ public sealed class EmailOptions
     /// <summary>Отображаемое имя отправителя.</summary>
     public string FromName { get; set; } = "GenesysForge";
 
+    /// <summary>Куда пересылаются сообщения формы обратной связи.</summary>
+    public string FeedbackTo { get; set; } = "genesys-forge.support@genesys-forge.com";
+
     public SmtpOptions Smtp { get; set; } = new();
 
     public bool UsesSmtp => string.Equals(Provider, "Smtp", StringComparison.OrdinalIgnoreCase);

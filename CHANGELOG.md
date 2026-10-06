@@ -9,6 +9,11 @@ once it reaches a tagged 1.0 release. The project is currently pre-1.0; the
 
 ## [Unreleased]
 
+### Added
+- **Feedback form.** A «Обратная связь» link in the footer opens a public form; messages are emailed to
+  `genesys-forge.support@genesys-forge.com` with the page the form was opened from and, for signed-in users,
+  the account email as Reply-To. Rate-limited and protected by a honeypot field.
+
 ### Removed
 - **Campaign handbook («Материалы» tab) and content packs.** The tab, its API (`/api/campaigns/{id}/content-packs`,
   `/api/content-packs/*`) and the `ContentPacks` / `ContentPackEntries` tables are gone; migration
