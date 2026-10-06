@@ -1210,3 +1210,9 @@ reasonCode доступа и подтверждения выхода/исклю�
 исходными наборами и read-only UI для чужого авторского контента. Полные проверки после ревью:
 759 domain + 913 API, 491 frontend тест; build/lint и EF model validation пройдены;
 PR #264–#268 остаются открытыми по прямому указанию пользователя.
+
+Ответы опубликованы в каждом PR: [#264](https://github.com/Giviruk/GenesysForgeClaude/pull/264#issuecomment-6027145031),
+[#265](https://github.com/Giviruk/GenesysForgeClaude/pull/265#issuecomment-6027145979),
+[#266](https://github.com/Giviruk/GenesysForgeClaude/pull/266#issuecomment-6027146276),
+[#267](https://github.com/Giviruk/GenesysForgeClaude/pull/267#issuecomment-6027146656),
+[#268](https://github.com/Giviruk/GenesysForgeClaude/pull/268#issuecomment-6027147081).
