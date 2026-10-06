@@ -1,10 +1,7 @@
 import { navigate } from '../router'
 import { t, useLang } from '../i18n'
 
-export const REPO_URL = 'https://github.com/Giviruk/GenesysForgeClaude'
-export const CHANGELOG_URL = `${REPO_URL}/blob/master/CHANGELOG.md`
-
-/** Глобальный футер: ссылки на About/changelog/исходники, переключатель языка и копирайт-дисклеймер. */
+/** Глобальный футер: справка, About, переключатель языка и копирайт-дисклеймер. */
 export function Footer() {
   const [lang, setLang] = useLang()
   return (
@@ -12,8 +9,6 @@ export function Footer() {
       <nav className="footer-links">
         <button className="linklike" type="button" onClick={() => navigate('/help')}>{t('Справка', 'Help')}</button>
         <button className="linklike" type="button" onClick={() => navigate('/about')}>{t('О проекте', 'About')}</button>
-        <a className="linklike" href={CHANGELOG_URL} target="_blank" rel="noreferrer">Changelog</a>
-        <a className="linklike" href={REPO_URL} target="_blank" rel="noreferrer">{t('Исходный код', 'Source code')}</a>
         <button className="linklike" type="button" onClick={() => setLang(lang === 'ru' ? 'en' : 'ru')}>
           {lang === 'ru' ? 'English' : 'Русский'}
         </button>
