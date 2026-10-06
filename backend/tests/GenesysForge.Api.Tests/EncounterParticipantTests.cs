@@ -6,13 +6,13 @@ using GenesysForge.Domain;
 namespace GenesysForge.Api.Tests;
 
 /// <summary>
-/// Регрессия: добавление участника энкаунтера и записи Content Pack раньше падало 500
+/// Регрессия: добавление участника энкаунтера раньше падало 500
 /// (DbUpdateConcurrencyException) из-за добавления в Include-коллекцию на InMemory-провайдере.
 /// </summary>
-public class EncounterContentPackTests : IClassFixture<ApiFactory>
+public class EncounterParticipantTests : IClassFixture<ApiFactory>
 {
     private readonly ApiFactory _factory;
-    public EncounterContentPackTests(ApiFactory factory) => _factory = factory;
+    public EncounterParticipantTests(ApiFactory factory) => _factory = factory;
 
     private static async Task<Guid> CreateCampaignAsync(HttpClient gm)
     {
@@ -46,27 +46,5 @@ public class EncounterContentPackTests : IClassFixture<ApiFactory>
         Assert.Equal(HttpStatusCode.OK, resp.StatusCode);
         var detail = (await resp.Content.ReadFromJsonAsync<EncounterDetailDto>(Json.Options))!;
         Assert.Contains(detail.Participants, p => p.DisplayName == "Гоблин" && p.Quantity == 2);
-    }
-
-    [Fact]
-    public async Task AddContentPackEntry_Succeeds()
-    {
-        var gm = await _factory.CreateAuthorizedClientAsync();
-        var campId = await CreateCampaignAsync(gm);
-
-        var packResp = await gm.PostAsJsonAsync($"/api/campaigns/{campId}/content-packs/",
-            new CreateContentPackRequest("Пак", "", GameSystem.RealmsOfTerrinoth), Json.Options);
-        Assert.Equal(HttpStatusCode.Created, packResp.StatusCode);
-        var pack = (await packResp.Content.ReadFromJsonAsync<ContentPackDetailDto>(Json.Options))!;
-
-        var input = new ContentPackEntryInput(
-            ContentType: ContentEntryType.HouseRule, ContentId: null, Title: "Дикая магия",
-            AllowedState: AllowedState.Allowed, Category: HouseRuleCategory.Magic,
-            SafeSummary: "", Source: "", PageRef: "", GmNotes: "", PlayerNotes: "", Tags: null);
-        var resp = await gm.PostAsJsonAsync($"/api/content-packs/{pack.Id}/entries", input, Json.Options);
-
-        Assert.Equal(HttpStatusCode.OK, resp.StatusCode);
-        var detail = (await resp.Content.ReadFromJsonAsync<ContentPackDetailDto>(Json.Options))!;
-        Assert.Contains(detail.Entries, e => e.Title == "Дикая магия");
     }
 }

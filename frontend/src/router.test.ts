@@ -58,7 +58,8 @@ describe('parseRoute', () => {
   it('parses campaign sub-views', () => {
     expect(parseRoute('/campaigns/c1/chronicle')).toEqual(route({ area: 'campaigns', id: 'c1', sub: 'chronicle' }))
     expect(parseRoute('/campaigns/c1/table')).toEqual(route({ area: 'campaigns', id: 'c1', sub: 'table' }))
-    expect(parseRoute('/campaigns/c1/handbook')).toEqual(route({ area: 'campaigns', id: 'c1', sub: 'handbook' }))
+    // Вкладка «Материалы» (handbook) удалена: старые ссылки — неизвестный маршрут.
+    expect(parseRoute('/campaigns/c1/handbook')).toMatchObject({ area: 'campaigns', id: 'c1', sub: null, unknown: true })
     expect(parseRoute('/campaigns/c1/encounters')).toEqual(route({ area: 'campaigns', id: 'c1', sub: 'encounters' }))
     expect(parseRoute('/campaigns/c1/custom')).toEqual(route({ area: 'campaigns', id: 'c1', sub: 'custom' }))
   })

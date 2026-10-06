@@ -52,8 +52,6 @@ public interface IAppDbContext
     DbSet<InitiativeSlot> InitiativeSlots { get; }
     DbSet<Encounter> Encounters { get; }
     DbSet<EncounterParticipant> EncounterParticipants { get; }
-    DbSet<ContentPack> ContentPacks { get; }
-    DbSet<ContentPackEntry> ContentPackEntries { get; }
     DbSet<HomebrewPack> HomebrewPacks { get; }
     DbSet<HomebrewPackCharacter> HomebrewPackCharacters { get; }
     DbSet<HomebrewPackCampaign> HomebrewPackCampaigns { get; }

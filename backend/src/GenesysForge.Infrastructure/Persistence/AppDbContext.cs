@@ -53,8 +53,6 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<InitiativeSlot> InitiativeSlots => Set<InitiativeSlot>();
     public DbSet<Encounter> Encounters => Set<Encounter>();
     public DbSet<EncounterParticipant> EncounterParticipants => Set<EncounterParticipant>();
-    public DbSet<ContentPack> ContentPacks => Set<ContentPack>();
-    public DbSet<ContentPackEntry> ContentPackEntries => Set<ContentPackEntry>();
     public DbSet<HomebrewPack> HomebrewPacks => Set<HomebrewPack>();
     public DbSet<HomebrewPackCharacter> HomebrewPackCharacters => Set<HomebrewPackCharacter>();
     public DbSet<HomebrewPackCampaign> HomebrewPackCampaigns => Set<HomebrewPackCampaign>();
@@ -557,25 +555,6 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             e.Property(p => p.Notes).HasMaxLength(2000);
         });
 
-        b.Entity<ContentPack>(e =>
-        {
-            e.HasIndex(p => p.CampaignId);
-            e.HasIndex(p => p.OwnerUserId);
-            e.Property(p => p.Name).HasMaxLength(200);
-            e.HasMany(p => p.Entries).WithOne()
-                .HasForeignKey(en => en.ContentPackId).OnDelete(DeleteBehavior.Cascade);
-        });
-        b.Entity<ContentPackEntry>(e =>
-        {
-            e.HasIndex(en => en.ContentPackId);
-            e.Property(en => en.Title).HasMaxLength(200);
-            e.Property(en => en.Source).HasMaxLength(200);
-            e.Property(en => en.PageRef).HasMaxLength(80);
-            e.Property(en => en.SafeSummary).HasMaxLength(2000);
-            e.Property(en => en.GmNotes).HasMaxLength(2000);
-            e.Property(en => en.PlayerNotes).HasMaxLength(2000);
-            e.Property(en => en.Tags).HasMaxLength(1000);
-        });
 
         b.Entity<HomebrewPack>(e =>
         {

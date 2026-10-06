@@ -1,5 +1,5 @@
 import type {
-  AllowedState, AttachmentDef, Characteristic, ContentEntryType, CreatureTemplate, EncounterType, GameSystem, HouseRuleCategory,
+  AttachmentDef, Characteristic, CreatureTemplate, EncounterType, GameSystem,
   HeroicOriginType, ImplementMaterial, InitiativeSlotType, ItemDamageState, SignatureWeaponImprovement, SignatureWeaponProfile, WeaponCraftsmanship, WeaponFormTrait, ItemKind, ItemState, NpcCombatStyle, NpcKind, NpcPowerLevel, NpcRole,
   NpcVisibility, ParticipantType, SkillKind, TalentCategory, ThreatLevel, TransportKind, MovementMode,
 } from '../api/types'
@@ -411,75 +411,6 @@ export const THREAT_LEVEL_LABELS: Record<ThreatLevel, string> = t({
 })
 
 export const THREAT_LEVELS: ThreatLevel[] = ['trivial', 'easy', 'standard', 'hard', 'deadly']
-
-export const CONTENT_ENTRY_TYPE_LABELS: Record<ContentEntryType, string> = t({
-  archetype: 'Архетип',
-  career: 'Карьера',
-  skill: 'Навык',
-  talent: 'Талант',
-  item: 'Предмет',
-  heroicAbility: 'Геройская способность',
-  spell: 'Заклинание',
-  magicAction: 'Магическое действие',
-  alchemyRecipe: 'Алхимический рецепт',
-  rune: 'Руна',
-  houseRule: 'Домашнее правило',
-  customNote: 'Заметка',
-}, {
-  archetype: 'Archetype',
-  career: 'Career',
-  skill: 'Skill',
-  talent: 'Talent',
-  item: 'Item',
-  heroicAbility: 'Heroic ability',
-  spell: 'Spell',
-  magicAction: 'Magic action',
-  alchemyRecipe: 'Alchemy recipe',
-  rune: 'Rune',
-  houseRule: 'House rule',
-  customNote: 'Note',
-})
-
-export const CONTENT_ENTRY_TYPES: ContentEntryType[] = [
-  'talent', 'item', 'career', 'archetype', 'skill', 'heroicAbility',
-  'spell', 'magicAction', 'alchemyRecipe', 'rune', 'houseRule', 'customNote',
-]
-
-export const ALLOWED_STATE_LABELS: Record<AllowedState, string> = t({
-  allowed: 'Разрешено',
-  disallowed: 'Запрещено',
-  askGm: 'С разрешения мастера',
-}, {
-  allowed: 'Allowed',
-  disallowed: 'Disallowed',
-  askGm: 'Ask the GM',
-})
-
-export const ALLOWED_STATES: AllowedState[] = ['allowed', 'disallowed', 'askGm']
-
-export const HOUSE_RULE_CATEGORY_LABELS: Record<HouseRuleCategory, string> = t({
-  none: '—',
-  characterCreation: 'Создание персонажа',
-  combat: 'Бой',
-  magic: 'Магия',
-  equipment: 'Снаряжение',
-  xp: 'Опыт (XP)',
-  campaignTone: 'Тон кампании',
-  custom: 'Особая',
-}, {
-  none: '—',
-  characterCreation: 'Character creation',
-  combat: 'Combat',
-  magic: 'Magic',
-  equipment: 'Equipment',
-  xp: 'Experience (XP)',
-  campaignTone: 'Campaign tone',
-  custom: 'Custom',
-})
-
-export const HOUSE_RULE_CATEGORIES: HouseRuleCategory[] = [
-  'characterCreation', 'combat', 'magic', 'equipment', 'xp', 'campaignTone', 'custom',
-]
 
 /** Стоимость таланта тира N — 5 × N XP. */
 export const talentCost = (tier: number) => tier * 5

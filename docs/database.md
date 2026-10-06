@@ -26,8 +26,6 @@ DbSets:
 - `CharacterTalents`
 - `CharacterItems`
 - `SpellDefs`
-- `ContentPacks`
-- `ContentPackEntries`
 - `HomebrewPacks`
 - `HomebrewPackCharacters`
 - `HomebrewPackCampaigns`
@@ -527,7 +525,7 @@ Indexes:
 
 ### HomebrewPacks
 
-User-owned portable homebrew JSON packs (U-26), separate from campaign handbook `ContentPacks`.
+User-owned portable homebrew JSON packs (U-26).
 
 Fields: `Id`, `OwnerUserId`, `Name`, `Description`, `System`, nullable `ShareTokenHash`, `IsShared`,
 `IsEnabledByDefault`, `CreatedAt`, `UpdatedAt`.

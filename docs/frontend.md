@@ -28,7 +28,6 @@ frontend/src/
   components/NotesTab.tsx
   components/GameTableTab.tsx
   components/EncountersTab.tsx
-  components/HandbookTab.tsx
   components/MagicBuilder.tsx
   components/print/
   components/DicePoolView.tsx
@@ -43,7 +42,7 @@ frontend/src/
 - `AuthPage` — login/register form.
 - `CharactersPage` — list of characters and create-character modal.
 - `SheetPage` — selected character sheet with tabs.
-- `CampaignsPage` — campaigns, join flow, campaign notes, handbook, encounters and game table tabs.
+- `CampaignsPage` — campaigns, join flow, campaign notes, encounters and game table tabs.
 - `NpcsPage` — NPC/adversary list, quick draft, create/edit, duplicate and print card.
 - `MagicPage` — system-level magic reference and action builder.
 
@@ -60,7 +59,6 @@ frontend/src/
 - `NotesTab` — character notes CRUD.
 - `GameTableTab` — campaign active scene, participants, story points and initiative slots.
 - `EncountersTab` — campaign encounter builder and send-to-table flow.
-- `HandbookTab` — campaign content packs and entries.
 - `MagicBuilder` — magic action composition, difficulty, dice pool and print/Markdown export.
 - `components/print/*` — browser print preview and printable cards for NPCs, encounters, magic actions, items and talents.
 - `DicePoolView` — displays ability/proficiency pool.
@@ -126,7 +124,7 @@ Current forms:
 - character notes;
 - campaign create/join/notes;
 - NPC create/edit/quick draft;
-- encounter, game table and content pack forms;
+- encounter and game table forms;
 - magic action builder controls;
 - custom content forms;
 - inventory add/update controls;

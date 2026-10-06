@@ -45,7 +45,6 @@
 - NPC/adversary library with filters, deterministic quick draft, duplication and ownership checks.
 - Encounter builder for campaign scenes, participants, hidden/defeated flags, print view and send-to-table flow.
 - Game Table / GM cockpit: active campaign session, story points, participants, initiative slots, next turn, reset and end session.
-- Campaign Handbook / Content Packs with campaign-scoped entries.
 - Magic Action Builder with difficulty calculation, character magic dice pool, print card and Markdown copy.
 - Print preview/cards for NPCs, encounters, magic actions, items and talents through browser print.
 - URL routing / deep links via a lightweight History-API router (`frontend/src/router.ts`): `/characters/:id`, `/campaigns/:id`, `/npcs/:id` and `/magic` survive refresh (SPA fallback in nginx/Vite); login returns to the intended URL (`session.ts`), and a session-expired message is shown on `401`.

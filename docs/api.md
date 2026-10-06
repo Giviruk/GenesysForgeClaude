@@ -671,7 +671,7 @@ them through `HomebrewPackCampaigns`.
 
 ## Homebrew JSON packs
 
-All routes are protected. Packs are user-owned and separate from campaign Content Packs.
+All routes are protected. Packs are user-owned.
 
 ```text
 GET  /api/homebrew-packs/
@@ -839,24 +839,6 @@ POST   /api/encounters/{id}/send-to-table
 ```
 
 List supports optional `search`, `type` and `tag` query filters. `send-to-table` uses `SendToTableRequest` with mode `replace` or `append`.
-
-## Content packs
-
-All routes are protected and campaign-scoped through ownership/access checks.
-
-```text
-GET    /api/campaigns/{campaignId}/content-packs/
-POST   /api/campaigns/{campaignId}/content-packs/
-
-GET    /api/content-packs/{id}
-PATCH  /api/content-packs/{id}
-DELETE /api/content-packs/{id}
-POST   /api/content-packs/{id}/entries
-PUT    /api/content-packs/{id}/entries/{entryId}
-DELETE /api/content-packs/{id}/entries/{entryId}
-```
-
-Content packs are campaign handbook containers. Entries are typed by `ContentEntryType` and can be public to campaign members or GM-only depending on pack visibility and access rules.
 
 ## Health
 
