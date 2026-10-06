@@ -37,6 +37,8 @@ services:
   postgres-public:
     image: postgres:17.11-alpine
     container_name: genesysforge-db-public
+    # Как у приватной БД: статистика запросов нужна, чтобы видеть медленные места под ростом трафика.
+    command: ["postgres", "-c", "shared_preload_libraries=pg_stat_statements"]
     environment:
       POSTGRES_USER: genesys
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
@@ -51,7 +53,11 @@ services:
       start_period: 60s
       start_interval: 2s
     restart: unless-stopped
-    mem_limit: 256m
+    # 384m под подготовленные запросы api-public: по нагрузочному тесту 06.10.2026 планы 10 соединений
+    # добавляют ~75 МБ приватной памяти. 1 ядро — чтобы всплеск публичного трафика не забирал всю
+    # 2-ядерную машину у соседних проектов.
+    mem_limit: 384m
+    cpus: 1.0
 
   api:
     image: ghcr.io/${GHCR_OWNER}/genesysforge-api:latest
@@ -112,7 +118,11 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: Production
       DOTNET_gcServer: "0"
-      ConnectionStrings__Default: "Host=postgres-public;Port=5432;Database=genesysforge_public;Username=genesys;Password=${POSTGRES_PASSWORD}"
+      # Max Auto Prepare: лист персонажа — 13 split-запросов, PostgreSQL тратил ~4 мс на планирование
+      # каждого при ~0,2 мс выполнения; подготовленные запросы переиспользуют план (лист: 30 → 109 rps
+      # при 10 потоках в тесте 06.10.2026). Maximum Pool Size=10 ограничивает число backend-процессов
+      # с кешем планов: при умолчании Npgsql в 100 соединений БД упиралась в mem_limit.
+      ConnectionStrings__Default: "Host=postgres-public;Port=5432;Database=genesysforge_public;Username=genesys;Password=${POSTGRES_PASSWORD};Maximum Pool Size=10;Max Auto Prepare=64;Auto Prepare Min Usages=2"
       # Separate signing key namespace: private access tokens are invalid in the public stack.
       Jwt__Key: "${JWT_KEY}-public"
       Jwt__AccessLifetimeMinutes: ${JWT_ACCESS_LIFETIME_MINUTES:-30}
@@ -148,8 +158,11 @@ services:
       postgres-public:
         condition: service_healthy
     restart: unless-stopped
-    # Публичный контур почти без трафика, но держит ~170 МБ и растёт медленнее — запас поменьше.
-    mem_limit: 384m
+    # 512m, как у приватного API: ожидается рост публичного трафика, а под нагрузкой процесс занимает
+    # ~400 МБ вместе с ~100 МБ shmem под JIT-код; при 384m куче .NET оставалось бы 288 МБ.
+    # 1,5 ядра — оставить соседям хотя бы полъядра при всплеске.
+    mem_limit: 512m
+    cpus: 1.5
 
   web:
     image: ghcr.io/${GHCR_OWNER}/genesysforge-web:latest
