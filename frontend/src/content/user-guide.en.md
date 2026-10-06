@@ -61,7 +61,7 @@ Pick a base magic action, add extra effects and check the resulting difficulty. 
 
 ## Campaigns and joining players
 
-The GM creates a campaign and gives the player a join code. The player joins the campaign with one of their characters. After that the GM can open the player's sheet from the campaign, and the player sees the campaign materials available to them.
+The GM creates a campaign and gives the player a join code. The player joins the campaign with one of their characters. After that the GM can open the player's sheet from the campaign.
 
 ## NPCs and the bestiary
 

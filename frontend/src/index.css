@@ -2238,14 +2238,6 @@ button.tiny { font-size: 0.75rem; padding: 0.05rem 0.4rem 0.15rem; }
 .tag-row { display: flex; flex-wrap: wrap; gap: 0.3rem; margin-top: 0.4rem; }
 .tag-row.compact { margin-top: 0; }
 
-/* ---------- Campaign Handbook ---------- */
-.handbook .filters, .content-pack .filters {
-  display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; margin: 0.6rem 0;
-}
-.content-pack .filters input { flex: 1 1 12rem; }
-.entry-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr)); gap: 0.7rem; }
-.entry-card { border: 1px solid var(--border); border-radius: 8px; padding: 0.6rem 0.8rem; background: var(--panel-2); }
-.entry-head { display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap; margin-bottom: 0.35rem; }
 .badge.danger-badge { color: var(--red); border-color: var(--red); }
 
 @media (max-width: 48rem) {

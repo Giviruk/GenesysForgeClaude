@@ -9,6 +9,14 @@ once it reaches a tagged 1.0 release. The project is currently pre-1.0; the
 
 ## [Unreleased]
 
+### Removed
+- **Campaign handbook («Материалы» tab) and content packs.** The tab, its API (`/api/campaigns/{id}/content-packs`,
+  `/api/content-packs/*`) and the `ContentPacks` / `ContentPackEntries` tables are gone; migration
+  `RemoveContentPacks` drops the tables. The feature had no effect on rules or purchases, and production held a
+  single empty pack.
+- **Source code links and Google sign-in on the sites.** Footer and About page no longer link to GitHub; production
+  no longer passes `Auth__Google__ClientId`, so the Google button is hidden.
+
 ### Security
 - **Dependencies updated to the latest stable releases.** Backend: ASP.NET Core / EF Core 10.0.9 → 10.0.12,
   Npgsql 10.0.3, Serilog.AspNetCore 10, MailKit 4.18, AWSSDK.S3 4.0.104, System.IdentityModel.Tokens.Jwt 8.23,

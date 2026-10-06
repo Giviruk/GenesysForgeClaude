@@ -43,7 +43,7 @@ Implemented:
 - Custom content, видимый только владельцу.
 - Character notes.
 - Campaigns, join code, membership and campaign notes.
-- NPC/adversary library, encounter builder, Game Table and campaign content packs.
+- NPC/adversary library, encounter builder and Game Table.
 - Magic reference/action builder and browser-print cards for GM/player materials.
 - Docker/CI/test foundation.
 
