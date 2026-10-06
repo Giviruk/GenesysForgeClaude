@@ -71,3 +71,13 @@ Public API собирается Docker target `public` с `IncludePrivateContent
 не встраиваются в public runtime assembly. Оба стека используют отдельные volumes и hostnames.
 Public JWT signing key получает отдельный namespace (`JWT_KEY` + public suffix), поэтому private
 access tokens не принимаются public API.
+
+## GEN-CONTENT-01 rollout
+
+Apply AddCampaignMembers before enabling account-only joining. PackLegacyCustomContent
+assigns legacy ungrouped owner content to personal packs without changing definition IDs.
+Before enabling campaign content isolation, tell players that personal packs no longer permit
+new purchases while a character belongs to a campaign. The GM imports a shared copy and
+connects their pack to authorize it. Existing purchased skill ranks remain on the sheet;
+removing the last character no longer leaves the campaign. Exit/removal is an account action.
+Migration deployment and service restart are outside the implementation PRs.

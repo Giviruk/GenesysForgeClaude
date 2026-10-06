@@ -907,3 +907,12 @@ account-owned content in a personal pack without a campaign or GM role. PUT/DELE
 /{type}/{id} use the same ownership validation as the existing campaign-scoped routes.
 Campaign-scoped creation retains its GM-only check. A GM enables an owned personal pack
 with PUT /api/v1/campaigns/{id}/homebrew-packs/{packId}. Sharing/importing copies is unchanged.
+
+## Campaign content isolation
+
+Reference with campaignId, or with a characterId linked to campaigns, exposes enabled campaign
+packs rather than the owner's personal defaults/character toggles. A character linked to multiple
+campaigns retains the union of enabled campaign packs; there is no RulesCampaignId. Explicit
+campaignId selects that campaign's reference context. Standalone characters retain personal toggles.
+Purchased skills remain on sheets after pack removal, including their ranks and dice pools;
+reference visibility and permission to purchase additional ranks still require an enabled pack.

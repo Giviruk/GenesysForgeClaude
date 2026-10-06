@@ -3,7 +3,7 @@
 - **ТЗ:** [account-campaign-content.md](../../docs/account-campaign-content.md), этап 3.
 - **Ветка:** `feature/gen-content-01-personal-library`
 - **База:** `feature/gen-content-01-campaign-characters` (PR #266).
-- **Статус:** реализовано, проверки пройдены; PR готовится.
+- **Статус:** реализовано, проверки пройдены; [PR #267](https://github.com/Giviruk/GenesysForgeClaude/pull/267) открыт, ожидает слияния.
 
 ## План
 

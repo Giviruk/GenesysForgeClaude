@@ -1120,14 +1120,33 @@ ROT-MAG-02 или лист персонажа), проверка собирае�
 `superior` в профиле; эликсир выносливости — Алхимия, 4 ч, компоненты 25, два преимущества дали
 ×3 дозы; после разрешения инвентарь обновился без перезагрузки.
 
-### GEN-CONTENT-01 — проектирование личной библиотеки и контента кампаний
+### GEN-CONTENT-01 — личная библиотека и контент кампаний
 
-06.10.2026 подготовлено [предложение](../../docs/account-campaign-content.md) на основе
-реальных handlers и сущностей: найден цикл «доступ к контенту требует уже созданного
-персонажа», описаны отдельное членство аккаунта, единая политика выбора definitions и
-подключение наборов с разрешением мастера. Добавлены сценарии обновления/отключения,
-сохранения листов и переноса legacy данных. Это документация будущей функции;
-программная реализация не выполнена. [Draft PR #264](https://github.com/Giviruk/GenesysForgeClaude/pull/264).
+07.10.2026 реализованы все четыре этапа [исправленного пользователем плана](../../docs/account-campaign-content.md):
+CampaignMember позволяет вступить без персонажа и независимо выходить/исключать аккаунты;
+доступ к кампании и CampaignVisible NPC проверяется по членству. Игрок добавляет своего
+персонажа или создаёт его на разрешённых мастером архетипе/карьере и навыках, сохраняя
+персонажа и связь одним SaveChanges. Личная библиотека предоставляет шесть типов custom
+CRUD вне кампаний и собственные наборы.
+
+Контекст кампании использует только включённые наборы кампаний; личные defaults и toggles
+не обходят разрешение мастера. Персонаж в нескольких кампаниях сохраняет объединение
+подключений, явный campaignId выбирает одну кампанию. Купленные навыки и их ранги остаются
+на листе после отключения пакета; личная и импортированная копии с одинаковым именем
+не приводят к ошибке сборки листа. Версии, снимки и RulesCampaignId исключены из ТЗ.
+
+AddCampaignMembers создаёт таблицу и переносит non-GM членство из существующих персонажей.
+PackLegacyCustomContent связывает legacy определения с личной библиотекой без изменения ID:
+read-only проверка обнаружила одну такую карьеру в private production, public — без legacy.
+SQL backfill обоих этапов проверен на PostgreSQL 17.11 во временных таблицах и откатан;
+рабочие данные production не менялись. Модель EF соответствует миграциям.
+
+Полные проверки: 759 domain + 905 API, 482 frontend теста; build/lint пройдены.
+[PR #264](https://github.com/Giviruk/GenesysForgeClaude/pull/264) содержит утверждённый план,
+[#265](https://github.com/Giviruk/GenesysForgeClaude/pull/265) — этап 1,
+[#266](https://github.com/Giviruk/GenesysForgeClaude/pull/266) — этап 2,
+[#267](https://github.com/Giviruk/GenesysForgeClaude/pull/267) — этап 3;
+этап 4: [план](gen-content-01-campaign-content-access.md). Статус остаётся `[~]` до merge.
 
 ## Дополнительные аудиты качества
 
@@ -1154,7 +1173,10 @@ ROT-MAG-02 или лист персонажа), проверка собирае�
   План: [gen-content-01-campaign-characters.md](gen-content-01-campaign-characters.md).
   Этап 3: личный custom CRUD и страница «Моя библиотека», 19 backend / 60 frontend
   тестов, build и lint пройдены. План: [gen-content-01-personal-library.md](gen-content-01-personal-library.md).
-  Остаток: этап 4 и merge всех PR. ТЗ: [account-campaign-content.md](../../docs/account-campaign-content.md).
+  Этап 4: изоляция кампаний, сохранность купленных навыков, data migration и проверки SQL
+  на PostgreSQL 17.11. Полные проверки: 759 domain + 905 API и 482 frontend теста, build/lint.
+  План: [gen-content-01-campaign-content-access.md](gen-content-01-campaign-content-access.md).
+  Остаток: review/merge стека и отдельная выкатка; все четыре этапа реализации завершены. ТЗ: [account-campaign-content.md](../../docs/account-campaign-content.md).
 
 ## Что осталось / блокеры
 

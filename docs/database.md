@@ -771,3 +771,13 @@ Legal risk:
 
 - Explicit database check constraints for XP ranges, tier ranges, ranks and quantity.
 - Database-level ownership enforcement; ownership is application-level.
+
+## Legacy custom content packs (GEN-CONTENT-01)
+
+PackLegacyCustomContent is a data-only migration. It assigns owner-owned definitions without
+HomebrewPackId to one personal pack per owner/system, reusing the personal library marker.
+It covers skills, talents, items, archetypes, careers and Terrinoth heroic abilities. Existing
+pack links, definition IDs and character references remain unchanged; built-ins are excluded.
+Rollback retains the repair because reverting links cannot safely distinguish migrated rows
+from later library content. A read-only check on 07.10.2026 found one unpacked custom career
+in the private production database and none in the public database.
