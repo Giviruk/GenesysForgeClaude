@@ -725,7 +725,7 @@ from embedded catalogs; the rest (skills, careers, spells) are defined in `SeedD
 Two seed pipelines are selected by `ContentMode` (param of `SeedData.Apply`, from `Content:Mode` config):
 
 - `PrivateFull` — full content. `Description` is filled from the private description overlay (`PrivateContentStore`, see below); where no overlay exists it falls back to `SafeDescription` so it is never empty. Spell `Description` (a safe paraphrase baked in code) is kept.
-- `PublicSafe` — copyright-safe. `Description` is cleared for every built-in entry (including spells); only `NameRu`, `SafeDescription` and `Source` remain. The public set is structurally complete (same `Code` set as private) so the public app is fully functional without any private data.
+- `PublicSafe` — clears `Description` for built-ins. Talents/heroics/Power upgrades/Secondary Effects also clear `SafeDescription`, `DescriptionEn` and prose notes; their UI uses name + book/page references. Other definitions retain safe paraphrases. Structural calculation fields remain available. See [public-safe-release.md](public-safe-release.md).
 
 Common behavior (both modes):
 
@@ -733,9 +733,11 @@ Common behavior (both modes):
 - ignores custom content where `OwnerUserId != null`;
 - adds missing built-in entries without recreating the database.
 
-Pipeline isolation: a database is seeded with a single mode; the two pipelines never mix in one run. Switching modes on an existing database only backfills missing rows (it does not rewrite existing descriptions) — re-seed a fresh database to change content mode.
+Pipeline isolation: a database is seeded with a single mode; the two pipelines never mix in one run. Reseeding synchronizes current built-ins, including book references and mode-specific prose; PublicSafe also scrubs retired talent/heroic prose absent from the current catalog. IDs and custom content remain intact. Deployment databases must still stay separate.
 
 ### Private content overlay (`PrivateContentStore`)
+
+Talent/heroic/Secondary Effect text is stored in the optional `backend/private-content/rule-text.ru.json` and read by `PrivateRuleTextCatalog`. It includes the existing RU/EN prose and heroic upgrade text; the common catalogs retain only structure and bibliographic metadata. The public assembly does not embed this resource. No persistent model or migration changes were needed.
 
 Full private descriptions live in `backend/private-content/genesys-core.ru.json` and `backend/private-content/realms-of-terrinoth.ru.json` (map of stable `Code` → full description). The directory lives under `backend/` so it is inside the Docker build context (`./backend`) and the Dockerfile copies it before `dotnet publish` — otherwise `PrivateFull` in the image would be empty. They are own paraphrases, **not** official book text, and are embedded into the Infrastructure assembly as resources (`WithCulture=false` so the `.ru` suffix is not mistaken for a culture). `PrivateContentStore.Load()` reads them; in `PublicSafe` they are not used.
 

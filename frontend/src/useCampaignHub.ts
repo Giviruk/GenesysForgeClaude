@@ -37,18 +37,27 @@ export function useCampaignHub(campaignId: string | null, handlers: Handlers): v
     connection.on('CampaignChanged', () => h().onCampaignChanged?.())
     connection.on('RollAdded', () => h().onRollAdded?.())
     connection.onreconnecting(() => h().onStatus?.('connecting'))
-    connection.onreconnected(() => {
+    const subscribe = async (catchUp: boolean) => {
+      if (stopped) return
+      await connection.invoke('SubscribeCampaign', campaignId)
+      if (stopped) return
+      // События во время разрыва не воспроизводятся: после реконнекта потребители перечитывают
+      // REST-снапшоты. На первом подключении страница только что загрузила их сама — повторное
+      // чтение дублировало бы кампанию, сессию, стол и листы всех участников.
+      if (catchUp) {
+        h().onGameTableChanged?.()
+        h().onCampaignChanged?.()
+        h().onRollAdded?.()
+      }
       h().onStatus?.('connected')
-      void connection.invoke('SubscribeCampaign', campaignId) // переподписка после реконнекта
+    }
+    connection.onreconnected(() => {
+      void subscribe(true).catch(() => { if (!stopped) h().onStatus?.('disconnected') })
     })
     connection.onclose(() => h().onStatus?.('disconnected'))
 
     const started = connection.start()
-      .then(() => {
-        if (stopped) return
-        h().onStatus?.('connected')
-        return connection.invoke('SubscribeCampaign', campaignId)
-      })
+      .then(() => subscribe(false))
       .catch(() => { if (!stopped) h().onStatus?.('disconnected') })
 
     return () => {

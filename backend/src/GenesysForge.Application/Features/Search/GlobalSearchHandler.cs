@@ -47,11 +47,12 @@ public class GlobalSearchHandler(IAppDbContext db) : IQueryHandler<GlobalSearchQ
 
         // 3. Таланты
         hits.AddRange(await db.TalentDefs.AsNoTracking()
-            .Where(t => t.System == system
+            .Where(t => t.System == system && !t.Retired
                 && (t.OwnerUserId == userId || (t.OwnerUserId == null && (t.Setting & settingMask) != 0))
                 && (t.NameRu.ToLower().Contains(needle) || t.Name.ToLower().Contains(needle)))
             .OrderBy(t => t.NameRu).Take(PerSource)
-            .Select(t => new SearchHitDto("talent", "Таланты", t.NameRu, t.Name, t.SafeDescription, "/reference"))
+            .Select(t => new SearchHitDto("talent", "Таланты", t.NameRu, t.Name,
+                t.SafeDescription == "" ? t.Source : t.SafeDescription, "/reference"))
             .ToListAsync(ct));
 
         // 4. Предметы
@@ -91,7 +92,8 @@ public class GlobalSearchHandler(IAppDbContext db) : IQueryHandler<GlobalSearchQ
                 .Where(h => (h.OwnerUserId == null || h.OwnerUserId == userId)
                     && (h.NameRu.ToLower().Contains(needle) || h.Name.ToLower().Contains(needle)))
                 .OrderBy(h => h.NameRu).Take(PerSource)
-                .Select(h => new SearchHitDto("heroic", "Героика", h.NameRu, h.Name, h.SafeDescription, "/reference"))
+                .Select(h => new SearchHitDto("heroic", "Героика", h.NameRu, h.Name,
+                    h.SafeDescription == "" ? h.Source : h.SafeDescription, "/reference"))
                 .ToListAsync(ct));
 
         // 9. NPC пользователя

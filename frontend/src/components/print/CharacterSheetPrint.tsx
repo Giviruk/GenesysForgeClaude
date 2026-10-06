@@ -1,3 +1,4 @@
+import { BookReference } from '../BookReference'
 import { useEffect, useState } from 'react'
 import { api } from '../../api/client'
 import type {
@@ -106,6 +107,7 @@ export function CharacterSheetPrint({ sheet, loadNotes = true }: {
                 {' · '}{t('уровень', 'tier')} {tal.tier}{tal.isRanked ? t(` · рангов ${tal.ranks}`, ` · ranks ${tal.ranks}`) : ''}
                 {tal.activation ? ` · ${tal.activation}` : ''}
               </span>
+              <BookReference source={tal.source} />
               {localizedDescription(tal) && <div className="sheet-desc"><RuleText text={localizedDescription(tal)} /></div>}
             </div>
           ))}
@@ -133,15 +135,16 @@ export function CharacterSheetPrint({ sheet, loadNotes = true }: {
               ].filter(Boolean).map(x => ` · ${x}`).join('')}
               {sheet.heroicUpgradeRank > 0 && t(` · улучшение ${sheet.heroicUpgradeRank}`, ` · upgrade ${sheet.heroicUpgradeRank}`)}
             </span>
+            <BookReference source={h.source} />
             {localizedDescription(h) && <div className="sheet-desc">{localizedDescription(h)}</div>}
             {h.upgrades.filter(u => u.level <= sheet.heroicUpgradeRank).map(u => (
               <div key={u.level} className="sheet-desc">
-                ↑ {u.level === 1 ? t('Улучшенная', 'Improved') : t('Высшая', 'Supreme')}: {localizedDescription(u)}
+                ↑ {u.level === 1 ? t('Улучшенная', 'Improved') : t('Высшая', 'Supreme')}: {localizedDescription(u)} <BookReference source={u.source || h.source} />
               </div>
             ))}
             {sheet.heroicUpgrades.secondaryEffects.map(effect => (
               <div key={effect.id} className="sheet-desc">
-                ↑ {localizedName(effect)}: {localizedDescription(effect)}
+                ↑ {localizedName(effect)}: {localizedDescription(effect)} <BookReference source={effect.source} />
               </div>
             ))}
           </div>

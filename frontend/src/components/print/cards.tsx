@@ -1,3 +1,4 @@
+import { BookReference } from '../BookReference'
 import type {
   Characteristic, EncounterDetail, NpcDetail, SheetItem, SheetTalent,
 } from '../../api/types'
@@ -222,6 +223,7 @@ export function TalentCard({ talent }: { talent: SheetTalent }) {
           {talent.activation && ` · ${talent.activation}`}
         </span>
       </header>
+      <BookReference source={talent.source} />
       {localizedDescription(talent) && <p><RuleText text={localizedDescription(talent)} /></p>}
     </article>
   )

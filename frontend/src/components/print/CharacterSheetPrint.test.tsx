@@ -129,6 +129,34 @@ const reference = {
 } as unknown as Reference
 
 describe('CharacterSheetPrint', () => {
+  it('печатает ссылки public талантов, героик и улучшений без описаний', () => {
+    const bookOnly: CharacterSheet = {
+      ...sheet,
+      talents: [{
+        talentDefId: 'talent', name: 'Toughened', nameRu: 'Закалённый', tier: 1, isRanked: true, ranks: 1,
+        activation: 'Пассивный', activationEn: 'Passive', canUseOutOfTurn: false, linkCode: 'zakalennyy',
+        description: '', descriptionEn: '', source: 'Genesys Core Rulebook (RU translation), с. 73',
+        woundBonus: 2, strainBonus: 0, soakBonus: 0, meleeDefenseBonus: 0, rangedDefenseBonus: 0,
+        grantsCharacteristic: false, grantedCharacteristics: [], choices: [], needsChoice: false,
+      }],
+      heroicAbility: {
+        id: 'heroic', code: 'rot.heroic.influential', name: 'Influential', nameRu: 'Влиятельный',
+        description: '', descriptionEn: '', safeDescription: '', source: 'Realms of Terrinoth, с. 76', isCustom: false,
+        requirement: '', activationCost: '', activation: '', duration: '', frequency: '', notes: '', effects: [],
+        upgrades: [{ level: 1, cost: 1, description: '', descriptionEn: '', notes: '', source: 'Realms of Terrinoth, с. 76' }],
+      },
+      heroicUpgradeRank: 1,
+      heroicUpgrades: { ...sheet.heroicUpgrades, powerRank: 1, secondaryEffects: [{
+        id: 'effect', code: 'rot.heroic.secondary.devastating', name: 'Devastating', nameRu: 'Сокрушительный',
+        description: '', descriptionEn: '', safeDescription: '', source: 'Realms of Terrinoth, с. 79',
+      }] },
+    }
+    render(<CharacterSheetPrint sheet={bookOnly} reference={reference} />)
+    expect(screen.getByRole('link', { name: 'Genesys. Основная книга правил, с. 73' }).getAttribute('href'))
+      .toBe('https://hobbyworld.ru/genesys-osnovnaja-kniga-pravil')
+    expect(screen.getAllByRole('link', { name: 'Realms of Terrinoth, с. 76' })).toHaveLength(2)
+    expect(screen.getByRole('link', { name: 'Realms of Terrinoth, с. 79' })).toBeTruthy()
+  })
   it('показывает компактный стат-блок и пул кубов оружия', async () => {
     const { container } = render(<CharacterSheetPrint sheet={sheet} reference={reference} />)
 

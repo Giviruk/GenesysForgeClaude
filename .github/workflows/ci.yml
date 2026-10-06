@@ -4,7 +4,7 @@ on:
   push:
     branches: [master]
   pull_request:
-    branches: [master]
+    branches: [master, 'feature/**']
 
 jobs:
   backend:
@@ -37,6 +37,15 @@ jobs:
           --output public-safe-publish
           /p:IncludePrivateContent=false
 
+      - name: Test the PublicSafe assembly and HTTP contract without private resources
+        env:
+          VERIFY_PUBLIC_ARTIFACT: '1'
+        run: >-
+          dotnet test tests/GenesysForge.Api.Tests/GenesysForge.Api.Tests.csproj
+          --configuration Release --no-restore
+          /p:IncludePrivateContent=false
+          --filter FullyQualifiedName~PublicSafeTests
+
   frontend:
     name: Frontend (React)
     runs-on: ubuntu-latest
@@ -66,15 +75,19 @@ jobs:
         run: npm run build
 
   migrations:
-    name: Migrations (non-empty DB)
+    name: Migrations (PostgreSQL 17, ${{ matrix.content_mode }})
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        content_mode: [PrivateFull, PublicSafe]
     # Юнит-тесты используют InMemory-провайдер и SQL миграций не выполняют, а E2E всегда стартует
     # с пустой базы. Эта джоба закрывает оставшийся класс дефектов: миграция, которая проходит на
     # пустой схеме и падает на существующих строках (NOT NULL без значения по умолчанию, backfill
     # с некорректным SQL и т. п.).
     services:
       postgres:
-        image: postgres:16-alpine
+        image: postgres:17-alpine
         env:
           POSTGRES_USER: genesys
           POSTGRES_PASSWORD: genesys_ci
@@ -92,6 +105,7 @@ jobs:
       Jwt__Key: ci-migrations-job-signing-key-not-a-secret-0000000000
       ASPNETCORE_ENVIRONMENT: Development
       PGPASSWORD: genesys_ci
+      Content__Mode: ${{ matrix.content_mode }}
     steps:
       - uses: actions/checkout@v5
         with:
@@ -132,9 +146,16 @@ jobs:
         run: "$GITHUB_WORKSPACE/scripts/run-api-once.sh"
 
   e2e:
-    name: E2E smoke (Playwright)
+    name: E2E smoke (${{ matrix.content_mode }})
     runs-on: ubuntu-latest
     needs: [backend, frontend]
+    strategy:
+      fail-fast: false
+      matrix:
+        content_mode: [PrivateFull, PublicSafe]
+    env:
+      COMPOSE_FILE: ${{ matrix.content_mode == 'PublicSafe' && 'docker-compose.yml:docker-compose.public-test.yml' || 'docker-compose.yml' }}
+      E2E_CONTENT_MODE: ${{ matrix.content_mode }}
     steps:
       - uses: actions/checkout@v5
 

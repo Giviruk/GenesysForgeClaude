@@ -1,0 +1,771 @@
+{
+  "talent.bystroe-reagirovanie": {
+    "desc": "Персонаж может получить определённое количество усталости, чтобы добавить такое же количество ✶ к проверке Бдительности или Хладнокровия, сделанной для определения порядка инициативы. Это количество не может превышать ранг Быстрого реагирования.",
+    "descEn": "The character may suffer a number of strain to add an equal number of successes to a Vigilance or Cool check made to determine initiative order. The number may not exceed the character's ranks in Rapid Reaction."
+  },
+  "talent.bystryy": {
+    "desc": "Персонаж не получает штрафы за перемещение по пересечённой местности (он движется по ней с нормальной скоростью без необходимости тратить дополнительные манёвры).",
+    "descEn": "The character suffers no penalties for moving through difficult terrain (they move through it at normal speed without spending extra maneuvers)."
+  },
+  "talent.bystryy-udar": {
+    "desc": "Персонаж добавляет ◻ за каждый ранг таланта ко всем боевым проверкам против всех целей, ещё не совершавших ходов в этой сцене.",
+    "descEn": "The character adds a boost die per rank of this talent to all combat checks against targets that have not yet acted this encounter."
+  },
+  "talent.vtoroe-dyhanie": {
+    "desc": "Один раз за сцену персонаж может использовать этот талант, чтобы вылечить усталость в размере, равном рангу Второго дыхания.",
+    "descEn": "Once per encounter, the character may use this talent to heal strain equal to their ranks in Second Wind."
+  },
+  "talent.vyhvatyvanie": {
+    "desc": "Один раз за раунд, в свой ход, персонаж может использовать этот талант, чтобы достать/убрать легкодоступное оружие или предмет свободным действием. Также этот талант уменьшает свойство оружия Подготовка на один, минимум до 1.",
+    "descEn": "Once per round on their turn, the character may use this talent to draw or holster an easily accessible weapon or item as an incidental instead of a maneuver."
+  },
+  "talent.dobytchik": {
+    "desc": "Персонаж убирает ■ ■ из проверок любых навыков для поиска еды, воды или убежища. Проверки для поиска пропитания или исследования местности занимают вдвое меньше времени, чем обычно.",
+    "descEn": "The character removes two setback dice from checks of any skill made to find food, water or shelter. Checks to forage take half the usual time."
+  },
+  "talent.duelyant": {
+    "desc": "Во время проверок ближнего боя только с одним противником персонаж добавляет ◻ ко всем проверкам ближнего боя. Если же персонаж находится в ближнем бою с тремя и более противниками, то он добавляет ■ ко всем проверкам ближнего боя.",
+    "descEn": "While engaged with a single opponent, the character adds a boost die to their melee combat checks; while engaged with three or more opponents, they add a setback die."
+  },
+  "talent.edinenie-s-prirodoy": {
+    "desc": "Находясь в дикой местности, персонаж может совершить элементарную (-) проверку Выживания вместо Выдержки или Хладнокровия, чтобы вылечить усталость в конце сцены (смотрите стр. 117).",
+    "descEn": "While in the wilderness, the character may make a Simple (-) Survival check instead of Discipline or Cool to recover strain at the end of a scene."
+  },
+  "talent.zakalennyy": {
+    "desc": "Персонаж увеличивает порог ран на 2 за каждый ранг таланта.",
+    "descEn": "The character increases their wound threshold by 2 per rank of this talent."
+  },
+  "talent.kvalifikatsiya": {
+    "desc": "Купив талант, выберите один навык. Персонаж убирает ■ ■ из любых своих проверок с использованием этого навыка. Покупая этот талант каждый последующий раз, персонаж выбирает два дополнительных навыка и также убирает ■ ■ из любых своих проверок с использованием этих навыков. При выборе навыков для этого таланта вам недоступны боевые и магические навыки.",
+    "descEn": "When you purchase this talent, choose one skill. The character removes two setback dice from all checks using that skill. Each additional rank lets you choose an additional skill."
+  },
+  "talent.krepost": {
+    "desc": "Персонаж снижает результаты всех своих критических травм на 10 за каждый ранг Крепости до минимума 1.",
+    "descEn": "The character reduces the result of all critical injuries they suffer by 10 per rank of Durable, to a minimum of 1."
+  },
+  "talent.neprimetnyy": {
+    "desc": "Другие персонажи добавляют ✸ ко всем проверкам, сделанным для поиска или обнаружения вашего персонажа в толпе.",
+    "descEn": "Other characters add automatic failure to checks made to find or notice your character in a crowd."
+  },
+  "talent.obezdvizhivayuschiy-vystrel": {
+    "desc": "Один раз за раунд персонаж может использовать этот талант, чтобы совершить проверку дальнего боя против одной цели, не являющейся транспортом, находящейся в пределах дистанции используемого оружия. Если проверка успешна, уменьшите урон, наносимый атакой, в два раза (прежде чем примените поглощение цели). Цель обездвижена до конца своего следующего хода.",
+    "descEn": "Once per round, the character may use this talent to make a ranged attack against one target; if it deals damage, the target loses their free maneuver on their next turn."
+  },
+  "talent.ostroumnyy-otvet": {
+    "desc": "Один раз за сцену персонаж может использовать этот талант, чтобы автоматически добавить ▼ ▼ к проверке социального навыка другого персонажа.",
+    "descEn": "Once per encounter, the character may use this talent as an incidental to automatically add two threat to another character's social skill check.",
+    "trigger": "Кто-то оскорбил персонажа или его союзника"
+  },
+  "talent.otchayannoe-vosstanovlenie": {
+    "desc": "Перед лечением усталости в конце сцены посмотрите общее количество усталости. Если оно составляет больше половины порога усталости персонажа, то вылечите две дополнительные усталости.",
+    "descEn": "Before healing strain at the end of a scene, check the total: if it is more than half of the character's strain threshold, they heal 2 additional strain."
+  },
+  "talent.parirovanie": {
+    "desc": "Когда персонаж получает попадание в результате проверки ближнего боя, после подсчёта получаемого урона, но до применения поглощения (т. е. сразу после 3-го шага совершения боевой проверки, стр. 102), персонаж может получить 3 усталости, чтобы снизить урон от попадания на 2 плюс его ранг в Парировании. Талант можно использовать только раз за попадание, а персонаж должен использовать оружие ближнего боя.",
+    "descEn": "When the character is hit by a melee combat check, after damage is calculated but before soak is applied, they may suffer 3 strain to reduce the damage by 2 plus their ranks in Parry.",
+    "trigger": "Персонаж получил попадание в ближнем бою"
+  },
+  "talent.podskok": {
+    "desc": "Один раз за раунд, в свой ход, персонаж может использовать этот талант, чтобы свободным действием встать, будучи сидящим или распластанным.",
+    "descEn": "Once per round on their turn, the character may use this talent to stand up from prone or a seated position as an incidental."
+  },
+  "talent.poehali": {
+    "desc": "Один раз за раунд, в свой ход, персонаж может использовать этот талант, чтобы сесть или спешиться с транспорта или животного либо сменить одну позицию в транспорте на другую (например, переместиться из кабины к пулемётной турели) свободным действием. Кроме того, при падении с транспорта или животного с короткой дистанции (смотрите стр. 112) персонаж не получает урона и приземляется на ноги.",
+    "descEn": "Once per round on their turn, the character may mount or dismount a vehicle or mount, or slide into a driver's seat, as an incidental instead of a maneuver."
+  },
+  "talent.pokupka-informatsii": {
+    "desc": "Вместо совершения проверки навыка знаний персонаж может использовать этот талант, чтобы потратить некоторое количество денег и получить без проверки автоматический успех в проверке знаний с одним неотменённым ✶. Сумма потраченных средств в 50 раз больше сложности проверки. На усмотрение ведущего Покупка информации может быть недоступна персонажу, если это особо важная информация, или её трудно достать, или её приобретение не имеет смысла с точки зрения сюжета.",
+    "descEn": "Instead of making a Knowledge skill check, the character may use this talent to spend an amount of currency set by the GM and treat the check as if they had rolled a number of successes."
+  },
+  "talent.pristoynoe-povedenie": {
+    "desc": "Находясь в приличном обществе (определяется ведущим) и совершая социальную проверку, персонаж может получить определённое количество усталости, чтобы добавить к результату проверки такое же количество ▲. Это количество не может быть больше ранга таланта.",
+    "descEn": "While in polite society (as determined by the GM), when making a social skill check the character may suffer strain up to their ranks in this talent to add an equal number of advantage to the check."
+  },
+  "talent.torgovye-svyazi": {
+    "desc": "Один раз за игровую встречу, пытаясь приобрести легальный товар, персонаж может использовать этот талант, чтобы уменьшить его редкость на одну ступень за каждый ранг Торговых связей.",
+    "descEn": "Once per session, when attempting to purchase a legally available item, the character may use this talent to reduce its rarity by 1 per rank of Know Somebody."
+  },
+  "talent.uporstvo": {
+    "desc": "Каждый ранг Упорства увеличивает порог усталости персонажа на 1.",
+    "descEn": "Each rank of Grit increases the character's strain threshold by 1."
+  },
+  "talent.hirurg": {
+    "desc": "Совершая проверку Медицины для исцеления ран, персонаж исцеляет на одну рану больше за каждый ранг таланта.",
+    "descEn": "When making a Medicine check to heal wounds, the character heals one additional wound per rank of this talent."
+  },
+  "talent.berserk": {
+    "desc": "Манёвром персонаж впадает в ярость до конца столкновения или до того, как будет выведен из строя. Пока ярость длится, его проверки ближнего боя получают один автоматический успех и два автоматических преимущества, а проверки противников против него — один автоматический успех. Проверки дальнего боя таланта не затрагивают. По окончании ярости персонаж получает 6 усталости.",
+    "descEn": "As a maneuver, the character goes berserk until the end of the encounter or until incapacitated. While it lasts, their melee checks gain one automatic success and two automatic advantages, and checks made against them gain one automatic success. Ranged checks are unaffected. When the rage ends the character suffers 6 strain."
+  },
+  "talent.voodushevlyayuschaya-rech": {
+    "desc": "Персонаж может совершить обычную (♦ ♦) проверку Лидерства. За каждый выпавший ✶ один союзник в пределах короткой дистанции теряет одну усталость. За каждый ▲ один союзник, на которого действует Воодушевляющая речь, теряет одну дополнительную усталость.",
+    "descEn": "The character may make an Average Leadership check. For each success, one ally within short range heals 1 strain; for each advantage, one such ally adds a boost die to their next check."
+  },
+  "talent.vstrechnoe-predlozhenie": {
+    "desc": "Один раз за игровую встречу персонаж может выбрать в пределах средней дистанции одного противника, не являющегося главарём, и совершить встречную проверку Переговоров против Выдержки. В случае успеха цель в замешательстве до конца своего следующего хода. По усмотрению ведущего вы можете потратить ★, выпавший в результате проверки, чтобы до конца сцены сделать этого противника своим союзником. Однако этот эффект может быть короче или длиннее в зависимости от того, насколько, по мнению ведущего, предложение привлекательно для противника и исполняет ли персонаж то, что обещал!",
+    "descEn": "Once per session, the character may choose one non-nemesis adversary within medium range and make an opposed Negotiation check to convince them to switch sides or stand down for the scene."
+  },
+  "talent.izobretatel": {
+    "desc": "Создавая новые предметы или модифицируя имеющиеся, персонаж может использовать этот талант, чтобы добавить к проверке ◻ за каждый ранг таланта. Кроме того, персонаж может попытаться воссоздать устройства, про которые он слышал, но не видел и не имеет никаких связанных с ними планов или схем.",
+    "descEn": "When constructing new items or modifying existing ones, the character may use this talent to add a boost die per rank of Inventor to the check."
+  },
+  "talent.oboerukiy": {
+    "desc": "Один раз в раунд персонаж может использовать этот талант, чтобы снизить сложность следующей комбинированной боевой проверки (смотрите Сражение с двумя оружиями, стр. 108), сделанной в этом же ходу, на один.",
+    "descEn": "Once per round, the character may use this talent to decrease the difficulty of their next combined combat check made with two weapons by 1."
+  },
+  "talent.oboronitelnaya-taktika": {
+    "desc": "Один раз за раунд персонаж может получить усталость, величина которой не может превышать ранг этого таланта, чтобы до конца своего следующего хода усилить сложность всех проверок ближнего боя против него на столько ступеней, сколько усталости он получил.",
+    "descEn": "Once per round, the character may suffer strain no greater than their ranks in this talent; until the start of their next turn, upgrade the difficulty of all melee combat checks targeting the character that many times."
+  },
+  "talent.povyshennoe-vnimanie": {
+    "desc": "Союзники в пределах короткой дистанции от персонажа прибавляют ◻ к проверкам Бдительности и Внимания, а союзники, находящиеся вплотную к персонажу, — ◻ ◻.",
+    "descEn": "Allies within short range of the character add a boost die to their Perception and Vigilance checks; engaged allies add two boost dice instead."
+  },
+  "talent.skoordinirovannaya-ataka": {
+    "desc": "Один раз за ход персонаж может использовать этот талант, чтобы союзники, стоящие с ним вплотную, в количестве, равном его рангу Лидерства, получили ▲ к совершаемым ими боевым проверкам до начала следующего хода персонажа. Дистанция манёвра увеличивается на один диапазон за каждый ранг Скоординированной атаки после первого.",
+    "descEn": "Once per turn, the character may use this talent so that a number of engaged allies up to their ranks add an advantage to their combat checks until the start of the character's next turn."
+  },
+  "talent.schastlivoe-popadanie": {
+    "desc": "Купив этот талант, выберите одну характеристику. После совершения успешной боевой проверки вы можете потратить одно очко сюжета, чтобы использовать этот талант и добавить урон, равный рейтингу этой характеристики, к одному попаданию этой проверки.",
+    "descEn": "When you purchase this talent, choose one characteristic. After making a successful combat check, you may spend a story point to add damage equal to that characteristic's rating.",
+    "trigger": "После успешной боевой проверки"
+  },
+  "talent.hlestkaya-fraza": {
+    "desc": "Персонаж может использовать этот талант, чтобы совершить обычную(♦♦) проверку Запугивания. За каждый ✶ один враг в пределах короткой дистанции получает одну усталость. За каждый ▲ один враг, на которого действует Хлёсткая фраза, получает одну дополнительную усталость.",
+    "descEn": "The character may make an Average Coercion check. For each success, one enemy within short range suffers 1 strain; for each advantage, one such enemy adds a setback die to their next check."
+  },
+  "talent.shag-v-storonu": {
+    "desc": "Манёвром персонаж получает усталость числом не больше своих рангов таланта. До конца своего следующего хода сложность дальних атак по нему повышается столько же раз.",
+    "descEn": "As a maneuver, suffer strain up to the character’s ranks in the talent. Until the end of their next turn, the difficulty of ranged attacks against them is upgraded that many times."
+  },
+  "talent.bystraya-strelba-iz-luka": {
+    "desc": "Персонаж получает 2 усталости. Для следующей проверки дальнего боя лук получает свойство Linked с рейтингом, равным рангам персонажа в Дальнем бою. Дополнительное попадание автоматически не выдаётся — его ещё нужно оплатить преимуществами.",
+    "descEn": "Suffer 2 strain. For the next ranged check the bow gains Linked with a rating equal to the character’s ranks in Ranged. The extra hit is not granted automatically — it still has to be paid for with advantage."
+  },
+  "talent.voodushevlyayuschaya-rech-uluchshennyyj": {
+    "desc": "Прежде вы должны приобрести талант Воодушевляющая речь. Союзники, на которых воздействует Воодушевляющая речь, добавляют ◻ ко всем проверкам навыков в течение числа раундов, равного рангу Лидерства вашего персонажа.",
+    "descEn": "Your character must have Inspiring Rhetoric to benefit from this talent. Allies affected by your Inspiring Rhetoric add a boost die to their skill checks for a number of rounds equal to your ranks in Leadership."
+  },
+  "talent.geroicheskaya-volya": {
+    "desc": "Купив этот талант, выберите две характеристики. Вы можете потратить очко сюжета, чтобы до конца текущей сцены игнорировать эффекты от всех критических травм на проверки навыков, использующих эти две характеристики (персонаж по-прежнему страдает от этих критических травм, просто игнорирует их эффекты. Смотрите стр. 114).",
+    "descEn": "When you purchase this talent, choose two characteristics. You may spend a story point to ignore the effects of all critical injuries on checks based on those characteristics until the end of the current scene."
+  },
+  "talent.zhivotnoe-sputnik": {
+    "desc": "Персонаж создаёт связь с одним животным, одобренным ведущим. Животное должно иметь фигуру 0 (не крупнее собаки средних размеров). Связь существует так долго, как решит персонаж, хотя по решению ведущего связь может быть разорвана из-за грубого обращения или других обстоятельств. Пока существует такая связь, животным, следующим за персонажем, можно управлять (заметим, что животное привязано к персонажу, но тот не имеет над ним полной власти, поэтому зверь может совершать неугодные действия — царапать мебель, съедать пайки и метить территорию). Один раз в раунд в структурированных сценах персонаж может потратить один манёвр, чтобы во время своего хода совершить животным одно действие и один манёвр. Чтобы сделать это, животное должно находиться в пределах дистанции, позволяющей видеть и слышать персонажа (обычно средняя дистанция). В противном случае животное не участвует в текущей сцене. Особенности его поведения зависят от вас и решений ведущего. За каждый дополнительный ранг таланта персонаж увеличивает фигуру животного-спутника на один (это может означать, что персонаж получает нового спутника или старый спутник вырос в размерах). В зависимости от игрового мира талант может изменяться. Конечно, животное-спутник может присутствовать во всех игровых мирах, но в футуристическом мире в качестве «животного» может выступать робот или дрон.",
+    "descEn": "The character bonds with one animal approved by the GM. The animal must be of silhouette 0 (no larger than a dog). It obeys simple commands and acts on the character's turn once per round."
+  },
+  "talent.znatok-boleutolyayuschih": {
+    "desc": "Когда персонаж применяет болеутоляющее (или его аналог в выбранном игровом мире), цель исцеляет одну дополнительную рану за каждый ранг таланта. Применение болеутоляющего шестой раз (или больше) за день не даёт никакого эффекта.",
+    "descEn": "When the character administers a painkiller (or its setting-appropriate equivalent), the target heals one additional wound. The fifth and subsequent doses per day still have no effect."
+  },
+  "talent.odarennost": {
+    "desc": "Купив этот талант, выберите два навыка. Один раз за игровую встречу вы можете применить талант, чтобы перебросить одну проверку, использующую один из этих двух навыков.",
+    "descEn": "When you purchase this talent, choose two skills. Once per session, you may use this talent to reroll one check using one of those skills."
+  },
+  "talent.orlinyy-glaz": {
+    "desc": "Один раз за сцену перед совершением проверки дальнего боя вы можете увеличить дистанцию оружия на один диапазон (вплоть до экстремальной дистанции). Действует во время этой боевой проверки.",
+    "descEn": "Once per encounter, before making a ranged combat check, you may increase the range of the weapon by one range band."
+  },
+  "talent.parirovanie-u-luchshennyy": {
+    "desc": "Прежде вы должны приобрести талант Парирование. Когда персонаж получает попадание атаки ближнего боя и использует Парирование для снижения урона от этого попадания, то после осуществления этой атаки персонаж может потратить ☠, или ▼ ▼ ▼ из результатов проверки противника для использования этого таланта. Тогда персонаж автоматически попадает по атакующему Грубой силой или оружием, используемым для навыка Ближний бой. Попадание наносит базовый урон оружия, а также любой урон от применимых в этой ситуации талантов или способностей. Персонаж не может использовать этот талант, если исходная атака вывела его из строя.",
+    "descEn": "Your character must have Parry to benefit from this talent. When the character is hit by a melee attack and uses Parry, they may spend a despair or three threat from the attacker's check to hit the attacker back with their own weapon at base damage.",
+    "trigger": "Парирование снизило урон"
+  },
+  "talent.polevoy-komandir": {
+    "desc": "Действием персонаж совершает проверку Лидерства сложности «Средняя» (2). При успехе он выбирает союзников числом не больше своей Харизмы: каждый может получить 1 усталость и немедленно совершить манёвр вне своего хода.",
+    "descEn": "As an action, make an Average (2) Leadership check. On success, choose up to Presence allies: each may suffer 1 strain and immediately perform an out-of-turn maneuver."
+  },
+  "talent.uklonenie": {
+    "desc": "Являясь целью боевой проверки (будь то ближний или дальний бой), персонаж может получить определённое количество усталости, чтобы усилить сложность боевой проверки столько раз, сколько усталости он получил. Количество усталости не может превышать ранг таланта.",
+    "descEn": "When targeted by a combat check (melee or ranged), the character may suffer strain no greater than their ranks in Dodge to upgrade the difficulty of the check that many times.",
+    "trigger": "Персонаж стал целью боевой проверки"
+  },
+  "talent.hlestkaya-fraza-uluchshennyy": {
+    "desc": "Прежде вы должны приобрести талант Хлёсткая фраза. Враги, на которых действует Хлёсткая фраза, получают ■ ко всем проверкам навыков на число раундов, равное рангу вашего персонажа в Запугивании.",
+    "descEn": "Your character must have Scathing Tirade to benefit from this talent. Enemies affected by your Scathing Tirade add a setback die to their skill checks for a number of rounds equal to your ranks in Coercion."
+  },
+  "talent.voodushevlyayuschaya-rech-masterskiyj": {
+    "desc": "Прежде вы должны приобрести талант Воодушевляющая речь. Персонаж может получить 1 усталость, чтобы применить Воодушевляющую речь не действием, а манёвром.",
+    "descEn": "Your character must have Inspiring Rhetoric to benefit from this talent. The character may suffer 1 strain to use Inspiring Rhetoric as a maneuver instead of an action."
+  },
+  "talent.vynoslivost": {
+    "desc": "Поглощение повышается на один за каждый ранг таланта.",
+    "descEn": "The character's soak increases by one per rank of this talent."
+  },
+  "talent.kak-vovremya": {
+    "desc": "Один раз за игровую встречу персонаж может совершить сложную(♦♦♦) проверку Механики. Если проверка успешна, одно устройство, задействованное в текущей сцене (цель, одобренная ведущим), внезапно выходит из строя. Это может быть связано с действиями персонажа или стать невероятным стечением обстоятельств!",
+    "descEn": "Once per session, the character may make a Hard Mechanics check. If successful, a device, vehicle or mechanism within reach works just long enough to get the group out of trouble, as approved by the GM."
+  },
+  "talent.metkiy-glaz": {
+    "desc": "После того как персонаж причинит критическую травму оружием дальнего боя и определит её результат, он может получить 2 усталости, чтобы использовать этот талант и вместо этого нанести цели любую критическую травму той же тяжести на свой выбор.",
+    "descEn": "After the character inflicts a critical injury with a ranged weapon and determines the result, they may suffer 2 strain to change the result to any other they could have rolled."
+  },
+  "talent.mozhet-obsudim-eto": {
+    "desc": "Персонаж может выбрать одного противника в пределах средней дистанции, не являющегося главарём, и совершить встречную проверку Запугивания или Обаяния против Выдержки. В случае успеха цель не может атаковать вашего персонажа (или совершать другие враждебные действия против него) до конца своего следующего хода. Вы можете потратить ▲ ▲, чтобы увеличить действие эффекта на один дополнительный ход, а также потратить ★, чтобы распространить эффект на всех его известных союзников в пределах короткой дистанции. Эффект немедленно прекращается, если ваш персонаж или его известный союзник атакует цель. Кроме того, ваш ведущий может решить, что некоторые цели невосприимчивы к этой способности. Например, разрешить конфликт разговором вряд ли получится с автоматической сторожевой турелью, а также кем-то, кто охвачен яростью и желает отомстить вашему персонажу.",
+    "descEn": "The character may choose one non-nemesis adversary within medium range and make an opposed social check; if successful, the target is unwilling to fight and stands down until attacked or the scene changes."
+  },
+  "talent.oborona": {
+    "desc": "Ближняя и дальняя защита персонажа увеличиваются на 1 за каждый ранг таланта.",
+    "descEn": "The character's melee and ranged defense each increase by 1 per rank of this talent."
+  },
+  "talent.polevoy-komandir-uluchshennyyj": {
+    "desc": "Требуется Field Commander. Предел выбираемых союзников повышается до удвоенной Харизмы. За триумф один выбранный союзник вместо манёвра может получить 1 усталость и совершить действие. Тип активации остаётся действием.",
+    "descEn": "Requires Field Commander. The limit of chosen allies rises to twice Presence. On a triumph, one chosen ally may suffer 1 strain and perform an action instead of a maneuver. The activation type remains an action."
+  },
+  "talent.hlestkaya-fraza-masterskiy": {
+    "desc": "Прежде вы должны приобрести талант Хлёсткая фраза. Персонаж может получить 1 усталость, чтобы применить Хлёсткую фразу не действием, а манёвром.",
+    "descEn": "Your character must have Scathing Tirade to benefit from this talent. The character may suffer 1 strain to use Scathing Tirade as a maneuver instead of an action."
+  },
+  "talent.master": {
+    "desc": "Купив этот талант, выберите один навык. Один раз за раунд персонаж может получить 2 усталости, чтобы использовать этот талант и снизить сложность следующей проверки этого навыка на два, минимум до лёгкой ( ♦ ).",
+    "descEn": "When you purchase this talent, choose one skill. Once per round, the character may suffer 2 strain to reduce the difficulty of their next check with that skill by 2, to a minimum of Easy."
+  },
+  "talent.neukrotimyy": {
+    "desc": "Один раз за сцену, в ситуации, когда ваш персонаж должен выйти из строя из-за превышения порога ран или усталости, вы можете использовать этот талант и потратить очко сюжета, чтобы персонаж не вышел из строя до конца своего следующего хода. Если он за это время снижает усталость или раны до значения ниже порога, то не выходит из строя.",
+    "descEn": "Once per encounter, when the character would be incapacitated by exceeding their wound or strain threshold, they may spend a story point to remain on their feet until the end of their next turn."
+  },
+  "talent.povyshenie": {
+    "desc": "За каждый ранг таланта одна из характеристик персонажа увеличивается на 1. Талант не позволяет увеличить рейтинг характеристики выше 5. Вы не можете дважды увеличить этим талантом одну и ту же характеристику.",
+    "descEn": "Each rank of this talent permanently increases one of the character's characteristics by 1. This cannot raise a characteristic above 5."
+  },
+  "talent.ubiystvennaya-kolkost": {
+    "desc": "Один раз за сцену ваш персонаж может использовать этот талант, чтобы выбрать одного персонажа в пределах средней дистанции (или в пределах слышимости) и совершить встречную проверку Запугивания или Обаяния против Выдержки. В случае успеха цель получает усталость в размере, равном двукратному рейтингу Харизмы вашего персонажа, плюс одну дополнительную усталость за каждый ✶. Ваш персонаж лечит столько усталости, сколько причинил. Если в результате действия таланта цель будет выведена из строя, она может с позором сбежать с места действия, психологически сломаться и пасть духом или в гневе наброситься на персонажа, в зависимости от решения ведущего и характера колкостей, отпущенных в адрес цели.",
+    "descEn": "Once per encounter, the character may choose one character within medium range and make an opposed Charm or Coercion check; if successful, the target suffers strain equal to twice the character's Presence and may flee the scene."
+  },
+  "talent.attuned": {
+    "desc": "Вы находитесь в гармонии с магическими силами. Когда восстанавливаете напряжение естественным отдыхом, дополнительно восстанавливаете количество напряжения, равное рангам Attuned.",
+    "descEn": "You are in harmony with magical forces. When you recover strain through natural rest, recover additional strain equal to your ranks in Attuned."
+  },
+  "talent.conduit": {
+    "desc": "Один раз за столкновение инцидентом персонаж тратит одно очко сюжета: следующее магическое действие он совершает как манёвр. Сама активация таланта манёвром не является.",
+    "descEn": "Once per encounter as an incidental, spend one Story Point: the character performs their next magic action as a maneuver instead. Activating the talent is not itself a maneuver."
+  },
+  "talent.counterspell": {
+    "desc": "Когда персонаж в пределах средней дистанции творит заклинание, вы можете совершить встречную магическую проверку тем же магическим навыком. Если успешно, увеличьте сложность его проверки на количество успехов вашей проверки.",
+    "descEn": "When a character within medium range casts a spell, you may make an opposed magic check as an out-of-turn incidental to disrupt and cancel it."
+  },
+  "talent.empowered-casting": {
+    "desc": "Один раз за ход перед сотворением заклинания вы можете использовать этот талант, чтобы увеличить сложность проверки на одну ступень. Если заклинание успешно, оно получает дополнительные преимущества по решению ведущего (обычно увеличенный эффект, длительность, область или мощность).",
+    "descEn": "Once per turn before casting a spell, you may use this talent to increase the difficulty of the check by 1 and add one additional effect to the spell without further difficulty increase."
+  },
+  "talent.signature-spell": {
+    "desc": "Персонаж закрепляет одно магическое действие и точную конфигурацию его дополнительных эффектов. Итоговая сложность именно этой комбинации снижается на 1. Талант не отменяет 2 усталости за сотворение заклинания и не имеет предела применений.",
+    "descEn": "The character fixes one magic action together with the exact configuration of its additional effects. The final difficulty of that specific combination is reduced by 1. The talent does not cancel the 2 strain for casting and has no use limit."
+  },
+  "talent.apothecary": {
+    "desc": "Когда пациент под опекой персонажа лечит раны естественным отдыхом, он восстанавливает дополнительные раны в размере удвоенных рангов персонажа в Аптекаре.",
+    "descEn": "When a patient under the character's care heals wounds through natural rest, they heal additional wounds equal to the character's ranks in Knowledge (Lore)."
+  },
+  "talent.bullrush": {
+    "desc": "После манёвра, которым персонаж вошёл в сцепление, при проверке Рукопашного боя, Ближнего боя (лёгкого) или Ближнего боя (тяжёлого) он может потратить 3 преимущества или триумф: цель падает ничком и отталкивается не более чем на одну дистанцию. Условия обязательного попадания у правила нет.",
+    "descEn": "After a maneuver that brought the character into engagement, on a Brawl, Melee (Light) or Melee (Heavy) check spend 3 advantage or a triumph: the target falls prone and is pushed no more than one range band. The rule has no requirement that the attack hit."
+  },
+  "talent.dark-insight": {
+    "desc": "Когда заклинание добавляет вашему заклинанию свойство, рейтинг которого определяется рангами Знания (предания), персонаж может вместо этого использовать ранги Знания (запретное).",
+    "descEn": "When a spell grants your casting a quality whose rating is based on Knowledge (Lore) ranks, the character may use their Knowledge (Forbidden) ranks instead."
+  },
+  "talent.dungeoneer": {
+    "desc": "После проверки Внимательности, Бдительности или Знания (приключения) для обнаружения, опознания или избегания угрозы в пещере, подземных руинах или похожем месте персонаж отменяет до своих рангов в Исследователе подземелий неотменённых негативных символов.",
+    "descEn": "After a Perception, Vigilance or Knowledge (Adventuring) check to spot, identify or avoid a trap or hazard, the character may reroll the check once."
+  },
+  "talent.finesse": {
+    "desc": "При проверке Рукопашного боя или Ближнего боя (лёгкого) персонаж может использовать Ловкость вместо Силы.",
+    "descEn": "When making a Brawl or Melee (Light) check, the character may use Agility instead of Brawn."
+  },
+  "talent.painful-blow": {
+    "desc": "При боевой проверке персонаж может добровольно повысить сложность на 1. Если цель получает хотя бы одну рану от этой атаки, она получает 2 напряжения каждый раз, когда совершает манёвр, до конца столкновения.",
+    "descEn": "When making a combat check, the character may voluntarily increase its difficulty by 1. If the target suffers at least one wound from the attack, it suffers 2 additional strain each time it performs an action until the end of the encounter.",
+    "trigger": "Перед боевой проверкой"
+  },
+  "talent.precision": {
+    "desc": "При проверке Рукопашного боя или Дальнего боя персонаж может использовать Проницательность вместо Силы и Ловкости.",
+    "descEn": "When making a Brawl or Ranged check, the character may use Cunning instead of Brawn or Agility."
+  },
+  "talent.shapeshifter": {
+    "desc": "Когда персонаж выведен из строя из-за превышения порога напряжения в обычной форме, он внеходовым инцидентом преображается: полностью восстанавливает напряжение, повышает Силу и Ловкость на 1 (макс. 5) и снижает Интеллект и Волю на 1 (мин. 1). Безоружные атаки наносят +1 урон и имеют критическое 3, но персонаж не может использовать магические навыки и совершать дальние атаки. Возвращается в обычную форму через восемь часов или при выведении из строя.",
+    "descEn": "When the character is incapacitated by exceeding their strain threshold in their normal form, they may transform into their animal form as an out-of-turn incidental, healing strain and staying in the fight."
+  },
+  "talent.shield-slam": {
+    "desc": "При атаке щитом по приспешнику или сопернику персонаж может потратить 4 преимущества или триумф, чтобы ошеломить цель до конца её следующего хода. Условия обязательного попадания у правила нет.",
+    "descEn": "On a shield attack against a minion or rival, spend 4 advantage or a triumph to stagger the target until the end of its next turn. The rule has no requirement that the attack hit."
+  },
+  "talent.tavern-brawler": {
+    "desc": "Персонаж добавляет преимущество к проверкам Рукопашного боя и к боевым проверкам импровизированным оружием.",
+    "descEn": "The character adds an advantage to Brawl checks and to combat checks with improvised weapons."
+  },
+  "talent.templar": {
+    "desc": "Божественное теперь карьерный навык персонажа. Этим навыком он может сотворить лишь одно заклинание за столкновение.",
+    "descEn": "Divine becomes a career skill for the character. They may cast only one Divine spell per encounter with it."
+  },
+  "talent.tumble": {
+    "desc": "Раз за раунд в свой ход персонаж может получить 2 напряжения, чтобы выйти из ближнего боя со всеми сцепившимися с ним противниками.",
+    "descEn": "Once per round on their turn, the character may suffer 2 strain to disengage from all engaged opponents as an incidental."
+  },
+  "talent.adventurer": {
+    "desc": "Атлетика и Знание (приключения) теперь карьерные навыки персонажа.",
+    "descEn": "Athletics and Knowledge (Adventuring) become career skills for the character."
+  },
+  "talent.bard": {
+    "desc": "Знание (предания) и Стих теперь карьерные навыки персонажа.",
+    "descEn": "Knowledge (Lore) and Verse become career skills for the character."
+  },
+  "talent.block": {
+    "desc": "Персонаж должен иметь талант Парирование. Держа щит, персонаж может использовать Парирование, чтобы снижать урон и от дальних атак, а не только от ближних.",
+    "descEn": "Your character must have Parry to benefit from this talent. While wielding a shield, the character may use Parry to reduce damage from ranged attacks as well.",
+    "trigger": "Персонаж получил попадание в ближнем бою"
+  },
+  "talent.blood-sacrifice": {
+    "desc": "Персонаж должен иметь талант Тёмное прозрение. Перед магической проверкой персонаж может получить несколько ран, чтобы добавить столько же успехов к проверке. Их количество не может превышать его рангов в Кровавой жертве.",
+    "descEn": "Your character must have Dark Insight to benefit from this talent. Before a magic check, the character may suffer several wounds to add an equal number of boost dice to the check.",
+    "trigger": "Перед магической проверкой"
+  },
+  "talent.bulwark": {
+    "desc": "Персонаж должен иметь талант Парирование. С оружием со свойством Defensive персонаж может использовать Парирование, чтобы снизить урон атаки, нацеленной на сцепившегося с ним союзника.",
+    "descEn": "Your character must have Parry to benefit from this talent. With a weapon that has the Defensive quality, the character may use Parry against attacks targeting an engaged ally, taking the reduced hit themselves.",
+    "trigger": "Союзник вплотную получил попадание в ближнем бою"
+  },
+  "talent.chill-of-nordros": {
+    "desc": "Персонаж не может взять этот талант, если взял Пламя Келлоса. При сотворении атакующего заклинания персонаж может добавить эффект Лёд без повышения сложности. Он никогда не может добавить эффект Огонь.",
+    "descEn": "The character cannot take this talent if they have Flames of Kellos. When casting an Attack spell, the character may add the Ensnare quality to it without increasing the difficulty."
+  },
+  "talent.dirty-tricks": {
+    "desc": "После того как персонаж наносит противнику критическую травму, он может повысить сложность следующей проверки этого противника.",
+    "descEn": "After the character inflicts a critical injury on an opponent, they may upgrade the difficulty of the target's next check."
+  },
+  "talent.dominion-of-the-dimora": {
+    "desc": "Персонаж не может взять этот талант, если взял Благосклонность фей. При сотворении атакующего заклинания персонаж может добавить эффект Удар (Impact) без повышения сложности. Он никогда не может добавить эффект Манипуляция.",
+    "descEn": "The character cannot take this talent if they have Favor of the Fae. When casting an Attack spell, the character may add the Knockdown quality to it without increasing the difficulty."
+  },
+  "talent.encouraging-song": {
+    "desc": "Требуется музыкальный инструмент. Действием персонаж совершает проверку Обаяния или Стиха сложности «Средняя» (2). За каждый успех выбирается один союзник на средней дистанции: он добавляет один бонус-кубик к своей следующей проверке. За каждое преимущество один из уже выбранных союзников исцеляет 1 усталость.",
+    "descEn": "Requires a musical instrument. As an action, make an Average (2) Charm or Verse check. For each success, choose one ally at medium range: they add one boost die to their next check. For each advantage, one already-chosen ally heals 1 strain."
+  },
+  "talent.exploit": {
+    "desc": "При боевой проверке Дальним боем или Ближним боем (лёгким) персонаж может получить 2 напряжения, чтобы добавить атаке свойство Ensnare с рейтингом, равным его рангам в Использовании слабости.",
+    "descEn": "When making a Ranged or Melee (Light) combat check, the character may suffer 2 strain to add advantage to the results equal to their ranks in Skulduggery."
+  },
+  "talent.favor-of-the-fae": {
+    "desc": "Персонаж не может взять этот талант, если взял Власть Диморы. При сотворении атакующего заклинания персонаж может добавить эффект Манипуляция без повышения сложности. Он никогда не может добавить эффект Удар (Impact).",
+    "descEn": "The character cannot take this talent if they have Dominion of the Dimora. When casting an Attack spell, the character may add the Stun quality to it without increasing the difficulty."
+  },
+  "talent.flames-of-kellos": {
+    "desc": "Персонаж не может взять этот талант, если взял Холод Нордроса. При сотворении атакующего заклинания персонаж может добавить эффект Огонь без повышения сложности. Он никогда не может добавить эффект Лёд.",
+    "descEn": "The character cannot take this talent if they have Chill of Nordros. When casting an Attack spell, the character may add the Burn quality to it without increasing the difficulty."
+  },
+  "talent.flash-of-insight": {
+    "desc": "При выпадении триумфа на проверке знания персонаж отдельно бросает два бонус-кубика и добавляет их результат к проверке. Исходный триумф при этом остаётся доступен для обычной траты.",
+    "descEn": "When a triumph is rolled on a knowledge check, separately roll two boost dice and add their result to the check. The original triumph remains available to spend as usual."
+  },
+  "talent.grapple": {
+    "desc": "Персонаж может получить 2 напряжения, чтобы активировать этот талант. До начала следующего хода персонажа врагам нужно потратить два манёвра, чтобы выйти из ближнего боя с ним.",
+    "descEn": "The character may suffer 2 strain to activate this talent. Until the start of the character's next turn, enemies must spend 2 maneuvers instead of 1 to disengage from them."
+  },
+  "talent.heroic-recovery": {
+    "desc": "При получении этого таланта выберите характеристику. Раз за столкновение можно потратить Story Point, чтобы персонаж восстановил напряжение, равное значению выбранной характеристики.",
+    "descEn": "When you acquire this talent, choose a characteristic. Once per encounter, you may spend a story point to heal strain equal to that characteristic's rating."
+  },
+  "talent.hunter": {
+    "desc": "Знание (география), Дальний бой и Выживание теперь карьерные навыки персонажа.",
+    "descEn": "Knowledge (Geography), Ranged and Survival become career skills for the character."
+  },
+  "talent.impaling-strike": {
+    "desc": "Талант доступен только после того, как оружие ближнего боя действительно нанесло критическое ранение. Инцидентом без дополнительной цены персонаж обездвиживает ту же цель до конца её следующего хода — в дополнение к самому критическому ранению. При дальней атаке и без наложенного критического ранения талант недоступен.",
+    "descEn": "Available only after a melee weapon has actually inflicted a Critical Injury. As an incidental at no further cost, immobilize that same target until the end of its next turn, in addition to the Critical Injury itself. It is unavailable on a ranged attack or without an applied critical.",
+    "trigger": "Оружие ближнего боя нанесло критическое ранение"
+  },
+  "talent.natural-communion": {
+    "desc": "Когда персонаж использует магическое действие Призыв, заклинание получает эффект «Призыв союзника» без повышения сложности. Все призванные существа должны быть обычными животными, обитающими в данной местности.",
+    "descEn": "When the character uses the Conjure magic action, the spell gains the Summon Ally effect without increasing the difficulty."
+  },
+  "talent.reckless-charge": {
+    "desc": "После манёвра сближения с противником персонаж может получить 2 напряжения, чтобы добавить к результатам следующей в этом ходу боевой проверки Рукопашного боя или Ближнего боя 2 успеха и 2 угрозы.",
+    "descEn": "After a maneuver to engage an opponent, the character may suffer 2 strain to add two successes and two threat to the results of their next Brawl or Melee combat check this turn."
+  },
+  "talent.runic-lore": {
+    "desc": "Знание (предания) и Руны теперь карьерные навыки персонажа.",
+    "descEn": "Knowledge (Lore) and Runes become career skills for the character."
+  },
+  "talent.shapeshifter-improved": {
+    "desc": "Раз за сессию персонаж может совершить проверку Дисциплины (Hard) внеходовым инцидентом, чтобы запустить Оборотня или, наоборот, не дать ему сработать при превышении порога напряжения.",
+    "descEn": "Once per session, the character may make a Hard Discipline check as an out-of-turn incidental to trigger their transformation defensively and avoid an incoming hit.",
+    "trigger": "Обязательное превращение либо решение превратиться вручную"
+  },
+  "talent.templar-improved": {
+    "desc": "Требуется Templar. Для одного божественного заклинания, разрешённого Templar, персонаж игнорирует кубики помех за тяжёлую броню (поглощение +2), щит и отсутствие свободной руки. Сложность при этом не снижается.",
+    "descEn": "Requires Templar. For one Divine spell allowed by Templar, ignore setback dice from heavy armour (soak +2), a shield, or the lack of a free hand. The difficulty is not reduced."
+  },
+  "talent.threaten": {
+    "desc": "После того как противник в короткой дистанции наносит урон союзнику персонажа боевой проверкой, персонаж может получить 3 напряжения, чтобы нанести противнику напряжение, равное его рангам в Принуждении. Дальность таланта растёт на одну ступень за каждый ранг сверх первого.",
+    "descEn": "After an opponent within short range deals damage to the character's ally with a combat check, the character may suffer 1 strain as an out-of-turn incidental to force that opponent to suffer strain equal to the character's ranks in Coercion.",
+    "trigger": "Проверка противника нанесла урон союзнику"
+  },
+  "talent.well-traveled": {
+    "desc": "Знание (география), Переговоры и Бдительность теперь карьерные навыки персонажа.",
+    "descEn": "Knowledge (Geography), Negotiation and Vigilance become career skills for the character."
+  },
+  "talent.wraithbane": {
+    "desc": "При атаке по нежити персонаж считает критическое значение своего оружия на 1 меньше (минимум 1).",
+    "descEn": "When attacking undead, the character treats the critical rating of their weapon as 1 lower, to a minimum of 1."
+  },
+  "talent.backstab": {
+    "desc": "Персонаж может атаковать ничего не подозревающего противника оружием Ближнего боя (лёгким). Это ближняя атака по обычным правилам, но используется навык Плутовство вместо Ближнего боя (лёгкого). При успехе каждый неотменённый успех добавляет +2 урона вместо обычного +1.",
+    "descEn": "The character may attack an unsuspecting opponent with a Melee (Light) weapon. The attack uses Skulduggery, and each success deals +2 damage instead of +1."
+  },
+  "talent.battle-casting": {
+    "desc": "Персонаж игнорирует кубики помех за сотворение заклинания в тяжёлой броне (поглощение +2), со щитом и с занятой рукой. Наличие оружия само по себе условием не является.",
+    "descEn": "The character ignores setback dice for casting in heavy armour (soak +2), with a shield, or with an occupied hand. Merely holding a weapon is not itself a condition."
+  },
+  "talent.body-guard": {
+    "desc": "Раз за раунд персонаж может получить напряжение (не больше своих рангов в Телохранителе). Выберите союзника, сцепившегося с персонажем; до конца следующего хода персонажа повысьте сложность всех боевых проверок по этому союзнику столько раз, сколько получено напряжения.",
+    "descEn": "Once per round, the character may suffer strain no greater than their ranks in Body Guard. Choose an engaged ally: upgrade the difficulty of all combat checks targeting that ally that many times until the start of the character's next turn."
+  },
+  "talent.cavalier": {
+    "desc": "Верхом на боевом скакуне (обычно боевой или летающий скакун) раз за раунд персонаж может приказать скакуну совершить действие.",
+    "descEn": "While riding a war mount (typically a combat or flying mount), once per round the character may order the mount to perform one maneuver as an incidental.",
+    "trigger": "Верхом на боевом скакуне"
+  },
+  "talent.counterattack": {
+    "desc": "Персонаж должен иметь талант Парирование (улучшенное). Когда персонаж бьёт атакующего с помощью Парирования (улучшенного), он также может активировать одно свойство использованного оружия, как если бы выбросил 2 преимущества боевой проверкой этим оружием.",
+    "descEn": "Your character must have Parry (Improved) to benefit from this talent. When the character strikes an attacker using Parry (Improved), the hit also staggers the attacker until the end of its next turn.",
+    "trigger": "Сработало контр-попадание парирования"
+  },
+  "talent.dissonance": {
+    "desc": "Требуется музыкальный инструмент. Действием персонаж совершает проверку Обаяния или Стиха сложности «Средняя» (2). За каждый успех выбранный враг на средней дистанции получает 1 рану. За каждое преимущество один из уже затронутых врагов получает ещё 1 рану.",
+    "descEn": "Requires a musical instrument. As an action, make an Average (2) Charm or Verse check. For each success, a chosen enemy at medium range suffers 1 wound. For each advantage, one already-affected enemy suffers 1 more wound."
+  },
+  "talent.dual-strike": {
+    "desc": "При совмещённой проверке атаки двумя оружиями в ближнем бою персонаж может получить 2 напряжения, чтобы попасть вспомогательным оружием (вместо траты 2 преимуществ).",
+    "descEn": "When making a combined combat check with two melee weapons, the character may suffer 2 strain to hit with the secondary weapon as well without spending advantage."
+  },
+  "talent.easy-prey": {
+    "desc": "Манёвром персонаж получает 3 усталости. До начала своего следующего хода он и союзники на короткой дистанции добавляют два бонус-кубика к боевым проверкам, но только против обездвиженных целей. На ошеломлённые цели это не распространяется.",
+    "descEn": "As a maneuver, suffer 3 strain. Until the start of the character’s next turn, they and allies at short range add two boost dice to combat checks, but only against immobilized targets. Staggered targets are not affected."
+  },
+  "talent.justice-of-the-citadel": {
+    "desc": "Раз за раунд в свой ход персонаж может получить 3 напряжения, чтобы добавить урон, равный своим рангам в Дисциплине, к одному попаданию успешной ближней атаки.",
+    "descEn": "Once per round on their turn, the character may suffer 3 strain to add damage equal to their ranks in Discipline to one hit of a successful combat check against an undead or demonic target."
+  },
+  "talent.potent-concoctions": {
+    "desc": "При выпадении триумфа на проверке Алхимии персонаж бросает один кубик умения и добавляет его результат к проверке. То же самое отдельно происходит при выпадении отчаяния. Каждое из двух срабатываний применяется не больше одного раза за проверку.",
+    "descEn": "When a triumph is rolled on an Alchemy check, roll one proficiency die and add its result to the check. The same happens separately on a despair. Each of the two triggers applies at most once per check."
+  },
+  "talent.precise-archery": {
+    "desc": "При дальней боевой проверке по цели, сцепленной с союзником персонажа, сложность проверки понижается один раз — это понижение ступени, а не снижение сложности.",
+    "descEn": "On a ranged combat check against a target engaged with an ally, downgrade the check’s difficulty once — this is a downgrade, not a reduction."
+  },
+  "talent.pressure-point": {
+    "desc": "При безоружной проверке Рукопашного боя по живому противнику персонаж может наносить урон напряжением вместо ран и дополнительно наносить напряжение, равное своим рангам в Медицине.",
+    "descEn": "When making an unarmed Brawl check against a living opponent, the character may deal strain damage instead of wounds, adding damage equal to their ranks in Medicine."
+  },
+  "talent.shockwave": {
+    "desc": "Оружие Ближнего боя (тяжёлого) в руках персонажа обладает свойством Blast с рейтингом, равным его рангам в Ближнем бою (тяжёлом). Сам персонаж невосприимчив к Blast собственного оружия.",
+    "descEn": "A Melee (Heavy) weapon wielded by the character has Blast with a rating equal to their ranks in Melee (Heavy). The character is immune to their own weapon’s Blast."
+  },
+  "talent.back-to-back": {
+    "desc": "Пока персонаж сцеплен хотя бы с одним союзником, он и такие союзники добавляют один бонус-кубик к боевым проверкам. Если сцепленный союзник тоже владеет этим талантом, совокупный максимум — два бонус-кубика.",
+    "descEn": "While the character is engaged with at least one ally, they and those allies add one boost die to combat checks. If an engaged ally also has this talent, the combined maximum is two boost dice."
+  },
+  "talent.death-rage": {
+    "desc": "Персонаж наносит +2 урона атаками ближнего боя за каждое критическое ранение, которым он страдает в данный момент. Верхнего предела у этой прибавки нет.",
+    "descEn": "The character deals +2 melee damage for each Critical Injury they currently suffer. There is no upper limit on this bonus."
+  },
+  "talent.venom-soaked-blade": {
+    "desc": "При проверке Ближнего боя (лёгкого) отравленным оружием персонаж считает его обладающим свойством Burn 2.",
+    "descEn": "When making a Melee (Light) check with a poisoned weapon, the character treats it as having Burn 2."
+  },
+  "talent.signature-spell-improved": {
+    "desc": "Требуется Signature Spell. Снижение итоговой сложности закреплённой комбинации становится равным 2 — это замена прежней величины, а не прибавка к ней.",
+    "descEn": "Requires Signature Spell. The final-difficulty reduction for the fixed combination becomes 2 — it replaces the earlier value rather than adding to it."
+  },
+  "talent.unrelenting": {
+    "desc": "После успешной атаки персонаж совершает вторую атаку по той же цели. Если она делается другим оружием, её сложность выше на 1; если тем же оружием — выше на 2.",
+    "descEn": "After a successful attack, make a second attack against the same target. If it uses a different weapon its difficulty is 1 higher; with the same weapon it is 2 higher."
+  },
+  "talent.crushing-blow": {
+    "desc": "Раз за сессию после броска ближней атаки, но до разрешения проверки, персонаж может получить 4 напряжения. При разрешении проверки оружие получает свойства Breach 1 и Knockdown и уничтожает один предмет в руках цели без свойства Reinforced.",
+    "descEn": "Once per session, after rolling a melee attack but before resolving the check, the character may suffer 4 strain. If the attack hits, it gains Knockdown, Sunder and +1 damage per success.",
+    "trigger": "После броска ближнего боя, до разрешения"
+  },
+  "talent.whirlwind": {
+    "desc": "Действием персонаж атакует, используя самую высокую сложность среди сцепленных с ним противников, и затем повышает её ещё на 1. При успехе каждый сцепленный противник получает урон, равный базовому урону оружия плюс общее число успехов.",
+    "descEn": "As an action, attack using the highest difficulty among enemies engaged with the character, then increase it by 1. On success every engaged enemy suffers damage equal to the weapon’s base damage plus the total successes."
+  },
+  "talent.zealous-fire": {
+    "desc": "Каждый раз, когда ведущий тратит Story Point, персонаж восстанавливает 2 напряжения.",
+    "descEn": "Each time the GM spends a story point, the character heals 2 strain."
+  },
+  "talent.challenge": {
+    "desc": "Раз за столкновение манёвром выбирает противников на короткой дистанции числом не больше своих рангов; группа приспешников считается одной целью. До конца столкновения выбранная цель получает один бонус-кубик, атакуя владельца таланта, и два кубика помех, атакуя любого другого.",
+    "descEn": "Once per encounter as a maneuver, mark up to as many enemies at short range as the talent’s ranks; a minion group counts as a single target. Until the end of the encounter a marked enemy adds one boost die when attacking the talent’s owner and two setback dice when attacking anyone else."
+  },
+  "talent.lets-talk-this-over": {
+    "desc": "Раз за сессию, прежде чем начнётся бой с разумными существами, владелец выполняет проверку Обаяния сложности «Устрашающая» (4). При успехе начинающийся бой заменяется социальным столкновением.",
+    "descEn": "Once per session, before combat with intelligent creatures begins, make a Daunting (4) Charm check. On success the fight that was about to start becomes a social encounter instead.",
+    "trigger": "Перед началом боя с разумными существами"
+  },
+  "talent.retribution": {
+    "desc": "Раз за раунд, когда противник атакует союзника на средней дистанции, владелец тратит одно очко сюжета игроков. Если противник находится в пределах дистанции готового оружия владельца, тот попадает автоматически: урон равен базовому урону оружия плюс применимые постоянные бонусы. Успехи не прибавляются, потому что броска не происходит.",
+    "descEn": "Once per round, when an enemy attacks an ally at medium range, spend one player Story Point. If the enemy is within range of the owner’s readied weapon, the owner hits automatically: damage equals the weapon’s base damage plus applicable static bonuses. No successes are added, because no check is rolled.",
+    "trigger": "Противник атакует союзника на средней дистанции"
+  },
+  "heroic.influential": {
+    "desc": "Пока способность активна, в социальной сцене персонаж наносит дополнительную усталость, равную характеристике использованного социального навыка. Если сцена решается одной проверкой, вместо этого добавляет успехи в том же количестве.",
+    "descEn": "While the ability is active, in a social encounter the character inflicts additional strain equal to the characteristic of the social skill used. If the scene is resolved with a single check, they add the same number of successes instead.",
+    "safe": "Усиливает давление владельца в социальной сцене.",
+    "notes": "Работает с социальными навыками и социальными сценами.",
+    "upgrades": [
+      {
+        "desc": "Пока способность активна, персонаж тратит 2 преимущества, чтобы вызвать “критическое замечание” и нанести цели 5 усталости; можно вызвать несколько раз одной проверкой.",
+        "safe": "Позволяет наносить особенно едкие замечания.",
+        "descEn": "While the ability is active, the character may spend 2 advantage to deliver a “critical remark”, inflicting 5 strain on the target; this can be triggered multiple times on one check.",
+        "notes": ""
+      },
+      {
+        "desc": "Пока способность активна в социальной сцене, персонаж уменьшает получаемую усталость на значение Харизмы или рангов Хладнокровия, что выше.",
+        "safe": "Смягчает усталость от социальной сцены.",
+        "descEn": "While the ability is active in a social encounter, the character reduces incoming strain by their Presence or their Cool ranks, whichever is higher.",
+        "notes": "Снижает усталость от проверок, талантов и способностей, но не добровольно полученную усталость."
+      }
+    ]
+  },
+  "heroic.all-the-facts": {
+    "desc": "Пока способность активна, в каждый свой ход персонаж получает от ведущего один важный факт о человеке, существе, месте, предмете или обстоятельстве, которое он наблюдает или которое прямо связано с текущей ситуацией.",
+    "descEn": "While the ability is active, on each of the character's own turns the GM gives them one important fact about a person, creature, place, object or circumstance they can observe or that is directly tied to the current situation.",
+    "safe": "Раскрывает важные сведения о происходящем.",
+    "notes": "Тема должна быть наблюдаема персонажем или напрямую связана с текущей ситуацией.",
+    "upgrades": [
+      {
+        "desc": "Пока способность активна, персонаж один раз улучшает проверку, связанную с полученной информацией.",
+        "safe": "Помогает проверкам, опирающимся на раскрытые сведения.",
+        "descEn": "While the ability is active, the character may once upgrade a check related to the information gained.",
+        "notes": ""
+      },
+      {
+        "desc": "Каждый полученный таким образом факт создаёт одно временное очко сюжета в пуле игроков до конца сессии. Потраченное временное очко исчезает и в пул ведущего не переходит.",
+        "safe": "Превращает раскрытые сведения во временный ресурс группы.",
+        "descEn": "Each fact gained this way creates one temporary Story Point in the players' pool until the end of the session. A temporary point that is spent simply disappears and never moves to the GM's pool.",
+        "notes": "Временное очко сюжета исчезает при трате и не переходит в пул ведущего; при трате нужно описать, как информация помогает группе."
+      }
+    ]
+  },
+  "heroic.unleash": {
+    "desc": "Пока способность активна, один раз за раунд в свой ход персонаж тратит манёвр и без всякой проверки побеждает ровно одну живую группу приспешников на короткой дистанции. Соперники, немезиды, игровые персонажи и более далёкие цели урона не получают.",
+    "descEn": "While the ability is active, once per round on their own turn the character spends a manoeuvre and, with no check at all, defeats exactly one live minion group within short range. Rivals, nemeses, player characters and anything further away take no damage.",
+    "safe": "Сметает слабых противников рядом с владельцем.",
+    "notes": "",
+    "upgrades": [
+      {
+        "desc": "Тот же эффект стоит свободного действия вместо манёвра; остальные ограничения не меняются.",
+        "safe": "Делает этот удар почти бесплатным по действиям.",
+        "descEn": "The same effect costs an incidental instead of a manoeuvre; every other restriction is unchanged.",
+        "notes": "Заменяет базовый способ применения."
+      },
+      {
+        "desc": "Непосредственно при активации персонаж побеждает всех приспешников во всех группах приспешников на короткой дистанции. Эффект базового уровня остаётся доступен в последующих раундах активности.",
+        "safe": "Сметает всех слабых противников разом.",
+        "descEn": "Immediately on activation the character defeats every minion in every minion group within short range. The base-level effect remains available in the following rounds of the activation.",
+        "notes": ""
+      }
+    ]
+  },
+  "heroic.signature-weapon": {
+    "desc": "У персонажа есть особое оружие. Выбери одну модификацию, которой у него нет; при активации оружие получает её эффект на время способности без цены и без затрат hard points.",
+    "descEn": "The character owns a signature weapon. Pick one attachment it does not have; when activated, the weapon gains its effect for the ability's duration at no cost and without spending hard points.",
+    "safe": "Даёт владельцу особое именное оружие.",
+    "notes": "Форма оружия согласуется с ведущим и может ограничивать доступные модификации. Если оружие потеряно или уничтожено, оно возвращается или заменяется сюжетным образом; больше одного именного оружия быть не может.",
+    "upgrades": [
+      {
+        "desc": "Владелец навсегда выбирает ровно одно: именное оружие получает качество Reinforced либо становится предметом древней работы со всеми её эффектами. Выбор делается в момент покупки и потом не меняется.",
+        "safe": "Делает именное оружие прочнее или древнее.",
+        "descEn": "The owner permanently picks exactly one: the signature weapon gains the Reinforced quality, or it becomes a piece of ancient craftsmanship with all of that quality's effects. The choice is made at purchase and never changes afterwards.",
+        "notes": "Выбирается один из вариантов: Reinforced или древняя работа."
+      },
+      {
+        "desc": "Именное оружие навсегда получает +2 hard points и одно бесплатное совместимое с его формой улучшение редкостью не выше 9, которое помещается в новый общий запас hard points. Выбор фиксируется при покупке.",
+        "safe": "Расширяет именное оружие дополнительным улучшением.",
+        "descEn": "The signature weapon permanently gains +2 hard points and one free attachment of rarity 9 or lower that is compatible with its form and fits within the new hard point total. The choice is fixed at purchase.",
+        "notes": "Модификация всё ещё должна помещаться в итоговый лимит hard points."
+      }
+    ]
+  },
+  "heroic.unbowed": {
+    "desc": "При активации персонаж выбирает одну свою текущую критическую травму, кроме «смерти»; пока способность активна, он игнорирует её эффекты, включая её +10 к последующим броскам критических травм. Активацию можно сделать вне своего хода сразу после получения критической травмы.",
+    "descEn": "On activation the character chooses one of their current Critical Injuries other than Dead; while the ability is active they ignore its effects, including its +10 to later Critical Injury rolls. The activation may be made out of turn immediately after suffering a Critical Injury.",
+    "safe": "Позволяет держаться, несмотря на тяжёлые раны.",
+    "notes": "",
+    "upgrades": [
+      {
+        "desc": "Пока способность активна, персонаж игнорирует эффекты всех своих критических травм, кроме “смерти”.",
+        "safe": "Распространяется на все текущие травмы.",
+        "descEn": "While the ability is active, the character ignores the effects of all their critical injuries except “death”.",
+        "notes": ""
+      },
+      {
+        "desc": "Пока способность активна, персонаж игнорирует и результат «смерть». Когда способность заканчивается, он немедленно умирает, если к этому моменту эта травма не вылечена.",
+        "safe": "Отсрочивает даже смертельный исход.",
+        "descEn": "While the ability is active the character also ignores the Dead result. When the ability ends they die immediately unless that injury has been healed by then.",
+        "notes": "Если к окончанию способности эта критическая травма не устранена, персонаж умирает."
+      }
+    ]
+  },
+  "heroic.foretelling": {
+    "desc": "Каждый раунд, пока способность активна, игрок может задать ведущему один вопрос “да/нет” о том, чего персонаж не мог бы знать обычным способом; ведущий отвечает правдиво.",
+    "descEn": "Each round while the ability is active, the player may ask the GM one yes/no question about something the character could not know normally; the GM answers truthfully.",
+    "safe": "Даёт правдивые ответы о недоступном обычному знанию.",
+    "notes": "Знание приходит через подходящий мистический способ: знамения, пророчество, духи, сны, хрустальный шар и т.п.",
+    "upgrades": [
+      {
+        "desc": "Пока способность активна, персонаж один раз перебрасывает проверку навыка, связанную с заданным вопросом. Одну и ту же проверку этим эффектом повторно перебросить нельзя.",
+        "safe": "Позволяет переиграть связанную проверку.",
+        "descEn": "While the ability is active, the character rerolls one skill check connected to the question asked. The same check cannot be rerolled by this effect twice.",
+        "notes": ""
+      },
+      {
+        "desc": "Один раз за активацию, когда NPC совершает проверку навыка, игрок бросает точно такой же пул и уже после обоих бросков решает, заменить ли результат NPC своим.",
+        "safe": "Позволяет подменить результат проверки NPC своим.",
+        "descEn": "Once per activation, when an NPC makes a skill check, the player rolls an identical pool and only after both rolls decides whether to replace the NPC's result with their own.",
+        "notes": ""
+      }
+    ]
+  },
+  "heroic.connected": {
+    "desc": "При активации персонаж выбирает NPC и объявляет правдоподобную ранее существовавшую связь: долг или рычаг влияния. Услуга не обязана подвергать NPC смертельной опасности, убийству или явному разрушению его положения либо состояния. Если ведущий признаёт такую связь невозможной, активация отменяется: очки сюжета и применение не тратятся.",
+    "descEn": "On activation the character picks an NPC and declares a plausible pre-existing debt or leverage. The favour need not put the NPC in mortal danger, get them killed, or visibly ruin their standing or wealth. If the GM rules that no such connection is possible, the activation is cancelled: no Story Points and no use are spent.",
+    "safe": "Открывает ранее существовавшую связь с NPC.",
+    "notes": "Если знакомство невозможно, способность не активируется и очки сюжета не тратятся. Услуга не обязана включать риск жизни, убийство или разрушение положения NPC.",
+    "upgrades": [
+      {
+        "desc": "Пока способность активна, персонаж один раз понижает ступень сложности каждой своей социальной проверки.",
+        "safe": "Облегчает социальные проверки владельца.",
+        "descEn": "While the ability is active, the character downgrades the difficulty of each of their social checks once.",
+        "notes": ""
+      },
+      {
+        "desc": "Пока способность активна, когда разумный противник объявляет персонажа целью атаки, владелец свободным действием вне своего хода заставляет его выбрать другую допустимую цель.",
+        "safe": "Отводит от владельца выбранную противником атаку.",
+        "descEn": "While the ability is active, when a sentient adversary declares the character the target of an attack, the owner may spend an out-of-turn incidental to force them to choose another legal target.",
+        "notes": "Работает только против разумного противника, когда он объявляет персонажа целью атаки."
+      }
+    ]
+  },
+  "heroic.hard-to-kill": {
+    "desc": "Пока способность активна, персонаж получает +4 к поглощению.",
+    "descEn": "While the ability is active, the character gains +4 soak.",
+    "safe": "Делает владельца заметно живучее.",
+    "notes": "",
+    "upgrades": [
+      {
+        "desc": "Пока способность активна, сложность боевых проверок по персонажу увеличивается на 1.",
+        "safe": "Осложняет боевые проверки по владельцу.",
+        "descEn": "While the ability is active, the difficulty of combat checks against the character increases by 1.",
+        "notes": ""
+      },
+      {
+        "desc": "Пока способность активна, весь получаемый персонажем урон снижается до 0.",
+        "safe": "Полностью отменяет получаемый урон.",
+        "descEn": "While the ability is active, all damage the character suffers is reduced to 0.",
+        "notes": ""
+      }
+    ]
+  },
+  "heroic.miraculous-recovery": {
+    "desc": "При активации и в начале каждого своего хода, пока способность активна, персонаж лечит 3 раны.",
+    "descEn": "On activation and at the start of each of their turns while the ability is active, the character heals 3 wounds.",
+    "safe": "Быстро восстанавливает раны владельца.",
+    "notes": "",
+    "upgrades": [
+      {
+        "desc": "При активации персонаж вместо частичного лечения снимает все текущие раны. Периодическое лечение в начале каждого своего хода по-прежнему снимает 3 раны.",
+        "safe": "Делает восстановление при активации полным.",
+        "descEn": "On activation the character removes all current wounds instead of the partial heal. The periodic heal at the start of each of their own turns still removes 3 wounds.",
+        "notes": ""
+      },
+      {
+        "desc": "При активации персонаж дополнительно снимает одну выбранную текущую критическую травму без проверки Медицины или Стойкости.",
+        "safe": "Снимает выбранную критическую травму.",
+        "descEn": "On activation the character additionally removes one chosen current Critical Injury with no Medicine or Resilience check.",
+        "notes": ""
+      }
+    ]
+  },
+  "heroic.sixth-sense": {
+    "desc": "Пока способность активна, персонаж ограниченно общается с выбранным типом сущностей, получая эмоции и смутные впечатления; при активации получает одну важную информацию для текущей сцены.",
+    "descEn": "While the ability is active, the character communicates in a limited way with a chosen type of entity, receiving emotions and vague impressions; on activation they gain one piece of information important to the current scene.",
+    "safe": "Даёт необычное восприятие согласованного круга сущностей.",
+    "notes": "Примеры: животные, мёртвые, чужие мысли, духи.",
+    "upgrades": [
+      {
+        "desc": "Пока способность активна, персонаж понимает и передаёт простые идеи; также получает ещё одну важную информацию, относящуюся к текущей сессии.",
+        "safe": "Углубляет обмен до простых мыслей.",
+        "descEn": "While the ability is active, the character understands and conveys simple ideas; they also gain one more piece of information relevant to the current session.",
+        "notes": ""
+      },
+      {
+        "desc": "Пока способность активна, персонаж может вести полноценные сложные разговоры через необычное восприятие; также получает ещё одну важную информацию об приключении или кампании.",
+        "safe": "Открывает полноценный разговор через восприятие.",
+        "descEn": "While the ability is active, the character can hold full, complex conversations through their unusual perception; they also gain one more piece of information about the adventure or campaign.",
+        "notes": ""
+      }
+    ]
+  },
+  "heroic.paragon": {
+    "desc": "Пока способность активна, после броска проверки выбранного навыка, но до подсчёта результата, персонаж может убрать одну кость сложности из набора.",
+    "descEn": "While the ability is active, after rolling a check with the chosen skill but before resolving it, the character may remove one difficulty die from the pool.",
+    "safe": "Делает выбранный навык исключительно надёжным.",
+    "notes": "Игнорируются символы на убранной кости. Навык выбирается при выборе героической способности.",
+    "upgrades": [
+      {
+        "desc": "Пока способность активна, персонаж дополнительно убирает одну кость помех из проверки выбранного навыка.",
+        "safe": "Дополнительно убирает помеху из проверки.",
+        "descEn": "While the ability is active, the character additionally removes one setback die from a check with the chosen skill.",
+        "notes": ""
+      },
+      {
+        "desc": "Пока способность активна, вместо кости сложности персонаж может убрать одну кость вызова из проверки выбранного навыка. Если нужной кости в пуле нет, соответствующая часть эффекта просто ничего не делает.",
+        "safe": "Позволяет убрать самую тяжёлую кость сложности.",
+        "descEn": "While the ability is active, the character may remove one challenge die instead of a difficulty die from a check with the chosen skill. If the required die is not in the pool, that part of the effect simply does nothing.",
+        "notes": ""
+      }
+    ]
+  },
+  "secondary.devastating": {
+    "safe": "Усиливает одно попадание каждой атаки.",
+    "desc": "Пока способность активна, к одному выбранному попаданию каждой атаки владельца добавляется 2 урона. При промахе бонус не переносится на следующую атаку. Если атака наносит несколько попаданий (Linked, автоматический огонь, несколько целей), бонус получает ровно одно попадание этой атаки.",
+    "descEn": "While the ability is active, add 2 damage to one chosen hit of each of the owner's attacks. A miss does not bank the bonus for a later attack. If an attack scores several hits (Linked, auto-fire, multiple targets), exactly one hit of that attack gets the bonus."
+  },
+  "secondary.diminish": {
+    "safe": "Мешает проверкам противников рядом с владельцем.",
+    "desc": "Пока способность активна, каждый противник, находящийся на короткой дистанции от владельца в момент сбора пула, добавляет одну кость помех ко всем своим проверкам навыков. Дальность проверяется на каждую проверку: уход за пределы короткой дистанции немедленно снимает модификатор, возвращение — снова добавляет.",
+    "descEn": "While the ability is active, every enemy within short range of the owner when the pool is built adds one setback die to all of their skill checks. Range is checked per check: moving beyond short range removes the modifier at once, moving back in reapplies it."
+  },
+  "secondary.drain": {
+    "safe": "Изматывает противников рядом с владельцем.",
+    "desc": "Сразу при активации и затем в начале каждого собственного хода владельца, пока способность активна, каждый противник, находящийся в этот момент на короткой дистанции, получает 2 усталости. Это отдельные периодические события, а не урон атаки: поглощение не применяется. Срабатывание при активации происходит ровно один раз и не повторяется началом того же хода.",
+    "descEn": "Immediately on activation and then at the start of each of the owner's own turns while the ability is active, every enemy within short range at that moment suffers 2 strain. These are separate periodic events, not attack damage: soak does not apply. The activation tick happens exactly once and is not repeated by the start of that same turn."
+  },
+  "secondary.empowered": {
+    "safe": "Усиливает проверки владельца.",
+    "desc": "Пока способность активна, владелец добавляет одну кость подмоги ко всем своим проверкам навыков.",
+    "descEn": "While the ability is active, the owner adds one boost die to all of their skill checks."
+  },
+  "secondary.empower-allies": {
+    "safe": "Усиливает проверки союзников рядом с владельцем.",
+    "desc": "Пока способность активна, каждый союзник, находящийся на короткой дистанции от владельца в момент сбора пула, добавляет одну кость подмоги к своим проверкам навыков. Сам владелец своим союзником для этого эффекта не считается.",
+    "descEn": "While the ability is active, every ally within short range of the owner when the pool is built adds one boost die to their skill checks. The owner does not count as their own ally for this effect."
+  },
+  "secondary.rejuvenation": {
+    "safe": "Снимает усталость с владельца.",
+    "desc": "Сразу при активации и затем в начале каждого собственного хода владельца, пока способность активна, владелец снимает 2 усталости, но не ниже нуля. Владелец без порога усталости (приспешник или соперник) не лечит ничего — в лечение ран это не превращается. Срабатывание при активации происходит один раз и не дублируется началом того же хода.",
+    "descEn": "Immediately on activation and then at the start of each of the owner's own turns while the ability is active, the owner heals 2 strain, never below zero. An owner without a strain threshold (a minion or rival) heals nothing — this never turns into wound healing. The activation tick happens once and is not repeated by the start of that same turn."
+  },
+  "secondary.rejuvenate-allies": {
+    "safe": "Снимает усталость с союзников рядом с владельцем.",
+    "desc": "При активации и затем в начале каждого собственного хода владельца все союзники, находящиеся в этот момент на короткой дистанции, снимают 2 усталости, но не ниже нуля. Союзник без порога усталости не лечит ничего; лечением ран этот эффект не становится.",
+    "descEn": "On activation and then at the start of each of the owner's own turns while the ability is active, every ally within short range at that moment heals 2 strain, never below zero. An ally without a strain threshold heals nothing; this never becomes wound healing."
+  },
+  "secondary.renewal": {
+    "safe": "Добавляет группе слот инициативы.",
+    "desc": "При активации в структурированной сцене владелец может бросить Хладнокровие или Бдительность и создать один новый слот инициативы игроков с этим результатом. Слот держится до конца сцены и доступен сразу, но не позволяет персонажу, уже сходившему в текущем раунде, сходить второй раз — считаются именно уже отходившие участники, а не число слотов. Каждая следующая законная активация может создать ещё один слот. Вне структурированной сцены выбор остаётся отложенным и пропадает, если сцена не началась до конца этой активации.",
+    "descEn": "On activation during a structured encounter the owner may roll Cool or Vigilance and create one new PC initiative slot with that result. The slot lasts until the end of the encounter and is available at once, but it does not let a character who has already taken a turn this round take a second one — what counts is which participants have already acted, not the number of slots. Each later lawful activation may create one more slot. Outside a structured encounter the choice stays pending and expires if no encounter starts before this activation ends."
+  }
+}

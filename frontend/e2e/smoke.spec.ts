@@ -52,6 +52,85 @@ interface ImportResult {
 
 const tokenKey = 'genesysforge.token'
 
+test('PublicSafe infrastructure: release identity, OpenAPI JSON and manifest MIME', async ({ request }) => {
+  test.skip(process.env.E2E_CONTENT_MODE !== 'PublicSafe', 'Only applies to the public artifact')
+  const health = await request.get('/api/v1/health')
+  expect(health.ok()).toBe(true)
+  expect(await health.json()).toMatchObject({ contentMode: 'PublicSafe', status: 'ok' })
+  expect((await health.json()).version).toContain('+')
+  const schema = await request.get('/openapi/v1.json')
+  expect(schema.headers()['content-type']).toContain('application/json')
+  expect((await schema.json()).openapi).toMatch(/^3\./)
+  const manifest = await request.get('/manifest.webmanifest')
+  expect(manifest.headers()['content-type']).toContain('application/manifest+json')
+  expect((await manifest.json()).start_url).toBe('/')
+})
+
+test('PublicSafe PWA: clears legacy personal reference cache and refuses offline API data', async ({ page, request }) => {
+  test.skip(process.env.E2E_CONTENT_MODE !== 'PublicSafe', 'Only applies to the public artifact')
+  const user = await register(request, 'pwa-privacy')
+  await openAs(page, user.token, '/')
+  await page.evaluate(async () => { await navigator.serviceWorker.ready })
+  await expect.poll(() => page.evaluate(() => navigator.serviceWorker.controller !== null)).toBe(true)
+  await page.evaluate(async () => {
+    const cache = await caches.open('genesysforge-reference-v1')
+    await cache.put('/api/reference/RealmsOfTerrinoth', new Response(JSON.stringify({ privateMarker: 'old-user-secret' })))
+  })
+  // A fresh authenticated API call must clean caches even during a worker upgrade.
+  await page.reload()
+  await expect.poll(() => page.evaluate(async () => (await caches.keys())
+    .filter(key => key.startsWith('genesysforge-reference-')))).toEqual([])
+  await page.evaluate(async token => {
+    const response = await fetch('/api/v1/reference/RealmsOfTerrinoth', { headers: { Authorization: `Bearer ${token}` } })
+    if (!response.ok) throw new Error(`reference: ${response.status}`)
+  }, user.token)
+  await page.context().setOffline(true)
+  const offlineData = await page.evaluate(async token => {
+    try {
+      await fetch('/api/v1/reference/RealmsOfTerrinoth', { headers: { Authorization: `Bearer ${token}` } })
+      return true
+    } catch { return false }
+  }, user.token)
+  expect(offlineData).toBe(false)
+  await page.context().setOffline(false)
+})
+
+test('PublicSafe: book references, no prose, purchased sheet and publisher links', async ({ page, request }) => {
+  test.skip(process.env.E2E_CONTENT_MODE !== 'PublicSafe', 'Only applies to the public artifact')
+  const user = await register(request, 'public-safe')
+  const response = await request.get('/api/v1/reference/RealmsOfTerrinoth', { headers: authHeaders(user.token) })
+  expect(response.headers()['cache-control']).toContain('no-store')
+  const reference = await readJson<{
+    talents: Array<{ id: string; name: string; tier: number; description: string; descriptionEn: string; safeDescription: string; source: string }>
+    heroicAbilities: Array<{ id: string; description: string; descriptionEn: string; safeDescription: string; source: string;
+      upgrades: Array<{ description: string; descriptionEn: string; source: string }> }>
+  }>(response, 'public reference')
+  for (const talent of reference.talents) {
+    expect([talent.description, talent.descriptionEn, talent.safeDescription]).toEqual(['', '', ''])
+    expect(talent.source).toMatch(/, с\. \d+/)
+  }
+  for (const heroic of reference.heroicAbilities) {
+    expect([heroic.description, heroic.descriptionEn, heroic.safeDescription]).toEqual(['', '', ''])
+    for (const upgrade of heroic.upgrades) {
+      expect([upgrade.description, upgrade.descriptionEn]).toEqual(['', ''])
+      expect(upgrade.source).toBe(heroic.source)
+    }
+  }
+  const { id } = await createCharacter(request, user.token, unique('Public hero'), 'realmsOfTerrinoth')
+  const talent = reference.talents.find(t => t.name === 'Toughened')!
+  await apiPost(request, user.token, `/api/characters/${id}/talents/buy`, { talentDefId: talent.id })
+  const sheet = await apiGet<{ talents: Array<{ talentDefId: string; description: string; descriptionEn: string; source: string }> }>(
+    request, user.token, `/api/characters/${id}`)
+  expect(sheet.talents.find(t => t.talentDefId === talent.id)).toMatchObject({ description: '', descriptionEn: '', source: talent.source })
+  await openAs(page, user.token, `/characters/${id}`)
+  await page.getByRole('button', { name: 'Таланты', exact: true }).click()
+  // Core cites the Russian edition's pages, so the link shows that edition's title and publisher page.
+  const label = talent.source.replace('Genesys Core Rulebook (RU translation),', 'Genesys. Основная книга правил,')
+  await expect(page.getByRole('link', { name: label }).first()).toBeVisible()
+  expect(await page.getByRole('link', { name: label }).first().getAttribute('href'))
+    .toBe('https://hobbyworld.ru/genesys-osnovnaja-kniga-pravil')
+})
+
 function unique(prefix: string): string {
   return `${prefix}-${Date.now()}-${Math.random().toString(16).slice(2)}`
 }

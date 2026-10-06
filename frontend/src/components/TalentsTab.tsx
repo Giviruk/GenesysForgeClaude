@@ -1,3 +1,4 @@
+import { BookReference } from './BookReference'
 import { useState } from 'react'
 import { api } from '../api/client'
 import type {
@@ -172,6 +173,7 @@ export function TalentsTab({ sheet, reference, onError, refresh }: Props) {
     key: string
     name: string
     description: string
+    source?: string
     activation: string
     isRanked: boolean
     rankNo?: number
@@ -188,6 +190,7 @@ export function TalentsTab({ sheet, reference, onError, refresh }: Props) {
         key: `${t.talentDefId}-${r}`,
         name: localizedName(t),
         description: localizedDescription(t),
+        source: t.source,
         activation: t.activation,
         isRanked: t.isRanked,
         rankNo: t.isRanked ? r + 1 : undefined,
@@ -271,7 +274,8 @@ export function TalentsTab({ sheet, reference, onError, refresh }: Props) {
                             {isPassive ? t('Пассивный', 'Passive') : `${t('Активный', 'Active')} · ${c.activation}`}
                           </span>
                         </div>
-                        <p className="owned-talent-desc"><RuleText text={c.description} /></p>
+                        {c.description && <p className="owned-talent-desc"><RuleText text={c.description} /></p>}
+                        <BookReference source={c.source} />
                         {c.grant && (
                           <div className="bonus-line" title={t('Характеристика увеличена этим талантом', 'Characteristic increased by this talent')}>
                             ⬆ +1 {CHARACTERISTIC_LABELS[c.grant]}
@@ -321,7 +325,8 @@ export function TalentsTab({ sheet, reference, onError, refresh }: Props) {
                         {isPassive ? t('Пассивный', 'Passive') : tal.activation}
                       </span>
                     </div>
-                    <p className="owned-talent-desc muted"><RuleText text={localizedDescription(tal)} /></p>
+                    {localizedDescription(tal) && <p className="owned-talent-desc muted"><RuleText text={localizedDescription(tal)} /></p>}
+                    <BookReference source={tal.source} />
                     {(tal.choices ?? []).length > 0 && (
                       <div className="bonus-line">
                         {t('Выбор:', 'Choice:')}{' '}
@@ -434,7 +439,8 @@ export function TalentsTab({ sheet, reference, onError, refresh }: Props) {
                         )}
                       </div>
                       {tal.trigger && <p className="hint">{t('Триггер:', 'Trigger:')} {tal.trigger}</p>}
-                      <p className="muted"><RuleText text={localizedDescription(tal)} /></p>
+                      {localizedDescription(tal) && <p className="muted"><RuleText text={localizedDescription(tal)} /></p>}
+                      <BookReference source={tal.source} />
                     </div>
                     <div className="talent-actions">
                       {sheet.isCreationPhase && ranksOwned > 0 && (() => {

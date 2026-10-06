@@ -25,6 +25,9 @@ public static class HeroicSecondaryEffectApplier
             var description = string.IsNullOrWhiteSpace(effect.Description)
                 ? effect.SafeDescription
                 : effect.Description;
+            // PublicSafe не отдаёт прозу эффекта: вместо пустой строки — ссылка на правило в книге.
+            if (string.IsNullOrWhiteSpace(description))
+                description = string.IsNullOrWhiteSpace(effect.Source) ? "примените по правилам" : $"см. {effect.Source}";
             result.Manual.Add($"{effect.NameRu}: {description}");
         }
     }

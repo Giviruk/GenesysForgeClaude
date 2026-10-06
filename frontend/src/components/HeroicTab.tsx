@@ -1,3 +1,4 @@
+import { BookReference } from './BookReference'
 import { useState } from 'react'
 import { api } from '../api/client'
 import type {
@@ -64,15 +65,18 @@ export function HeroicTab({ sheet, reference, onError, refresh }: Props) {
               {t('Выбрать', 'Choose')}
             </button>
           </div>
-          {heroicPick && (
-            <div className="heroic-ability-preview">
-              <div className="hint small-text"><b>{t('Что даёт способность:', 'What the ability gives:')}</b></div>
-              <p className="hint">{(() => {
-                const h = reference.heroicAbilities.find(x => x.id === heroicPick)
-                return h ? localizedDescription(h) : ''
-              })()}</p>
-            </div>
-          )}
+          {heroicPick && (() => {
+            const h = reference.heroicAbilities.find(x => x.id === heroicPick)
+            if (!h) return null
+            const description = localizedDescription(h)
+            return (
+              <div className="heroic-ability-preview">
+                {description && <div className="hint small-text"><b>{t('Что даёт способность:', 'What the ability gives:')}</b></div>}
+                {description && <p className="hint">{description}</p>}
+                <BookReference source={h.source} />
+              </div>
+            )
+          })()}
         </>
       )}
     </section>
@@ -126,8 +130,13 @@ function HeroicAbilityCard({ sheet, reference, run }: {
       {sheet.heroicIdentity?.customName && (
         <div className="hint small-text">{t('Эффект:', 'Effect:')} {localizedName(h)}</div>
       )}
-      <div className="hint small-text"><b>{t('Что даёт способность:', 'What the ability gives:')}</b></div>
-      <p>{localizedDescription(h)}</p>
+      {localizedDescription(h) && (
+        <>
+          <div className="hint small-text"><b>{t('Что даёт способность:', 'What the ability gives:')}</b></div>
+          <p>{localizedDescription(h)}</p>
+        </>
+      )}
+      <BookReference source={h.source} />
       {meta.filter(([, v]) => v).map(([k, v]) => (
         <div key={k} className="hint small-text"><b>{k}:</b> {v}</div>
       ))}
@@ -179,7 +188,8 @@ function HeroicAbilityCard({ sheet, reference, run }: {
                     </button>
                   )}
                 </div>
-                <p>{localizedDescription(u)}</p>
+                <BookReference source={u.source || h.source} />
+                {localizedDescription(u) && <p>{localizedDescription(u)}</p>}
                 {u.notes && <p className="hint small-text">{u.notes}</p>}
               </div>
             )
@@ -192,6 +202,7 @@ function HeroicAbilityCard({ sheet, reference, run }: {
               {available >= 1 && <button className="small primary" onClick={() => run(() => save({ durationRanks: upgrades.durationRanks + 1 }))}>{t('Купить', 'Buy')}</button>}
               {sheet.isCreationPhase && upgrades.durationRanks > 0 && <button className="small" onClick={() => run(() => save({ durationRanks: upgrades.durationRanks - 1 }))}>{t('Вернуть', 'Refund')}</button>}
             </div>
+            <BookReference source="Realms of Terrinoth, с. 79" />
             <p className="hint small-text">{t('Каждый ранг продлевает эффект ещё на один ход.', 'Each rank extends the effect by one turn.')}</p>
           </div>
 
@@ -202,6 +213,7 @@ function HeroicAbilityCard({ sheet, reference, run }: {
               {available >= 2 && <button className="small primary" onClick={() => run(() => save({ frequencyRanks: upgrades.frequencyRanks + 1 }))}>{t('Купить', 'Buy')}</button>}
               {sheet.isCreationPhase && upgrades.frequencyRanks > 0 && <button className="small" onClick={() => run(() => save({ frequencyRanks: upgrades.frequencyRanks - 1 }))}>{t('Вернуть', 'Refund')}</button>}
             </div>
+            <BookReference source="Realms of Terrinoth, с. 79" />
             <p className="hint small-text">{t('Каждый ранг даёт ещё одно применение за сессию.', 'Each rank grants one additional use per session.')}</p>
           </div>
 
@@ -212,6 +224,7 @@ function HeroicAbilityCard({ sheet, reference, run }: {
               {!upgrades.story && available >= 1 && <button className="small primary" onClick={() => run(() => save({ story: true }))}>{t('Купить', 'Buy')}</button>}
               {sheet.isCreationPhase && upgrades.story && <button className="small" onClick={() => run(() => save({ story: false }))}>{t('Вернуть', 'Refund')}</button>}
             </div>
+            <BookReference source="Realms of Terrinoth, с. 79" />
             <p className="hint small-text">{t('Снижает стоимость активации до одного очка сюжета.', 'Reduces activation cost to one Story Point.')}</p>
           </div>
 
@@ -228,7 +241,8 @@ function HeroicAbilityCard({ sheet, reference, run }: {
                     {canBuy && <button className="small primary" onClick={() => run(() => save({ secondaryEffects: [...upgrades.secondaryEffects, effect] }))}>{t('Купить', 'Buy')}</button>}
                     {selected && sheet.isCreationPhase && <button className="small" onClick={() => run(() => save({ secondaryEffects: upgrades.secondaryEffects.filter(x => x.id !== effect.id) }))}>{t('Вернуть', 'Refund')}</button>}
                   </div>
-                  <p>{localizedDescription(effect)}</p>
+                  <BookReference source={effect.source} />
+                  {localizedDescription(effect) && <p>{localizedDescription(effect)}</p>}
                 </div>
               )
             })}

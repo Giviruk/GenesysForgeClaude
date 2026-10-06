@@ -4,6 +4,7 @@ import {
   ITEM_DAMAGE_STATE_LABELS, ITEM_KIND_LABELS, ITEM_STATE_LABELS, localizedDescription,
   localizedName, MOVEMENT_MODE_LABELS, secondaryName, TRANSPORT_KIND_LABELS,
 } from '../utils/labels'
+import { BookReference } from './BookReference'
 import { PropertyTags } from './PropertyTags'
 import { RuleText } from './RuleText'
 
@@ -29,6 +30,7 @@ function ReadOnlyTalent({ talent }: { talent: SheetTalent }) {
         {talent.needsChoice && <span className="badge warn">{t('Нужен выбор', 'Choice required')}</span>}
       </div>
       {localizedDescription(talent) && <p className="muted"><RuleText text={localizedDescription(talent)} /></p>}
+      <BookReference source={talent.source} />
       {(talent.choices ?? []).length > 0 && <div className="small-text">
         {t('Выборы:', 'Choices:')} {talent.choices.map(choice => choice.displayName).join(' · ')}
       </div>}
@@ -102,6 +104,7 @@ export function ReadOnlyHeroicTab({ sheet }: { sheet: CharacterSheet }) {
         <span className="badge">{ability.duration}</span>
       </div>
       {localizedDescription(ability) && <p>{localizedDescription(ability)}</p>}
+      <BookReference source={ability.source} />
       <div className="muted small-text">
         {t('Очки улучшений', 'Upgrade points')}: {sheet.heroicUpgradePointsSpent}/{sheet.heroicUpgradePointsTotal}
         {sheet.heroicUpgrades.powerRank > 0 && ` · ${t('Сила', 'Power')} ${sheet.heroicUpgrades.powerRank}`}

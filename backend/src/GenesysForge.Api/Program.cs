@@ -195,6 +195,12 @@ if (builder.Configuration.GetValue("RateLimiting:Enabled", true))
     app.UseRateLimiter();
 app.UseCors();
 app.UseAuthentication();
+app.Use(async (context, next) =>
+{
+    if (context.Request.Path.StartsWithSegments("/api"))
+        context.Response.Headers.CacheControl = "no-store";
+    await next(context);
+});
 app.UseAuthorization();
 
 // Исключения Application/Domain → HTTP-статусы с сообщением.
@@ -246,6 +252,7 @@ app.MapContentPacks();
 app.MapHub<CampaignHub>("/hubs/campaign");
 app.MapGet("/api/health", async (
     GenesysForge.Infrastructure.Persistence.AppDbContext db,
+    IConfiguration configuration,
     ILogger<Program> logger,
     CancellationToken ct) =>
 {
@@ -253,7 +260,11 @@ app.MapGet("/api/health", async (
     {
         var databaseOk = await db.Database.CanConnectAsync(ct);
         return databaseOk
-            ? Results.Ok(new { status = "ok", database = "ok" })
+            ? Results.Ok(new { status = "ok", database = "ok",
+                contentMode = configuration.GetValue("Content:Mode", "PrivateFull"),
+                version = typeof(Program).Assembly.GetCustomAttributes(
+                    typeof(System.Reflection.AssemblyInformationalVersionAttribute), false)
+                    .Cast<System.Reflection.AssemblyInformationalVersionAttribute>().Single().InformationalVersion })
             : Results.Json(new { status = "degraded", database = "unavailable" },
                 statusCode: StatusCodes.Status503ServiceUnavailable);
     }
