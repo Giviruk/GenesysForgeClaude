@@ -1152,7 +1152,9 @@ ROT-MAG-02 или лист персонажа), проверка собирае�
   Этап 2: создание персонажа на контенте мастера и атомарная связь с кампанией,
   форма с campaignId; 38 backend / 63 frontend теста и build пройдены.
   План: [gen-content-01-campaign-characters.md](gen-content-01-campaign-characters.md).
-  Остаток: этапы 3–4 и merge всех PR. ТЗ: [account-campaign-content.md](../../docs/account-campaign-content.md).
+  Этап 3: личный custom CRUD и страница «Моя библиотека», 19 backend / 60 frontend
+  тестов, build и lint пройдены. План: [gen-content-01-personal-library.md](gen-content-01-personal-library.md).
+  Остаток: этап 4 и merge всех PR. ТЗ: [account-campaign-content.md](../../docs/account-campaign-content.md).
 
 ## Что осталось / блокеры
 

@@ -92,3 +92,9 @@ describe('parseRoute', () => {
       .toEqual(route({ area: 'campaigns', id: 'c1', unknown: true }))
   })
 })
+
+
+it('recognizes the personal library and rejects nested library routes', () => {
+  expect(parseRoute('/library')).toMatchObject({ area: 'library', unknown: false })
+  expect(parseRoute('/library/foreign')).toMatchObject({ area: 'library', unknown: true })
+})

@@ -18,6 +18,7 @@ const NpcsPage = lazy(() => import('./pages/NpcsPage').then(module => ({ default
 const SheetPage = lazy(() => import('./pages/SheetPage').then(module => ({ default: module.SheetPage })))
 const MagicPage = lazy(() => import('./pages/MagicPage').then(module => ({ default: module.MagicPage })))
 const ShopPage = lazy(() => import('./pages/ShopPage').then(module => ({ default: module.ShopPage })))
+const LibraryPage = lazy(() => import('./pages/LibraryPage').then(module => ({ default: module.LibraryPage })))
 const ReferencePage = lazy(() => import('./pages/ReferencePage').then(module => ({ default: module.ReferencePage })))
 const AboutPage = lazy(() => import('./pages/AboutPage').then(module => ({ default: module.AboutPage })))
 const HelpPage = lazy(() => import('./pages/HelpPage').then(module => ({ default: module.HelpPage })))
@@ -33,6 +34,7 @@ const NAV_ITEMS: Array<{ area: AppArea; label: string; path: string; icon: IconN
   { area: 'npcs', label: t('Бестиарий', 'Bestiary'), path: '/npcs', icon: 'skull' },
   { area: 'campaigns', label: t('Кампании', 'Campaigns'), path: '/campaigns', icon: 'map' },
   { area: 'magic', label: t('Магия', 'Magic'), path: '/magic', icon: 'flame' },
+  { area: 'library', label: t('Моя библиотека', 'My library'), path: '/library', icon: 'book' },
   { area: 'shop', label: t('Магазин', 'Shop'), path: '/shop', icon: 'shop' },
 ]
 
@@ -191,6 +193,8 @@ function Shell() {
                   ? <MagicPage />
                 : route.area === 'shop'
                   ? <ShopPage />
+                : route.area === 'library'
+                  ? <LibraryPage />
                 : route.area === 'account'
                   ? <ProfilePage onBack={() => navigate('/characters')} />
                   : route.area === 'help'

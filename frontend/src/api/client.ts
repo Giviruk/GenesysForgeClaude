@@ -367,6 +367,9 @@ const isSlices = (data: unknown): data is SheetSlices =>
   && Object.keys(data).length > 0
   && Object.keys(data).every(key => SLICE_KEYS.includes(key))
 
+const customContentPath = (campaignId?: string) =>
+  campaignId ? `/api/campaigns/${campaignId}/custom` : '/api/custom'
+
 export const api = {
   register: (email: string, password: string, displayName: string) =>
     request<AuthResponse>('POST', '/api/auth/register', { email, password, displayName }),
@@ -762,43 +765,43 @@ export const api = {
   removeCriticalInjury: (id: string, injuryId: string) =>
     request<void>('DELETE', `/api/characters/${id}/critical-injuries/${injuryId}`),
 
-  createCustomSkill: (campaignId: string, skill: { system: GameSystem; name: string; characteristic: string; kind: string }) =>
-    request<SkillDef>('POST', `/api/campaigns/${campaignId}/custom/skills`, skill),
-  createCustomTalent: (campaignId: string, talent: {
+  createCustomSkill: (campaignId: string | undefined, skill: { system: GameSystem; name: string; characteristic: string; kind: string }) =>
+    request<SkillDef>('POST', `${customContentPath(campaignId)}/skills`, skill),
+  createCustomTalent: (campaignId: string | undefined, talent: {
     system: GameSystem; name: string; tier: number; isRanked: boolean; category: TalentCategory; activation: string; description: string
     woundBonus: number; strainBonus: number; soakBonus: number; meleeDefenseBonus: number; rangedDefenseBonus: number
-  }) => request<TalentDef>('POST', `/api/campaigns/${campaignId}/custom/talents`, talent),
-  createCustomItem: (campaignId: string, item: {
+  }) => request<TalentDef>('POST', `${customContentPath(campaignId)}/talents`, talent),
+  createCustomItem: (campaignId: string | undefined, item: {
     system: GameSystem; name: string; kind: string; encumbrance: number; soakBonus: number
     meleeDefense: number; rangedDefense: number; encumbranceThresholdBonus: number
     description: string; price: number; rarity: number
     skillName?: string; damage?: string; crit?: string; rangeBand?: string; properties?: string
-  }) => request<ItemDef>('POST', `/api/campaigns/${campaignId}/custom/items`, item),
-  createCustomHeroicAbility: (campaignId: string, ability: { name: string; description: string }) =>
-    request<HeroicAbility>('POST', `/api/campaigns/${campaignId}/custom/heroic-abilities`, ability),
-  createCustomArchetype: (campaignId: string, archetype: CustomArchetypeInput) =>
-    request<Archetype>('POST', `/api/campaigns/${campaignId}/custom/archetypes`, archetype),
-  createCustomCareer: (campaignId: string, career: CustomCareerInput) =>
-    request<Career>('POST', `/api/campaigns/${campaignId}/custom/careers`, career),
+  }) => request<ItemDef>('POST', `${customContentPath(campaignId)}/items`, item),
+  createCustomHeroicAbility: (campaignId: string | undefined, ability: { name: string; description: string }) =>
+    request<HeroicAbility>('POST', `${customContentPath(campaignId)}/heroic-abilities`, ability),
+  createCustomArchetype: (campaignId: string | undefined, archetype: CustomArchetypeInput) =>
+    request<Archetype>('POST', `${customContentPath(campaignId)}/archetypes`, archetype),
+  createCustomCareer: (campaignId: string | undefined, career: CustomCareerInput) =>
+    request<Career>('POST', `${customContentPath(campaignId)}/careers`, career),
 
-  updateCustomSkill: (campaignId: string, id: string, skill: { system: GameSystem; name: string; characteristic: string; kind: string }) =>
-    request<SkillDef>('PUT', `/api/campaigns/${campaignId}/custom/skills/${id}`, skill),
-  updateCustomTalent: (campaignId: string, id: string, talent: {
+  updateCustomSkill: (campaignId: string | undefined, id: string, skill: { system: GameSystem; name: string; characteristic: string; kind: string }) =>
+    request<SkillDef>('PUT', `${customContentPath(campaignId)}/skills/${id}`, skill),
+  updateCustomTalent: (campaignId: string | undefined, id: string, talent: {
     system: GameSystem; name: string; tier: number; isRanked: boolean; category: TalentCategory; activation: string; description: string
     woundBonus: number; strainBonus: number; soakBonus: number; meleeDefenseBonus: number; rangedDefenseBonus: number
-  }) => request<TalentDef>('PUT', `/api/campaigns/${campaignId}/custom/talents/${id}`, talent),
-  updateCustomItem: (campaignId: string, id: string, item: {
+  }) => request<TalentDef>('PUT', `${customContentPath(campaignId)}/talents/${id}`, talent),
+  updateCustomItem: (campaignId: string | undefined, id: string, item: {
     system: GameSystem; name: string; kind: string; encumbrance: number; soakBonus: number
     meleeDefense: number; rangedDefense: number; encumbranceThresholdBonus: number
     description: string; price: number; rarity: number
     skillName?: string; damage?: string; crit?: string; rangeBand?: string; properties?: string
-  }) => request<ItemDef>('PUT', `/api/campaigns/${campaignId}/custom/items/${id}`, item),
-  updateCustomHeroicAbility: (campaignId: string, id: string, ability: { name: string; description: string }) =>
-    request<HeroicAbility>('PUT', `/api/campaigns/${campaignId}/custom/heroic-abilities/${id}`, ability),
-  updateCustomArchetype: (campaignId: string, id: string, archetype: CustomArchetypeInput) =>
-    request<Archetype>('PUT', `/api/campaigns/${campaignId}/custom/archetypes/${id}`, archetype),
-  updateCustomCareer: (campaignId: string, id: string, career: CustomCareerInput) =>
-    request<Career>('PUT', `/api/campaigns/${campaignId}/custom/careers/${id}`, career),
+  }) => request<ItemDef>('PUT', `${customContentPath(campaignId)}/items/${id}`, item),
+  updateCustomHeroicAbility: (campaignId: string | undefined, id: string, ability: { name: string; description: string }) =>
+    request<HeroicAbility>('PUT', `${customContentPath(campaignId)}/heroic-abilities/${id}`, ability),
+  updateCustomArchetype: (campaignId: string | undefined, id: string, archetype: CustomArchetypeInput) =>
+    request<Archetype>('PUT', `${customContentPath(campaignId)}/archetypes/${id}`, archetype),
+  updateCustomCareer: (campaignId: string | undefined, id: string, career: CustomCareerInput) =>
+    request<Career>('PUT', `${customContentPath(campaignId)}/careers/${id}`, career),
 
   notes: (characterId: string) => {
     const existing = characterNotesCache.get(characterId)
@@ -967,10 +970,10 @@ export const api = {
   setCampaignHomebrewPack: (campaignId: string, packId: string, isEnabled: boolean) =>
     request<void>('PUT', `/api/campaigns/${campaignId}/homebrew-packs/${packId}`, { isEnabled }),
 
-  deleteCustomSkill: (campaignId: string, id: string) => request<void>('DELETE', `/api/campaigns/${campaignId}/custom/skills/${id}`),
-  deleteCustomTalent: (campaignId: string, id: string) => request<void>('DELETE', `/api/campaigns/${campaignId}/custom/talents/${id}`),
-  deleteCustomItem: (campaignId: string, id: string) => request<void>('DELETE', `/api/campaigns/${campaignId}/custom/items/${id}`),
-  deleteCustomHeroicAbility: (campaignId: string, id: string) => request<void>('DELETE', `/api/campaigns/${campaignId}/custom/heroic-abilities/${id}`),
-  deleteCustomArchetype: (campaignId: string, id: string) => request<void>('DELETE', `/api/campaigns/${campaignId}/custom/archetypes/${id}`),
-  deleteCustomCareer: (campaignId: string, id: string) => request<void>('DELETE', `/api/campaigns/${campaignId}/custom/careers/${id}`),
+  deleteCustomSkill: (campaignId: string | undefined, id: string) => request<void>('DELETE', `${customContentPath(campaignId)}/skills/${id}`),
+  deleteCustomTalent: (campaignId: string | undefined, id: string) => request<void>('DELETE', `${customContentPath(campaignId)}/talents/${id}`),
+  deleteCustomItem: (campaignId: string | undefined, id: string) => request<void>('DELETE', `${customContentPath(campaignId)}/items/${id}`),
+  deleteCustomHeroicAbility: (campaignId: string | undefined, id: string) => request<void>('DELETE', `${customContentPath(campaignId)}/heroic-abilities/${id}`),
+  deleteCustomArchetype: (campaignId: string | undefined, id: string) => request<void>('DELETE', `${customContentPath(campaignId)}/archetypes/${id}`),
+  deleteCustomCareer: (campaignId: string | undefined, id: string) => request<void>('DELETE', `${customContentPath(campaignId)}/careers/${id}`),
 }

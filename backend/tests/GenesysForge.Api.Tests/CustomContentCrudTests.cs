@@ -281,4 +281,45 @@ public class CustomContentCrudTests : IClassFixture<ApiFactory>
         Assert.Equal(HttpStatusCode.NoContent, (await client.DeleteAsync($"{custom}/archetypes/{archetype.Id}")).StatusCode);
         Assert.Equal(HttpStatusCode.NoContent, (await client.DeleteAsync($"{custom}/careers/{career.Id}")).StatusCode);
     }
+    [Fact]
+    public async Task PersonalLibrary_WorksWithoutCampaign_AndRemainsOwnerOnly()
+    {
+        var owner = await _factory.CreateAuthorizedClientAsync();
+        var stranger = await _factory.CreateAuthorizedClientAsync();
+        var created = await owner.PostAsJsonAsync("/api/v1/custom/archetypes",
+            new CreateCustomArchetypeRequest(GameSystem.GenesysCore, "Personal Species", "Личный вид",
+                2, 2, 2, 2, 2, 2, 10, 10, 100, "Own text", null, null), Json.Options);
+        Assert.Equal(HttpStatusCode.OK, created.StatusCode);
+        var archetype = (await created.Content.ReadFromJsonAsync<ArchetypeDto>(Json.Options))!;
+        var reference = (await owner.GetFromJsonAsync<ReferenceResponse>("/api/reference/GenesysCore", Json.Options))!;
+        Assert.Contains(reference.Archetypes, a => a.Id == archetype.Id);
+        var strangerReference = (await stranger.GetFromJsonAsync<ReferenceResponse>("/api/reference/GenesysCore", Json.Options))!;
+        Assert.DoesNotContain(strangerReference.Archetypes, a => a.Id == archetype.Id);
+        var character = await owner.PostAsJsonAsync("/api/characters/",
+            new CreateCharacterRequest("Personal hero", GameSystem.GenesysCore, archetype.Id, reference.Careers[0].Id, null), Json.Options);
+        Assert.Equal(HttpStatusCode.Created, character.StatusCode);
+        var packs = (await owner.GetFromJsonAsync<List<HomebrewPackListItemDto>>("/api/homebrew-packs/", Json.Options))!;
+        Assert.Single(packs);
+        Assert.Equal(1, packs[0].EntryCount);
+        Assert.Equal(HttpStatusCode.BadRequest, (await stranger.DeleteAsync($"/api/custom/archetypes/{archetype.Id}")).StatusCode);
+        Assert.Empty((await owner.GetFromJsonAsync<List<CampaignListItemDto>>("/api/campaigns/", Json.Options))!);
+    }
+
+    [Fact]
+    public async Task PersonalRoutes_ReusePack_AndSupportOwnedUpdateAndDelete()
+    {
+        var owner = await _factory.CreateAuthorizedClientAsync();
+        var first = (await (await owner.PostAsJsonAsync("/api/custom/skills",
+            new CreateCustomSkillRequest(GameSystem.GenesysCore, "Personal Sailing", CharacteristicType.Agility, SkillKind.General), Json.Options))
+            .Content.ReadFromJsonAsync<SkillDefDto>(Json.Options))!;
+        await owner.PostAsJsonAsync("/api/custom/talents",
+            new CreateCustomTalentRequest(GameSystem.GenesysCore, "Personal Captain", 1, false, "Пассивный", "Own text", 0, 0, 0, 0, 0), Json.Options);
+        var packs = (await owner.GetFromJsonAsync<List<HomebrewPackListItemDto>>("/api/homebrew-packs/", Json.Options))!;
+        Assert.Single(packs);
+        Assert.Equal(2, packs[0].EntryCount);
+        Assert.Equal(HttpStatusCode.OK, (await owner.PutAsJsonAsync($"/api/custom/skills/{first.Id}",
+            new CreateCustomSkillRequest(GameSystem.GenesysCore, "Personal Navigation", CharacteristicType.Intellect, SkillKind.General), Json.Options)).StatusCode);
+        Assert.Equal(HttpStatusCode.NoContent, (await owner.DeleteAsync($"/api/custom/skills/{first.Id}")).StatusCode);
+    }
+
 }

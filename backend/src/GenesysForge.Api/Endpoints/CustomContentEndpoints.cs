@@ -9,32 +9,47 @@ public static class CustomContentEndpoints
 {
     public static void MapCustomContent(this IEndpointRouteBuilder app)
     {
-        var group = app.MapGroup("/api/campaigns/{campaignId:guid}/custom").RequireAuthorization();
+        foreach (var path in new[] { "/api/custom", "/api/campaigns/{campaignId:guid}/custom" })
+        {
+            var group = app.MapGroup(path).RequireAuthorization();
+            MapCreation(group);
+            MapMutations(group);
+        }
+    }
 
-        group.MapPost("/skills", async (Guid campaignId, CreateCustomSkillRequest req, ClaimsPrincipal user,
+    private static Guid? CampaignId(HttpRequest request) =>
+        Guid.TryParse(request.RouteValues["campaignId"]?.ToString(), out var id) ? id : null;
+
+    private static void MapCreation(RouteGroupBuilder group)
+    {
+        group.MapPost("/skills", async (HttpRequest http, CreateCustomSkillRequest req, ClaimsPrincipal user,
                 ICommandHandler<CreateCustomSkillCommand, SkillDefDto> handler, CancellationToken ct) =>
-            Results.Ok(await handler.Handle(new CreateCustomSkillCommand(user.UserId(), campaignId, req), ct)));
+            Results.Ok(await handler.Handle(new CreateCustomSkillCommand(user.UserId(), CampaignId(http), req), ct)));
 
-        group.MapPost("/talents", async (Guid campaignId, CreateCustomTalentRequest req, ClaimsPrincipal user,
+        group.MapPost("/talents", async (HttpRequest http, CreateCustomTalentRequest req, ClaimsPrincipal user,
                 ICommandHandler<CreateCustomTalentCommand, TalentDefDto> handler, CancellationToken ct) =>
-            Results.Ok(await handler.Handle(new CreateCustomTalentCommand(user.UserId(), campaignId, req), ct)));
+            Results.Ok(await handler.Handle(new CreateCustomTalentCommand(user.UserId(), CampaignId(http), req), ct)));
 
-        group.MapPost("/items", async (Guid campaignId, CreateCustomItemRequest req, ClaimsPrincipal user,
+        group.MapPost("/items", async (HttpRequest http, CreateCustomItemRequest req, ClaimsPrincipal user,
                 ICommandHandler<CreateCustomItemCommand, ItemDefDto> handler, CancellationToken ct) =>
-            Results.Ok(await handler.Handle(new CreateCustomItemCommand(user.UserId(), campaignId, req), ct)));
+            Results.Ok(await handler.Handle(new CreateCustomItemCommand(user.UserId(), CampaignId(http), req), ct)));
 
-        group.MapPost("/heroic-abilities", async (Guid campaignId, CreateCustomHeroicAbilityRequest req, ClaimsPrincipal user,
+        group.MapPost("/heroic-abilities", async (HttpRequest http, CreateCustomHeroicAbilityRequest req, ClaimsPrincipal user,
                 ICommandHandler<CreateCustomHeroicAbilityCommand, HeroicAbilityDto> handler, CancellationToken ct) =>
-            Results.Ok(await handler.Handle(new CreateCustomHeroicAbilityCommand(user.UserId(), campaignId, req), ct)));
+            Results.Ok(await handler.Handle(new CreateCustomHeroicAbilityCommand(user.UserId(), CampaignId(http), req), ct)));
 
-        group.MapPost("/archetypes", async (Guid campaignId, CreateCustomArchetypeRequest req, ClaimsPrincipal user,
+        group.MapPost("/archetypes", async (HttpRequest http, CreateCustomArchetypeRequest req, ClaimsPrincipal user,
                 ICommandHandler<CreateCustomArchetypeCommand, ArchetypeDto> handler, CancellationToken ct) =>
-            Results.Ok(await handler.Handle(new CreateCustomArchetypeCommand(user.UserId(), campaignId, req), ct)));
+            Results.Ok(await handler.Handle(new CreateCustomArchetypeCommand(user.UserId(), CampaignId(http), req), ct)));
 
-        group.MapPost("/careers", async (Guid campaignId, CreateCustomCareerRequest req, ClaimsPrincipal user,
+        group.MapPost("/careers", async (HttpRequest http, CreateCustomCareerRequest req, ClaimsPrincipal user,
                 ICommandHandler<CreateCustomCareerCommand, CareerDto> handler, CancellationToken ct) =>
-            Results.Ok(await handler.Handle(new CreateCustomCareerCommand(user.UserId(), campaignId, req), ct)));
+            Results.Ok(await handler.Handle(new CreateCustomCareerCommand(user.UserId(), CampaignId(http), req), ct)));
 
+    }
+
+    private static void MapMutations(RouteGroupBuilder group)
+    {
         // ---- Редактирование ----
         group.MapPut("/skills/{id:guid}", async (Guid id, CreateCustomSkillRequest req, ClaimsPrincipal user,
                 ICommandHandler<UpdateCustomSkillCommand, SkillDefDto> handler, CancellationToken ct) =>

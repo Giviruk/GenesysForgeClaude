@@ -42,7 +42,7 @@ export function usePath(): string {
   return path
 }
 
-export type AppArea = 'characters' | 'campaigns' | 'npcs' | 'magic' | 'shop' | 'reference' | 'help' | 'about' | 'feedback' | 'account' | 'share'
+export type AppArea = 'characters' | 'campaigns' | 'npcs' | 'magic' | 'shop' | 'reference' | 'library' | 'help' | 'about' | 'feedback' | 'account' | 'share'
 
 export interface AppRoute {
   area: AppArea
@@ -91,6 +91,7 @@ export function parseRoute(pathname: string): AppRoute {
   if (head === 'login' || head === 'register') return base('characters')
   if (head === 'magic') return base('magic', null, segments.length > 1)
   if (head === 'shop') return base('shop', null, segments.length > 1)
+  if (head === 'library') return base('library', null, segments.length > 1)
   if (head === 'reference') return base('reference', null, segments.length > 1)
   if (head === 'help') return base('help', null, segments.length > 1)
   if (head === 'about') return base('about', null, segments.length > 1)
