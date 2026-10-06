@@ -1146,7 +1146,7 @@ SQL backfill обоих этапов проверен на PostgreSQL 17.11 во
 [#265](https://github.com/Giviruk/GenesysForgeClaude/pull/265) — этап 1,
 [#266](https://github.com/Giviruk/GenesysForgeClaude/pull/266) — этап 2,
 [#267](https://github.com/Giviruk/GenesysForgeClaude/pull/267) — этап 3;
-этап 4: [план](gen-content-01-campaign-content-access.md). Статус остаётся `[~]` до merge.
+[#268](https://github.com/Giviruk/GenesysForgeClaude/pull/268) — этап 4: [план](gen-content-01-campaign-content-access.md). Статус остаётся `[~]` до merge.
 
 ## Дополнительные аудиты качества
 

@@ -3,7 +3,7 @@
 - **ТЗ:** [account-campaign-content.md](../../docs/account-campaign-content.md), этап 4.
 - **Ветка:** `feature/gen-content-01-campaign-content-access`
 - **База:** `feature/gen-content-01-personal-library` (PR #267).
-- **Статус:** реализация завершена, полные проверки пройдены; PR готовится.
+- **Статус:** реализация завершена, полные проверки пройдены; [PR #268](https://github.com/Giviruk/GenesysForgeClaude/pull/268) открыт, ожидает слияния.
 
 ## План
 
@@ -14,7 +14,7 @@
 - [x] Тесты изоляции, одобрения через импорт/подключение, сохранности листа и покупок.
 - [x] Полные backend/frontend проверки и migration SQL/model validation.
 - [x] Документация с предупреждением для rollout и прогресс.
-- [ ] Закоммитить и открыть PR, указать ссылку в плане.
+- [x] Закоммитить и открыть PR, указать ссылку в плане.
 
 ## Остаток / решения
 
