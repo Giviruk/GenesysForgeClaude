@@ -322,4 +322,38 @@ public class CustomContentCrudTests : IClassFixture<ApiFactory>
         Assert.Equal(HttpStatusCode.NoContent, (await owner.DeleteAsync($"/api/custom/skills/{first.Id}")).StatusCode);
     }
 
+    [Theory]
+    [InlineData("Personal custom:GenesysCore")]
+    [InlineData("Campaign custom:0123456789abcdef")]
+    [InlineData("User-authored pack description")]
+    public async Task ImportedPack_DoesNotBecomeTheImportersPersonalLibrary(string description)
+    {
+        var owner = await _factory.CreateAuthorizedClientAsync();
+        var original = (await (await owner.PostAsJsonAsync("/api/custom/skills",
+            new CreateCustomSkillRequest(GameSystem.GenesysCore, "Shared Navigation", CharacteristicType.Intellect, SkillKind.General), Json.Options))
+            .Content.ReadFromJsonAsync<SkillDefDto>(Json.Options))!;
+        var source = Assert.Single((await owner.GetFromJsonAsync<List<HomebrewPackListItemDto>>("/api/homebrew-packs/", Json.Options))!);
+        var document = (await owner.GetFromJsonAsync<HomebrewPackExportDto>($"/api/homebrew-packs/{source.Id}/export", Json.Options))!;
+        var gm = await _factory.CreateAuthorizedClientAsync();
+        var imported = (await (await gm.PostAsJsonAsync("/api/homebrew-packs/import", document with { Description = description }, Json.Options))
+            .Content.ReadFromJsonAsync<HomebrewPackImportResult>(Json.Options))!;
+        var importedExport = (await gm.GetFromJsonAsync<HomebrewPackExportDto>($"/api/homebrew-packs/{imported.Id}/export", Json.Options))!;
+        Assert.Equal(description.StartsWith("User-") ? description : "", importedExport.Description);
+        var campaign = (await (await gm.PostAsJsonAsync("/api/campaigns/", new CreateCampaignRequest("Imported pack", ""), Json.Options))
+            .Content.ReadFromJsonAsync<CampaignDetailDto>(Json.Options))!;
+        Assert.Equal(HttpStatusCode.NoContent, (await gm.PutAsJsonAsync($"/api/campaigns/{campaign.Id}/homebrew-packs/{imported.Id}",
+            new HomebrewPackToggleRequest(true), Json.Options)).StatusCode);
+        var privateSkill = (await (await gm.PostAsJsonAsync("/api/custom/skills",
+            new CreateCustomSkillRequest(GameSystem.GenesysCore, "Private GM Skill", CharacteristicType.Cunning, SkillKind.General), Json.Options))
+            .Content.ReadFromJsonAsync<SkillDefDto>(Json.Options))!;
+        var personal = Assert.Single((await gm.GetFromJsonAsync<List<HomebrewPackListItemDto>>("/api/homebrew-packs/", Json.Options))!,
+            p => p.Description == "Personal custom:GenesysCore");
+        Assert.NotEqual(imported.Id, personal.Id);
+        var player = await _factory.CreateAuthorizedClientAsync();
+        await player.PostAsJsonAsync("/api/campaigns/join", new JoinCampaignRequest(campaign.JoinCode!), Json.Options);
+        var reference = (await player.GetFromJsonAsync<ReferenceResponse>($"/api/reference/GenesysCore?campaignId={campaign.Id}", Json.Options))!;
+        Assert.Contains(reference.Skills, s => s.Name == original.Name);
+        Assert.DoesNotContain(reference.Skills, s => s.Id == privateSkill.Id);
+    }
+
 }

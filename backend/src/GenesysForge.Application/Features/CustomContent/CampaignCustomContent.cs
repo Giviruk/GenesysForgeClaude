@@ -13,7 +13,7 @@ internal static class CampaignCustomContent
         if (campaignId is null)
         {
             var marker = $"Personal custom:{system}";
-            var personal = await db.HomebrewPacks.FirstOrDefaultAsync(
+            var personal = await db.HomebrewPacks.OrderBy(p => p.CreatedAt).ThenBy(p => p.Id).FirstOrDefaultAsync(
                 p => p.OwnerUserId == userId && p.System == system && p.Description == marker, ct);
             if (personal is not null) return personal.Id;
             var pack = new HomebrewPack
@@ -36,6 +36,7 @@ internal static class CampaignCustomContent
             join pack in db.HomebrewPacks on link.HomebrewPackId equals pack.Id
             where link.CampaignId == campaignId && pack.System == system && pack.OwnerUserId == userId
                 && pack.Description == PackMarker(campaignId.Value)
+            orderby pack.CreatedAt, pack.Id
             select new { pack.Id, Link = link }).FirstOrDefaultAsync(ct);
         if (existing is not null)
         {

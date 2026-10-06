@@ -231,7 +231,7 @@ internal static partial class HomebrewPackImporter
             Id = Guid.NewGuid(),
             OwnerUserId = userId,
             Name = doc.Name.Trim(),
-            Description = doc.Description?.Trim() ?? "",
+            Description = ImportedDescription(doc.Description),
             System = doc.System,
             IsEnabledByDefault = true,
         };
@@ -345,6 +345,14 @@ internal static partial class HomebrewPackImporter
     private static void ValidateCharacteristic(int value)
     {
         if (value is < 1 or > 5) throw new DomainRuleException("Характеристики архетипа должны быть от 1 до 5.");
+    }
+
+    private static string ImportedDescription(string? value)
+    {
+        var description = Clean(value);
+        // These descriptions identify auto-created packs; imported copies are independent packs.
+        return description.StartsWith("Personal custom:", StringComparison.Ordinal)
+            || description.StartsWith("Campaign custom:", StringComparison.Ordinal) ? "" : description;
     }
 
     private static string Clean(string? value) => value?.Trim() ?? "";
