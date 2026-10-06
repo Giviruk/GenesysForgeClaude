@@ -3,7 +3,7 @@
 - **ТЗ:** [account-campaign-content.md](../../docs/account-campaign-content.md), этап 1.
 - **Ветка:** `feature/gen-content-01-campaign-members`
 - **База:** `feature/account-campaign-content-design` (PR #264).
-- **Статус:** реализовано, проверки пройдены; PR готовится. Пользователь запросил реализацию 07.10.2026.
+- **Статус:** реализовано, проверки пройдены; [PR #265](https://github.com/Giviruk/GenesysForgeClaude/pull/265) открыт. Пользователь запросил реализацию 07.10.2026.
 
 ## План
 

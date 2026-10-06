@@ -1,6 +1,7 @@
 using GenesysForge.Application.Abstractions;
 using GenesysForge.Application.Common;
 using GenesysForge.Application.Dtos;
+using GenesysForge.Application.Features.Campaigns;
 using GenesysForge.Domain;
 using GenesysForge.Domain.Entities;
 using GenesysForge.Domain.Rules;
@@ -16,7 +17,10 @@ public class CreateCharacterHandler(IAppDbContext db, IDiceRoller dice)
     public async Task<Guid> Handle(CreateCharacterCommand command, CancellationToken ct = default)
     {
         var (userId, req) = (command.UserId, command.Request);
-        var visiblePackIds = await HomebrewVisibility.GetVisiblePackIdsAsync(db, userId, req.System, ct: ct);
+        var campaign = req.CampaignId is { } campaignId
+            ? await CampaignMapper.GetAccessibleAsync(db, userId, campaignId, ct) : null;
+        var visiblePackIds = await HomebrewVisibility.GetVisiblePackIdsAsync(
+            db, userId, req.System, campaignId: req.CampaignId, ct: ct);
 
         var archetype = await db.ArchetypeDefs
                 .Include(a => a.StartingSkills)
@@ -24,15 +28,15 @@ public class CreateCharacterHandler(IAppDbContext db, IDiceRoller dice)
                 .FirstOrDefaultAsync(a => a.Id == req.ArchetypeId && a.System == req.System
                     && !a.Retired
                     && (a.OwnerUserId == null
-                        || (a.OwnerUserId == userId
-                            && (a.HomebrewPackId == null || visiblePackIds.Contains(a.HomebrewPackId.Value)))), ct)
+                        || (a.HomebrewPackId == null ? a.OwnerUserId == userId
+                            : visiblePackIds.Contains(a.HomebrewPackId.Value))), ct)
             ?? throw new DomainRuleException("Архетип не найден или принадлежит другой системе.");
         var career = await db.CareerDefs
                 .Include(c => c.StartingGear)
                 .FirstOrDefaultAsync(c => c.Id == req.CareerId && c.System == req.System
                     && (c.OwnerUserId == null
-                        || (c.OwnerUserId == userId
-                            && (c.HomebrewPackId == null || visiblePackIds.Contains(c.HomebrewPackId.Value)))), ct)
+                        || (c.HomebrewPackId == null ? c.OwnerUserId == userId
+                            : visiblePackIds.Contains(c.HomebrewPackId.Value))), ct)
             ?? throw new DomainRuleException("Карьера не найдена или принадлежит другой системе.");
         // Retired-карьера остаётся у созданных персонажей, но новым не выдаётся: справочник её уже
         // не показывает, и присланный напрямую id тоже не должен проходить (ROT-CLEAN-3.1).
@@ -84,8 +88,8 @@ public class CreateCharacterHandler(IAppDbContext db, IDiceRoller dice)
         var systemSkills = await db.SkillDefs
             .Where(s => s.System == req.System && !s.Retired
                 && (s.OwnerUserId == null
-                    || (s.OwnerUserId == userId
-                        && (s.HomebrewPackId == null || visiblePackIds.Contains(s.HomebrewPackId.Value)))))
+                    || (s.HomebrewPackId == null ? s.OwnerUserId == userId
+                        : visiblePackIds.Contains(s.HomebrewPackId.Value))))
             .ToListAsync(ct);
         var skillByName = CareerSkills.BuildNameIndex(systemSkills);
 
@@ -189,6 +193,8 @@ public class CreateCharacterHandler(IAppDbContext db, IDiceRoller dice)
                 packageItems = startingGear.Items.Count,
             });
 
+        if (campaign is not null)
+            await CampaignMembership.AddCharacterAsync(db, campaign, userId, character.Id, ct);
         await db.SaveChangesAsync(ct);
         return character.Id;
     }

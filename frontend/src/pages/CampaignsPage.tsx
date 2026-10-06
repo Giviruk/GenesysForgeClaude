@@ -8,6 +8,7 @@ import { GameTableTab } from '../components/GameTableTab'
 import { EncountersTab } from '../components/EncountersTab'
 import { CustomTab } from '../components/CustomTab'
 import { CampaignChronicleTab } from '../components/CampaignChronicleTab'
+import { CreateCharacterForm } from './CharactersPage'
 import { SheetTab } from '../components/SheetTab'
 import { MagicTab } from '../components/MagicTab'
 import { HistoryTab } from '../components/HistoryTab'
@@ -165,6 +166,7 @@ function CampaignDetailView({ campaignId, view, openEncounterId, openCharacterId
   const [memberSheets, setMemberSheets] = useState<Record<string, CharacterSheet>>({})
   const [session, setSession] = useState<GameSession | null>(null)
   const [sessionLoaded, setSessionLoaded] = useState(false)
+  const [creating, setCreating] = useState(false)
 
   const onBackRef = useRef(onBack)
   useEffect(() => { onBackRef.current = onBack }, [onBack])
@@ -272,6 +274,11 @@ function CampaignDetailView({ campaignId, view, openEncounterId, openCharacterId
         {c.isGm && <button className={view === 'custom' ? 'tab active' : 'tab'} onClick={() => onView('custom')}>{t('Кастом', 'Custom')}</button>}
       </div>
 
+      {creating && <CreateCharacterForm key={c.id} campaignId={c.id} onCancel={() => setCreating(false)}
+        onCreated={() => { setCreating(false); void reload() }} />}
+      {view === 'overview' && <button onClick={() => setCreating(true)}>
+        {t('Создать персонажа', 'Create character')}
+      </button>}
       {view === 'overview' && <CampaignPlayersPanel campaign={c} onError={setError}
         onChanged={reload} onLeave={onBack} />}
 

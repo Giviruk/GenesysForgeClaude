@@ -17,7 +17,8 @@ public record CreateCharacterRequest(string Name, GameSystem System, Guid Archet
     /// Код видовой способности для видов с обязательным выбором (Half-Catfolk: Claws или
     /// Fleet of Paw). Обязателен для таких видов и запрещён для остальных (ROT-SPECIES-01).
     /// </summary>
-    string? SpeciesAbilityChoiceCode = null);
+    string? SpeciesAbilityChoiceCode = null,
+    Guid? CampaignId = null);
 
 /// <summary>Выбор игрока для группы стартовых навыков вида (например «any-noncareer» → 2 навыка).</summary>
 public record ArchetypeSkillChoice(string ChoiceGroup, List<string> SkillNames);
