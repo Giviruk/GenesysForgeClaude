@@ -85,6 +85,10 @@ export interface TalentDef {
   choiceKind: TalentChoiceKind
   choiceCountFirstRank: number
   choiceCountNextRank: number
+  /** Значения выбора не повторяются между рангами таланта. */
+  choiceDistinctAcrossRanks: boolean
+  /** Допустимые виды навыков для выбора навыка; пусто — любые. */
+  choiceAllowedSkillKinds: SkillKind[]
 }
 
 /** Что выбирает игрок при покупке ранга таланта (ROT-TAL-03). */

@@ -28,16 +28,19 @@ public static class Mappers
     public static SkillDefDto ToDto(this SkillDef s) =>
         new(s.Id, s.Name, s.NameRu, s.Characteristic, s.Kind, s.SafeDescription, s.Source, s.OwnerUserId != null, s.DescriptionEn);
 
-    public static TalentDefDto ToDto(this TalentDef t) => new(t.Id, t.Name, t.NameRu, t.Tier, t.IsRanked, t.Category, t.Setting,
-        t.Activation, t.Description, t.SafeDescription, t.Source,
-        t.WoundBonus, t.StrainBonus, t.SoakBonus, t.MeleeDefenseBonus, t.RangedDefenseBonus, t.OwnerUserId != null,
-        t.GrantsCharacteristic, t.DescriptionEn,
-        t.ActivationEn, t.CanUseOutOfTurn, t.CareerSkillNames,
-        TalentPurchasePolicy.BareCode(t.Code), t.RequiresTalentCode, t.ExcludesTalentCodes,
-        t.UsesPerScope, t.UseScope, t.StoryPointCost, t.StrainCost, t.Trigger,
-        TalentChoiceSchemas.For(t).Kind,
-        TalentChoiceSchemas.For(t).CountForFirstRank,
-        TalentChoiceSchemas.For(t).CountForNextRank);
+    public static TalentDefDto ToDto(this TalentDef t)
+    {
+        var choice = TalentChoiceSchemas.For(t);
+        return new(t.Id, t.Name, t.NameRu, t.Tier, t.IsRanked, t.Category, t.Setting,
+            t.Activation, t.Description, t.SafeDescription, t.Source,
+            t.WoundBonus, t.StrainBonus, t.SoakBonus, t.MeleeDefenseBonus, t.RangedDefenseBonus, t.OwnerUserId != null,
+            t.GrantsCharacteristic, t.DescriptionEn,
+            t.ActivationEn, t.CanUseOutOfTurn, t.CareerSkillNames,
+            TalentPurchasePolicy.BareCode(t.Code), t.RequiresTalentCode, t.ExcludesTalentCodes,
+            t.UsesPerScope, t.UseScope, t.StoryPointCost, t.StrainCost, t.Trigger,
+            choice.Kind, choice.CountForFirstRank, choice.CountForNextRank,
+            choice.DistinctAcrossRanks, choice.AllowedSkillKinds);
+    }
 
     /// <param name="qualitiesByCode">
     /// Справочник качеств для альтернативных профилей атаки (ROT-WPN-01): они хранятся кодами.

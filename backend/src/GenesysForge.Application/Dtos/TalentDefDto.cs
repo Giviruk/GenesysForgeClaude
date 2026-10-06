@@ -26,4 +26,8 @@ public record TalentDefDto(Guid Id, string Name, string NameRu, int Tier, bool I
     int StoryPointCost = 0, int StrainCost = 0, string Trigger = "",
     /// <summary>Схема обязательного выбора при покупке ранга (ROT-TAL-03).</summary>
     TalentChoiceKind ChoiceKind = TalentChoiceKind.None,
-    int ChoiceCountFirstRank = 0, int ChoiceCountNextRank = 0);
+    int ChoiceCountFirstRank = 0, int ChoiceCountNextRank = 0,
+    /// <summary>Значения выбора не повторяются между рангами таланта.</summary>
+    bool ChoiceDistinctAcrossRanks = false,
+    /// <summary>Допустимые виды навыков для выбора навыка; пусто — любые.</summary>
+    IReadOnlyList<SkillKind>? ChoiceAllowedSkillKinds = null);

@@ -52,18 +52,27 @@ public class BuyTalentHandler(IAppDbContext db) : ICommandHandler<BuyTalentComma
         // Characteristic принимается как алиас только для Dedication.
         var schema = TalentChoiceSchemas.For(talentDef);
         var rankIndex = row?.Ranks ?? 0;
-        var requestedChoices = command.Choices?.Where(v => !string.IsNullOrWhiteSpace(v)).ToList() ?? [];
+        var requestedChoices = TalentChoiceSchemas.Normalize(schema,
+            command.Choices?.Where(v => !string.IsNullOrWhiteSpace(v)) ?? []);
         if (requestedChoices.Count == 0 && schema.Kind == TalentChoiceKind.Characteristic
             && command.Characteristic is { } legacyChoice)
             requestedChoices = [legacyChoice.ToString()];
 
         var alreadyChosen = (row?.Choices ?? []).Select(x => x.Value).ToList();
-        var skillKinds = await SkillKindsAsync(c.System, command.UserId, ct);
+        var skills = schema.Kind == TalentChoiceKind.Skill
+            ? await SkillsAsync(c.System, command.UserId, ct)
+            : new Dictionary<string, (SkillKind Kind, string NameRu)>(StringComparer.Ordinal);
         var choiceError = TalentChoiceSchemas.Validate(
             schema, rankIndex, requestedChoices, alreadyChosen,
-            name => skillKinds.TryGetValue(name, out var k) ? k : null);
+            name => skills.TryGetValue(name, out var skill) ? skill.Kind : null);
         if (choiceError is not null)
             throw new DomainRuleException(choiceError.Message, choiceError.ReasonCode);
+
+        // Signature Spell: действие и эффекты сверяются со справочником магии системы персонажа,
+        // снимок имени собирается из русских названий записей.
+        var spellNames = schema.Kind == TalentChoiceKind.SpellConfiguration
+            ? await SpellConfigurationNamesAsync(c.System, command.UserId, requestedChoices, ct)
+            : new Dictionary<string, string>(StringComparer.Ordinal);
 
         // Animal Companion хранит стабильный id записи NPC, а не имя. Одновременно проверяем,
         // что этот NPC видим игроку, относится к той же системе, помечен как животное и
@@ -98,15 +107,26 @@ public class BuyTalentHandler(IAppDbContext db) : ICommandHandler<BuyTalentComma
         row.NeedsChoice = false;
         foreach (var value in requestedChoices)
         {
-            row.Choices.Add(new CharacterTalentChoice
+            var choice = new CharacterTalentChoice
             {
                 Id = Guid.NewGuid(),
                 CharacterTalentId = row.Id,
                 RankIndex = rankIndex,
                 Kind = schema.Kind,
                 Value = value,
-                DisplayName = companionNames.GetValueOrDefault(value, DisplayNameFor(schema.Kind, value)),
-            });
+                DisplayName = schema.Kind switch
+                {
+                    TalentChoiceKind.AnimalCompanion => companionNames.GetValueOrDefault(value, value),
+                    TalentChoiceKind.SpellConfiguration => spellNames.GetValueOrDefault(value, value),
+                    TalentChoiceKind.Skill when skills.TryGetValue(value, out var skill)
+                        && skill.NameRu.Length > 0 => skill.NameRu,
+                    _ => DisplayNameFor(schema.Kind, value),
+                },
+            };
+            // Выбор следующего ранга добавляется к уже отслеживаемому таланту: без явного Add
+            // EF принимает запись с заданным ключом за существующую и пытается её обновить.
+            db.CharacterTalentChoices.Add(choice);
+            row.Choices.Add(choice);
         }
         if (grant is { } g)
         {
@@ -128,24 +148,75 @@ public class BuyTalentHandler(IAppDbContext db) : ICommandHandler<BuyTalentComma
         return Unit.Value;
     }
 
-    /// <summary>Вид каждого навыка системы по каноническому имени — для валидации выбора навыков.</summary>
-    private async Task<Dictionary<string, SkillKind>> SkillKindsAsync(
+    /// <summary>
+    /// Вид и русское имя каждого навыка системы по каноническому имени — для валидации выбора
+    /// навыков и снимка отображаемого имени.
+    /// </summary>
+    private async Task<Dictionary<string, (SkillKind Kind, string NameRu)>> SkillsAsync(
         GameSystem system, Guid userId, CancellationToken ct)
     {
         var rows = await db.SkillDefs.AsNoTracking()
             .Where(s => s.System == system && (s.OwnerUserId == null || s.OwnerUserId == userId))
-            .Select(s => new { s.Name, s.Kind, s.OwnerUserId })
+            .Select(s => new { s.Name, s.NameRu, s.Kind, s.OwnerUserId })
             .ToListAsync(ct);
         return rows
             .OrderBy(s => s.OwnerUserId == null ? 0 : 1)
             .GroupBy(s => s.Name, StringComparer.Ordinal)
-            .ToDictionary(g => g.Key, g => g.First().Kind, StringComparer.Ordinal);
+            .ToDictionary(g => g.Key, g => (g.First().Kind, g.First().NameRu.Trim()), StringComparer.Ordinal);
+    }
+
+    /// <summary>
+    /// Проверяет конфигурации Signature Spell по справочнику магии и возвращает их снимки имён:
+    /// «Атака: Огонь, Дистанция ×2».
+    /// </summary>
+    private async Task<Dictionary<string, string>> SpellConfigurationNamesAsync(
+        GameSystem system, Guid userId, IReadOnlyList<string> values, CancellationToken ct)
+    {
+        // Одно и то же действие и его эффекты повторяются по магическим навыкам — для проверки
+        // конфигурации навык не важен, берём любую запись с нужным кодом.
+        var rows = await db.SpellDefs.AsNoTracking()
+            .Where(s => s.System == system && (s.OwnerUserId == null || s.OwnerUserId == userId))
+            .Select(s => new { s.Kind, s.ParentEffect, s.NameEn, s.NameRu, s.Repeatable, s.Exclusions })
+            .ToListAsync(ct);
+        var actions = rows.Where(s => s.Kind == SpellEntryKind.Effect)
+            .GroupBy(s => s.NameEn, StringComparer.Ordinal)
+            .ToDictionary(g => g.Key, g => g.First().NameRu, StringComparer.Ordinal);
+        var effects = rows.Where(s => s.Kind == SpellEntryKind.AdditionalEffect)
+            .GroupBy(s => (s.ParentEffect, s.NameEn))
+            .ToDictionary(g => g.Key, g => g.First());
+
+        var names = new Dictionary<string, string>(StringComparer.Ordinal);
+        foreach (var value in values)
+        {
+            var configuration = SignatureSpellConfiguration.Parse(value)!;
+            var error = SignatureSpellRules.Validate(configuration,
+                actions.ContainsKey,
+                (action, code) => effects.TryGetValue((action, code), out var e)
+                    ? new SignatureSpellEffect(e.NameEn, e.Repeatable,
+                        e.Exclusions.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+                    : null);
+            if (error is not null)
+                throw new DomainRuleException(error.Message, error.ReasonCode);
+
+            var effectNames = configuration.Effects
+                .GroupBy(code => code, StringComparer.Ordinal)
+                .Select(g =>
+                {
+                    var name = effects[(configuration.Action, g.Key)].NameRu;
+                    return g.Count() > 1 ? $"{name} ×{g.Count()}" : name;
+                });
+            var display = $"{actions[configuration.Action]}: {string.Join(", ", effectNames)}";
+            names[value] = display.Length <= TalentChoiceSchemas.MaxValueLength
+                ? display
+                : display[..(TalentChoiceSchemas.MaxValueLength - 1)] + "…";
+        }
+        return names;
     }
 
     /// <summary>Снимок отображаемого имени выбора; для характеристик — русская метка.</summary>
     private static string DisplayNameFor(TalentChoiceKind kind, string value) =>
         kind == TalentChoiceKind.Characteristic
-            && Enum.TryParse<CharacteristicType>(value, ignoreCase: true, out var ch)
+            && TalentChoiceSchemas.TryParseCharacteristic(value, out var ch)
             ? CharacterAudit.CharacteristicLabel(ch)
             : value;
 
