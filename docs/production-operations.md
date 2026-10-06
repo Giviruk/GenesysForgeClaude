@@ -87,12 +87,12 @@ docker exec genesysforge-db psql -U genesys -d genesysforge -c "
 
 Reset counters after a change you want to measure: `SELECT pg_stat_statements_reset();`.
 
-## Public stack capacity
+## Stack capacity
 
-`api-public` connects with `Maximum Pool Size=10;Max Auto Prepare=64;Auto Prepare Min Usages=2`.
+Both `api` and `api-public` connect with `Maximum Pool Size=10;Max Auto Prepare=64;Auto Prepare Min Usages=2`.
 Each sheet read runs 13 split queries; without prepared statements PostgreSQL spent ~4 ms planning each
 of them and ~0.2 ms executing. Prepared plans live in every backend process, so the pool is capped and
-`postgres-public` has 384m. Measured locally on 06.10.2026 with `scripts/load-api.mjs` (production
+both databases have 384m. Measured locally on 06.10.2026 with `scripts/load-api.mjs` (production
 limits, PostgreSQL 17, nginx):
 
 | Full sheet read | Before | After |
@@ -101,8 +101,10 @@ limits, PostgreSQL 17, nginx):
 | 10 clients, requests/s | 30 | 109 |
 | 50 clients, requests/s | 33 | 111 |
 
-`api-public` (1.5 CPU) and `postgres-public` (1 CPU) are capped so a public traffic spike cannot take
-both vCPUs of the shared VPS. The private stack keeps its previous settings.
+Both APIs have 768m: under load the process takes ~400 MB including ~100 MB of shared memory for JIT
+code, and .NET gives the GC heap 75% of the limit. `api-public` (1.5 CPU) and `postgres-public` (1 CPU)
+are capped so a public traffic spike cannot take both vCPUs of the shared VPS; the private stack is not
+capped. The extra memory comes from the reoair and ariadne-test stacks stopped on 06.10.2026.
 
 ## PublicSafe isolation
 

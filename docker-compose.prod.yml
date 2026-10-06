@@ -32,7 +32,9 @@ services:
       start_period: 60s
       start_interval: 2s
     restart: unless-stopped
-    mem_limit: 256m
+    # 384m под подготовленные запросы api (как у postgres-public): планы 10 соединений добавляют
+    # ~75 МБ приватной памяти. Память освободилась после остановки reoair и ariadne-test 06.10.2026.
+    mem_limit: 384m
 
   postgres-public:
     image: postgres:17.11-alpine
@@ -66,7 +68,8 @@ services:
       ASPNETCORE_ENVIRONMENT: Production
       # Workstation GC заметно снижает потребление памяти .NET в маленьком контейнере
       DOTNET_gcServer: "0"
-      ConnectionStrings__Default: "Host=postgres;Port=5432;Database=genesysforge;Username=genesys;Password=${POSTGRES_PASSWORD}"
+      # Подготовленные запросы и пул 10 — как у api-public, обоснование там же.
+      ConnectionStrings__Default: "Host=postgres;Port=5432;Database=genesysforge;Username=genesys;Password=${POSTGRES_PASSWORD};Maximum Pool Size=10;Max Auto Prepare=64;Auto Prepare Min Usages=2"
       Jwt__Key: ${JWT_KEY}
       Jwt__AccessLifetimeMinutes: ${JWT_ACCESS_LIFETIME_MINUTES:-30}
       RateLimiting__AuthSensitive__PermitLimit: ${AUTH_SENSITIVE_PERMIT_LIMIT:-10}
@@ -110,7 +113,9 @@ services:
     # 512m, а не 320m: по замеру 01.10.2026 приватный API за вечер игровой сессии дошёл до 290 МБ
     # и начал уходить в swap (из них ~105 МБ shmem под JIT-код). .NET берёт 75% лимита под кучу,
     # так что при 320m на неё оставалось 240 МБ. Память освободилась после вывода beauty-study.
-    mem_limit: 512m
+    # 768m с 06.10.2026: под нагрузочным тестом процесс занимал ~400 МБ; запас взят из памяти,
+    # освободившейся после остановки reoair и ariadne-test.
+    mem_limit: 768m
 
   api-public:
     image: ghcr.io/${GHCR_OWNER}/genesysforge-api-public:latest
@@ -158,10 +163,10 @@ services:
       postgres-public:
         condition: service_healthy
     restart: unless-stopped
-    # 512m, как у приватного API: ожидается рост публичного трафика, а под нагрузкой процесс занимает
-    # ~400 МБ вместе с ~100 МБ shmem под JIT-код; при 384m куче .NET оставалось бы 288 МБ.
+    # 768m, как у приватного API: ожидается рост публичного трафика, а под нагрузкой процесс занимает
+    # ~400 МБ вместе с ~100 МБ shmem под JIT-код; .NET отдаёт куче 75% лимита.
     # 1,5 ядра — оставить соседям хотя бы полъядра при всплеске.
-    mem_limit: 512m
+    mem_limit: 768m
     cpus: 1.5
 
   web:
