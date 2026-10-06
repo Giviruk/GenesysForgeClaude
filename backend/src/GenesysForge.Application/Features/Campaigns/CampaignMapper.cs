@@ -56,13 +56,13 @@ public static class CampaignMapper
         IAppDbContext db, Guid userId, Guid campaignId, CancellationToken ct)
     {
         var campaign = await db.Campaigns.FirstOrDefaultAsync(c => c.Id == campaignId, ct)
-            ?? throw new DomainRuleException("Кампания не найдена.");
+            ?? throw new DomainRuleException("Кампания не найдена.", "campaign.not_accessible");
         // GM уже авторизован самой строкой кампании; запрос членства для него был лишним round trip.
         if (campaign.GmUserId != userId)
         {
             var isMember = await db.CampaignMembers.AnyAsync(
                 m => m.CampaignId == campaignId && m.UserId == userId, ct);
-            if (!isMember) throw new DomainRuleException("Кампания не найдена.");
+            if (!isMember) throw new DomainRuleException("Кампания не найдена.", "campaign.not_accessible");
         }
         return campaign;
     }
@@ -71,7 +71,7 @@ public static class CampaignMapper
         IAppDbContext db, Guid userId, Guid campaignId, CancellationToken ct)
     {
         var campaign = await db.Campaigns.FirstOrDefaultAsync(c => c.Id == campaignId, ct)
-            ?? throw new DomainRuleException("Кампания не найдена.");
+            ?? throw new DomainRuleException("Кампания не найдена.", "campaign.not_accessible");
         if (campaign.GmUserId != userId)
             throw new DomainRuleException("Только мастер кампании может выполнять это действие.");
         return campaign;

@@ -1,7 +1,8 @@
 import { render, screen, waitFor, fireEvent } from '@testing-library/react'
-import { describe, expect, it, vi, beforeEach } from 'vitest'
+import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest'
 import type { CampaignDetail, CharacterSheet, GameSession } from '../api/types'
 import { CampaignsPage } from './CampaignsPage'
+import { ApiError } from '../api/client'
 
 function detail(isGm: boolean, isMine = false): CampaignDetail {
   return {
@@ -64,7 +65,8 @@ const session = {
     { id: 'slot2', slotType: 'npc', order: 1, assignedParticipantId: 'n1', notes: '' },
   ],
 } as GameSession
-vi.mock('../api/client', () => ({
+vi.mock('../api/client', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('../api/client')>()),
   api: {
     campaign: () => campaignMock(),
     campaigns: vi.fn().mockResolvedValue([]),
@@ -206,6 +208,43 @@ describe('CampaignsPage — GM просмотр листа участника (U
 
 
 describe('account campaign membership UI', () => {
+  beforeEach(() => {
+    vi.spyOn(window, 'confirm').mockReturnValue(true)
+    campaignMock.mockReset()
+    removeCampaignMemberMock.mockClear()
+  })
+  afterEach(() => { vi.restoreAllMocks() })
+
+  it('does not reload the campaign when the navigation callback changes', async () => {
+    campaignMock.mockResolvedValue(detail(false))
+    const { rerender } = render(<CampaignsPage {...props} onBack={() => {}} />)
+    await screen.findByText('Поход')
+    rerender(<CampaignsPage {...props} onBack={() => {}} />)
+    await waitFor(() => expect(campaignMock).toHaveBeenCalledTimes(1))
+  })
+
+  it('uses the latest callback for a coded access error regardless of its message', async () => {
+    let rejectRequest!: (reason: unknown) => void
+    campaignMock.mockReturnValue(new Promise((_, reject) => { rejectRequest = reject }))
+    const first = vi.fn(), latest = vi.fn()
+    const { rerender } = render(<CampaignsPage {...props} onBack={first} />)
+    rerender(<CampaignsPage {...props} onBack={latest} />)
+    rejectRequest(new ApiError(400, 'Translated or changed message', 'campaign.not_accessible'))
+    await waitFor(() => expect(latest).toHaveBeenCalledTimes(1))
+    expect(first).not.toHaveBeenCalled()
+    expect(campaignMock).toHaveBeenCalledTimes(1)
+  })
+
+  it.each([true, false])('cancels member removal when confirmation is declined (self=%s)', async (isMe) => {
+    vi.mocked(window.confirm).mockReturnValue(false)
+    campaignMock.mockResolvedValue({ ...detail(!isMe), members: [],
+      players: [{ userId: 'player', displayName: 'Player', avatarUrl: null, isMe, joinedAt: '2026-01-01' }] })
+    render(<CampaignsPage {...props} />)
+    fireEvent.click(await screen.findByRole('button', { name: isMe ? 'Покинуть кампанию' : 'Исключить' }))
+    expect(window.confirm).toHaveBeenCalledTimes(1)
+    expect(removeCampaignMemberMock).not.toHaveBeenCalled()
+  })
+
   it('joins without a character and opens the campaign', async () => {
     const onOpen = vi.fn()
     joinCampaignMock.mockResolvedValue(detail(false))

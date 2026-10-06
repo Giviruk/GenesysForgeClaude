@@ -311,4 +311,18 @@ public class CampaignTests : IClassFixture<ApiFactory>
         Assert.Equal(HttpStatusCode.BadRequest, (await gm.DeleteAsync($"/api/campaigns/{campaign.Id}/members/{account.Id}")).StatusCode);
     }
 
+    [Fact]
+    public async Task CampaignAccessErrors_ExposeStableReasonCode()
+    {
+        var gm = await _factory.CreateAuthorizedClientAsync();
+        var outsider = await _factory.CreateAuthorizedClientAsync();
+        var campaign = await CreateCampaignAsync(gm);
+        foreach (var id in new[] { campaign.Id, Guid.NewGuid() })
+        {
+            var response = await outsider.GetAsync($"/api/campaigns/{id}");
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+            Assert.Equal("campaign.not_accessible", (await response.Content.ReadFromJsonAsync<ErrorResponse>(Json.Options))!.ReasonCode);
+        }
+    }
+
 }

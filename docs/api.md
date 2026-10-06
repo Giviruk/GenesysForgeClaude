@@ -891,3 +891,6 @@ or removes a player (GM only), preserving characters and removing their campaign
 The GM cannot leave or be removed. Removing the last character does not end membership.
 Campaign detail adds players: [{ userId, displayName, avatarUrl, isMe, joinedAt }], without email.
 The existing members field continues to represent characters. Legacy /api aliases remain available.
+
+Campaign access failures (missing campaign or no membership) include reasonCode
+`campaign.not_accessible`; the frontend uses the code independently of error-message text.

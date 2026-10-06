@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useState, type FormEvent } from 'react'
-import { api } from '../api/client'
+import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react'
+import { api, ApiError } from '../api/client'
 import type {
   CampaignDetail, CampaignListItem, CampaignMember, CharacterListItem, CharacterSheet, GameSession, GameSystem, Reference,
 } from '../api/types'
@@ -166,14 +166,17 @@ function CampaignDetailView({ campaignId, view, openEncounterId, openCharacterId
   const [session, setSession] = useState<GameSession | null>(null)
   const [sessionLoaded, setSessionLoaded] = useState(false)
 
+  const onBackRef = useRef(onBack)
+  useEffect(() => { onBackRef.current = onBack }, [onBack])
+
   const reload = useCallback(
     () => api.campaign(campaignId).then(setC).catch((e: unknown) => {
-      if (e && typeof e === 'object' && 'status' in e &&
-        (e.status === 403 || e.status === 404 || (e.status === 400 && e instanceof Error && e.message === 'Кампания не найдена.'))) {
-        onBack()
+      if (e instanceof ApiError &&
+        (e.reasonCode === 'campaign.not_accessible' || e.status === 403 || e.status === 404)) {
+        onBackRef.current()
       } else setError(e instanceof Error ? e.message : t('Ошибка', 'Error'))
     }),
-    [campaignId, onBack])
+    [campaignId])
   useEffect(() => { void reload() }, [reload])
 
   const reloadSession = useCallback(
@@ -313,7 +316,13 @@ function CampaignPlayersPanel({ campaign, onChanged, onLeave, onError }: {
   const [selected, setSelected] = useState('')
   const [busy, setBusy] = useState(false)
 
-  async function remove(userId: string, isMe: boolean) {
+  async function remove(userId: string, isMe: boolean, displayName: string) {
+    const message = isMe
+      ? t('Покинуть кампанию? Все ваши персонажи будут сняты. Для возвращения понадобится код приглашения мастера.',
+        'Leave the campaign? All your characters will be removed. You will need the GM’s invite code to return.')
+      : t(`Исключить игрока «${displayName}»? Все его персонажи будут сняты с кампании.`,
+        `Remove player "${displayName}"? All their characters will be removed from the campaign.`)
+    if (!confirm(message)) return
     setBusy(true)
     try {
       await api.removeCampaignMember(campaign.id, userId)
@@ -347,7 +356,7 @@ function CampaignPlayersPanel({ campaign, onChanged, onLeave, onError }: {
     {(campaign.players ?? []).map(player => <div key={player.userId} className="page-head">
       <span>{player.displayName}{player.isMe ? t(' (вы)', ' (you)') : ''}</span>
       {(campaign.isGm || player.isMe) && <button disabled={busy}
-        onClick={() => void remove(player.userId, player.isMe)}>
+        onClick={() => void remove(player.userId, player.isMe, player.displayName)}>
         {player.isMe ? t('Покинуть кампанию', 'Leave campaign') : t('Исключить', 'Remove player')}
       </button>}
     </div>)}
