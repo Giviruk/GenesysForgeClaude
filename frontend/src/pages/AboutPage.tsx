@@ -1,11 +1,10 @@
 import { navigate } from '../router'
-import { Footer, REPO_URL, CHANGELOG_URL } from '../components/Footer'
+import { Footer } from '../components/Footer'
 import { t } from '../i18n'
 
-const LICENSE_URL = `${REPO_URL}/blob/master/LICENSE`
-const NOTICE_URL = `${REPO_URL}/blob/master/NOTICE`
+const LICENSE_URL = 'https://www.apache.org/licenses/LICENSE-2.0'
 
-/** Публичная страница «О проекте»: описание, ссылки, лицензия и копирайт-дисклеймер. */
+/** Публичная страница «О проекте»: описание, лицензия и копирайт-дисклеймер. */
 export function AboutPage({ loggedIn }: { loggedIn: boolean }) {
   return (
     <div className="page about-page">
@@ -31,13 +30,6 @@ export function AboutPage({ loggedIn }: { loggedIn: boolean }) {
           )}
         </p>
 
-        <h3>{t('Ссылки', 'Links')}</h3>
-        <ul>
-          <li><a href={REPO_URL} target="_blank" rel="noreferrer">{t('Исходный код (GitHub)', 'Source code (GitHub)')}</a></li>
-          <li><a href={CHANGELOG_URL} target="_blank" rel="noreferrer">{t('История изменений (Changelog)', 'Changelog')}</a></li>
-          <li><a href={LICENSE_URL} target="_blank" rel="noreferrer">{t('Лицензия кода (Apache-2.0)', 'Code license (Apache-2.0)')}</a></li>
-        </ul>
-
         <h3>{t('Лицензия', 'License')}</h3>
         <p>
           {t('Исходный код проекта распространяется под лицензией', 'The project source code is distributed under the')}{' '}
@@ -62,12 +54,10 @@ export function AboutPage({ loggedIn }: { loggedIn: boolean }) {
           {t(
             'Проект не содержит оригинальных текстов из официальных книг. Встроенные данные ' +
             'воспроизводят только структуру и числовые параметры вместе с собственными краткими ' +
-            'парафраз-описаниями. Подробнее — в файле',
+            'парафраз-описаниями.',
             'The project contains no original text from the official books. The bundled data reproduces ' +
-            'only structure and numeric parameters together with short original paraphrase descriptions. ' +
-            'See the',
-          )}{' '}
-          <a href={NOTICE_URL} target="_blank" rel="noreferrer">NOTICE</a>{t('.', ' file for details.')}
+            'only structure and numeric parameters together with short original paraphrase descriptions.',
+          )}
         </p>
       </div>
 
