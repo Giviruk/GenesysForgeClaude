@@ -72,58 +72,102 @@ public class HomebrewPackTests : IClassFixture<ApiFactory>
         Assert.Contains(strangerRef.Skills, s => s.Name == "Sky Sailing");
     }
     [Fact]
-    public async Task CampaignRejectsPersonalPacks_UntilGmImportsAndEnablesCopy_AndKeepsOwnedRanks()
+    public async Task CampaignConnectsOriginalPlayerPack_WithoutCopiesOrExtraXp_AndKeepsOwnedRanks()
     {
         var gm = await _factory.CreateAuthorizedClientAsync();
         var player = await _factory.CreateAuthorizedClientAsync();
         var campaign = (await (await gm.PostAsJsonAsync("/api/campaigns/",
             new CreateCampaignRequest("Content isolation", ""), Json.Options))
             .Content.ReadFromJsonAsync<CampaignDetailDto>(Json.Options))!;
-        var skill = (await (await player.PostAsJsonAsync("/api/custom/skills",
-            new CreateCustomSkillRequest(GameSystem.GenesysCore, "Personal Sky Sailing", CharacteristicType.Agility, SkillKind.General), Json.Options))
+        var skillRequest = new CreateCustomSkillRequest(GameSystem.GenesysCore, "Personal Sky Sailing", CharacteristicType.Agility, SkillKind.General);
+        var skill = (await (await player.PostAsJsonAsync("/api/custom/skills", skillRequest, Json.Options))
             .Content.ReadFromJsonAsync<SkillDefDto>(Json.Options))!;
+        var talent = (await (await player.PostAsJsonAsync("/api/custom/talents",
+            new CreateCustomTalentRequest(GameSystem.GenesysCore, "Personal Ranked Talent", 1, true, "Passive", "Own text", 0, 0, 0, 0, 0), Json.Options))
+            .Content.ReadFromJsonAsync<TalentDefDto>(Json.Options))!;
         var personalPack = Assert.Single((await player.GetFromJsonAsync<List<HomebrewPackListItemDto>>("/api/homebrew-packs/", Json.Options))!);
         var reference = (await player.GetFromJsonAsync<ReferenceResponse>("/api/reference/GenesysCore", Json.Options))!;
         var characterId = (await (await player.PostAsJsonAsync("/api/characters/",
             new CreateCharacterRequest("Pilot", GameSystem.GenesysCore, reference.Archetypes[0].Id, reference.Careers[0].Id, null), Json.Options))
             .Content.ReadFromJsonAsync<Dictionary<string, Guid>>(Json.Options))!["id"];
         Assert.Equal(HttpStatusCode.NoContent, (await player.PostAsync($"/api/characters/{characterId}/skills/{skill.Id}/buy-rank", null)).StatusCode);
+        Assert.Equal(HttpStatusCode.NoContent, (await player.PostAsJsonAsync($"/api/characters/{characterId}/talents/buy", new BuyTalentRequest(talent.Id), Json.Options)).StatusCode);
+        var grit = reference.Talents.First(t => !t.IsCustom && t.Name == "Grit");
+        Assert.Equal(HttpStatusCode.NoContent, (await player.PostAsJsonAsync($"/api/characters/{characterId}/talents/buy", new BuyTalentRequest(grit.Id), Json.Options)).StatusCode);
         Assert.Equal(HttpStatusCode.OK, (await player.PostAsJsonAsync("/api/campaigns/join",
             new JoinCampaignRequest(campaign.JoinCode!, characterId), Json.Options)).StatusCode);
-
         var contextPath = $"/api/reference/GenesysCore?characterId={characterId}";
-        var campaignRef = (await player.GetFromJsonAsync<ReferenceResponse>(contextPath, Json.Options))!;
-        Assert.DoesNotContain(campaignRef.Skills, s => s.Id == skill.Id);
-        Assert.DoesNotContain((await player.GetFromJsonAsync<ReferenceResponse>(
-            $"/api/reference/GenesysCore?campaignId={campaign.Id}", Json.Options))!.Skills, s => s.Id == skill.Id);
-        var retained = (await player.GetFromJsonAsync<CharacterSheetDto>($"/api/characters/{characterId}", Json.Options))!;
-        Assert.Contains(retained.Skills, s => s.SkillDefId == skill.Id && s.Ranks == 1);
-        Assert.Equal(HttpStatusCode.BadRequest, (await player.PostAsync($"/api/characters/{characterId}/skills/{skill.Id}/buy-rank", null)).StatusCode);
-        Assert.Equal(retained.SpentXp, (await player.GetFromJsonAsync<CharacterSheetDto>($"/api/characters/{characterId}", Json.Options))!.SpentXp);
-        Assert.Equal(HttpStatusCode.NoContent, (await player.PutAsJsonAsync($"/api/characters/{characterId}/homebrew-packs/{personalPack.Id}",
-            new HomebrewPackToggleRequest(true), Json.Options)).StatusCode);
         Assert.DoesNotContain((await player.GetFromJsonAsync<ReferenceResponse>(contextPath, Json.Options))!.Skills, s => s.Id == skill.Id);
+        var before = (await player.GetFromJsonAsync<CharacterSheetDto>($"/api/characters/{characterId}", Json.Options))!;
+        Assert.Contains(before.Skills, s => s.SkillDefId == skill.Id && s.Ranks == 1);
+        Assert.Equal(HttpStatusCode.BadRequest, (await player.PostAsync($"/api/characters/{characterId}/skills/{skill.Id}/buy-rank", null)).StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, (await player.PostAsJsonAsync($"/api/characters/{characterId}/talents/buy", new BuyTalentRequest(talent.Id), Json.Options)).StatusCode);
+        var ignoredToggle = await player.PutAsJsonAsync($"/api/characters/{characterId}/homebrew-packs/{personalPack.Id}", new HomebrewPackToggleRequest(true), Json.Options);
+        Assert.Equal(HttpStatusCode.BadRequest, ignoredToggle.StatusCode);
+        Assert.Equal("homebrew.character_campaign_context", (await ignoredToggle.Content.ReadFromJsonAsync<ErrorResponse>(Json.Options))!.ReasonCode);
         Assert.Equal(HttpStatusCode.BadRequest, (await gm.PutAsJsonAsync($"/api/campaigns/{campaign.Id}/homebrew-packs/{personalPack.Id}",
             new HomebrewPackToggleRequest(true), Json.Options)).StatusCode);
-
         var share = (await (await player.PostAsync($"/api/homebrew-packs/{personalPack.Id}/share", null))
             .Content.ReadFromJsonAsync<HomebrewPackShareDto>(Json.Options))!;
-        var imported = (await (await gm.PostAsync($"/api/homebrew-packs/shared/{share.Token}/import", null))
-            .Content.ReadFromJsonAsync<HomebrewPackImportResult>(Json.Options))!;
-        Assert.Equal(HttpStatusCode.NoContent, (await gm.PutAsJsonAsync($"/api/campaigns/{campaign.Id}/homebrew-packs/{imported.Id}",
-            new HomebrewPackToggleRequest(true), Json.Options)).StatusCode);
+        var connectedResponse = await gm.PostAsync($"/api/campaigns/{campaign.Id}/homebrew-packs/shared/{share.Token}/import", null);
+        Assert.Equal(HttpStatusCode.OK, connectedResponse.StatusCode);
+        var connected = (await connectedResponse.Content.ReadFromJsonAsync<HomebrewPackImportResult>(Json.Options))!;
+        Assert.Equal(personalPack.Id, connected.Id);
+        Assert.Empty((await gm.GetFromJsonAsync<List<HomebrewPackListItemDto>>("/api/homebrew-packs/", Json.Options))!);
+        Assert.Equal(before.SpentXp, (await player.GetFromJsonAsync<CharacterSheetDto>($"/api/characters/{characterId}", Json.Options))!.SpentXp);
         var enabled = (await player.GetFromJsonAsync<ReferenceResponse>(contextPath, Json.Options))!;
-        var sharedSkill = Assert.Single(enabled.Skills, s => s.Name == skill.Name);
-        Assert.NotEqual(skill.Id, sharedSkill.Id);
-        Assert.Equal(HttpStatusCode.NoContent, (await player.PostAsync($"/api/characters/{characterId}/skills/{sharedSkill.Id}/buy-rank", null)).StatusCode);
-        Assert.Equal(HttpStatusCode.NoContent, (await gm.PutAsJsonAsync($"/api/campaigns/{campaign.Id}/homebrew-packs/{imported.Id}",
-            new HomebrewPackToggleRequest(false), Json.Options)).StatusCode);
-        Assert.DoesNotContain((await player.GetFromJsonAsync<ReferenceResponse>(contextPath, Json.Options))!.Skills, s => s.Id == sharedSkill.Id);
-        var afterDisable = (await player.GetFromJsonAsync<CharacterSheetDto>($"/api/characters/{characterId}", Json.Options))!;
-        Assert.Contains(afterDisable.Skills, s => s.SkillDefId == sharedSkill.Id && s.Ranks == 1);
-        Assert.Contains(afterDisable.Skills, s => s.SkillDefId == skill.Id && s.Ranks == 1);
-        Assert.Equal(retained.SpentXp + 10, afterDisable.SpentXp);
-        Assert.Equal(HttpStatusCode.BadRequest, (await player.PostAsync($"/api/characters/{characterId}/skills/{sharedSkill.Id}/buy-rank", null)).StatusCode);
+        Assert.Equal(skill.Id, Assert.Single(enabled.Skills, s => s.Name == skill.Name).Id);
+        Assert.Equal(talent.Id, Assert.Single(enabled.Talents, t => t.Name == talent.Name).Id);
+        Assert.Equal(HttpStatusCode.NoContent, (await player.PostAsync($"/api/characters/{characterId}/skills/{skill.Id}/buy-rank", null)).StatusCode);
+        Assert.Equal(HttpStatusCode.NoContent, (await player.PostAsJsonAsync($"/api/characters/{characterId}/talents/buy", new BuyTalentRequest(talent.Id), Json.Options)).StatusCode);
+        var developed = (await player.GetFromJsonAsync<CharacterSheetDto>($"/api/characters/{characterId}", Json.Options))!;
+        Assert.Equal(2, Assert.Single(developed.Skills, s => s.Name == skill.Name).Ranks);
+        Assert.Equal(2, Assert.Single(developed.Talents!, t => t.TalentDefId == talent.Id).Ranks);
+        Assert.Equal(before.SpentXp + 15 + 10, developed.SpentXp);
+        Assert.Equal(HttpStatusCode.BadRequest, (await gm.PutAsJsonAsync($"/api/custom/skills/{skill.Id}", skillRequest, Json.Options)).StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, (await gm.GetAsync($"/api/homebrew-packs/{personalPack.Id}/export")).StatusCode);
+        Assert.Equal(HttpStatusCode.OK, (await player.PutAsJsonAsync($"/api/custom/skills/{skill.Id}", skillRequest with { Name = "Updated Original Sailing" }, Json.Options)).StatusCode);
+        Assert.Contains((await player.GetFromJsonAsync<ReferenceResponse>(contextPath, Json.Options))!.Skills, s => s.Id == skill.Id && s.Name == "Updated Original Sailing");
+        var gmReference = (await gm.GetFromJsonAsync<ReferenceResponse>($"/api/reference/GenesysCore?campaignId={campaign.Id}", Json.Options))!;
+        Assert.DoesNotContain(skill.Id, gmReference.EditableCustomIds!);
+        Assert.Contains(skill.Id, enabled.EditableCustomIds!);
+        Assert.Equal(HttpStatusCode.NoContent, (await gm.PutAsJsonAsync($"/api/campaigns/{campaign.Id}/homebrew-packs/{personalPack.Id}", new HomebrewPackToggleRequest(false), Json.Options)).StatusCode);
+        Assert.DoesNotContain((await player.GetFromJsonAsync<ReferenceResponse>(contextPath, Json.Options))!.Skills, s => s.Id == skill.Id);
+        var disabled = (await player.GetFromJsonAsync<CharacterSheetDto>($"/api/characters/{characterId}", Json.Options))!;
+        Assert.Equal(2, Assert.Single(disabled.Skills, s => s.SkillDefId == skill.Id).Ranks);
+        Assert.Equal(Assert.Single(developed.Skills, s => s.SkillDefId == skill.Id).Pool, Assert.Single(disabled.Skills, s => s.SkillDefId == skill.Id).Pool);
+        Assert.Equal(developed.SpentXp, disabled.SpentXp);
+        Assert.Equal(HttpStatusCode.BadRequest, (await player.PostAsJsonAsync($"/api/characters/{characterId}/talents/buy", new BuyTalentRequest(talent.Id), Json.Options)).StatusCode);
+        Assert.Equal(HttpStatusCode.NoContent, (await gm.PutAsJsonAsync($"/api/campaigns/{campaign.Id}/homebrew-packs/{personalPack.Id}", new HomebrewPackToggleRequest(true), Json.Options)).StatusCode);
+        Assert.Contains((await player.GetFromJsonAsync<ReferenceResponse>(contextPath, Json.Options))!.Skills, s => s.Id == skill.Id);
+    }
+
+    [Fact]
+    public async Task OriginalPackConnection_RequiresGmAndCurrentShareToken_AndIsIdempotent()
+    {
+        var gm = await _factory.CreateAuthorizedClientAsync();
+        var player = await _factory.CreateAuthorizedClientAsync();
+        var outsider = await _factory.CreateAuthorizedClientAsync();
+        var campaign = (await (await gm.PostAsJsonAsync("/api/campaigns/", new CreateCampaignRequest("Authorization", ""), Json.Options))
+            .Content.ReadFromJsonAsync<CampaignDetailDto>(Json.Options))!;
+        await player.PostAsJsonAsync("/api/custom/skills", new CreateCustomSkillRequest(GameSystem.GenesysCore, "Shared auth skill", CharacteristicType.Cunning, SkillKind.General), Json.Options);
+        var pack = Assert.Single((await player.GetFromJsonAsync<List<HomebrewPackListItemDto>>("/api/homebrew-packs/", Json.Options))!);
+        var oldShare = (await (await player.PostAsync($"/api/homebrew-packs/{pack.Id}/share", null)).Content.ReadFromJsonAsync<HomebrewPackShareDto>(Json.Options))!;
+        var current = (await (await player.PostAsync($"/api/homebrew-packs/{pack.Id}/share", null)).Content.ReadFromJsonAsync<HomebrewPackShareDto>(Json.Options))!;
+        Assert.Equal(HttpStatusCode.BadRequest, (await gm.PostAsync($"/api/campaigns/{campaign.Id}/homebrew-packs/shared/{oldShare.Token}/import", null)).StatusCode);
+        var path = $"/api/campaigns/{campaign.Id}/homebrew-packs/shared/{current.Token}/import";
+        Assert.Equal(HttpStatusCode.BadRequest, (await player.PostAsync(path, null)).StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, (await outsider.PostAsync(path, null)).StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, (await gm.PostAsync($"/api/campaigns/{campaign.Id}/homebrew-packs/shared/invalid/import", null)).StatusCode);
+        Assert.Empty((await gm.GetFromJsonAsync<List<CampaignHomebrewPackDto>>($"/api/campaigns/{campaign.Id}/homebrew-packs/", Json.Options))!);
+        for (var i = 0; i < 2; i++)
+            Assert.Equal(HttpStatusCode.OK, (await gm.PostAsync(path, null)).StatusCode);
+        var connected = Assert.Single((await gm.GetFromJsonAsync<List<CampaignHomebrewPackDto>>($"/api/campaigns/{campaign.Id}/homebrew-packs/", Json.Options))!);
+        Assert.Equal(pack.Id, connected.Id);
+        Assert.False(connected.IsMine);
+        Assert.True(connected.IsEnabled);
+        Assert.Equal(HttpStatusCode.BadRequest, (await player.GetAsync($"/api/campaigns/{campaign.Id}/homebrew-packs/")).StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, (await player.PutAsJsonAsync($"/api/campaigns/{campaign.Id}/homebrew-packs/{pack.Id}", new HomebrewPackToggleRequest(false), Json.Options)).StatusCode);
     }
 
     [Fact]

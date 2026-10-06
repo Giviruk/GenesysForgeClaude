@@ -26,9 +26,12 @@ Also implemented: Google sign-in (disabled until `Auth:Google:ClientId` is set),
 
 Campaign membership is account-level (`CampaignMember`) and independent of characters. Players can
 join without a character, add an existing owned character, or create one atomically within the campaign
-using enabled GM packs. Standalone characters use personal packs. Campaign contexts use only enabled
+using packs approved by the GM, including original player-owned shared packs. Standalone characters use personal packs. Campaign contexts use only enabled
 campaign packs (the union for a character in multiple campaigns); already owned skill rows remain on
-the sheet after a pack is disabled. The personal library UI exposes custom creation without a campaign.
+the sheet after a pack is disabled. The personal library UI exposes custom creation without a campaign. Campaign shared import connects
+the original pack without copying definition IDs; authors retain editing rights. Reference returns
+editableCustomIds to keep other authors' content read-only. Shop selects a character before loading
+its context-specific catalogue. Personal character toggles are rejected for campaign characters.
 See [account-campaign-content.md](account-campaign-content.md) for the approved implementation scope.
 
 ## Core entities

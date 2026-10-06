@@ -7,7 +7,7 @@ import type {
   SkillDef, Spell, TalentCategory, TalentDef, UpdateParticipantRequest,
   AddEncounterParticipantRequest, EncounterDetail, EncounterFilter, EncounterInput, EncounterListItem,
   SendToTableMode, UpdateEncounterParticipantRequest,
-  HomebrewPackDocument, HomebrewPackImportResult, HomebrewPackListItem, HomebrewPackShare,
+  CampaignHomebrewPack, HomebrewPackDocument, HomebrewPackImportResult, HomebrewPackListItem, HomebrewPackShare,
   CharacterExport, ImportPreview, ImportResult,
   RollLogEntry, CreateRollRequest,
   CharacterAuditEntry,
@@ -957,6 +957,10 @@ export const api = {
     request<GameSession>('POST', `/api/encounters/${id}/send-to-table`, { mode }),
 
   homebrewPacks: () => request<HomebrewPackListItem[]>('GET', '/api/homebrew-packs/'),
+  campaignHomebrewPacks: (campaignId: string) =>
+    request<CampaignHomebrewPack[]>('GET', `/api/campaigns/${campaignId}/homebrew-packs/`),
+  connectSharedCampaignHomebrewPack: (campaignId: string, token: string) =>
+    request<HomebrewPackImportResult>('POST', `/api/campaigns/${campaignId}/homebrew-packs/shared/${encodeURIComponent(token)}/import`),
   exportHomebrewPack: (id: string) => request<HomebrewPackDocument>('GET', `/api/homebrew-packs/${id}/export`),
   importHomebrewPack: (document: HomebrewPackDocument) =>
     request<HomebrewPackImportResult>('POST', '/api/homebrew-packs/import', document),

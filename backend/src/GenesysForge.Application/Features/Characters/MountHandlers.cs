@@ -26,8 +26,8 @@ public class BuyMountHandler(IAppDbContext db) : ICommandHandler<BuyMountCommand
                 .FirstOrDefaultAsync(m =>
                     m.Id == req.MountDefId && m.System == c.System
                     && (m.OwnerUserId == null
-                        || (m.OwnerUserId == command.UserId
-                            && (m.HomebrewPackId == null || visiblePackIds.Contains(m.HomebrewPackId.Value)))), ct)
+                        || (m.HomebrewPackId == null ? m.OwnerUserId == command.UserId
+                        : visiblePackIds.Contains(m.HomebrewPackId.Value))), ct)
             ?? throw new DomainRuleException("Скакун не найден.", "mount.not_found");
         if (def.Retired && !req.Free)
             throw new DomainRuleException(

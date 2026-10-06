@@ -91,6 +91,10 @@ public class SetCharacterHomebrewPackHandler(IAppDbContext db)
         var owns = await db.Characters.AnyAsync(c => c.Id == command.CharacterId && c.OwnerUserId == command.UserId, ct);
         if (!owns) throw new DomainRuleException("Персонаж не найден.");
 
+        if (await db.CampaignCharacters.AnyAsync(x => x.CharacterId == command.CharacterId, ct))
+            throw new DomainRuleException("Наборами персонажа в кампании управляет мастер. Подключите набор к кампании.",
+                "homebrew.character_campaign_context");
+
         var row = await db.HomebrewPackCharacters.FirstOrDefaultAsync(
             x => x.HomebrewPackId == command.PackId && x.CharacterId == command.CharacterId, ct);
         if (row is null)
@@ -118,13 +122,14 @@ public class SetCampaignHomebrewPackHandler(IAppDbContext db)
 {
     public async Task<Unit> Handle(SetCampaignHomebrewPackCommand command, CancellationToken ct = default)
     {
-        await HomebrewPackMapper.GetOwnedAsync(db, command.UserId, command.PackId, ct);
         await CampaignMapper.GetAsGmAsync(db, command.UserId, command.CampaignId, ct);
 
         var row = await db.HomebrewPackCampaigns.FirstOrDefaultAsync(
             x => x.HomebrewPackId == command.PackId && x.CampaignId == command.CampaignId, ct);
         if (row is null)
         {
+            // First connection by ID requires ownership. Shared originals are authorized by token.
+            await HomebrewPackMapper.GetOwnedAsync(db, command.UserId, command.PackId, ct);
             db.HomebrewPackCampaigns.Add(new HomebrewPackCampaign
             {
                 Id = Guid.NewGuid(),

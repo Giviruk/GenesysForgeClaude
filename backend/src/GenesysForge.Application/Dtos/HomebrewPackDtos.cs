@@ -12,6 +12,9 @@ public record HomebrewPackListItemDto(
     int EntryCount,
     DateTime UpdatedAt);
 
+public record CampaignHomebrewPackDto(Guid Id, string Name, GameSystem System,
+    bool IsEnabled, bool IsMine, int EntryCount);
+
 public record HomebrewPackShareDto(string Token, string Path);
 
 public record HomebrewPackToggleRequest(bool IsEnabled);

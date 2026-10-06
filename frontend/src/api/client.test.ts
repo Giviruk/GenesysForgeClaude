@@ -659,3 +659,18 @@ it('uses account custom routes outside a campaign and retains campaign routes', 
     expect(fetchMock.mock.calls[3][0]).toBe('/api/campaigns/campaign/custom/skills')
   } finally { vi.restoreAllMocks() }
 })
+
+
+describe('original shared campaign packs', () => {
+  it('lists campaign connections and connects by encoded token', async () => {
+    const fetchMock = vi.spyOn(globalThis, 'fetch')
+      .mockResolvedValueOnce(new Response(JSON.stringify([]), { status: 200 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ id: 'original-pack' }), { status: 200 }))
+    await api.campaignHomebrewPacks('campaign')
+    expect(await api.connectSharedCampaignHomebrewPack('campaign', 'raw / token')).toEqual({ id: 'original-pack' })
+    expect(fetchMock.mock.calls.map(([url, init]) => [url, init?.method])).toEqual([
+      ['/api/campaigns/campaign/homebrew-packs/', 'GET'],
+      ['/api/campaigns/campaign/homebrew-packs/shared/raw%20%2F%20token/import', 'POST'],
+    ])
+  })
+})

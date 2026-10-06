@@ -2,6 +2,9 @@ using System.Net;
 using System.Net.Http.Json;
 using GenesysForge.Application.Dtos;
 using GenesysForge.Domain;
+using GenesysForge.Domain.Entities;
+using GenesysForge.Infrastructure.Persistence;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace GenesysForge.Api.Tests;
 
@@ -648,4 +651,67 @@ public class RotHeroicParameterTests(ApiFactory factory) : IClassFixture<ApiFact
         Assert.Equal(HttpStatusCode.BadRequest,
             (await SetConfigAsync(client, legacyId, new(skill.Id, null, null, null, null, null))).StatusCode);
     }
+    private async Task<(HttpClient Gm, CampaignDetailDto Campaign, Guid PackId, SkillDefDto Skill)> JoinWithGmPackAsync(HttpClient player, Guid characterId)
+    {
+        var gm = await factory.CreateAuthorizedClientAsync();
+        var campaign = (await (await gm.PostAsJsonAsync("/api/campaigns/", new CreateCampaignRequest("Heroic custom", ""), Json.Options))
+            .Content.ReadFromJsonAsync<CampaignDetailDto>(Json.Options))!;
+        var skill = (await (await gm.PostAsJsonAsync($"/api/campaigns/{campaign.Id}/custom/skills",
+            new CreateCustomSkillRequest(GameSystem.RealmsOfTerrinoth, "Heroic campaign skill", CharacteristicType.Intellect, SkillKind.General), Json.Options))
+            .Content.ReadFromJsonAsync<SkillDefDto>(Json.Options))!;
+        var pack = Assert.Single((await gm.GetFromJsonAsync<List<HomebrewPackListItemDto>>("/api/homebrew-packs/", Json.Options))!);
+        Assert.Equal(HttpStatusCode.OK, (await player.PostAsJsonAsync("/api/campaigns/join", new JoinCampaignRequest(campaign.JoinCode!, characterId), Json.Options)).StatusCode);
+        return (gm, campaign, pack.Id, skill);
+    }
+
+    [Fact]
+    public async Task Paragon_UsesGmSkillFromEnabledCampaignPack_AndRejectsDisabledOrPersonalSkills()
+    {
+        var (player, id, _) = await CreateWithAbilityAsync("rot.heroic.paragon");
+        var (gm, campaign, packId, skill) = await JoinWithGmPackAsync(player, id);
+        Assert.Equal(HttpStatusCode.NoContent, (await SetConfigAsync(player, id, new(skill.Id, null, null, null, null, null))).StatusCode);
+        var personal = (await (await player.PostAsJsonAsync("/api/custom/skills",
+            new CreateCustomSkillRequest(GameSystem.RealmsOfTerrinoth, "Private Paragon skill", CharacteristicType.Intellect, SkillKind.General), Json.Options))
+            .Content.ReadFromJsonAsync<SkillDefDto>(Json.Options))!;
+        Assert.Equal(HttpStatusCode.BadRequest, (await SetConfigAsync(player, id, new(personal.Id, null, null, null, null, null))).StatusCode);
+        Assert.Equal(HttpStatusCode.NoContent, (await gm.PutAsJsonAsync($"/api/campaigns/{campaign.Id}/homebrew-packs/{packId}", new HomebrewPackToggleRequest(false), Json.Options)).StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, (await SetConfigAsync(player, id, new(skill.Id, null, null, null, null, null))).StatusCode);
+    }
+
+    [Fact]
+    public async Task SignatureWeapon_UsesGmBaseAndSupremeAttachments_OnlyWhilePackIsEnabled()
+    {
+        var (player, id, _) = await CreateWithAbilityAsync("rot.heroic.signature-weapon");
+        var (gm, campaign, packId, _) = await JoinWithGmPackAsync(player, id);
+        var owner = (await gm.GetFromJsonAsync<AccountDto>("/api/account/", Json.Options))!;
+        var baseId = Guid.NewGuid(); var supremeId = Guid.NewGuid();
+        await using (var scope = factory.Services.CreateAsyncScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            db.AttachmentDefs.AddRange(
+                new AttachmentDef { Id = baseId, Name = "Campaign base", Code = "custom.base", System = GameSystem.RealmsOfTerrinoth,
+                    OwnerUserId = owner.Id, HomebrewPackId = packId, HostKind = ItemKind.Weapon, HardPointCost = 1 },
+                new AttachmentDef { Id = supremeId, Name = "Campaign supreme", Code = "custom.supreme", System = GameSystem.RealmsOfTerrinoth,
+                    OwnerUserId = owner.Id, HomebrewPackId = packId, HostKind = ItemKind.Weapon, HardPointCost = 1 });
+            await db.SaveChangesAsync();
+        }
+        Assert.Equal(HttpStatusCode.NoContent, (await gm.PutAsJsonAsync($"/api/campaigns/{campaign.Id}/homebrew-packs/{packId}", new HomebrewPackToggleRequest(false), Json.Options)).StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, (await SetConfigAsync(player, id, Weapon(baseAttachmentId: baseId))).StatusCode);
+        Assert.Equal(HttpStatusCode.NoContent, (await gm.PutAsJsonAsync($"/api/campaigns/{campaign.Id}/homebrew-packs/{packId}", new HomebrewPackToggleRequest(true), Json.Options)).StatusCode);
+        var reference = (await player.GetFromJsonAsync<ReferenceResponse>($"/api/reference/RealmsOfTerrinoth?characterId={id}", Json.Options))!;
+        Assert.Contains(reference.Attachments!, a => a.Id == baseId);
+        Assert.Equal(HttpStatusCode.NoContent, (await SetConfigAsync(player, id, Weapon(baseAttachmentId: baseId))).StatusCode);
+        Assert.Equal(HttpStatusCode.NoContent, (await player.PostAsync($"/api/characters/{id}/complete-creation", null)).StatusCode);
+        await player.PostAsJsonAsync($"/api/characters/{id}/xp-awards", new AwardXpRequest(150, null), Json.Options);
+        Assert.Equal(HttpStatusCode.NoContent, (await BuyPowerAsync(player, id, 1)).StatusCode);
+        Assert.Equal(HttpStatusCode.NoContent, (await SetWeaponUpgradesAsync(player, id, SignatureWeaponImprovement.Reinforced)).StatusCode);
+        Assert.Equal(HttpStatusCode.NoContent, (await BuyPowerAsync(player, id, 2)).StatusCode);
+        await gm.PutAsJsonAsync($"/api/campaigns/{campaign.Id}/homebrew-packs/{packId}", new HomebrewPackToggleRequest(false), Json.Options);
+        Assert.Equal(HttpStatusCode.BadRequest, (await SetWeaponUpgradesAsync(player, id, supreme: supremeId)).StatusCode);
+        await gm.PutAsJsonAsync($"/api/campaigns/{campaign.Id}/homebrew-packs/{packId}", new HomebrewPackToggleRequest(true), Json.Options);
+        Assert.Equal(HttpStatusCode.NoContent, (await SetWeaponUpgradesAsync(player, id, supreme: supremeId)).StatusCode);
+        Assert.Equal(baseId, (await SheetAsync(player, id)).HeroicConfiguration!.SignatureWeapon!.BaseAttachment!.DefId);
+        Assert.Equal(supremeId, (await SheetAsync(player, id)).HeroicConfiguration!.SignatureWeapon!.SupremeAttachment!.DefId);
+    }
+
 }

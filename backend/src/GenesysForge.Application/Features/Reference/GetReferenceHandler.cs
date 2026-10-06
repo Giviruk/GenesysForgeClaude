@@ -39,13 +39,14 @@ public class GetReferenceHandler(IAppDbContext db) : IQueryHandler<GetReferenceQ
             .ToListAsync(ct);
         var careers = careerDefs.Select(c => c.ToDto()).ToList();
 
-        var skills = await db.SkillDefs.AsNoTracking()
+        var skillDefs = await db.SkillDefs.AsNoTracking()
             .Where(s => s.System == system && !s.Retired
                 && (s.OwnerUserId == null
                     || (s.HomebrewPackId == null ? s.OwnerUserId == userId
                         : visiblePackIds.Contains(s.HomebrewPackId.Value))))
             .OrderBy(s => s.Kind).ThenBy(s => s.Name)
-            .Select(s => s.ToDto()).ToListAsync(ct);
+            .ToListAsync(ct);
+        var skills = skillDefs.Select(s => s.ToDto()).ToList();
 
         // Genesys Core показывает только таланты «для любого сеттинга»; Realms of Terrinoth — плюс фэнтези.
         // Кастомные таланты владельца показываются всегда, независимо от сеттинга.
@@ -53,13 +54,14 @@ public class GetReferenceHandler(IAppDbContext db) : IQueryHandler<GetReferenceQ
             ? GenesysSetting.Any | GenesysSetting.Fantasy
             : GenesysSetting.Any;
 
-        var talents = await db.TalentDefs.AsNoTracking()
+        var talentDefs = await db.TalentDefs.AsNoTracking()
             .Where(t => t.System == system && !t.Retired
                 && (((t.HomebrewPackId == null ? t.OwnerUserId == userId
                         : visiblePackIds.Contains(t.HomebrewPackId.Value)))
                     || (t.OwnerUserId == null && (t.Setting & settingMask) != 0)))
             .OrderBy(t => t.Tier).ThenBy(t => t.Name)
-            .Select(t => t.ToDto()).ToListAsync(ct);
+            .ToListAsync(ct);
+        var talents = talentDefs.Select(t => t.ToDto()).ToList();
 
         // Материализуем с навигацией Qualities → QualityDef, затем маппим в памяти (ToDto тянет навигацию).
         var itemDefs = await db.ItemDefs.AsNoTracking()
@@ -103,9 +105,10 @@ public class GetReferenceHandler(IAppDbContext db) : IQueryHandler<GetReferenceQ
             : [];
         var heroicSecondaryEffects = heroicSecondaryEffectDefs.Select(x => x.ToDto()).ToList();
 
-        // Улучшения — отдельный тип контента (ROT-EQP-ATT-01): встроенные записи системы.
+        // Улучшения — отдельный тип контента (ROT-EQP-ATT-01): встроенные и разрешённые custom записи.
         var attachments = (await db.AttachmentDefs.AsNoTracking().Include(a => a.Effects)
-                .Where(a => a.System == system && !a.Retired && a.OwnerUserId == null)
+                .Where(a => a.System == system && !a.Retired && (a.OwnerUserId == null
+                    || (a.HomebrewPackId == null ? a.OwnerUserId == userId : visiblePackIds.Contains(a.HomebrewPackId.Value))))
                 .ToListAsync(ct))
             .OrderBy(a => a.NameRu, StringComparer.Ordinal)
             .Select(a => a.ToDto())
@@ -115,14 +118,21 @@ public class GetReferenceHandler(IAppDbContext db) : IQueryHandler<GetReferenceQ
         // иначе покупка снова превратилась бы в безликую строку снаряжения.
         var mounts = (await db.MountDefs.AsNoTracking()
                 .Include(m => m.Skills).Include(m => m.Abilities).Include(m => m.Attacks)
-                .Where(m => m.System == system && !m.Retired && m.OwnerUserId == null)
+                .Where(m => m.System == system && !m.Retired && (m.OwnerUserId == null
+                    || (m.HomebrewPackId == null ? m.OwnerUserId == userId : visiblePackIds.Contains(m.HomebrewPackId.Value))))
                 .ToListAsync(ct))
             .OrderBy(m => m.Price ?? int.MaxValue).ThenBy(m => m.NameRu, StringComparer.Ordinal)
             .Select(MountMapper.DefDto)
             .ToList();
 
+        var editableIds = archetypeDefs.Where(d => d.OwnerUserId == userId).Select(d => d.Id)
+            .Concat(careerDefs.Where(d => d.OwnerUserId == userId).Select(d => d.Id))
+            .Concat(skillDefs.Where(d => d.OwnerUserId == userId).Select(d => d.Id))
+            .Concat(talentDefs.Where(d => d.OwnerUserId == userId).Select(d => d.Id))
+            .Concat(itemDefs.Where(d => d.OwnerUserId == userId).Select(d => d.Id))
+            .Concat(heroicDefs.Where(d => d.OwnerUserId == userId).Select(d => d.Id)).ToList();
         return new ReferenceResponse(
             archetypes, careers, skills, talents, items, heroics, qualities, heroicSecondaryEffects,
-            attachments, mounts);
+            attachments, mounts, editableIds);
     }
 }

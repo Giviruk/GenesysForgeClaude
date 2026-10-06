@@ -77,7 +77,9 @@ access tokens не принимаются public API.
 Apply AddCampaignMembers before enabling account-only joining. PackLegacyCustomContent
 assigns legacy ungrouped owner content to personal packs without changing definition IDs.
 Before enabling campaign content isolation, tell players that personal packs no longer permit
-new purchases while a character belongs to a campaign. The GM imports a shared copy and
-connects their pack to authorize it. Existing purchased skill ranks remain on the sheet;
+new purchases while a character belongs to a campaign. The GM connects the original player pack by shared link in the campaign pack panel.
+Ownership, definition IDs and existing ranks are preserved; connecting the pack charges no XP.
+Do not create replacement copies for existing characters. Author edits propagate to approved packs;
+rotating a share token does not revoke existing campaign connections. Existing purchased skill ranks remain on the sheet;
 removing the last character no longer leaves the campaign. Exit/removal is an account action.
 Migration deployment and service restart are outside the implementation PRs.

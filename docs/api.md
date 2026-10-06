@@ -682,6 +682,8 @@ POST /api/homebrew-packs/shared/{token}/import
 PUT  /api/homebrew-packs/{id}/default
 PUT  /api/characters/{characterId}/homebrew-packs/{packId}
 PUT  /api/campaigns/{campaignId}/homebrew-packs/{packId}
+GET  /api/campaigns/{campaignId}/homebrew-packs/
+POST /api/campaigns/{campaignId}/homebrew-packs/shared/{token}/import
 ```
 
 Import/export format is `genesysforge.homebrew-pack.v1`. The JSON document contains a pack header
@@ -698,8 +700,19 @@ Toggle routes use `HomebrewPackToggleRequest`:
 { "isEnabled": true }
 ```
 
-Default toggle controls visibility without a reference context. Character/campaign toggles override
-visibility for `GET /api/reference/{system}?characterId=...` / `?campaignId=...`.
+Default/character toggles control standalone reference visibility. A character linked to campaigns
+uses enabled campaign packs instead; its personal toggle route returns 400 with reasonCode
+`homebrew.character_campaign_context` and directs the user to the GM.
+
+Campaign shared import connects the original pack and returns 200 `{ id, name, entryCount }` with
+its existing ID. It requires the campaign GM and a current shared token. Repeating it enables the
+same connection. The GM-only list returns `{ id, name, system, isEnabled, isMine, entryCount }`.
+First connection by pack ID requires ownership; an already connected shared original can be
+enabled/disabled by the campaign GM. Changing a share token prevents new connections with the old
+token; existing campaign approvals remain until disabled. The author retains edit/export/share
+ownership. Author changes propagate to enabled campaigns without creating definition copies.
+`editableCustomIds` in reference identifies visible custom definitions owned by the requesting
+account; foreign author content is displayed without edit/delete actions.
 
 ## Campaigns
 
@@ -906,7 +919,9 @@ POST /api/v1/custom/{skills|talents|items|heroic-abilities|archetypes|careers} c
 account-owned content in a personal pack without a campaign or GM role. PUT/DELETE for
 /{type}/{id} use the same ownership validation as the existing campaign-scoped routes.
 Campaign-scoped creation retains its GM-only check. A GM enables an owned personal pack
-with PUT /api/v1/campaigns/{id}/homebrew-packs/{packId}. Sharing/importing copies is unchanged.
+with PUT /api/v1/campaigns/{id}/homebrew-packs/{packId}. A player's original pack is connected
+through POST /api/v1/campaigns/{id}/homebrew-packs/shared/{token}/import; only standalone account
+JSON/shared import creates independent copies, stripping internal library/campaign description markers.
 
 ## Campaign content isolation
 
@@ -916,3 +931,6 @@ campaigns retains the union of enabled campaign packs; there is no RulesCampaign
 campaignId selects that campaign's reference context. Standalone characters retain personal toggles.
 Purchased skills remain on sheets after pack removal, including their ranks and dice pools;
 reference visibility and permission to purchase additional ranks still require an enabled pack.
+Connecting the original player pack restores purchases for the existing skill/talent IDs; no XP
+is charged by connection and no ranks are transferred. Shop reference uses the selected characterId
+before showing products, matching all purchase routes (item/service/attachment/mount).

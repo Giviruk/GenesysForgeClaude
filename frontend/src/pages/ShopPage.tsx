@@ -101,11 +101,20 @@ const productProperties = (product: ShopProduct): string =>
 export function ShopPage() {
   const [characters, setCharacters] = useState<CharacterListItem[]>([])
   const [system, setSystem] = useState<GameSystem>('realmsOfTerrinoth')
-  const [reference, setReference] = useState<Reference | null>(null)
+  const [selectedCharacterId, setSelectedCharacterId] = useState('')
+  const [charactersLoaded, setCharactersLoaded] = useState(false)
+  const matchingCharacters = characters.filter(character => character.system === system)
+  const characterId = matchingCharacters.some(character => character.id === selectedCharacterId)
+    ? selectedCharacterId : matchingCharacters[0]?.id ?? ''
+  const [catalogue, setCatalogue] = useState<{
+    system: GameSystem; characterId: string; reference: Reference | null
+  } | null>(null)
+  const catalogueMatches = catalogue?.system === system && catalogue.characterId === characterId
+  const reference = catalogueMatches ? catalogue.reference : null
+  const loading = !charactersLoaded || !catalogueMatches
   const [category, setCategory] = useState<ShopCategory>('all')
   const [search, setSearch] = useState('')
   const [selected, setSelected] = useState<ShopProduct | null>(null)
-  const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
@@ -115,22 +124,28 @@ export function ShopPage() {
         if (cancelled) return
         setCharacters(rows)
         if (rows.length > 0 && !rows.some(c => c.system === system)) {
-          setLoading(true)
           setSystem(rows[0].system)
         }
       })
       .catch(err => !cancelled && setError(err instanceof Error ? err.message : t('Ошибка', 'Error')))
+      .finally(() => { if (!cancelled) setCharactersLoaded(true) })
     return () => { cancelled = true }
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     let cancelled = false
-    api.reference(system)
-      .then(data => { if (!cancelled) setReference(data) })
-      .catch(err => !cancelled && setError(err instanceof Error ? err.message : t('Ошибка', 'Error')))
-      .finally(() => { if (!cancelled) setLoading(false) })
+    if (!charactersLoaded) return
+    api.reference(system, characterId ? { characterId } : undefined)
+      .then(data => {
+        if (!cancelled) setCatalogue({ system, characterId, reference: data })
+      })
+      .catch(err => {
+        if (cancelled) return
+        setCatalogue({ system, characterId, reference: null })
+        setError(err instanceof Error ? err.message : t('Ошибка', 'Error'))
+      })
     return () => { cancelled = true }
-  }, [system])
+  }, [system, characterId, charactersLoaded])
 
   const products = useMemo(
     () => reference ? buildShopProducts(reference) : [],
@@ -167,8 +182,8 @@ export function ShopPage() {
           <h2>{t('Магазин', 'Shop')}</h2>
           <p className="muted">
             {t(
-              'Выберите категорию и откройте товар. Персонаж и материал выбираются перед покупкой.',
-              'Choose a category and open a product. Select the character and material before buying.',
+              'Выберите персонажа, затем категорию и товар. Каталог учитывает разрешённый ему контент.',
+              'Choose a character, then a category and product. The catalogue follows content available to that character.',
             )}
           </p>
         </div>
@@ -176,7 +191,6 @@ export function ShopPage() {
           {availableSystems.map(value => (
             <button key={value} type="button" className={system === value ? 'chip active' : 'chip'}
               onClick={() => {
-                setLoading(true)
                 setError(null)
                 setSystem(value)
                 setSelected(null)
@@ -191,6 +205,16 @@ export function ShopPage() {
 
       <section className="panel shop-catalogue">
         <div className="shop-toolbar">
+          <label>{t('Персонаж для покупок', 'Shopping character')}
+            <select value={characterId} onChange={event => {
+              setSelectedCharacterId(event.target.value)
+              setSelected(null)
+              setError(null)
+            }}>
+              {matchingCharacters.length === 0 && <option value="">{t('Нет персонажа этой системы', 'No character for this system')}</option>}
+              {matchingCharacters.map(character => <option key={character.id} value={character.id}>{character.name}</option>)}
+            </select>
+          </label>
           <input className="shop-search" value={search}
             placeholder={t('Поиск по названию, описанию и свойствам…', 'Search names, descriptions, and properties…')}
             onChange={event => setSearch(event.target.value)} />
@@ -266,8 +290,8 @@ export function ShopPage() {
       </section>
 
       {selected && (
-        <ProductModal product={selected}
-          characters={characters.filter(character => character.system === system)}
+        <ProductModal key={characterId} product={selected}
+          character={matchingCharacters.find(character => character.id === characterId)}
           qualityDefinitions={reference?.qualities ?? []}
           onClose={() => setSelected(null)} />
       )}
@@ -275,13 +299,13 @@ export function ShopPage() {
   )
 }
 
-function ProductModal({ product, characters, qualityDefinitions, onClose }: {
+function ProductModal({ product, character, qualityDefinitions, onClose }: {
   product: ShopProduct
-  characters: CharacterListItem[]
+  character?: CharacterListItem
   qualityDefinitions: Reference['qualities']
   onClose: () => void
 }) {
-  const [characterId, setCharacterId] = useState(characters[0]?.id ?? '')
+  const characterId = character?.id ?? ''
   const [sheet, setSheet] = useState<CharacterSheet | null>(null)
   const [craftsmanship, setCraftsmanship] = useState<WeaponCraftsmanship>('steel')
   const [material, setMaterial] = useState<ImplementMaterial>('oak')
@@ -431,23 +455,7 @@ function ProductModal({ product, characters, qualityDefinitions, onClose }: {
         </div>
 
         <div className="shop-modal-options">
-          <label>
-            {t('Персонаж', 'Character')}
-            <select value={characterId} onChange={event => {
-              setError(null)
-              setSuccess(null)
-              setCharacterId(event.target.value)
-            }}>
-              {characters.length === 0 && (
-                <option value="">{t('Нет персонажа этой системы', 'No character for this system')}</option>
-              )}
-              {characters.map(character => (
-                <option key={character.id} value={character.id}>
-                  {character.name} · {character.archetype} · {character.career}
-                </option>
-              ))}
-            </select>
-          </label>
+          <p>{t('Персонаж', 'Character')}: {character?.name ?? t('Не выбран', 'Not selected')}</p>
 
           {isImplement && (
             <label>
