@@ -20,7 +20,7 @@ public class GetNpcsHandler(IAppDbContext db) : IQueryHandler<GetNpcsQuery, List
                 || n.IsBuiltIn
                 || n.Visibility == NpcVisibility.PublicTemplate
                 || (n.Visibility == NpcVisibility.CampaignVisible && n.OwnerUserId != null
-                    && db.CampaignCharacters.Any(cc => cc.PlayerUserId == uid
+                    && db.CampaignMembers.Any(cc => cc.UserId == uid
                         && db.Campaigns.Any(c => c.Id == cc.CampaignId
                             && c.GmUserId == n.OwnerUserId.Value))));
 
@@ -30,8 +30,8 @@ public class GetNpcsHandler(IAppDbContext db) : IQueryHandler<GetNpcsQuery, List
         if (q.CampaignId is { } cid)
         {
             var canAccessCampaign = await db.Campaigns.AsNoTracking().AnyAsync(c => c.Id == cid
-                && (c.GmUserId == uid || db.CampaignCharacters.Any(cc => cc.CampaignId == cid
-                    && cc.PlayerUserId == uid)), ct);
+                && (c.GmUserId == uid || db.CampaignMembers.Any(cc => cc.CampaignId == cid
+                    && cc.UserId == uid)), ct);
             if (!canAccessCampaign) throw new DomainRuleException("Кампания не найдена.");
 
             query = query.Where(n => n.IsBuiltIn

@@ -221,4 +221,94 @@ public class CampaignTests : IClassFixture<ApiFactory>
         var gmView = (await gm.GetFromJsonAsync<CampaignDetailDto>($"/api/campaigns/{campaign.Id}", Json.Options))!;
         Assert.Empty(gmView.Members);
     }
+    [Fact]
+    public async Task AccountMembership_IsIndependentOfCharacters_AndJoinIsIdempotent()
+    {
+        var gm = await _factory.CreateAuthorizedClientAsync();
+        var campaign = await CreateCampaignAsync(gm);
+        var player = await _factory.CreateAuthorizedClientAsync();
+        for (var i = 0; i < 2; i++)
+        {
+            var join = await player.PostAsJsonAsync("/api/campaigns/join", new JoinCampaignRequest(campaign.JoinCode!), Json.Options);
+            Assert.Equal(HttpStatusCode.OK, join.StatusCode);
+        }
+        var detail = (await player.GetFromJsonAsync<CampaignDetailDto>($"/api/campaigns/{campaign.Id}", Json.Options))!;
+        Assert.Empty(detail.Members);
+        var member = Assert.Single(detail.Players);
+        Assert.True(member.IsMe);
+        Assert.Null(detail.JoinCode);
+        var list = (await player.GetFromJsonAsync<List<CampaignListItemDto>>("/api/campaigns/", Json.Options))!;
+        Assert.Contains(list, c => c.Id == campaign.Id);
+        Assert.Equal(HttpStatusCode.OK, (await player.GetAsync($"/api/reference/GenesysCore?campaignId={campaign.Id}")).StatusCode);
+
+        var characterId = await CreateCharacterAsync(player);
+        Assert.Equal(HttpStatusCode.OK, (await player.PostAsJsonAsync($"/api/campaigns/{campaign.Id}/characters",
+            new { characterId }, Json.Options)).StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, (await player.PostAsJsonAsync($"/api/campaigns/{campaign.Id}/characters",
+            new { characterId }, Json.Options)).StatusCode);
+        await player.DeleteAsync($"/api/campaigns/{campaign.Id}/characters/{characterId}");
+        Assert.Equal(HttpStatusCode.OK, (await player.GetAsync($"/api/campaigns/{campaign.Id}")).StatusCode);
+        Assert.Single((await gm.GetFromJsonAsync<CampaignDetailDto>($"/api/campaigns/{campaign.Id}", Json.Options))!.Players);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task LeavingOrRemoval_RevokesAccessAndRemovesLinks_ButPreservesCharacter(bool removedByGm)
+    {
+        var gm = await _factory.CreateAuthorizedClientAsync();
+        var campaign = await CreateCampaignAsync(gm);
+        var player = await _factory.CreateAuthorizedClientAsync();
+        var characterId = await CreateCharacterAsync(player);
+        var joined = (await (await player.PostAsJsonAsync("/api/campaigns/join",
+            new JoinCampaignRequest(campaign.JoinCode!, characterId), Json.Options))
+            .Content.ReadFromJsonAsync<CampaignDetailDto>(Json.Options))!;
+        var member = Assert.Single(joined.Players);
+        Assert.Equal(HttpStatusCode.NoContent,
+            (await (removedByGm ? gm : player).DeleteAsync($"/api/campaigns/{campaign.Id}/members/{member.UserId}")).StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, (await player.GetAsync($"/api/campaigns/{campaign.Id}")).StatusCode);
+        Assert.Equal(HttpStatusCode.OK, (await player.GetAsync($"/api/characters/{characterId}")).StatusCode);
+        var after = (await gm.GetFromJsonAsync<CampaignDetailDto>($"/api/campaigns/{campaign.Id}", Json.Options))!;
+        Assert.Empty(after.Members);
+        Assert.Empty(after.Players);
+        Assert.Equal(HttpStatusCode.BadRequest, (await player.GetAsync($"/api/reference/GenesysCore?campaignId={campaign.Id}")).StatusCode);
+    }
+
+    [Fact]
+    public async Task MembershipActions_RejectOutsidersForeignCharactersAndRemovingOthers()
+    {
+        var gm = await _factory.CreateAuthorizedClientAsync();
+        var campaign = await CreateCampaignAsync(gm);
+        var first = await _factory.CreateAuthorizedClientAsync();
+        var second = await _factory.CreateAuthorizedClientAsync();
+        var outsider = await _factory.CreateAuthorizedClientAsync();
+        var characterId = await CreateCharacterAsync(first);
+        Assert.Equal(HttpStatusCode.BadRequest, (await first.PostAsJsonAsync($"/api/campaigns/{campaign.Id}/characters",
+            new { characterId }, Json.Options)).StatusCode);
+        await first.PostAsJsonAsync("/api/campaigns/join", new JoinCampaignRequest(campaign.JoinCode!), Json.Options);
+        var joined = (await (await second.PostAsJsonAsync("/api/campaigns/join",
+            new JoinCampaignRequest(campaign.JoinCode!), Json.Options)).Content.ReadFromJsonAsync<CampaignDetailDto>(Json.Options))!;
+        var secondId = joined.Players.Single(p => p.IsMe).UserId;
+        Assert.Equal(HttpStatusCode.BadRequest, (await first.DeleteAsync($"/api/campaigns/{campaign.Id}/members/{secondId}")).StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, (await outsider.DeleteAsync($"/api/campaigns/{campaign.Id}/members/{secondId}")).StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, (await second.PostAsJsonAsync($"/api/campaigns/{campaign.Id}/characters",
+            new { characterId }, Json.Options)).StatusCode);
+        Assert.Empty((await gm.GetFromJsonAsync<CampaignDetailDto>($"/api/campaigns/{campaign.Id}", Json.Options))!.Members);
+    }
+
+    [Fact]
+    public async Task GmNeverGetsMembershipRow_AndCannotBeRemoved()
+    {
+        var gm = await _factory.CreateAuthorizedClientAsync();
+        var campaign = await CreateCampaignAsync(gm);
+        var characterId = await CreateCharacterAsync(gm);
+        var joined = (await (await gm.PostAsJsonAsync("/api/campaigns/join",
+            new JoinCampaignRequest(campaign.JoinCode!, characterId), Json.Options))
+            .Content.ReadFromJsonAsync<CampaignDetailDto>(Json.Options))!;
+        Assert.Empty(joined.Players);
+        Assert.Single(joined.Members);
+        var account = (await gm.GetFromJsonAsync<AccountDto>("/api/account/", Json.Options))!;
+        Assert.Equal(HttpStatusCode.BadRequest, (await gm.DeleteAsync($"/api/campaigns/{campaign.Id}/members/{account.Id}")).StatusCode);
+    }
+
 }

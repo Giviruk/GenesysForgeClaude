@@ -8,11 +8,14 @@ function detail(isGm: boolean, isMine = false): CampaignDetail {
     id: 'c1', name: 'Поход', description: '', isGm, joinCode: isGm ? 'ABC123' : null,
     members: [{ characterId: 'ch1', characterName: 'Бард', system: 'genesysCore',
       archetype: 'Человек', career: 'Бард', isMine, availableXp: isMine ? 40 : null }],
-    notes: [],
+    notes: [], players: [],
   }
 }
 
 const campaignMock = vi.fn()
+const joinCampaignMock = vi.fn()
+const charactersMock = vi.fn().mockResolvedValue([])
+const removeCampaignMemberMock = vi.fn().mockResolvedValue(undefined)
 const sessionMock = vi.fn()
 const removeCampaignCharacterMock = vi.fn().mockResolvedValue(undefined)
 const updateSessionMock = vi.fn()
@@ -64,6 +67,10 @@ const session = {
 vi.mock('../api/client', () => ({
   api: {
     campaign: () => campaignMock(),
+    campaigns: vi.fn().mockResolvedValue([]),
+    joinCampaign: (...a: unknown[]) => joinCampaignMock(...a),
+    characters: (...a: unknown[]) => charactersMock(...a),
+    removeCampaignMember: (...a: unknown[]) => removeCampaignMemberMock(...a),
     campaignMemberSheet: (...a: unknown[]) => memberSheetMock(...a),
     campaignMemberAudit: vi.fn().mockResolvedValue([]),
     reference: (...a: unknown[]) => referenceMock(...a),
@@ -194,5 +201,36 @@ describe('CampaignsPage — GM просмотр листа участника (U
     expect(screen.getByText('суммарный XP')).toBeTruthy()
     expect(screen.getByText('свободный XP')).toBeTruthy()
     await waitFor(() => expect(screen.getByText('120')).toBeTruthy())
+  })
+})
+
+
+describe('account campaign membership UI', () => {
+  it('joins without a character and opens the campaign', async () => {
+    const onOpen = vi.fn()
+    joinCampaignMock.mockResolvedValue(detail(false))
+    render(<CampaignsPage {...props} openId={null} onOpen={onOpen} />)
+    fireEvent.change(screen.getByLabelText('Код кампании'), { target: { value: 'ABC123' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Присоединиться' }))
+    await waitFor(() => expect(joinCampaignMock).toHaveBeenCalledWith('ABC123', undefined))
+    expect(onOpen).toHaveBeenCalledWith('c1')
+  })
+
+  it('lets a member without a character leave and returns to the campaign list', async () => {
+    const onBack = vi.fn()
+    campaignMock.mockResolvedValue({ ...detail(false), members: [],
+      players: [{ userId: 'player', displayName: 'Игрок', avatarUrl: null, isMe: true, joinedAt: '2026-10-07' }] })
+    render(<CampaignsPage {...props} onBack={onBack} />)
+    fireEvent.click(await screen.findByRole('button', { name: 'Покинуть кампанию' }))
+    await waitFor(() => expect(removeCampaignMemberMock).toHaveBeenCalledWith('c1', 'player'))
+    expect(onBack).toHaveBeenCalled()
+  })
+
+  it('offers the GM removal of account members independently of characters', async () => {
+    campaignMock.mockResolvedValue({ ...detail(true), members: [],
+      players: [{ userId: 'player', displayName: 'Игрок', avatarUrl: null, isMe: false, joinedAt: '2026-10-07' }] })
+    render(<CampaignsPage {...props} />)
+    fireEvent.click(await screen.findByRole('button', { name: 'Исключить' }))
+    await waitFor(() => expect(removeCampaignMemberMock).toHaveBeenCalledWith('c1', 'player'))
   })
 })

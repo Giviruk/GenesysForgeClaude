@@ -831,8 +831,12 @@ export const api = {
   campaign: (id: string) => request<CampaignDetail>('GET', `/api/campaigns/${id}`),
   createCampaign: (name: string, description: string) =>
     request<CampaignDetail>('POST', '/api/campaigns/', { name, description }),
-  joinCampaign: (joinCode: string, characterId: string) =>
+  joinCampaign: (joinCode: string, characterId?: string) =>
     request<CampaignDetail>('POST', '/api/campaigns/join', { joinCode, characterId }),
+  addCampaignCharacter: (campaignId: string, characterId: string) =>
+    request<CampaignDetail>('POST', `/api/campaigns/${campaignId}/characters`, { characterId }),
+  removeCampaignMember: (campaignId: string, userId: string) =>
+    request<void>('DELETE', `/api/campaigns/${campaignId}/members/${userId}`),
   removeCampaignCharacter: (campaignId: string, characterId: string) =>
     request<void>('DELETE', `/api/campaigns/${campaignId}/characters/${characterId}`),
   // GM открывает read-only лист персонажа участника своей кампании (U-20).

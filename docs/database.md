@@ -33,10 +33,21 @@ DbSets:
 - `GameParticipants`
 - `InitiativeSlots`
 - `RollLogEntries`
+- `CampaignMembers`
 - `CampaignChronicleChapters`
 - `CampaignChronicleRevisions`
 
 ## Tables and purpose
+
+### CampaignMembers
+
+Account membership is independent of characters. Fields: Id, CampaignId, UserId, JoinedAt.
+Unique index: (CampaignId, UserId). Campaign and User foreign keys cascade on deletion.
+The GM is identified only by Campaign.GmUserId and has no membership row. AddCampaignMembers
+backfills one row per non-GM player from existing CampaignCharacters, using the earliest JoinedAt.
+Removing a character leaves membership intact; leaving/removal explicitly deletes membership and
+all of that player's character links for the campaign. Characters themselves are preserved.
+
 
 ### CampaignChronicleChapters / CampaignChronicleRevisions
 

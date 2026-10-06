@@ -1,3 +1,3 @@
 namespace GenesysForge.Application.Dtos;
 
-public record JoinCampaignRequest(string JoinCode, Guid CharacterId);
+public record JoinCampaignRequest(string JoinCode, Guid? CharacterId = null);

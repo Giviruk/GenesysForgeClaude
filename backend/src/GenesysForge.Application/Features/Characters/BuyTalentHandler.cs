@@ -237,7 +237,7 @@ public class BuyTalentHandler(IAppDbContext db) : ICommandHandler<BuyTalentComma
             .Where(n => ids.Contains(n.Id) && !n.Retired && n.System == character.System)
             .Where(n => n.OwnerUserId == userId || n.IsBuiltIn
                 || (n.Visibility == NpcVisibility.CampaignVisible && n.CampaignId != null
-                    && db.CampaignCharacters.Any(cc => cc.PlayerUserId == userId
+                    && db.CampaignMembers.Any(cc => cc.UserId == userId
                         && cc.CampaignId == n.CampaignId.Value)))
             .Select(n => new { n.Id, n.Name, n.Silhouette, n.Tags })
             .ToListAsync(ct);

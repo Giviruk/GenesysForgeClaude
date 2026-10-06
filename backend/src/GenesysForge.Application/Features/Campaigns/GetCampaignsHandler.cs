@@ -13,8 +13,8 @@ public class GetCampaignsHandler(IAppDbContext db) : IQueryHandler<GetCampaignsQ
         var campaigns = await db.Campaigns.AsNoTracking()
             // Коррелированный EXISTS оставляет проверку членства в одном SQL-запросе и не переносит
             // все campaign ids пользователя в память отдельным round trip.
-            .Where(c => c.GmUserId == uid || db.CampaignCharacters.Any(
-                cc => cc.PlayerUserId == uid && cc.CampaignId == c.Id))
+            .Where(c => c.GmUserId == uid || db.CampaignMembers.Any(
+                m => m.UserId == uid && m.CampaignId == c.Id))
             .OrderByDescending(c => c.CreatedAt)
             .Select(c => new
             {

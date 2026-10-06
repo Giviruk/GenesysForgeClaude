@@ -39,10 +39,17 @@ public static class CampaignMapper
             .Select(n => new CampaignNoteDto(n.Id, n.Title, n.Body, n.IsPrivate, n.CreatedAt, n.UpdatedAt))
             .ToListAsync(ct);
 
+        var players = await (from member in db.CampaignMembers.AsNoTracking()
+            join player in db.Users.AsNoTracking() on member.UserId equals player.Id
+            where member.CampaignId == campaign.Id
+            orderby player.DisplayName
+            select new CampaignPlayerDto(player.Id, player.DisplayName, player.AvatarUrl,
+                player.Id == userId, member.JoinedAt)).ToListAsync(ct);
+
         return new CampaignDetailDto(
             campaign.Id, campaign.Name, campaign.Description, isGm,
             isGm ? campaign.JoinCode : null,
-            members, notes);
+            members, notes, players);
     }
 
     public static async Task<Campaign> GetAccessibleAsync(
@@ -53,8 +60,8 @@ public static class CampaignMapper
         // GM уже авторизован самой строкой кампании; запрос членства для него был лишним round trip.
         if (campaign.GmUserId != userId)
         {
-            var isMember = await db.CampaignCharacters.AnyAsync(
-                cc => cc.CampaignId == campaignId && cc.PlayerUserId == userId, ct);
+            var isMember = await db.CampaignMembers.AnyAsync(
+                m => m.CampaignId == campaignId && m.UserId == userId, ct);
             if (!isMember) throw new DomainRuleException("Кампания не найдена.");
         }
         return campaign;
