@@ -22,6 +22,15 @@ public sealed class CapturingEmailSender : IEmailSender
         Sent++;
         return Task.CompletedTask;
     }
+
+    public FeedbackMessage? LastFeedback { get; private set; }
+
+    public Task SendFeedbackAsync(FeedbackMessage feedback, CancellationToken ct = default)
+    {
+        LastFeedback = feedback;
+        Sent++;
+        return Task.CompletedTask;
+    }
 }
 
 public class PasswordResetTests : IClassFixture<ApiFactory>

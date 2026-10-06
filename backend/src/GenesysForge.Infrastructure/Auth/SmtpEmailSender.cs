@@ -37,6 +37,25 @@ public sealed class SmtpEmailSender(
                 "Если вы не запрашивали сброс — просто проигнорируйте это письмо, пароль не изменится.",
         };
 
+        await SendAsync(message, ct);
+        logger.LogInformation("Письмо сброса пароля отправлено на {Email} через SMTP {Host}.", email, _options.Smtp.Host);
+    }
+
+    public async Task SendFeedbackAsync(FeedbackMessage feedback, CancellationToken ct = default)
+    {
+        var message = new MimeMessage();
+        message.From.Add(new MailboxAddress(_options.FromName, _options.From));
+        message.To.Add(MailboxAddress.Parse(_options.FeedbackTo));
+        if (feedback.ReplyTo is { } replyTo) message.ReplyTo.Add(MailboxAddress.Parse(replyTo));
+        message.Subject = $"Обратная связь GenesysForge — {new Uri(BaseUrl).Host}";
+        message.Body = new TextPart("plain") { Text = FeedbackText.Format(feedback, BaseUrl) };
+
+        await SendAsync(message, ct);
+        logger.LogInformation("Обратная связь переслана на {To} через SMTP {Host}.", _options.FeedbackTo, _options.Smtp.Host);
+    }
+
+    private async Task SendAsync(MimeMessage message, CancellationToken ct)
+    {
         var smtp = _options.Smtp;
         using var client = new SmtpClient();
         var socketOptions = smtp.UseStartTls ? SecureSocketOptions.StartTls : SecureSocketOptions.SslOnConnect;
@@ -45,7 +64,17 @@ public sealed class SmtpEmailSender(
             await client.AuthenticateAsync(smtp.Username, smtp.Password ?? "", ct);
         await client.SendAsync(message, ct);
         await client.DisconnectAsync(true, ct);
-
-        logger.LogInformation("Письмо сброса пароля отправлено на {Email} через SMTP {Host}.", email, smtp.Host);
     }
+}
+
+/// <summary>Текст письма обратной связи: само сообщение и откуда оно пришло.</summary>
+public static class FeedbackText
+{
+    public static string Format(FeedbackMessage feedback, string baseUrl) =>
+        feedback.Text + "\n\n---\n" +
+        $"Сайт: {baseUrl}\n" +
+        $"Страница: {feedback.Page ?? "—"}\n" +
+        $"Аккаунт: {feedback.AccountEmail ?? "не выполнен вход"}\n" +
+        $"Ответить на: {feedback.ReplyTo ?? "адрес не указан"}\n" +
+        $"Время (UTC): {DateTime.UtcNow:yyyy-MM-dd HH:mm}";
 }

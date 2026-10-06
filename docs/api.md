@@ -840,6 +840,19 @@ POST   /api/encounters/{id}/send-to-table
 
 List supports optional `search`, `type` and `tag` query filters. `send-to-table` uses `SendToTableRequest` with mode `replace` or `append`.
 
+## Feedback
+
+```text
+POST /api/feedback
+```
+
+Public, rate-limited with the `auth-sensitive` policy. Body: `message` (5–4000 characters, required),
+`email` (optional reply address), `page` (optional path the form was opened from) and `website`
+(a honeypot; a non-empty value is accepted with 204 and silently dropped). A signed-in caller's account
+email is added to the message and used as Reply-To when `email` is empty. The message is emailed to
+`Email:FeedbackTo` (default `genesys-forge.support@genesys-forge.com`). Returns 204; invalid input
+returns 400 with the validation message.
+
 ## Health
 
 `GET /api/health` checks both API availability and database connectivity.

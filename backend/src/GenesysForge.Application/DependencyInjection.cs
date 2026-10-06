@@ -25,6 +25,7 @@ public static class DependencyInjection
         services.AddScoped<ICommandHandler<RegisterUserCommand, AuthResponse>, RegisterUserHandler>();
         services.AddScoped<ICommandHandler<LoginCommand, AuthResponse>, LoginHandler>();
         services.AddScoped<ICommandHandler<RequestPasswordResetCommand, Unit>, RequestPasswordResetHandler>();
+        services.AddScoped<ICommandHandler<Features.Feedback.SendFeedbackCommand, Unit>, Features.Feedback.SendFeedbackHandler>();
         services.AddScoped<ICommandHandler<ConfirmPasswordResetCommand, Unit>, ConfirmPasswordResetHandler>();
         services.AddScoped<ICommandHandler<GoogleSignInCommand, AuthResponse>, GoogleSignInHandler>();
         services.AddScoped<IRefreshTokenService, RefreshTokenService>();

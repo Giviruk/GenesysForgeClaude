@@ -21,4 +21,10 @@ public class LoggingEmailSender(IConfiguration config, ILogger<LoggingEmailSende
             email, link);
         return Task.CompletedTask;
     }
+
+    public Task SendFeedbackAsync(FeedbackMessage feedback, CancellationToken ct = default)
+    {
+        logger.LogWarning("[STUB EMAIL] Обратная связь:\n{Text}", FeedbackText.Format(feedback, BaseUrl));
+        return Task.CompletedTask;
+    }
 }

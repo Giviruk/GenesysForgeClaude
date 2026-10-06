@@ -1,7 +1,7 @@
 import { navigate } from '../router'
 import { t, useLang } from '../i18n'
 
-/** Глобальный футер: справка, About, переключатель языка и копирайт-дисклеймер. */
+/** Глобальный футер: справка, About, обратная связь, переключатель языка и копирайт-дисклеймер. */
 export function Footer() {
   const [lang, setLang] = useLang()
   return (
@@ -9,6 +9,7 @@ export function Footer() {
       <nav className="footer-links">
         <button className="linklike" type="button" onClick={() => navigate('/help')}>{t('Справка', 'Help')}</button>
         <button className="linklike" type="button" onClick={() => navigate('/about')}>{t('О проекте', 'About')}</button>
+        <button className="linklike" type="button" onClick={() => navigate(`/feedback?from=${encodeURIComponent(window.location.pathname)}`)}>{t('Обратная связь', 'Feedback')}</button>
         <button className="linklike" type="button" onClick={() => setLang(lang === 'ru' ? 'en' : 'ru')}>
           {lang === 'ru' ? 'English' : 'Русский'}
         </button>

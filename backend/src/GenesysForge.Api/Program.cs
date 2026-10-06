@@ -248,6 +248,7 @@ app.MapGameTable();
 app.MapRolls();
 app.MapCombat();
 app.MapEncounters();
+app.MapFeedback();
 app.MapHub<CampaignHub>("/hubs/campaign");
 app.MapGet("/api/health", async (
     GenesysForge.Infrastructure.Persistence.AppDbContext db,

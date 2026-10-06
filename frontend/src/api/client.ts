@@ -372,6 +372,9 @@ export const api = {
     request<AuthResponse>('POST', '/api/auth/register', { email, password, displayName }),
   login: (email: string, password: string) =>
     request<AuthResponse>('POST', '/api/auth/login', { email, password }),
+  /** Форма обратной связи; `website` — скрытое поле-ловушка для ботов, люди оставляют его пустым. */
+  sendFeedback: (body: { message: string; email?: string; page?: string; website?: string }) =>
+    request<void>('POST', '/api/feedback', body),
   requestPasswordReset: (email: string) =>
     request<void>('POST', '/api/auth/password-reset/request', { email }),
   confirmPasswordReset: (token: string, newPassword: string) =>
