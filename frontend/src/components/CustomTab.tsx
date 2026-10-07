@@ -237,7 +237,8 @@ function HomebrewPackPanel({ campaignId, system, onError, refresh }: {
         <div className="label-line">{t('Наборы кампании', 'Campaign packs')}</div>
         {campaignPacks.map(pack => <div key={pack.id} className="custom-list-row">
           <span>{pack.name} · {pack.entryCount} {t('записей', 'entries')}
-            {!pack.isMine && t(' · набор игрока', ' · player pack')}</span>
+            {!pack.isMine && t(` · набор игрока ${pack.ownerName}`, ` · player pack by ${pack.ownerName}`)}
+            {!pack.ownerIsMember && <span className="muted">{t(' · игрок покинул кампанию', ' · player left the campaign')}</span>}</span>
           <button type="button" className="small" disabled={busy}
             onClick={() => void act(() => api.setCampaignHomebrewPack(campaignId, pack.id, !pack.isEnabled))}>
             {pack.isEnabled ? t('Отключить набор', 'Disable pack') : t('Включить набор', 'Enable pack')}

@@ -1651,6 +1651,8 @@ export interface CampaignHomebrewPack {
   isEnabled: boolean
   isMine: boolean
   entryCount: number
+  ownerName: string
+  ownerIsMember: boolean
 }
 
 export interface HomebrewPackShare {

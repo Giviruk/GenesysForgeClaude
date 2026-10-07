@@ -83,3 +83,7 @@ Do not create replacement copies for existing characters. Author edits propagate
 rotating a share token does not revoke existing campaign connections. Existing purchased skill ranks remain on the sheet;
 removing the last character no longer leaves the campaign. Exit/removal is an account action.
 Migration deployment and service restart are outside the implementation PRs.
+
+Original shared pack connections require a current campaign member (or its GM) as the owner.
+On leaving/removal the original pack remains enabled; the GM sees the former owner marker and
+disables it manually. Author edits remain allowed and immediately affect connected campaigns.

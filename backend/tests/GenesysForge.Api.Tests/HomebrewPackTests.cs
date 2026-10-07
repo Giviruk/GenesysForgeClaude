@@ -160,6 +160,11 @@ public class HomebrewPackTests : IClassFixture<ApiFactory>
         Assert.Equal(HttpStatusCode.BadRequest, (await outsider.PostAsync(path, null)).StatusCode);
         Assert.Equal(HttpStatusCode.BadRequest, (await gm.PostAsync($"/api/campaigns/{campaign.Id}/homebrew-packs/shared/invalid/import", null)).StatusCode);
         Assert.Empty((await gm.GetFromJsonAsync<List<CampaignHomebrewPackDto>>($"/api/campaigns/{campaign.Id}/homebrew-packs/", Json.Options))!);
+        var nonMember = await gm.PostAsync(path, null);
+        Assert.Equal(HttpStatusCode.BadRequest, nonMember.StatusCode);
+        Assert.Equal("homebrew.owner_not_member", (await nonMember.Content.ReadFromJsonAsync<ErrorResponse>(Json.Options))!.ReasonCode);
+        Assert.Equal(HttpStatusCode.OK, (await player.PostAsJsonAsync("/api/campaigns/join",
+            new JoinCampaignRequest(campaign.JoinCode!, null), Json.Options)).StatusCode);
         for (var i = 0; i < 2; i++)
             Assert.Equal(HttpStatusCode.OK, (await gm.PostAsync(path, null)).StatusCode);
         var connected = Assert.Single((await gm.GetFromJsonAsync<List<CampaignHomebrewPackDto>>($"/api/campaigns/{campaign.Id}/homebrew-packs/", Json.Options))!);
@@ -168,6 +173,36 @@ public class HomebrewPackTests : IClassFixture<ApiFactory>
         Assert.True(connected.IsEnabled);
         Assert.Equal(HttpStatusCode.BadRequest, (await player.GetAsync($"/api/campaigns/{campaign.Id}/homebrew-packs/")).StatusCode);
         Assert.Equal(HttpStatusCode.BadRequest, (await player.PutAsJsonAsync($"/api/campaigns/{campaign.Id}/homebrew-packs/{pack.Id}", new HomebrewPackToggleRequest(false), Json.Options)).StatusCode);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task PlayerPackAfterLeavingOrRemoval_RemainsEnabledWithFormerOwnerMarker(bool kicked)
+    {
+        var gm = await _factory.CreateAuthorizedClientAsync();
+        var player = await _factory.CreateAuthorizedClientAsync();
+        var campaign = (await (await gm.PostAsJsonAsync("/api/campaigns/", new CreateCampaignRequest("Former author", ""), Json.Options))
+            .Content.ReadFromJsonAsync<CampaignDetailDto>(Json.Options))!;
+        var joined = (await (await player.PostAsJsonAsync("/api/campaigns/join", new JoinCampaignRequest(campaign.JoinCode!, null), Json.Options))
+            .Content.ReadFromJsonAsync<CampaignDetailDto>(Json.Options))!;
+        var author = Assert.Single(joined.Players!);
+        await player.PostAsJsonAsync("/api/custom/skills", new CreateCustomSkillRequest(GameSystem.GenesysCore, "Former owner skill", CharacteristicType.Cunning, SkillKind.General), Json.Options);
+        var pack = Assert.Single((await player.GetFromJsonAsync<List<HomebrewPackListItemDto>>("/api/homebrew-packs/", Json.Options))!);
+        var share = (await (await player.PostAsync($"/api/homebrew-packs/{pack.Id}/share", null)).Content.ReadFromJsonAsync<HomebrewPackShareDto>(Json.Options))!;
+        Assert.Equal(HttpStatusCode.OK, (await gm.PostAsync($"/api/campaigns/{campaign.Id}/homebrew-packs/shared/{share.Token}/import", null)).StatusCode);
+        var listPath = $"/api/campaigns/{campaign.Id}/homebrew-packs/";
+        var initial = Assert.Single((await gm.GetFromJsonAsync<List<CampaignHomebrewPackDto>>(listPath, Json.Options))!);
+        Assert.True(initial.OwnerIsMember);
+        Assert.Equal(author.DisplayName, initial.OwnerName);
+        var removal = await (kicked ? gm : player).DeleteAsync($"/api/campaigns/{campaign.Id}/members/{author.UserId}");
+        Assert.True(removal.StatusCode == HttpStatusCode.NoContent,
+            $"{removal.RequestMessage?.RequestUri}: {removal.StatusCode} {await removal.Content.ReadAsStringAsync()}");
+        var former = Assert.Single((await gm.GetFromJsonAsync<List<CampaignHomebrewPackDto>>(listPath, Json.Options))!);
+        Assert.True(former.IsEnabled);
+        Assert.False(former.OwnerIsMember);
+        Assert.Equal(initial.OwnerName, former.OwnerName);
+        Assert.Equal(HttpStatusCode.NoContent, (await gm.PutAsJsonAsync($"/api/campaigns/{campaign.Id}/homebrew-packs/{pack.Id}", new HomebrewPackToggleRequest(false), Json.Options)).StatusCode);
     }
 
     [Fact]

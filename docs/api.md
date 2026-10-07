@@ -705,8 +705,11 @@ uses enabled campaign packs instead; its personal toggle route returns 400 with 
 `homebrew.character_campaign_context` and directs the user to the GM.
 
 Campaign shared import connects the original pack and returns 200 `{ id, name, entryCount }` with
-its existing ID. It requires the campaign GM and a current shared token. Repeating it enables the
-same connection. The GM-only list returns `{ id, name, system, isEnabled, isMine, entryCount }`.
+its existing ID. It requires the campaign GM and a current shared token. The owner must be the GM or a current
+campaign member; otherwise 400 with `homebrew.owner_not_member`. Repeating it enables the
+same connection. The GM-only list returns `{ id, name, system, isEnabled, isMine, entryCount, ownerName, ownerIsMember }`.
+Removing/leaving membership keeps existing pack connections enabled; the owner status changes
+and the GM decides when to disable them.
 First connection by pack ID requires ownership; an already connected shared original can be
 enabled/disabled by the campaign GM. Changing a share token prevents new connections with the old
 token; existing campaign approvals remain until disabled. The author retains edit/export/share
