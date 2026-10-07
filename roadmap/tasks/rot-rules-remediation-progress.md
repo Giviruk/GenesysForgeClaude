@@ -1176,7 +1176,12 @@ SQL backfill обоих этапов проверен на PostgreSQL 17.11 во
   Этап 4: изоляция кампаний, сохранность купленных навыков, data migration и проверки SQL
   на PostgreSQL 17.11. Полные проверки: 759 domain + 905 API и 482 frontend теста, build/lint.
   План: [gen-content-01-campaign-content-access.md](gen-content-01-campaign-content-access.md).
-  Остаток: review/merge стека и отдельная выкатка; все четыре этапа реализации завершены. ТЗ: [account-campaign-content.md](../../docs/account-campaign-content.md).
+  Этап 5: даты и журнал CRUD шести типов, diff DTO, доступ владельца/участников, история в UI,
+  миграция без backfill; [PR #269](https://github.com/Giviruk/GenesysForgeClaude/pull/269) поверх #268.
+  Полные проверки: 759 domain + 924 API, 502 frontend; build/lint, EF/SQL и Chromium сценарий.
+  План: [gen-content-01-custom-content-history.md](gen-content-01-custom-content-history.md).
+  Остаток: review/merge стека и отдельная выкатка; все пять этапов реализации завершены.
+  Слияние не выполнять по указанию пользователя. ТЗ: [account-campaign-content.md](../../docs/account-campaign-content.md).
 
 ## Что осталось / блокеры
 

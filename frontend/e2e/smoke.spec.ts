@@ -57,7 +57,6 @@ test('GEN-CONTENT-01: original pack live edit, scoped history and member UI', as
   const gm = await register(request, 'content-history-gm')
   const author = await register(request, 'content-history-author')
   const member = await register(request, 'content-history-member')
-  const outsider = await register(request, 'content-history-outsider')
   const campaign = await apiPost<CampaignDetail>(request, gm.token, '/api/campaigns/', { name: unique('Live content'), description: '' })
   const talentRequest = { system: 'genesysCore', name: unique('Player talent'), tier: 1, isRanked: false,
     activation: 'Passive', description: 'User-authored effect.', woundBonus: 0, strainBonus: 0, soakBonus: 0,
@@ -87,7 +86,10 @@ test('GEN-CONTENT-01: original pack live edit, scoped history and member UI', as
     expect(metadata.ownerIsMember).toBe(true)
     expect(new Date(metadata.lastChangedAt!).getTime()).toBeGreaterThan(new Date(metadata.connectedAt).getTime())
   }
-  expect((await request.get(historyUrl, { headers: authHeaders(outsider.token) })).status()).toBe(400)
+  const otherCampaign = await apiPost<CampaignDetail>(request, gm.token, '/api/campaigns/', { name: unique('Unconnected content'), description: '' })
+  expect((await request.get(`/api/homebrew-packs/${pack.id}/changes?campaignId=${otherCampaign.id}`,
+    { headers: authHeaders(gm.token) })).status()).toBe(400)
+  expect((await request.get(historyUrl)).status()).toBe(401)
   await readJson(await request.put(`/api/custom/talents/${talent.id}`, { headers: authHeaders(author.token), data: changed }), 'unchanged save')
   expect(await apiGet(request, member.token, historyUrl)).toHaveLength(2)
 

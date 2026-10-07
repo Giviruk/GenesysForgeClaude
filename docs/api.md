@@ -140,9 +140,10 @@ Other Core item rows remain available from the Genesys Core reference and are re
 The active RoT reference has exactly 116 built-in item rows, including nine service rows that the
 shop handles as operations rather than inventory.
 
-The response includes built-in content plus visible custom content owned by the current user. Imported
-homebrew-pack content is visible when the pack is enabled by default or enabled for the supplied
-`characterId`/`campaignId`.
+The response includes built-ins plus custom content allowed by the effective context. Standalone
+contexts use the account's enabled personal packs and character toggles. Campaign contexts use only
+enabled campaign connections, including original packs of other authors approved by the GM.
+`customLastEditedAt` follows the same visibility and does not expose hidden definition IDs.
 
 Known errors:
 
