@@ -1,3 +1,4 @@
+using GenesysForge.Application.Common;
 using GenesysForge.Application.Abstractions;
 using GenesysForge.Domain;
 using Microsoft.EntityFrameworkCore;
@@ -18,6 +19,7 @@ public class DeleteCustomCareerHandler(IAppDbContext db) : ICommandHandler<Delet
             throw new DomainRuleException("Нельзя удалить карьеру: она используется персонажем.");
 
         db.CareerDefs.Remove(def);
+        CustomContentAudit.Deleted(db, "career", def.Id, def.HomebrewPackId, def.Name, command.UserId);
         await db.SaveChangesAsync(ct);
         return Unit.Value;
     }

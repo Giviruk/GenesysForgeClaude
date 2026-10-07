@@ -171,7 +171,7 @@ public class HomebrewPackTests : IClassFixture<ApiFactory>
         Assert.Equal(pack.Id, connected.Id);
         Assert.False(connected.IsMine);
         Assert.True(connected.IsEnabled);
-        Assert.Equal(HttpStatusCode.BadRequest, (await player.GetAsync($"/api/campaigns/{campaign.Id}/homebrew-packs/")).StatusCode);
+        Assert.Equal(HttpStatusCode.OK, (await player.GetAsync($"/api/campaigns/{campaign.Id}/homebrew-packs/")).StatusCode);
         Assert.Equal(HttpStatusCode.BadRequest, (await player.PutAsJsonAsync($"/api/campaigns/{campaign.Id}/homebrew-packs/{pack.Id}", new HomebrewPackToggleRequest(false), Json.Options)).StatusCode);
     }
 

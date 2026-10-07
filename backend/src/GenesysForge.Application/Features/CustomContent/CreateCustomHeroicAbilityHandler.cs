@@ -24,6 +24,7 @@ public class CreateCustomHeroicAbilityHandler(IAppDbContext db)
             HomebrewPackId = packId,
         };
         db.HeroicAbilityDefs.Add(def);
+        CustomContentAudit.Created(db, "heroicAbility", def.Id, def.HomebrewPackId, def.Name, command.UserId);
         await db.SaveChangesAsync(ct);
         return def.ToDto();
     }

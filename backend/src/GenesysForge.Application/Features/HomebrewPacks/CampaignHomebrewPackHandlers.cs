@@ -15,18 +15,24 @@ public class GetCampaignHomebrewPacksHandler(IAppDbContext db)
 {
     public async Task<List<CampaignHomebrewPackDto>> Handle(GetCampaignHomebrewPacksQuery query, CancellationToken ct = default)
     {
-        await CampaignMapper.GetAsGmAsync(db, query.UserId, query.CampaignId, ct);
+        var campaign = await CampaignMapper.GetAccessibleAsync(db, query.UserId, query.CampaignId, ct);
         var rows = await (from link in db.HomebrewPackCampaigns.AsNoTracking()
             join pack in db.HomebrewPacks.AsNoTracking() on link.HomebrewPackId equals pack.Id
             join owner in db.Users.AsNoTracking() on pack.OwnerUserId equals owner.Id
             where link.CampaignId == query.CampaignId
             orderby pack.Name
-            select new { Pack = pack, link.IsEnabled, OwnerName = owner.DisplayName,
-                OwnerIsMember = pack.OwnerUserId == query.UserId || db.CampaignMembers.Any(
+            select new { Pack = pack, link.IsEnabled, OwnerName = owner.DisplayName, ConnectedAt = link.UpdatedAt,
+                OwnerIsMember = pack.OwnerUserId == campaign.GmUserId || db.CampaignMembers.Any(
                     m => m.CampaignId == query.CampaignId && m.UserId == pack.OwnerUserId) }).ToListAsync(ct);
         var counts = await HomebrewPackMapper.CountEntriesAsync(db, rows.Select(r => r.Pack.Id).ToHashSet(), ct);
+        var packIds = rows.Select(r => r.Pack.Id).ToHashSet();
+        var changed = await db.CustomContentChanges.AsNoTracking()
+            .Where(x => x.HomebrewPackId != null && packIds.Contains(x.HomebrewPackId.Value))
+            .GroupBy(x => x.HomebrewPackId).Select(g => new { Id = g.Key!.Value, At = g.Max(x => x.CreatedAt) })
+            .ToDictionaryAsync(x => x.Id, x => x.At, ct);
         return rows.Select(r => new CampaignHomebrewPackDto(r.Pack.Id, r.Pack.Name, r.Pack.System,
-            r.IsEnabled, r.Pack.OwnerUserId == query.UserId, counts.GetValueOrDefault(r.Pack.Id), r.OwnerName, r.OwnerIsMember)).ToList();
+            r.IsEnabled, r.Pack.OwnerUserId == query.UserId, counts.GetValueOrDefault(r.Pack.Id), r.OwnerName, r.OwnerIsMember,
+            changed.TryGetValue(r.Pack.Id, out var at) ? at : null, r.ConnectedAt)).ToList();
     }
 }
 

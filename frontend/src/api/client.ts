@@ -7,7 +7,7 @@ import type {
   SkillDef, Spell, TalentCategory, TalentDef, UpdateParticipantRequest,
   AddEncounterParticipantRequest, EncounterDetail, EncounterFilter, EncounterInput, EncounterListItem,
   SendToTableMode, UpdateEncounterParticipantRequest,
-  CampaignHomebrewPack, HomebrewPackDocument, HomebrewPackImportResult, HomebrewPackListItem, HomebrewPackShare,
+  CustomContentChange, CampaignHomebrewPack, HomebrewPackDocument, HomebrewPackImportResult, HomebrewPackListItem, HomebrewPackShare,
   CharacterExport, ImportPreview, ImportResult,
   RollLogEntry, CreateRollRequest,
   CharacterAuditEntry,
@@ -961,6 +961,11 @@ export const api = {
     request<CampaignHomebrewPack[]>('GET', `/api/campaigns/${campaignId}/homebrew-packs/`),
   connectSharedCampaignHomebrewPack: (campaignId: string, token: string) =>
     request<HomebrewPackImportResult>('POST', `/api/campaigns/${campaignId}/homebrew-packs/shared/${encodeURIComponent(token)}/import`),
+  homebrewPackChanges: (id: string, campaignId?: string, take = 100) => {
+    const query = new URLSearchParams({ take: String(take) })
+    if (campaignId) query.set('campaignId', campaignId)
+    return request<CustomContentChange[]>('GET', `/api/homebrew-packs/${id}/changes?${query}`)
+  },
   exportHomebrewPack: (id: string) => request<HomebrewPackDocument>('GET', `/api/homebrew-packs/${id}/export`),
   importHomebrewPack: (document: HomebrewPackDocument) =>
     request<HomebrewPackImportResult>('POST', '/api/homebrew-packs/import', document),

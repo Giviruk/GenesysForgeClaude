@@ -15,15 +15,20 @@
 ## План
 
 - [x] Прочитать ТЗ/ревью/инструкции, проверить status/fetch/PR и создать ветку от #268.
-- [ ] CustomContentChange, EF mappings/миграция AddCustomContentChanges без backfill.
-- [ ] Общий diff DTO и запись Create/Update/Delete для шести типов в том же SaveChanges.
-- [ ] Доступ к истории для владельца либо участников кампании с подключённым набором.
-- [ ] CustomLastEditedAt, LastChangedAt/ConnectedAt и чтение списка наборов участниками.
-- [ ] Даты записей, история в кампании/личной библиотеке, поля «было → стало» с метками.
-- [ ] Backend/frontend регрессии, полные тесты, build/lint, EF/SQL проверки.
+- [x] CustomContentChange, EF mappings/миграция AddCustomContentChanges без backfill.
+- [x] Общий diff DTO и запись Create/Update/Delete для шести типов в том же SaveChanges.
+- [x] Доступ к истории для владельца либо участников кампании с подключённым набором.
+- [x] CustomLastEditedAt, LastChangedAt/ConnectedAt и чтение списка наборов участниками.
+- [x] Даты записей, история в кампании/личной библиотеке, поля «было → стало» с метками.
+- [x] Backend/frontend регрессии, полные тесты, build/lint, EF/SQL проверки.
 - [ ] Документация/progress, отдельный stacked PR и ответ на комментарий #268, CI.
 
 ## Остаток / блокеры
 
-Реализовать пункты выше; production и deployment не входят в задачу. Другие пользовательские
+Проверки: 759 domain + 924 API, 502 frontend; build/lint; EF без pending model changes,
+SQL миграции содержит только создание таблицы/двух индексов. Chromium E2E изменения исходного
+таланта и просмотра журнала участником прошёл локально (InMemory); PostgreSQL проверяется CI
+в обоих режимах. Миграция не применялась к production.
+
+Открыть PR, ответить в #268 и дождаться CI; production и deployment не входят в задачу. Другие пользовательские
 untracked-файлы оставлены без изменений. Seed/copyright policy, XP/formулы и JWT не меняются.

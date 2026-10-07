@@ -1,3 +1,4 @@
+using GenesysForge.Application.Common;
 using GenesysForge.Application.Abstractions;
 using GenesysForge.Domain;
 using Microsoft.EntityFrameworkCore;
@@ -16,6 +17,7 @@ public class DeleteCustomHeroicAbilityHandler(IAppDbContext db) : ICommandHandle
             throw new DomainRuleException("Нельзя удалить способность: она выбрана персонажем. Сначала смените её на листе.");
 
         db.HeroicAbilityDefs.Remove(def);
+        CustomContentAudit.Deleted(db, "heroicAbility", def.Id, def.HomebrewPackId, def.Name, command.UserId);
         await db.SaveChangesAsync(ct);
         return Unit.Value;
     }

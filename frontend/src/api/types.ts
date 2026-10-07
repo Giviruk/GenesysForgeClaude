@@ -527,6 +527,7 @@ export interface Reference {
   /** Покупаемый транспорт (ROT-MOUNT-ITEM-01, ROT-TRANSPORT-01): скакуны и повозки со статблоком. */
   mounts: MountDef[]
   editableCustomIds?: string[]
+  customLastEditedAt?: Record<string, string>
 }
 
 /** Скакун или транспортное средство (ROT-TRANSPORT-01). */
@@ -1653,6 +1654,8 @@ export interface CampaignHomebrewPack {
   entryCount: number
   ownerName: string
   ownerIsMember: boolean
+  lastChangedAt: string | null
+  connectedAt: string
 }
 
 export interface HomebrewPackShare {
@@ -2037,4 +2040,17 @@ export interface CraftingProjectInput {
   roughSurvival?: boolean
   craftsmanship?: WeaponCraftsmanship
   material?: ImplementMaterial
+}
+
+export interface CustomContentChange {
+  id: string
+  homebrewPackId: string | null
+  definitionType: 'skill' | 'talent' | 'item' | 'heroicAbility' | 'archetype' | 'career'
+  definitionId: string
+  definitionName: string
+  userId: string
+  userName: string
+  action: 'created' | 'updated' | 'deleted'
+  changes: { field: string; from: string | null; to: string | null }[]
+  createdAt: string
 }

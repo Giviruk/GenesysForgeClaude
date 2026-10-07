@@ -13,7 +13,7 @@ public record HomebrewPackListItemDto(
     DateTime UpdatedAt);
 
 public record CampaignHomebrewPackDto(Guid Id, string Name, GameSystem System,
-    bool IsEnabled, bool IsMine, int EntryCount, string OwnerName, bool OwnerIsMember);
+    bool IsEnabled, bool IsMine, int EntryCount, string OwnerName, bool OwnerIsMember, DateTime? LastChangedAt, DateTime ConnectedAt);
 
 public record HomebrewPackShareDto(string Token, string Path);
 

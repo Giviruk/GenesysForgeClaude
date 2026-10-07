@@ -1,3 +1,4 @@
+using GenesysForge.Application.Common;
 using GenesysForge.Application.Abstractions;
 using GenesysForge.Domain;
 using Microsoft.EntityFrameworkCore;
@@ -16,6 +17,7 @@ public class DeleteCustomItemHandler(IAppDbContext db) : ICommandHandler<DeleteC
             throw new DomainRuleException("Нельзя удалить предмет: он в инвентаре персонажа. Сначала уберите его из инвентаря.");
 
         db.ItemDefs.Remove(def);
+        CustomContentAudit.Deleted(db, "item", def.Id, def.HomebrewPackId, def.Name, command.UserId);
         await db.SaveChangesAsync(ct);
         return Unit.Value;
     }

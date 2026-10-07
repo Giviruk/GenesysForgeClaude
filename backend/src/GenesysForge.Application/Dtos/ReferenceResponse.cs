@@ -15,7 +15,8 @@ public record ReferenceResponse(
     /// Покупаемые скакуны (ROT-MOUNT-ITEM-01): существа со статблоком, а не записи снаряжения.
     /// </summary>
     List<MountDefDto>? Mounts = null,
-    List<Guid>? EditableCustomIds = null);
+    List<Guid>? EditableCustomIds = null,
+    Dictionary<Guid, DateTime>? CustomLastEditedAt = null);
 
 public record HeroicSecondaryEffectDto(
     Guid Id, string Code, string Name, string NameRu, string Description, string SafeDescription,

@@ -571,6 +571,22 @@ Indexes:
 - unique `(HomebrewPackId, CampaignId)`.
 - cascade FKs to the pack and target character/campaign.
 
+### CustomContentChanges
+
+Custom definition history for six types: skill, talent, item, heroicAbility, archetype, career.
+Fields: `Id`, nullable `HomebrewPackId` (legacy content only), `DefinitionType` (max 40),
+`DefinitionId`, `DefinitionName`, `UserId`, `Action` (Created=0, Updated=1, Deleted=2),
+`ChangesJson` (text), `CreatedAt` (UTC timestamp). `ChangesJson` holds the DTO field diff for updates;
+created/deleted events retain the name with an empty diff. No definition FK is present, so deleting
+an unused definition preserves history. History identifiers are retained without cascade FKs.
+
+Indexes: `(HomebrewPackId, CreatedAt)` and `(DefinitionId, CreatedAt)`.
+`20261007090302_AddCustomContentChanges` creates only this table and its indexes, without backfill.
+Definition tables have no new UpdatedAt columns. Last edited dates come from grouped journal MAX,
+restricted to visible custom definition IDs in reference responses. Campaign pack metadata uses
+the pack's latest event and `HomebrewPackCampaigns.UpdatedAt` for the connection date.
+Custom CRUD saves events atomically with definition changes; imports and seed do not add events.
+
 ### RollLogEntries
 
 Game Table dice-roll log (U-08). The roll outcome is computed on the client (Genesys narrative dice); the row stores it for history and realtime display to other table participants.

@@ -10,6 +10,7 @@ import {
   TALENT_CATEGORIES, TALENT_CATEGORY_LABELS,
 } from '../utils/labels'
 import { t } from '../i18n'
+import { CustomEditedDate, HomebrewPackHistory, PackChangeStatus } from './HomebrewPackHistory'
 
 interface Props {
   campaignId?: string
@@ -77,7 +78,7 @@ export function CustomTab({ campaignId, system, reference, onError, refresh }: P
           <>
             <SkillForm key={editingSkill?.id ?? 'new'} campaignId={campaignId} system={system} run={run} editing={editingSkill}
               onDone={() => setEditingSkill(null)} />
-            <CustomList editableIds={reference.editableCustomIds} items={customSkills.map(s => ({ id: s.id, label: `${s.name} · ${CHARACTERISTIC_LABELS[s.characteristic]} · ${SKILL_KIND_LABELS[s.kind]}` }))}
+            <CustomList lastEditedAt={reference.customLastEditedAt} editableIds={reference.editableCustomIds} items={customSkills.map(s => ({ id: s.id, label: `${s.name} · ${CHARACTERISTIC_LABELS[s.characteristic]} · ${SKILL_KIND_LABELS[s.kind]}` }))}
               onEdit={id => setEditingSkill(customSkills.find(s => s.id === id)!)}
               onDelete={id => run(() => api.deleteCustomSkill(campaignId, id), t('Навык удалён.', 'Skill deleted.'))} />
           </>
@@ -86,7 +87,7 @@ export function CustomTab({ campaignId, system, reference, onError, refresh }: P
           <>
             <TalentForm key={editingTalent?.id ?? 'new'} campaignId={campaignId} system={system} run={run} editing={editingTalent}
               onDone={() => setEditingTalent(null)} />
-            <CustomList editableIds={reference.editableCustomIds} items={customTalents.map(tal => ({
+            <CustomList lastEditedAt={reference.customLastEditedAt} editableIds={reference.editableCustomIds} items={customTalents.map(tal => ({
               id: tal.id,
               label: `${tal.name} · ${TALENT_CATEGORY_LABELS[tal.category]} · ${t('Тир', 'Tier')} ${tal.tier}${tal.isRanked ? t(' · ранговый', ' · ranked') : ''}`,
             }))}
@@ -98,7 +99,7 @@ export function CustomTab({ campaignId, system, reference, onError, refresh }: P
           <>
             <ItemForm key={editingItem?.id ?? 'new'} campaignId={campaignId} system={system} reference={reference} run={run} editing={editingItem}
               onDone={() => setEditingItem(null)} />
-            <CustomList editableIds={reference.editableCustomIds} items={customItems.map(i => ({ id: i.id, label: `${i.name} · ${ITEM_KIND_LABELS[i.kind]} · ${t('вес', 'enc.')} ${i.encumbrance}` }))}
+            <CustomList lastEditedAt={reference.customLastEditedAt} editableIds={reference.editableCustomIds} items={customItems.map(i => ({ id: i.id, label: `${i.name} · ${ITEM_KIND_LABELS[i.kind]} · ${t('вес', 'enc.')} ${i.encumbrance}` }))}
               onEdit={id => setEditingItem(customItems.find(i => i.id === id)!)}
               onDelete={id => run(() => api.deleteCustomItem(campaignId, id), t('Предмет удалён.', 'Item deleted.'))} />
           </>
@@ -107,7 +108,7 @@ export function CustomTab({ campaignId, system, reference, onError, refresh }: P
           <>
             <HeroicForm key={editingHeroic?.id ?? 'new'} campaignId={campaignId} run={run} editing={editingHeroic}
               onDone={() => setEditingHeroic(null)} />
-            <CustomList editableIds={reference.editableCustomIds} items={customHeroics.map(h => ({ id: h.id, label: h.name }))}
+            <CustomList lastEditedAt={reference.customLastEditedAt} editableIds={reference.editableCustomIds} items={customHeroics.map(h => ({ id: h.id, label: h.name }))}
               onEdit={id => setEditingHeroic(customHeroics.find(h => h.id === id)!)}
               onDelete={id => run(() => api.deleteCustomHeroicAbility(campaignId, id), t('Способность удалена.', 'Ability deleted.'))} />
           </>
@@ -116,7 +117,7 @@ export function CustomTab({ campaignId, system, reference, onError, refresh }: P
           <>
             <ArchetypeForm key={editingArchetype?.id ?? 'new'} campaignId={campaignId} system={system} run={run}
               editing={editingArchetype} onDone={() => setEditingArchetype(null)} />
-            <CustomList editableIds={reference.editableCustomIds} items={customArchetypes.map(a => ({ id: a.id, label: `${a.nameRu || a.name} · XP ${a.startingXp}` }))}
+            <CustomList lastEditedAt={reference.customLastEditedAt} editableIds={reference.editableCustomIds} items={customArchetypes.map(a => ({ id: a.id, label: `${a.nameRu || a.name} · XP ${a.startingXp}` }))}
               onEdit={id => setEditingArchetype(customArchetypes.find(a => a.id === id)!)}
               onDelete={id => run(() => api.deleteCustomArchetype(campaignId, id), t('Архетип удалён.', 'Archetype deleted.'))} />
           </>
@@ -125,7 +126,7 @@ export function CustomTab({ campaignId, system, reference, onError, refresh }: P
           <>
             <CareerForm key={editingCareer?.id ?? 'new'} campaignId={campaignId} system={system} reference={reference} run={run}
               editing={editingCareer} onDone={() => setEditingCareer(null)} />
-            <CustomList editableIds={reference.editableCustomIds} items={customCareers.map(c => ({ id: c.id, label: `${c.nameRu || c.name} · ${c.careerSkillNames.length} ${t('навыков', 'skills')}` }))}
+            <CustomList lastEditedAt={reference.customLastEditedAt} editableIds={reference.editableCustomIds} items={customCareers.map(c => ({ id: c.id, label: `${c.nameRu || c.name} · ${c.careerSkillNames.length} ${t('навыков', 'skills')}` }))}
               onEdit={id => setEditingCareer(customCareers.find(c => c.id === id)!)}
               onDelete={id => run(() => api.deleteCustomCareer(campaignId, id), t('Карьера удалена.', 'Career deleted.'))} />
           </>
@@ -150,6 +151,7 @@ function HomebrewPackPanel({ campaignId, system, onError, refresh }: {
   const [campaignPacks, setCampaignPacks] = useState<CampaignHomebrewPack[]>([])
   const [sharedInput, setSharedInput] = useState('')
   const [jsonText, setJsonText] = useState('')
+  const [history, setHistory] = useState<{ id: string; name: string; campaignId?: string } | null>(null)
   const [shareText, setShareText] = useState('')
   const [exportText, setExportText] = useState('')
   const [busy, setBusy] = useState(false)
@@ -238,7 +240,9 @@ function HomebrewPackPanel({ campaignId, system, onError, refresh }: {
         {campaignPacks.map(pack => <div key={pack.id} className="custom-list-row">
           <span>{pack.name} · {pack.entryCount} {t('записей', 'entries')}
             {!pack.isMine && t(` · набор игрока ${pack.ownerName}`, ` · player pack by ${pack.ownerName}`)}
-            {!pack.ownerIsMember && <span className="muted">{t(' · игрок покинул кампанию', ' · player left the campaign')}</span>}</span>
+            {!pack.ownerIsMember && <span className="muted">{t(' · игрок покинул кампанию', ' · player left the campaign')}</span>}
+            <PackChangeStatus pack={pack} /></span>
+          <button type="button" className="small" onClick={() => setHistory({ id: pack.id, name: pack.name, campaignId })}>{t('История', 'History')}</button>
           <button type="button" className="small" disabled={busy}
             onClick={() => void act(() => api.setCampaignHomebrewPack(campaignId, pack.id, !pack.isEnabled))}>
             {pack.isEnabled ? t('Отключить набор', 'Disable pack') : t('Включить набор', 'Enable pack')}
@@ -273,12 +277,14 @@ function HomebrewPackPanel({ campaignId, system, onError, refresh }: {
                 {t('Для кампании: выкл.', 'For campaign: off')}
               </button>
               </>}
+              <button className="small" onClick={() => setHistory({ id: pack.id, name: pack.name })}>{t('История', 'History')}</button>
               <button className="small" disabled={busy} onClick={() => void act(() => exportPack(pack.id))}>{t('Экспорт', 'Export')}</button>
               <button className="small" disabled={busy} onClick={() => void act(() => sharePack(pack.id))}>{t('Поделиться', 'Share')}</button>
             </span>
           </div>
         ))}
       </div>
+      {history && <HomebrewPackHistory key={history.id} packId={history.id} name={history.name} campaignId={history.campaignId} onClose={() => setHistory(null)} />}
       {shareText && <pre className="code-block">{shareText}</pre>}
       {exportText && (
         <label>{t('Экспортированный JSON', 'Exported JSON')}
@@ -289,7 +295,8 @@ function HomebrewPackPanel({ campaignId, system, onError, refresh }: {
   )
 }
 
-function CustomList({ items, editableIds, onEdit, onDelete }: {
+function CustomList({ items, editableIds, lastEditedAt, onEdit, onDelete }: {
+  lastEditedAt?: Record<string, string>
   editableIds?: string[]
   items: { id: string; label: string }[]
   onEdit: (id: string) => void
@@ -301,7 +308,7 @@ function CustomList({ items, editableIds, onEdit, onDelete }: {
       <div className="label-line">{t('Ваш контент', 'Your content')} ({items.length}):</div>
       {items.map(it => (
         <div key={it.id} className="custom-list-row">
-          <span>{it.label}</span>
+          <span>{it.label} · <CustomEditedDate at={lastEditedAt?.[it.id]} /></span>
           <span className="custom-list-actions">
             {editableIds && !editableIds.includes(it.id) ? <span className="muted">{t('Контент автора', 'Author content')}</span> : <>
               <button className="small" onClick={() => onEdit(it.id)}>{t('Изменить', 'Edit')}</button>

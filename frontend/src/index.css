@@ -3778,3 +3778,15 @@ select {
     word-break: normal;
   }
 }
+
+/* Account/campaign custom content history */
+.content-pack-dates { display: flex; gap: .5rem; align-items: center; flex-wrap: wrap; margin-top: .25rem; }
+.content-history { overflow-y: auto; max-height: 85vh; }
+.content-history .label-line { display: flex; align-items: baseline; justify-content: space-between; gap: .75rem; flex-wrap: wrap; }
+.content-history .label-line h3 { margin: 0; }
+.content-history-entry .label-line strong { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.content-history-entry time { white-space: nowrap; }
+.content-history-entry { margin: 1rem 0; padding-bottom: 1rem; border-bottom: 1px solid var(--border); }
+.content-history-diff { width: 100%; table-layout: fixed; border-collapse: collapse; }
+.content-history-diff th, .content-history-diff td { text-align: left; vertical-align: top; padding: .5rem; overflow-wrap: anywhere; white-space: pre-wrap; border-bottom: 1px solid var(--border); }
+.content-history-diff th:first-child { width: 25%; }

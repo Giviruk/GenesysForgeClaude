@@ -128,6 +128,8 @@ Response: `ReferenceResponse`:
 - `talents`
 - `items`
 - `heroicAbilities`
+- `customLastEditedAt` — dictionary from visible custom definition IDs to their latest journal
+  timestamp (UTC); built-ins and definitions with no recorded event are absent. Aggregated in one query.
 - `attachments` — item attachments (ROT-EQP-ATT-01)
 - `mounts` — purchasable transport profiles (mounts and vehicles) with their statblocks
   (ROT-MOUNT-ITEM-01, ROT-TRANSPORT-01)
@@ -676,6 +678,7 @@ All routes are protected. Packs are user-owned.
 ```text
 GET  /api/homebrew-packs/
 GET  /api/homebrew-packs/{id}/export
+GET  /api/homebrew-packs/{id}/changes?campaignId={campaignId}&take=100
 POST /api/homebrew-packs/import
 POST /api/homebrew-packs/{id}/share
 POST /api/homebrew-packs/shared/{token}/import
@@ -707,7 +710,10 @@ uses enabled campaign packs instead; its personal toggle route returns 400 with 
 Campaign shared import connects the original pack and returns 200 `{ id, name, entryCount }` with
 its existing ID. It requires the campaign GM and a current shared token. The owner must be the GM or a current
 campaign member; otherwise 400 with `homebrew.owner_not_member`. Repeating it enables the
-same connection. The GM-only list returns `{ id, name, system, isEnabled, isMine, entryCount, ownerName, ownerIsMember }`.
+same connection. The list is readable by the GM and account members and returns
+`{ id, name, system, isEnabled, isMine, entryCount, ownerName, ownerIsMember, lastChangedAt, connectedAt }`.
+`lastChangedAt` is nullable and comes from the latest journal event; `connectedAt` is the connection's
+`UpdatedAt`. A newer `lastChangedAt` marks a pack changed since connection/last toggle.
 Removing/leaving membership keeps existing pack connections enabled; the owner status changes
 and the GM decides when to disable them.
 First connection by pack ID requires ownership; an already connected shared original can be
@@ -716,6 +722,21 @@ token; existing campaign approvals remain until disabled. The author retains edi
 ownership. Author changes propagate to enabled campaigns without creating definition copies.
 `editableCustomIds` in reference identifies visible custom definitions owned by the requesting
 account; foreign author content is displayed without edit/delete actions.
+
+Pack history returns an array, newest first (timestamp, then ID), with `take` clamped to 1–200
+(default 100). Each row contains `id`, `homebrewPackId`, `definitionType`, `definitionId`,
+`definitionName`, `userId`, `userName`, `action` (`created`, `updated`, `deleted`), `createdAt` (UTC),
+and `changes`: `{ field, from, to }` where before/after are JSON-encoded values as strings.
+Field names use camelCase DTO property names; nested collections are compared as whole values.
+Created/deleted events keep the name and have an empty diff; saving unchanged content adds no event.
+Events and definitions are committed in the same `SaveChanges`. Imports and migration backfills do
+not create history, so their dates remain unknown until a real custom edit.
+
+The pack owner can read history without campaign context. Everyone else must supply an accessible
+`campaignId` (GM or current account member) with an existing connection to that original pack,
+including a disabled connection. A shared token alone gives no history access. Missing/unconnected
+packs return 400 `homebrew.changes_not_accessible`; inaccessible campaigns use `campaign.not_accessible`.
+Read-only history is available on the campaign overview to players and in the owner's personal library.
 
 ## Campaigns
 
