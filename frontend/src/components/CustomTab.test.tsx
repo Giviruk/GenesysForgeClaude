@@ -9,7 +9,7 @@ const toggle = vi.fn()
 const importJson = vi.fn()
 const ownPacks = vi.fn()
 const changes = vi.fn()
-const source = { id: 'original-pack', name: 'Исходный набор', system: 'genesysCore', isEnabled: true, isMine: false, entryCount: 1, ownerName: 'Игрок', ownerIsMember: true, lastChangedAt: null, connectedAt: '2026-10-01T12:00:00Z' }
+const source = { id: 'original-pack', name: 'Исходный набор', system: 'genesysCore', isEnabled: true, isMine: false, entryCount: 1, ownerName: 'Игрок', ownerIsMember: true, lastChangedAt: null, connectedAt: '2026-10-01T12:00:00Z', changedAfterConnection: false }
 const reference = { skills: [], talents: [], items: [], archetypes: [], careers: [], heroicAbilities: [], qualities: [], heroicSecondaryEffects: [], attachments: [], mounts: [], editableCustomIds: [] } as Reference
 vi.mock('../api/client', () => ({ api: {
   homebrewPacks: (...args: unknown[]) => ownPacks(...args),
@@ -62,6 +62,9 @@ describe('исходный набор игрока', () => {
     expect(screen.getByText('Контент автора')).toBeTruthy()
     expect(screen.queryByRole('button', { name: 'Изменить' })).toBeNull()
     expect(screen.queryByRole('button', { name: 'Удалить' })).toBeNull()
+    expect(screen.queryByText('Дата правки неизвестна')).toBeNull()
+    expect(screen.getByText(/Player skill/).textContent).not.toMatch(/ · $/)
+    expect(screen.getByText(/Player skill/).querySelector('.small-text')).toBeNull()
   })
 
   it('показывает дату каждой записи и открывает историю своего набора вне кампании', async () => {

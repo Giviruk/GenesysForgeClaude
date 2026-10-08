@@ -585,6 +585,8 @@ Indexes: `(HomebrewPackId, CreatedAt)` and `(DefinitionId, CreatedAt)`.
 Definition tables have no new UpdatedAt columns. Last edited dates come from grouped journal MAX,
 restricted to visible custom definition IDs in reference responses. Campaign pack metadata uses
 the pack's latest event and `HomebrewPackCampaigns.UpdatedAt` for the connection date.
+`ChangedAfterConnection` is a computed API field: the owner differs from the campaign GM and
+the latest event is newer than that connection date. It adds no database column or migration.
 Custom CRUD saves events atomically with definition changes; imports and seed do not add events.
 
 ### RollLogEntries

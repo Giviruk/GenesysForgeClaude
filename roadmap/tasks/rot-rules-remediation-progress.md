@@ -1239,3 +1239,17 @@ PR #264–#268 остаются открытыми по прямому указ�
 Проверки: 759 domain + 924 API, 502 frontend; build/lint и EF/SQL validation, новый Chromium
 сценарий живой правки исходного таланта с diff `tier` 1→2 и просмотра истории участником.
 План: [gen-content-01-custom-content-history.md](gen-content-01-custom-content-history.md).
+
+## Ревью GEN-CONTENT-01 от 08.10.2026
+
+В #268 ревьюер принял предыдущие исправления, новых замечаний нет. В #269 вычисление
+ChangedAfterConnection перенесено на сервер: наборы мастера кампании исключены независимо
+от того, мастер или игрок читает список. UI использует этот флаг; даты legacy/импорта и
+разделители при отсутствующей дате скрываются, пояснение остаётся в пустой истории набора.
+Добавлены регрессии создания/правки GM-контента и правки исходного набора игрока в API,
+UI и существующем E2E-сценарии. Новая миграция не нужна; статус GEN-CONTENT-01 остаётся [~],
+PR #264–#269 не сливать.
+Проверки ревью: 17 API integration tests, все 504 frontend-теста, build/lint и EF без pending
+model changes. Все 9 PublicSafe Chromium E2E прошли локально с production frontend,
+InMemory API и действующим rate limiting. Полные backend/PostgreSQL проверки финальной
+ревизии отслеживаются в [CI #269](https://github.com/Giviruk/GenesysForgeClaude/pull/269/checks).

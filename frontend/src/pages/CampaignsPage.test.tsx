@@ -223,7 +223,7 @@ describe('account campaign membership UI', () => {
     campaignMock.mockResolvedValue(detail(false))
     campaignPacksMock.mockResolvedValueOnce([{ id: 'pack', name: 'Набор участника', system: 'genesysCore',
       isMine: false, isEnabled: true, entryCount: 1, ownerName: 'Автор', ownerIsMember: true,
-      connectedAt: '2026-10-01T12:00:00Z', lastChangedAt: '2026-10-07T12:00:00Z' }])
+      connectedAt: '2026-10-01T12:00:00Z', lastChangedAt: '2026-10-07T12:00:00Z', changedAfterConnection: true }])
     render(<CampaignsPage {...props} />)
     await screen.findByText('Набор участника')
     fireEvent.click(screen.getByRole('button', { name: 'История' }))

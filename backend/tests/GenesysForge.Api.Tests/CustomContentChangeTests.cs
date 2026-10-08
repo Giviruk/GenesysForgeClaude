@@ -82,6 +82,37 @@ public class CustomContentChangeTests(ApiFactory factory) : IClassFixture<ApiFac
     }
 
     [Fact]
+    public async Task GmCampaignContent_NeverFlagsOwnChanges_ForGmOrMembers()
+    {
+        var gm = await factory.CreateAuthorizedClientAsync();
+        var member = await factory.CreateAuthorizedClientAsync();
+        var campaign = await Campaign(gm);
+        Assert.Equal(HttpStatusCode.OK, (await member.PostAsJsonAsync("/api/campaigns/join",
+            new JoinCampaignRequest(campaign.JoinCode!), Json.Options)).StatusCode);
+        var request = new CreateCustomTalentRequest(GameSystem.GenesysCore, "Gm Living Talent", 1, false,
+            "Passive", "Own text", 0, 0, 0, 0, 0);
+        var customPath = $"/api/campaigns/{campaign.Id}/custom/talents";
+        var created = await gm.PostAsJsonAsync(customPath, request, Json.Options);
+        Assert.Equal(HttpStatusCode.OK, created.StatusCode);
+        var talent = (await created.Content.ReadFromJsonAsync<TalentDefDto>(Json.Options))!;
+        for (var tier = 1; tier <= 2; tier++)
+        {
+            if (tier == 2)
+                Assert.Equal(HttpStatusCode.OK, (await gm.PutAsJsonAsync($"{customPath}/{talent.Id}",
+                    request with { Tier = tier }, Json.Options)).StatusCode);
+            foreach (var client in new[] { gm, member })
+            {
+                var pack = Assert.Single((await client.GetFromJsonAsync<List<CampaignHomebrewPackDto>>(
+                    $"/api/campaigns/{campaign.Id}/homebrew-packs/", Json.Options))!);
+                Assert.Equal(client == gm, pack.IsMine);
+                // Reproduces the review: creation/edit follows the initial connection timestamp.
+                Assert.True(pack.LastChangedAt > pack.ConnectedAt);
+                Assert.False(pack.ChangedAfterConnection);
+            }
+        }
+    }
+
+    [Fact]
     public async Task ConnectedOriginal_LiveTierEdit_IsVisibleOnlyToOwnerAndConnectedCampaignParticipants()
     {
         var gm = await factory.CreateAuthorizedClientAsync();
@@ -99,6 +130,7 @@ public class CustomContentChangeTests(ApiFactory factory) : IClassFixture<ApiFac
         var connection = Assert.Single((await member.GetFromJsonAsync<List<CampaignHomebrewPackDto>>($"/api/campaigns/{campaign.Id}/homebrew-packs/", Json.Options))!);
         Assert.True(connection.OwnerIsMember);
         Assert.True(connection.LastChangedAt <= connection.ConnectedAt);
+        Assert.False(connection.ChangedAfterConnection);
         Assert.Equal(HttpStatusCode.OK, (await author.PutAsJsonAsync($"/api/custom/talents/{talent.Id}", request with { Tier = 2 }, Json.Options)).StatusCode);
         var edited = Assert.Single(await History(author, pack.Id), x => x.Action == CustomContentChangeAction.Updated);
         Assert.Equal(new CustomContentFieldChangeDto("tier", "1", "2"), Assert.Single(edited.Changes));
@@ -112,6 +144,7 @@ public class CustomContentChangeTests(ApiFactory factory) : IClassFixture<ApiFac
             var metadata = Assert.Single((await client.GetFromJsonAsync<List<CampaignHomebrewPackDto>>($"/api/campaigns/{campaign.Id}/homebrew-packs/", Json.Options))!);
             Assert.Equal(edited.CreatedAt, metadata.LastChangedAt);
             Assert.True(metadata.LastChangedAt > metadata.ConnectedAt);
+            Assert.True(metadata.ChangedAfterConnection);
         }
         var otherCampaign = await Campaign(outsider);
         foreach (var (client, context) in new[] { (outsider, campaign.Id), (outsider, otherCampaign.Id), (gm, otherCampaign.Id) })
@@ -123,6 +156,8 @@ public class CustomContentChangeTests(ApiFactory factory) : IClassFixture<ApiFac
         Assert.Equal(2, (await History(author, pack.Id)).Count);
         // Disabling the pack hides reference entries, while its approved history remains readable.
         Assert.Equal(HttpStatusCode.NoContent, (await gm.PutAsJsonAsync($"/api/campaigns/{campaign.Id}/homebrew-packs/{pack.Id}", new HomebrewPackToggleRequest(false), Json.Options)).StatusCode);
+        Assert.False(Assert.Single((await member.GetFromJsonAsync<List<CampaignHomebrewPackDto>>(
+            $"/api/campaigns/{campaign.Id}/homebrew-packs/", Json.Options))!).ChangedAfterConnection);
         Assert.Equal(2, (await History(member, pack.Id, campaign.Id)).Count);
         var disabled = (await member.GetFromJsonAsync<ReferenceResponse>($"/api/reference/GenesysCore?campaignId={campaign.Id}", Json.Options))!;
         Assert.DoesNotContain(talent.Id, disabled.CustomLastEditedAt!.Keys);

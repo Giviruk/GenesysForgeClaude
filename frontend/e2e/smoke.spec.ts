@@ -71,6 +71,15 @@ test('GEN-CONTENT-01: original pack live edit, scoped history and member UI', as
   for (const user of [author, member])
     await apiPost(request, user.token, '/api/campaigns/join', { joinCode: campaign.joinCode })
   expect(await apiPost(request, gm.token, connectUrl)).toMatchObject({ id: pack.id })
+  const gmTalent = await apiPost<{ id: string }>(request, gm.token, `/api/campaigns/${campaign.id}/custom/talents`,
+    { ...talentRequest, name: unique('Gm talent') })
+  const gmPack = (await apiGet<CampaignHomebrewPack[]>(request, gm.token, `/api/campaigns/${campaign.id}/homebrew-packs/`))
+    .find(x => x.isMine)!
+  // Creation and connection can fall within the same JavaScript millisecond.
+  expect(new Date(gmPack.lastChangedAt!).getTime()).toBeGreaterThanOrEqual(new Date(gmPack.connectedAt).getTime())
+  expect(gmPack.changedAfterConnection).toBe(false)
+  await readJson(await request.put(`/api/campaigns/${campaign.id}/custom/talents/${gmTalent.id}`,
+    { headers: authHeaders(gm.token), data: { ...talentRequest, name: unique('Edited Gm talent'), tier: 2 } }), 'GM live edit')
   const changed = { ...talentRequest, tier: 2 }
   await readJson(await request.put(`/api/custom/talents/${talent.id}`, { headers: authHeaders(author.token), data: changed }), 'author live edit')
   const historyUrl = `/api/homebrew-packs/${pack.id}/changes?campaignId=${campaign.id}`
@@ -82,9 +91,14 @@ test('GEN-CONTENT-01: original pack live edit, scoped history and member UI', as
       request, user.token, `/api/reference/GenesysCore?campaignId=${campaign.id}`)
     expect(reference.customLastEditedAt[talent.id]).toBe(history[0].createdAt)
     expect(reference.talents.find(x => x.id === talent.id)?.tier).toBe(2)
-    const [metadata] = await apiGet<CampaignHomebrewPack[]>(request, user.token, `/api/campaigns/${campaign.id}/homebrew-packs/`)
+    const campaignPacks = await apiGet<CampaignHomebrewPack[]>(request, user.token, `/api/campaigns/${campaign.id}/homebrew-packs/`)
+    const metadata = campaignPacks.find(x => x.id === pack.id)!
     expect(metadata.ownerIsMember).toBe(true)
     expect(new Date(metadata.lastChangedAt!).getTime()).toBeGreaterThan(new Date(metadata.connectedAt).getTime())
+    expect(metadata.changedAfterConnection).toBe(true)
+    const editedGmPack = campaignPacks.find(x => x.id === gmPack.id)!
+    expect(new Date(editedGmPack.lastChangedAt!).getTime()).toBeGreaterThan(new Date(editedGmPack.connectedAt).getTime())
+    expect(editedGmPack.changedAfterConnection).toBe(false)
   }
   const otherCampaign = await apiPost<CampaignDetail>(request, gm.token, '/api/campaigns/', { name: unique('Unconnected content'), description: '' })
   expect((await request.get(`/api/homebrew-packs/${pack.id}/changes?campaignId=${otherCampaign.id}`,
@@ -94,8 +108,9 @@ test('GEN-CONTENT-01: original pack live edit, scoped history and member UI', as
   expect(await apiGet(request, member.token, historyUrl)).toHaveLength(2)
 
   await openAs(page, member.token, `/campaigns/${campaign.id}`)
-  await expect(page.getByText('изменён после подключения')).toBeVisible()
-  await page.getByRole('button', { name: 'История', exact: true }).click()
+  await expect(page.getByText('изменён после подключения')).toHaveCount(1)
+  const playerPackRow = page.locator('.custom-list-row').filter({ hasText: 'E2E content-history-author' })
+  await playerPackRow.getByRole('button', { name: 'История', exact: true }).click()
   const dialog = page.getByRole('dialog', { name: 'История набора' })
   await expect(dialog.getByText(`Изменено · ${talentRequest.name}`)).toBeVisible()
   await expect(dialog.getByRole('row', { name: 'Тир 1 2' })).toBeVisible()

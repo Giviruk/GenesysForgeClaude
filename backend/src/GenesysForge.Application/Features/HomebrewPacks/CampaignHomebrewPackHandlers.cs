@@ -30,9 +30,15 @@ public class GetCampaignHomebrewPacksHandler(IAppDbContext db)
             .Where(x => x.HomebrewPackId != null && packIds.Contains(x.HomebrewPackId.Value))
             .GroupBy(x => x.HomebrewPackId).Select(g => new { Id = g.Key!.Value, At = g.Max(x => x.CreatedAt) })
             .ToDictionaryAsync(x => x.Id, x => x.At, ct);
-        return rows.Select(r => new CampaignHomebrewPackDto(r.Pack.Id, r.Pack.Name, r.Pack.System,
-            r.IsEnabled, r.Pack.OwnerUserId == query.UserId, counts.GetValueOrDefault(r.Pack.Id), r.OwnerName, r.OwnerIsMember,
-            changed.TryGetValue(r.Pack.Id, out var at) ? at : null, r.ConnectedAt)).ToList();
+        return rows.Select(r =>
+        {
+            DateTime? lastChangedAt = changed.TryGetValue(r.Pack.Id, out var at) ? at : null;
+            var changedAfterConnection = r.Pack.OwnerUserId != campaign.GmUserId
+                && lastChangedAt.HasValue && lastChangedAt.Value > r.ConnectedAt;
+            return new CampaignHomebrewPackDto(r.Pack.Id, r.Pack.Name, r.Pack.System,
+                r.IsEnabled, r.Pack.OwnerUserId == query.UserId, counts.GetValueOrDefault(r.Pack.Id), r.OwnerName, r.OwnerIsMember,
+                lastChangedAt, r.ConnectedAt, changedAfterConnection);
+        }).ToList();
     }
 }
 

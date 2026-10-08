@@ -308,7 +308,7 @@ function CustomList({ items, editableIds, lastEditedAt, onEdit, onDelete }: {
       <div className="label-line">{t('Ваш контент', 'Your content')} ({items.length}):</div>
       {items.map(it => (
         <div key={it.id} className="custom-list-row">
-          <span>{it.label} · <CustomEditedDate at={lastEditedAt?.[it.id]} /></span>
+          <span>{it.label}{lastEditedAt?.[it.id] && <> · <CustomEditedDate at={lastEditedAt[it.id]} /></>}</span>
           <span className="custom-list-actions">
             {editableIds && !editableIds.includes(it.id) ? <span className="muted">{t('Контент автора', 'Author content')}</span> : <>
               <button className="small" onClick={() => onEdit(it.id)}>{t('Изменить', 'Edit')}</button>

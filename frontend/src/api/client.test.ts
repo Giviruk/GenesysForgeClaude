@@ -664,10 +664,12 @@ it('uses account custom routes outside a campaign and retains campaign routes', 
 describe('original shared campaign packs', () => {
   afterEach(() => { vi.restoreAllMocks() })
   it('lists campaign connections and connects by encoded token', async () => {
+    const connected = { id: 'original-pack', lastChangedAt: '2026-10-08T12:00:00Z',
+      connectedAt: '2026-10-01T12:00:00Z', changedAfterConnection: true }
     const fetchMock = vi.spyOn(globalThis, 'fetch')
-      .mockResolvedValueOnce(new Response(JSON.stringify([]), { status: 200 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify([connected]), { status: 200 }))
       .mockResolvedValueOnce(new Response(JSON.stringify({ id: 'original-pack' }), { status: 200 }))
-    await api.campaignHomebrewPacks('campaign')
+    expect(await api.campaignHomebrewPacks('campaign')).toEqual([connected])
     expect(await api.connectSharedCampaignHomebrewPack('campaign', 'raw / token')).toEqual({ id: 'original-pack' })
     expect(fetchMock.mock.calls.map(([url, init]) => [url, init?.method])).toEqual([
       ['/api/campaigns/campaign/homebrew-packs/', 'GET'],

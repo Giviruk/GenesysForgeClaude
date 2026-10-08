@@ -712,9 +712,12 @@ Campaign shared import connects the original pack and returns 200 `{ id, name, e
 its existing ID. It requires the campaign GM and a current shared token. The owner must be the GM or a current
 campaign member; otherwise 400 with `homebrew.owner_not_member`. Repeating it enables the
 same connection. The list is readable by the GM and account members and returns
-`{ id, name, system, isEnabled, isMine, entryCount, ownerName, ownerIsMember, lastChangedAt, connectedAt }`.
+`{ id, name, system, isEnabled, isMine, entryCount, ownerName, ownerIsMember, lastChangedAt, connectedAt, changedAfterConnection }`.
 `lastChangedAt` is nullable and comes from the latest journal event; `connectedAt` is the connection's
-`UpdatedAt`. A newer `lastChangedAt` marks a pack changed since connection/last toggle.
+`UpdatedAt`. The server computes `changedAfterConnection`: the pack owner is not this campaign's GM
+and `lastChangedAt` exists and is newer than `connectedAt`. The flag is independent of the reader's
+`isMine`, so GM-owned packs never warn either the GM or members. UI uses this flag for the badge;
+missing edit dates render no label or separator.
 Removing/leaving membership keeps existing pack connections enabled; the owner status changes
 and the GM decides when to disable them.
 First connection by pack ID requires ownership; an already connected shared original can be

@@ -1656,6 +1656,7 @@ export interface CampaignHomebrewPack {
   ownerIsMember: boolean
   lastChangedAt: string | null
   connectedAt: string
+  changedAfterConnection: boolean
 }
 
 export interface HomebrewPackShare {

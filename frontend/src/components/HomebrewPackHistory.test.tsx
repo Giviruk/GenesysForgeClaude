@@ -11,7 +11,7 @@ vi.mock('../api/client', () => ({ api: {
 } }))
 const pack: CampaignHomebrewPack = { id: 'pack', name: 'Набор игрока', system: 'genesysCore', entryCount: 1,
   isMine: false, isEnabled: true, ownerName: 'Игрок', ownerIsMember: true,
-  connectedAt: '2026-10-01T12:00:00Z', lastChangedAt: '2026-10-07T12:00:00Z' }
+  connectedAt: '2026-10-01T12:00:00Z', lastChangedAt: '2026-10-07T12:00:00Z', changedAfterConnection: true }
 const edit: CustomContentChange = { id: 'edit', homebrewPackId: 'pack', definitionType: 'talent', definitionId: 'talent',
   definitionName: 'Мой талант', userId: 'player', userName: 'Игрок', action: 'updated', createdAt: '2026-10-07T12:00:00Z',
   changes: [{ field: 'tier', from: '1', to: '2' }, { field: 'futureField', from: null, to: '"Новое значение"' }] }
@@ -71,18 +71,25 @@ describe('история кастомного контента', () => {
   })
 
   it('обновляет дату после сигнала кампании', async () => {
-    packs.mockResolvedValue([{ ...pack, lastChangedAt: null }])
+    packs.mockResolvedValue([{ ...pack, lastChangedAt: null, changedAfterConnection: false }])
     const view = render(<CampaignPackHistoryPanel campaignId="campaign" refreshSignal={0} />)
-    await screen.findByText('Дата правки неизвестна')
+    await screen.findByText(pack.name)
+    expect(screen.queryByText(/изменено/)).toBeNull()
     packs.mockResolvedValue([pack])
     view.rerender(<CampaignPackHistoryPanel campaignId="campaign" refreshSignal={1} />)
     expect(await screen.findByText('изменён после подключения')).toBeTruthy()
   })
 
   it('не придумывает дату и не помечает правки до подключения', () => {
-    render(<><CustomEditedDate /><PackChangeStatus pack={{ ...pack, lastChangedAt: '2026-09-01T12:00:00Z' }} /></>)
-    expect(screen.getByText('Дата правки неизвестна')).toBeTruthy()
+    render(<><CustomEditedDate /><PackChangeStatus pack={{ ...pack, lastChangedAt: '2026-09-01T12:00:00Z', changedAfterConnection: false }} /></>)
+    expect(screen.queryByText('Дата правки неизвестна')).toBeNull()
     expect(screen.getByText('изменено 01.09.2026')).toBeTruthy()
+    expect(screen.queryByText('изменён после подключения')).toBeNull()
+  })
+
+  it.each([true, false])('скрывает метку у набора мастера по серверному флагу (isMine=%s)', (isMine) => {
+    render(<PackChangeStatus pack={{ ...pack, isMine, ownerName: 'Мастер', changedAfterConnection: false }} />)
+    expect(screen.getByText('изменено 07.10.2026')).toBeTruthy()
     expect(screen.queryByText('изменён после подключения')).toBeNull()
   })
 })

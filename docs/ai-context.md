@@ -39,7 +39,9 @@ Leaving/removal keeps existing connections enabled; owner name and membership st
 Authors can edit mechanics of connected packs immediately. `CustomContentChange` records custom
 CRUD for six definition types in the same save, with generic DTO field diffs and no unchanged-save
 events. Imports have no artificial history. `customLastEditedAt` covers only visible custom IDs;
-pack `lastChangedAt` is compared to connection `connectedAt`. History is available to the owner or
+pack `lastChangedAt` is compared to connection `connectedAt`. The server's `changedAfterConnection`
+flag excludes packs owned by that campaign's GM for all readers; UI uses it and hides missing dates.
+History is available to the owner or
 GM/current members of a campaign connected to that pack (even when disabled), via
 `GET /api/homebrew-packs/{id}/changes?campaignId=&take=`. The campaign overview and personal library
 display history. Migration `AddCustomContentChanges` adds one table and indexes, with no backfill.

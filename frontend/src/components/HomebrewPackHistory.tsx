@@ -42,16 +42,16 @@ function changeValue(raw: string | null): string {
 }
 
 export function CustomEditedDate({ at }: { at?: string | null }) {
-  return <span className="muted small-text">{at
-    ? t(`изменено ${new Date(at).toLocaleDateString('ru-RU')}`, `edited ${new Date(at).toLocaleDateString('en-US')}`)
-    : t('Дата правки неизвестна', 'Edit date unknown')}</span>
+  if (!at) return null
+  return <span className="muted small-text">{
+    t(`изменено ${new Date(at).toLocaleDateString('ru-RU')}`, `edited ${new Date(at).toLocaleDateString('en-US')}`)
+  }</span>
 }
 
 export function PackChangeStatus({ pack }: { pack: CampaignHomebrewPack }) {
   return <span className="content-pack-dates">
     <CustomEditedDate at={pack.lastChangedAt} />
-    {pack.lastChangedAt && pack.connectedAt && new Date(pack.lastChangedAt) > new Date(pack.connectedAt)
-      && <span className="badge warn">{t('изменён после подключения', 'changed after connection')}</span>}
+    {pack.changedAfterConnection && <span className="badge warn">{t('изменён после подключения', 'changed after connection')}</span>}
   </span>
 }
 

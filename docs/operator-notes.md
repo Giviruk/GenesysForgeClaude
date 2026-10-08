@@ -92,5 +92,8 @@ Stage 5 requires `20261007090302_AddCustomContentChanges` before the updated API
 It adds only the journal table and two indexes; existing definitions/imports receive no invented
 dates or history. CRUD events start with the new code. GM/account members can inspect connected
 pack history from the campaign overview, including disabled packs; owners can inspect their packs
-in the personal library. The “changed after connection” badge compares the latest event to the
-connection's last enable/disable timestamp. Deployment remains a separate operator action.
+in the personal library. The “changed after connection” badge uses the server's ChangedAfterConnection:
+the latest event is newer than the connection's last enable/disable timestamp and the owner is not
+the campaign GM. GM-owned packs show dates/history without this warning for every reader;
+missing dates show no label. This computed response field requires no additional migration.
+Deployment remains a separate operator action.
