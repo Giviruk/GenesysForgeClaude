@@ -26,6 +26,7 @@ const AREA_SEO: Record<AppArea, { title: string; description?: string }> = {
     ),
     description: DEFAULT_DESCRIPTION,
   },
+  library: { title: t(`Моя библиотека — ${SITE}`, `My library — ${SITE}`) },
   campaigns: { title: t(`Кампании — ${SITE}`, `Campaigns — ${SITE}`) },
   feedback: { title: t(`Обратная связь — ${SITE}`, `Feedback — ${SITE}`) },
   npcs: { title: t(`Бестиарий и NPC — ${SITE}`, `Bestiary and NPCs — ${SITE}`) },

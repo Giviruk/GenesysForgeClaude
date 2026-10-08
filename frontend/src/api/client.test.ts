@@ -642,3 +642,20 @@ it('sends campaign context with character creation without changing standalone r
     expect(JSON.parse(fetchMock.mock.calls[1][1]!.body as string)).not.toHaveProperty('campaignId')
   } finally { vi.restoreAllMocks() }
 })
+
+
+it('uses account custom routes outside a campaign and retains campaign routes', async () => {
+  const fetchMock = vi.spyOn(globalThis, 'fetch').mockImplementation(async () =>
+    new Response(JSON.stringify({ id: 'skill' }), { status: 200 }))
+  try {
+    const skill = { system: 'genesysCore' as const, name: 'Sailing', characteristic: 'agility', kind: 'general' }
+    await api.createCustomSkill(undefined, skill)
+    expect(fetchMock.mock.calls[0][0]).toBe('/api/custom/skills')
+    await api.updateCustomSkill(undefined, 'skill', skill)
+    expect(fetchMock.mock.calls[1][0]).toBe('/api/custom/skills/skill')
+    await api.deleteCustomSkill(undefined, 'skill')
+    expect(fetchMock.mock.calls[2][0]).toBe('/api/custom/skills/skill')
+    await api.createCustomSkill('campaign', skill)
+    expect(fetchMock.mock.calls[3][0]).toBe('/api/campaigns/campaign/custom/skills')
+  } finally { vi.restoreAllMocks() }
+})

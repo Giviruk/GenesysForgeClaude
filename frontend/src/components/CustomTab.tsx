@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react'
+import { useEffect, useState, type FormEvent } from 'react'
 import { api } from '../api/client'
 import type {
   Archetype, Career, CustomArchetypeInput, CustomCareerInput, GameSystem,
@@ -12,7 +12,7 @@ import {
 import { t } from '../i18n'
 
 interface Props {
-  campaignId: string
+  campaignId?: string
   system: GameSystem
   reference: Reference
   onError: (message: string) => void
@@ -56,12 +56,8 @@ export function CustomTab({ campaignId, system, reference, onError, refresh }: P
         <h3>{t('Кастомный контент', 'Custom content')}</h3>
         <p className="hint">
           {t(
-            `Создавайте и редактируйте контент кампании для системы «${system === 'genesysCore' ? 'Genesys Core' : 'Realms of Terrinoth'}». ` +
-            'Кастом привязан к вашему аккаунту, а не к этому персонажу: он виден только вам, но доступен ' +
-            'во всех ваших персонажах и NPC этой системы. Удаление недоступно, пока контент используется персонажем.',
-            `Create and edit campaign content for the “${system === 'genesysCore' ? 'Genesys Core' : 'Realms of Terrinoth'}” system. ` +
-            'Custom content belongs to your account, not to this character: only you can see it, but it is available ' +
-            'to all your characters and NPCs of this system. Deletion is unavailable while the content is in use by a character.',
+            'Создавайте контент для своего аккаунта. Мастер может подключить набор к кампании, чтобы участники использовали его. Удаление недоступно, пока контент используется персонажем.',
+            'Create content for your account. A GM can enable a pack for a campaign so its members can use it. Content in use by a character cannot be deleted.',
           )}
         </p>
         <div className="tabs">
@@ -145,7 +141,7 @@ export function CustomTab({ campaignId, system, reference, onError, refresh }: P
 type Run = (action: () => Promise<unknown>, successMessage: string) => Promise<void>
 
 function HomebrewPackPanel({ campaignId, system, onError, refresh }: {
-  campaignId: string
+  campaignId?: string
   system: GameSystem
   onError: (message: string) => void
   refresh: () => Promise<void>
@@ -155,6 +151,16 @@ function HomebrewPackPanel({ campaignId, system, onError, refresh }: {
   const [shareText, setShareText] = useState('')
   const [exportText, setExportText] = useState('')
   const [busy, setBusy] = useState(false)
+
+  useEffect(() => {
+    let cancelled = false
+    api.homebrewPacks().then(result => {
+      if (!cancelled) setPacks(result.filter(pack => pack.system === system))
+    }).catch((err: unknown) => {
+      if (!cancelled) onError(err instanceof Error ? err.message : t('Ошибка', 'Error'))
+    })
+    return () => { cancelled = true }
+  }, [system, onError])
 
   async function load() {
     setPacks((await api.homebrewPacks()).filter(p => p.system === system))
@@ -195,9 +201,9 @@ function HomebrewPackPanel({ campaignId, system, onError, refresh }: {
       <p className="hint">
         {t(
           'Импортируйте переносимый JSON `genesysforge.homebrew-pack.v1`. Контент набора можно включать по умолчанию ' +
-          'для всей текущей кампании.',
+          (campaignId ? 'для текущей кампании.' : 'для своих персонажей вне кампании.'),
           'Import a portable `genesysforge.homebrew-pack.v1` JSON. Pack content can be enabled by default ' +
-          'for the current campaign.',
+          (campaignId ? 'for the current campaign.' : 'for your characters outside campaigns.'),
         )}
       </p>
       <label>{t('JSON набора', 'Pack JSON')}
@@ -218,6 +224,7 @@ function HomebrewPackPanel({ campaignId, system, onError, refresh }: {
           <div key={pack.id} className="custom-list-row">
             <span>{pack.name} · {pack.entryCount} {t('записей', 'entries')}</span>
             <span className="custom-list-actions">
+              {campaignId && <>
               <button className="small" disabled={busy}
                 onClick={() => void act(() => api.setCampaignHomebrewPack(campaignId, pack.id, true))}>
                 {t('Для кампании: вкл.', 'For campaign: on')}
@@ -226,6 +233,7 @@ function HomebrewPackPanel({ campaignId, system, onError, refresh }: {
                 onClick={() => void act(() => api.setCampaignHomebrewPack(campaignId, pack.id, false))}>
                 {t('Для кампании: выкл.', 'For campaign: off')}
               </button>
+              </>}
               <button className="small" disabled={busy} onClick={() => void act(() => exportPack(pack.id))}>{t('Экспорт', 'Export')}</button>
               <button className="small" disabled={busy} onClick={() => void act(() => sharePack(pack.id))}>{t('Поделиться', 'Share')}</button>
             </span>
@@ -264,7 +272,7 @@ function CustomList({ items, onEdit, onDelete }: {
   )
 }
 
-function SkillForm({ campaignId, system, run, editing, onDone }: { campaignId: string; system: GameSystem; run: Run; editing: SkillDef | null; onDone: () => void }) {
+function SkillForm({ campaignId, system, run, editing, onDone }: { campaignId?: string; system: GameSystem; run: Run; editing: SkillDef | null; onDone: () => void }) {
   const [name, setName] = useState(editing?.name ?? '')
   const [characteristic, setCharacteristic] = useState<string>(editing?.characteristic ?? 'brawn')
   const [kind, setKind] = useState<string>(editing?.kind ?? 'general')
@@ -307,7 +315,7 @@ function SkillForm({ campaignId, system, run, editing, onDone }: { campaignId: s
   )
 }
 
-function TalentForm({ campaignId, system, run, editing, onDone }: { campaignId: string; system: GameSystem; run: Run; editing: TalentDef | null; onDone: () => void }) {
+function TalentForm({ campaignId, system, run, editing, onDone }: { campaignId?: string; system: GameSystem; run: Run; editing: TalentDef | null; onDone: () => void }) {
   const [name, setName] = useState(editing?.name ?? '')
   const [tier, setTier] = useState(editing?.tier ?? 1)
   const [isRanked, setIsRanked] = useState(editing?.isRanked ?? false)
@@ -384,7 +392,7 @@ function TalentForm({ campaignId, system, run, editing, onDone }: { campaignId: 
   )
 }
 
-function ItemForm({ campaignId, system, reference, run, editing, onDone }: { campaignId: string; system: GameSystem; reference: Reference; run: Run; editing: ItemDef | null; onDone: () => void }) {
+function ItemForm({ campaignId, system, reference, run, editing, onDone }: { campaignId?: string; system: GameSystem; reference: Reference; run: Run; editing: ItemDef | null; onDone: () => void }) {
   const [name, setName] = useState(editing?.name ?? '')
   const [kind, setKind] = useState<string>(editing?.kind ?? 'gear')
   const [description, setDescription] = useState(editing?.description ?? '')
@@ -524,7 +532,7 @@ function QualityPicker({ qualities, onAdd }: { qualities: Quality[]; onAdd: (tok
 }
 
 function ArchetypeForm({ campaignId, system, run, editing, onDone }: {
-  campaignId: string
+  campaignId?: string
   system: GameSystem
   run: Run
   editing: Archetype | null
@@ -596,7 +604,7 @@ function ArchetypeForm({ campaignId, system, run, editing, onDone }: {
 }
 
 function CareerForm({ campaignId, system, reference, run, editing, onDone }: {
-  campaignId: string
+  campaignId?: string
   system: GameSystem
   reference: Reference
   run: Run
@@ -665,7 +673,7 @@ function CareerForm({ campaignId, system, reference, run, editing, onDone }: {
   )
 }
 
-function HeroicForm({ campaignId, run, editing, onDone }: { campaignId: string; run: Run; editing: HeroicAbility | null; onDone: () => void }) {
+function HeroicForm({ campaignId, run, editing, onDone }: { campaignId?: string; run: Run; editing: HeroicAbility | null; onDone: () => void }) {
   const [name, setName] = useState(editing?.name ?? '')
   const [description, setDescription] = useState(editing?.description ?? '')
 

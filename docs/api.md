@@ -899,3 +899,11 @@ Character creation accepts optional campaignId. The caller must be a campaign me
 selection can use custom archetypes/careers/skills from enabled campaign packs. The character
 and campaign link are committed together. Omitting campaignId retains standalone creation.
 The creation response remains 201 Created with { id }, including in a campaign.
+
+## Personal custom library
+
+POST /api/v1/custom/{skills|talents|items|heroic-abilities|archetypes|careers} creates
+account-owned content in a personal pack without a campaign or GM role. PUT/DELETE for
+/{type}/{id} use the same ownership validation as the existing campaign-scoped routes.
+Campaign-scoped creation retains its GM-only check. A GM enables an owned personal pack
+with PUT /api/v1/campaigns/{id}/homebrew-packs/{packId}. Sharing/importing copies is unchanged.
