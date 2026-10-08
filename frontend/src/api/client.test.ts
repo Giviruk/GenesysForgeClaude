@@ -630,3 +630,15 @@ describe('campaign account membership', () => {
     expect(fetchMock.mock.calls[1][1]!.method).toBe('DELETE')
   })
 })
+
+
+it('sends campaign context with character creation without changing standalone requests', async () => {
+  const fetchMock = vi.spyOn(globalThis, 'fetch').mockImplementation(async () =>
+    new Response(JSON.stringify({ id: 'character' }), { status: 201 }))
+  try {
+    await api.createCharacter('Hero', 'genesysCore', 'a', 'c', [], [], [], {}, 'standardMoney', undefined, 'campaign')
+    expect(JSON.parse(fetchMock.mock.calls[0][1]!.body as string).campaignId).toBe('campaign')
+    await api.createCharacter('Hero', 'genesysCore', 'a', 'c', [])
+    expect(JSON.parse(fetchMock.mock.calls[1][1]!.body as string)).not.toHaveProperty('campaignId')
+  } finally { vi.restoreAllMocks() }
+})

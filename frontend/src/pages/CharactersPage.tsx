@@ -246,9 +246,11 @@ function ImportCharacterModal({ payload, preview, onCancel, onImported }: {
   )
 }
 
-export function CreateCharacterForm({ onCancel, onCreated }: { onCancel: () => void; onCreated: (id: string) => void }) {
+export function CreateCharacterForm({ onCancel, onCreated, campaignId }: {
+  onCancel: () => void; onCreated: (id: string) => void; campaignId?: string
+}) {
   const [system, setSystem] = useState<GameSystem>('genesysCore')
-  const [loaded, setLoaded] = useState<{ system: GameSystem; data: Reference } | null>(null)
+  const [loaded, setLoaded] = useState<{ system: GameSystem; campaignId?: string; data: Reference } | null>(null)
   const [name, setName] = useState('')
   const [archetypeId, setArchetypeId] = useState('')
   const [careerId, setCareerId] = useState('')
@@ -271,14 +273,14 @@ export function CreateCharacterForm({ onCancel, onCreated }: { onCancel: () => v
   const [busy, setBusy] = useState(false)
 
   // Справочник показывается только для текущей системы — при переключении стейл-данные скрываются сами
-  const reference = loaded?.system === system ? loaded.data : null
+  const reference = loaded?.system === system && loaded.campaignId === campaignId ? loaded.data : null
 
   useEffect(() => {
     let cancelled = false
-    api.reference(system)
+    api.reference(system, campaignId ? { campaignId } : undefined)
       .then(data => {
         if (cancelled) return
-        setLoaded({ system, data })
+        setLoaded({ system, campaignId, data })
         setArchetypeId('')
         setCareerId('')
         setFreeSkills([])
@@ -291,7 +293,7 @@ export function CreateCharacterForm({ onCancel, onCreated }: { onCancel: () => v
         if (!cancelled) setError(err instanceof Error ? err.message : t('Ошибка загрузки', 'Failed to load'))
       })
     return () => { cancelled = true }
-  }, [system])
+  }, [system, campaignId])
 
   const archetype = reference?.archetypes.find(a => a.id === archetypeId)
   const career = reference?.careers.find(c => c.id === careerId)
@@ -386,7 +388,7 @@ export function CreateCharacterForm({ onCancel, onCreated }: { onCancel: () => v
         ? gearSlots.map(s => ({ choiceGroup: s.group, optionIndex: gearChoices[s.group] }))
         : []
       const { id } = await api.createCharacter(name, system, archetypeId, careerId, freeSkills, choices, gear,
-        { desire, fear, strength, flaw, background }, equipmentMode, speciesChoice || undefined)
+        { desire, fear, strength, flaw, background }, equipmentMode, speciesChoice || undefined, campaignId)
       onCreated(id)
     } catch (err) {
       setError(err instanceof Error ? err.message : t('Ошибка создания', 'Failed to create'))

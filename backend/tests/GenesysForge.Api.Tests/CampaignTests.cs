@@ -325,4 +325,47 @@ public class CampaignTests : IClassFixture<ApiFactory>
         }
     }
 
+    [Fact]
+    public async Task MemberWithoutCharacter_CreatesUsingGmContent_OnlyInItsCampaign()
+    {
+        var gm = await _factory.CreateAuthorizedClientAsync();
+        var campaign = await CreateCampaignAsync(gm);
+        var otherCampaign = await CreateCampaignAsync(gm, "Other content");
+        var customPath = $"/api/campaigns/{campaign.Id}/custom";
+        var skill = (await (await gm.PostAsJsonAsync($"{customPath}/skills",
+            new CreateCustomSkillRequest(GameSystem.GenesysCore, "Campaign Navigation", CharacteristicType.Intellect, SkillKind.General), Json.Options))
+            .Content.ReadFromJsonAsync<SkillDefDto>(Json.Options))!;
+        var archetype = (await (await gm.PostAsJsonAsync($"{customPath}/archetypes",
+            new CreateCustomArchetypeRequest(GameSystem.GenesysCore, "Campaign Species", "Вид кампании",
+                2, 2, 2, 2, 2, 2, 10, 10, 100, "Own description", null, null), Json.Options))
+            .Content.ReadFromJsonAsync<ArchetypeDto>(Json.Options))!;
+        var career = (await (await gm.PostAsJsonAsync($"{customPath}/careers",
+            new CreateCustomCareerRequest(GameSystem.GenesysCore, "Campaign Career", "Карьера кампании",
+                "Own description", [skill.Name], 0, null), Json.Options))
+            .Content.ReadFromJsonAsync<CareerDto>(Json.Options))!;
+        var player = await _factory.CreateAuthorizedClientAsync();
+        var stranger = await _factory.CreateAuthorizedClientAsync();
+        await player.PostAsJsonAsync("/api/campaigns/join", new JoinCampaignRequest(campaign.JoinCode!), Json.Options);
+        await player.PostAsJsonAsync("/api/campaigns/join", new JoinCampaignRequest(otherCampaign.JoinCode!), Json.Options);
+        var request = new CreateCharacterRequest("Campaign creation", GameSystem.GenesysCore,
+            archetype.Id, career.Id, [skill.Name], CampaignId: campaign.Id);
+        Assert.Equal(HttpStatusCode.BadRequest, (await stranger.PostAsJsonAsync("/api/characters/", request, Json.Options)).StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, (await player.PostAsJsonAsync("/api/characters/",
+            request with { CampaignId = null }, Json.Options)).StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, (await player.PostAsJsonAsync("/api/characters/",
+            request with { CampaignId = otherCampaign.Id }, Json.Options)).StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, (await player.PostAsJsonAsync("/api/characters/",
+            request with { Name = "" }, Json.Options)).StatusCode);
+        Assert.Empty((await player.GetFromJsonAsync<List<CharacterListItemDto>>("/api/characters/", Json.Options))!);
+        Assert.Empty((await gm.GetFromJsonAsync<CampaignDetailDto>($"/api/campaigns/{campaign.Id}", Json.Options))!.Members);
+
+        var created = await player.PostAsJsonAsync("/api/characters/", request, Json.Options);
+        Assert.Equal(HttpStatusCode.Created, created.StatusCode);
+        var id = (await created.Content.ReadFromJsonAsync<Dictionary<string, Guid>>(Json.Options))!["id"];
+        Assert.Contains((await gm.GetFromJsonAsync<CampaignDetailDto>($"/api/campaigns/{campaign.Id}", Json.Options))!.Members,
+            m => m.CharacterId == id);
+        var sheet = (await player.GetFromJsonAsync<CharacterSheetDto>($"/api/characters/{id}", Json.Options))!;
+        Assert.Contains(sheet.Skills, s => s.SkillDefId == skill.Id && s.Ranks == 1 && s.IsCareer);
+    }
+
 }

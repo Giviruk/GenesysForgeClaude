@@ -894,3 +894,8 @@ The existing members field continues to represent characters. Legacy /api aliase
 
 Campaign access failures (missing campaign or no membership) include reasonCode
 `campaign.not_accessible`; the frontend uses the code independently of error-message text.
+
+Character creation accepts optional campaignId. The caller must be a campaign member or GM;
+selection can use custom archetypes/careers/skills from enabled campaign packs. The character
+and campaign link are committed together. Omitting campaignId retains standalone creation.
+The creation response remains 201 Created with { id }, including in a campaign.

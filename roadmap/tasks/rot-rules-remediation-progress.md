@@ -1149,7 +1149,10 @@ ROT-MAG-02 или лист персонажа), проверка собирае�
   выход/исключение, перенос доступа campaign/NPC и миграция с backfill. Проверки:
   48 backend и 50 frontend тестов, frontend build/lint. План этапа:
   [gen-content-01-campaign-members.md](gen-content-01-campaign-members.md).
-  Остаток: этапы 2–4 и merge всех PR. ТЗ: [account-campaign-content.md](../../docs/account-campaign-content.md).
+  Этап 2: создание персонажа на контенте мастера и атомарная связь с кампанией,
+  форма с campaignId; 38 backend / 63 frontend теста и build пройдены.
+  План: [gen-content-01-campaign-characters.md](gen-content-01-campaign-characters.md).
+  Остаток: этапы 3–4 и merge всех PR. ТЗ: [account-campaign-content.md](../../docs/account-campaign-content.md).
 
 ## Что осталось / блокеры
 

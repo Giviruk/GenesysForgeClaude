@@ -427,10 +427,10 @@ export const api = {
     freeCareerSkillNames: string[], archetypeSkillChoices: ArchetypeSkillChoice[] = [],
     careerGearChoices: CareerGearChoice[] = [], bio: CharacterBio = {},
     startingEquipmentMode: StartingEquipmentMode = 'standardMoney',
-    speciesAbilityChoiceCode?: string) =>
+    speciesAbilityChoiceCode?: string, campaignId?: string) =>
     request<{ id: string }>('POST', '/api/characters/',
       { name, system, archetypeId, careerId, freeCareerSkillNames, archetypeSkillChoices, careerGearChoices,
-        startingEquipmentMode, speciesAbilityChoiceCode, ...bio }),
+        startingEquipmentMode, speciesAbilityChoiceCode, campaignId, ...bio }),
   /** Весь лист сразу: нужен печати и магазину, где показывают всё разом. */
   sheet: (id: string) => {
     const cached = sheetFromSlices(characterSlicesCache.get(id))

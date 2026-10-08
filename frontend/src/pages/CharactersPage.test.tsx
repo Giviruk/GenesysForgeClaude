@@ -91,10 +91,11 @@ const reference: Reference = {
   mounts: [],
 }
 
+const referenceMock = vi.fn().mockResolvedValue(reference)
 const createCharacterMock = vi.fn().mockResolvedValue({ id: 'new-id' })
 vi.mock('../api/client', () => ({
   api: {
-    reference: () => Promise.resolve(reference),
+    reference: (...args: unknown[]) => referenceMock(...args),
     createCharacter: (...args: unknown[]) => createCharacterMock(...args),
   },
 }))
@@ -315,4 +316,20 @@ describe('CreateCharacterForm — стартовое снаряжение кар
     expect(screen.getByText(/отметьте до 4.*\(4\/4\)/)).toBeTruthy()
     expect(screen.getByRole('button', { name: /Атлетика/ }).className).toContain('active')
   })
+})
+
+
+it('creates inside the selected campaign using its reference context', async () => {
+  const onCreated = vi.fn()
+  referenceMock.mockClear(); createCharacterMock.mockClear()
+  render(<CreateCharacterForm campaignId="campaign" onCancel={() => {}} onCreated={onCreated} />)
+  await waitFor(() => expect(screen.getByRole('option', { name: 'Трудяга' })).toBeTruthy())
+  expect(referenceMock).toHaveBeenCalledWith('genesysCore', { campaignId: 'campaign' })
+  fireEvent.change(screen.getByLabelText('Имя персонажа'), { target: { value: 'Герой кампании' } })
+  const [archetypeSelect, careerSelect] = screen.getAllByRole('combobox')
+  fireEvent.change(archetypeSelect, { target: { value: 'arch-fixed' } })
+  fireEvent.change(careerSelect, { target: { value: 'career-soldier' } })
+  fireEvent.click(screen.getByRole('button', { name: 'Создать' }))
+  await waitFor(() => expect(onCreated).toHaveBeenCalledWith('new-id'))
+  expect(createCharacterMock.mock.calls[0][10]).toBe('campaign')
 })
