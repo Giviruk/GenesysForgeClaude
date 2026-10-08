@@ -1,0 +1,264 @@
+# Членство в кампании, личная библиотека и создание персонажей
+
+**GEN-CONTENT-01.** Пересмотренный план от 07.10.2026, по коду ветки на базе `master` `25ae5c9`.
+Файл плана задачи: [account-campaign-content-design.md](../roadmap/tasks/account-campaign-content-design.md).
+Документ описывает реализацию; код, API и миграции этим документационным PR не меняются.
+
+**Решение после ревью #268:** мастер подключает исходный набор игрока по shared-ссылке.
+Владелец, HomebrewPackId и ID определений сохраняются; копии для кампании не создаются.
+После подключения можно развивать уже купленные навыки и таланты с теми же ID и рангами.
+Новые покупки до разрешения мастера остаются недоступны.
+
+## Что получает пользователь
+
+- Игрок вступает в кампанию по коду **без персонажа**, видит контент кампании и создаёт персонажа
+  уже внутри неё (в том числе на кастомных архетипе/карьере мастера).
+- Снятие или удаление персонажа не лишает игрока членства. Выход и исключение — отдельные действия.
+- Кастомный контент создаётся без кампании и без роли мастера (личная библиотека). Мастер подключает
+  свой набор либо исходный набор игрока по shared-ссылке.
+- **Подтверждено 06.10.2026:** внутри кампании личный контент игрока доступен только после
+  разрешения мастера.
+
+## Текущий разрыв (проверено по коду)
+
+- Вступление требует готового персонажа: [JoinCampaignHandler.cs:19](../backend/src/GenesysForge.Application/Features/Campaigns/JoinCampaignHandler.cs).
+- Членство выводится из `CampaignCharacters`: [CampaignMapper.GetAccessibleAsync](../backend/src/GenesysForge.Application/Features/Campaigns/CampaignMapper.cs).
+  Снятие последнего персонажа = потеря доступа к кампании.
+- Создание персонажа берёт только **свой** кастом (`OwnerUserId == userId`):
+  [CreateCharacterHandler.cs:26](../backend/src/GenesysForge.Application/Features/Characters/CreateCharacterHandler.cs).
+  При этом покупка таланта уже видит наборы кампании через `IsVisibleCustom` — правила расходятся.
+- Кастом создаётся только через маршрут кампании и только мастером:
+  [CampaignCustomContent.cs:16](../backend/src/GenesysForge.Application/Features/CustomContent/CampaignCustomContent.cs).
+- Справочник уже принимает `campaignId` ([ReferenceEndpoints.cs](../backend/src/GenesysForge.Api/Endpoints/ReferenceEndpoints.cs)),
+  но для игрока без персонажа проверка доступа к кампании не проходит.
+
+## Этапы
+
+| # | Этап | Зависит от | PR |
+| --- | --- | --- | --- |
+| 1 | Членство `CampaignMember` | — | отдельный, с миграцией |
+| 2 | Создание персонажа в кампании, добавление существующего | 1 | отдельный |
+| 3 | Личная библиотека | — | отдельный, можно параллельно с 1–2 |
+| 4 | Изоляция контекста кампании и сохранность листа | 2, 3 | отдельный |
+
+Фикс листа из этапа 4 (купленные навыки не пропадают) — самостоятельный баг, его можно выкатить сразу.
+
+---
+
+## Этап 1. Членство в кампании
+
+### Модель
+
+```csharp
+// GenesysForge.Domain/Entities/CampaignMember.cs
+/// <summary>Аккаунт игрока, вступивший в кампанию. Мастер определяется Campaign.GmUserId и строки не получает.</summary>
+public class CampaignMember
+{
+    public Guid Id { get; set; }
+    public Guid CampaignId { get; set; }
+    public Guid UserId { get; set; }
+    public DateTime JoinedAt { get; set; } = DateTime.UtcNow;
+}
+```
+
+- `AppDbContext`: `DbSet<CampaignMember> CampaignMembers` (+ в `IAppDbContext`), уникальный индекс
+  `(CampaignId, UserId)`, FK на `Campaign` — Cascade, FK на `User` — Cascade.
+- Мастер — только через `GmUserId`, строки членства у него нет, даже если он добавляет своего персонажа.
+- **Инвариант:** у каждой `CampaignCharacter` игрока (не мастера) есть `CampaignMember`
+  с теми же `(CampaignId, PlayerUserId)`. Держится кодом: все пути создания связи идут через один
+  helper (ниже). Составной FK не вводим — тесты идут на InMemory и его всё равно не проверят.
+
+### Миграция `AddCampaignMembers`
+
+Создать таблицу, затем перенести членство из существующих связей (в той же миграции через
+`migrationBuilder.Sql`; Postgres 17, `gen_random_uuid()` встроен):
+
+```sql
+INSERT INTO "CampaignMembers" ("Id", "CampaignId", "UserId", "JoinedAt")
+SELECT gen_random_uuid(), cc."CampaignId", cc."PlayerUserId", MIN(cc."JoinedAt")
+FROM "CampaignCharacters" cc
+JOIN "Campaigns" c ON c."Id" = cc."CampaignId"
+WHERE cc."PlayerUserId" <> c."GmUserId"
+GROUP BY cc."CampaignId", cc."PlayerUserId";
+```
+
+`Down` — удалить таблицу. Миграция не деструктивна. Обновить [database.md](database.md).
+
+### Общий helper
+
+`Features/Campaigns/CampaignMembership.cs` — единственное место, где создаются членство и связь персонажа:
+
+```csharp
+internal static class CampaignMembership
+{
+    /// <summary>Добавляет членство, если его нет. SaveChanges делает вызывающий.</summary>
+    public static async Task EnsureMemberAsync(IAppDbContext db, Campaign campaign, Guid userId, CancellationToken ct)
+    {
+        if (campaign.GmUserId == userId) return;
+        if (!await db.CampaignMembers.AnyAsync(m => m.CampaignId == campaign.Id && m.UserId == userId, ct))
+            db.CampaignMembers.Add(new CampaignMember { Id = Guid.NewGuid(), CampaignId = campaign.Id, UserId = userId });
+    }
+
+    /// <summary>Членство + связь персонажа. SaveChanges делает вызывающий — одна транзакция.</summary>
+    public static async Task AddCharacterAsync(IAppDbContext db, Campaign campaign, Guid userId, Guid characterId, CancellationToken ct)
+    {
+        if (await db.CampaignCharacters.AnyAsync(cc => cc.CampaignId == campaign.Id && cc.CharacterId == characterId, ct))
+            throw new DomainRuleException("Этот персонаж уже участвует в кампании.");
+        await EnsureMemberAsync(db, campaign, userId, ct);
+        db.CampaignCharacters.Add(new CampaignCharacter
+        {
+            Id = Guid.NewGuid(), CampaignId = campaign.Id, CharacterId = characterId, PlayerUserId = userId,
+        });
+    }
+}
+```
+
+Двойное одновременное вступление упрётся в уникальный индекс и вернёт ошибку вместо дубля — допустимо.
+
+### Проверки доступа: `CampaignCharacters` → `CampaignMembers`
+
+Меняется смысл «пользователь состоит в кампании»:
+
+| Место | Что заменить |
+| --- | --- |
+| [CampaignMapper.cs:56](../backend/src/GenesysForge.Application/Features/Campaigns/CampaignMapper.cs) `GetAccessibleAsync` | `db.CampaignMembers.AnyAsync(m => m.CampaignId == campaignId && m.UserId == userId)`. Автоматически чинит 14 потребителей: SignalR-хаб, заметки, хронику, игровой стол, столкновения, справочник с `campaignId`. |
+| [GetCampaignsHandler.cs:16](../backend/src/GenesysForge.Application/Features/Campaigns/GetCampaignsHandler.cs) | Список кампаний игрока — по `CampaignMembers`. `CharacterCount` (строка 22) оставить по персонажам. |
+| [NpcMapper.cs:67](../backend/src/GenesysForge.Application/Features/Npcs/NpcMapper.cs) `CanViewAsync` | Видимость `CampaignVisible` NPC — по членству. |
+| [GetNpcsHandler.cs:23, :33](../backend/src/GenesysForge.Application/Features/Npcs/GetNpcsHandler.cs) | То же. |
+| [BuyTalentHandler.cs:240](../backend/src/GenesysForge.Application/Features/Characters/BuyTalentHandler.cs) | Спутник из NPC кампании — по членству. |
+
+Остаются на `CampaignCharacters`, потому что речь о связи именно персонажа:
+`HomebrewVisibility` (наборы кампаний персонажа), `GetCampaignMemberSheetHandler`, `GetCampaignMemberAuditHandler`,
+`ParticipantFactory`, `EncounterParticipantFactory`, `AddCampaignCharacters`, `RemoveCampaignCharacterHandler`.
+
+Член без персонажа на игровом столе может смотреть и бросать кубы (как мастер — без персонажа),
+но не управлять участниками: `UpdateParticipant`/`ActivateAbility` уже проверяют владение персонажем.
+
+### API
+
+| Метод и маршрут | Поведение |
+| --- | --- |
+| `POST /api/campaigns/join` `{ joinCode, characterId? }` | `CharacterId` становится необязательным (`Guid?`). Без него — `EnsureMemberAsync`; повторное вступление не ошибка, просто возвращает кампанию. С ним — `AddCharacterAsync`, как раньше. Один `SaveChanges`. Старые клиенты не ломаются. |
+| `POST /api/campaigns/{id}/characters` `{ characterId }` | **Новый.** Добавить своего существующего персонажа: `GetAccessibleAsync` → `db.GetOwnedAsync(character)` → `AddCharacterAsync`. Нужен, потому что игрок не видит `JoinCode` (его отдают только мастеру). |
+| `DELETE /api/campaigns/{id}/members/{userId}` | **Новый.** Выход (`userId` — свой) или исключение (вызывает мастер). Мастера удалить нельзя. Удаляет членство и **явно** все `CampaignCharacters` этого игрока в кампании — не полагаться на cascade, на InMemory его нет. |
+| `DELETE /api/campaigns/{id}/characters/{characterId}` | Без изменений, но членство теперь остаётся. **Изменение поведения:** раньше снятие последнего персонажа означало выход. |
+
+DTO: в `CampaignDetailDto` добавить последним параметром `List<CampaignPlayerDto> Players`,
+`CampaignPlayerDto(Guid UserId, string DisplayName, string? AvatarUrl, bool IsMe, DateTime JoinedAt)` —
+без email. Существующий `Members` (это персонажи) не переименовывать ради совместимости клиента.
+Обновить [api.md](api.md).
+
+### SignalR
+
+`CampaignHub.SubscribeCampaign` проверяет доступ через `GetAccessibleAsync` — член без персонажа подпишется
+без изменений в хабе. После исключения соединение остаётся в группе до переподключения. События «тонкие»
+(только `campaignId`, [SignalRCampaignNotifier.cs](../backend/src/GenesysForge.Api/Realtime/SignalRCampaignNotifier.cs)):
+клиент перечитывает REST и получает отказ, данные не утекают. Отдельный отзыв подписки не делаем;
+понадобится, если события начнут нести данные — тогда хранить соединения пользователя и вызывать
+`RemoveFromGroupAsync` при исключении.
+
+### Frontend
+
+- `api/client.ts`: `joinCampaign(code, characterId?)`, `addCampaignCharacter(campaignId, characterId)`,
+  `removeCampaignMember(campaignId, userId)`; `api/types.ts`: `CampaignDetail.players`.
+- `CampaignsPage` → `JoinCampaignForm`: выбор персонажа необязателен (вариант «без персонажа»), кнопка
+  активна при введённом коде; после вступления открыть кампанию.
+- `CampaignDetailView`: блок «Игроки» — у мастера кнопка «Исключить», у игрока «Покинуть кампанию».
+  У игрока — «Добавить существующего» (свои персонажи, которых нет среди `members` с `isMine`)
+  и «Создать персонажа» (этап 2).
+- Если перечитывание кампании вернуло отказ (исключили) — вернуть на список кампаний.
+- `client.test.ts`: тело `join` без `characterId`, новые методы.
+
+### Тесты (`CampaignTests`)
+
+- Вступление без персонажа: кампания в списке, `GET /api/campaigns/{id}` 200, справочник с `campaignId` 200.
+- Вступление с персонажем (старый сценарий) работает, членство создаётся.
+- Снятие последнего персонажа — доступ к кампании сохраняется.
+- Выход — доступ пропал, персонажи сняты. Мастер исключает игрока — то же; игрок не может исключить
+  другого; мастера исключить нельзя.
+- Добавление существующего: только своего, только члену; повтор — ошибка.
+- `CampaignVisible` NPC мастера видны члену без персонажа.
+
+---
+
+## Этап 2. Создание персонажа в кампании
+
+- `CreateCharacterRequest`: последним параметром `Guid? CampaignId = null` — совместимо со старыми клиентами.
+- `CreateCharacterHandler`: если `CampaignId` задан — `campaign = CampaignMapper.GetAccessibleAsync(...)`
+  (член или мастер), видимость — `GetVisiblePackIdsAsync(db, userId, req.System, campaignId: req.CampaignId)`.
+- Фильтры архетипа, карьеры и навыков ([CreateCharacterHandler.cs:26, :33, :86](../backend/src/GenesysForge.Application/Features/Characters/CreateCharacterHandler.cs))
+  заменить с «только свой» на правило, уже используемое листом и покупками
+  ([SheetBuilder.cs:114](../backend/src/GenesysForge.Application/Common/SheetBuilder.cs)):
+  `x.OwnerUserId == null || (x.HomebrewPackId == null ? x.OwnerUserId == userId : visiblePackIds.Contains(x.HomebrewPackId.Value))`.
+  Выражение остаётся inline — EF не транслирует вызов `IsVisibleCustom`.
+- Перед единственным `SaveChangesAsync` (строка 192) — `CampaignMembership.AddCharacterAsync`. Все проверки
+  выполняются до записи, персонаж и связь сохраняются одним `SaveChanges`: при ошибке ничего не записано.
+- Frontend: `CreateCharacterForm` получает необязательный `campaignId`, грузит `api.reference(system, { campaignId })`
+  и передаёт `campaignId` в `createCharacter`; после создания возвращает в кампанию. Кнопка «Создать персонажа»
+  в `CampaignDetailView` открывает эту форму.
+
+Тесты: член без персонажа создаёт героя на кастомных архетипе и карьере мастера внутри кампании — 200,
+персонаж в кампании; тот же запрос без `CampaignId` — 400; не член с `CampaignId` — 400; контент мастера
+из другой его кампании — 400.
+
+---
+
+## Этап 3. Личная библиотека
+
+- `CampaignCustomContent.GetOrCreatePackIdAsync` принимает `Guid? campaignId`. При `null` — без проверки мастера
+  создаёт/находит личный набор пользователя «Моя библиотека (system)» с маркером в `Description`
+  (так же, как сейчас помечается набор кампании). Обработчики создания меняются только типом `CampaignId` в команде.
+- Маршруты: новая группа `/api/custom` с шестью `POST` без кампании. `PUT`/`DELETE` уже не используют
+  `campaignId` ([CustomContentEndpoints.cs:39–99](../backend/src/GenesysForge.Api/Endpoints/CustomContentEndpoints.cs)) —
+  вынести их регистрацию в функцию и повесить на обе группы.
+- Подключение к кампании — существующий `PUT /api/campaigns/{id}/homebrew-packs/{packId}`
+  (`SetCampaignHomebrewPackHandler` проверяет роль мастера; первое подключение по ID — только своего
+  набора, управление ранее разрешённым shared-набором — по существующей связи кампании).
+- `POST /api/campaigns/{id}/homebrew-packs/shared/{token}/import` подключает исходный shared-набор
+  к кампании без копирования. `GET /api/campaigns/{id}/homebrew-packs` позволяет мастеру видеть
+  и включать/отключать все подключённые наборы, включая принадлежащие игрокам.
+- Frontend: `CustomTab` с необязательным `campaignId`; раздел «Моя библиотека» — `CustomTab` без кампании.
+
+Тесты: пользователь без кампаний создаёт кастомный архетип и персонажа на нём вне кампании; другой
+пользователь этот контент не видит.
+
+---
+
+## Этап 4. Изоляция контекста кампании
+
+- `HomebrewVisibility.GetVisiblePackIdsAsync`: если контекст — кампания (`campaignId` задан или персонаж
+  связан с кампаниями), личные наборы пользователя не добавляются; видны только включённые подключения кампании.
+  Так выполняется подтверждённое требование.
+- Определения без набора (`HomebrewPackId == null`) правило `IsVisibleCustom` по-прежнему отдаёт владельцу.
+  После этапа 3 новые такие не появляются. **Assumption:** legacy-записей без набора нет — перед этапом
+  проверить на проде; если есть, перенести их в личный набор миграцией данных.
+- **Изменение поведения:** у персонажей в кампаниях личные наборы игрока перестанут быть доступны для новых
+  покупок. Перед выкаткой предупредить игроков: нужные исходные наборы мастер подключает к кампании
+  по shared-ссылке; повторная покупка навыков/талантов и перенос рангов на копии не нужны.
+- Сохранность листа: [SheetBuilder.cs:111–116](../backend/src/GenesysForge.Application/Common/SheetBuilder.cs)
+  фильтрует навыки по видимости, и навык с купленными рангами пропадает с листа, если его набор отключён.
+  Добавить `ownedSkillIds.Contains(s.Id) ||` в условие видимости. Таланты и предметы лист по видимости
+  не фильтрует. Это уже существующий баг — фикс можно выкатить сразу.
+
+Тесты: персонаж в кампании не видит личный набор владельца, видит после подключения мастером; ранги
+навыка остаются на листе после отключения набора.
+
+---
+
+## Сознательно не делаем до реального запроса
+
+- Версии наборов и снимки определений в листе: персонажи ссылаются на определения по ID, а используемые
+  определения удалить нельзя ([DeleteCustomTalentHandler.cs:15](../backend/src/GenesysForge.Application/Features/CustomContent/DeleteCustomTalentHandler.cs) и аналоги).
+- Отдельную очередь предложений набора игроком мастеру: достаточно shared-ссылки и прямого
+  подключения исходного набора мастером. Обычный импорт JSON в личную библиотеку остаётся
+  копированием; служебные маркеры Personal custom:/Campaign custom: при нём не переносятся.
+- `Character.RulesCampaignId`, отдельный сервис `ContentAccessPolicy`, стабильные ключи вместо ссылок
+  по имени, отзыв SignalR-подписки при исключении.
+
+## Риски
+
+- Снятие последнего персонажа больше не выводит игрока из кампании (этап 1).
+- Этап 4 закрывает игрокам доступ к личному кастому в кампаниях до подключения мастером.
+- XP, dice pool, purchase/refund и формулы не меняются.
+
+**Copyright:** seed и справочники не меняются; оригинальные тексты книг не добавляются.
