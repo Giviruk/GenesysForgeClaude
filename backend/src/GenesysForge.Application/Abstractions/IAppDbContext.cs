@@ -39,6 +39,7 @@ public interface IAppDbContext
     DbSet<CharacterShareToken> CharacterShareTokens { get; }
     DbSet<CharacterNote> CharacterNotes { get; }
     DbSet<Campaign> Campaigns { get; }
+    DbSet<CampaignMember> CampaignMembers { get; }
     DbSet<CampaignCharacter> CampaignCharacters { get; }
     DbSet<CampaignNote> CampaignNotes { get; }
     DbSet<CampaignChronicleChapter> CampaignChronicleChapters { get; }

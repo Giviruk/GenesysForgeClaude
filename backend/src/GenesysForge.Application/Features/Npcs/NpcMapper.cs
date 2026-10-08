@@ -64,7 +64,7 @@ public static class NpcMapper
         if (npc.OwnerUserId == userId) return true;
         if (npc.Visibility == NpcVisibility.PublicTemplate) return true;
         if (npc.Visibility == NpcVisibility.CampaignVisible && npc.OwnerUserId is { } ownerId)
-            return await db.CampaignCharacters.AnyAsync(cc => cc.PlayerUserId == userId
+            return await db.CampaignMembers.AnyAsync(cc => cc.UserId == userId
                 && db.Campaigns.Any(c => c.Id == cc.CampaignId && c.GmUserId == ownerId), ct);
         return false;
     }

@@ -40,6 +40,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<CharacterShareToken> CharacterShareTokens => Set<CharacterShareToken>();
     public DbSet<CharacterNote> CharacterNotes => Set<CharacterNote>();
     public DbSet<Campaign> Campaigns => Set<Campaign>();
+    public DbSet<CampaignMember> CampaignMembers => Set<CampaignMember>();
     public DbSet<CampaignCharacter> CampaignCharacters => Set<CampaignCharacter>();
     public DbSet<CampaignNote> CampaignNotes => Set<CampaignNote>();
     public DbSet<CampaignChronicleChapter> CampaignChronicleChapters => Set<CampaignChronicleChapter>();
@@ -227,6 +228,12 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             e.Property(c => c.JoinCode).HasMaxLength(16);
             e.HasMany(c => c.Characters).WithOne().HasForeignKey(cc => cc.CampaignId).OnDelete(DeleteBehavior.Cascade);
             e.HasMany(c => c.Notes).WithOne().HasForeignKey(n => n.CampaignId).OnDelete(DeleteBehavior.Cascade);
+        });
+        b.Entity<CampaignMember>(e =>
+        {
+            e.HasIndex(m => new { m.CampaignId, m.UserId }).IsUnique();
+            e.HasOne<Campaign>().WithMany().HasForeignKey(m => m.CampaignId).OnDelete(DeleteBehavior.Cascade);
+            e.HasOne<User>().WithMany().HasForeignKey(m => m.UserId).OnDelete(DeleteBehavior.Cascade);
         });
         b.Entity<CampaignCharacter>(e =>
         {

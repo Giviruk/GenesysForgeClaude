@@ -66,9 +66,9 @@ public class CampaignHubTests
         var player = Guid.NewGuid();
         var campaign = NewCampaign(Guid.NewGuid());
         db.Campaigns.Add(campaign);
-        db.CampaignCharacters.Add(new CampaignCharacter
+        db.CampaignMembers.Add(new CampaignMember
         {
-            Id = Guid.NewGuid(), CampaignId = campaign.Id, CharacterId = Guid.NewGuid(), PlayerUserId = player,
+            Id = Guid.NewGuid(), CampaignId = campaign.Id, UserId = player,
         });
         await db.SaveChangesAsync();
 

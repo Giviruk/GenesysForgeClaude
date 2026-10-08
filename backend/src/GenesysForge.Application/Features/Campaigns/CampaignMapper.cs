@@ -39,23 +39,30 @@ public static class CampaignMapper
             .Select(n => new CampaignNoteDto(n.Id, n.Title, n.Body, n.IsPrivate, n.CreatedAt, n.UpdatedAt))
             .ToListAsync(ct);
 
+        var players = await (from member in db.CampaignMembers.AsNoTracking()
+            join player in db.Users.AsNoTracking() on member.UserId equals player.Id
+            where member.CampaignId == campaign.Id
+            orderby player.DisplayName
+            select new CampaignPlayerDto(player.Id, player.DisplayName, player.AvatarUrl,
+                player.Id == userId, member.JoinedAt)).ToListAsync(ct);
+
         return new CampaignDetailDto(
             campaign.Id, campaign.Name, campaign.Description, isGm,
             isGm ? campaign.JoinCode : null,
-            members, notes);
+            members, notes, players);
     }
 
     public static async Task<Campaign> GetAccessibleAsync(
         IAppDbContext db, Guid userId, Guid campaignId, CancellationToken ct)
     {
         var campaign = await db.Campaigns.FirstOrDefaultAsync(c => c.Id == campaignId, ct)
-            ?? throw new DomainRuleException("Кампания не найдена.");
+            ?? throw new DomainRuleException("Кампания не найдена.", "campaign.not_accessible");
         // GM уже авторизован самой строкой кампании; запрос членства для него был лишним round trip.
         if (campaign.GmUserId != userId)
         {
-            var isMember = await db.CampaignCharacters.AnyAsync(
-                cc => cc.CampaignId == campaignId && cc.PlayerUserId == userId, ct);
-            if (!isMember) throw new DomainRuleException("Кампания не найдена.");
+            var isMember = await db.CampaignMembers.AnyAsync(
+                m => m.CampaignId == campaignId && m.UserId == userId, ct);
+            if (!isMember) throw new DomainRuleException("Кампания не найдена.", "campaign.not_accessible");
         }
         return campaign;
     }
@@ -64,7 +71,7 @@ public static class CampaignMapper
         IAppDbContext db, Guid userId, Guid campaignId, CancellationToken ct)
     {
         var campaign = await db.Campaigns.FirstOrDefaultAsync(c => c.Id == campaignId, ct)
-            ?? throw new DomainRuleException("Кампания не найдена.");
+            ?? throw new DomainRuleException("Кампания не найдена.", "campaign.not_accessible");
         if (campaign.GmUserId != userId)
             throw new DomainRuleException("Только мастер кампании может выполнять это действие.");
         return campaign;

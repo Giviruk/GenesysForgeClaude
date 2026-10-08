@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useState, type FormEvent } from 'react'
-import { api } from '../api/client'
+import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react'
+import { api, ApiError } from '../api/client'
 import type {
   CampaignDetail, CampaignListItem, CampaignMember, CharacterListItem, CharacterSheet, GameSession, GameSystem, Reference,
 } from '../api/types'
@@ -67,7 +67,7 @@ export function CampaignsPage({
 
       <div className="campaign-forms">
         <CreateCampaignForm onDone={reload} onError={setError} />
-        <JoinCampaignForm onDone={reload} onError={setError} />
+        <JoinCampaignForm onDone={id => { void reload(); onOpen(id) }} onError={setError} />
       </div>
 
       {campaigns === null && <p className="muted">{t('Загрузка…', 'Loading…')}</p>}
@@ -110,7 +110,7 @@ function CreateCampaignForm({ onDone, onError }: { onDone: () => void; onError: 
   )
 }
 
-function JoinCampaignForm({ onDone, onError }: { onDone: () => void; onError: (m: string) => void }) {
+function JoinCampaignForm({ onDone, onError }: { onDone: (id: string) => void; onError: (m: string) => void }) {
   const [code, setCode] = useState('')
   const [characters, setCharacters] = useState<CharacterListItem[]>([])
   const [characterId, setCharacterId] = useState('')
@@ -122,23 +122,23 @@ function JoinCampaignForm({ onDone, onError }: { onDone: () => void; onError: (m
   async function submit(e: FormEvent) {
     e.preventDefault()
     try {
-      await api.joinCampaign(code, characterId)
+      const campaign = await api.joinCampaign(code, characterId || undefined)
       setCode(''); setCharacterId('')
-      onDone()
+      onDone(campaign.id)
     } catch (err) { onError(err instanceof Error ? err.message : t('Ошибка', 'Error')) }
   }
 
   return (
     <form className="panel custom-form" onSubmit={submit}>
-      <h3>{t('Присоединиться по коду (своим персонажем)', 'Join with a code (using your character)')}</h3>
+      <h3>{t('Присоединиться по коду', 'Join with a code')}</h3>
       <label>{t('Код кампании', 'Campaign code')}<input value={code} onChange={e => setCode(e.target.value)} required /></label>
       <label>{t('Мой персонаж', 'My character')}
-        <select value={characterId} onChange={e => setCharacterId(e.target.value)} required>
-          <option value="" disabled>{t('— выберите —', '— select —')}</option>
+        <select value={characterId} onChange={e => setCharacterId(e.target.value)}>
+          <option value="">{t('Без персонажа — создать позже', 'Without a character — create later')}</option>
           {characters.map(c => <option key={c.id} value={c.id}>{c.name} ({SYSTEM_LABELS[c.system]})</option>)}
         </select>
       </label>
-      <button className="primary" type="submit" disabled={!characterId}>{t('Присоединиться', 'Join')}</button>
+      <button className="primary" type="submit" disabled={!code.trim()}>{t('Присоединиться', 'Join')}</button>
     </form>
   )
 }
@@ -166,9 +166,16 @@ function CampaignDetailView({ campaignId, view, openEncounterId, openCharacterId
   const [session, setSession] = useState<GameSession | null>(null)
   const [sessionLoaded, setSessionLoaded] = useState(false)
 
+  const onBackRef = useRef(onBack)
+  useEffect(() => { onBackRef.current = onBack }, [onBack])
+
   const reload = useCallback(
-    () => api.campaign(campaignId).then(setC).catch((e: unknown) =>
-      setError(e instanceof Error ? e.message : t('Ошибка загрузки', 'Failed to load'))),
+    () => api.campaign(campaignId).then(setC).catch((e: unknown) => {
+      if (e instanceof ApiError &&
+        (e.reasonCode === 'campaign.not_accessible' || e.status === 403 || e.status === 404)) {
+        onBackRef.current()
+      } else setError(e instanceof Error ? e.message : t('Ошибка', 'Error'))
+    }),
     [campaignId])
   useEffect(() => { void reload() }, [reload])
 
@@ -265,6 +272,9 @@ function CampaignDetailView({ campaignId, view, openEncounterId, openCharacterId
         {c.isGm && <button className={view === 'custom' ? 'tab active' : 'tab'} onClick={() => onView('custom')}>{t('Кастом', 'Custom')}</button>}
       </div>
 
+      {view === 'overview' && <CampaignPlayersPanel campaign={c} onError={setError}
+        onChanged={reload} onLeave={onBack} />}
+
       {view === 'custom' && c.isGm ? (
         <CampaignCustomTab campaignId={c.id} members={c.members} onError={setError} />
       ) : view === 'chronicle' ? (
@@ -293,6 +303,74 @@ function CampaignDetailView({ campaignId, view, openEncounterId, openCharacterId
 
     </div>
   )
+}
+
+function CampaignPlayersPanel({ campaign, onChanged, onLeave, onError }: {
+  campaign: CampaignDetail
+  onChanged: () => Promise<void>
+  onLeave: () => void
+  onError: (message: string) => void
+}) {
+  const [adding, setAdding] = useState(false)
+  const [characters, setCharacters] = useState<CharacterListItem[]>([])
+  const [selected, setSelected] = useState('')
+  const [busy, setBusy] = useState(false)
+
+  async function remove(userId: string, isMe: boolean, displayName: string) {
+    const message = isMe
+      ? t('Покинуть кампанию? Все ваши персонажи будут сняты. Для возвращения понадобится код приглашения мастера.',
+        'Leave the campaign? All your characters will be removed. You will need the GM’s invite code to return.')
+      : t(`Исключить игрока «${displayName}»? Все его персонажи будут сняты с кампании.`,
+        `Remove player "${displayName}"? All their characters will be removed from the campaign.`)
+    if (!confirm(message)) return
+    setBusy(true)
+    try {
+      await api.removeCampaignMember(campaign.id, userId)
+      if (isMe) onLeave()
+      else await onChanged()
+    } catch (err) { onError(err instanceof Error ? err.message : t('Ошибка', 'Error')) }
+    finally { setBusy(false) }
+  }
+
+  async function showCharacters() {
+    try {
+      const own = await api.characters()
+      setCharacters(own.filter(char => !campaign.members.some(m => m.characterId === char.id)))
+      setAdding(true)
+    } catch (err) { onError(err instanceof Error ? err.message : t('Ошибка', 'Error')) }
+  }
+
+  async function add(e: FormEvent) {
+    e.preventDefault()
+    setBusy(true)
+    try {
+      await api.addCampaignCharacter(campaign.id, selected)
+      setAdding(false); setSelected('')
+      await onChanged()
+    } catch (err) { onError(err instanceof Error ? err.message : t('Ошибка', 'Error')) }
+    finally { setBusy(false) }
+  }
+
+  return <section className="panel">
+    <h3>{t('Игроки', 'Players')}</h3>
+    {(campaign.players ?? []).map(player => <div key={player.userId} className="page-head">
+      <span>{player.displayName}{player.isMe ? t(' (вы)', ' (you)') : ''}</span>
+      {(campaign.isGm || player.isMe) && <button disabled={busy}
+        onClick={() => void remove(player.userId, player.isMe, player.displayName)}>
+        {player.isMe ? t('Покинуть кампанию', 'Leave campaign') : t('Исключить', 'Remove player')}
+      </button>}
+    </div>)}
+    {(campaign.players ?? []).length === 0 && <p className="muted">{t('Игроков пока нет.', 'No players yet.')}</p>}
+    <button onClick={() => void showCharacters()}>{t('Добавить существующего', 'Add existing character')}</button>
+    {adding && <form onSubmit={e => void add(e)}>
+      <label>{t('Мой персонаж', 'My character')}<select value={selected} onChange={e => setSelected(e.target.value)}>
+        <option value="">{t('— выберите —', '— select —')}</option>
+        {characters.map(char => <option key={char.id} value={char.id}>{char.name}</option>)}
+      </select></label>
+      <button type="submit" disabled={busy || !selected}>{t('Добавить', 'Add')}</button>
+      <button type="button" onClick={() => setAdding(false)}>{t('Отмена', 'Cancel')}</button>
+    </form>}
+  </section>
 }
 
 const CAMPAIGN_MEMBER_TABS = [

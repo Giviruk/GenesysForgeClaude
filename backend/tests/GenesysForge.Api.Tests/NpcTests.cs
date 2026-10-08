@@ -424,7 +424,7 @@ public class NpcTests : IClassFixture<ApiFactory>
         Assert.Null(npc.CampaignId);
 
         var firstPlayer = await _factory.CreateAuthorizedClientAsync();
-        await JoinCampaignAsync(firstPlayer, firstCampaign, "Первый герой");
+        await firstPlayer.PostAsJsonAsync("/api/campaigns/join", new JoinCampaignRequest(firstCampaign.JoinCode!), Json.Options);
         var secondPlayer = await _factory.CreateAuthorizedClientAsync();
         await JoinCampaignAsync(secondPlayer, secondCampaign, "Второй герой");
         var stranger = await _factory.CreateAuthorizedClientAsync();

@@ -69,6 +69,18 @@ public static class CampaignEndpoints
             return Results.NoContent();
         });
 
+        group.MapPost("/{id:guid}/characters", async (Guid id, AddCampaignCharacterRequest req,
+            ClaimsPrincipal user, ICommandHandler<AddCampaignCharacterCommand, CampaignDetailDto> handler,
+            CancellationToken ct) => Results.Ok(await handler.Handle(
+                new AddCampaignCharacterCommand(user.UserId(), id, req.CharacterId), ct)));
+
+        group.MapDelete("/{id:guid}/members/{memberUserId:guid}", async (Guid id, Guid memberUserId,
+            ClaimsPrincipal user, ICommandHandler<RemoveCampaignMemberCommand, Unit> handler, CancellationToken ct) =>
+        {
+            await handler.Handle(new RemoveCampaignMemberCommand(user.UserId(), id, memberUserId), ct);
+            return Results.NoContent();
+        });
+
         // Заметки кампании — только GM
         group.MapPost("/{id:guid}/notes", async (Guid id, SaveCampaignNoteRequest req, ClaimsPrincipal user,
                 ICommandHandler<CreateCampaignNoteCommand, CampaignNoteDto> handler, CancellationToken ct) =>

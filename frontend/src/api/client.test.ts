@@ -605,3 +605,28 @@ describe('api client — кэш листа персонажа', () => {
     expect(fetchMock).toHaveBeenCalledTimes(3)
   })
 })
+
+
+describe('campaign account membership', () => {
+  afterEach(() => vi.restoreAllMocks())
+
+  it('joins without a character and retains the existing character payload', async () => {
+    const fetchMock = vi.spyOn(globalThis, 'fetch').mockImplementation(async () =>
+      new Response(JSON.stringify({ id: 'campaign' }), { status: 200 }))
+    await api.joinCampaign('CODE')
+    expect(JSON.parse(fetchMock.mock.calls[0][1]!.body as string)).toEqual({ joinCode: 'CODE' })
+    await api.joinCampaign('CODE', 'character')
+    expect(JSON.parse(fetchMock.mock.calls[1][1]!.body as string)).toEqual({ joinCode: 'CODE', characterId: 'character' })
+  })
+
+  it('adds an existing character and removes account membership', async () => {
+    const fetchMock = vi.spyOn(globalThis, 'fetch').mockImplementation(async () =>
+      new Response(JSON.stringify({ id: 'campaign' }), { status: 200 }))
+    await api.addCampaignCharacter('campaign', 'character')
+    expect(fetchMock.mock.calls[0][0]).toBe('/api/campaigns/campaign/characters')
+    expect(JSON.parse(fetchMock.mock.calls[0][1]!.body as string)).toEqual({ characterId: 'character' })
+    await api.removeCampaignMember('campaign', 'player')
+    expect(fetchMock.mock.calls[1][0]).toBe('/api/campaigns/campaign/members/player')
+    expect(fetchMock.mock.calls[1][1]!.method).toBe('DELETE')
+  })
+})

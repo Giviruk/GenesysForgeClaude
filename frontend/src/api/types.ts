@@ -1215,12 +1215,21 @@ export interface CampaignNote {
   updatedAt: string
 }
 
+export interface CampaignPlayer {
+  userId: string
+  displayName: string
+  avatarUrl: string | null
+  isMe: boolean
+  joinedAt: string
+}
+
 export interface CampaignDetail {
   id: string
   name: string
   description: string
   isGm: boolean
   joinCode: string | null
+  players: CampaignPlayer[]
   members: CampaignMember[]
   notes: CampaignNote[]
 }

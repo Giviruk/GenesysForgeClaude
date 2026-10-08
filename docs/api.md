@@ -879,3 +879,18 @@ Error response DTO:
 ## Versioning
 
 API v1 is path-versioned under `/api/v1/*`. Existing `/api/*` endpoints are still served for backwards compatibility, but new integrations should use `/api/v1/*`. The OpenAPI document intentionally emits versioned paths only.
+
+## Account campaign membership (GEN-CONTENT-01)
+
+POST /api/v1/campaigns/join accepts { joinCode, characterId? }. Omitting characterId joins
+with the account only; repeating this account-only join is idempotent. Supplying a character
+retains the previous ownership validation and rejects duplicate character links.
+POST /api/v1/campaigns/{id}/characters accepts { characterId } and adds an owned character
+for a current member or GM. DELETE /api/v1/campaigns/{id}/members/{userId} leaves (self)
+or removes a player (GM only), preserving characters and removing their campaign links.
+The GM cannot leave or be removed. Removing the last character does not end membership.
+Campaign detail adds players: [{ userId, displayName, avatarUrl, isMe, joinedAt }], without email.
+The existing members field continues to represent characters. Legacy /api aliases remain available.
+
+Campaign access failures (missing campaign or no membership) include reasonCode
+`campaign.not_accessible`; the frontend uses the code independently of error-message text.

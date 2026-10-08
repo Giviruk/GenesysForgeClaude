@@ -8,4 +8,7 @@ public record CampaignDetailDto(
     /// <summary>Код присоединения виден только GM.</summary>
     string? JoinCode,
     List<CampaignMemberDto> Members,
-    List<CampaignNoteDto> Notes);
+    List<CampaignNoteDto> Notes,
+    List<CampaignPlayerDto> Players);
+
+public record CampaignPlayerDto(Guid UserId, string DisplayName, string? AvatarUrl, bool IsMe, DateTime JoinedAt);
