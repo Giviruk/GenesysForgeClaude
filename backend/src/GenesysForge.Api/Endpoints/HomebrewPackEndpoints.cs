@@ -15,6 +15,10 @@ public static class HomebrewPackEndpoints
             IQueryHandler<GetHomebrewPacksQuery, List<HomebrewPackListItemDto>> handler, CancellationToken ct) =>
             Results.Ok(await handler.Handle(new GetHomebrewPacksQuery(user.UserId()), ct)));
 
+        group.MapGet("/{id:guid}/changes", async (Guid id, Guid? campaignId, int? take, ClaimsPrincipal user,
+            IQueryHandler<GetHomebrewPackChangesQuery, List<CustomContentChangeDto>> handler, CancellationToken ct) =>
+            Results.Ok(await handler.Handle(new GetHomebrewPackChangesQuery(user.UserId(), id, campaignId, take ?? 100), ct)));
+
         group.MapGet("/{id:guid}/export", async (Guid id, ClaimsPrincipal user,
             IQueryHandler<ExportHomebrewPackQuery, HomebrewPackExportDto> handler, CancellationToken ct) =>
             Results.Ok(await handler.Handle(new ExportHomebrewPackQuery(user.UserId(), id), ct)));

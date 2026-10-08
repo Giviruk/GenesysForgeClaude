@@ -30,6 +30,7 @@ public class CreateCustomItemHandler(IAppDbContext db) : ICommandHandler<CreateC
             HomebrewPackId = packId,
         };
         db.ItemDefs.Add(def);
+        CustomContentAudit.Created(db, "item", def.Id, def.HomebrewPackId, def.Name, command.UserId);
         await db.SaveChangesAsync(ct);
         return def.ToDto();
     }

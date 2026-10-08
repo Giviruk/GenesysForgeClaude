@@ -1176,7 +1176,12 @@ SQL backfill обоих этапов проверен на PostgreSQL 17.11 во
   Этап 4: изоляция кампаний, сохранность купленных навыков, data migration и проверки SQL
   на PostgreSQL 17.11. Полные проверки: 759 domain + 905 API и 482 frontend теста, build/lint.
   План: [gen-content-01-campaign-content-access.md](gen-content-01-campaign-content-access.md).
-  Остаток: review/merge стека и отдельная выкатка; все четыре этапа реализации завершены. ТЗ: [account-campaign-content.md](../../docs/account-campaign-content.md).
+  Этап 5: даты и журнал CRUD шести типов, diff DTO, доступ владельца/участников, история в UI,
+  миграция без backfill; [PR #269](https://github.com/Giviruk/GenesysForgeClaude/pull/269) поверх #268.
+  Полные проверки: 759 domain + 924 API, 502 frontend; build/lint, EF/SQL и Chromium сценарий.
+  План: [gen-content-01-custom-content-history.md](gen-content-01-custom-content-history.md).
+  Остаток: review/merge стека и отдельная выкатка; все пять этапов реализации завершены.
+  Слияние не выполнять по указанию пользователя. ТЗ: [account-campaign-content.md](../../docs/account-campaign-content.md).
 
 ## Что осталось / блокеры
 
@@ -1224,3 +1229,27 @@ PR #264–#268 остаются открытыми по прямому указ�
 отключает набор, статус владельца виден мастеру. Авторские правки разрешены и применяются сразу.
 Новый этап 5 из ТЗ ca41d13 — даты и журнал кастомного контента; реализация отдельным PR поверх #268.
 Статус GEN-CONTENT-01 остаётся [~] до слияния; слияние не выполнять.
+
+Этап 5 реализован в `feature/gen-content-01-custom-content-history`: CustomContentChanges и
+миграция только новой таблицы/индексов без backfill; атомарный аудит CRUD шести типов,
+общий diff DTO без no-op записей, сохранение названия после удаления. Даты отдаёт reference
+только для видимого кастома; наборы показывают дату и правки после подключения. Историю
+читают владелец и участники подключённой кампании, включая отключённые наборы; shared token
+сам по себе доступа не даёт. В UI история доступна в личной библиотеке и на обзоре кампании игрокам.
+Проверки: 759 domain + 924 API, 502 frontend; build/lint и EF/SQL validation, новый Chromium
+сценарий живой правки исходного таланта с diff `tier` 1→2 и просмотра истории участником.
+План: [gen-content-01-custom-content-history.md](gen-content-01-custom-content-history.md).
+
+## Ревью GEN-CONTENT-01 от 08.10.2026
+
+В #268 ревьюер принял предыдущие исправления, новых замечаний нет. В #269 вычисление
+ChangedAfterConnection перенесено на сервер: наборы мастера кампании исключены независимо
+от того, мастер или игрок читает список. UI использует этот флаг; даты legacy/импорта и
+разделители при отсутствующей дате скрываются, пояснение остаётся в пустой истории набора.
+Добавлены регрессии создания/правки GM-контента и правки исходного набора игрока в API,
+UI и существующем E2E-сценарии. Новая миграция не нужна; статус GEN-CONTENT-01 остаётся [~],
+PR #264–#269 не сливать.
+Проверки ревью: 17 API integration tests, все 504 frontend-теста, build/lint и EF без pending
+model changes. Все 9 PublicSafe Chromium E2E прошли локально с production frontend,
+InMemory API и действующим rate limiting. Полные backend/PostgreSQL проверки финальной
+ревизии отслеживаются в [CI #269](https://github.com/Giviruk/GenesysForgeClaude/pull/269/checks).

@@ -19,8 +19,11 @@ public class UpdateCustomHeroicAbilityHandler(IAppDbContext db)
                 h => h.Id == command.HeroicAbilityId && h.OwnerUserId == command.UserId, ct)
             ?? throw new DomainRuleException("Кастомная героическая способность не найдена.");
 
+        var before = def.ToDto();
+
         def.Name = req.Name.Trim();
         def.Description = req.Description ?? "";
+        CustomContentAudit.Updated(db, "heroicAbility", def.Id, def.HomebrewPackId, def.Name, command.UserId, before, def.ToDto());
         await db.SaveChangesAsync(ct);
         return def.ToDto();
     }

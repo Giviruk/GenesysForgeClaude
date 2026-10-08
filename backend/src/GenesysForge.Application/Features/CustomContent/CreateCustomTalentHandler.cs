@@ -31,6 +31,7 @@ public class CreateCustomTalentHandler(IAppDbContext db) : ICommandHandler<Creat
             HomebrewPackId = packId,
         };
         db.TalentDefs.Add(def);
+        CustomContentAudit.Created(db, "talent", def.Id, def.HomebrewPackId, def.Name, command.UserId);
         await db.SaveChangesAsync(ct);
         return def.ToDto();
     }

@@ -24,10 +24,13 @@ public class UpdateCustomSkillHandler(IAppDbContext db) : ICommandHandler<Update
                 && (s.OwnerUserId == null || s.OwnerUserId == command.UserId), ct))
             throw new ConflictException("Навык с таким названием уже существует в этой системе.");
 
+        var before = def.ToDto();
+
         def.System = req.System;
         def.Name = name;
         def.Characteristic = req.Characteristic;
         def.Kind = req.Kind;
+        CustomContentAudit.Updated(db, "skill", def.Id, def.HomebrewPackId, def.Name, command.UserId, before, def.ToDto());
         await db.SaveChangesAsync(ct);
         return def.ToDto();
     }

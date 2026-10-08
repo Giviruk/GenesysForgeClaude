@@ -25,6 +25,8 @@ public class UpdateCustomArchetypeHandler(IAppDbContext db) : ICommandHandler<Up
                 && (a.OwnerUserId == null || a.OwnerUserId == command.UserId), ct))
             throw new ConflictException("Архетип с таким названием уже существует в этой системе.");
 
+        var before = def.ToDto();
+
         def.System = req.System;
         def.Name = name;
         def.NameRu = string.IsNullOrWhiteSpace(req.NameRu) ? name : req.NameRu.Trim();
@@ -47,6 +49,7 @@ public class UpdateCustomArchetypeHandler(IAppDbContext db) : ICommandHandler<Up
         foreach (var ability in def.Abilities)
             db.ArchetypeAbilityDefs.Add(ability);
 
+        CustomContentAudit.Updated(db, "archetype", def.Id, def.HomebrewPackId, def.Name, command.UserId, before, def.ToDto());
         await db.SaveChangesAsync(ct);
         return def.ToDto();
     }

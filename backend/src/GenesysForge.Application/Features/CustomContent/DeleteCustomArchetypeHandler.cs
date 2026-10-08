@@ -1,3 +1,4 @@
+using GenesysForge.Application.Common;
 using GenesysForge.Application.Abstractions;
 using GenesysForge.Domain;
 using Microsoft.EntityFrameworkCore;
@@ -18,6 +19,7 @@ public class DeleteCustomArchetypeHandler(IAppDbContext db) : ICommandHandler<De
             throw new DomainRuleException("Нельзя удалить архетип: он используется персонажем.");
 
         db.ArchetypeDefs.Remove(def);
+        CustomContentAudit.Deleted(db, "archetype", def.Id, def.HomebrewPackId, def.Name, command.UserId);
         await db.SaveChangesAsync(ct);
         return Unit.Value;
     }

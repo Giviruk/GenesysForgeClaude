@@ -34,6 +34,18 @@ editableCustomIds to keep other authors' content read-only. Shop selects a chara
 its context-specific catalogue. Personal character toggles are rejected for campaign characters.
 See [account-campaign-content.md](account-campaign-content.md) for the approved implementation scope.
 
+Original packs may be connected only if their author is the GM or a current campaign member.
+Leaving/removal keeps existing connections enabled; owner name and membership status are visible.
+Authors can edit mechanics of connected packs immediately. `CustomContentChange` records custom
+CRUD for six definition types in the same save, with generic DTO field diffs and no unchanged-save
+events. Imports have no artificial history. `customLastEditedAt` covers only visible custom IDs;
+pack `lastChangedAt` is compared to connection `connectedAt`. The server's `changedAfterConnection`
+flag excludes packs owned by that campaign's GM for all readers; UI uses it and hides missing dates.
+History is available to the owner or
+GM/current members of a campaign connected to that pack (even when disabled), via
+`GET /api/homebrew-packs/{id}/changes?campaignId=&take=`. The campaign overview and personal library
+display history. Migration `AddCustomContentChanges` adds one table and indexes, with no backfill.
+
 ## Core entities
 
 `User`; `SkillDef`; `TalentDef`; `ItemDef`; `HeroicAbilityDef`; `ArchetypeDef`; `CareerDef`; `SpellDef`; `Character`; `CharacterSkill`; `CharacterTalent`; `CharacterItem`; `CharacterNote`; `Campaign`; `CampaignMember`; `CampaignCharacter`; `CampaignNote`; `CampaignChronicleChapter`; `CampaignChronicleRevision`; `Npc`; `NpcSkill`; `NpcAbility`; `Encounter`; `EncounterParticipant`; `GameSession`; `GameParticipant`; `InitiativeSlot`. `OwnerUserId = null` means built-in reference content; non-null means custom content owned by one user.

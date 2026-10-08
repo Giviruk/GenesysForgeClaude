@@ -211,6 +211,7 @@ public static class DependencyInjection
         services.AddScoped<IQueryHandler<GetCampaignHomebrewPacksQuery, List<CampaignHomebrewPackDto>>, GetCampaignHomebrewPacksHandler>();
         services.AddScoped<ICommandHandler<ConnectSharedCampaignHomebrewPackCommand, HomebrewPackImportResult>, ConnectSharedCampaignHomebrewPackHandler>();
         services.AddScoped<IQueryHandler<GetHomebrewPacksQuery, List<HomebrewPackListItemDto>>, GetHomebrewPacksHandler>();
+        services.AddScoped<IQueryHandler<GetHomebrewPackChangesQuery, List<CustomContentChangeDto>>, GetHomebrewPackChangesHandler>();
         services.AddScoped<IQueryHandler<ExportHomebrewPackQuery, HomebrewPackExportDto>, ExportHomebrewPackHandler>();
         services.AddScoped<ICommandHandler<ImportHomebrewPackCommand, HomebrewPackImportResult>, ImportHomebrewPackHandler>();
         services.AddScoped<ICommandHandler<ShareHomebrewPackCommand, HomebrewPackShareDto>, ShareHomebrewPackHandler>();

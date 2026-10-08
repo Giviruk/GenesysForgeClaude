@@ -131,8 +131,17 @@ public class GetReferenceHandler(IAppDbContext db) : IQueryHandler<GetReferenceQ
             .Concat(talentDefs.Where(d => d.OwnerUserId == userId).Select(d => d.Id))
             .Concat(itemDefs.Where(d => d.OwnerUserId == userId).Select(d => d.Id))
             .Concat(heroicDefs.Where(d => d.OwnerUserId == userId).Select(d => d.Id)).ToList();
+        var customIds = archetypeDefs.Where(d => d.OwnerUserId != null).Select(d => d.Id)
+            .Concat(careerDefs.Where(d => d.OwnerUserId != null).Select(d => d.Id))
+            .Concat(skillDefs.Where(d => d.OwnerUserId != null).Select(d => d.Id))
+            .Concat(talentDefs.Where(d => d.OwnerUserId != null).Select(d => d.Id))
+            .Concat(itemDefs.Where(d => d.OwnerUserId != null).Select(d => d.Id))
+            .Concat(heroicDefs.Where(d => d.OwnerUserId != null).Select(d => d.Id)).ToHashSet();
+        var lastEdited = await db.CustomContentChanges.AsNoTracking().Where(x => customIds.Contains(x.DefinitionId))
+            .GroupBy(x => x.DefinitionId).Select(g => new { Id = g.Key, At = g.Max(x => x.CreatedAt) })
+            .ToDictionaryAsync(x => x.Id, x => x.At, ct);
         return new ReferenceResponse(
             archetypes, careers, skills, talents, items, heroics, qualities, heroicSecondaryEffects,
-            attachments, mounts, editableIds);
+            attachments, mounts, editableIds, lastEdited);
     }
 }

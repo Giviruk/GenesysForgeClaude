@@ -87,3 +87,13 @@ Migration deployment and service restart are outside the implementation PRs.
 Original shared pack connections require a current campaign member (or its GM) as the owner.
 On leaving/removal the original pack remains enabled; the GM sees the former owner marker and
 disables it manually. Author edits remain allowed and immediately affect connected campaigns.
+
+Stage 5 requires `20261007090302_AddCustomContentChanges` before the updated API is started.
+It adds only the journal table and two indexes; existing definitions/imports receive no invented
+dates or history. CRUD events start with the new code. GM/account members can inspect connected
+pack history from the campaign overview, including disabled packs; owners can inspect their packs
+in the personal library. The “changed after connection” badge uses the server's ChangedAfterConnection:
+the latest event is newer than the connection's last enable/disable timestamp and the owner is not
+the campaign GM. GM-owned packs show dates/history without this warning for every reader;
+missing dates show no label. This computed response field requires no additional migration.
+Deployment remains a separate operator action.

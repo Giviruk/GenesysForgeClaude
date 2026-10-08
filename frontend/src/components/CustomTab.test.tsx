@@ -7,10 +7,13 @@ const campaignPacks = vi.fn()
 const connect = vi.fn()
 const toggle = vi.fn()
 const importJson = vi.fn()
-const source = { id: 'original-pack', name: 'Исходный набор', system: 'genesysCore', isEnabled: true, isMine: false, entryCount: 1, ownerName: 'Игрок', ownerIsMember: true }
+const ownPacks = vi.fn()
+const changes = vi.fn()
+const source = { id: 'original-pack', name: 'Исходный набор', system: 'genesysCore', isEnabled: true, isMine: false, entryCount: 1, ownerName: 'Игрок', ownerIsMember: true, lastChangedAt: null, connectedAt: '2026-10-01T12:00:00Z', changedAfterConnection: false }
 const reference = { skills: [], talents: [], items: [], archetypes: [], careers: [], heroicAbilities: [], qualities: [], heroicSecondaryEffects: [], attachments: [], mounts: [], editableCustomIds: [] } as Reference
 vi.mock('../api/client', () => ({ api: {
-  homebrewPacks: vi.fn().mockResolvedValue([]),
+  homebrewPacks: (...args: unknown[]) => ownPacks(...args),
+  homebrewPackChanges: (...args: unknown[]) => changes(...args),
   campaignHomebrewPacks: (...args: unknown[]) => campaignPacks(...args),
   connectSharedCampaignHomebrewPack: (...args: unknown[]) => connect(...args),
   setCampaignHomebrewPack: (...args: unknown[]) => toggle(...args),
@@ -19,6 +22,8 @@ vi.mock('../api/client', () => ({ api: {
 
 beforeEach(() => {
   vi.clearAllMocks()
+  ownPacks.mockResolvedValue([])
+  changes.mockResolvedValue([])
   campaignPacks.mockResolvedValue([])
   connect.mockImplementation(async () => { campaignPacks.mockResolvedValue([source]); return { id: source.id } })
   toggle.mockImplementation(async (_campaign, _id, isEnabled) => { campaignPacks.mockResolvedValue([{ ...source, isEnabled }]) })
@@ -57,5 +62,20 @@ describe('исходный набор игрока', () => {
     expect(screen.getByText('Контент автора')).toBeTruthy()
     expect(screen.queryByRole('button', { name: 'Изменить' })).toBeNull()
     expect(screen.queryByRole('button', { name: 'Удалить' })).toBeNull()
+    expect(screen.queryByText('Дата правки неизвестна')).toBeNull()
+    expect(screen.getByText(/Player skill/).textContent).not.toMatch(/ · $/)
+    expect(screen.getByText(/Player skill/).querySelector('.small-text')).toBeNull()
+  })
+
+  it('показывает дату каждой записи и открывает историю своего набора вне кампании', async () => {
+    ownPacks.mockResolvedValue([{ ...source, isMine: true, description: '', isEnabledByDefault: true }])
+    const dated: Reference = { ...reference, customLastEditedAt: { personal: '2026-10-07T12:00:00Z' }, editableCustomIds: ['personal'],
+      skills: [{ id: 'personal', name: 'Мой навык', nameRu: 'Мой навык', safeDescription: '', source: 'Custom',
+        isCustom: true, characteristic: 'agility', kind: 'general' }] }
+    render(<CustomTab system="genesysCore" reference={dated} refresh={vi.fn()} onError={vi.fn()} />)
+    expect(screen.getByText('изменено 07.10.2026')).toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: 'Наборы JSON' }))
+    fireEvent.click(await screen.findByRole('button', { name: 'История' }))
+    await waitFor(() => expect(changes).toHaveBeenCalledWith(source.id, undefined, 200))
   })
 })

@@ -1,3 +1,4 @@
+using GenesysForge.Application.Common;
 using GenesysForge.Application.Abstractions;
 using GenesysForge.Domain;
 using Microsoft.EntityFrameworkCore;
@@ -16,6 +17,7 @@ public class DeleteCustomTalentHandler(IAppDbContext db) : ICommandHandler<Delet
             throw new DomainRuleException("Нельзя удалить талант: он куплен персонажем. Сначала верните его на листе.");
 
         db.TalentDefs.Remove(def);
+        CustomContentAudit.Deleted(db, "talent", def.Id, def.HomebrewPackId, def.Name, command.UserId);
         await db.SaveChangesAsync(ct);
         return Unit.Value;
     }

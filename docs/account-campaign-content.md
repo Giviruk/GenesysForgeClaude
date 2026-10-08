@@ -327,7 +327,9 @@ public static void Updated(IAppDbContext db, string type, Guid id, Guid? packId,
 - Справочник: `ReferenceResponse.CustomLastEditedAt` — `Dictionary<Guid, DateTime>` только для кастомных
   записей ответа, одним grouped-запросом по журналу (по образцу `EditableCustomIds`).
 - `CampaignHomebrewPackDto` + `LastChangedAt` (последняя запись журнала набора) и `ConnectedAt`
-  (`HomebrewPackCampaign.UpdatedAt`). `LastChangedAt > ConnectedAt` — UI помечает набор «изменён после подключения».
+  (`HomebrewPackCampaign.UpdatedAt`). `ChangedAfterConnection` вычисляет сервер:
+  владелец набора не является мастером этой кампании и `LastChangedAt > ConnectedAt`.
+  UI показывает метку «изменён после подключения» по этому флагу, одинаково для мастера и участников.
 - `GET /api/homebrew-packs/{packId}/changes?campaignId=&take=` — журнал набора, новые сверху, `take` до 200.
   Доступ: владелец набора; иначе нужен `campaignId`, `GetAccessibleAsync` (мастер или участник)
   и подключение набора к этой кампании. Набор без подключения к кампании вызывающего — отказ.
@@ -335,6 +337,7 @@ public static void Updated(IAppDbContext db, string type, Guid id, Guid? packId,
 ### Frontend
 
 - `CustomTab`: у каждой кастомной записи — «изменено DD.MM.YYYY», если дата есть.
+  Если даты нет, подпись и разделитель не выводятся; пояснение про старые записи/импорт остаётся в истории.
 - Панель «Наборы кампании»: дата последней правки, пометка «изменён после подключения», кнопка «История» —
   дата, автор, действие, запись и поля «было → стало». Названия полей — словарь меток на клиенте,
   неизвестное поле показывается как есть.
@@ -347,6 +350,8 @@ public static void Updated(IAppDbContext db, string type, Guid id, Guid? packId,
   подключён, видят журнал; посторонний и мастер другой кампании — отказ.
 - Сохранение без изменений не создаёт запись. Удаление — запись `Deleted` с именем.
 - Справочник отдаёт дату правки изменённой записи; после правки подключённого набора `LastChangedAt > ConnectedAt`.
+- Создание/правка контента мастера кампании не устанавливает `ChangedAfterConnection`, даже когда
+  событие новее связи; правка исходного набора игрока после подключения устанавливает флаг.
 
 ---
 

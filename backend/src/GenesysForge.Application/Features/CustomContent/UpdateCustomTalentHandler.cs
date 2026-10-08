@@ -20,6 +20,8 @@ public class UpdateCustomTalentHandler(IAppDbContext db) : ICommandHandler<Updat
                 t => t.Id == command.TalentDefId && t.OwnerUserId == command.UserId, ct)
             ?? throw new DomainRuleException("Кастомный талант не найден.");
 
+        var before = def.ToDto();
+
         def.System = req.System;
         def.Name = req.Name.Trim();
         def.Tier = req.Tier;
@@ -32,6 +34,7 @@ public class UpdateCustomTalentHandler(IAppDbContext db) : ICommandHandler<Updat
         def.SoakBonus = req.SoakBonus;
         def.MeleeDefenseBonus = req.MeleeDefenseBonus;
         def.RangedDefenseBonus = req.RangedDefenseBonus;
+        CustomContentAudit.Updated(db, "talent", def.Id, def.HomebrewPackId, def.Name, command.UserId, before, def.ToDto());
         await db.SaveChangesAsync(ct);
         return def.ToDto();
     }

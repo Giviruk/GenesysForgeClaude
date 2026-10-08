@@ -21,6 +21,8 @@ const sessionMock = vi.fn()
 const removeCampaignCharacterMock = vi.fn().mockResolvedValue(undefined)
 const updateSessionMock = vi.fn()
 const nextTurnMock = vi.fn()
+const campaignPacksMock = vi.fn().mockResolvedValue([])
+const packChangesMock = vi.fn().mockResolvedValue([])
 const sheet = {
   id: 'ch1',
   name: 'Бард',
@@ -80,6 +82,8 @@ vi.mock('../api/client', async (importOriginal) => ({
     removeCampaignCharacter: (...a: unknown[]) => removeCampaignCharacterMock(...a),
     updateSession: (...a: unknown[]) => updateSessionMock(...a),
     nextTurn: (...a: unknown[]) => nextTurnMock(...a),
+    campaignHomebrewPacks: (...a: unknown[]) => campaignPacksMock(...a),
+    homebrewPackChanges: (...a: unknown[]) => packChangesMock(...a),
   },
 }))
 // Хаб реального времени (SignalR) в jsdom не нужен.
@@ -214,6 +218,19 @@ describe('account campaign membership UI', () => {
     removeCampaignMemberMock.mockClear()
   })
   afterEach(() => { vi.restoreAllMocks() })
+
+  it('участник открывает историю набора с обзора кампании', async () => {
+    campaignMock.mockResolvedValue(detail(false))
+    campaignPacksMock.mockResolvedValueOnce([{ id: 'pack', name: 'Набор участника', system: 'genesysCore',
+      isMine: false, isEnabled: true, entryCount: 1, ownerName: 'Автор', ownerIsMember: true,
+      connectedAt: '2026-10-01T12:00:00Z', lastChangedAt: '2026-10-07T12:00:00Z', changedAfterConnection: true }])
+    render(<CampaignsPage {...props} />)
+    await screen.findByText('Набор участника')
+    fireEvent.click(screen.getByRole('button', { name: 'История' }))
+    await waitFor(() => expect(packChangesMock).toHaveBeenCalledWith('pack', 'c1', 200))
+    expect(await screen.findByRole('dialog', { name: 'История набора' })).toBeTruthy()
+    expect(screen.queryByRole('button', { name: 'Кастом' })).toBeNull()
+  })
 
   it('does not reload the campaign when the navigation callback changes', async () => {
     campaignMock.mockResolvedValue(detail(false))

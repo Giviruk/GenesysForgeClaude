@@ -25,6 +25,8 @@ public class UpdateCustomCareerHandler(IAppDbContext db) : ICommandHandler<Updat
                 && (c.OwnerUserId == null || c.OwnerUserId == command.UserId), ct))
             throw new ConflictException("Карьера с таким названием уже существует в этой системе.");
 
+        var before = def.ToDto();
+
         def.System = req.System;
         def.Name = name;
         def.NameRu = string.IsNullOrWhiteSpace(req.NameRu) ? name : req.NameRu.Trim();
@@ -34,6 +36,7 @@ public class UpdateCustomCareerHandler(IAppDbContext db) : ICommandHandler<Updat
         def.CareerSkillNames = careerSkills;
         def.StartingMoneyFixed = req.StartingMoneyFixed;
         def.StartingMoneyDice = req.StartingMoneyDice?.Trim() ?? "";
+        CustomContentAudit.Updated(db, "career", def.Id, def.HomebrewPackId, def.Name, command.UserId, before, def.ToDto());
         await db.SaveChangesAsync(ct);
         return def.ToDto();
     }

@@ -20,6 +20,8 @@ public class UpdateCustomItemHandler(IAppDbContext db) : ICommandHandler<UpdateC
                 i => i.Id == command.ItemDefId && i.OwnerUserId == command.UserId, ct)
             ?? throw new DomainRuleException("Кастомный предмет не найден.");
 
+        var before = def.ToDto();
+
         def.System = req.System;
         def.Name = req.Name.Trim();
         def.Kind = req.Kind;
@@ -36,6 +38,7 @@ public class UpdateCustomItemHandler(IAppDbContext db) : ICommandHandler<UpdateC
         def.Crit = req.Crit ?? "";
         def.RangeBand = req.RangeBand ?? "";
         def.Properties = req.Properties ?? "";
+        CustomContentAudit.Updated(db, "item", def.Id, def.HomebrewPackId, def.Name, command.UserId, before, def.ToDto());
         await db.SaveChangesAsync(ct);
         return def.ToDto();
     }

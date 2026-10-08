@@ -59,6 +59,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<HomebrewPackCampaign> HomebrewPackCampaigns => Set<HomebrewPackCampaign>();
     public DbSet<RollLogEntry> RollLogEntries => Set<RollLogEntry>();
     public DbSet<CharacterAuditEntry> CharacterAuditEntries => Set<CharacterAuditEntry>();
+    public DbSet<CustomContentChange> CustomContentChanges => Set<CustomContentChange>();
     public DbSet<QualityDef> QualityDefs => Set<QualityDef>();
     public DbSet<ItemQualityValue> ItemQualityValues => Set<ItemQualityValue>();
     public DbSet<ItemCheckModifier> ItemCheckModifiers => Set<ItemCheckModifier>();
@@ -582,6 +583,14 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             e.HasIndex(x => new { x.HomebrewPackId, x.CampaignId }).IsUnique();
             e.HasOne<HomebrewPack>().WithMany().HasForeignKey(x => x.HomebrewPackId).OnDelete(DeleteBehavior.Cascade);
             e.HasOne<Campaign>().WithMany().HasForeignKey(x => x.CampaignId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        b.Entity<CustomContentChange>(e =>
+        {
+            e.HasIndex(x => new { x.HomebrewPackId, x.CreatedAt });
+            e.HasIndex(x => new { x.DefinitionId, x.CreatedAt });
+            e.Property(x => x.DefinitionType).HasMaxLength(40);
+            // No definition FK: deleting unused custom content preserves its history.
         });
 
         b.Entity<CharacterAuditEntry>(e =>

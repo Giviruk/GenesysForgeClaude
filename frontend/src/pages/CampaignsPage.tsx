@@ -7,6 +7,7 @@ import { PARTICIPANT_TYPE_LABELS, SLOT_TYPE_LABELS, SYSTEM_LABELS } from '../uti
 import { GameTableTab } from '../components/GameTableTab'
 import { EncountersTab } from '../components/EncountersTab'
 import { CustomTab } from '../components/CustomTab'
+import { CampaignPackHistoryPanel } from '../components/HomebrewPackHistory'
 import { CampaignChronicleTab } from '../components/CampaignChronicleTab'
 import { CreateCharacterForm } from './CharactersPage'
 import { SheetTab } from '../components/SheetTab'
@@ -281,6 +282,8 @@ function CampaignDetailView({ campaignId, view, openEncounterId, openCharacterId
       </button>}
       {view === 'overview' && <CampaignPlayersPanel campaign={c} onError={setError}
         onChanged={reload} onLeave={onBack} />}
+
+      {view === 'overview' && <CampaignPackHistoryPanel campaignId={c.id} refreshSignal={liveSignal} />}
 
       {view === 'custom' && c.isGm ? (
         <CampaignCustomTab campaignId={c.id} members={c.members} onError={setError} />

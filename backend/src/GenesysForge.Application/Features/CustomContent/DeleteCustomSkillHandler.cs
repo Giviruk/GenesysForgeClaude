@@ -1,3 +1,4 @@
+using GenesysForge.Application.Common;
 using GenesysForge.Application.Abstractions;
 using GenesysForge.Domain;
 using Microsoft.EntityFrameworkCore;
@@ -16,6 +17,7 @@ public class DeleteCustomSkillHandler(IAppDbContext db) : ICommandHandler<Delete
             throw new DomainRuleException("Нельзя удалить навык: он используется персонажем. Сначала уберите ранги с листа.");
 
         db.SkillDefs.Remove(def);
+        CustomContentAudit.Deleted(db, "skill", def.Id, def.HomebrewPackId, def.Name, command.UserId);
         await db.SaveChangesAsync(ct);
         return Unit.Value;
     }

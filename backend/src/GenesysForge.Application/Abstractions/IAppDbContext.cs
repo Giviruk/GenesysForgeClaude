@@ -58,6 +58,7 @@ public interface IAppDbContext
     DbSet<HomebrewPackCampaign> HomebrewPackCampaigns { get; }
     DbSet<RollLogEntry> RollLogEntries { get; }
     DbSet<CharacterAuditEntry> CharacterAuditEntries { get; }
+    DbSet<CustomContentChange> CustomContentChanges { get; }
     DbSet<QualityDef> QualityDefs { get; }
     DbSet<ItemQualityValue> ItemQualityValues { get; }
     DbSet<ItemCheckModifier> ItemCheckModifiers { get; }

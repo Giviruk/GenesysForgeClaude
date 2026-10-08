@@ -662,15 +662,32 @@ it('uses account custom routes outside a campaign and retains campaign routes', 
 
 
 describe('original shared campaign packs', () => {
+  afterEach(() => { vi.restoreAllMocks() })
   it('lists campaign connections and connects by encoded token', async () => {
+    const connected = { id: 'original-pack', lastChangedAt: '2026-10-08T12:00:00Z',
+      connectedAt: '2026-10-01T12:00:00Z', changedAfterConnection: true }
     const fetchMock = vi.spyOn(globalThis, 'fetch')
-      .mockResolvedValueOnce(new Response(JSON.stringify([]), { status: 200 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify([connected]), { status: 200 }))
       .mockResolvedValueOnce(new Response(JSON.stringify({ id: 'original-pack' }), { status: 200 }))
-    await api.campaignHomebrewPacks('campaign')
+    expect(await api.campaignHomebrewPacks('campaign')).toEqual([connected])
     expect(await api.connectSharedCampaignHomebrewPack('campaign', 'raw / token')).toEqual({ id: 'original-pack' })
     expect(fetchMock.mock.calls.map(([url, init]) => [url, init?.method])).toEqual([
       ['/api/campaigns/campaign/homebrew-packs/', 'GET'],
       ['/api/campaigns/campaign/homebrew-packs/shared/raw%20%2F%20token/import', 'POST'],
     ])
+  })
+
+  it('передаёт контекст кампании и лимит журнала, личная история обходится без campaignId', async () => {
+    const fetchMock = vi.spyOn(globalThis, 'fetch').mockImplementation(async () =>
+      new Response(JSON.stringify([]), { status: 200 }))
+    try {
+      await api.homebrewPackChanges('pack', 'campaign / value', 200)
+      await api.homebrewPackChanges('pack')
+      expect(fetchMock.mock.calls.map(([url]) => url)).toEqual([
+        '/api/homebrew-packs/pack/changes?take=200&campaignId=campaign+%2F+value',
+        '/api/homebrew-packs/pack/changes?take=100',
+      ])
+      expect(fetchMock.mock.calls[0][1]?.method).toBe('GET')
+    } finally { vi.restoreAllMocks() }
   })
 })
