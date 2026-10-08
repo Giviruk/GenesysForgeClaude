@@ -111,7 +111,7 @@ public static class SheetBuilder
         var systemSkills = await db.SkillDefs.AsNoTracking()
             .Where(s => s.System == c.System
                 && (!s.Retired || ownedSkillIds.Contains(s.Id))
-                && (s.OwnerUserId == null
+                && (ownedSkillIds.Contains(s.Id) || s.OwnerUserId == null
                     || (s.HomebrewPackId == null ? s.OwnerUserId == userId
                         : visiblePackIds.Contains(s.HomebrewPackId.Value))))
             .OrderBy(s => s.Kind).ThenBy(s => s.NameRu)
@@ -171,8 +171,13 @@ public static class SheetBuilder
 
         // Откуда берётся рейтинг эффектов заклинания (ROT-MAG-10). Считает сервер: выбор между
         // Преданиями и Запретным открывает талант, и решать, доступен ли он, клиенту нельзя.
-        var knowledgeRanks = skills.ToDictionary(x => x.Name, x => x.Ranks, StringComparer.Ordinal);
-        var knowledgeNames = systemSkills.ToDictionary(x => x.Name, x => x.NameRu, StringComparer.Ordinal);
+        // Импортированная копия может иметь то же имя, что и уже купленный личный навык.
+        // Обе строки остаются на листе; индекс для правил использует тот же приоритет,
+        // что и резолвер карьерных навыков (встроенное определение прежде custom).
+        var knowledgeDefs = CareerSkills.BuildNameIndex(systemSkills);
+        var knowledgeRanks = knowledgeDefs.ToDictionary(x => x.Key,
+            x => rows.TryGetValue(x.Value.Id, out var row) ? row.Ranks : 0, StringComparer.Ordinal);
+        var knowledgeNames = knowledgeDefs.ToDictionary(x => x.Key, x => x.Value.NameRu, StringComparer.Ordinal);
         var ratingOptions = KnowledgeRatingRules.Options(
             c.System, knowledgeRanks,
             KnowledgeRatingRules.HasDarkInsight(c.Talents.Select(t => t.TalentDef!.Name)));

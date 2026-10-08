@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { CharacterListItem, CharacterSheet, ItemDef, Reference } from '../api/types'
 import { ShopPage } from './ShopPage'
@@ -172,7 +172,7 @@ describe('Общий магазин', () => {
     await waitFor(() => expect(
       (within(dialog).getByRole('button', { name: 'Купить' }) as HTMLButtonElement).disabled,
     ).toBe(false))
-    fireEvent.change(within(dialog).getAllByRole('combobox')[1], { target: { value: 'willow' } })
+    fireEvent.change(within(dialog).getByLabelText(/^Материал/), { target: { value: 'willow' } })
     expect(within(dialog).getAllByText(/800 монеты/)).toHaveLength(2)
     fireEvent.click(within(dialog).getByRole('button', { name: 'Купить' }))
     await waitFor(() => expect(addItemMock).toHaveBeenLastCalledWith(
@@ -258,5 +258,48 @@ describe('Общий магазин', () => {
       'char-1', 'item-service', 1, true,
     ))
     expect(addItemMock).not.toHaveBeenCalled()
+  })
+})
+
+
+describe('Магазин — контекст выбранного персонажа', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    charactersMock.mockResolvedValue([character, { ...character, id: 'char-2', name: 'Борин' }])
+    sheetMock.mockResolvedValue(sheet)
+    addItemMock.mockResolvedValue({ id: 'new-item' })
+  })
+
+  it('меняет каталог и покупателя вместе с персонажем', async () => {
+    const gmItem = { ...rope, id: 'gm-item', name: 'Campaign equipment', nameRu: 'Снаряжение мастера' }
+    referenceMock.mockImplementation((_system, context) => Promise.resolve({ ...reference,
+      items: context?.characterId === 'char-2' ? [gmItem] : [rope] }))
+    render(<ShopPage />)
+    await screen.findByRole('button', { name: /Верёвка/ })
+    expect(referenceMock).toHaveBeenCalledWith('realmsOfTerrinoth', { characterId: 'char-1' })
+    fireEvent.change(screen.getByLabelText('Персонаж для покупок'), { target: { value: 'char-2' } })
+    const product = await screen.findByRole('button', { name: /Снаряжение мастера/ })
+    expect(referenceMock).toHaveBeenLastCalledWith('realmsOfTerrinoth', { characterId: 'char-2' })
+    expect(screen.queryByRole('button', { name: /Верёвка/ })).toBeNull()
+    fireEvent.click(product)
+    const buy = within(screen.getByRole('dialog')).getByRole('button', { name: 'Купить' })
+    await waitFor(() => expect((buy as HTMLButtonElement).disabled).toBe(false))
+    fireEvent.click(buy)
+    await waitFor(() => expect(addItemMock).toHaveBeenCalledWith('char-2', 'gm-item', 1, 'carried', { free: false }))
+  })
+
+  it('не подставляет поздний каталог предыдущего персонажа', async () => {
+    let resolveOld!: (value: Reference) => void
+    const old = new Promise<Reference>(resolve => { resolveOld = resolve })
+    const gmItem = { ...rope, id: 'gm-item', nameRu: 'Снаряжение мастера' }
+    referenceMock.mockImplementation((_system, context) => context?.characterId === 'char-1'
+      ? old : Promise.resolve({ ...reference, items: [gmItem] }))
+    render(<ShopPage />)
+    await waitFor(() => expect(referenceMock).toHaveBeenCalledWith('realmsOfTerrinoth', { characterId: 'char-1' }))
+    fireEvent.change(screen.getByLabelText('Персонаж для покупок'), { target: { value: 'char-2' } })
+    await screen.findByRole('button', { name: /Снаряжение мастера/ })
+    await act(async () => { resolveOld({ ...reference, items: [rope] }) })
+    expect(screen.queryByRole('button', { name: /Верёвка/ })).toBeNull()
+    expect(screen.getByRole('button', { name: /Снаряжение мастера/ })).toBeTruthy()
   })
 })

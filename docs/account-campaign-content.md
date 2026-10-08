@@ -7,7 +7,15 @@
 **Решение после ревью #268:** мастер подключает исходный набор игрока по shared-ссылке.
 Владелец, HomebrewPackId и ID определений сохраняются; копии для кампании не создаются.
 После подключения можно развивать уже купленные навыки и таланты с теми же ID и рангами.
-Новые покупки до разрешения мастера остаются недоступны.
+Новые покупки до разрешения мастера остаются недоступны. Подключить оригинал по shared-ссылке
+можно только если владелец — мастер или текущий участник этой кампании.
+
+**Решение 07.10.2026:** автор может править подключённый исходный набор, правки сразу действуют
+в кампании — запрета нет. Вместо него прозрачность: дата последней правки у каждой кастомной записи
+и журнал изменений набора, видимый мастеру и участникам кампании (этап 5).
+
+При выходе/исключении автора набор не отключается автоматически. Мастер управляет связью вручную.
+Список наборов показывает OwnerName и OwnerIsMember и отмечает, что игрок покинул кампанию.
 
 ## Что получает пользователь
 
@@ -40,6 +48,7 @@
 | 2 | Создание персонажа в кампании, добавление существующего | 1 | отдельный |
 | 3 | Личная библиотека | — | отдельный, можно параллельно с 1–2 |
 | 4 | Изоляция контекста кампании и сохранность листа | 2, 3 | отдельный |
+| 5 | Дата правки и журнал изменений кастома | 4 | отдельный, с миграцией |
 
 Фикс листа из этапа 4 (купленные навыки не пропадают) — самостоятельный баг, его можно выкатить сразу.
 
@@ -245,6 +254,102 @@ DTO: в `CampaignDetailDto` добавить последним параметр
 
 ---
 
+## Этап 5. Дата правки и журнал изменений кастомного контента
+
+Следует из решения 07.10.2026: автор подключённого набора может менять механику после разрешения мастера
+(тир и бонусы таланта, характеристики архетипа и т. д.), правка сразу действует на персонажей кампании.
+Мастер и участники должны видеть, что и когда изменилось.
+
+### Модель
+
+```csharp
+// GenesysForge.Domain/Entities/CustomContentChange.cs
+public class CustomContentChange
+{
+    public Guid Id { get; set; }
+    public Guid? HomebrewPackId { get; set; }            // null только у legacy-записей без набора
+    public required string DefinitionType { get; set; }  // skill | talent | item | heroicAbility | archetype | career
+    public Guid DefinitionId { get; set; }               // без FK: запись журнала переживает удаление определения
+    public required string DefinitionName { get; set; } // имя на момент правки
+    public Guid UserId { get; set; }                     // автор правки (= владелец определения)
+    public CustomContentChangeAction Action { get; set; } // Created, Updated, Deleted
+    public string ChangesJson { get; set; } = "";        // для Updated: [{ "field": "tier", "from": "1", "to": "2" }]
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+}
+```
+
+- Индексы `(HomebrewPackId, CreatedAt)` и `(DefinitionId, CreatedAt)`.
+- Миграция `AddCustomContentChanges` — только новая таблица, без backfill: для существующих записей дата
+  правки неизвестна, UI показывает её отсутствие.
+- Отдельные `UpdatedAt` в шести таблицах определений не вводим: дата последней правки = последняя запись журнала.
+
+### Запись
+
+`Common/CustomContentAudit.cs` по образцу [CharacterAudit](../backend/src/GenesysForge.Application/Common/CharacterAudit.cs):
+добавляет запись в контекст, фиксация — в общем `SaveChangesAsync`, атомарно с самой правкой.
+
+- Create-обработчики (6): `Created` после создания определения.
+- Update-обработчики (6): `before = def.ToDto()` до присваивания полей, `after = def.ToDto()` после.
+  Все шесть уже загружают вложенные данные и возвращают `ToDto()`, поэтому diff получается сравнением
+  JSON-свойств без кода под каждый тип. Вложенные списки (стартовые навыки, снаряжение, способности)
+  сравниваются целиком. Пустой diff — записи нет: повторное сохранение формы журнал не засоряет.
+- Delete-обработчики (6): `Deleted` с именем определения.
+- Импорт набора и миграции данных журнал не пишут: импорт создаёт новый независимый набор.
+
+```csharp
+public static void Updated(IAppDbContext db, string type, Guid id, Guid? packId, string name,
+    Guid userId, object before, object after)
+{
+    var a = JsonSerializer.SerializeToElement(before, JsonOptions);
+    var b = JsonSerializer.SerializeToElement(after, JsonOptions);
+    var changes = b.EnumerateObject()
+        .Where(p => p.Name != "id")
+        .Select(p => new
+        {
+            field = p.Name,
+            from = a.TryGetProperty(p.Name, out var old) ? old.GetRawText() : null,
+            to = p.Value.GetRawText(),
+        })
+        .Where(x => x.from != x.to)
+        .ToList();
+    if (changes.Count == 0) return;
+    db.CustomContentChanges.Add(new CustomContentChange
+    {
+        Id = Guid.NewGuid(), HomebrewPackId = packId, DefinitionType = type, DefinitionId = id,
+        DefinitionName = name, UserId = userId, Action = CustomContentChangeAction.Updated,
+        ChangesJson = JsonSerializer.Serialize(changes, JsonOptions),
+    });
+}
+```
+
+### Чтение
+
+- Справочник: `ReferenceResponse.CustomLastEditedAt` — `Dictionary<Guid, DateTime>` только для кастомных
+  записей ответа, одним grouped-запросом по журналу (по образцу `EditableCustomIds`).
+- `CampaignHomebrewPackDto` + `LastChangedAt` (последняя запись журнала набора) и `ConnectedAt`
+  (`HomebrewPackCampaign.UpdatedAt`). `LastChangedAt > ConnectedAt` — UI помечает набор «изменён после подключения».
+- `GET /api/homebrew-packs/{packId}/changes?campaignId=&take=` — журнал набора, новые сверху, `take` до 200.
+  Доступ: владелец набора; иначе нужен `campaignId`, `GetAccessibleAsync` (мастер или участник)
+  и подключение набора к этой кампании. Набор без подключения к кампании вызывающего — отказ.
+
+### Frontend
+
+- `CustomTab`: у каждой кастомной записи — «изменено DD.MM.YYYY», если дата есть.
+- Панель «Наборы кампании»: дата последней правки, пометка «изменён после подключения», кнопка «История» —
+  дата, автор, действие, запись и поля «было → стало». Названия полей — словарь меток на клиенте,
+  неизвестное поле показывается как есть.
+- «Моя библиотека»: та же «История» у своих наборов.
+- Новые методы — в `api/client.ts`, с тестом клиента.
+
+### Тесты
+
+- Правка тира таланта игрока → запись `Updated` с `tier` 1 → 2. Мастер и участник кампании, где набор
+  подключён, видят журнал; посторонний и мастер другой кампании — отказ.
+- Сохранение без изменений не создаёт запись. Удаление — запись `Deleted` с именем.
+- Справочник отдаёт дату правки изменённой записи; после правки подключённого набора `LastChangedAt > ConnectedAt`.
+
+---
+
 ## Сознательно не делаем до реального запроса
 
 - Версии наборов и снимки определений в листе: персонажи ссылаются на определения по ID, а используемые
@@ -259,6 +364,8 @@ DTO: в `CampaignDetailDto` добавить последним параметр
 
 - Снятие последнего персонажа больше не выводит игрока из кампании (этап 1).
 - Этап 4 закрывает игрокам доступ к личному кастому в кампаниях до подключения мастером.
+- Автор подключённого набора может менять механику после разрешения мастера. Это принято сознательно:
+  мастер узнаёт о правках по дате и журналу (этап 5), а не по запрету.
 - XP, dice pool, purchase/refund и формулы не меняются.
 
 **Copyright:** seed и справочники не меняются; оригинальные тексты книг не добавляются.

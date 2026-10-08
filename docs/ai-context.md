@@ -20,13 +20,23 @@ JWT register/login, character CRUD, reference data, Genesys Core and Realms of T
 
 Reference content model: every reference def (`SkillDef`/`TalentDef`/`ItemDef`/`ArchetypeDef`/`CareerDef`/`HeroicAbilityDef`, plus `SpellDef`) carries `Code` (stable key), `NameRu`, `Name` (original/EN), `Description` (full/private), `SafeDescription` (public) and `Source` via `IContentDef`. Two seed pipelines are selected by `ContentMode` (`Content:Mode`, default `PrivateFull`). PublicSafe clears full descriptions; built-in talents, heroic abilities, Power upgrades and Secondary Effects expose names and book/page references only (RU/EN prose is empty). Other definitions retain safe paraphrases. Private talent/heroic prose lives in the conditional `private-content/rule-text.ru.json` resource, excluded by `/p:IncludePrivateContent=false` and the public Docker target. PublicSafe and PrivateFull keep the same calculation rules. Reseed updates built-ins (including retired legacy prose) while preserving IDs and custom content. Three legacy Core talents have unconfirmed pages; see [public-safe-release.md](public-safe-release.md). Public and private deployments use separate databases.
 
-Talents carry a `Setting` (`[Flags] GenesysSetting`) and are data-driven: built-in talents come from the embedded `Persistence/SeedContent/talents.catalog.json` catalog (`TalentCatalog`), generated from source CSVs (structure + reworked descriptions). Reference filtering: Genesys Core lists `Any`-setting talents; Realms of Terrinoth lists `Any` + `Fantasy`; a character's own custom talents always show. `_books/` (source PDFs/CSVs) is gitignored and must never be committed.
+Talents carry a `Setting` (`[Flags] GenesysSetting`) and are data-driven: built-in talents come from the embedded `Persistence/SeedContent/talents.catalog.json` catalog (`TalentCatalog`), generated from source CSVs (structure + reworked descriptions). Reference filtering: Genesys Core lists `Any`-setting talents; Realms of Terrinoth lists `Any` + `Fantasy`; custom talents follow pack visibility independently of setting. `_books/` (source PDFs/CSVs) is gitignored and must never be committed.
 
 Also implemented: Google sign-in (disabled until `Auth:Google:ClientId` is set), refresh-token rotation with `HttpOnly` cookie, self-service password reset (e-mail stubbed to log), URL deep links, and SignalR real-time campaign/Game-Table events. Partially implemented: deep links for every sub-view, UI validation, frontend component test coverage, mechanical talent/heroic ability effects, production operations, real e-mail delivery for password reset. Implemented as well: shareable character-sheet links, JSON character import/export, printable character sheets/cards, Chromium E2E smoke and versioned `/api/v1` routes with legacy aliases. Full manual/visual and cross-browser acceptance is still pending.
 
+Campaign membership is account-level (`CampaignMember`) and independent of characters. Players can
+join without a character, add an existing owned character, or create one atomically within the campaign
+using packs approved by the GM, including original player-owned shared packs. Standalone characters use personal packs. Campaign contexts use only enabled
+campaign packs (the union for a character in multiple campaigns); already owned skill rows remain on
+the sheet after a pack is disabled. The personal library UI exposes custom creation without a campaign. Campaign shared import connects
+the original pack without copying definition IDs; authors retain editing rights. Reference returns
+editableCustomIds to keep other authors' content read-only. Shop selects a character before loading
+its context-specific catalogue. Personal character toggles are rejected for campaign characters.
+See [account-campaign-content.md](account-campaign-content.md) for the approved implementation scope.
+
 ## Core entities
 
-`User`; `SkillDef`; `TalentDef`; `ItemDef`; `HeroicAbilityDef`; `ArchetypeDef`; `CareerDef`; `SpellDef`; `Character`; `CharacterSkill`; `CharacterTalent`; `CharacterItem`; `CharacterNote`; `Campaign`; `CampaignCharacter`; `CampaignNote`; `CampaignChronicleChapter`; `CampaignChronicleRevision`; `Npc`; `NpcSkill`; `NpcAbility`; `Encounter`; `EncounterParticipant`; `GameSession`; `GameParticipant`; `InitiativeSlot`. `OwnerUserId = null` means built-in reference content; non-null means custom content owned by one user.
+`User`; `SkillDef`; `TalentDef`; `ItemDef`; `HeroicAbilityDef`; `ArchetypeDef`; `CareerDef`; `SpellDef`; `Character`; `CharacterSkill`; `CharacterTalent`; `CharacterItem`; `CharacterNote`; `Campaign`; `CampaignMember`; `CampaignCharacter`; `CampaignNote`; `CampaignChronicleChapter`; `CampaignChronicleRevision`; `Npc`; `NpcSkill`; `NpcAbility`; `Encounter`; `EncounterParticipant`; `GameSession`; `GameParticipant`; `InitiativeSlot`. `OwnerUserId = null` means built-in reference content; non-null means custom content owned by one user.
 
 ## Key rules
 
@@ -43,7 +53,7 @@ and up to two different Secondary Effects (1 each). Purchases are permanent afte
 
 ## API
 
-Public: `POST /api/v1/auth/register`, `/login`, `/google`, `/password-reset/request`, `/password-reset/confirm`, `/refresh`, `/logout`, `GET /api/v1/auth/providers`, `GET /api/v1/health`. Protected: `GET /api/v1/reference/{system}`, `/api/v1/spells/{system}`, `/api/v1/characters/*`, `/api/v1/campaigns/*` (including campaign-scoped custom content), `/api/v1/npcs/*`, `/api/v1/encounters/*`, `/api/v1/content-packs/*`. Legacy `/api/*` aliases still work for compatibility. OpenAPI: `/openapi/v1.json`; Scalar UI: `/api/docs`. Real-time: SignalR hub `/hubs/campaign` (JWT-authenticated, campaign-scoped). Error body: `{ "message": "..." }`. Known exception mapping: `DomainRuleException -> 400`, `ConflictException -> 409`, `UnauthorizedException -> 401`. Full reference: [api.md](api.md).
+Public: `POST /api/v1/auth/register`, `/login`, `/google`, `/password-reset/request`, `/password-reset/confirm`, `/refresh`, `/logout`, `GET /api/v1/auth/providers`, `GET /api/v1/health`. Protected: `GET /api/v1/reference/{system}`, `/api/v1/spells/{system}`, `/api/v1/characters/*`, `/api/v1/campaigns/*` (including campaign-scoped custom content), `/api/v1/custom/*` (personal custom content), `/api/v1/npcs/*`, `/api/v1/encounters/*`, `/api/v1/content-packs/*`. Legacy `/api/*` aliases still work for compatibility. OpenAPI: `/openapi/v1.json`; Scalar UI: `/api/docs`. Real-time: SignalR hub `/hubs/campaign` (JWT-authenticated, campaign-scoped). Error body: `{ "message": "..." }`. Known exception mapping: `DomainRuleException -> 400`, `ConflictException -> 409`, `UnauthorizedException -> 401`. Full reference: [api.md](api.md).
 
 ## Commands
 

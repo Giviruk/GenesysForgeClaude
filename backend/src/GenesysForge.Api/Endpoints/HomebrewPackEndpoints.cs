@@ -52,12 +52,26 @@ public static class HomebrewPackEndpoints
                 return Results.NoContent();
             }).RequireAuthorization();
 
-        app.MapPut("/api/campaigns/{campaignId:guid}/homebrew-packs/{packId:guid}",
-            async (Guid campaignId, Guid packId, HomebrewPackToggleRequest req, ClaimsPrincipal user,
-                ICommandHandler<SetCampaignHomebrewPackCommand, Unit> handler, CancellationToken ct) =>
-            {
-                await handler.Handle(new SetCampaignHomebrewPackCommand(user.UserId(), campaignId, packId, req.IsEnabled), ct);
-                return Results.NoContent();
-            }).RequireAuthorization();
+        var campaign = app.MapGroup("/api/campaigns/{campaignId:guid}/homebrew-packs").RequireAuthorization();
+        campaign.AddEndpointFilter(async (ctx, next) =>
+        {
+            var result = await next(ctx);
+            if (ctx.HttpContext.Request.Method != HttpMethods.Get &&
+                Guid.TryParse(ctx.HttpContext.Request.RouteValues["campaignId"]?.ToString(), out var campaignId))
+                await ctx.HttpContext.RequestServices.GetRequiredService<ICampaignNotifier>().CampaignChangedAsync(campaignId);
+            return result;
+        });
+        campaign.MapGet("/", async (Guid campaignId, ClaimsPrincipal user,
+            IQueryHandler<GetCampaignHomebrewPacksQuery, List<CampaignHomebrewPackDto>> handler, CancellationToken ct) =>
+            Results.Ok(await handler.Handle(new GetCampaignHomebrewPacksQuery(user.UserId(), campaignId), ct)));
+        campaign.MapPost("/shared/{token}/import", async (Guid campaignId, string token, ClaimsPrincipal user,
+            ICommandHandler<ConnectSharedCampaignHomebrewPackCommand, HomebrewPackImportResult> handler, CancellationToken ct) =>
+            Results.Ok(await handler.Handle(new ConnectSharedCampaignHomebrewPackCommand(user.UserId(), campaignId, token), ct)));
+        campaign.MapPut("/{packId:guid}", async (Guid campaignId, Guid packId, HomebrewPackToggleRequest req, ClaimsPrincipal user,
+            ICommandHandler<SetCampaignHomebrewPackCommand, Unit> handler, CancellationToken ct) =>
+        {
+            await handler.Handle(new SetCampaignHomebrewPackCommand(user.UserId(), campaignId, packId, req.IsEnabled), ct);
+            return Results.NoContent();
+        });
     }
 }

@@ -2,6 +2,9 @@ using System.Net;
 using System.Net.Http.Json;
 using GenesysForge.Application.Dtos;
 using GenesysForge.Domain;
+using GenesysForge.Domain.Entities;
+using GenesysForge.Infrastructure.Persistence;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace GenesysForge.Api.Tests;
 
@@ -673,4 +676,35 @@ public class RotMountApiTests(ApiFactory factory) : IClassFixture<ApiFactory>
         Assert.NotEqual(mount.Id, cloneMount.Id);
         Assert.NotEqual(cargo, cloneCargo.Id);
     }
+    [Fact]
+    public async Task CampaignMountFromGmPack_IsVisibleAndPurchasable_OnlyWhileEnabled()
+    {
+        var (player, id, _) = await CreateRiderAsync();
+        var gm = await factory.CreateAuthorizedClientAsync();
+        var campaign = (await (await gm.PostAsJsonAsync("/api/campaigns/", new CreateCampaignRequest("Campaign mounts", ""), Json.Options))
+            .Content.ReadFromJsonAsync<CampaignDetailDto>(Json.Options))!;
+        await gm.PostAsJsonAsync($"/api/campaigns/{campaign.Id}/custom/skills",
+            new CreateCustomSkillRequest(GameSystem.RealmsOfTerrinoth, "Campaign Riding", CharacteristicType.Agility, SkillKind.General), Json.Options);
+        var pack = Assert.Single((await gm.GetFromJsonAsync<List<HomebrewPackListItemDto>>("/api/homebrew-packs/", Json.Options))!);
+        var owner = (await gm.GetFromJsonAsync<AccountDto>("/api/account/", Json.Options))!;
+        var mountId = Guid.NewGuid();
+        await using (var scope = factory.Services.CreateAsyncScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            db.MountDefs.Add(new MountDef { Id = mountId, Name = "Campaign mount", Code = "custom.campaign.mount", System = GameSystem.RealmsOfTerrinoth,
+                OwnerUserId = owner.Id, HomebrewPackId = pack.Id, Price = 10, WoundThreshold = 10, Brawn = 2, Capacity = 10 });
+            await db.SaveChangesAsync();
+        }
+        await player.PostAsJsonAsync("/api/campaigns/join", new JoinCampaignRequest(campaign.JoinCode!, id), Json.Options);
+        var path = $"/api/characters/{id}/mounts";
+        var reference = (await player.GetFromJsonAsync<ReferenceResponse>($"/api/reference/RealmsOfTerrinoth?characterId={id}", Json.Options))!;
+        Assert.Contains(reference.Mounts!, m => m.Id == mountId);
+        var before = Funds(await SheetAsync(player, id));
+        Assert.Equal(HttpStatusCode.Created, (await player.PostAsJsonAsync(path, new BuyMountRequest(mountId), Json.Options)).StatusCode);
+        Assert.Equal(before - 10, Funds(await SheetAsync(player, id)));
+        await gm.PutAsJsonAsync($"/api/campaigns/{campaign.Id}/homebrew-packs/{pack.Id}", new HomebrewPackToggleRequest(false), Json.Options);
+        Assert.Equal(HttpStatusCode.BadRequest, (await player.PostAsJsonAsync(path, new BuyMountRequest(mountId), Json.Options)).StatusCode);
+        Assert.Equal(before - 10, Funds(await SheetAsync(player, id)));
+    }
+
 }

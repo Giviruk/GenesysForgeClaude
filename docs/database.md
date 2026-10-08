@@ -548,15 +548,17 @@ Indexes:
 
 Imported pack content is stored in the normal custom reference tables through nullable `HomebrewPackId`
 columns on `SkillDefs`, `TalentDefs`, `ItemDefs`, `HeroicAbilityDefs`, `ArchetypeDefs`, `CareerDefs`.
-Reference visibility includes pack content only when the pack is enabled by default or enabled through
-the character/campaign toggle tables. Directly created campaign custom content is stored in an
+Standalone reference visibility uses owned default packs and character toggles. Campaign contexts use
+only enabled campaign pack connections. Directly created campaign custom content is stored in an
 automatically created system-specific pack linked through `HomebrewPackCampaigns`; no schema change is
 required. A character context also resolves enabled packs of every campaign that contains the character,
-including packs owned by that campaign's GM.
+including original player-owned packs explicitly connected by its GM using a shared token.
 
 ### HomebrewPackCharacters / HomebrewPackCampaigns
 
-Per-character and per-campaign pack toggles.
+Per-character and per-campaign pack toggles. A campaign connection grants use, not ownership:
+HomebrewPackCampaigns references the player's original pack; definition IDs and OwnerUserId remain
+unchanged. GM connection/management uses the existing table and requires no new schema migration.
 
 Fields:
 
@@ -771,3 +773,13 @@ Legal risk:
 
 - Explicit database check constraints for XP ranges, tier ranges, ranks and quantity.
 - Database-level ownership enforcement; ownership is application-level.
+
+## Legacy custom content packs (GEN-CONTENT-01)
+
+PackLegacyCustomContent is a data-only migration. It assigns owner-owned definitions without
+HomebrewPackId to one personal pack per owner/system, reusing the personal library marker.
+It covers skills, talents, items, archetypes, careers and Terrinoth heroic abilities. Existing
+pack links, definition IDs and character references remain unchanged; built-ins are excluded.
+Rollback retains the repair because reverting links cannot safely distinguish migrated rows
+from later library content. A read-only check on 07.10.2026 found one unpacked custom career
+in the private production database and none in the public database.

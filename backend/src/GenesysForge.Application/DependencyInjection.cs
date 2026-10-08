@@ -208,6 +208,8 @@ public static class DependencyInjection
         // Campaign Handbook / Content Packs
 
         // Homebrew JSON packs
+        services.AddScoped<IQueryHandler<GetCampaignHomebrewPacksQuery, List<CampaignHomebrewPackDto>>, GetCampaignHomebrewPacksHandler>();
+        services.AddScoped<ICommandHandler<ConnectSharedCampaignHomebrewPackCommand, HomebrewPackImportResult>, ConnectSharedCampaignHomebrewPackHandler>();
         services.AddScoped<IQueryHandler<GetHomebrewPacksQuery, List<HomebrewPackListItemDto>>, GetHomebrewPacksHandler>();
         services.AddScoped<IQueryHandler<ExportHomebrewPackQuery, HomebrewPackExportDto>, ExportHomebrewPackHandler>();
         services.AddScoped<ICommandHandler<ImportHomebrewPackCommand, HomebrewPackImportResult>, ImportHomebrewPackHandler>();

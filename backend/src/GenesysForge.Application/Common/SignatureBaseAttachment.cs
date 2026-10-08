@@ -28,7 +28,7 @@ public static class SignatureBaseAttachment
             throw new DomainRuleException(
                 "Выберите базовое улучшение именного оружия.", "heroic.weapon.attachment_required");
 
-        // Улучшение должно быть доступно именно этому персонажу: встроенное или собственный кастом
+        // Улучшение должно быть доступно именно этому персонажу: встроенное или разрешённый кастом
         // той же системы из видимого набора — та же проверка, что у навыка Paragon.
         var visiblePackIds = await HomebrewVisibility.GetVisiblePackIdsAsync(db, userId, c.System, c.Id, ct: ct);
         var def = await db.AttachmentDefs.Include(a => a.Effects).FirstOrDefaultAsync(a =>
@@ -36,8 +36,8 @@ public static class SignatureBaseAttachment
             && a.System == c.System
             && !a.Retired
             && (a.OwnerUserId == null
-                || (a.OwnerUserId == userId
-                    && (a.HomebrewPackId == null || visiblePackIds.Contains(a.HomebrewPackId.Value)))), ct);
+                || (a.HomebrewPackId == null ? a.OwnerUserId == userId
+                        : visiblePackIds.Contains(a.HomebrewPackId.Value))), ct);
         if (def is null)
             throw new DomainRuleException(
                 "Улучшение недоступно персонажу.", "heroic.weapon.attachment_not_available");

@@ -71,3 +71,19 @@ Public API собирается Docker target `public` с `IncludePrivateContent
 не встраиваются в public runtime assembly. Оба стека используют отдельные volumes и hostnames.
 Public JWT signing key получает отдельный namespace (`JWT_KEY` + public suffix), поэтому private
 access tokens не принимаются public API.
+
+## GEN-CONTENT-01 rollout
+
+Apply AddCampaignMembers before enabling account-only joining. PackLegacyCustomContent
+assigns legacy ungrouped owner content to personal packs without changing definition IDs.
+Before enabling campaign content isolation, tell players that personal packs no longer permit
+new purchases while a character belongs to a campaign. The GM connects the original player pack by shared link in the campaign pack panel.
+Ownership, definition IDs and existing ranks are preserved; connecting the pack charges no XP.
+Do not create replacement copies for existing characters. Author edits propagate to approved packs;
+rotating a share token does not revoke existing campaign connections. Existing purchased skill ranks remain on the sheet;
+removing the last character no longer leaves the campaign. Exit/removal is an account action.
+Migration deployment and service restart are outside the implementation PRs.
+
+Original shared pack connections require a current campaign member (or its GM) as the owner.
+On leaving/removal the original pack remains enabled; the GM sees the former owner marker and
+disables it manually. Author edits remain allowed and immediately affect connected campaigns.

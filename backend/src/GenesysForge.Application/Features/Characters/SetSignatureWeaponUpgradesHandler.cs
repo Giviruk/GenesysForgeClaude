@@ -65,8 +65,8 @@ public class SetSignatureWeaponUpgradesHandler(IAppDbContext db)
                 && a.System == c.System
                 && !a.Retired
                 && (a.OwnerUserId == null
-                    || (a.OwnerUserId == command.UserId
-                        && (a.HomebrewPackId == null || visiblePackIds.Contains(a.HomebrewPackId.Value)))), ct);
+                    || (a.HomebrewPackId == null ? a.OwnerUserId == command.UserId
+                        : visiblePackIds.Contains(a.HomebrewPackId.Value))), ct);
             if (def is null)
                 throw new DomainRuleException(
                     "Улучшение недоступно персонажу.", "heroic.weapon.attachment_not_available");

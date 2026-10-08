@@ -526,6 +526,7 @@ export interface Reference {
   attachments: AttachmentDef[]
   /** Покупаемый транспорт (ROT-MOUNT-ITEM-01, ROT-TRANSPORT-01): скакуны и повозки со статблоком. */
   mounts: MountDef[]
+  editableCustomIds?: string[]
 }
 
 /** Скакун или транспортное средство (ROT-TRANSPORT-01). */
@@ -1641,6 +1642,17 @@ export interface HomebrewPackListItem {
   isEnabledByDefault: boolean
   entryCount: number
   updatedAt: string
+}
+
+export interface CampaignHomebrewPack {
+  id: string
+  name: string
+  system: GameSystem
+  isEnabled: boolean
+  isMine: boolean
+  entryCount: number
+  ownerName: string
+  ownerIsMember: boolean
 }
 
 export interface HomebrewPackShare {
