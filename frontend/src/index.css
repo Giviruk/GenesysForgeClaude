@@ -582,6 +582,8 @@ table.skills .die { letter-spacing: 0; }
 tr.equipped-row td { background: rgba(200, 162, 74, 0.07); }
 
 /* Горизонтальный скролл таблиц на узких экранах */
+/* overflow-x:auto делает обрезку и по вертикали: всплывающие подсказки (.prop-tooltip)
+   внутри такой обёртки будут обрезаны — не кладите их в ячейки прокручиваемых таблиц. */
 .table-wrap { width: 100%; overflow-x: auto; }
 td.nowrap, th.nowrap { white-space: nowrap; }
 

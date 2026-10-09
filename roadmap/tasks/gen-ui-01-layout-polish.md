@@ -100,6 +100,23 @@ Backend/API, игровые правила, миграции, seed, зависи
 | Профиль, 1440 px | [До](../../docs/ui-audit-2026-10-09/account-before.png) | [После](../../docs/ui-audit-2026-10-09/account-after.png) |
 | Хроника, 390 px | [До](../../docs/ui-audit-2026-10-09/chronicle-before.png) | [После](../../docs/ui-audit-2026-10-09/chronicle-after.png) |
 
+## Правки по ревью PR #271
+
+- [x] E2E больше не обходит лимит авторизации ожиданием: `docker-compose.yml` пробрасывает
+  `AUTH_SENSITIVE_PERMIT_LIMIT` (по умолчанию 10, как раньше), CI-job e2e задаёт 1000.
+  Цикл повторов при 429 в smoke сброса пароля убран, ожидается ровно 204.
+- [x] `useTooltipPosition`: прокручиваемые предки собираются один раз при открытии,
+  пересчёт при scroll/resize — не чаще раза за кадр (`requestAnimationFrame`);
+  чистые функции границ и сдвига покрыты `useTooltipPosition.test.ts`.
+- [x] `layout.spec.ts`: проверка интервала кнопок на `/account` ограничена формой профиля.
+- [x] Комментарий у `.table-wrap`: обёртка обрезает и вертикальное переполнение, подсказки в неё не класть.
+- Селекты шапки столкновения: `width:auto` подгоняет ширину под длинный вариант, правка не нужна.
+- Скриншоты аудита оставлены в `docs/`: репозиторий сливает PR merge-коммитом, удаление в ветке
+  не уберёт их из истории.
+
+Проверки после правок: `npm run lint`, `npm run build`, `npx vitest run --maxWorkers=2`
+(64 файла, 521 тест), `git diff --check` — успешно. E2E — в CI PR.
+
 ## Осталось
 
 Результат CI отслеживается в checks [PR #271](https://github.com/Giviruk/GenesysForgeClaude/pull/271).

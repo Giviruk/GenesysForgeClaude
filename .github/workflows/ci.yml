@@ -156,6 +156,8 @@ jobs:
     env:
       COMPOSE_FILE: ${{ matrix.content_mode == 'PublicSafe' && 'docker-compose.yml:docker-compose.public-test.yml' || 'docker-compose.yml' }}
       E2E_CONTENT_MODE: ${{ matrix.content_mode }}
+      # Все E2E-регистрации и сбросы пароля идут с одного IP раннера; лимит 10/мин их не вмещает.
+      AUTH_SENSITIVE_PERMIT_LIMIT: 1000
     steps:
       - uses: actions/checkout@v5
 

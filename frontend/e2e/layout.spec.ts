@@ -90,7 +90,8 @@ for (const width of [320, 390, 768, 1280, 1440]) {
 
     await page.goto('/account')
     await expect(page.getByRole('button', { name: 'Сохранить', exact: true })).toBeVisible()
-    await separatedButtons(page, '.form-actions > button')
+    // Только форма профиля: другие формы страницы со своими .form-actions не должны ломать счёт.
+    await separatedButtons(page, 'form:has([data-testid="avatar-file"]) .form-actions > button')
     await fitsViewport(page)
 
     await page.goto('/reference')
