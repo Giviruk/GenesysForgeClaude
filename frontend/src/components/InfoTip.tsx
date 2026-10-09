@@ -1,4 +1,5 @@
 import { useEffect, useId, useRef, useState } from 'react'
+import { useTooltipPosition } from './useTooltipPosition'
 
 /**
  * Памятка в тултипе: короткий значок, за которым лежит правило целиком.
@@ -20,6 +21,7 @@ export function InfoTip({ label, title, children, className }: {
   const [pinned, setPinned] = useState(false)
   const wrapRef = useRef<HTMLSpanElement>(null)
   const tipId = useId()
+  const tipRef = useTooltipPosition(hovered || pinned)
 
   useEffect(() => {
     if (!pinned) return
@@ -59,7 +61,7 @@ export function InfoTip({ label, title, children, className }: {
     >
       {label}
       {open && (
-        <span id={tipId} role="tooltip" className="prop-tooltip" onClick={e => e.stopPropagation()}>
+        <span ref={tipRef} id={tipId} role="tooltip" className="prop-tooltip" onClick={e => e.stopPropagation()}>
           <span className="prop-tooltip-title">{title}</span>
           <span className="prop-tooltip-body">{children}</span>
         </span>

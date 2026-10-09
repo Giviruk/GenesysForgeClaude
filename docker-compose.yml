@@ -34,6 +34,8 @@ services:
       App__BaseUrl: ${APP_BASE_URL:-http://localhost:8080}
       # Google OAuth (опционально). Пусто — вход через Google выключен (кнопка скрыта).
       Auth__Google__ClientId: ${GOOGLE_CLIENT_ID:-}
+      # Лимит регистраций/входов/сбросов с одного IP. E2E в CI поднимает его: все тесты идут с одного адреса.
+      RateLimiting__AuthSensitive__PermitLimit: ${AUTH_SENSITIVE_PERMIT_LIMIT:-10}
     depends_on:
       postgres:
         condition: service_healthy

@@ -105,12 +105,14 @@ function ProfileForm({ account, onSaved }: { account: Account; onSaved: (a: Acco
       </label>
       <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp" hidden
         data-testid="avatar-file" onChange={uploadFile} />
-      <button type="button" disabled={busy} onClick={() => fileRef.current?.click()}>
-        {t('Загрузить файл (JPEG/PNG/WebP, до 5 МБ)', 'Upload file (JPEG/PNG/WebP, up to 5 MB)')}
-      </button>
       {error && <div className="error">{error}</div>}
       {saved && <div className="hint">{t('Сохранено.', 'Saved.')}</div>}
-      <button className="primary" type="submit" disabled={busy || !displayName.trim()}>{t('Сохранить', 'Save')}</button>
+      <div className="form-actions">
+        <button type="button" disabled={busy} onClick={() => fileRef.current?.click()}>
+          {t('Загрузить файл (JPEG/PNG/WebP, до 5 МБ)', 'Upload file (JPEG/PNG/WebP, up to 5 MB)')}
+        </button>
+        <button className="primary" type="submit" disabled={busy || !displayName.trim()}>{t('Сохранить', 'Save')}</button>
+      </div>
     </form>
   )
 }

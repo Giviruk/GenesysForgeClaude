@@ -418,7 +418,12 @@ test.describe('U-29 smoke E2E', () => {
     await page.getByRole('button', { name: /e-mail/i }).click()
     await page.getByRole('button', { name: /Забыли/i }).click()
     await page.locator('input[type="email"]').fill(`${unique('reset')}@example.test`)
+    // Регистрации и сбросы делят лимит AuthSensitive с одного IP; для E2E его поднимает
+    // AUTH_SENSITIVE_PERMIT_LIMIT (ci.yml), так что 429 здесь — настоящая ошибка окружения.
+    const pending = page.waitForResponse(response =>
+      response.url().endsWith('/auth/password-reset/request') && response.request().method() === 'POST')
     await page.getByRole('button', { name: /Отправить/i }).click()
+    expect((await pending).status()).toBe(204)
     await expect(page.locator('.notice')).toBeVisible()
   })
 })

@@ -32,15 +32,17 @@
 .chronicle-layout { display:grid; grid-template-columns:260px minmax(0,1fr); gap:16px; align-items:start; }
 .chronicle-toc { position:sticky; top:16px; max-height:calc(100vh - 48px); overflow:auto; padding:14px; border:1px solid var(--border); border-radius:12px; background:var(--panel); }
 .chronicle-toc-head,.chronicle-title-row,.chronicle-history-actions { display:flex; align-items:center; gap:10px; }
+.chronicle-title-row,.chronicle-history-actions { flex-wrap:wrap; }
+.chronicle-title-row > .muted { min-width:0; overflow-wrap:anywhere; }
 .chronicle-toc-head { justify-content:space-between; margin-bottom:10px; }
-.chronicle-chapter { width:100%; padding:8px 10px; border:0; text-align:left; background:transparent; }
+.chronicle-chapter { width:100%; justify-content:flex-start; padding:8px 10px; border:0; text-align:left; background:transparent; }
 .chronicle-chapter.active { color:var(--accent-2); background:rgba(201,162,74,.12); }
 .chronicle-heading { display:block; padding-block:4px; color:var(--muted); font-size:.86rem; text-decoration:none; }
 .chronicle-workspace { min-width:0; padding:16px; border:1px solid var(--border); border-radius:12px; background:var(--panel); }
 .chronicle-empty { padding:48px 24px; text-align:center; }
-.chronicle-title-row input { flex:1; min-width:160px; font-size:1.15rem; font-weight:700; }
+.chronicle-title-row input { flex:1 1 160px; min-width:0; font-size:1.15rem; font-weight:700; }
 .chronicle-toolbar { display:flex; flex-wrap:wrap; align-items:center; gap:6px; margin:12px 0; padding:8px; border:1px solid var(--border); border-radius:9px; background:var(--panel-2); }
-.chronicle-picker,.chronicle-mode { display:inline-flex; align-items:center; gap:3px; }
+.chronicle-picker,.chronicle-mode { display:inline-flex; align-items:center; gap:6px; }
 .chronicle-picker select { width:150px; }
 .chronicle-npc-picker { position:relative; }
 .chronicle-combobox { position:relative; display:inline-flex; }
@@ -196,6 +198,7 @@ h1.auth-brand { font-size: 2rem; margin: 0 0 0.2rem; }
 .auth-methods { display: flex; flex-direction: column; align-items: center; gap: 0.7rem; margin: 0.5rem 0 1.4rem; }
 .auth-method { width: 100%; max-width: 17.5rem; }
 .auth-foot { margin: 0; }
+.auth-links { display: flex; flex-wrap: wrap; gap: 0.65rem 1rem; margin-top: 1rem; }
 .auth-landing .error, .auth-landing .notice { text-align: left; }
 
 /* Внешние провайдеры входа (Google) */
@@ -563,12 +566,14 @@ table.skills td { padding: 0.3rem 0.5rem; border-bottom: 1px solid rgba(58, 49, 
 .skill-block .skill-kind { margin-top: 0.6rem; }
 table.skills.fixed { table-layout: fixed; min-width: 0; }
 table.skills.fixed th, table.skills.fixed td { padding: 0.3rem 0.35rem; white-space: nowrap; }
-col.col-name { width: 26%; }
+table.skills.fixed th { white-space: normal; overflow-wrap: anywhere; }
+table.skills.fixed td.skill-ranks { padding-inline: 0.15rem; }
+col.col-name { width: 24%; }
 col.col-char { width: 10%; }
-col.col-career { width: 12%; }
-col.col-ranks { width: 14%; }
+col.col-career { width: 14%; }
+col.col-ranks { width: 16%; }
 col.col-pool { width: 14%; }
-col.col-action { width: 24%; }
+col.col-action { width: 22%; }
 td.ellipsis { overflow: hidden; text-overflow: ellipsis; }
 .centered { text-align: center !important; }
 td.right { text-align: right; }
@@ -577,6 +582,8 @@ table.skills .die { letter-spacing: 0; }
 tr.equipped-row td { background: rgba(200, 162, 74, 0.07); }
 
 /* Горизонтальный скролл таблиц на узких экранах */
+/* overflow-x:auto делает обрезку и по вертикали: всплывающие подсказки (.prop-tooltip)
+   внутри такой обёртки будут обрезаны — не кладите их в ячейки прокручиваемых таблиц. */
 .table-wrap { width: 100%; overflow-x: auto; }
 td.nowrap, th.nowrap { white-space: nowrap; }
 
@@ -602,7 +609,7 @@ td.nowrap, th.nowrap { white-space: nowrap; }
 
 .rule-table { margin-top: 1.1rem; }
 .rule-table h3 { margin: 0 0 0.4rem; color: var(--accent); }
-table.ref-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+table.ref-table { width: 100%; min-width: 34rem; border-collapse: collapse; font-size: 0.9rem; }
 table.ref-table th {
   text-align: left; color: var(--muted); font-weight: 500;
   padding: 0.3rem 0.5rem; border-bottom: 1px solid var(--border); vertical-align: top;
@@ -733,7 +740,7 @@ table.ref-table td.ref-cost { white-space: nowrap; color: var(--accent); }
 .enc-bar.warn strong { color: var(--red); }
 .inline-form { display: flex; gap: 0.5rem; align-items: center; margin: 0.6rem 0; flex-wrap: wrap; }
 .inline-form select { max-width: 22rem; min-width: min(100%, 14rem); }
-.state-switch { display: flex; gap: 0.25rem; flex-wrap: wrap; min-width: 0; }
+.state-switch { display: flex; gap: 0.4rem; flex-wrap: wrap; min-width: 0; }
 .chip {
   display: inline-flex; align-items: center; justify-content: center; gap: 0.25rem;
   /* Нижний паддинг чуть больше верхнего — компенсация оптически низкой посадки Segoe UI. */
@@ -781,7 +788,7 @@ table.ref-table td.ref-cost { white-space: nowrap; color: var(--accent); }
 
 /* ---------- Campaigns ---------- */
 .topnav { display: flex; gap: 0.4rem; margin-right: auto; margin-left: 1.5rem; flex-wrap: wrap; min-width: 0; }
-.campaign-forms { display: grid; grid-template-columns: repeat(auto-fit, minmax(20rem, 1fr)); gap: 1rem; margin: 1rem 0; }
+.campaign-forms { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr)); gap: 1rem; margin: 1rem 0; }
 .campaign-forms .panel { margin: 0; }
 .join-code { background: var(--panel-2); border: 1px solid var(--accent); border-radius: 6px; padding: 0.1rem 0.5rem; color: var(--accent); letter-spacing: 0.15em; font-size: 1.05rem; }
 .join-code.compact { font-size: 0.8rem; padding: 0.02rem 0.35rem 0.08rem; }
@@ -978,7 +985,7 @@ table.ref-table td.ref-cost { white-space: nowrap; color: var(--accent); }
 /* Состояние повреждения и ремонт (GEN-EQP-DMG-01) */
 .inv-card.broken { border-color: var(--red); background: rgba(180, 60, 60, 0.07); }
 .damage-row { display: flex; align-items: center; gap: 0.45rem; flex-wrap: wrap; }
-.damage-switch { display: flex; gap: 0.25rem; flex-wrap: wrap; min-width: 0; }
+.damage-switch { display: flex; gap: 0.4rem; flex-wrap: wrap; min-width: 0; }
 .damage-adv { display: inline-flex; align-items: center; gap: 0.3rem; color: var(--muted); }
 .damage-warn { color: var(--yellow); }
 .damage-badge { border-color: var(--yellow); color: var(--yellow); cursor: help; }
@@ -1052,7 +1059,7 @@ table.ref-table td.ref-cost { white-space: nowrap; color: var(--accent); }
   left: 0;
   top: calc(100% + 0.4rem);
   width: max-content;
-  max-width: min(22rem, 80vw);
+  max-width: min(22rem, calc(100vw - 1.5rem));
   padding: 0.55rem 0.7rem;
   border: 1px solid var(--accent);
   border-radius: 8px;
@@ -1061,6 +1068,7 @@ table.ref-table td.ref-cost { white-space: nowrap; color: var(--accent); }
   box-shadow: 0 6px 22px rgba(0, 0, 0, 0.5);
   cursor: auto;
   white-space: normal;
+  overflow-wrap: anywhere;
   text-align: left;
 }
 /* Памятка (GEN-EQP-DMG-01): тот же тултип, но значок должен читаться как «здесь справка». */
@@ -1102,8 +1110,9 @@ table.ref-table td.ref-cost { white-space: nowrap; color: var(--accent); }
 .mount-list { display: flex; flex-direction: column; gap: 0.6rem; }
 .mount-catalog-list { display: flex; flex-direction: column; gap: 0.6rem; }
 .mount-card { display: grid; gap: 0.45rem; }
-.mount-card-head { display: flex; justify-content: space-between; gap: 0.6rem; align-items: flex-start; }
-.mount-card-actions { display: flex; align-items: center; gap: 0.5rem; flex-shrink: 0; flex-wrap: wrap; }
+.mount-card-head { display: flex; justify-content: space-between; gap: 0.6rem; align-items: flex-start; flex-wrap: wrap; }
+.mount-card-head > * { min-width: 0; }
+.mount-card-actions { display: flex; align-items: center; gap: 0.5rem; max-width: 100%; flex-wrap: wrap; }
 .mount-card-state { display: flex; gap: 1rem; flex-wrap: wrap; align-items: center; }
 .mount-name-input { font-weight: 600; max-width: 16rem; }
 .mount-statline { display: grid; gap: 0.15rem; }
@@ -1162,12 +1171,12 @@ table.ref-table td.ref-cost { white-space: nowrap; color: var(--accent); }
 
 /* Заголовок сворачиваемого раздела: кнопка во всю ширину, но выглядит заголовком. */
 .section-toggle {
-  display: flex; align-items: center; gap: 0.4rem; width: 100%;
-  padding: 0.15rem 0; border: none; background: none;
+  display: flex; align-items: center; justify-content: flex-start; gap: 0.5rem; width: 100%;
+  padding: 0.35rem 0.5rem; border: none; background: none;
   color: inherit; font: inherit; text-align: left; cursor: pointer;
 }
 .section-toggle:hover { color: var(--accent); }
-.section-caret { display: inline-block; width: 0.8rem; color: var(--muted); }
+.section-caret { display: inline-block; flex: 0 0 0.8rem; color: var(--muted); }
 .section-count {
   font-weight: 400; font-size: 0.8rem;
   padding: 0 0.35rem; border: 1px solid var(--border); border-radius: 999px;
@@ -1180,7 +1189,7 @@ table.ref-table td.ref-cost { white-space: nowrap; color: var(--accent); }
 
 /* Выбор качества изготовления при покупке (ROT-WPN-02) */
 .shop-craftsmanship { display: flex; flex-direction: column; gap: 0.2rem; margin-top: 0.5rem; }
-.shop-craftsmanship-select { font-size: 0.75rem; padding: 0.05rem 0.2rem; max-width: 11rem; }
+.shop-craftsmanship-select { font-size: 0.75rem; padding: 0.3rem 2.5rem 0.3rem 0.55rem; max-width: 11rem; }
 
 /* Управление ценой при покупке/продаже */
 .price-control { margin-top: 0.5rem; border-top: 1px dashed var(--border); padding-top: 0.5rem; display: flex; flex-direction: column; gap: 0.4rem; }
@@ -1204,19 +1213,20 @@ button.tiny { font-size: 0.75rem; padding: 0.05rem 0.4rem 0.15rem; }
 .bestiary-list { position: sticky; top: 1rem; max-height: calc(100vh - 7rem); display: flex; flex-direction: column; padding: 0.8rem; }
 .bestiary-list .npc-filters { flex-direction: column; align-items: stretch; gap: 0.5rem; flex: 0 0 auto; }
 .bestiary-list .npc-filters input { flex: none; width: 100%; min-width: 0; }
-.bestiary-list .npc-filter-row { display: flex; gap: 0.5rem; }
-.bestiary-list .npc-filter-row select { flex: 1 1 0; width: auto; min-width: 0; }
+.bestiary-list .npc-filter-row { display: flex; gap: 0.5rem; min-width: 0; flex-wrap: wrap; }
+.bestiary-list .npc-filter-row select { flex: 1 1 8rem; width: auto; min-width: 0; }
 .bestiary-hint { margin: 0.6rem 0.2rem; }
 .bestiary-items { list-style: none; margin: 0.6rem 0 0; padding: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 0.3rem; }
 .bestiary-item {
   width: 100%; text-align: left; background: var(--bg); border: 1px solid var(--border);
   border-radius: 8px; padding: 0.5rem 0.6rem; cursor: pointer; display: flex; flex-direction: column;
-  gap: 0.15rem; min-height: 0;
+  align-items: stretch; gap: 0.15rem; min-height: 0;
 }
 .bestiary-item:hover { border-color: var(--accent); }
 .bestiary-item.active { border-color: var(--accent); background: var(--panel); box-shadow: inset 0 0 0 1px var(--accent); }
-.bestiary-item-main { display: flex; align-items: center; justify-content: space-between; gap: 0.4rem; }
-.bestiary-item-main strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bestiary-item-main { display: flex; align-items: center; justify-content: space-between; gap: 0.4rem; min-width: 0; }
+.bestiary-item-main strong { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bestiary-item-main .badge { flex-shrink: 0; }
 .bestiary-item-sub { font-size: 0.76rem; }
 .bestiary-item-flag { font-size: 0.7rem; font-style: italic; }
 .bestiary-detail { min-width: 0; }
@@ -2118,7 +2128,7 @@ button.tiny { font-size: 0.75rem; padding: 0.05rem 0.4rem 0.15rem; }
   width: auto;
   min-width: 6.25rem;
   min-height: 1.85rem;
-  padding: 0.25rem 1.6rem 0.25rem 0.55rem;
+  padding: 0.25rem 2.5rem 0.25rem 0.55rem;
   font-size: 0.78rem;
 }
 .enc-head-actions { margin-left: auto; align-items: center; }
@@ -2265,12 +2275,12 @@ button.tiny { font-size: 0.75rem; padding: 0.05rem 0.4rem 0.15rem; }
   .sheet-action-buttons { width: 100%; }
   table.skills.fixed { min-width: 0; font-size: 0.78rem; }
   table.skills.fixed th, table.skills.fixed td { padding: 0.28rem 0.16rem; }
-  table.skills.fixed col.col-name { width: 26%; }
+  table.skills.fixed col.col-name { width: 24%; }
   table.skills.fixed col.col-char { width: 10%; }
-  table.skills.fixed col.col-career { width: 12%; }
-  table.skills.fixed col.col-ranks { width: 14%; }
+  table.skills.fixed col.col-career { width: 14%; }
+  table.skills.fixed col.col-ranks { width: 16%; }
   table.skills.fixed col.col-pool { width: 14%; }
-  table.skills.fixed col.col-action { width: 24%; }
+  table.skills.fixed col.col-action { width: 22%; }
   table.skills.fixed td.right { white-space: normal; }
   table.skills.fixed td.right button.small {
     min-height: 1.45rem;
@@ -2343,6 +2353,7 @@ button.tiny { font-size: 0.75rem; padding: 0.05rem 0.4rem 0.15rem; }
   text-align: center;
 }
 .footer-links { display: flex; gap: 1.1rem; justify-content: center; flex-wrap: wrap; }
+.footer-links a { color: var(--accent); font: inherit; }
 .footer-disclaimer { max-width: 42rem; margin: 0; }
 /* На auth-экране (grid place-items: center) футер не растягиваем на всю высоту */
 .auth-page .app-footer { margin-top: 1.5rem; border-top: none; }
@@ -2571,7 +2582,7 @@ button.tiny { font-size: 0.75rem; padding: 0.05rem 0.4rem 0.15rem; }
 /* ── Character history / audit log (U-09) ─────────────────────────── */
 .history-tab { display: flex; flex-direction: column; gap: 1rem; }
 .history-tab .award-xp .form-row { align-items: center; gap: 0.6rem; }
-.audit-table { width: 100%; border-collapse: collapse; }
+.audit-table { width: 100%; min-width: 36rem; border-collapse: collapse; }
 .audit-table th, .audit-table td { padding: 0.35rem 0.5rem; text-align: left; vertical-align: top; }
 .audit-table thead th { color: var(--muted); font-weight: 600; border-bottom: 1px solid var(--border); }
 .audit-table tbody tr { border-bottom: 1px solid var(--border); }
@@ -2593,7 +2604,7 @@ button.tiny { font-size: 0.75rem; padding: 0.05rem 0.4rem 0.15rem; }
 /* Флажок остаётся рядом со своей подписью и не тянется на всю карточку. */
 .crafting-tab label:has(> input[type="checkbox"]) {
   flex-direction: row; align-items: center; gap: 0.4rem;
-  width: fit-content; max-width: 100%; cursor: pointer; white-space: nowrap;
+  width: fit-content; max-width: 100%; cursor: pointer; white-space: normal;
 }
 .crafting-tab label:has(> input[type="checkbox"]) > input[type="checkbox"] {
   width: auto; flex: 0 0 auto;
@@ -3187,6 +3198,9 @@ textarea {
   .main-tabs {
     display: none;
   }
+  .campaign-member-sheet-page .main-tabs {
+    display: flex;
+  }
   .sheet-tab-select-wrap {
     display: flex;
     align-items: center;
@@ -3204,8 +3218,8 @@ textarea {
     flex: 1 1 auto;
     width: 100%;
     min-height: 2.55rem;
-    padding: 0.45rem 0.65rem;
-    background: var(--panel-2);
+    padding: 0.45rem 2.5rem 0.45rem 0.65rem;
+    background-color: var(--panel-2);
     border: 1px solid var(--border);
     border-radius: 7px;
     color: var(--text);
