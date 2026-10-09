@@ -17,4 +17,5 @@ public record CreateCustomArchetypeRequest(
     int StartingXp,
     string? Description,
     string? AbilityNameRu,
-    string? AbilityDescription);
+    string? AbilityDescription,
+    IReadOnlyList<Guid>? PackIds = null);

@@ -10,6 +10,13 @@ once it reaches a tagged 1.0 release. The project is currently pre-1.0; the
 ## [Unreleased]
 
 ### Added
+- **Redesign v2 (GEN-RD-01–09).** Independent account content, many-to-many packs, book exclusions,
+  campaign content summary/systems/packs/individual entries, player proposals, and Auto/Manual approval
+  of new pack entries. Campaigns connect original content; JSON v1/v2 import copies definitions and export
+  emits v2. The sheet adds vital cards, server stat breakdowns, fixed skill rows and progression preview.
+  `ContentLibraryV2` migrates named packs and dissolves technical personal packs without deleting definitions.
+  Save-as-pack preserves necessary allow overrides, including against foreign/mixed packs. Custom magic
+  (GEN-RD-10) is deferred. [Implementation plan](roadmap/tasks/gen-rd-v2-redesign.md).
 - **Feedback form.** A «Обратная связь» link in the footer opens a public form; messages are emailed to
   `genesys-forge.support@genesys-forge.com` with the page the form was opened from and, for signed-in users,
   the account email as Reply-To. Rate-limited and protected by a honeypot field.

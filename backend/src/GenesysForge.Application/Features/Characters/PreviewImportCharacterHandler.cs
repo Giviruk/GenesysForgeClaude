@@ -10,7 +10,7 @@ public class PreviewImportCharacterHandler(IAppDbContext db)
     public async Task<ImportPreviewDto> Handle(PreviewImportCharacterQuery query, CancellationToken ct = default)
     {
         // Тот же резолвер, что и при импорте, но без сохранения — показываем сводку и предупреждения.
-        var res = await CharacterImporter.ResolveAsync(db, query.UserId, query.Payload, ct);
+        var res = await CharacterImporter.ResolveAsync(db, query.UserId, query.Payload, ct, query.CampaignId);
         var c = res.Character;
         return new ImportPreviewDto(
             c.Name, c.System, res.ArchetypeName, res.CareerName,

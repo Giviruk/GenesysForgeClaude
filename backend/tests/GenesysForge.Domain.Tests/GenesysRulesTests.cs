@@ -118,6 +118,21 @@ public class DerivedStatsTests
     }
 
     [Fact]
+    public void Breakdown_SumsMatchStats_UsesActiveEquipmentAndTalentRanks()
+    {
+        var active = new ItemInput("Armor", ItemKind.Armor, ItemState.Equipped, 4, SoakBonus:2, IsActiveArmor:true);
+        var inactive = active with { Name="Inactive armor", SoakBonus=9, IsActiveArmor=false };
+        var bag = new ItemInput("Bag", ItemKind.Gear, ItemState.Equipped, 0, EncumbranceThresholdBonus:3);
+        var unused = bag with { Name="Unused bag", State=ItemState.Backpack };
+        var d = SheetCalculator.ComputeDerived(Ch, 10, 10, [new TalentInput("Resilience",1,2,SoakBonusPerRank:1)], [active,inactive,bag,unused]);
+        Assert.Equal(d.Soak, d.SoakBreakdown!.Base + d.SoakBreakdown.Sources.Sum(x => x.Value));
+        Assert.Equal(d.EncumbranceThreshold, d.EncumbranceThresholdBreakdown!.Base + d.EncumbranceThresholdBreakdown.Sources.Sum(x => x.Value));
+        Assert.Equal(2, d.SoakBreakdown.Sources.Single(x => x.SourceName=="Resilience").Value);
+        Assert.DoesNotContain(d.SoakBreakdown.Sources, x => x.SourceName=="Inactive armor");
+        Assert.DoesNotContain(d.EncumbranceThresholdBreakdown.Sources, x => x.SourceName=="Unused bag");
+    }
+
+    [Fact]
     public void EquippedArmor_AddsSoakAndDefense_AndReducesOwnEncumbrance()
     {
         // Защиту даёт только выбранная активная броня (ROT-CMB-02).

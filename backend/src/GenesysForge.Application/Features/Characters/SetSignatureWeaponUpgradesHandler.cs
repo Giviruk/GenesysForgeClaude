@@ -58,15 +58,14 @@ public class SetSignatureWeaponUpgradesHandler(IAppDbContext db)
                     "Бесплатное улучшение Supreme уже выбрано и не меняется.",
                     "heroic.weapon.supreme_immutable");
 
-            var visiblePackIds = await HomebrewVisibility.GetVisiblePackIdsAsync(
+            var contentPolicy = await CampaignContentPolicy.LoadAsync(
                 db, command.UserId, c.System, c.Id, ct: ct);
             var def = await db.AttachmentDefs.Include(a => a.Effects).FirstOrDefaultAsync(a =>
                 a.Id == defId
                 && a.System == c.System
                 && !a.Retired
                 && (a.OwnerUserId == null
-                    || (a.HomebrewPackId == null ? a.OwnerUserId == command.UserId
-                        : visiblePackIds.Contains(a.HomebrewPackId.Value))), ct);
+                    || contentPolicy.CustomIds.Contains(a.Id)), ct);
             if (def is null)
                 throw new DomainRuleException(
                     "Улучшение недоступно персонажу.", "heroic.weapon.attachment_not_available");

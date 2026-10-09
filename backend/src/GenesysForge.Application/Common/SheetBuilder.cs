@@ -102,7 +102,7 @@ public static class SheetBuilder
 
         var derived = CharacterDerived.Compute(c);
 
-        var visiblePackIds = await HomebrewVisibility.GetVisiblePackIdsAsync(db, userId, c.System, c.Id, ct: ct);
+        var contentPolicy = await CampaignContentPolicy.LoadAsync(db, userId, c.System, c.Id, ct: ct);
 
         // Все навыки системы (встроенные + видимые кастомные владельца), объединённые со строками персонажа.
         // Retired-навык не показывается всем подряд, но у персонажа с уже купленными рангами
@@ -112,8 +112,7 @@ public static class SheetBuilder
             .Where(s => s.System == c.System
                 && (!s.Retired || ownedSkillIds.Contains(s.Id))
                 && (ownedSkillIds.Contains(s.Id) || s.OwnerUserId == null
-                    || (s.HomebrewPackId == null ? s.OwnerUserId == userId
-                        : visiblePackIds.Contains(s.HomebrewPackId.Value))))
+                    || contentPolicy.CustomIds.Contains(s.Id)))
             .OrderBy(s => s.Kind).ThenBy(s => s.NameRu)
             .ToListAsync(ct);
         // Карьерный статус — только из резолвера (карьера ∪ вид ∪ таланты); хранимый флаг строки не
@@ -164,8 +163,8 @@ public static class SheetBuilder
                     s.SourceType, s.SourceName, s.SourceNameRu, s.Setback, s.Condition, s.Boost,
                     s.Difficulty, s.DifficultyUpgrades, s.RemoveBoosts))],
                 penalty.BoostDice, penalty.DifficultyDice, penalty.DifficultyUpgrades,
-                penalty.RemoveBoosts);
-        }).ToList();
+                penalty.RemoveBoosts, contentPolicy.UnavailableReason(BaseContentCategory.Skill, def.Code, def.OwnerUserId, def.Id));
+        }).Where(x => x.UnavailableReason == null || x.Ranks > 0).ToList();
 
         var configuration = await BuildConfigurationAsync(db, c, systemSkills, ct);
 
@@ -205,7 +204,11 @@ public static class SheetBuilder
                 derived.Encumbrance is null ? null : new EncumbranceDto(
                     derived.Encumbrance.Overload, derived.Encumbrance.SetbackDice,
                     derived.Encumbrance.HasFreeManoeuvre, derived.Encumbrance.StrainPerManoeuvre,
-                    derived.Encumbrance.ZeroEncumbranceLoad)),
+                    derived.Encumbrance.ZeroEncumbranceLoad),
+                derived.SoakBreakdown is null ? null : new StatBreakdownDto(derived.SoakBreakdown.Base,
+                    [.. derived.SoakBreakdown.Sources.Select(x => new StatSourceDto(x.SourceName, x.Value))]),
+                derived.EncumbranceThresholdBreakdown is null ? null : new StatBreakdownDto(derived.EncumbranceThresholdBreakdown.Base,
+                    [.. derived.EncumbranceThresholdBreakdown.Sources.Select(x => new StatSourceDto(x.SourceName, x.Value))])),
             skills,
             // Тяжёлые коллекции — отдельными срезами (см. BuildSlicesAsync); здесь «не загружено».
             null,

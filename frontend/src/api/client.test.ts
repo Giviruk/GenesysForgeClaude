@@ -691,3 +691,26 @@ describe('original shared campaign packs', () => {
     } finally { vi.restoreAllMocks() }
   })
 })
+
+describe('api client — content library v2', () => {
+  afterEach(() => { vi.restoreAllMocks(); invalidateReference(); tokenStorage.clear() })
+  it('uses PascalCase system query values and separates the library reference cache', async () => {
+    const mock=vi.spyOn(globalThis,'fetch').mockImplementation(() => Promise.resolve(new Response('{}', {status:200})))
+    await api.library('realmsOfTerrinoth'); await api.baseCatalog('genesysCore'); await api.campaignBase('c','realmsOfTerrinoth')
+    await api.reference('genesysCore'); await api.reference('genesysCore',{library:true})
+    const urls=mock.mock.calls.map(([url])=>String(url))
+    expect(urls[0]).toContain('system=RealmsOfTerrinoth'); expect(urls[1]).toContain('system=GenesysCore'); expect(urls[2]).toContain('system=RealmsOfTerrinoth')
+    expect(urls[4]).toContain('library=true'); expect(mock).toHaveBeenCalledTimes(5)
+  })
+  it('serializes explicit restores, entry disable decisions and original proposal IDs', async () => {
+    const mock=vi.spyOn(globalThis,'fetch').mockImplementation(() => Promise.resolve(new Response(null, {status:204})))
+    await api.setCampaignBase('c','genesysCore',[{category:'skill',key:'gc.skill.navigation',enabled:true}])
+    await api.setCampaignPackEntries('c','p',[{entryType:'skill',entryId:'original',enabled:false}])
+    await api.proposeCampaignContent('c',{entryType:'skill',entryId:'original'})
+    await api.withdrawCampaignContent('c','item','original')
+    expect(JSON.parse(mock.mock.calls[0][1]!.body as string)).toEqual({system:'genesysCore',items:[{category:'skill',key:'gc.skill.navigation',enabled:true}]})
+    expect(JSON.parse(mock.mock.calls[1][1]!.body as string).entries[0].enabled).toBe(false)
+    expect(String(mock.mock.calls[3][0])).toContain('/content/proposals/item/original')
+    expect(mock.mock.calls[3][1]!.method).toBe('DELETE')
+  })
+})

@@ -1,6 +1,7 @@
 using GenesysForge.Application.Common;
 using GenesysForge.Application.Abstractions;
 using GenesysForge.Domain;
+using GenesysForge.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace GenesysForge.Application.Features.CustomContent;
@@ -18,6 +19,8 @@ public class DeleteCustomSkillHandler(IAppDbContext db) : ICommandHandler<Delete
 
         db.SkillDefs.Remove(def);
         CustomContentAudit.Deleted(db, "skill", def.Id, def.HomebrewPackId, def.Name, command.UserId);
+        await ContentMembership.RemoveDefinitionAsync(db, CustomEntryType.Skill, def.Id, ct);
+        await CustomContentAudit.ReplicateToPacksAsync(db, def.Id, ct);
         await db.SaveChangesAsync(ct);
         return Unit.Value;
     }

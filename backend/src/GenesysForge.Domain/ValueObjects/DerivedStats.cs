@@ -19,4 +19,9 @@ public record DerivedStats(
     DefenseBreakdown? MeleeDefenseBreakdown = null,
     DefenseBreakdown? RangedDefenseBreakdown = null,
     /// <summary>Точное состояние перегруза: помехи, бесплатный манёвр и цена манёвра (ROT-EQP-01).</summary>
-    EncumbranceState? Encumbrance = null);
+    EncumbranceState? Encumbrance = null,
+    StatBreakdown? SoakBreakdown = null,
+    StatBreakdown? EncumbranceThresholdBreakdown = null);
+
+public record StatSource(string SourceName, int Value);
+public record StatBreakdown(int Base, IReadOnlyList<StatSource> Sources);

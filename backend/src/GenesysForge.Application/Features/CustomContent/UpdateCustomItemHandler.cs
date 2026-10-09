@@ -2,6 +2,7 @@ using GenesysForge.Application.Abstractions;
 using GenesysForge.Application.Common;
 using GenesysForge.Application.Dtos;
 using GenesysForge.Domain;
+using GenesysForge.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace GenesysForge.Application.Features.CustomContent;
@@ -20,6 +21,7 @@ public class UpdateCustomItemHandler(IAppDbContext db) : ICommandHandler<UpdateC
                 i => i.Id == command.ItemDefId && i.OwnerUserId == command.UserId, ct)
             ?? throw new DomainRuleException("Кастомный предмет не найден.");
 
+        await ContentMembership.ApplyAsync(db, command.UserId, req.System, CustomEntryType.Item, def.Id, req.PackIds, null, ct);
         var before = def.ToDto();
 
         def.System = req.System;
@@ -39,6 +41,7 @@ public class UpdateCustomItemHandler(IAppDbContext db) : ICommandHandler<UpdateC
         def.RangeBand = req.RangeBand ?? "";
         def.Properties = req.Properties ?? "";
         CustomContentAudit.Updated(db, "item", def.Id, def.HomebrewPackId, def.Name, command.UserId, before, def.ToDto());
+        await CustomContentAudit.ReplicateToPacksAsync(db, def.Id, ct);
         await db.SaveChangesAsync(ct);
         return def.ToDto();
     }

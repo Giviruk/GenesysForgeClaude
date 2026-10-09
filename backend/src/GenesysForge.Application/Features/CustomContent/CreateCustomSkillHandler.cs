@@ -30,7 +30,9 @@ public class CreateCustomSkillHandler(IAppDbContext db) : ICommandHandler<Create
             HomebrewPackId = packId,
         };
         db.SkillDefs.Add(def);
+        await ContentMembership.ApplyAsync(db, command.UserId, req.System, CustomEntryType.Skill, def.Id, req.PackIds, command.CampaignId, ct);
         CustomContentAudit.Created(db, "skill", def.Id, def.HomebrewPackId, def.Name, command.UserId);
+        await CustomContentAudit.ReplicateToPacksAsync(db, def.Id, ct);
         await db.SaveChangesAsync(ct);
         return def.ToDto();
     }

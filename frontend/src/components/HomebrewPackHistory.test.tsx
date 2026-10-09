@@ -9,7 +9,8 @@ vi.mock('../api/client', () => ({ api: {
   homebrewPackChanges: (...args: unknown[]) => changes(...args),
   campaignHomebrewPacks: (...args: unknown[]) => packs(...args),
 } }))
-const pack: CampaignHomebrewPack = { id: 'pack', name: 'Набор игрока', system: 'genesysCore', entryCount: 1,
+const pack: CampaignHomebrewPack = {
+  updatePolicy: 'auto', status: 'active', exclusionCount: 0, id: 'pack', name: 'Набор игрока', system: 'genesysCore', entryCount: 1,
   isMine: false, isEnabled: true, ownerName: 'Игрок', ownerIsMember: true,
   connectedAt: '2026-10-01T12:00:00Z', lastChangedAt: '2026-10-07T12:00:00Z', changedAfterConnection: true }
 const edit: CustomContentChange = { id: 'edit', homebrewPackId: 'pack', definitionType: 'talent', definitionId: 'talent',

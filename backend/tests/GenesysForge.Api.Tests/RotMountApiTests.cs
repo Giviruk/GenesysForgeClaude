@@ -685,7 +685,7 @@ public class RotMountApiTests(ApiFactory factory) : IClassFixture<ApiFactory>
             .Content.ReadFromJsonAsync<CampaignDetailDto>(Json.Options))!;
         await gm.PostAsJsonAsync($"/api/campaigns/{campaign.Id}/custom/skills",
             new CreateCustomSkillRequest(GameSystem.RealmsOfTerrinoth, "Campaign Riding", CharacteristicType.Agility, SkillKind.General), Json.Options);
-        var pack = Assert.Single((await gm.GetFromJsonAsync<List<HomebrewPackListItemDto>>("/api/homebrew-packs/", Json.Options))!);
+        var pack = await gm.CreateLibraryPackAsync(GameSystem.RealmsOfTerrinoth, campaign.Id);
         var owner = (await gm.GetFromJsonAsync<AccountDto>("/api/account/", Json.Options))!;
         var mountId = Guid.NewGuid();
         await using (var scope = factory.Services.CreateAsyncScope())
@@ -693,6 +693,7 @@ public class RotMountApiTests(ApiFactory factory) : IClassFixture<ApiFactory>
             var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
             db.MountDefs.Add(new MountDef { Id = mountId, Name = "Campaign mount", Code = "custom.campaign.mount", System = GameSystem.RealmsOfTerrinoth,
                 OwnerUserId = owner.Id, HomebrewPackId = pack.Id, Price = 10, WoundThreshold = 10, Brawn = 2, Capacity = 10 });
+            db.HomebrewPackEntries.Add(new HomebrewPackEntry { Id = Guid.NewGuid(), HomebrewPackId = pack.Id, EntryType = CustomEntryType.Mount, EntryId = mountId });
             await db.SaveChangesAsync();
         }
         await player.PostAsJsonAsync("/api/campaigns/join", new JoinCampaignRequest(campaign.JoinCode!, id), Json.Options);

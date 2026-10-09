@@ -26,8 +26,7 @@ Also implemented: Google sign-in (disabled until `Auth:Google:ClientId` is set),
 
 Campaign membership is account-level (`CampaignMember`) and independent of characters. Players can
 join without a character, add an existing owned character, or create one atomically within the campaign
-using packs approved by the GM, including original player-owned shared packs. Standalone characters use personal packs. Campaign contexts use only enabled
-campaign packs (the union for a character in multiple campaigns); already owned skill rows remain on
+using packs approved by the GM, including original player-owned shared packs. Standalone characters use owned unpacked entries plus enabled personal packs. Campaign contexts use active enabled campaign packs and separate entries (the union for a character in multiple campaigns); already owned skill rows remain on
 the sheet after a pack is disabled. The personal library UI exposes custom creation without a campaign. Campaign shared import connects
 the original pack without copying definition IDs; authors retain editing rights. Reference returns
 editableCustomIds to keep other authors' content read-only. Shop selects a character before loading
@@ -45,6 +44,12 @@ History is available to the owner or
 GM/current members of a campaign connected to that pack (even when disabled), via
 `GET /api/homebrew-packs/{id}/changes?campaignId=&take=`. The campaign overview and personal library
 display history. Migration `AddCustomContentChanges` adds one table and indexes, with no backfill.
+
+Redesign v2 replaces technical auto-packs and single-definition pack pointers with M:N
+`HomebrewPackEntries`. `CampaignContentPolicy` combines book exclusions, manual overrides, per-entry
+Auto/Manual approval states and separate original entry connections. Full editor reference uses owner-only
+`library=true`; it cannot be combined with campaign/character contexts. Save-as-pack preserves necessary
+allow overrides against remaining foreign/mixed packs. GEN-RD-10 custom magic is deferred.
 
 ## Core entities
 

@@ -1,5 +1,6 @@
 using GenesysForge.Application.Abstractions;
 using GenesysForge.Application.Dtos;
+using GenesysForge.Domain.Entities;
 
 namespace GenesysForge.Application.Features.HomebrewPacks;
 
@@ -10,4 +11,4 @@ public record ShareHomebrewPackCommand(Guid UserId, Guid PackId) : ICommand<Home
 public record ImportSharedHomebrewPackCommand(Guid UserId, string Token) : ICommand<HomebrewPackImportResult>;
 public record SetHomebrewPackDefaultCommand(Guid UserId, Guid PackId, bool IsEnabled) : ICommand<Unit>;
 public record SetCharacterHomebrewPackCommand(Guid UserId, Guid CharacterId, Guid PackId, bool IsEnabled) : ICommand<Unit>;
-public record SetCampaignHomebrewPackCommand(Guid UserId, Guid CampaignId, Guid PackId, bool IsEnabled) : ICommand<Unit>;
+public record SetCampaignHomebrewPackCommand(Guid UserId, Guid CampaignId, Guid PackId, bool IsEnabled, ContentUpdatePolicy? UpdatePolicy = null) : ICommand<Unit>;

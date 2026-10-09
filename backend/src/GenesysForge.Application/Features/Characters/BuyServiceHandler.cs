@@ -21,15 +21,15 @@ public class BuyServiceHandler(IAppDbContext db) : ICommandHandler<BuyServiceCom
             throw new DomainRuleException(
                 "Количество должно быть не меньше 1.", "service.quantity_invalid");
 
-        var visiblePackIds = await HomebrewVisibility.GetVisiblePackIdsAsync(
+        var contentPolicy = await CampaignContentPolicy.LoadAsync(
             db, command.UserId, character.System, command.CharacterId, ct: ct);
         var service = await db.ItemDefs.AsNoTracking().FirstOrDefaultAsync(i =>
                 i.Id == req.ItemDefId && i.System == character.System
                 && (i.OwnerUserId == null
-                    || (i.HomebrewPackId == null ? i.OwnerUserId == command.UserId
-                        : visiblePackIds.Contains(i.HomebrewPackId.Value))), ct)
+                    || contentPolicy.CustomIds.Contains(i.Id)), ct)
             ?? throw new DomainRuleException("Услуга не найдена.", "service.not_found");
 
+        if (service.OwnerUserId == null) contentPolicy.EnsureAllowed(BaseContentCategory.Item, service.Code, service.Name);
         if (!ShopCatalogRules.IsService(service.Code))
             throw new DomainRuleException(
                 "Эта запись не является услугой.", "service.definition_required");

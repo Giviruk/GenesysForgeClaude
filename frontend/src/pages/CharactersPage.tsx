@@ -246,10 +246,10 @@ function ImportCharacterModal({ payload, preview, onCancel, onImported }: {
   )
 }
 
-export function CreateCharacterForm({ onCancel, onCreated, campaignId }: {
-  onCancel: () => void; onCreated: (id: string) => void; campaignId?: string
+export function CreateCharacterForm({ onCancel, onCreated, campaignId, closedSystems = [] }: {
+  onCancel: () => void; onCreated: (id: string) => void; campaignId?: string; closedSystems?: GameSystem[]
 }) {
-  const [system, setSystem] = useState<GameSystem>('genesysCore')
+  const [system, setSystem] = useState<GameSystem>(() => closedSystems.includes('genesysCore') ? 'realmsOfTerrinoth' : 'genesysCore')
   const [loaded, setLoaded] = useState<{ system: GameSystem; campaignId?: string; data: Reference } | null>(null)
   const [name, setName] = useState('')
   const [archetypeId, setArchetypeId] = useState('')
@@ -407,7 +407,7 @@ export function CreateCharacterForm({ onCancel, onCreated, campaignId }: {
             {(['genesysCore', 'realmsOfTerrinoth'] as GameSystem[]).map(s => (
               <button key={s} type="button"
                 className={system === s ? 'tab active' : 'tab'}
-                onClick={() => setSystem(s)}>
+                disabled={closedSystems.includes(s)} title={closedSystems.includes(s) ? t('Система закрыта в кампании', 'System closed in campaign') : undefined} onClick={() => setSystem(s)}>
                 {SYSTEM_LABELS[s]}
               </button>
             ))}

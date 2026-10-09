@@ -50,17 +50,17 @@ public static class CraftingCalc
 
         // CharacterSkill хранит купленные/выданные ранги, а нетренированную magic-проверку делать
         // можно. Поэтому валидируем по видимому справочнику, а не только по строкам персонажа.
-        var visiblePackIds = await HomebrewVisibility.GetVisiblePackIdsAsync(
+        var contentPolicy = await CampaignContentPolicy.LoadAsync(
             db, userId, c.System, c.Id, ct: ct);
         var skill = await db.SkillDefs.AsNoTracking().FirstOrDefaultAsync(s =>
             s.System == c.System && !s.Retired && s.Kind == SkillKind.Magic
             && s.Name.ToLower() == requested.ToLower()
             && (s.OwnerUserId == null
-                || (s.HomebrewPackId == null ? s.OwnerUserId == userId
-                    : visiblePackIds.Contains(s.HomebrewPackId.Value))), ct);
+                || contentPolicy.CustomIds.Contains(s.Id)), ct);
         if (skill is null)
             throw new DomainRuleException(
                 "Для зачарования выберите магический навык персонажа.", "crafting.magic_skill_required");
+        if (skill.OwnerUserId == null) contentPolicy.EnsureAllowed(BaseContentCategory.Skill, skill.Code, skill.Name);
         return skill.Name;
     }
 
@@ -71,14 +71,15 @@ public static class CraftingCalc
     public static async Task<ItemDef> TargetAsync(
         IAppDbContext db, Guid userId, Character c, Guid itemDefId, CancellationToken ct)
     {
-        var visiblePackIds = await HomebrewVisibility.GetVisiblePackIdsAsync(
+        var contentPolicy = await CampaignContentPolicy.LoadAsync(
             db, userId, c.System, c.Id, ct: ct);
-        return await db.ItemDefs.FirstOrDefaultAsync(i =>
+        var def = await db.ItemDefs.FirstOrDefaultAsync(i =>
                 i.Id == itemDefId && i.System == c.System
                 && (i.OwnerUserId == null
-                    || (i.HomebrewPackId == null ? i.OwnerUserId == userId
-                        : visiblePackIds.Contains(i.HomebrewPackId.Value))), ct)
+                    || contentPolicy.CustomIds.Contains(i.Id)), ct)
             ?? throw new DomainRuleException("Предмет не найден.", "crafting.target_not_found");
+        if (def.OwnerUserId == null) contentPolicy.EnsureAllowed(BaseContentCategory.Item, def.Code, def.Name);
+        return def;
     }
 
     /// <summary>Числа проекта по правилам и поправкам запроса. Ничего не пишет.</summary>

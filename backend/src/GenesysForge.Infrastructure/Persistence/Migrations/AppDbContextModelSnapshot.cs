@@ -382,6 +382,37 @@ namespace GenesysForge.Infrastructure.Persistence.Migrations
                     b.ToTable("Campaigns");
                 });
 
+            modelBuilder.Entity("GenesysForge.Domain.Entities.CampaignBaseOverride", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("CampaignId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Category")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("ContentKey")
+                        .IsRequired()
+                        .HasMaxLength(400)
+                        .HasColumnType("character varying(400)");
+
+                    b.Property<bool>("IsEnabled")
+                        .HasColumnType("boolean");
+
+                    b.Property<int>("System")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CampaignId", "System", "Category", "ContentKey")
+                        .IsUnique();
+
+                    b.ToTable("CampaignBaseOverrides");
+                });
+
             modelBuilder.Entity("GenesysForge.Domain.Entities.CampaignCharacter", b =>
                 {
                     b.Property<Guid>("Id")
@@ -494,6 +525,41 @@ namespace GenesysForge.Infrastructure.Persistence.Migrations
                     b.ToTable("CampaignChronicleRevisions");
                 });
 
+            modelBuilder.Entity("GenesysForge.Domain.Entities.CampaignContentItem", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("AddedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("CampaignId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("EntryId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("EntryType")
+                        .HasColumnType("integer");
+
+                    b.Property<bool>("IsEnabled")
+                        .HasColumnType("boolean");
+
+                    b.Property<Guid?>("ProposedByUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CampaignId", "EntryType", "EntryId")
+                        .IsUnique();
+
+                    b.ToTable("CampaignContentItems");
+                });
+
             modelBuilder.Entity("GenesysForge.Domain.Entities.CampaignMember", b =>
                 {
                     b.Property<Guid>("Id")
@@ -551,6 +617,48 @@ namespace GenesysForge.Infrastructure.Persistence.Migrations
                     b.HasIndex("CampaignId");
 
                     b.ToTable("CampaignNotes");
+                });
+
+            modelBuilder.Entity("GenesysForge.Domain.Entities.CampaignPackEntryState", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("EntryId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("EntryType")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("HomebrewPackCampaignId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("State")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("HomebrewPackCampaignId", "EntryType", "EntryId")
+                        .IsUnique();
+
+                    b.ToTable("CampaignPackEntryStates");
+                });
+
+            modelBuilder.Entity("GenesysForge.Domain.Entities.CampaignSystemSetting", b =>
+                {
+                    b.Property<Guid>("CampaignId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("System")
+                        .HasColumnType("integer");
+
+                    b.Property<bool>("IsOpen")
+                        .HasColumnType("boolean");
+
+                    b.HasKey("CampaignId", "System");
+
+                    b.ToTable("CampaignSystemSettings");
                 });
 
             modelBuilder.Entity("GenesysForge.Domain.Entities.CareerDef", b =>
@@ -2256,6 +2364,15 @@ namespace GenesysForge.Infrastructure.Persistence.Migrations
                     b.Property<bool>("IsEnabled")
                         .HasColumnType("boolean");
 
+                    b.Property<Guid?>("ProposedByUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("UpdatePolicy")
+                        .HasColumnType("integer");
+
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -2295,6 +2412,59 @@ namespace GenesysForge.Infrastructure.Persistence.Migrations
                         .IsUnique();
 
                     b.ToTable("HomebrewPackCharacters");
+                });
+
+            modelBuilder.Entity("GenesysForge.Domain.Entities.HomebrewPackEntry", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("AddedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("EntryId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("EntryType")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("HomebrewPackId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EntryType", "EntryId");
+
+                    b.HasIndex("HomebrewPackId", "EntryType", "EntryId")
+                        .IsUnique();
+
+                    b.ToTable("HomebrewPackEntries");
+                });
+
+            modelBuilder.Entity("GenesysForge.Domain.Entities.HomebrewPackExclusion", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Category")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("ContentKey")
+                        .IsRequired()
+                        .HasMaxLength(400)
+                        .HasColumnType("character varying(400)");
+
+                    b.Property<Guid>("HomebrewPackId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("HomebrewPackId", "Category", "ContentKey")
+                        .IsUnique();
+
+                    b.ToTable("HomebrewPackExclusions");
                 });
 
             modelBuilder.Entity("GenesysForge.Domain.Entities.InitiativeSlot", b =>
@@ -3750,6 +3920,15 @@ namespace GenesysForge.Infrastructure.Persistence.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("GenesysForge.Domain.Entities.CampaignBaseOverride", b =>
+                {
+                    b.HasOne("GenesysForge.Domain.Entities.Campaign", null)
+                        .WithMany()
+                        .HasForeignKey("CampaignId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("GenesysForge.Domain.Entities.CampaignCharacter", b =>
                 {
                     b.HasOne("GenesysForge.Domain.Entities.Campaign", null)
@@ -3803,6 +3982,15 @@ namespace GenesysForge.Infrastructure.Persistence.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("GenesysForge.Domain.Entities.CampaignContentItem", b =>
+                {
+                    b.HasOne("GenesysForge.Domain.Entities.Campaign", null)
+                        .WithMany()
+                        .HasForeignKey("CampaignId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("GenesysForge.Domain.Entities.CampaignMember", b =>
                 {
                     b.HasOne("GenesysForge.Domain.Entities.Campaign", null)
@@ -3822,6 +4010,24 @@ namespace GenesysForge.Infrastructure.Persistence.Migrations
                 {
                     b.HasOne("GenesysForge.Domain.Entities.Campaign", null)
                         .WithMany("Notes")
+                        .HasForeignKey("CampaignId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("GenesysForge.Domain.Entities.CampaignPackEntryState", b =>
+                {
+                    b.HasOne("GenesysForge.Domain.Entities.HomebrewPackCampaign", null)
+                        .WithMany()
+                        .HasForeignKey("HomebrewPackCampaignId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("GenesysForge.Domain.Entities.CampaignSystemSetting", b =>
+                {
+                    b.HasOne("GenesysForge.Domain.Entities.Campaign", null)
+                        .WithMany()
                         .HasForeignKey("CampaignId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -4163,6 +4369,24 @@ namespace GenesysForge.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("GenesysForge.Domain.Entities.HomebrewPack", null)
+                        .WithMany()
+                        .HasForeignKey("HomebrewPackId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("GenesysForge.Domain.Entities.HomebrewPackEntry", b =>
+                {
+                    b.HasOne("GenesysForge.Domain.Entities.HomebrewPack", null)
+                        .WithMany()
+                        .HasForeignKey("HomebrewPackId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("GenesysForge.Domain.Entities.HomebrewPackExclusion", b =>
+                {
                     b.HasOne("GenesysForge.Domain.Entities.HomebrewPack", null)
                         .WithMany()
                         .HasForeignKey("HomebrewPackId")

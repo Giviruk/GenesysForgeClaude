@@ -7,9 +7,10 @@ import { t } from '../i18n'
  * часть пула, поэтому они видны рядом с ним, а не только в блоке веса.
  */
 export function DicePoolView({
-  pool, setback = 0, setbackTitle, boost = 0, difficulty = 0, challenge = 0, difficultyUpgrades = 0,
+  pool, setback = 0, setbackTitle, boost = 0, difficulty = 0, challenge = 0, difficultyUpgrades = 0, previousPool,
 }: {
   pool: DicePool
+  previousPool?: DicePool
   setback?: number
   /** Расшифровка источников помех для подсказки. */
   setbackTitle?: string
@@ -30,10 +31,10 @@ export function DicePoolView({
   return (
     <span className="dice-pool" title={setbackTitle ? `${poolTitle}\n${setbackTitle}` : poolTitle}>
       {Array.from({ length: pool.proficiency }).map((_, i) => (
-        <span key={`p${i}`} className="die proficiency">⬣</span>
+        <span key={`p${i}`} className={`die proficiency${previousPool && i >= previousPool.proficiency ? ' rd-preview-die' : ''}`}>⬣</span>
       ))}
       {Array.from({ length: pool.ability }).map((_, i) => (
-        <span key={`a${i}`} className="die ability">◆</span>
+        <span key={`a${i}`} className={`die ability${previousPool && i >= previousPool.ability ? ' rd-preview-die' : ''}`}>◆</span>
       ))}
       {Array.from({ length: Math.max(0, boost) }).map((_, i) => (
         <span key={`b${i}`} className="die boost">□</span>

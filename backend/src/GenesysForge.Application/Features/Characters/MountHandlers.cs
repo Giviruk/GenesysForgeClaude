@@ -19,15 +19,14 @@ public class BuyMountHandler(IAppDbContext db) : ICommandHandler<BuyMountCommand
         var req = command.Request;
         var c = await db.GetOwnedAsync(command.UserId, command.CharacterId, ct: ct);
 
-        var visiblePackIds = await HomebrewVisibility.GetVisiblePackIdsAsync(
+        var contentPolicy = await CampaignContentPolicy.LoadAsync(
             db, command.UserId, c.System, command.CharacterId, ct: ct);
         var def = await db.MountDefs
                 .Include(m => m.Skills).Include(m => m.Abilities).Include(m => m.Attacks)
                 .FirstOrDefaultAsync(m =>
                     m.Id == req.MountDefId && m.System == c.System
                     && (m.OwnerUserId == null
-                        || (m.HomebrewPackId == null ? m.OwnerUserId == command.UserId
-                        : visiblePackIds.Contains(m.HomebrewPackId.Value))), ct)
+                        || contentPolicy.CustomIds.Contains(m.Id)), ct)
             ?? throw new DomainRuleException("Скакун не найден.", "mount.not_found");
         if (def.Retired && !req.Free)
             throw new DomainRuleException(

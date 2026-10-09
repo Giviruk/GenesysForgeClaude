@@ -67,7 +67,7 @@ export function HomebrewPackHistory({ packId, name, campaignId, onClose }: {
       .catch(err => { if (!cancelled) setError(err instanceof Error ? err.message : t('Ошибка', 'Error')) })
     return () => { cancelled = true }
   }, [packId, campaignId])
-  const actionLabels = { created: t('Создано', 'Created'), updated: t('Изменено', 'Updated'), deleted: t('Удалено', 'Deleted') }
+  const actionLabels = { created: t('Создано', 'Created'), updated: t('Изменено', 'Updated'), deleted: t('Удалено', 'Deleted'), addedToPack: t('Добавлено в набор', 'Added to pack'), removedFromPack: t('Убрано из набора', 'Removed from pack') }
   return <div className="modal-backdrop" role="presentation" onClick={onClose}>
     <section className="modal wide content-history" role="dialog" aria-modal="true"
       aria-label={t('История набора', 'Pack history')} onClick={event => event.stopPropagation()}>

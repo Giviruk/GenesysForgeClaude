@@ -3,6 +3,7 @@ using GenesysForge.Application.Common;
 using GenesysForge.Application.Dtos;
 using GenesysForge.Application.Exceptions;
 using GenesysForge.Domain;
+using GenesysForge.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace GenesysForge.Application.Features.CustomContent;
@@ -25,6 +26,7 @@ public class UpdateCustomArchetypeHandler(IAppDbContext db) : ICommandHandler<Up
                 && (a.OwnerUserId == null || a.OwnerUserId == command.UserId), ct))
             throw new ConflictException("Архетип с таким названием уже существует в этой системе.");
 
+        await ContentMembership.ApplyAsync(db, command.UserId, req.System, CustomEntryType.Archetype, def.Id, req.PackIds, null, ct);
         var before = def.ToDto();
 
         def.System = req.System;
@@ -50,6 +52,7 @@ public class UpdateCustomArchetypeHandler(IAppDbContext db) : ICommandHandler<Up
             db.ArchetypeAbilityDefs.Add(ability);
 
         CustomContentAudit.Updated(db, "archetype", def.Id, def.HomebrewPackId, def.Name, command.UserId, before, def.ToDto());
+        await CustomContentAudit.ReplicateToPacksAsync(db, def.Id, ct);
         await db.SaveChangesAsync(ct);
         return def.ToDto();
     }

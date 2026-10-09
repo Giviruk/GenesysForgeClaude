@@ -12,12 +12,12 @@ public static class SpellEndpoints
     {
         var group = app.MapGroup("/api/spells").RequireAuthorization();
 
-        group.MapGet("/{system}", async (string system, ClaimsPrincipal user,
+        group.MapGet("/{system}", async (string system, Guid? characterId, Guid? campaignId, ClaimsPrincipal user,
             IQueryHandler<GetSpellsQuery, List<SpellDto>> handler, CancellationToken ct) =>
         {
             if (!Enum.TryParse<GameSystem>(system, ignoreCase: true, out var gameSystem))
                 throw new DomainRuleException($"Неизвестная система: «{system}».");
-            return Results.Ok(await handler.Handle(new GetSpellsQuery(user.UserId(), gameSystem), ct));
+            return Results.Ok(await handler.Handle(new GetSpellsQuery(user.UserId(), gameSystem, characterId, campaignId), ct));
         });
     }
 }

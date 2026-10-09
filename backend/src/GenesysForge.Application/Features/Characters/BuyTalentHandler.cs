@@ -12,14 +12,15 @@ public class BuyTalentHandler(IAppDbContext db) : ICommandHandler<BuyTalentComma
     public async Task<Unit> Handle(BuyTalentCommand command, CancellationToken ct = default)
     {
         var c = await db.GetOwnedAsync(command.UserId, command.CharacterId, ct: ct);
-        var visiblePackIds = await HomebrewVisibility.GetVisiblePackIdsAsync(
+        var contentPolicy = await CampaignContentPolicy.LoadAsync(
             db, command.UserId, c.System, command.CharacterId, ct: ct);
         var talentDef = await db.TalentDefs.FirstOrDefaultAsync(t =>
                 t.Id == command.TalentDefId && t.System == c.System
                 && (t.OwnerUserId == null
-                    || (t.HomebrewPackId == null ? t.OwnerUserId == command.UserId
-                        : visiblePackIds.Contains(t.HomebrewPackId.Value))), ct)
+                    || contentPolicy.CustomIds.Contains(t.Id)), ct)
             ?? throw new DomainRuleException("Талант не найден.");
+
+        if (talentDef.OwnerUserId == null) contentPolicy.EnsureAllowed(BaseContentCategory.Talent, talentDef.Code, talentDef.Name);
 
         var row = c.Talents.FirstOrDefault(t => t.TalentDefId == command.TalentDefId);
 
@@ -60,7 +61,7 @@ public class BuyTalentHandler(IAppDbContext db) : ICommandHandler<BuyTalentComma
 
         var alreadyChosen = (row?.Choices ?? []).Select(x => x.Value).ToList();
         var skills = schema.Kind == TalentChoiceKind.Skill
-            ? await SkillsAsync(c.System, command.UserId, ct)
+            ? await SkillsAsync(c.System, contentPolicy, ct)
             : new Dictionary<string, (SkillKind Kind, string NameRu)>(StringComparer.Ordinal);
         var choiceError = TalentChoiceSchemas.Validate(
             schema, rankIndex, requestedChoices, alreadyChosen,
@@ -71,7 +72,7 @@ public class BuyTalentHandler(IAppDbContext db) : ICommandHandler<BuyTalentComma
         // Signature Spell: действие и эффекты сверяются со справочником магии системы персонажа,
         // снимок имени собирается из русских названий записей.
         var spellNames = schema.Kind == TalentChoiceKind.SpellConfiguration
-            ? await SpellConfigurationNamesAsync(c.System, command.UserId, requestedChoices, ct)
+            ? await SpellConfigurationNamesAsync(c.System, command.UserId, contentPolicy, requestedChoices, ct)
             : new Dictionary<string, string>(StringComparer.Ordinal);
 
         // Animal Companion хранит стабильный id записи NPC, а не имя. Одновременно проверяем,
@@ -153,13 +154,13 @@ public class BuyTalentHandler(IAppDbContext db) : ICommandHandler<BuyTalentComma
     /// навыков и снимка отображаемого имени.
     /// </summary>
     private async Task<Dictionary<string, (SkillKind Kind, string NameRu)>> SkillsAsync(
-        GameSystem system, Guid userId, CancellationToken ct)
+        GameSystem system, CampaignContentPolicy policy, CancellationToken ct)
     {
         var rows = await db.SkillDefs.AsNoTracking()
-            .Where(s => s.System == system && (s.OwnerUserId == null || s.OwnerUserId == userId))
-            .Select(s => new { s.Name, s.NameRu, s.Kind, s.OwnerUserId })
+            .Where(s => s.System == system && !s.Retired && (s.OwnerUserId == null || policy.CustomIds.Contains(s.Id)))
+            .Select(s => new { s.Name, s.NameRu, s.Kind, s.Code, s.OwnerUserId })
             .ToListAsync(ct);
-        return rows
+        return rows.Where(s => s.OwnerUserId != null || policy.Allows(BaseContentCategory.Skill, s.Code))
             .OrderBy(s => s.OwnerUserId == null ? 0 : 1)
             .GroupBy(s => s.Name, StringComparer.Ordinal)
             .ToDictionary(g => g.Key, g => (g.First().Kind, g.First().NameRu.Trim()), StringComparer.Ordinal);
@@ -170,14 +171,14 @@ public class BuyTalentHandler(IAppDbContext db) : ICommandHandler<BuyTalentComma
     /// «Атака: Огонь, Дистанция ×2».
     /// </summary>
     private async Task<Dictionary<string, string>> SpellConfigurationNamesAsync(
-        GameSystem system, Guid userId, IReadOnlyList<string> values, CancellationToken ct)
+        GameSystem system, Guid userId, CampaignContentPolicy policy, IReadOnlyList<string> values, CancellationToken ct)
     {
         // Одно и то же действие и его эффекты повторяются по магическим навыкам — для проверки
         // конфигурации навык не важен, берём любую запись с нужным кодом.
         var rows = await db.SpellDefs.AsNoTracking()
             .Where(s => s.System == system && (s.OwnerUserId == null || s.OwnerUserId == userId))
-            .Select(s => new { s.Kind, s.ParentEffect, s.NameEn, s.NameRu, s.Repeatable, s.Exclusions })
             .ToListAsync(ct);
+        rows = CampaignContentPolicy.FilterSpells(rows, policy);
         var actions = rows.Where(s => s.Kind == SpellEntryKind.Effect)
             .GroupBy(s => s.NameEn, StringComparer.Ordinal)
             .ToDictionary(g => g.Key, g => g.First().NameRu, StringComparer.Ordinal);

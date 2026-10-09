@@ -3,6 +3,7 @@ using GenesysForge.Application.Common;
 using GenesysForge.Application.Dtos;
 using GenesysForge.Application.Exceptions;
 using GenesysForge.Domain;
+using GenesysForge.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace GenesysForge.Application.Features.CustomContent;
@@ -24,6 +25,7 @@ public class UpdateCustomSkillHandler(IAppDbContext db) : ICommandHandler<Update
                 && (s.OwnerUserId == null || s.OwnerUserId == command.UserId), ct))
             throw new ConflictException("Навык с таким названием уже существует в этой системе.");
 
+        await ContentMembership.ApplyAsync(db, command.UserId, req.System, CustomEntryType.Skill, def.Id, req.PackIds, null, ct);
         var before = def.ToDto();
 
         def.System = req.System;
@@ -31,6 +33,7 @@ public class UpdateCustomSkillHandler(IAppDbContext db) : ICommandHandler<Update
         def.Characteristic = req.Characteristic;
         def.Kind = req.Kind;
         CustomContentAudit.Updated(db, "skill", def.Id, def.HomebrewPackId, def.Name, command.UserId, before, def.ToDto());
+        await CustomContentAudit.ReplicateToPacksAsync(db, def.Id, ct);
         await db.SaveChangesAsync(ct);
         return def.ToDto();
     }

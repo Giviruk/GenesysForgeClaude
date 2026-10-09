@@ -12,6 +12,7 @@ public static class CustomContentEndpoints
         foreach (var path in new[] { "/api/custom", "/api/campaigns/{campaignId:guid}/custom" })
         {
             var group = app.MapGroup(path).RequireAuthorization();
+            group.AddEndpointFilter<ContentMutationNotificationFilter>();
             MapCreation(group);
             MapMutations(group);
         }

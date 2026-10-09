@@ -3,4 +3,4 @@ using GenesysForge.Application.Dtos;
 
 namespace GenesysForge.Application.Features.Characters;
 
-public record ImportCharacterCommand(Guid UserId, CharacterExportDto Payload) : ICommand<ImportCharacterResult>;
+public record ImportCharacterCommand(Guid UserId, CharacterExportDto Payload, Guid? CampaignId = null) : ICommand<ImportCharacterResult>;

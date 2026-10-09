@@ -74,7 +74,7 @@ public static class HomebrewPackEndpoints
         campaign.MapPut("/{packId:guid}", async (Guid campaignId, Guid packId, HomebrewPackToggleRequest req, ClaimsPrincipal user,
             ICommandHandler<SetCampaignHomebrewPackCommand, Unit> handler, CancellationToken ct) =>
         {
-            await handler.Handle(new SetCampaignHomebrewPackCommand(user.UserId(), campaignId, packId, req.IsEnabled), ct);
+            await handler.Handle(new SetCampaignHomebrewPackCommand(user.UserId(), campaignId, packId, req.IsEnabled, req.UpdatePolicy), ct);
             return Results.NoContent();
         });
     }

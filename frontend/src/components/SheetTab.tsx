@@ -1,5 +1,5 @@
 import { BookReference } from './BookReference'
-import { useState } from 'react'
+import { useState, type CSSProperties } from 'react'
 import { api } from '../api/client'
 import type {
   BaseSheet, CareerSkillSource, CharacterSheet, CheckModifierSource, DefenseBreakdown, Derived, SheetSkill, SkillKind,
@@ -11,6 +11,11 @@ import {
 import { DicePoolView } from './DicePoolView'
 import { CriticalInjuriesSection } from './CriticalInjuriesSection'
 import { useDiceRoller } from '../dice-roller-store'
+import { Icon } from './Icon'
+import { FilterChip } from './content/ContentUi'
+import { VitalCard } from './content/VitalCard'
+import { purchasedPool } from '../utils/contentLibrary'
+import { MAX_SKILL_RANK_AT_CREATION } from '../utils/rules'
 import { t } from '../i18n'
 
 interface Props {
@@ -25,7 +30,7 @@ interface Props {
 // социальные, чтобы плотно заполнить пространство и меньше скроллить.
 const SKILL_COLUMNS: SkillKind[][] = [
   ['general'],
-  ['combat', 'knowledge', 'magic', 'social'],
+  ['combat', 'social', 'magic', 'knowledge'],
 ]
 
 const CAREER_SOURCE_LABELS: Record<CareerSkillSource['source'], string> = t({
@@ -110,6 +115,13 @@ export function SheetTab({ sheet, onError, refresh, updateBaseOptimistically, re
     }
   }
 
+  const [progressState, setProgress] = useState(() => ({ id: sheet.id, value: readProgress(sheet.id, sheet.isCreationPhase) }))
+  const [previewSkill, setPreviewSkill] = useState<string | null>(null)
+  const progress = !readOnly && (progressState.id === sheet.id ? progressState.value : readProgress(sheet.id, sheet.isCreationPhase))
+  const maxDice = Math.max(0, ...sheet.skills.map(s => Math.max(s.pool.ability + s.pool.proficiency,
+    s.ranks < 5 ? Math.max(sheet.characteristics[s.characteristic], s.ranks + 1) : 0)
+    + (s.boostDice ?? 0) + (s.setbackDice ?? 0) + (s.difficultyDice ?? 0) + ((s.difficultyUpgrades ?? 0) > 0 ? 1 : 0)))
+  const skillStyle = { '--skill-pool-width': `${Math.max(4.6, maxDice * .82 + Math.max(0, maxDice - 1) * .18)}rem` } as CSSProperties
   const d = sheet.derived
 
   return (
@@ -137,172 +149,82 @@ export function SheetTab({ sheet, onError, refresh, updateBaseOptimistically, re
         ))}
       </section>
 
-      <section className="stat-row derived">
-        <DerivedBox className="derived-compact" label={t('Раны', 'Wounds')} value={`${sheet.woundsCurrent} / ${d.woundThreshold}`}
-          disabled={vitalsBusy}
-          onMinus={readOnly ? undefined : () => void updateVital(
-            { woundsCurrent: Math.max(0, sheet.woundsCurrent - 1) },
-            () => api.updateCharacter(sheet.id, { woundsCurrent: Math.max(0, sheet.woundsCurrent - 1) }),
-          )}
-          onPlus={readOnly ? undefined : () => void updateVital(
-            { woundsCurrent: sheet.woundsCurrent + 1 },
-            () => api.updateCharacter(sheet.id, { woundsCurrent: sheet.woundsCurrent + 1 }),
-          )} />
-        <DerivedBox className="derived-compact" label={t('Усталость', 'Strain')} value={`${sheet.strainCurrent} / ${d.strainThreshold}`}
-          disabled={vitalsBusy}
-          onMinus={readOnly ? undefined : () => void updateVital(
-            { strainCurrent: Math.max(0, sheet.strainCurrent - 1) },
-            () => api.updateCharacter(sheet.id, { strainCurrent: Math.max(0, sheet.strainCurrent - 1) }),
-          )}
-          onPlus={readOnly ? undefined : () => void updateVital(
-            { strainCurrent: sheet.strainCurrent + 1 },
-            () => api.updateCharacter(sheet.id, { strainCurrent: sheet.strainCurrent + 1 }),
-          )} />
-        <DerivedBox className="derived-compact" label={t('Поглощение', 'Soak')} value={String(d.soak)} />
-        <DerivedBox className="derived-compact" label={t('Защита (ближ/дальн)', 'Defense (melee/ranged)')} value={`${d.meleeDefense} / ${d.rangedDefense}`}
-          title={defenseTitle(d)} />
-        <DerivedBox className="derived-compact" label={t('Переносимый вес', 'Encumbrance')} value={`${d.encumbranceLoad} / ${d.encumbranceThreshold}`}
-          warning={encumbranceWarning(d)} />
+      <section className="rd-derived-grid">
+        <VitalCard kind="wounds" current={sheet.woundsCurrent} threshold={d.woundThreshold} disabled={vitalsBusy}
+          onChange={readOnly ? undefined : value => void updateVital({ woundsCurrent: value }, () => api.updateCharacter(sheet.id, { woundsCurrent: value }))} />
+        <VitalCard kind="strain" current={sheet.strainCurrent} threshold={d.strainThreshold} disabled={vitalsBusy}
+          onChange={readOnly ? undefined : value => void updateVital({ strainCurrent: value }, () => api.updateCharacter(sheet.id, { strainCurrent: value }))} />
+        <div className="rd-defense-card">
+          <div title={statTitle(d.soakBreakdown, d.soak)}><Icon name="shield" /><b>{d.soak}</b><small>{t('Поглощение', 'Soak')}</small></div>
+          <div title={defenseTitle(d)}><Icon name="shield" /><b>{d.meleeDefense} / {d.rangedDefense}</b><small>{t('Защита ближ. / дальн.', 'Defense melee / ranged')}</small></div>
+          <div className={d.encumbered ? 'rd-warning' : ''} title={[statTitle(d.encumbranceThresholdBreakdown, d.encumbranceThreshold), encumbranceWarning(d)].filter(Boolean).join('\n')}>
+            <Icon name="package" /><b>{d.encumbranceLoad} / {d.encumbranceThreshold}</b><small>{t('Переносимый вес', 'Encumbrance')}</small>
+            <span className="rd-bar"><i style={{ width: `${Math.min(100, d.encumbranceThreshold > 0 ? d.encumbranceLoad / d.encumbranceThreshold * 100 : 100)}%` }} /></span>
+          </div>
+        </div>
+        {d.encumbered && <p className="rd-encumbrance-warning">{encumbranceWarning(d)}</p>}
       </section>
 
       <CriticalInjuriesSection sheet={sheet} onError={onError} refresh={refresh} readOnly={readOnly} />
 
       {sheet.system === 'realmsOfTerrinoth' && <HeroicSummary sheet={sheet} />}
 
-      <section className="panel">
-        <h3>{t('Навыки', 'Skills')}</h3>
-        <div className="skills-grid">
-          {SKILL_COLUMNS.map((kinds, i) => (
-            <div key={i} className="skill-column">
-              {kinds.map(kind => {
-                const skills = sheet.skills.filter(s => s.kind === kind)
-                if (skills.length === 0) return null
-                return (
-                  <div key={kind} className="skill-block">
-                    <h4 className="skill-kind">{SKILL_KIND_LABELS[kind]}</h4>
-                    <table className="skills fixed">
-                      {/* единые ширины колонок во всех разделах */}
-                      <colgroup>
-                        <col className="col-name" />
-                        <col className="col-char" />
-                        <col className="col-career" />
-                        <col className="col-ranks" />
-                        <col className="col-pool" />
-                        <col className="col-action" />
-                      </colgroup>
-                      <thead>
-                        <tr>
-                          <th>{t('Навык', 'Skill')}</th>
-                          <th>{t('Хар-ка', 'Char.')}</th>
-                          <th className="centered" title={t('Карьерный навык', 'Career skill')}>{t('Карьерн.', 'Career')}</th>
-                          <th>{t('Ранги', 'Ranks')}</th>
-                          <th>{t('Пул кубов', 'Dice pool')}</th>
-                          <th></th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {skills.map(s => {
-                          const label = localizedName(s)
-                          const original = secondaryName(s)
-                          const canRefund = !readOnly && sheet.isCreationPhase && s.ranks > s.freeRanks
-                          return (
-                            <tr key={s.skillDefId}>
-                              <td className="ellipsis" data-label={t('Навык', 'Skill')} title={original ? `${label} / ${original}` : label}>
-                                {label}
-                                {original && <span className="muted small-text name-secondary"> · {original}</span>}
-                              </td>
-                              <td className="muted" data-label={t('Хар-ка', 'Char.')} title={CHARACTERISTIC_LABELS[s.characteristic]}>
-                                {CHARACTERISTIC_SHORT_LABELS[s.characteristic]}
-                              </td>
-                              <td className="centered" data-label={t('Карьерный', 'Career')} title={careerSourcesTitle(s.careerSources)}>{s.isCareer ? '✓' : ''}</td>
-                              <td className="skill-ranks" data-label={t('Ранги', 'Ranks')}>{'●'.repeat(s.ranks)}{'○'.repeat(Math.max(0, 5 - s.ranks))}</td>
-                              <td data-label={t('Пул кубов', 'Dice pool')}>
-                                <DicePoolView pool={s.pool} setback={s.setbackDice} boost={s.boostDice}
-                                  difficulty={s.difficultyDice} difficultyUpgrades={s.difficultyUpgrades}
-                                  setbackTitle={setbackTitle(s)} />
-                              </td>
-                              <td className="right" data-label={t('Действия', 'Actions')}>
-                                <span className={`skill-action-buttons${canRefund ? ' has-refund' : ''}`}>
-                                  {canRefund && (
-                                    <button className="small skill-refund-button"
-                                      title={t(`Вернуть ранг ${s.ranks} (+${s.ranks * 5 + (s.isCareer ? 0 : 5)} XP)`, `Refund rank ${s.ranks} (+${s.ranks * 5 + (s.isCareer ? 0 : 5)} XP)`)}
-                                      onClick={() => run(() => api.refundSkillRank(sheet.id, s.skillDefId))}>
-                                      −
-                                    </button>
-                                  )}
-                                  <button className="small skill-roll-button" title={t(`Бросить пул навыка «${label}»`, `Roll the "${label}" skill pool`)}
-                                    onClick={() => openRoller({
-                                      kind: 'roll',
-                                      title: t('Бросок навыка', 'Skill check'),
-                                      label,
-                                      spendContext: s.kind === 'social'
-                                        ? 'social'
-                                        : s.kind === 'combat'
-                                          ? 'combat'
-                                          : s.kind === 'magic' ? 'magic' : 'general',
-                                      // Помехи снаряжения и перегруза едут в пул сами: игрок не обязан
-                                      // помнить, что на нём латы (ROT-ARM-01).
-                                      initialPool: {
-                                        ability: s.pool.ability,
-                                        proficiency: s.pool.proficiency,
-                                        setback: s.setbackDice,
-                                        boost: s.boostDice,
-                                        difficulty: s.difficultyDice ?? 0,
-                                      },
-                                      // Усиление превращает фиолетовую кость проверки в красную при броске,
-                                      // а не добавляет красную поверх сложности.
-                                      difficultyUpgrades: s.difficultyUpgrades ?? 0,
-                                    })}>
-                                    🎲
-                                  </button>
-                                  {!readOnly && s.ranks < 5 && (
-                                    <button className="small skill-buy-button" disabled={s.nextRankCost > sheet.availableXp}
-                                      title={s.nextRankCost > sheet.availableXp ? t('Недостаточно XP', 'Not enough XP') : t(`Купить ранг ${s.ranks + 1}`, `Buy rank ${s.ranks + 1}`)}
-                                      onClick={() => run(() => api.buySkillRank(sheet.id, s.skillDefId))}>
-                                      +{s.nextRankCost} XP
-                                    </button>
-                                  )}
-                                </span>
-                              </td>
-                            </tr>
-                          )
-                        })}
-                      </tbody>
-                    </table>
-                  </div>
-                )
-              })}
-            </div>
-          ))}
-        </div>
+      <section className={`rd-skills${progress ? ' progress' : ''}`} style={skillStyle}>
+        <header className="rd-skills-title"><h3>{t('Навыки', 'Skills')}</h3><span className="rd-heading-line" />
+          <div className="rd-skill-legend"><span><i className="rd-career-mark active" />{t('карьерный', 'career')}</span><span className="ability">◆ {t('способность', 'ability')}</span><span className="proficiency">⬣ {t('мастерство', 'proficiency')}</span></div>
+          {!readOnly && <FilterChip active={progress} onClick={() => {
+            const next = !progress; setProgress({ id: sheet.id, value: next }); setPreviewSkill(null)
+            try { localStorage.setItem(`genesysforge.skillProgress.${sheet.id}`, String(next)) } catch { /* Session-only when storage is unavailable. */ }
+          }}>{t('Прокачка', 'Progression')}</FilterChip>}
+        </header>
+        {progress && <p className="hint">{t('Карьерный ранг стоит новый ранг × 5 XP, некарьерный — на 5 XP дороже. Наведите на цену для предпросмотра.', 'A career rank costs new rank × 5 XP; a non-career rank costs 5 XP more. Hover over the price to preview.')}</p>}
+        <div className="rd-skills-grid">{SKILL_COLUMNS.map((kinds, i) => <div key={i} className="rd-skill-column">{kinds.map(kind => {
+          const skills = sheet.skills.filter(s => s.kind === kind && (!s.unavailableReason || s.ranks > 0))
+          if (!skills.length) return null
+          return <section key={kind} className="rd-skill-group"><header className="rd-skill-grid-row"><strong>{SKILL_KIND_LABELS[kind]}</strong><span>{t('Ранг', 'Rank')}</span><span>{t('Пул', 'Pool')}</span><span>{progress ? 'XP' : ''}</span></header>
+            {skills.map(s => {
+              const label = localizedName(s), original = secondaryName(s)
+              const unavailableReason = s.unavailableReason ? t(s.unavailableReason, 'Content is disabled in the campaign; new purchases are unavailable.') : undefined
+              const canRefund = progress && sheet.isCreationPhase && s.ranks > s.freeRanks
+              const maxRank = sheet.isCreationPhase ? MAX_SKILL_RANK_AT_CREATION : 5
+              const canBuy = progress && s.ranks < maxRank && !s.unavailableReason && s.nextRankCost <= sheet.availableXp
+              const preview = canBuy && previewSkill === s.skillDefId
+              const nextPool = preview ? purchasedPool(sheet.characteristics[s.characteristic], s.ranks + 1) : s.pool
+              return <div className={`rd-skill-grid-row${s.unavailableReason ? ' unavailable' : ''}${preview ? ' rd-skill-preview' : ''}`} key={s.skillDefId}>
+                <div className="rd-skill-name"><i className={`rd-career-mark${s.isCareer ? ' active' : ''}`} title={careerSourcesTitle(s.careerSources)} />
+                  <span title={[original ? `${label} / ${original}` : label, unavailableReason].filter(Boolean).join('\n')}>{label}</span>
+                  <small title={CHARACTERISTIC_LABELS[s.characteristic]}>{CHARACTERISTIC_SHORT_LABELS[s.characteristic]}</small>
+                </div><div className="rd-rank-diamonds" aria-label={t(`Ранги: ${s.ranks}`, `Ranks: ${s.ranks}`)}>{Array.from({ length: 5 }, (_, rank) => <i key={rank}
+                  className={rank < s.ranks ? 'filled' : preview && rank === s.ranks ? 'preview' : ''} />)}</div>
+                <div className="rd-skill-pool"><DicePoolView pool={nextPool} previousPool={preview ? s.pool : undefined} setback={s.setbackDice} boost={s.boostDice}
+                  difficulty={s.difficultyDice} difficultyUpgrades={s.difficultyUpgrades} setbackTitle={setbackTitle(s)} /></div>
+                <div className="rd-skill-actions">{progress && <button className={`rd-refund${canRefund ? '' : ' reserved'}`} tabIndex={canRefund ? 0 : -1} disabled={!canRefund}
+                  aria-label={t(`Вернуть ранг: ${label}`, `Refund rank: ${label}`)} title={t(`Вернуть ранг ${s.ranks} (+${s.ranks * 5 + (s.isCareer ? 0 : 5)} XP)`, `Refund rank ${s.ranks} (+${s.ranks * 5 + (s.isCareer ? 0 : 5)} XP)`)}
+                  onClick={() => void run(() => api.refundSkillRank(sheet.id, s.skillDefId))}>−</button>}
+                  <button className="rd-roll" aria-label={t(`Бросить пул навыка «${label}»`, `Roll the "${label}" skill pool`)} title={t('Бросить пул', 'Roll pool')}
+                    onClick={() => openRoller({ kind: 'roll', title: t('Бросок навыка', 'Skill check'), label,
+                      spendContext: s.kind === 'social' ? 'social' : s.kind === 'combat' ? 'combat' : s.kind === 'magic' ? 'magic' : 'general',
+                      initialPool: { ability: s.pool.ability, proficiency: s.pool.proficiency, setback: s.setbackDice, boost: s.boostDice, difficulty: s.difficultyDice ?? 0 }, difficultyUpgrades: s.difficultyUpgrades ?? 0 })}><Icon name="dice" /></button>
+                  {progress && <button className="rd-buy" disabled={!canBuy} onMouseEnter={() => setPreviewSkill(s.skillDefId)} onMouseLeave={() => setPreviewSkill(null)}
+                    onFocus={() => setPreviewSkill(s.skillDefId)} onBlur={() => setPreviewSkill(null)} title={unavailableReason || (s.ranks >= maxRank ? sheet.isCreationPhase ? t('При создании максимальный ранг — 2', 'Maximum rank during creation is 2') : t('Максимальный ранг', 'Maximum rank') : !canBuy ? t(`Нужно ${s.nextRankCost} XP — доступно ${sheet.availableXp}`, `Requires ${s.nextRankCost} XP — available ${sheet.availableXp}`) : t(`Купить ранг ${s.ranks + 1} за ${s.nextRankCost} XP`, `Buy rank ${s.ranks + 1} for ${s.nextRankCost} XP`))}
+                    onClick={() => { setPreviewSkill(null); void run(() => api.buySkillRank(sheet.id, s.skillDefId)) }}>{s.ranks >= 5 ? t('макс', 'max') : `+${s.nextRankCost}`}</button>}
+                </div>
+              </div>
+            })}
+          </section>
+        })}</div>)}</div>
       </section>
 
     </div>
   )
 }
 
-function DerivedBox({ className, label, value, warning, title, onMinus, onPlus, disabled }: {
-  className?: string
-  label: string
-  value: string
-  warning?: string
-  /** Подсказка при наведении: например, из чего сложилась защита. */
-  title?: string
-  onMinus?: () => void
-  onPlus?: () => void
-  disabled?: boolean
-}) {
-  return (
-    <div className={`stat-box${warning ? ' warn' : ''}${className ? ` ${className}` : ''}`} title={title}>
-      <div className="stat-value">
-        {onMinus && <button className="tiny" disabled={disabled} onClick={onMinus}>−</button>}
-        <span>{value}</span>
-        {onPlus && <button className="tiny" disabled={disabled} onClick={onPlus}>+</button>}
-      </div>
-      <div className="stat-label">{label}</div>
-      {warning && <div className="error small-text">{warning}</div>}
-    </div>
-  )
+function readProgress(id: string, creation: boolean): boolean {
+  try { const saved = localStorage.getItem(`genesysforge.skillProgress.${id}`); return saved === null ? creation : saved === 'true' } catch { return creation }
+}
+function statTitle(breakdown: Derived['soakBreakdown'], total: number): string | undefined {
+  if (!breakdown) return undefined
+  return `${t('Основа', 'Base')} ${breakdown.base}${breakdown.sources.map(x => ` + ${x.sourceName === 'Base' ? t('Базовый бонус', 'Base bonus') : x.sourceName} ${x.value}`).join('')} = ${total}`
 }
 
 /**

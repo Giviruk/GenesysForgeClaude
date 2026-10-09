@@ -53,6 +53,8 @@ export interface BuilderShard {
 }
 
 interface Props {
+  characterId?: string
+  campaignId?: string
   system: GameSystem
   /** Магические навыки персонажа с пулами кубов — для интеграции с листом (необязательно). */
   characterSkills?: MagicSkillPool[]
@@ -85,7 +87,7 @@ interface Props {
  * Работает поверх того же справочника, что и SpellsTab; персонажа знать не обязательно (режим GM).
  */
 export function MagicBuilder({
-  system, characterSkills, knowledgeRating, implements: tools, shards,
+  system, characterId, campaignId, characterSkills, knowledgeRating, implements: tools, shards,
   onConfigureImplement, onConfigureLesserRune, onError, qualities, talents,
 }: Props) {
   const { openRoller } = useDiceRoller()
@@ -104,10 +106,10 @@ export function MagicBuilder({
   const [printing, setPrinting] = useState(false)
 
   const reload = useCallback(
-    () => api.spells(system)
+    () => api.spells(system, campaignId ? { campaignId } : characterId ? { characterId } : undefined)
       .then(setSpells)
       .catch((err: unknown) => onError(err instanceof Error ? err.message : t('Ошибка загрузки магии', 'Failed to load magic'))),
-    [system, onError])
+    [system, characterId, campaignId, onError])
   useEffect(() => { void reload() }, [reload])
 
   const skills = useMemo(

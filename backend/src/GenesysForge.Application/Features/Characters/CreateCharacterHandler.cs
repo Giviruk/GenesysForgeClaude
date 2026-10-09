@@ -19,7 +19,8 @@ public class CreateCharacterHandler(IAppDbContext db, IDiceRoller dice)
         var (userId, req) = (command.UserId, command.Request);
         var campaign = req.CampaignId is { } campaignId
             ? await CampaignMapper.GetAccessibleAsync(db, userId, campaignId, ct) : null;
-        var visiblePackIds = await HomebrewVisibility.GetVisiblePackIdsAsync(
+        if (campaign is not null) await CampaignContentPolicy.EnsureSystemOpenAsync(db, campaign.Id, req.System, ct);
+        var contentPolicy = await CampaignContentPolicy.LoadAsync(
             db, userId, req.System, campaignId: req.CampaignId, ct: ct);
 
         var archetype = await db.ArchetypeDefs
@@ -28,16 +29,16 @@ public class CreateCharacterHandler(IAppDbContext db, IDiceRoller dice)
                 .FirstOrDefaultAsync(a => a.Id == req.ArchetypeId && a.System == req.System
                     && !a.Retired
                     && (a.OwnerUserId == null
-                        || (a.HomebrewPackId == null ? a.OwnerUserId == userId
-                            : visiblePackIds.Contains(a.HomebrewPackId.Value))), ct)
+                        || contentPolicy.CustomIds.Contains(a.Id)), ct)
             ?? throw new DomainRuleException("Архетип не найден или принадлежит другой системе.");
         var career = await db.CareerDefs
                 .Include(c => c.StartingGear)
                 .FirstOrDefaultAsync(c => c.Id == req.CareerId && c.System == req.System
                     && (c.OwnerUserId == null
-                        || (c.HomebrewPackId == null ? c.OwnerUserId == userId
-                            : visiblePackIds.Contains(c.HomebrewPackId.Value))), ct)
+                        || contentPolicy.CustomIds.Contains(c.Id)), ct)
             ?? throw new DomainRuleException("Карьера не найдена или принадлежит другой системе.");
+        if (archetype.OwnerUserId == null) contentPolicy.EnsureAllowed(BaseContentCategory.Archetype, archetype.Code, archetype.Name);
+        if (career.OwnerUserId == null) contentPolicy.EnsureAllowed(BaseContentCategory.Career, career.Code, career.Name);
         // Retired-карьера остаётся у созданных персонажей, но новым не выдаётся: справочник её уже
         // не показывает, и присланный напрямую id тоже не должен проходить (ROT-CLEAN-3.1).
         if (career.Retired)
@@ -56,7 +57,7 @@ public class CreateCharacterHandler(IAppDbContext db, IDiceRoller dice)
 
         // Режим стартового снаряжения: отсутствие поля у старого клиента — безопасный StandardMoney.
         var mode = req.StartingEquipmentMode ?? StartingEquipmentMode.StandardMoney;
-        var startingGear = await ResolveStartingGearAsync(career, req, mode, ct);
+        var startingGear = await ResolveStartingGearAsync(career, req, mode, contentPolicy, ct);
 
         var character = new Character
         {
@@ -88,8 +89,7 @@ public class CreateCharacterHandler(IAppDbContext db, IDiceRoller dice)
         var systemSkills = await db.SkillDefs
             .Where(s => s.System == req.System && !s.Retired
                 && (s.OwnerUserId == null
-                    || (s.HomebrewPackId == null ? s.OwnerUserId == userId
-                        : visiblePackIds.Contains(s.HomebrewPackId.Value))))
+                    || contentPolicy.CustomIds.Contains(s.Id)))
             .ToListAsync(ct);
         var skillByName = CareerSkills.BuildNameIndex(systemSkills);
 
@@ -241,7 +241,7 @@ public class CreateCharacterHandler(IAppDbContext db, IDiceRoller dice)
     /// требуется точное множество групп с ровно одной допустимой опцией каждая.
     /// </summary>
     private async Task<StartingGearPlan> ResolveStartingGearAsync(
-        CareerDef career, CreateCharacterRequest req, StartingEquipmentMode mode, CancellationToken ct)
+        CareerDef career, CreateCharacterRequest req, StartingEquipmentMode mode, CampaignContentPolicy contentPolicy, CancellationToken ct)
     {
         var requested = req.CareerGearChoices ?? [];
 
@@ -283,6 +283,7 @@ public class CreateCharacterHandler(IAppDbContext db, IDiceRoller dice)
                 throw new DomainRuleException(
                     $"Предмет комплекта «{line.ItemNameFallback}» ({line.ItemCode}) не найден в каталоге системы.",
                     "career.package.item_unresolved");
+            contentPolicy.EnsureAllowed(BaseContentCategory.Item, def.Code, def.Name);
             resolved.Add((def.Id, line.Quantity));
         }
 

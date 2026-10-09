@@ -18,14 +18,14 @@ public class AddItemHandler(IAppDbContext db) : ICommandHandler<AddItemCommand, 
         var c = await db.AddItemQuery(req.ItemDefId, req.State == ItemState.Equipped)
             .FirstOrDefaultAsync(x => x.Id == command.CharacterId && x.OwnerUserId == command.UserId, ct)
             ?? throw new DomainRuleException("Персонаж не найден.");
-        var visiblePackIds = await HomebrewVisibility.GetVisiblePackIdsAsync(
+        var contentPolicy = await CampaignContentPolicy.LoadAsync(
             db, command.UserId, c.System, command.CharacterId, ct: ct);
         var itemDef = await db.ItemDefs.FirstOrDefaultAsync(i =>
                 i.Id == req.ItemDefId && i.System == c.System
                 && (i.OwnerUserId == null
-                    || (i.HomebrewPackId == null ? i.OwnerUserId == command.UserId
-                        : visiblePackIds.Contains(i.HomebrewPackId.Value))), ct)
+                    || contentPolicy.CustomIds.Contains(i.Id)), ct)
             ?? throw new DomainRuleException("Предмет не найден.");
+        if (itemDef.OwnerUserId == null) contentPolicy.EnsureAllowed(BaseContentCategory.Item, itemDef.Code, itemDef.Name);
         if (ShopCatalogRules.IsService(itemDef.Code))
             throw new DomainRuleException(
                 "Услуга не добавляется в инвентарь. Используйте покупку услуги.",

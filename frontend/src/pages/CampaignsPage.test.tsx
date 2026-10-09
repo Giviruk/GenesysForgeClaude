@@ -186,15 +186,15 @@ describe('CampaignsPage — GM просмотр листа участника (U
     expect(screen.getByText('Свободно XP:').parentElement?.textContent).toContain('40')
   })
 
-  it('показывает вкладку кастома только мастеру', async () => {
+  it('показывает вкладку контента только мастеру', async () => {
     const gmView = render(<CampaignsPage {...props} />)
-    await screen.findByRole('button', { name: 'Кастом' })
+    await screen.findByRole('button', { name: 'Контент' })
     gmView.unmount()
 
     campaignMock.mockResolvedValue(detail(false))
     render(<CampaignsPage {...props} />)
     await waitFor(() => expect(screen.getAllByText('Бард').length).toBeGreaterThan(0))
-    expect(screen.queryByRole('button', { name: 'Кастом' })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Контент' })).toBeNull()
   })
 
   it('показывает dashboard overview с активной сценой, сюжетными очками и статистикой', async () => {
@@ -229,7 +229,7 @@ describe('account campaign membership UI', () => {
     fireEvent.click(screen.getByRole('button', { name: 'История' }))
     await waitFor(() => expect(packChangesMock).toHaveBeenCalledWith('pack', 'c1', 200))
     expect(await screen.findByRole('dialog', { name: 'История набора' })).toBeTruthy()
-    expect(screen.queryByRole('button', { name: 'Кастом' })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Контент' })).toBeNull()
   })
 
   it('does not reload the campaign when the navigation callback changes', async () => {

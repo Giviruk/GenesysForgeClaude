@@ -37,7 +37,9 @@ public class CreateCustomCareerHandler(IAppDbContext db) : ICommandHandler<Creat
             StartingMoneyDice = req.StartingMoneyDice?.Trim() ?? "",
         };
         db.CareerDefs.Add(def);
+        await ContentMembership.ApplyAsync(db, command.UserId, req.System, CustomEntryType.Career, def.Id, req.PackIds, command.CampaignId, ct);
         CustomContentAudit.Created(db, "career", def.Id, def.HomebrewPackId, def.Name, command.UserId);
+        await CustomContentAudit.ReplicateToPacksAsync(db, def.Id, ct);
         await db.SaveChangesAsync(ct);
         return def.ToDto();
     }

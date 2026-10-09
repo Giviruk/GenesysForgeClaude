@@ -497,6 +497,7 @@ export function TalentsTab({ sheet, reference, onError, refresh }: Props) {
         const talent = spellPickFor
         return (
           <SignatureSpellDialog
+            characterId={sheet.id}
             title={`${localizedName(talent)}: ${t('выбор заклинания', 'choose the spell')}`}
             system={sheet.system}
             onCancel={() => setSpellPickFor(null)}

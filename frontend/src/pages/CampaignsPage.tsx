@@ -1,12 +1,12 @@
 import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react'
 import { api, ApiError } from '../api/client'
 import type {
-  CampaignDetail, CampaignListItem, CampaignMember, CharacterListItem, CharacterSheet, GameSession, GameSystem, Reference,
+  CampaignDetail, CampaignListItem, CampaignMember, CharacterListItem, CharacterSheet, GameSession,
 } from '../api/types'
 import { PARTICIPANT_TYPE_LABELS, SLOT_TYPE_LABELS, SYSTEM_LABELS } from '../utils/labels'
 import { GameTableTab } from '../components/GameTableTab'
 import { EncountersTab } from '../components/EncountersTab'
-import { CustomTab } from '../components/CustomTab'
+import { CampaignContentTab } from '../components/content/CampaignContentTab'
 import { CampaignPackHistoryPanel } from '../components/HomebrewPackHistory'
 import { CampaignChronicleTab } from '../components/CampaignChronicleTab'
 import { CreateCharacterForm } from './CharactersPage'
@@ -21,7 +21,7 @@ import { useCampaignHub, type CampaignHubStatus } from '../useCampaignHub'
 import { lang, t } from '../i18n'
 import { readSheetTab, writeSheetTab, type CharacterSheetTab } from '../utils/uiPreferences'
 
-export type CampaignView = 'overview' | 'chronicle' | 'encounters' | 'table' | 'custom'
+export type CampaignView = 'overview' | 'chronicle' | 'encounters' | 'table' | 'content'
 
 interface Props {
   openId: string | null
@@ -272,12 +272,12 @@ function CampaignDetailView({ campaignId, view, openEncounterId, openCharacterId
         <button className={view === 'chronicle' ? 'tab active' : 'tab'} onClick={() => onView('chronicle')}>{t('Хроника', 'Chronicle')}</button>
         <button className={view === 'encounters' ? 'tab active' : 'tab'} onClick={() => onView('encounters')}>{t('Энкаунтеры', 'Encounters')}</button>
         <button className={view === 'table' ? 'tab active' : 'tab'} onClick={() => onView('table')}>{t('Игровой стол', 'Game table')}</button>
-        {c.isGm && <button className={view === 'custom' ? 'tab active' : 'tab'} onClick={() => onView('custom')}>{t('Кастом', 'Custom')}</button>}
+        {c.isGm && <button className={view === 'content' ? 'tab active' : 'tab'} onClick={() => onView('content')}>{t('Контент', 'Content')}</button>}
       </div>
 
-      {creating && <CreateCharacterForm key={c.id} campaignId={c.id} onCancel={() => setCreating(false)}
+      {creating && <CreateCharacterForm key={c.id} campaignId={c.id} closedSystems={c.closedSystems} onCancel={() => setCreating(false)}
         onCreated={() => { setCreating(false); void reload() }} />}
-      {view === 'overview' && <button onClick={() => setCreating(true)}>
+      {view === 'overview' && <button disabled={c.closedSystems?.length === 2} title={c.closedSystems?.length === 2 ? t('Обе системы закрыты для новых персонажей', 'Both systems are closed to new characters') : undefined} onClick={() => setCreating(true)}>
         {t('Создать персонажа', 'Create character')}
       </button>}
       {view === 'overview' && <CampaignPlayersPanel campaign={c} onError={setError}
@@ -285,8 +285,8 @@ function CampaignDetailView({ campaignId, view, openEncounterId, openCharacterId
 
       {view === 'overview' && <CampaignPackHistoryPanel campaignId={c.id} refreshSignal={liveSignal} />}
 
-      {view === 'custom' && c.isGm ? (
-        <CampaignCustomTab campaignId={c.id} members={c.members} onError={setError} />
+      {view === 'content' && c.isGm ? (
+        <CampaignContentTab campaignId={c.id} refreshSignal={liveSignal} />
       ) : view === 'chronicle' ? (
         <CampaignChronicleTab campaignId={c.id} members={c.members} refreshSignal={liveSignal}
           onOpenCharacter={openMemberSheet} onError={setError} />
@@ -345,7 +345,7 @@ function CampaignPlayersPanel({ campaign, onChanged, onLeave, onError }: {
   async function showCharacters() {
     try {
       const own = await api.characters()
-      setCharacters(own.filter(char => !campaign.members.some(m => m.characterId === char.id)))
+      setCharacters(own.filter(char => !campaign.members.some(m => m.characterId === char.id) && !campaign.closedSystems?.includes(char.system)))
       setAdding(true)
     } catch (err) { onError(err instanceof Error ? err.message : t('Ошибка', 'Error')) }
   }
@@ -471,7 +471,7 @@ function CampaignMemberSheetPage({ campaignId, characterId, campaignName, onBack
     {tab === 'sheet' && <SheetTab sheet={sheet} onError={setError} refresh={refresh} readOnly />}
     {tab === 'inventory' && <ReadOnlyInventoryTab sheet={sheet} />}
     {tab === 'talents' && <ReadOnlyTalentsTab sheet={sheet} />}
-    {tab === 'magic' && <MagicTab sheet={sheet} onError={setError} />}
+    {tab === 'magic' && <MagicTab campaignId={campaignId} sheet={sheet} onError={setError} />}
     {tab === 'heroic' && <ReadOnlyHeroicTab sheet={sheet} />}
     {tab === 'attachments' && <ReadOnlyAttachmentsTab sheet={sheet} />}
     {tab === 'transport' && <ReadOnlyTransportTab sheet={sheet} />}
@@ -479,43 +479,6 @@ function CampaignMemberSheetPage({ campaignId, characterId, campaignName, onBack
     {tab === 'history' && <HistoryTab characterId={characterId} onError={setError}
       refresh={refresh} readOnly loadEntries={loadAudit} />}
   </div>
-}
-
-function CampaignCustomTab({ campaignId, members, onError }: {
-  campaignId: string
-  members: CampaignMember[]
-  onError: (message: string) => void
-}) {
-  const availableSystems = Array.from(new Set(members.map(member => member.system))) as GameSystem[]
-  if (availableSystems.length === 0) availableSystems.push('realmsOfTerrinoth', 'genesysCore')
-  const [system, setSystem] = useState<GameSystem>(availableSystems[0])
-  const [reference, setReference] = useState<Reference | null>(null)
-
-  const refresh = useCallback(async () => {
-    setReference(await api.reference(system, { campaignId }))
-  }, [campaignId, system])
-
-  useEffect(() => {
-    let cancelled = false
-    api.reference(system, { campaignId })
-      .then(value => { if (!cancelled) setReference(value) })
-      .catch((err: unknown) => { if (!cancelled) onError(err instanceof Error ? err.message : t('Ошибка загрузки', 'Failed to load')) })
-    return () => { cancelled = true }
-  }, [campaignId, system, onError])
-
-  return (
-    <div>
-      {availableSystems.length > 1 && (
-        <div className="system-switch">
-          {availableSystems.map(value => <button key={value} className={system === value ? 'tab active' : 'tab'}
-            onClick={() => { setReference(null); setSystem(value) }}>{SYSTEM_LABELS[value]}</button>)}
-        </div>
-      )}
-      {reference
-        ? <CustomTab campaignId={campaignId} system={system} reference={reference} onError={onError} refresh={refresh} />
-        : <p className="muted">{t('Загрузка…', 'Loading…')}</p>}
-    </div>
-  )
 }
 
 function CampaignOverview({ campaign, session, sessionLoaded, memberSheets, onView, onOpenMemberSheet,

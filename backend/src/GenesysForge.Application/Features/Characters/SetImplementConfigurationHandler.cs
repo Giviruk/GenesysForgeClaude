@@ -43,8 +43,10 @@ public class SetImplementConfigurationHandler(IAppDbContext db)
 
         // Надбавки берутся из справочника, а не из запроса: клиент называет только коды.
         var effects = await db.SpellDefs.AsNoTracking()
-            .Where(s => s.System == c.System && s.Kind == SpellEntryKind.AdditionalEffect)
+            .Where(s => s.System == c.System && (s.OwnerUserId == null || s.OwnerUserId == command.UserId))
             .ToListAsync(ct);
+        var policy = await CampaignContentPolicy.LoadAsync(db, command.UserId, c.System, c.Id, ct: ct);
+        effects = CampaignContentPolicy.FilterSpells(effects, policy).Where(x => x.Kind == SpellEntryKind.AdditionalEffect).ToList();
         var chosen = new List<SpellEffectInput>();
         foreach (var code in codes)
         {

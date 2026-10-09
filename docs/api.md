@@ -944,7 +944,7 @@ The creation response remains 201 Created with { id }, including in a campaign.
 ## Personal custom library
 
 POST /api/v1/custom/{skills|talents|items|heroic-abilities|archetypes|careers} creates
-account-owned content in a personal pack without a campaign or GM role. PUT/DELETE for
+standalone account-owned content without a campaign or GM role. PUT/DELETE for
 /{type}/{id} use the same ownership validation as the existing campaign-scoped routes.
 Campaign-scoped creation retains its GM-only check. A GM enables an owned personal pack
 with PUT /api/v1/campaigns/{id}/homebrew-packs/{packId}. A player's original pack is connected
@@ -953,7 +953,7 @@ JSON/shared import creates independent copies, stripping internal library/campai
 
 ## Campaign content isolation
 
-Reference with campaignId, or with a characterId linked to campaigns, exposes enabled campaign
+Reference with campaignId, or with a characterId linked to campaigns, exposes active enabled campaign
 packs rather than the owner's personal defaults/character toggles. A character linked to multiple
 campaigns retains the union of enabled campaign packs; there is no RulesCampaignId. Explicit
 campaignId selects that campaign's reference context. Standalone characters retain personal toggles.
@@ -962,3 +962,59 @@ reference visibility and permission to purchase additional ranks still require a
 Connecting the original player pack restores purchases for the existing skill/talent IDs; no XP
 is charged by connection and no ranks are transferred. Shop reference uses the selected characterId
 before showing products, matching all purchase routes (item/service/attachment/mount).
+
+## Content library v2 (GEN-RD-05)
+
+Routes below use `/api/v1`; legacy `/api` aliases remain available. Enum bodies use camelCase;
+`system` route/query values are `GenesysCore` or `RealmsOfTerrinoth`. Authentication is required.
+
+| Method / path | Request / result / permission |
+|---|---|
+| `GET /library?system=` | Owner metadata `{entryType,id,system,name,nameRu,meta,lastEditedAt,packIds}[]`; all owned entries, independent of visibility toggles |
+| `GET /library/proposals` | Own proposals with campaign, kind, original target ID and active/pending/declined status |
+| `GET /reference/base-catalog?system=` | Built-in seven-category metadata `{category,key,name,nameRu,meta,isSharedWithCore}[]` |
+| `POST /homebrew-packs` | `{name,description?,system}` → pack metadata; owner |
+| `PUT /homebrew-packs/{id}` | `{name,description?}`; owner |
+| `DELETE /homebrew-packs/{id}` | Owner; preserves definitions and purchases |
+| `POST`, `DELETE /homebrew-packs/{id}/entries` | `{entries:[{entryType,entryId}]}`; owner definitions in own same-system pack |
+| `GET /homebrew-packs/{id}/exclusions` | Owner; exclusion metadata |
+| `POST`, `DELETE /homebrew-packs/{id}/exclusions` | `{items:[{category,key}]}`; owner; built-in same-system keys |
+| `GET /campaigns/{id}/content` | GM; systems, packs, separate items, overrideCount, availableCount and alerts |
+| `PUT /campaigns/{id}/content/systems/{system}` | GM; `{isOpen}`; gates new character creation/addition only |
+| `GET /campaigns/{id}/content/base?system=&category=` | GM; book entries with enabled, source, sourcePackName and usedBy character names |
+| `PUT /campaigns/{id}/content/base` | GM; `{system,items:[{category,key,enabled:bool|null}]}`; null resets an override |
+| `DELETE /campaigns/{id}/content/base?system=` | GM; reset manual overrides; pack exclusions remain |
+| `POST /campaigns/{id}/content/base/save-as-pack` | GM; `{system,name?}` → pack; preserves effective availability and necessary allow overrides |
+| `DELETE /campaigns/{id}/homebrew-packs/{packId}` | GM; disconnect original pack, retaining library/purchases |
+| `PUT /campaigns/{id}/homebrew-packs/{packId}/entries` | GM; `{entries:[{entryType,entryId,enabled}]}`; approve pending or disable pack entries |
+| `GET /campaigns/{id}/content/items` | GM; original separate entry connections |
+| `POST /campaigns/{id}/content/items` | GM; `{entries:[{entryType,entryId}]}`; owner must be GM/current member |
+| `PUT /campaigns/{id}/content/items/{connectionId}` | GM; `{isEnabled}` |
+| `DELETE /campaigns/{id}/content/items/{connectionId}` | GM; remove connection only |
+| `POST /campaigns/{id}/content/proposals` | Player member; `{packId}` or `{entryType,entryId}`; only owned content |
+| `POST /campaigns/{id}/content/proposals/{item|pack}/{originalId}/{approve|decline}` | GM decision |
+| `DELETE /campaigns/{id}/content/proposals/{item|pack}/{originalId}` | Proposer member; withdraw pending/declined proposal |
+
+Existing pack toggles accept optional `updatePolicy: auto|manual`. Campaign pack responses add status,
+updatePolicy, exclusionCount, exclusions and per-entry state (`enabled|disabled|pending`). Active enabled
+connections contribute content; editing existing mechanics acts immediately. Manual only gates newly added entries.
+All content mutations notify affected campaigns via `CampaignChanged`, including changes to player originals.
+Alerts include a kind, target/system and count. `disabledInUse` also returns the affected base-entry metadata
+and `usedBy` names so the UI can open the relevant category and identify retained choices.
+
+Custom CRUD requests for six existing editor types accept optional `packIds: Guid[]`: `[]` makes the entry
+unpacked, omitted preserves current memberships. Definition and membership validation/save are atomic.
+`GET /reference/{system}?library=true` provides all owner definitions for full editing, including disabled packs;
+it rejects combination with characterId/campaignId and does not expose another owner's definitions.
+Normal reference, search and spells accept optional characterId/campaignId. Character import and preview
+accept optional campaignId and validate against that campaign; standalone import remains supported.
+
+Book source: absent = default, `pack` = excluded by pack, `manual` = explicit prohibition,
+`restored` = explicit permission. Skills retain purchased/free ranks after disabling; sheet responses append
+`unavailableReason`, and new purchases enforce the server policy. Derived responses append
+`soakBreakdown` and `encumbranceThresholdBreakdown`: `{base,sources:[{sourceName,value}]}`.
+
+Homebrew JSON export emits `genesysforge.homebrew-pack.v2` with `exclusions:[{category,key}]` and
+skills, talents, items, archetypes, careers, heroicAbilities, attachments and mounts. v1 import remains accepted
+without exclusions. Imports create independent IDs; unknown book keys are skipped and returned in `warnings`.
+The campaign shared-token import still connects the original pack, without copying it.

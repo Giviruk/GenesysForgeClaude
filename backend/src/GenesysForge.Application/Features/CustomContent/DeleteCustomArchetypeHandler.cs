@@ -1,6 +1,7 @@
 using GenesysForge.Application.Common;
 using GenesysForge.Application.Abstractions;
 using GenesysForge.Domain;
+using GenesysForge.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace GenesysForge.Application.Features.CustomContent;
@@ -20,6 +21,8 @@ public class DeleteCustomArchetypeHandler(IAppDbContext db) : ICommandHandler<De
 
         db.ArchetypeDefs.Remove(def);
         CustomContentAudit.Deleted(db, "archetype", def.Id, def.HomebrewPackId, def.Name, command.UserId);
+        await ContentMembership.RemoveDefinitionAsync(db, CustomEntryType.Archetype, def.Id, ct);
+        await CustomContentAudit.ReplicateToPacksAsync(db, def.Id, ct);
         await db.SaveChangesAsync(ct);
         return Unit.Value;
     }

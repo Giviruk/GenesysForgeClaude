@@ -4,4 +4,4 @@ using GenesysForge.Domain;
 
 namespace GenesysForge.Application.Features.Spells;
 
-public record GetSpellsQuery(Guid UserId, GameSystem System) : IQuery<List<SpellDto>>;
+public record GetSpellsQuery(Guid UserId, GameSystem System, Guid? CharacterId = null, Guid? CampaignId = null) : IQuery<List<SpellDto>>;

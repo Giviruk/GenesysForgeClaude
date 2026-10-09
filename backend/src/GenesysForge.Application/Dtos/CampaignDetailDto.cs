@@ -1,3 +1,5 @@
+using GenesysForge.Domain;
+
 namespace GenesysForge.Application.Dtos;
 
 public record CampaignDetailDto(
@@ -9,6 +11,7 @@ public record CampaignDetailDto(
     string? JoinCode,
     List<CampaignMemberDto> Members,
     List<CampaignNoteDto> Notes,
-    List<CampaignPlayerDto> Players);
+    List<CampaignPlayerDto> Players,
+    IReadOnlyList<GameSystem>? ClosedSystems = null);
 
 public record CampaignPlayerDto(Guid UserId, string DisplayName, string? AvatarUrl, bool IsMe, DateTime JoinedAt);

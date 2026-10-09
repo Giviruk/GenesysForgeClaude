@@ -1,5 +1,7 @@
 using GenesysForge.Application.Abstractions;
 using GenesysForge.Application.Dtos;
+using GenesysForge.Application.Common;
+using GenesysForge.Application.Features.ContentLibrary;
 using GenesysForge.Application.Features.Campaigns;
 using GenesysForge.Domain;
 using GenesysForge.Domain.Entities;
@@ -21,11 +23,18 @@ public class GetCampaignHomebrewPacksHandler(IAppDbContext db)
             join owner in db.Users.AsNoTracking() on pack.OwnerUserId equals owner.Id
             where link.CampaignId == query.CampaignId
             orderby pack.Name
-            select new { Pack = pack, link.IsEnabled, OwnerName = owner.DisplayName, ConnectedAt = link.UpdatedAt,
+            select new { Pack = pack, LinkId = link.Id, link.IsEnabled, link.Status, link.UpdatePolicy, link.ProposedByUserId, OwnerName = owner.DisplayName, ConnectedAt = link.UpdatedAt,
                 OwnerIsMember = pack.OwnerUserId == campaign.GmUserId || db.CampaignMembers.Any(
                     m => m.CampaignId == query.CampaignId && m.UserId == pack.OwnerUserId) }).ToListAsync(ct);
         var counts = await HomebrewPackMapper.CountEntriesAsync(db, rows.Select(r => r.Pack.Id).ToHashSet(), ct);
         var packIds = rows.Select(r => r.Pack.Id).ToHashSet();
+        var entries = await db.HomebrewPackEntries.AsNoTracking().Where(x => packIds.Contains(x.HomebrewPackId)).ToListAsync(ct);
+        var definitions = await ContentDefinitions.LoadAsync(db, ct: ct, ids:entries.Select(x => x.EntryId).ToList());
+        var linkIds = rows.Select(x => x.LinkId).ToList();
+        var states = await db.CampaignPackEntryStates.AsNoTracking().Where(x => linkIds.Contains(x.HomebrewPackCampaignId)).ToListAsync(ct);
+        var exclusions = await db.HomebrewPackExclusions.AsNoTracking().Where(x => packIds.Contains(x.HomebrewPackId)).ToListAsync(ct);
+        var catalogs = new Dictionary<GameSystem, List<BaseCatalogEntryDto>>();
+        foreach (var system in rows.Select(x => x.Pack.System).Distinct()) catalogs[system] = await BaseCatalog.LoadAsync(db, system, ct);
         var changed = await db.CustomContentChanges.AsNoTracking()
             .Where(x => x.HomebrewPackId != null && packIds.Contains(x.HomebrewPackId.Value))
             .GroupBy(x => x.HomebrewPackId).Select(g => new { Id = g.Key!.Value, At = g.Max(x => x.CreatedAt) })
@@ -33,11 +42,19 @@ public class GetCampaignHomebrewPacksHandler(IAppDbContext db)
         return rows.Select(r =>
         {
             DateTime? lastChangedAt = changed.TryGetValue(r.Pack.Id, out var at) ? at : null;
-            var changedAfterConnection = r.Pack.OwnerUserId != campaign.GmUserId
+            var changedAfterConnection = r.IsEnabled && r.Status == ContentConnectionStatus.Active && r.Pack.OwnerUserId != campaign.GmUserId
                 && lastChangedAt.HasValue && lastChangedAt.Value > r.ConnectedAt;
             return new CampaignHomebrewPackDto(r.Pack.Id, r.Pack.Name, r.Pack.System,
                 r.IsEnabled, r.Pack.OwnerUserId == query.UserId, counts.GetValueOrDefault(r.Pack.Id), r.OwnerName, r.OwnerIsMember,
-                lastChangedAt, r.ConnectedAt, changedAfterConnection);
+                lastChangedAt, r.ConnectedAt, changedAfterConnection, r.UpdatePolicy, r.Status,
+                exclusions.Count(x => x.HomebrewPackId == r.Pack.Id),
+                entries.Where(x => x.HomebrewPackId == r.Pack.Id).Select(x =>
+                {
+                    var def = definitions.FirstOrDefault(d => d.Id == x.EntryId && d.Type == x.EntryType);
+                    var state = states.FirstOrDefault(st => st.HomebrewPackCampaignId == r.LinkId && st.EntryType == x.EntryType && st.EntryId == x.EntryId);
+                    return new CampaignPackEntryDto(x.EntryType, x.EntryId, def?.Name ?? "", def?.NameRu ?? "", state == null ? "enabled" : state.State == PackEntryState.Pending ? "pending" : "disabled");
+                }).ToList(), r.ProposedByUserId,
+                catalogs[r.Pack.System].Where(x => exclusions.Any(e => e.HomebrewPackId == r.Pack.Id && e.Category == x.Category && e.ContentKey == x.Key)).ToList());
         }).ToList();
     }
 }
@@ -65,7 +82,7 @@ public class ConnectSharedCampaignHomebrewPackHandler(IAppDbContext db)
         else
         {
             row.IsEnabled = true;
-            row.UpdatedAt = DateTime.UtcNow;
+            row.Status = ContentConnectionStatus.Active;
         }
         await db.SaveChangesAsync(ct);
         var counts = await HomebrewPackMapper.CountEntriesAsync(db, [pack.Id], ct);
