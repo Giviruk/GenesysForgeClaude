@@ -20,7 +20,8 @@ public static class AuthEndpoints
             var auth = await handler.Handle(new RegisterUserCommand(req), ct);
             await IssueRefreshCookie(ctx, refresh, auth.UserId, ct);
             // Регистрация уже зафиксирована; доставка события неблокирующая и не может её отменить.
-            analytics.TrackRegistrationCompleted(auth.UserId, ctx.AriadneAnonymousId(), "email");
+            if (ctx.AriadneAnonymousId() is { } anonymousId)
+                analytics.TrackRegistrationCompleted(auth.UserId, anonymousId, "email");
             return Results.Ok(auth);
         }).RequireRateLimiting(AuthRateLimiting.SensitivePolicy);
 

@@ -21,6 +21,13 @@ describe('MarkdownContent', () => {
     expect(onEntity).toHaveBeenCalledWith({ kind: 'character', id: '11111111-1111-1111-1111-111111111111' })
   })
 
+  it('links site paths but not protocol-relative or script urls', () => {
+    render(<MarkdownContent markdown={'[Политика](/privacy) [Чужой](//evil.example) [Скрипт](javascript:alert(1))'} />)
+    expect(screen.getByRole('link', { name: 'Политика' }).getAttribute('href')).toBe('/privacy')
+    expect(screen.queryByRole('link', { name: 'Чужой' })).toBeNull()
+    expect(screen.queryByRole('link', { name: 'Скрипт' })).toBeNull()
+  })
+
   it('builds table of contents from markdown headings', () => {
     expect(markdownHeadings('# Пролог\n\n## Первая встреча')).toEqual([
       { level: 1, text: 'Пролог', id: 'пролог' },

@@ -98,3 +98,8 @@ it('recognizes the personal library and rejects nested library routes', () => {
   expect(parseRoute('/library')).toMatchObject({ area: 'library', unknown: false })
   expect(parseRoute('/library/foreign')).toMatchObject({ area: 'library', unknown: true })
 })
+
+it.each(['privacy', 'terms'])('распознаёт публичный /%s и отклоняет лишние сегменты', area => {
+  expect(parseRoute(`/${area}`)).toMatchObject({ area, unknown: false })
+  expect(parseRoute(`/${area}/extra`).unknown).toBe(true)
+})

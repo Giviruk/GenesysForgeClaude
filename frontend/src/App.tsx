@@ -1,6 +1,7 @@
 import { lazy, Suspense, useEffect, useState } from 'react'
 import { AuthProvider } from './auth'
 import { useAuth } from './auth-context'
+import { AnalyticsConsent } from './components/AnalyticsConsent'
 import { Footer } from './components/Footer'
 import { Icon, type IconName } from './components/Icon'
 import { navigate, parseRoute, usePath, type AppArea } from './router'
@@ -11,6 +12,7 @@ import { DiceRollerProvider } from './dice-roller-context'
 
 // Страницы загружаются по маршруту: тяжёлые редакторы NPC, кампаний и листа больше не входят
 // в стартовый bundle экрана входа. Именованные exports приводим к форме default для React.lazy.
+const LegalPage = lazy(() => import('./pages/LegalPage').then(module => ({ default: module.LegalPage })))
 const AuthPage = lazy(() => import('./pages/AuthPage').then(module => ({ default: module.AuthPage })))
 const CharactersPage = lazy(() => import('./pages/CharactersPage').then(module => ({ default: module.CharactersPage })))
 const CampaignsPage = lazy(() => import('./pages/CampaignsPage').then(module => ({ default: module.CampaignsPage })))
@@ -76,6 +78,10 @@ function Shell() {
     navigate(nextPath)
   }
 
+  // Юридические документы доступны до регистрации и после входа.
+  if (route.area === 'privacy' || route.area === 'terms') {
+    return route.unknown ? <NotFound /> : <LegalPage document={route.area} loggedIn={!!token} />
+  }
   // «О проекте» доступна публично — до проверки токена (виден дисклеймер до входа).
   if (route.area === 'about') return <AboutPage loggedIn={!!token} />
   // Обратная связь — тоже без входа: написать можно и о проблеме с регистрацией.
@@ -225,6 +231,7 @@ function PageFallback() {
 export default function App() {
   return (
     <AuthProvider>
+      <AnalyticsConsent />
       <DiceRollerProvider>
         <Suspense fallback={<PageFallback />}>
           <Shell />

@@ -1,3 +1,4 @@
+import { analyticsConfigured, openAnalyticsPreferences } from '../analytics/ariadne'
 import { navigate } from '../router'
 import { t, useLang } from '../i18n'
 
@@ -7,6 +8,9 @@ export function Footer() {
   return (
     <footer className="app-footer">
       <nav className="footer-links">
+        <a href="/privacy">{t('Политика конфиденциальности', 'Privacy policy')}</a>
+        <a href="/terms">{t('Соглашение', 'Terms')}</a>
+        {analyticsConfigured() && <button className="linklike" type="button" onClick={openAnalyticsPreferences}>{t('Аналитика', 'Analytics')}</button>}
         <button className="linklike" type="button" onClick={() => navigate('/help')}>{t('Справка', 'Help')}</button>
         <button className="linklike" type="button" onClick={() => navigate('/about')}>{t('О проекте', 'About')}</button>
         <button className="linklike" type="button" onClick={() => navigate(`/feedback?from=${encodeURIComponent(window.location.pathname)}`)}>{t('Обратная связь', 'Feedback')}</button>

@@ -71,12 +71,14 @@ const AREA_SEO: Record<AppArea, { title: string; description?: string }> = {
       'GenesysForge is a free non-commercial tool for players and game masters of the Genesys and Realms of Terrinoth tabletop RPG systems.',
     ),
   },
+  privacy: { title: t(`Политика конфиденциальности — ${SITE}`, `Privacy policy — ${SITE}`) },
+  terms: { title: t(`Соглашение — ${SITE}`, `Terms — ${SITE}`) },
   account: { title: t(`Профиль — ${SITE}`, `Profile — ${SITE}`) },
   share: { title: t(`Лист персонажа — ${SITE}`, `Character sheet — ${SITE}`) },
 }
 
 /** Публичные без авторизации области — только они получают canonical и попадают в индекс. */
-const INDEXABLE_PATHS = new Set(['/', '/about', '/help'])
+const INDEXABLE_PATHS = new Set(['/', '/about', '/help', '/privacy', '/terms'])
 
 function setMeta(selector: string, attr: 'content' | 'href', value: string): void {
   const el = document.head.querySelector<HTMLElement>(selector)
