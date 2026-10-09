@@ -40,6 +40,11 @@ once it reaches a tagged 1.0 release. The project is currently pre-1.0; the
   on 24.x to match the Node 24 runtime.
 
 ### Fixed
+- **Redesign v2 review (#272).** Approval/reconnection refreshes pack change alerts; Manual → Auto
+  enables pending additions while preserving explicit exclusions. Direct campaign item connections require
+  GM ownership. Migration preserves previously used legacy NULL-pack originals as explicit connections.
+  Content summaries share one indexed catalogue; search filters permissions in SQL before limiting results.
+  Skill progression uses the server preview pool and centralized per-character preference storage.
 - **Loading a character no longer explodes into millions of database rows.** The character graph was
   read in one query with a dozen collection `Include`s, which EF joined into a single result set —
   the rows multiply against each other. Measured on real data: a character with 40 items, 20

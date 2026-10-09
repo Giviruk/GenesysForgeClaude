@@ -19,9 +19,7 @@ export function vitalState(current: number, threshold: number): 'normal' | 'near
   return current > threshold ? 'over' : current === threshold ? 'threshold'
     : threshold - current <= Math.ceil(threshold * .25) ? 'near' : 'normal'
 }
-export function purchasedPool(characteristic: number, rank: number) {
-  return { ability: Math.max(characteristic, rank) - Math.min(characteristic, rank), proficiency: Math.min(characteristic, rank) }
-}
+
 
 /** Metadata is structural; localize enum tokens without changing user-entered text. */
 export function contentMeta(value: string): string {

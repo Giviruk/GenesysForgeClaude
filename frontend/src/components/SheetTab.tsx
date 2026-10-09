@@ -14,7 +14,7 @@ import { useDiceRoller } from '../dice-roller-store'
 import { Icon } from './Icon'
 import { FilterChip } from './content/ContentUi'
 import { VitalCard } from './content/VitalCard'
-import { purchasedPool } from '../utils/contentLibrary'
+import { readSkillProgress, writeSkillProgress } from '../utils/uiPreferences'
 import { MAX_SKILL_RANK_AT_CREATION } from '../utils/rules'
 import { t } from '../i18n'
 
@@ -115,11 +115,11 @@ export function SheetTab({ sheet, onError, refresh, updateBaseOptimistically, re
     }
   }
 
-  const [progressState, setProgress] = useState(() => ({ id: sheet.id, value: readProgress(sheet.id, sheet.isCreationPhase) }))
+  const [progressState, setProgress] = useState(() => ({ id: sheet.id, value: readSkillProgress(sheet.id, sheet.isCreationPhase) }))
   const [previewSkill, setPreviewSkill] = useState<string | null>(null)
-  const progress = !readOnly && (progressState.id === sheet.id ? progressState.value : readProgress(sheet.id, sheet.isCreationPhase))
+  const progress = !readOnly && (progressState.id === sheet.id ? progressState.value : readSkillProgress(sheet.id, sheet.isCreationPhase))
   const maxDice = Math.max(0, ...sheet.skills.map(s => Math.max(s.pool.ability + s.pool.proficiency,
-    s.ranks < 5 ? Math.max(sheet.characteristics[s.characteristic], s.ranks + 1) : 0)
+    s.nextPool ? s.nextPool.ability + s.nextPool.proficiency : 0)
     + (s.boostDice ?? 0) + (s.setbackDice ?? 0) + (s.difficultyDice ?? 0) + ((s.difficultyUpgrades ?? 0) > 0 ? 1 : 0)))
   const skillStyle = { '--skill-pool-width': `${Math.max(4.6, maxDice * .82 + Math.max(0, maxDice - 1) * .18)}rem` } as CSSProperties
   const d = sheet.derived
@@ -174,7 +174,7 @@ export function SheetTab({ sheet, onError, refresh, updateBaseOptimistically, re
           <div className="rd-skill-legend"><span><i className="rd-career-mark active" />{t('карьерный', 'career')}</span><span className="ability">◆ {t('способность', 'ability')}</span><span className="proficiency">⬣ {t('мастерство', 'proficiency')}</span></div>
           {!readOnly && <FilterChip active={progress} onClick={() => {
             const next = !progress; setProgress({ id: sheet.id, value: next }); setPreviewSkill(null)
-            try { localStorage.setItem(`genesysforge.skillProgress.${sheet.id}`, String(next)) } catch { /* Session-only when storage is unavailable. */ }
+            writeSkillProgress(sheet.id, next)
           }}>{t('Прокачка', 'Progression')}</FilterChip>}
         </header>
         {progress && <p className="hint">{t('Карьерный ранг стоит новый ранг × 5 XP, некарьерный — на 5 XP дороже. Наведите на цену для предпросмотра.', 'A career rank costs new rank × 5 XP; a non-career rank costs 5 XP more. Hover over the price to preview.')}</p>}
@@ -188,8 +188,8 @@ export function SheetTab({ sheet, onError, refresh, updateBaseOptimistically, re
               const canRefund = progress && sheet.isCreationPhase && s.ranks > s.freeRanks
               const maxRank = sheet.isCreationPhase ? MAX_SKILL_RANK_AT_CREATION : 5
               const canBuy = progress && s.ranks < maxRank && !s.unavailableReason && s.nextRankCost <= sheet.availableXp
-              const preview = canBuy && previewSkill === s.skillDefId
-              const nextPool = preview ? purchasedPool(sheet.characteristics[s.characteristic], s.ranks + 1) : s.pool
+              const preview = canBuy && s.nextPool != null && previewSkill === s.skillDefId
+              const nextPool = preview ? s.nextPool! : s.pool
               return <div className={`rd-skill-grid-row${s.unavailableReason ? ' unavailable' : ''}${preview ? ' rd-skill-preview' : ''}`} key={s.skillDefId}>
                 <div className="rd-skill-name"><i className={`rd-career-mark${s.isCareer ? ' active' : ''}`} title={careerSourcesTitle(s.careerSources)} />
                   <span title={[original ? `${label} / ${original}` : label, unavailableReason].filter(Boolean).join('\n')}>{label}</span>
@@ -219,9 +219,6 @@ export function SheetTab({ sheet, onError, refresh, updateBaseOptimistically, re
   )
 }
 
-function readProgress(id: string, creation: boolean): boolean {
-  try { const saved = localStorage.getItem(`genesysforge.skillProgress.${id}`); return saved === null ? creation : saved === 'true' } catch { return creation }
-}
 function statTitle(breakdown: Derived['soakBreakdown'], total: number): string | undefined {
   if (!breakdown) return undefined
   return `${t('Основа', 'Base')} ${breakdown.base}${breakdown.sources.map(x => ` + ${x.sourceName === 'Base' ? t('Базовый бонус', 'Base bonus') : x.sourceName} ${x.value}`).join('')} = ${total}`

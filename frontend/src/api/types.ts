@@ -713,6 +713,8 @@ export interface SheetSkill {
   ranks: number
   isCareer: boolean
   pool: DicePool
+  /** Server preview after buying one rank; unavailable at the rank limit or for disabled content. */
+  nextPool?: DicePool | null
   nextRankCost: number
   freeRanks: number
   /** Все источники карьерного статуса: карьера, вид, таланты. Пусто — навык некарьерный. */

@@ -16,6 +16,10 @@ public sealed class CampaignContentPolicy
     public bool Allows(BaseContentCategory category, string key) =>
         campaigns.Count == 0 || campaigns.Any(c => !c.Blocked.Contains((category, key)));
 
+    public string[] BlockedKeys(BaseContentCategory category) => campaigns.Count == 0 ? []
+        : campaigns[0].Blocked.Where(x => x.Item1 == category && campaigns.All(c => c.Blocked.Contains(x)))
+            .Select(x => x.Item2).ToArray();
+
     public string? UnavailableReason(BaseContentCategory category, string key, Guid? owner, Guid id) =>
         owner is null ? (Allows(category, key) ? null : $"Контент отключён в кампании «{campaigns[0].Name}» — новые покупки недоступны.")
             : CustomIds.Contains(id) ? null : "Кастомный контент отключён — новые покупки недоступны.";

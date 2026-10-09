@@ -147,6 +147,10 @@ public static class SheetBuilder
             var ranks = row?.Ranks ?? 0;
             var isCareer = careerSkills.IsCareer(def.Id);
             var pool = GenesysRules.BuildDicePool(ch.Get(def.Characteristic), ranks);
+            var unavailable = contentPolicy.UnavailableReason(BaseContentCategory.Skill, def.Code, def.OwnerUserId, def.Id);
+            var maxRank = c.IsCreationPhase ? GenesysRules.MaxSkillRankAtCreation : GenesysRules.MaxSkillRank;
+            DicePool? nextPool = !def.Retired && unavailable is null && ranks < maxRank
+                ? GenesysRules.BuildDicePool(ch.Get(def.Characteristic), ranks + 1) : null;
             var penalty = CheckModifierAggregator.For(
                 def.Name, def.Characteristic, checkModifiers, derived.Encumbrance, skillBoosts,
                 criticalInjuryModifiers);
@@ -163,7 +167,7 @@ public static class SheetBuilder
                     s.SourceType, s.SourceName, s.SourceNameRu, s.Setback, s.Condition, s.Boost,
                     s.Difficulty, s.DifficultyUpgrades, s.RemoveBoosts))],
                 penalty.BoostDice, penalty.DifficultyDice, penalty.DifficultyUpgrades,
-                penalty.RemoveBoosts, contentPolicy.UnavailableReason(BaseContentCategory.Skill, def.Code, def.OwnerUserId, def.Id));
+                penalty.RemoveBoosts, unavailable, nextPool is null ? null : new DicePoolDto(nextPool.Value.Ability, nextPool.Value.Proficiency));
         }).Where(x => x.UnavailableReason == null || x.Ranks > 0).ToList();
 
         var configuration = await BuildConfigurationAsync(db, c, systemSkills, ct);

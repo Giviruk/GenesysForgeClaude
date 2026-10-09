@@ -1,4 +1,7 @@
 using System.Net;
+using GenesysForge.Application.Abstractions;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using System.Net.Http.Json;
 using GenesysForge.Application.Dtos;
 using GenesysForge.Domain;
@@ -28,6 +31,111 @@ public class ContentLibraryV2Tests(ApiFactory factory) : IClassFixture<ApiFactor
         (await client.GetFromJsonAsync<ReferenceResponse>($"/api/reference/GenesysCore?{(campaign is null ? "" : $"campaignId={campaign}&")}{(character is null ? "" : $"characterId={character}")}", Json.Options))!;
     private static ContentEntriesRequest Entries(Guid id) => new([new(CustomEntryType.Skill, id)]);
     private static async Task NoContent(Task<HttpResponseMessage> response) => Assert.Equal(HttpStatusCode.NoContent, (await response).StatusCode);
+
+    private async Task DateConnectionBeforeEdit(Guid campaign, Guid pack)
+    {
+        using var scope = factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<IAppDbContext>();
+        var connection = await db.HomebrewPackCampaigns.SingleAsync(x => x.CampaignId == campaign && x.HomebrewPackId == pack);
+        connection.UpdatedAt = DateTime.UtcNow.AddDays(-3);
+        foreach (var change in await db.CustomContentChanges.Where(x => x.HomebrewPackId == pack).ToListAsync())
+            change.CreatedAt = DateTime.UtcNow.AddDays(-2);
+        await db.SaveChangesAsync();
+    }
+
+    [Fact]
+    public async Task ApprovalToggleAndSharedReconnect_ResetTheChangeWarning()
+    {
+        var gm = await factory.CreateAuthorizedClientAsync(); var player = await factory.CreateAuthorizedClientAsync();
+        var campaign = await Campaign(gm); var pack = await Pack(player);
+        (await player.PostAsJsonAsync("/api/campaigns/join", new JoinCampaignRequest(campaign.JoinCode!), Json.Options)).EnsureSuccessStatusCode();
+        var proposals = $"/api/campaigns/{campaign.Id}/content/proposals";
+        await NoContent(player.PostAsJsonAsync(proposals, new ContentProposalRequest(PackId: pack.Id), Json.Options));
+        await Skill(player, "Added after proposal", pack.Id);
+        await DateConnectionBeforeEdit(campaign.Id, pack.Id);
+        async Task<CampaignHomebrewPackDto> Connection() => Assert.Single((await gm.GetFromJsonAsync<List<CampaignHomebrewPackDto>>($"/api/campaigns/{campaign.Id}/homebrew-packs", Json.Options))!);
+        await NoContent(gm.PostAsync($"{proposals}/pack/{pack.Id}/approve", null));
+        Assert.False((await Connection()).ChangedAfterConnection);
+        await DateConnectionBeforeEdit(campaign.Id, pack.Id);
+        Assert.True((await Connection()).ChangedAfterConnection);
+        await NoContent(gm.PutAsJsonAsync($"/api/campaigns/{campaign.Id}/homebrew-packs/{pack.Id}", new HomebrewPackToggleRequest(false), Json.Options));
+        await NoContent(gm.PutAsJsonAsync($"/api/campaigns/{campaign.Id}/homebrew-packs/{pack.Id}", new HomebrewPackToggleRequest(true), Json.Options));
+        Assert.False((await Connection()).ChangedAfterConnection);
+        await DateConnectionBeforeEdit(campaign.Id, pack.Id);
+        Assert.True((await Connection()).ChangedAfterConnection);
+        var share = (await (await player.PostAsync($"/api/homebrew-packs/{pack.Id}/share", null)).Content.ReadFromJsonAsync<HomebrewPackShareDto>(Json.Options))!;
+        (await gm.PostAsync($"/api/campaigns/{campaign.Id}/homebrew-packs/shared/{share.Token}/import", null)).EnsureSuccessStatusCode();
+        Assert.False((await Connection()).ChangedAfterConnection);
+    }
+
+    [Fact]
+    public async Task ManualToAuto_EnablesAllPendingAndPreservesDisabledEntries()
+    {
+        var gm = await factory.CreateAuthorizedClientAsync(); var player = await factory.CreateAuthorizedClientAsync();
+        var campaign = await Campaign(gm); var pack = await Pack(gm);
+        var disabled = await Skill(gm, "Explicitly disabled", pack.Id);
+        var connection = $"/api/campaigns/{campaign.Id}/homebrew-packs/{pack.Id}";
+        await NoContent(gm.PutAsJsonAsync(connection, new HomebrewPackToggleRequest(true, ContentUpdatePolicy.Manual), Json.Options));
+        await NoContent(gm.PutAsJsonAsync($"{connection}/entries", new CampaignPackEntriesRequest([new(CustomEntryType.Skill, disabled.Id, false)]), Json.Options));
+        var pending = new List<SkillDefDto>();
+        for (var i = 0; i < 3; i++) pending.Add(await Skill(gm, $"Pending {i}", pack.Id));
+        var id = await Character(player);
+        (await player.PostAsJsonAsync("/api/campaigns/join", new JoinCampaignRequest(campaign.JoinCode!, id), Json.Options)).EnsureSuccessStatusCode();
+        var before = await Reference(player, character: id);
+        Assert.All(pending, skill => Assert.DoesNotContain(before.Skills, x => x.Id == skill.Id));
+        await NoContent(gm.PutAsJsonAsync(connection, new HomebrewPackToggleRequest(true, ContentUpdatePolicy.Auto), Json.Options));
+        var reference = await Reference(player, character: id);
+        foreach (var skill in pending)
+        {
+            Assert.Contains(reference.Skills, x => x.Id == skill.Id);
+            await NoContent(player.PostAsync($"/api/characters/{id}/skills/{skill.Id}/buy-rank", null));
+        }
+        Assert.DoesNotContain(reference.Skills, x => x.Id == disabled.Id);
+        Assert.Equal(HttpStatusCode.BadRequest, (await player.PostAsync($"/api/characters/{id}/skills/{disabled.Id}/buy-rank", null)).StatusCode);
+        var states = Assert.Single((await gm.GetFromJsonAsync<List<CampaignHomebrewPackDto>>($"/api/campaigns/{campaign.Id}/homebrew-packs", Json.Options))!).Entries!;
+        Assert.All(pending, skill => Assert.Equal("enabled", states.Single(x => x.EntryId == skill.Id).State));
+        Assert.Equal("disabled", states.Single(x => x.EntryId == disabled.Id).State);
+    }
+
+    [Fact]
+    public async Task DirectItems_RequireGmOwnership_AndPlayerProposalIsApprovedSeparately()
+    {
+        var gm = await factory.CreateAuthorizedClientAsync(); var player = await factory.CreateAuthorizedClientAsync();
+        var campaign = await Campaign(gm);
+        (await player.PostAsJsonAsync("/api/campaigns/join", new JoinCampaignRequest(campaign.JoinCode!), Json.Options)).EnsureSuccessStatusCode();
+        var own = await Skill(gm, "GM owned"); var foreign = await Skill(player, "Private player entry");
+        var url = $"/api/campaigns/{campaign.Id}/content/items";
+        var response = await gm.PostAsJsonAsync(url, new ContentEntriesRequest([new(CustomEntryType.Skill, own.Id), new(CustomEntryType.Skill, foreign.Id)]), Json.Options);
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.Equal("Контент игрока подключается только через его предложение или shared-ссылку.",
+            (await response.Content.ReadFromJsonAsync<ErrorResponse>(Json.Options))!.Message);
+        Assert.Empty((await gm.GetFromJsonAsync<List<CampaignContentItemDto>>(url, Json.Options))!);
+        await NoContent(gm.PostAsJsonAsync(url, Entries(own.Id), Json.Options));
+        Assert.Contains((await Reference(player, campaign.Id)).Skills, x => x.Id == own.Id);
+        var proposals = $"/api/campaigns/{campaign.Id}/content/proposals";
+        await NoContent(player.PostAsJsonAsync(proposals, new ContentProposalRequest(EntryType: CustomEntryType.Skill, EntryId: foreign.Id), Json.Options));
+        Assert.Equal(HttpStatusCode.BadRequest, (await gm.PostAsJsonAsync(url, Entries(foreign.Id), Json.Options)).StatusCode);
+        Assert.DoesNotContain((await Reference(player, campaign.Id)).Skills, x => x.Id == foreign.Id);
+        await NoContent(gm.PostAsync($"{proposals}/item/{foreign.Id}/approve", null));
+        Assert.Contains((await Reference(player, campaign.Id)).Skills, x => x.Id == foreign.Id);
+    }
+
+    [Fact]
+    public async Task NextPool_MatchesPurchasedPool_AndStopsAtCreationLimitOrDisabledContent()
+    {
+        var client = await factory.CreateAuthorizedClientAsync(); var campaign = await Campaign(client);
+        var skill = await Skill(client, "Preview navigation"); var id = await Character(client);
+        async Task<CharacterSkillDto> Row() => Assert.Single((await client.GetFromJsonAsync<CharacterSheetDto>($"/api/characters/{id}", Json.Options))!.Skills, x => x.SkillDefId == skill.Id);
+        var before = await Row(); Assert.NotNull(before.NextPool);
+        await NoContent(client.PostAsync($"/api/characters/{id}/skills/{skill.Id}/buy-rank", null));
+        var after = await Row(); Assert.Equal(before.NextPool, after.Pool); Assert.NotNull(after.NextPool);
+        (await client.PostAsJsonAsync("/api/campaigns/join", new JoinCampaignRequest(campaign.JoinCode!, id), Json.Options)).EnsureSuccessStatusCode();
+        Assert.Null((await Row()).NextPool);
+        await NoContent(client.PostAsJsonAsync($"/api/campaigns/{campaign.Id}/content/items", Entries(skill.Id), Json.Options));
+        before = await Row(); Assert.NotNull(before.NextPool);
+        await NoContent(client.PostAsync($"/api/characters/{id}/skills/{skill.Id}/buy-rank", null));
+        after = await Row(); Assert.Equal(before.NextPool, after.Pool); Assert.Null(after.NextPool);
+    }
 
     [Fact]
     public async Task StandaloneEntries_ManyPacks_Toggles_AndDeletionKeepIdentity()

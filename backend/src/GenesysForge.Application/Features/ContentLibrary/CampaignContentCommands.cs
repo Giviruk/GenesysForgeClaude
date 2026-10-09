@@ -40,14 +40,15 @@ public class SetCampaignBaseHandler(IAppDbContext db) : ICommandHandler<SetCampa
     {
         await CampaignMapper.GetAsGmAsync(db, q.UserId, q.CampaignId, ct);
         var req = q.Request;
-        var baseline = await new GetCampaignBaseHandler(db).Handle(new(q.UserId, q.CampaignId, req.System), ct);
+        var baseline = await new GetCampaignBaseHandler(db).LoadStatesAsync(new(q.UserId, q.CampaignId, req.System), await BaseCatalog.LoadSnapshotAsync(db, ct), ct);
+        var baselineIndex = baseline.ToDictionary(x => (x.Category, x.Key));
         var requests = req.Items.GroupBy(x => (x.Category, x.Key)).Select(g => g.Last()).ToList();
-        if (requests.Any(i => !baseline.Any(x => x.Category == i.Category && x.Key == i.Key)))
+        if (requests.Any(i => !baselineIndex.ContainsKey((i.Category, i.Key))))
             throw new DomainRuleException("Неизвестный элемент встроенного каталога.");
         var rows = await db.CampaignBaseOverrides.Where(x => x.CampaignId == q.CampaignId && x.System == req.System).ToListAsync(ct);
         foreach (var item in requests)
         {
-            var b = baseline.Single(x => x.Category == item.Category && x.Key == item.Key);
+            var b = baselineIndex[(item.Category, item.Key)];
             // Independent of existing overrides: an active pack excludes iff it is named as source.
             var defaultEnabled = b.SourcePackName == null;
             var row = rows.FirstOrDefault(x => x.Category == item.Category && x.ContentKey == item.Key);
@@ -73,7 +74,7 @@ public class SaveCampaignRestrictionsHandler(IAppDbContext db) : ICommandHandler
     public async Task<HomebrewPackListItemDto> Handle(SaveCampaignRestrictionsCommand q, CancellationToken ct = default)
     {
         var campaign = await CampaignMapper.GetAsGmAsync(db, q.UserId, q.CampaignId, ct);
-        var baseRows = await new GetCampaignBaseHandler(db).Handle(new(q.UserId, q.CampaignId, q.Request.System), ct);
+        var baseRows = await new GetCampaignBaseHandler(db).LoadStatesAsync(new(q.UserId, q.CampaignId, q.Request.System), await BaseCatalog.LoadSnapshotAsync(db, ct), ct);
         var name = q.Request.Name ?? $"Ограничения «{campaign.Name}»";
         CreatePackHandler.Validate(name, null);
         var pack = new HomebrewPack { Id = Guid.NewGuid(), OwnerUserId = q.UserId, Name = name.Trim(), System = q.Request.System };
@@ -141,11 +142,9 @@ public class ConnectCampaignItemsHandler(IAppDbContext db) : ICommandHandler<Con
     {
         var campaign = await CampaignMapper.GetAsGmAsync(db, q.UserId, q.CampaignId, ct);
         var definitions = await ContentDefinitions.LoadAsync(db, ct: ct, ids:q.Request.Entries.Select(x => x.EntryId).ToList());
-        var owners = await db.CampaignMembers.Where(x => x.CampaignId == campaign.Id).Select(x => x.UserId).ToListAsync(ct);
-        owners.Add(campaign.GmUserId);
         var requested = q.Request.Entries.Distinct().ToList();
-        if (requested.Any(r => !definitions.Any(x => x.Type == r.EntryType && x.Id == r.EntryId && x.OwnerUserId != null && owners.Contains(x.OwnerUserId.Value))))
-            throw new DomainRuleException("Подключить можно только контент мастера или текущего участника кампании.");
+        if (requested.Any(r => !definitions.Any(x => x.Type == r.EntryType && x.Id == r.EntryId && x.OwnerUserId == campaign.GmUserId)))
+            throw new DomainRuleException("Контент игрока подключается только через его предложение или shared-ссылку.");
         var rows = await db.CampaignContentItems.Where(x => x.CampaignId == campaign.Id).ToListAsync(ct);
         foreach (var item in requested)
         {

@@ -133,6 +133,9 @@ public class SetCampaignHomebrewPackHandler(IAppDbContext db)
     {
         await CampaignMapper.GetAsGmAsync(db, command.UserId, command.CampaignId, ct);
 
+        if (command.UpdatePolicy is { } requestedPolicy && !Enum.IsDefined(requestedPolicy))
+            throw new DomainRuleException("Неизвестная политика обновления.");
+
         var row = await db.HomebrewPackCampaigns.FirstOrDefaultAsync(
             x => x.HomebrewPackId == command.PackId && x.CampaignId == command.CampaignId, ct);
         if (row is null)
@@ -151,7 +154,14 @@ public class SetCampaignHomebrewPackHandler(IAppDbContext db)
         {
             row.IsEnabled = command.IsEnabled;
             if (command.IsEnabled) row.Status = ContentConnectionStatus.Active;
-            if (command.UpdatePolicy is { } policy) row.UpdatePolicy = policy;
+            if (command.UpdatePolicy is { } policy)
+            {
+                if (row.UpdatePolicy != policy && policy == ContentUpdatePolicy.Auto)
+                    db.CampaignPackEntryStates.RemoveRange(await db.CampaignPackEntryStates
+                        .Where(x => x.HomebrewPackCampaignId == row.Id && x.State == PackEntryState.Pending).ToListAsync(ct));
+                row.UpdatePolicy = policy;
+            }
+            row.UpdatedAt = DateTime.UtcNow;
         }
         await db.SaveChangesAsync(ct);
         return Unit.Value;

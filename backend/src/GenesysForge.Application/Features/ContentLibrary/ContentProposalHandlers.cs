@@ -73,6 +73,7 @@ public class DecideContentHandler(IAppDbContext db) : ICommandHandler<DecideCont
                 ?? throw new DomainRuleException("Предложение не найдено.");
             if (row.Status != ContentConnectionStatus.Pending) throw new DomainRuleException("Предложение уже рассмотрено.");
             row.Status = approve ? ContentConnectionStatus.Active : ContentConnectionStatus.Declined; row.IsEnabled = approve;
+            row.UpdatedAt = DateTime.UtcNow;
         }
         else if (q.Kind == "item")
         {

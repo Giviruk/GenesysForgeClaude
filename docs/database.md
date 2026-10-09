@@ -583,7 +583,10 @@ Book keys use `Code`; magic uses `{MagicSkill}:{Kind}:{NameEn}` for base effects
 Migration `20261009141914_ContentLibraryV2` creates these tables and three campaign-link columns. Up
 moves named pack pointers to M:N, dissolves only `Personal custom:*` technical packs (preserving definitions),
 converts their existing campaign connections to separate entries with the previous enabled state, and clears
-`Campaign custom:*` descriptions. Seed remains unchanged. Down restores the oldest membership by
+`Campaign custom:*` descriptions. Before dissolving auto-packs, originally NULL-pack custom definitions
+already used by their owner’s campaign characters become explicit Active/enabled separate connections
+(all eight types; skill rows require positive ranks). Unused own and foreign definitions are not backfilled.
+Seed remains unchanged. Down restores the oldest membership by
 `AddedAt`, then `Id`, to the legacy pointer. Multiple memberships, restrictions, separate connections and
 approval states cannot be represented by the old schema: a rollback loses those v2 relationships, not definitions.
 Up and Down were verified on PostgreSQL 17 with named/personal/campaign fixtures and stable definition IDs.

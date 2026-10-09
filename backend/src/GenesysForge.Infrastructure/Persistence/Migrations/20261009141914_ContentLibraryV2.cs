@@ -195,6 +195,31 @@ namespace GenesysForge.Infrastructure.Persistence.Migrations
 
             // Keep stable definition IDs. Named packs become M:N memberships; personal auto-packs dissolve.
             var tables = new[] { "SkillDefs", "TalentDefs", "ItemDefs", "ArchetypeDefs", "CareerDefs", "HeroicAbilityDefs", "AttachmentDefs", "MountDefs" };
+            // Before dissolving auto-packs, explicitly preserve only originally unpacked custom
+            // definitions already used by their owner's campaign characters. No general personal bypass.
+            var uses = new[]
+            {
+                "JOIN \"CharacterSkills\" u ON u.\"SkillDefId\" = d.\"Id\" AND u.\"Ranks\" > 0 JOIN \"Characters\" c ON c.\"Id\" = u.\"CharacterId\"",
+                "JOIN \"CharacterTalents\" u ON u.\"TalentDefId\" = d.\"Id\" JOIN \"Characters\" c ON c.\"Id\" = u.\"CharacterId\"",
+                "JOIN \"CharacterItems\" u ON u.\"ItemDefId\" = d.\"Id\" JOIN \"Characters\" c ON c.\"Id\" = u.\"CharacterId\"",
+                "JOIN \"Characters\" c ON c.\"ArchetypeId\" = d.\"Id\"",
+                "JOIN \"Characters\" c ON c.\"CareerId\" = d.\"Id\"",
+                "JOIN \"Characters\" c ON c.\"HeroicAbilityId\" = d.\"Id\"",
+                "JOIN \"CharacterAttachments\" u ON u.\"AttachmentDefId\" = d.\"Id\" JOIN \"Characters\" c ON c.\"Id\" = u.\"CharacterId\"",
+                "JOIN \"CharacterMounts\" u ON u.\"MountDefId\" = d.\"Id\" JOIN \"Characters\" c ON c.\"Id\" = u.\"CharacterId\"",
+            };
+            for (var type = 0; type < tables.Length; type++)
+                migrationBuilder.Sql($"""
+                    INSERT INTO "CampaignContentItems" ("Id", "CampaignId", "EntryType", "EntryId", "IsEnabled", "Status", "AddedAt")
+                    SELECT gen_random_uuid(), used."CampaignId", {type}, used."Id", true, 0, now()
+                    FROM (
+                        SELECT DISTINCT cc."CampaignId", d."Id"
+                        FROM "{tables[type]}" d {uses[type]}
+                        JOIN "CampaignCharacters" cc ON cc."CharacterId" = c."Id"
+                        WHERE d."HomebrewPackId" IS NULL AND d."OwnerUserId" IS NOT NULL AND d."OwnerUserId" = c."OwnerUserId"
+                    ) used
+                    ON CONFLICT ("CampaignId", "EntryType", "EntryId") DO NOTHING;
+                    """);
             for (var type = 0; type < tables.Length; type++)
             {
                 migrationBuilder.Sql($"""

@@ -49,7 +49,32 @@ public class GetCampaignBaseHandler(IAppDbContext db) : IQueryHandler<GetCampaig
     public async Task<List<CampaignBaseEntryDto>> Handle(GetCampaignBaseQuery q, CancellationToken ct = default)
     {
         await CampaignMapper.GetAsGmAsync(db, q.UserId, q.CampaignId, ct);
-        var catalog = (await BaseCatalog.LoadAsync(db, q.System, ct)).Where(x => q.Category == null || x.Category == q.Category).ToList();
+        return await LoadAsync(q, await BaseCatalog.LoadSnapshotAsync(db, ct), true, ct);
+    }
+
+    internal async Task<List<CampaignBaseEntryDto>> LoadAsync(GetCampaignBaseQuery q, BaseCatalogSnapshot snapshot,
+        bool includeUses, CancellationToken ct, List<ContentUse>? sharedUses = null)
+    {
+        var catalog = snapshot.ForSystem(q.System).Where(x => q.Category == null || x.Category == q.Category).ToList();
+        var states = (await LoadStatesAsync(q, snapshot, ct)).ToDictionary(x => (x.Category, x.Key));
+        var uses = includeUses ? sharedUses ?? await UsesAsync(q.CampaignId, ct) : [];
+        var useIndex = uses.GroupBy(x => (x.Category, x.DefinitionId)).ToDictionary(g => g.Key, g => g.Select(x => x.Name).Distinct().Order().ToList());
+        return catalog.Select(x =>
+        {
+            var state = states[(x.Category, x.Key)];
+            var usedBy = snapshot.DefinitionIds.TryGetValue((q.System, x.Category, x.Key), out var id)
+                ? useIndex.GetValueOrDefault((x.Category, id), []) : [];
+            return new CampaignBaseEntryDto(x.Category, x.Key, x.Name, x.NameRu, x.Meta, x.IsSharedWithCore,
+                state.Enabled, state.Source, state.SourcePackName, usedBy);
+        }).ToList();
+    }
+
+    internal record BaseState(BaseContentCategory Category, string Key, bool Enabled, string? Source, string? SourcePackName);
+
+    // Commands need only availability/keys, not display metadata or character usage DTOs.
+    internal async Task<List<BaseState>> LoadStatesAsync(GetCampaignBaseQuery q, BaseCatalogSnapshot snapshot, CancellationToken ct)
+    {
+        var catalog = snapshot.ForSystem(q.System).Where(x => q.Category == null || x.Category == q.Category);
         var links = await (from l in db.HomebrewPackCampaigns.AsNoTracking()
             join p in db.HomebrewPacks.AsNoTracking() on l.HomebrewPackId equals p.Id
             where l.CampaignId == q.CampaignId && l.IsEnabled && l.Status == ContentConnectionStatus.Active && p.System == q.System
@@ -57,27 +82,27 @@ public class GetCampaignBaseHandler(IAppDbContext db) : IQueryHandler<GetCampaig
         var packIds = links.Select(x => x.Id).ToList();
         var exclusions = await db.HomebrewPackExclusions.AsNoTracking().Where(x => packIds.Contains(x.HomebrewPackId)).ToListAsync(ct);
         var overrides = await db.CampaignBaseOverrides.AsNoTracking().Where(x => x.CampaignId == q.CampaignId && x.System == q.System).ToListAsync(ct);
-        var definitions = await ContentDefinitions.LoadAsync(db, q.System, ct: ct, builtinOnly:true);
-        var uses = await UsesAsync(q.CampaignId, q.System, ct);
+        var exclusionIndex = exclusions.GroupBy(x => (x.Category, x.ContentKey))
+            .ToDictionary(g => g.Key, g => g.Select(x => x.HomebrewPackId).ToHashSet());
+        var overrideIndex = overrides.ToDictionary(x => (x.Category, x.ContentKey));
+        var linkOrder = links.Select((x, i) => (x.Id, x.Name, Order: i)).ToDictionary(x => x.Id);
         return catalog.Select(x =>
         {
-            var excluded = exclusions.Where(e => e.Category == x.Category && e.ContentKey == x.Key).Select(e => e.HomebrewPackId).ToHashSet();
-            var ov = overrides.FirstOrDefault(o => o.Category == x.Category && o.ContentKey == x.Key);
+            var excluded = exclusionIndex.GetValueOrDefault((x.Category, x.Key), []);
+            var ov = overrideIndex.GetValueOrDefault((x.Category, x.Key));
             var enabled = ov?.IsEnabled ?? excluded.Count == 0;
             var source = ov is not null ? (ov.IsEnabled ? "restored" : "manual") : excluded.Count > 0 ? "pack" : null;
-            var def = definitions.FirstOrDefault(d => BaseCatalog.Category(d.Type) == x.Category && d.Code == x.Key && d.OwnerUserId == null);
-            var usedBy = def is null ? [] : uses.Where(u => u.DefinitionId == def.Id && u.Category == x.Category).Select(u => u.Name).Distinct().Order().ToList();
-            return new CampaignBaseEntryDto(x.Category, x.Key, x.Name, x.NameRu, x.Meta, x.IsSharedWithCore,
-                enabled, source, links.FirstOrDefault(p => excluded.Contains(p.Id))?.Name, usedBy);
+            var packName = excluded.Count == 0 ? null : excluded.Select(id => linkOrder[id]).MinBy(p => p.Order)!.Name;
+            return new BaseState(x.Category, x.Key, enabled, source, packName);
         }).ToList();
     }
 
-    private record ContentUse(BaseContentCategory Category, Guid DefinitionId, string Name);
-    private async Task<List<ContentUse>> UsesAsync(Guid campaignId, GameSystem system, CancellationToken ct)
+    internal record ContentUse(BaseContentCategory Category, Guid DefinitionId, string Name);
+    internal async Task<List<ContentUse>> UsesAsync(Guid campaignId, CancellationToken ct)
     {
         var characters = from cc in db.CampaignCharacters.AsNoTracking()
             join c in db.Characters.AsNoTracking() on cc.CharacterId equals c.Id
-            where cc.CampaignId == campaignId && c.System == system select c;
+            where cc.CampaignId == campaignId select c;
         // A bounded number of queries, independent of catalogue size. Materialize before
         // concatenating records so both PostgreSQL and the in-memory provider can translate.
         var uses = await characters.Select(c => new ContentUse(BaseContentCategory.Archetype, c.ArchetypeId, c.Name)).ToListAsync(ct);
@@ -108,11 +133,14 @@ public class GetCampaignContentHandler(IAppDbContext db) : IQueryHandler<GetCamp
     public async Task<CampaignContentDto> Handle(GetCampaignContentQuery q, CancellationToken ct = default)
     {
         await CampaignMapper.GetAsGmAsync(db, q.UserId, q.CampaignId, ct);
+        var snapshot = await BaseCatalog.LoadSnapshotAsync(db, ct);
+        var baseHandler = new GetCampaignBaseHandler(db);
+        var uses = await baseHandler.UsesAsync(q.CampaignId, ct);
         List<CampaignSystemContentDto> systems = [];
         List<CampaignContentAlertDto> alerts = [];
         foreach (var system in Enum.GetValues<GameSystem>())
         {
-            var rows = await new GetCampaignBaseHandler(db).Handle(new(q.UserId, q.CampaignId, system), ct);
+            var rows = await baseHandler.LoadAsync(new(q.UserId, q.CampaignId, system), snapshot, true, ct, uses);
             var characters = await (from cc in db.CampaignCharacters join c in db.Characters on cc.CharacterId equals c.Id
                 where cc.CampaignId == q.CampaignId && c.System == system select new PackCampaignDto(c.Id, c.Name)).ToListAsync(ct);
             var isOpen = !await db.CampaignSystemSettings.AnyAsync(x => x.CampaignId == q.CampaignId && x.System == system && !x.IsOpen, ct);
@@ -120,7 +148,7 @@ public class GetCampaignContentHandler(IAppDbContext db) : IQueryHandler<GetCamp
             var used = rows.Where(x => !x.Enabled && x.UsedBy.Count > 0).ToList();
             if (used.Count > 0) alerts.Add(new("disabledInUse", null, system, used.Count, used.SelectMany(x => x.UsedBy).Distinct().ToList(), used.Select(x => new BaseCatalogEntryDto(x.Category,x.Key,x.Name,x.NameRu,x.Meta,x.IsSharedWithCore)).ToList()));
         }
-        var packs = await new GetCampaignHomebrewPacksHandler(db).Handle(new(q.UserId, q.CampaignId), ct);
+        var packs = await new GetCampaignHomebrewPacksHandler(db).LoadAsync(new(q.UserId, q.CampaignId), snapshot, ct);
         var items = await new GetCampaignItemsHandler(db).Handle(new(q.UserId, q.CampaignId), ct);
         alerts.AddRange(packs.Where(x => x.Status == ContentConnectionStatus.Pending).Select(x => new CampaignContentAlertDto("pendingPack", x.Id)));
         alerts.AddRange(packs.Where(x => x.ChangedAfterConnection).Select(x => new CampaignContentAlertDto("packChanged", x.Id)));

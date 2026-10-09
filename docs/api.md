@@ -988,7 +988,7 @@ Routes below use `/api/v1`; legacy `/api` aliases remain available. Enum bodies 
 | `DELETE /campaigns/{id}/homebrew-packs/{packId}` | GM; disconnect original pack, retaining library/purchases |
 | `PUT /campaigns/{id}/homebrew-packs/{packId}/entries` | GM; `{entries:[{entryType,entryId,enabled}]}`; approve pending or disable pack entries |
 | `GET /campaigns/{id}/content/items` | GM; original separate entry connections |
-| `POST /campaigns/{id}/content/items` | GM; `{entries:[{entryType,entryId}]}`; owner must be GM/current member |
+| `POST /campaigns/{id}/content/items` | GM; `{entries:[{entryType,entryId}]}`; definitions must belong to GM; player originals require a proposal/decision or shared pack |
 | `PUT /campaigns/{id}/content/items/{connectionId}` | GM; `{isEnabled}` |
 | `DELETE /campaigns/{id}/content/items/{connectionId}` | GM; remove connection only |
 | `POST /campaigns/{id}/content/proposals` | Player member; `{packId}` or `{entryType,entryId}`; only owned content |
@@ -997,7 +997,9 @@ Routes below use `/api/v1`; legacy `/api` aliases remain available. Enum bodies 
 
 Existing pack toggles accept optional `updatePolicy: auto|manual`. Campaign pack responses add status,
 updatePolicy, exclusionCount, exclusions and per-entry state (`enabled|disabled|pending`). Active enabled
-connections contribute content; editing existing mechanics acts immediately. Manual only gates newly added entries.
+connections contribute content; editing existing mechanics acts immediately. Manual only gates newly added entries. Switching Manual → Auto enables accumulated pending entries,
+while deliberately disabled entries remain disabled. Approval, toggles and shared reconnection refresh
+`connectedAt`, clearing change alerts for edits already accepted by that action.
 All content mutations notify affected campaigns via `CampaignChanged`, including changes to player originals.
 Alerts include a kind, target/system and count. `disabledInUse` also returns the affected base-entry metadata
 and `usedBy` names so the UI can open the relevant category and identify retained choices.
@@ -1011,7 +1013,9 @@ accept optional campaignId and validate against that campaign; standalone import
 
 Book source: absent = default, `pack` = excluded by pack, `manual` = explicit prohibition,
 `restored` = explicit permission. Skills retain purchased/free ranks after disabling; sheet responses append
-`unavailableReason`, and new purchases enforce the server policy. Derived responses append
+`unavailableReason` and nullable `nextPool` (server preview after one rank, null at the creation/overall
+rank cap or for unavailable content); modifier dice remain separate fields shared by current and preview pools.
+New purchases enforce the server policy. Derived responses append
 `soakBreakdown` and `encumbranceThresholdBreakdown`: `{base,sources:[{sourceName,value}]}`.
 
 Homebrew JSON export emits `genesysforge.homebrew-pack.v2` with `exclusions:[{category,key}]` and

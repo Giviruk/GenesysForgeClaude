@@ -13,6 +13,7 @@ public static class ContentDefinitions
 {
     public static async Task<List<ContentDefinition>> LoadAsync(IAppDbContext db, GameSystem? system = null, Guid? owner = null, CancellationToken ct = default, bool builtinOnly = false, IReadOnlyCollection<Guid>? ids = null)
     {
+        if (ids is { Count: 0 }) return [];
         List<ContentDefinition> rows = [];
         rows.AddRange((await db.SkillDefs.AsNoTracking().Where(x => (system == null || x.System == system) && (owner == null || x.OwnerUserId == owner) && (!builtinOnly || x.OwnerUserId == null) && (ids == null || ids.Contains(x.Id))).ToListAsync(ct))
             .Select(x => new ContentDefinition(CustomEntryType.Skill, x.Id, x.System, x.OwnerUserId, x.Name, x.NameRu, x.Code, $"{x.Characteristic} · {x.Kind}", x.Retired)));

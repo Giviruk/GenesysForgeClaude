@@ -1,8 +1,8 @@
 using GenesysForge.Application.Abstractions;
 using GenesysForge.Application.Dtos;
 using GenesysForge.Application.Common;
-using GenesysForge.Application.Features.ContentLibrary;
 using GenesysForge.Domain;
+using GenesysForge.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace GenesysForge.Application.Features.Search;
@@ -28,9 +28,12 @@ public class GlobalSearchHandler(IAppDbContext db) : IQueryHandler<GlobalSearchQ
         var userId = query.UserId;
 
         var policy = await CampaignContentPolicy.LoadAsync(db, userId, system, query.CharacterId, query.CampaignId, ct);
-        var definitions = await ContentDefinitions.LoadAsync(db, system, ct: ct);
-        var allowedIds = definitions.Where(x => !x.Retired && (x.OwnerUserId != null ? policy.CustomIds.Contains(x.Id)
-            : BaseCatalog.Category(x.Type) is not { } category || policy.Allows(category, x.Code))).Select(x => x.Id).ToHashSet();
+        var blockedSkill = policy.BlockedKeys(BaseContentCategory.Skill);
+        var blockedTalent = policy.BlockedKeys(BaseContentCategory.Talent);
+        var blockedItem = policy.BlockedKeys(BaseContentCategory.Item);
+        var blockedArchetype = policy.BlockedKeys(BaseContentCategory.Archetype);
+        var blockedCareer = policy.BlockedKeys(BaseContentCategory.Career);
+        var blockedHeroicAbility = policy.BlockedKeys(BaseContentCategory.HeroicAbility);
 
         // Системо-зависимая видимость контента: встроенный (OwnerUserId == null) или свой кастомный.
         var settingMask = system == GameSystem.RealmsOfTerrinoth
@@ -45,15 +48,15 @@ public class GlobalSearchHandler(IAppDbContext db) : IQueryHandler<GlobalSearchQ
             .ToListAsync(ct));
 
         // 2. Навыки
-        hits.AddRange(await db.SkillDefs.AsNoTracking().Where(s => allowedIds.Contains(s.Id))
-            .Where(s => s.System == system && (s.OwnerUserId == null || policy.CustomIds.Contains(s.Id))
+        hits.AddRange(await db.SkillDefs.AsNoTracking().Where(s => s.OwnerUserId != null ? policy.CustomIds.Contains(s.Id) : !blockedSkill.Contains(s.Code))
+            .Where(s => s.System == system && !s.Retired && (s.OwnerUserId == null || policy.CustomIds.Contains(s.Id))
                 && (s.NameRu.ToLower().Contains(needle) || s.Name.ToLower().Contains(needle)))
             .OrderBy(s => s.NameRu).Take(PerSource)
             .Select(s => new SearchHitDto("skill", "Навыки", s.NameRu, s.Name, s.SafeDescription, "/reference"))
             .ToListAsync(ct));
 
         // 3. Таланты
-        hits.AddRange(await db.TalentDefs.AsNoTracking().Where(t => allowedIds.Contains(t.Id))
+        hits.AddRange(await db.TalentDefs.AsNoTracking().Where(t => t.OwnerUserId != null ? policy.CustomIds.Contains(t.Id) : !blockedTalent.Contains(t.Code))
             .Where(t => t.System == system && !t.Retired
                 && (policy.CustomIds.Contains(t.Id) || (t.OwnerUserId == null && (t.Setting & settingMask) != 0))
                 && (t.NameRu.ToLower().Contains(needle) || t.Name.ToLower().Contains(needle)))
@@ -63,8 +66,8 @@ public class GlobalSearchHandler(IAppDbContext db) : IQueryHandler<GlobalSearchQ
             .ToListAsync(ct));
 
         // 4. Предметы
-        hits.AddRange(await db.ItemDefs.AsNoTracking().Where(i => allowedIds.Contains(i.Id))
-            .Where(i => i.System == system && (i.OwnerUserId == null || policy.CustomIds.Contains(i.Id))
+        hits.AddRange(await db.ItemDefs.AsNoTracking().Where(i => i.OwnerUserId != null ? policy.CustomIds.Contains(i.Id) : !blockedItem.Contains(i.Code))
+            .Where(i => i.System == system && !i.Retired && (i.OwnerUserId == null || policy.CustomIds.Contains(i.Id))
                 && (i.NameRu.ToLower().Contains(needle) || i.Name.ToLower().Contains(needle)))
             .OrderBy(i => i.NameRu).Take(PerSource)
             .Select(i => new SearchHitDto("item", "Предметы", i.NameRu, i.Name, i.SafeDescription, "/reference"))
@@ -78,7 +81,7 @@ public class GlobalSearchHandler(IAppDbContext db) : IQueryHandler<GlobalSearchQ
             .ToListAsync(ct));
 
         // 6. Архетипы / виды
-        hits.AddRange(await db.ArchetypeDefs.AsNoTracking().Where(a => allowedIds.Contains(a.Id))
+        hits.AddRange(await db.ArchetypeDefs.AsNoTracking().Where(a => a.OwnerUserId != null ? policy.CustomIds.Contains(a.Id) : !blockedArchetype.Contains(a.Code))
             .Where(a => a.System == system && !a.Retired && (a.OwnerUserId == null || policy.CustomIds.Contains(a.Id))
                 && (a.NameRu.ToLower().Contains(needle) || a.Name.ToLower().Contains(needle)))
             .OrderBy(a => a.NameRu).Take(PerSource)
@@ -86,8 +89,8 @@ public class GlobalSearchHandler(IAppDbContext db) : IQueryHandler<GlobalSearchQ
             .ToListAsync(ct));
 
         // 7. Карьеры
-        hits.AddRange(await db.CareerDefs.AsNoTracking().Where(c => allowedIds.Contains(c.Id))
-            .Where(c => c.System == system && (c.OwnerUserId == null || policy.CustomIds.Contains(c.Id))
+        hits.AddRange(await db.CareerDefs.AsNoTracking().Where(c => c.OwnerUserId != null ? policy.CustomIds.Contains(c.Id) : !blockedCareer.Contains(c.Code))
+            .Where(c => c.System == system && !c.Retired && (c.OwnerUserId == null || policy.CustomIds.Contains(c.Id))
                 && (c.NameRu.ToLower().Contains(needle) || c.Name.ToLower().Contains(needle)))
             .OrderBy(c => c.NameRu).Take(PerSource)
             .Select(c => new SearchHitDto("career", "Карьеры", c.NameRu, c.Name, c.SafeDescription, "/reference"))
@@ -95,8 +98,8 @@ public class GlobalSearchHandler(IAppDbContext db) : IQueryHandler<GlobalSearchQ
 
         // 8. Героика (только Realms of Terrinoth)
         if (system == GameSystem.RealmsOfTerrinoth)
-            hits.AddRange(await db.HeroicAbilityDefs.AsNoTracking().Where(h => allowedIds.Contains(h.Id))
-                .Where(h => (h.OwnerUserId == null || policy.CustomIds.Contains(h.Id))
+            hits.AddRange(await db.HeroicAbilityDefs.AsNoTracking().Where(h => h.OwnerUserId != null ? policy.CustomIds.Contains(h.Id) : !blockedHeroicAbility.Contains(h.Code))
+                .Where(h => !h.Retired && (h.OwnerUserId == null || policy.CustomIds.Contains(h.Id))
                     && (h.NameRu.ToLower().Contains(needle) || h.Name.ToLower().Contains(needle)))
                 .OrderBy(h => h.NameRu).Take(PerSource)
                 .Select(h => new SearchHitDto("heroic", "Героика", h.NameRu, h.Name,

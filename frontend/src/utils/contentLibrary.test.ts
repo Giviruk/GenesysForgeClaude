@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { contentKey, filterPickerRows, purchasedPool, toggleSelection, vitalState } from './contentLibrary'
+import { contentKey, filterPickerRows, toggleSelection, vitalState } from './contentLibrary'
 
 describe('content picker selection', () => {
   const rows = [{ key: 'skill:a', group: 'skill', groupLabel: 'Skills', name: 'Sailing', editedAt: '2026-10-09' },
@@ -17,14 +17,10 @@ describe('content picker selection', () => {
     expect(filterPickerRows(rows, 'skill', '', 'name').map(x => x.name)).toEqual(['Cooking', 'Sailing'])
   })
 })
-describe('sheet preview and vitals', () => {
+describe('sheet vitals', () => {
   it('handles every threshold boundary and rounds the near interval upwards', () => {
     expect([7, 8, 11, 12].map(n => vitalState(n, 11))).toEqual(['normal', 'near', 'threshold', 'over'])
     expect(vitalState(0, 0)).toBe('threshold')
   })
-  it('upgrades an ability below the characteristic and adds an ability above it', () => {
-    expect(purchasedPool(3, 2)).toEqual({ ability: 1, proficiency: 2 })
-    expect(purchasedPool(3, 3)).toEqual({ ability: 0, proficiency: 3 })
-    expect(purchasedPool(3, 4)).toEqual({ ability: 1, proficiency: 3 })
-  })
+
 })
