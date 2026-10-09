@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Spectral:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap');
+@import './assets/fonts/fonts.css';
 
 .book-reference {
   display: block;
@@ -3790,3 +3790,10 @@ select {
 .content-history-diff { width: 100%; table-layout: fixed; border-collapse: collapse; }
 .content-history-diff th, .content-history-diff td { text-align: left; vertical-align: top; padding: .5rem; overflow-wrap: anywhere; white-space: pre-wrap; border-bottom: 1px solid var(--border); }
 .content-history-diff th:first-child { width: 25%; }
+
+/* Отдельное согласие: оба решения имеют одинаковое оформление. */
+.analytics-consent { position: fixed; bottom: 1rem; left: 1rem; right: 1rem; z-index: 2000; max-width: 56rem; margin: 0 auto; padding: 1rem; border: 1px solid var(--border); border-radius: 12px; background: var(--panel); box-shadow: 0 8px 32px #0008; }
+.analytics-consent p { margin: 0 0 .75rem; }
+.analytics-consent-actions { display: flex; flex-wrap: wrap; gap: .75rem; }
+.analytics-consent-actions button { flex: 1; }
+.legal-page article { max-width: 60rem; margin: 0 auto; }

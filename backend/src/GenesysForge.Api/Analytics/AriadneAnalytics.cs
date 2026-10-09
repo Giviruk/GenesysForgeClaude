@@ -38,7 +38,7 @@ public sealed class AriadneAnalytics(
     /// <summary>Подтверждённая регистрация. <paramref name="anonymousId"/> связывает её с браузерным визитом.</summary>
     public void TrackRegistrationCompleted(Guid userId, Guid? anonymousId, string registrationType)
     {
-        if (!Enabled) return;
+        if (!Enabled || anonymousId is null) return;
         _queue.Writer.TryWrite(new(Guid.NewGuid(), "registration_completed", userId.ToString(), anonymousId,
             new Dictionary<string, object?> { ["registration_type"] = registrationType }));
     }
@@ -46,7 +46,7 @@ public sealed class AriadneAnalytics(
     /// <summary>Активация: пользователь дошёл до целевого действия продукта.</summary>
     public void TrackUserActivated(Guid userId, Guid? anonymousId, string activationType)
     {
-        if (!Enabled) return;
+        if (!Enabled || anonymousId is null) return;
         _queue.Writer.TryWrite(new(Guid.NewGuid(), "user_activated", userId.ToString(), anonymousId,
             new Dictionary<string, object?> { ["activation_type"] = activationType }));
     }

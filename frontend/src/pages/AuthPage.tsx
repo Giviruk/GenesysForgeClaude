@@ -209,6 +209,12 @@ export function AuthPage() {
 
           {error && <div className="error">{error}</div>}
           <button className="primary" type="submit" disabled={busy}>{submitLabel}</button>
+          {mode === 'register' && <p className="muted small-text">
+            {t('Регистрируясь, вы принимаете ', 'By registering, you accept the ')}
+            <a href="/terms">{t('Соглашение', 'Terms')}</a>
+            {t(' и ознакомлены с ', ' and acknowledge the ')}
+            <a href="/privacy">{t('Политикой', 'Privacy policy')}</a>.
+          </p>}
         </form>
 
         <div className="auth-links">
