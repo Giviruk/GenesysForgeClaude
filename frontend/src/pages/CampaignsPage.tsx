@@ -377,8 +377,10 @@ function CampaignPlayersPanel({ campaign, onChanged, onLeave, onError }: {
         <option value="">{t('— выберите —', '— select —')}</option>
         {characters.map(char => <option key={char.id} value={char.id}>{char.name}</option>)}
       </select></label>
-      <button type="submit" disabled={busy || !selected}>{t('Добавить', 'Add')}</button>
-      <button type="button" onClick={() => setAdding(false)}>{t('Отмена', 'Cancel')}</button>
+      <div className="form-actions">
+        <button type="submit" disabled={busy || !selected}>{t('Добавить', 'Add')}</button>
+        <button type="button" onClick={() => setAdding(false)}>{t('Отмена', 'Cancel')}</button>
+      </div>
     </form>}
   </section>
 }

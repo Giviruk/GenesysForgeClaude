@@ -215,7 +215,7 @@ export function SheetTab({ sheet, onError, refresh, updateBaseOptimistically, re
                                 {CHARACTERISTIC_SHORT_LABELS[s.characteristic]}
                               </td>
                               <td className="centered" data-label={t('Карьерный', 'Career')} title={careerSourcesTitle(s.careerSources)}>{s.isCareer ? '✓' : ''}</td>
-                              <td data-label={t('Ранги', 'Ranks')}>{'●'.repeat(s.ranks)}{'○'.repeat(Math.max(0, 5 - s.ranks))}</td>
+                              <td className="skill-ranks" data-label={t('Ранги', 'Ranks')}>{'●'.repeat(s.ranks)}{'○'.repeat(Math.max(0, 5 - s.ranks))}</td>
                               <td data-label={t('Пул кубов', 'Dice pool')}>
                                 <DicePoolView pool={s.pool} setback={s.setbackDice} boost={s.boostDice}
                                   difficulty={s.difficultyDice} difficultyUpgrades={s.difficultyUpgrades}

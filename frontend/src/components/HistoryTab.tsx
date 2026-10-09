@@ -116,43 +116,45 @@ export function HistoryTab({ characterId, onError, refresh, readOnly = false, lo
         {entries === null && <p className="muted">{t('Загрузка…', 'Loading…')}</p>}
         {entries !== null && entries.length === 0 && <p className="muted">{t('Записей пока нет.', 'No entries yet.')}</p>}
         {entries !== null && entries.length > 0 && (
-          <table className="audit-table">
-            <thead>
-              <tr>
-                <th>{t('Дата', 'Date')}</th>
-                <th>{t('Тип', 'Type')}</th>
-                <th>{t('Описание', 'Description')}</th>
-                <th className="right">ΔXP</th>
-                <th className="right" title={t('Доступно / Всего после операции', 'Available / Total after the operation')}>{t('После', 'After')}</th>
-                {showUndo && <th>{t('Действие', 'Action')}</th>}
-              </tr>
-            </thead>
-            <tbody>
-              {entries.map(e => (
-                <tr key={e.id}>
-                  <td className="muted small-text nowrap">{new Date(e.createdAt).toLocaleString(lang === 'ru' ? 'ru-RU' : 'en-US')}</td>
-                  <td><span className="badge">{ACTION_LABELS[e.action]}</span></td>
-                  <td>{e.summary}</td>
-                  <td className="right">
-                    {e.xpDelta != null && e.xpDelta !== 0 && (
-                      <span className={e.xpDelta > 0 ? 'xp-pos' : 'xp-neg'}>
-                        {e.xpDelta > 0 ? '+' : ''}{e.xpDelta}
-                      </span>
-                    )}
-                  </td>
-                  <td className="right muted small-text nowrap">
-                    {e.totalXpAfter - e.spentXpAfter} / {e.totalXpAfter}
-                  </td>
-                  {showUndo && <td>
-                    {e.canUndo && <button className="small danger" onClick={() => void undo(e)}
-                      title={t('Вернуть XP за эту покупку', 'Return XP for this purchase')}>
-                      {t('Отменить', 'Undo')}
-                    </button>}
-                  </td>}
+          <div className="table-wrap">
+            <table className="audit-table">
+              <thead>
+                <tr>
+                  <th>{t('Дата', 'Date')}</th>
+                  <th>{t('Тип', 'Type')}</th>
+                  <th>{t('Описание', 'Description')}</th>
+                  <th className="right">ΔXP</th>
+                  <th className="right" title={t('Доступно / Всего после операции', 'Available / Total after the operation')}>{t('После', 'After')}</th>
+                  {showUndo && <th>{t('Действие', 'Action')}</th>}
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {entries.map(e => (
+                  <tr key={e.id}>
+                    <td className="muted small-text nowrap">{new Date(e.createdAt).toLocaleString(lang === 'ru' ? 'ru-RU' : 'en-US')}</td>
+                    <td><span className="badge">{ACTION_LABELS[e.action]}</span></td>
+                    <td>{e.summary}</td>
+                    <td className="right">
+                      {e.xpDelta != null && e.xpDelta !== 0 && (
+                        <span className={e.xpDelta > 0 ? 'xp-pos' : 'xp-neg'}>
+                          {e.xpDelta > 0 ? '+' : ''}{e.xpDelta}
+                        </span>
+                      )}
+                    </td>
+                    <td className="right muted small-text nowrap">
+                      {e.totalXpAfter - e.spentXpAfter} / {e.totalXpAfter}
+                    </td>
+                    {showUndo && <td>
+                      {e.canUndo && <button className="small danger" onClick={() => void undo(e)}
+                        title={t('Вернуть XP за эту покупку', 'Return XP for this purchase')}>
+                        {t('Отменить', 'Undo')}
+                      </button>}
+                    </td>}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </section>
     </div>

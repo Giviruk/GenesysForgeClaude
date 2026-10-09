@@ -320,46 +320,48 @@ function RuleTable({ kind, entries, showCost = true }:
   return (
     <section className="rule-table">
       <h3>{KIND_LABELS[kind]} <span className="muted">({entries.length})</span></h3>
-      <table className="ref-table">
-        <thead>
-          <tr>
-            <th>{firstCol}</th>
-            {kind === 'criticalInjury' && <th>{t('Название', 'Name')}</th>}
-            {showCost && <th>{costCol}</th>}
-            <th>{t('Описание', 'Description')}</th>
-          </tr>
-        </thead>
-        <tbody>
-          {entries.map(e => (
-            <tr key={e.code}>
-              <td className="ref-first">
-                {firstValue(e)}
-                {kind !== 'symbolSpend' && kind !== 'criticalInjury' && entrySecondary(e) && (
-                  <span className="muted small-text name-secondary"> · {entrySecondary(e)}</span>
-                )}
-                {(kind === 'weaponProperty' || kind === 'combatActionManeuver' || kind === 'magicActionManeuver') && e.groupRu && (
-                  <span className="muted small-text name-secondary"> · {entryGroup(e)}</span>
-                )}
-              </td>
-              {kind === 'criticalInjury' && (
-                <td>
-                  {entryName(e)}
-                  {entrySecondary(e) && (
+      <div className="table-wrap">
+        <table className="ref-table">
+          <thead>
+            <tr>
+              <th>{firstCol}</th>
+              {kind === 'criticalInjury' && <th>{t('Название', 'Name')}</th>}
+              {showCost && <th>{costCol}</th>}
+              <th>{t('Описание', 'Description')}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {entries.map(e => (
+              <tr key={e.code}>
+                <td className="ref-first">
+                  {firstValue(e)}
+                  {kind !== 'symbolSpend' && kind !== 'criticalInjury' && entrySecondary(e) && (
                     <span className="muted small-text name-secondary"> · {entrySecondary(e)}</span>
                   )}
-                  {e.groupRu && <span className="muted"> · {entryGroup(e)}</span>}
+                  {(kind === 'weaponProperty' || kind === 'combatActionManeuver' || kind === 'magicActionManeuver') && e.groupRu && (
+                    <span className="muted small-text name-secondary"> · {entryGroup(e)}</span>
+                  )}
                 </td>
-              )}
-              {showCost && <td className="ref-cost">{e.symbolCost}</td>}
-              <td>
-                {t(e.body, e.bodyEn || e.body)}
-                {e.notes && <div className="muted ref-notes">{t(e.notes, e.notesEn || e.notes)}</div>}
-                {e.source && <div className="muted ref-source">{e.source}{e.sourcePage && t(`, с. ${e.sourcePage}`, `, p. ${e.sourcePage}`)}</div>}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+                {kind === 'criticalInjury' && (
+                  <td>
+                    {entryName(e)}
+                    {entrySecondary(e) && (
+                      <span className="muted small-text name-secondary"> · {entrySecondary(e)}</span>
+                    )}
+                    {e.groupRu && <span className="muted"> · {entryGroup(e)}</span>}
+                  </td>
+                )}
+                {showCost && <td className="ref-cost">{e.symbolCost}</td>}
+                <td>
+                  {t(e.body, e.bodyEn || e.body)}
+                  {e.notes && <div className="muted ref-notes">{t(e.notes, e.notesEn || e.notes)}</div>}
+                  {e.source && <div className="muted ref-source">{e.source}{e.sourcePage && t(`, с. ${e.sourcePage}`, `, p. ${e.sourcePage}`)}</div>}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </section>
   )
 }

@@ -3,6 +3,7 @@ import type { Quality } from '../api/types'
 import { parseProperties, qualityName, type ItemQuality, type ParsedProperty } from '../data/itemQualities'
 import { t } from '../i18n'
 import { localizedDescription } from '../utils/labels'
+import { useTooltipPosition } from './useTooltipPosition'
 
 type QualityDefinition = Pick<Quality,
   'code' | 'nameRu' | 'nameEn' | 'description' | 'safeDescription' | 'descriptionEn' | 'hasRating'>
@@ -53,6 +54,7 @@ function PropertyTag({ property, qualityDefinitions }: {
   const [pinned, setPinned] = useState(false)
   const wrapRef = useRef<HTMLSpanElement>(null)
   const tipId = useId()
+  const tipRef = useTooltipPosition(hovered || pinned)
 
   // Пока тултип закреплён, нажатие вне тега закрывает его.
   useEffect(() => {
@@ -98,7 +100,7 @@ function PropertyTag({ property, qualityDefinitions }: {
     >
       {label}
       {open && (
-        <span id={tipId} role="tooltip" className="prop-tooltip" onClick={e => e.stopPropagation()}>
+        <span ref={tipRef} id={tipId} role="tooltip" className="prop-tooltip" onClick={e => e.stopPropagation()}>
           <span className="prop-tooltip-title">
             {title}
             {title !== englishName && <span className="prop-tooltip-en"> · {t(englishName, title)}</span>}

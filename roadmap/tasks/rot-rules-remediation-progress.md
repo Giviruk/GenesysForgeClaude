@@ -1150,6 +1150,13 @@ SQL backfill обоих этапов проверен на PostgreSQL 17.11 во
 
 ## Дополнительные аудиты качества
 
+- [~] **GEN-UI-01** — пройден UI на 320/390/768/1440 px и промежуточных
+  desktop-ширинах, RU/EN, мастер/игрок/публичный доступ. Исправлены интервалы кнопок,
+  стрелки селектов, мобильные переполнения таблиц/форм, подсказки, заголовки навыков
+  и скрытые вкладки листа участника. Локально: 517 frontend + 12 повторных SheetPage
+  и 7 браузерных тестов, lint/build; [план и снимки](gen-ui-01-layout-polish.md).
+  Реализация готова, осталось ревью/слияние PR; [~] до слияния.
+
 - [~] **GEN-PUB-SAFE** — в draft PR #258 реализована публичная политика «название + книга/страница» для талантов и героик; восстановлены crafting/transport подсказки, устранены API SW cache и reconnect gaps, добавлены public artifact/CI checks. Первый CI прошёл во всех шести jobs, сохранён локальный Release baseline. План: [public-safe-book-references.md](public-safe-book-references.md); приёмка: [public-safe-release.md](../../docs/public-safe-release.md). Остаток: решение по трём legacy-страницам, финальный CI head, ручная/нагрузочная приёмка и merge.
 
 - [~] **GEN-PUB-AUDIT** — составлен аудит PublicSafe относительно PrivateFull по `origin/master`
