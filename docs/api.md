@@ -993,7 +993,7 @@ Routes below use `/api/v1`; legacy `/api` aliases remain available. Enum bodies 
 | `DELETE /campaigns/{id}/content/items/{connectionId}` | GM; remove connection only |
 | `POST /campaigns/{id}/content/proposals` | Player member; `{packId}` or `{entryType,entryId}`; only owned content |
 | `POST /campaigns/{id}/content/proposals/{item|pack}/{originalId}/{approve|decline}` | GM decision |
-| `DELETE /campaigns/{id}/content/proposals/{item|pack}/{originalId}` | Proposer member; withdraw pending/declined proposal |
+| `DELETE /campaigns/{id}/content/proposals/{item|pack}/{originalId}` | Proposer member; withdraw pending proposal |
 
 Existing pack toggles accept optional `updatePolicy: auto|manual`. Campaign pack responses add status,
 updatePolicy, exclusionCount, exclusions and per-entry state (`enabled|disabled|pending`). Active enabled
