@@ -414,11 +414,28 @@ test.describe('U-29 smoke E2E', () => {
   })
 
   test('password reset request screen smoke', async ({ page }) => {
+    test.setTimeout(90_000)
     await page.goto('/login')
     await page.getByRole('button', { name: /e-mail/i }).click()
     await page.getByRole('button', { name: /Забыли/i }).click()
     await page.locator('input[type="email"]').fill(`${unique('reset')}@example.test`)
-    await page.getByRole('button', { name: /Отправить/i }).click()
+    // Registrations and reset requests share a 10/minute policy and one CI IP.
+    // Retry only an explicit 429; all other failures must fail this smoke test.
+    const deadline = Date.now() + 65_000
+    for (;;) {
+      const pending = page.waitForResponse(response =>
+        response.url().endsWith('/auth/password-reset/request') && response.request().method() === 'POST')
+      await page.getByRole('button', { name: /Отправить/i }).click()
+      const response = await pending
+      if (response.status() !== 429) {
+        expect(response.status()).toBe(204)
+        break
+      }
+      await expect(page.locator('.error')).toContainText('Слишком много запросов')
+      expect(Date.now(), 'The shared CI auth limit did not expire').toBeLessThan(deadline)
+      // The API does not send Retry-After; allow its fixed window to replenish.
+      await page.waitForTimeout(5_000)
+    }
     await expect(page.locator('.notice')).toBeVisible()
   })
 })
