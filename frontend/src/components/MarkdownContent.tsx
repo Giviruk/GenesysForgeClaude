@@ -23,6 +23,8 @@ function entityLink(href: string): MarkdownEntityLink | null {
 function safeHref(href: string): string | null {
   const value = href.trim()
   if (/^(https?:|mailto:)/i.test(value) || value.startsWith('#')) return value
+  // Путь на этом же сайте (/privacy); `//host` — уже чужой домен.
+  if (value.startsWith('/') && !value.startsWith('//')) return value
   return null
 }
 

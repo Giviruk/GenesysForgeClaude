@@ -211,9 +211,10 @@ export function AuthPage() {
           <button className="primary" type="submit" disabled={busy}>{submitLabel}</button>
           {mode === 'register' && <p className="muted small-text">
             {t('Регистрируясь, вы принимаете ', 'By registering, you accept the ')}
-            <a href="/terms">{t('Соглашение', 'Terms')}</a>
+            {/* Новая вкладка: иначе переход стирает уже введённые email и пароль. */}
+            <a href="/terms" target="_blank" rel="noopener">{t('Соглашение', 'Terms')}</a>
             {t(' и ознакомлены с ', ' and acknowledge the ')}
-            <a href="/privacy">{t('Политикой', 'Privacy policy')}</a>.
+            <a href="/privacy" target="_blank" rel="noopener">{t('Политикой', 'Privacy policy')}</a>.
           </p>}
         </form>
 

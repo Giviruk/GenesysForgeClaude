@@ -5,8 +5,17 @@
 # проектов машины — а его конфигурация не была под контролем версий.
 # Конфигурация приходит из .env, который deploy-workflow пишет на сервере из GitHub Secrets/Variables.
 # Запуск на VPS: docker compose -f docker-compose.prod.yml up -d
+# Журналы контейнеров перезаписываются по объёму: без ротации json-file рос бы бессрочно,
+# а политика данных обещает ограниченное хранение технических журналов.
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
 services:
   postgres:
+    logging: *default-logging
     # Тег закреплён до патча: с плавающим `17-alpine` каждый `docker compose pull` в деплое мог
     # молча обновить и перезапустить БД вместе с релизом приложения (так было 01.10.2026).
     # Обновлять осознанно — сменой тега здесь, вместе с сервисами postgres-public и backup.
@@ -37,6 +46,7 @@ services:
     mem_limit: 384m
 
   postgres-public:
+    logging: *default-logging
     image: postgres:17.11-alpine
     container_name: genesysforge-db-public
     # Как у приватной БД: статистика запросов нужна, чтобы видеть медленные места под ростом трафика.
@@ -62,6 +72,7 @@ services:
     cpus: 1.0
 
   api:
+    logging: *default-logging
     image: ghcr.io/${GHCR_OWNER}/genesysforge-api:latest
     container_name: genesysforge-api
     environment:
@@ -118,6 +129,7 @@ services:
     mem_limit: 768m
 
   api-public:
+    logging: *default-logging
     image: ghcr.io/${GHCR_OWNER}/genesysforge-api-public:latest
     container_name: genesysforge-api-public
     environment:
@@ -169,6 +181,7 @@ services:
     cpus: 1.5
 
   web:
+    logging: *default-logging
     image: ghcr.io/${GHCR_OWNER}/genesysforge-web:latest
     container_name: genesysforge-web
     depends_on:
@@ -181,6 +194,7 @@ services:
       - edge
 
   web-public:
+    logging: *default-logging
     image: ghcr.io/${GHCR_OWNER}/genesysforge-web:latest
     container_name: genesysforge-web-public
     environment:
@@ -195,6 +209,7 @@ services:
       - edge
 
   backup:
+    logging: *default-logging
     # Версия pg_dump должна совпадать с сервером — тег тот же, что у postgres.
     image: postgres:17.11-alpine
     container_name: genesysforge-backup
