@@ -1164,13 +1164,15 @@ SQL backfill обоих этапов проверен на PostgreSQL 17.11 во
 
 ## Дополнительные аудиты качества
 
-- [~] **GEN-UI-01** — пройден UI на 320/390/768/1440 px и промежуточных
+- [x] **GEN-UI-01** — пройден UI на 320/390/768/1440 px и промежуточных
   desktop-ширинах, RU/EN, мастер/игрок/публичный доступ. Исправлены интервалы кнопок,
   стрелки селектов, мобильные переполнения таблиц/форм, подсказки, заголовки навыков
   и скрытые вкладки листа участника. Локально: 517 frontend + 12 повторных SheetPage
   и 7 браузерных тестов, lint/build; [план и снимки](gen-ui-01-layout-polish.md).
-  [PR #271](https://github.com/Giviruk/GenesysForgeClaude/pull/271) в master;
-  реализация готова, осталось ревью/слияние; [~] до слияния.
+  По ревью: E2E-лимит авторизации задаётся `AUTH_SENSITIVE_PERMIT_LIMIT` вместо повторов
+  при 429, позиционирование подсказок раз за кадр с unit-тестами (521 frontend-тест).
+  [PR #271](https://github.com/Giviruk/GenesysForgeClaude/pull/271) слит в master
+  09.10.2026 (`ed3295a`), CI зелёный во всех шести jobs.
 
 - [~] **GEN-PUB-SAFE** — в draft PR #258 реализована публичная политика «название + книга/страница» для талантов и героик; восстановлены crafting/transport подсказки, устранены API SW cache и reconnect gaps, добавлены public artifact/CI checks. Первый CI прошёл во всех шести jobs, сохранён локальный Release baseline. План: [public-safe-book-references.md](public-safe-book-references.md); приёмка: [public-safe-release.md](../../docs/public-safe-release.md). Остаток: решение по трём legacy-страницам, финальный CI head, ручная/нагрузочная приёмка и merge.
 
