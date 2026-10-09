@@ -185,7 +185,7 @@ ROT-TAL-05, ROT-HA-08/10, ROT-MAG-05/07/08 и ROT-EQP-AMMO-01 — всем, чт
 
 ### Redesign v2
 
-- [~] GEN-RD-01–09 — лист, библиотека M:N, ограничения и контент кампании, предложения, JSON v2. Реализовано в `feature/gen-rd-v2-redesign`; PR в master ожидает ревью/слияния. [План](gen-rd-v2-redesign.md). GEN-RD-10 вынесен в отдельную будущую задачу.
+- [~] GEN-RD-01–09 — лист, библиотека M:N, ограничения и контент кампании, предложения, JSON v2. Реализовано в `feature/gen-rd-v2-redesign`; [PR #272](https://github.com/Giviruk/GenesysForgeClaude/pull/272) в master ожидает ревью/слияния. [План](gen-rd-v2-redesign.md). GEN-RD-10 вынесен в отдельную будущую задачу.
 
 ## Выполнено подробно
 
