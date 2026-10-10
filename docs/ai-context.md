@@ -40,10 +40,13 @@ CRUD for six definition types in the same save, with generic DTO field diffs and
 events. Imports have no artificial history. `customLastEditedAt` covers only visible custom IDs;
 pack `lastChangedAt` is compared to connection `connectedAt`. The server's `changedAfterConnection`
 flag excludes packs owned by that campaign's GM for all readers; UI uses it and hides missing dates.
-History is available to the owner or
-GM/current members of a campaign connected to that pack (even when disabled), via
-`GET /api/homebrew-packs/{id}/changes?campaignId=&take=`. The campaign overview and personal library
-display history. Migration `AddCustomContentChanges` adds one table and indexes, with no backfill.
+The product decision of 10.10.2026 supersedes the earlier requirement to show pack history to campaign
+players: the UI exposes history only in the owner's personal library and the GM's campaign Content tab.
+The existing `GET /api/homebrew-packs/{id}/changes?campaignId=&take=` API remains unchanged: owners,
+GMs and current members of a connected campaign can read it, including disabled packs. The UI decision
+does not restrict API authorization. Campaign membership controls and both character creation/addition
+actions live in the Settings tab, available to both GM and players. Migration `AddCustomContentChanges`
+adds one table and indexes, with no backfill.
 
 Redesign v2 replaces technical auto-packs and single-definition pack pointers with M:N
 `HomebrewPackEntries`. `CampaignContentPolicy` combines book exclusions, manual overrides, per-entry

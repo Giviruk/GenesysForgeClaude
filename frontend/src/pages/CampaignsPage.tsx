@@ -7,7 +7,6 @@ import { PARTICIPANT_TYPE_LABELS, SLOT_TYPE_LABELS, SYSTEM_LABELS } from '../uti
 import { GameTableTab } from '../components/GameTableTab'
 import { EncountersTab } from '../components/EncountersTab'
 import { CampaignContentTab } from '../components/content/CampaignContentTab'
-import { CampaignPackHistoryPanel } from '../components/HomebrewPackHistory'
 import { CampaignChronicleTab } from '../components/CampaignChronicleTab'
 import { CreateCharacterForm } from './CharactersPage'
 import { SheetTab } from '../components/SheetTab'
@@ -21,7 +20,7 @@ import { useCampaignHub, type CampaignHubStatus } from '../useCampaignHub'
 import { lang, t } from '../i18n'
 import { readSheetTab, writeSheetTab, type CharacterSheetTab } from '../utils/uiPreferences'
 
-export type CampaignView = 'overview' | 'chronicle' | 'encounters' | 'table' | 'content'
+export type CampaignView = 'overview' | 'chronicle' | 'encounters' | 'table' | 'content' | 'settings'
 
 interface Props {
   openId: string | null
@@ -167,7 +166,6 @@ function CampaignDetailView({ campaignId, view, openEncounterId, openCharacterId
   const [memberSheets, setMemberSheets] = useState<Record<string, CharacterSheet>>({})
   const [session, setSession] = useState<GameSession | null>(null)
   const [sessionLoaded, setSessionLoaded] = useState(false)
-  const [creating, setCreating] = useState(false)
 
   const onBackRef = useRef(onBack)
   useEffect(() => { onBackRef.current = onBack }, [onBack])
@@ -273,19 +271,12 @@ function CampaignDetailView({ campaignId, view, openEncounterId, openCharacterId
         <button className={view === 'encounters' ? 'tab active' : 'tab'} onClick={() => onView('encounters')}>{t('Энкаунтеры', 'Encounters')}</button>
         <button className={view === 'table' ? 'tab active' : 'tab'} onClick={() => onView('table')}>{t('Игровой стол', 'Game table')}</button>
         {c.isGm && <button className={view === 'content' ? 'tab active' : 'tab'} onClick={() => onView('content')}>{t('Контент', 'Content')}</button>}
+        <button className={view === 'settings' ? 'tab active' : 'tab'} onClick={() => onView('settings')}>{t('Настройки', 'Settings')}</button>
       </div>
 
-      {creating && <CreateCharacterForm key={c.id} campaignId={c.id} closedSystems={c.closedSystems} onCancel={() => setCreating(false)}
-        onCreated={() => { setCreating(false); void reload() }} />}
-      {view === 'overview' && <button disabled={c.closedSystems?.length === 2} title={c.closedSystems?.length === 2 ? t('Обе системы закрыты для новых персонажей', 'Both systems are closed to new characters') : undefined} onClick={() => setCreating(true)}>
-        {t('Создать персонажа', 'Create character')}
-      </button>}
-      {view === 'overview' && <CampaignPlayersPanel campaign={c} onError={setError}
-        onChanged={reload} onLeave={onBack} />}
-
-      {view === 'overview' && <CampaignPackHistoryPanel campaignId={c.id} refreshSignal={liveSignal} />}
-
-      {view === 'content' && c.isGm ? (
+      {view === 'settings' ? (
+        <CampaignPlayersPanel campaign={c} onError={setError} onChanged={reload} onLeave={onBack} />
+      ) : view === 'content' && c.isGm ? (
         <CampaignContentTab campaignId={c.id} refreshSignal={liveSignal} />
       ) : view === 'chronicle' ? (
         <CampaignChronicleTab campaignId={c.id} members={c.members} refreshSignal={liveSignal}
@@ -322,6 +313,7 @@ function CampaignPlayersPanel({ campaign, onChanged, onLeave, onError }: {
   onError: (message: string) => void
 }) {
   const [adding, setAdding] = useState(false)
+  const [creating, setCreating] = useState(false)
   const [characters, setCharacters] = useState<CharacterListItem[]>([])
   const [selected, setSelected] = useState('')
   const [busy, setBusy] = useState(false)
@@ -371,7 +363,12 @@ function CampaignPlayersPanel({ campaign, onChanged, onLeave, onError }: {
       </button>}
     </div>)}
     {(campaign.players ?? []).length === 0 && <p className="muted">{t('Игроков пока нет.', 'No players yet.')}</p>}
-    <button onClick={() => void showCharacters()}>{t('Добавить существующего', 'Add existing character')}</button>
+    <div className="form-actions">
+      <button onClick={() => void showCharacters()}>{t('Добавить существующего', 'Add existing character')}</button>
+      <button disabled={campaign.closedSystems?.length === 2}
+        title={campaign.closedSystems?.length === 2 ? t('Обе системы закрыты для новых персонажей', 'Both systems are closed to new characters') : undefined}
+        onClick={() => setCreating(true)}>{t('Создать персонажа', 'Create character')}</button>
+    </div>
     {adding && <form onSubmit={e => void add(e)}>
       <label>{t('Мой персонаж', 'My character')}<select value={selected} onChange={e => setSelected(e.target.value)}>
         <option value="">{t('— выберите —', '— select —')}</option>
@@ -382,6 +379,8 @@ function CampaignPlayersPanel({ campaign, onChanged, onLeave, onError }: {
         <button type="button" onClick={() => setAdding(false)}>{t('Отмена', 'Cancel')}</button>
       </div>
     </form>}
+    {creating && <CreateCharacterForm key={campaign.id} campaignId={campaign.id} closedSystems={campaign.closedSystems}
+      onCancel={() => setCreating(false)} onCreated={() => { setCreating(false); void onChanged() }} />}
   </section>
 }
 

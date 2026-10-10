@@ -61,7 +61,7 @@ const ENTITY_AREAS: AppArea[] = ['characters', 'campaigns', 'npcs']
 /** Допустимые под-вью по областям; для encounters разрешён ещё и id под-сущности (:eid). */
 const SUBVIEWS: Record<string, { allowed: string[]; withId: string[] }> = {
   characters: { allowed: ['print'], withId: [] },
-  campaigns: { allowed: ['chronicle', 'table', 'encounters', 'custom', 'content', 'characters'], withId: ['encounters', 'characters'] },
+  campaigns: { allowed: ['chronicle', 'table', 'encounters', 'custom', 'content', 'settings', 'characters'], withId: ['encounters', 'characters'] },
   npcs: { allowed: [], withId: [] },
 }
 
@@ -73,7 +73,7 @@ const base = (area: AppArea, id: string | null = null, unknown = false): AppRout
  *   /                                          → характеры (по умолчанию)
  *   /login | /register                         → характеры (экран авторизации обрабатывается отдельно)
  *   /characters[/:id[/print]]
- *   /campaigns[/:id[/chronicle|table|encounters[/:eid]|characters/:characterId|custom]]
+ *   /campaigns[/:id[/chronicle|table|encounters[/:eid]|characters/:characterId|custom|content|settings]]
  *   /npcs[/:id]
  *   /magic
  *   /shop

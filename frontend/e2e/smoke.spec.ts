@@ -53,7 +53,7 @@ interface ImportResult {
 
 const tokenKey = 'genesysforge.token'
 
-test('GEN-CONTENT-01: original pack live edit, scoped history and member UI', async ({ page, request }, testInfo) => {
+test('GEN-CONTENT-01: original pack live edit, scoped history and campaign UI', async ({ page, request }, testInfo) => {
   const gm = await register(request, 'content-history-gm')
   const author = await register(request, 'content-history-author')
   const member = await register(request, 'content-history-member')
@@ -113,8 +113,13 @@ test('GEN-CONTENT-01: original pack live edit, scoped history and member UI', as
   expect(await apiGet(request, member.token, historyUrl)).toHaveLength(2)
 
   await openAs(page, member.token, `/campaigns/${campaign.id}`)
+  await expect(page.getByRole('button', { name: 'Настройки', exact: true })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Наборы кампании', exact: true })).toHaveCount(0)
+  await expect(page.getByRole('button', { name: 'Контент', exact: true })).toHaveCount(0)
+
+  await openAs(page, gm.token, `/campaigns/${campaign.id}/content?section=packs`)
   await expect(page.getByText('изменён после подключения')).toHaveCount(1)
-  const playerPackRow = page.locator('.custom-list-row').filter({ hasText: 'E2E content-history-author' })
+  const playerPackRow = page.locator('.rd-pack-grid .rd-section-card').filter({ hasText: 'E2E content-history-author' })
   await playerPackRow.getByRole('button', { name: 'История', exact: true }).click()
   const dialog = page.getByRole('dialog', { name: 'История набора' })
   await expect(dialog.getByText(`Изменено · ${talentRequest.name}`)).toBeVisible()
