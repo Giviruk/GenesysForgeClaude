@@ -29,7 +29,7 @@ const ProfilePage = lazy(() => import('./pages/ProfilePage').then(module => ({ d
 const SharedSheetPage = lazy(() => import('./pages/SharedSheetPage').then(module => ({ default: module.SharedSheetPage })))
 
 const campaignView = (sub: string | null): CampaignView =>
-  sub === 'chronicle' || sub === 'table' || sub === 'encounters' || sub === 'content' ? sub : sub === 'custom' ? 'content' : 'overview'
+  sub === 'chronicle' || sub === 'table' || sub === 'encounters' || sub === 'content' || sub === 'settings' ? sub : sub === 'custom' ? 'content' : 'overview'
 
 const NAV_ITEMS: Array<{ area: AppArea; label: string; path: string; icon: IconName }> = [
   { area: 'characters', label: t('Персонажи', 'Characters'), path: '/characters', icon: 'users' },

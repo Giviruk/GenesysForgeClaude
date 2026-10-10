@@ -63,6 +63,7 @@ describe('parseRoute', () => {
     expect(parseRoute('/campaigns/c1/handbook')).toMatchObject({ area: 'campaigns', id: 'c1', sub: null, unknown: true })
     expect(parseRoute('/campaigns/c1/encounters')).toEqual(route({ area: 'campaigns', id: 'c1', sub: 'encounters' }))
     expect(parseRoute('/campaigns/c1/custom')).toEqual(route({ area: 'campaigns', id: 'c1', sub: 'custom' }))
+    expect(parseRoute('/campaigns/c1/settings')).toEqual(route({ area: 'campaigns', id: 'c1', sub: 'settings' }))
   })
 
   it('parses a specific encounter deep link', () => {
@@ -85,6 +86,7 @@ describe('parseRoute', () => {
 
   it('flags an id on a non-encounter campaign sub-view as unknown', () => {
     expect(parseRoute('/campaigns/c1/table/x')).toEqual(route({ area: 'campaigns', id: 'c1', unknown: true }))
+    expect(parseRoute('/campaigns/c1/settings/x')).toEqual(route({ area: 'campaigns', id: 'c1', unknown: true }))
   })
 
   it('flags too-deep encounter paths as unknown', () => {

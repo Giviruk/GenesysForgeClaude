@@ -22,7 +22,6 @@ const removeCampaignCharacterMock = vi.fn().mockResolvedValue(undefined)
 const updateSessionMock = vi.fn()
 const nextTurnMock = vi.fn()
 const campaignPacksMock = vi.fn().mockResolvedValue([])
-const packChangesMock = vi.fn().mockResolvedValue([])
 const sheet = {
   id: 'ch1',
   name: 'Бард',
@@ -83,7 +82,6 @@ vi.mock('../api/client', async (importOriginal) => ({
     updateSession: (...a: unknown[]) => updateSessionMock(...a),
     nextTurn: (...a: unknown[]) => nextTurnMock(...a),
     campaignHomebrewPacks: (...a: unknown[]) => campaignPacksMock(...a),
-    homebrewPackChanges: (...a: unknown[]) => packChangesMock(...a),
   },
 }))
 // Хаб реального времени (SignalR) в jsdom не нужен.
@@ -219,17 +217,31 @@ describe('account campaign membership UI', () => {
   })
   afterEach(() => { vi.restoreAllMocks() })
 
-  it('участник открывает историю набора с обзора кампании', async () => {
-    campaignMock.mockResolvedValue(detail(false))
-    campaignPacksMock.mockResolvedValueOnce([{ id: 'pack', name: 'Набор участника', system: 'genesysCore',
-      isMine: false, isEnabled: true, entryCount: 1, ownerName: 'Автор', ownerIsMember: true,
-      connectedAt: '2026-10-01T12:00:00Z', lastChangedAt: '2026-10-07T12:00:00Z', changedAfterConnection: true }])
-    render(<CampaignsPage {...props} />)
-    await screen.findByText('Набор участника')
-    fireEvent.click(screen.getByRole('button', { name: 'История' }))
-    await waitFor(() => expect(packChangesMock).toHaveBeenCalledWith('pack', 'c1', 200))
-    expect(await screen.findByRole('dialog', { name: 'История набора' })).toBeTruthy()
-    expect(screen.queryByRole('button', { name: 'Контент' })).toBeNull()
+  it.each([true, false])('переносит игроков с обзора в настройки (GM=%s)', async isGm => {
+    campaignMock.mockResolvedValue(detail(isGm))
+    campaignPacksMock.mockClear()
+    const onView = vi.fn()
+    const { rerender } = render(<CampaignsPage {...props} onView={onView} />)
+    const settings = await screen.findByRole('button', { name: 'Настройки' })
+    expect(screen.getByText('Персонажи группы')).toBeTruthy()
+    expect(screen.queryByRole('heading', { name: 'Игроки' })).toBeNull()
+    expect(screen.queryByRole('heading', { name: 'Наборы кампании' })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Добавить существующего' })).toBeNull()
+    expect(campaignPacksMock).not.toHaveBeenCalled()
+
+    fireEvent.click(settings)
+    expect(onView).toHaveBeenCalledWith('settings')
+    rerender(<CampaignsPage {...props} view="settings" onView={onView} />)
+    expect(screen.getByRole('heading', { name: 'Игроки' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Добавить существующего' })).toBeTruthy()
+    expect(screen.queryByText('Персонажи группы')).toBeNull()
+    expect(screen.queryByRole('heading', { name: 'Наборы кампании' })).toBeNull()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Обзор' }))
+    expect(onView).toHaveBeenLastCalledWith('overview')
+    rerender(<CampaignsPage {...props} onView={onView} />)
+    expect(screen.getByText('Персонажи группы')).toBeTruthy()
+    expect(screen.queryByRole('heading', { name: 'Игроки' })).toBeNull()
   })
 
   it('does not reload the campaign when the navigation callback changes', async () => {
@@ -256,7 +268,7 @@ describe('account campaign membership UI', () => {
     vi.mocked(window.confirm).mockReturnValue(false)
     campaignMock.mockResolvedValue({ ...detail(!isMe), members: [],
       players: [{ userId: 'player', displayName: 'Player', avatarUrl: null, isMe, joinedAt: '2026-01-01' }] })
-    render(<CampaignsPage {...props} />)
+    render(<CampaignsPage {...props} view="settings" />)
     fireEvent.click(await screen.findByRole('button', { name: isMe ? 'Покинуть кампанию' : 'Исключить' }))
     expect(window.confirm).toHaveBeenCalledTimes(1)
     expect(removeCampaignMemberMock).not.toHaveBeenCalled()
@@ -276,7 +288,7 @@ describe('account campaign membership UI', () => {
     const onBack = vi.fn()
     campaignMock.mockResolvedValue({ ...detail(false), members: [],
       players: [{ userId: 'player', displayName: 'Игрок', avatarUrl: null, isMe: true, joinedAt: '2026-10-07' }] })
-    render(<CampaignsPage {...props} onBack={onBack} />)
+    render(<CampaignsPage {...props} view="settings" onBack={onBack} />)
     fireEvent.click(await screen.findByRole('button', { name: 'Покинуть кампанию' }))
     await waitFor(() => expect(removeCampaignMemberMock).toHaveBeenCalledWith('c1', 'player'))
     expect(onBack).toHaveBeenCalled()
@@ -285,7 +297,7 @@ describe('account campaign membership UI', () => {
   it('offers the GM removal of account members independently of characters', async () => {
     campaignMock.mockResolvedValue({ ...detail(true), members: [],
       players: [{ userId: 'player', displayName: 'Игрок', avatarUrl: null, isMe: false, joinedAt: '2026-10-07' }] })
-    render(<CampaignsPage {...props} />)
+    render(<CampaignsPage {...props} view="settings" />)
     fireEvent.click(await screen.findByRole('button', { name: 'Исключить' }))
     await waitFor(() => expect(removeCampaignMemberMock).toHaveBeenCalledWith('c1', 'player'))
   })

@@ -7,7 +7,6 @@ import { PARTICIPANT_TYPE_LABELS, SLOT_TYPE_LABELS, SYSTEM_LABELS } from '../uti
 import { GameTableTab } from '../components/GameTableTab'
 import { EncountersTab } from '../components/EncountersTab'
 import { CampaignContentTab } from '../components/content/CampaignContentTab'
-import { CampaignPackHistoryPanel } from '../components/HomebrewPackHistory'
 import { CampaignChronicleTab } from '../components/CampaignChronicleTab'
 import { CreateCharacterForm } from './CharactersPage'
 import { SheetTab } from '../components/SheetTab'
@@ -21,7 +20,7 @@ import { useCampaignHub, type CampaignHubStatus } from '../useCampaignHub'
 import { lang, t } from '../i18n'
 import { readSheetTab, writeSheetTab, type CharacterSheetTab } from '../utils/uiPreferences'
 
-export type CampaignView = 'overview' | 'chronicle' | 'encounters' | 'table' | 'content'
+export type CampaignView = 'overview' | 'chronicle' | 'encounters' | 'table' | 'content' | 'settings'
 
 interface Props {
   openId: string | null
@@ -273,6 +272,7 @@ function CampaignDetailView({ campaignId, view, openEncounterId, openCharacterId
         <button className={view === 'encounters' ? 'tab active' : 'tab'} onClick={() => onView('encounters')}>{t('Энкаунтеры', 'Encounters')}</button>
         <button className={view === 'table' ? 'tab active' : 'tab'} onClick={() => onView('table')}>{t('Игровой стол', 'Game table')}</button>
         {c.isGm && <button className={view === 'content' ? 'tab active' : 'tab'} onClick={() => onView('content')}>{t('Контент', 'Content')}</button>}
+        <button className={view === 'settings' ? 'tab active' : 'tab'} onClick={() => onView('settings')}>{t('Настройки', 'Settings')}</button>
       </div>
 
       {creating && <CreateCharacterForm key={c.id} campaignId={c.id} closedSystems={c.closedSystems} onCancel={() => setCreating(false)}
@@ -280,12 +280,9 @@ function CampaignDetailView({ campaignId, view, openEncounterId, openCharacterId
       {view === 'overview' && <button disabled={c.closedSystems?.length === 2} title={c.closedSystems?.length === 2 ? t('Обе системы закрыты для новых персонажей', 'Both systems are closed to new characters') : undefined} onClick={() => setCreating(true)}>
         {t('Создать персонажа', 'Create character')}
       </button>}
-      {view === 'overview' && <CampaignPlayersPanel campaign={c} onError={setError}
-        onChanged={reload} onLeave={onBack} />}
-
-      {view === 'overview' && <CampaignPackHistoryPanel campaignId={c.id} refreshSignal={liveSignal} />}
-
-      {view === 'content' && c.isGm ? (
+      {view === 'settings' ? (
+        <CampaignPlayersPanel campaign={c} onError={setError} onChanged={reload} onLeave={onBack} />
+      ) : view === 'content' && c.isGm ? (
         <CampaignContentTab campaignId={c.id} refreshSignal={liveSignal} />
       ) : view === 'chronicle' ? (
         <CampaignChronicleTab campaignId={c.id} members={c.members} refreshSignal={liveSignal}

@@ -42,8 +42,9 @@ pack `lastChangedAt` is compared to connection `connectedAt`. The server's `chan
 flag excludes packs owned by that campaign's GM for all readers; UI uses it and hides missing dates.
 History is available to the owner or
 GM/current members of a campaign connected to that pack (even when disabled), via
-`GET /api/homebrew-packs/{id}/changes?campaignId=&take=`. The campaign overview and personal library
-display history. Migration `AddCustomContentChanges` adds one table and indexes, with no backfill.
+`GET /api/homebrew-packs/{id}/changes?campaignId=&take=`. The GM's campaign Content tab and personal
+library display history. Campaign account membership controls live in the Settings tab, available
+to both GM and players. Migration `AddCustomContentChanges` adds one table and indexes, with no backfill.
 
 Redesign v2 replaces technical auto-packs and single-definition pack pointers with M:N
 `HomebrewPackEntries`. `CampaignContentPolicy` combines book exclusions, manual overrides, per-entry
