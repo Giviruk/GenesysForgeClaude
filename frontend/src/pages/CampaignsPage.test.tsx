@@ -227,6 +227,7 @@ describe('account campaign membership UI', () => {
     expect(screen.queryByRole('heading', { name: 'Игроки' })).toBeNull()
     expect(screen.queryByRole('heading', { name: 'Наборы кампании' })).toBeNull()
     expect(screen.queryByRole('button', { name: 'Добавить существующего' })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Создать персонажа' })).toBeNull()
     expect(campaignPacksMock).not.toHaveBeenCalled()
 
     fireEvent.click(settings)
@@ -234,6 +235,8 @@ describe('account campaign membership UI', () => {
     rerender(<CampaignsPage {...props} view="settings" onView={onView} />)
     expect(screen.getByRole('heading', { name: 'Игроки' })).toBeTruthy()
     expect(screen.getByRole('button', { name: 'Добавить существующего' })).toBeTruthy()
+    const create = screen.getByRole('button', { name: 'Создать персонажа' })
+    expect(create.parentElement).toBe(screen.getByRole('button', { name: 'Добавить существующего' }).parentElement)
     expect(screen.queryByText('Персонажи группы')).toBeNull()
     expect(screen.queryByRole('heading', { name: 'Наборы кампании' })).toBeNull()
 
@@ -242,6 +245,28 @@ describe('account campaign membership UI', () => {
     rerender(<CampaignsPage {...props} onView={onView} />)
     expect(screen.getByText('Персонажи группы')).toBeTruthy()
     expect(screen.queryByRole('heading', { name: 'Игроки' })).toBeNull()
+  })
+
+  it('открывает создание в настройках с контекстом кампании и закрывает форму при переходе на обзор', async () => {
+    campaignMock.mockResolvedValue({ ...detail(false), closedSystems: ['genesysCore'] })
+    referenceMock.mockResolvedValueOnce({ archetypes: [], careers: [], skills: [] })
+    const { rerender } = render(<CampaignsPage {...props} view="settings" />)
+    fireEvent.click(await screen.findByRole('button', { name: 'Создать персонажа' }))
+    await waitFor(() => expect(referenceMock).toHaveBeenCalledWith('realmsOfTerrinoth', { campaignId: 'c1' }))
+    expect(await screen.findByLabelText('Имя персонажа')).toBeTruthy()
+    rerender(<CampaignsPage {...props} />)
+    expect(screen.queryByLabelText('Имя персонажа')).toBeNull()
+    rerender(<CampaignsPage {...props} view="settings" />)
+    expect(screen.queryByLabelText('Имя персонажа')).toBeNull()
+  })
+
+  it('запрещает создание в настройках, когда обе системы закрыты', async () => {
+    campaignMock.mockResolvedValue({ ...detail(false), closedSystems: ['genesysCore', 'realmsOfTerrinoth'] })
+    render(<CampaignsPage {...props} view="settings" />)
+    const create = await screen.findByRole('button', { name: 'Создать персонажа' })
+    expect((create as HTMLButtonElement).disabled).toBe(true)
+    expect(create.title).toBe('Обе системы закрыты для новых персонажей')
+    expect(screen.getByRole('button', { name: 'Добавить существующего' })).toBeTruthy()
   })
 
   it('does not reload the campaign when the navigation callback changes', async () => {

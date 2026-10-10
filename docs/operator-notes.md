@@ -90,9 +90,10 @@ disables it manually. Author edits remain allowed and immediately affect connect
 
 Stage 5 requires `20261007090302_AddCustomContentChanges` before the updated API is started.
 It adds only the journal table and two indexes; existing definitions/imports receive no invented
-dates or history. CRUD events start with the new code. GM/account members can inspect connected
-pack history from the campaign overview, including disabled packs; owners can inspect their packs
-in the personal library. The “changed after connection” badge uses the server's ChangedAfterConnection:
+dates or history. CRUD events start with the new code. GMs can inspect connected pack history from
+the campaign Content tab, including disabled packs; owners can inspect their packs in the personal
+library. The 10.10.2026 UI decision removes history controls for campaign players; the API still grants
+current members access to connected pack history. The “changed after connection” badge uses the server's ChangedAfterConnection:
 the latest event is newer than the connection's last enable/disable timestamp and the owner is not
 the campaign GM. GM-owned packs show dates/history without this warning for every reader;
 missing dates show no label. This computed response field requires no additional migration.

@@ -1,13 +1,11 @@
-import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
+import { fireEvent, render, screen, within } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { CampaignPackHistoryPanel, CustomEditedDate, HomebrewPackHistory, PackChangeStatus } from './HomebrewPackHistory'
+import { CustomEditedDate, HomebrewPackHistory, PackChangeStatus } from './HomebrewPackHistory'
 import type { CampaignHomebrewPack, CustomContentChange } from '../api/types'
 
 const changes = vi.fn()
-const packs = vi.fn()
 vi.mock('../api/client', () => ({ api: {
   homebrewPackChanges: (...args: unknown[]) => changes(...args),
-  campaignHomebrewPacks: (...args: unknown[]) => packs(...args),
 } }))
 const pack: CampaignHomebrewPack = {
   updatePolicy: 'auto', status: 'active', exclusionCount: 0, id: 'pack', name: 'Набор игрока', system: 'genesysCore', entryCount: 1,
@@ -16,7 +14,7 @@ const pack: CampaignHomebrewPack = {
 const edit: CustomContentChange = { id: 'edit', homebrewPackId: 'pack', definitionType: 'talent', definitionId: 'talent',
   definitionName: 'Мой талант', userId: 'player', userName: 'Игрок', action: 'updated', createdAt: '2026-10-07T12:00:00Z',
   changes: [{ field: 'tier', from: '1', to: '2' }, { field: 'futureField', from: null, to: '"Новое значение"' }] }
-beforeEach(() => { vi.clearAllMocks(); changes.mockResolvedValue([edit]); packs.mockResolvedValue([pack]) })
+beforeEach(() => { vi.clearAllMocks(); changes.mockResolvedValue([edit]) })
 
 describe('история кастомного контента', () => {
   it('показывает автора, действие, дату и diff с метками и неизвестными полями', async () => {
@@ -58,27 +56,6 @@ describe('история кастомного контента', () => {
     render(<HomebrewPackHistory packId="pack" name={pack.name} onClose={vi.fn()} />)
     expect((await screen.findByRole('alert')).textContent).toContain('недоступна')
     expect(screen.queryByText(/Изменений пока нет/)).toBeNull()
-  })
-
-  it('открывает участнику историю отключённого набора прежнего участника', async () => {
-    packs.mockResolvedValue([{ ...pack, ownerIsMember: false, isEnabled: false }])
-    render(<CampaignPackHistoryPanel campaignId="campaign" />)
-    expect(await screen.findByText(/игрок покинул кампанию/)).toBeTruthy()
-    expect(screen.getByText('отключён')).toBeTruthy()
-    expect(screen.getByText('изменён после подключения')).toBeTruthy()
-    fireEvent.click(screen.getByRole('button', { name: 'История' }))
-    await waitFor(() => expect(changes).toHaveBeenCalledWith('pack', 'campaign', 200))
-    expect(screen.queryByRole('button', { name: 'Включить набор' })).toBeNull()
-  })
-
-  it('обновляет дату после сигнала кампании', async () => {
-    packs.mockResolvedValue([{ ...pack, lastChangedAt: null, changedAfterConnection: false }])
-    const view = render(<CampaignPackHistoryPanel campaignId="campaign" refreshSignal={0} />)
-    await screen.findByText(pack.name)
-    expect(screen.queryByText(/изменено/)).toBeNull()
-    packs.mockResolvedValue([pack])
-    view.rerender(<CampaignPackHistoryPanel campaignId="campaign" refreshSignal={1} />)
-    expect(await screen.findByText('изменён после подключения')).toBeTruthy()
   })
 
   it('не придумывает дату и не помечает правки до подключения', () => {

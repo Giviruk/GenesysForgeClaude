@@ -91,27 +91,3 @@ export function HomebrewPackHistory({ packId, name, campaignId, onClose }: {
     </section>
   </div>
 }
-
-export function CampaignPackHistoryPanel({ campaignId, refreshSignal = 0 }: { campaignId: string; refreshSignal?: number }) {
-  const [packs, setPacks] = useState<CampaignHomebrewPack[]>([])
-  const [selected, setSelected] = useState<CampaignHomebrewPack | null>(null)
-  const [error, setError] = useState<string | null>(null)
-  useEffect(() => {
-    let cancelled = false
-    api.campaignHomebrewPacks(campaignId).then(data => { if (!cancelled) setPacks(data) })
-      .catch(err => { if (!cancelled) setError(err instanceof Error ? err.message : t('Ошибка', 'Error')) })
-    return () => { cancelled = true }
-  }, [campaignId, refreshSignal])
-  return <section className="panel">
-    <h3>{t('Наборы кампании', 'Campaign packs')}</h3>
-    {error && <p className="error" role="alert">{error}</p>}
-    {packs.map(pack => <div key={pack.id} className="custom-list-row">
-      <div><strong>{pack.name}</strong><span> · {pack.ownerName}</span>
-        {!pack.ownerIsMember && <span className="muted">{t(' · игрок покинул кампанию', ' · player left the campaign')}</span>}
-        {!pack.isEnabled && <span className="badge">{t('отключён', 'disabled')}</span>}
-        <PackChangeStatus pack={pack} /></div>
-      <button type="button" className="small" onClick={() => setSelected(pack)}>{t('История', 'History')}</button>
-    </div>)}
-    {selected && <HomebrewPackHistory key={selected.id} packId={selected.id} name={selected.name} campaignId={campaignId} onClose={() => setSelected(null)} />}
-  </section>
-}
