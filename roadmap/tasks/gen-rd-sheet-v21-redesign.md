@@ -3,8 +3,8 @@
 - **Пункт ТЗ:** SHEET-01–07 / GEN-RD-SHEET-V21 — [ТЗ](../../GenesysForge_Sheet_v2_1_codex/TZ_Sheet_Redesign_v2_1.md)
 - **Ветка:** `feature/gen-rd-sheet-v21-redesign`
 - **База:** свежий `origin/master` @ `b72333e`, по прямому указанию пользователя.
-- **PR:** будет добавлен после реализации; не сливать.
-- **Статус:** Реализация и локальные проверки завершены; PR и CI.
+- **PR:** [#276](https://github.com/Giviruk/GenesysForgeClaude/pull/276), база `master`; не сливать.
+- **Статус:** Реализация завершена, PR открыт, все шесть CI checks прошли; ожидает ревью, не сливать.
 
 ## Контекст
 
@@ -29,12 +29,13 @@ auth, зависимости и CI исключены из объёма. Исх�
 - [x] Пройти lint, frontend tests/build и браузерные проверки.
 - [x] Обновить docs/frontend.md, CHANGELOG.md и строку прогресса.
 - [x] Самопроверка функций и copyright: никаких текстов из книг или изменений seed.
-- [ ] Открыть PR; не сливать.
-- [ ] Дождаться всех шести CI checks, включая PublicSafe / PrivateFull E2E.
+- [x] Открыть PR; не сливать.
+- [x] Дождаться всех шести CI checks, включая PublicSafe / PrivateFull E2E.
 
 ## Что осталось / блокеры
 
-Семь экранов реализованы и проверены. Остались PR и все шесть CI checks.
+Работа по ТЗ завершена, блокеров нет. PR #276 открыт в master; все шесть CI checks
+прошли. Слияние не выполняется по прямому запросу владельца.
 
 ## Заметки / решения
 
@@ -57,3 +58,6 @@ auth, зависимости и CI исключены из объёма. Исх�
   режимов, героика, образ и заметки, погрузка двух экземпляров с пересчётом груза.
 - Backend / API / DB / seed / auth / CI / dependency manifests не менялись.
   Copyright: существующие локализованные данные API и собственные UI-тексты.
+- [CI #38081090430](https://github.com/Giviruk/GenesysForgeClaude/actions/runs/38081090430)
+  для реализации `59049b2`: Backend, Frontend, Migrations PrivateFull/PublicSafe,
+  E2E smoke PrivateFull/PublicSafe — все шесть successful.
