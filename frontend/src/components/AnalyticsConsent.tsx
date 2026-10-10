@@ -35,8 +35,8 @@ export function AnalyticsConsent() {
   return (
     <section className="analytics-consent no-print" role="region" aria-label={t('Согласие на аналитику', 'Analytics consent')}>
       <p>{t(
-        'Разрешить собственной «Ариадне» собирать события использования, идентификаторы аккаунта и посещения, время, страницы и сведения об устройстве для улучшения сервиса?',
-        'Allow our Ariadne analytics to collect usage events, account and visit IDs, times, pages and device information to improve the service?',
+        'Разрешить сервису собирать статистику действий на genesys-forge.com?',
+        'Allow the service to collect activity statistics on genesys-forge.com?',
       )} <a href="/privacy">{t('Политика конфиденциальности', 'Privacy policy')}</a></p>
       <div className="analytics-consent-actions">
         <button type="button" onClick={() => choose('granted')}>{t('Принять', 'Accept')}</button>
