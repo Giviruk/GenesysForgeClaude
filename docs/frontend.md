@@ -25,6 +25,8 @@ frontend/src/
   components/TalentsTab.tsx
   components/InventoryTab.tsx
   components/CustomTab.tsx
+  components/WorkshopTab.tsx
+  components/BioTab.tsx
   components/NotesTab.tsx
   components/GameTableTab.tsx
   components/EncountersTab.tsx
@@ -55,13 +57,47 @@ frontend/src/
   (ROT-HA-01), the primary-effect parameter (ROT-HA-02) and buying upgrades. The full text of
   not-yet-purchased upgrades and of every secondary effect lives here so the sheet stays readable.
 - `InventoryTab` — items, quantities, equipment state.
+- `WorkshopTab` — saved Upgrades/Crafting mode. `AttachmentsTab` selects hosts with hard points
+  and installs from a spare pool beside the shop; damage states, repair and detachment remain available.
+  `CraftingTab` uses target cards, material/cost chips, GM adjustments, server previews and symbol
+  steppers with the existing spend budgets and resolution commands. Symbol counts cannot fall below
+  selected spends; cancellation requires explicit confirmation. Enchanting allows untrained magic checks.
+- `BioTab` — portrait uploader, five-field completion, motivation cards and background word count.
+  Its private `NotesTab` supports inline create/edit and a deletion confirmation; campaign bio views
+  are read-only and never request or render private notes.
+- `TransportTab` — mount/wagon cards with activity switches, wound steppers, traction/cargo chips
+  and a stable catalogue. Quantity, barding approval and purchase/sale price controls are preserved,
+  including discounts and agreed prices when the list price exceeds the wallet.
 - `CustomTab` — create/update/delete custom content.
-- `NotesTab` — character notes CRUD.
 - `GameTableTab` — campaign active scene, participants, story points and initiative slots.
 - `EncountersTab` — campaign encounter builder and send-to-table flow.
 - `MagicBuilder` — magic action composition, difficulty, dice pool and print/Markdown export.
+  Direction and action selection is shared with the clickable `SpellsTab` matrix inside `MagicTab`;
+  action metadata comes from the active school. Tools/shards, mandatory/free/repeated effects,
+  Knowledge ratings and configuration keep their rules.
 - `components/print/*` — browser print preview and printable cards for NPCs, encounters, magic actions, items and talents.
 - `DicePoolView` — displays ability/proficiency pool.
+
+## Character sheet v2.1
+
+Desktop and mobile tabs use the same order: Sheet, Talents, Inventory, Magic; Heroic (Terrinoth
+only), Workshop, Transport, Bio and notes, History. The campaign member view has the same order
+and labels the bio tab Bio, because private notes are hidden. Attachments appear under its read-only
+Workshop. Printing keeps its existing sections.
+
+`migrateSheetPreferences` runs in an owned-sheet effect and migrates saved `attachments`/`crafting`
+tabs to `workshop` with the matching mode, and `notes` to `bio`. Preference readers only read:
+campaign views do not migrate or overwrite workshop modes. The selected workshop mode uses
+`genesysforge.workshop-mode.<characterId>` (`upgrades`/`craft`). Workshop requests the `base`,
+`items` and `attachments` slices; Bio only needs `base`, with notes loaded separately by the owner.
+
+The Heroic activation counter uses `genesysforge.heroic-uses.<characterId>`. A successful activation
+consumes one local use; a rejected command consumes none. Frequency sets the available uses;
+New session resets them. This browser-local counter is the product owner's confirmed choice and
+is independent of the Game Table's server-side participant/session counter.
+
+The new panels stack on narrow screens and release sticky positioning. `layout.spec.ts` covers
+both languages at 320, 390, 768, 1280 and 1440 px, including standalone `/magic` and campaign bio privacy.
 
 ## Routing
 

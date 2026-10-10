@@ -2,10 +2,11 @@ import { t } from '../../i18n'
 import { vitalState } from '../../utils/contentLibrary'
 import { Icon } from '../Icon'
 
-export function VitalCard({ kind, current, threshold, onChange, disabled = false }: {
+export function VitalCard({ kind, current, threshold, onChange, disabled = false, label: customLabel }: {
+  label?: string
   kind: 'wounds' | 'strain'; current: number; threshold: number; onChange?: (value: number) => void; disabled?: boolean
 }) {
-  const label = kind === 'wounds' ? t('Раны', 'Wounds') : t('Усталость', 'Strain')
+  const label = customLabel ?? (kind === 'wounds' ? t('Раны', 'Wounds') : t('Усталость', 'Strain'))
   const state = vitalState(current, threshold)
   const note = state === 'over' ? t('Порог превышен', 'Threshold exceeded') : state === 'threshold' ? t('На пороге', 'At threshold') : state === 'near' ? t('Близко к порогу', 'Near threshold') : t('В норме', 'Normal')
   return <section className={`rd-vital ${kind} ${state}`} aria-label={label}>

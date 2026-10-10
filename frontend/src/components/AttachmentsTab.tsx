@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useState, type ReactNode } from 'react'
 import { api } from '../api/client'
 import type {
   AttachmentDef, CharacterAttachment, CharacterSheet, ItemDamageState, Reference, SheetItem,
@@ -6,11 +6,15 @@ import type {
 } from '../api/types'
 import {
   ITEM_DAMAGE_STATE_HINTS, ITEM_DAMAGE_STATE_LABELS, ITEM_KIND_LABELS, isAttachmentCompatible,
-  localizedName, parseWeaponTraits,
+  localizedName, localizedDescription, parseWeaponTraits,
 } from '../utils/labels'
 import { DamageStateControls } from './ItemDamageControls'
 import { PropertyText } from './PropertyText'
 import { t } from '../i18n'
+import { Icon } from './Icon'
+import { FilterChip, SectionCard } from './content/ContentUi'
+import { BookReference } from './BookReference'
+import { InfoTip } from './InfoTip'
 
 interface Props {
   sheet: CharacterSheet
@@ -65,272 +69,103 @@ const matchesAttachmentFilter = (def: AttachmentDef | undefined, filter: Attachm
   return def.hostKind === filter && !def.isEnchantment
 }
 
-/**
- * Сворачиваемый раздел вкладки. Каталог из двадцати одной записи выталкивал установленное далеко
- * вниз, поэтому разделы закрываются, а счётчик в заголовке показывает, сколько внутри — иначе
- * закрытый раздел выглядит пустым.
- */
-function Section({ id, title, count, defaultOpen = true, children }: {
-  /** Стабильный ключ раздела: по нему его находят стили и тесты. */
-  id: string
-  title: string
-  count?: number
-  defaultOpen?: boolean
-  children: React.ReactNode
-}) {
-  const [open, setOpen] = useState(defaultOpen)
-  return (
-    <section className="attach-list" data-section={id}>
-      <h4>
-        <button type="button" className="section-toggle" aria-expanded={open}
-          onClick={() => setOpen(o => !o)}>
-          <span className="section-caret" aria-hidden>{open ? '▾' : '▸'}</span>
-          {title}
-          {count != null && <span className="muted section-count">{count}</span>}
-        </button>
-      </h4>
-      {open && children}
-    </section>
-  )
-}
-
 export function AttachmentsTab({ sheet, reference, onError, refresh }: Props) {
-  const [hostId, setHostId] = useState<string | null>(null)
-  const [attachmentId, setAttachmentId] = useState<string | null>(null)
+  const hosts = sheet.items.filter(i => (i.hardPoints ?? 0) > 0 || i.attachments.length > 0)
+  const [hostId, setHostId] = useState<string | null>(() =>
+    hosts.find(i => (i.hardPoints ?? 0) > i.usedHardPoints)?.id ?? hosts[0]?.id ?? null)
   const [reason, setReason] = useState('')
+  const [mode, setMode] = useState<'reserve' | 'shop'>('reserve')
   const [kindFilter, setKindFilter] = useState<AttachmentFilter>('all')
-
+  const [notice, setNotice] = useState('')
+  const [busy, setBusy] = useState(false)
   async function run(action: () => Promise<unknown>) {
-    try {
-      await action()
-      await refresh()
-    } catch (err) {
-      onError(err instanceof Error ? err.message : t('Ошибка', 'Error'))
-    }
+    if (busy) return
+    setBusy(true)
+    try { await action(); await refresh() }
+    catch (err) { onError(err instanceof Error ? err.message : t('Ошибка', 'Error')) }
+    finally { setBusy(false) }
   }
-
-  // Чем можно заплатить за материалы ремонта: из обычного кошелька.
-  const funds = sheet.money
-
-  // Счётчик в заголовке закрытого раздела: сколько улучшений стоит на предметах.
-  const installedCount = useMemo(
-    () => sheet.items.reduce((sum, i) => sum + i.attachments.length, 0),
-    [sheet.items])
-
-  // Улучшать можно только оружие и броню: у снаряжения слотов не бывает.
-  const hosts = useMemo(
-    () => sheet.items.filter(i => i.kind === 'weapon' || i.kind === 'armor'),
-    [sheet.items])
-  const host = hosts.find(i => i.id === hostId) ?? null
-
-  const spare = useMemo(
-    () => sheet.attachments.filter(a => a.hostCharacterItemId === null),
-    [sheet.attachments])
-
-  const defsById = useMemo(() => {
-    const map = new Map<string, AttachmentDef>()
-    for (const d of reference.attachments ?? []) map.set(d.id, d)
-    return map
-  }, [reference.attachments])
-
-  const matchesFilter = (def?: AttachmentDef) => matchesAttachmentFilter(def, kindFilter)
-  // Фильтр по виду носителя касается только списков; выбор для установки и так ограничен
-  // совместимостью выбранного предмета.
-  const spareShown = useMemo(
-    () => spare.filter(a => matchesFilter(defsById.get(a.attachmentDefId))),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [spare, defsById, kindFilter])
-  const catalogue = useMemo(
-    () => (reference.attachments ?? []).filter(d => matchesFilter(d)),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [reference.attachments, kindFilter])
-
-  // Совместимость считается по признакам формы выбранного предмета; сервер проверит ещё раз.
-  const hostTraits = useMemo(() => parseWeaponTraits(host?.formTraits), [host])
-  const usable = useMemo(() => spare.filter(a => {
-    const def = defsById.get(a.attachmentDefId)
-    if (!def || !host) return false
-    if (host.attachments.some(x => x.attachmentDefId === a.attachmentDefId)) return false
-    return isCompatible(host, def, hostTraits)
-  }), [spare, defsById, host, hostTraits])
-
-  const chosen = usable.find(a => a.id === attachmentId) ?? null
+  const host = hosts.find(i => i.id === hostId) ?? hosts.find(i => (i.hardPoints ?? 0) > i.usedHardPoints) ?? hosts[0] ?? null
+  const spare = sheet.attachments.filter(a => a.hostCharacterItemId === null)
+  const defsById = useMemo(() => new Map((reference.attachments ?? []).map(d => [d.id, d])), [reference.attachments])
+  const allDefs = (reference.attachments ?? []).filter(d => sheet.system === 'realmsOfTerrinoth' || !d.isEnchantment)
+  const catalogue = allDefs.filter(d => matchesAttachmentFilter(d, kindFilter))
   const free = host ? Math.max(0, (host.hardPoints ?? 0) - host.usedHardPoints) : 0
-  const needsReason = chosen?.isEnchantment === true && !hasMagicRank(sheet)
-  const canApply = host !== null && chosen !== null && free >= chosen.hardPointCost
-    && (!needsReason || reason.trim() !== '')
-
-  return (
-    <div className="panel">
-      <h3>{t('Улучшения', 'Attachments')}</h3>
-      <p className="hint">{INSTALL_HINT}</p>
-
-      <div className="attach-picker">
-        <label>
-          {t('Предмет', 'Item')}
-          <select value={hostId ?? ''} onChange={e => { setHostId(e.target.value || null); setAttachmentId(null) }}>
-            <option value="">{t('— выберите предмет —', '— choose an item —')}</option>
-            {hosts.map(i => (
-              <option key={i.id} value={i.id}>
-                {localizedName(i)} · {ITEM_KIND_LABELS[i.kind]} · {t('слоты', 'slots')} {i.usedHardPoints}/{i.hardPoints ?? 0}
-              </option>
-            ))}
-          </select>
-        </label>
-
-        <label>
-          {t('Улучшение', 'Attachment')}
-          <select value={attachmentId ?? ''} disabled={!host}
-            onChange={e => setAttachmentId(e.target.value || null)}>
-            <option value="">{t('— выберите улучшение —', '— choose an attachment —')}</option>
-            {usable.map(a => (
-              <option key={a.id} value={a.id}>
-                {a.nameRu || a.name} · {t('слотов', 'slots')} {a.hardPointCost}
-                {a.isEnchantment ? t(' · чары', ' · enchantment') : ''}
-              </option>
-            ))}
-          </select>
-        </label>
-
-        <button className="primary" disabled={!canApply}
-          title={!host ? t('Выберите предмет', 'Choose an item')
-            : !chosen ? t('Выберите улучшение', 'Choose an attachment')
-              : free < chosen.hardPointCost ? t('Не хватает слотов', 'Not enough slots')
-                : needsReason && reason.trim() === ''
-                  ? t('Нужна причина: у персонажа нет ранга магического навыка',
-                    'A reason is required: the character has no magic skill rank')
-                  : undefined}
-          onClick={() => run(async () => {
-            await api.installAttachment(sheet.id, chosen!.id, host!.id,
-              needsReason ? reason.trim() : undefined)
-            setAttachmentId(null)
-            setReason('')
-          })}>
-          {t('Применить', 'Apply')}
+  const hostTraits = useMemo(() => parseWeaponTraits(host?.formTraits), [host?.formTraits])
+  function blocked(a: CharacterAttachment): string {
+    if (!host) return t('Сначала выберите предмет', 'Choose an item first')
+    const def = defsById.get(a.attachmentDefId)
+    if (!def) return t('Определение улучшения недоступно', 'Attachment definition unavailable')
+    if (!isCompatible(host, def, hostTraits)) {
+      if (def.hostKind !== host.kind) return def.hostKind === 'weapon' ? t('Только для оружия', 'Weapons only') : t('Только для брони', 'Armor only')
+      if (parseWeaponTraits(def.requiredTraits).includes('ranged')) return t('Только для дальнобойного', 'Ranged weapons only')
+      return t('Требуется подходящий профиль оружия', 'Requires a compatible weapon profile')
+    }
+    if (host.attachments.some(x => x.attachmentDefId === a.attachmentDefId)) return t('Уже установлено', 'Already installed')
+    if (free < a.hardPointCost) return free === 0 ? t('Нет свободных слотов', 'No free slots') : t(`Нужно ${a.hardPointCost} сл., свободно ${free}`, `Needs ${a.hardPointCost} slots, ${free} free`)
+    if (a.isEnchantment && !hasMagicRank(sheet) && !reason.trim()) return ENCHANTMENT_HINT
+    return ''
+  }
+  const reasons = new Map(spare.map(a => [a.id, blocked(a)]))
+  const reserve = spare.toSorted((a, b) => Number(!!reasons.get(a.id)) - Number(!!reasons.get(b.id)))
+  async function buy(d: AttachmentDef, free = false) {
+    await api.buyAttachment(sheet.id, d.id, free ? { free: true } : undefined)
+    setNotice(t(`${localizedName(d)} — в запасе`, `${localizedName(d)} — in reserve`))
+  }
+  return <div className="attachments-layout sheet-two-column">
+    <section>
+      <h3 className="sheet-section-title">{t('Предметы со слотами', 'Items with slots')}<small>
+        <InfoTip label={t('Как проходит установка', 'How installation works')} title={t('Правила установки', 'Installation rules')}>
+          <span className="prop-tooltip-paragraph">{INSTALL_HINT}</span>{sheet.system === 'realmsOfTerrinoth' && <span className="prop-tooltip-paragraph">{ENCHANTMENT_HINT}</span>}
+        </InfoTip></small></h3>
+      {hosts.length === 0 && <p className="muted">{t('Нет предметов со слотами улучшений.', 'No items with attachment slots.')}</p>}
+      {hosts.map(i => <article key={i.id} className={`attachment-host-card${host?.id === i.id ? ' selected' : ''}`}>
+        <button className="attachment-host-select" aria-pressed={host?.id === i.id} onClick={() => { setHostId(i.id); setReason('') }}>
+          <Icon name={i.kind === 'weapon' ? 'sword' : 'shield'} /><span><strong>{localizedName(i)}</strong><small>{ITEM_KIND_LABELS[i.kind]}</small></span>
+          <span className="attachment-slots" aria-label={t(`Слоты ${i.usedHardPoints}/${i.hardPoints ?? 0}`, `Slots ${i.usedHardPoints}/${i.hardPoints ?? 0}`)}>
+            {Array.from({ length: i.hardPoints ?? 0 }, (_, n) => <i key={n} className={n < i.usedHardPoints ? 'filled' : ''} />)}<small>{i.usedHardPoints}/{i.hardPoints ?? 0}</small></span>
         </button>
+        {i.attachments.map(a => <AttachmentRow key={a.id} attachment={a} def={defsById.get(a.attachmentDefId)} qualityDefinitions={reference.qualities} funds={sheet.money} busy={busy}
+          onDetach={outcome => void run(() => api.detachAttachment(sheet.id, a.id, outcome))}
+          onSetDamageState={state => void run(() => api.setAttachmentDamageState(sheet.id, a.id, state))}
+          onRepair={opts => void run(() => api.repairAttachment(sheet.id, a.id, opts))} />)}
+        {i.attachmentNotes.length > 0 && <ul className="muted small-text attach-notes">{i.attachmentNotes.map((n, idx) => <li key={idx}><PropertyText text={n} qualities={reference.qualities} /></li>)}</ul>}
+        {i.overCapacity && <p className="warn-text small-text">{t('Улучшений больше, чем слотов — снимите лишнее', 'More attachments than slots — remove one')}</p>}
+        {(i.hardPoints ?? 0) > i.usedHardPoints && <div className="attachment-free-slots">{t(`Свободно слотов: ${(i.hardPoints ?? 0) - i.usedHardPoints}`, `Free slots: ${(i.hardPoints ?? 0) - i.usedHardPoints}`)}
+          {host?.id === i.id && t(' — установите из запаса', ' — install from reserve')}</div>}
+      </article>)}
+    </section>
+    <aside className="sheet-sticky"><SectionCard title={t('Улучшения', 'Attachments')} icon="adjustments">
+      <div className="sheet-segment" role="group" aria-label={t('Запас и лавка', 'Reserve and shop')}>
+        <button aria-pressed={mode === 'reserve'} onClick={() => setMode('reserve')}>{t('Запас', 'Reserve')} {spare.length}</button>
+        <button aria-pressed={mode === 'shop'} onClick={() => setMode('shop')}>{t('Лавка', 'Shop')} {allDefs.length}</button>
       </div>
-
-      {host && (
-        <p className="muted small-text">
-          {t('Свободных слотов', 'Free slots')}: <strong>{free}</strong> {t('из', 'of')} {host.hardPoints ?? 0}
-          {host.overCapacity && (
-            <span className="error">
-              {' · '}{t('улучшений больше, чем слотов — снимите лишнее',
-                'more attachments than slots — remove one')}
-            </span>
-          )}
-        </p>
-      )}
-
-      {needsReason && (
-        <label className="small-text attach-reason">
-          {t('Причина установки чар без магического навыка', 'Reason for enchanting without a magic skill')}
-          <input value={reason} maxLength={200} onChange={e => setReason(e.target.value)}
-            placeholder={t('например, помог городской чародей', 'e.g. the town wizard helped')} />
-          <span className="muted"> {ENCHANTMENT_HINT}</span>
-        </label>
-      )}
-
-      {spare.length === 0 && (
-        <p className="muted">
-          {t('В запасе нет улучшений — купите их в списке ниже.',
-            'No attachments in reserve — buy one from the list below.')}
-        </p>
-      )}
-
-      <div className="attach-filters">
-        {KIND_FILTERS.map(k => (
-          <button key={k} className={kindFilter === k ? 'chip active' : 'chip'}
-            onClick={() => setKindFilter(k)}>
-            {FILTER_LABELS[k]}
-          </button>
-        ))}
-      </div>
-
-      {/* Установленное — первым: это то, что у персонажа есть сейчас, и ради него сюда заходят.
-          Запас и магазин лежат ниже и закрываются, чтобы каталог не выталкивал их за экран. */}
-      <Section id="installed" title={t('Установленные', 'Installed')} count={installedCount}>
-        {installedCount === 0 && (
-          <p className="muted">{t('Пока ничего не установлено.', 'Nothing installed yet.')}</p>
-        )}
-        {hosts.filter(i => i.attachments.length > 0).map(i => (
-          <div key={i.id} className="attach-host">
-            <strong>{localizedName(i)}</strong>
-            <span className="muted small-text">
-              {' · '}{t('слоты', 'slots')} {i.usedHardPoints}/{i.hardPoints ?? 0}
-            </span>
-            {i.attachments.map(a => (
-              <AttachmentRow key={a.id} attachment={a} def={defsById.get(a.attachmentDefId)}
-                qualityDefinitions={reference.qualities}
-                funds={funds}
-                onDetach={outcome => run(() => api.detachAttachment(sheet.id, a.id, outcome))}
-                onSetDamageState={state =>
-                  run(() => api.setAttachmentDamageState(sheet.id, a.id, state))}
-                onRepair={opts => run(() => api.repairAttachment(sheet.id, a.id, opts))} />
-            ))}
-            {i.attachmentNotes.length > 0 && (
-              <ul className="muted small-text attach-notes">
-                {i.attachmentNotes.map((n, idx) => <li key={idx}>
-                  <PropertyText text={n} qualities={reference.qualities} />
-                </li>)}
-              </ul>
-            )}
-          </div>
-        ))}
-      </Section>
-
-      {spare.length > 0 && (
-        <Section id="reserve" title={t('В запасе', 'In reserve')} count={spareShown.length}>
-          {spareShown.length === 0 && (
-            <p className="muted small-text">{t('По фильтру ничего нет.', 'Nothing matches the filter.')}</p>
-          )}
-          {spareShown.map(a => (
-            <AttachmentRow key={a.id} attachment={a} def={defsById.get(a.attachmentDefId)}
-              qualityDefinitions={reference.qualities}
-              onRemove={() => run(() => api.removeAttachment(sheet.id, a.id))} />
-          ))}
-        </Section>
-      )}
-
-      <Section id="shop" title={t('Купить улучшение', 'Buy an attachment')} count={catalogue.length}
-        defaultOpen={false}>
-        <p className="hint small-text">
-          {t('Цену считает сервер. Бесценные улучшения обычной покупкой не берутся — их выдаёт ведущий.',
-            'The server computes the price. Priceless attachments cannot be bought — the GM grants them.')}
-        </p>
-        {catalogue.map(d => (
-          <div key={d.id} className="attach-row">
-            <div>
-              <strong>{d.nameRu || d.name}</strong>
-              <span className="muted small-text">
-                {' · '}{ITEM_KIND_LABELS[d.hostKind]} · {t('слотов', 'slots')} {d.hardPointCost}
-                {' · '}{t('редкость', 'rarity')} {d.rarity}
-                {d.price === null ? t(' · бесценно', ' · priceless') : ` · ${d.price} 🪙`}
-                {d.isEnchantment && t(' · чары', ' · enchantment')}
-              </span>
-              {d.description && <div className="muted small-text">
-                <PropertyText text={d.description} qualities={reference.qualities} />
-              </div>}
-            </div>
-            <div className="attach-row-actions">
-              <button className="primary small"
-                disabled={d.price === null || d.price > sheet.money}
-                title={d.price === null
-                  ? t('Цену назначает ведущий', 'The GM sets the price')
-                  : d.price > sheet.money ? t('Недостаточно монет', 'Not enough coins') : undefined}
-                onClick={() => run(() => api.buyAttachment(sheet.id, d.id))}>
-                {t('Купить', 'Buy')}
-              </button>
-              <button className="small" title={t('Добавить без оплаты', 'Add without paying')}
-                onClick={() => run(() => api.buyAttachment(sheet.id, d.id, { free: true }))}>
-                {t('+ Добавить', '+ Add')}
-              </button>
-            </div>
-          </div>
-        ))}
-      </Section>
-    </div>
-  )
+      {mode === 'reserve' ? <>
+        <p className="muted small-text">{host ? <>{t('Установка на', 'Installing on')} <b>{localizedName(host)}</b> · {t(`свободно ${free} из ${host.hardPoints ?? 0}`, `${free} of ${host.hardPoints ?? 0} free`)}</> : t('Выберите предмет слева', 'Choose an item on the left')}</p>
+        {spare.length === 0 && <div className="rd-empty"><p>{t('Запас пуст', 'Reserve is empty')}</p><button onClick={() => setMode('shop')}>{t('Открыть лавку', 'Open shop')}</button></div>}
+        {spare.some(a => a.isEnchantment) && !hasMagicRank(sheet) && <label className="attach-reason small-text">{t('Причина установки чар без магического навыка', 'Reason for enchanting without a magic skill')}<input value={reason} maxLength={200} onChange={e => setReason(e.target.value)} />{ENCHANTMENT_HINT}</label>}
+        {reserve.map(a => <AttachmentRow key={a.id} attachment={a} def={defsById.get(a.attachmentDefId)} qualityDefinitions={reference.qualities} busy={busy}
+          unavailable={!!reasons.get(a.id)}
+          onRemove={() => void run(() => api.removeAttachment(sheet.id, a.id))}>
+          {reasons.get(a.id) ? <p className="muted small-text attachment-blocked"><Icon name="lock" className="button-icon" />{reasons.get(a.id)}</p>
+            : <button className="primary small" disabled={busy} onClick={() => void run(async () => {
+              await api.installAttachment(sheet.id, a.id, host!.id, a.isEnchantment && !hasMagicRank(sheet) ? reason.trim() : undefined); setReason('')
+            })}><Icon name="arrow-left" className="button-icon" />{t('Установить', 'Install')}</button>}
+        </AttachmentRow>)}
+      </> : <>
+        <div className="rd-toolbar"><div className="sheet-chips">{KIND_FILTERS.filter(k => sheet.system === 'realmsOfTerrinoth' || k !== 'enchantment').map(k => <FilterChip key={k} active={kindFilter === k} onClick={() => setKindFilter(k)}>{FILTER_LABELS[k]} {allDefs.filter(d => matchesAttachmentFilter(d, k)).length}</FilterChip>)}</div>
+          <span className="sheet-wallet"><Icon name="coin" />{sheet.money}</span></div>
+        {notice && <p role="status" className="success-text small-text">{notice}</p>}
+        {catalogue.map(d => <article key={d.id} className="sheet-catalog-card"><div className="sheet-card-heading"><strong>{localizedName(d)}</strong><b>{d.price === null ? t('выдаёт ведущий', 'GM grants') : t(`${d.price} зол.`, `${d.price} coins`)}</b></div>
+          <p className="muted small-text">{ITEM_KIND_LABELS[d.hostKind]} · {t(`${d.hardPointCost} сл. · редкость ${d.rarity}`, `${d.hardPointCost} slots · rarity ${d.rarity}`)}</p>
+          <div className="muted small-text"><PropertyText text={localizedDescription(d)} qualities={reference.qualities} /></div><BookReference source={d.source} />
+          <div className="form-actions"><button className="primary small" disabled={busy || d.price === null || d.price > sheet.money}
+            title={d.price === null ? t('Цену назначает ведущий', 'The GM sets the price') : d.price > sheet.money ? t('Недостаточно монет', 'Not enough coins') : undefined}
+            onClick={() => void run(() => buy(d))}>{t('Купить', 'Buy')}</button><button className="small" disabled={busy} onClick={() => void run(() => buy(d, true))}>{d.price === null ? t('+ Выдать', '+ Grant') : t('+ Без оплаты', '+ Free')}</button></div>
+        </article>)}
+      </>}
+    </SectionCard></aside>
+  </div>
 }
 
 /** Ранг магического навыка у персонажа: карьерный статус без рангов чары не разрешает. */
@@ -338,7 +173,10 @@ function hasMagicRank(sheet: CharacterSheet): boolean {
   return sheet.skills.some(s => s.kind === 'magic' && s.ranks > 0)
 }
 
-function AttachmentRow({ attachment, def, qualityDefinitions, funds, onDetach, onRemove, onSetDamageState, onRepair }: {
+function AttachmentRow({ attachment, def, qualityDefinitions, funds, onDetach, onRemove, onSetDamageState, onRepair, children, unavailable = false, busy = false }: {
+  busy?: boolean
+  children?: ReactNode
+  unavailable?: boolean
   attachment: CharacterAttachment
   def?: AttachmentDef
   qualityDefinitions?: Reference['qualities']
@@ -350,9 +188,9 @@ function AttachmentRow({ attachment, def, qualityDefinitions, funds, onDetach, o
   onRepair?: (opts: { netAdvantages: number } | { costOverride: number; overrideReason: string }) => void
 }) {
   return (
-    <div className="attach-row">
+    <div className={`attach-row${unavailable ? ' unavailable' : ''}`}>
       <div>
-        <strong>{attachment.nameRu || attachment.name}</strong>
+        <strong>{localizedName(attachment)}</strong>
         {attachment.damageState !== 'undamaged' && (
           <span className={`chip damage-badge ${attachment.damageState}`}
             title={ITEM_DAMAGE_STATE_HINTS[attachment.damageState]}>
@@ -360,15 +198,21 @@ function AttachmentRow({ attachment, def, qualityDefinitions, funds, onDetach, o
           </span>
         )}
         <span className="muted small-text">
+          {def && <> · {ITEM_KIND_LABELS[def.hostKind]}</>}
           {' · '}{t('слотов', 'slots')} {attachment.hardPointCost}
           {attachment.isEnchantment && t(' · чары', ' · enchantment')}
           {attachment.price === null
             ? t(' · бесценно', ' · priceless')
-            : ` · ${attachment.price} 🪙`}
+            : <> · {attachment.price} <Icon name="coin" className="button-icon" /></>}
         </span>
         {def?.description && <div className="muted small-text">
-          <PropertyText text={def.description} qualities={qualityDefinitions} />
+          <PropertyText text={localizedDescription(def)} qualities={qualityDefinitions} />
         </div>}
+        {def?.source && <BookReference source={def.source} />}
+        {attachment.damageState !== 'undamaged' && <p className="warn-text small-text">
+          <Icon name="alert-triangle" className="button-icon" />{ITEM_DAMAGE_STATE_HINTS[attachment.damageState]}
+        </p>}
+        {children}
         {attachment.note && <div className="muted small-text">
           <PropertyText text={attachment.note} qualities={qualityDefinitions} />
         </div>}
@@ -382,6 +226,8 @@ function AttachmentRow({ attachment, def, qualityDefinitions, funds, onDetach, o
         )}
         {onSetDamageState && onRepair && (
           <DamageStateControls state={attachment.damageState} repair={attachment.repair}
+            disabled={busy}
+            showHint={false}
             funds={funds ?? 0}
             onSetState={onSetDamageState} onRepair={onRepair} />
         )}
@@ -389,14 +235,15 @@ function AttachmentRow({ attachment, def, qualityDefinitions, funds, onDetach, o
       <div className="attach-row-actions">
         {onDetach && (
           <>
-            <button className="small" onClick={() => onDetach('returned')}>{t('Снять', 'Detach')}</button>
-            <button className="small" title={t('Улучшение испорчено при снятии', 'Ruined while detaching')}
-              onClick={() => onDetach('destroyed')}>{t('Сломать', 'Destroy')}</button>
+            <button className="small" disabled={busy} onClick={() => onDetach('returned')}>{t('Снять', 'Detach')}</button>
+            <button className="small" disabled={busy} title={t('Испорчено при снятии', 'Ruined while detaching')} aria-label={t('Испорчено при снятии', 'Ruined while detaching')}
+              onClick={() => onDetach('destroyed')}><Icon name="trash" className="button-icon" /></button>
           </>
         )}
         {onRemove && (
-          <button className="danger small" title={t('Убрать из запаса', 'Remove from reserve')}
-            onClick={onRemove}>✕</button>
+          <button className="danger small" disabled={busy} title={t('Убрать из запаса', 'Remove from reserve')}
+            aria-label={t('Убрать из запаса', 'Remove from reserve')}
+            onClick={onRemove}><Icon name="close" className="button-icon" /></button>
         )}
       </div>
     </div>

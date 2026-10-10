@@ -1,16 +1,55 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { readRangeTrackerState, readSheetTab, writeRangeTrackerState, writeSheetTab, readSkillProgress, writeSkillProgress } from './uiPreferences'
+import { migrateSheetPreferences, readRangeTrackerState, readSheetTab, writeRangeTrackerState, writeSheetTab, readSkillProgress, writeSkillProgress, readWorkshopMode, writeWorkshopMode, readHeroicUses, writeHeroicUses } from './uiPreferences'
 
 describe('UI preferences persistence', () => {
   beforeEach(() => {
     for (const key of Object.keys(localStorage)) {
-      if (key.startsWith('genesysforge.skillProgress.') || key.startsWith('genesysforge.sheet-tab.') || key.startsWith('genesysforge.game-table.range.')) {
+      if (key.startsWith('genesysforge.')) {
         localStorage.removeItem(key)
       }
     }
   })
 
   afterEach(() => vi.restoreAllMocks())
+
+  it.each([['attachments', 'workshop', 'upgrades'], ['crafting', 'workshop', 'craft'], ['notes', 'bio', 'upgrades']])(
+    'migrates the old %s tab and saves its workshop mode', (oldTab, tab, mode) => {
+      localStorage.setItem('genesysforge.sheet-tab.c1', oldTab)
+      expect(readSheetTab('c1')).toBe(tab)
+      expect(readWorkshopMode('c1')).toBe(mode)
+      expect(localStorage.getItem('genesysforge.sheet-tab.c1')).toBe(oldTab)
+      migrateSheetPreferences('c1')
+      expect(localStorage.getItem('genesysforge.sheet-tab.c1')).toBe(tab)
+      writeWorkshopMode('c1', 'craft')
+      migrateSheetPreferences('c1')
+      expect(readSheetTab('c1')).toBe(tab)
+      expect(readWorkshopMode('c1')).toBe('craft')
+      expect(readWorkshopMode('c2')).toBe('upgrades')
+    },
+  )
+
+  it('stores heroic uses per character and recovers from invalid values', () => {
+    writeHeroicUses('c1', 2)
+    expect(readHeroicUses('c1')).toBe(2)
+    expect(readHeroicUses('c2')).toBe(0)
+    for (const value of ['-1', '1.5', 'NaN', 'Infinity', 'broken']) {
+      localStorage.setItem('genesysforge.heroic-uses.c2', value)
+      expect(readHeroicUses('c2')).toBe(0)
+    }
+    writeHeroicUses('c1', 0)
+    expect(readHeroicUses('c1')).toBe(0)
+    writeHeroicUses('c1', NaN)
+    expect(readHeroicUses('c1')).toBe(0)
+  })
+
+  it('keeps workshop and heroic controls usable when storage is unavailable', () => {
+    vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => { throw new Error('unavailable') })
+    vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => { throw new Error('unavailable') })
+    expect(readWorkshopMode('c1')).toBe('upgrades')
+    expect(readHeroicUses('c1')).toBe(0)
+    expect(() => writeWorkshopMode('c1', 'craft')).not.toThrow()
+    expect(() => writeHeroicUses('c1', 1)).not.toThrow()
+  })
 
   it('persists skill progression per character and defaults to the creation phase', () => {
     expect(readSkillProgress('new', true)).toBe(true)
@@ -35,10 +74,10 @@ describe('UI preferences persistence', () => {
 
   it('stores the last sheet tab separately for each character', () => {
     writeSheetTab('c1', 'inventory')
-    writeSheetTab('c2', 'notes')
+    writeSheetTab('c2', 'bio')
 
     expect(readSheetTab('c1')).toBe('inventory')
-    expect(readSheetTab('c2')).toBe('notes')
+    expect(readSheetTab('c2')).toBe('bio')
     expect(readSheetTab('c3')).toBe('sheet')
   })
 
@@ -66,4 +105,22 @@ describe('UI preferences persistence', () => {
       zones: {}, log: [], angles: {}, focusParticipantId: null,
     })
   })
+
+  it('reads legacy tabs without writing or overwriting a saved workshop mode', () => {
+    localStorage.setItem('genesysforge.sheet-tab.c1', 'attachments')
+    writeWorkshopMode('c1', 'craft')
+    const write = vi.spyOn(Storage.prototype, 'setItem')
+    expect(readSheetTab('c1')).toBe('workshop')
+    expect(readSheetTab('c1')).toBe('workshop')
+    expect(readWorkshopMode('c1')).toBe('craft')
+    expect(write).not.toHaveBeenCalled()
+    expect(localStorage.getItem('genesysforge.sheet-tab.c1')).toBe('attachments')
+  })
+
+  it('does not fail migration when storage is unavailable', () => {
+    vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => { throw new Error('unavailable') })
+    expect(() => migrateSheetPreferences('c1')).not.toThrow()
+    expect(readSheetTab('c1')).toBe('sheet')
+  })
+
 })

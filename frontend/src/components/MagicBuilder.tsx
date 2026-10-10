@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { magicActions } from '../utils/magicActions'
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { api } from '../api/client'
 import type {
   DicePool, GameSystem, ItemImplement, ItemRuneboundShard, KnowledgeRating, Quality, ShardSpellEffect,
@@ -22,6 +23,10 @@ import { magicAdvantageSpends } from '../utils/magicRoller'
 import { PropertyText } from './PropertyText'
 import { canonicalQualityName } from '../data/itemQualities'
 import { talentSpellEffects, type TalentSpellEffect } from '../utils/talentSpellEffects'
+import { Icon } from './Icon'
+import { FilterChip, CheckRow } from './content/ContentUi'
+import { MagicDirectionChips } from './MagicDirectionChips'
+import { BookReference } from './BookReference'
 
 export interface MagicSkillPool {
   name: string
@@ -53,6 +58,11 @@ export interface BuilderShard {
 }
 
 interface Props {
+  direction?: string
+  onDirectionChange?: (skill: string) => void
+  action?: string
+  onActionChange?: (action: string) => void
+  modeControl?: ReactNode
   characterId?: string
   campaignId?: string
   system: GameSystem
@@ -88,15 +98,19 @@ interface Props {
  */
 export function MagicBuilder({
   system, characterId, campaignId, characterSkills, knowledgeRating, implements: tools, shards,
-  onConfigureImplement, onConfigureLesserRune, onError, qualities, talents,
+  onConfigureImplement, onConfigureLesserRune, onError, qualities, talents, direction, onDirectionChange, action, onActionChange, modeControl,
 }: Props) {
   const { openRoller } = useDiceRoller()
   // Инструмент выбирается явно: на одну магическую проверку работает ровно один, и складывать
   // посох с палочкой правила не дают.
   const [implementItemId, setImplementItemId] = useState('')
   const [spells, setSpells] = useState<Spell[] | null>(null)
-  const [skill, setSkill] = useState('')
-  const [effectCode, setEffectCode] = useState('')
+  const [localSkill, setLocalSkill] = useState('')
+  const skill = direction ?? localSkill
+  const setSkill = (value: string) => { setLocalSkill(value); onDirectionChange?.(value) }
+  const [localEffectCode, setLocalEffectCode] = useState('')
+  const effectCode = action ?? localEffectCode
+  const setEffectCode = (value: string) => { setLocalEffectCode(value); onActionChange?.(value) }
   // Сколько раз выбран каждый эффект. Дистанцию и Размер книга разрешает добавлять несколько раз,
   // и каждое добавление снова стоит своей надбавки — множеством это не выражается.
   const [counts, setCounts] = useState<Record<string, number>>({})
@@ -336,12 +350,6 @@ export function MagicBuilder({
       return next
     })
   }
-  /** Нажатие по чипу: у повторяемого эффекта добавляет ещё одно, у обычного — включает и выключает. */
-  const toggle = (effect: Spell) => {
-    if (effectiveCount(effect) > 0 && !effect.repeatable) remove(effect)
-    else add(effect)
-  }
-
   const buildText = (): string => {
     if (!selectedEffect) return ''
     const lines = [
@@ -396,74 +404,20 @@ export function MagicBuilder({
     )
   }
 
-  return (
-    <div className="magic-builder">
-      <section className="panel">
-        <div className="spells-head">
-          <h3>{t('Сборка магического действия', 'Build a magic action')}</h3>
-          <div className="spells-selectors">
-            <label className="inline-label">{t('Направление', 'School')}
-              <select value={activeSkill} onChange={e => setSkill(e.target.value)}>
-                {skills.map(s => <option key={s} value={s}>{magicSkillLabel(s)}</option>)}
-              </select>
-            </label>
-            <label className="inline-label">{t('Базовый эффект', 'Base effect')}
-              <select value={activeEffectCode} onChange={e => setEffectCode(e.target.value)}>
-                {/* Опциональная книга помечена прямо в списке: игрок должен видеть, что берёт
-                    контент Expanded Player's Guide, а не базовые правила (ROT-MAG-01). */}
-                {baseEffects.map(e => (
-                  <option key={e.id} value={e.nameEn}>
-                    {t(e.nameRu, e.nameEn)}{e.isOptional ? ' · EPG' : ''}
-                  </option>
-                ))}
-              </select>
-            </label>
-          </div>
-        </div>
-        {charPool && (
-          <div className="muted small-text">
-            {t(`Ваш пул для «${magicSkillLabel(activeSkill)}»:`, `Your pool for “${magicSkillLabel(activeSkill)}”:`)} <DicePoolView
-              pool={charPool}
-              boost={activeCharacterSkill?.removeBoosts
-                ? 0
-                : (activeCharacterSkill?.boostDice ?? 0) + toolBoost}
-              setback={(activeCharacterSkill?.setbackDice ?? 0) + toolDamageSetback}
-              difficulty={activeCharacterSkill?.difficultyDice}
-              difficultyUpgrades={activeCharacterSkill?.difficultyUpgrades} />
-          </div>
-        )}
-        {/* Откуда берётся рейтинг свойств (ROT-MAG-10). Выбор показывается только тогда, когда он
-            действительно есть: «Тёмное прозрение» разрешает считать по Запретному знанию. */}
-        {activeRating && ratingMatters && (
-          <div className={`magic-rating small-text${ratingOptions.length > 1 ? ' has-selector' : ''}`}>
-            {ratingOptions.length > 1
-              ? (
-                <>
-                  <label className="inline-label">{t('Рейтинг по навыку', 'Rating from')}
-                    <select value={activeRating.skill} onChange={e => setRatingSkill(e.target.value)}>
-                      {ratingOptions.map(o => (
-                        <option key={o.skill} value={o.skill}>
-                          {t(o.skillRu, o.skill)} · {o.ranks}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                  <span className="muted magic-rating-note">
-                    {t('«Тёмное прозрение» разрешает считать рейтинг по Запретному знанию.',
-                      'Dark Insight lets the rating come from Knowledge (Forbidden).')}
-                  </span>
-                </>
-              )
-              : (
-                <span className="muted">
-                  {t(`Рейтинг свойств: ${activeRating.skillRu} ${activeRating.ranks}`,
-                    `Quality rating: ${activeRating.skill} ${activeRating.ranks}`)}
-                  {activeRating.ranks === 0 && t(' — рангов нет, рейтинг 0.', ' — no ranks, rating 0.')}
-                </span>
-              )}
-          </div>
-        )}
-
+  const actions = magicActions(spells, activeSkill)
+  return <div className="magic-builder">
+    <div className="sheet-mode-header">{modeControl}<MagicDirectionChips skills={skills} activeSkill={activeSkill} onChange={setSkill} characterSkills={characterSkills} /></div>
+    <div className="magic-build-layout sheet-two-column">
+      <div className="magic-builder-main">
+        <h4>{t('Действие', 'Action')}</h4><div className="sheet-choice-grid magic-actions">{actions.map(a => {
+          const available = baseEffects.some(e => e.nameEn === a.nameEn)
+          return <button key={a.nameEn} className={`sheet-choice-card${a.nameEn === activeEffectCode ? ' selected' : ''}`} aria-pressed={a.nameEn === activeEffectCode} disabled={!available}
+            title={available ? localizedDescription(a) : t(`Направление «${magicSkillLabel(activeSkill)}» этого не умеет`, `The ${magicSkillLabel(activeSkill)} school cannot do this`)} onClick={() => setEffectCode(a.nameEn)}>
+            <strong>{t(a.nameRu, a.nameEn)}{a.isOptional && ' · EPG'}</strong><small className={available ? '' : 'danger-text'}>{available ? `${difficultyLabel(a.difficultyIncrease)} (${a.difficultyIncrease})` : t('недоступно', 'unavailable')}</small>
+          </button>
+        })}</div>
+        <h4>{t('Инструмент в руках', 'Implement in hand')}</h4>
+        {activeSkill !== 'Runes' && (!tools || !tools.length) && <div className="sheet-chips"><FilterChip active onClick={() => setImplementItemId('')}>{t('Без инструмента', 'No implement')}</FilterChip></div>}
         {/* Для Runes выбирается shard; обычные implements с этим навыком не работают. */}
         {activeSkill === 'Runes' && characterSkills && !canUseShard && (
           <div className="damage-warn small-text">
@@ -479,12 +433,10 @@ export function MagicBuilder({
         )}
         {activeSkill === 'Runes' && canUseShard && shards && shards.length > 0 && (
           <div className="magic-implement small-text">
-            <label className="inline-label">{t('Runebound shard', 'Runebound shard')}
-              <select value={selectedImplementItemId} onChange={e => setImplementItemId(e.target.value)}>
-                <option value="">{t('— без руны —', '— none —')}</option>
-                {shards.map(x => <option key={x.itemId} value={x.itemId}>{x.name}</option>)}
-              </select>
-            </label>
+            <div className="sheet-chips" role="group" aria-label={t('Runebound shard', 'Runebound shard')}>
+              <FilterChip active={!selectedImplementItemId} onClick={() => setImplementItemId('')}>{t('Без руны', 'No shard')}</FilterChip>
+              {shards!.map(x => <FilterChip key={x.itemId} active={selectedImplementItemId === x.itemId} onClick={() => setImplementItemId(x.itemId)}>{x.name}</FilterChip>)}
+            </div>
             {activeShard && (
               <span className="implement-summary muted">
                 {!activeShard.shard.pending && activeShard.shard.spec.attackDamageBonus > 0
@@ -523,16 +475,10 @@ export function MagicBuilder({
         )}
         {activeSkill !== 'Runes' && tools && tools.length > 0 && (
           <div className="magic-implement small-text">
-            <label className="inline-label">{t('Инструмент', 'Implement')}
-              <select value={selectedImplementItemId} onChange={e => setImplementItemId(e.target.value)}>
-                <option value="">{t('— без инструмента —', '— none —')}</option>
-                {tools.map(x => (
-                  <option key={x.itemId} value={x.itemId}>
-                    {x.name} · {IMPLEMENT_MATERIAL_LABELS[x.implement.material]}
-                  </option>
-                ))}
-              </select>
-            </label>
+            <div className="sheet-chips" role="group" aria-label={t('Инструмент', 'Implement')}>
+              <FilterChip active={!selectedImplementItemId} onClick={() => setImplementItemId('')}>{t('Без инструмента', 'No implement')}</FilterChip>
+              {tools!.map(x => <FilterChip key={x.itemId} active={selectedImplementItemId === x.itemId} onClick={() => setImplementItemId(x.itemId)}>{x.name} · {IMPLEMENT_MATERIAL_LABELS[x.implement.material]}</FilterChip>)}
+            </div>
             {/* Свойство материала срабатывает как раз в момент броска, поэтому памятка стоит
                 рядом с выбранным инструментом (ROT-MAG-MAT-01). */}
             {activeTool && (
@@ -588,10 +534,68 @@ export function MagicBuilder({
             }).join(', ')}
           </div>
         )}
-      </section>
 
+        <h4 className="sheet-section-title">{t('Дополнительные эффекты', 'Additional effects')} <small>{t(`выбрано ${chosen.length} из ${additional.length}`, `${chosen.length} of ${additional.length} selected`)}</small></h4>
+        {/* Откуда берётся рейтинг свойств (ROT-MAG-10). Выбор показывается только тогда, когда он
+            действительно есть: «Тёмное прозрение» разрешает считать по Запретному знанию. */}
+        {activeRating && ratingMatters && (
+          <div className={`magic-rating small-text${ratingOptions.length > 1 ? ' has-selector' : ''}`}>
+            {ratingOptions.length > 1
+              ? (
+                <>
+                  <label className="inline-label">{t('Рейтинг по навыку', 'Rating from')}
+                    <select value={activeRating.skill} onChange={e => setRatingSkill(e.target.value)}>
+                      {ratingOptions.map(o => (
+                        <option key={o.skill} value={o.skill}>
+                          {t(o.skillRu, o.skill)} · {o.ranks}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <span className="muted magic-rating-note">
+                    {t('«Тёмное прозрение» разрешает считать рейтинг по Запретному знанию.',
+                      'Dark Insight lets the rating come from Knowledge (Forbidden).')}
+                  </span>
+                </>
+              )
+              : (
+                <span className="muted">
+                  {t(`Рейтинг свойств: ${activeRating.skillRu} ${activeRating.ranks}`,
+                    `Quality rating: ${activeRating.skill} ${activeRating.ranks}`)}
+                  {activeRating.ranks === 0 && t(' — рангов нет, рейтинг 0.', ' — no ranks, rating 0.')}
+                </span>
+              )}
+          </div>
+        )}
+
+
+        {!additional.length && <p className="muted">{t('У этого базового эффекта нет дополнительных эффектов.', 'This base effect has no additional effects.')}</p>}
+        <div className="magic-effect-list">{additional.map(a => {
+          const unavailable = !availableToSkill(a)
+          const conflicting = conflicts(a)
+          const count = unavailable ? 0 : effectiveCount(a)
+          const mandatory = mandatoryCodes.has(a.nameEn)
+          const overCap = selectedEffect != null && wouldExceedCap(a)
+          const blocked = buildInvalid || unavailable || conflicting.length > 0 || (!count && overCap) || mandatory
+          const free = freeEffectCodes.includes(a.nameEn)
+          const conflictNames = conflicting.map(code => t(additional.find(x => x.nameEn === code)?.nameRu || code, code)).join(', ')
+          const reason = unavailable ? t(`только для: ${a.allowedSkills.map(magicSkillLabel).join(', ')}`, `only for: ${a.allowedSkills.map(magicSkillLabel).join(', ')}`)
+            : conflicting.length ? t(`не сочетается с: ${conflictNames}`, `not compatible with: ${conflictNames}`)
+              : overCap && (!count || a.repeatable) ? t(`превысит потолок сложности ${MAX_SPELL_DIFFICULTY}`, `would exceed the difficulty cap of ${MAX_SPELL_DIFFICULTY}`) : ''
+          return <div key={a.id} className={`magic-effect-row${blocked ? ' blocked' : ''}`}>
+            <CheckRow checked={count > 0} disabled={blocked} label={t(a.nameRu, a.nameEn)} onChange={on => { if (on) add(a); else { setCounts(prev => ({ ...prev, [a.id]: 0 })) } }}
+              meta={<><span className="accent-text">{ratingLabel(a) && <PropertyText text={ratingLabel(a)} qualities={qualities} />}{free && t(' · бесплатно', ' · free')}{a.repeatable && t(' · повторяемый', ' · repeatable')}{mandatory && t(' · обязательно', ' · mandatory')}</span>
+                {reason ? <span className="warn-text"><Icon name="lock" className="button-icon" />{reason}</span> : <PropertyText text={localizedDescription(a)} qualities={qualities} />}
+                {free && <span>{talentFreeEffectCodes.includes(a.nameEn) ? t('Талант делает этот эффект бесплатным.', 'A talent makes this effect free.') : t('Инструмент делает этот эффект бесплатным.', 'The implement makes this effect free.')}</span>}
+                <BookReference source={a.source} /></>}
+              suffix={<div className="magic-effect-cost">{free ? <s>{a.difficulty}</s> : <strong>{a.difficulty}</strong>}
+                {a.repeatable && count > 0 && <div className="form-actions"><button aria-label={t(`Убрать эффект «${a.nameRu}»`, `Remove effect “${a.nameEn}”`)} disabled={mandatory} onClick={() => remove(a)}>−</button><span>×{count}</span>
+                  <button aria-label={t(`Повторить эффект «${a.nameRu}»`, `Repeat effect “${a.nameEn}”`)} disabled={buildInvalid || unavailable || conflicting.length > 0 || overCap} onClick={() => add(a)}>+</button></div>}</div>} />
+          </div>
+        })}</div>
+      </div>
       {selectedEffect && (
-        <section className="panel magic-result">
+        <section className="sheet-result-card sheet-sticky magic-result">
           {buildInvalid && (
             <div className="damage-warn">
               {shardRequired
@@ -601,6 +605,7 @@ export function MagicBuilder({
                     'Invalid build: a mandatory free effect is missing or conflicts with a selected effect.')}
             </div>
           )}
+          <h4>{magicSkillLabel(activeSkill)} · {t('магическое действие', 'magic action')}</h4>
           <div className="spell-detail-head">
             <h3>{t(selectedEffect.nameRu, selectedEffect.nameEn)} <span className="muted">· {t(selectedEffect.nameEn, selectedEffect.nameRu)}</span></h3>
             <span className="difficulty-badge big">
@@ -629,6 +634,11 @@ export function MagicBuilder({
               {t(`Достигнут потолок сложности ${MAX_SPELL_DIFFICULTY} — новые эффекты добавить нельзя.`, `The difficulty cap of ${MAX_SPELL_DIFFICULTY} is reached — no more effects can be added.`)}
             </div>
           )}
+          {characterSkills && <div className="magic-pool-row"><span>{t('Пул', 'Pool')}</span>{charPool ? <><DicePoolView pool={charPool}
+            boost={activeCharacterSkill?.removeBoosts ? 0 : (activeCharacterSkill?.boostDice ?? 0) + toolBoost}
+            setback={(activeCharacterSkill?.setbackDice ?? 0) + toolDamageSetback} difficulty={activeCharacterSkill?.difficultyDice} difficultyUpgrades={activeCharacterSkill?.difficultyUpgrades} />
+            <small className="muted">{t(`Характеристика ${activeCharacterSkill?.characteristicValue} · ранг ${activeCharacterSkill?.ranks}`, `Characteristic ${activeCharacterSkill?.characteristicValue} · rank ${activeCharacterSkill?.ranks}`)}</small></> : <small className="muted">{t('Навыка нет', 'No skill')}</small>}</div>}
+          {magicDamage && <div className="sheet-card-heading"><span>{t('Урон', 'Damage')}</span><b className="accent-text">{magicDamage.base} + {t('успехи', 'successes')}</b></div>}
           {chosen.length > 0 && (
             <div className="chips effect-summary">
               {/* По одному чипу на эффект, даже если он добавлен несколько раз: крестик снимает
@@ -650,7 +660,7 @@ export function MagicBuilder({
             </div>
           )}
           <p><PropertyText text={localizedDescription(selectedEffect)} qualities={qualities} /></p>
-          <div className="muted small-text">{t('Источник:', 'Source:')} {selectedEffect.source}</div>
+          <BookReference source={selectedEffect.source} />
           {!buildInvalid && (
             <div className="card-actions">
               {activeCharacterSkill && (
@@ -677,141 +687,19 @@ export function MagicBuilder({
                       ? magicAdvantageSpends(selectedEffect, chosen)
                       : [],
                   })}>
-                  {t('🎲 Бросить', '🎲 Roll')}
+                  <Icon name="dice-5" className="button-icon" />{t('Бросить', 'Roll')}
                 </button>
               )}
               <CopyButton key={buildText()} text={buildText()} onError={onError} />
-              <button className="small" onClick={() => setPrinting(true)}>{t('🖨 Печать карточки', '🖨 Print card')}</button>
+              <button className="small" onClick={() => setPrinting(true)}><Icon name="printer" className="button-icon" />{t('Печать', 'Print')}</button>
             </div>
           )}
         </section>
       )}
 
-      <section className="panel">
-        <div className="spells-head">
-          <h3>{t('Дополнительные эффекты', 'Additional effects')} {additional.length ? t(`(выбрано ${chosen.length} из ${additional.length})`, `(${chosen.length} of ${additional.length} selected)`) : ''}</h3>
-          {capReached && additional.length > 0 && (
-            <span className="difficulty-badge cap">{t(`потолок ${MAX_SPELL_DIFFICULTY} достигнут`, `cap of ${MAX_SPELL_DIFFICULTY} reached`)}</span>
-          )}
-        </div>
-        <p className="hint">
-          {t(
-            `Каждый эффект повышает сложность на «+N». Итоговая сложность не может превышать ${MAX_SPELL_DIFFICULTY} — недоступные эффекты подсвечены и не добавляются.`,
-            `Each effect raises the difficulty by “+N”. The total difficulty cannot exceed ${MAX_SPELL_DIFFICULTY} — unavailable effects are highlighted and cannot be added.`,
-          )}
-        </p>
-        {additional.length === 0
-          ? <p className="muted">{t('У этого базового эффекта нет дополнительных эффектов.', 'This base effect has no additional effects.')}</p>
-          : (
-            <>
-              <div className="chips effect-chips">
-                {additional.map(a => {
-                  const unavailable = !availableToSkill(a)
-                  const conflicting = conflicts(a)
-                  const count = unavailable ? 0 : effectiveCount(a)
-                  const on = count > 0
-                  // Повторяемый эффект добавляется снова, поэтому потолок его касается всегда,
-                  // а не только при первом выборе.
-                  const overCap = (!on || a.repeatable) && selectedEffect != null && wouldExceedCap(a)
-                  const mandatory = mandatoryCodes.has(a.nameEn)
-                  const blocked = buildInvalid || unavailable || conflicting.length > 0 || overCap || mandatory
-                  // Источник бесплатного эффекта виден на самом чипе, а не только в итоговой
-                  // сложности: это может быть инструмент, руна или талант.
-                  const freeByTool = toolFreeEffectCodes.includes(a.nameEn)
-                  const freeByTalent = talentFreeEffectCodes.includes(a.nameEn)
-                  const freeBySource = freeEffectCodes.includes(a.nameEn)
-                  const description = localizedDescription(a)
-                  const freeNote = freeByTalent
-                    ? t('\nТалант делает этот эффект бесплатным.',
-                      '\nA talent makes this effect free.')
-                    : freeByTool
-                      ? t('\nИнструмент делает этот эффект бесплатным.',
-                        '\nThe implement makes this effect free.')
-                    : ''
-                  // Причина недоступности называется прямо: иначе непонятно, эффект вообще не для
-                  // этого направления, мешает уже выбранный или дело в потолке сложности.
-                  const conflictNames = conflicting
-                    .map(code => t(additional.find(x => x.nameEn === code)?.nameRu || code, code))
-                    .join(', ')
-                  const title = unavailable
-                    ? t(`Недоступно направлению «${magicSkillLabel(activeSkill)}»: эффект только для ${a.allowedSkills.map(magicSkillLabel).join(', ')}`,
-                        `Unavailable for ${magicSkillLabel(activeSkill)}: this effect is ${a.allowedSkills.map(magicSkillLabel).join(', ')} only`)
-                    : conflicting.length > 0
-                      ? t(`Не сочетается с выбранным: ${conflictNames}`,
-                          `Cannot be combined with the selected ${conflictNames}`)
-                      : overCap
-                        ? t(`Недоступно: базовая ${baseDifficulty} + выбранные ${added} + ${a.difficulty} превысит потолок ${MAX_SPELL_DIFFICULTY}`,
-                            `Unavailable: base ${baseDifficulty} + selected ${added} + ${a.difficulty} would exceed the cap of ${MAX_SPELL_DIFFICULTY}`)
-                        : `${t(a.nameEn, a.nameRu)} · ${a.difficulty}${description ? ` — ${description}` : ''}${freeNote}`
-                  return (
-                    <button key={a.id} type="button"
-                      className={`chip effect-chip${on ? ' active' : ''}${blocked ? ' blocked' : ''}${freeBySource ? ' free' : ''}`}
-                      disabled={blocked}
-                      aria-pressed={on}
-                      title={a.repeatable && on
-                        ? t(`${title}\nМожно добавлять несколько раз; убрать — крестиком.`,
-                          `${title}\nCan be added several times; remove with the ×.`)
-                        : title}
-                      onClick={() => toggle(a)}>
-                      {t(a.nameRu, a.nameEn)}{' '}
-                      <span className="effect-chip-diff">
-                        {/* Зачёркнутая надбавка вместо просто «+1»: инструмент её снимает. */}
-                        {freeBySource ? <s>{a.difficulty}</s> : a.difficulty}
-                      </span>
-                      {/* Дистанцию и Размер книга разрешает добавлять несколько раз — счётчик
-                          показывает, сколько уже добавлено. */}
-                      {count > 1 && <span className="effect-chip-count"> ×{count}</span>}
-                      {freeBySource && <span className="effect-chip-free"> {t('бесплатно', 'free')}</span>}
-                      {mandatory && <span className="effect-chip-free"> {t('обязательно', 'mandatory')}</span>}
-                      {/* Рейтинг по Знанию — числом на чипе, а не отсылкой «равен рангу Знания». */}
-                      {ratingLabel(a) && (
-                        <span className="effect-chip-rating"> · <PropertyText text={ratingLabel(a)} qualities={qualities} /></span>
-                      )}
-                      {/* Ограничение видно на самом чипе: подсказка по наведению есть не везде. */}
-                      {unavailable && (
-                        <span className="effect-chip-only">
-                          {' '}{t(`только ${a.allowedSkills.map(magicSkillLabel).join('/')}`,
-                            `${a.allowedSkills.map(magicSkillLabel).join('/')} only`)}
-                        </span>
-                      )}
-                    </button>
-                  )
-                })}
-              </div>
-              <details className="effect-descriptions">
-                <summary>{t('Описания эффектов', 'Effect descriptions')} ({additional.length})</summary>
-                <ul>
-                  {additional.map(a => (
-                    <li key={a.id}>
-                      <strong>{t(a.nameRu, a.nameEn)}</strong> <span className="muted small-text">{t(a.nameEn, a.nameRu)}</span>{' '}
-                      <span className="effect-chip-diff">{a.difficulty}</span>
-                      {/* Кому эффект доступен и с чем не сочетается — рядом с описанием, а не внутри него. */}
-                      {a.restrictedSkill && (
-                        <span className="muted small-text">
-                          {' '}· {t(`только ${magicSkillLabel(a.restrictedSkill)}`,
-                            `${magicSkillLabel(a.restrictedSkill)} only`)}
-                        </span>
-                      )}
-                      {ratingLabel(a) && (
-                        <span className="muted small-text"> · <PropertyText text={ratingLabel(a)} qualities={qualities} /></span>
-                      )}
-                      {a.exclusions.length > 0 && (
-                        <span className="muted small-text">
-                          {' '}· {t('не сочетается с', 'not combinable with')}{' '}
-                          {a.exclusions.map(code => t(
-                            additional.find(x => x.nameEn === code)?.nameRu || code, code)).join(', ')}
-                        </span>
-                      )}
-                      <div className="small-text"><PropertyText text={localizedDescription(a)} qualities={qualities} /></div>
-                    </li>
-                  ))}
-                </ul>
-              </details>
-            </>
-          )}
-      </section>
+
     </div>
-  )
+  </div>
 }
 
 /** Кнопка копирования карточки. Перемонтируется по key=text, поэтому «Скопировано ✓» само сбрасывается. */
@@ -825,7 +713,7 @@ function CopyButton({ text, onError }: { text: string; onError: (m: string) => v
       onError(t('Не удалось скопировать в буфер обмена.', 'Could not copy to the clipboard.'))
     }
   }
-  return <button className="primary small" onClick={copy}>{copied ? t('Скопировано ✓', 'Copied ✓') : t('Скопировать карточку', 'Copy card')}</button>
+  return <button className="small" onClick={copy}><Icon name={copied ? 'check' : 'copy'} className="button-icon" />{copied ? t('Скопировано', 'Copied') : t('Копировать', 'Copy')}</button>
 }
 
 /**

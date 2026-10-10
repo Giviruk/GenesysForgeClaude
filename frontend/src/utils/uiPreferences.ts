@@ -1,8 +1,7 @@
 import type { RangeZone } from '../api/types'
 
 export const SHEET_TABS = [
-  'sheet', 'talents', 'heroic', 'inventory', 'attachments', 'transport', 'crafting', 'magic',
-  'bio', 'history', 'notes',
+  'sheet', 'talents', 'inventory', 'magic', 'heroic', 'workshop', 'transport', 'bio', 'history',
 ] as const
 
 export type CharacterSheetTab = typeof SHEET_TABS[number]
@@ -32,14 +31,51 @@ const isRangeZone = (value: unknown): value is RangeZone =>
 export function readSheetTab(characterId: string): CharacterSheetTab {
   try {
     const value = localStorage.getItem(sheetTabKey(characterId))
+    if (value === 'attachments' || value === 'crafting') return 'workshop'
+    if (value === 'notes') return 'bio'
     return isSheetTab(value) ? value : 'sheet'
   } catch {
     return 'sheet'
   }
 }
 
+/** Run when opening an owned sheet; readers (including campaign views) never write. */
+export function migrateSheetPreferences(characterId: string): void {
+  try {
+    const value = localStorage.getItem(sheetTabKey(characterId))
+    if (value === 'attachments' || value === 'crafting') {
+      writeWorkshopMode(characterId, value === 'crafting' ? 'craft' : 'upgrades')
+      writeSheetTab(characterId, 'workshop')
+    } else if (value === 'notes') {
+      writeSheetTab(characterId, 'bio')
+    }
+  } catch { /* storage unavailable */ }
+}
+
 export function writeSheetTab(characterId: string, tab: CharacterSheetTab): void {
   try { localStorage.setItem(sheetTabKey(characterId), tab) } catch { /* storage unavailable */ }
+}
+
+export type WorkshopMode = 'upgrades' | 'craft'
+export function readWorkshopMode(characterId: string): WorkshopMode {
+  try {
+    const value = localStorage.getItem(`genesysforge.workshop-mode.${characterId}`)
+    if (value === 'craft' || value === 'upgrades') return value
+    return localStorage.getItem(sheetTabKey(characterId)) === 'crafting' ? 'craft' : 'upgrades'
+  }
+  catch { return 'upgrades' }
+}
+export function writeWorkshopMode(characterId: string, mode: WorkshopMode): void {
+  try { localStorage.setItem(`genesysforge.workshop-mode.${characterId}`, mode) } catch { /* storage unavailable */ }
+}
+export function readHeroicUses(characterId: string): number {
+  try {
+    const value = Number(localStorage.getItem(`genesysforge.heroic-uses.${characterId}`))
+    return Number.isSafeInteger(value) && value >= 0 ? value : 0
+  } catch { return 0 }
+}
+export function writeHeroicUses(characterId: string, used: number): void {
+  try { localStorage.setItem(`genesysforge.heroic-uses.${characterId}`, String(Number.isFinite(used) ? Math.max(0, Math.trunc(used)) : 0)) } catch { /* storage unavailable */ }
 }
 
 export function readRangeTrackerState(

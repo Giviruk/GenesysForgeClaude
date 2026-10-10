@@ -16,6 +16,9 @@ import {
 import { t } from '../i18n'
 import { PropertyText } from './PropertyText'
 import { canonicalQualityName } from '../data/itemQualities'
+import { Icon } from './Icon'
+import { FilterChip } from './content/ContentUi'
+import { readHeroicUses, writeHeroicUses } from '../utils/uiPreferences'
 
 interface Props {
   sheet: CharacterSheet
@@ -47,12 +50,11 @@ export function HeroicTab({ sheet, reference, onError, refresh }: Props) {
   }
 
   return (
-    <section className="panel">
-      <h3>{t('Героическая способность', 'Heroic ability')}</h3>
+    <div className="heroic-tab">
       {sheet.heroicAbility ? (
-        <HeroicAbilityCard sheet={sheet} reference={reference} run={run} />
+        <HeroicAbilityCard key={sheet.id} sheet={sheet} reference={reference} run={run} />
       ) : (
-        <>
+        <section className="heroic-ability-card panel"><h3><Icon name="crown" className="button-icon" />{t('Героическая способность', 'Heroic ability')}</h3>
           <div className="inline-form">
             <select value={heroicPick} onChange={e => setHeroicPick(e.target.value)}>
               <option value="" disabled>{t('— выберите способность —', '— pick an ability —')}</option>
@@ -77,9 +79,9 @@ export function HeroicTab({ sheet, reference, onError, refresh }: Props) {
               </div>
             )
           })()}
-        </>
+        </section>
       )}
-    </section>
+    </div>
   )
 }
 
@@ -93,6 +95,12 @@ function HeroicAbilityCard({ sheet, reference, run }: {
   const rank = upgrades.powerRank
   const total = sheet.heroicUpgradePointsTotal
   const available = total - sheet.heroicUpgradePointsSpent
+  const [used, setUsed] = useState(() => readHeroicUses(sheet.id))
+  const [activating, setActivating] = useState(false)
+  const usesTotal = 1 + upgrades.frequencyRanks
+  const remaining = Math.max(0, usesTotal - used)
+  const upgradesLocked = sheet.heroicIdentityIncomplete || sheet.heroicConfigurationIncomplete
+  const weaponNeedsChoice = sheet.heroicConfiguration?.signatureWeapon?.improvement === 'none' && rank >= 1
   const [outcome, setOutcome] = useState<ActivateCharacterAbilityResult | null>(null)
   const selectedEffectIds = upgrades.secondaryEffects.map(x => x.id)
 
@@ -108,46 +116,49 @@ function HeroicAbilityCard({ sheet, reference, run }: {
   }
 
   async function activate() {
-    await run(async () => { setOutcome(await api.activateCharacterAbility(sheet.id)) })
+    if (activating || !remaining) return
+    setActivating(true)
+    try { await run(async () => {
+      const result = await api.activateCharacterAbility(sheet.id)
+      setOutcome(result)
+      setUsed(prev => { const next = prev + 1; writeHeroicUses(sheet.id, next); return next })
+    }) } finally { setActivating(false) }
   }
-  const meta: [string, string][] = [
-    [t('Активация', 'Activation'), [
-      upgrades.story ? t('1 очко сюжета', '1 Story Point') : h.activationCost,
-      h.activation,
-    ].filter(Boolean).join(' · ')],
-    [t('Длительность', 'Duration'), upgrades.durationRanks > 0
-      ? t(`${h.duration} · +${upgrades.durationRanks} ход.`, `${h.duration} · +${upgrades.durationRanks} turn(s)`)
-      : h.duration],
-    [t('Частота', 'Frequency'), upgrades.frequencyRanks > 0
-      ? t(`${1 + upgrades.frequencyRanks} раз за сессию`, `${1 + upgrades.frequencyRanks} times per session`)
-      : h.frequency],
-    [t('Требование', 'Requirement'), h.requirement && h.requirement !== '—' ? h.requirement : ''],
+  const meta = [
+    { label: t('Активация', 'Activation'), value: upgrades.story ? t('1 очко сюжета', '1 Story Point') : h.activationCost, improved: upgrades.story ? t('улучшено: Сюжет', 'upgraded: Story') : '' },
+    { label: t('Тип', 'Type'), value: h.activation, improved: '' },
+    { label: t('Длительность', 'Duration'), value: h.duration, improved: upgrades.durationRanks ? t(`улучшено: +${upgrades.durationRanks} ход.`, `upgraded: +${upgrades.durationRanks} turns`) : '' },
+    { label: t('Частота', 'Frequency'), value: upgrades.frequencyRanks ? t(`${usesTotal} раз за сессию`, `${usesTotal} times per session`) : h.frequency, improved: upgrades.frequencyRanks ? t(`улучшено: +${upgrades.frequencyRanks}`, `upgraded: +${upgrades.frequencyRanks}`) : '' },
   ]
-
   return (
-    <div className="heroic">
-      <strong>{sheet.heroicIdentity?.customName || localizedName(h)}</strong>
-      {sheet.heroicIdentity?.customName && (
-        <div className="hint small-text">{t('Эффект:', 'Effect:')} {localizedName(h)}</div>
-      )}
-      {localizedDescription(h) && (
-        <>
-          <div className="hint small-text"><b>{t('Что даёт способность:', 'What the ability gives:')}</b></div>
-          <p>{localizedDescription(h)}</p>
-        </>
-      )}
-      <BookReference source={h.source} />
-      {meta.filter(([, v]) => v).map(([k, v]) => (
-        <div key={k} className="hint small-text"><b>{k}:</b> {v}</div>
-      ))}
-      {h.notes && <p className="hint small-text">{h.notes}</p>}
-
-      <HeroicIdentitySection sheet={sheet} run={run} />
-      <HeroicParameterSection sheet={sheet} reference={reference} run={run} />
-
-      <div className="heroic-upgrades">
+    <div className="heroic sheet-two-column">
+      <div className="heroic-main">
+        <section className="heroic-ability-card">
+          <h4><Icon name="crown" className="button-icon" />{t('Героическая способность · Terrinoth', 'Heroic ability · Terrinoth')}</h4>
+          <h3>{sheet.heroicIdentity?.customName || localizedName(h)}</h3>
+          <p className="muted small-text">{t('Эффект:', 'Effect:')} {localizedName(h)} · {h.source}</p>
+          {localizedDescription(h) && <p>{localizedDescription(h)}</p>}
+          <BookReference source={h.source} />
+          <div className="heroic-meta-grid">{meta.map(m => <div key={m.label}><small>{m.label}</small><strong>{m.value}</strong>{m.improved && <span>{m.improved}</span>}</div>)}</div>
+          {h.requirement && h.requirement !== '—' && <p className="hint small-text">{t('Требование:', 'Requirement:')} {h.requirement}</p>}
+          {h.notes && <p className="hint small-text">{h.notes}</p>}
+          <div className="heroic-activate">
+            <button className="heroic-activate-button" disabled={activating || !remaining} onClick={() => void activate()}><Icon name="bolt" className="button-icon" />{t('Активировать', 'Activate')}</button>
+            <div className="heroic-uses"><span className="heroic-dots" aria-hidden="true">{Array.from({ length: usesTotal }, (_, i) => <i className={i < remaining ? 'filled' : ''} key={i} />)}</span>
+              <small role="status">{remaining ? t(`осталось ${remaining} из ${usesTotal}`, `${remaining} of ${usesTotal} remaining`) : t('применения исчерпаны', 'uses exhausted')}</small></div>
+            <button className="heroic-session-reset" disabled={activating} onClick={() => { writeHeroicUses(sheet.id, 0); setUsed(0); setOutcome(null) }}>{t('Новая сессия', 'New session')}</button>
+            {outcome && <div className="heroic-activate-result small-text">{outcome.applied.map((v, i) => <div key={`a${i}`} className="success-text"><Icon name="check" className="button-icon" />{v}</div>)}
+              {outcome.manual.map((v, i) => <div key={`m${i}`} className="muted"><Icon name="hand-finger" className="button-icon" />{v}</div>)}</div>}
+          </div>
+          <HeroicIdentitySection sheet={sheet} run={run} />
+          {sheet.isCreationPhase && <button className="small" onClick={() => run(() => api.setHeroicAbility(sheet.id, null))}>{t('Сбросить способность', 'Reset ability')}</button>}
+        </section>
+        <HeroicParameterSection sheet={sheet} reference={reference} run={run} section="configuration" />
+      </div>
+      <aside className="heroic-upgrades sheet-result-card">
           <div className="label-line">
             {t(`Улучшения · очков доступно: ${available} из ${total}`, `Upgrades · points available: ${available} of ${total}`)}
+            <span className="heroic-dots" aria-hidden="true">{Array.from({ length: total }, (_, i) => <i key={i} className={i < available ? 'filled' : ''} />)}</span>
             <span className="hint"> {t('(по 1 за каждые 50 XP сверх стартового XP вида)', '(1 per 50 XP above species starting XP)')}</span>
           </div>
           {sheet.heroicIdentityIncomplete && (
@@ -162,13 +173,15 @@ function HeroicAbilityCard({ sheet, reference, run }: {
                 'Upgrades are locked until the ability parameter is chosen.')}
             </p>
           )}
+          <h4>{t('Сила', 'Power')}</h4>
+          <div className="heroic-power-level bought"><span className="heroic-level-dot"><Icon name="check" /></span><div><strong>{t('Базовая', 'Basic')}</strong> <small className="muted">{t('есть всегда', 'always available')}</small>{localizedDescription(h) && <p className="small-text muted">{localizedDescription(h)}</p>}</div></div>
           {h.upgrades.map(u => {
             const purchased = rank >= u.level
             const isNext = u.level === rank + 1
-            const canBuy = isNext && available >= u.cost
+            const canBuy = isNext && available >= u.cost && !upgradesLocked && !weaponNeedsChoice
             const isTop = purchased && u.level === rank
             return (
-              <div key={u.level} className={purchased ? 'heroic-upgrade bought' : 'heroic-upgrade'}>
+              <div key={u.level} className={`heroic-upgrade heroic-power-level${purchased ? ' bought' : isNext ? ' next' : ''}`}><span className="heroic-level-dot">{purchased ? <Icon name="check" /> : u.level + 1}</span><div>
                 <div className="heroic-upgrade-head">
                   <strong>{HEROIC_UPGRADE_LABELS[u.level] ?? t(`Уровень ${u.level}`, `Level ${u.level}`)}</strong>
                   <span className="hint"> · {u.cost} {t('очк.', 'pts')}</span>
@@ -179,7 +192,7 @@ function HeroicAbilityCard({ sheet, reference, run }: {
                       {t('Купить', 'Buy')}
                     </button>
                   )}
-                  {!purchased && isNext && !canBuy && <span className="hint"> {t('— не хватает очков', '— not enough points')}</span>}
+                  {!purchased && isNext && !canBuy && <span className="hint"> {upgradesLocked ? t('— сначала заполните способность', '— complete the ability first') : weaponNeedsChoice ? t('— сначала выбор выше', '— complete the choice above first') : t('— не хватает очков', '— not enough points')}</span>}
                   {!purchased && !isNext && <span className="hint"> {t('— сначала купите предыдущее', '— buy the previous one first')}</span>}
                   {isTop && sheet.isCreationPhase && (
                     <button className="small"
@@ -191,15 +204,17 @@ function HeroicAbilityCard({ sheet, reference, run }: {
                 <BookReference source={u.source || h.source} />
                 {localizedDescription(u) && <p>{localizedDescription(u)}</p>}
                 {u.notes && <p className="hint small-text">{u.notes}</p>}
-              </div>
+                {purchased && <HeroicParameterSection sheet={sheet} reference={reference} run={run} section={u.level === 1 ? 'improved' : 'supreme'} />}
+              </div></div>
             )
           })}
 
+          <h4>{t('Параметры', 'Parameters')}</h4>
           <div className="heroic-upgrade">
             <div className="heroic-upgrade-head">
               <strong>{t('Длительность', 'Duration')}</strong>
               <span className="hint"> · 1 {t('очк. за ранг', 'pt per rank')} · {t(`рангов: ${upgrades.durationRanks}`, `ranks: ${upgrades.durationRanks}`)}</span>
-              {available >= 1 && <button className="small primary" onClick={() => run(() => save({ durationRanks: upgrades.durationRanks + 1 }))}>{t('Купить', 'Buy')}</button>}
+              <button className="heroic-plus small" aria-label={t('Купить Длительность', 'Buy Duration')} title={available < 1 ? t('Не хватает очков', 'Not enough points') : undefined} disabled={available < 1 || upgradesLocked} onClick={() => run(() => save({ durationRanks: upgrades.durationRanks + 1 }))}>+</button>
               {sheet.isCreationPhase && upgrades.durationRanks > 0 && <button className="small" onClick={() => run(() => save({ durationRanks: upgrades.durationRanks - 1 }))}>{t('Вернуть', 'Refund')}</button>}
             </div>
             <BookReference source="Realms of Terrinoth, с. 79" />
@@ -210,7 +225,7 @@ function HeroicAbilityCard({ sheet, reference, run }: {
             <div className="heroic-upgrade-head">
               <strong>{t('Частота', 'Frequency')}</strong>
               <span className="hint"> · 2 {t('очк. за ранг', 'pts per rank')} · {t(`рангов: ${upgrades.frequencyRanks}`, `ranks: ${upgrades.frequencyRanks}`)}</span>
-              {available >= 2 && <button className="small primary" onClick={() => run(() => save({ frequencyRanks: upgrades.frequencyRanks + 1 }))}>{t('Купить', 'Buy')}</button>}
+              <button className="heroic-plus small" aria-label={t('Купить Частоту', 'Buy Frequency')} title={available < 2 ? t('Не хватает очков', 'Not enough points') : undefined} disabled={available < 2 || upgradesLocked} onClick={() => run(() => save({ frequencyRanks: upgrades.frequencyRanks + 1 }))}>+</button>
               {sheet.isCreationPhase && upgrades.frequencyRanks > 0 && <button className="small" onClick={() => run(() => save({ frequencyRanks: upgrades.frequencyRanks - 1 }))}>{t('Вернуть', 'Refund')}</button>}
             </div>
             <BookReference source="Realms of Terrinoth, с. 79" />
@@ -221,7 +236,7 @@ function HeroicAbilityCard({ sheet, reference, run }: {
             <div className="heroic-upgrade-head">
               <strong>{t('Сюжет', 'Story')}</strong><span className="hint"> · 1 {t('очк.', 'pt')}</span>
               {upgrades.story && <span className="badge">{t('куплено', 'purchased')}</span>}
-              {!upgrades.story && available >= 1 && <button className="small primary" onClick={() => run(() => save({ story: true }))}>{t('Купить', 'Buy')}</button>}
+              {!upgrades.story && <button className="heroic-plus small" aria-label={t('Купить Сюжет', 'Buy Story')} title={available < 1 ? t('Не хватает очков', 'Not enough points') : undefined} disabled={available < 1 || upgradesLocked} onClick={() => run(() => save({ story: true }))}>+</button>}
               {sheet.isCreationPhase && upgrades.story && <button className="small" onClick={() => run(() => save({ story: false }))}>{t('Вернуть', 'Refund')}</button>}
             </div>
             <BookReference source="Realms of Terrinoth, с. 79" />
@@ -232,13 +247,13 @@ function HeroicAbilityCard({ sheet, reference, run }: {
             <strong>{t(`Вторичные эффекты (${upgrades.secondaryEffects.length}/2)`, `Secondary effects (${upgrades.secondaryEffects.length}/2)`)}</strong>
             {reference.heroicSecondaryEffects.map(effect => {
               const selected = selectedEffectIds.includes(effect.id)
-              const canBuy = !selected && upgrades.secondaryEffects.length < 2 && available >= 1
+              const canBuy = !selected && upgrades.secondaryEffects.length < 2 && available >= 1 && !upgradesLocked
               return (
                 <div key={effect.id} className={selected ? 'heroic-upgrade bought' : 'heroic-upgrade'}>
                   <div className="heroic-upgrade-head">
                     <strong>{localizedName(effect)}</strong><span className="hint"> · 1 {t('очк.', 'pt')}</span>
                     {selected && <span className="badge">{t('куплено', 'purchased')}</span>}
-                    {canBuy && <button className="small primary" onClick={() => run(() => save({ secondaryEffects: [...upgrades.secondaryEffects, effect] }))}>{t('Купить', 'Buy')}</button>}
+                    {!selected && <button className="small" disabled={!canBuy} onClick={() => run(() => save({ secondaryEffects: [...upgrades.secondaryEffects, effect] }))}>{t('1 очк.', '1 pt')}</button>}
                     {selected && sheet.isCreationPhase && <button className="small" onClick={() => run(() => save({ secondaryEffects: upgrades.secondaryEffects.filter(x => x.id !== effect.id) }))}>{t('Вернуть', 'Refund')}</button>}
                   </div>
                   <BookReference source={effect.source} />
@@ -247,25 +262,7 @@ function HeroicAbilityCard({ sheet, reference, run }: {
               )
             })}
           </div>
-      </div>
-
-      {h.effects.length > 0 && (
-        <div className="heroic-activate">
-          <button className="small primary" onClick={() => void activate()}>{t('🎯 Активировать', '🎯 Activate')}</button>
-          {outcome && (
-            <div className="heroic-activate-result small-text">
-              {outcome.applied.map((a, i) => <div key={`a${i}`}>{a}</div>)}
-              {outcome.manual.map((m, i) => <div key={`m${i}`} className="muted">{m}</div>)}
-            </div>
-          )}
-        </div>
-      )}
-
-      {sheet.isCreationPhase && (
-        <button className="small" onClick={() => run(() => api.setHeroicAbility(sheet.id, null))}>
-          {t('Сбросить способность', 'Reset ability')}
-        </button>
-      )}
+      </aside>
     </div>
   )
 }
@@ -402,7 +399,8 @@ function WeaponTraitsPicker({ selected, onChange }: {
  * Выбирается вместе со способностью и после завершения создания не меняется; отдельная команда
  * замены остаётся доступной только для потерянного оружия.
  */
-export function HeroicParameterSection({ sheet, reference, run }: {
+export function HeroicParameterSection({ sheet, reference, run, section = 'all' }: {
+  section?: 'all' | 'configuration' | 'improved' | 'supreme'
   sheet: CharacterSheet
   reference: Reference
   run: (action: () => Promise<unknown>) => Promise<void>
@@ -443,8 +441,9 @@ export function HeroicParameterSection({ sheet, reference, run }: {
       : t('Именное оружие', 'Signature weapon')
 
   return (
-    <div className="heroic-parameter">
-      <div className="label-line">{title}</div>
+    <div className={`heroic-parameter${section === 'configuration' ? ' sheet-result-card heroic-weapon-card' : ''}`}>
+      {(section === 'all' || section === 'configuration') && <>
+      <h3>{config.kind === 'signatureWeapon' && <Icon name="sword" className="button-icon" />}{title}</h3>
 
       {config.kind === 'paragonSkill' && config.paragonSkillName && (
         <div className="hint small-text">
@@ -458,11 +457,11 @@ export function HeroicParameterSection({ sheet, reference, run }: {
       )}
       {weapon && (
         <div className="hint small-text">
-          {weapon.narrativeForm} · {SIGNATURE_WEAPON_PROFILE_LABELS[weapon.profile]}
+          <div className="sheet-card-heading"><strong>{weapon.narrativeForm}</strong><span className={weapon.isLost ? 'danger-text' : 'success-text'}>{weapon.isLost ? t('потеряно', 'lost') : t('в руках', 'in hand')}</span></div>
+          <div className="heroic-weapon-stats">{[[t('Урон', 'Damage'), weapon.damage], [t('Крит', 'Crit'), weapon.crit], [t('Дистанция', 'Range'), weapon.rangeBand], [t('Вес', 'Load'), weapon.encumbrance], [t('Слоты', 'Slots'), weapon.hardPoints]].map(([k, v]) => <div key={k}><small>{k}</small><b>{v}</b></div>)}</div>
+          {SIGNATURE_WEAPON_PROFILE_LABELS[weapon.profile]}
           {' · '}{WEAPON_CRAFTSMANSHIP_LABELS[weapon.craftsmanship]}
-          {' · '}{weapon.skillName} · {t('урон', 'damage')} {weapon.damage}
-          {' · '}{t('крит', 'crit')} {weapon.crit} · {weapon.rangeBand}
-          {' · '}{t('вес', 'enc')} {weapon.encumbrance} · HP {weapon.hardPoints}
+          {' · '}{weapon.skillName}
           {weapon.qualities.length > 0 && (
             <>
               {' · '}
@@ -474,7 +473,6 @@ export function HeroicParameterSection({ sheet, reference, run }: {
                 qualities={reference.qualities} />
             </>
           )}
-          {weapon.isLost && ` · ${t('потеряно', 'lost')}`}
           {weapon.baseAttachment && (
             <div>
               {t('Базовое улучшение:', 'Base attachment:')}{' '}
@@ -505,50 +503,44 @@ export function HeroicParameterSection({ sheet, reference, run }: {
         </div>
       )}
 
+      </>}
       {/* Improved и Supreme фиксируются при покупке: пока выбор не сделан, покупать дальше нельзя. */}
-      {config.kind === 'signatureWeapon' && weapon && sheet.heroicUpgradeRank >= 1 && (
+      {section !== 'configuration' && config.kind === 'signatureWeapon' && weapon && sheet.heroicUpgradeRank >= 1 && (
         <div className="heroic-weapon-upgrades">
-          {weapon.improvement === 'none' && (
+          {section !== 'supreme' && weapon.improvement === 'none' && (
             <div className="inline-form">
-              <select value={improvement} aria-label={t('Улучшение Improved', 'Improved upgrade')}
-                onChange={e => setImprovement(e.target.value as SignatureWeaponImprovement)}>
-                {(['none', 'reinforced', 'ancient'] as SignatureWeaponImprovement[]).map(v => (
-                  <option key={v} value={v} disabled={v === 'none'}>
-                    {SIGNATURE_WEAPON_IMPROVEMENT_LABELS[v]}
-                  </option>
-                ))}
-              </select>
+              <div className="sheet-chips" role="group" aria-label={t('Улучшение Improved', 'Improved upgrade')}>{(['reinforced', 'ancient'] as SignatureWeaponImprovement[]).map(v => <FilterChip key={v} active={improvement === v} onClick={() => setImprovement(v)}>{SIGNATURE_WEAPON_IMPROVEMENT_LABELS[v]}</FilterChip>)}</div>
               <button className="small primary" disabled={improvement === 'none'}
                 onClick={() => run(() => api.setSignatureWeaponUpgrades(sheet.id, { improvement }))}>
                 {t('Выбрать навсегда', 'Choose permanently')}
               </button>
             </div>
           )}
-          {sheet.heroicUpgradeRank >= 2 && !weapon.supremeAttachment && (
+          {section !== 'improved' && sheet.heroicUpgradeRank >= 2 && !weapon.supremeAttachment && (
             <div className="inline-form">
-              <select value={supremeAttachmentId}
-                aria-label={t('Улучшение Supreme', 'Supreme attachment')}
-                onChange={e => setSupremeAttachmentId(e.target.value)}>
-                <option value="" disabled>{t('— бесплатное улучшение —', '— free attachment —')}</option>
-                {supremeChoices.map(a => (
-                  <option key={a.id} value={a.id}>{localizedName(a)}</option>
-                ))}
-              </select>
+              <div className="sheet-chips" role="group" aria-label={t('Улучшение Supreme', 'Supreme attachment')}>
+                {supremeChoices.map(a => <FilterChip key={a.id} active={supremeAttachmentId === a.id}
+                  onClick={() => setSupremeAttachmentId(a.id)}>{localizedName(a)}</FilterChip>)}
+              </div>
               <button className="small primary" disabled={!supremeAttachmentId}
                 onClick={() => run(() => api.setSignatureWeaponUpgrades(sheet.id, {
                   supremeAttachmentDefId: supremeAttachmentId,
                 }))}>
-                {t('Установить', 'Install')}
+                {t('Выбрать навсегда', 'Choose permanently')}
               </button>
             </div>
           )}
           <p className="hint small-text">
-            {t('Improved даёт ровно одно: Укреплённое либо древнюю работу, которая заменяет прежнюю и отнимает слот. Supreme добавляет два слота и одно бесплатное улучшение редкости не выше 9. Оба выбора навсегда.',
-              'Improved grants exactly one: Reinforced or Ancient craftsmanship, which replaces the previous one and costs a hard point. Supreme adds two hard points and one free attachment of rarity 9 or less. Both choices are permanent.')}
+            {section !== 'supreme' && t('Improved даёт ровно одно: Укреплённое либо древнюю работу, которая заменяет прежнюю и отнимает слот. Выбор навсегда.',
+              'Improved grants exactly one: Reinforced or Ancient craftsmanship, which replaces the previous one and costs a hard point. This choice is permanent.')}
+            {section === 'all' && ' '}
+            {section !== 'improved' && t('Supreme добавляет два слота и одно бесплатное улучшение редкости не выше 9. Выбор навсегда.',
+              'Supreme adds two hard points and one free attachment of rarity 9 or less. This choice is permanent.')}
           </p>
         </div>
       )}
 
+      {(section === 'all' || section === 'configuration') && <>
       {sheet.heroicConfigurationIncomplete && (
         <p className="hint small-text">
           {t('Параметр обязателен: без него создание не завершается, а улучшения недоступны.',
@@ -668,6 +660,7 @@ export function HeroicParameterSection({ sheet, reference, run }: {
           {t('Отметить потерянным', 'Mark as lost')}
         </button>
       )}
+      </>}
     </div>
   )
 }

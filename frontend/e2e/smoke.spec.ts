@@ -415,7 +415,7 @@ test.describe('U-29 smoke E2E', () => {
     await page.goto('/magic')
     await expect(page.locator('.magic-builder')).toBeVisible()
     await expect(page.locator('.difficulty-badge.big')).toBeVisible()
-    const optionalEffect = page.locator('.effect-row input').first()
+    const optionalEffect = page.locator('.magic-effect-row input:not(:disabled)').first()
     if (await optionalEffect.count()) {
       await optionalEffect.check()
     }

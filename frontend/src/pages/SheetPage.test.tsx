@@ -26,6 +26,8 @@ vi.mock('../components/SheetTab', () => ({ SheetTab: () => <div>вкладка �
 vi.mock('../components/TalentsTab', () => ({ TalentsTab: () => <div>вкладка талантов</div> }))
 vi.mock('../components/InventoryTab', () => ({ InventoryTab: () => <div>вкладка инвентаря</div> }))
 vi.mock('../components/MagicTab', () => ({ MagicTab: () => <div>вкладка магии</div> }))
+vi.mock('../components/WorkshopTab', () => ({ WorkshopTab: () => <div>вкладка мастерской</div> }))
+vi.mock('../components/BioTab', () => ({ BioTab: () => <div>образ с приватными заметками</div> }))
 
 const { SheetPage } = await import('./SheetPage')
 
@@ -83,6 +85,31 @@ describe('SheetPage — части листа грузятся по надобн
     expect(includesOf()).toEqual(['base'])
   })
 
+  it('мигрирует сохранённое ремесло и грузит все части мастерской', async () => {
+    localStorage.setItem('genesysforge.sheet-tab.c1', 'crafting')
+    renderPage()
+    await screen.findByText('вкладка мастерской')
+    expect(includesOf().join(';')).toContain('base,items,attachments')
+    expect(localStorage.getItem('genesysforge.workshop-mode.c1')).toBe('craft')
+  })
+
+  it('для образа и заметок грузит только базу', async () => {
+    localStorage.setItem('genesysforge.sheet-tab.c1', 'notes')
+    renderPage()
+    await screen.findByText('образ с приватными заметками')
+    expect(includesOf()).toEqual(['base'])
+  })
+
+  it('скрывает героику в Core в обоих переключателях', async () => {
+    sheetSlices.mockImplementation((_id, include) => Promise.resolve({
+      ...serve(include), base: { ...base, system: 'genesysCore' },
+    }))
+    renderPage()
+    await screen.findByText('вкладка листа')
+    expect(screen.queryByRole('button', { name: 'Героика' })).toBeNull()
+    expect(screen.queryByRole('option', { name: 'Героика' })).toBeNull()
+  })
+
   it('позволяет изменить имя персонажа из заголовка листа', async () => {
     renderPage()
     await screen.findByText('вкладка листа')
@@ -117,9 +144,9 @@ describe('SheetPage — части листа грузятся по надобн
 
     const tabs = within(document.querySelector('.main-tabs') as HTMLElement)
       .getAllByRole('button').map(button => button.textContent)
-    expect(tabs.slice(0, 5)).toEqual(['Лист', 'Инвентарь', 'Таланты', 'Магия', 'Заметки'])
-    expect(tabs.slice(5)).toEqual(['Героика', 'Улучшения', 'Транспорт', 'Ремесло', 'Образ', 'История'])
-    expect(document.querySelectorAll('.sheet-secondary-tab')).toHaveLength(6)
+    expect(tabs.slice(0, 4)).toEqual(['Лист', 'Таланты', 'Инвентарь', 'Магия'])
+    expect(tabs.slice(4)).toEqual(['Героика', 'Мастерская', 'Транспорт', 'Образ и заметки', 'История'])
+    expect(document.querySelectorAll('.sheet-secondary-tab')).toHaveLength(5)
   })
 
   it('скрывает редкие действия под кнопкой с тремя точками', async () => {

@@ -6,12 +6,17 @@ import type {
   WeaponCraftsmanship,
 } from '../api/types'
 import {
+  ITEM_KIND_LABELS,
   IMPLEMENT_MATERIAL_HINTS, IMPLEMENT_MATERIAL_LABELS, localizedName, localizedDescription,
   WEAPON_CRAFTSMANSHIPS, WEAPON_CRAFTSMANSHIP_HINTS, WEAPON_CRAFTSMANSHIP_LABELS,
 } from '../utils/labels'
 import { t } from '../i18n'
 import { craftsmanshipApplies } from '../utils/craftsmanship'
 import { IMPLEMENT_MATERIALS } from '../utils/implements'
+import { Icon, type IconName } from './Icon'
+import { FilterChip, CheckRow } from './content/ContentUi'
+import { NumberStepper } from './content/NumberStepper'
+import { useDiceRoller } from '../dice-roller-store'
 
 interface Props {
   sheet: CharacterSheet
@@ -128,6 +133,7 @@ export function CraftingTab({ sheet, reference, onError, refresh }: Props) {
   const [material, setMaterial] = useState<ImplementMaterial>('oak')
   const [preview, setPreview] = useState<CraftingPreview | null>(null)
   const [busy, setBusy] = useState(false)
+  const [search, setSearch] = useState('')
 
   const loadProjects = useCallback(
     () => api.crafting(sheet.id)
@@ -247,6 +253,7 @@ export function CraftingTab({ sheet, reference, onError, refresh }: Props) {
 
   function changeKind(next: CraftingKind) {
     setKind(next)
+    setSearch('')
     setTargetId('')
     setBaseItemId('')
     setRough(false)
@@ -255,171 +262,63 @@ export function CraftingTab({ sheet, reference, onError, refresh }: Props) {
     setPreview(null)
   }
 
+  const corrections = [ownCost, difficulty, time].filter(v => v.trim()).length + Number(rough)
+  const startReason = !input ? t('Выберите, что создать', 'Choose what to create')
+    : (hasOwnCost && !costReason.trim()) || (difficulty.trim() && !difficultyReason.trim()) || (time.trim() && !timeReason.trim())
+      ? t('Укажите причину поправки', 'Give a reason for the adjustment')
+      : kind === 'enchantment' && !intent.trim() ? t('Опишите согласованную способность', 'Describe the agreed ability')
+        : kind === 'enchantment' && !effectiveMagicSkillName ? t('Выберите магический навык', 'Choose a magic skill') : ''
+  const kindIcons: Record<CraftingKind, IconName> = { item: 'hammer', potion: 'flask', enchantment: 'sparkles' }
   return (
     <div className="crafting-tab">
-      <p className="hint small-text">{RESOURCES_HINT}</p>
-
-      <section className="card">
-        <h3>{t('Новый проект', 'New project')}</h3>
-
-        <div className="tabs" role="tablist">
-          {(['item', 'potion', 'enchantment'] as CraftingKind[]).map(k => (
-            <button key={k} role="tab" aria-selected={kind === k}
-              className={kind === k ? 'tab active' : 'tab'} onClick={() => changeKind(k)}>
-              {KIND_LABELS[k]}
-            </button>
-          ))}
-        </div>
-
-        {kind === 'enchantment' ? (
-          <>
-            <p className="hint small-text">{ENCHANT_HINT}</p>
-            <label>{t('Основа из инвентаря', 'Base from inventory')}
-              <select value={baseItemId} onChange={e => setBaseItemId(e.target.value)}>
-                <option value="">{t('— выберите вещь —', '— pick an item —')}</option>
-                {bases.map(i => (
-                  <option key={i.id} value={i.id}>{localizedName(i)}</option>
-                ))}
-              </select>
-            </label>
-            <label>{t('Согласованная способность', 'Agreed ability')}
-              <textarea value={intent} maxLength={2000} rows={2}
-                placeholder={t('что именно должно получиться', 'what exactly the enchantment does')}
-                onChange={e => setIntent(e.target.value)} />
-            </label>
-            <label>{t('Навык зачарования', 'Enchanting skill')}
-              <select value={effectiveMagicSkillName} onChange={e => setMagicSkillName(e.target.value)}>
-                <option value="">{t('— выберите магический навык —', '— pick a magic skill —')}</option>
-                {magicSkills.map(s => (
-                  <option key={s.skillDefId} value={s.name}>{localizedName(s)}</option>
-                ))}
-              </select>
-            </label>
-          </>
-        ) : (
-          <label>{t('Что делаем', 'What to make')}
-            <select value={targetId} onChange={e => setTargetId(e.target.value)}>
-              <option value="">{t('— выберите запись каталога —', '— pick a catalog entry —')}</option>
-              <optgroup label={t('Можно создать', 'Craftable')}>
-                {candidates.map(i => (
-                  <option key={i.id} value={i.id}>{localizedName(i)}</option>
-                ))}
-              </optgroup>
-              {unavailableCandidates.length > 0 && (
-                <optgroup label={t('Нельзя создать ремеслом', 'Not craftable')}>
-                  {unavailableCandidates.map(i => (
-                    <option key={i.id} value={i.id} disabled>{localizedName(i)}</option>
-                  ))}
-                </optgroup>
-              )}
-            </select>
-          </label>
-        )}
-
-        {kind === 'item' && (
-          <>
-            {canChooseCraftsmanship && (
-              <label>{t('Материал / качество изготовления', 'Material / craftsmanship')}
-                <select value={craftsmanship}
-                  title={WEAPON_CRAFTSMANSHIP_HINTS[craftsmanship]}
-                  onChange={e => setCraftsmanship(e.target.value as WeaponCraftsmanship)}>
-                  {WEAPON_CRAFTSMANSHIPS.map(value => (
-                    <option key={value} value={value}>{WEAPON_CRAFTSMANSHIP_LABELS[value]}</option>
-                  ))}
-                </select>
-                <span className="muted small-text">{WEAPON_CRAFTSMANSHIP_HINTS[craftsmanship]}</span>
-              </label>
-            )}
-            {canChooseMaterial && (
-              <label>{t('Материал магического инструмента', 'Magic implement material')}
-                <select value={material} title={IMPLEMENT_MATERIAL_HINTS[material]}
-                  onChange={e => setMaterial(e.target.value as ImplementMaterial)}>
-                  {IMPLEMENT_MATERIALS.map(value => (
-                    <option key={value} value={value}>{IMPLEMENT_MATERIAL_LABELS[value]}</option>
-                  ))}
-                </select>
-                <span className="muted small-text">{IMPLEMENT_MATERIAL_HINTS[material]}</span>
-              </label>
-            )}
-            <label>
-              <input type="checkbox" checked={rough} onChange={e => setRough(e.target.checked)} />
-              {' '}{t('Грубая работа Выживанием (разрешение ведущего)', 'Rough work with Survival (GM permission)')}
-            </label>
-          </>
-        )}
-
-        <div className="price-control">
-          <div className="price-mults">
-            {COST_PERCENTS.map(m => (
-              <button key={m} className={!hasOwnCost && percent === m ? 'chip active' : 'chip'}
-                disabled={hasOwnCost}
-                title={hasOwnCost ? t('Задана своя цена', 'An own price is set') : undefined}
-                onClick={() => setPercent(m)}>{m}%</button>
-            ))}
+      <div className="crafting-kind-grid" role="tablist" aria-label={t('Вид работы', 'Work type')}>
+        {(['item', 'potion', 'enchantment'] as CraftingKind[]).map(k => <button key={k} role="tab" aria-selected={kind === k}
+          className={`sheet-choice-card crafting-kind${kind === k ? ' selected' : ''}`} onClick={() => changeKind(k)}>
+          <Icon name={kindIcons[k]} /><span><strong>{KIND_LABELS[k]}</strong><small>{k === 'item' ? t('Оружие, броня, снаряжение', 'Weapons, armor and gear') : k === 'potion' ? t('Зелья и эликсиры', 'Potions and elixirs') : t('Чары на вещь из инвентаря', 'Enchant an inventory item')}</small></span>
+        </button>)}
+      </div>
+      <div className="crafting-new-layout sheet-two-column">
+        <section className="panel crafting-new-form">
+          {kind === 'enchantment' && <p className="hint small-text">{ENCHANT_HINT}</p>}
+          <h4>{kind === 'enchantment' ? t('Основа из инвентаря', 'Base from inventory') : kind === 'potion' ? t('Что варим', 'What to brew') : t('Что создаём', 'What to create')}</h4>
+          {((kind === 'enchantment' ? bases.length : catalogCandidates.length) > 12 || search !== '') && <input type="search" aria-label={t('Поиск проекта', 'Search project')} placeholder={t('Поиск по названию…', 'Search by name…')} value={search} onChange={e => setSearch(e.target.value)} />}
+          <div className="sheet-choice-grid crafting-targets">
+            {kind === 'enchantment' ? bases.filter(i => localizedName(i).toLowerCase().includes(search.toLowerCase())).map(i => <button key={i.id} aria-pressed={baseItemId === i.id}
+              className={`sheet-choice-card${baseItemId === i.id ? ' selected' : ''}`} onClick={() => setBaseItemId(i.id)}><strong>{localizedName(i)}</strong><small>{ITEM_KIND_LABELS[i.kind]} · {t('из инвентаря', 'from inventory')}</small></button>)
+              : [...candidates, ...unavailableCandidates].filter(i => localizedName(i).toLowerCase().includes(search.toLowerCase())).map(i => <button key={i.id} aria-pressed={targetId === i.id}
+                disabled={unavailableCandidates.includes(i)} title={unavailableCandidates.includes(i) ? t('Услуги не создаются ремеслом', 'Services cannot be crafted') : undefined}
+                className={`sheet-choice-card${targetId === i.id ? ' selected' : ''}`} onClick={() => setTargetId(i.id)}><strong>{localizedName(i)}</strong><small>{ITEM_KIND_LABELS[i.kind]} · {t(`${i.price} зол. · редк. ${i.rarity}`, `${i.price} coins · rarity ${i.rarity}`)}</small></button>)}
           </div>
-          <div className="price-row crafting-override-row">
-            <label>{t('Своя стоимость', 'Own cost')}
-              <input className="crafting-override-input" type="number" min={0} value={ownCost}
-                placeholder={t('по доле', 'by fraction')}
-                onChange={e => setOwnCost(e.target.value)} />
-            </label>
-            <label>{t('Причина', 'Reason')}
-              <input value={costReason} maxLength={200} disabled={!hasOwnCost}
-                placeholder={t('например, свои материалы', 'e.g. own materials')}
-                onChange={e => setCostReason(e.target.value)} />
-            </label>
-          </div>
-        </div>
-
-        <div className="price-row crafting-override-row">
-          <label>{t('Своя сложность', 'Own difficulty')}
-            <input className="crafting-override-input" type="number" min={0} max={5} value={difficulty}
-              placeholder={t('по правилу', 'by rule')}
-              onChange={e => setDifficulty(e.target.value)} />
-          </label>
-          <label>{t('Причина', 'Reason')}
-            <input value={difficultyReason} maxLength={200} disabled={difficulty.trim() === ''}
-              onChange={e => setDifficultyReason(e.target.value)} />
-          </label>
-        </div>
-
-        <div className="price-row crafting-override-row">
-          <label>{t('Своё время', 'Own time')}
-            <input className="crafting-override-input" type="number" min={1} value={time}
-              placeholder={t('по правилу', 'by rule')}
-              onChange={e => setTime(e.target.value)} />
-          </label>
-          <label>{t('Причина', 'Reason')}
-            <input value={timeReason} maxLength={200} disabled={time.trim() === ''}
-              onChange={e => setTimeReason(e.target.value)} />
-          </label>
-        </div>
-
-        <label>{t('Инструменты и компоненты', 'Tools and components')}
-          <textarea value={requirements} maxLength={2000} rows={2}
-            placeholder={t('кузница, слиток стали, мех — только описание',
-              'a forge, a steel ingot, bellows — description only')}
-            onChange={e => setRequirements(e.target.value)} />
-        </label>
-
-        {shownPreview && (
-          <p className="price-total">
-            {t('Сложность', 'Difficulty')} <strong>{DIFFICULTY_LABELS[shownPreview.difficulty] ?? shownPreview.difficulty}</strong>
-            {shownPreview.difficulty !== shownPreview.baseDifficulty
-              && <span className="muted"> ({t('по правилу', 'by rule')} {shownPreview.baseDifficulty})</span>}
-            {' · '}{t('Навык', 'Skill')} {shownPreview.skillName}
-            {' · '}{shownPreview.time} {shownPreview.timeUnit === 'hours' ? t('ч', 'h') : t('дн', 'd')}
-            {' · '}{t('цена предмета', 'item price')} <strong>{shownPreview.targetPrice ?? '—'}</strong> 🪙
-            {' · '}{t('компоненты', 'components')} <strong>{shownPreview.cost}</strong> 🪙
-            {shownPreview.costOverride === null && shownPreview.costPercent !== 100
-              && <span className="muted"> ({shownPreview.costPercent}% {t('от', 'of')} {shownPreview.listedCost})</span>}
-          </p>
-        )}
-
-        <button className="primary" disabled={!canStart} onClick={() => void start()}>
-          {t('Начать проект', 'Start the project')}
-        </button>
-      </section>
+          {kind === 'enchantment' && <>
+            <label>{t('Согласованная способность', 'Agreed ability')}<textarea value={intent} maxLength={2000} rows={2} placeholder={t('что именно должно получиться', 'what exactly the enchantment does')} onChange={e => setIntent(e.target.value)} /></label>
+            <h4>{t('Навык зачарования', 'Enchanting skill')}</h4><div className="sheet-chips">{magicSkills.map(sk => <FilterChip key={sk.skillDefId} active={effectiveMagicSkillName === sk.name} onClick={() => setMagicSkillName(sk.name)}>{localizedName(sk)} · {sk.ranks ?? 0}</FilterChip>)}
+              {!magicSkills.length && <FilterChip active={false} disabled onClick={() => {}}>{t('Нет магического навыка', 'No magic skill')}</FilterChip>}</div>
+          </>}
+          {kind === 'item' && canChooseCraftsmanship && <><h4>{t('Работа', 'Craftsmanship')}</h4><div className="sheet-chips">{WEAPON_CRAFTSMANSHIPS.map(v => <FilterChip key={v} active={craftsmanship === v} onClick={() => setCraftsmanship(v)}>{WEAPON_CRAFTSMANSHIP_LABELS[v]}</FilterChip>)}</div><p className="muted small-text">{WEAPON_CRAFTSMANSHIP_HINTS[craftsmanship]}</p></>}
+          {kind === 'item' && canChooseMaterial && <><h4>{t('Материал инструмента', 'Implement material')}</h4><div className="sheet-chips">{IMPLEMENT_MATERIALS.map(v => <FilterChip key={v} active={material === v} onClick={() => setMaterial(v)}>{IMPLEMENT_MATERIAL_LABELS[v]}</FilterChip>)}</div><p className="muted small-text">{IMPLEMENT_MATERIAL_HINTS[material]}</p></>}
+          <h4>{t('Стоимость компонентов', 'Component cost')}</h4><div className="sheet-chips">{COST_PERCENTS.map(m => <FilterChip key={m} active={!hasOwnCost && percent === m} disabled={hasOwnCost} onClick={() => setPercent(m)}>{m}%</FilterChip>)}</div>
+          <label>{t('Инструменты и компоненты · только описание', 'Tools and components · description only')}<input value={requirements} maxLength={2000} placeholder={t('кузница, слиток стали, мех', 'a forge, a steel ingot, bellows')} onChange={e => setRequirements(e.target.value)} /></label>
+          <details className="crafting-corrections"><summary>{t('Поправки ведущего', 'GM adjustments')} {corrections || ''}</summary>
+            {[
+              { label: t('Своя стоимость', 'Own cost'), value: ownCost, set: setOwnCost, reason: costReason, setReason: setCostReason, min: 0 },
+              { label: t('Своя сложность', 'Own difficulty'), value: difficulty, set: setDifficulty, reason: difficultyReason, setReason: setDifficultyReason, min: 0, max: 5 },
+              { label: t('Своё время', 'Own time'), value: time, set: setTime, reason: timeReason, setReason: setTimeReason, min: 1 },
+            ].map(row => <div className="crafting-override-row" key={row.label}><label>{row.label}<input type="number" min={row.min} max={row.max} value={row.value} onChange={e => row.set(e.target.value)} /></label>
+              <label>{t('Причина', 'Reason')}<input value={row.reason} maxLength={200} disabled={!row.value.trim()} className={row.value.trim() && !row.reason.trim() ? 'needs-reason' : ''} onChange={e => row.setReason(e.target.value)} /></label></div>)}
+            {kind === 'item' && <CheckRow checked={rough} onChange={setRough} label={t('Грубая работа Выживанием (разрешение ведущего)', 'Rough work with Survival (GM permission)')} />}
+          </details>
+        </section>
+        <aside className="sheet-sticky sheet-result-card crafting-calculation">
+          <h4>{t('Расчёт', 'Calculation')}</h4><h3>{shownPreview?.targetName ?? t('Новый проект', 'New project')}</h3>
+          {shownPreview && <><div className="sheet-difficulty"><div><small>{t('Сложность', 'Difficulty')}</small><strong>{DIFFICULTY_LABELS[shownPreview.difficulty] ?? shownPreview.difficulty} ({shownPreview.difficulty})</strong>
+            {shownPreview.difficulty !== shownPreview.baseDifficulty && <small>{t('по правилу', 'by rule')} — {shownPreview.baseDifficulty}</small>}</div><span aria-hidden="true">{'◆'.repeat(shownPreview.difficulty)}</span></div>
+            <dl className="sheet-result-stats"><dt>{t('Навык', 'Skill')}</dt><dd>{shownPreview.skillName}</dd><dt>{t('Время', 'Time')}</dt><dd>{shownPreview.time} {shownPreview.timeUnit === 'hours' ? t('ч', 'h') : t('дн', 'd')}</dd>
+              <dt>{t('Цена предмета', 'Item price')}</dt><dd>{shownPreview.targetPrice ?? '—'}</dd><dt>{t('Компоненты', 'Components')}</dt><dd>{shownPreview.cost} {shownPreview.costOverride === null && shownPreview.costPercent !== 100 && <small>({shownPreview.costPercent}% {t('от', 'of')} {shownPreview.listedCost})</small>}</dd></dl></>}
+          <button className="primary" disabled={!canStart} onClick={() => void start()}>{t('Начать проект', 'Start the project')}</button>
+          {startReason && <p className="warn-text small-text">{startReason}</p>}
+          <p className="hint small-text"><Icon name="info-circle" className="button-icon" />{RESOURCES_HINT}</p>
+        </aside>
+      </div>
 
       {drafts.length > 0 && (
         <section className="card">
@@ -427,7 +326,7 @@ export function CraftingTab({ sheet, reference, onError, refresh }: Props) {
           <p className="hint small-text">{ROLL_HINT}</p>
           {drafts.map(p => (
             <ResolveForm key={p.id} project={p} sheet={sheet}
-              onCancel={() => void cancel(p.id)}
+              onCancel={() => cancel(p.id)}
               onResolved={async () => { await loadProjects(); await refresh() }}
               onError={onError} />
           ))}
@@ -439,7 +338,7 @@ export function CraftingTab({ sheet, reference, onError, refresh }: Props) {
           <h3>{t('История ремесла', 'Crafting history')}</h3>
           <ul className="crafting-history">
             {done.map(p => (
-              <li key={p.id}>
+              <li key={p.id} className={p.status === 'cancelled' ? 'cancelled' : p.netSuccesses > 0 ? 'success' : 'failure'}>
                 <strong>{p.targetName}</strong> — {KIND_LABELS[p.kind]}
                 {p.status === 'cancelled'
                   ? <span className="muted"> · {t('отменён', 'cancelled')}</span>
@@ -447,7 +346,7 @@ export function CraftingTab({ sheet, reference, onError, refresh }: Props) {
                     {' · '}{p.netSuccesses > 0 ? t('успех', 'success') : t('провал', 'failure')}
                     {' · '}{t('сложность', 'difficulty')} {p.difficulty}
                     {' · '}{p.time} {p.timeUnit === 'hours' ? t('ч', 'h') : t('дн', 'd')}
-                    {' · '}{p.cost} 🪙
+                    {' · '}{p.cost} <Icon name="coin" className="button-icon" />
                   </span>}
                 {p.outcome && <pre className="crafting-outcome small-text">{p.outcome}</pre>}
               </li>
@@ -466,10 +365,11 @@ export function CraftingTab({ sheet, reference, onError, refresh }: Props) {
 function ResolveForm({ project, sheet, onCancel, onResolved, onError }: {
   project: CraftingProject
   sheet: CharacterSheet
-  onCancel: () => void
+  onCancel: () => Promise<void>
   onResolved: () => Promise<void>
   onError: (message: string) => void
 }) {
+  const { openRoller } = useDiceRoller()
   const [successes, setSuccesses] = useState(0)
   const [symbols, setSymbols] = useState<Record<CraftingSymbol, number>>({
     advantage: 0, threat: 0, triumph: 0, despair: 0,
@@ -477,6 +377,7 @@ function ResolveForm({ project, sheet, onCancel, onResolved, onError }: {
   const [choices, setChoices] = useState<CraftingSpendChoice[]>([])
   const [table, setTable] = useState<CraftingSpend[]>([])
   const [busy, setBusy] = useState(false)
+  const [confirmCancel, setConfirmCancel] = useState(false)
 
   // Таблица трат приезжает тем же предпросмотром: она зависит от вида работы, а не от вкладки.
   useEffect(() => {
@@ -513,7 +414,10 @@ function ResolveForm({ project, sheet, onCancel, onResolved, onError }: {
     setChoices(prev => prev.filter(c => c.code !== code))
   }
 
+  const validBudget = Object.keys(symbols).every(key => symbols[key as CraftingSymbol] >= spent[key as CraftingSymbol])
+
   async function resolve() {
+    if (busy || !validBudget) return
     setBusy(true)
     try {
       await api.resolveCrafting(sheet.id, project.id, {
@@ -542,38 +446,42 @@ function ResolveForm({ project, sheet, onCancel, onResolved, onError }: {
 
   return (
     <article className="crafting-project">
-      <header>
+      <header className="sheet-card-heading">
+        <Icon name={project.kind === 'item' ? 'hammer' : project.kind === 'potion' ? 'flask' : 'sparkles'} className="button-icon" />
         <strong>{project.targetName}</strong> — {KIND_LABELS[project.kind]}
         <span className="muted">
           {' · '}{project.skillName}
           {' · '}{t('сложность', 'difficulty')} {project.difficulty}
           {' · '}{project.time} {project.timeUnit === 'hours' ? t('ч', 'h') : t('дн', 'd')}
-          {' · '}{project.cost} 🪙
+          {' · '}{project.cost} <Icon name="coin" className="button-icon" />
         </span>
+        <div className="form-actions"><button className="small" onClick={() => {
+          const sk = sheet.skills.find(s => s.name === project.skillName)
+          openRoller({ kind: 'roll', title: t('Проверка ремесла', 'Crafting check'), label: project.targetName,
+            difficultyUpgrades: sk?.difficultyUpgrades ?? 0,
+            initialPool: { ability: sk?.pool?.ability ?? 0, proficiency: sk?.pool?.proficiency ?? 0,
+              boost: sk?.removeBoosts ? 0 : sk?.boostDice ?? 0, setback: sk?.setbackDice ?? 0,
+              difficulty: project.difficulty + (sk?.difficultyDice ?? 0) } })
+        }}><Icon name="dice-5" className="button-icon" />{t('Роллер', 'Roller')}</button>
+          <button className="small danger" disabled={busy} onClick={() => setConfirmCancel(true)}><Icon name="trash" className="button-icon" />{t('Отменить проект', 'Cancel the project')}</button></div>
       </header>
+      {confirmCancel && <div className="hint" role="group" aria-label={t('Подтверждение отмены проекта', 'Confirm project cancellation')}>
+        <p>{t('Отменить проект навсегда? Он останется в истории, восстановить его нельзя.', 'Cancel this project permanently? It stays in history and cannot be restored.')}</p>
+        <div className="form-actions"><button className="danger small" disabled={busy} onClick={async () => {
+          setBusy(true)
+          try { await onCancel() } finally { setBusy(false); setConfirmCancel(false) }
+        }}>{t('Да, отменить проект', 'Yes, cancel the project')}</button>
+          <button className="small" disabled={busy} onClick={() => setConfirmCancel(false)}>{t('Продолжить работу', 'Keep working')}</button></div>
+      </div>}
       {project.requirements && <p className="small-text muted">{project.requirements}</p>}
 
-      <div className="price-row">
-        <label>{t('Нетто-успехов', 'Net successes')}
-          <input type="number" min={0} value={successes} style={{ width: '4rem' }}
-            onChange={e => setSuccesses(Math.max(0, Math.trunc(Number(e.target.value)) || 0))} />
-        </label>
-        {(Object.keys(SYMBOL_LABELS) as CraftingSymbol[]).map(symbol => (
-          <label key={symbol}>{SYMBOL_GLYPH[symbol]} {SYMBOL_LABELS[symbol]}
-            <input type="number" min={0} value={symbols[symbol]} style={{ width: '4rem' }}
-              onChange={e => setSymbols(s => ({
-                ...s, [symbol]: Math.max(0, Math.trunc(Number(e.target.value)) || 0),
-              }))} />
-          </label>
-        ))}
+      <div className="crafting-symbols">
+        <NumberStepper label={t('Нетто-успехов', 'Net successes')} glyph="✓" className="successes" value={successes} onChange={setSuccesses} disabled={busy} />
+        {(Object.keys(SYMBOL_LABELS) as CraftingSymbol[]).map(symbol => <NumberStepper key={symbol} label={SYMBOL_LABELS[symbol]} glyph={SYMBOL_GLYPH[symbol]} className={symbol} value={symbols[symbol]} min={spent[symbol]} disabled={busy}
+          onChange={value => setSymbols(prev => ({ ...prev, [symbol]: value }))} />)}
       </div>
-      <p className="small-text">
-        {successes > 0
-          ? t('Успех: предмет будет создан.', 'Success: the item will be made.')
-          : t('Провал: предмет не создаётся, но проект остаётся в истории.',
-            'Failure: nothing is made, but the project stays in history.')}
-      </p>
-
+      <h4 className="sheet-section-title">{t('Траты символов', 'Symbol spends')}<small>{t('Осталось:', 'Remaining:')} {Object.keys(symbols).map(key => `${SYMBOL_GLYPH[key as CraftingSymbol]} ${symbols[key as CraftingSymbol] - spent[key as CraftingSymbol]}`).join(' · ')}</small></h4>
+      {!Object.values(symbols).some(v => v > 0) && <p className="muted small-text">{t('Впишите ▲ ▼ ★ ☠ — здесь появятся доступные траты.', 'Enter ▲ ▼ ★ ☠ to enable symbol spends.')}</p>}
       {choices.length > 0 && (
         <ul className="crafting-choices">
           {choices.map(c => {
@@ -581,8 +489,8 @@ function ResolveForm({ project, sheet, onCancel, onResolved, onError }: {
             if (!def) return null
             return (
               <li key={c.code}>
-                {SYMBOL_GLYPH[c.paidWith]} <strong>{def.nameRu}</strong>
-                {(c.count ?? 1) > 1 && ` ×${c.count}`}
+                {SYMBOL_GLYPH[c.paidWith]} <strong>{t(def.nameRu, def.nameEn)}</strong>
+                {` ×${c.count ?? 1}`}
                 {def.requiresParameter && (
                   <input value={c.parameter ?? ''} maxLength={400}
                     placeholder={def.effect === 'qualityRating'
@@ -592,7 +500,7 @@ function ResolveForm({ project, sheet, onCancel, onResolved, onError }: {
                         : t('формулировка', 'wording')}
                     onChange={e => setParameter(c.code, e.target.value)} />
                 )}
-                <button className="small" onClick={() => drop(c.code)}>×</button>
+                <button className="small" disabled={busy} aria-label={t(`Убрать трату: ${def.nameRu}`, `Remove spend: ${def.nameEn}`)} onClick={() => drop(c.code)}><Icon name="close" className="button-icon" /></button>
               </li>
             )
           })}
@@ -601,9 +509,9 @@ function ResolveForm({ project, sheet, onCancel, onResolved, onError }: {
 
       <div className="crafting-table">
         {table.map(def => (
-          <div key={def.code} className={def.isNegative ? 'crafting-row negative' : 'crafting-row'}>
+          <div key={def.code} className={`crafting-row${def.isNegative ? ' negative' : ''}${choices.some(c => c.code === def.code) ? ' selected' : ''}`}>
             <span>
-              {def.nameRu}
+              {t(def.nameRu, def.nameEn)}
               {def.effect === 'descriptive' && (
                 <span className="muted small-text">
                   {' '}({t('только описание', 'description only')})
@@ -614,7 +522,7 @@ function ResolveForm({ project, sheet, onCancel, onResolved, onError }: {
             <span className="crafting-costs">
               {payments(def).map(([symbol, cost]) => (
                 <button key={symbol} className="chip"
-                  disabled={!affordable(def, symbol, cost)}
+                  disabled={busy || !affordable(def, symbol, cost)}
                   title={t('Оплатить', 'Pay with')}
                   onClick={() => add(def, symbol)}>
                   {SYMBOL_GLYPH[symbol]} {cost}
@@ -626,10 +534,10 @@ function ResolveForm({ project, sheet, onCancel, onResolved, onError }: {
       </div>
 
       <div className="price-row">
-        <button className="primary" disabled={busy} onClick={() => void resolve()}>
+        <button className="primary" disabled={busy || !validBudget} onClick={() => void resolve()}>
           {t('Разрешить проект', 'Resolve the project')}
         </button>
-        <button disabled={busy} onClick={onCancel}>{t('Отменить проект', 'Cancel the project')}</button>
+        <span className={successes > 0 ? 'success-text' : 'danger-text'}><Icon name={successes > 0 ? 'circle-check' : 'circle-x'} className="button-icon" />{successes > 0 ? t('Успех: предмет будет создан.', 'Success: the item will be made.') : t('Провал: предмет не создаётся, но проект остаётся в истории.', 'Failure: nothing is made, but the project stays in history.')}</span>
       </div>
     </article>
   )

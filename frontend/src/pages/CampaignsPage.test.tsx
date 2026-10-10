@@ -127,6 +127,19 @@ describe('CampaignsPage — GM просмотр листа участника (U
     openOwnCharacterMock.mockClear()
   })
 
+  it('reads a legacy workshop tab without changing another character’s saved mode', async () => {
+    localStorage.setItem('genesysforge.sheet-tab.ch1', 'attachments')
+    localStorage.setItem('genesysforge.workshop-mode.ch1', 'craft')
+    const view = render(<CampaignsPage {...props} openCharacterId="ch1" />)
+    expect(await screen.findByText('ATTACHMENTS')).toBeTruthy()
+    expect(localStorage.getItem('genesysforge.sheet-tab.ch1')).toBe('attachments')
+    expect(localStorage.getItem('genesysforge.workshop-mode.ch1')).toBe('craft')
+    expect(screen.queryByRole('button', { name: 'Образ и заметки' })).toBeNull()
+    view.unmount()
+    localStorage.removeItem('genesysforge.sheet-tab.ch1')
+    localStorage.removeItem('genesysforge.workshop-mode.ch1')
+  })
+
   it('GM видит кнопку «Лист» и переходит на страницу участника', async () => {
     campaignMock.mockResolvedValue(detail(true))
     render(<CampaignsPage {...props} />)

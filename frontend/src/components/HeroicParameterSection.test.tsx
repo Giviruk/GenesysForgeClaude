@@ -205,10 +205,25 @@ describe('HeroicParameterSection (ROT-HA-02)', () => {
       }, { isCreationPhase: false, heroicUpgradeRank: 1 })}
       reference={reference} run={run} />)
 
-    fireEvent.change(screen.getByLabelText('Улучшение Improved'), { target: { value: 'ancient' } })
+    fireEvent.click(screen.getByRole('button', { name: /Древняя/ }))
     fireEvent.click(screen.getByRole('button', { name: 'Выбрать навсегда' }))
 
     await waitFor(() => expect(upgradesMock).toHaveBeenCalledWith('char-1', { improvement: 'ancient' }))
+  })
+
+  it('Supreme выбирается чипом навсегда и не предлагает базовое улучшение повторно', async () => {
+    const supremeReference = { ...reference, attachments: reference.attachments.map(a => ({ ...a, rarity: 5 })) }
+    render(<HeroicParameterSection section="supreme"
+      sheet={sheetWith({ ...emptyConfig, kind: 'signatureWeapon', complete: true,
+        signatureWeapon: { ...weaponFixture, improvement: 'reinforced' },
+      }, { isCreationPhase: false, heroicUpgradeRank: 2 })}
+      reference={supremeReference} run={run} />)
+
+    expect(screen.queryByRole('button', { name: 'Рунический гром' })).toBeNull()
+    expect(screen.getByRole('button', { name: 'Выбрать навсегда' })).toHaveProperty('disabled', true)
+    fireEvent.click(screen.getByRole('button', { name: 'Взрывной снаряд' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Выбрать навсегда' }))
+    await waitFor(() => expect(upgradesMock).toHaveBeenCalledWith('char-1', { supremeAttachmentDefId: 'att-missile' }))
   })
 
   it('без базового улучшения именное оружие не сохраняется', () => {
@@ -227,7 +242,7 @@ describe('HeroicParameterSection (ROT-HA-02)', () => {
       }, { isCreationPhase: false })}
       reference={reference} run={run} />)
 
-    const summary = screen.getByText(/Лук предков/)
+    const summary = screen.getByText('Лук предков', { selector: 'strong' }).closest('.hint')!
     expect(summary.textContent).toContain('Ranged')
     expect(summary.textContent).toContain('Превосходное')
     expect(summary.textContent).toContain('Высококритичное 3')
@@ -245,4 +260,19 @@ describe('HeroicParameterSection (ROT-HA-02)', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Отметить потерянным' }))
     await waitFor(() => expect(replaceMock).toHaveBeenCalledWith('char-1', { lost: true }))
   })
+
+  it('shows weapon stats once and one hint per purchased power level', () => {
+    const sheet = sheetWith({ ...emptyConfig, kind: 'signatureWeapon', complete: true, signatureWeapon: weaponFixture }, { isCreationPhase: false, heroicUpgradeRank: 2 })
+    const { container } = render(<>
+      <HeroicParameterSection section="configuration" sheet={sheet} reference={reference} run={run} />
+      <HeroicParameterSection section="improved" sheet={sheet} reference={reference} run={run} />
+      <HeroicParameterSection section="supreme" sheet={sheet} reference={reference} run={run} />
+    </>)
+    expect(screen.getAllByText('Лук предков')).toHaveLength(1)
+    expect(screen.getAllByText(/Improved даёт ровно одно/)).toHaveLength(1)
+    expect(screen.getAllByText(/Supreme добавляет два слота/)).toHaveLength(1)
+    expect(container.querySelector('.heroic-weapon-card')?.textContent).not.toContain('HP 2')
+    expect(container.querySelectorAll('.heroic-weapon-stats')).toHaveLength(1)
+  })
+
 })

@@ -6,10 +6,8 @@ import { SheetTab } from '../components/SheetTab'
 import { TalentsTab } from '../components/TalentsTab'
 import { HeroicTab } from '../components/HeroicTab'
 import { InventoryTab } from '../components/InventoryTab'
-import { AttachmentsTab } from '../components/AttachmentsTab'
+import { WorkshopTab } from '../components/WorkshopTab'
 import { TransportTab } from '../components/TransportTab'
-import { CraftingTab } from '../components/CraftingTab'
-import { NotesTab } from '../components/NotesTab'
 import { BioTab } from '../components/BioTab'
 import { HistoryTab } from '../components/HistoryTab'
 import { MagicTab } from '../components/MagicTab'
@@ -18,7 +16,7 @@ import { CharacterSheetPrint } from '../components/print/CharacterSheetPrint'
 import { Icon } from '../components/Icon'
 import { navigate } from '../router'
 import { t } from '../i18n'
-import { readSheetTab, writeSheetTab, type CharacterSheetTab } from '../utils/uiPreferences'
+import { migrateSheetPreferences, readSheetTab, writeSheetTab, type CharacterSheetTab } from '../utils/uiPreferences'
 import { formatCharacterCreationCompletionError } from '../utils/characterCreationErrors'
 
 interface Props {
@@ -42,13 +40,11 @@ const SLICES_BY_TAB: Record<CharacterSheetTab, SheetSliceName[]> = {
   talents: ['base', 'talents'],
   heroic: ['base'],
   inventory: ['base', 'items'],
-  attachments: ['base', 'items', 'attachments'],
+  workshop: ['base', 'items', 'attachments'],
   transport: ['base', 'items', 'mounts'],
-  crafting: ['base', 'items'],
   magic: ['base', 'items', 'talents'],
   bio: ['base'],
   history: ['base'],
-  notes: ['base'],
 }
 
 /**
@@ -125,6 +121,7 @@ export function SheetPage({ characterId, printing, onOpenPrint, onClosePrint, on
   const [tabs, setTabs] = useState<Record<string, CharacterSheetTab>>(() => ({
     [characterId]: readSheetTab(characterId),
   }))
+  useEffect(() => { migrateSheetPreferences(characterId) }, [characterId])
   const tab = tabs[characterId] ?? readSheetTab(characterId)
   const selectTab = (next: CharacterSheetTab) => {
     writeSheetTab(characterId, next)
@@ -471,18 +468,16 @@ export function SheetPage({ characterId, printing, onOpenPrint, onClosePrint, on
 
       <div className="tabs main-tabs">
         <button className={tab === 'sheet' ? 'tab active' : 'tab'} onClick={() => selectTab('sheet')}>{t('Лист', 'Sheet')}</button>
-        <button className={tab === 'inventory' ? 'tab active' : 'tab'} onClick={() => selectTab('inventory')}>{t('Инвентарь', 'Inventory')}</button>
         <button className={tab === 'talents' ? 'tab active' : 'tab'} onClick={() => selectTab('talents')}>{t('Таланты', 'Talents')}</button>
+        <button className={tab === 'inventory' ? 'tab active' : 'tab'} onClick={() => selectTab('inventory')}>{t('Инвентарь', 'Inventory')}</button>
         <button className={tab === 'magic' ? 'tab active' : 'tab'} onClick={() => selectTab('magic')}>{t('Магия', 'Magic')}</button>
-        <button className={tab === 'notes' ? 'tab active' : 'tab'} onClick={() => selectTab('notes')}>{t('Заметки', 'Notes')}</button>
         <span className="sheet-tab-divider" aria-hidden="true" />
         {sheet.system === 'realmsOfTerrinoth' && (
           <button className={`sheet-secondary-tab ${tab === 'heroic' ? 'tab active' : 'tab'}`} onClick={() => selectTab('heroic')}>{t('Героика', 'Heroic')}</button>
         )}
-        <button className={`sheet-secondary-tab ${tab === 'attachments' ? 'tab active' : 'tab'}`} onClick={() => selectTab('attachments')}>{t('Улучшения', 'Attachments')}</button>
+        <button className={`sheet-secondary-tab ${tab === 'workshop' ? 'tab active' : 'tab'}`} onClick={() => selectTab('workshop')}>{t('Мастерская', 'Workshop')}</button>
         <button className={`sheet-secondary-tab ${tab === 'transport' ? 'tab active' : 'tab'}`} onClick={() => selectTab('transport')}>{t('Транспорт', 'Transport')}</button>
-        <button className={`sheet-secondary-tab ${tab === 'crafting' ? 'tab active' : 'tab'}`} onClick={() => selectTab('crafting')}>{t('Ремесло', 'Crafting')}</button>
-        <button className={`sheet-secondary-tab ${tab === 'bio' ? 'tab active' : 'tab'}`} onClick={() => selectTab('bio')}>{t('Образ', 'Bio')}</button>
+        <button className={`sheet-secondary-tab ${tab === 'bio' ? 'tab active' : 'tab'}`} onClick={() => selectTab('bio')}>{t('Образ и заметки', 'Bio and notes')}</button>
         <button className={`sheet-secondary-tab ${tab === 'history' ? 'tab active' : 'tab'}`} onClick={() => selectTab('history')}>{t('История', 'History')}</button>
       </div>
       <div className="sheet-tab-select-wrap">
@@ -490,15 +485,13 @@ export function SheetPage({ characterId, printing, onOpenPrint, onClosePrint, on
         <select id="sheet-tab-select" className="sheet-tab-select" value={tab}
           onChange={e => selectTab(e.target.value as CharacterSheetTab)}>
           <option value="sheet">{t('Лист', 'Sheet')}</option>
-          <option value="inventory">{t('Инвентарь', 'Inventory')}</option>
           <option value="talents">{t('Таланты', 'Talents')}</option>
+          <option value="inventory">{t('Инвентарь', 'Inventory')}</option>
           <option value="magic">{t('Магия', 'Magic')}</option>
-          <option value="notes">{t('Заметки', 'Notes')}</option>
           {sheet.system === 'realmsOfTerrinoth' && <option value="heroic">{t('Героика', 'Heroic')}</option>}
-          <option value="attachments">{t('Улучшения', 'Attachments')}</option>
+          <option value="workshop">{t('Мастерская', 'Workshop')}</option>
           <option value="transport">{t('Транспорт', 'Transport')}</option>
-          <option value="crafting">{t('Ремесло', 'Crafting')}</option>
-          <option value="bio">{t('Образ', 'Bio')}</option>
+          <option value="bio">{t('Образ и заметки', 'Bio and notes')}</option>
           <option value="history">{t('История', 'History')}</option>
         </select>
       </div>
@@ -512,13 +505,11 @@ export function SheetPage({ characterId, printing, onOpenPrint, onClosePrint, on
           {tab === 'heroic' && <HeroicTab sheet={sheet} reference={reference} onError={setError} refresh={refresh} />}
           {tab === 'inventory' && <InventoryTab sheet={sheet} reference={reference} onError={setError} refresh={refresh}
             updateBaseOptimistically={updateBaseOptimistically} />}
-          {tab === 'attachments' && <AttachmentsTab sheet={sheet} reference={reference} onError={setError} refresh={refresh} />}
+          {tab === 'workshop' && <WorkshopTab key={sheet.id} sheet={sheet} reference={reference} onError={setError} refresh={refresh} />}
           {tab === 'transport' && <TransportTab sheet={sheet} reference={reference} onError={setError} refresh={refresh} />}
-          {tab === 'crafting' && <CraftingTab sheet={sheet} reference={reference} onError={setError} refresh={refresh} />}
           {tab === 'magic' && <MagicTab sheet={sheet} onError={setError} refresh={refresh} qualities={reference.qualities} />}
-          {tab === 'bio' && <BioTab sheet={sheet} onError={setError} refresh={refresh} />}
+          {tab === 'bio' && <BioTab key={sheet.id} sheet={sheet} onError={setError} refresh={refresh} onPortraitClick={() => portraitFileRef.current?.click()} />}
           {tab === 'history' && <HistoryTab characterId={sheet.id} onError={setError} refresh={refresh} />}
-          {tab === 'notes' && <NotesTab characterId={sheet.id} onError={setError} />}
         </>
       )}
 

@@ -98,6 +98,40 @@ describe('Транспорт (ROT-MOUNT-ITEM-01, ROT-TRANSPORT-01)', () => {
     }
   })
 
+  it('переключает активность через Switch', async () => {
+    renderTab(sheetWith([owned()]))
+    fireEvent.click(screen.getByRole('switch', { name: 'под седлом' }))
+    await waitFor(() => expect(updateMountMock).toHaveBeenCalledWith('char-1', 'mount-1', { isActive: true }))
+  })
+
+  it('сохраняет название на blur', async () => {
+    renderTab(sheetWith([owned()]))
+    fireEvent.change(screen.getByLabelText('Название'), { target: { value: 'Искра' } })
+    expect(updateMountMock).not.toHaveBeenCalled()
+    fireEvent.blur(screen.getByLabelText('Название'))
+    await waitFor(() => expect(updateMountMock).toHaveBeenCalledWith('char-1', 'mount-1', { name: 'Искра' }))
+  })
+
+  it('погружает выбранное количество из стопки', async () => {
+    renderTab(sheetWith([owned()], 5000, [item({ quantity: 3 })]))
+    fireEvent.click(screen.getByRole('button', { name: /Спальник/ }))
+    expect(moveCargoMock).not.toHaveBeenCalled()
+    fireEvent.change(screen.getByLabelText('Сколько'), { target: { value: '2' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Погрузить' }))
+    await waitFor(() => expect(moveCargoMock).toHaveBeenCalledWith('char-1', 'item-1',
+      { mountId: 'mount-1', quantity: 2, install: false }))
+  })
+
+  it('фильтрует конюшню и оставляет бесплатную выдачу при нехватке монет', () => {
+    render(<TransportTab sheet={sheetWith([], 1)} reference={{ ...reference, mounts: [warMount, wagon] }}
+      onError={() => {}} refresh={async () => {}} />)
+    fireEvent.click(screen.getByRole('button', { name: /Повозки/ }))
+    expect(screen.getByRole('button', { name: 'Купить' }).hasAttribute('disabled')).toBe(false)
+    expect(screen.getByRole('button', { name: '+ Выдать' }).hasAttribute('disabled')).toBe(false)
+    expect(screen.queryByText(warMount.nameRu, { selector: 'strong' })).toBeNull()
+    expect(screen.getByText(wagon.nameRu, { selector: 'strong' })).toBeTruthy()
+  })
+
   it('выдаёт скакуна без оплаты отдельной кнопкой', async () => {
     renderTab(sheetWith([]))
 
@@ -144,9 +178,9 @@ describe('Транспорт (ROT-MOUNT-ITEM-01, ROT-TRANSPORT-01)', () => {
   it('правит раны через сервер', async () => {
     renderTab(sheetWith([owned()]))
 
-    fireEvent.change(screen.getByLabelText('Ранения'), { target: { value: '5' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Увеличить: Ранения' }))
     await waitFor(() =>
-      expect(updateMountMock).toHaveBeenCalledWith('char-1', 'mount-1', { woundsCurrent: 5 }))
+      expect(updateMountMock).toHaveBeenCalledWith('char-1', 'mount-1', { woundsCurrent: 1 }))
   })
 
   it('помечает перегруз и выведенного из строя', () => {
@@ -159,10 +193,10 @@ describe('Транспорт (ROT-MOUNT-ITEM-01, ROT-TRANSPORT-01)', () => {
   it('продаёт по проверке теми же тремя способами, что и предметы', async () => {
     renderTab(sheetWith([owned()]))
 
-    fireEvent.click(screen.getByRole('button', { name: 'Продать' }))
+    fireEvent.click(screen.getByRole('button', { name: /^Продать/ }))
     fireEvent.click(screen.getByLabelText('По проверке'))
     fireEvent.change(screen.getByLabelText('Нетто-успехов'), { target: { value: '2' } })
-    fireEvent.click(screen.getAllByRole('button', { name: 'Продать' }).at(-1)!)
+    fireEvent.click(screen.getAllByRole('button', { name: /^Продать/ }).at(-1)!)
 
     await waitFor(() =>
       expect(sellMountMock).toHaveBeenCalledWith('char-1', 'mount-1', { netSuccesses: 2 }))
@@ -171,7 +205,7 @@ describe('Транспорт (ROT-MOUNT-ITEM-01, ROT-TRANSPORT-01)', () => {
   it('удаляет транспорт без выручки', async () => {
     renderTab(sheetWith([owned()]))
 
-    fireEvent.click(screen.getByRole('button', { name: 'Удалить' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Удалить транспорт' }))
 
     await waitFor(() => expect(removeMountMock).toHaveBeenCalledWith('char-1', 'mount-1'))
   })
@@ -179,8 +213,7 @@ describe('Транспорт (ROT-MOUNT-ITEM-01, ROT-TRANSPORT-01)', () => {
   it('грузит позицию инвентаря на транспорт, а не правит число', async () => {
     renderTab(sheetWith([owned()], 5000, [item()]))
 
-    fireEvent.change(screen.getByLabelText('Что погрузить'), { target: { value: 'item-1' } })
-    fireEvent.click(screen.getByRole('button', { name: 'Погрузить' }))
+    fireEvent.click(screen.getByRole('button', { name: /Спальник/ }))
 
     await waitFor(() => expect(moveCargoMock).toHaveBeenCalledWith('char-1', 'item-1',
       { mountId: 'mount-1', quantity: 1, install: false }))
@@ -189,27 +222,25 @@ describe('Транспорт (ROT-MOUNT-ITEM-01, ROT-TRANSPORT-01)', () => {
   it('попону предлагает установить, а не сложить грузом', async () => {
     renderTab(sheetWith([owned()], 5000, [barding()]))
 
-    fireEvent.change(screen.getByLabelText('Что погрузить'), { target: { value: 'item-barding' } })
-    fireEvent.click(screen.getByRole('button', { name: 'Установить' }))
-
+    fireEvent.click(screen.getByRole('button', { name: /Попона/ }))
     await waitFor(() => expect(moveCargoMock).toHaveBeenCalledWith('char-1', 'item-barding',
       { mountId: 'mount-1', quantity: 1, install: true }))
   })
 
-  it('боевому скакуну попона ставится без причины ведущего', () => {
+  it('боевому скакуну попона ставится без причины ведущего', async () => {
     renderTab(sheetWith([owned()], 5000, [barding()]))
 
-    fireEvent.change(screen.getByLabelText('Что погрузить'), { target: { value: 'item-barding' } })
+    fireEvent.click(screen.getByRole('button', { name: /Попона/ }))
 
     expect(screen.queryByLabelText('Причина ведущего')).toBeNull()
-    expect(screen.getByRole('button', { name: 'Установить' }).hasAttribute('disabled')).toBe(false)
+    await waitFor(() => expect(moveCargoMock).toHaveBeenCalled())
   })
 
   it('другому скакуну попона требует причину ведущего и блокирует кнопку', async () => {
     const beastMount = owned({ definition: beast, requiresGmApprovalForBarding: true })
     renderTab(sheetWith([beastMount], 5000, [barding()]))
 
-    fireEvent.change(screen.getByLabelText('Что погрузить'), { target: { value: 'item-barding' } })
+    fireEvent.click(screen.getByRole('button', { name: /Попона/ }))
 
     // То же правило, что на сервере: без причины кнопка заблокирована.
     const install = screen.getByRole('button', { name: 'Установить' })
@@ -222,22 +253,22 @@ describe('Транспорт (ROT-MOUNT-ITEM-01, ROT-TRANSPORT-01)', () => {
       { mountId: 'mount-1', quantity: 1, install: true, installOverrideReason: 'подогнал кузнец' }))
   })
 
-  it('сумкам причина ведущего не нужна даже на не-боевом скакуне', () => {
+  it('сумкам причина ведущего не нужна даже на не-боевом скакуне', async () => {
     const beastMount = owned({ definition: beast, requiresGmApprovalForBarding: true })
     const bags = item({ id: 'item-bags', nameRu: 'Седельные сумки', isMountGear: true })
     renderTab(sheetWith([beastMount], 5000, [bags]))
 
-    fireEvent.change(screen.getByLabelText('Что погрузить'), { target: { value: 'item-bags' } })
+    fireEvent.click(screen.getByRole('button', { name: /Седельные сумки/ }))
 
     expect(screen.queryByLabelText('Причина ведущего')).toBeNull()
-    expect(screen.getByRole('button', { name: 'Установить' }).hasAttribute('disabled')).toBe(false)
+    await waitFor(() => expect(moveCargoMock).toHaveBeenCalled())
   })
 
   it('снимает груз обратно владельцу', async () => {
     const loaded = owned({ cargo: [item({ carriedByMountId: 'mount-1' })], carriedLoad: 1 })
     renderTab(sheetWith([loaded]))
 
-    fireEvent.click(screen.getByRole('button', { name: 'Снять' }))
+    fireEvent.click(screen.getByRole('button', { name: /Забрать владельцу/ }))
 
     await waitFor(() =>
       expect(moveCargoMock).toHaveBeenCalledWith('char-1', 'item-1', { mountId: null }))
@@ -255,7 +286,7 @@ describe('Транспорт (ROT-MOUNT-ITEM-01, ROT-TRANSPORT-01)', () => {
     renderTab(sheetWith([cart, draft]))
 
     expect(screen.getByText(/без тяги/)).toBeTruthy()
-    fireEvent.change(screen.getByLabelText('Тяга'), { target: { value: 'beast-1' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Серко' }))
 
     await waitFor(() => expect(updateMountMock).toHaveBeenCalledWith('char-1', 'wagon-1',
       { drawnByMountId: 'beast-1' }))
@@ -274,4 +305,34 @@ describe('Транспорт (ROT-MOUNT-ITEM-01, ROT-TRANSPORT-01)', () => {
     expect(card.textContent).toContain('Прочность 10')
     expect(card.textContent).toContain('Системы 5')
   })
+
+  it('buys below list price when only the selected discount is affordable', async () => {
+    render(<TransportTab sheet={sheetWith([], 150)} reference={{ ...reference, mounts: [beast] }} onError={() => {}} refresh={async () => {}} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Купить' }))
+    expect(screen.getByRole('button', { name: 'Купить' })).toHaveProperty('disabled', true)
+    fireEvent.click(screen.getByRole('button', { name: '50%' }))
+    expect(screen.getByRole('button', { name: 'Купить' })).toHaveProperty('disabled', false)
+    fireEvent.click(screen.getByRole('button', { name: 'Купить' }))
+    await waitFor(() => expect(buyMountMock).toHaveBeenCalledWith('char-1', 'def-beast', { pricePercent: 50 }))
+  })
+
+  it('allows an agreed price even with no funds for a standard discount', async () => {
+    render(<TransportTab sheet={sheetWith([], 10)} reference={{ ...reference, mounts: [beast] }} onError={() => {}} refresh={async () => {}} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Купить' }))
+    fireEvent.change(screen.getByLabelText('Своя цена/шт'), { target: { value: '10' } })
+    expect(screen.getByRole('button', { name: 'Купить' })).toHaveProperty('disabled', true)
+    fireEvent.change(screen.getByLabelText('Причина'), { target: { value: 'Согласовано с ведущим' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Купить' }))
+    await waitFor(() => expect(buyMountMock).toHaveBeenCalledWith('char-1', 'def-beast', { priceOverride: 10, overrideReason: 'Согласовано с ведущим' }))
+  })
+
+  it('distinguishes an empty filter from an empty system catalogue', () => {
+    const { rerender } = renderTab(sheetWith([]))
+    fireEvent.click(screen.getByRole('button', { name: 'Повозки 0' }))
+    expect(screen.getByText('Ничего не найдено по фильтру.')).toBeTruthy()
+    expect(screen.queryByText('В этой системе транспорта нет.')).toBeNull()
+    rerender(<TransportTab sheet={sheetWith([])} reference={{ ...reference, mounts: [] }} onError={() => {}} refresh={async () => {}} />)
+    expect(screen.getByText('В этой системе транспорта нет.')).toBeTruthy()
+  })
+
 })

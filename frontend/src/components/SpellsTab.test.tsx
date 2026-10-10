@@ -1,4 +1,4 @@
-import { render, screen, within } from '@testing-library/react'
+import { render, screen, within, fireEvent } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { Spell } from '../api/types'
 import { parseDifficulty } from '../utils/labels'
@@ -52,7 +52,7 @@ describe('SpellsTab — матрица доступности', () => {
 
   it('показывает и доступные действия, и недоступные прочерком', async () => {
     render(<SpellsTab system="realmsOfTerrinoth" onError={() => {}} />)
-    await screen.findByText(/Доступность действий по направлениям/)
+    await screen.findByText(/Действия по направлениям/)
 
     const heal = screen.getByRole('row', { name: /Лечение/ })
     // Вера лечит, Магия — нет.
@@ -63,9 +63,16 @@ describe('SpellsTab — матрица доступности', () => {
     expect(within(curse).getByLabelText(/Тайная \(Arcana\): доступно/)).toBeTruthy()
   })
 
+  it('выбор недоступного действия переключает направление', async () => {
+    render(<SpellsTab system="realmsOfTerrinoth" onError={() => {}} />)
+    fireEvent.click(await screen.findByRole('button', { name: /Лечение/ }))
+    expect(screen.getByRole('button', { name: /Божественная/ }).getAttribute('aria-pressed')).toBe('true')
+    expect(document.querySelector('.magic-reference-detail')?.textContent).toContain('Лечение')
+  })
+
   it('помечает опциональный контент Expanded Player’s Guide', async () => {
     render(<SpellsTab system="realmsOfTerrinoth" onError={() => {}} />)
-    await screen.findByText(/Доступность действий по направлениям/)
+    await screen.findByText(/Действия по направлениям/)
 
     const mask = screen.getByRole('row', { name: /Маска/ })
     expect(within(mask).getByText(/EPG/)).toBeTruthy()
@@ -73,14 +80,32 @@ describe('SpellsTab — матрица доступности', () => {
 
   it('у дополнительного эффекта показывает, кому он доступен и с чем не сочетается', async () => {
     render(<SpellsTab system="realmsOfTerrinoth" onError={() => {}} />)
-    await screen.findByText(/Доступность действий по направлениям/)
+    await screen.findByText(/Действия по направлениям/)
 
-    const doom = screen.getByRole('row', { name: /Рок/ })
-    expect(within(doom).getByText('Тайная (Arcana)')).toBeTruthy()
+    const doom = screen.getByText('Рок').closest('article')!
+    expect(within(doom).getByText(/Тайная \(Arcana\)/)).toBeTruthy()
 
     // Имя строки начинается с названия эффекта: «Отчаяние» упоминается и в соседней строке.
-    const despair = screen.getByRole('row', { name: /^Отчаяние/ })
+    const despair = screen.getByText('Отчаяние', { selector: 'strong' }).closest('article')!
     expect(within(despair).getByText(/не сочетается с/)).toBeTruthy()
     expect(within(despair).getByText(/Дополнительная цель/)).toBeTruthy()
+  })
+})
+
+describe('SpellsTab — active school action metadata', () => {
+  it('shows difficulty, description and optional flag from the selected school', async () => {
+    vi.mocked(api.spells).mockResolvedValue([
+      spell({ id: 'arcana-action', magicSkill: 'Arcana', nameRu: 'Общее действие', nameEn: 'Shared', difficultyIncrease: 1, description: 'Описание школы Arcana', allowedSkills: ['Arcana', 'Divine'] }),
+      spell({ id: 'divine-action', magicSkill: 'Divine', nameRu: 'Общее действие', nameEn: 'Shared', difficultyIncrease: 3, description: 'Описание школы Divine', isOptional: true, allowedSkills: ['Arcana', 'Divine'] }),
+    ])
+    render(<SpellsTab system="realmsOfTerrinoth" onError={() => {}} />)
+    const action = await screen.findByRole('button', { name: /^Общее действие/ })
+    expect(action.textContent).toContain('(1)')
+    expect(action.textContent).not.toContain('EPG')
+    expect(document.querySelector('.magic-reference-detail')?.textContent).toContain('Описание школы Arcana')
+    fireEvent.click(screen.getByRole('button', { name: /Божественная/ }))
+    expect(action.textContent).toContain('(3)')
+    expect(action.textContent).toContain('EPG')
+    expect(document.querySelector('.magic-reference-detail')?.textContent).toContain('Описание школы Divine')
   })
 })

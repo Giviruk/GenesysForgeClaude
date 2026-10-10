@@ -91,10 +91,10 @@ describe('Магические инструменты в сборщике (ROT-M
 
   it('посох делает первую Дистанцию бесплатной и объясняет скидку', async () => {
     render(<MagicTab sheet={sheetWith(implement({}))} onError={() => {}} />)
-    await screen.findByText(/Сборка магического действия/)
+    await screen.findByText(/Действие/)
 
-    fireEvent.change(screen.getByLabelText(/Инструмент/), { target: { value: 'item-1' } })
-    fireEvent.click(screen.getByRole('button', { name: /Дистанционный/ }))
+    fireEvent.click(screen.getByRole('button', { name: /Магический посох/ }))
+    fireEvent.click(screen.getByRole('checkbox', { name: /Дистанционный/ }))
 
     // Базовая 1 + Дистанция 1 = 2, но посох снимает первую Дистанцию.
     await waitFor(() => expect(difficulty()).toContain('1'))
@@ -103,23 +103,23 @@ describe('Магические инструменты в сборщике (ROT-M
 
   it('без инструмента сложность считается полной суммой', async () => {
     render(<MagicTab sheet={sheetWith(implement({}))} onError={() => {}} />)
-    await screen.findByText(/Сборка магического действия/)
+    await screen.findByText(/Действие/)
 
-    fireEvent.click(screen.getByRole('button', { name: /Дистанционный/ }))
+    fireEvent.click(screen.getByRole('checkbox', { name: /Дистанционный/ }))
 
     await waitFor(() => expect(difficulty()).toContain('2'))
   })
 
   it('runebound shard добавляет обязательный эффект и бесплатную Дистанцию', async () => {
     render(<MagicTab sheet={shardSheet} onError={() => {}} />)
-    await screen.findByText(/Сборка магического действия/)
+    await screen.findByText(/Действие/)
 
-    fireEvent.change(screen.getByLabelText(/Направление/), { target: { value: 'Runes' } })
-    fireEvent.change(screen.getByLabelText(/Runebound shard/), { target: { value: 'shard-1' } })
+    fireEvent.click(screen.getByRole('button', { name: /Runes/ }))
+    fireEvent.click(screen.getByRole('button', { name: 'Руна магического заряда' }))
     // Impact появляется сам и не имеет кнопки удаления.
     expect(document.querySelector('.effect-summary')?.textContent).toContain('Ударный')
     expect(document.querySelector('.effect-summary')?.textContent).toContain('обязательно')
-    fireEvent.click(screen.getByRole('button', { name: /Дистанционный/ }))
+    fireEvent.click(screen.getByRole('checkbox', { name: /Дистанционный/ }))
 
     await waitFor(() => expect(difficulty()).toContain('1'))
     expect(document.body.textContent).toContain('урон Атаки +4')
@@ -131,9 +131,9 @@ describe('Магические инструменты в сборщике (ROT-M
       skills: [{ ...shardSheet.skills[0], ranks: 0, isCareer: false }],
     } as unknown as CharacterSheet
     render(<MagicTab sheet={invalid} onError={() => {}} />)
-    await screen.findByText(/Сборка магического действия/)
+    await screen.findByText(/Действие/)
 
-    fireEvent.change(screen.getByLabelText(/Направление/), { target: { value: 'Runes' } })
+    fireEvent.click(screen.getByRole('button', { name: /Runes/ }))
     expect(document.body.textContent).toContain('карьерный навык')
     expect(screen.queryByLabelText(/Runebound shard/)).toBeNull()
   })
@@ -144,10 +144,10 @@ describe('Магические инструменты в сборщике (ROT-M
       discountEffects: ['Range'], attackDamageBonus: 0,
     })
     render(<MagicTab sheet={sheetWith(verseOnly)} onError={() => {}} />)
-    await screen.findByText(/Сборка магического действия/)
+    await screen.findByText(/Действие/)
 
-    fireEvent.change(screen.getByLabelText(/Инструмент/), { target: { value: 'item-1' } })
-    fireEvent.click(screen.getByRole('button', { name: /Дистанционный/ }))
+    fireEvent.click(screen.getByRole('button', { name: /Магический посох/ }))
+    fireEvent.click(screen.getByRole('checkbox', { name: /Дистанционный/ }))
 
     await waitFor(() => expect(difficulty()).toContain('2'))
     expect(document.body.textContent).toContain('Работает только с направлением')
@@ -160,15 +160,15 @@ describe('Магические инструменты в сборщике (ROT-M
     })
     render(<MagicTab sheet={sheetWith(tome)} onError={() => {}}
       refresh={() => Promise.resolve()} />)
-    await screen.findByText(/Сборка магического действия/)
+    await screen.findByText(/Действие/)
 
-    fireEvent.change(screen.getByLabelText(/Инструмент/), { target: { value: 'item-1' } })
+    fireEvent.click(screen.getByRole('button', { name: /Магический посох/ }))
     // Чипов «Дистанционный» на экране двое, и это разные вещи: выбор эффекта для текущего
     // заклинания и выбор эффекта, который ведущий закрепляет за фолиантом навсегда.
-    const inEffects = () => within(document.querySelector('.effect-chips') as HTMLElement)
+    const inEffects = () => within(document.querySelector('.magic-effect-list') as HTMLElement)
     const inConfig = () => within(document.querySelector('.implement-config') as HTMLElement)
 
-    fireEvent.click(inEffects().getByRole('button', { name: /Дистанционный/ }))
+    fireEvent.click(inEffects().getByRole('checkbox', { name: /Дистанционный/ }))
     await waitFor(() => expect(difficulty()).toContain('2'))
     expect(document.body.textContent).toContain('Не настроен')
 
@@ -180,7 +180,7 @@ describe('Магические инструменты в сборщике (ROT-M
 
   it('инструмент не в руках сборщику не предлагается', async () => {
     render(<MagicTab sheet={sheetWith(implement({}), { state: 'backpack' })} onError={() => {}} />)
-    await screen.findByText(/Сборка магического действия/)
+    await screen.findByText(/Действие/)
 
     expect(screen.queryByLabelText(/Инструмент/)).toBeNull()
   })
@@ -188,9 +188,9 @@ describe('Магические инструменты в сборщике (ROT-M
   it('учитывает незначительное и умеренное повреждение выбранного инструмента', async () => {
     const { rerender } = render(<MagicTab sheet={sheetWith(implement({ damageSetbackDice: 1 }))}
       onError={() => {}} />)
-    await screen.findByText(/Сборка магического действия/)
+    await screen.findByText(/Действие/)
 
-    fireEvent.change(screen.getByLabelText(/Инструмент/), { target: { value: 'item-1' } })
+    fireEvent.click(screen.getByRole('button', { name: /Магический посох/ }))
     expect(document.querySelectorAll('.dice-pool .die.setback')).toHaveLength(1)
 
     rerender(<MagicTab sheet={sheetWith(implement({ damageDifficultyIncrease: 1 }))}
@@ -201,16 +201,16 @@ describe('Магические инструменты в сборщике (ROT-M
   it('серьёзно повреждённый инструмент сборщику не предлагается', async () => {
     render(<MagicTab sheet={sheetWith(implement({}), { isUsable: false, damageState: 'major' })}
       onError={() => {}} />)
-    await screen.findByText(/Сборка магического действия/)
+    await screen.findByText(/Действие/)
 
     expect(screen.queryByLabelText(/Инструмент/)).toBeNull()
   })
 
   it('держит памятку по материалу рядом с выбранным инструментом', async () => {
     render(<MagicTab sheet={sheetWith(implement({ material: 'willow' }))} onError={() => {}} />)
-    await screen.findByText(/Сборка магического действия/)
+    await screen.findByText(/Действие/)
 
-    fireEvent.change(screen.getByLabelText(/Инструмент/), { target: { value: 'item-1' } })
+    fireEvent.click(screen.getByRole('button', { name: /Магический посох/ }))
     // Пока памятку не открыли, правила на экране нет — оно занимает место зря.
     expect(screen.queryByRole('tooltip')).toBeNull()
 
@@ -230,9 +230,9 @@ describe('Магические инструменты в сборщике (ROT-M
       pending: false,
     })
     render(<MagicTab sheet={sheetWith(tome)} onError={() => {}} />)
-    await screen.findByText(/Сборка магического действия/)
+    await screen.findByText(/Действие/)
 
-    fireEvent.change(screen.getByLabelText(/Инструмент/), { target: { value: 'item-1' } })
+    fireEvent.click(screen.getByRole('button', { name: /Магический посох/ }))
 
     // Оба выбранных эффекта названы сразу, ни один эффект ещё не выбран для заклинания.
     const summary = document.querySelector('.implement-summary')!.textContent ?? ''
@@ -241,17 +241,17 @@ describe('Магические инструменты в сборщике (ROT-M
     expect(summary).toContain('Ближний бой')
 
     // И на самом чипе видно, что надбавка снята.
-    const chip = within(document.querySelector('.effect-chips') as HTMLElement)
-      .getByRole('button', { name: /Дистанционный/ })
-    expect(chip.className).toContain('free')
-    expect(chip.textContent).toContain('бесплатно')
+    const chip = within(document.querySelector('.magic-effect-list') as HTMLElement)
+      .getByRole('checkbox', { name: /Дистанционный/ })
+    expect(chip.closest('.magic-effect-row')?.textContent).toContain('бесплатно')
+    expect(chip.closest('.magic-effect-row')?.textContent).toContain('бесплатно')
   })
 
   it('посох называет бесплатную Дистанцию как первое добавление', async () => {
     render(<MagicTab sheet={sheetWith(implement({}))} onError={() => {}} />)
-    await screen.findByText(/Сборка магического действия/)
+    await screen.findByText(/Действие/)
 
-    fireEvent.change(screen.getByLabelText(/Инструмент/), { target: { value: 'item-1' } })
+    fireEvent.click(screen.getByRole('button', { name: /Магический посох/ }))
 
     const summary = document.querySelector('.implement-summary')!.textContent ?? ''
     expect(summary).toContain('Дистанционный')
@@ -262,12 +262,12 @@ describe('Магические инструменты в сборщике (ROT-M
   it('потолок сложности считается по итогу, а не по сырой сумме надбавок', async () => {
     // Базовая 1 + Дистанция 1 + Ближний бой 1 = 3; посох снимает Дистанцию, итог 2.
     render(<MagicTab sheet={sheetWith(implement({}))} onError={() => {}} />)
-    await screen.findByText(/Сборка магического действия/)
+    await screen.findByText(/Действие/)
 
-    fireEvent.change(screen.getByLabelText(/Инструмент/), { target: { value: 'item-1' } })
-    const chips = () => within(document.querySelector('.effect-chips') as HTMLElement)
-    fireEvent.click(chips().getByRole('button', { name: /Дистанционный/ }))
-    fireEvent.click(chips().getByRole('button', { name: /Ближний бой/ }))
+    fireEvent.click(screen.getByRole('button', { name: /Магический посох/ }))
+    const chips = () => within(document.querySelector('.magic-effect-list') as HTMLElement)
+    fireEvent.click(chips().getByRole('checkbox', { name: /Дистанционный/ }))
+    fireEvent.click(chips().getByRole('checkbox', { name: /Ближний бой/ }))
 
     await waitFor(() => expect(difficulty()).toContain('2'))
     // Потолок не достигнут: он про итоговую сложность, а не про сумму печатных надбавок.
@@ -276,16 +276,16 @@ describe('Магические инструменты в сборщике (ROT-M
 
   it('добавляет повторяемый эффект несколько раз, а обычный — включает и выключает', async () => {
     render(<MagicTab sheet={sheetWith(null)} onError={() => {}} />)
-    await screen.findByText(/Сборка магического действия/)
+    await screen.findByText(/Действие/)
 
-    const chips = () => within(document.querySelector('.effect-chips') as HTMLElement)
-    const range = () => chips().getByRole('button', { name: /Дистанционный/ })
+    const chips = () => within(document.querySelector('.magic-effect-list') as HTMLElement)
+    const range = () => chips().getByRole('checkbox', { name: /Дистанционный/ })
 
     // Дистанцию книга разрешает добавлять несколько раз: базовая 1 + 1 + 1 = 3.
     fireEvent.click(range())
-    fireEvent.click(range())
+    fireEvent.click(screen.getByRole('button', { name: /Повторить эффект/ }))
     await waitFor(() => expect(difficulty()).toContain('3'))
-    expect(range().textContent).toContain('×2')
+    expect(range().closest('.magic-effect-row')?.textContent).toContain('×2')
 
     // Крестик в сводке снимает одно добавление, а не весь набор.
     const summary = within(document.querySelector('.effect-summary') as HTMLElement)
@@ -293,7 +293,7 @@ describe('Магические инструменты в сборщике (ROT-M
     await waitFor(() => expect(difficulty()).toContain('2'))
 
     // Обычный эффект по-прежнему переключается: второе нажатие снимает его.
-    const close = () => chips().getByRole('button', { name: /Ближний бой/ })
+    const close = () => chips().getByRole('checkbox', { name: /Ближний бой/ })
     fireEvent.click(close())
     await waitFor(() => expect(difficulty()).toContain('3'))
     fireEvent.click(close())
@@ -306,18 +306,18 @@ describe('Магические инструменты в сборщике (ROT-M
       choiceCount: 2, choiceMaxIncreaseSum: 3, chosenEffects: ['Range'], pending: false,
     })
     render(<MagicTab sheet={sheetWith(tome)} onError={() => {}} />)
-    await screen.findByText(/Сборка магического действия/)
+    await screen.findByText(/Действие/)
 
-    fireEvent.change(screen.getByLabelText(/Инструмент/), { target: { value: 'item-1' } })
-    const range = () => within(document.querySelector('.effect-chips') as HTMLElement)
-      .getByRole('button', { name: /Дистанционный/ })
+    fireEvent.click(screen.getByRole('button', { name: /Магический посох/ }))
+    const range = () => within(document.querySelector('.magic-effect-list') as HTMLElement)
+      .getByRole('checkbox', { name: /Дистанционный/ })
 
     // Первая Дистанция бесплатна: базовая 1 остаётся единицей.
     fireEvent.click(range())
     await waitFor(() => expect(difficulty()).toContain('1'))
 
     // Вторая стоит полную надбавку — так же, как у посоха.
-    fireEvent.click(range())
+    fireEvent.click(screen.getByRole('button', { name: /Повторить эффект/ }))
     await waitFor(() => expect(difficulty()).toContain('2'))
   })
 
