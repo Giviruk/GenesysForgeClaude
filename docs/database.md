@@ -590,6 +590,12 @@ Seed remains unchanged. Down restores the oldest membership by
 `AddedAt`, then `Id`, to the legacy pointer. Multiple memberships, restrictions, separate connections and
 approval states cannot be represented by the old schema: a rollback loses those v2 relationships, not definitions.
 Up and Down were verified on PostgreSQL 17 with named/personal/campaign fixtures and stable definition IDs.
+The opt-in `ContentLibraryMigrationTests` regression creates/drops its own isolated database on a disposable
+PostgreSQL instance. Set `GENESYS_MIGRATION_TEST_CONNECTION` (with CREATE DATABASE permission) and run
+`dotnet test backend/GenesysForge.slnx --filter FullyQualifiedName~ContentLibraryMigrationTests`.
+It covers eight originally NULL-pack definition types, negative ownership/unused/zero-rank cases, purchase
+after migration, rollback, SQL search limits and bounded catalogue loading. Without that variable it is skipped;
+the regular CI migration jobs still validate Up/Down independently.
 
 ### CustomContentChanges
 
