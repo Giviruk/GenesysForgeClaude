@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type {
   CharacterSheet, CraftingPreview, CraftingProject, CraftingSpend, Reference,
@@ -72,14 +72,14 @@ const draft: CraftingProject = {
 }
 
 const sheet = {
-  id: 'char-1',
+  id: 'char-1', system: 'realmsOfTerrinoth',
   items: [
     { id: 'item-axe', itemDefId: 'def-axe', name: 'Axe', nameRu: 'Топор' },
     { id: 'item-rune', itemDefId: 'def-rune', name: 'Lesser Rune', nameRu: 'Малая руна' },
   ],
   skills: [
-    { skillDefId: 'skill-arcana', name: 'Arcana', nameRu: 'Аркана', kind: 'magic' },
-    { skillDefId: 'skill-runes', name: 'Runes', nameRu: 'Руны', kind: 'magic' },
+    { skillDefId: 'skill-arcana', name: 'Arcana', nameRu: 'Аркана', kind: 'magic', ranks: 1 },
+    { skillDefId: 'skill-runes', name: 'Runes', nameRu: 'Руны', kind: 'magic', ranks: 1 },
     { skillDefId: 'skill-mechanics', name: 'Mechanics', nameRu: 'Механика', kind: 'general' },
   ],
 } as unknown as CharacterSheet
@@ -125,7 +125,7 @@ describe('Ремесло (ROT-CRAFT-01, ROT-ALCH-02, ROT-CRAFT-MAGIC-01)', () =>
 
   it('шлёт выбранную долю стоимости в предпросмотр', async () => {
     renderTab()
-    fireEvent.change(await screen.findByLabelText(/Что делаем/), { target: { value: 'def-axe' } })
+    fireEvent.click(await screen.findByRole('button', { name: /Топор/ }))
     await waitFor(() => expect(previewMock).toHaveBeenCalled())
 
     fireEvent.click(screen.getByText('150%'))
@@ -135,54 +135,41 @@ describe('Ремесло (ROT-CRAFT-01, ROT-ALCH-02, ROT-CRAFT-MAGIC-01)', () =>
 
   it('передаёт материал обычного и магического снаряжения в расчёт стоимости', async () => {
     renderTab()
-    const target = await screen.findByLabelText(/Что делаем/)
-    fireEvent.change(target, { target: { value: 'def-axe' } })
-    fireEvent.change(screen.getByLabelText(/Материал \/ качество изготовления/),
-      { target: { value: 'iron' } })
+    fireEvent.click(await screen.findByRole('button', { name: /Топор/ }))
+    fireEvent.click(screen.getByRole('button', { name: /Железо/ }))
     await waitFor(() => expect(previewMock).toHaveBeenLastCalledWith(
       'char-1', expect.objectContaining({ craftsmanship: 'iron', material: 'oak' })))
 
-    fireEvent.change(target, { target: { value: 'def-staff' } })
-    fireEvent.change(screen.getByLabelText(/Материал магического инструмента/),
-      { target: { value: 'willow' } })
+    fireEvent.click(screen.getByRole('button', { name: /Магический посох/ }))
+    fireEvent.click(screen.getByRole('button', { name: 'Ива' }))
     await waitFor(() => expect(previewMock).toHaveBeenLastCalledWith(
       'char-1', expect.objectContaining({ craftsmanship: 'steel', material: 'willow' })))
   })
 
   it('переключает каталог между обычными предметами и зельями', async () => {
     renderTab()
-    const select = await screen.findByLabelText(/Что делаем/)
-    expect(within(select).getByRole('option', { name: 'Топор' })).toBeTruthy()
-    expect(within(select).queryByRole('option', { name: 'Эликсир выносливости' })).toBeNull()
-
-    fireEvent.change(select, { target: { value: 'def-axe' } })
-    fireEvent.click(screen.getByRole('tab', { name: 'Варка зелья' }))
-
-    const potionSelect = screen.getByLabelText(/Что делаем/) as HTMLSelectElement
-    expect(potionSelect.value).toBe('')
-    expect(within(potionSelect).queryByRole('option', { name: 'Топор' })).toBeNull()
-    expect(within(potionSelect).getByRole('option', { name: 'Эликсир выносливости' })).toBeTruthy()
-
-    fireEvent.change(potionSelect, { target: { value: 'def-potion' } })
+    expect(await screen.findByRole('button', { name: /Топор/ })).toBeTruthy()
+    expect(screen.queryByRole('button', { name: /Эликсир выносливости/ })).toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: /Топор/ }))
+    fireEvent.click(screen.getByRole('tab', { name: /Варка зелья/ }))
+    expect(screen.queryByRole('button', { name: /Топор/ })).toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: /Эликсир выносливости/ }))
     await waitFor(() => expect(previewMock).toHaveBeenLastCalledWith(
       'char-1', expect.objectContaining({ itemDefId: 'def-potion', kind: 'potion' })))
   })
 
   it('отделяет услуги от предметов, доступных для ремесла', async () => {
     renderTab()
-    const select = await screen.findByLabelText(/Что делаем/)
-    const axe = within(select).getByRole('option', { name: 'Топор' }) as HTMLOptionElement
-    const meal = within(select).getByRole('option', { name: 'Еда в таверне' }) as HTMLOptionElement
-
-    expect(axe.disabled).toBe(false)
-    expect(meal.disabled).toBe(true)
-    expect(meal.parentElement?.getAttribute('label')).toBe('Нельзя создать ремеслом')
+    expect((await screen.findByRole('button', { name: /Топор/ })).hasAttribute('disabled')).toBe(false)
+    expect(screen.getByRole('button', { name: /Еда в таверне/ }).hasAttribute('disabled')).toBe(true)
+    expect(screen.getByRole('button', { name: /Еда в таверне/ }).title).toBe('Услуги не создаются ремеслом')
   })
 
   /** Своя цена отменяет долю и требует причины — то же правило, что при покупке. */
   it('своя стоимость требует причины и блокирует старт без неё', async () => {
     renderTab()
-    fireEvent.change(await screen.findByLabelText(/Что делаем/), { target: { value: 'def-axe' } })
+    fireEvent.click(await screen.findByRole('button', { name: /Топор/ }))
+    fireEvent.click(screen.getByText(/Поправки ведущего/))
     fireEvent.change(screen.getByLabelText(/Своя стоимость/), { target: { value: '10' } })
 
     const start = screen.getByText('Начать проект') as HTMLButtonElement
@@ -212,7 +199,7 @@ describe('Ремесло (ROT-CRAFT-01, ROT-ALCH-02, ROT-CRAFT-MAGIC-01)', () =>
     await screen.findByText('Превосходное')
     expect(triumphChip('Превосходное').disabled).toBe(true) // триумфов ноль
 
-    fireEvent.change(screen.getByLabelText(/Триумфы/), { target: { value: '1' } })
+    fireEvent.change(screen.getByRole('spinbutton', { name: 'Триумфы' }), { target: { value: '1' } })
     await waitFor(() => expect(triumphChip('Превосходное').disabled).toBe(false))
   })
 
@@ -221,8 +208,8 @@ describe('Ремесло (ROT-CRAFT-01, ROT-ALCH-02, ROT-CRAFT-MAGIC-01)', () =>
     renderTab()
     await screen.findByText('Разрешить проект')
 
-    fireEvent.change(screen.getByLabelText(/Нетто-успехов/), { target: { value: '2' } })
-    fireEvent.change(screen.getByLabelText(/Триумфы/), { target: { value: '1' } })
+    fireEvent.change(screen.getByRole('spinbutton', { name: 'Нетто-успехов' }), { target: { value: '2' } })
+    fireEvent.change(screen.getByRole('spinbutton', { name: 'Триумфы' }), { target: { value: '1' } })
     fireEvent.click(triumphChip('Превосходное'))
     fireEvent.click(screen.getByText('Разрешить проект'))
 
@@ -242,32 +229,31 @@ describe('Ремесло (ROT-CRAFT-01, ROT-ALCH-02, ROT-CRAFT-MAGIC-01)', () =>
     renderTab()
     expect(await screen.findByText(/Провал: предмет не создаётся/)).toBeTruthy()
 
-    fireEvent.change(screen.getByLabelText(/Нетто-успехов/), { target: { value: '1' } })
+    fireEvent.change(screen.getByRole('spinbutton', { name: 'Нетто-успехов' }), { target: { value: '1' } })
     expect(await screen.findByText(/Успех: предмет будет создан/)).toBeTruthy()
   })
 
   it('зачарование требует согласованной способности', async () => {
     renderTab()
-    fireEvent.click(await screen.findByRole('tab', { name: 'Зачарование' }))
+    fireEvent.click(await screen.findByRole('tab', { name: /Зачарование/ }))
     expect(await screen.findByText(/уже превосходной основы/)).toBeTruthy()
     expect((screen.getByText('Начать проект') as HTMLButtonElement).disabled).toBe(true)
   })
 
   it('не предлагает руну основой зачарования', async () => {
     renderTab()
-    fireEvent.click(await screen.findByRole('tab', { name: 'Зачарование' }))
+    fireEvent.click(await screen.findByRole('tab', { name: /Зачарование/ }))
 
-    const select = screen.getByLabelText(/Основа из инвентаря/)
-    expect(within(select).getByRole('option', { name: 'Топор' })).toBeTruthy()
-    expect(within(select).queryByRole('option', { name: 'Малая руна' })).toBeNull()
+    expect(screen.getByRole('button', { name: /Топор/ })).toBeTruthy()
+    expect(screen.queryByRole('button', { name: /Малая руна/ })).toBeNull()
   })
 
   it('передаёт выбранный магический навык для зачарования', async () => {
     renderTab()
-    fireEvent.click(await screen.findByRole('tab', { name: 'Зачарование' }))
-    fireEvent.change(screen.getByLabelText(/Основа из инвентаря/), { target: { value: 'item-axe' } })
+    fireEvent.click(await screen.findByRole('tab', { name: /Зачарование/ }))
+    fireEvent.click(screen.getByRole('button', { name: /Топор/ }))
     fireEvent.change(screen.getByLabelText(/Согласованная способность/), { target: { value: 'огненный клинок' } })
-    fireEvent.change(screen.getByLabelText(/Навык зачарования/), { target: { value: 'Runes' } })
+    fireEvent.click(screen.getByRole('button', { name: /Руны/ }))
 
     await waitFor(() => expect(previewMock).toHaveBeenLastCalledWith(
       'char-1', expect.objectContaining({

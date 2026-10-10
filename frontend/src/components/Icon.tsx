@@ -1,6 +1,37 @@
 import type { SVGProps } from 'react'
 
 export type IconName =
+  | 'adjustments'
+  | 'hammer'
+  | 'sword'
+  | 'lock'
+  | 'coin'
+  | 'check'
+  | 'photo-plus'
+  | 'target'
+  | 'ghost-2'
+  | 'shield-check'
+  | 'heart-broken'
+  | 'flask'
+  | 'sparkles'
+  | 'crown'
+  | 'scroll'
+  | 'hand-finger'
+  | 'horse'
+  | 'horse-toy'
+  | 'feather'
+  | 'link'
+  | 'arrow-back-up'
+  | 'arrow-bar-to-down'
+  | 'chevron-right'
+  | 'chevron-down'
+  | 'point-filled'
+  | 'circle-check'
+  | 'circle-x'
+  | 'info-circle'
+  | 'alert-triangle'
+  | 'dice-5'
+  | 'truck'
   | 'alert'
   | 'arrow-left'
   | 'book'
@@ -30,6 +61,38 @@ export type IconName =
   | 'users'
 
 const paths: Record<IconName, string[]> = {
+  'adjustments': ['M4 7h16', 'M4 17h16', 'M8 4v6', 'M16 14v6'],
+  'hammer': ['m14 3 7 7-3 3-3-3L5 20l-3-3L12 7 9 4l5-1Z'],
+  'sword': ['m4 20 13-13', 'M14 3h7v7L8 20l-4-4L14 3Z', 'm3 13 8 8'],
+  'lock': ['M5 10h14v11H5z', 'M8 10V6a4 4 0 0 1 8 0v4', 'M12 14v3'],
+  'coin': ['M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Z', 'M15 7h-4a2 2 0 0 0 0 4h2a2 2 0 0 1 0 4H9', 'M12 5v12'],
+  'check': ['m5 12 4 4L19 6'],
+  'photo-plus': ['M3 4h14v16H3z', 'm3 15 5-5 5 5', 'M21 3v6', 'M18 6h6', 'M8 7h.01'],
+  'target': ['M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Z', 'M12 7a5 5 0 1 0 0 10 5 5 0 0 0 0-10Z', 'M12 12h.01'],
+  'ghost-2': ['M4 21V10a8 8 0 0 1 16 0v11l-4-3-4 3-4-3-4 3Z', 'M9 10h.01', 'M15 10h.01'],
+  'shield-check': ['M12 2 3 6v6c0 5 9 10 9 10s9-5 9-10V6l-9-4Z', 'm8 11 3 3 5-5'],
+  'heart-broken': ['M12 5 9 2a6 6 0 0 0-7 7c0 4 10 12 10 12S22 13 22 9a6 6 0 0 0-7-7l-3 3Z', 'm12 5-2 5 4 3-2 4'],
+  'flask': ['M9 3h6', 'M10 3v6L4 19a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2L14 9V3', 'M7 15h10'],
+  'sparkles': ['m12 3 3 6 6 3-6 3-3 6-3-6-6-3 6-3 3-6Z', 'M21 1v4', 'M19 3h4'],
+  'crown': ['m3 6 5 5 4-8 4 8 5-5-2 14H5L3 6Z'],
+  'scroll': ['M7 4h12v14a3 3 0 0 1-6 0H4V7a3 3 0 0 1 6 0H4', 'M7 18v2a3 3 0 0 0 3 3h6', 'M11 9h5', 'M11 13h5'],
+  'hand-finger': ['M9 12V4a2 2 0 0 1 4 0v8l4-2 4 3-2 8H9l-5-8a2 2 0 0 1 3-2l2 1Z'],
+  'horse': ['M3 21v-8l4-3V4l3 2 3-2 8 9-3 3-4-3-1 8', 'M10 21v-5', 'M14 9h.01'],
+  'horse-toy': ['M3 19c4 4 14 4 18 0', 'M6 18v-5l3-3V4l3 2 3-2 6 8-3 3-4-3-1 6'],
+  'feather': ['m4 20 16-16', 'M6 18C0 8 15-2 21 3c5 6-5 21-15 15Z', 'M8 16h7', 'M12 12h7'],
+  'link': ['m9 15 6-6', 'M7 14l-3 3a4 4 0 0 0 6 6l3-3', 'M11 4l3-3a4 4 0 0 1 6 6l-3 3'],
+  'arrow-back-up': ['M5 9h9a6 6 0 0 1 0 12', 'm9 5-4 4 4 4'],
+  'arrow-bar-to-down': ['M12 3v12', 'm7 10 5 5 5-5', 'M4 19h16'],
+  'chevron-right': ['m9 5 7 7-7 7'],
+  'chevron-down': ['m5 9 7 7 7-7'],
+  'point-filled': ['M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8Z'],
+  'circle-check': ['M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Z', 'm7 12 3 3 7-7'],
+  'circle-x': ['M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Z', 'm8 8 8 8', 'm16 8-8 8'],
+  'info-circle': ['M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Z', 'M12 11v6', 'M12 7h.01'],
+  'alert-triangle': ['M12 8v5', 'M12 17h.01', 'M12 3 2 21h20L12 3Z'],
+  'dice-5': ['M4 4h16v16H4z', 'M8 8h.01', 'M16 8h.01', 'M12 12h.01', 'M8 16h.01', 'M16 16h.01'],
+  'truck': ['M2 5h12v13H2z', 'M14 9h4l4 5v4h-8', 'M6 18a2 2 0 1 0 0 4 2 2 0 0 0 0-4Z', 'M18 18a2 2 0 1 0 0 4 2 2 0 0 0 0-4Z'],
+
   alert: ['M12 9v4', 'M12 17h.01', 'M10.3 3.9 2.6 17.2A2 2 0 0 0 4.3 20h15.4a2 2 0 0 0 1.7-2.8L13.7 3.9a2 2 0 0 0-3.4 0Z'],
   'arrow-left': ['M5 12h14', 'm11 6-6 6 6 6'],
   book: ['M4 19.5A2.5 2.5 0 0 1 6.5 17H20', 'M4 4.5A2.5 2.5 0 0 1 6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15Z'],

@@ -151,7 +151,7 @@ describe('CampaignsPage — GM просмотр листа участника (U
     expect(screen.getByTestId('readonly-talents')).toBeTruthy()
     fireEvent.click(screen.getByRole('button', { name: 'Инвентарь' }))
     expect(screen.getByTestId('readonly-inventory')).toBeTruthy()
-    fireEvent.click(screen.getByRole('button', { name: 'Образ' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Образ и заметки' }))
     expect(screen.getByTestId('readonly-bio')).toBeTruthy()
     fireEvent.click(screen.getByRole('button', { name: 'История' }))
     expect(screen.getByTestId('readonly-history')).toBeTruthy()

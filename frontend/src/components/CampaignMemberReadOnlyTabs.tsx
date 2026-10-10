@@ -7,6 +7,7 @@ import {
 import { BookReference } from './BookReference'
 import { PropertyTags } from './PropertyTags'
 import { RuleText } from './RuleText'
+import { BioTab } from './BioTab'
 
 export function ReadOnlyTalentsTab({ sheet }: { sheet: CharacterSheet }) {
   const talents = sheet.talents.toSorted((a, b) => a.tier - b.tier || localizedName(a).localeCompare(localizedName(b), lang))
@@ -159,21 +160,5 @@ export function ReadOnlyTransportTab({ sheet }: { sheet: CharacterSheet }) {
 }
 
 export function ReadOnlyBioTab({ sheet }: { sheet: CharacterSheet }) {
-  const motivations = [
-    [t('Стремление', 'Desire'), sheet.desire], [t('Страх', 'Fear'), sheet.fear],
-    [t('Сильная сторона', 'Strength'), sheet.strength], [t('Слабость', 'Flaw'), sheet.flaw],
-  ] as const
-  return <div>
-    <section className="panel">
-      <h3>{t('Образ персонажа', 'Character bio')}</h3>
-      {motivations.every(([, value]) => !value) && <p className="muted">{t('Мотивации не заполнены.', 'Motivations are empty.')}</p>}
-      {motivations.filter(([, value]) => value).map(([label, value]) => <div className="sheet-entry" key={label}>
-        <strong>{label}:</strong> {value}
-      </div>)}
-    </section>
-    <section className="panel">
-      <h3>{t('Предыстория', 'Background')}</h3>
-      {sheet.background ? <div className="sheet-prewrap">{sheet.background}</div> : <p className="muted">—</p>}
-    </section>
-  </div>
+  return <BioTab key={sheet.id} sheet={sheet} readOnly />
 }

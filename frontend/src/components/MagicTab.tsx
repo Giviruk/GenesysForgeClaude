@@ -21,6 +21,8 @@ export function MagicTab({ sheet, onError, refresh, qualities, campaignId }: {
   /** Перечитать лист после настройки инструмента; без неё выбор эффектов не предлагается. */
   refresh?: () => Promise<void>
 }) {
+  const [direction, setDirection] = useState('')
+  const [action, setAction] = useState('')
   const [mode, setMode] = useState<'reference' | 'builder'>('builder')
 
   const magicSkills = useMemo<MagicSkillPool[]>(
@@ -50,14 +52,15 @@ export function MagicTab({ sheet, onError, refresh, qualities, campaignId }: {
       .map(i => ({ itemId: i.id, name: localizedName(i), shard: i.shard! })),
     [sheet.items])
 
+  const modeControl = <div className="sheet-segment" role="group" aria-label={t('Режим магии', 'Magic mode')}>
+    <button aria-pressed={mode === 'builder'} onClick={() => setMode('builder')}>{t('Сборка действия', 'Build action')}</button>
+    <button aria-pressed={mode === 'reference'} onClick={() => setMode('reference')}>{t('Справочник', 'Reference')}</button>
+  </div>
+  const selection = { direction, onDirectionChange: setDirection, action, onActionChange: setAction, modeControl }
   return (
     <div>
-      <div className="system-switch">
-        <button className={mode === 'builder' ? 'tab active' : 'tab'} onClick={() => setMode('builder')}>{t('Сборка действия', 'Build action')}</button>
-        <button className={mode === 'reference' ? 'tab active' : 'tab'} onClick={() => setMode('reference')}>{t('Справочник', 'Reference')}</button>
-      </div>
       {mode === 'builder'
-        ? <MagicBuilder characterId={sheet.id} campaignId={campaignId} system={sheet.system} characterSkills={magicSkills}
+        ? <MagicBuilder {...selection} characterId={sheet.id} campaignId={campaignId} system={sheet.system} characterSkills={magicSkills}
           knowledgeRating={sheet.knowledgeRating} qualities={qualities} talents={sheet.talents}
           implements={implementsInHand} shards={shardsInHand} onError={onError}
           onConfigureImplement={refresh
@@ -72,7 +75,7 @@ export function MagicTab({ sheet, onError, refresh, qualities, campaignId }: {
               await refresh()
             }
             : undefined} />
-        : <SpellsTab characterId={sheet.id} campaignId={campaignId} system={sheet.system} onError={onError} qualities={qualities} />}
+        : <SpellsTab {...selection} characterSkills={magicSkills} characterId={sheet.id} campaignId={campaignId} system={sheet.system} onError={onError} qualities={qualities} />}
     </div>
   )
 }

@@ -10,6 +10,12 @@ once it reaches a tagged 1.0 release. The project is currently pre-1.0; the
 ## [Unreleased]
 
 ### Added
+- **Character sheet Redesign v2.1 (SHEET-01–07).** New tab order and saved Workshop modes;
+  host cards with spare/shop attachments; crafting cards, previews and symbol steppers;
+  magic school/action chips, effect checkboxes and clickable reference matrix;
+  bio completion, parchment background and inline private notes; Heroic ability/upgrade columns
+  with a browser-local use counter; transport cards with activity, traction, cargo and stable filters.
+  Existing rules and API commands are preserved. [Implementation plan](roadmap/tasks/gen-rd-sheet-v21-redesign.md).
 - **Redesign v2 (GEN-RD-01–09).** Independent account content, many-to-many packs, book exclusions,
   campaign content summary/systems/packs/individual entries, player proposals, and Auto/Manual approval
   of new pack entries. Campaigns connect original content; JSON v1/v2 import copies definitions and export

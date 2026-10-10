@@ -385,7 +385,7 @@ function CampaignPlayersPanel({ campaign, onChanged, onLeave, onError }: {
 }
 
 const CAMPAIGN_MEMBER_TABS = [
-  'sheet', 'inventory', 'talents', 'magic', 'heroic', 'attachments', 'transport', 'bio', 'history',
+  'sheet', 'talents', 'inventory', 'magic', 'heroic', 'workshop', 'transport', 'bio', 'history',
 ] as const satisfies readonly CharacterSheetTab[]
 type CampaignMemberTab = typeof CAMPAIGN_MEMBER_TABS[number]
 
@@ -451,19 +451,19 @@ function CampaignMemberSheetPage({ campaignId, characterId, campaignName, onBack
     {error && <div className="error floating">{error}</div>}
     <div className="tabs main-tabs">
       <button className={tab === 'sheet' ? 'tab active' : 'tab'} onClick={() => selectTab('sheet')}>{t('Лист', 'Sheet')}</button>
-      <button className={tab === 'inventory' ? 'tab active' : 'tab'} onClick={() => selectTab('inventory')}>{t('Инвентарь', 'Inventory')}</button>
       <button className={tab === 'talents' ? 'tab active' : 'tab'} onClick={() => selectTab('talents')}>{t('Таланты', 'Talents')}</button>
+      <button className={tab === 'inventory' ? 'tab active' : 'tab'} onClick={() => selectTab('inventory')}>{t('Инвентарь', 'Inventory')}</button>
       <button className={tab === 'magic' ? 'tab active' : 'tab'} onClick={() => selectTab('magic')}>{t('Магия', 'Magic')}</button>
       <span className="sheet-tab-divider" aria-hidden="true" />
       {sheet.system === 'realmsOfTerrinoth' && <button
         className={`sheet-secondary-tab ${tab === 'heroic' ? 'tab active' : 'tab'}`}
         onClick={() => selectTab('heroic')}>{t('Героика', 'Heroic')}</button>}
-      <button className={`sheet-secondary-tab ${tab === 'attachments' ? 'tab active' : 'tab'}`}
-        onClick={() => selectTab('attachments')}>{t('Улучшения', 'Attachments')}</button>
+      <button className={`sheet-secondary-tab ${tab === 'workshop' ? 'tab active' : 'tab'}`}
+        onClick={() => selectTab('workshop')}>{t('Мастерская', 'Workshop')}</button>
       <button className={`sheet-secondary-tab ${tab === 'transport' ? 'tab active' : 'tab'}`}
         onClick={() => selectTab('transport')}>{t('Транспорт', 'Transport')}</button>
       <button className={`sheet-secondary-tab ${tab === 'bio' ? 'tab active' : 'tab'}`}
-        onClick={() => selectTab('bio')}>{t('Образ', 'Bio')}</button>
+        onClick={() => selectTab('bio')}>{t('Образ и заметки', 'Bio and notes')}</button>
       <button className={`sheet-secondary-tab ${tab === 'history' ? 'tab active' : 'tab'}`}
         onClick={() => selectTab('history')}>{t('История', 'History')}</button>
     </div>
@@ -472,7 +472,7 @@ function CampaignMemberSheetPage({ campaignId, characterId, campaignName, onBack
     {tab === 'talents' && <ReadOnlyTalentsTab sheet={sheet} />}
     {tab === 'magic' && <MagicTab campaignId={campaignId} sheet={sheet} onError={setError} />}
     {tab === 'heroic' && <ReadOnlyHeroicTab sheet={sheet} />}
-    {tab === 'attachments' && <ReadOnlyAttachmentsTab sheet={sheet} />}
+    {tab === 'workshop' && <ReadOnlyAttachmentsTab sheet={sheet} />}
     {tab === 'transport' && <ReadOnlyTransportTab sheet={sheet} />}
     {tab === 'bio' && <ReadOnlyBioTab sheet={sheet} />}
     {tab === 'history' && <HistoryTab characterId={characterId} onError={setError}

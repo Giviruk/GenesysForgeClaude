@@ -1,4 +1,4 @@
-import { render, screen, waitFor, fireEvent } from '@testing-library/react'
+import { render, screen, waitFor, fireEvent, within } from '@testing-library/react'
 import { describe, expect, it, vi, beforeEach } from 'vitest'
 import type { AttachmentDef, CharacterAttachment, CharacterSheet, Reference, SheetItem } from '../api/types'
 import { AttachmentsTab } from './AttachmentsTab'
@@ -50,190 +50,103 @@ const mace = {
 } as unknown as SheetItem
 
 const sheet = {
-  id: 'char-1', money: 5000, isCreationPhase: false,
+  id: 'char-1', system: 'realmsOfTerrinoth', money: 5000, isCreationPhase: false,
   items: [sword, mace], skills: [],
   attachments: [spare('att-1', 'def-razor')],
 } as unknown as CharacterSheet
 
 const reference = { attachments: [razorDef] } as unknown as Reference
 
-describe('Улучшения предметов (ROT-EQP-ATT-01)', () => {
+const renderTab = (value = sheet, definitions = reference) => render(
+  <AttachmentsTab sheet={value} reference={definitions} onError={() => {}}
+    refresh={() => Promise.resolve()} />)
+const installedSheet = () => {
+  const attachment = spare('att-1', 'def-razor', { hostCharacterItemId: 'item-sword' })
+  return { ...sheet, items: [{ ...sword, usedHardPoints: 1, attachments: [attachment] }, mace],
+    attachments: [attachment] } as CharacterSheet
+}
+
+describe('Улучшения предметов (SHEET-02)', () => {
   beforeEach(() => {
-    installMock.mockReset(); installMock.mockResolvedValue(undefined)
-    detachMock.mockReset(); detachMock.mockResolvedValue(undefined)
-    buyMock.mockReset(); buyMock.mockResolvedValue({ id: 'new' })
+    installMock.mockReset().mockResolvedValue(undefined)
+    detachMock.mockReset().mockResolvedValue(undefined)
+    buyMock.mockReset().mockResolvedValue({ id: 'new' })
   })
 
-  it('ставит улучшение на выбранный предмет по кнопке «Применить»', async () => {
-    render(<AttachmentsTab sheet={sheet} reference={reference} onError={() => {}}
-      refresh={() => Promise.resolve()} />)
-
-    // Броска нет: правило книги показано подсказкой.
-    expect(screen.getByText(/проверки Механики средней сложности/)).toBeTruthy()
-
-    fireEvent.change(screen.getByLabelText('Предмет'), { target: { value: 'item-sword' } })
-    fireEvent.change(screen.getByLabelText('Улучшение'), { target: { value: 'att-1' } })
-    fireEvent.click(screen.getByRole('button', { name: 'Применить' }))
-
-    await waitFor(() => expect(installMock).toHaveBeenCalledWith(
-      'char-1', 'att-1', 'item-sword', undefined))
+  it('выбирает свободный носитель и устанавливает улучшение из запаса', async () => {
+    renderTab()
+    expect(screen.getByRole('button', { name: /Меч/ }).getAttribute('aria-pressed')).toBe('true')
+    fireEvent.click(screen.getByRole('button', { name: 'Установить' }))
+    await waitFor(() => expect(installMock).toHaveBeenCalledWith('char-1', 'att-1', 'item-sword', undefined))
   })
 
-  it('не предлагает несовместимый предмет', () => {
-    render(<AttachmentsTab sheet={sheet} reference={reference} onError={() => {}}
-      refresh={() => Promise.resolve()} />)
-
-    // Бритвенная кромка — для клинкового оружия; у булавы такого признака нет.
-    fireEvent.change(screen.getByLabelText('Предмет'), { target: { value: 'item-mace' } })
-    const options = [...screen.getByLabelText('Улучшение').querySelectorAll('option')]
-    expect(options).toHaveLength(1)
-    expect((screen.getByRole('button', { name: 'Применить' }) as HTMLButtonElement).disabled).toBe(true)
+  it('объясняет несовместимость выбранного носителя', () => {
+    renderTab()
+    fireEvent.click(screen.getByRole('button', { name: /Булава/ }))
+    expect(screen.getByText('Требуется подходящий профиль оружия')).toBeTruthy()
+    expect(screen.queryByRole('button', { name: 'Установить' })).toBeNull()
   })
 
-  it('требует причину для чар без магического навыка', async () => {
-    const withRune = {
-      ...sheet,
-      attachments: [spare('att-2', 'def-rune', { nameRu: 'Руна рассечения', isEnchantment: true, price: null })],
-    } as unknown as CharacterSheet
-    render(<AttachmentsTab sheet={withRune} reference={{ attachments: [runeDef] } as unknown as Reference}
-      onError={() => {}} refresh={() => Promise.resolve()} />)
-
-    fireEvent.change(screen.getByLabelText('Предмет'), { target: { value: 'item-sword' } })
-    fireEvent.change(screen.getByLabelText('Улучшение'), { target: { value: 'att-2' } })
-
-    const apply = () => screen.getByRole('button', { name: 'Применить' }) as HTMLButtonElement
-    expect(apply().disabled).toBe(true)
-
-    fireEvent.change(screen.getByLabelText(/Причина установки чар/), {
-      target: { value: 'помог городской чародей' },
-    })
-    fireEvent.click(apply())
-    await waitFor(() => expect(installMock).toHaveBeenCalledWith(
-      'char-1', 'att-2', 'item-sword', 'помог городской чародей'))
+  it('показывает причину нехватки слотов и уже установленного улучшения', () => {
+    const installed = installedSheet()
+    renderTab({ ...installed, attachments: [...installed.attachments, spare('att-2', 'def-razor'),
+      spare('att-3', 'def-second')],
+    }, { attachments: [razorDef, { ...razorDef, id: 'def-second' }] } as Reference)
+    fireEvent.click(screen.getByRole('button', { name: /Меч/ }))
+    expect(screen.getByText('Уже установлено')).toBeTruthy()
+    expect(screen.getByText('Нет свободных слотов')).toBeTruthy()
   })
 
-  it('фильтрует списки по виду носителя', () => {
-    const armorDef = {
-      ...razorDef, id: 'def-plating', code: 'rot.attachment.deflective-plating',
-      name: 'Deflective Plating', nameRu: 'Отклоняющие пластины', hostKind: 'armor',
-      requiredTraits: 'none', forbiddenTraits: 'none',
-    } as unknown as AttachmentDef
-    const both = {
-      ...sheet,
-      attachments: [
-        spare('att-1', 'def-razor'),
-        spare('att-2', 'def-plating', { nameRu: 'Отклоняющие пластины' }),
-      ],
-    } as unknown as CharacterSheet
-    render(<AttachmentsTab sheet={both} reference={{ attachments: [razorDef, armorDef] } as unknown as Reference}
-      onError={() => {}} refresh={() => Promise.resolve()} />)
-
-    // Раздел ищется по стабильному ключу, а не по порядку: порядок разделов — вопрос вёрстки.
-    const reserve = () => document.querySelector('[data-section="reserve"]')!.textContent ?? ''
-    expect(reserve()).toContain('Бритвенная кромка')
-    expect(reserve()).toContain('Отклоняющие пластины')
-
-    fireEvent.click(screen.getByRole('button', { name: 'Броня' }))
-    expect(reserve()).not.toContain('Бритвенная кромка')
-    expect(reserve()).toContain('Отклоняющие пластины')
+  it('требует причину для чар без магического ранга', async () => {
+    renderTab({ ...sheet, attachments: [spare('att-2', 'def-rune', {
+      nameRu: 'Руна рассечения', isEnchantment: true, price: null,
+    })] }, { attachments: [runeDef] } as Reference)
+    expect(screen.queryByRole('button', { name: 'Установить' })).toBeNull()
+    fireEvent.change(screen.getByLabelText(/Причина установки чар/), { target: { value: 'помог чародей' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Установить' }))
+    await waitFor(() => expect(installMock).toHaveBeenCalledWith('char-1', 'att-2', 'item-sword', 'помог чародей'))
   })
 
-  it('держит установленное первым разделом и сворачивает разделы', () => {
-    const installed = {
-      ...sheet,
-      items: [{ ...sword, usedHardPoints: 1, attachments: [spare('att-1', 'def-razor', { hostCharacterItemId: 'item-sword' })] }, mace],
-      attachments: [spare('att-1', 'def-razor', { hostCharacterItemId: 'item-sword' })],
-    } as unknown as CharacterSheet
-    render(<AttachmentsTab sheet={installed} reference={reference} onError={() => {}}
-      refresh={() => Promise.resolve()} />)
-
-    // Установленное идёт раньше запаса и магазина — за ним сюда и приходят.
-    const sections = [...document.querySelectorAll('[data-section]')]
-      .map(s => s.getAttribute('data-section'))
-    expect(sections[0]).toBe('installed')
-
-    const installedSection = () => document.querySelector('[data-section="installed"]')!
-    expect(installedSection().textContent).toContain('Бритвенная кромка')
-
-    // Заголовок сворачивает раздел; счётчик остаётся видимым, иначе закрытый раздел
-    // не отличить от пустого.
-    fireEvent.click(screen.getByRole('button', { name: /Установленные/ }))
-    expect(installedSection().textContent).not.toContain('Бритвенная кромка')
-    expect(installedSection().textContent).toContain('1')
-
-    fireEvent.click(screen.getByRole('button', { name: /Установленные/ }))
-    expect(installedSection().textContent).toContain('Бритвенная кромка')
+  it('снимает улучшение с выбранным исходом', async () => {
+    renderTab(installedSheet())
+    fireEvent.click(screen.getByRole('button', { name: 'Снять' }))
+    await waitFor(() => expect(detachMock).toHaveBeenCalledWith('char-1', 'att-1', 'returned'))
+    fireEvent.click(screen.getByRole('button', { name: /Испорчено при снятии/ }))
+    await waitFor(() => expect(detachMock).toHaveBeenCalledWith('char-1', 'att-1', 'destroyed'))
   })
 
-  it('делает качество в описании установленного улучшения интерактивным', () => {
-    const describedRazor = {
-      ...razorDef,
-      description: 'Для клинкового оружия: получает Pierce 2.',
-    } as unknown as AttachmentDef
-    const installedAttachment = spare('att-1', 'def-razor', { hostCharacterItemId: 'item-sword' })
-    const installed = {
-      ...sheet,
-      items: [{ ...sword, usedHardPoints: 1, attachments: [installedAttachment] }, mace],
-      attachments: [installedAttachment],
-    } as unknown as CharacterSheet
-
-    render(<AttachmentsTab sheet={installed}
-      reference={{ attachments: [describedRazor], qualities: [] } as unknown as Reference}
-      onError={() => {}} refresh={() => Promise.resolve()} />)
-
-    const quality = screen.getByRole('button', { name: /Проникающее/ })
-    fireEvent.mouseEnter(quality)
+  it('сохраняет интерактивные качества установленного улучшения', () => {
+    renderTab(installedSheet(), { attachments: [{ ...razorDef,
+      description: 'Собственная тестовая заметка: Pierce 2.',
+    }], qualities: [] } as unknown as Reference)
+    fireEvent.mouseEnter(screen.getByRole('button', { name: /Проникающее/ }))
     expect(screen.getByRole('tooltip').textContent).toMatch(/игнорирует поглощение/)
   })
 
-  it('держит каталог закрытым, пока его не откроют', () => {
-    render(<AttachmentsTab sheet={sheet} reference={reference} onError={() => {}}
-      refresh={() => Promise.resolve()} />)
-
-    const shop = () => document.querySelector('[data-section="shop"]')!
-    expect(shop().textContent).not.toContain('Цену считает сервер')
-
-    fireEvent.click(screen.getByRole('button', { name: /Купить улучшение/ }))
-    expect(shop().textContent).toContain('Цену считает сервер')
+  it('фильтрует лавку и выдаёт бесценные руны', async () => {
+    renderTab(sheet, { attachments: [razorDef, runeDef] } as Reference)
+    fireEvent.click(screen.getByRole('button', { name: /Лавка/ }))
+    fireEvent.click(screen.getByRole('button', { name: /Руны/ }))
+    const shop = within(document.querySelector('.sheet-catalog-card')!)
+    expect(shop.getByText('Руна рассечения')).toBeTruthy()
+    expect(shop.getByRole('button', { name: 'Купить' }).hasAttribute('disabled')).toBe(true)
+    fireEvent.click(shop.getByRole('button', { name: '+ Выдать' }))
+    await waitFor(() => expect(buyMock).toHaveBeenCalledWith('char-1', 'def-rune', { free: true }))
+    expect(await screen.findByRole('status')).toHaveProperty('textContent', 'Руна рассечения — в запасе')
   })
 
-  it('держит руны в отдельной корзине, а обычные улучшения — без них', () => {
-    const runeDef = {
-      ...razorDef, id: 'def-rune-blades', code: 'rot.attachment.rune-of-blades',
-      name: 'Rune of Blades', nameRu: 'Руна клинков', isEnchantment: true, price: null,
-      requiredTraits: 'none', forbiddenTraits: 'none',
-    } as unknown as AttachmentDef
-    const both = {
-      ...sheet,
-      attachments: [spare('att-1', 'def-razor'), spare('att-2', 'def-rune-blades', { nameRu: 'Руна клинков' })],
-    } as unknown as CharacterSheet
-    render(<AttachmentsTab sheet={both} reference={{ attachments: [razorDef, runeDef] } as unknown as Reference}
-      onError={() => {}} refresh={() => Promise.resolve()} />)
-
-    const reserve = () => document.querySelector('[data-section="reserve"]')!.textContent ?? ''
-    expect(reserve()).toContain('Бритвенная кромка')
-    expect(reserve()).toContain('Руна клинков')
-
-    fireEvent.click(screen.getByRole('button', { name: 'Руны' }))
-    expect(reserve()).toContain('Руна клинков')
-    expect(reserve()).not.toContain('Бритвенная кромка')
-
-    // «Оружие» — обычные улучшения без рун: руна к оружию тоже подходит, но живёт отдельно.
-    fireEvent.click(screen.getByRole('button', { name: 'Оружие' }))
-    expect(reserve()).toContain('Бритвенная кромка')
-    expect(reserve()).not.toContain('Руна клинков')
+  it('не предлагает руны в Core', () => {
+    renderTab({ ...sheet, system: 'genesysCore' }, { attachments: [razorDef, runeDef] } as Reference)
+    fireEvent.click(screen.getByRole('button', { name: /Лавка/ }))
+    expect(screen.queryByRole('button', { name: /Руны/ })).toBeNull()
+    expect(screen.queryByText('Руна рассечения')).toBeNull()
   })
 
-  it('снимает установленное улучшение', async () => {
-    const installed = {
-      ...sheet,
-      items: [{ ...sword, usedHardPoints: 1, attachments: [spare('att-1', 'def-razor', { hostCharacterItemId: 'item-sword' })] }, mace],
-      attachments: [spare('att-1', 'def-razor', { hostCharacterItemId: 'item-sword' })],
-    } as unknown as CharacterSheet
-    render(<AttachmentsTab sheet={installed} reference={reference} onError={() => {}}
-      refresh={() => Promise.resolve()} />)
-
-    fireEvent.click(screen.getByRole('button', { name: 'Снять' }))
-    await waitFor(() => expect(detachMock).toHaveBeenCalledWith('char-1', 'att-1', 'returned'))
+  it('блокирует платную покупку без денег, сохраняя выдачу', async () => {
+    renderTab({ ...sheet, money: 1 })
+    fireEvent.click(screen.getByRole('button', { name: /Лавка/ }))
+    expect(screen.getByRole('button', { name: 'Купить' }).hasAttribute('disabled')).toBe(true)
+    fireEvent.click(screen.getByRole('button', { name: '+ Без оплаты' }))
+    await waitFor(() => expect(buyMock).toHaveBeenCalledWith('char-1', 'def-razor', { free: true }))
   })
 })

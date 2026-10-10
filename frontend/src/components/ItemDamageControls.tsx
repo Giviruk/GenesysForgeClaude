@@ -65,7 +65,8 @@ export function RepairMemo({ repair }: { repair: ItemRepair }) {
  * Состояние предмета и ремонт одной строкой. Состояние меняется отдельными кнопками — и когда
  * в бою сработало Разрушающее, и когда вещь пострадала по сюжету: приложение не угадывает причину.
  */
-export function DamageStateControls({ state, repair, funds, reinforced, onSetState, onRepair }: {
+export function DamageStateControls({ state, repair, funds, reinforced, onSetState, onRepair, showHint = true }: {
+  showHint?: boolean
   state: ItemDamageState
   repair: ItemRepair
   /** Чем персонаж может заплатить за материалы: обычный кошелёк. */
@@ -154,7 +155,7 @@ export function DamageStateControls({ state, repair, funds, reinforced, onSetSta
       )}
       <RepairMemo repair={repair} />
 
-      {state !== 'undamaged' && (
+      {showHint && state !== 'undamaged' && (
         <span className="damage-warn">{ITEM_DAMAGE_STATE_HINTS[state]}</span>
       )}
       {reinforced && (

@@ -205,10 +205,25 @@ describe('HeroicParameterSection (ROT-HA-02)', () => {
       }, { isCreationPhase: false, heroicUpgradeRank: 1 })}
       reference={reference} run={run} />)
 
-    fireEvent.change(screen.getByLabelText('Улучшение Improved'), { target: { value: 'ancient' } })
+    fireEvent.click(screen.getByRole('button', { name: /Древняя/ }))
     fireEvent.click(screen.getByRole('button', { name: 'Выбрать навсегда' }))
 
     await waitFor(() => expect(upgradesMock).toHaveBeenCalledWith('char-1', { improvement: 'ancient' }))
+  })
+
+  it('Supreme выбирается чипом навсегда и не предлагает базовое улучшение повторно', async () => {
+    const supremeReference = { ...reference, attachments: reference.attachments.map(a => ({ ...a, rarity: 5 })) }
+    render(<HeroicParameterSection section="supreme"
+      sheet={sheetWith({ ...emptyConfig, kind: 'signatureWeapon', complete: true,
+        signatureWeapon: { ...weaponFixture, improvement: 'reinforced' },
+      }, { isCreationPhase: false, heroicUpgradeRank: 2 })}
+      reference={supremeReference} run={run} />)
+
+    expect(screen.queryByRole('button', { name: 'Рунический гром' })).toBeNull()
+    expect(screen.getByRole('button', { name: 'Выбрать навсегда' })).toHaveProperty('disabled', true)
+    fireEvent.click(screen.getByRole('button', { name: 'Взрывной снаряд' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Выбрать навсегда' }))
+    await waitFor(() => expect(upgradesMock).toHaveBeenCalledWith('char-1', { supremeAttachmentDefId: 'att-missile' }))
   })
 
   it('без базового улучшения именное оружие не сохраняется', () => {
@@ -227,7 +242,7 @@ describe('HeroicParameterSection (ROT-HA-02)', () => {
       }, { isCreationPhase: false })}
       reference={reference} run={run} />)
 
-    const summary = screen.getByText(/Лук предков/)
+    const summary = screen.getByText(/Лук предков/, { selector: '.hint' })
     expect(summary.textContent).toContain('Ranged')
     expect(summary.textContent).toContain('Превосходное')
     expect(summary.textContent).toContain('Высококритичное 3')
