@@ -1078,6 +1078,9 @@ table.ref-table td.ref-cost { white-space: nowrap; color: var(--accent); }
 .info-tip { font-weight: 700; min-width: 1.2rem; text-align: center; }
 .prop-tooltip-body ul { margin: 0.2rem 0 0; padding-left: 1.05rem; }
 .prop-tooltip-body li { margin-bottom: 0.15rem; }
+/* Абзацы памятки внутри заголовка: <p> там недопустим, поэтому блочные span. */
+.prop-tooltip-paragraph { display: block; }
+.prop-tooltip-paragraph + .prop-tooltip-paragraph { margin-top: 0.35rem; }
 
 .prop-tooltip-title { display: block; font-weight: 700; color: var(--accent); margin-bottom: 0.3rem; }
 .prop-tooltip-en { font-weight: 400; color: var(--muted); }

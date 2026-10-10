@@ -192,6 +192,7 @@ describe('Улучшения предметов (SHEET-02)', () => {
     const tip = screen.getByRole('button', { name: 'Правила установки' })
     fireEvent.focus(tip)
     expect(screen.getByRole('tooltip').textContent).toContain('Приложение бросок не делает')
+    expect(screen.getByRole('tooltip').querySelector('p')).toBeNull()
     fireEvent.keyDown(tip, { key: 'Enter' })
     fireEvent.blur(tip)
     expect(screen.getByRole('tooltip').textContent).toContain('Чары ставит только тот')

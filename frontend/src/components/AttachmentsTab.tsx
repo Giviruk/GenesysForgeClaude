@@ -116,7 +116,7 @@ export function AttachmentsTab({ sheet, reference, onError, refresh }: Props) {
     <section>
       <h3 className="sheet-section-title">{t('Предметы со слотами', 'Items with slots')}<small>
         <InfoTip label={t('Как проходит установка', 'How installation works')} title={t('Правила установки', 'Installation rules')}>
-          <p>{INSTALL_HINT}</p>{sheet.system === 'realmsOfTerrinoth' && <p>{ENCHANTMENT_HINT}</p>}
+          <span className="prop-tooltip-paragraph">{INSTALL_HINT}</span>{sheet.system === 'realmsOfTerrinoth' && <span className="prop-tooltip-paragraph">{ENCHANTMENT_HINT}</span>}
         </InfoTip></small></h3>
       {hosts.length === 0 && <p className="muted">{t('Нет предметов со слотами улучшений.', 'No items with attachment slots.')}</p>}
       {hosts.map(i => <article key={i.id} className={`attachment-host-card${host?.id === i.id ? ' selected' : ''}`}>
