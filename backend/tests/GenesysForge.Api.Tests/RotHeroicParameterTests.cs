@@ -659,7 +659,7 @@ public class RotHeroicParameterTests(ApiFactory factory) : IClassFixture<ApiFact
         var skill = (await (await gm.PostAsJsonAsync($"/api/campaigns/{campaign.Id}/custom/skills",
             new CreateCustomSkillRequest(GameSystem.RealmsOfTerrinoth, "Heroic campaign skill", CharacteristicType.Intellect, SkillKind.General), Json.Options))
             .Content.ReadFromJsonAsync<SkillDefDto>(Json.Options))!;
-        var pack = Assert.Single((await gm.GetFromJsonAsync<List<HomebrewPackListItemDto>>("/api/homebrew-packs/", Json.Options))!);
+        var pack = await gm.CreateLibraryPackAsync(GameSystem.RealmsOfTerrinoth, campaign.Id);
         Assert.Equal(HttpStatusCode.OK, (await player.PostAsJsonAsync("/api/campaigns/join", new JoinCampaignRequest(campaign.JoinCode!, characterId), Json.Options)).StatusCode);
         return (gm, campaign, pack.Id, skill);
     }
@@ -693,6 +693,9 @@ public class RotHeroicParameterTests(ApiFactory factory) : IClassFixture<ApiFact
                     OwnerUserId = owner.Id, HomebrewPackId = packId, HostKind = ItemKind.Weapon, HardPointCost = 1 },
                 new AttachmentDef { Id = supremeId, Name = "Campaign supreme", Code = "custom.supreme", System = GameSystem.RealmsOfTerrinoth,
                     OwnerUserId = owner.Id, HomebrewPackId = packId, HostKind = ItemKind.Weapon, HardPointCost = 1 });
+            db.HomebrewPackEntries.AddRange(
+                new HomebrewPackEntry { Id = Guid.NewGuid(), HomebrewPackId = packId, EntryType = CustomEntryType.Attachment, EntryId = baseId },
+                new HomebrewPackEntry { Id = Guid.NewGuid(), HomebrewPackId = packId, EntryType = CustomEntryType.Attachment, EntryId = supremeId });
             await db.SaveChangesAsync();
         }
         Assert.Equal(HttpStatusCode.NoContent, (await gm.PutAsJsonAsync($"/api/campaigns/{campaign.Id}/homebrew-packs/{packId}", new HomebrewPackToggleRequest(false), Json.Options)).StatusCode);

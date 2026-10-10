@@ -45,7 +45,9 @@ public class CreateCustomArchetypeHandler(IAppDbContext db) : ICommandHandler<Cr
 
         AddAbility(def, req);
         db.ArchetypeDefs.Add(def);
+        await ContentMembership.ApplyAsync(db, command.UserId, req.System, CustomEntryType.Archetype, def.Id, req.PackIds, command.CampaignId, ct);
         CustomContentAudit.Created(db, "archetype", def.Id, def.HomebrewPackId, def.Name, command.UserId);
+        await CustomContentAudit.ReplicateToPacksAsync(db, def.Id, ct);
         await db.SaveChangesAsync(ct);
         return def.ToDto();
     }

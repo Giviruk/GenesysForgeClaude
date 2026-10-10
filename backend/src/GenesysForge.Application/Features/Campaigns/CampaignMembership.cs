@@ -1,4 +1,5 @@
 using GenesysForge.Application.Abstractions;
+using GenesysForge.Application.Common;
 using GenesysForge.Domain;
 using GenesysForge.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
@@ -23,6 +24,9 @@ internal static class CampaignMembership
     {
         if (await db.CampaignCharacters.AnyAsync(cc => cc.CampaignId == campaign.Id && cc.CharacterId == characterId, ct))
             throw new DomainRuleException("Этот персонаж уже участвует в кампании.");
+        var system = db.Characters.Local.FirstOrDefault(x => x.Id == characterId)?.System
+            ?? await db.Characters.Where(x => x.Id == characterId).Select(x => x.System).SingleAsync(ct);
+        await CampaignContentPolicy.EnsureSystemOpenAsync(db, campaign.Id, system, ct);
         await EnsureMemberAsync(db, campaign, userId, ct);
         db.CampaignCharacters.Add(new CampaignCharacter
         {

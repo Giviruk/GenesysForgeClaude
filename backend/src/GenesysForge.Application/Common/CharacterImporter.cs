@@ -24,7 +24,7 @@ public record ImportResolution(
 public static class CharacterImporter
 {
     public static async Task<ImportResolution> ResolveAsync(
-        IAppDbContext db, Guid userId, CharacterExportDto? payload, CancellationToken ct = default)
+        IAppDbContext db, Guid userId, CharacterExportDto? payload, CancellationToken ct = default, Guid? campaignId = null)
     {
         if (payload is null || !CharacterExportDto.SupportedFormats.Contains(payload.Format))
             throw new DomainRuleException(
@@ -35,7 +35,8 @@ public static class CharacterImporter
 
         var warnings = new List<string>();
         var system = data.System;
-        var definitions = await ImportDefinitionSet.LoadAsync(db, userId, system, data, ct);
+        if (campaignId is { } cid) await CampaignContentPolicy.EnsureSystemOpenAsync(db, cid, system, ct);
+        var definitions = await ImportDefinitionSet.LoadAsync(db, userId, system, data, ct, campaignId);
 
         var archetype = definitions.Archetypes.Resolve(data.ArchetypeCode, data.ArchetypeName)
             ?? throw new DomainRuleException(

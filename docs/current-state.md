@@ -17,6 +17,21 @@
 - Frontend tests: Vitest test files in `frontend/src/api` and `frontend/src/utils`.
 - Infrastructure: `docker-compose.yml`, `docker-compose.prod.yml`, backend/frontend Dockerfiles, GitHub Actions CI and deploy workflow.
 
+## Redesign v2 (GEN-RD-01–09)
+
+Лист: три карточки состояния с сегментами и серверными расшифровками поглощения/порога нагрузки;
+фиксированные строки навыков, пять ромбов ранга, предпросмотр покупки с сохранением всех модификаторов
+и переключатель прокачки отдельно для каждого персонажа. Read-only лист не показывает правки.
+
+Библиотека: независимые элементы аккаунта, наборы M:N, полный редактор в drawer, picker, исключения
+книг, история, shared-ссылки и JSON v1/v2. Кампания: сводка, системы/ручные исключения, исходные наборы,
+отдельные элементы, предложения игроков и per-entry Auto/Manual. `CampaignContentPolicy` проверяет
+справочники, покупки, выборы, поиск и импорт. Миграция `ContentLibraryV2`; описания и seed не менялись.
+
+[Актуальная модель](account-campaign-content.md#redesign-v2--актуальное-дополнение-gen-rd-0109),
+[API](api.md#content-library-v2-gen-rd-05), [план](../roadmap/tasks/gen-rd-v2-redesign.md).
+GEN-RD-10 остаётся вне текущей реализации.
+
 ## Implemented
 
 - User registration and login with JWT.

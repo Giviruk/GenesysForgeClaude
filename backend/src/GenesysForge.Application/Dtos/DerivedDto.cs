@@ -7,7 +7,9 @@ public record DerivedDto(int WoundThreshold, int StrainThreshold, int Soak, int 
     /// <summary>Как сложилась дальняя защита.</summary>
     DefenseBreakdownDto? RangedDefenseBreakdown = null,
     /// <summary>Точная цена перегруза (ROT-EQP-01).</summary>
-    EncumbranceDto? Encumbrance = null);
+    EncumbranceDto? Encumbrance = null,
+    StatBreakdownDto? SoakBreakdown = null,
+    StatBreakdownDto? EncumbranceThresholdBreakdown = null);
 
 /// <summary>Состояние перегруза: сколько помех, остался ли бесплатный манёвр и во что он обходится.</summary>
 public record EncumbranceDto(
@@ -45,3 +47,6 @@ public record KnowledgeRatingDto(IReadOnlyList<KnowledgeRatingOptionDto> Options
 /// <c>default</c> — навык из правил системы, <c>darkInsight</c> — исключение таланта.
 /// </param>
 public record KnowledgeRatingOptionDto(string Skill, string SkillRu, int Ranks, string Reason);
+
+public record StatSourceDto(string SourceName, int Value);
+public record StatBreakdownDto(int Base, IReadOnlyList<StatSourceDto> Sources);

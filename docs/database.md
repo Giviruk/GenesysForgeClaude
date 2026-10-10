@@ -29,6 +29,9 @@ DbSets:
 - `HomebrewPacks`
 - `HomebrewPackCharacters`
 - `HomebrewPackCampaigns`
+- `HomebrewPackEntries` / `HomebrewPackExclusions`
+- `CampaignPackEntryStates` / `CampaignContentItems`
+- `CampaignSystemSettings` / `CampaignBaseOverrides`
 - `GameSessions`
 - `GameParticipants`
 - `InitiativeSlots`
@@ -108,8 +111,9 @@ All built-in reference entities (`SkillDefs`, `TalentDefs`, `ItemDefs`, `Archety
 - `SafeDescription` — copyright-safe public text.
 - `Source` — book/section reference, available in both modes. `varchar(160)`.
 
-Visibility is governed by `OwnerUserId` (null = built-in, non-null = custom), optional `HomebrewPackId`
-for imported user packs, and the seed `ContentMode`. `SpellDefs` already carried
+Visibility is governed by `OwnerUserId` (null = built-in, non-null = custom), M:N
+`HomebrewPackEntries`, campaign connections and book overrides through `CampaignContentPolicy`.
+`HomebrewPackId` is deprecated and does not control visibility. `ContentMode` controls emitted descriptions. `SpellDefs` already carried
 `NameRu`/`Description`/`SafeDescription`/`Source` (see below).
 
 ### SkillDefs
@@ -546,36 +550,58 @@ Indexes:
 - non-unique `OwnerUserId`.
 - unique nullable `ShareTokenHash` for shared import tokens.
 
-Imported pack content is stored in the normal custom reference tables through nullable `HomebrewPackId`
-columns on `SkillDefs`, `TalentDefs`, `ItemDefs`, `HeroicAbilityDefs`, `ArchetypeDefs`, `CareerDefs`.
-Standalone reference visibility uses owned default packs and character toggles. Campaign contexts use
-only enabled campaign pack connections. Directly created campaign custom content is stored in an
-automatically created system-specific pack linked through `HomebrewPackCampaigns`; no schema change is
-required. A character context also resolves enabled packs of every campaign that contains the character,
-including original player-owned packs explicitly connected by its GM using a shared token.
+Definitions live independently of packs. Deleting a pack preserves definition IDs and purchased content.
+Unpacked owned entries are available outside campaigns; packed entries follow default/per-character toggles.
+Campaign contexts use active enabled pack entries and separate entries, with a union across the character's
+campaigns. Book restrictions apply only inside campaigns.
 
 ### HomebrewPackCharacters / HomebrewPackCampaigns
 
-Per-character and per-campaign pack toggles. A campaign connection grants use, not ownership:
-HomebrewPackCampaigns references the player's original pack; definition IDs and OwnerUserId remain
-unchanged. GM connection/management uses the existing table and requires no new schema migration.
+Connections grant use of the original definitions, without ownership transfer or copies.
+`HomebrewPackCharacters`: `Id`, `HomebrewPackId`, `CharacterId`, `IsEnabled`, `UpdatedAt`.
+`HomebrewPackCampaigns`: `Id`, `HomebrewPackId`, `CampaignId`, `IsEnabled`, `UpdatedAt`,
+`UpdatePolicy` (Auto=0, Manual=1), `Status` (Active=0, Pending=1, Declined=2), nullable `ProposedByUserId`.
+Unique `(HomebrewPackId, CharacterId)` / `(HomebrewPackId, CampaignId)`; cascade FKs to targets and pack.
 
-Fields:
+### Content library v2 tables (GEN-RD-03)
 
-- `HomebrewPackCharacters`: `Id`, `HomebrewPackId`, `CharacterId`, `IsEnabled`, `UpdatedAt`.
-- `HomebrewPackCampaigns`: `Id`, `HomebrewPackId`, `CampaignId`, `IsEnabled`, `UpdatedAt`.
+| Table | Fields and constraints |
+|---|---|
+| `HomebrewPackEntries` | `Id`, cascade `HomebrewPackId`, `EntryType`, `EntryId`, `AddedAt`; unique `(HomebrewPackId, EntryType, EntryId)`; index `(EntryType, EntryId)` |
+| `HomebrewPackExclusions` | `Id`, cascade `HomebrewPackId`, `Category`, `ContentKey` (400); unique `(HomebrewPackId, Category, ContentKey)` |
+| `CampaignPackEntryStates` | `Id`, cascade `HomebrewPackCampaignId`, `EntryType`, `EntryId`, `State` (Disabled=0, Pending=1); unique `(HomebrewPackCampaignId, EntryType, EntryId)`; absence means enabled |
+| `CampaignContentItems` | `Id`, cascade `CampaignId`, `EntryType`, `EntryId`, `IsEnabled`, `Status`, nullable `ProposedByUserId`, `AddedAt`; unique `(CampaignId, EntryType, EntryId)` |
+| `CampaignSystemSettings` | composite PK `(CampaignId, System)`, cascade campaign FK, `IsOpen`; absence means open |
+| `CampaignBaseOverrides` | `Id`, cascade `CampaignId`, `System`, `Category`, `ContentKey` (400), `IsEnabled`; unique `(CampaignId, System, Category, ContentKey)` |
 
-Indexes:
+`EntryType`: Skill=0, Talent=1, Item=2, Archetype=3, Career=4, HeroicAbility=5, Attachment=6, Mount=7.
+`Category`: Skill=0, Career=1, Archetype=2, Talent=3, Magic=4, HeroicAbility=5, Item=6.
+Polymorphic definition references have no database FK: Application validates type, existence, ownership and
+system; deletion removes links/states/direct connections in the same save. Heroic abilities belong to RoT.
+Book keys use `Code`; magic uses `{MagicSkill}:{Kind}:{NameEn}` for base effects.
 
-- unique `(HomebrewPackId, CharacterId)`.
-- unique `(HomebrewPackId, CampaignId)`.
-- cascade FKs to the pack and target character/campaign.
+Migration `20261009141914_ContentLibraryV2` creates these tables and three campaign-link columns. Up
+moves named pack pointers to M:N, dissolves only `Personal custom:*` technical packs (preserving definitions),
+converts their existing campaign connections to separate entries with the previous enabled state, and clears
+`Campaign custom:*` descriptions. Before dissolving auto-packs, originally NULL-pack custom definitions
+already used by their owner’s campaign characters become explicit Active/enabled separate connections
+(all eight types; skill rows require positive ranks). Unused own and foreign definitions are not backfilled.
+Seed remains unchanged. Down restores the oldest membership by
+`AddedAt`, then `Id`, to the legacy pointer. Multiple memberships, restrictions, separate connections and
+approval states cannot be represented by the old schema: a rollback loses those v2 relationships, not definitions.
+Up and Down were verified on PostgreSQL 17 with named/personal/campaign fixtures and stable definition IDs.
+The opt-in `ContentLibraryMigrationTests` regression creates/drops its own isolated database on a disposable
+PostgreSQL instance. Set `GENESYS_MIGRATION_TEST_CONNECTION` (with CREATE DATABASE permission) and run
+`dotnet test backend/GenesysForge.slnx --filter FullyQualifiedName~ContentLibraryMigrationTests`.
+It covers eight originally NULL-pack definition types, negative ownership/unused/zero-rank cases, purchase
+after migration, rollback, SQL search limits and bounded catalogue loading. Without that variable it is skipped;
+the regular CI migration jobs still validate Up/Down independently.
 
 ### CustomContentChanges
 
 Custom definition history for six types: skill, talent, item, heroicAbility, archetype, career.
-Fields: `Id`, nullable `HomebrewPackId` (legacy content only), `DefinitionType` (max 40),
-`DefinitionId`, `DefinitionName`, `UserId`, `Action` (Created=0, Updated=1, Deleted=2),
+Fields: `Id`, nullable `HomebrewPackId` (event pack), `DefinitionType` (max 40),
+`DefinitionId`, `DefinitionName`, `UserId`, `Action` (Created=0, Updated=1, Deleted=2, AddedToPack=3, RemovedFromPack=4),
 `ChangesJson` (text), `CreatedAt` (UTC timestamp). `ChangesJson` holds the DTO field diff for updates;
 created/deleted events retain the name with an empty diff. No definition FK is present, so deleting
 an unused definition preserves history. History identifiers are retained without cascade FKs.
@@ -585,7 +611,7 @@ Indexes: `(HomebrewPackId, CreatedAt)` and `(DefinitionId, CreatedAt)`.
 Definition tables have no new UpdatedAt columns. Last edited dates come from grouped journal MAX,
 restricted to visible custom definition IDs in reference responses. Campaign pack metadata uses
 the pack's latest event and `HomebrewPackCampaigns.UpdatedAt` for the connection date.
-`ChangedAfterConnection` is a computed API field: the owner differs from the campaign GM and
+`ChangedAfterConnection` is a computed API field: the connection is active and enabled, the owner differs from the campaign GM and
 the latest event is newer than that connection date. It adds no database column or migration.
 Custom CRUD saves events atomically with definition changes; imports and seed do not add events.
 

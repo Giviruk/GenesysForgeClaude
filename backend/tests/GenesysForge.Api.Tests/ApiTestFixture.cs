@@ -69,3 +69,26 @@ public static class TestClientExtensions
         return client;
     }
 }
+
+/// <summary>Explicit pack fixture: v2 no longer creates technical personal/campaign packs.</summary>
+public static class LibraryTestFixtures
+{
+    public static async Task<HomebrewPackListItemDto> CreateLibraryPackAsync(this HttpClient client,
+        GenesysForge.Domain.GameSystem system = GenesysForge.Domain.GameSystem.GenesysCore, Guid? campaignId = null)
+    {
+        var response = await client.PostAsJsonAsync("/api/homebrew-packs", new PackDetailsRequest("Test library pack", "Own fixture", system), Json.Options);
+        response.EnsureSuccessStatusCode();
+        var pack = (await response.Content.ReadFromJsonAsync<HomebrewPackListItemDto>(Json.Options))!;
+        var entries = (await client.GetFromJsonAsync<List<LibraryEntryDto>>($"/api/library?system={system}", Json.Options))!;
+        (await client.PostAsJsonAsync($"/api/homebrew-packs/{pack.Id}/entries", new ContentEntriesRequest(entries.Select(x => new ContentEntryRef(x.EntryType, x.Id)).ToList()), Json.Options)).EnsureSuccessStatusCode();
+        if (campaignId is not null)
+        {
+            // These fixtures exercise pack gating, rather than the separately tested legacy direct-item path.
+            var direct = (await client.GetFromJsonAsync<List<CampaignContentItemDto>>($"/api/campaigns/{campaignId}/content/items", Json.Options))!;
+            foreach (var item in direct.Where(x => entries.Any(e => e.Id == x.EntryId)))
+                (await client.DeleteAsync($"/api/campaigns/{campaignId}/content/items/{item.Id}")).EnsureSuccessStatusCode();
+            (await client.PutAsJsonAsync($"/api/campaigns/{campaignId}/homebrew-packs/{pack.Id}", new HomebrewPackToggleRequest(true), Json.Options)).EnsureSuccessStatusCode();
+        }
+        return (await client.GetFromJsonAsync<List<HomebrewPackListItemDto>>("/api/homebrew-packs", Json.Options))!.Single(x => x.Id == pack.Id);
+    }
+}

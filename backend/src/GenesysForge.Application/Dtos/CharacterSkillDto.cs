@@ -42,4 +42,7 @@ public record CharacterSkillDto(Guid SkillDefId, string Name, string NameRu, Ski
     /// <summary>Усиления сложности от длительных эффектов критических травм.</summary>
     int DifficultyUpgrades = 0,
     /// <summary>Критическая травма убирает все бонусные кости этого броска.</summary>
-    bool RemoveBoosts = false);
+    bool RemoveBoosts = false,
+    string? UnavailableReason = null,
+    /// <summary>Серверный пул после покупки ранга; null, если дальнейшая покупка запрещена правилами.</summary>
+    DicePoolDto? NextPool = null);

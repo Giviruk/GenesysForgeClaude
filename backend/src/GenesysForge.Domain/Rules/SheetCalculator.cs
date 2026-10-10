@@ -95,7 +95,13 @@ public static class SheetCalculator
             Encumbered: encumbrance.Encumbered,
             MeleeDefenseBreakdown: meleeBreakdown,
             RangedDefenseBreakdown: rangedBreakdown,
-            Encumbrance: encumbrance);
+            Encumbrance: encumbrance,
+            SoakBreakdown: new StatBreakdown(ch.Brawn,
+                [.. protective.Where(i => i.SoakBonus != 0).Select(i => new StatSource(i.Name, i.SoakBonus)),
+                 .. talents.Where(t => t.SoakBonusPerRank * t.Ranks != 0).Select(t => new StatSource(t.Name, t.SoakBonusPerRank * t.Ranks))]),
+            EncumbranceThresholdBreakdown: new StatBreakdown(ch.Brawn,
+                [new StatSource("Base", 5), .. protective.Where(i => i.EncumbranceThresholdBonus != 0)
+                    .Select(i => new StatSource(i.Name, i.EncumbranceThresholdBonus))]));
     }
 
     /// <summary>

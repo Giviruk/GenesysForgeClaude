@@ -61,8 +61,9 @@ test('GEN-CONTENT-01: original pack live edit, scoped history and member UI', as
   const talentRequest = { system: 'genesysCore', name: unique('Player talent'), tier: 1, isRanked: false,
     activation: 'Passive', description: 'User-authored effect.', woundBonus: 0, strainBonus: 0, soakBonus: 0,
     meleeDefenseBonus: 0, rangedDefenseBonus: 0, category: 'general' }
-  const talent = await apiPost<{ id: string }>(request, author.token, '/api/custom/talents', talentRequest)
-  const [pack] = await apiGet<Array<{ id: string; name: string }>>(request, author.token, '/api/homebrew-packs/')
+  const pack = await apiPost<{ id: string; name: string }>(request, author.token, '/api/homebrew-packs/',
+    { system: 'genesysCore', name: unique('Author pack') })
+  const talent = await apiPost<{ id: string }>(request, author.token, '/api/custom/talents', { ...talentRequest, packIds: [pack.id] })
   const share = await apiPost<{ token: string }>(request, author.token, `/api/homebrew-packs/${pack.id}/share`)
   const connectUrl = `/api/campaigns/${campaign.id}/homebrew-packs/shared/${share.token}/import`
   const nonMember = await request.post(connectUrl, { headers: authHeaders(gm.token) })
@@ -71,8 +72,12 @@ test('GEN-CONTENT-01: original pack live edit, scoped history and member UI', as
   for (const user of [author, member])
     await apiPost(request, user.token, '/api/campaigns/join', { joinCode: campaign.joinCode })
   expect(await apiPost(request, gm.token, connectUrl)).toMatchObject({ id: pack.id })
+  const ownPack = await apiPost<{ id: string }>(request, gm.token, '/api/homebrew-packs/',
+    { system: 'genesysCore', name: unique('GM pack') })
+  await readJson(await request.put(`/api/campaigns/${campaign.id}/homebrew-packs/${ownPack.id}`,
+    { headers: authHeaders(gm.token), data: { isEnabled: true } }), 'GM pack connection')
   const gmTalent = await apiPost<{ id: string }>(request, gm.token, `/api/campaigns/${campaign.id}/custom/talents`,
-    { ...talentRequest, name: unique('Gm talent') })
+    { ...talentRequest, name: unique('Gm talent'), packIds: [ownPack.id] })
   const gmPack = (await apiGet<CampaignHomebrewPack[]>(request, gm.token, `/api/campaigns/${campaign.id}/homebrew-packs/`))
     .find(x => x.isMine)!
   // Creation and connection can fall within the same JavaScript millisecond.

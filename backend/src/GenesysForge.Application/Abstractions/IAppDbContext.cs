@@ -53,6 +53,12 @@ public interface IAppDbContext
     DbSet<InitiativeSlot> InitiativeSlots { get; }
     DbSet<Encounter> Encounters { get; }
     DbSet<EncounterParticipant> EncounterParticipants { get; }
+    DbSet<HomebrewPackEntry> HomebrewPackEntries { get; }
+    DbSet<HomebrewPackExclusion> HomebrewPackExclusions { get; }
+    DbSet<CampaignPackEntryState> CampaignPackEntryStates { get; }
+    DbSet<CampaignContentItem> CampaignContentItems { get; }
+    DbSet<CampaignSystemSetting> CampaignSystemSettings { get; }
+    DbSet<CampaignBaseOverride> CampaignBaseOverrides { get; }
     DbSet<HomebrewPack> HomebrewPacks { get; }
     DbSet<HomebrewPackCharacter> HomebrewPackCharacters { get; }
     DbSet<HomebrewPackCampaign> HomebrewPackCampaigns { get; }

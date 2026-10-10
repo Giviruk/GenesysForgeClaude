@@ -36,7 +36,7 @@ public class HomebrewPackTests : IClassFixture<ApiFactory>
         Assert.Equal(TalentCategory.Social, talent.Category);
 
         var exported = (await owner.GetFromJsonAsync<HomebrewPackExportDto>($"/api/homebrew-packs/{imported.Id}/export", Json.Options))!;
-        Assert.Equal("genesysforge.homebrew-pack.v1", exported.Format);
+        Assert.Equal("genesysforge.homebrew-pack.v2", exported.Format);
         Assert.Equal("airships.skill.sky-sailing", exported.Skills![0].Code);
         Assert.Equal(TalentCategory.Social, exported.Talents![0].Category);
 
@@ -85,7 +85,7 @@ public class HomebrewPackTests : IClassFixture<ApiFactory>
         var talent = (await (await player.PostAsJsonAsync("/api/custom/talents",
             new CreateCustomTalentRequest(GameSystem.GenesysCore, "Personal Ranked Talent", 1, true, "Passive", "Own text", 0, 0, 0, 0, 0), Json.Options))
             .Content.ReadFromJsonAsync<TalentDefDto>(Json.Options))!;
-        var personalPack = Assert.Single((await player.GetFromJsonAsync<List<HomebrewPackListItemDto>>("/api/homebrew-packs/", Json.Options))!);
+        var personalPack = await player.CreateLibraryPackAsync();
         var reference = (await player.GetFromJsonAsync<ReferenceResponse>("/api/reference/GenesysCore", Json.Options))!;
         var characterId = (await (await player.PostAsJsonAsync("/api/characters/",
             new CreateCharacterRequest("Pilot", GameSystem.GenesysCore, reference.Archetypes[0].Id, reference.Careers[0].Id, null), Json.Options))
@@ -151,7 +151,7 @@ public class HomebrewPackTests : IClassFixture<ApiFactory>
         var campaign = (await (await gm.PostAsJsonAsync("/api/campaigns/", new CreateCampaignRequest("Authorization", ""), Json.Options))
             .Content.ReadFromJsonAsync<CampaignDetailDto>(Json.Options))!;
         await player.PostAsJsonAsync("/api/custom/skills", new CreateCustomSkillRequest(GameSystem.GenesysCore, "Shared auth skill", CharacteristicType.Cunning, SkillKind.General), Json.Options);
-        var pack = Assert.Single((await player.GetFromJsonAsync<List<HomebrewPackListItemDto>>("/api/homebrew-packs/", Json.Options))!);
+        var pack = await player.CreateLibraryPackAsync();
         var oldShare = (await (await player.PostAsync($"/api/homebrew-packs/{pack.Id}/share", null)).Content.ReadFromJsonAsync<HomebrewPackShareDto>(Json.Options))!;
         var current = (await (await player.PostAsync($"/api/homebrew-packs/{pack.Id}/share", null)).Content.ReadFromJsonAsync<HomebrewPackShareDto>(Json.Options))!;
         Assert.Equal(HttpStatusCode.BadRequest, (await gm.PostAsync($"/api/campaigns/{campaign.Id}/homebrew-packs/shared/{oldShare.Token}/import", null)).StatusCode);
@@ -188,7 +188,7 @@ public class HomebrewPackTests : IClassFixture<ApiFactory>
             .Content.ReadFromJsonAsync<CampaignDetailDto>(Json.Options))!;
         var author = Assert.Single(joined.Players!);
         await player.PostAsJsonAsync("/api/custom/skills", new CreateCustomSkillRequest(GameSystem.GenesysCore, "Former owner skill", CharacteristicType.Cunning, SkillKind.General), Json.Options);
-        var pack = Assert.Single((await player.GetFromJsonAsync<List<HomebrewPackListItemDto>>("/api/homebrew-packs/", Json.Options))!);
+        var pack = await player.CreateLibraryPackAsync();
         var share = (await (await player.PostAsync($"/api/homebrew-packs/{pack.Id}/share", null)).Content.ReadFromJsonAsync<HomebrewPackShareDto>(Json.Options))!;
         Assert.Equal(HttpStatusCode.OK, (await gm.PostAsync($"/api/campaigns/{campaign.Id}/homebrew-packs/shared/{share.Token}/import", null)).StatusCode);
         var listPath = $"/api/campaigns/{campaign.Id}/homebrew-packs/";
@@ -266,7 +266,7 @@ public class HomebrewPackTests : IClassFixture<ApiFactory>
         var request = new CreateCharacterRequest("GM character", GameSystem.GenesysCore, archetype.Id,
             reference.Careers[0].Id, null, CampaignId: campaign.Id);
         Assert.Equal(HttpStatusCode.BadRequest, (await gm.PostAsJsonAsync("/api/characters/", request, Json.Options)).StatusCode);
-        var pack = Assert.Single((await gm.GetFromJsonAsync<List<HomebrewPackListItemDto>>("/api/homebrew-packs/", Json.Options))!);
+        var pack = await gm.CreateLibraryPackAsync();
         await gm.PutAsJsonAsync($"/api/campaigns/{campaign.Id}/homebrew-packs/{pack.Id}", new HomebrewPackToggleRequest(true), Json.Options);
         Assert.Equal(HttpStatusCode.Created, (await gm.PostAsJsonAsync("/api/characters/", request, Json.Options)).StatusCode);
     }

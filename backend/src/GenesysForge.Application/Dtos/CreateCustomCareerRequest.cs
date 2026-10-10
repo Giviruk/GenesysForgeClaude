@@ -9,4 +9,5 @@ public record CreateCustomCareerRequest(
     string? Description,
     List<string> CareerSkillNames,
     int StartingMoneyFixed,
-    string? StartingMoneyDice);
+    string? StartingMoneyDice,
+    IReadOnlyList<Guid>? PackIds = null);

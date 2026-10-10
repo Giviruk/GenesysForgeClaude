@@ -3,6 +3,7 @@ using GenesysForge.Application.Common;
 using GenesysForge.Application.Dtos;
 using GenesysForge.Application.Exceptions;
 using GenesysForge.Domain;
+using GenesysForge.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace GenesysForge.Application.Features.CustomContent;
@@ -25,6 +26,7 @@ public class UpdateCustomCareerHandler(IAppDbContext db) : ICommandHandler<Updat
                 && (c.OwnerUserId == null || c.OwnerUserId == command.UserId), ct))
             throw new ConflictException("Карьера с таким названием уже существует в этой системе.");
 
+        await ContentMembership.ApplyAsync(db, command.UserId, req.System, CustomEntryType.Career, def.Id, req.PackIds, null, ct);
         var before = def.ToDto();
 
         def.System = req.System;
@@ -37,6 +39,7 @@ public class UpdateCustomCareerHandler(IAppDbContext db) : ICommandHandler<Updat
         def.StartingMoneyFixed = req.StartingMoneyFixed;
         def.StartingMoneyDice = req.StartingMoneyDice?.Trim() ?? "";
         CustomContentAudit.Updated(db, "career", def.Id, def.HomebrewPackId, def.Name, command.UserId, before, def.ToDto());
+        await CustomContentAudit.ReplicateToPacksAsync(db, def.Id, ct);
         await db.SaveChangesAsync(ct);
         return def.ToDto();
     }

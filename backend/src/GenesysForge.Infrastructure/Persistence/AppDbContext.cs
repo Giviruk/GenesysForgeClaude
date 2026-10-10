@@ -54,6 +54,12 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<InitiativeSlot> InitiativeSlots => Set<InitiativeSlot>();
     public DbSet<Encounter> Encounters => Set<Encounter>();
     public DbSet<EncounterParticipant> EncounterParticipants => Set<EncounterParticipant>();
+    public DbSet<HomebrewPackEntry> HomebrewPackEntries => Set<HomebrewPackEntry>();
+    public DbSet<HomebrewPackExclusion> HomebrewPackExclusions => Set<HomebrewPackExclusion>();
+    public DbSet<CampaignPackEntryState> CampaignPackEntryStates => Set<CampaignPackEntryState>();
+    public DbSet<CampaignContentItem> CampaignContentItems => Set<CampaignContentItem>();
+    public DbSet<CampaignSystemSetting> CampaignSystemSettings => Set<CampaignSystemSetting>();
+    public DbSet<CampaignBaseOverride> CampaignBaseOverrides => Set<CampaignBaseOverride>();
     public DbSet<HomebrewPack> HomebrewPacks => Set<HomebrewPack>();
     public DbSet<HomebrewPackCharacter> HomebrewPackCharacters => Set<HomebrewPackCharacter>();
     public DbSet<HomebrewPackCampaign> HomebrewPackCampaigns => Set<HomebrewPackCampaign>();
@@ -563,6 +569,40 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             e.Property(p => p.Notes).HasMaxLength(2000);
         });
 
+
+        b.Entity<HomebrewPackEntry>(e =>
+        {
+            e.HasIndex(x => new { x.HomebrewPackId, x.EntryType, x.EntryId }).IsUnique();
+            e.HasIndex(x => new { x.EntryType, x.EntryId });
+            e.HasOne<HomebrewPack>().WithMany().HasForeignKey(x => x.HomebrewPackId).OnDelete(DeleteBehavior.Cascade);
+        });
+        b.Entity<HomebrewPackExclusion>(e =>
+        {
+            e.Property(x => x.ContentKey).HasMaxLength(400);
+            e.HasIndex(x => new { x.HomebrewPackId, x.Category, x.ContentKey }).IsUnique();
+            e.HasOne<HomebrewPack>().WithMany().HasForeignKey(x => x.HomebrewPackId).OnDelete(DeleteBehavior.Cascade);
+        });
+        b.Entity<CampaignPackEntryState>(e =>
+        {
+            e.HasIndex(x => new { x.HomebrewPackCampaignId, x.EntryType, x.EntryId }).IsUnique();
+            e.HasOne<HomebrewPackCampaign>().WithMany().HasForeignKey(x => x.HomebrewPackCampaignId).OnDelete(DeleteBehavior.Cascade);
+        });
+        b.Entity<CampaignContentItem>(e =>
+        {
+            e.HasIndex(x => new { x.CampaignId, x.EntryType, x.EntryId }).IsUnique();
+            e.HasOne<Campaign>().WithMany().HasForeignKey(x => x.CampaignId).OnDelete(DeleteBehavior.Cascade);
+        });
+        b.Entity<CampaignSystemSetting>(e =>
+        {
+            e.HasKey(x => new { x.CampaignId, x.System });
+            e.HasOne<Campaign>().WithMany().HasForeignKey(x => x.CampaignId).OnDelete(DeleteBehavior.Cascade);
+        });
+        b.Entity<CampaignBaseOverride>(e =>
+        {
+            e.Property(x => x.ContentKey).HasMaxLength(400);
+            e.HasIndex(x => new { x.CampaignId, x.System, x.Category, x.ContentKey }).IsUnique();
+            e.HasOne<Campaign>().WithMany().HasForeignKey(x => x.CampaignId).OnDelete(DeleteBehavior.Cascade);
+        });
 
         b.Entity<HomebrewPack>(e =>
         {

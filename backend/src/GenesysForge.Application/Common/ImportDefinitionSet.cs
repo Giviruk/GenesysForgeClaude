@@ -47,8 +47,9 @@ internal sealed class ImportDefinitionSet
             s.ParentEffect == parentEffect && s.NameEn == nameEn);
 
     public static async Task<ImportDefinitionSet> LoadAsync(
-        IAppDbContext db, Guid userId, GameSystem system, CharacterExportData data, CancellationToken ct)
+        IAppDbContext db, Guid userId, GameSystem system, CharacterExportData data, CancellationToken ct, Guid? campaignId = null)
     {
+        var policy = await CampaignContentPolicy.LoadAsync(db, userId, system, campaignId: campaignId, ct: ct);
         var archetypeCodes = Values(data.ArchetypeCode);
         var archetypeNames = Values(data.ArchetypeName);
         var careerCodes = Values(data.CareerCode);
@@ -70,37 +71,46 @@ internal sealed class ImportDefinitionSet
         // ускоряет импорт и закрывает возможность разрешить чужую запись по угаданному Code.
         // Фильтры Code/Name не вытаскивают весь каталог ради нескольких строк файла.
         var archetypes = await db.ArchetypeDefs.AsNoTracking()
-            .Where(x => x.System == system && (x.OwnerUserId == null || x.OwnerUserId == userId)
+            .Where(x => x.System == system && (x.OwnerUserId == null || policy.CustomIds.Contains(x.Id))
                 && (archetypeCodes.Contains(x.Code) || archetypeNames.Contains(x.Name)))
             .ToListAsync(ct);
         var careers = await db.CareerDefs.AsNoTracking()
-            .Where(x => x.System == system && (x.OwnerUserId == null || x.OwnerUserId == userId)
+            .Where(x => x.System == system && (x.OwnerUserId == null || policy.CustomIds.Contains(x.Id))
                 && (careerCodes.Contains(x.Code) || careerNames.Contains(x.Name)))
             .ToListAsync(ct);
         var skills = await db.SkillDefs.AsNoTracking()
-            .Where(x => x.System == system && (x.OwnerUserId == null || x.OwnerUserId == userId)
+            .Where(x => x.System == system && (x.OwnerUserId == null || policy.CustomIds.Contains(x.Id))
                 && (skillCodes.Contains(x.Code) || skillNames.Contains(x.Name)))
             .ToListAsync(ct);
         var talents = await db.TalentDefs.AsNoTracking()
-            .Where(x => x.System == system && (x.OwnerUserId == null || x.OwnerUserId == userId)
+            .Where(x => x.System == system && (x.OwnerUserId == null || policy.CustomIds.Contains(x.Id))
                 && (talentCodes.Contains(x.Code) || talentNames.Contains(x.Name)))
             .ToListAsync(ct);
         var items = await db.ItemDefs.AsNoTracking()
-            .Where(x => x.System == system && (x.OwnerUserId == null || x.OwnerUserId == userId)
+            .Where(x => x.System == system && (x.OwnerUserId == null || policy.CustomIds.Contains(x.Id))
                 && (itemCodes.Contains(x.Code) || itemNames.Contains(x.Name)))
             .ToListAsync(ct);
         var mounts = await db.MountDefs.AsNoTracking()
-            .Where(x => x.System == system && (x.OwnerUserId == null || x.OwnerUserId == userId)
+            .Where(x => x.System == system && (x.OwnerUserId == null || policy.CustomIds.Contains(x.Id))
                 && (mountCodes.Contains(x.Code) || mountNames.Contains(x.Name)))
             .ToListAsync(ct);
         var heroics = await db.HeroicAbilityDefs.Include(x => x.Upgrades)
-            .Where(x => (x.OwnerUserId == null || x.OwnerUserId == userId)
+            .Where(x => (x.OwnerUserId == null || policy.CustomIds.Contains(x.Id))
                 && (heroicCodes.Contains(x.Code) || heroicNames.Contains(x.Name)))
             .ToListAsync(ct);
         var configuredSpellEffects = await db.SpellDefs.AsNoTracking()
-            .Where(x => x.System == system && x.Kind == SpellEntryKind.AdditionalEffect
-                && shardParents.Contains(x.ParentEffect) && shardEffects.Contains(x.NameEn))
+            .Where(x => x.System == system && (x.OwnerUserId == null || x.OwnerUserId == userId))
             .ToListAsync(ct);
+
+        configuredSpellEffects = CampaignContentPolicy.FilterSpells(configuredSpellEffects, policy)
+            .Where(x => x.Kind == SpellEntryKind.AdditionalEffect && shardParents.Contains(x.ParentEffect) && shardEffects.Contains(x.NameEn)).ToList();
+
+        archetypes = archetypes.Where(x => x.OwnerUserId != null || policy.Allows(BaseContentCategory.Archetype, x.Code)).ToList();
+        careers = careers.Where(x => x.OwnerUserId != null || policy.Allows(BaseContentCategory.Career, x.Code)).ToList();
+        skills = skills.Where(x => x.OwnerUserId != null || policy.Allows(BaseContentCategory.Skill, x.Code)).ToList();
+        talents = talents.Where(x => x.OwnerUserId != null || policy.Allows(BaseContentCategory.Talent, x.Code)).ToList();
+        items = items.Where(x => x.OwnerUserId != null || policy.Allows(BaseContentCategory.Item, x.Code)).ToList();
+        heroics = heroics.Where(x => x.OwnerUserId != null || policy.Allows(BaseContentCategory.HeroicAbility, x.Code)).ToList();
 
         return new ImportDefinitionSet(
             Lookup(archetypes), Lookup(careers), Lookup(skills), Lookup(talents),

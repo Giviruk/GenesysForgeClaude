@@ -12,7 +12,8 @@ import {
  * Вкладка «Магия» листа персонажа: переключатель между справочником эффектов и
  * сборщиком магического действия. Сборщику передаются магические навыки персонажа с пулами кубов.
  */
-export function MagicTab({ sheet, onError, refresh, qualities }: {
+export function MagicTab({ sheet, onError, refresh, qualities, campaignId }: {
+  campaignId?: string
   sheet: CharacterSheet
   onError: (m: string) => void
   /** Качества из уже загруженного справочника; standalone/campaign режимы используют fallback. */
@@ -56,7 +57,7 @@ export function MagicTab({ sheet, onError, refresh, qualities }: {
         <button className={mode === 'reference' ? 'tab active' : 'tab'} onClick={() => setMode('reference')}>{t('Справочник', 'Reference')}</button>
       </div>
       {mode === 'builder'
-        ? <MagicBuilder system={sheet.system} characterSkills={magicSkills}
+        ? <MagicBuilder characterId={sheet.id} campaignId={campaignId} system={sheet.system} characterSkills={magicSkills}
           knowledgeRating={sheet.knowledgeRating} qualities={qualities} talents={sheet.talents}
           implements={implementsInHand} shards={shardsInHand} onError={onError}
           onConfigureImplement={refresh
@@ -71,7 +72,7 @@ export function MagicTab({ sheet, onError, refresh, qualities }: {
               await refresh()
             }
             : undefined} />
-        : <SpellsTab system={sheet.system} onError={onError} qualities={qualities} />}
+        : <SpellsTab characterId={sheet.id} campaignId={campaignId} system={sheet.system} onError={onError} qualities={qualities} />}
     </div>
   )
 }

@@ -11,14 +11,15 @@ public class BuySkillRankHandler(IAppDbContext db) : ICommandHandler<BuySkillRan
     public async Task<Unit> Handle(BuySkillRankCommand command, CancellationToken ct = default)
     {
         var c = await db.GetOwnedAsync(command.UserId, command.CharacterId, ct: ct);
-        var visiblePackIds = await HomebrewVisibility.GetVisiblePackIdsAsync(
+        var contentPolicy = await CampaignContentPolicy.LoadAsync(
             db, command.UserId, c.System, command.CharacterId, ct: ct);
         var skillDef = await db.SkillDefs.FirstOrDefaultAsync(s =>
                 s.Id == command.SkillDefId && s.System == c.System
                 && (s.OwnerUserId == null
-                    || (s.HomebrewPackId == null ? s.OwnerUserId == command.UserId
-                        : visiblePackIds.Contains(s.HomebrewPackId.Value))), ct)
+                    || contentPolicy.CustomIds.Contains(s.Id)), ct)
             ?? throw new DomainRuleException("Навык не найден.");
+        if (skillDef.OwnerUserId == null) contentPolicy.EnsureAllowed(BaseContentCategory.Skill, skillDef.Code, skillDef.Name);
+
         // Навык, исключённый из каталога системы, сохраняет уже купленные ранги, но новый ранг
         // купить нельзя; подменять его похожим навыком тоже нельзя (ROT-CLEAN-3.2).
         if (skillDef.Retired)
@@ -31,8 +32,7 @@ public class BuySkillRankHandler(IAppDbContext db) : ICommandHandler<BuySkillRan
         var systemSkills = await db.SkillDefs.AsNoTracking()
             .Where(s => s.System == c.System
                 && (s.OwnerUserId == null
-                    || (s.HomebrewPackId == null ? s.OwnerUserId == command.UserId
-                        : visiblePackIds.Contains(s.HomebrewPackId.Value))))
+                    || contentPolicy.CustomIds.Contains(s.Id)))
             .ToListAsync(ct);
         var careerSkills = CareerSkills.Resolve(c, c.Career!, systemSkills);
 

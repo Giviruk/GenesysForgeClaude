@@ -1,3 +1,4 @@
+using GenesysForge.Application.Features.ContentLibrary;
 using GenesysForge.Application.Abstractions;
 using GenesysForge.Application.Dtos;
 using GenesysForge.Application.Features.Account;
@@ -219,6 +220,32 @@ public static class DependencyInjection
         services.AddScoped<ICommandHandler<SetHomebrewPackDefaultCommand, Unit>, SetHomebrewPackDefaultHandler>();
         services.AddScoped<ICommandHandler<SetCharacterHomebrewPackCommand, Unit>, SetCharacterHomebrewPackHandler>();
         services.AddScoped<ICommandHandler<SetCampaignHomebrewPackCommand, Unit>, SetCampaignHomebrewPackHandler>();
+
+        // Account library and campaign content policy (GEN-RD-03–09).
+        services.AddScoped<IQueryHandler<GetLibraryQuery, List<LibraryEntryDto>>, GetLibraryHandler>();
+        services.AddScoped<IQueryHandler<GetBaseCatalogQuery, List<BaseCatalogEntryDto>>, GetBaseCatalogHandler>();
+        services.AddScoped<IQueryHandler<GetPackExclusionsQuery, List<BaseCatalogEntryDto>>, GetPackExclusionsHandler>();
+        services.AddScoped<IQueryHandler<GetCampaignContentQuery, CampaignContentDto>, GetCampaignContentHandler>();
+        services.AddScoped<IQueryHandler<GetCampaignBaseQuery, List<CampaignBaseEntryDto>>, GetCampaignBaseHandler>();
+        services.AddScoped<IQueryHandler<GetCampaignItemsQuery, List<CampaignContentItemDto>>, GetCampaignItemsHandler>();
+        services.AddScoped<IQueryHandler<GetLibraryProposalsQuery, List<LibraryProposalDto>>, GetLibraryProposalsHandler>();
+        services.AddScoped<ICommandHandler<CreatePackCommand, HomebrewPackListItemDto>, CreatePackHandler>();
+        services.AddScoped<ICommandHandler<UpdatePackCommand, Unit>, UpdatePackHandler>();
+        services.AddScoped<ICommandHandler<DeletePackCommand, Unit>, DeletePackHandler>();
+        services.AddScoped<ICommandHandler<ChangePackEntriesCommand, Unit>, ChangePackEntriesHandler>();
+        services.AddScoped<ICommandHandler<ChangePackExclusionsCommand, Unit>, ChangePackExclusionsHandler>();
+        services.AddScoped<ICommandHandler<SetCampaignSystemCommand, Unit>, SetCampaignSystemHandler>();
+        services.AddScoped<ICommandHandler<SetCampaignBaseCommand, Unit>, SetCampaignBaseHandler>();
+        services.AddScoped<ICommandHandler<ResetCampaignBaseCommand, Unit>, ResetCampaignBaseHandler>();
+        services.AddScoped<ICommandHandler<SaveCampaignRestrictionsCommand, HomebrewPackListItemDto>, SaveCampaignRestrictionsHandler>();
+        services.AddScoped<ICommandHandler<DisconnectCampaignPackCommand, Unit>, DisconnectCampaignPackHandler>();
+        services.AddScoped<ICommandHandler<SetCampaignPackEntriesCommand, Unit>, SetCampaignPackEntriesHandler>();
+        services.AddScoped<ICommandHandler<ConnectCampaignItemsCommand, Unit>, ConnectCampaignItemsHandler>();
+        services.AddScoped<ICommandHandler<SetCampaignItemCommand, Unit>, SetCampaignItemHandler>();
+        services.AddScoped<ICommandHandler<RemoveCampaignItemCommand, Unit>, RemoveCampaignItemHandler>();
+        services.AddScoped<ICommandHandler<ProposeContentCommand, Unit>, ProposeContentHandler>();
+        services.AddScoped<ICommandHandler<DecideContentCommand, Unit>, DecideContentHandler>();
+        services.AddScoped<ICommandHandler<WithdrawContentCommand, Unit>, WithdrawContentHandler>();
 
         return services;
     }

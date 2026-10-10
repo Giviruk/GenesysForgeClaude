@@ -29,25 +29,25 @@ public class CustomContentChangeTests(ApiFactory factory) : IClassFixture<ApiFac
     public async Task AllCustomTypes_RecordCrud_NoOpAndDeletedName(string route, string type)
     {
         var owner = await factory.CreateAuthorizedClientAsync();
+        var pack = await owner.CreateLibraryPackAsync(route == "heroic-abilities" ? GameSystem.RealmsOfTerrinoth : GameSystem.GenesysCore);
         var reference = (await owner.GetFromJsonAsync<ReferenceResponse>("/api/reference/GenesysCore", Json.Options))!;
         object Request(bool updated) => route switch
         {
             "skills" => new CreateCustomSkillRequest(GameSystem.GenesysCore, updated ? "New Sailing" : "Old Sailing",
-                updated ? CharacteristicType.Intellect : CharacteristicType.Agility, SkillKind.General),
+                updated ? CharacteristicType.Intellect : CharacteristicType.Agility, SkillKind.General, [pack.Id]),
             "talents" => new CreateCustomTalentRequest(GameSystem.GenesysCore, updated ? "New Captain" : "Old Captain",
-                updated ? 2 : 1, false, "Passive", "Own text", 0, 0, 0, 0, 0),
+                updated ? 2 : 1, false, "Passive", "Own text", 0, 0, 0, 0, 0, PackIds: [pack.Id]),
             "items" => new CreateCustomItemRequest(GameSystem.GenesysCore, updated ? "New Compass" : "Old Compass",
-                ItemKind.Gear, 1, 0, 0, 0, 0, "Own text", updated ? 20 : 10, 1),
-            "heroic-abilities" => new CreateCustomHeroicAbilityRequest(updated ? "New Courage" : "Old Courage", "Own text"),
+                ItemKind.Gear, 1, 0, 0, 0, 0, "Own text", updated ? 20 : 10, 1, PackIds: [pack.Id]),
+            "heroic-abilities" => new CreateCustomHeroicAbilityRequest(updated ? "New Courage" : "Old Courage", "Own text", [pack.Id]),
             "archetypes" => new CreateCustomArchetypeRequest(GameSystem.GenesysCore, updated ? "New Species" : "Old Species", null,
-                2, 2, 2, 2, 2, 2, 10, 10, 100, "Own text", "Own ability", updated ? "New effect" : "Old effect"),
+                2, 2, 2, 2, 2, 2, 10, 10, 100, "Own text", "Own ability", updated ? "New effect" : "Old effect", PackIds: [pack.Id]),
             _ => new CreateCustomCareerRequest(GameSystem.GenesysCore, updated ? "New Career" : "Old Career", null,
-                "Own text", reference.Skills.Take(updated ? 1 : 2).Select(x => x.Name).ToList(), 0, ""),
+                "Own text", reference.Skills.Take(updated ? 1 : 2).Select(x => x.Name).ToList(), 0, "", PackIds: [pack.Id]),
         };
         var created = await owner.PostAsJsonAsync($"/api/custom/{route}", Request(false), Json.Options);
         Assert.Equal(HttpStatusCode.OK, created.StatusCode);
         var definition = (await created.Content.ReadFromJsonAsync<JsonElement>(Json.Options)).GetProperty("id").GetGuid();
-        var pack = Assert.Single((await owner.GetFromJsonAsync<List<HomebrewPackListItemDto>>("/api/homebrew-packs/", Json.Options))!);
         var first = Assert.Single(await History(owner, pack.Id));
         Assert.Equal(CustomContentChangeAction.Created, first.Action);
         Assert.Equal(type, first.DefinitionType);
@@ -89,8 +89,10 @@ public class CustomContentChangeTests(ApiFactory factory) : IClassFixture<ApiFac
         var campaign = await Campaign(gm);
         Assert.Equal(HttpStatusCode.OK, (await member.PostAsJsonAsync("/api/campaigns/join",
             new JoinCampaignRequest(campaign.JoinCode!), Json.Options)).StatusCode);
+        await gm.CreateLibraryPackAsync(GameSystem.GenesysCore, campaign.Id);
+        var packId = (await gm.GetFromJsonAsync<List<HomebrewPackListItemDto>>("/api/homebrew-packs", Json.Options))!.Single().Id;
         var request = new CreateCustomTalentRequest(GameSystem.GenesysCore, "Gm Living Talent", 1, false,
-            "Passive", "Own text", 0, 0, 0, 0, 0);
+            "Passive", "Own text", 0, 0, 0, 0, 0, PackIds: [packId]);
         var customPath = $"/api/campaigns/{campaign.Id}/custom/talents";
         var created = await gm.PostAsJsonAsync(customPath, request, Json.Options);
         Assert.Equal(HttpStatusCode.OK, created.StatusCode);
@@ -124,7 +126,7 @@ public class CustomContentChangeTests(ApiFactory factory) : IClassFixture<ApiFac
             Assert.Equal(HttpStatusCode.OK, (await client.PostAsJsonAsync("/api/campaigns/join", new JoinCampaignRequest(campaign.JoinCode!), Json.Options)).StatusCode);
         var request = new CreateCustomTalentRequest(GameSystem.GenesysCore, "Living Talent", 1, false, "Passive", "Own text", 0, 0, 0, 0, 0);
         var talent = (await (await author.PostAsJsonAsync("/api/custom/talents", request, Json.Options)).Content.ReadFromJsonAsync<TalentDefDto>(Json.Options))!;
-        var pack = Assert.Single((await author.GetFromJsonAsync<List<HomebrewPackListItemDto>>("/api/homebrew-packs/", Json.Options))!);
+        var pack = await author.CreateLibraryPackAsync();
         var share = (await (await author.PostAsync($"/api/homebrew-packs/{pack.Id}/share", null)).Content.ReadFromJsonAsync<HomebrewPackShareDto>(Json.Options))!;
         Assert.Equal(HttpStatusCode.OK, (await gm.PostAsync($"/api/campaigns/{campaign.Id}/homebrew-packs/shared/{share.Token}/import", null)).StatusCode);
         var connection = Assert.Single((await member.GetFromJsonAsync<List<CampaignHomebrewPackDto>>($"/api/campaigns/{campaign.Id}/homebrew-packs/", Json.Options))!);
@@ -173,7 +175,7 @@ public class CustomContentChangeTests(ApiFactory factory) : IClassFixture<ApiFac
     {
         var author = await factory.CreateAuthorizedClientAsync();
         await author.PostAsJsonAsync("/api/custom/skills", new CreateCustomSkillRequest(GameSystem.GenesysCore, "Imported Sailing", CharacteristicType.Agility, SkillKind.General), Json.Options);
-        var source = Assert.Single((await author.GetFromJsonAsync<List<HomebrewPackListItemDto>>("/api/homebrew-packs/", Json.Options))!);
+        var source = await author.CreateLibraryPackAsync();
         var document = (await author.GetFromJsonAsync<HomebrewPackExportDto>($"/api/homebrew-packs/{source.Id}/export", Json.Options))!;
         var share = (await (await author.PostAsync($"/api/homebrew-packs/{source.Id}/share", null)).Content.ReadFromJsonAsync<HomebrewPackShareDto>(Json.Options))!;
         foreach (var shared in new[] { false, true })
@@ -194,9 +196,9 @@ public class CustomContentChangeTests(ApiFactory factory) : IClassFixture<ApiFac
     public async Task History_IsNewestFirst_AndClampsTakeTo200()
     {
         var owner = await factory.CreateAuthorizedClientAsync();
-        var skill = (await (await owner.PostAsJsonAsync("/api/custom/skills", new CreateCustomSkillRequest(GameSystem.GenesysCore, "Paged Sailing", CharacteristicType.Agility, SkillKind.General), Json.Options))
+        var pack = await owner.CreateLibraryPackAsync();
+        var skill = (await (await owner.PostAsJsonAsync("/api/custom/skills", new CreateCustomSkillRequest(GameSystem.GenesysCore, "Paged Sailing", CharacteristicType.Agility, SkillKind.General, [pack.Id]), Json.Options))
             .Content.ReadFromJsonAsync<SkillDefDto>(Json.Options))!;
-        var pack = Assert.Single((await owner.GetFromJsonAsync<List<HomebrewPackListItemDto>>("/api/homebrew-packs/", Json.Options))!);
         var original = Assert.Single(await History(owner, pack.Id));
         using (var scope = factory.Services.CreateScope())
         {

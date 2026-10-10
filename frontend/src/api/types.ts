@@ -631,6 +631,7 @@ export interface CharacterMount {
 }
 
 export interface CustomArchetypeInput {
+  packIds?: string[]
   system: GameSystem
   name: string
   nameRu?: string | null
@@ -649,6 +650,7 @@ export interface CustomArchetypeInput {
 }
 
 export interface CustomCareerInput {
+  packIds?: string[]
   system: GameSystem
   name: string
   nameRu?: string | null
@@ -702,6 +704,7 @@ export interface CareerSkillSource {
 }
 
 export interface SheetSkill {
+  unavailableReason?: string | null
   skillDefId: string
   name: string
   nameRu: string
@@ -710,6 +713,8 @@ export interface SheetSkill {
   ranks: number
   isCareer: boolean
   pool: DicePool
+  /** Server preview after buying one rank; unavailable at the rank limit or for disabled content. */
+  nextPool?: DicePool | null
   nextRankCost: number
   freeRanks: number
   /** Все источники карьерного статуса: карьера, вид, таланты. Пусто — навык некарьерный. */
@@ -1172,6 +1177,8 @@ export interface Encumbrance {
 }
 
 export interface Derived {
+  soakBreakdown?: StatBreakdown | null
+  encumbranceThresholdBreakdown?: StatBreakdown | null
   woundThreshold: number
   strainThreshold: number
   soak: number
@@ -1226,6 +1233,7 @@ export interface CampaignPlayer {
 }
 
 export interface CampaignDetail {
+  closedSystems?: GameSystem[]
   id: string
   name: string
   description: string
@@ -1635,6 +1643,8 @@ export interface EncounterFilter {
 }
 
 export interface HomebrewPackListItem {
+  exclusionCount: number
+  campaigns?: { id: string; name: string }[]
   id: string
   name: string
   description: string
@@ -1646,6 +1656,12 @@ export interface HomebrewPackListItem {
 }
 
 export interface CampaignHomebrewPack {
+  updatePolicy: ContentUpdatePolicy
+  status: ContentConnectionStatus
+  exclusionCount: number
+  entries?: CampaignPackEntry[]
+  exclusions?: BaseCatalogEntry[]
+  proposedBy?: string | null
   id: string
   name: string
   system: GameSystem
@@ -1665,16 +1681,20 @@ export interface HomebrewPackShare {
 }
 
 export interface HomebrewPackImportResult {
+  warnings?: string[]
   id: string
   name: string
   entryCount: number
 }
 
 export interface HomebrewPackDocument {
-  format: 'genesysforge.homebrew-pack.v1'
+  format: 'genesysforge.homebrew-pack.v1' | 'genesysforge.homebrew-pack.v2'
   name: string
   description?: string | null
   system: GameSystem
+  exclusions?: BaseContentRef[] | null
+  attachments?: unknown[] | null
+  mounts?: unknown[] | null
   skills?: unknown[] | null
   talents?: unknown[] | null
   items?: unknown[] | null
@@ -2051,7 +2071,45 @@ export interface CustomContentChange {
   definitionName: string
   userId: string
   userName: string
-  action: 'created' | 'updated' | 'deleted'
+  action: 'created' | 'updated' | 'deleted' | 'addedToPack' | 'removedFromPack'
   changes: { field: string; from: string | null; to: string | null }[]
   createdAt: string
+}
+
+
+export interface StatBreakdown { base: number; sources: { sourceName: string; value: number }[] }
+export type CustomEntryType = 'skill' | 'talent' | 'item' | 'archetype' | 'career' | 'heroicAbility' | 'attachment' | 'mount'
+export type BaseContentCategory = 'skill' | 'career' | 'archetype' | 'talent' | 'magic' | 'heroicAbility' | 'item'
+export type ContentUpdatePolicy = 'auto' | 'manual'
+export type ContentConnectionStatus = 'active' | 'pending' | 'declined'
+export interface ContentEntryRef { entryType: CustomEntryType; entryId: string }
+export interface BaseContentRef { category: BaseContentCategory; key: string }
+export interface LibraryEntry {
+  entryType: CustomEntryType; id: string; system: GameSystem; name: string; nameRu: string; meta: string
+  lastEditedAt: string | null; packIds: string[]
+}
+export interface BaseCatalogEntry extends BaseContentRef {
+  name: string; nameRu: string; meta: string; isSharedWithCore: boolean
+}
+export interface CampaignBaseEntry extends BaseCatalogEntry {
+  enabled: boolean; source: 'manual' | 'pack' | 'restored' | null; sourcePackName: string | null; usedBy: string[]
+}
+export interface CampaignPackEntry extends ContentEntryRef {
+  name: string; nameRu: string; state: 'enabled' | 'disabled' | 'pending'
+}
+export interface CampaignContentItem extends ContentEntryRef {
+  id: string; system: GameSystem; name: string; nameRu: string; meta: string; isEnabled: boolean
+  status: ContentConnectionStatus; ownerName: string; isMine: boolean; proposedBy: string | null
+}
+export interface CampaignSystemContent {
+  system: GameSystem; isOpen: boolean; characters: { id: string; name: string }[]
+  categories: { category: BaseContentCategory; total: number; enabled: number }[]
+}
+export interface CampaignContent {
+  systems: CampaignSystemContent[]; packs: CampaignHomebrewPack[]; items: CampaignContentItem[]
+  overrideCount: number; availableCount: number
+  alerts: { kind: string; targetId: string | null; system?: GameSystem; count: number; usedBy?: string[]; entries?: BaseCatalogEntry[] }[]
+}
+export interface LibraryProposal {
+  campaignId: string; campaignName: string; kind: 'item' | 'pack'; targetId: string; status: ContentConnectionStatus
 }

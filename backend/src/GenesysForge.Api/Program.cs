@@ -239,6 +239,7 @@ app.MapReference();
 app.MapSearch();
 app.MapCustomContent();
 app.MapHomebrewPacks();
+app.MapContentLibrary();
 app.MapCharacters();
 app.MapNotes();
 app.MapCampaigns();

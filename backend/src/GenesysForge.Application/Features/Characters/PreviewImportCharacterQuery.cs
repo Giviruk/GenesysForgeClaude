@@ -3,4 +3,4 @@ using GenesysForge.Application.Dtos;
 
 namespace GenesysForge.Application.Features.Characters;
 
-public record PreviewImportCharacterQuery(Guid UserId, CharacterExportDto Payload) : IQuery<ImportPreviewDto>;
+public record PreviewImportCharacterQuery(Guid UserId, CharacterExportDto Payload, Guid? CampaignId = null) : IQuery<ImportPreviewDto>;

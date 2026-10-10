@@ -1,6 +1,7 @@
 using System.Text.RegularExpressions;
 using GenesysForge.Application.Abstractions;
 using GenesysForge.Application.Dtos;
+using GenesysForge.Application.Features.ContentLibrary;
 using GenesysForge.Application.Features.Campaigns;
 using GenesysForge.Domain;
 using GenesysForge.Domain.Entities;
@@ -19,7 +20,15 @@ public class GetHomebrewPacksHandler(IAppDbContext db)
             .ToListAsync(ct);
         var ids = packs.Select(p => p.Id).ToHashSet();
         var counts = await HomebrewPackMapper.CountEntriesAsync(db, ids, ct);
-        return packs.Select(p => HomebrewPackMapper.ToListItem(p, counts.GetValueOrDefault(p.Id))).ToList();
+        var exclusions = await db.HomebrewPackExclusions.Where(x => ids.Contains(x.HomebrewPackId)).ToListAsync(ct);
+        var campaigns = await (from link in db.HomebrewPackCampaigns join c in db.Campaigns on link.CampaignId equals c.Id
+            where ids.Contains(link.HomebrewPackId) && link.Status == ContentConnectionStatus.Active
+            select new { link.HomebrewPackId, c.Id, c.Name }).ToListAsync(ct);
+        return packs.Select(p => HomebrewPackMapper.ToListItem(p, counts.GetValueOrDefault(p.Id)) with
+        {
+            ExclusionCount = exclusions.Count(x => x.HomebrewPackId == p.Id),
+            Campaigns = campaigns.Where(x => x.HomebrewPackId == p.Id).Select(x => new PackCampaignDto(x.Id, x.Name)).ToList(),
+        }).ToList();
     }
 }
 
@@ -124,6 +133,9 @@ public class SetCampaignHomebrewPackHandler(IAppDbContext db)
     {
         await CampaignMapper.GetAsGmAsync(db, command.UserId, command.CampaignId, ct);
 
+        if (command.UpdatePolicy is { } requestedPolicy && !Enum.IsDefined(requestedPolicy))
+            throw new DomainRuleException("Неизвестная политика обновления.");
+
         var row = await db.HomebrewPackCampaigns.FirstOrDefaultAsync(
             x => x.HomebrewPackId == command.PackId && x.CampaignId == command.CampaignId, ct);
         if (row is null)
@@ -135,12 +147,20 @@ public class SetCampaignHomebrewPackHandler(IAppDbContext db)
                 Id = Guid.NewGuid(),
                 HomebrewPackId = command.PackId,
                 CampaignId = command.CampaignId,
-                IsEnabled = command.IsEnabled,
+                IsEnabled = command.IsEnabled, UpdatePolicy = command.UpdatePolicy ?? ContentUpdatePolicy.Auto,
             });
         }
         else
         {
             row.IsEnabled = command.IsEnabled;
+            if (command.IsEnabled) row.Status = ContentConnectionStatus.Active;
+            if (command.UpdatePolicy is { } policy)
+            {
+                if (row.UpdatePolicy != policy && policy == ContentUpdatePolicy.Auto)
+                    db.CampaignPackEntryStates.RemoveRange(await db.CampaignPackEntryStates
+                        .Where(x => x.HomebrewPackCampaignId == row.Id && x.State == PackEntryState.Pending).ToListAsync(ct));
+                row.UpdatePolicy = policy;
+            }
             row.UpdatedAt = DateTime.UtcNow;
         }
         await db.SaveChangesAsync(ct);
@@ -150,7 +170,7 @@ public class SetCampaignHomebrewPackHandler(IAppDbContext db)
 
 internal static class HomebrewPackMapper
 {
-    public const string Format = "genesysforge.homebrew-pack.v1";
+    public const string Format = "genesysforge.homebrew-pack.v2";
 
     public static async Task<HomebrewPack> GetOwnedAsync(
         IAppDbContext db, Guid userId, Guid packId, CancellationToken ct, bool tracking = false)
@@ -166,58 +186,53 @@ internal static class HomebrewPackMapper
 
     public static async Task<Dictionary<Guid, int>> CountEntriesAsync(IAppDbContext db, HashSet<Guid> packIds, CancellationToken ct)
     {
-        var counts = packIds.ToDictionary(id => id, _ => 0);
-        async Task AddCounts<T>(IQueryable<T> query, Func<T, Guid?> getPackId) where T : class
-        {
-            var ids = await query.ToListAsync(ct);
-            foreach (var id in ids.Select(getPackId).Where(id => id is not null).Select(id => id!.Value))
-                counts[id] = counts.GetValueOrDefault(id) + 1;
-        }
-        await AddCounts(db.SkillDefs.AsNoTracking().Where(x => x.HomebrewPackId != null && packIds.Contains(x.HomebrewPackId.Value)), x => x.HomebrewPackId);
-        await AddCounts(db.TalentDefs.AsNoTracking().Where(x => x.HomebrewPackId != null && packIds.Contains(x.HomebrewPackId.Value)), x => x.HomebrewPackId);
-        await AddCounts(db.ItemDefs.AsNoTracking().Where(x => x.HomebrewPackId != null && packIds.Contains(x.HomebrewPackId.Value)), x => x.HomebrewPackId);
-        await AddCounts(db.HeroicAbilityDefs.AsNoTracking().Where(x => x.HomebrewPackId != null && packIds.Contains(x.HomebrewPackId.Value)), x => x.HomebrewPackId);
-        await AddCounts(db.ArchetypeDefs.AsNoTracking().Where(x => x.HomebrewPackId != null && packIds.Contains(x.HomebrewPackId.Value)), x => x.HomebrewPackId);
-        await AddCounts(db.CareerDefs.AsNoTracking().Where(x => x.HomebrewPackId != null && packIds.Contains(x.HomebrewPackId.Value)), x => x.HomebrewPackId);
-        return counts;
+        var rows = await db.HomebrewPackEntries.AsNoTracking().Where(x => packIds.Contains(x.HomebrewPackId)).ToListAsync(ct);
+        return rows.GroupBy(x => x.HomebrewPackId).ToDictionary(g => g.Key, g => g.Count());
     }
 
     public static async Task<HomebrewPackExportDto> ToExportAsync(IAppDbContext db, HomebrewPack pack, CancellationToken ct)
     {
         var skills = await db.SkillDefs.AsNoTracking()
-            .Where(s => s.HomebrewPackId == pack.Id)
+            .Where(s => db.HomebrewPackEntries.Any(e => e.HomebrewPackId == pack.Id && e.EntryId == s.Id))
             .Select(s => new HomebrewSkillDto(s.Code, s.Name, s.NameRu, s.Characteristic, s.Kind, s.Description, s.SafeDescription, s.Source))
             .ToListAsync(ct);
         var talents = await db.TalentDefs.AsNoTracking()
-            .Where(t => t.HomebrewPackId == pack.Id)
+            .Where(t => db.HomebrewPackEntries.Any(e => e.HomebrewPackId == pack.Id && e.EntryId == t.Id))
             .Select(t => new HomebrewTalentDto(t.Code, t.Name, t.NameRu, t.Tier, t.IsRanked, t.Activation, t.Description,
                 t.SafeDescription, t.Source, t.WoundBonus, t.StrainBonus, t.SoakBonus, t.MeleeDefenseBonus,
                 t.RangedDefenseBonus, t.Category))
             .ToListAsync(ct);
         var items = await db.ItemDefs.AsNoTracking()
-            .Where(i => i.HomebrewPackId == pack.Id)
+            .Where(i => db.HomebrewPackEntries.Any(e => e.HomebrewPackId == pack.Id && e.EntryId == i.Id))
             .Select(i => new HomebrewItemDto(i.Code, i.Name, i.NameRu, i.Kind, i.Encumbrance, i.SoakBonus, i.MeleeDefense,
                 i.RangedDefense, i.EncumbranceThresholdBonus, i.Description, i.SafeDescription, i.Source,
                 i.Price ?? 0, i.Rarity ?? 0,
                 i.SkillName, i.Damage, i.Crit, i.RangeBand, i.Properties))
             .ToListAsync(ct);
         var heroics = await db.HeroicAbilityDefs.AsNoTracking()
-            .Where(h => h.HomebrewPackId == pack.Id)
+            .Where(h => db.HomebrewPackEntries.Any(e => e.HomebrewPackId == pack.Id && e.EntryId == h.Id))
             .Select(h => new HomebrewHeroicAbilityDto(h.Code, h.Name, h.NameRu, h.Description, h.SafeDescription, h.Source,
                 h.Requirement, h.ActivationCost, h.Activation, h.Duration, h.Frequency, h.Notes))
             .ToListAsync(ct);
         var archetypes = await db.ArchetypeDefs.AsNoTracking().Include(a => a.Abilities)
-            .Where(a => a.HomebrewPackId == pack.Id)
+            .Where(a => db.HomebrewPackEntries.Any(e => e.HomebrewPackId == pack.Id && e.EntryId == a.Id))
             .Select(a => new HomebrewArchetypeDto(a.Code, a.Name, a.NameRu, a.Brawn, a.Agility, a.Intellect, a.Cunning,
                 a.Willpower, a.Presence, a.WoundBase, a.StrainBase, a.StartingXp, a.Description, a.SafeDescription, a.Source,
                 a.Abilities.Select(x => new HomebrewArchetypeAbilityDto(x.Code, x.NameRu, x.NameEn, x.SafeDescription)).ToList()))
             .ToListAsync(ct);
         var careers = await db.CareerDefs.AsNoTracking()
-            .Where(c => c.HomebrewPackId == pack.Id)
+            .Where(c => db.HomebrewPackEntries.Any(e => e.HomebrewPackId == pack.Id && e.EntryId == c.Id))
             .Select(c => new HomebrewCareerDto(c.Code, c.Name, c.NameRu, c.Description, c.SafeDescription, c.Source,
                 c.CareerSkillNames, c.StartingMoneyFixed, c.StartingMoneyDice))
             .ToListAsync(ct);
-        return new HomebrewPackExportDto(Format, pack.Name, pack.Description, pack.System, skills, talents, items, heroics, archetypes, careers);
+        var attachments = (await db.AttachmentDefs.AsNoTracking().Include(x => x.Effects)
+            .Where(x => db.HomebrewPackEntries.Any(e => e.HomebrewPackId == pack.Id && e.EntryId == x.Id)).ToListAsync(ct))
+            .Select(x => new HomebrewAttachmentDto(x.Code, x.Name, x.NameRu, x.HardPointCost, x.Price, x.Rarity, x.IsEnchantment, x.HostKind, x.RequiredTraits, x.RequiredAnyTraits, x.ForbiddenTraits, x.Effects.Select(v => new HomebrewAttachmentEffectDto(v.Kind, v.QualityCode, v.OppositeQualityCode, v.SkillName, v.Value, v.Increment, v.Condition, v.Note)).ToList(), x.Description, x.SafeDescription, x.DescriptionEn, x.Source)).ToList();
+        var mounts = (await db.MountDefs.AsNoTracking().Include(x => x.Skills).Include(x => x.Abilities).Include(x => x.Attacks)
+            .Where(x => db.HomebrewPackEntries.Any(e => e.HomebrewPackId == pack.Id && e.EntryId == x.Id)).ToListAsync(ct))
+            .Select(x => new HomebrewMountDto(x.Code, x.Name, x.NameRu, x.TransportKind, x.MovementMode, x.RequiresTraction, x.Kind, x.Brawn, x.Agility, x.Intellect, x.Cunning, x.Willpower, x.Presence, x.Soak, x.WoundThreshold, x.StrainThreshold, x.MeleeDefense, x.RangedDefense, x.Silhouette, x.Capacity, x.Price, x.Rarity, x.IncludedGear, x.RequiresRidingCheck, x.Skills.Select(v => new HomebrewMountSkillDto(v.Name, v.Ranks, v.IsGroupSkill)).ToList(), x.Abilities.Select(v => new HomebrewMountAbilityDto(v.Name, v.NameRu, v.Description, v.DescriptionEn)).ToList(), x.Attacks.Select(v => new HomebrewMountAttackDto(v.Name, v.NameRu, v.SkillName, v.Damage, v.Critical, v.Range, v.QualityCodes)).ToList(), x.Description, x.SafeDescription, x.DescriptionEn, x.Source)).ToList();
+        return new HomebrewPackExportDto(Format, pack.Name, pack.Description, pack.System, skills, talents, items, heroics, archetypes, careers,
+            await db.HomebrewPackExclusions.Where(x => x.HomebrewPackId == pack.Id).Select(x => new BaseContentRef(x.Category, x.ContentKey)).ToListAsync(ct), attachments, mounts);
     }
 }
 
@@ -226,8 +241,10 @@ internal static partial class HomebrewPackImporter
     public static async Task<HomebrewPackImportResult> ImportAsync(
         IAppDbContext db, Guid userId, HomebrewPackExportDto doc, CancellationToken ct)
     {
-        if (!string.Equals(doc.Format, HomebrewPackMapper.Format, StringComparison.Ordinal))
+        if (doc.Format != HomebrewPackMapper.Format && doc.Format != "genesysforge.homebrew-pack.v1")
             throw new DomainRuleException("Неподдерживаемый формат homebrew-набора.");
+        if (!Enum.IsDefined(doc.System)) throw new DomainRuleException("Неизвестная игровая система.");
+        CreatePackHandler.Validate(doc.Name, ImportedDescription(doc.Description));
         if (string.IsNullOrWhiteSpace(doc.Name))
             throw new DomainRuleException("Название homebrew-набора не может быть пустым.");
 
@@ -338,8 +355,37 @@ internal static partial class HomebrewPackImporter
             count++;
         }
 
+        foreach (var x in doc.Attachments ?? [])
+        {
+            RequireName(x.Name, "элемента");
+            db.AttachmentDefs.Add(new AttachmentDef { Id = Guid.NewGuid(), System = doc.System, OwnerUserId = userId, HomebrewPackId = pack.Id, Code = Clean(x.Code), Name = Clean(x.Name), NameRu = Clean(x.NameRu), HardPointCost = x.HardPointCost, Price = x.Price, Rarity = x.Rarity, IsEnchantment = x.IsEnchantment, HostKind = x.HostKind, RequiredTraits = x.RequiredTraits, RequiredAnyTraits = x.RequiredAnyTraits, ForbiddenTraits = x.ForbiddenTraits, Effects = (x.Effects ?? []).Select(v => new AttachmentEffect { Id = Guid.NewGuid(), Kind = v.Kind, QualityCode = Clean(v.QualityCode), OppositeQualityCode = Clean(v.OppositeQualityCode), SkillName = Clean(v.SkillName), Value = v.Value, Increment = v.Increment, Condition = v.Condition, Note = Clean(v.Note) }).ToList(), Description = Clean(x.Description), SafeDescription = Clean(x.SafeDescription), DescriptionEn = Clean(x.DescriptionEn), Source = Clean(x.Source) });
+            count++;
+        }
+        foreach (var x in doc.Mounts ?? [])
+        {
+            RequireName(x.Name, "элемента");
+            db.MountDefs.Add(new MountDef { Id = Guid.NewGuid(), System = doc.System, OwnerUserId = userId, HomebrewPackId = pack.Id, Code = Clean(x.Code), Name = Clean(x.Name), NameRu = Clean(x.NameRu), TransportKind = x.TransportKind, MovementMode = x.MovementMode, RequiresTraction = x.RequiresTraction, Kind = x.Kind, Brawn = x.Brawn, Agility = x.Agility, Intellect = x.Intellect, Cunning = x.Cunning, Willpower = x.Willpower, Presence = x.Presence, Soak = x.Soak, WoundThreshold = x.WoundThreshold, StrainThreshold = x.StrainThreshold, MeleeDefense = x.MeleeDefense, RangedDefense = x.RangedDefense, Silhouette = x.Silhouette, Capacity = x.Capacity, Price = x.Price, Rarity = x.Rarity, IncludedGear = (x.IncludedGear ?? []).ToList(), RequiresRidingCheck = x.RequiresRidingCheck, Skills = (x.Skills ?? []).Select(v => new MountSkill { Id = Guid.NewGuid(), Name = Clean(v.Name), Ranks = v.Ranks, IsGroupSkill = v.IsGroupSkill }).ToList(), Abilities = (x.Abilities ?? []).Select(v => new MountAbility { Id = Guid.NewGuid(), Name = Clean(v.Name), NameRu = Clean(v.NameRu), Description = Clean(v.Description), DescriptionEn = Clean(v.DescriptionEn) }).ToList(), Attacks = (x.Attacks ?? []).Select(v => new MountAttack { Id = Guid.NewGuid(), Name = Clean(v.Name), NameRu = Clean(v.NameRu), SkillName = Clean(v.SkillName), Damage = v.Damage, Critical = v.Critical, Range = v.Range, QualityCodes = (v.QualityCodes ?? []).ToList() }).ToList(), Description = Clean(x.Description), SafeDescription = Clean(x.SafeDescription), DescriptionEn = Clean(x.DescriptionEn), Source = Clean(x.Source) });
+            count++;
+        }
+
+        foreach (var e in db.SkillDefs.Local.Where(x => x.HomebrewPackId == pack.Id).ToList()) AddEntry(CustomEntryType.Skill, e.Id);
+        foreach (var e in db.TalentDefs.Local.Where(x => x.HomebrewPackId == pack.Id).ToList()) AddEntry(CustomEntryType.Talent, e.Id);
+        foreach (var e in db.ItemDefs.Local.Where(x => x.HomebrewPackId == pack.Id).ToList()) AddEntry(CustomEntryType.Item, e.Id);
+        foreach (var e in db.ArchetypeDefs.Local.Where(x => x.HomebrewPackId == pack.Id).ToList()) AddEntry(CustomEntryType.Archetype, e.Id);
+        foreach (var e in db.CareerDefs.Local.Where(x => x.HomebrewPackId == pack.Id).ToList()) AddEntry(CustomEntryType.Career, e.Id);
+        foreach (var e in db.HeroicAbilityDefs.Local.Where(x => x.HomebrewPackId == pack.Id).ToList()) AddEntry(CustomEntryType.HeroicAbility, e.Id);
+        foreach (var e in db.AttachmentDefs.Local.Where(x => x.HomebrewPackId == pack.Id).ToList()) AddEntry(CustomEntryType.Attachment, e.Id);
+        foreach (var e in db.MountDefs.Local.Where(x => x.HomebrewPackId == pack.Id).ToList()) AddEntry(CustomEntryType.Mount, e.Id);
+        void AddEntry(CustomEntryType type, Guid id) => db.HomebrewPackEntries.Add(new HomebrewPackEntry { Id = Guid.NewGuid(), HomebrewPackId = pack.Id, EntryType = type, EntryId = id });
+        List<string> warnings = [];
+        var catalog = await BaseCatalog.LoadAsync(db, doc.System, ct);
+        foreach (var item in (doc.Exclusions ?? []).Distinct())
+        {
+            if (!catalog.Any(x => x.Category == item.Category && x.Key == item.Key)) { warnings.Add($"Неизвестное ограничение пропущено: {item.Category}/{item.Key}"); continue; }
+            db.HomebrewPackExclusions.Add(new HomebrewPackExclusion { Id = Guid.NewGuid(), HomebrewPackId = pack.Id, Category = item.Category, ContentKey = item.Key });
+        }
         await db.SaveChangesAsync(ct);
-        return new HomebrewPackImportResult(pack.Id, pack.Name, count);
+        return new HomebrewPackImportResult(pack.Id, pack.Name, count, warnings);
     }
 
     private static void RequireName(string name, string label)

@@ -1,6 +1,6 @@
 namespace GenesysForge.Domain.Entities;
 
-public enum CustomContentChangeAction { Created, Updated, Deleted }
+public enum CustomContentChangeAction { Created, Updated, Deleted, AddedToPack, RemovedFromPack }
 
 /// <summary>История авторского контента; не зависит от жизненного цикла определения.</summary>
 public class CustomContentChange

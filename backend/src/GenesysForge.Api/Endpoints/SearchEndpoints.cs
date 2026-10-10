@@ -13,13 +13,13 @@ public static class SearchEndpoints
         var group = app.MapGroup("/api/search").RequireAuthorization();
 
         // Глобальный поиск: ?q= подстрока, ?system= система для контентных источников.
-        group.MapGet("/", async (string? q, string? system, ClaimsPrincipal user,
+        group.MapGet("/", async (string? q, string? system, Guid? campaignId, Guid? characterId, ClaimsPrincipal user,
             IQueryHandler<GlobalSearchQuery, SearchResponse> handler, CancellationToken ct) =>
         {
             if (!Enum.TryParse<GameSystem>(system, ignoreCase: true, out var gameSystem))
                 throw new DomainRuleException($"Неизвестная система: «{system}».");
             return Results.Ok(await handler.Handle(
-                new GlobalSearchQuery(user.UserId(), gameSystem, q ?? ""), ct));
+                new GlobalSearchQuery(user.UserId(), gameSystem, q ?? "", campaignId, characterId), ct));
         });
     }
 }

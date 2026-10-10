@@ -42,11 +42,11 @@ public class SetLesserRuneConfigurationHandler(IAppDbContext db)
 
         var action = command.Request.ActionCode?.Trim() ?? "";
         var effect = command.Request.EffectCode?.Trim() ?? "";
-        var spell = await db.SpellDefs.AsNoTracking().FirstOrDefaultAsync(s =>
-            s.System == c.System
-            && s.Kind == SpellEntryKind.AdditionalEffect
-            && s.ParentEffect == action
-            && s.NameEn == effect, ct);
+        var policy = await CampaignContentPolicy.LoadAsync(db, command.UserId, c.System, c.Id, ct: ct);
+        var spells = await db.SpellDefs.AsNoTracking().Where(s => s.System == c.System && (s.OwnerUserId == null || s.OwnerUserId == command.UserId)).ToListAsync(ct);
+        var spell = CampaignContentPolicy.FilterSpells(spells, policy).FirstOrDefault(s =>
+            s.Kind == SpellEntryKind.AdditionalEffect && s.AllowedSkills.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).Contains(RuneboundShardRules.RequiredMagicSkill)
+            && s.ParentEffect == action && s.NameEn == effect);
         if (spell is null)
             throw new DomainRuleException(
                 "Выбранный дополнительный эффект не найден.",

@@ -6,6 +6,8 @@ import { t } from '../i18n'
 import { PropertyText } from './PropertyText'
 
 interface Props {
+  characterId?: string
+  campaignId?: string
   system: GameSystem
   onError: (message: string) => void
   qualities?: Quality[]
@@ -16,16 +18,16 @@ interface Props {
  * список доступных базовых эффектов. Затем выбирается базовый эффект по названию: для него
  * показываются описание и таблица дополнительных эффектов, привязанных именно к нему.
  */
-export function SpellsTab({ system, onError, qualities }: Props) {
+export function SpellsTab({ system, characterId, campaignId, onError, qualities }: Props) {
   const [spells, setSpells] = useState<Spell[] | null>(null)
   const [skill, setSkill] = useState<string>('')
   const [effectCode, setEffectCode] = useState<string>('')
 
   const reload = useCallback(
-    () => api.spells(system)
+    () => api.spells(system, campaignId ? { campaignId } : characterId ? { characterId } : undefined)
       .then(setSpells)
       .catch((err: unknown) => onError(err instanceof Error ? err.message : t('Ошибка загрузки магии', 'Failed to load magic'))),
-    [system, onError])
+    [system, characterId, campaignId, onError])
 
   useEffect(() => { void reload() }, [reload])
 

@@ -1,5 +1,8 @@
 using GenesysForge.Application.Abstractions;
 using GenesysForge.Application.Dtos;
+using GenesysForge.Application.Common;
+using GenesysForge.Domain;
+using GenesysForge.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace GenesysForge.Application.Features.Spells;
@@ -18,6 +21,9 @@ public class GetSpellsHandler(IAppDbContext db) : IQueryHandler<GetSpellsQuery, 
             .OrderBy(s => s.MagicSkill).ThenBy(s => s.Kind).ThenBy(s => s.ParentEffect)
             .ThenBy(s => s.SortOrder).ThenBy(s => s.NameRu)
             .ToListAsync(ct);
+
+        var policy = await CampaignContentPolicy.LoadAsync(db, query.UserId, query.System, query.CharacterId, query.CampaignId, ct);
+        rows = CampaignContentPolicy.FilterSpells(rows, policy);
 
         // Списки доступности хранятся строкой, а отдаются массивом: разделитель — дело сервера,
         // клиенту достаётся готовый список направлений (ROT-MAG-01).

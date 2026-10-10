@@ -2,6 +2,7 @@ using GenesysForge.Application.Abstractions;
 using GenesysForge.Application.Common;
 using GenesysForge.Application.Dtos;
 using GenesysForge.Domain;
+using GenesysForge.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace GenesysForge.Application.Features.Reference;
@@ -11,8 +12,17 @@ public class GetReferenceHandler(IAppDbContext db) : IQueryHandler<GetReferenceQ
     public async Task<ReferenceResponse> Handle(GetReferenceQuery query, CancellationToken ct = default)
     {
         var (userId, system) = (query.UserId, query.System);
-        var visiblePackIds = await HomebrewVisibility.GetVisiblePackIdsAsync(
+        var contentPolicy = await CampaignContentPolicy.LoadAsync(
             db, userId, system, query.CharacterId, query.CampaignId, ct);
+
+        // The owner's editor sees all owned definitions, including entries in disabled packs.
+        // Library context cannot broaden a character or campaign catalogue.
+        if (query.Library)
+        {
+            if (query.CharacterId is not null || query.CampaignId is not null)
+                throw new DomainRuleException("Контекст библиотеки несовместим с персонажем или кампанией.");
+            contentPolicy.CustomIds.UnionWith((await ContentDefinitions.LoadAsync(db, system, userId, ct)).Select(x => x.Id));
+        }
 
         // Retired-записи остаются в БД ради уже созданных персонажей, NPC и экспортов, но не
         // предлагаются при создании, покупке и поиске. Фильтр применяется ко всем справочникам.
@@ -20,32 +30,32 @@ public class GetReferenceHandler(IAppDbContext db) : IQueryHandler<GetReferenceQ
         var archetypeDefs = await db.ArchetypeDefs.AsNoTracking()
             .Include(a => a.Abilities)
             .Include(a => a.StartingSkills)
-            .Where(a => a.System == system && !a.Retired
+            .Where(a => a.System == system && (!a.Retired || (query.Library && a.OwnerUserId == userId))
                 && (a.OwnerUserId == null
-                    || (a.HomebrewPackId == null ? a.OwnerUserId == userId
-                        : visiblePackIds.Contains(a.HomebrewPackId.Value))))
+                    || contentPolicy.CustomIds.Contains(a.Id)))
             .OrderBy(a => a.NameRu)
             .ToListAsync(ct);
+        archetypeDefs = archetypeDefs.Where(x => x.OwnerUserId != null || contentPolicy.Allows(BaseContentCategory.Archetype, x.Code)).ToList();
         var archetypes = archetypeDefs.Select(a => a.ToDto()).ToList();
 
         var careerDefs = await db.CareerDefs.AsNoTracking()
             .Include(c => c.StartingGear)
             .Include(c => c.Rules)
-            .Where(c => c.System == system && !c.Retired
+            .Where(c => c.System == system && (!c.Retired || (query.Library && c.OwnerUserId == userId))
                 && (c.OwnerUserId == null
-                    || (c.HomebrewPackId == null ? c.OwnerUserId == userId
-                        : visiblePackIds.Contains(c.HomebrewPackId.Value))))
+                    || contentPolicy.CustomIds.Contains(c.Id)))
             .OrderBy(c => c.NameRu)
             .ToListAsync(ct);
+        careerDefs = careerDefs.Where(x => x.OwnerUserId != null || contentPolicy.Allows(BaseContentCategory.Career, x.Code)).ToList();
         var careers = careerDefs.Select(c => c.ToDto()).ToList();
 
         var skillDefs = await db.SkillDefs.AsNoTracking()
-            .Where(s => s.System == system && !s.Retired
+            .Where(s => s.System == system && (!s.Retired || (query.Library && s.OwnerUserId == userId))
                 && (s.OwnerUserId == null
-                    || (s.HomebrewPackId == null ? s.OwnerUserId == userId
-                        : visiblePackIds.Contains(s.HomebrewPackId.Value))))
+                    || contentPolicy.CustomIds.Contains(s.Id)))
             .OrderBy(s => s.Kind).ThenBy(s => s.Name)
             .ToListAsync(ct);
+        skillDefs = skillDefs.Where(x => x.OwnerUserId != null || contentPolicy.Allows(BaseContentCategory.Skill, x.Code)).ToList();
         var skills = skillDefs.Select(s => s.ToDto()).ToList();
 
         // Genesys Core показывает только таланты «для любого сеттинга»; Realms of Terrinoth — плюс фэнтези.
@@ -55,12 +65,12 @@ public class GetReferenceHandler(IAppDbContext db) : IQueryHandler<GetReferenceQ
             : GenesysSetting.Any;
 
         var talentDefs = await db.TalentDefs.AsNoTracking()
-            .Where(t => t.System == system && !t.Retired
-                && (((t.HomebrewPackId == null ? t.OwnerUserId == userId
-                        : visiblePackIds.Contains(t.HomebrewPackId.Value)))
+            .Where(t => t.System == system && (!t.Retired || (query.Library && t.OwnerUserId == userId))
+                && ((contentPolicy.CustomIds.Contains(t.Id))
                     || (t.OwnerUserId == null && (t.Setting & settingMask) != 0)))
             .OrderBy(t => t.Tier).ThenBy(t => t.Name)
             .ToListAsync(ct);
+        talentDefs = talentDefs.Where(x => x.OwnerUserId != null || contentPolicy.Allows(BaseContentCategory.Talent, x.Code)).ToList();
         var talents = talentDefs.Select(t => t.ToDto()).ToList();
 
         // Материализуем с навигацией Qualities → QualityDef, затем маппим в памяти (ToDto тянет навигацию).
@@ -68,10 +78,9 @@ public class GetReferenceHandler(IAppDbContext db) : IQueryHandler<GetReferenceQ
             .Include(i => i.Qualities).ThenInclude(v => v.QualityDef)
             .Include(i => i.CheckModifiers)
             .Include(i => i.AttackProfiles)
-            .Where(i => i.System == system && !i.Retired
+            .Where(i => i.System == system && (!i.Retired || (query.Library && i.OwnerUserId == userId))
                 && (i.OwnerUserId == null
-                    || (i.HomebrewPackId == null ? i.OwnerUserId == userId
-                        : visiblePackIds.Contains(i.HomebrewPackId.Value))))
+                    || contentPolicy.CustomIds.Contains(i.Id)))
             .OrderBy(i => i.Kind).ThenBy(i => i.Name)
             .ToListAsync(ct);
         // Качества альтернативных профилей атаки хранятся кодами (ROT-WPN-01) и резолвятся справочником.
@@ -80,6 +89,7 @@ public class GetReferenceHandler(IAppDbContext db) : IQueryHandler<GetReferenceQ
             .ToListAsync(ct);
         var qualityDefs = qualityDefRows
             .ToDictionary(q => q.Code, StringComparer.Ordinal);
+        itemDefs = itemDefs.Where(x => x.OwnerUserId != null || contentPolicy.Allows(BaseContentCategory.Item, x.Code)).ToList();
         var items = itemDefs.Select(i => i.ToDto(qualityDefs)).ToList();
 
         var qualities = qualityDefRows
@@ -91,13 +101,13 @@ public class GetReferenceHandler(IAppDbContext db) : IQueryHandler<GetReferenceQ
             ? await db.HeroicAbilityDefs.AsNoTracking()
                 .Include(h => h.Upgrades)
                 .Include(h => h.Effects)
-                .Where(h => !h.Retired
+                .Where(h => (!h.Retired || (query.Library && h.OwnerUserId == userId))
                     && (h.OwnerUserId == null
-                    || (h.HomebrewPackId == null ? h.OwnerUserId == userId
-                        : visiblePackIds.Contains(h.HomebrewPackId.Value))))
+                    || contentPolicy.CustomIds.Contains(h.Id)))
                 .OrderBy(h => h.NameRu)
                 .ToListAsync(ct)
             : [];
+        heroicDefs = heroicDefs.Where(x => x.OwnerUserId != null || contentPolicy.Allows(BaseContentCategory.HeroicAbility, x.Code)).ToList();
         var heroics = heroicDefs.Select(h => h.ToDto()).ToList();
 
         var heroicSecondaryEffectDefs = system == GameSystem.RealmsOfTerrinoth
@@ -107,8 +117,8 @@ public class GetReferenceHandler(IAppDbContext db) : IQueryHandler<GetReferenceQ
 
         // Улучшения — отдельный тип контента (ROT-EQP-ATT-01): встроенные и разрешённые custom записи.
         var attachments = (await db.AttachmentDefs.AsNoTracking().Include(a => a.Effects)
-                .Where(a => a.System == system && !a.Retired && (a.OwnerUserId == null
-                    || (a.HomebrewPackId == null ? a.OwnerUserId == userId : visiblePackIds.Contains(a.HomebrewPackId.Value))))
+                .Where(a => a.System == system && (!a.Retired || (query.Library && a.OwnerUserId == userId)) && (a.OwnerUserId == null
+                    || contentPolicy.CustomIds.Contains(a.Id)))
                 .ToListAsync(ct))
             .OrderBy(a => a.NameRu, StringComparer.Ordinal)
             .Select(a => a.ToDto())
@@ -118,8 +128,8 @@ public class GetReferenceHandler(IAppDbContext db) : IQueryHandler<GetReferenceQ
         // иначе покупка снова превратилась бы в безликую строку снаряжения.
         var mounts = (await db.MountDefs.AsNoTracking()
                 .Include(m => m.Skills).Include(m => m.Abilities).Include(m => m.Attacks)
-                .Where(m => m.System == system && !m.Retired && (m.OwnerUserId == null
-                    || (m.HomebrewPackId == null ? m.OwnerUserId == userId : visiblePackIds.Contains(m.HomebrewPackId.Value))))
+                .Where(m => m.System == system && (!m.Retired || (query.Library && m.OwnerUserId == userId)) && (m.OwnerUserId == null
+                    || contentPolicy.CustomIds.Contains(m.Id)))
                 .ToListAsync(ct))
             .OrderBy(m => m.Price ?? int.MaxValue).ThenBy(m => m.NameRu, StringComparer.Ordinal)
             .Select(MountMapper.DefDto)

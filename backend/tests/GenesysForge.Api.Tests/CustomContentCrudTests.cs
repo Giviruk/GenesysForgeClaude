@@ -299,8 +299,8 @@ public class CustomContentCrudTests : IClassFixture<ApiFactory>
             new CreateCharacterRequest("Personal hero", GameSystem.GenesysCore, archetype.Id, reference.Careers[0].Id, null), Json.Options);
         Assert.Equal(HttpStatusCode.Created, character.StatusCode);
         var packs = (await owner.GetFromJsonAsync<List<HomebrewPackListItemDto>>("/api/homebrew-packs/", Json.Options))!;
-        Assert.Single(packs);
-        Assert.Equal(1, packs[0].EntryCount);
+        Assert.Empty(packs);
+        Assert.Single((await owner.GetFromJsonAsync<List<LibraryEntryDto>>("/api/library", Json.Options))!);
         Assert.Equal(HttpStatusCode.BadRequest, (await stranger.DeleteAsync($"/api/custom/archetypes/{archetype.Id}")).StatusCode);
         Assert.Empty((await owner.GetFromJsonAsync<List<CampaignListItemDto>>("/api/campaigns/", Json.Options))!);
     }
@@ -315,8 +315,8 @@ public class CustomContentCrudTests : IClassFixture<ApiFactory>
         await owner.PostAsJsonAsync("/api/custom/talents",
             new CreateCustomTalentRequest(GameSystem.GenesysCore, "Personal Captain", 1, false, "Пассивный", "Own text", 0, 0, 0, 0, 0), Json.Options);
         var packs = (await owner.GetFromJsonAsync<List<HomebrewPackListItemDto>>("/api/homebrew-packs/", Json.Options))!;
-        Assert.Single(packs);
-        Assert.Equal(2, packs[0].EntryCount);
+        Assert.Empty(packs);
+        Assert.Equal(2, (await owner.GetFromJsonAsync<List<LibraryEntryDto>>("/api/library", Json.Options))!.Count);
         Assert.Equal(HttpStatusCode.OK, (await owner.PutAsJsonAsync($"/api/custom/skills/{first.Id}",
             new CreateCustomSkillRequest(GameSystem.GenesysCore, "Personal Navigation", CharacteristicType.Intellect, SkillKind.General), Json.Options)).StatusCode);
         Assert.Equal(HttpStatusCode.NoContent, (await owner.DeleteAsync($"/api/custom/skills/{first.Id}")).StatusCode);
@@ -332,7 +332,7 @@ public class CustomContentCrudTests : IClassFixture<ApiFactory>
         var original = (await (await owner.PostAsJsonAsync("/api/custom/skills",
             new CreateCustomSkillRequest(GameSystem.GenesysCore, "Shared Navigation", CharacteristicType.Intellect, SkillKind.General), Json.Options))
             .Content.ReadFromJsonAsync<SkillDefDto>(Json.Options))!;
-        var source = Assert.Single((await owner.GetFromJsonAsync<List<HomebrewPackListItemDto>>("/api/homebrew-packs/", Json.Options))!);
+        var source = await owner.CreateLibraryPackAsync();
         var document = (await owner.GetFromJsonAsync<HomebrewPackExportDto>($"/api/homebrew-packs/{source.Id}/export", Json.Options))!;
         var gm = await _factory.CreateAuthorizedClientAsync();
         var imported = (await (await gm.PostAsJsonAsync("/api/homebrew-packs/import", document with { Description = description }, Json.Options))
@@ -346,9 +346,9 @@ public class CustomContentCrudTests : IClassFixture<ApiFactory>
         var privateSkill = (await (await gm.PostAsJsonAsync("/api/custom/skills",
             new CreateCustomSkillRequest(GameSystem.GenesysCore, "Private GM Skill", CharacteristicType.Cunning, SkillKind.General), Json.Options))
             .Content.ReadFromJsonAsync<SkillDefDto>(Json.Options))!;
-        var personal = Assert.Single((await gm.GetFromJsonAsync<List<HomebrewPackListItemDto>>("/api/homebrew-packs/", Json.Options))!,
-            p => p.Description == "Personal custom:GenesysCore");
-        Assert.NotEqual(imported.Id, personal.Id);
+        Assert.Single((await gm.GetFromJsonAsync<List<HomebrewPackListItemDto>>("/api/homebrew-packs/", Json.Options))!);
+        var privateEntry = (await gm.GetFromJsonAsync<List<LibraryEntryDto>>("/api/library", Json.Options))!.Single(x => x.Id == privateSkill.Id);
+        Assert.Empty(privateEntry.PackIds);
         var player = await _factory.CreateAuthorizedClientAsync();
         await player.PostAsJsonAsync("/api/campaigns/join", new JoinCampaignRequest(campaign.JoinCode!), Json.Options);
         var reference = (await player.GetFromJsonAsync<ReferenceResponse>($"/api/reference/GenesysCore?campaignId={campaign.Id}", Json.Options))!;

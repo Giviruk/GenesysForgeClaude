@@ -16,6 +16,8 @@ import type {
   DetachOutcome, ImplementMaterial, ItemDamageState,
   CraftingPreview, CraftingProject, CraftingProjectInput, CraftingSpendChoice,
 } from './types'
+import type { LibraryEntry, BaseCatalogEntry, BaseContentRef, ContentEntryRef, CampaignContent,
+  CampaignBaseEntry, CampaignContentItem, LibraryProposal, ContentUpdatePolicy } from './types'
 import { t } from '../i18n'
 import { ariadneAnonymousId } from '../analytics/ariadne'
 
@@ -390,10 +392,11 @@ export const api = {
   // Выход: сервер отзывает семейство refresh-токенов и чистит cookie.
   logout: () => request<void>('POST', '/api/auth/logout'),
 
-  reference: (system: GameSystem, context?: { characterId?: string; campaignId?: string }) => {
+  reference: (system: GameSystem, context?: { characterId?: string; campaignId?: string; library?: boolean }) => {
     const params = new URLSearchParams()
     if (context?.characterId) params.set('characterId', context.characterId)
     if (context?.campaignId) params.set('campaignId', context.campaignId)
+    if (context?.library) params.set('library', 'true')
     const qs = params.size ? `?${params}` : ''
     const url = `/api/reference/${system === 'genesysCore' ? 'GenesysCore' : 'RealmsOfTerrinoth'}${qs}`
 
@@ -413,8 +416,8 @@ export const api = {
   search: (system: GameSystem, q: string) =>
     request<SearchResponse>('GET',
       `/api/search?system=${system === 'genesysCore' ? 'GenesysCore' : 'RealmsOfTerrinoth'}&q=${encodeURIComponent(q)}`),
-  spells: (system: GameSystem) =>
-    request<Spell[]>('GET', `/api/spells/${system === 'genesysCore' ? 'GenesysCore' : 'RealmsOfTerrinoth'}`),
+  spells: (system: GameSystem, context?: { characterId?: string; campaignId?: string }) =>
+    request<Spell[]>('GET', `/api/spells/${system === 'genesysCore' ? 'GenesysCore' : 'RealmsOfTerrinoth'}${contentContextQuery(context)}`),
 
   characters: () => {
     if (characterListCache) return characterListCache
@@ -765,38 +768,38 @@ export const api = {
   removeCriticalInjury: (id: string, injuryId: string) =>
     request<void>('DELETE', `/api/characters/${id}/critical-injuries/${injuryId}`),
 
-  createCustomSkill: (campaignId: string | undefined, skill: { system: GameSystem; name: string; characteristic: string; kind: string }) =>
+  createCustomSkill: (campaignId: string | undefined, skill: { packIds?: string[]; system: GameSystem; name: string; characteristic: string; kind: string }) =>
     request<SkillDef>('POST', `${customContentPath(campaignId)}/skills`, skill),
   createCustomTalent: (campaignId: string | undefined, talent: {
-    system: GameSystem; name: string; tier: number; isRanked: boolean; category: TalentCategory; activation: string; description: string
+    packIds?: string[]; system: GameSystem; name: string; tier: number; isRanked: boolean; category: TalentCategory; activation: string; description: string
     woundBonus: number; strainBonus: number; soakBonus: number; meleeDefenseBonus: number; rangedDefenseBonus: number
   }) => request<TalentDef>('POST', `${customContentPath(campaignId)}/talents`, talent),
   createCustomItem: (campaignId: string | undefined, item: {
-    system: GameSystem; name: string; kind: string; encumbrance: number; soakBonus: number
+    packIds?: string[]; system: GameSystem; name: string; kind: string; encumbrance: number; soakBonus: number
     meleeDefense: number; rangedDefense: number; encumbranceThresholdBonus: number
     description: string; price: number; rarity: number
     skillName?: string; damage?: string; crit?: string; rangeBand?: string; properties?: string
   }) => request<ItemDef>('POST', `${customContentPath(campaignId)}/items`, item),
-  createCustomHeroicAbility: (campaignId: string | undefined, ability: { name: string; description: string }) =>
+  createCustomHeroicAbility: (campaignId: string | undefined, ability: { packIds?: string[]; name: string; description: string }) =>
     request<HeroicAbility>('POST', `${customContentPath(campaignId)}/heroic-abilities`, ability),
   createCustomArchetype: (campaignId: string | undefined, archetype: CustomArchetypeInput) =>
     request<Archetype>('POST', `${customContentPath(campaignId)}/archetypes`, archetype),
   createCustomCareer: (campaignId: string | undefined, career: CustomCareerInput) =>
     request<Career>('POST', `${customContentPath(campaignId)}/careers`, career),
 
-  updateCustomSkill: (campaignId: string | undefined, id: string, skill: { system: GameSystem; name: string; characteristic: string; kind: string }) =>
+  updateCustomSkill: (campaignId: string | undefined, id: string, skill: { packIds?: string[]; system: GameSystem; name: string; characteristic: string; kind: string }) =>
     request<SkillDef>('PUT', `${customContentPath(campaignId)}/skills/${id}`, skill),
   updateCustomTalent: (campaignId: string | undefined, id: string, talent: {
-    system: GameSystem; name: string; tier: number; isRanked: boolean; category: TalentCategory; activation: string; description: string
+    packIds?: string[]; system: GameSystem; name: string; tier: number; isRanked: boolean; category: TalentCategory; activation: string; description: string
     woundBonus: number; strainBonus: number; soakBonus: number; meleeDefenseBonus: number; rangedDefenseBonus: number
   }) => request<TalentDef>('PUT', `${customContentPath(campaignId)}/talents/${id}`, talent),
   updateCustomItem: (campaignId: string | undefined, id: string, item: {
-    system: GameSystem; name: string; kind: string; encumbrance: number; soakBonus: number
+    packIds?: string[]; system: GameSystem; name: string; kind: string; encumbrance: number; soakBonus: number
     meleeDefense: number; rangedDefense: number; encumbranceThresholdBonus: number
     description: string; price: number; rarity: number
     skillName?: string; damage?: string; crit?: string; rangeBand?: string; properties?: string
   }) => request<ItemDef>('PUT', `${customContentPath(campaignId)}/items/${id}`, item),
-  updateCustomHeroicAbility: (campaignId: string | undefined, id: string, ability: { name: string; description: string }) =>
+  updateCustomHeroicAbility: (campaignId: string | undefined, id: string, ability: { packIds?: string[]; name: string; description: string }) =>
     request<HeroicAbility>('PUT', `${customContentPath(campaignId)}/heroic-abilities/${id}`, ability),
   updateCustomArchetype: (campaignId: string | undefined, id: string, archetype: CustomArchetypeInput) =>
     request<Archetype>('PUT', `${customContentPath(campaignId)}/archetypes/${id}`, archetype),
@@ -956,6 +959,48 @@ export const api = {
   sendEncounterToTable: (id: string, mode: SendToTableMode) =>
     request<GameSession>('POST', `/api/encounters/${id}/send-to-table`, { mode }),
 
+  library: (system?: GameSystem) => request<LibraryEntry[]>('GET', `/api/library${system ? `?system=${systemName(system)}` : ''}`),
+  libraryProposals: () => request<LibraryProposal[]>('GET', '/api/library/proposals'),
+  baseCatalog: (system: GameSystem) => request<BaseCatalogEntry[]>('GET', `/api/reference/base-catalog?system=${systemName(system)}`),
+  createHomebrewPack: (name: string, description: string, system: GameSystem) =>
+    request<HomebrewPackListItem>('POST', '/api/homebrew-packs', { name, description, system }),
+  updateHomebrewPack: (id: string, name: string, description: string) =>
+    request<void>('PUT', `/api/homebrew-packs/${id}`, { name, description }),
+  deleteHomebrewPack: (id: string) => request<void>('DELETE', `/api/homebrew-packs/${id}`),
+  changeHomebrewPackEntries: (id: string, entries: ContentEntryRef[], remove = false) =>
+    request<void>(remove ? 'DELETE' : 'POST', `/api/homebrew-packs/${id}/entries`, { entries }),
+  homebrewPackExclusions: (id: string) => request<BaseCatalogEntry[]>('GET', `/api/homebrew-packs/${id}/exclusions`),
+  changeHomebrewPackExclusions: (id: string, items: BaseContentRef[], remove = false) =>
+    request<void>(remove ? 'DELETE' : 'POST', `/api/homebrew-packs/${id}/exclusions`, { items }),
+  campaignContent: (campaignId: string) => request<CampaignContent>('GET', `/api/campaigns/${campaignId}/content`),
+  setCampaignSystem: (campaignId: string, system: GameSystem, isOpen: boolean) =>
+    request<void>('PUT', `/api/campaigns/${campaignId}/content/systems/${systemName(system)}`, { isOpen }),
+  campaignBase: (campaignId: string, system: GameSystem) =>
+    request<CampaignBaseEntry[]>('GET', `/api/campaigns/${campaignId}/content/base?system=${systemName(system)}`),
+  setCampaignBase: (campaignId: string, system: GameSystem, items: (BaseContentRef & { enabled: boolean | null })[]) =>
+    request<void>('PUT', `/api/campaigns/${campaignId}/content/base`, { system, items }),
+  resetCampaignBase: (campaignId: string, system: GameSystem) =>
+    request<void>('DELETE', `/api/campaigns/${campaignId}/content/base?system=${systemName(system)}`),
+  saveCampaignBaseAsPack: (campaignId: string, system: GameSystem, name?: string) =>
+    request<HomebrewPackListItem>('POST', `/api/campaigns/${campaignId}/content/base/save-as-pack`, { system, name }),
+  disconnectCampaignPack: (campaignId: string, packId: string) =>
+    request<void>('DELETE', `/api/campaigns/${campaignId}/homebrew-packs/${packId}`),
+  setCampaignPackEntries: (campaignId: string, packId: string, entries: (ContentEntryRef & { enabled: boolean })[]) =>
+    request<void>('PUT', `/api/campaigns/${campaignId}/homebrew-packs/${packId}/entries`, { entries }),
+  campaignContentItems: (campaignId: string) => request<CampaignContentItem[]>('GET', `/api/campaigns/${campaignId}/content/items`),
+  connectCampaignItems: (campaignId: string, entries: ContentEntryRef[]) =>
+    request<void>('POST', `/api/campaigns/${campaignId}/content/items`, { entries }),
+  setCampaignItem: (campaignId: string, id: string, isEnabled: boolean) =>
+    request<void>('PUT', `/api/campaigns/${campaignId}/content/items/${id}`, { isEnabled }),
+  removeCampaignItem: (campaignId: string, id: string) =>
+    request<void>('DELETE', `/api/campaigns/${campaignId}/content/items/${id}`),
+  proposeCampaignContent: (campaignId: string, proposal: { packId?: string; entryType?: ContentEntryRef['entryType']; entryId?: string }) =>
+    request<void>('POST', `/api/campaigns/${campaignId}/content/proposals`, proposal),
+  decideCampaignContent: (campaignId: string, kind: 'item' | 'pack', targetId: string, decision: 'approve' | 'decline') =>
+    request<void>('POST', `/api/campaigns/${campaignId}/content/proposals/${kind}/${targetId}/${decision}`),
+  withdrawCampaignContent: (campaignId: string, kind: 'item' | 'pack', targetId: string) =>
+    request<void>('DELETE', `/api/campaigns/${campaignId}/content/proposals/${kind}/${targetId}`),
+
   homebrewPacks: () => request<HomebrewPackListItem[]>('GET', '/api/homebrew-packs/'),
   campaignHomebrewPacks: (campaignId: string) =>
     request<CampaignHomebrewPack[]>('GET', `/api/campaigns/${campaignId}/homebrew-packs/`),
@@ -976,8 +1021,8 @@ export const api = {
     request<void>('PUT', `/api/homebrew-packs/${id}/default`, { isEnabled }),
   setCharacterHomebrewPack: (characterId: string, packId: string, isEnabled: boolean) =>
     request<void>('PUT', `/api/characters/${characterId}/homebrew-packs/${packId}`, { isEnabled }),
-  setCampaignHomebrewPack: (campaignId: string, packId: string, isEnabled: boolean) =>
-    request<void>('PUT', `/api/campaigns/${campaignId}/homebrew-packs/${packId}`, { isEnabled }),
+  setCampaignHomebrewPack: (campaignId: string, packId: string, isEnabled: boolean, updatePolicy?: ContentUpdatePolicy) =>
+    request<void>('PUT', `/api/campaigns/${campaignId}/homebrew-packs/${packId}`, { isEnabled, updatePolicy }),
 
   deleteCustomSkill: (campaignId: string | undefined, id: string) => request<void>('DELETE', `${customContentPath(campaignId)}/skills/${id}`),
   deleteCustomTalent: (campaignId: string | undefined, id: string) => request<void>('DELETE', `${customContentPath(campaignId)}/talents/${id}`),
@@ -986,3 +1031,12 @@ export const api = {
   deleteCustomArchetype: (campaignId: string | undefined, id: string) => request<void>('DELETE', `${customContentPath(campaignId)}/archetypes/${id}`),
   deleteCustomCareer: (campaignId: string | undefined, id: string) => request<void>('DELETE', `${customContentPath(campaignId)}/careers/${id}`),
 }
+
+function contentContextQuery(context?: { characterId?: string; campaignId?: string }): string {
+  const params = new URLSearchParams()
+  if (context?.characterId) params.set('characterId', context.characterId)
+  if (context?.campaignId) params.set('campaignId', context.campaignId)
+  return params.size ? `?${params}` : ''
+}
+
+function systemName(system: GameSystem): string { return system === 'genesysCore' ? 'GenesysCore' : 'RealmsOfTerrinoth' }

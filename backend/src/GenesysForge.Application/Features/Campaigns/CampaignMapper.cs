@@ -49,7 +49,8 @@ public static class CampaignMapper
         return new CampaignDetailDto(
             campaign.Id, campaign.Name, campaign.Description, isGm,
             isGm ? campaign.JoinCode : null,
-            members, notes, players);
+            members, notes, players,
+            await db.CampaignSystemSettings.Where(x => x.CampaignId == campaign.Id && !x.IsOpen).Select(x => x.System).ToListAsync(ct));
     }
 
     public static async Task<Campaign> GetAccessibleAsync(

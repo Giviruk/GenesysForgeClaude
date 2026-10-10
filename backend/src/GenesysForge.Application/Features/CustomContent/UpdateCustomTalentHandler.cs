@@ -2,6 +2,7 @@ using GenesysForge.Application.Abstractions;
 using GenesysForge.Application.Common;
 using GenesysForge.Application.Dtos;
 using GenesysForge.Domain;
+using GenesysForge.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace GenesysForge.Application.Features.CustomContent;
@@ -20,6 +21,7 @@ public class UpdateCustomTalentHandler(IAppDbContext db) : ICommandHandler<Updat
                 t => t.Id == command.TalentDefId && t.OwnerUserId == command.UserId, ct)
             ?? throw new DomainRuleException("Кастомный талант не найден.");
 
+        await ContentMembership.ApplyAsync(db, command.UserId, req.System, CustomEntryType.Talent, def.Id, req.PackIds, null, ct);
         var before = def.ToDto();
 
         def.System = req.System;
@@ -35,6 +37,7 @@ public class UpdateCustomTalentHandler(IAppDbContext db) : ICommandHandler<Updat
         def.MeleeDefenseBonus = req.MeleeDefenseBonus;
         def.RangedDefenseBonus = req.RangedDefenseBonus;
         CustomContentAudit.Updated(db, "talent", def.Id, def.HomebrewPackId, def.Name, command.UserId, before, def.ToDto());
+        await CustomContentAudit.ReplicateToPacksAsync(db, def.Id, ct);
         await db.SaveChangesAsync(ct);
         return def.ToDto();
     }

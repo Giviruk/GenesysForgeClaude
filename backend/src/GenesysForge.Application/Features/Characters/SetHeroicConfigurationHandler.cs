@@ -59,13 +59,12 @@ public class SetHeroicConfigurationHandler(IAppDbContext db) : ICommandHandler<S
 
         // Навык должен быть доступен именно этому персонажу: встроенный или разрешённый кастом
         // той же системы из видимого набора. Чужой id не должен проходить по одному только Guid.
-        var visiblePackIds = await HomebrewVisibility.GetVisiblePackIdsAsync(db, userId, c.System, c.Id, ct: ct);
+        var contentPolicy = await CampaignContentPolicy.LoadAsync(db, userId, c.System, c.Id, ct: ct);
         var skill = await db.SkillDefs.FirstOrDefaultAsync(s =>
             s.Id == skillId
             && s.System == c.System
             && (s.OwnerUserId == null
-                || (s.HomebrewPackId == null ? s.OwnerUserId == userId
-                        : visiblePackIds.Contains(s.HomebrewPackId.Value))), ct);
+                || contentPolicy.CustomIds.Contains(s.Id)), ct);
         if (skill is null)
             throw new DomainRuleException("Навык недоступен персонажу.", "heroic.parameter.skill_not_available");
 

@@ -81,6 +81,7 @@ const uniqueByCode = (rows: Spell[]) =>
   rows.filter((row, i) => rows.findIndex(x => x.nameEn === row.nameEn) === i)
 
 interface SpellProps {
+  characterId?: string
   title: string
   system: GameSystem
   onConfirm: (value: string) => void
@@ -91,7 +92,7 @@ interface SpellProps {
  * Сборщик конфигурации Signature Spell: одно магическое действие и непустой набор его
  * дополнительных эффектов. Повторяемые эффекты (Дистанция, Размер) можно добавить несколько раз.
  */
-export function SignatureSpellDialog({ title, system, onConfirm, onCancel }: SpellProps) {
+export function SignatureSpellDialog({ title, system, characterId, onConfirm, onCancel }: SpellProps) {
   const [spells, setSpells] = useState<Spell[] | null>(null)
   const [loadError, setLoadError] = useState('')
   const [action, setAction] = useState('')
@@ -99,13 +100,13 @@ export function SignatureSpellDialog({ title, system, onConfirm, onCancel }: Spe
 
   useEffect(() => {
     let active = true
-    api.spells(system)
+    api.spells(system, { characterId })
       .then(rows => { if (active) setSpells(rows) })
       .catch((err: unknown) => {
         if (active) setLoadError(err instanceof Error ? err.message : t('Ошибка загрузки магии', 'Failed to load magic'))
       })
     return () => { active = false }
-  }, [system])
+  }, [system, characterId])
 
   const name = useMemo(() => spellNameResolver(spells ?? []), [spells])
   const actions = useMemo(

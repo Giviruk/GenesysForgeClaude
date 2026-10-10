@@ -24,7 +24,9 @@ public class CreateCustomHeroicAbilityHandler(IAppDbContext db)
             HomebrewPackId = packId,
         };
         db.HeroicAbilityDefs.Add(def);
+        await ContentMembership.ApplyAsync(db, command.UserId, GameSystem.RealmsOfTerrinoth, CustomEntryType.HeroicAbility, def.Id, req.PackIds, command.CampaignId, ct);
         CustomContentAudit.Created(db, "heroicAbility", def.Id, def.HomebrewPackId, def.Name, command.UserId);
+        await CustomContentAudit.ReplicateToPacksAsync(db, def.Id, ct);
         await db.SaveChangesAsync(ct);
         return def.ToDto();
     }

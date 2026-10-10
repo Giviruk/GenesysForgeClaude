@@ -102,14 +102,31 @@ for (const width of [320, 390, 768, 1280, 1440]) {
     }
 
     await page.goto(`/characters/${characterId}`)
-    await expect(page.locator('.skills-grid')).toBeVisible()
+    await expect(page.locator('.rd-skills-grid')).toBeVisible()
+    if (width === 1280) {
+      const rows = page.locator('.rd-skill-group > div.rd-skill-grid-row')
+      const index = await rows.evaluateAll(elements => elements.findIndex(element => element.querySelector('.rd-buy:not(:disabled)')))
+      expect(index).toBeGreaterThanOrEqual(0)
+      const row = rows.nth(index)
+      const geometry = () => row.evaluate(element => ({
+        height: element.getBoundingClientRect().height,
+        columns: [...element.children].map(cell => cell.getBoundingClientRect().width),
+      }))
+      const before = await geometry()
+      const purchased = page.waitForResponse(response => response.request().method() === 'POST' && response.url().endsWith('/buy-rank'))
+      await row.locator('.rd-buy').click()
+      expect((await purchased).ok()).toBe(true)
+      await expect(row.locator('.rd-refund')).toBeVisible()
+      await expect.poll(geometry).toEqual(before)
+    }
     if (width <= 768) await arrowHasSpace(page, '#sheet-tab-select')
     else {
-      const overflow = await page.locator('table.skills th, table.skills td.skill-ranks').evaluateAll(headers => headers.some(header => {
-        const range = document.createRange()
-        range.selectNodeContents(header)
-        const text = range.getBoundingClientRect(), cell = header.getBoundingClientRect()
-        return text.width > 0 && (text.left < cell.left || text.right > cell.right + 1)
+      const overflow = await page.locator('.rd-skill-group > div.rd-skill-grid-row').evaluateAll(rows => rows.some(row => {
+        const bounds = row.getBoundingClientRect()
+        return [...row.children].some(cell => {
+          const rect = cell.getBoundingClientRect()
+          return rect.left < bounds.left - 1 || rect.right > bounds.right + 1
+        })
       }))
       expect(overflow).toBe(false)
     }

@@ -83,3 +83,16 @@ export function writeRangeTrackerState(
 ): void {
   try { localStorage.setItem(rangeTrackerKey(campaignId, sessionId), JSON.stringify(state)) } catch { /* storage unavailable */ }
 }
+
+const skillProgressKey = (characterId: string) => `genesysforge.skillProgress.${characterId}`
+
+export function readSkillProgress(characterId: string, creation: boolean): boolean {
+  try {
+    const saved = localStorage.getItem(skillProgressKey(characterId))
+    return saved === 'true' ? true : saved === 'false' ? false : creation
+  } catch { return creation }
+}
+
+export function writeSkillProgress(characterId: string, enabled: boolean): void {
+  try { localStorage.setItem(skillProgressKey(characterId), String(enabled)) } catch { /* storage unavailable */ }
+}
