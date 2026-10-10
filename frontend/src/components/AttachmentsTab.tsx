@@ -14,6 +14,7 @@ import { t } from '../i18n'
 import { Icon } from './Icon'
 import { FilterChip, SectionCard } from './content/ContentUi'
 import { BookReference } from './BookReference'
+import { InfoTip } from './InfoTip'
 
 interface Props {
   sheet: CharacterSheet
@@ -90,11 +91,12 @@ export function AttachmentsTab({ sheet, reference, onError, refresh }: Props) {
   const allDefs = (reference.attachments ?? []).filter(d => sheet.system === 'realmsOfTerrinoth' || !d.isEnchantment)
   const catalogue = allDefs.filter(d => matchesAttachmentFilter(d, kindFilter))
   const free = host ? Math.max(0, (host.hardPoints ?? 0) - host.usedHardPoints) : 0
+  const hostTraits = useMemo(() => parseWeaponTraits(host?.formTraits), [host?.formTraits])
   function blocked(a: CharacterAttachment): string {
     if (!host) return t('Сначала выберите предмет', 'Choose an item first')
     const def = defsById.get(a.attachmentDefId)
     if (!def) return t('Определение улучшения недоступно', 'Attachment definition unavailable')
-    if (!isCompatible(host, def, parseWeaponTraits(host.formTraits))) {
+    if (!isCompatible(host, def, hostTraits)) {
       if (def.hostKind !== host.kind) return def.hostKind === 'weapon' ? t('Только для оружия', 'Weapons only') : t('Только для брони', 'Armor only')
       if (parseWeaponTraits(def.requiredTraits).includes('ranged')) return t('Только для дальнобойного', 'Ranged weapons only')
       return t('Требуется подходящий профиль оружия', 'Requires a compatible weapon profile')
@@ -104,15 +106,18 @@ export function AttachmentsTab({ sheet, reference, onError, refresh }: Props) {
     if (a.isEnchantment && !hasMagicRank(sheet) && !reason.trim()) return ENCHANTMENT_HINT
     return ''
   }
-  const reserve = spare.toSorted((a, b) => Number(!!blocked(a)) - Number(!!blocked(b)))
+  const reasons = new Map(spare.map(a => [a.id, blocked(a)]))
+  const reserve = spare.toSorted((a, b) => Number(!!reasons.get(a.id)) - Number(!!reasons.get(b.id)))
   async function buy(d: AttachmentDef, free = false) {
     await api.buyAttachment(sheet.id, d.id, free ? { free: true } : undefined)
     setNotice(t(`${localizedName(d)} — в запасе`, `${localizedName(d)} — in reserve`))
   }
   return <div className="attachments-layout sheet-two-column">
     <section>
-      <h3 className="sheet-section-title">{t('Предметы со слотами', 'Items with slots')}<small title={INSTALL_HINT + (sheet.system === 'realmsOfTerrinoth' ? ' ' + ENCHANTMENT_HINT : '')}>
-        <Icon name="info-circle" className="button-icon" />{t('Как проходит установка', 'How installation works')}</small></h3>
+      <h3 className="sheet-section-title">{t('Предметы со слотами', 'Items with slots')}<small>
+        <InfoTip label={t('Как проходит установка', 'How installation works')} title={t('Правила установки', 'Installation rules')}>
+          <p>{INSTALL_HINT}</p>{sheet.system === 'realmsOfTerrinoth' && <p>{ENCHANTMENT_HINT}</p>}
+        </InfoTip></small></h3>
       {hosts.length === 0 && <p className="muted">{t('Нет предметов со слотами улучшений.', 'No items with attachment slots.')}</p>}
       {hosts.map(i => <article key={i.id} className={`attachment-host-card${host?.id === i.id ? ' selected' : ''}`}>
         <button className="attachment-host-select" aria-pressed={host?.id === i.id} onClick={() => { setHostId(i.id); setReason('') }}>
@@ -120,7 +125,7 @@ export function AttachmentsTab({ sheet, reference, onError, refresh }: Props) {
           <span className="attachment-slots" aria-label={t(`Слоты ${i.usedHardPoints}/${i.hardPoints ?? 0}`, `Slots ${i.usedHardPoints}/${i.hardPoints ?? 0}`)}>
             {Array.from({ length: i.hardPoints ?? 0 }, (_, n) => <i key={n} className={n < i.usedHardPoints ? 'filled' : ''} />)}<small>{i.usedHardPoints}/{i.hardPoints ?? 0}</small></span>
         </button>
-        {i.attachments.map(a => <AttachmentRow key={a.id} attachment={a} def={defsById.get(a.attachmentDefId)} qualityDefinitions={reference.qualities} funds={sheet.money}
+        {i.attachments.map(a => <AttachmentRow key={a.id} attachment={a} def={defsById.get(a.attachmentDefId)} qualityDefinitions={reference.qualities} funds={sheet.money} busy={busy}
           onDetach={outcome => void run(() => api.detachAttachment(sheet.id, a.id, outcome))}
           onSetDamageState={state => void run(() => api.setAttachmentDamageState(sheet.id, a.id, state))}
           onRepair={opts => void run(() => api.repairAttachment(sheet.id, a.id, opts))} />)}
@@ -139,10 +144,10 @@ export function AttachmentsTab({ sheet, reference, onError, refresh }: Props) {
         <p className="muted small-text">{host ? <>{t('Установка на', 'Installing on')} <b>{localizedName(host)}</b> · {t(`свободно ${free} из ${host.hardPoints ?? 0}`, `${free} of ${host.hardPoints ?? 0} free`)}</> : t('Выберите предмет слева', 'Choose an item on the left')}</p>
         {spare.length === 0 && <div className="rd-empty"><p>{t('Запас пуст', 'Reserve is empty')}</p><button onClick={() => setMode('shop')}>{t('Открыть лавку', 'Open shop')}</button></div>}
         {spare.some(a => a.isEnchantment) && !hasMagicRank(sheet) && <label className="attach-reason small-text">{t('Причина установки чар без магического навыка', 'Reason for enchanting without a magic skill')}<input value={reason} maxLength={200} onChange={e => setReason(e.target.value)} />{ENCHANTMENT_HINT}</label>}
-        {reserve.map(a => <AttachmentRow key={a.id} attachment={a} def={defsById.get(a.attachmentDefId)} qualityDefinitions={reference.qualities}
-          unavailable={!!blocked(a)}
+        {reserve.map(a => <AttachmentRow key={a.id} attachment={a} def={defsById.get(a.attachmentDefId)} qualityDefinitions={reference.qualities} busy={busy}
+          unavailable={!!reasons.get(a.id)}
           onRemove={() => void run(() => api.removeAttachment(sheet.id, a.id))}>
-          {blocked(a) ? <p className="muted small-text attachment-blocked"><Icon name="lock" className="button-icon" />{blocked(a)}</p>
+          {reasons.get(a.id) ? <p className="muted small-text attachment-blocked"><Icon name="lock" className="button-icon" />{reasons.get(a.id)}</p>
             : <button className="primary small" disabled={busy} onClick={() => void run(async () => {
               await api.installAttachment(sheet.id, a.id, host!.id, a.isEnchantment && !hasMagicRank(sheet) ? reason.trim() : undefined); setReason('')
             })}><Icon name="arrow-left" className="button-icon" />{t('Установить', 'Install')}</button>}
@@ -168,7 +173,8 @@ function hasMagicRank(sheet: CharacterSheet): boolean {
   return sheet.skills.some(s => s.kind === 'magic' && s.ranks > 0)
 }
 
-function AttachmentRow({ attachment, def, qualityDefinitions, funds, onDetach, onRemove, onSetDamageState, onRepair, children, unavailable = false }: {
+function AttachmentRow({ attachment, def, qualityDefinitions, funds, onDetach, onRemove, onSetDamageState, onRepair, children, unavailable = false, busy = false }: {
+  busy?: boolean
   children?: ReactNode
   unavailable?: boolean
   attachment: CharacterAttachment
@@ -220,6 +226,7 @@ function AttachmentRow({ attachment, def, qualityDefinitions, funds, onDetach, o
         )}
         {onSetDamageState && onRepair && (
           <DamageStateControls state={attachment.damageState} repair={attachment.repair}
+            disabled={busy}
             showHint={false}
             funds={funds ?? 0}
             onSetState={onSetDamageState} onRepair={onRepair} />
@@ -228,13 +235,13 @@ function AttachmentRow({ attachment, def, qualityDefinitions, funds, onDetach, o
       <div className="attach-row-actions">
         {onDetach && (
           <>
-            <button className="small" onClick={() => onDetach('returned')}>{t('Снять', 'Detach')}</button>
-            <button className="small" title={t('Испорчено при снятии', 'Ruined while detaching')} aria-label={t('Испорчено при снятии', 'Ruined while detaching')}
+            <button className="small" disabled={busy} onClick={() => onDetach('returned')}>{t('Снять', 'Detach')}</button>
+            <button className="small" disabled={busy} title={t('Испорчено при снятии', 'Ruined while detaching')} aria-label={t('Испорчено при снятии', 'Ruined while detaching')}
               onClick={() => onDetach('destroyed')}><Icon name="trash" className="button-icon" /></button>
           </>
         )}
         {onRemove && (
-          <button className="danger small" title={t('Убрать из запаса', 'Remove from reserve')}
+          <button className="danger small" disabled={busy} title={t('Убрать из запаса', 'Remove from reserve')}
             aria-label={t('Убрать из запаса', 'Remove from reserve')}
             onClick={onRemove}><Icon name="close" className="button-icon" /></button>
         )}

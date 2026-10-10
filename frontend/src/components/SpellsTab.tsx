@@ -1,3 +1,4 @@
+import { magicActions } from '../utils/magicActions'
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { api } from '../api/client'
 import type { GameSystem, Quality, Spell } from '../api/types'
@@ -30,7 +31,7 @@ export function SpellsTab({ system, characterId, campaignId, onError, qualities,
   const activeEffectCode = baseEffects.some(e => e.nameEn === effectCode) ? effectCode : baseEffects[0]?.nameEn ?? ''
   const selected = baseEffects.find(e => e.nameEn === activeEffectCode)
   const additional = spells?.filter(s => s.kind === 'additionalEffect' && s.parentEffect === activeEffectCode) ?? []
-  const matrix = [...new Map(spells?.filter(s => s.kind === 'effect').map(s => [s.nameEn, s]) ?? []).values()]
+  const matrix = magicActions(spells ?? [], activeSkill)
   function selectAction(code: string) {
     if (!baseEffects.some(e => e.nameEn === code)) {
       const available = spells?.find(s => s.kind === 'effect' && s.nameEn === code)

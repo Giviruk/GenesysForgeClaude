@@ -260,4 +260,65 @@ describe('Ремесло (ROT-CRAFT-01, ROT-ALCH-02, ROT-CRAFT-MAGIC-01)', () =>
         itemDefId: 'def-axe', baseCharacterItemId: 'item-axe', kind: 'enchantment', skillName: 'Runes',
       })))
   })
+
+  it('starts enchantment with an untrained magic skill', async () => {
+    const untrained = { ...sheet, skills: sheet.skills.map(sk => ({ ...sk, ranks: 0 })) }
+    render(<CraftingTab sheet={untrained} reference={reference} onError={() => {}} refresh={async () => {}} />)
+    fireEvent.click(screen.getByRole('tab', { name: /Зачарование/ }))
+    fireEvent.click(screen.getByRole('button', { name: /Топор/ }))
+    fireEvent.change(screen.getByLabelText(/Согласованная способность/), { target: { value: 'Согласованный тестовый эффект' } })
+    expect(screen.getByRole('button', { name: /Аркана · 0/ })).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Начать проект' })).toHaveProperty('disabled', false)
+    fireEvent.click(screen.getByRole('button', { name: 'Начать проект' }))
+    await waitFor(() => expect(startMock).toHaveBeenCalledWith('char-1', expect.objectContaining({ kind: 'enchantment', skillName: 'Arcana' })))
+  })
+
+  it('keeps symbols above selected spends until the spend is removed', async () => {
+    craftingMock.mockResolvedValue([draft])
+    previewMock.mockResolvedValue({ ...preview, spends: [{ ...faster, advantageCost: 3 }] })
+    renderTab()
+    await screen.findByText('Сократить время на день')
+    const advantages = screen.getByRole('spinbutton', { name: 'Преимущества' })
+    fireEvent.change(advantages, { target: { value: '3' } })
+    fireEvent.click(screen.getByText('▲ 3'))
+    const decrease = screen.getByRole('button', { name: 'Уменьшить: Преимущества' })
+    expect(decrease).toHaveProperty('disabled', true)
+    fireEvent.click(decrease)
+    fireEvent.change(advantages, { target: { value: '1' } })
+    expect(advantages).toHaveProperty('value', '3')
+    expect(screen.getByText(/Осталось:/).textContent).toContain('▲ 0')
+    fireEvent.click(screen.getByRole('button', { name: 'Разрешить проект' }))
+    await waitFor(() => expect(resolveMock).toHaveBeenCalledWith('char-1', 'proj-1', expect.objectContaining({ advantages: 3 })))
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Разрешить проект' })).toHaveProperty('disabled', false))
+    fireEvent.click(screen.getByRole('button', { name: /Убрать трату: Сократить/ }))
+    fireEvent.click(decrease)
+    expect(advantages).toHaveProperty('value', '2')
+  })
+
+  it('keeps the search visible when inventory shrinks below the threshold', async () => {
+    const bases = Array.from({ length: 13 }, (_, n) => ({ ...sheet.items[0], id: `base-${n}`, nameRu: n === 0 ? 'Меч' : `Основа ${n}` }))
+    const props = { reference, onError: () => {}, refresh: async () => {} }
+    const { rerender } = render(<CraftingTab {...props} sheet={{ ...sheet, items: bases }} />)
+    fireEvent.click(screen.getByRole('tab', { name: /Зачарование/ }))
+    fireEvent.change(screen.getByRole('searchbox'), { target: { value: 'Меч' } })
+    rerender(<CraftingTab {...props} sheet={{ ...sheet, items: bases.slice(0, 12) }} />)
+    expect(screen.getByRole('searchbox')).toHaveProperty('value', 'Меч')
+    expect(screen.queryByRole('button', { name: /Основа 1/ })).toBeNull()
+    fireEvent.change(screen.getByRole('searchbox'), { target: { value: '' } })
+    expect(await screen.findByText('Основа 1', { selector: 'strong' })).toBeTruthy()
+  })
+
+  it('cancels a project only after explicit confirmation', async () => {
+    craftingMock.mockResolvedValue([draft])
+    renderTab()
+    fireEvent.click(await screen.findByRole('button', { name: 'Отменить проект' }))
+    expect(cancelMock).not.toHaveBeenCalled()
+    expect(screen.getByText(/восстановить его нельзя/)).toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: 'Продолжить работу' }))
+    expect(screen.queryByRole('button', { name: 'Да, отменить проект' })).toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: 'Отменить проект' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Да, отменить проект' }))
+    await waitFor(() => expect(cancelMock).toHaveBeenCalledExactlyOnceWith('char-1', 'proj-1'))
+  })
+
 })

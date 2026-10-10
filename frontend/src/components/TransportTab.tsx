@@ -100,7 +100,7 @@ export function TransportTab({ sheet, reference, onError, refresh }: Props) {
         <h3 className="sheet-card-heading">{t('Конюшня', 'Stable')}<span className="sheet-wallet"><Icon name="coin" />{funds}</span></h3>
         <div className="sheet-chips">{(['all', 'mount', 'vehicle'] as const).map(k => <FilterChip key={k} active={filter === k} onClick={() => setFilter(k)}>{k === 'all' ? t('Все', 'All') : k === 'mount' ? t('Скакуны', 'Mounts') : t('Повозки', 'Wagons')} {allCatalog.filter(d => k === 'all' || d.transportKind === k).length}</FilterChip>)}</div>
         {catalog.length === 0
-          ? <p className="muted">{t('В этой системе транспорта нет.', 'This system has no transport.')}</p>
+          ? <p className="muted">{allCatalog.length === 0 ? t('В этой системе транспорта нет.', 'This system has no transport.') : t('Ничего не найдено по фильтру.', 'No matches for this filter.')}</p>
           : <div className="mount-catalog-list">
             {catalog.map(def => (
               <div className="shop-row" key={def.id}>
@@ -126,7 +126,7 @@ export function TransportTab({ sheet, reference, onError, refresh }: Props) {
                   </div>
                   <div className="shop-row-actions">
                     {def.price != null && (
-                      <button className="primary tiny" disabled={busy || def.price > funds} title={def.price > funds ? t('Недостаточно монет', 'Not enough coins') : undefined}
+                      <button className="primary tiny" disabled={busy}
                         onClick={() => setOpenBuy(openBuy === def.id ? null : def.id)}>
                         {openBuy === def.id ? t('Отмена', 'Cancel') : t('Купить', 'Buy')}
                       </button>

@@ -463,7 +463,7 @@ function CampaignMemberSheetPage({ campaignId, characterId, campaignName, onBack
       <button className={`sheet-secondary-tab ${tab === 'transport' ? 'tab active' : 'tab'}`}
         onClick={() => selectTab('transport')}>{t('Транспорт', 'Transport')}</button>
       <button className={`sheet-secondary-tab ${tab === 'bio' ? 'tab active' : 'tab'}`}
-        onClick={() => selectTab('bio')}>{t('Образ и заметки', 'Bio and notes')}</button>
+        onClick={() => selectTab('bio')}>{t('Образ', 'Bio')}</button>
       <button className={`sheet-secondary-tab ${tab === 'history' ? 'tab active' : 'tab'}`}
         onClick={() => selectTab('history')}>{t('История', 'History')}</button>
     </div>

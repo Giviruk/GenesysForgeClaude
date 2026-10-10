@@ -456,3 +456,21 @@ describe('MagicBuilder — дайсроллер', () => {
     }))
   })
 })
+
+describe('MagicBuilder — active school action metadata', () => {
+  it('shows difficulty, description and optional flag from the selected school', async () => {
+    vi.mocked(api.spells).mockResolvedValue([
+      spell({ id: 'arcana-action', magicSkill: 'Arcana', nameRu: 'Общее действие', nameEn: 'Shared', difficultyIncrease: 1, description: 'Описание школы Arcana', allowedSkills: ['Arcana', 'Divine'] }),
+      spell({ id: 'divine-action', magicSkill: 'Divine', nameRu: 'Общее действие', nameEn: 'Shared', difficultyIncrease: 3, description: 'Описание школы Divine', isOptional: true, allowedSkills: ['Arcana', 'Divine'] }),
+    ])
+    render(<MagicBuilder system="realmsOfTerrinoth" onError={() => {}} />)
+    const action = await screen.findByRole('button', { name: /^Общее действие/ })
+    expect(action.textContent).toContain('(1)')
+    expect(action.textContent).not.toContain('EPG')
+    expect(action.title).toBe('Описание школы Arcana')
+    fireEvent.click(screen.getByRole('button', { name: /Божественная/ }))
+    expect(action.textContent).toContain('(3)')
+    expect(action.textContent).toContain('EPG')
+    expect(action.title).toBe('Описание школы Divine')
+  })
+})

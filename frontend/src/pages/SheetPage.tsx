@@ -16,7 +16,7 @@ import { CharacterSheetPrint } from '../components/print/CharacterSheetPrint'
 import { Icon } from '../components/Icon'
 import { navigate } from '../router'
 import { t } from '../i18n'
-import { readSheetTab, writeSheetTab, type CharacterSheetTab } from '../utils/uiPreferences'
+import { migrateSheetPreferences, readSheetTab, writeSheetTab, type CharacterSheetTab } from '../utils/uiPreferences'
 import { formatCharacterCreationCompletionError } from '../utils/characterCreationErrors'
 
 interface Props {
@@ -121,6 +121,7 @@ export function SheetPage({ characterId, printing, onOpenPrint, onClosePrint, on
   const [tabs, setTabs] = useState<Record<string, CharacterSheetTab>>(() => ({
     [characterId]: readSheetTab(characterId),
   }))
+  useEffect(() => { migrateSheetPreferences(characterId) }, [characterId])
   const tab = tabs[characterId] ?? readSheetTab(characterId)
   const selectTab = (next: CharacterSheetTab) => {
     writeSheetTab(characterId, next)

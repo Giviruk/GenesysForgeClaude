@@ -1,3 +1,4 @@
+import { magicActions } from '../utils/magicActions'
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { api } from '../api/client'
 import type {
@@ -403,7 +404,7 @@ export function MagicBuilder({
     )
   }
 
-  const actions = [...new Map(spells.filter(s => s.kind === 'effect').map(s => [s.nameEn, s])).values()]
+  const actions = magicActions(spells, activeSkill)
   return <div className="magic-builder">
     <div className="sheet-mode-header">{modeControl}<MagicDirectionChips skills={skills} activeSkill={activeSkill} onChange={setSkill} characterSkills={characterSkills} /></div>
     <div className="magic-build-layout sheet-two-column">

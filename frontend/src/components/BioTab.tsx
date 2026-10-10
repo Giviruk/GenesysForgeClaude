@@ -1,7 +1,8 @@
 import { useState, type FormEvent } from 'react'
 import { api } from '../api/client'
 import type { CharacterSheet } from '../api/types'
-import { t } from '../i18n'
+import { lang, t } from '../i18n'
+import { wordCountLabel } from '../utils/wordCountLabel'
 import { localizedName } from '../utils/labels'
 import { Icon, type IconName } from './Icon'
 import { NotesTab } from './NotesTab'
@@ -62,7 +63,7 @@ export function BioTab({ sheet, onError, refresh, onPortraitClick, readOnly = fa
         <span><Icon name={m.icon as IconName} />{m.label}</span>
         <textarea aria-label={m.label} value={shown[m.key]} readOnly={readOnly} disabled={busy} onChange={e => change(m.key, e.target.value)} rows={2} maxLength={300} placeholder={m.hint} />
       </label>)}</div>
-      <h3 className="sheet-section-title">{t('Предыстория', 'Background')}<small>{t(`${words} слов`, `${words} words`)}</small></h3>
+      <h3 className="sheet-section-title">{t('Предыстория', 'Background')}<small>{wordCountLabel(words, lang)}</small></h3>
       <textarea className="bio-background" aria-label={t('Предыстория', 'Background')} value={shown.background} readOnly={readOnly} disabled={busy}
         onChange={e => change('background', e.target.value)} rows={10} maxLength={8000}
         placeholder={t('История персонажа: происхождение, важные события, связи, цели…', 'The character’s story: origin, key events, connections, goals…')} />

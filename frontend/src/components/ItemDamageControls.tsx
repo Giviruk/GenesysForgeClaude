@@ -65,7 +65,8 @@ export function RepairMemo({ repair }: { repair: ItemRepair }) {
  * Состояние предмета и ремонт одной строкой. Состояние меняется отдельными кнопками — и когда
  * в бою сработало Разрушающее, и когда вещь пострадала по сюжету: приложение не угадывает причину.
  */
-export function DamageStateControls({ state, repair, funds, reinforced, onSetState, onRepair, showHint = true }: {
+export function DamageStateControls({ state, repair, funds, reinforced, onSetState, onRepair, showHint = true, disabled = false }: {
+  disabled?: boolean
   showHint?: boolean
   state: ItemDamageState
   repair: ItemRepair
@@ -96,6 +97,7 @@ export function DamageStateControls({ state, repair, funds, reinforced, onSetSta
       <span className="damage-switch">
         {ITEM_DAMAGE_STATES.map(s => (
           <button key={s} type="button" className={state === s ? 'chip active' : 'chip'}
+            disabled={disabled}
             title={ITEM_DAMAGE_STATE_HINTS[s]}
             onClick={() => state !== s && onSetState(s)}>
             {ITEM_DAMAGE_STATE_LABELS[s]}
@@ -108,7 +110,7 @@ export function DamageStateControls({ state, repair, funds, reinforced, onSetSta
           'Чистые преимущества самостоятельного ремонта: каждое снимает 10 % стоимости материалов',
           'Net advantages of a self-repair: each takes 10 % off the material cost')}>
           {t('преим.', 'adv.')}
-          <input type="number" min={0} value={advantages}
+          <input type="number" min={0} value={advantages} disabled={disabled}
             onChange={e => setAdvantages(Math.max(0, Math.trunc(Number(e.target.value)) || 0))}
             style={{ width: '3.2rem' }} />
         </label>
@@ -118,12 +120,12 @@ export function DamageStateControls({ state, repair, funds, reinforced, onSetSta
         <>
           <label className="damage-adv">
             {t('материалы', 'materials')}
-            <input type="number" min={0} value={gmPrice} placeholder={t('цена', 'price')}
+            <input type="number" min={0} value={gmPrice} disabled={disabled} placeholder={t('цена', 'price')}
               onChange={e => setGmPrice(e.target.value)} style={{ width: '4.5rem' }} />
           </label>
           <label className="damage-adv">
             {t('причина', 'reason')}
-            <input value={gmReason} maxLength={200}
+            <input value={gmReason} maxLength={200} disabled={disabled}
               placeholder={t('решение ведущего', 'the GM’s call')}
               onChange={e => setGmReason(e.target.value)} />
           </label>
@@ -131,7 +133,7 @@ export function DamageStateControls({ state, repair, funds, reinforced, onSetSta
       )}
 
       {repair.canRepair && (
-        <button type="button" className="primary tiny" disabled={!ready}
+        <button type="button" className="primary tiny" disabled={disabled || !ready}
           title={cost == null
             ? t('У этой записи нет обычной цены — стоимость материалов называет ведущий',
               'This entry has no ordinary price — the GM names the material cost')

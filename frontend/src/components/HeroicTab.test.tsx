@@ -71,4 +71,9 @@ describe('Heroic tab uses and purchases', () => {
     fireEvent.click(screen.getByRole('button', { name: '1 очк.' }))
     await waitFor(() => expect(api.setHeroicUpgrades).toHaveBeenCalledWith('heroic-test', expect.objectContaining({ secondaryEffectIds: ['s1'] })))
   })
+  it('shows the complete origin only once', () => {
+    renderTab()
+    expect(screen.getAllByText(/Избранность судьбой/)).toHaveLength(1)
+  })
+
 })

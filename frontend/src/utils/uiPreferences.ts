@@ -31,19 +31,25 @@ const isRangeZone = (value: unknown): value is RangeZone =>
 export function readSheetTab(characterId: string): CharacterSheetTab {
   try {
     const value = localStorage.getItem(sheetTabKey(characterId))
-    if (value === 'attachments' || value === 'crafting') {
-      writeWorkshopMode(characterId, value === 'crafting' ? 'craft' : 'upgrades')
-      writeSheetTab(characterId, 'workshop')
-      return 'workshop'
-    }
-    if (value === 'notes') {
-      writeSheetTab(characterId, 'bio')
-      return 'bio'
-    }
+    if (value === 'attachments' || value === 'crafting') return 'workshop'
+    if (value === 'notes') return 'bio'
     return isSheetTab(value) ? value : 'sheet'
   } catch {
     return 'sheet'
   }
+}
+
+/** Run when opening an owned sheet; readers (including campaign views) never write. */
+export function migrateSheetPreferences(characterId: string): void {
+  try {
+    const value = localStorage.getItem(sheetTabKey(characterId))
+    if (value === 'attachments' || value === 'crafting') {
+      writeWorkshopMode(characterId, value === 'crafting' ? 'craft' : 'upgrades')
+      writeSheetTab(characterId, 'workshop')
+    } else if (value === 'notes') {
+      writeSheetTab(characterId, 'bio')
+    }
+  } catch { /* storage unavailable */ }
 }
 
 export function writeSheetTab(characterId: string, tab: CharacterSheetTab): void {
@@ -52,7 +58,11 @@ export function writeSheetTab(characterId: string, tab: CharacterSheetTab): void
 
 export type WorkshopMode = 'upgrades' | 'craft'
 export function readWorkshopMode(characterId: string): WorkshopMode {
-  try { return localStorage.getItem(`genesysforge.workshop-mode.${characterId}`) === 'craft' ? 'craft' : 'upgrades' }
+  try {
+    const value = localStorage.getItem(`genesysforge.workshop-mode.${characterId}`)
+    if (value === 'craft' || value === 'upgrades') return value
+    return localStorage.getItem(sheetTabKey(characterId)) === 'crafting' ? 'craft' : 'upgrades'
+  }
   catch { return 'upgrades' }
 }
 export function writeWorkshopMode(characterId: string, mode: WorkshopMode): void {

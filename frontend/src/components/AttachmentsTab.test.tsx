@@ -1,4 +1,4 @@
-import { render, screen, waitFor, fireEvent, within } from '@testing-library/react'
+import { act, render, screen, waitFor, fireEvent, within } from '@testing-library/react'
 import { describe, expect, it, vi, beforeEach } from 'vitest'
 import type { AttachmentDef, CharacterAttachment, CharacterSheet, Reference, SheetItem } from '../api/types'
 import { AttachmentsTab } from './AttachmentsTab'
@@ -6,12 +6,17 @@ import { AttachmentsTab } from './AttachmentsTab'
 const installMock = vi.fn()
 const detachMock = vi.fn()
 const buyMock = vi.fn()
+const repairMock = vi.fn()
+const damageMock = vi.fn()
+const removeMock = vi.fn()
 vi.mock('../api/client', () => ({
   api: {
     installAttachment: (...a: unknown[]) => installMock(...a),
     detachAttachment: (...a: unknown[]) => detachMock(...a),
     buyAttachment: (...a: unknown[]) => buyMock(...a),
-    removeAttachment: vi.fn(),
+    removeAttachment: (...a: unknown[]) => removeMock(...a),
+    repairAttachment: (...a: unknown[]) => repairMock(...a),
+    setAttachmentDamageState: (...a: unknown[]) => damageMock(...a),
   },
 }))
 
@@ -71,6 +76,9 @@ describe('Улучшения предметов (SHEET-02)', () => {
     installMock.mockReset().mockResolvedValue(undefined)
     detachMock.mockReset().mockResolvedValue(undefined)
     buyMock.mockReset().mockResolvedValue({ id: 'new' })
+    repairMock.mockReset().mockResolvedValue(undefined)
+    damageMock.mockReset().mockResolvedValue(undefined)
+    removeMock.mockReset().mockResolvedValue(undefined)
   })
 
   it('выбирает свободный носитель и устанавливает улучшение из запаса', async () => {
@@ -149,4 +157,48 @@ describe('Улучшения предметов (SHEET-02)', () => {
     fireEvent.click(screen.getByRole('button', { name: '+ Без оплаты' }))
     await waitFor(() => expect(buyMock).toHaveBeenCalledWith('char-1', 'def-razor', { free: true }))
   })
+
+  it('disables all attachment operations until the pending request and refresh complete', async () => {
+    let finish!: () => void
+    detachMock.mockImplementation(() => new Promise<void>(resolve => { finish = resolve }))
+    const damaged = spare('att-damaged', 'def-razor', { hostCharacterItemId: 'item-mace', damageState: 'minor',
+      repair: { ...spare('a', 'b').repair, canRepair: true, materialCost: 100 } })
+    const installed = installedSheet()
+    renderTab({ ...installed, items: [installed.items[0], { ...mace, usedHardPoints: 1, attachments: [damaged] }],
+      attachments: [...installed.attachments, damaged, spare('att-reserve', 'def-razor')] })
+    fireEvent.click(screen.getAllByRole('button', { name: 'Снять' })[0])
+    for (const button of [
+      ...screen.getAllByRole('button', { name: 'Снять' }),
+      ...screen.getAllByRole('button', { name: 'Испорчено при снятии' }),
+      ...screen.getAllByRole('button', { name: 'Незначительное' }),
+      screen.getByRole('button', { name: /Починить/ }),
+      screen.getByRole('button', { name: 'Убрать из запаса' }),
+    ]) {
+      expect(button).toHaveProperty('disabled', true)
+      fireEvent.click(button)
+    }
+    expect(detachMock).toHaveBeenCalledOnce()
+    expect(repairMock).not.toHaveBeenCalled()
+    expect(damageMock).not.toHaveBeenCalled()
+    expect(removeMock).not.toHaveBeenCalled()
+    await act(async () => { finish() })
+    expect(screen.getAllByRole('button', { name: 'Снять' })[1]).toHaveProperty('disabled', false)
+    fireEvent.click(screen.getByRole('button', { name: /Починить/ }))
+    await waitFor(() => expect(repairMock).toHaveBeenCalledWith('char-1', 'att-damaged', { netAdvantages: 0 }))
+  })
+
+  it('opens and pins installation rules with keyboard and touch clicks', () => {
+    renderTab()
+    const tip = screen.getByRole('button', { name: 'Правила установки' })
+    fireEvent.focus(tip)
+    expect(screen.getByRole('tooltip').textContent).toContain('Приложение бросок не делает')
+    fireEvent.keyDown(tip, { key: 'Enter' })
+    fireEvent.blur(tip)
+    expect(screen.getByRole('tooltip').textContent).toContain('Чары ставит только тот')
+    fireEvent.keyDown(document, { key: 'Escape' })
+    expect(screen.queryByRole('tooltip')).toBeNull()
+    fireEvent.click(tip)
+    expect(screen.getByRole('tooltip')).toBeTruthy()
+  })
+
 })

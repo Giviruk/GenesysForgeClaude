@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { readRangeTrackerState, readSheetTab, writeRangeTrackerState, writeSheetTab, readSkillProgress, writeSkillProgress, readWorkshopMode, writeWorkshopMode, readHeroicUses, writeHeroicUses } from './uiPreferences'
+import { migrateSheetPreferences, readRangeTrackerState, readSheetTab, writeRangeTrackerState, writeSheetTab, readSkillProgress, writeSkillProgress, readWorkshopMode, writeWorkshopMode, readHeroicUses, writeHeroicUses } from './uiPreferences'
 
 describe('UI preferences persistence', () => {
   beforeEach(() => {
@@ -17,8 +17,11 @@ describe('UI preferences persistence', () => {
       localStorage.setItem('genesysforge.sheet-tab.c1', oldTab)
       expect(readSheetTab('c1')).toBe(tab)
       expect(readWorkshopMode('c1')).toBe(mode)
+      expect(localStorage.getItem('genesysforge.sheet-tab.c1')).toBe(oldTab)
+      migrateSheetPreferences('c1')
       expect(localStorage.getItem('genesysforge.sheet-tab.c1')).toBe(tab)
       writeWorkshopMode('c1', 'craft')
+      migrateSheetPreferences('c1')
       expect(readSheetTab('c1')).toBe(tab)
       expect(readWorkshopMode('c1')).toBe('craft')
       expect(readWorkshopMode('c2')).toBe('upgrades')
@@ -102,4 +105,22 @@ describe('UI preferences persistence', () => {
       zones: {}, log: [], angles: {}, focusParticipantId: null,
     })
   })
+
+  it('reads legacy tabs without writing or overwriting a saved workshop mode', () => {
+    localStorage.setItem('genesysforge.sheet-tab.c1', 'attachments')
+    writeWorkshopMode('c1', 'craft')
+    const write = vi.spyOn(Storage.prototype, 'setItem')
+    expect(readSheetTab('c1')).toBe('workshop')
+    expect(readSheetTab('c1')).toBe('workshop')
+    expect(readWorkshopMode('c1')).toBe('craft')
+    expect(write).not.toHaveBeenCalled()
+    expect(localStorage.getItem('genesysforge.sheet-tab.c1')).toBe('attachments')
+  })
+
+  it('does not fail migration when storage is unavailable', () => {
+    vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => { throw new Error('unavailable') })
+    expect(() => migrateSheetPreferences('c1')).not.toThrow()
+    expect(readSheetTab('c1')).toBe('sheet')
+  })
+
 })

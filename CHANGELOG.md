@@ -46,6 +46,10 @@ once it reaches a tagged 1.0 release. The project is currently pre-1.0; the
   on 24.x to match the Node 24 runtime.
 
 ### Fixed
+- **Sheet v2.1 review fixes (#276).** Restored untrained enchanting and discounted transport
+  purchases; magic action cards use the active school. Added explicit project cancellation, protected
+  symbol budgets, accessible installation tips and read-only preference loading; corrected empty states,
+  word counts and repeated heroic details.
 - **Redesign v2 review (#272).** Approval/reconnection refreshes pack change alerts; Manual → Auto
   enables pending additions while preserving explicit exclusions. Direct campaign item connections require
   GM ownership. Migration preserves previously used legacy NULL-pack originals as explicit connections.

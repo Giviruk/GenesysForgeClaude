@@ -33,7 +33,7 @@ describe('BioTab (U-22)', () => {
     }
     fireEvent.change(screen.getByLabelText('Предыстория'), { target: { value: 'Один  два\nтри' } })
     expect(screen.getByText('Образ заполнен')).toBeTruthy()
-    expect(screen.getByText('3 слов')).toBeTruthy()
+    expect(screen.getByText('3 слова')).toBeTruthy()
     expect(screen.getByRole('status').textContent).toContain('несохранённые')
     fireEvent.click(screen.getByRole('button', { name: 'Сохранить' }))
     await waitFor(() => expect(screen.getByRole('status').textContent).toBe('Сохранено'))

@@ -139,7 +139,6 @@ function HeroicAbilityCard({ sheet, reference, run }: {
           <p className="muted small-text">{t('Эффект:', 'Effect:')} {localizedName(h)} · {h.source}</p>
           {localizedDescription(h) && <p>{localizedDescription(h)}</p>}
           <BookReference source={h.source} />
-          {sheet.heroicIdentity?.complete && <p className="small-text"><Icon name="scroll" className="button-icon" />{originSummary(sheet.heroicIdentity)}</p>}
           <div className="heroic-meta-grid">{meta.map(m => <div key={m.label}><small>{m.label}</small><strong>{m.value}</strong>{m.improved && <span>{m.improved}</span>}</div>)}</div>
           {h.requirement && h.requirement !== '—' && <p className="hint small-text">{t('Требование:', 'Requirement:')} {h.requirement}</p>}
           {h.notes && <p className="hint small-text">{h.notes}</p>}
@@ -460,11 +459,9 @@ export function HeroicParameterSection({ sheet, reference, run, section = 'all' 
         <div className="hint small-text">
           <div className="sheet-card-heading"><strong>{weapon.narrativeForm}</strong><span className={weapon.isLost ? 'danger-text' : 'success-text'}>{weapon.isLost ? t('потеряно', 'lost') : t('в руках', 'in hand')}</span></div>
           <div className="heroic-weapon-stats">{[[t('Урон', 'Damage'), weapon.damage], [t('Крит', 'Crit'), weapon.crit], [t('Дистанция', 'Range'), weapon.rangeBand], [t('Вес', 'Load'), weapon.encumbrance], [t('Слоты', 'Slots'), weapon.hardPoints]].map(([k, v]) => <div key={k}><small>{k}</small><b>{v}</b></div>)}</div>
-          {weapon.narrativeForm} · {SIGNATURE_WEAPON_PROFILE_LABELS[weapon.profile]}
+          {SIGNATURE_WEAPON_PROFILE_LABELS[weapon.profile]}
           {' · '}{WEAPON_CRAFTSMANSHIP_LABELS[weapon.craftsmanship]}
-          {' · '}{weapon.skillName} · {t('урон', 'damage')} {weapon.damage}
-          {' · '}{t('крит', 'crit')} {weapon.crit} · {weapon.rangeBand}
-          {' · '}{t('вес', 'enc')} {weapon.encumbrance} · HP {weapon.hardPoints}
+          {' · '}{weapon.skillName}
           {weapon.qualities.length > 0 && (
             <>
               {' · '}
@@ -476,7 +473,6 @@ export function HeroicParameterSection({ sheet, reference, run, section = 'all' 
                 qualities={reference.qualities} />
             </>
           )}
-          {weapon.isLost && ` · ${t('потеряно', 'lost')}`}
           {weapon.baseAttachment && (
             <div>
               {t('Базовое улучшение:', 'Base attachment:')}{' '}
@@ -535,8 +531,11 @@ export function HeroicParameterSection({ sheet, reference, run, section = 'all' 
             </div>
           )}
           <p className="hint small-text">
-            {t('Improved даёт ровно одно: Укреплённое либо древнюю работу, которая заменяет прежнюю и отнимает слот. Supreme добавляет два слота и одно бесплатное улучшение редкости не выше 9. Оба выбора навсегда.',
-              'Improved grants exactly one: Reinforced or Ancient craftsmanship, which replaces the previous one and costs a hard point. Supreme adds two hard points and one free attachment of rarity 9 or less. Both choices are permanent.')}
+            {section !== 'supreme' && t('Improved даёт ровно одно: Укреплённое либо древнюю работу, которая заменяет прежнюю и отнимает слот. Выбор навсегда.',
+              'Improved grants exactly one: Reinforced or Ancient craftsmanship, which replaces the previous one and costs a hard point. This choice is permanent.')}
+            {section === 'all' && ' '}
+            {section !== 'improved' && t('Supreme добавляет два слота и одно бесплатное улучшение редкости не выше 9. Выбор навсегда.',
+              'Supreme adds two hard points and one free attachment of rarity 9 or less. This choice is permanent.')}
           </p>
         </div>
       )}

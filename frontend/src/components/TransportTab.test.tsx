@@ -126,7 +126,7 @@ describe('Транспорт (ROT-MOUNT-ITEM-01, ROT-TRANSPORT-01)', () => {
     render(<TransportTab sheet={sheetWith([], 1)} reference={{ ...reference, mounts: [warMount, wagon] }}
       onError={() => {}} refresh={async () => {}} />)
     fireEvent.click(screen.getByRole('button', { name: /Повозки/ }))
-    expect(screen.getByRole('button', { name: 'Купить' }).hasAttribute('disabled')).toBe(true)
+    expect(screen.getByRole('button', { name: 'Купить' }).hasAttribute('disabled')).toBe(false)
     expect(screen.getByRole('button', { name: '+ Выдать' }).hasAttribute('disabled')).toBe(false)
     expect(screen.queryByText(warMount.nameRu, { selector: 'strong' })).toBeNull()
     expect(screen.getByText(wagon.nameRu, { selector: 'strong' })).toBeTruthy()
@@ -305,4 +305,34 @@ describe('Транспорт (ROT-MOUNT-ITEM-01, ROT-TRANSPORT-01)', () => {
     expect(card.textContent).toContain('Прочность 10')
     expect(card.textContent).toContain('Системы 5')
   })
+
+  it('buys below list price when only the selected discount is affordable', async () => {
+    render(<TransportTab sheet={sheetWith([], 150)} reference={{ ...reference, mounts: [beast] }} onError={() => {}} refresh={async () => {}} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Купить' }))
+    expect(screen.getByRole('button', { name: 'Купить' })).toHaveProperty('disabled', true)
+    fireEvent.click(screen.getByRole('button', { name: '50%' }))
+    expect(screen.getByRole('button', { name: 'Купить' })).toHaveProperty('disabled', false)
+    fireEvent.click(screen.getByRole('button', { name: 'Купить' }))
+    await waitFor(() => expect(buyMountMock).toHaveBeenCalledWith('char-1', 'def-beast', { pricePercent: 50 }))
+  })
+
+  it('allows an agreed price even with no funds for a standard discount', async () => {
+    render(<TransportTab sheet={sheetWith([], 10)} reference={{ ...reference, mounts: [beast] }} onError={() => {}} refresh={async () => {}} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Купить' }))
+    fireEvent.change(screen.getByLabelText('Своя цена/шт'), { target: { value: '10' } })
+    expect(screen.getByRole('button', { name: 'Купить' })).toHaveProperty('disabled', true)
+    fireEvent.change(screen.getByLabelText('Причина'), { target: { value: 'Согласовано с ведущим' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Купить' }))
+    await waitFor(() => expect(buyMountMock).toHaveBeenCalledWith('char-1', 'def-beast', { priceOverride: 10, overrideReason: 'Согласовано с ведущим' }))
+  })
+
+  it('distinguishes an empty filter from an empty system catalogue', () => {
+    const { rerender } = renderTab(sheetWith([]))
+    fireEvent.click(screen.getByRole('button', { name: 'Повозки 0' }))
+    expect(screen.getByText('Ничего не найдено по фильтру.')).toBeTruthy()
+    expect(screen.queryByText('В этой системе транспорта нет.')).toBeNull()
+    rerender(<TransportTab sheet={sheetWith([])} reference={{ ...reference, mounts: [] }} onError={() => {}} refresh={async () => {}} />)
+    expect(screen.getByText('В этой системе транспорта нет.')).toBeTruthy()
+  })
+
 })
