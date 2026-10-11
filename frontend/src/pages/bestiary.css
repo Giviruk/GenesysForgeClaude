@@ -622,6 +622,32 @@
   overflow-wrap: anywhere;
 }
 
+.bt-talent-chip.removable {
+  display: inline-flex;
+  align-items: stretch;
+  max-width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.bt-talent-chip.removable .bt-talent {
+  min-width: 0;
+  min-height: 44px;
+  border: 0;
+  border-radius: 0;
+}
+
+.bt-talents .bt-talent-remove {
+  flex: 0 0 44px;
+  width: 44px;
+  min-height: 44px;
+  padding: 10px;
+  border: 0;
+  border-left: 1px solid var(--border);
+  border-radius: 0;
+}
+
 .bt-talent.pinned {
   background: var(--accent-dark);
   color: white;
@@ -1318,6 +1344,20 @@
 .bt-draft-preview .npc-derived {
   font-size: 13px;
   gap: 6px 12px;
+}
+
+.bt-draft-preview .bt-card-derived {
+  grid-template-columns: repeat(3,minmax(0,1fr));
+}
+
+.bt-draft-preview .bt-card-tabs {
+  display: none;
+}
+
+.bt-draft-preview .bt-card-sections {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 
 .bt-draft-preview .npc-section h4 {

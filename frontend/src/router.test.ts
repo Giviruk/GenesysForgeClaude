@@ -1,4 +1,4 @@
-import { act, renderHook } from '@testing-library/react'
+import { act, renderHook, waitFor } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 import { navigate, parseRoute, registerNavigationGuard, usePath, useSearch } from './router'
 
@@ -118,6 +118,7 @@ it('updates query-only navigation and protects editor routes on navigation and b
   window.history.replaceState(null, '', '/npcs/n1/edit')
   const hook = renderHook(() => ({ path: usePath(), search: useSearch() }))
   const guard = vi.fn(() => false)
+  const push = vi.spyOn(window.history, 'pushState')
   const release = registerNavigationGuard(guard)
   try {
     act(() => navigate('/characters'))
@@ -129,9 +130,42 @@ it('updates query-only navigation and protects editor routes on navigation and b
     expect(hook.result.current.path).toBe('/npcs/n1/edit')
     expect(window.location.pathname).toBe('/npcs/n1/edit')
     expect(guard).toHaveBeenCalledWith('/npcs?source=mine')
-  } finally { release() }
+    expect(push).not.toHaveBeenCalled()
+  } finally { release(); push.mockRestore() }
   act(() => navigate('/npcs?source=mine'))
   act(() => navigate('/npcs?source=builtin', { replace: true }))
   expect(hook.result.current).toEqual({ path: '/npcs', search: '?source=builtin' })
+  hook.unmount()
+})
+
+it('restores rejected Back and Forward without duplicating history or notifying routes', async () => {
+  act(() => navigate('/npcs?source=mine'))
+  act(() => navigate('/npcs/n1/edit?source=mine'))
+  act(() => navigate('/characters'))
+  await act(async () => { window.history.back() })
+  await waitFor(() => expect(window.location.pathname).toBe('/npcs/n1/edit'))
+  const hook = renderHook(() => ({ path: usePath(), search: useSearch() }))
+  const guard = vi.fn(() => false)
+  const release = registerNavigationGuard(guard)
+  const length = window.history.length
+  const go = vi.spyOn(window.history, 'go')
+  try {
+    for (let i = 0; i < 2; i++) {
+      await act(async () => { window.history.back() })
+      await waitFor(() => expect(guard).toHaveBeenCalledTimes(i + 1))
+      await waitFor(() => expect(window.location.pathname).toBe('/npcs/n1/edit'))
+      expect(go).toHaveBeenLastCalledWith(1)
+      expect(hook.result.current).toEqual({ path: '/npcs/n1/edit', search: '?source=mine' })
+      expect(window.history.length).toBe(length)
+    }
+    await act(async () => { window.history.forward() })
+    await waitFor(() => expect(guard).toHaveBeenCalledWith('/characters'))
+    await waitFor(() => expect(window.location.pathname).toBe('/npcs/n1/edit'))
+    expect(go).toHaveBeenLastCalledWith(-1)
+    expect(hook.result.current.path).toBe('/npcs/n1/edit')
+    expect(window.history.length).toBe(length)
+  } finally { release(); go.mockRestore() }
+  await act(async () => { window.history.forward() })
+  await waitFor(() => expect(hook.result.current.path).toBe('/characters'))
   hook.unmount()
 })

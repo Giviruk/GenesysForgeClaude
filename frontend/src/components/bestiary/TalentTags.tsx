@@ -1,4 +1,4 @@
-import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react'
+import { Fragment, useEffect, useId, useLayoutEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import type { TalentDef } from '../../api/types'
 import { findNpcTalent } from '../../utils/bestiary'
@@ -6,7 +6,7 @@ import { localizedDescription, localizedName, secondaryName } from '../../utils/
 import { t } from '../../i18n'
 import { Icon } from '../Icon'
 
-export function TalentTags({ values, talents }: { values: string[]; talents: TalentDef[] }) {
+export function TalentTags({ values, talents, onRemove }: { values: string[]; talents: TalentDef[]; onRemove?: (index: number) => void }) {
   const [active, setActive] = useState<number | null>(null)
   const [pinned, setPinned] = useState(false)
   const [mobile, setMobile] = useState(() => window.matchMedia?.('(max-width: 759px)').matches ?? false)
@@ -55,12 +55,17 @@ export function TalentTags({ values, talents }: { values: string[]; talents: Tal
     <p>{talent ? localizedDescription(talent) || talent.safeDescription || t('Описание не найдено в справочнике.', 'No description found in the reference.') : t('Описание не найдено в справочнике.', 'No description found in the reference.')}</p>
   </div>
   return <div ref={root} className="bt-talents">
-    <div className="bt-pills">{values.map((value, i) => <button key={`${value}-${i}`} type="button" ref={el => { triggers.current[i] = el }}
+    <div className="bt-pills">{values.map((value, i) => {
+      const trigger = <button type="button" ref={el => { triggers.current[i] = el }}
       className={`bt-talent${active === i && pinned ? ' pinned' : ''}`} aria-describedby={active === i ? id : undefined} aria-expanded={active === i}
       onMouseEnter={() => { if (!mobile && !pinned) setActive(i) }} onMouseLeave={() => { if (!mobile && !pinned) setActive(null) }}
       onFocus={() => { if (!mobile && !pinned) setActive(i) }} onBlur={() => { if (!mobile && !pinned) setActive(null) }}
-      onClick={() => { const close = active === i && pinned; setActive(close ? null : i); setPinned(!close) }}>{value}</button>)}</div>
+      onClick={() => { const close = active === i && pinned; setActive(close ? null : i); setPinned(!close) }}>{value}</button>
+      return onRemove ? <span key={`${value}-${i}`} className="bt-talent-chip removable">{trigger}
+        <button type="button" className="bt-talent-remove" aria-label={t(`Удалить талант: ${value}`, `Remove talent: ${value}`)} onClick={() => { setActive(null); setPinned(false); onRemove(i) }}><Icon name="close" /></button>
+      </span> : <Fragment key={`${value}-${i}`}>{trigger}</Fragment>
+    })}</div>
     {mobile ? content : content && createPortal(content, document.body)}
-    <small className="muted">{mobile ? t('Нажмите на талант, чтобы увидеть описание', 'Tap a talent to read its description') : t('Наведите — подсказка, клик — закрепить', 'Hover to read, click to pin')}</small>
+    {values.length > 0 && <small className="muted">{mobile ? t('Нажмите на талант, чтобы увидеть описание', 'Tap a talent to read its description') : t('Наведите — подсказка, клик — закрепить', 'Hover to read, click to pin')}</small>}
   </div>
 }
