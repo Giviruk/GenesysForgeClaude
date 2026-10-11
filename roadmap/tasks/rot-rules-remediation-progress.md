@@ -35,7 +35,8 @@ scope сессии/encounter и единый check context: их нет в пр�
 
 - [~] **GEN-UI-BESTIARY** — UI бестиария и страниц создания по макетам 2a–2g.
   Реализованы список/карточка, фильтры, tooltip, отдельные редактор и wizard;
-  613 Vitest, 1708 backend checks и RU/EN на семи ширинах проходят. PR/CI ожидаются.
+  613 Vitest, 1708 backend checks, 29 локальных E2E и RU/EN на семи ширинах проходят.
+  [PR #278](https://github.com/Giviruk/GenesysForgeClaude/pull/278) открыт; актуальный CI — в checks PR. Не сливать.
   [План](gen-ui-bestiary-redesign.md).
 
 - [x] **GEN-UI-SHEET-SPACING / SHEET-04, SHEET-07** — проверка отступов и слипшихся элементов

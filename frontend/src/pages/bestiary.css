@@ -2236,3 +2236,8 @@
 @media (max-width: 759px) {
   .bt-desktop-title { display: none; }
 }
+
+.bt-preview-dialog .bt-detail-head h3 {
+  flex: 1;
+  min-width: 0;
+}

@@ -116,9 +116,7 @@ function NpcDetailView({ npcId, reloadToken, onBack, onEdit, onDuplicated, onDel
   const [error, setError] = useState<string | null>(null)
   const [printing, setPrinting] = useState(false)
   const [busy, setBusy] = useState(false)
-  const [tab, setTab] = useState('stats')
   const [retry, setRetry] = useState(0)
-  const { openRoller } = useDiceRoller()
 
   // Грузим карточку при открытии и при росте reloadToken (после правки того же NPC).
   useEffect(() => {
@@ -140,12 +138,6 @@ function NpcDetailView({ npcId, reloadToken, onBack, onEdit, onDuplicated, onDel
     return () => { cancelled = true }
   }, [system])
 
-  // Пулы навыков и разбор снаряжения на оружие/прочее — пересчитываем при смене NPC/справочника.
-  const index = useMemo(() => skillIndex(reference), [reference])
-  const skills = useMemo(() => (n ? npcSkillViews(n, index) : []), [n, index])
-  const attacks = useMemo(() => (n ? npcAttackViews(n, reference) : []), [n, reference])
-  const gear = useMemo(() => (n ? npcGearViews(n, reference) : []), [n, reference])
-
   if (!n) return <div className="bt-empty">
     <button type="button" onClick={onBack}><Icon name="arrow-left" />{t('Бестиарий', 'Bestiary')}</button>
     {error ? <><div className="error" role="alert">{error}</div><button type="button" onClick={() => { setError(null); setRetry(v => v + 1) }}>{t('Повторить', 'Retry')}</button></>
@@ -162,11 +154,6 @@ function NpcDetailView({ npcId, reloadToken, onBack, onEdit, onDuplicated, onDel
       </PrintPreview>
     )
   }
-
-  const chars: [Characteristic, number][] = [
-    ['brawn', n.brawn], ['agility', n.agility], ['intellect', n.intellect],
-    ['cunning', n.cunning], ['willpower', n.willpower], ['presence', n.presence],
-  ]
 
   async function action(fn: () => Promise<void>) {
     setBusy(true); setError(null)
@@ -214,6 +201,25 @@ function NpcDetailView({ npcId, reloadToken, onBack, onEdit, onDuplicated, onDel
       </div>
       {error && <div className="error" role="alert">{error}</div>}
 
+      <NpcCard npc={n} reference={reference} />
+
+    </div>
+  )
+}
+
+function NpcCard({ npc: n, reference, canAttack = true }: { npc: NpcDetail; reference: Reference | null; canAttack?: boolean }) {
+  const [tab, setTab] = useState('stats')
+  const { openRoller } = useDiceRoller()
+  const index = useMemo(() => skillIndex(reference), [reference])
+  const skills = useMemo(() => npcSkillViews(n, index), [n, index])
+  const attacks = useMemo(() => npcAttackViews(n, reference), [n, reference])
+  const gear = useMemo(() => npcGearViews(n, reference), [n, reference])
+  const chars: [Characteristic, number][] = [
+    ['brawn', n.brawn], ['agility', n.agility], ['intellect', n.intellect],
+    ['cunning', n.cunning], ['willpower', n.willpower], ['presence', n.presence],
+  ]
+
+  return (
       <div className={`npc-card bt-card tab-${tab}`}>
         {n.description && <p className="npc-desc">{n.description}</p>}
 
@@ -263,7 +269,7 @@ function NpcDetailView({ npcId, reloadToken, onBack, onEdit, onDuplicated, onDel
                           {w.skillLabel && <span className="muted small-text">{w.skillLabel}</span>}
                         </span>
                       : w.skillLabel === null && <span className="muted small-text">{t('навык не указан', 'no skill set')}</span>}
-                    <button type="button" className="small no-print" onClick={() => openRoller({
+                    {canAttack && <button type="button" className="small no-print" onClick={() => openRoller({
                       kind: 'combat',
                       title: w.name,
                       skillLabel: w.skillLabel,
@@ -279,7 +285,7 @@ function NpcDetailView({ npcId, reloadToken, onBack, onEdit, onDuplicated, onDel
                         ? (req => { void api.createRoll(n.campaignId!, req) })
                         : undefined,
                       canSecret: n.isMine,
-                    })}><Icon name="dice" />{t('Атаковать', 'Attack')}</button>
+                    })}><Icon name="dice" />{t('Атаковать', 'Attack')}</button>}
                   </div>
                   <div className="npc-weapon-stats">
                     <span className="weapon-stat">{t('Урон', 'Damage')} <strong>{w.damageText}</strong></span>
@@ -357,8 +363,6 @@ function NpcDetailView({ npcId, reloadToken, onBack, onEdit, onDuplicated, onDel
         </div>
         </div>
       </div>
-
-    </div>
   )
 }
 
@@ -622,14 +626,12 @@ function NpcEditor({ initial, savedId, onCancel, onSaved, onChange, onKindChange
 function NpcInputPreview({ npc, reference, onClose }: { npc: NpcDetail; reference: Reference | null; onClose: () => void }) {
   const dialog = useRef<HTMLDialogElement>(null)
   useEffect(() => { const d = dialog.current; d?.showModal(); return () => d?.close() }, [])
-  const skills = npcSkillViews(npc, skillIndex(reference))
-  const attacks = npcAttackViews(npc, reference)
   return <dialog ref={dialog} className="bt-preview-dialog" onCancel={onClose} aria-label={t('Карточка NPC', 'NPC card')}>
-    <button type="button" className="bt-icon" aria-label={t('Закрыть карточку', 'Close card')} onClick={onClose}><Icon name="close" /></button><h2>{npc.name || t('Новый NPC', 'New NPC')}</h2><span className="muted">{NPC_KIND_LABELS[npc.kind]} · {NPC_ROLE_LABELS[npc.role]}</span>
-    <div className="npc-char-row">{CHARACTERISTICS.map(c => <div className="npc-char" key={c}><b>{npc[c]}</b><small>{CHARACTERISTIC_LABELS[c]}</small></div>)}</div>
-    <div className="npc-derived"><span>{t('Раны', 'Wounds')} {npc.woundThreshold}</span><span>{t('Поглощение', 'Soak')} {npc.soak}</span><span>{t('Усталость', 'Strain')} {npc.strainThreshold ?? '—'}</span><span>{t('Защита', 'Defense')} {npc.meleeDefense}/{npc.rangedDefense}</span></div>
-    <p className="npc-desc">{npc.description}</p><h4>{t('Навыки', 'Skills')}</h4>{skills.map((s, i) => <div className="npc-skill-row" key={i}>{s.name}{s.pool && <DicePoolView pool={s.pool} />}</div>)}<h4>{t('Атаки', 'Attacks')}</h4>{attacks.map((a, i) => <div className="npc-weapon" key={i}><b>{a.name}</b> {a.damageText} · {a.crit} · {a.rangeBand}{a.pool && <DicePoolView pool={a.pool} />}</div>)}
-    <h4>{t('Способности и снаряжение', 'Abilities and gear')}</h4>{npc.abilities.map((a, i) => <p key={i}><b>{a.name}.</b> {a.description}</p>)}<TalentTags values={npc.talents} talents={reference?.talents ?? []} /><p>{npc.equipment.join(' · ')}</p><p className="npc-desc">{npc.tactics}</p><p className="muted">{npc.tags.join(' · ')} · {npc.source}</p>
+    <div className="bt-detail-head"><h3>{npc.name || t('Новый NPC', 'New NPC')}</h3>
+      <button type="button" className="bt-icon" aria-label={t('Закрыть карточку', 'Close card')} onClick={onClose}><Icon name="close" /></button></div>
+    <span className="bt-card-meta"><span className={`bt-kind kind-${npc.kind}`}>{NPC_KIND_LABELS[npc.kind]}</span>
+      <span className="bt-meta-badge">{NPC_ROLE_LABELS[npc.role]}</span><span className={npc.system === 'genesysCore' ? 'bt-core' : 'bt-terrinoth'}>{SYSTEM_LABELS[npc.system]}</span></span>
+    <NpcCard npc={npc} reference={reference} canAttack={false} />
   </dialog>
 }
 
