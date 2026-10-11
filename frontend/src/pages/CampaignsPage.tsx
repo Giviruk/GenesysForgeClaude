@@ -353,15 +353,15 @@ function CampaignPlayersPanel({ campaign, onChanged, onLeave, onError }: {
     finally { setBusy(false) }
   }
 
-  return <section className="panel">
+  return <section className="panel campaign-players-panel">
     <h3>{t('Игроки', 'Players')}</h3>
-    {(campaign.players ?? []).map(player => <div key={player.userId} className="page-head">
+    <div className="campaign-players-list">{(campaign.players ?? []).map(player => <div key={player.userId} className="page-head">
       <span>{player.displayName}{player.isMe ? t(' (вы)', ' (you)') : ''}</span>
       {(campaign.isGm || player.isMe) && <button disabled={busy}
         onClick={() => void remove(player.userId, player.isMe, player.displayName)}>
         {player.isMe ? t('Покинуть кампанию', 'Leave campaign') : t('Исключить', 'Remove player')}
       </button>}
-    </div>)}
+    </div>)}</div>
     {(campaign.players ?? []).length === 0 && <p className="muted">{t('Игроков пока нет.', 'No players yet.')}</p>}
     <div className="form-actions">
       <button onClick={() => void showCharacters()}>{t('Добавить существующего', 'Add existing character')}</button>
@@ -369,7 +369,7 @@ function CampaignPlayersPanel({ campaign, onChanged, onLeave, onError }: {
         title={campaign.closedSystems?.length === 2 ? t('Обе системы закрыты для новых персонажей', 'Both systems are closed to new characters') : undefined}
         onClick={() => setCreating(true)}>{t('Создать персонажа', 'Create character')}</button>
     </div>
-    {adding && <form onSubmit={e => void add(e)}>
+    {adding && <form className="campaign-character-form" onSubmit={e => void add(e)}>
       <label>{t('Мой персонаж', 'My character')}<select value={selected} onChange={e => setSelected(e.target.value)}>
         <option value="">{t('— выберите —', '— select —')}</option>
         {characters.map(char => <option key={char.id} value={char.id}>{char.name}</option>)}
@@ -379,8 +379,8 @@ function CampaignPlayersPanel({ campaign, onChanged, onLeave, onError }: {
         <button type="button" onClick={() => setAdding(false)}>{t('Отмена', 'Cancel')}</button>
       </div>
     </form>}
-    {creating && <CreateCharacterForm key={campaign.id} campaignId={campaign.id} closedSystems={campaign.closedSystems}
-      onCancel={() => setCreating(false)} onCreated={() => { setCreating(false); void onChanged() }} />}
+    {creating && <div className="campaign-character-form"><CreateCharacterForm key={campaign.id} campaignId={campaign.id} closedSystems={campaign.closedSystems}
+      onCancel={() => setCreating(false)} onCreated={() => { setCreating(false); void onChanged() }} /></div>}
   </section>
 }
 

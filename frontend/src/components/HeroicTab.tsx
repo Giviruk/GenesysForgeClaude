@@ -151,7 +151,7 @@ function HeroicAbilityCard({ sheet, reference, run }: {
               {outcome.manual.map((v, i) => <div key={`m${i}`} className="muted"><Icon name="hand-finger" className="button-icon" />{v}</div>)}</div>}
           </div>
           <HeroicIdentitySection sheet={sheet} run={run} />
-          {sheet.isCreationPhase && <button className="small" onClick={() => run(() => api.setHeroicAbility(sheet.id, null))}>{t('Сбросить способность', 'Reset ability')}</button>}
+          {sheet.isCreationPhase && <div className="form-actions"><button className="small" onClick={() => run(() => api.setHeroicAbility(sheet.id, null))}>{t('Сбросить способность', 'Reset ability')}</button></div>}
         </section>
         <HeroicParameterSection sheet={sheet} reference={reference} run={run} section="configuration" />
       </div>
@@ -243,7 +243,7 @@ function HeroicAbilityCard({ sheet, reference, run }: {
             <p className="hint small-text">{t('Снижает стоимость активации до одного очка сюжета.', 'Reduces activation cost to one Story Point.')}</p>
           </div>
 
-          <div className="heroic-upgrade">
+          <div className="heroic-upgrade heroic-secondary-effects">
             <strong>{t(`Вторичные эффекты (${upgrades.secondaryEffects.length}/2)`, `Secondary effects (${upgrades.secondaryEffects.length}/2)`)}</strong>
             {reference.heroicSecondaryEffects.map(effect => {
               const selected = selectedEffectIds.includes(effect.id)

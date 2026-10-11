@@ -5,11 +5,13 @@ interface Reference {
   careers: Array<{ id: string }>
   items: Array<{ id: string; kind: string }>
   mounts: Array<{ id: string }>
-  heroicAbilities: Array<{ id: string }>
+  heroicAbilities: Array<{ id: string; code: string }>
+  heroicSecondaryEffects: Array<{ id: string }>
 }
 
 let token: string
 let characterId: string
+let signatureCharacterId: string
 let campaignId: string
 
 async function api<T>(request: APIRequestContext, path: string, data?: unknown): Promise<T> {
@@ -25,15 +27,34 @@ async function fitsViewport(page: Page) {
 }
 
 async function separatedButtons(page: Page, selector: string) {
-  await expect(page.locator(selector)).toHaveCount(2)
-  const gaps = await page.locator(selector).evaluateAll(buttons => buttons.slice(1).map((button, i) => {
-    const a = buttons[i].getBoundingClientRect()
-    const b = button.getBoundingClientRect()
+  await spacedElements(page, selector, 2)
+}
+
+async function spacedElements(page: Page, selector: string, count?: number) {
+  const elements = page.locator(selector)
+  if (count !== undefined) await expect(elements).toHaveCount(count)
+  await expect(elements.first()).toBeVisible()
+  const gaps = await elements.evaluateAll(nodes => nodes.slice(1).map((node, i) => {
+    const a = nodes[i].getBoundingClientRect()
+    const b = node.getBoundingClientRect()
     const sameRow = Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top) > 1
     return sameRow ? b.left - a.right : b.top - a.bottom
   }))
-  expect(gaps.length).toBeGreaterThan(0)
-  for (const gap of gaps) expect(gap).toBeGreaterThanOrEqual(6)
+  expect(gaps.length, selector).toBeGreaterThan(0)
+  for (const gap of gaps) expect(gap, selector).toBeGreaterThanOrEqual(6)
+}
+
+async function iconHasSpace(page: Page, selector: string) {
+  await expect(page.locator(selector).first()).toBeVisible()
+  const gaps = await page.locator(selector).evaluateAll(elements => elements.map(element => {
+    const icon = element.querySelector('.button-icon')!
+    const text = [...element.childNodes].find(node => node.nodeType === Node.TEXT_NODE && node.textContent?.trim())!
+    const range = document.createRange()
+    range.selectNodeContents(text)
+    return range.getBoundingClientRect().left - icon.getBoundingClientRect().right
+  }))
+  expect(gaps.length, selector).toBeGreaterThan(0)
+  for (const gap of gaps) expect(gap, selector).toBeGreaterThanOrEqual(6)
 }
 
 async function tab(page: Page, key: string, name: string) {
@@ -70,18 +91,104 @@ test.beforeAll(async ({ request }) => {
     freeCareerSkillNames: [], archetypeSkillChoices: [], careerGearChoices: [],
   })
   characterId = character.id
+  const headers = { Authorization: `Bearer ${token}` }
+  expect((await request.patch(`/api/characters/${characterId}`, { headers, data: { totalXp: 800 } })).ok()).toBe(true)
   await api(request, `/api/characters/${characterId}/items`, {
-    itemDefId: reference.items.find(item => item.kind === 'weapon')!.id, quantity: 1, state: 'equipped', free: true,
+    itemDefId: reference.items.find(item => item.kind === 'weapon')!.id, quantity: 4, state: 'equipped', free: true,
   })
   await api(request, `/api/characters/${characterId}/mounts`, { mountDefId: reference.mounts[0].id, free: true })
-  const heroicResponse = await request.put(`/api/characters/${characterId}/heroic-ability`, { headers: { Authorization: `Bearer ${token}` }, data: { heroicAbilityId: reference.heroicAbilities[0].id } })
+  const heroicResponse = await request.put(`/api/characters/${characterId}/heroic-ability`, { headers, data: {
+    heroicAbilityId: reference.heroicAbilities.find(ability => ability.code === 'rot.heroic.influential')!.id,
+  } })
   expect(heroicResponse.ok()).toBe(true)
+  expect((await request.put(`/api/characters/${characterId}/heroic-identity`, { headers, data: {
+    customName: 'Личное название способности', originMode: 'standard', originPrimary: 'destiny',
+  } })).ok()).toBe(true)
+  expect((await request.put(`/api/characters/${characterId}/heroic-upgrades`, { headers, data: {
+    powerRank: 2, durationRanks: 1, frequencyRanks: 1, story: true,
+    secondaryEffectIds: reference.heroicSecondaryEffects.slice(0, 2).map(effect => effect.id),
+  } })).ok()).toBe(true)
+  signatureCharacterId = (await api<{ id: string }>(request, '/api/characters/', {
+    name: 'Проверка формы именного оружия', system: 'realmsOfTerrinoth',
+    archetypeId: reference.archetypes[0].id, careerId: reference.careers[0].id,
+    freeCareerSkillNames: [], archetypeSkillChoices: [], careerGearChoices: [],
+  })).id
+  expect((await request.put(`/api/characters/${signatureCharacterId}/heroic-ability`, { headers, data: {
+    heroicAbilityId: reference.heroicAbilities.find(ability => ability.code === 'rot.heroic.signature-weapon')!.id,
+  } })).ok()).toBe(true)
   await api(request, `/api/characters/${characterId}/notes`, { title: 'Приватная заметка', body: 'Тест приватности' })
-  const campaign = await api<{ id: string }>(request, '/api/campaigns/', { name: 'Проверка интерфейса', description: '' })
+  const campaign = await api<{ id: string; joinCode: string }>(request, '/api/campaigns/', { name: 'Проверка интерфейса', description: '' })
   campaignId = campaign.id
   await api(request, `/api/campaigns/${campaignId}/characters`, { characterId })
   await api(request, `/api/campaigns/${campaignId}/chronicle/chapters`, { title: 'Глава с длинным заголовком', content: 'Тестовая глава.' })
+  for (const player of [1, 2]) {
+    const account = await request.post('/api/auth/register', { data: {
+      email: `layout-player-${player}-${Date.now().toString(36)}@example.test`, password: 'Passw0rd!',
+      displayName: `Игрок ${player} с длинным именем для проверки переноса элементов`,
+    } })
+    expect(account.ok()).toBe(true)
+    const playerToken = (await account.json() as { token: string }).token
+    expect((await request.post('/api/campaigns/join', { headers: { Authorization: `Bearer ${playerToken}` }, data: { joinCode: campaign.joinCode } })).ok()).toBe(true)
+  }
 })
+
+for (const language of ['ru', 'en']) {
+  for (const width of [320, 390, 768, 1280, 1440]) {
+    test(`GEN-UI-SHEET-SPACING: heroic and campaign groups have gaps (${language}, ${width}px)`, async ({ page }) => {
+      await page.setViewportSize({ width, height: 900 })
+      await page.addInitScript(({ token, language }) => {
+        localStorage.setItem('genesysforge.token', token)
+        localStorage.setItem('genesysforge.lang', language)
+        localStorage.setItem('genesysforge.analytics-consent', 'denied')
+      }, { token, language })
+      await page.goto(`/characters/${characterId}`)
+      await spacedElements(page, '.heroic-summary > .heroic-upgrade', 4)
+      await fitsViewport(page)
+      await tab(page, 'inventory', language === 'ru' ? 'Инвентарь' : 'Inventory')
+      await spacedElements(page, '.money-derived > *', 4)
+      await fitsViewport(page)
+      await tab(page, 'transport', language === 'ru' ? 'Транспорт' : 'Transport')
+      await iconHasSpace(page, '.mounts-intro > p')
+      await fitsViewport(page)
+      await tab(page, 'heroic', language === 'ru' ? 'Героика' : 'Heroic')
+      await spacedElements(page, '.heroic-identity-form > *', 3)
+      await spacedElements(page, '.heroic-identity-save, .heroic-ability-card > .form-actions button', 2)
+      await spacedElements(page, '.heroic-secondary-effects > *')
+      await separatedButtons(page, '.heroic-upgrade-head:has(.heroic-plus[aria-label*="Duration"], .heroic-plus[aria-label*="Длительность"]) > button')
+      await iconHasSpace(page, '.heroic-activate-button, .heroic-ability-card > h4')
+      await fitsViewport(page)
+      if (language === 'ru' && width === 1280) {
+        await page.locator('.heroic-identity').scrollIntoViewIfNeeded()
+        await page.screenshot({ path: test.info().outputPath('heroic-spacing.jpg'), type: 'jpeg' })
+      }
+      await page.goto(`/characters/${signatureCharacterId}`)
+      await tab(page, 'heroic', language === 'ru' ? 'Героика' : 'Heroic')
+      await spacedElements(page, '.heroic-weapon-form > *')
+      await spacedElements(page, '.heroic-weapon-form > .inline-form:first-child > select', 2)
+      await fitsViewport(page)
+      await page.goto(`/campaigns/${campaignId}/settings`)
+      await spacedElements(page, '.campaign-players-list > .page-head', 2)
+      await separatedButtons(page, '.campaign-players-panel > .form-actions > button')
+      await page.getByRole('button', { name: language === 'ru' ? 'Добавить существующего' : 'Add existing character', exact: true }).click()
+      await spacedElements(page, '.campaign-players-panel > .form-actions, .campaign-players-panel > .campaign-character-form', 2)
+      await separatedButtons(page, '.campaign-character-form .form-actions > button')
+      await fitsViewport(page)
+      await page.getByRole('button', { name: language === 'ru' ? 'Создать персонажа' : 'Create character', exact: true }).click()
+      await spacedElements(page, '.campaign-players-panel > .campaign-character-form', 2)
+      await fitsViewport(page)
+      await page.goto(`/campaigns/${campaignId}/characters/${characterId}`)
+      await page.locator('.main-tabs').getByRole('button', { name: language === 'ru' ? 'Лист' : 'Sheet', exact: true }).click()
+      await expect(page.locator('.heroic-summary > .heroic-upgrade')).toHaveCount(4)
+      await spacedElements(page, '.heroic-summary > .heroic-upgrade', 4)
+      await fitsViewport(page)
+      await page.goto('/library')
+      await page.getByRole('button', { name: language === 'ru' ? 'Создать контент' : 'Create content', exact: true }).click()
+      await spacedElements(page, '.rd-dialog-body > .rd-system-badge, .rd-dialog-body > .rd-system-badge + .rd-chips', 2)
+      await separatedButtons(page, '.rd-dialog-inner > footer > button')
+      await fitsViewport(page)
+    })
+  }
+}
 
 for (const width of [320, 390, 768, 1280, 1440]) {
   test(`GEN-UI-01: controls and tables fit ${width}px`, async ({ page }) => {
