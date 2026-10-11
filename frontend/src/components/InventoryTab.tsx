@@ -324,9 +324,10 @@ function MoneyPanel({ sheet, onError, updateBaseOptimistically, d }: {
         <button className="small" onClick={() => adjust(-1)} disabled={!delta || busy}>{t('− Списать', '− Spend')}</button>
       </div>
       <div className="money-derived muted">
-        {t('Переносимый вес', 'Encumbrance')} <strong className={d.encumbered ? 'error' : ''}>{d.encumbranceLoad}/{d.encumbranceThreshold}</strong>
-        {d.encumbered && <span className="error"> · {t('перегружен!', 'encumbered!')}</span>}
-        {' · '}{t('Поглощение', 'Soak')} {d.soak} · {t('Защита', 'Defense')} {d.meleeDefense}/{d.rangedDefense}
+        <span className="money-encumbrance">{t('Переносимый вес', 'Encumbrance')} <strong className={d.encumbered ? 'error' : ''}>{d.encumbranceLoad}/{d.encumbranceThreshold}</strong></span>{' '}
+        {d.encumbered && <><span className="error">{t('перегружен!', 'encumbered!')}</span>{' '}</>}
+        <span>{t('Поглощение', 'Soak')} {d.soak}</span>{' '}
+        <span>{t('Защита', 'Defense')} {d.meleeDefense}/{d.rangedDefense}</span>
       </div>
     </section>
   )

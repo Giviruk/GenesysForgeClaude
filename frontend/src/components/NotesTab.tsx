@@ -45,7 +45,7 @@ export function NotesTab({ characterId, onError }: { characterId: string; onErro
   </form>
   return <SectionCard title={<>{t('Заметки', 'Notes')} <small className="muted">{notes?.length ?? ''}</small></>} icon="book"
     actions={<button className="small" disabled={busy} onClick={() => { resetForm(); setOpen(!open) }}><Icon name="plus" className="button-icon" />{t('Новая', 'New')}</button>}>
-    <p className="muted small-text"><Icon name="lock" className="button-icon" />{t('Видите только вы — ведущему и в кампании не показываются', 'Only you can see these — hidden from the GM and campaign')}</p>
+    <p className="muted small-text icon-text"><Icon name="lock" className="button-icon" />{t('Видите только вы — ведущему и в кампании не показываются', 'Only you can see these — hidden from the GM and campaign')}</p>
     {open && editor}
     {notes === null && <p className="muted">{t('Загрузка…', 'Loading…')}</p>}
     {notes?.length === 0 && <p className="muted">{t('Заметок пока нет', 'No notes yet')}</p>}

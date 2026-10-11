@@ -54,7 +54,7 @@ export function HeroicTab({ sheet, reference, onError, refresh }: Props) {
       {sheet.heroicAbility ? (
         <HeroicAbilityCard key={sheet.id} sheet={sheet} reference={reference} run={run} />
       ) : (
-        <section className="heroic-ability-card panel"><h3><Icon name="crown" className="button-icon" />{t('Героическая способность', 'Heroic ability')}</h3>
+        <section className="heroic-ability-card panel"><h3 className="icon-text"><Icon name="crown" className="button-icon" />{t('Героическая способность', 'Heroic ability')}</h3>
           <div className="inline-form">
             <select value={heroicPick} onChange={e => setHeroicPick(e.target.value)}>
               <option value="" disabled>{t('— выберите способность —', '— pick an ability —')}</option>
@@ -134,7 +134,7 @@ function HeroicAbilityCard({ sheet, reference, run }: {
     <div className="heroic sheet-two-column">
       <div className="heroic-main">
         <section className="heroic-ability-card">
-          <h4><Icon name="crown" className="button-icon" />{t('Героическая способность · Terrinoth', 'Heroic ability · Terrinoth')}</h4>
+          <h4 className="icon-text"><Icon name="crown" className="button-icon" />{t('Героическая способность · Terrinoth', 'Heroic ability · Terrinoth')}</h4>
           <h3>{sheet.heroicIdentity?.customName || localizedName(h)}</h3>
           <p className="muted small-text">{t('Эффект:', 'Effect:')} {localizedName(h)} · {h.source}</p>
           {localizedDescription(h) && <p>{localizedDescription(h)}</p>}
@@ -147,11 +147,11 @@ function HeroicAbilityCard({ sheet, reference, run }: {
             <div className="heroic-uses"><span className="heroic-dots" aria-hidden="true">{Array.from({ length: usesTotal }, (_, i) => <i className={i < remaining ? 'filled' : ''} key={i} />)}</span>
               <small role="status">{remaining ? t(`осталось ${remaining} из ${usesTotal}`, `${remaining} of ${usesTotal} remaining`) : t('применения исчерпаны', 'uses exhausted')}</small></div>
             <button className="heroic-session-reset" disabled={activating} onClick={() => { writeHeroicUses(sheet.id, 0); setUsed(0); setOutcome(null) }}>{t('Новая сессия', 'New session')}</button>
-            {outcome && <div className="heroic-activate-result small-text">{outcome.applied.map((v, i) => <div key={`a${i}`} className="success-text"><Icon name="check" className="button-icon" />{v}</div>)}
-              {outcome.manual.map((v, i) => <div key={`m${i}`} className="muted"><Icon name="hand-finger" className="button-icon" />{v}</div>)}</div>}
+            {outcome && <div className="heroic-activate-result small-text">{outcome.applied.map((v, i) => <div key={`a${i}`} className="success-text icon-text"><Icon name="check" className="button-icon" />{v}</div>)}
+              {outcome.manual.map((v, i) => <div key={`m${i}`} className="muted icon-text"><Icon name="hand-finger" className="button-icon" />{v}</div>)}</div>}
           </div>
           <HeroicIdentitySection sheet={sheet} run={run} />
-          {sheet.isCreationPhase && <button className="small" onClick={() => run(() => api.setHeroicAbility(sheet.id, null))}>{t('Сбросить способность', 'Reset ability')}</button>}
+          {sheet.isCreationPhase && <div className="heroic-ability-reset"><button className="small" onClick={() => run(() => api.setHeroicAbility(sheet.id, null))}>{t('Сбросить способность', 'Reset ability')}</button></div>}
         </section>
         <HeroicParameterSection sheet={sheet} reference={reference} run={run} section="configuration" />
       </div>
@@ -243,7 +243,7 @@ function HeroicAbilityCard({ sheet, reference, run }: {
             <p className="hint small-text">{t('Снижает стоимость активации до одного очка сюжета.', 'Reduces activation cost to one Story Point.')}</p>
           </div>
 
-          <div className="heroic-upgrade">
+          <div className="heroic-secondary-effects">
             <strong>{t(`Вторичные эффекты (${upgrades.secondaryEffects.length}/2)`, `Secondary effects (${upgrades.secondaryEffects.length}/2)`)}</strong>
             {reference.heroicSecondaryEffects.map(effect => {
               const selected = selectedEffectIds.includes(effect.id)
@@ -443,7 +443,7 @@ export function HeroicParameterSection({ sheet, reference, run, section = 'all' 
   return (
     <div className={`heroic-parameter${section === 'configuration' ? ' sheet-result-card heroic-weapon-card' : ''}`}>
       {(section === 'all' || section === 'configuration') && <>
-      <h3>{config.kind === 'signatureWeapon' && <Icon name="sword" className="button-icon" />}{title}</h3>
+      <h3 className="icon-text">{config.kind === 'signatureWeapon' && <Icon name="sword" className="button-icon" />}{title}</h3>
 
       {config.kind === 'paragonSkill' && config.paragonSkillName && (
         <div className="hint small-text">

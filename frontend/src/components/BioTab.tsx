@@ -68,7 +68,7 @@ export function BioTab({ sheet, onError, refresh, onPortraitClick, readOnly = fa
         onChange={e => change('background', e.target.value)} rows={10} maxLength={8000}
         placeholder={t('История персонажа: происхождение, важные события, связи, цели…', 'The character’s story: origin, key events, connections, goals…')} />
       {!readOnly && <div className="form-actions bio-save"><button className="primary" type="submit" disabled={busy || !dirty}>{t('Сохранить', 'Save')}</button>
-        <span role="status" className={dirty ? 'warn-text small-text' : 'muted small-text'}><Icon name={dirty ? 'point-filled' : 'check'} className="button-icon" />
+        <span role="status" className={dirty ? 'warn-text small-text icon-text' : 'muted small-text icon-text'}><Icon name={dirty ? 'point-filled' : 'check'} className="button-icon" />
           {dirty ? t('Есть несохранённые изменения', 'Unsaved changes') : saved ? t('Сохранено', 'Saved') : t('Все изменения сохранены', 'All changes saved')}</span></div>}
     </form>
     {!readOnly && onError && <aside className="sheet-sticky"><NotesTab key={sheet.id} characterId={sheet.id} onError={onError} /></aside>}

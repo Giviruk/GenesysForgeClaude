@@ -260,7 +260,7 @@ function HeroicSummary({ sheet }: { sheet: CharacterSheet }) {
   return (
     <section className="panel">
       <h3>{t('Героическая способность', 'Heroic ability')}</h3>
-      <div className="heroic">
+      <div className="heroic heroic-summary">
         <strong>{sheet.heroicIdentity?.customName || localizedName(h)}</strong>
         {sheet.heroicIdentity?.customName && (
           <div className="hint small-text">{t('Эффект:', 'Effect:')} {localizedName(h)}</div>
