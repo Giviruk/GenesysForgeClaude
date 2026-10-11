@@ -1,6 +1,6 @@
 # Бестиарий: UI по макетам 2a–2g (gen-ui-bestiary-redesign)
 
-- **Пункт ТЗ:** GEN-UI-BESTIARY — [ТЗ](../../bestiary_tz/ТЗ_Бестиарий.md), §§2–9.
+- **Пункт ТЗ:** GEN-UI-BESTIARY — [ТЗ](../../bestiary_tz/ТЗ_Бестиарий.md), §§2–9.
 - **Ветка:** `feature/gen-ui-bestiary-redesign`
 - **База:** свежий `origin/master`, `06e84c8`; открытых PR на старте нет.
 - **PR:** [#278](https://github.com/Giviruk/GenesysForgeClaude/pull/278); не сливать.
