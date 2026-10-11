@@ -67,7 +67,7 @@ export function TransportTab({ sheet, reference, onError, refresh }: Props) {
   return (
     <div className="mounts-tab">
       <div className="mounts-intro">
-        <p className="hint small-text"><Icon name="info-circle" className="button-icon" />
+        <p className="hint small-text icon-text"><Icon name="info-circle" className="button-icon" />
           {t(
             'Скакун и повозка — не предметы: у них свой статблок и своя вместимость, а их груз не входит '
             + 'в переносимый вес владельца. Попона и седельные сумки ставятся на конкретный транспорт: '
@@ -82,7 +82,7 @@ export function TransportTab({ sheet, reference, onError, refresh }: Props) {
       <div className="transport-layout">
       <section className="transport-owned">
         {sheet.mounts.length === 0
-          ? <p className="rd-empty"><Icon name="horse-toy" className="button-icon" />{t('Транспорта нет — купите или получите в конюшне', 'No transport — buy or receive one at the stable')}</p>
+          ? <p className="rd-empty icon-text"><Icon name="horse-toy" className="button-icon" />{t('Транспорта нет — купите или получите в конюшне', 'No transport — buy or receive one at the stable')}</p>
           : (
             <div className="mount-list">
               {sheet.mounts.map(mount => (
@@ -265,7 +265,7 @@ function MountCard({ mount, sheet, busy, run, qualityLabel, qualityDefinitions, 
       <div className="mount-active-control"><Switch checked={mount.isActive} disabled={busy} label={isVehicle ? t('в ходу', 'in use') : t('под седлом', 'saddled')}
         onChange={isActive => void run(() => api.updateMount(sheet.id, mount.id, { isActive }))} /><small className="muted">{isVehicle ? t('в ходу', 'in use') : t('под седлом', 'saddled')}</small></div>
     </div>
-    <div className="mount-flags">{[[mount.isIncapacitated, t('выведен из строя', 'incapacitated')], [mount.isOverloaded, t('перегружен', 'overloaded')], [mount.needsTraction, t('без тяги', 'no traction')]].filter(([show]) => show).map(([, text]) => <span key={String(text)}><Icon name="alert-triangle" className="button-icon" />{text}</span>)}</div>
+    <div className="mount-flags">{[[mount.isIncapacitated, t('выведен из строя', 'incapacitated')], [mount.isOverloaded, t('перегружен', 'overloaded')], [mount.needsTraction, t('без тяги', 'no traction')]].filter(([show]) => show).map(([, text]) => <span className="icon-text" key={String(text)}><Icon name="alert-triangle" className="button-icon" />{text}</span>)}</div>
     <div className="mount-card-body">
       <div><VitalCard kind="wounds" label={isVehicle ? t('Повреждения', 'Damage') : t('Ранения', 'Wounds')} current={mount.woundsCurrent} threshold={def.woundThreshold} disabled={busy}
         onChange={woundsCurrent => void run(() => api.updateMount(sheet.id, mount.id, { woundsCurrent }))} />

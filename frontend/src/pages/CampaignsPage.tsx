@@ -379,8 +379,8 @@ function CampaignPlayersPanel({ campaign, onChanged, onLeave, onError }: {
         <button type="button" onClick={() => setAdding(false)}>{t('Отмена', 'Cancel')}</button>
       </div>
     </form>}
-    {creating && <div className="campaign-character-form"><CreateCharacterForm key={campaign.id} campaignId={campaign.id} closedSystems={campaign.closedSystems}
-      onCancel={() => setCreating(false)} onCreated={() => { setCreating(false); void onChanged() }} /></div>}
+    {creating && <CreateCharacterForm key={campaign.id} campaignId={campaign.id} closedSystems={campaign.closedSystems}
+      onCancel={() => setCreating(false)} onCreated={() => { setCreating(false); void onChanged() }} />}
   </section>
 }
 

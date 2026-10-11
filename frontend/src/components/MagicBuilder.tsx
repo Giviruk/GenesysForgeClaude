@@ -585,7 +585,7 @@ export function MagicBuilder({
           return <div key={a.id} className={`magic-effect-row${blocked ? ' blocked' : ''}`}>
             <CheckRow checked={count > 0} disabled={blocked} label={t(a.nameRu, a.nameEn)} onChange={on => { if (on) add(a); else { setCounts(prev => ({ ...prev, [a.id]: 0 })) } }}
               meta={<><span className="accent-text">{ratingLabel(a) && <PropertyText text={ratingLabel(a)} qualities={qualities} />}{free && t(' · бесплатно', ' · free')}{a.repeatable && t(' · повторяемый', ' · repeatable')}{mandatory && t(' · обязательно', ' · mandatory')}</span>
-                {reason ? <span className="warn-text"><Icon name="lock" className="button-icon" />{reason}</span> : <PropertyText text={localizedDescription(a)} qualities={qualities} />}
+                {reason ? <span className="warn-text icon-text"><Icon name="lock" className="button-icon" />{reason}</span> : <PropertyText text={localizedDescription(a)} qualities={qualities} />}
                 {free && <span>{talentFreeEffectCodes.includes(a.nameEn) ? t('Талант делает этот эффект бесплатным.', 'A talent makes this effect free.') : t('Инструмент делает этот эффект бесплатным.', 'The implement makes this effect free.')}</span>}
                 <BookReference source={a.source} /></>}
               suffix={<div className="magic-effect-cost">{free ? <s>{a.difficulty}</s> : <strong>{a.difficulty}</strong>}

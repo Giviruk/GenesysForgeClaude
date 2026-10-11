@@ -91,6 +91,15 @@ describe('Инвентарь: состояние предмета и ремон�
     openRollerMock.mockReset()
   })
 
+  it.each([false, true])('сохраняет пробелы в тексте характеристик (перегруз: %s)', encumbered => {
+    const sheet = sheetWith(sword())
+    sheet.derived.encumbered = encumbered
+    sheet.derived.encumbranceLoad = encumbered ? 12 : 1
+    renderTab(sheet)
+    expect(document.querySelector('.money-derived')?.textContent).toBe(
+      `Переносимый вес ${encumbered ? 12 : 1}/8 ${encumbered ? 'перегружен! ' : ''}Поглощение 3 Защита 0/0`)
+  })
+
   it('меняет состояние отдельной кнопкой, не трогая «используется»', async () => {
     renderTab(sheetWith(sword()))
 

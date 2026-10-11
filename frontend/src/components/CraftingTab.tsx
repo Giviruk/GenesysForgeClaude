@@ -316,7 +316,7 @@ export function CraftingTab({ sheet, reference, onError, refresh }: Props) {
               <dt>{t('Цена предмета', 'Item price')}</dt><dd>{shownPreview.targetPrice ?? '—'}</dd><dt>{t('Компоненты', 'Components')}</dt><dd>{shownPreview.cost} {shownPreview.costOverride === null && shownPreview.costPercent !== 100 && <small>({shownPreview.costPercent}% {t('от', 'of')} {shownPreview.listedCost})</small>}</dd></dl></>}
           <button className="primary" disabled={!canStart} onClick={() => void start()}>{t('Начать проект', 'Start the project')}</button>
           {startReason && <p className="warn-text small-text">{startReason}</p>}
-          <p className="hint small-text"><Icon name="info-circle" className="button-icon" />{RESOURCES_HINT}</p>
+          <p className="hint small-text icon-text"><Icon name="info-circle" className="button-icon" />{RESOURCES_HINT}</p>
         </aside>
       </div>
 
@@ -537,7 +537,7 @@ function ResolveForm({ project, sheet, onCancel, onResolved, onError }: {
         <button className="primary" disabled={busy || !validBudget} onClick={() => void resolve()}>
           {t('Разрешить проект', 'Resolve the project')}
         </button>
-        <span className={successes > 0 ? 'success-text' : 'danger-text'}><Icon name={successes > 0 ? 'circle-check' : 'circle-x'} className="button-icon" />{successes > 0 ? t('Успех: предмет будет создан.', 'Success: the item will be made.') : t('Провал: предмет не создаётся, но проект остаётся в истории.', 'Failure: nothing is made, but the project stays in history.')}</span>
+        <span className={successes > 0 ? 'success-text icon-text' : 'danger-text icon-text'}><Icon name={successes > 0 ? 'circle-check' : 'circle-x'} className="button-icon" />{successes > 0 ? t('Успех: предмет будет создан.', 'Success: the item will be made.') : t('Провал: предмет не создаётся, но проект остаётся в истории.', 'Failure: nothing is made, but the project stays in history.')}</span>
       </div>
     </article>
   )

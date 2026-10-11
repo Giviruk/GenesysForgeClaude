@@ -147,7 +147,7 @@ export function AttachmentsTab({ sheet, reference, onError, refresh }: Props) {
         {reserve.map(a => <AttachmentRow key={a.id} attachment={a} def={defsById.get(a.attachmentDefId)} qualityDefinitions={reference.qualities} busy={busy}
           unavailable={!!reasons.get(a.id)}
           onRemove={() => void run(() => api.removeAttachment(sheet.id, a.id))}>
-          {reasons.get(a.id) ? <p className="muted small-text attachment-blocked"><Icon name="lock" className="button-icon" />{reasons.get(a.id)}</p>
+          {reasons.get(a.id) ? <p className="muted small-text attachment-blocked icon-text"><Icon name="lock" className="button-icon" />{reasons.get(a.id)}</p>
             : <button className="primary small" disabled={busy} onClick={() => void run(async () => {
               await api.installAttachment(sheet.id, a.id, host!.id, a.isEnchantment && !hasMagicRank(sheet) ? reason.trim() : undefined); setReason('')
             })}><Icon name="arrow-left" className="button-icon" />{t('Установить', 'Install')}</button>}
@@ -209,7 +209,7 @@ function AttachmentRow({ attachment, def, qualityDefinitions, funds, onDetach, o
           <PropertyText text={localizedDescription(def)} qualities={qualityDefinitions} />
         </div>}
         {def?.source && <BookReference source={def.source} />}
-        {attachment.damageState !== 'undamaged' && <p className="warn-text small-text">
+        {attachment.damageState !== 'undamaged' && <p className="warn-text small-text icon-text">
           <Icon name="alert-triangle" className="button-icon" />{ITEM_DAMAGE_STATE_HINTS[attachment.damageState]}
         </p>}
         {children}
