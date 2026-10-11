@@ -211,6 +211,15 @@ for (const width of [320, 390, 768, 1280, 1440]) {
       await fitsViewport(page)
       await tab(page, 'transport', label('Транспорт', 'Transport'))
       await iconHasSpace(page, '.mounts-intro > p', 1)
+      // Every wrapped line of the intro starts to the right of its icon.
+      const introIndent = await page.locator('.mounts-intro > p').evaluate(element => {
+        const icon = element.querySelector(':scope > .button-icon')!
+        const range = document.createRange()
+        range.selectNodeContents(element)
+        range.setStartAfter(icon)
+        return Math.min(...Array.from(range.getClientRects(), rect => rect.left)) - icon.getBoundingClientRect().right
+      })
+      expect(introIndent).toBeGreaterThanOrEqual(6)
       await iconHasSpace(page, '.mount-flags > span', 1)
       await fitsViewport(page)
       await tab(page, 'bio', label('Образ и заметки', 'Bio and notes'))
