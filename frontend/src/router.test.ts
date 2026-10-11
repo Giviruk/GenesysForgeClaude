@@ -169,3 +169,33 @@ it('restores rejected Back and Forward without duplicating history or notifying 
   await waitFor(() => expect(hook.result.current.path).toBe('/characters'))
   hook.unmount()
 })
+
+it('keeps navigation working when another popstate interrupts a pending restoration', () => {
+  navigate('/campaigns')
+  const first = window.history.state
+  navigate('/npcs')
+  const second = window.history.state
+  navigate('/npcs/n1/edit')
+  const hook = renderHook(usePath)
+  const guard = vi.fn().mockReturnValueOnce(false).mockReturnValue(true)
+  const release = registerNavigationGuard(guard)
+  // Hold the restoration pending while a second Back event arrives.
+  const go = vi.spyOn(window.history, 'go').mockImplementation(() => {})
+  try {
+    act(() => {
+      window.history.replaceState(second, '', '/npcs')
+      window.dispatchEvent(new PopStateEvent('popstate', { state: second }))
+    })
+    expect(go).toHaveBeenCalledWith(1)
+    expect(hook.result.current).toBe('/npcs/n1/edit')
+    act(() => {
+      window.history.replaceState(first, '', '/campaigns')
+      window.dispatchEvent(new PopStateEvent('popstate', { state: first }))
+    })
+    expect(guard).toHaveBeenLastCalledWith('/campaigns')
+    expect(hook.result.current).toBe('/campaigns')
+    act(() => navigate('/help'))
+    expect(hook.result.current).toBe('/help')
+    expect(window.location.pathname).toBe('/help')
+  } finally { release(); go.mockRestore(); hook.unmount() }
+})

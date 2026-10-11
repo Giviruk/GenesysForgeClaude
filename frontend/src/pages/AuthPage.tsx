@@ -86,7 +86,7 @@ export function AuthPage() {
       } else {
         await api.confirmPasswordReset(resetToken!, password)
         // Убираем токен из адреса и возвращаем на вход.
-        window.history.replaceState(null, '', window.location.pathname)
+        window.history.replaceState(window.history.state, '', window.location.pathname)
         setResetMode(null)
         setPassword('')
         setInfo(t('Пароль обновлён — войдите с новым паролем.', 'Password updated — sign in with the new password.'))

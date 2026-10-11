@@ -29,9 +29,9 @@ window.history.replaceState(historyState(acceptedIndex), '', acceptedUrl)
 // Independent subscriptions can unmount an editor before its guard runs.
 function onPopState() {
   const targetIndex = historyIndex()
-  if (restoring && targetIndex === acceptedIndex && window.location.href === acceptedUrl) {
+  if (restoring) {
     restoring = false
-    return
+    if (targetIndex === acceptedIndex && window.location.href === acceptedUrl) return
   }
   const to = window.location.pathname + window.location.search
   if ([...guards].some(guard => !guard(to))) {

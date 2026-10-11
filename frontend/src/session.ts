@@ -53,7 +53,7 @@ export function clearReturnTo(): void {
 export function restoreReturnTo(): void {
   const to = consumeReturnTo()
   if (to && to !== window.location.pathname) {
-    window.history.replaceState(null, '', to)
+    window.history.replaceState(window.history.state, '', to)
     window.dispatchEvent(new PopStateEvent('popstate'))
   }
 }

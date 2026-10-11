@@ -53,7 +53,7 @@ export function CampaignContentTab({ campaignId, refreshSignal = 0 }: { campaign
   function change(next: Partial<ContentView>) {
     const value = { ...view, ...next }; setView(value); setSearch(''); setSource('all'); setBookSource('all')
     const p = new URLSearchParams({ section: value.section, system: value.system, category: value.category })
-    window.history.replaceState(null, '', `${window.location.pathname}?${p}`)
+    window.history.replaceState(window.history.state, '', `${window.location.pathname}?${p}`)
   }
   async function run(action: () => Promise<unknown>) {
     setBusy(true); setError(null)
