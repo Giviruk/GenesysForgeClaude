@@ -9,6 +9,36 @@ import { useEffect, useState } from 'react'
 
 type Listener = () => void
 const listeners = new Set<Listener>()
+const guards = new Set<(to: string) => boolean>()
+let acceptedUrl = window.location.href
+
+// One popstate subscription checks guards before any React route subscription.
+// Independent subscriptions can unmount an editor before its guard runs.
+function onPopState() {
+  const to = window.location.pathname + window.location.search
+  if ([...guards].some(guard => !guard(to))) window.history.pushState(null, '', acceptedUrl)
+  else acceptedUrl = window.location.href
+  listeners.forEach(l => l())
+}
+window.addEventListener('popstate', onPopState)
+if (import.meta.hot) import.meta.hot.dispose(() => window.removeEventListener('popstate', onPopState))
+
+/** Editors can prevent losing unsaved changes on shell links and browser Back. */
+export function registerNavigationGuard(guard: (to: string) => boolean): () => void {
+  guards.add(guard)
+  acceptedUrl = window.location.href
+  return () => { guards.delete(guard) }
+}
+
+export function useSearch(): string {
+  const [search, setSearch] = useState(() => window.location.search)
+  useEffect(() => {
+    const update = () => setSearch(window.location.search)
+    listeners.add(update)
+    return () => { listeners.delete(update) }
+  }, [])
+  return search
+}
 
 /** Текущий путь приложения (pathname без query/hash). */
 export function currentPath(): string {
@@ -20,9 +50,11 @@ export function currentPath(): string {
  * (`pushState`), `replace: true` — заменяет текущую (без новой записи «назад»).
  */
 export function navigate(to: string, opts: { replace?: boolean } = {}): void {
-  if (to === currentPath() && !opts.replace) return
+  if (to === currentPath() + window.location.search && !opts.replace) return
+  if ([...guards].some(guard => !guard(to))) return
   if (opts.replace) window.history.replaceState(null, '', to)
   else window.history.pushState(null, '', to)
+  acceptedUrl = window.location.href
   // pushState/replaceState не шлют popstate — уведомляем подписчиков сами.
   listeners.forEach(l => l())
 }
@@ -33,10 +65,8 @@ export function usePath(): string {
   useEffect(() => {
     const update = () => setPath(currentPath())
     listeners.add(update)
-    window.addEventListener('popstate', update)
     return () => {
       listeners.delete(update)
-      window.removeEventListener('popstate', update)
     }
   }, [])
   return path
@@ -62,7 +92,7 @@ const ENTITY_AREAS: AppArea[] = ['characters', 'campaigns', 'npcs']
 const SUBVIEWS: Record<string, { allowed: string[]; withId: string[] }> = {
   characters: { allowed: ['print'], withId: [] },
   campaigns: { allowed: ['chronicle', 'table', 'encounters', 'custom', 'content', 'settings', 'characters'], withId: ['encounters', 'characters'] },
-  npcs: { allowed: [], withId: [] },
+  npcs: { allowed: ['edit'], withId: [] },
 }
 
 const base = (area: AppArea, id: string | null = null, unknown = false): AppRoute =>
@@ -102,6 +132,7 @@ export function parseRoute(pathname: string): AppRoute {
   if (!ENTITY_AREAS.includes(head as AppArea)) return base('characters', null, true)
 
   const area = head as AppArea
+  if (area === 'npcs' && second === 'new') return { ...base(area), sub: 'new', unknown: segments.length > 2 }
   const id = second ?? null
   if (!id) return base(area)
   if (!third) return base(area, id)

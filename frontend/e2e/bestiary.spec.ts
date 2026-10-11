@@ -1,0 +1,219 @@
+import { expect, test, type APIRequestContext, type Page } from '@playwright/test'
+import type { NpcDetail, Reference } from '../src/api/types'
+let token: string
+let npc: NpcDetail
+let reference: Reference
+let talentName: string
+const unique = `Bestiary-${Date.now()}`
+async function api<T>(request: APIRequestContext, path: string, data?: unknown): Promise<T> {
+  const response = data === undefined ? await request.get(path, { headers: { Authorization: `Bearer ${token}` } }) : await request.post(path, { headers: { Authorization: `Bearer ${token}` }, data })
+  expect(response.ok(), `${path}: ${response.status()}`).toBeTruthy()
+  return await response.json() as T
+}
+async function fits(page: Page) {
+  await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1)
+}
+async function noOverlap(page: Page, selector: string, count: number) {
+  const rows = page.locator(selector)
+  await expect(rows).toHaveCount(count)
+  const issues = await rows.evaluateAll(nodes => nodes.flatMap(node => {
+    const parts = [...node.children].filter(child => { const r = child.getBoundingClientRect(); return r.width && r.height })
+    const rects = parts.map(part => part.getBoundingClientRect())
+    return rects.flatMap((a, i) => rects.slice(i + 1).filter(b => Math.min(a.right, b.right) - Math.max(a.left, b.left) > 1 && Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top) > 1).map(() => node.className))
+  }))
+  expect(issues, selector).toEqual([])
+}
+test.beforeAll(async ({ request }) => {
+  const response = await request.post('/api/auth/register', { data: { email: `${unique}@example.com`, password: 'B3stiary-Test-Password!', displayName: unique, acceptedLegalVersion: '2026-09-16' } })
+  expect(response.ok()).toBeTruthy()
+  token = (await response.json()).token
+  reference = await api<Reference>(request, '/api/reference/realmsOfTerrinoth')
+  talentName = reference.talents[0].nameRu || reference.talents[0].name
+  npc = await api<NpcDetail>(request, '/api/npcs/', {
+    name: unique, system: 'realmsOfTerrinoth', kind: 'rival', role: 'leader', visibility: 'private', campaignId: null,
+    description: 'Test NPC for responsive bestiary', source: 'UI test', brawn: 3, agility: 2, intellect: 2, cunning: 2, willpower: 3, presence: 3,
+    woundThreshold: 14, strainThreshold: null, soak: 3, meleeDefense: 1, rangedDefense: 0, silhouette: 1, tactics: 'Test tactics',
+    skills: [{ name: reference.skills.find(s => s.kind === 'combat')!.name, ranks: 2 }],
+    attacks: [{ name: 'Test sword', skillName: reference.skills.find(s => s.kind === 'combat')!.name, damage: '+3', critical: '2', rangeBand: 'Вплотную', notes: '', qualities: [], sourceWeapon: '' }],
+    abilities: [{ name: 'Test ability', description: 'User authored test ability' }], talents: [talentName], equipment: [], tags: ['test'],
+  })
+})
+test.beforeEach(async ({ page }) => {
+  await page.addInitScript(value => { localStorage.setItem('genesysforge.token', value); localStorage.setItem('genesysforge.lang', 'ru'); localStorage.setItem('genesysforge.analytics-consent', 'denied') }, token)
+})
+
+test('list/card/editor and wizard fit seven widths in RU and EN without overlapping controls', async ({ page }) => {
+  test.setTimeout(150_000)
+  page.on('dialog', dialog => dialog.accept())
+  for (const lang of ['ru', 'en']) {
+    await page.addInitScript(value => localStorage.setItem('genesysforge.lang', value), lang)
+    for (const width of [360, 390, 768, 820, 1024, 1280, 1440]) {
+      await page.setViewportSize({ width, height: 900 })
+      await page.goto('/npcs?source=mine')
+      await expect(page.locator('.bt-item').filter({ hasText: unique })).toBeVisible()
+      await fits(page)
+      await page.locator('.bt-item').filter({ hasText: unique }).click()
+      await expect(page.locator('.bt-detail-head h3')).toHaveText(unique)
+      await fits(page)
+      await expect(page.locator('.bt-section-stats .npc-skill-row').first()).toBeVisible()
+      if (width < 760) await page.getByRole('tab', { name: /Способности и снаряжение|Abilities and gear/ }).click()
+      await page.getByRole('button', { name: talentName, exact: true }).click()
+      await expect(page.getByRole('tooltip')).toBeVisible()
+      const tip = await page.getByRole('tooltip').boundingBox()
+      expect(tip!.x).toBeGreaterThanOrEqual(0)
+      expect(tip!.x + tip!.width).toBeLessThanOrEqual(width + 1)
+      await page.keyboard.press('Escape')
+      if (width === 1280 && lang === 'ru') {
+        await page.getByRole('button', { name: talentName, exact: true }).focus()
+        await page.keyboard.press('Enter')
+        await expect(page.getByRole('tooltip')).toBeVisible()
+        await page.locator('.bt-detail-head h3').click()
+        await expect(page.getByRole('tooltip')).toHaveCount(0)
+      }
+      await page.goto(`/npcs/${npc.id}/edit`)
+      await expect(page.locator('input[name=npc-name]')).toHaveValue(unique)
+      if (width < 760) await page.getByRole('tab', { name: /Статы|Stats/, exact: true }).click()
+      await noOverlap(page, '.bt-stat-grid .sheet-stepper', 6)
+      await noOverlap(page, '.bt-derived-grid', 1)
+      await fits(page)
+      if (width >= 760) await noOverlap(page, '.bt-section-nav', 1)
+      await page.goto('/npcs/new?mode=draft')
+      await expect(page.locator('.bt-role-grid > button')).toHaveCount(9)
+      await fits(page)
+      await expect(page.locator('.bt-draft-preview .npc-card')).toBeAttached()
+      if (width === 1280 && lang === 'ru') await page.screenshot({ path: '../.tmp/bestiary-draft-1280.png', fullPage: true })
+      if (width === 390 && lang === 'ru') await page.screenshot({ path: '../.tmp/bestiary-draft-390.png', fullPage: true })
+    }
+  }
+})
+
+test('mobile filters trap focus, count matches, keep URL filters and scroll after returning', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 })
+  await page.goto('/npcs')
+  await expect(page.locator('.bt-item').first()).toBeVisible()
+  const list = page.locator('.bt-items')
+  await list.evaluate(element => { element.scrollTop = 350 })
+  await expect.poll(() => list.evaluate(element => element.scrollTop)).toBeGreaterThan(0)
+  const scroll = await list.evaluate(element => element.scrollTop)
+  await page.locator('.bt-item').nth(6).click()
+  await page.locator('.bt-card-topbar').getByRole('button', { name: 'Бестиарий', exact: true }).click()
+  await expect.poll(() => list.evaluate(element => element.scrollTop)).toBe(scroll)
+  await page.getByRole('button', { name: 'Фильтры', exact: true }).click()
+  const dialog = page.getByRole('dialog')
+  await expect(dialog).toBeVisible()
+  await dialog.getByRole('button', { name: 'Мои', exact: true }).click()
+  await expect(dialog.getByRole('button', { name: /Показать \d+ NPC/ })).toBeVisible()
+  await page.keyboard.press('Shift+Tab')
+  expect(await page.evaluate(() => !!document.activeElement?.closest('dialog'))).toBeTruthy()
+  await dialog.getByRole('button', { name: /Показать \d+ NPC/ }).click()
+  await expect(page).toHaveURL(/source=mine/)
+  await page.getByRole('searchbox').fill(unique)
+  await page.locator('.bt-item').filter({ hasText: unique }).click()
+  await expect(page).toHaveURL(new RegExp(`/npcs/${npc.id}.*search=`))
+  await page.locator('.bt-card-topbar').getByRole('button', { name: 'Бестиарий', exact: true }).click()
+  await expect(page.getByRole('searchbox')).toHaveValue(unique)
+  await expect(page.locator('.bt-item')).toHaveCount(1)
+})
+
+test('quick draft uses actual preview, saves only from manual editor, honors minion rules and unsaved guard', async ({ page, request }) => {
+  await page.setViewportSize({ width: 390, height: 844 })
+  const before = await api<NpcDetail[]>(request, '/api/npcs/')
+  await page.goto('/npcs/new?mode=draft')
+  await page.locator('.bt-role-grid > button').filter({ hasText: 'Командир' }).click()
+  await page.getByRole('button', { name: /Далее: тип и сила/ }).click()
+  await page.locator('.bt-kind-cards > button').filter({ hasText: 'Миньон' }).click()
+  await page.getByRole('button', { name: /Далее: уточнения/ }).click()
+  await page.getByLabel('Имя (необязательно)').fill(`${unique}-draft`)
+  await expect(page.getByRole('button', { name: 'Создать черновик', exact: true }).last()).toBeEnabled()
+  await page.getByRole('button', { name: 'Создать черновик', exact: true }).last().click()
+  await expect(page.locator('input[name=npc-name]')).toHaveValue(`${unique}-draft`)
+  expect((await api<NpcDetail[]>(request, '/api/npcs/')).length).toBe(before.length)
+  await page.getByRole('tab', { name: 'Статы', exact: true }).click()
+  await expect(page.getByLabel('Усталость', { exact: true })).toBeDisabled()
+  const soak = Number(await page.getByLabel('Поглощение', { exact: true }).inputValue())
+  await page.getByRole('button', { name: 'Увеличить: Мощь' }).click()
+  await expect(page.getByLabel('Поглощение', { exact: true })).toHaveValue(String(soak + 1))
+  await page.getByLabel('Поглощение', { exact: true }).fill('9')
+  await page.getByRole('button', { name: 'Уменьшить: Мощь' }).click()
+  await expect(page.getByLabel('Поглощение', { exact: true })).toHaveValue('9')
+  await page.getByRole('button', { name: 'Сохранить', exact: true }).last().click()
+  await expect(page).toHaveURL(/\/npcs\/[a-f0-9-]+$/)
+  const saved = (await api<NpcDetail[]>(request, '/api/npcs/')).find(n => n.name === `${unique}-draft`)!
+  expect(saved).toBeTruthy()
+  expect(saved.strainThreshold).toBeNull()
+  const detail = await api<NpcDetail>(request, `/api/npcs/${saved.id}`)
+  expect(detail.skills.every(s => s.ranks === 0)).toBeTruthy()
+  await page.getByRole('button', { name: 'Редактировать', exact: true }).click()
+  await page.getByLabel('Имя', { exact: true }).fill(`${unique}-unsaved`)
+  page.once('dialog', d => d.dismiss())
+  await page.locator('.bt-back').click()
+  await expect(page).toHaveURL(/\/edit$/)
+  await expect(page.getByLabel('Имя', { exact: true })).toHaveValue(`${unique}-unsaved`)
+  page.once('dialog', d => d.accept())
+  await page.locator('.bt-back').click()
+  await expect(page).toHaveURL(/\/npcs$/)
+})
+
+test('mobile card preserves attacks, print, duplication, deletion and built-in cloning', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 })
+  await page.goto(`/npcs/${npc.id}`)
+  await page.getByRole('tab', { name: /Атаки/ }).click()
+  await page.getByRole('button', { name: 'Атаковать', exact: true }).click()
+  const roller = page.getByRole('complementary', { name: 'Дайсроллер' })
+  await expect(roller).toBeVisible()
+  await roller.getByRole('button', { name: 'Закрыть', exact: true }).click()
+  await page.getByRole('button', { name: 'Печать', exact: true }).click()
+  await expect(page.locator('.print-area')).toContainText(unique)
+  await page.getByRole('button', { name: 'Версия игрока', exact: true }).click()
+  await page.getByRole('button', { name: '← Назад', exact: true }).click()
+  await page.getByRole('button', { name: 'Ещё', exact: true }).click()
+  await page.getByRole('button', { name: 'Дублировать', exact: true }).click()
+  await expect(page).not.toHaveURL(new RegExp(`${npc.id}$`))
+  await expect(page.getByRole('button', { name: 'Редактировать', exact: true })).toBeVisible()
+  await page.getByRole('button', { name: 'Ещё', exact: true }).click()
+  page.once('dialog', dialog => dialog.accept())
+  await page.getByRole('button', { name: 'Удалить', exact: true }).click()
+  await expect(page).toHaveURL(/\/npcs$/)
+  await page.goto('/npcs?source=builtin')
+  await page.locator('.bt-item').first().click()
+  await expect(page.getByRole('button', { name: 'Редактировать', exact: true })).toHaveCount(0)
+  await page.getByRole('button', { name: 'Клонировать в мою библиотеку', exact: true }).click()
+  await expect(page.getByRole('button', { name: 'Редактировать', exact: true })).toBeVisible()
+})
+
+test('manual editor updates dice immediately, reports server errors, guards browser Back and saves with Ctrl+S', async ({ page, request }) => {
+  await page.setViewportSize({ width: 1280, height: 900 })
+  const copy = await api<NpcDetail>(request, `/api/npcs/${npc.id}/duplicate`, {})
+  await page.goto(`/npcs/${copy.id}`)
+  await page.getByRole('button', { name: 'Редактировать', exact: true }).click()
+  const skill = reference.skills.find(s => s.kind === 'combat')!
+  const labels = { brawn: 'Мощь', agility: 'Ловкость', intellect: 'Интеллект', cunning: 'Хитрость', willpower: 'Воля', presence: 'Харизма' }
+  const label = labels[skill.characteristic]
+  const skillRow = page.locator('.bt-skill-edit').first()
+  const stat = copy[skill.characteristic]
+  await expect(skillRow.locator('.dice-pool')).toHaveAttribute('title', `${Math.min(stat, 2)} мастерства + ${Math.abs(stat - 2)} способности`)
+  await skillRow.getByRole('button', { name: /^Увеличить:/ }).click()
+  await expect(skillRow.locator('.dice-pool')).toHaveAttribute('title', `${Math.min(stat, 3)} мастерства + ${Math.abs(stat - 3)} способности`)
+  await page.getByRole('button', { name: `Увеличить: ${label}`, exact: true }).click()
+  await expect(skillRow.locator('.dice-pool')).toHaveAttribute('title', `${Math.min(stat + 1, 3)} мастерства + ${Math.abs(stat + 1 - 3)} способности`)
+  await page.getByLabel('Бл. защита', { exact: true }).fill('7')
+  await page.getByRole('button', { name: 'Сохранить', exact: true }).click()
+  await expect(page.getByRole('alert')).toContainText('Защита')
+  await expect(page.getByLabel('Бл. защита', { exact: true })).toHaveAttribute('aria-invalid', 'true')
+  await expect(page).toHaveURL(/\/edit$/)
+  await page.getByLabel('Бл. защита', { exact: true }).fill('1')
+  await page.getByLabel('Имя', { exact: true }).fill(`${unique}-keyboard`)
+  page.once('dialog', dialog => dialog.dismiss())
+  await page.evaluate(() => history.back())
+  await expect(page).toHaveURL(/\/edit$/)
+  await expect(page.getByLabel('Имя', { exact: true })).toHaveValue(`${unique}-keyboard`)
+  page.once('dialog', dialog => dialog.dismiss())
+  await page.locator('.app-sidebar').getByRole('button', { name: 'Персонажи', exact: true }).click()
+  await expect(page).toHaveURL(/\/edit$/)
+  await page.keyboard.press('Control+s')
+  await expect(page).toHaveURL(new RegExp(`/npcs/${copy.id}$`))
+  const saved = await api<NpcDetail>(request, `/api/npcs/${copy.id}`)
+  expect(saved.name).toBe(`${unique}-keyboard`)
+  expect(saved.skills[0].ranks).toBe(3)
+  expect(saved[skill.characteristic]).toBe(stat + 1)
+})

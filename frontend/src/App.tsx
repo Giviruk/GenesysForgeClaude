@@ -4,7 +4,7 @@ import { useAuth } from './auth-context'
 import { AnalyticsConsent } from './components/AnalyticsConsent'
 import { Footer } from './components/Footer'
 import { Icon, type IconName } from './components/Icon'
-import { navigate, parseRoute, usePath, type AppArea } from './router'
+import { currentPath, navigate, parseRoute, usePath, type AppArea } from './router'
 import { t, useLang } from './i18n'
 import { useSeo } from './seo'
 import type { CampaignView } from './pages/CampaignsPage'
@@ -102,7 +102,7 @@ function Shell() {
   if (!token) return <AuthPage />
 
   return (
-    <div className={mobileNavOpen ? 'app-shell mobile-nav-open' : 'app-shell'}>
+    <div className={`app-shell${mobileNavOpen ? ' mobile-nav-open' : ''}${route.area === 'npcs' ? ' bestiary-shell' : ''}`}>
       {mobileNavOpen && (
         <button
           type="button"
@@ -149,14 +149,14 @@ function Shell() {
             <Icon name="globe" className="side-nav-icon" />
             {lang === 'ru' ? 'English' : 'Русский'}
           </button>
-          <button type="button" className="side-nav-item" onClick={() => { setMobileNavOpen(false); logout(); navigate('/login') }}>
+          <button type="button" className="side-nav-item" onClick={() => { setMobileNavOpen(false); navigate('/login'); if (currentPath() === '/login') logout() }}>
             <Icon name="logout" className="side-nav-icon" />
             {t('Выйти', 'Sign out')}
           </button>
         </div>
       </aside>
 
-      <div className="shell">
+      <div className={`shell${route.area === 'npcs' ? ' shell-bestiary' : ''}`}>
         <header className="mobile-topbar no-print">
           <button
             type="button"
@@ -198,7 +198,8 @@ function Shell() {
                   onCloseCharacter={() => navigate(`/campaigns/${route.id}`)} />
               : route.area === 'npcs'
                 ? <NpcsPage openId={route.id}
-                    onOpen={id => navigate(`/npcs/${id}`)} onBack={() => navigate('/npcs')} />
+                    creating={route.sub === 'new'} edit={route.sub === 'edit'}
+                    onOpen={id => navigate(`/npcs/${id}${window.location.search}`)} onBack={() => { const p = new URLSearchParams(window.location.search); p.delete('mode'); navigate(`/npcs${p.size ? `?${p}` : ''}`) }} />
                 : route.area === 'magic'
                   ? <MagicPage />
                 : route.area === 'shop'

@@ -1,5 +1,6 @@
-import { describe, expect, it } from 'vitest'
-import { parseRoute } from './router'
+import { act, renderHook } from '@testing-library/react'
+import { describe, expect, it, vi } from 'vitest'
+import { navigate, parseRoute, registerNavigationGuard, usePath, useSearch } from './router'
 
 const route = (over: Partial<ReturnType<typeof parseRoute>> = {}) =>
   ({ area: 'characters', id: null, sub: null, subId: null, unknown: false, ...over })
@@ -104,4 +105,33 @@ it('recognizes the personal library and rejects nested library routes', () => {
 it.each(['privacy', 'terms'])('распознаёт публичный /%s и отклоняет лишние сегменты', area => {
   expect(parseRoute(`/${area}`)).toMatchObject({ area, unknown: false })
   expect(parseRoute(`/${area}/extra`).unknown).toBe(true)
+})
+
+it('recognizes dedicated NPC creation and edit routes and rejects extra segments', () => {
+  expect(parseRoute('/npcs/new')).toMatchObject({ area: 'npcs', id: null, sub: 'new', unknown: false })
+  expect(parseRoute('/npcs/n1/edit')).toMatchObject({ area: 'npcs', id: 'n1', sub: 'edit', unknown: false })
+  expect(parseRoute('/npcs/new/edit')).toMatchObject({ unknown: true })
+  expect(parseRoute('/npcs/n1/edit/extra')).toMatchObject({ unknown: true })
+})
+
+it('updates query-only navigation and protects editor routes on navigation and browser Back', () => {
+  window.history.replaceState(null, '', '/npcs/n1/edit')
+  const hook = renderHook(() => ({ path: usePath(), search: useSearch() }))
+  const guard = vi.fn(() => false)
+  const release = registerNavigationGuard(guard)
+  try {
+    act(() => navigate('/characters'))
+    expect(window.location.pathname).toBe('/npcs/n1/edit')
+    act(() => {
+      window.history.replaceState(null, '', '/npcs?source=mine')
+      window.dispatchEvent(new PopStateEvent('popstate'))
+    })
+    expect(hook.result.current.path).toBe('/npcs/n1/edit')
+    expect(window.location.pathname).toBe('/npcs/n1/edit')
+    expect(guard).toHaveBeenCalledWith('/npcs?source=mine')
+  } finally { release() }
+  act(() => navigate('/npcs?source=mine'))
+  act(() => navigate('/npcs?source=builtin', { replace: true }))
+  expect(hook.result.current).toEqual({ path: '/npcs', search: '?source=builtin' })
+  hook.unmount()
 })
