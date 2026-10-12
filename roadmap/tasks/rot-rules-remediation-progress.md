@@ -41,7 +41,7 @@ scope сессии/encounter и единый check context: их нет в пр�
   plural forms и единое разрешение атак. ESLint/build, 648 Vitest, 1726 xUnit (1 существующий
   PostgreSQL migration test пропущен) и 6 Playwright прошли.
   [План](genesys-original-symbols.md), [описание](../../docs/genesys-ui-symbols.md).
-  Осталось: push исправлений, затем слияние [PR #280](https://github.com/Giviruk/GenesysForgeClaude/pull/280) поверх #279.
+  Осталось: слияние [PR #280](https://github.com/Giviruk/GenesysForgeClaude/pull/280) поверх #279; исправления ревью отправлены в `d6150b5`.
 
 - [~] **GEN-MINION-SKILLS-AUDIT** — проверка навыков групп миньонов по Core завершена.
   Формула `RemainingCount - 1`, групповые атаки и пересчёт после ран корректны;
@@ -260,6 +260,15 @@ ROT-TAL-05, ROT-HA-08/10, ROT-MAG-05/07/08 и ROT-EQP-AMMO-01 — всем, чт
 Legacy-алиасы поддерживают ранее сохранённые русские NPC-навыки, включая печать
 и Markdown-экспорт. Дистанции отображаются в терминах основной книги. Возврат
 приспешников при уменьшении ран сохранён по решению владельца.
+
+После ревью 13.10.2026 свободный текст сохраняет «А»/`*`/`@` и согласование слов,
+глифы сохраняют подсказки пулов. NPC editor/save/QuickDraft используют стабильные
+имена навыков с чтением legacy-алиасов и приоритетом custom exact; сервер узнаёт Веру.
+Обновлены каталог сложности, сообщения/аудит, хроника и read-only дистанции.
+Количество результатов согласуется через plural rules; печать и карточка используют
+один resolver атак, строки навыков имеют отдельные ключи. Все 15 замечаний исправлены;
+648 Vitest, 773 domain + 953 API (1 существующий migration test skipped), 6 Playwright,
+ESLint/build прошли. Код исправлений — `d6150b5`, PR остаётся открытым.
 
 Подробности: [описание](../../docs/genesys-ui-symbols.md), [план](genesys-original-symbols.md).
 
