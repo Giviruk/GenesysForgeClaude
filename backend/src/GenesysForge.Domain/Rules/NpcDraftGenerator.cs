@@ -95,8 +95,8 @@ public static class NpcDraftGenerator
         if (req.CombatStyle == NpcCombatStyle.Magic)
             npc.Abilities.Add(new NpcAbility
             {
-                NpcId = npc.Id, Name = "Заклинания",
-                Description = $"Творит заклинания навыком «{primarySkill}».",
+                NpcId = npc.Id, Name = SpellcastingAbilityName,
+                Description = SpellcastingDescription(primarySkill),
             });
 
         // Таланты и сигнатурная способность по правилам создания adversary: соперник/главарь получают
@@ -302,6 +302,12 @@ public static class NpcDraftGenerator
         NpcRole.Leader or NpcRole.Social => CharacteristicType.Cunning,
         _ => CharacteristicType.Agility,
     };
+
+    /// <summary>Способность мага, дающая ему действие (см. <see cref="NpcValidator"/>).</summary>
+    public const string SpellcastingAbilityName = "Заклинания";
+
+    /// <summary>Описание способности мага с отображаемым именем магического навыка.</summary>
+    public static string SpellcastingDescription(string skillLabel) => $"Творит заклинания навыком «{skillLabel}».";
 
     private static string SkillFor(NpcCombatStyle style) => style switch
     {

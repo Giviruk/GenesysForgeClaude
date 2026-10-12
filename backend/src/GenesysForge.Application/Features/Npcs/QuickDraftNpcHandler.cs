@@ -56,6 +56,10 @@ public partial class QuickDraftNpcHandler(IAppDbContext db) : ICommandHandler<Qu
         if (npc.Skills.Count == 0) return;
         foreach (var skill in npc.Skills)
             skill.Name = NpcSkillNames.Resolve(skills, skill.Name)?.Name ?? skill.Name;
+        // Магшкола приходит стабильным Name («Divine»); в тексте способности — подпись каталога («Вера»).
+        if (r.CombatStyle == NpcCombatStyle.Magic && NpcSkillNames.Resolve(skills, r.MagicSkill) is { } school
+            && npc.Abilities.FirstOrDefault(a => a.Name == NpcDraftGenerator.SpellcastingAbilityName) is { } spells)
+            spells.Description = NpcDraftGenerator.SpellcastingDescription(Label(school));
         var level = (int)r.PowerLevel; // 0..3
         var weapons = items.Where(i => i.Kind == ItemKind.Weapon).ToList();
         var armors = items.Where(i => i.Kind == ItemKind.Armor).ToList();
@@ -194,6 +198,7 @@ public partial class QuickDraftNpcHandler(IAppDbContext db) : ICommandHandler<Qu
     };
 
     /// <summary>Отображаемое имя записи: русское, с откатом на оригинальное.</summary>
+    private static string Label(SkillDef s) => string.IsNullOrWhiteSpace(s.NameRu) ? s.Name : s.NameRu;
     private static string Label(ItemDef i) => string.IsNullOrWhiteSpace(i.NameRu) ? i.Name : i.NameRu;
 
     /// <summary>Базовое имя навыка без скобочного уточнения: «Melee (Light)» → «Melee».</summary>

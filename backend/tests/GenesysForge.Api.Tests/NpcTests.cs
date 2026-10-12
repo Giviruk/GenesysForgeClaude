@@ -66,6 +66,7 @@ public class NpcTests : IClassFixture<ApiFactory>
     }
 
     [Theory]
+    [InlineData("Divine")]
     [InlineData("Вера")]
     [InlineData("Божественное")]
     public async Task QuickDraft_ResolvesCurrentAndLegacyMagicSchool(string magicSkill)
@@ -77,6 +78,8 @@ public class NpcTests : IClassFixture<ApiFactory>
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var draft = (await response.Content.ReadFromJsonAsync<NpcDetailDto>(Json.Options))!;
         Assert.Equal("Divine", Assert.Single(draft.Skills).Name);
+        // Описание способности называет магшколу по-русски, даже если клиент прислал стабильное Name.
+        Assert.Contains(draft.Abilities, a => a.Description == "Творит заклинания навыком «Вера».");
     }
 
     [Fact]
