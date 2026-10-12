@@ -39,7 +39,7 @@ scope сессии/encounter и единый check context: их нет в пр�
   повторный seed сохраняет ID и custom content. ESLint/build, 628 Vitest, 58 целевых xUnit
   и 6 Playwright прошли, включая финальное исправление печати.
   [План](genesys-original-symbols.md), [описание](../../docs/genesys-ui-symbols.md).
-  Осталось: открытие и слияние PR поверх #279.
+  Осталось: слияние [PR #280](https://github.com/Giviruk/GenesysForgeClaude/pull/280) поверх #279.
 
 - [~] **GEN-MINION-SKILLS-AUDIT** — проверка навыков групп миньонов по Core завершена.
   Формула `RemainingCount - 1`, групповые атаки и пересчёт после ран корректны;
