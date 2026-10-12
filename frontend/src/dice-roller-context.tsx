@@ -1,3 +1,4 @@
+import { rangeBandLabel } from './utils/labels'
 import { useMemo, useRef, useState, type ReactNode } from 'react'
 import type { RollOutcome } from './utils/diceRoller'
 import {
@@ -60,7 +61,7 @@ function DiceRollerDrawer({ drawer, onClose }: { drawer: DrawerState | null; onC
         <MagicRollerContent key={drawer.id} request={drawer} />
       ) : (
         <>
-          <p className="hint">{t('Соберите пул, добавьте сложность/бонусы/помехи и бросьте. Основной экран остаётся доступным.', 'Build the pool, add difficulty/boosts/setbacks and roll. The main screen stays available.')}</p>
+          <p className="hint">{t('Соберите набор костей, добавьте сложность/кости бонуса/кости штрафа и бросьте. Основной экран остаётся доступным.', 'Build the pool, add difficulty/boosts/setbacks and roll. The main screen stays available.')}</p>
           <DiceRoller
             key={drawer.id}
             initialPool={drawer.initialPool}
@@ -168,7 +169,7 @@ function CombatRollerContent({ request }: {
         <div className="npc-weapon-stats">
           <span className="weapon-stat">{t('Урон', 'Damage')} <strong>{dmg.text}</strong></span>
           {request.crit && <span className="weapon-stat">{t('Крит', 'Crit')} <strong>{request.crit}</strong></span>}
-          {request.rangeBand && <span className="weapon-stat">{request.rangeBand}</span>}
+          {request.rangeBand && <span className="weapon-stat">{rangeBandLabel(request.rangeBand)}</span>}
         </div>
         {request.qualities.length > 0 && (
           <ul className="combat-qualities">
@@ -182,7 +183,7 @@ function CombatRollerContent({ request }: {
         )}
       </div>
 
-      <p className="hint">{t('Базовый пул собран по навыку. Добавьте сложность/бонусы/помехи и бросьте — урон не решает за вас.', 'The base pool is built from the skill. Add difficulty/boosts/setbacks and roll — damage is not applied automatically.')}</p>
+      <p className="hint">{t('Базовый набор костей собран по навыку. Добавьте сложность/кости бонуса/кости штрафа и бросьте — урон не решает за вас.', 'The base pool is built from the skill. Add difficulty/boosts/setbacks and roll — damage is not applied automatically.')}</p>
       <DiceRoller
         initialPool={request.basePool}
         difficultyUpgrades={request.difficultyUpgrades}

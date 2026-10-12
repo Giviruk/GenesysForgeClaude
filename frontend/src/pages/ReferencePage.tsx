@@ -3,6 +3,7 @@ import { api } from '../api/client'
 import type { GameSystem, RuleTableEntry, RuleTableKind, SearchHit } from '../api/types'
 import { SYSTEM_LABELS } from '../utils/labels'
 import { t } from '../i18n'
+import { RuleText } from '../components/RuleText'
 
 /**
  * Справочник правил (U-11): таблицы сложностей / трат символов / дистанций / критических ранений
@@ -61,7 +62,7 @@ const rangeSubLabel = (sub: string) =>
 type RangeSub = (typeof RANGE_SUBS)[number]
 
 // Полярность траты определяем по символам в стоимости (Threat/Despair → негатив).
-const isNegativeSpend = (e: RuleTableEntry) => /threat|despair|угроз|крах/i.test(e.symbolCost)
+const isNegativeSpend = (e: RuleTableEntry) => /threat|despair|осложнен|угроз|крах/i.test(e.symbolCost)
 
 const HIT_GROUP_ORDER = ['Правила', 'Навыки', 'Таланты', 'Предметы', 'Качества',
   'Архетипы', 'Карьеры', 'Героика', 'NPC', 'Персонажи']
@@ -259,7 +260,7 @@ export function ReferencePage({ onNavigate }: { onNavigate: (to: string) => void
                       onClick={() => setSpendPolarity('positive')}>{t('Преимущества и триумфы', 'Advantages and Triumphs')}</button>
               <button role="tab" aria-selected={spendPolarity === 'negative'}
                       className={spendPolarity === 'negative' ? 'tab active' : 'tab'}
-                      onClick={() => setSpendPolarity('negative')}>{t('Угрозы и крахи', 'Threats and Despairs')}</button>
+                      onClick={() => setSpendPolarity('negative')}>{t('Осложнения и крахи', 'Threats and Despairs')}</button>
             </div>
           </>
         )}
@@ -351,9 +352,9 @@ function RuleTable({ kind, entries, showCost = true }:
                     {e.groupRu && <span className="muted"> · {entryGroup(e)}</span>}
                   </td>
                 )}
-                {showCost && <td className="ref-cost">{e.symbolCost}</td>}
+                {showCost && <td className="ref-cost"><RuleText text={e.symbolCost.replace(/\bor\b/gi, t('или', 'or'))} wordsAsSymbols /></td>}
                 <td>
-                  {t(e.body, e.bodyEn || e.body)}
+                  <RuleText symbolsOnly text={t(e.body, e.bodyEn || e.body)} />
                   {e.notes && <div className="muted ref-notes">{t(e.notes, e.notesEn || e.notes)}</div>}
                   {e.source && <div className="muted ref-source">{e.source}{e.sourcePage && t(`, с. ${e.sourcePage}`, `, p. ${e.sourcePage}`)}</div>}
                 </td>

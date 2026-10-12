@@ -1,24 +1,19 @@
 import type {
   AttachmentDef, Characteristic, CreatureTemplate, EncounterType, GameSystem,
   HeroicOriginType, ImplementMaterial, InitiativeSlotType, ItemDamageState, SignatureWeaponImprovement, SignatureWeaponProfile, WeaponCraftsmanship, WeaponFormTrait, ItemKind, ItemState, NpcCombatStyle, NpcKind, NpcPowerLevel, NpcRole,
+  WeaponRange,
   NpcVisibility, ParticipantType, SkillKind, TalentCategory, ThreatLevel, TransportKind, MovementMode,
 } from '../api/types'
 import { repeatsProperties } from '../data/itemQualities'
 import { t } from '../i18n'
+import { CORE_RU } from '../data/coreTerminology'
 
 export const SYSTEM_LABELS: Record<GameSystem, string> = {
   genesysCore: 'Genesys Core',
   realmsOfTerrinoth: 'Realms of Terrinoth',
 }
 
-export const CHARACTERISTIC_LABELS: Record<Characteristic, string> = t({
-  brawn: 'Мощь',
-  agility: 'Ловкость',
-  intellect: 'Интеллект',
-  cunning: 'Хитрость',
-  willpower: 'Воля',
-  presence: 'Харизма',
-}, {
+export const CHARACTERISTIC_LABELS: Record<Characteristic, string> = t(CORE_RU.characteristics, {
   brawn: 'Brawn',
   agility: 'Agility',
   intellect: 'Intellect',
@@ -33,10 +28,10 @@ export const CHARACTERISTICS: Characteristic[] = [
 
 /** Короткие подписи характеристик для узких таблиц. */
 export const CHARACTERISTIC_SHORT_LABELS: Record<Characteristic, string> = t({
-  brawn: 'Мощ',
+  brawn: 'Сил',
   agility: 'Лов',
   intellect: 'Инт',
-  cunning: 'Хит',
+  cunning: 'Смек',
   willpower: 'Вол',
   presence: 'Хар',
 }, {
@@ -167,9 +162,9 @@ export function resolveWeaponSkillName(weaponSkill: string, skillNames: string[]
 
 /** Подписи магических навыков (направлений магии). Ключ — стабильный код из seed. */
 export const MAGIC_SKILL_LABELS: Record<string, string> = t({
-  Arcana: 'Тайная (Arcana)',
-  Divine: 'Божественная (Divine)',
-  Primal: 'Природная (Primal)',
+  Arcana: 'Магия (Arcana)',
+  Divine: 'Вера (Divine)',
+  Primal: 'Природа (Primal)',
   Runes: 'Руны (Runes)',
   Verse: 'Песнь (Verse)',
 }, {
@@ -185,12 +180,12 @@ export const magicSkillLabel = (skill: string) => MAGIC_SKILL_LABELS[skill] ?? s
 
 /** Подписи уровней сложности проверки Genesys (число фиолетовых кубов). */
 export const DIFFICULTY_LABELS: Record<number, string> = t({
-  0: 'Простая',
-  1: 'Лёгкая',
-  2: 'Средняя',
-  3: 'Сложная',
-  4: 'Трудная',
-  5: 'Грозная',
+  0: CORE_RU.difficulty[0],
+  1: CORE_RU.difficulty[1],
+  2: CORE_RU.difficulty[2],
+  3: CORE_RU.difficulty[3],
+  4: CORE_RU.difficulty[4],
+  5: CORE_RU.difficulty[5],
 }, {
   0: 'Simple',
   1: 'Easy',
@@ -202,6 +197,18 @@ export const DIFFICULTY_LABELS: Record<number, string> = t({
 
 /** Подпись уровня сложности с ограничением 0..5. */
 export const difficultyLabel = (n: number) => DIFFICULTY_LABELS[Math.max(0, Math.min(5, n))] ?? `${n}`
+
+export const RANGE_LABELS: Record<WeaponRange, string> = t(CORE_RU.ranges, {
+  engaged: 'Engaged', short: 'Short', medium: 'Medium', long: 'Long', extreme: 'Extreme',
+})
+
+/** Localize known range values; preserve arbitrary custom range text. */
+export function rangeBandLabel(raw: string): string {
+  const value = raw.trim().toLocaleLowerCase()
+  const kind = (Object.keys(CORE_RU.ranges) as WeaponRange[])
+    .find(key => key === value || CORE_RU.ranges[key].toLocaleLowerCase() === value)
+  return kind ? RANGE_LABELS[kind] : raw
+}
 
 /**
  * Извлекает числовое значение сложности из строки справочника магии:
@@ -226,11 +233,7 @@ export const spellDifficulty = (baseDifficulty: string, additional: string[]): n
 export const wouldExceedSpellCap = (baseDifficulty: string, chosen: string[], candidate: string): boolean =>
   spellDifficulty(baseDifficulty, chosen) + parseDifficulty(candidate) > MAX_SPELL_DIFFICULTY
 
-export const NPC_KIND_LABELS: Record<NpcKind, string> = t({
-  minion: 'Миньон',
-  rival: 'Ривал',
-  nemesis: 'Немезида',
-}, {
+export const NPC_KIND_LABELS: Record<NpcKind, string> = t(CORE_RU.npcKinds, {
   minion: 'Minion',
   rival: 'Rival',
   nemesis: 'Nemesis',
@@ -351,7 +354,7 @@ export const NPC_ROLES: NpcRole[] = [
 export const PARTICIPANT_TYPE_LABELS: Record<ParticipantType, string> = t({
   playerCharacter: 'Персонаж',
   npc: 'NPC',
-  minionGroup: 'Группа миньонов',
+  minionGroup: 'Группа приспешников',
   hazard: 'Осложнение',
 }, {
   playerCharacter: 'Player character',
@@ -541,9 +544,9 @@ export const WEAPON_CRAFTSMANSHIP_ADJECTIVES: Record<WeaponCraftsmanship, string
 /** Краткая подсказка, что тип делает: игрок выбирает его при покупке и потом не меняет. */
 export const WEAPON_CRAFTSMANSHIP_HINTS: Record<WeaponCraftsmanship, string> = t({
   steel: 'Числа таблицы без изменений',
-  iron: 'Броня: вес +2 и помехи Атлетике, Координации, Верховой езде и Скрытности. Оружие: крит +1. Цена вдвое ниже, редкость −1',
+  iron: 'Броня: вес +2 и кости штрафа Атлетике, Координации, Верховой езде и Скрытности. Оружие: крит +1. Цена вдвое ниже, редкость −1',
   dwarven: 'Броня: вес +1, слот улучшений +1. Оружие: урон +1, вес +1. Цена вдвое выше, редкость +2',
-  elven: 'Броня: вес −2, минус одна помеха Скрытности. Оружие: урон −1 и крит −1. Цена вдвое выше, редкость +3',
+  elven: 'Броня: вес −2, минус одна кость штрафа Скрытности. Оружие: урон −1 и крит −1. Цена вдвое выше, редкость +3',
   ancient: 'Броня: поглощение +1, защита +1, укреплённая. Оружие: урон +1, крит −1, укреплённое. Слот улучшений −1, цена ×20, редкость 10',
 }, {
   steel: 'Table values unchanged',
@@ -636,7 +639,7 @@ export const ITEM_DAMAGE_STATE_LABELS: Record<ItemDamageState, string> = t({
 /** Что состояние делает с предметом — короткой строкой под переключателем и в памятке. */
 export const ITEM_DAMAGE_STATE_HINTS: Record<ItemDamageState, string> = t({
   undamaged: 'Штрафов нет, ремонт не нужен',
-  minor: 'Одна помеха ко всем проверкам, прямо использующим предмет',
+  minor: 'Одна кость штрафа ко всем проверкам, прямо использующим предмет',
   moderate: 'Сложность таких проверок повышается на одну ступень',
   major: 'Пользоваться нельзя: ни атак, ни поглощения, ни защиты, ни улучшений. Вес и содержимое остаются',
   destroyed: 'Пользоваться нельзя, обычный ремонт недоступен — дальше решает ведущий',

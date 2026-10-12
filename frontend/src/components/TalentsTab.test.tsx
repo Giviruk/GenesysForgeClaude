@@ -182,7 +182,7 @@ describe('TalentsTab', () => {
     const confirm = screen.getByRole('button', { name: 'Подтвердить и купить' }) as HTMLButtonElement
     fireEvent.click(screen.getByRole('button', { name: 'Воля' }))
     expect(confirm.disabled).toBe(true)
-    fireEvent.click(screen.getByRole('button', { name: 'Мощь' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Сила' }))
     // Больше двух выбрать нельзя.
     expect((screen.getByRole('button', { name: 'Ловкость' }) as HTMLButtonElement).disabled).toBe(true)
     fireEvent.click(confirm)

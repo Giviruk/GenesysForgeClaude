@@ -1,28 +1,30 @@
-import type { Characteristic, EncounterDetail, NpcDetail } from '../../api/types'
+import type { Characteristic, EncounterDetail, NpcDetail, Reference } from '../../api/types'
 import {
   CHARACTERISTIC_LABELS, ENCOUNTER_TYPE_LABELS, NPC_KIND_LABELS, NPC_ROLE_LABELS,
-  PARTICIPANT_TYPE_LABELS, THREAT_LEVEL_LABELS, difficultyLabel, magicSkillLabel,
+  PARTICIPANT_TYPE_LABELS, THREAT_LEVEL_LABELS, difficultyLabel, magicSkillLabel, rangeBandLabel,
 } from '../../utils/labels'
 import type { PrintVersion } from './PrintPreview'
 import { t } from '../../i18n'
 import type { MagicCardData } from './cards'
+import { npcSkillLabel, skillIndex } from '../../utils/npcStats'
 
 const CHARS: Characteristic[] = ['brawn', 'agility', 'intellect', 'cunning', 'willpower', 'presence']
 
 /** Markdown-экспорт карточек (§6.1). Официальный контент — только safe summary + источник (§6.2). */
-export function adversaryMarkdown(npc: NpcDetail, version: PrintVersion): string {
+export function adversaryMarkdown(npc: NpcDetail, version: PrintVersion, reference: Reference | null): string {
+  const index = skillIndex(reference)
   const lines = [`# ${npc.name}`, `${NPC_KIND_LABELS[npc.kind]} · ${NPC_ROLE_LABELS[npc.role]}`]
   if (npc.description) lines.push('', npc.description)
   if (version === 'gm') {
     lines.push('', `${t('**Характеристики:**', '**Characteristics:**')} ${CHARS.map(c => `${CHARACTERISTIC_LABELS[c]} ${npc[c]}`).join(', ')}`)
     lines.push(t(`**Поглощение** ${npc.soak} · **Раны** ${npc.woundThreshold}${npc.strainThreshold != null ? ` · **Усталость** ${npc.strainThreshold}` : ''} · **Бл.защ** ${npc.meleeDefense} · **Дал.защ** ${npc.rangedDefense}${npc.silhouette !== 1 ? ` · **Силуэт** ${npc.silhouette}` : ''}`, `**Soak** ${npc.soak} · **Wounds** ${npc.woundThreshold}${npc.strainThreshold != null ? ` · **Strain** ${npc.strainThreshold}` : ''} · **M.Def** ${npc.meleeDefense} · **R.Def** ${npc.rangedDefense}${npc.silhouette !== 1 ? ` · **Silhouette** ${npc.silhouette}` : ''}`))
-    if (npc.skills.length) lines.push(`${t('**Навыки:**', '**Skills:**')} ${npc.skills.map(s => `${s.name} ${s.ranks}`).join(', ')}`)
+    if (npc.skills.length) lines.push(`${t('**Навыки:**', '**Skills:**')} ${npc.skills.map(s => `${npcSkillLabel(s.name, index)} ${s.ranks}`).join(', ')}`)
     if (npc.attacks.length) {
       lines.push('', t('**Атаки:**', '**Attacks:**'))
       for (const a of npc.attacks) {
         const stats = [
-          a.skillName && t(`навык ${a.skillName}`, `skill ${a.skillName}`), a.damage && t(`Урон ${a.damage}`, `Damage ${a.damage}`),
-          a.critical && t(`Крит ${a.critical}`, `Crit ${a.critical}`), a.rangeBand,
+          a.skillName && t(`навык ${npcSkillLabel(a.skillName, index)}`, `skill ${npcSkillLabel(a.skillName, index)}`), a.damage && t(`Урон ${a.damage}`, `Damage ${a.damage}`),
+          a.critical && t(`Крит ${a.critical}`, `Crit ${a.critical}`), rangeBandLabel(a.rangeBand),
           ...a.qualities.map(q => (q.nameRu || q.qualityCode) + (q.rating != null ? ` ${q.rating}` : '')),
         ].filter(Boolean)
         lines.push(`- ${a.name}${stats.length ? ` (${stats.join(', ')})` : ''}`)

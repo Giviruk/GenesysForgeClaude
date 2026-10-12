@@ -67,7 +67,7 @@ export function expandDamage(damage: string, brawn: number): { base: number | nu
   if (dmg === '') return { base: null, text: '—' }
   if (dmg.startsWith('+')) {
     const bonus = Number(dmg.slice(1))
-    if (Number.isFinite(bonus)) return { base: brawn + bonus, text: `${brawn + bonus} ${t(`(Мощь ${dmg})`, `(Brawn ${dmg})`)}` }
+    if (Number.isFinite(bonus)) return { base: brawn + bonus, text: `${brawn + bonus} ${t(`(Сила ${dmg})`, `(Brawn ${dmg})`)}` }
     return { base: null, text: dmg }
   }
   const abs = Number(dmg)

@@ -1,4 +1,5 @@
 @import './assets/fonts/fonts.css';
+@import './assets/fonts/genesys.css';
 
 .book-reference {
   display: block;
@@ -661,6 +662,42 @@ table.ref-table td.ref-cost { white-space: nowrap; color: var(--accent); }
 .rule-triumph { color: var(--yellow); }
 .rule-despair { color: #d36f6f; }
 .rule-difficulty { color: var(--purple, #a06cd5); }
+.rule-ability { color: var(--green); }
+.rule-proficiency { color: var(--yellow); }
+.rule-challenge { color: var(--red); }
+
+/* Isolate the Genesys font so it never turns words or numbers into glyphs. */
+.genesys-symbol {
+  display: inline-block;
+  font-family: 'Genesys Symbols';
+  font-style: normal;
+  font-weight: 400;
+  font-synthesis: none;
+  font-variant: normal;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  white-space: nowrap;
+  vertical-align: -.08em;
+}
+.genesys-ability { color: var(--green); }
+.genesys-proficiency { color: var(--yellow); }
+.genesys-difficulty { color: var(--purple, #a06cd5); }
+.genesys-challenge { color: var(--red); }
+.genesys-boost { color: var(--blue, #4aa3df); }
+.genesys-setback { color: #2b2b2b; text-shadow: 0 0 1px var(--border), 0 0 2px rgba(255, 255, 255, .6); }
+.genesys-success { color: var(--green); }
+.genesys-failure { color: var(--red); }
+.genesys-advantage { color: #6fb3e8; }
+.genesys-threat { color: #e8a36f; }
+.genesys-triumph { color: var(--yellow); }
+.genesys-despair { color: #d36f6f; }
+.genesys-die { -webkit-text-stroke: .025em rgba(0, 0, 0, .55); }
+.genesys-symbol.rule-token { font-weight: 400; }
+@media print {
+  .genesys-die { -webkit-text-stroke: .025em #222; }
+  .genesys-setback { color: #1a1a1a; text-shadow: none; }
+}
 
 /* ---------- Magic Builder ---------- */
 .difficulty-badge.big { font-size: 0.95rem; padding: 0.25rem 0.9rem; }
@@ -2438,12 +2475,6 @@ button.tiny { font-size: 0.75rem; padding: 0.05rem 0.4rem 0.15rem; }
 .dr-die-glyph { font-size: 1.1rem; line-height: 1; }
 .dr-die-count { min-width: 1ch; text-align: center; font-weight: 600; }
 .dr-die-btns { display: inline-flex; gap: 0.2rem; }
-.dr-ability .dr-die-glyph { color: var(--green); }
-.dr-proficiency .dr-die-glyph { color: var(--yellow); }
-.dr-difficulty .dr-die-glyph { color: var(--purple, #a06cd5); }
-.dr-challenge .dr-die-glyph { color: var(--red); }
-.dr-boost .dr-die-glyph { color: var(--core); }
-.dr-setback .dr-die-glyph { color: var(--muted); }
 .dr-upgrades { display: flex; flex-wrap: wrap; align-items: center; gap: 0.35rem 0.5rem; }
 .dr-upgrades-label { color: var(--muted); cursor: help; }
 .dr-rolled-pool { color: var(--muted); }

@@ -1,3 +1,4 @@
+import { RuleText } from '../components/RuleText'
 import { useEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } from 'react'
 import { api } from '../api/client'
 import type {
@@ -149,8 +150,8 @@ function NpcDetailView({ npcId, reloadToken, onBack, onEdit, onDuplicated, onDel
     const versions: ('gm' | 'player')[] = n.isMine ? ['gm', 'player'] : ['player']
     return (
       <PrintPreview title={t(`Карточка NPC — ${n.name}`, `NPC card — ${n.name}`)} versions={versions}
-        markdown={(v) => adversaryMarkdown(n, v)} onClose={() => setPrinting(false)}>
-        {(v) => <AdversaryCard npc={n} version={v} />}
+        markdown={(v) => adversaryMarkdown(n, v, reference)} onClose={() => setPrinting(false)}>
+        {(v) => <AdversaryCard npc={n} version={v} reference={reference} />}
       </PrintPreview>
     )
   }
@@ -223,7 +224,7 @@ function NpcCard({ npc: n, reference, canAttack = true }: { npc: NpcDetail; refe
 
   return (
       <div className={`npc-card bt-card tab-${tab}`}>
-        {n.description && <p className="npc-desc">{n.description}</p>}
+        {n.description && <p className="npc-desc"><RuleText symbolsOnly text={n.description} /></p>}
 
         <div className="npc-char-row bt-card-chars">
           {chars.map(([c, v]) => (
@@ -300,7 +301,7 @@ function NpcCard({ npc: n, reference, canAttack = true }: { npc: NpcDetail; refe
                       className="weapon-props small-text"
                       qualityDefinitions={reference?.qualities ?? []} />
                   )}
-                  {w.notes && <div className="muted small-text">{w.notes}</div>}
+                  {w.notes && <div className="muted small-text"><RuleText symbolsOnly text={w.notes} /></div>}
                 </li>
               ))}
             </ul>
@@ -337,11 +338,11 @@ function NpcCard({ npc: n, reference, canAttack = true }: { npc: NpcDetail; refe
 
         </div>
         <div className="bt-card-right">
-        {n.description && <p className="bt-mobile-desc npc-desc">{n.description}</p>}
+        {n.description && <p className="bt-mobile-desc npc-desc"><RuleText symbolsOnly text={n.description} /></p>}
         {n.abilities.length > 0 && (
           <div className="npc-section bt-section-abilities">
             <h4>{t('Способности', 'Abilities')}</h4>
-            <ul>{n.abilities.map((a, i) => <li key={i}><b>{a.name}.</b> {a.description}</li>)}</ul>
+            <ul>{n.abilities.map((a, i) => <li key={i}><b>{a.name}.</b> <RuleText symbolsOnly text={a.description} /></li>)}</ul>
           </div>
         )}
         {n.talents.length > 0 && (
@@ -612,7 +613,7 @@ function NpcEditor({ initial, savedId, dirty, onCancel, onSaved, onChange, onKin
           <label>{t('Дал. защита', 'Ranged def.')}<input aria-invalid={invalidSection === 1 && /защит|defense/i.test(error ?? '')} type="number" inputMode="numeric" min={0} value={form.rangedDefense} onChange={e => set('rangedDefense', Math.max(0, +e.target.value))} /></label>
           <label>{t('Силуэт', 'Silhouette')}<input type="number" inputMode="numeric" min={0} max={10} value={form.silhouette} onChange={e => set('silhouette', clamp(+e.target.value, 0, 10))} /></label>
         </div>
-        <div className="bt-stat-note"><Icon name="info-circle" /><span>{manualSoak ? t('Поглощение задано вручную.', 'Soak is set manually.') : naturalSoak ? t('Поглощение учитывает Мощь, броню и природный бонус черновика.', 'Soak includes Brawn, armor and the draft’s natural bonus.') : t('Поглощение пересчитывается из Мощи и бонусов брони.', 'Soak follows Brawn and armor bonuses.')} {t('У миньона усталость отключена.', 'Strain is disabled for minions.')}</span><button type="button" onClick={() => { setManualSoak(false); change({ ...form, soak: suggestedNpcSoak(form, reference) + naturalSoak }) }}>{t('Авто', 'Auto')}</button></div>
+        <div className="bt-stat-note"><Icon name="info-circle" /><span>{manualSoak ? t('Поглощение задано вручную.', 'Soak is set manually.') : naturalSoak ? t('Поглощение учитывает Силу, броню и природный бонус черновика.', 'Soak includes Brawn, armor and the draft’s natural bonus.') : t('Поглощение пересчитывается из Силы и бонусов брони.', 'Soak follows Brawn and armor bonuses.')} {t('У приспешника усталость отключена.', 'Strain is disabled for minions.')}</span><button type="button" onClick={() => { setManualSoak(false); change({ ...form, soak: suggestedNpcSoak(form, reference) + naturalSoak }) }}>{t('Авто', 'Auto')}</button></div>
       </section>
       <section id="npc-section-2" data-section="2" className="bt-editor-section bt-editor-combat"><h4>3 · {t('Навыки и атаки', 'Skills and attacks')}</h4>
         <div className="bt-editor-skills"><SkillsEditor skills={form.skills} available={reference?.skills ?? []} characteristics={form} groupSkills={minion} onChange={s => set('skills', s)} /></div>
@@ -659,7 +660,7 @@ function SkillsEditor({ skills, available, characteristics, groupSkills = false,
   return (
     <div className="list-editor">
       <div className="label-line">{groupSkills ? t('Групповые навыки', 'Group skills') : t('Навыки', 'Skills')}</div>
-      {groupSkills && <div className="muted small-text">{t('Миньоны используют групповые навыки без рангов (ранг = размер группы − 1).', 'Minions use group skills without ranks (rank = group size − 1).')}</div>}
+      {groupSkills && <div className="muted small-text">{t('Приспешники используют групповые навыки без рангов (ранг = размер группы − 1).', 'Minions use group skills without ranks (rank = group size − 1).')}</div>}
       {skills.map((s, i) => {
         // Текущее значение оставляем выбираемым, даже если его нет в справочнике (кастом/смена системы).
         const orphan = s.name !== '' && !names.includes(s.name)

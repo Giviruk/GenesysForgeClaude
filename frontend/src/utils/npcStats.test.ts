@@ -2,9 +2,10 @@ import { describe, expect, it } from 'vitest'
 import type { ItemDef, NpcDetail, Reference, SkillDef } from '../api/types'
 import type { NpcAttackEntry } from '../api/types'
 import {
-  attackFromItem, buildPool, npcAttackViews, npcSkillViews, skillIndex, splitEquipment,
+  attackFromItem, buildPool, npcAttackViews, npcSkillLabel, npcSkillViews, skillIndex, splitEquipment,
   syncAttacksWithEquipment, weaponsByLabel,
 } from './npcStats'
+import { adversaryMarkdown } from '../components/print/markdown'
 
 function skillDef(p: Partial<SkillDef> & Pick<SkillDef, 'name' | 'nameRu' | 'characteristic'>): SkillDef {
   return { id: p.name, kind: 'combat', safeDescription: '', source: '', isCustom: false, ...p }
@@ -59,6 +60,28 @@ describe('buildPool — пул проверки навыка', () => {
 })
 
 describe('npcSkillViews — пулы навыков NPC', () => {
+  it('resolves old Russian skill names and displays the book name without changing ranks', () => {
+    const ref = { ...reference, skills: [skillDef({ name: 'Brawl', nameRu: 'Грубая сила', characteristic: 'brawn' })] }
+    const saved: NpcDetail = { ...npc, skills: [{ name: 'Рукопашный бой', ranks: 2 }],
+      attacks: [{ name: 'Кулаки', skillName: 'Brawl', damage: '+0', critical: '5', rangeBand: 'Engaged', notes: '', qualities: [], sourceWeapon: '' }] }
+    expect(npcSkillViews(saved, skillIndex(ref))[0]).toMatchObject({ name: 'Грубая сила', ranks: 2, pool: { ability: 1, proficiency: 2 } })
+    expect(npcAttackViews(saved, ref)[0].pool).toEqual({ ability: 1, proficiency: 2 })
+    const markdown = adversaryMarkdown(saved, 'gm', ref)
+    expect(markdown).toContain('Грубая сила 2')
+    expect(markdown).toContain('навык Грубая сила')
+    expect(markdown).toContain('Вплотную')
+    expect(markdown).not.toContain('Рукопашный бой')
+  })
+
+  it('prefers a custom skill exact name over a built-in legacy alias', () => {
+    const custom = skillDef({ name: 'Внимательность', nameRu: 'Особый навык', characteristic: 'intellect', isCustom: true })
+    const builtin = skillDef({ name: 'Perception', nameRu: 'Внимание', characteristic: 'cunning' })
+    const index = skillIndex({ ...reference, skills: [custom, builtin] })
+    expect(index.get('Внимательность')).toBe(custom)
+    expect(npcSkillLabel('Внимательность', index)).toBe('Особый навык')
+    expect(npcSkillLabel('Неизвестный навык', index)).toBe('Неизвестный навык')
+  })
+
   it('считает пул по характеристике навыка из справочника', () => {
     const views = npcSkillViews(npc, skillIndex(reference))
     expect(views).toHaveLength(1)
@@ -90,7 +113,7 @@ describe('splitEquipment — оружие vs прочее', () => {
     expect(weapons.map(w => w.name)).toEqual(['Меч', 'Пистолет'])
 
     const sword = weapons[0]
-    expect(sword.damageText).toBe('5 (Мощь +2)') // Мощь 3 + 2
+    expect(sword.damageText).toBe('5 (Сила +2)') // Мощь 3 + 2
     expect(sword.skillLabel).toBe('Ближний бой')
     expect(sword.pool).toEqual({ ability: 1, proficiency: 2 }) // Мощь 3, 2 ранга
 
@@ -121,7 +144,7 @@ describe('npcAttackViews — структурные атаки NPC', () => {
     const [a] = npcAttackViews(withAttacks, reference)
     expect(a.skillLabel).toBe('Ближний бой')
     expect(a.pool).toEqual({ ability: 1, proficiency: 2 }) // Мощь 3, 2 ранга
-    expect(a.damageText).toBe('5 (Мощь +2)')
+    expect(a.damageText).toBe('5 (Сила +2)')
     expect(a.crit).toBe('2')
     expect(a.qualities[0].label).toBe('Точное 1')
   })
@@ -130,7 +153,7 @@ describe('npcAttackViews — структурные атаки NPC', () => {
     const [a] = npcAttackViews(withAttacks, null)
     expect(a.pool).toBeNull()
     expect(a.skillLabel).toBeNull()
-    expect(a.damageText).toBe('5 (Мощь +2)') // раскрытие урона не зависит от справочника
+    expect(a.damageText).toBe('5 (Сила +2)') // раскрытие урона не зависит от справочника
   })
 
   it('масштабирует атаку миньонов только когда её навык входит в групповые', () => {

@@ -102,7 +102,7 @@ const reference = {
 const triumphChip = (rowName: string): HTMLButtonElement => {
   const row = screen.getByText(rowName).closest('.crafting-row')!
   return [...row.querySelectorAll('button')]
-    .find(b => b.textContent?.includes('★')) as HTMLButtonElement
+    .find(b => b.getAttribute('aria-label')?.startsWith('Триумфы ')) as HTMLButtonElement
 }
 
 const renderTab = () => render(
@@ -280,13 +280,13 @@ describe('Ремесло (ROT-CRAFT-01, ROT-ALCH-02, ROT-CRAFT-MAGIC-01)', () =>
     await screen.findByText('Сократить время на день')
     const advantages = screen.getByRole('spinbutton', { name: 'Преимущества' })
     fireEvent.change(advantages, { target: { value: '3' } })
-    fireEvent.click(screen.getByText('▲ 3'))
+    fireEvent.click(screen.getByRole('button', { name: 'Преимущества 3' }))
     const decrease = screen.getByRole('button', { name: 'Уменьшить: Преимущества' })
     expect(decrease).toHaveProperty('disabled', true)
     fireEvent.click(decrease)
     fireEvent.change(advantages, { target: { value: '1' } })
     expect(advantages).toHaveProperty('value', '3')
-    expect(screen.getByText(/Осталось:/).textContent).toContain('▲ 0')
+    expect(screen.getByLabelText('Преимущества: 0')).toBeTruthy()
     fireEvent.click(screen.getByRole('button', { name: 'Разрешить проект' }))
     await waitFor(() => expect(resolveMock).toHaveBeenCalledWith('char-1', 'proj-1', expect.objectContaining({ advantages: 3 })))
     await waitFor(() => expect(screen.getByRole('button', { name: 'Разрешить проект' })).toHaveProperty('disabled', false))

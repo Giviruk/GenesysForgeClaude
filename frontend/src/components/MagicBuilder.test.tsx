@@ -154,7 +154,7 @@ describe('MagicBuilder — доступность эффектов направ�
     expect(doom.disabled).toBe(false)
     const despair = screen.getByRole('checkbox', { name: /^Отчаяние/ }) as HTMLButtonElement
     expect(despair.disabled).toBe(true)
-    expect(despair.closest('.magic-effect-row')?.textContent).toContain('только для: Божественная (Divine)')
+    expect(despair.closest('.magic-effect-row')?.textContent).toContain('только для: Вера (Divine)')
 
     fireEvent.click(despair)
     expect(screen.getByText(/Сложность: 2/)).toBeTruthy() // клик по заблокированному ничего не меняет
@@ -168,7 +168,7 @@ describe('MagicBuilder — доступность эффектов направ�
     expect(screen.getByText(/Сложность: 4/)).toBeTruthy()
 
     // Жрецу «Рок» недоступен — он и в сложность больше не входит.
-    fireEvent.click(screen.getByRole('button', { name: /Божественная/ }))
+    fireEvent.click(screen.getByRole('button', { name: /Вера/ }))
     expect(screen.getByText(/Сложность: 2/)).toBeTruthy()
     expect((screen.getByRole('checkbox', { name: /Рок/ }) as HTMLButtonElement).disabled).toBe(true)
   })
@@ -176,7 +176,7 @@ describe('MagicBuilder — доступность эффектов направ�
   it('несочетаемый эффект блокируется, пока выбран его антагонист', async () => {
     render(<MagicBuilder system="realmsOfTerrinoth" onError={() => {}} />)
     await screen.findByText(/Сложность: 2/)
-    fireEvent.click(screen.getByRole('button', { name: /Божественная/ }))
+    fireEvent.click(screen.getByRole('button', { name: /Вера/ }))
 
     // По надбавке в имени, чтобы не поймать крестик «Убрать эффект» у выбранного чипа.
     const target = () => screen.getByRole('checkbox', { name: /^Дополнительная цель/ }) as HTMLButtonElement
@@ -341,8 +341,8 @@ describe('MagicBuilder — дайсроллер', () => {
     expect(openRollerMock).toHaveBeenCalledWith({
       kind: 'magic',
       title: 'Магическая проверка',
-      label: 'Тайная (Arcana) · Атака',
-      skillLabel: 'Тайная (Arcana) (3)',
+      label: 'Магия (Arcana) · Атака',
+      skillLabel: 'Магия (Arcana) (3)',
       basePool: {
         ability: 1,
         proficiency: 2,
@@ -468,7 +468,7 @@ describe('MagicBuilder — active school action metadata', () => {
     expect(action.textContent).toContain('(1)')
     expect(action.textContent).not.toContain('EPG')
     expect(action.title).toBe('Описание школы Arcana')
-    fireEvent.click(screen.getByRole('button', { name: /Божественная/ }))
+    fireEvent.click(screen.getByRole('button', { name: /Вера/ }))
     expect(action.textContent).toContain('(3)')
     expect(action.textContent).toContain('EPG')
     expect(action.title).toBe('Описание школы Divine')

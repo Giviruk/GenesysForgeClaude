@@ -14,6 +14,7 @@ import {
 import { IMPLEMENT_MATERIAL_LABELS } from '../utils/labels'
 import { ImplementMaterialMemo } from './ImplementMaterialMemo'
 import { DicePoolView } from './DicePoolView'
+import { GenesysSymbol } from './GenesysSymbol'
 import { PrintPreview } from './print/PrintPreview'
 import { MagicActionCard, type MagicCardData } from './print/cards'
 import { magicMarkdown } from './print/markdown'
@@ -613,7 +614,7 @@ export function MagicBuilder({
             </span>
           </div>
           <div className="difficulty-dice" aria-label={t(`${totalDifficulty} кубов сложности`, `${totalDifficulty} difficulty dice`)}>
-            {Array.from({ length: totalDifficulty }).map((_, i) => <span key={i} className="die difficulty">▲</span>)}
+            {Array.from({ length: totalDifficulty }).map((_, i) => <GenesysSymbol key={i} kind="difficulty" className="die difficulty" />)}
             {totalDifficulty === 0 && <span className="muted">{t('— (простая проверка)', '— (simple check)')}</span>}
           </div>
           {added > 0 && (

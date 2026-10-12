@@ -107,7 +107,8 @@ public static class SeedData
                 return true;
             });
         SyncBuiltinByCode(db, db.SkillDefs.Where(x => x.OwnerUserId == null && x.Code != ""), skills,
-            (row, def) => Assign(row.DescriptionEn != def.DescriptionEn, () => row.DescriptionEn = def.DescriptionEn));
+            (row, def) => Assign(row.NameRu != def.NameRu || row.DescriptionEn != def.DescriptionEn,
+                () => { row.NameRu = def.NameRu; row.DescriptionEn = def.DescriptionEn; }));
         SyncBuiltinByCode(db, db.CareerDefs.Where(x => x.OwnerUserId == null && x.Code != ""), careers,
             (row, def) => Assign(row.DescriptionEn != def.DescriptionEn || row.SafeDescription != def.SafeDescription,
                 () => { row.DescriptionEn = def.DescriptionEn; row.SafeDescription = def.SafeDescription; }));
@@ -1353,18 +1354,18 @@ public static class SeedData
     private static readonly Dictionary<string, string> SkillRu = new()
     {
         ["Athletics"] = "Атлетика", ["Computers"] = "Компьютеры", ["Cool"] = "Хладнокровие",
-        ["Coordination"] = "Координация", ["Discipline"] = "Дисциплина", ["Driving"] = "Вождение",
-        ["Mechanics"] = "Механика", ["Medicine"] = "Медицина", ["Operating"] = "Операторство",
-        ["Perception"] = "Внимательность", ["Piloting"] = "Пилотирование", ["Resilience"] = "Выносливость",
-        ["Riding"] = "Верховая езда", ["Skulduggery"] = "Плутовство", ["Stealth"] = "Скрытность",
-        ["Streetwise"] = "Уличная смекалка", ["Survival"] = "Выживание", ["Vigilance"] = "Бдительность",
-        ["Brawl"] = "Рукопашный бой", ["Gunnery"] = "Тяжёлое орудие", ["Melee"] = "Ближний бой",
-        ["Ranged (Heavy)"] = "Дальний бой (тяжёлый)", ["Ranged (Light)"] = "Дальний бой (лёгкий)",
-        ["Charm"] = "Обаяние", ["Coercion"] = "Принуждение", ["Deception"] = "Обман",
+        ["Coordination"] = "Координация", ["Discipline"] = "Выдержка", ["Driving"] = "Вождение",
+        ["Mechanics"] = "Механика", ["Medicine"] = "Медицина", ["Operating"] = "Управление",
+        ["Perception"] = "Внимание", ["Piloting"] = "Пилотирование", ["Resilience"] = "Стойкость",
+        ["Riding"] = "Верховая езда", ["Skulduggery"] = "Жульничество", ["Stealth"] = "Скрытность",
+        ["Streetwise"] = "Уличная интуиция", ["Survival"] = "Выживание", ["Vigilance"] = "Бдительность",
+        ["Brawl"] = "Грубая сила", ["Gunnery"] = "Артиллерия", ["Melee"] = "Ближний бой",
+        ["Ranged (Heavy)"] = "Дальний бой (тяжёлое оружие)", ["Ranged (Light)"] = "Дальний бой (лёгкое оружие)",
+        ["Charm"] = "Обаяние", ["Coercion"] = "Запугивание", ["Deception"] = "Обман",
         ["Leadership"] = "Лидерство", ["Negotiation"] = "Переговоры", ["Knowledge"] = "Знание",
-        ["Arcana"] = "Аркана", ["Divine"] = "Божественное", ["Primal"] = "Первозданное",
-        ["Alchemy"] = "Алхимия", ["Melee (Heavy)"] = "Ближний бой (тяжёлый)",
-        ["Melee (Light)"] = "Ближний бой (лёгкий)", ["Ranged"] = "Дальний бой",
+        ["Arcana"] = "Магия", ["Divine"] = "Вера", ["Primal"] = "Природа",
+        ["Alchemy"] = "Алхимия", ["Melee (Heavy)"] = "Ближний бой (тяжёлое оружие)",
+        ["Melee (Light)"] = "Ближний бой (лёгкое оружие)", ["Ranged"] = "Дальний бой",
         ["Knowledge (Adventuring)"] = "Знание (приключения)", ["Knowledge (Forbidden)"] = "Знание (запретное)",
         ["Knowledge (Geography)"] = "Знание (география)", ["Knowledge (Lore)"] = "Знание (предания)",
         ["Runes"] = "Руны", ["Verse"] = "Стих",

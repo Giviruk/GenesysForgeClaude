@@ -232,10 +232,10 @@ function StoryPoints({ session, isGm, onRun, campaignId }: BlockProps) {
 
 const RANGE_ZONES: { id: RangeZone; nameEn: string; nameRu: string; hint: string }[] = [
   { id: 'engaged', nameEn: 'Engaged', nameRu: 'Вплотную', hint: t('ближний бой', 'melee') },
-  { id: 'short', nameEn: 'Short', nameRu: 'Ближняя', hint: t('лёгкие дальнобойные · 1 манёвр', 'light ranged · 1 maneuver') },
+  { id: 'short', nameEn: 'Short', nameRu: 'Короткая', hint: t('лёгкие дальнобойные · 1 манёвр', 'light ranged · 1 maneuver') },
   { id: 'medium', nameEn: 'Medium', nameRu: 'Средняя', hint: t('дальнобойные · 1 манёвр', 'ranged · 1 maneuver') },
-  { id: 'long', nameEn: 'Long', nameRu: 'Дальняя', hint: t('тяжёлые дальнобойные · 2 манёвра', 'heavy ranged · 2 maneuvers') },
-  { id: 'extreme', nameEn: 'Extreme', nameRu: 'Предельная', hint: t('предел дистанции · 2 манёвра', 'extreme range · 2 maneuvers') },
+  { id: 'long', nameEn: 'Long', nameRu: 'Длинная', hint: t('тяжёлые дальнобойные · 2 манёвра', 'heavy ranged · 2 maneuvers') },
+  { id: 'extreme', nameEn: 'Extreme', nameRu: 'Экстремальная', hint: t('предел дистанции · 2 манёвра', 'extreme range · 2 maneuvers') },
 ]
 
 /** Название зоны на языке интерфейса. */
@@ -613,7 +613,7 @@ function ParticipantsStrip({ session, campaignId, isGm, members, onRun,
       <section className="panel participants-strip">
         <div className="panel-head participants-head">
           <h3>{t('Участники сцены', 'Scene participants')}</h3>
-          <span className="muted small-text">{t('раны · бусты · сетбеки — прямо на карточке', 'wounds · boosts · setbacks — directly on cards')}</span>
+          <span className="muted small-text">{t('раны · кости бонуса · кости штрафа — прямо на карточке', 'wounds · boosts · setbacks — directly on cards')}</span>
         </div>
         <div className="participants-grid">
           {session.participants.length === 0 && <p className="muted">{t('Участников пока нет.', 'No participants yet.')}</p>}
@@ -719,20 +719,20 @@ function ParticipantCard({ p, campaignId, isGm, canEditVitals, onRun, onUpdatePa
           aria-label={t(`Добавить усталость ${p.displayName}`, `Add strain to ${p.displayName}`)}
           onClick={stop(() => update({ strainCurrent: p.strainCurrent + 1 }))}>+</button>
 
-        <span className="boost-label">{t('Бусты', 'Boosts')}</span><b>{p.boostDice}</b>
+        <span className="boost-label">{t('Кости бонуса', 'Boosts')}</span><b>{p.boostDice}</b>
         <button type="button" className="tiny" disabled={updatePending || !canEditVitals || p.boostDice <= 0}
-          aria-label={t(`Убрать буст у ${p.displayName}`, `Remove boost from ${p.displayName}`)}
+          aria-label={t(`Убрать кость бонуса у ${p.displayName}`, `Remove boost from ${p.displayName}`)}
           onClick={stop(() => update({ boostDice: p.boostDice - 1 }))}>−</button>
         <button type="button" className="tiny" disabled={updatePending || !canEditVitals || p.boostDice >= 20}
-          aria-label={t(`Добавить буст ${p.displayName}`, `Add boost to ${p.displayName}`)}
+          aria-label={t(`Добавить кость бонуса ${p.displayName}`, `Add boost to ${p.displayName}`)}
           onClick={stop(() => update({ boostDice: p.boostDice + 1 }))}>+</button>
 
-        <span className="setback-label">{t('Сетбеки', 'Setbacks')}</span><b>{p.setbackDice}</b>
+        <span className="setback-label">{t('Кости штрафа', 'Setbacks')}</span><b>{p.setbackDice}</b>
         <button type="button" className="tiny" disabled={updatePending || !canEditVitals || p.setbackDice <= 0}
-          aria-label={t(`Убрать сетбек у ${p.displayName}`, `Remove setback from ${p.displayName}`)}
+          aria-label={t(`Убрать кость штрафа у ${p.displayName}`, `Remove setback from ${p.displayName}`)}
           onClick={stop(() => update({ setbackDice: p.setbackDice - 1 }))}>−</button>
         <button type="button" className="tiny" disabled={updatePending || !canEditVitals || p.setbackDice >= 20}
-          aria-label={t(`Добавить сетбек ${p.displayName}`, `Add setback to ${p.displayName}`)}
+          aria-label={t(`Добавить кость штрафа ${p.displayName}`, `Add setback to ${p.displayName}`)}
           onClick={stop(() => update({ setbackDice: p.setbackDice + 1 }))}>+</button>
       </div>
       <div className="participant-card-footer" onClick={e => e.stopPropagation()}>
@@ -827,7 +827,7 @@ function AddParticipant({ members, onRun, campaignId }: {
               <option value="">{t('— выберите NPC —', '— pick an NPC —')}</option>
               {npcs.map(n => <option key={n.id} value={n.id}>{n.name}</option>)}
             </select>
-            <input className="ranks-input" type="number" min={1} value={count} onChange={e => setCount(Math.max(1, +e.target.value))} title={t('Количество (группа миньонов)', 'Count (minion group)')} />
+            <input className="ranks-input" type="number" min={1} value={count} onChange={e => setCount(Math.max(1, +e.target.value))} title={t('Количество (группа приспешников)', 'Count (minion group)')} />
           </>
         )}
         {mode === 'manual' && (

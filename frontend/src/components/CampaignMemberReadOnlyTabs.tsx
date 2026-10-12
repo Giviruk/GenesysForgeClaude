@@ -86,7 +86,7 @@ function ReadOnlyItem({ item }: { item: SheetItem }) {
     {item.attachments.length > 0 && <div className="muted small-text">
       {t('Улучшения', 'Attachments')}: {item.attachments.map(value => localizedName(value)).join(' · ')}
     </div>}
-    {localizedDescription(item) && <div className="inv-card-desc">{localizedDescription(item)}</div>}
+    {localizedDescription(item) && <div className="inv-card-desc"><RuleText symbolsOnly text={localizedDescription(item)} /></div>}
     <div className="muted small-text">{t('Вес', 'Load')}: {item.load}</div>
   </div>
 }
@@ -104,7 +104,7 @@ export function ReadOnlyHeroicTab({ sheet }: { sheet: CharacterSheet }) {
         <span className="badge">{ability.frequency}</span>
         <span className="badge">{ability.duration}</span>
       </div>
-      {localizedDescription(ability) && <p>{localizedDescription(ability)}</p>}
+      {localizedDescription(ability) && <p><RuleText symbolsOnly text={localizedDescription(ability)} /></p>}
       <BookReference source={ability.source} />
       <div className="muted small-text">
         {t('Очки улучшений', 'Upgrade points')}: {sheet.heroicUpgradePointsSpent}/{sheet.heroicUpgradePointsTotal}

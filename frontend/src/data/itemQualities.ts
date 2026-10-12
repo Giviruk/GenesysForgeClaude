@@ -94,7 +94,7 @@ export const ITEM_QUALITIES: ItemQuality[] = [
   {
     nameRu: 'Громоздкое', nameEn: 'Cumbersome', rated: true,
     description: t(
-      'Для нормального использования нужна Сила (Мощь) не ниже рейтинга свойства. За каждый пункт Мощи ' +
+      'Для нормального использования нужна Сила не ниже рейтинга свойства. За каждый пункт Силы ' +
       'ниже рейтинга владелец увеличивает сложность всех проверок с этим оружием на 1.',
       'Requires Brawn no lower than the quality\'s rating to use properly. For each point of Brawn ' +
       'below the rating, the wielder increases the difficulty of all checks with this weapon by 1.',
@@ -170,7 +170,7 @@ export const ITEM_QUALITIES: ItemQuality[] = [
     nameRu: 'Низкопробное', nameEn: 'Inferior', rated: false,
     description: t(
       'Предмет низкого качества: при всех проверках с этим оружием или предметом автоматически добавляется ' +
-      '1 угроза к результату. Отражает ненадёжное, плохо сделанное или изношенное снаряжение.',
+      '1 осложнение к результату. Отражает ненадёжное, плохо сделанное или изношенное снаряжение.',
       'A low-quality item: all checks with this weapon or item automatically add 1 Threat to the result. ' +
       'Represents unreliable, poorly made or worn-out gear.',
     ),

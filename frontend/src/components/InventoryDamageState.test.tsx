@@ -227,7 +227,7 @@ describe('Инвентарь: состояние предмета и ремон�
 
     const memo = screen.getByRole('tooltip').textContent ?? ''
     expect(memo).toContain('Механика')
-    expect(memo).toContain('Средняя')
+    expect(memo).toContain('Обычная')
     expect(memo).toContain('2–4 ч')
     expect(memo).toContain('50%')
     expect(memo).toContain('10 % за каждое чистое преимущество')
@@ -249,7 +249,7 @@ describe('Инвентарь: состояние предмета и ремон�
     const pool = container.querySelector('.weapon-pool')!
     // Помеха приехала с сервера вместе с профилем и подписана источником.
     expect(pool.getAttribute('title')).toContain('Незначительное повреждение')
-    expect(pool.textContent).toContain('■')
+    expect(pool.querySelector('[aria-label="Кость штрафа"]')).not.toBeNull()
   })
 
   it('не даёт атаковать сломанным оружием', () => {

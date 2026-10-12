@@ -2,10 +2,10 @@ import { useMemo, useState } from 'react'
 import { api } from '../api/client'
 import type {
   BaseSheet, CharacterSheet, ImplementMaterial, ItemCheckModifier, ItemDef, ItemKind, ItemState, Reference,
-  SheetItem, WeaponAttackProfile, WeaponCraftsmanship, WeaponRange,
+  SheetItem, WeaponAttackProfile, WeaponCraftsmanship,
 } from '../api/types'
 import {
-  CHARACTERISTIC_LABELS, CURRENCY_LABEL, DIFFICULTY_LABELS, IMPLEMENT_MATERIAL_HINTS,
+  RANGE_LABELS, rangeBandLabel, CHARACTERISTIC_LABELS, CURRENCY_LABEL, DIFFICULTY_LABELS, IMPLEMENT_MATERIAL_HINTS,
   IMPLEMENT_MATERIAL_LABELS, ITEM_DAMAGE_STATE_HINTS,
   ITEM_DAMAGE_STATE_LABELS, ITEM_KIND_LABELS, ITEM_STAT_FIELD_LABELS, ITEM_STATE_LABELS,
   itemDescription, localizedName, parseWeaponTraits, resolveWeaponSkillName, secondaryName,
@@ -477,7 +477,7 @@ function checkModifierText(m: ItemCheckModifier, sheet: CharacterSheet): string 
       ? CHARACTERISTIC_LABELS[m.characteristic]
       : t('всем проверкам', 'all checks'))
   const sign = m.kind === 'AddSetback' ? '+' : '−'
-  const body = t(`${sign}${m.value} помех к «${target}»`, `${sign}${m.value} setback to ${target}`)
+  const body = t(`${sign}${m.value} костей штрафа к «${target}»`, `${sign}${m.value} setback to ${target}`)
   return m.condition ? `${body} — ${m.condition}` : body
 }
 
@@ -573,7 +573,7 @@ function InventoryCard({ item, sheet, skillNames, run, reference, funds, sellOpe
       {item.isUsable && item.damageState !== 'undamaged' && item.kind !== 'weapon' && (
         <div className="damage-warn small-text">
           {item.damageState === 'minor'
-            ? t('+1 помеха ко всем проверкам, прямо использующим предмет',
+            ? t('+1 кость штрафа ко всем проверкам, прямо использующим предмет',
               '+1 setback to every check that directly uses the item')
             : t('+1 к сложности всех проверок, прямо использующих предмет',
               '+1 difficulty to every check that directly uses the item')}
@@ -749,11 +749,7 @@ function InventoryCard({ item, sheet, skillNames, run, reference, funds, sellOpe
   )
 }
 
-const RANGE_LABELS: Record<WeaponRange, string> = t({
-  engaged: 'Вплотную', short: 'Короткая', medium: 'Средняя', long: 'Длинная', extreme: 'Экстремальная',
-}, {
-  engaged: 'Engaged', short: 'Short', medium: 'Medium', long: 'Long', extreme: 'Extreme',
-})
+
 
 /** Подпись профиля: у основного её нет, у альтернативных — «в метании», «в руке». */
 function profileLabel(p: WeaponAttackProfile): string {
@@ -784,10 +780,10 @@ function WeaponLine({ item, sheet, skill, skillLabel, reference, run }: {
 
   const damageText = profile
     ? `${profile.baseDamage ?? profile.damageValue}${profile.damageKind === 'brawnPlus'
-      ? ` ${t(`(Мощь +${profile.damageValue})`, `(Brawn +${profile.damageValue})`)}` : ''}`
+      ? ` ${t(`(Сила +${profile.damageValue})`, `(Brawn +${profile.damageValue})`)}` : ''}`
     : item.damage
   const critText = profile ? String(profile.crit) : item.crit
-  const rangeText = profile ? RANGE_LABELS[profile.range] : item.rangeBand
+  const rangeText = profile ? RANGE_LABELS[profile.range] : rangeBandLabel(item.rangeBand)
   // Качества берутся из профиля экземпляра, а не из строки каталога: работа и улучшения меняют
   // набор (Проникающее от Острого лезвия, Укреплённое у древней работы), а строка о них не знает.
   // item.properties остаётся запасным вариантом для записей без структурного профиля.
@@ -804,10 +800,10 @@ function WeaponLine({ item, sheet, skill, skillLabel, reference, run }: {
     ? [t('Поправки к пулу:', 'Pool modifiers:'), ...mods.sources.map(s => {
       const parts: string[] = []
       if (s.boost) parts.push(t(`+${s.boost} бонусных`, `+${s.boost} boost`))
-      if (s.setback) parts.push(t(`+${s.setback} помех`, `+${s.setback} setback`))
+      if (s.setback) parts.push(t(`+${s.setback} костей штрафа`, `+${s.setback} setback`))
       if (s.difficulty) parts.push(t(`+${s.difficulty} к сложности`, `+${s.difficulty} difficulty`))
       if (s.advantage) parts.push(t(`+${s.advantage} преимущество`, `+${s.advantage} advantage`))
-      if (s.threat) parts.push(t(`+${s.threat} угроза`, `+${s.threat} threat`))
+      if (s.threat) parts.push(t(`+${s.threat} осложнение`, `+${s.threat} threat`))
       return `${t(s.nameRu, s.nameEn)}: ${parts.join(', ')}`
     })].join('\n')
     : undefined

@@ -96,6 +96,9 @@ describe('netSymbols', () => {
 })
 
 describe('summarize', () => {
+  it('uses the Russian book result names', () => {
+    expect(summarize(sym({ failure: 1, threat: 2, despair: 1 }))).toBe('1 провал, 2 осложнения, 1 крах')
+  })
   it('успех с преимуществом', () => {
     expect(summarize(sym({ success: 2, advantage: 1 }))).toBe('2 успеха, 1 преимущество')
   })

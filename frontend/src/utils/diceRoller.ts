@@ -122,9 +122,9 @@ const SYMBOL_LABELS: Record<DieSymbol, [one: string, many: string]> = t({
   success: ['успех', 'успеха'],
   failure: ['провал', 'провала'],
   advantage: ['преимущество', 'преимущества'],
-  threat: ['угроза', 'угрозы'],
+  threat: ['осложнение', 'осложнения'],
   triumph: ['триумф', 'триумфа'],
-  despair: ['отчаяние', 'отчаяния'],
+  despair: ['крах', 'краха'],
 }, {
   success: ['success', 'successes'],
   failure: ['failure', 'failures'],
