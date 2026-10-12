@@ -38,7 +38,8 @@ scope сессии/encounter и единый check context: их нет в пр�
   найден неопределённый пул «Ржавого клинка» у `reanimate`. Уменьшение ран с возвратом
   миньонов оставлено по решению владельца 12.10.2026. 46 Vitest и 14 xUnit прошли.
   [Отчёт](../../docs/minion-group-skills-audit.md), [план](minion-skill-rules-audit.md).
-  Осталось: слияние PR документации. Полный ROT-MIN runtime остаётся вне скопа.
+  Осталось: слияние [PR #279](https://github.com/Giviruk/GenesysForgeClaude/pull/279) документации.
+  Полный ROT-MIN runtime остаётся вне скопа.
 
 - [~] **GEN-UI-BESTIARY** — UI бестиария и страниц создания по макетам 2a–2g.
   Реализованы список/карточка, фильтры, tooltip, отдельные редактор и wizard;
