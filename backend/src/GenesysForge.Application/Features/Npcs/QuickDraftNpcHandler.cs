@@ -54,6 +54,8 @@ public partial class QuickDraftNpcHandler(IAppDbContext db) : ICommandHandler<Qu
         Npc npc, QuickDraftRequest r, IReadOnlyList<SkillDef> skills, IReadOnlyList<ItemDef> items)
     {
         if (npc.Skills.Count == 0) return;
+        foreach (var skill in npc.Skills)
+            skill.Name = NpcSkillNames.Resolve(skills, skill.Name)?.Name ?? skill.Name;
         var level = (int)r.PowerLevel; // 0..3
         var weapons = items.Where(i => i.Kind == ItemKind.Weapon).ToList();
         var armors = items.Where(i => i.Kind == ItemKind.Armor).ToList();
@@ -65,7 +67,7 @@ public partial class QuickDraftNpcHandler(IAppDbContext db) : ICommandHandler<Qu
             var natSkill = FirstCombat(skills, CharacteristicType.Brawn) ?? FirstByKind(skills, SkillKind.Combat);
             if (natSkill != null)
             {
-                npc.Skills[0].Name = Label(natSkill);
+                npc.Skills[0].Name = natSkill.Name;
                 foreach (var a in npc.Attacks.Where(a => a.RangeBand == "Вплотную"))
                     a.SkillName = natSkill.Name;
             }
@@ -85,14 +87,14 @@ public partial class QuickDraftNpcHandler(IAppDbContext db) : ICommandHandler<Qu
             : r.CombatStyle switch
             {
                 // Для магии — заданная магшкола из каталога, иначе первый магнавык.
-                NpcCombatStyle.Magic => ResolveSkillByLabel(skills, r.MagicSkill) ?? FirstByKind(skills, SkillKind.Magic),
+                NpcCombatStyle.Magic => NpcSkillNames.Resolve(skills, r.MagicSkill) ?? FirstByKind(skills, SkillKind.Magic),
                 NpcCombatStyle.Social => FirstByKind(skills, SkillKind.Social),
                 NpcCombatStyle.Melee => FirstCombat(skills, CharacteristicType.Brawn),
                 NpcCombatStyle.Ranged => FirstCombat(skills, CharacteristicType.Agility),
                 _ => null,
             };
         if (primary != null)
-            npc.Skills[0].Name = Label(primary);
+            npc.Skills[0].Name = primary.Name;
 
         // ── Броня по уровню силы (целевой бонус поглощения ≈ уровень) ──
         var armor = level == 0 ? null : PickArmor(armors, targetSoak: level);
@@ -136,7 +138,7 @@ public partial class QuickDraftNpcHandler(IAppDbContext db) : ICommandHandler<Qu
             .SelectMany(ch => skills.Where(s => s.Characteristic == ch && s.Kind != SkillKind.Combat)
                 .OrderBy(s => s.Name))
             .Concat(skills.Where(s => s.Kind != SkillKind.Combat).OrderBy(s => s.Name)) // добор любым небоевым
-            .Select(Label)
+            .Select(s => s.Name)
             .Distinct();
 
         foreach (var name in candidates)
@@ -165,16 +167,6 @@ public partial class QuickDraftNpcHandler(IAppDbContext db) : ICommandHandler<Qu
     private static SkillDef? FirstCombat(IReadOnlyList<SkillDef> skills, CharacteristicType ch) =>
         skills.Where(s => s.Kind == SkillKind.Combat && s.Characteristic == ch).OrderBy(s => s.Name).FirstOrDefault();
 
-    /// <summary>Навык каталога по отображаемому имени (RU/EN), регистронезависимо. null для пустого/ненайденного.</summary>
-    private static SkillDef? ResolveSkillByLabel(IReadOnlyList<SkillDef> skills, string? label)
-    {
-        if (string.IsNullOrWhiteSpace(label)) return null;
-        var l = label.Trim();
-        return skills.FirstOrDefault(s =>
-            string.Equals(s.NameRu, l, StringComparison.OrdinalIgnoreCase) ||
-            string.Equals(s.Name, l, StringComparison.OrdinalIgnoreCase));
-    }
-
     /// <summary>Навык каталога по английскому имени навыка оружия: точное, затем по базовому имени.</summary>
     private static SkillDef? ResolveSkill(IReadOnlyList<SkillDef> skills, string weaponSkill)
     {
@@ -202,7 +194,6 @@ public partial class QuickDraftNpcHandler(IAppDbContext db) : ICommandHandler<Qu
     };
 
     /// <summary>Отображаемое имя записи: русское, с откатом на оригинальное.</summary>
-    private static string Label(SkillDef s) => string.IsNullOrWhiteSpace(s.NameRu) ? s.Name : s.NameRu;
     private static string Label(ItemDef i) => string.IsNullOrWhiteSpace(i.NameRu) ? i.Name : i.NameRu;
 
     /// <summary>Базовое имя навыка без скобочного уточнения: «Melee (Light)» → «Melee».</summary>

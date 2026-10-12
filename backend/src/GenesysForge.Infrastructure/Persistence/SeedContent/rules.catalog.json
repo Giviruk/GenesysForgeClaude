@@ -2,7 +2,7 @@
   {
     "kind": "Difficulty",
     "code": "diff-simple",
-    "nameRu": "Простая",
+    "nameRu": "Элементарная",
     "nameEn": "Simple",
     "groupRu": "",
     "groupEn": "",
@@ -36,7 +36,7 @@
   {
     "kind": "Difficulty",
     "code": "diff-average",
-    "nameRu": "Средняя",
+    "nameRu": "Обычная",
     "nameEn": "Average",
     "groupRu": "",
     "groupEn": "",
@@ -53,7 +53,7 @@
   {
     "kind": "Difficulty",
     "code": "diff-hard",
-    "nameRu": "Трудная",
+    "nameRu": "Сложная",
     "nameEn": "Hard",
     "groupRu": "",
     "groupEn": "",
@@ -70,7 +70,7 @@
   {
     "kind": "Difficulty",
     "code": "diff-daunting",
-    "nameRu": "Устрашающая",
+    "nameRu": "Пугающая",
     "nameEn": "Daunting",
     "groupRu": "",
     "groupEn": "",
@@ -87,7 +87,7 @@
   {
     "kind": "Difficulty",
     "code": "diff-formidable",
-    "nameRu": "Грозная",
+    "nameRu": "Запредельная",
     "nameEn": "Formidable",
     "groupRu": "",
     "groupEn": "",

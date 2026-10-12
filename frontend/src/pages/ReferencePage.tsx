@@ -3,6 +3,7 @@ import { api } from '../api/client'
 import type { GameSystem, RuleTableEntry, RuleTableKind, SearchHit } from '../api/types'
 import { SYSTEM_LABELS } from '../utils/labels'
 import { t } from '../i18n'
+import { localizeSymbolCost } from '../utils/labels'
 import { RuleText } from '../components/RuleText'
 
 /**
@@ -352,7 +353,7 @@ function RuleTable({ kind, entries, showCost = true }:
                     {e.groupRu && <span className="muted"> · {entryGroup(e)}</span>}
                   </td>
                 )}
-                {showCost && <td className="ref-cost"><RuleText text={e.symbolCost.replace(/\bor\b/gi, t('или', 'or'))} wordsAsSymbols /></td>}
+                {showCost && <td className="ref-cost"><RuleText text={localizeSymbolCost(e.symbolCost)} wordsAsSymbols /></td>}
                 <td>
                   <RuleText symbolsOnly text={t(e.body, e.bodyEn || e.body)} />
                   {e.notes && <div className="muted ref-notes">{t(e.notes, e.notesEn || e.notes)}</div>}

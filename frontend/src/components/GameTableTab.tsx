@@ -12,6 +12,7 @@ import { RollSymbolsView, type RollLogRequest } from './DiceRoller'
 import type { RollSymbols } from '../utils/diceRoller'
 import { useDiceRoller } from '../dice-roller-store'
 import { t } from '../i18n'
+import { RANGE_LABELS } from '../utils/labels'
 import { GameTableNpcStatblock } from './GameTableNpcStatblock'
 import { applyParticipantPatch, participantNameWithCount, participantRollPool } from '../utils/gameTable'
 import {
@@ -230,16 +231,16 @@ function StoryPoints({ session, isGm, onRun, campaignId }: BlockProps) {
 
 // ── Range Band Tracker (позиция хранится в GameParticipant и синхронизируется через API) ──
 
-const RANGE_ZONES: { id: RangeZone; nameEn: string; nameRu: string; hint: string }[] = [
-  { id: 'engaged', nameEn: 'Engaged', nameRu: 'Вплотную', hint: t('ближний бой', 'melee') },
-  { id: 'short', nameEn: 'Short', nameRu: 'Короткая', hint: t('лёгкие дальнобойные · 1 манёвр', 'light ranged · 1 maneuver') },
-  { id: 'medium', nameEn: 'Medium', nameRu: 'Средняя', hint: t('дальнобойные · 1 манёвр', 'ranged · 1 maneuver') },
-  { id: 'long', nameEn: 'Long', nameRu: 'Длинная', hint: t('тяжёлые дальнобойные · 2 манёвра', 'heavy ranged · 2 maneuvers') },
-  { id: 'extreme', nameEn: 'Extreme', nameRu: 'Экстремальная', hint: t('предел дистанции · 2 манёвра', 'extreme range · 2 maneuvers') },
+const RANGE_ZONES: { id: RangeZone; hint: string }[] = [
+  { id: 'engaged', hint: t('ближний бой', 'melee') },
+  { id: 'short', hint: t('лёгкие дальнобойные · 1 манёвр', 'light ranged · 1 maneuver') },
+  { id: 'medium', hint: t('дальнобойные · 1 манёвр', 'ranged · 1 maneuver') },
+  { id: 'long', hint: t('тяжёлые дальнобойные · 2 манёвра', 'heavy ranged · 2 maneuvers') },
+  { id: 'extreme', hint: t('предел дистанции · 2 манёвра', 'extreme range · 2 maneuvers') },
 ]
 
 /** Название зоны на языке интерфейса. */
-const zoneName = (zone: { nameRu: string; nameEn: string }) => t(zone.nameRu, zone.nameEn)
+const zoneName = (zone: { id: RangeZone }) => RANGE_LABELS[zone.id]
 
 const ZONE_INDEX: Record<RangeZone, number> = { engaged: 0, short: 1, medium: 2, long: 3, extreme: 4 }
 

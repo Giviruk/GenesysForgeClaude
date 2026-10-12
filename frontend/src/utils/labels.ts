@@ -179,21 +179,9 @@ export const MAGIC_SKILL_LABELS: Record<string, string> = t({
 export const magicSkillLabel = (skill: string) => MAGIC_SKILL_LABELS[skill] ?? skill
 
 /** Подписи уровней сложности проверки Genesys (число фиолетовых кубов). */
-export const DIFFICULTY_LABELS: Record<number, string> = t({
-  0: CORE_RU.difficulty[0],
-  1: CORE_RU.difficulty[1],
-  2: CORE_RU.difficulty[2],
-  3: CORE_RU.difficulty[3],
-  4: CORE_RU.difficulty[4],
-  5: CORE_RU.difficulty[5],
-}, {
-  0: 'Simple',
-  1: 'Easy',
-  2: 'Average',
-  3: 'Hard',
-  4: 'Daunting',
-  5: 'Formidable',
-})
+export const DIFFICULTY_LABELS: Record<number, string> = t<readonly string[]>(CORE_RU.difficulty, [
+  'Simple', 'Easy', 'Average', 'Hard', 'Daunting', 'Formidable',
+])
 
 /** Подпись уровня сложности с ограничением 0..5. */
 export const difficultyLabel = (n: number) => DIFFICULTY_LABELS[Math.max(0, Math.min(5, n))] ?? `${n}`
@@ -209,6 +197,12 @@ export function rangeBandLabel(raw: string): string {
     .find(key => key === value || CORE_RU.ranges[key].toLocaleLowerCase() === value)
   return kind ? RANGE_LABELS[kind] : raw
 }
+
+/** Costs are structured phrases; their alternative operator can be RU or EN in the catalog. */
+export const localizeSymbolCost = (cost: string) => cost.replace(
+  /(^|[^\p{L}\p{N}])(or|или)(?=$|[^\p{L}\p{N}])/giu,
+  (_, prefix: string) => prefix + t('или', 'or'),
+)
 
 /**
  * Извлекает числовое значение сложности из строки справочника магии:

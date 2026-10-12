@@ -1,8 +1,14 @@
 import { describe, expect, it } from 'vitest'
 import {
   difficultyLabel, dualName, magicSkillLabel, MAX_SPELL_DIFFICULTY, parseDifficulty, secondaryName,
-  rangeBandLabel, spellDifficulty, TALENT_CATEGORY_LABELS, wouldExceedSpellCap,
+  localizeSymbolCost, rangeBandLabel, spellDifficulty, TALENT_CATEGORY_LABELS, wouldExceedSpellCap,
 } from './labels'
+
+it('localizes both catalog and English alternative operators without changing words', () => {
+  expect(localizeSymbolCost('2 Threat или 1 Despair')).toBe('2 Threat или 1 Despair')
+  expect(localizeSymbolCost('2 Threat or 1 Despair')).toBe('2 Threat или 1 Despair')
+  expect(localizeSymbolCost('Фамилия, order')).toBe('Фамилия, order')
+})
 
 describe('RU/ENG отображение (secondaryName / dualName)', () => {
   it('показывает английское название вторичным, когда оно отличается', () => {

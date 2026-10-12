@@ -16,9 +16,6 @@ const refLabel = (o: { name: string; nameRu: string }) => localizedName(o)
 const matchesRef = (o: { name: string; nameRu: string }, saved: string) =>
   saved === o.name || (!!o.nameRu && saved === o.nameRu)
 
-const matchesSkillRef = (skill: SkillDef, saved: string) => matchesRef(skill, saved)
-  || (!skill.isCustom && (LEGACY_SKILL_NAMES[skill.name]?.includes(saved) ?? false))
-
 /** Структурная атака из оружия каталога: навык/урон/крит/дистанция/качества переносятся из предмета. */
 export function attackFromItem(item: ItemDef): NpcAttackEntry {
   return {
@@ -79,10 +76,10 @@ export function buildPool(characteristic: number, ranks: number): DicePool {
 }
 
 /** Индекс «имя навыка (рус/англ) → справочная запись» для текущей системы. */
-export function skillIndex(reference: Reference | null): Map<string, SkillDef> {
+export function skillIndex(reference: Pick<Reference, 'skills'> | null): Map<string, SkillDef> {
   const m = new Map<string, SkillDef>()
   if (!reference) return m
-  for (const s of reference.skills) {
+  for (const s of reference.skills.toSorted((a, b) => Number(a.isCustom) - Number(b.isCustom))) {
     m.set(s.name, s)
     if (s.nameRu) m.set(s.nameRu, s)
   }
@@ -101,6 +98,17 @@ export function npcSkillLabel(name: string, index: Map<string, SkillDef>): strin
   return definition ? refLabel(definition) : name
 }
 
+/** Known skills are saved by stable English Name; unknown/custom names stay intact. */
+export const npcSkillName = (name: string, index: Map<string, SkillDef>) => index.get(name)?.name ?? name
+
+/** Attacks also accept a split weapon skill when the setting has its base skill. */
+export function npcAttackSkill(name: string, index: Map<string, SkillDef>): SkillDef | null {
+  const exact = index.get(name)
+  if (exact) return exact
+  const resolved = resolveWeaponSkillName(name, [...index.values()].map(skill => skill.name))
+  return resolved ? index.get(resolved) ?? null : null
+}
+
 /** Характеристика навыка по справочнику; null для кастомного/неизвестного навыка. */
 export function skillCharacteristic(name: string, index: Map<string, SkillDef>): Characteristic | null {
   return index.get(name)?.characteristic ?? null
@@ -108,6 +116,7 @@ export function skillCharacteristic(name: string, index: Map<string, SkillDef>):
 
 /** Навык NPC с посчитанным пулом броска (пул null, если характеристика навыка неизвестна). */
 export interface NpcSkillView {
+  key: string
   name: string
   ranks: number
   characteristic: Characteristic | null
@@ -126,12 +135,12 @@ export function effectiveNpcSkillRanks(npc: NpcDetail, savedRanks: number, minio
 export function npcSkillViews(
   npc: NpcDetail, index: Map<string, SkillDef>, minionCount = 1,
 ): NpcSkillView[] {
-  return npc.skills.map(s => {
+  return npc.skills.map((s, i) => {
     const definition = index.get(s.name)
     const characteristic = definition?.characteristic ?? null
     const ranks = effectiveNpcSkillRanks(npc, s.ranks, minionCount)
     const pool = characteristic ? buildPool(npc[characteristic], ranks) : null
-    return { name: npcSkillLabel(s.name, index), ranks, characteristic, pool }
+    return { key: `${s.name}:${i}`, name: npcSkillLabel(s.name, index), ranks, characteristic, pool }
   })
 }
 
@@ -161,15 +170,15 @@ export function npcWeaponView(equipmentName: string, npc: NpcDetail, reference: 
   if (!item || item.kind !== 'weapon') return null
 
   // Навык оружия хранится по-английски («Melee», «Ranged (Light)»); ищем его в справочнике.
-  const skillName = resolveWeaponSkillName(item.skillName, reference.skills.map(s => s.name))
-  const skillDef = skillName ? reference.skills.find(s => s.name === skillName) ?? null : null
+  const index = skillIndex(reference)
+  const skillDef = npcAttackSkill(item.skillName, index)
 
   let pool: DicePool | null = null
   let skillLabel: string | null = null
   if (skillDef) {
     skillLabel = refLabel(skillDef)
     // Ранги NPC в навыке оружия (0, если навык не прокачан) — атака всё равно катится по характеристике.
-    const ranks = npc.skills.find(s => matchesSkillRef(skillDef, s.name))?.ranks ?? 0
+    const ranks = npc.skills.find(s => index.get(s.name) === skillDef)?.ranks ?? 0
     pool = buildPool(npc[skillDef.characteristic], ranks)
   }
 
@@ -218,15 +227,15 @@ export interface NpcAttackView {
 export function npcAttackViews(
   npc: NpcDetail, reference: Reference | null, minionCount = 1,
 ): NpcAttackView[] {
+  const index = skillIndex(reference)
   return npc.attacks.map(a => {
     let pool: DicePool | null = null
     let skillLabel: string | null = null
     if (reference && a.skillName) {
-      const skillName = resolveWeaponSkillName(a.skillName, reference.skills.map(s => s.name))
-      const skillDef = skillName ? reference.skills.find(s => s.name === skillName) ?? null : null
+      const skillDef = npcAttackSkill(a.skillName, index)
       if (skillDef) {
         skillLabel = refLabel(skillDef)
-        const savedSkill = npc.skills.find(s => matchesSkillRef(skillDef, s.name))
+        const savedSkill = npc.skills.find(s => index.get(s.name) === skillDef)
         // Только перечисленные у профиля навыки являются групповыми. Атака по другому
         // навыку остаётся непрокачанной независимо от размера группы.
         const ranks = savedSkill ? effectiveNpcSkillRanks(npc, savedSkill.ranks, minionCount) : 0

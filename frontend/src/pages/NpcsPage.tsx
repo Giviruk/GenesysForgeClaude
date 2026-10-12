@@ -11,7 +11,7 @@ import {
   NPC_ROLE_LABELS, NPC_ROLES, NPC_VISIBILITY_LABELS, secondaryName, SYSTEM_LABELS,
 } from '../utils/labels'
 import {
-  buildPool, npcAttackViews, npcGearViews, npcSkillViews, skillIndex, syncAttacksWithEquipment, weaponsByLabel,
+  buildPool, npcAttackViews, npcGearViews, npcSkillName, npcSkillViews, skillIndex, syncAttacksWithEquipment, weaponsByLabel,
   type NpcGearView,
 } from '../utils/npcStats'
 import { DicePoolView } from '../components/DicePoolView'
@@ -548,7 +548,9 @@ function NpcEditor({ initial, savedId, dirty, onCancel, onSaved, onChange, onKin
     if (busy || !form.name.trim()) return
     setBusy(true); setError(null)
     try {
-      const payload = { ...form, strainThreshold: minion ? null : form.strainThreshold, skills: minion ? form.skills.map(s => ({ ...s, ranks: 0 })) : form.skills }
+      const index = skillIndex(reference)
+      const payload = { ...form, strainThreshold: minion ? null : form.strainThreshold,
+        skills: form.skills.map(s => ({ ...s, name: npcSkillName(s.name, index), ranks: minion ? 0 : s.ranks })) }
       const n = savedId ? await api.updateNpc(savedId, payload) : await api.createNpc(payload)
       onSaved(n)
     } catch (err) {
@@ -647,7 +649,7 @@ function NpcInputPreview({ npc, reference, onClose }: { npc: NpcDetail; referenc
 }
 
 // Отображаемое имя справочной записи на языке интерфейса.
-// ВАЖНО: используется и как сохраняемое значение (equipment/skills NPC) — сопоставление
+// ВАЖНО: используется и как сохраняемое значение equipment NPC — сопоставление
 // при чтении принимает оба имени (см. npcStats.matchesRef).
 const refLabel = (o: { name: string; nameRu: string }) => o.nameRu?.trim() && t(o.nameRu, o.name) || o.name
 
@@ -656,24 +658,26 @@ function SkillsEditor({ skills, available, characteristics, groupSkills = false,
   groupSkills?: boolean
   onChange: (s: NpcInput['skills']) => void
 }) {
-  const names = available.map(refLabel)
+  const index = skillIndex({ skills: available })
   return (
     <div className="list-editor">
       <div className="label-line">{groupSkills ? t('Групповые навыки', 'Group skills') : t('Навыки', 'Skills')}</div>
       {groupSkills && <div className="muted small-text">{t('Приспешники используют групповые навыки без рангов (ранг = размер группы − 1).', 'Minions use group skills without ranks (rank = group size − 1).')}</div>}
       {skills.map((s, i) => {
         // Текущее значение оставляем выбираемым, даже если его нет в справочнике (кастом/смена системы).
-        const orphan = s.name !== '' && !names.includes(s.name)
+        const def = index.get(s.name)
+        const orphan = s.name !== '' && !def
+        const label = def ? refLabel(def) : s.name || String(i + 1)
         return (
           <div key={i} className="bt-skill-edit">
-            <select required aria-label={t(`Навык ${i + 1}`, `Skill ${i + 1}`)} className="grow" value={s.name}
+            <select required aria-label={t(`Навык ${i + 1}`, `Skill ${i + 1}`)} className="grow" value={def?.name ?? s.name}
               onChange={e => onChange(skills.map((x, j) => j === i ? { ...x, name: e.target.value } : x))}>
               <option value="">{t('— выберите навык —', '— pick a skill —')}</option>
               {orphan && <option value={s.name}>{s.name} {t('(вне справочника)', '(not in reference)')}</option>}
-              {available.map(sk => <option key={sk.name} value={refLabel(sk)}>{dualName(sk)}</option>)}
+              {available.map(sk => <option key={sk.id} value={sk.name}>{dualName(sk)}</option>)}
             </select>
-            {!groupSkills && <NumberStepper className="bt-rank-stepper" label={t(`Ранг: ${s.name || i + 1}`, `Rank: ${s.name || i + 1}`)} value={s.ranks} min={0} max={5} onChange={ranks => onChange(skills.map((x, j) => j === i ? { ...x, ranks } : x))} />}
-            {(() => { const def = available.find(d => d.name === s.name || d.nameRu === s.name); return def ? <span className="bt-skill-pool"><small>{CHARACTERISTIC_LABELS[def.characteristic]}</small><DicePoolView pool={buildPool(characteristics[def.characteristic], groupSkills ? 0 : s.ranks)} /></span> : <span className="muted small-text">—</span> })()}
+            {!groupSkills && <NumberStepper className="bt-rank-stepper" label={t(`Ранг: ${label}`, `Rank: ${label}`)} value={s.ranks} min={0} max={5} onChange={ranks => onChange(skills.map((x, j) => j === i ? { ...x, ranks } : x))} />}
+            {def ? <span className="bt-skill-pool"><small>{CHARACTERISTIC_LABELS[def.characteristic]}</small><DicePoolView pool={buildPool(characteristics[def.characteristic], groupSkills ? 0 : s.ranks)} /></span> : <span className="muted small-text">—</span>}
             <button type="button" className="danger bt-remove" aria-label={t(`Удалить навык ${i + 1}`, `Remove skill ${i + 1}`)} onClick={() => onChange(skills.filter((_, j) => j !== i))}>×</button>
           </div>
         )
@@ -923,7 +927,7 @@ function QuickDraftForm({ req, onRequestChange, onCancel, onCreated, onModeChang
         <label>{t('Тип существа', 'Creature type')}<select value={req.template ?? 'none'} onChange={e => set('template', e.target.value as CreatureTemplate)}>{CREATURE_TEMPLATES.map(c => <option key={c} value={c}>{CREATURE_TEMPLATE_LABELS[c]}</option>)}</select></label>
         <label>{t('Имя (необязательно)', 'Name (optional)')}<input value={name} onChange={e => set('name', e.target.value || null)} placeholder={t('Сгенерируется автоматически', 'Generated automatically')} /></label>
         <label>{t('Окружение / тег (необязательно)', 'Environment / tag (optional)')}<input value={req.environment ?? ''} onChange={e => set('environment', e.target.value || null)} placeholder={t('лес, подземелье…', 'forest, dungeon…')} /></label>
-        {req.combatStyle === 'magic' && <label>{t('Магшкола', 'Magic school')}<select value={req.magicSkill ?? ''} onChange={e => set('magicSkill', e.target.value || null)}><option value="">{t('По умолчанию', 'Default')}</option>{magicSkills.map(s => <option key={s.name} value={refLabel(s)}>{dualName(s)}</option>)}</select></label>}
+        {req.combatStyle === 'magic' && <label>{t('Магшкола', 'Magic school')}<select value={req.magicSkill ?? ''} onChange={e => set('magicSkill', e.target.value || null)}><option value="">{t('По умолчанию', 'Default')}</option>{magicSkills.map(s => <option key={s.name} value={s.name}>{dualName(s)}</option>)}</select></label>}
       </div></section>
     </div>
           <aside className="qd-preview bt-draft-preview">

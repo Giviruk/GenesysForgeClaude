@@ -160,7 +160,7 @@ export function GameTableNpcStatblock({ participant, campaignId, isGm,
                 <h4>{npc.kind === 'minion' ? t('Групповые навыки', 'Group skills') : t('Навыки', 'Skills')}</h4>
                 <ul className="npc-skill-list gt-npc-roll-list">
                   {skills.map(skill => (
-                    <li key={skill.name} className="npc-skill-row">
+                    <li key={skill.key} className="npc-skill-row">
                       <span className="npc-skill-name">
                         {skill.name} <span className="muted">{skill.ranks}</span>
                         {skill.characteristic && <span className="muted small-text"> · {CHARACTERISTIC_LABELS[skill.characteristic]}</span>}

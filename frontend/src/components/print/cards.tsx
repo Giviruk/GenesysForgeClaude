@@ -14,14 +14,16 @@ import type { PrintVersion } from './PrintPreview'
 import { t } from '../../i18n'
 import { RuleText } from '../RuleText'
 import { GenesysSymbol } from '../GenesysSymbol'
-import { npcSkillLabel, skillIndex } from '../../utils/npcStats'
+import { npcAttackSkill, npcSkillLabel, skillIndex } from '../../utils/npcStats'
 
 const CHARS: Characteristic[] = ['brawn', 'agility', 'intellect', 'cunning', 'willpower', 'presence']
 
 /** Однострочный статблок атаки NPC для печати: имя [навык], Урон/Крит/Дистанция, качества. */
 function attackLine(a: NpcDetail['attacks'][number], index: Map<string, SkillDef>): string {
+  const skill = npcAttackSkill(a.skillName, index)
+  const skillLabel = skill ? localizedName(skill) : a.skillName
   const stats = [
-    a.skillName && t(`навык ${npcSkillLabel(a.skillName, index)}`, `skill ${npcSkillLabel(a.skillName, index)}`),
+    a.skillName && t(`навык ${skillLabel}`, `skill ${skillLabel}`),
     a.damage && t(`Урон ${a.damage}`, `Damage ${a.damage}`),
     a.critical && t(`Крит ${a.critical}`, `Crit ${a.critical}`),
     rangeBandLabel(a.rangeBand),

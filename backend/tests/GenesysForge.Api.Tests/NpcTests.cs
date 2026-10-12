@@ -47,6 +47,39 @@ public class NpcTests : IClassFixture<ApiFactory>
     }
 
     [Fact]
+    public async Task Save_ResolvesLegacySkillsToStableNames_AndPreservesUnknownSkills()
+    {
+        var gm = await _factory.CreateAuthorizedClientAsync();
+        var input = SampleInput() with { System = GameSystem.GenesysCore,
+            Skills = [new NpcSkillDto("Рукопашный бой", 2), new NpcSkillDto("Моя техника", 1)] };
+        var created = await gm.PostAsJsonAsync("/api/npcs/", input, Json.Options);
+        Assert.Equal(HttpStatusCode.Created, created.StatusCode);
+        var npc = (await created.Content.ReadFromJsonAsync<NpcDetailDto>(Json.Options))!;
+        Assert.Contains(npc.Skills, s => s.Name == "Brawl" && s.Ranks == 2);
+        Assert.Contains(npc.Skills, s => s.Name == "Моя техника" && s.Ranks == 1);
+        var updated = await gm.PutAsJsonAsync($"/api/npcs/{npc.Id}", input with
+            { Skills = [new NpcSkillDto("Вера", 2)], Abilities = [] }, Json.Options);
+        Assert.Equal(HttpStatusCode.OK, updated.StatusCode);
+        var saved = (await updated.Content.ReadFromJsonAsync<NpcDetailDto>(Json.Options))!;
+        Assert.Equal("Divine", Assert.Single(saved.Skills).Name);
+        Assert.Contains(saved.Warnings, w => w.StartsWith("Магический NPC:"));
+    }
+
+    [Theory]
+    [InlineData("Вера")]
+    [InlineData("Божественное")]
+    public async Task QuickDraft_ResolvesCurrentAndLegacyMagicSchool(string magicSkill)
+    {
+        var gm = await _factory.CreateAuthorizedClientAsync();
+        var response = await gm.PostAsJsonAsync("/api/npcs/quick-draft/preview",
+            new QuickDraftRequest(GameSystem.GenesysCore, NpcKind.Rival, NpcRole.Caster,
+                NpcPowerLevel.Weak, null, NpcCombatStyle.Magic, "Маг", MagicSkill: magicSkill), Json.Options);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var draft = (await response.Content.ReadFromJsonAsync<NpcDetailDto>(Json.Options))!;
+        Assert.Equal("Divine", Assert.Single(draft.Skills).Name);
+    }
+
+    [Fact]
     public async Task Create_Get_AppearsInLibrary()
     {
         var gm = await _factory.CreateAuthorizedClientAsync();
@@ -166,7 +199,7 @@ public class NpcTests : IClassFixture<ApiFactory>
             "/api/reference/RealmsOfTerrinoth", Json.Options))!;
 
         string Label(string nameRu, string name) => string.IsNullOrWhiteSpace(nameRu) ? name : nameRu;
-        var skillLabels = reference.Skills.Select(s => Label(s.NameRu, s.Name)).ToHashSet();
+        var skillLabels = reference.Skills.Select(s => s.Name).ToHashSet();
         var weaponLabels = reference.Items.Where(i => i.Kind == ItemKind.Weapon)
             .Select(i => Label(i.NameRu, i.Name)).ToHashSet();
 
@@ -180,7 +213,8 @@ public class NpcTests : IClassFixture<ApiFactory>
         // Навык оружия согласован с навыком NPC: оружие распознаётся и считает пул.
         var weapon = reference.Items.Single(i => Label(i.NameRu, i.Name) == attack.Name);
         var baseName = (string s) => System.Text.RegularExpressions.Regex.Replace(s, @"\s*\(.*\)\s*", "").Trim();
-        var weaponSkill = reference.Skills.First(s => Label(s.NameRu, s.Name) == npc.Skills[0].Name);
+        var weaponSkill = reference.Skills.First(s => s.Name == attack.SkillName
+            && npc.Skills.Any(saved => saved.Name == s.Name));
         Assert.Equal(baseName(weaponSkill.Name), baseName(weapon.SkillName));
         Assert.Equal(weapon.SkillName, attack.SkillName);
     }
@@ -361,8 +395,7 @@ public class NpcTests : IClassFixture<ApiFactory>
 
         var reference = (await gm.GetFromJsonAsync<ReferenceResponse>(
             "/api/reference/RealmsOfTerrinoth", Json.Options))!;
-        string Label(string nameRu, string name) => string.IsNullOrWhiteSpace(nameRu) ? name : nameRu;
-        var rotSkills = reference.Skills.Select(s => Label(s.NameRu, s.Name)).ToHashSet();
+        var rotSkills = reference.Skills.Select(s => s.Name).ToHashSet();
 
         // Все навыки сгенерированного RoT-NPC — из каталога RoT (без Core-only вроде Computers/Driving).
         Assert.All(npc.Skills, s => Assert.Contains(s.Name, rotSkills));

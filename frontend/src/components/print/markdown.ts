@@ -1,12 +1,12 @@
 import type { Characteristic, EncounterDetail, NpcDetail, Reference } from '../../api/types'
 import {
   CHARACTERISTIC_LABELS, ENCOUNTER_TYPE_LABELS, NPC_KIND_LABELS, NPC_ROLE_LABELS,
-  PARTICIPANT_TYPE_LABELS, THREAT_LEVEL_LABELS, difficultyLabel, magicSkillLabel, rangeBandLabel,
+  PARTICIPANT_TYPE_LABELS, THREAT_LEVEL_LABELS, difficultyLabel, magicSkillLabel, rangeBandLabel, localizedName,
 } from '../../utils/labels'
 import type { PrintVersion } from './PrintPreview'
 import { t } from '../../i18n'
 import type { MagicCardData } from './cards'
-import { npcSkillLabel, skillIndex } from '../../utils/npcStats'
+import { npcAttackSkill, npcSkillLabel, skillIndex } from '../../utils/npcStats'
 
 const CHARS: Characteristic[] = ['brawn', 'agility', 'intellect', 'cunning', 'willpower', 'presence']
 
@@ -22,8 +22,10 @@ export function adversaryMarkdown(npc: NpcDetail, version: PrintVersion, referen
     if (npc.attacks.length) {
       lines.push('', t('**Атаки:**', '**Attacks:**'))
       for (const a of npc.attacks) {
+        const skill = npcAttackSkill(a.skillName, index)
+        const skillLabel = skill ? localizedName(skill) : a.skillName
         const stats = [
-          a.skillName && t(`навык ${npcSkillLabel(a.skillName, index)}`, `skill ${npcSkillLabel(a.skillName, index)}`), a.damage && t(`Урон ${a.damage}`, `Damage ${a.damage}`),
+          a.skillName && t(`навык ${skillLabel}`, `skill ${skillLabel}`), a.damage && t(`Урон ${a.damage}`, `Damage ${a.damage}`),
           a.critical && t(`Крит ${a.critical}`, `Crit ${a.critical}`), rangeBandLabel(a.rangeBand),
           ...a.qualities.map(q => (q.nameRu || q.qualityCode) + (q.rating != null ? ` ${q.rating}` : '')),
         ].filter(Boolean)

@@ -23,6 +23,7 @@ import { itemTags, qualityProperties } from '../data/itemQualities'
 import { DicePoolView } from './DicePoolView'
 import { qualitiesFromProperties } from '../utils/combat'
 import { PropertyTags } from './PropertyTags'
+import { genesysCountLabel } from '../data/genesysSymbols'
 import { PrintPreview } from './print/PrintPreview'
 import { ItemCard } from './print/cards'
 import { useDiceRoller } from '../dice-roller-store'
@@ -477,7 +478,7 @@ function checkModifierText(m: ItemCheckModifier, sheet: CharacterSheet): string 
       ? CHARACTERISTIC_LABELS[m.characteristic]
       : t('всем проверкам', 'all checks'))
   const sign = m.kind === 'AddSetback' ? '+' : '−'
-  const body = t(`${sign}${m.value} костей штрафа к «${target}»`, `${sign}${m.value} setback to ${target}`)
+  const body = t(`${sign}${genesysCountLabel(m.value, 'setback')} к «${target}»`, `${sign}${m.value} setback to ${target}`)
   return m.condition ? `${body} — ${m.condition}` : body
 }
 
@@ -799,11 +800,11 @@ function WeaponLine({ item, sheet, skill, skillLabel, reference, run }: {
   const modsTitle = mods && mods.sources.length > 0
     ? [t('Поправки к пулу:', 'Pool modifiers:'), ...mods.sources.map(s => {
       const parts: string[] = []
-      if (s.boost) parts.push(t(`+${s.boost} бонусных`, `+${s.boost} boost`))
-      if (s.setback) parts.push(t(`+${s.setback} костей штрафа`, `+${s.setback} setback`))
+      if (s.boost) parts.push(t(`+${genesysCountLabel(s.boost, 'boost')}`, `+${s.boost} boost`))
+      if (s.setback) parts.push(t(`+${genesysCountLabel(s.setback, 'setback')}`, `+${s.setback} setback`))
       if (s.difficulty) parts.push(t(`+${s.difficulty} к сложности`, `+${s.difficulty} difficulty`))
-      if (s.advantage) parts.push(t(`+${s.advantage} преимущество`, `+${s.advantage} advantage`))
-      if (s.threat) parts.push(t(`+${s.threat} осложнение`, `+${s.threat} threat`))
+      if (s.advantage) parts.push(t(`+${genesysCountLabel(s.advantage, 'advantage')}`, `+${s.advantage} advantage`))
+      if (s.threat) parts.push(t(`+${genesysCountLabel(s.threat, 'threat')}`, `+${s.threat} threat`))
       return `${t(s.nameRu, s.nameEn)}: ${parts.join(', ')}`
     })].join('\n')
     : undefined

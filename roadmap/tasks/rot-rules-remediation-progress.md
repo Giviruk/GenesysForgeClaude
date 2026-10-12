@@ -36,10 +36,12 @@ scope сессии/encounter и единый check context: их нет в пр�
 - [~] **GEN-UI-SYMBOLS** — формы игровых символов через локальный Genesys Glyphs and Dice
   и базовая русская терминология Core: характеристики, кости, результаты, сложности,
   дистанции, типы NPC и встроенные навыки. Старые имена NPC-навыков поддержаны алиасами;
-  повторный seed сохраняет ID и custom content. ESLint/build, 628 Vitest, 58 целевых xUnit
-  и 6 Playwright прошли, включая финальное исправление печати.
+  повторный seed сохраняет ID и custom content. 13.10.2026 исправлены 15 замечаний:
+  безопасный текст, подсказки, стабильные имена NPC, backend/справочник/хроника,
+  plural forms и единое разрешение атак. ESLint/build, 648 Vitest, 1726 xUnit (1 существующий
+  PostgreSQL migration test пропущен) и 6 Playwright прошли.
   [План](genesys-original-symbols.md), [описание](../../docs/genesys-ui-symbols.md).
-  Осталось: слияние [PR #280](https://github.com/Giviruk/GenesysForgeClaude/pull/280) поверх #279.
+  Осталось: push исправлений, затем слияние [PR #280](https://github.com/Giviruk/GenesysForgeClaude/pull/280) поверх #279.
 
 - [~] **GEN-MINION-SKILLS-AUDIT** — проверка навыков групп миньонов по Core завершена.
   Формула `RemainingCount - 1`, групповые атаки и пересчёт после ран корректны;

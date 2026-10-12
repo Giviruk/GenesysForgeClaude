@@ -49,6 +49,24 @@ public class SeedDataTests
     }
 
     [Fact]
+    public void Apply_ReseedsCoreDifficultyLabels_WithoutReplacingIds()
+    {
+        using var db = NewDb();
+        SeedData.Apply(db);
+        var rows = db.RuleTableEntries.Where(r => r.Kind == Domain.Entities.RuleTableKind.Difficulty)
+            .OrderBy(r => r.SortOrder).ToList();
+        var ids = rows.Select(r => r.Id).ToList();
+        var expected = new[] { "Элементарная", "Лёгкая", "Обычная", "Сложная", "Пугающая", "Запредельная" };
+        Assert.Equal(expected, rows.Select(r => r.NameRu));
+        rows[0].NameRu = "Простая";
+        rows[3].NameRu = "Трудная";
+        db.SaveChanges();
+        SeedData.Apply(db);
+        Assert.Equal(expected, rows.Select(r => r.NameRu));
+        Assert.Equal(ids, rows.Select(r => r.Id));
+    }
+
+    [Fact]
     public void Apply_IsIdempotent_NoDuplicatesOnSecondRun()
     {
         using var db = NewDb();

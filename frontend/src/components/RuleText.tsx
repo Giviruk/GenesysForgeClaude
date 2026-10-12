@@ -11,6 +11,7 @@ interface RuleTokenDefinition {
   caseSensitive?: boolean
   symbol?: boolean
   standalone?: boolean
+  legacyOcr?: boolean
 }
 
 interface RuleMatch extends RuleTokenDefinition {
@@ -19,14 +20,6 @@ interface RuleMatch extends RuleTokenDefinition {
 }
 
 const TOKEN_LABELS = GENESYS_SYMBOL_LABELS
-
-const LEGACY_WORD_DISPLAY: Record<string, string> = {
-  'бонусная кость': 'кость бонуса', 'бонусную кость': 'кость бонуса', 'бонусные кости': 'кости бонуса',
-  'кость помехи': 'кость штрафа', 'кости помехи': 'кости штрафа',
-  угроза: 'осложнение', угрозы: 'осложнения', угрозу: 'осложнение',
-  угроз: 'осложнений', угрозами: 'осложнениями',
-  отчаяние: 'крах', отчаяния: 'краха', отчаянием: 'крахом',
-}
 
 // Long phrases must be considered before their shorter parts (e.g. «бонусные кости» before «кость»).
 const WORD_TOKENS: RuleTokenDefinition[] = [
@@ -54,13 +47,13 @@ const WORD_TOKENS: RuleTokenDefinition[] = [
 ]
 
 // These are the symbols used by the dice roller. The asterisk/at-sign/Cyrillic A entries
-// are kept as fallbacks for older custom descriptions; built-in catalog data uses the glyphs.
+// require explicit opt-in for known OCR text; free prose must retain these characters.
 const SYMBOL_TOKENS: RuleTokenDefinition[] = [
-  { pattern: '✶', kind: 'success' }, { pattern: '*', kind: 'success', standalone: true },
+  { pattern: '✶', kind: 'success' }, { pattern: '*', kind: 'success', standalone: true, legacyOcr: true },
   { pattern: '✸', kind: 'failure' },
-  { pattern: '▲', kind: 'advantage' }, { pattern: 'А', kind: 'advantage', caseSensitive: true },
+  { pattern: '▲', kind: 'advantage' }, { pattern: 'А', kind: 'advantage', caseSensitive: true, legacyOcr: true },
   { pattern: '▼', kind: 'threat' },
-  { pattern: '★', kind: 'triumph' }, { pattern: '@', kind: 'triumph', standalone: true },
+  { pattern: '★', kind: 'triumph' }, { pattern: '@', kind: 'triumph', standalone: true, legacyOcr: true },
   { pattern: '☠', kind: 'despair' },
   { pattern: '◻', kind: 'boost' }, { pattern: '□', kind: 'boost' },
   { pattern: '■', kind: 'setback' },
@@ -75,12 +68,12 @@ const SYMBOL_TOKENS: RuleTokenDefinition[] = [
 const ALL_TOKENS = [...SYMBOL_TOKENS.map(token => ({ ...token, symbol: true })), ...WORD_TOKENS]
 
 /** Рендерит правила талантов с единым цветом костей и символов результата. */
-export function RuleText({ text, symbolsOnly = false, wordsAsSymbols = false }: {
-  text: string; symbolsOnly?: boolean; wordsAsSymbols?: boolean
+export function RuleText({ text, symbolsOnly = false, wordsAsSymbols = false, legacyOcr = false }: {
+  text: string; symbolsOnly?: boolean; wordsAsSymbols?: boolean; legacyOcr?: boolean
 }) {
   if (!text) return null
 
-  const matches = findMatches(text, symbolsOnly)
+  const matches = findMatches(text, symbolsOnly, legacyOcr)
   if (matches.length === 0) return <>{text}</>
 
   const parts: ReactNode[] = []
@@ -88,17 +81,13 @@ export function RuleText({ text, symbolsOnly = false, wordsAsSymbols = false }: 
   for (const match of matches) {
     if (match.start > cursor) parts.push(text.slice(cursor, match.start))
     const original = text.slice(match.start, match.end)
-    const replacement = LEGACY_WORD_DISPLAY[original.toLocaleLowerCase()]
-    const display = replacement && !match.symbol
-      ? (original[0] === original[0].toLocaleUpperCase() ? replacement[0].toLocaleUpperCase() + replacement.slice(1) : replacement)
-      : original
     parts.push(match.symbol || wordsAsSymbols ? (
       <GenesysSymbol key={`${match.start}-${match.end}-${match.kind}`} kind={match.kind}
         className={`rule-token rule-${match.kind}`} />
     ) : (
       <span key={`${match.start}-${match.end}-${match.kind}`} className={`rule-token rule-${match.kind}`}
         title={TOKEN_LABELS[match.kind]} aria-label={TOKEN_LABELS[match.kind]}>
-        {display}
+        {original}
       </span>
     ))
     cursor = match.end
@@ -107,11 +96,12 @@ export function RuleText({ text, symbolsOnly = false, wordsAsSymbols = false }: 
   return <>{parts}</>
 }
 
-function findMatches(text: string, symbolsOnly: boolean): RuleMatch[] {
+function findMatches(text: string, symbolsOnly: boolean, legacyOcr: boolean): RuleMatch[] {
   const lower = text.toLocaleLowerCase()
   const found: RuleMatch[] = []
   for (const token of ALL_TOKENS) {
     if (symbolsOnly && !token.symbol) continue
+    if (token.legacyOcr && !legacyOcr) continue
     const haystack = token.caseSensitive ? text : lower
     const needle = token.caseSensitive ? token.pattern : token.pattern.toLocaleLowerCase()
     let from = 0

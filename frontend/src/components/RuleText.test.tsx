@@ -3,13 +3,11 @@ import { describe, expect, it } from 'vitest'
 import { RuleText } from './RuleText'
 
 describe('RuleText', () => {
-  it('uses book terminology for old result words without changing stored text', () => {
-    const text = 'Угроза и отчаяние; кость помехи.'
-    render(<p><RuleText text={text} /></p>)
-    expect(screen.getByLabelText('Осложнение').textContent).toBe('Осложнение')
-    expect(screen.getByLabelText('Крах').textContent).toBe('крах')
-    expect(screen.getByLabelText('Кость штрафа').textContent).toBe('кость штрафа')
-    expect(text).toBe('Угроза и отчаяние; кость помехи.')
+  it('preserves meaning and grammatical agreement in prose mentioning old result words', () => {
+    const text = 'Каждая угроза даёт усталость. Одно отчаяние. Представляет угрозу; кость помехи.'
+    const { container } = render(<p><RuleText text={text} /></p>)
+    expect(container.textContent).toBe(text)
+    expect(screen.getByLabelText('Крах').textContent).toBe('отчаяние')
   })
 
   it('preserves contact addresses and Markdown words rather than treating them as OCR symbols', () => {
@@ -52,8 +50,20 @@ describe('RuleText', () => {
     expect(screen.getAllByLabelText('Кость бонуса')).toHaveLength(3)
     expect(screen.queryByLabelText('Преимущество')).toBeNull()
 
-    rerender(<p><RuleText text="Старый текст с А." /></p>)
+    rerender(<p><RuleText legacyOcr text="Старый текст с А." /></p>)
     expect(screen.getByLabelText('Преимущество')).toBeTruthy()
+  })
+
+  it.each([true, false])('preserves conjunctions, initials and list markers (symbolsOnly=%s)', symbolsOnly => {
+    const text = 'А потом он сбегает. Капитан А. Иванов. * стреляет дважды; @ заметка.'
+    const { container } = render(<p><RuleText symbolsOnly={symbolsOnly} text={text} /></p>)
+    expect(container.textContent).toBe(text)
+    expect(container.querySelector('.genesys-symbol')).toBeNull()
+  })
+
+  it('requires explicit legacy OCR opt-in for ambiguous placeholders', () => {
+    render(<p><RuleText symbolsOnly legacyOcr text="А * @" /></p>)
+    for (const name of ['Преимущество', 'Успех', 'Триумф']) expect(screen.getByRole('img', { name })).toBeTruthy()
   })
 
   it('renders supplementary publisher symbols even when adjacent to text', () => {

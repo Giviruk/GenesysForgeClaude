@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import type { ItemDef, NpcDetail, Reference, SkillDef } from '../api/types'
 import type { NpcAttackEntry } from '../api/types'
 import {
-  attackFromItem, buildPool, npcAttackViews, npcSkillLabel, npcSkillViews, skillIndex, splitEquipment,
+  attackFromItem, buildPool, npcAttackViews, npcSkillLabel, npcSkillName, npcSkillViews, skillIndex, splitEquipment,
   syncAttacksWithEquipment, weaponsByLabel,
 } from './npcStats'
 import { adversaryMarkdown } from '../components/print/markdown'
@@ -65,6 +65,7 @@ describe('npcSkillViews — пулы навыков NPC', () => {
     const saved: NpcDetail = { ...npc, skills: [{ name: 'Рукопашный бой', ranks: 2 }],
       attacks: [{ name: 'Кулаки', skillName: 'Brawl', damage: '+0', critical: '5', rangeBand: 'Engaged', notes: '', qualities: [], sourceWeapon: '' }] }
     expect(npcSkillViews(saved, skillIndex(ref))[0]).toMatchObject({ name: 'Грубая сила', ranks: 2, pool: { ability: 1, proficiency: 2 } })
+    expect(npcSkillName('Рукопашный бой', skillIndex(ref))).toBe('Brawl')
     expect(npcAttackViews(saved, ref)[0].pool).toEqual({ ability: 1, proficiency: 2 })
     const markdown = adversaryMarkdown(saved, 'gm', ref)
     expect(markdown).toContain('Грубая сила 2')
@@ -80,6 +81,23 @@ describe('npcSkillViews — пулы навыков NPC', () => {
     expect(index.get('Внимательность')).toBe(custom)
     expect(npcSkillLabel('Внимательность', index)).toBe('Особый навык')
     expect(npcSkillLabel('Неизвестный навык', index)).toBe('Неизвестный навык')
+    expect(npcSkillName('Внимательность', index)).toBe('Внимательность')
+  })
+
+  it('keeps distinct row keys when multiple saved skills resolve to the same display label', () => {
+    const ref = { skills: [skillDef({ name: 'Brawl', nameRu: 'Грубая сила', characteristic: 'brawn' })] }
+    const views = npcSkillViews({ ...npc, skills: [{ name: 'Brawl', ranks: 1 }, { name: 'Рукопашный бой', ranks: 2 }] }, skillIndex(ref))
+    expect(views.map(s => s.name)).toEqual(['Грубая сила', 'Грубая сила'])
+    expect(new Set(views.map(s => s.key)).size).toBe(2)
+    expect(views.map(s => s.ranks)).toEqual([1, 2])
+  })
+
+  it('uses the same split-to-base attack skill fallback in cards and Markdown', () => {
+    const split = { ...npc, attacks: [{ name: 'Меч', skillName: 'Melee (Light)', damage: '+3', critical: '2',
+      rangeBand: 'Engaged', notes: '', qualities: [], sourceWeapon: '' }] }
+    expect(npcAttackViews(split, reference)[0].skillLabel).toBe('Ближний бой')
+    expect(adversaryMarkdown(split, 'gm', reference)).toContain('навык Ближний бой')
+    expect(adversaryMarkdown(split, 'gm', reference)).not.toContain('Melee (Light)')
   })
 
   it('считает пул по характеристике навыка из справочника', () => {

@@ -348,9 +348,9 @@ public static class NpcDraftGenerator
         };
         var kindName = kind switch
         {
-            NpcKind.Minion => "(миньон)",
-            NpcKind.Rival => "(ривал)",
-            _ => "(немезида)",
+            NpcKind.Minion => "(приспешник)",
+            NpcKind.Rival => "(соперник)",
+            _ => "(главарь)",
         };
         return $"{roleName} {kindName}";
     }

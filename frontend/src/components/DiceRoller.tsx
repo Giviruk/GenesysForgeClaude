@@ -1,9 +1,10 @@
 import { useState } from 'react'
 import {
   DIE_KINDS, SYMBOL_ORDER, applyDifficultyUpgrades, emptyPool, poolSize, rollPool, summarize,
-  type DieKind, type DieSymbol, type RollPool, type RollSymbols, type RollOutcome,
+  type DieKind, type RollPool, type RollSymbols, type RollOutcome,
 } from '../utils/diceRoller'
 import { t } from '../i18n'
+import { GENESYS_SYMBOL_LABELS } from '../data/genesysSymbols'
 import type { AdvantageSpendContext, AdvantageSpendOption } from '../utils/advantageSpends'
 import { OutcomeSpendGuide } from './OutcomeSpendGuide'
 import { DicePoolView } from './DicePoolView'
@@ -39,36 +40,12 @@ interface Props {
   advantageSpends?: AdvantageSpendOption[]
 }
 
-const DIE_META: Record<DieKind, { label: string }> = t({
-  ability: { label: 'Кость способности (зел. d8)' },
-  proficiency: { label: 'Кость мастерства (жёлт. d12)' },
-  difficulty: { label: 'Кость сложности (фиол. d8)' },
-  challenge: { label: 'Кость вызова (красн. d12)' },
-  boost: { label: 'Кость бонуса (син. d6)' },
-  setback: { label: 'Кость штрафа (чёрн. d6)' },
+const DIE_DETAIL: Record<DieKind, string> = t({
+  ability: 'зел. d8', proficiency: 'жёлт. d12', difficulty: 'фиол. d8',
+  challenge: 'красн. d12', boost: 'син. d6', setback: 'чёрн. d6',
 }, {
-  ability: { label: 'Ability (green d8)' },
-  proficiency: { label: 'Proficiency (yellow d12)' },
-  difficulty: { label: 'Difficulty (purple d8)' },
-  challenge: { label: 'Challenge (red d12)' },
-  boost: { label: 'Boost (blue d6)' },
-  setback: { label: 'Setback (black d6)' },
-})
-
-const SYMBOL_META: Record<DieSymbol, { label: string }> = t({
-  success: { label: 'Успех' },
-  failure: { label: 'Провал' },
-  advantage: { label: 'Преимущество' },
-  threat: { label: 'Осложнение' },
-  triumph: { label: 'Триумф' },
-  despair: { label: 'Крах' },
-}, {
-  success: { label: 'Success' },
-  failure: { label: 'Failure' },
-  advantage: { label: 'Advantage' },
-  threat: { label: 'Threat' },
-  triumph: { label: 'Triumph' },
-  despair: { label: 'Despair' },
+  ability: 'green d8', proficiency: 'yellow d12', difficulty: 'purple d8',
+  challenge: 'red d12', boost: 'blue d6', setback: 'black d6',
 })
 
 export function DiceRoller({
@@ -112,8 +89,8 @@ export function DiceRoller({
     <div className="dice-roller">
       <div className="dr-pool">
         {DIE_KINDS.map(kind => (
-          <div key={kind} className={`dr-die dr-${kind}`} title={DIE_META[kind].label}>
-            <GenesysSymbol kind={kind} className="dr-die-glyph" />
+          <div key={kind} className={`dr-die dr-${kind}`} title={`${GENESYS_SYMBOL_LABELS[kind]} (${DIE_DETAIL[kind]})`}>
+            <GenesysSymbol title={false} kind={kind} className="dr-die-glyph" />
             <span className="dr-die-count">{pool[kind]}</span>
             <span className="dr-die-btns">
               <button type="button" className="tiny" onClick={() => bump(kind, 1)} aria-label={`+${kind}`}>+</button>
@@ -178,7 +155,7 @@ export function RollSymbolsView({ symbols }: { symbols: RollSymbols }) {
   return (
     <span className="dr-symbols">
       {shown.map(s => (
-        <span key={s} className={`roll-sym roll-${s}`} title={SYMBOL_META[s].label}>
+        <span key={s} className={`roll-sym roll-${s}`} title={GENESYS_SYMBOL_LABELS[s]}>
           <GenesysSymbol kind={s} /> {symbols[s]}
         </span>
       ))}

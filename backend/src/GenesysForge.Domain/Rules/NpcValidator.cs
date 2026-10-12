@@ -67,9 +67,9 @@ public static class NpcValidator
             case NpcKind.Minion:
                 // Миньон не имеет усталости и индивидуальных рангов (использует групповые навыки).
                 if (npc.StrainThreshold is not null)
-                    r.Error("Миньон не имеет порога усталости.");
+                    r.Error("Приспешник не имеет порога усталости.");
                 if (npc.Skills.Any(s => s.Ranks > 0))
-                    r.Error("Миньон использует групповые навыки без индивидуальных рангов (ранг = размер группы − 1).");
+                    r.Error("Приспешник использует групповые навыки без индивидуальных рангов (ранг = размер группы − 1).");
                 break;
             case NpcKind.Rival:
                 // Соперник обычно без усталости (усталость считается ранами).
@@ -148,6 +148,7 @@ public static class NpcValidator
     private static bool IsMagicSkill(string? name)
     {
         if (string.IsNullOrWhiteSpace(name)) return false;
+        if (NpcSkillNames.BuiltInName(name) is "Arcana" or "Divine" or "Primal" or "Runes" or "Verse") return true;
         var n = name.ToLowerInvariant().Replace('ё', 'е');
         return MagicSkillMarkers.Any(m => n.Contains(m));
     }
@@ -157,7 +158,7 @@ public static class NpcValidator
         ("Сила", npc.Brawn),
         ("Ловкость", npc.Agility),
         ("Интеллект", npc.Intellect),
-        ("Хитрость", npc.Cunning),
+        ("Смекалка", npc.Cunning),
         ("Воля", npc.Willpower),
         ("Харизма", npc.Presence),
     ];

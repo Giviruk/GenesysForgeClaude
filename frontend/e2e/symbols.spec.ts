@@ -8,22 +8,26 @@ const reference: Reference = {
   skills: [{ id: 'brawl', name: 'Brawl', nameRu: 'Грубая сила', characteristic: 'brawn',
     kind: 'combat', safeDescription: '', source: '', isCustom: false },
   { id: 'ranged', name: 'Ranged (Light)', nameRu: 'Дальний бой (лёгкое оружие)', characteristic: 'agility',
+    kind: 'combat', safeDescription: '', source: '', isCustom: false },
+  { id: 'melee', name: 'Melee', nameRu: 'Ближний бой', characteristic: 'brawn',
     kind: 'combat', safeDescription: '', source: '', isCustom: false }],
 }
 const npc: NpcDetail = {
   id: 'symbol-preview', name: 'Genesys — символы', system: 'genesysCore', kind: 'rival', role: 'brute',
-  description: '✶ ✸ ▲ ▼ ★ ☠ · ◻ ■ ♦ ⬣', source: '',
+  description: 'А потом он сбегает. Капитан А. Иванов. * пометка @. ✶ ✸ ▲ ▼ ★ ☠ · ◻ ■ ♦ ⬣', source: '',
   brawn: 3, agility: 2, intellect: 2, cunning: 2, willpower: 2, presence: 2,
   woundThreshold: 12, strainThreshold: null, soak: 3, meleeDefense: 0, rangedDefense: 0,
   silhouette: 1, tactics: '', visibility: 'publicTemplate', campaignId: null,
   isMine: true, isBuiltIn: false, skills: [{ name: 'Рукопашный бой', ranks: 2 }, { name: 'Дальний бой (лёгкий)', ranks: 2 }],
   attacks: [{ name: 'Кулаки', skillName: 'Brawl', damage: '+0', critical: '5',
+    rangeBand: 'Engaged', notes: '', qualities: [], sourceWeapon: '' },
+  { name: 'Клинок', skillName: 'Melee (Light)', damage: '+1', critical: '3',
     rangeBand: 'Engaged', notes: '', qualities: [], sourceWeapon: '' }],
   abilities: [], talents: [], equipment: [], tags: [], warnings: [], createdAt: '', updatedAt: '',
 }
 const cost: RuleTableEntry = {
   id: 'cost', kind: 'symbolSpend', code: 'symbol-preview', nameRu: 'Пример траты', nameEn: 'Example spend',
-  groupRu: 'Бой', groupEn: 'Combat', sortOrder: 0, rollRange: '', symbolCost: 'Threat 2 or Despair 1',
+  groupRu: 'Бой', groupEn: 'Combat', sortOrder: 0, rollRange: '', symbolCost: '2 Threat или 1 Despair',
   body: 'Символы проверки: ✶ ✸ ▲ ▼ ★ ☠.', bodyEn: 'Check symbols: ✶ ✸ ▲ ▼ ★ ☠.',
   notes: '', source: '', sourcePage: '',
 }
@@ -62,6 +66,7 @@ for (const lang of ['ru', 'en'] as const) {
       if (width < 760) await page.getByRole('tab', { name: lang === 'ru' ? 'Способности и снаряжение' : 'Abilities and gear', exact: true }).click()
       const description = page.locator('.npc-desc:visible').first()
       await expect(description.locator('.genesys-symbol')).toHaveCount(10)
+      await expect(description).toContainText('А потом он сбегает. Капитан А. Иванов. * пометка @.')
       for (const label of lang === 'ru'
         ? ['Успех', 'Провал', 'Преимущество', 'Осложнение', 'Триумф', 'Крах']
         : ['Success', 'Failure', 'Advantage', 'Threat', 'Triumph', 'Despair']) {
@@ -75,7 +80,7 @@ for (const lang of ['ru', 'en'] as const) {
       await page.screenshot({ path: testInfo.outputPath(`glyphs-${lang}-${width}.png`), fullPage: true })
 
       if (width < 760) await page.getByRole('tab', { name: /Атаки|Attacks/ }).click()
-      await page.getByRole('button', { name: lang === 'ru' ? 'Атаковать' : 'Attack', exact: true }).click()
+      await page.getByRole('button', { name: lang === 'ru' ? 'Атаковать' : 'Attack', exact: true }).first().click()
       const drawer = page.getByRole('complementary', { name: lang === 'ru' ? 'Дайсроллер' : 'Dice roller' })
       await expect(drawer.locator('.dr-die-glyph')).toHaveCount(6)
       await expect(drawer).toContainText(lang === 'ru' ? 'Вплотную' : 'Engaged')
@@ -88,6 +93,8 @@ for (const lang of ['ru', 'en'] as const) {
       const card = page.locator('.print-card')
       await expect(card).toContainText(lang === 'ru' ? 'Грубая сила 2' : 'Brawl 2')
       await expect(card).toContainText(lang === 'ru' ? 'Вплотную' : 'Engaged')
+      await expect(card).toContainText(lang === 'ru' ? 'навык Ближний бой' : 'skill Melee')
+      await expect(card).not.toContainText('Melee (Light)')
       await expect(card.locator('.genesys-symbol')).toHaveCount(10)
       await page.emulateMedia({ media: 'print' })
       expect(await card.locator('.genesys-symbol').evaluateAll(nodes => nodes.every(node =>
@@ -104,6 +111,8 @@ for (const lang of ['ru', 'en'] as const) {
       await expect(row.getByRole('img', { name: lang === 'ru' ? 'Крах' : 'Despair', exact: true })).toBeVisible()
       await expect(row).toContainText('2')
       await expect(row).toContainText('1')
+      await expect(row).toContainText(lang === 'ru' ? 'или' : 'or')
+      if (lang === 'en') await expect(row).not.toContainText('или')
     })
   }
 }
