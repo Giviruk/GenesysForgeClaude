@@ -402,7 +402,7 @@ for (const width of [320, 390, 768, 1280, 1440]) {
     await fitsViewport(page)
     for (const path of ['/campaigns', '/npcs']) {
       await page.goto(path)
-      await expect(page.locator('.page h2')).toBeVisible()
+      await expect(page.getByRole('heading', { name: path === '/npcs' ? 'Бестиарий' : 'Кампании', exact: true })).toBeVisible()
       await fitsViewport(page)
     }
   })

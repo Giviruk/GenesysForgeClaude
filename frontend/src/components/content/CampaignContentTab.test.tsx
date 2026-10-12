@@ -7,10 +7,13 @@ vi.mock('../../api/client',()=>({api:{campaignContent:vi.fn(async()=>summary),ca
 beforeEach(()=>{vi.clearAllMocks();window.history.replaceState(null,'','/campaigns/c/content');methods.base.mockResolvedValue(undefined);methods.entries.mockResolvedValue(undefined);methods.decision.mockResolvedValue(undefined);methods.save.mockResolvedValue({id:'saved'})})
 describe('campaign content',()=>{
  it('changes book availability and preserves category in the URL',async()=>{
+  const historyState={__genesysForgeIndex:3,scroll:200};window.history.replaceState(historyState,'',window.location.href)
+  const historyLength=window.history.length
   render(<CampaignContentTab campaignId="c"/>);fireEvent.click(await screen.findByRole('button',{name:'Системы'}))
   fireEvent.click(await screen.findByRole('switch',{name:'Доступен: Атлетика'}))
   await waitFor(()=>expect(methods.base).toHaveBeenCalledWith('c','genesysCore',[{category:'skill',key:'gc.skill.a',enabled:false}]))
   expect(window.location.search).toContain('section=systems');expect(window.location.search).toContain('category=skill')
+  expect(window.history.state).toEqual(historyState);expect(window.history.length).toBe(historyLength)
  })
  it('approves a pending pack entry and a proposal using their original IDs',async()=>{
   render(<CampaignContentTab campaignId="c"/>);fireEvent.click(await screen.findByRole('button',{name:'Наборы'}))

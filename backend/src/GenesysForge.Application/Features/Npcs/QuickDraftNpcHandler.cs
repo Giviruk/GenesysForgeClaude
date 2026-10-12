@@ -143,7 +143,7 @@ public partial class QuickDraftNpcHandler(IAppDbContext db) : ICommandHandler<Qu
         {
             if (count <= 0) break;
             if (!taken.Add(name)) continue;
-            npc.Skills.Add(new NpcSkill { NpcId = npc.Id, Name = name, Ranks = 1 });
+            npc.Skills.Add(new NpcSkill { NpcId = npc.Id, Name = name, Ranks = npc.Kind == NpcKind.Minion ? 0 : 1 });
             count--;
         }
     }

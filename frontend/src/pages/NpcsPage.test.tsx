@@ -1,5 +1,5 @@
 import { render, screen, waitFor, fireEvent } from '@testing-library/react'
-import { describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { NpcDetail, NpcListItem } from '../api/types'
 import { NpcsPage } from './NpcsPage'
 
@@ -38,6 +38,7 @@ vi.mock('../api/client', () => ({
 }))
 
 describe('NpcsPage — встроенный бестиарий', () => {
+  beforeEach(() => window.history.replaceState(null, '', '/npcs'))
   it('помечает встроенных существ и фильтрует по источнику', async () => {
     render(<NpcsPage openId={null} onOpen={() => {}} onBack={() => {}} />)
 
@@ -46,12 +47,12 @@ describe('NpcsPage — встроенный бестиарий', () => {
     expect(screen.getByText('встроенный')).toBeTruthy() // флаг на встроенном
 
     // Фильтр «Встроенные» скрывает мои NPC.
-    fireEvent.change(screen.getByDisplayValue('Все источники'), { target: { value: 'builtin' } })
+    fireEvent.click(screen.getByRole('button', { name: /^Встроенные$/ }))
     expect(screen.getByText('Гигант')).toBeTruthy()
     expect(screen.queryByText('Мой гоблин')).toBeNull()
 
     // Фильтр «Мои» скрывает встроенных.
-    fireEvent.change(screen.getByDisplayValue('Встроенные'), { target: { value: 'mine' } })
+    fireEvent.click(screen.getByRole('button', { name: /^Мои/ }))
     expect(screen.queryByText('Гигант')).toBeNull()
     expect(screen.getByText('Мой гоблин')).toBeTruthy()
   })

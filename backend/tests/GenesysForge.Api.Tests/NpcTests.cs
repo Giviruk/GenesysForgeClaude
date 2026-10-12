@@ -120,6 +120,39 @@ public class NpcTests : IClassFixture<ApiFactory>
         Assert.NotEmpty(npcA.Skills);
     }
 
+    [Theory]
+    [InlineData(GameSystem.GenesysCore, NpcPowerLevel.Standard, CreatureTemplate.None)]
+    [InlineData(GameSystem.GenesysCore, NpcPowerLevel.Strong, CreatureTemplate.None)]
+    [InlineData(GameSystem.GenesysCore, NpcPowerLevel.Elite, CreatureTemplate.None)]
+    [InlineData(GameSystem.RealmsOfTerrinoth, NpcPowerLevel.Standard, CreatureTemplate.None)]
+    [InlineData(GameSystem.RealmsOfTerrinoth, NpcPowerLevel.Strong, CreatureTemplate.None)]
+    [InlineData(GameSystem.RealmsOfTerrinoth, NpcPowerLevel.Elite, CreatureTemplate.None)]
+    [InlineData(GameSystem.RealmsOfTerrinoth, NpcPowerLevel.Elite, CreatureTemplate.Undead)]
+    public async Task QuickDraft_MinionSecondarySkills_PreviewAndSaveHaveZeroRanks(
+        GameSystem system, NpcPowerLevel power, CreatureTemplate template)
+    {
+        var gm = await _factory.CreateAuthorizedClientAsync();
+        var request = new QuickDraftRequest(system, NpcKind.Minion, NpcRole.Leader,
+            power, null, NpcCombatStyle.Melee, "Группа миньонов", Template: template);
+        var before = (await gm.GetFromJsonAsync<List<NpcListItemDto>>("/api/npcs/", Json.Options))!.Count;
+
+        var previewResponse = await gm.PostAsJsonAsync("/api/npcs/quick-draft/preview", request, Json.Options);
+        Assert.Equal(HttpStatusCode.OK, previewResponse.StatusCode);
+        var preview = (await previewResponse.Content.ReadFromJsonAsync<NpcDetailDto>(Json.Options))!;
+        Assert.True(preview.Skills.Count > 1); // Includes secondary skills, which previously failed validation.
+        Assert.All(preview.Skills, skill => Assert.Equal(0, skill.Ranks));
+        Assert.Null(preview.StrainThreshold);
+        Assert.Equal(before, (await gm.GetFromJsonAsync<List<NpcListItemDto>>("/api/npcs/", Json.Options))!.Count);
+        Assert.NotEqual(HttpStatusCode.OK, (await gm.GetAsync($"/api/npcs/{preview.Id}")).StatusCode);
+
+        var savedResponse = await gm.PostAsJsonAsync("/api/npcs/quick-draft", request, Json.Options);
+        Assert.Equal(HttpStatusCode.Created, savedResponse.StatusCode);
+        var saved = (await savedResponse.Content.ReadFromJsonAsync<NpcDetailDto>(Json.Options))!;
+        Assert.All(saved.Skills, skill => Assert.Equal(0, skill.Ranks));
+        Assert.Null(saved.StrainThreshold);
+        Assert.Equal(before + 1, (await gm.GetFromJsonAsync<List<NpcListItemDto>>("/api/npcs/", Json.Options))!.Count);
+    }
+
     [Fact]
     public async Task QuickDraft_StartingSkillAndWeapon_AreFromCatalog()
     {
