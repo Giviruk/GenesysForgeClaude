@@ -96,6 +96,13 @@ describe('netSymbols', () => {
 })
 
 describe('summarize', () => {
+  it('inflects counts with Russian one/few/many categories', () => {
+    expect(summarize(sym({ failure: 5, threat: 5, despair: 5 }))).toBe('5 провалов, 5 осложнений, 5 крахов')
+    expect(summarize(sym({ success: 21, advantage: 22, triumph: 11 }))).toBe('21 успех, 22 преимущества, 11 триумфов')
+  })
+  it('uses the Russian book result names', () => {
+    expect(summarize(sym({ failure: 1, threat: 2, despair: 1 }))).toBe('1 провал, 2 осложнения, 1 крах')
+  })
   it('успех с преимуществом', () => {
     expect(summarize(sym({ success: 2, advantage: 1 }))).toBe('2 успеха, 1 преимущество')
   })

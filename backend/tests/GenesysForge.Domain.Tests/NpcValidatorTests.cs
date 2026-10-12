@@ -108,6 +108,24 @@ public class NpcValidatorTests
         Assert.Contains(NpcValidator.Validate(n).Warnings, w => w.Contains("агическ", StringComparison.OrdinalIgnoreCase));
     }
 
+    [Theory]
+    [InlineData("Вера")]
+    [InlineData("Божественное")]
+    [InlineData("Божественная")]
+    [InlineData("Divine")]
+    [InlineData("Магия")]
+    [InlineData("Аркана")]
+    [InlineData("Природа")]
+    [InlineData("Первозданное")]
+    public void MagicNpc_CurrentAndLegacyNames_KeepWarningAndRecognizeAttacks(string skill)
+    {
+        var n = Npc();
+        n.Skills.Add(new NpcSkill { Name = skill, Ranks = 2 });
+        Assert.Contains(NpcValidator.Validate(n).Warnings, w => w.StartsWith("Магический NPC:"));
+        n.Attacks.Add(new NpcAttack { Name = "Заклинание", SkillName = skill, Damage = "3", RangeBand = "Short" });
+        Assert.DoesNotContain(NpcValidator.Validate(n).Warnings, w => w.StartsWith("Магический NPC:"));
+    }
+
     [Fact]
     public void ValidNpc_HasNoErrors()
     {

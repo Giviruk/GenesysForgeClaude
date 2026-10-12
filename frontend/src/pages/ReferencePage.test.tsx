@@ -90,7 +90,7 @@ describe('ReferencePage', () => {
     expect(screen.getByText('Цель получает 1 усталость.')).toBeTruthy()
 
     // Только негативные символы — позитивная трата скрывается.
-    fireEvent.click(screen.getByRole('tab', { name: /Угрозы и крахи/ }))
+    fireEvent.click(screen.getByRole('tab', { name: /Осложнения и крахи/ }))
     expect(screen.queryByText('Снять 1 усталость.')).toBeNull()
     expect(screen.getByText('Цель получает 1 усталость.')).toBeTruthy()
 
@@ -109,7 +109,8 @@ describe('ReferencePage', () => {
 
     fireEvent.click(screen.getByRole('tab', { name: /Оружие/ }))
     expect(screen.getByText('Взрыв')).toBeTruthy()
-    expect(screen.getByText('2 преимущества')).toBeTruthy()
+    expect(screen.getByRole('img', { name: 'Преимущество' })).toBeTruthy()
+    expect(screen.getByRole('img', { name: 'Преимущество' }).closest('td')?.textContent).toContain('2')
 
     fireEvent.click(screen.getByRole('tab', { name: /Боевые/ }))
     expect(screen.getByText('Совершите боевую проверку.')).toBeTruthy()

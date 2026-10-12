@@ -6,7 +6,7 @@ import type {
   WeaponCraftsmanship,
 } from '../api/types'
 import {
-  ITEM_KIND_LABELS,
+  ITEM_KIND_LABELS, DIFFICULTY_LABELS,
   IMPLEMENT_MATERIAL_HINTS, IMPLEMENT_MATERIAL_LABELS, localizedName, localizedDescription,
   WEAPON_CRAFTSMANSHIPS, WEAPON_CRAFTSMANSHIP_HINTS, WEAPON_CRAFTSMANSHIP_LABELS,
 } from '../utils/labels'
@@ -16,6 +16,8 @@ import { IMPLEMENT_MATERIALS } from '../utils/implements'
 import { Icon, type IconName } from './Icon'
 import { FilterChip, CheckRow } from './content/ContentUi'
 import { NumberStepper } from './content/NumberStepper'
+import { GenesysSymbol } from './GenesysSymbol'
+import { RuleText } from './RuleText'
 import { useDiceRoller } from '../dice-roller-store'
 
 interface Props {
@@ -44,21 +46,14 @@ const KIND_LABELS: Record<CraftingKind, string> = {
   enchantment: t('Зачарование', 'Enchanting'),
 }
 
-const SYMBOL_GLYPH: Record<CraftingSymbol, string> = {
-  advantage: '▲', threat: '▼', triumph: '★', despair: '☠',
-}
-
 const SYMBOL_LABELS: Record<CraftingSymbol, string> = {
   advantage: t('Преимущества', 'Advantages'),
-  threat: t('Угрозы', 'Threats'),
+  threat: t('Осложнения', 'Threats'),
   triumph: t('Триумфы', 'Triumphs'),
-  despair: t('Отчаяния', 'Despairs'),
+  despair: t('Крахи', 'Despairs'),
 }
 
-const DIFFICULTY_LABELS = [
-  t('Простая', 'Simple'), t('Лёгкая', 'Easy'), t('Средняя', 'Average'),
-  t('Трудная', 'Hard'), t('Устрашающая', 'Daunting'), t('Грозная', 'Formidable'),
-]
+
 
 const RESOURCES_HINT = t(
   'Инструменты, компоненты и ингредиенты — описание: приложение их не списывает и наличия не '
@@ -311,7 +306,7 @@ export function CraftingTab({ sheet, reference, onError, refresh }: Props) {
         <aside className="sheet-sticky sheet-result-card crafting-calculation">
           <h4>{t('Расчёт', 'Calculation')}</h4><h3>{shownPreview?.targetName ?? t('Новый проект', 'New project')}</h3>
           {shownPreview && <><div className="sheet-difficulty"><div><small>{t('Сложность', 'Difficulty')}</small><strong>{DIFFICULTY_LABELS[shownPreview.difficulty] ?? shownPreview.difficulty} ({shownPreview.difficulty})</strong>
-            {shownPreview.difficulty !== shownPreview.baseDifficulty && <small>{t('по правилу', 'by rule')} — {shownPreview.baseDifficulty}</small>}</div><span aria-hidden="true">{'◆'.repeat(shownPreview.difficulty)}</span></div>
+            {shownPreview.difficulty !== shownPreview.baseDifficulty && <small>{t('по правилу', 'by rule')} — {shownPreview.baseDifficulty}</small>}</div><span aria-hidden="true">{Array.from({ length: shownPreview.difficulty }, (_, i) => <GenesysSymbol key={i} kind="difficulty" decorative />)}</span></div>
             <dl className="sheet-result-stats"><dt>{t('Навык', 'Skill')}</dt><dd>{shownPreview.skillName}</dd><dt>{t('Время', 'Time')}</dt><dd>{shownPreview.time} {shownPreview.timeUnit === 'hours' ? t('ч', 'h') : t('дн', 'd')}</dd>
               <dt>{t('Цена предмета', 'Item price')}</dt><dd>{shownPreview.targetPrice ?? '—'}</dd><dt>{t('Компоненты', 'Components')}</dt><dd>{shownPreview.cost} {shownPreview.costOverride === null && shownPreview.costPercent !== 100 && <small>({shownPreview.costPercent}% {t('от', 'of')} {shownPreview.listedCost})</small>}</dd></dl></>}
           <button className="primary" disabled={!canStart} onClick={() => void start()}>{t('Начать проект', 'Start the project')}</button>
@@ -476,12 +471,14 @@ function ResolveForm({ project, sheet, onCancel, onResolved, onError }: {
       {project.requirements && <p className="small-text muted">{project.requirements}</p>}
 
       <div className="crafting-symbols">
-        <NumberStepper label={t('Нетто-успехов', 'Net successes')} glyph="✓" className="successes" value={successes} onChange={setSuccesses} disabled={busy} />
-        {(Object.keys(SYMBOL_LABELS) as CraftingSymbol[]).map(symbol => <NumberStepper key={symbol} label={SYMBOL_LABELS[symbol]} glyph={SYMBOL_GLYPH[symbol]} className={symbol} value={symbols[symbol]} min={spent[symbol]} disabled={busy}
+        <NumberStepper label={t('Нетто-успехов', 'Net successes')} glyph={<GenesysSymbol kind="success" decorative />} className="successes" value={successes} onChange={setSuccesses} disabled={busy} />
+        {(Object.keys(SYMBOL_LABELS) as CraftingSymbol[]).map(symbol => <NumberStepper key={symbol} label={SYMBOL_LABELS[symbol]} glyph={<GenesysSymbol kind={symbol} decorative />} className={symbol} value={symbols[symbol]} min={spent[symbol]} disabled={busy}
           onChange={value => setSymbols(prev => ({ ...prev, [symbol]: value }))} />)}
       </div>
-      <h4 className="sheet-section-title">{t('Траты символов', 'Symbol spends')}<small>{t('Осталось:', 'Remaining:')} {Object.keys(symbols).map(key => `${SYMBOL_GLYPH[key as CraftingSymbol]} ${symbols[key as CraftingSymbol] - spent[key as CraftingSymbol]}`).join(' · ')}</small></h4>
-      {!Object.values(symbols).some(v => v > 0) && <p className="muted small-text">{t('Впишите ▲ ▼ ★ ☠ — здесь появятся доступные траты.', 'Enter ▲ ▼ ★ ☠ to enable symbol spends.')}</p>}
+      <h4 className="sheet-section-title">{t('Траты символов', 'Symbol spends')}<small>{t('Осталось:', 'Remaining:')} {(Object.keys(symbols) as CraftingSymbol[]).map((symbol, i) => <span key={symbol} aria-label={`${SYMBOL_LABELS[symbol]}: ${symbols[symbol] - spent[symbol]}`}>
+        {i > 0 && ' · '}<GenesysSymbol kind={symbol} decorative /> {symbols[symbol] - spent[symbol]}
+      </span>)}</small></h4>
+      {!Object.values(symbols).some(v => v > 0) && <p className="muted small-text"><RuleText symbolsOnly text={t('Впишите ▲ ▼ ★ ☠ — здесь появятся доступные траты.', 'Enter ▲ ▼ ★ ☠ to enable symbol spends.')} /></p>}
       {choices.length > 0 && (
         <ul className="crafting-choices">
           {choices.map(c => {
@@ -489,7 +486,7 @@ function ResolveForm({ project, sheet, onCancel, onResolved, onError }: {
             if (!def) return null
             return (
               <li key={c.code}>
-                {SYMBOL_GLYPH[c.paidWith]} <strong>{t(def.nameRu, def.nameEn)}</strong>
+                <GenesysSymbol kind={c.paidWith} /> <strong>{t(def.nameRu, def.nameEn)}</strong>
                 {` ×${c.count ?? 1}`}
                 {def.requiresParameter && (
                   <input value={c.parameter ?? ''} maxLength={400}
@@ -517,15 +514,16 @@ function ResolveForm({ project, sheet, onCancel, onResolved, onError }: {
                   {' '}({t('только описание', 'description only')})
                 </span>
               )}
-              <span className="muted small-text"> — {localizedDescription(def)}</span>
+              <span className="muted small-text"> — <RuleText symbolsOnly text={localizedDescription(def)} /></span>
             </span>
             <span className="crafting-costs">
               {payments(def).map(([symbol, cost]) => (
                 <button key={symbol} className="chip"
+                  aria-label={`${SYMBOL_LABELS[symbol]} ${cost}`}
                   disabled={busy || !affordable(def, symbol, cost)}
                   title={t('Оплатить', 'Pay with')}
                   onClick={() => add(def, symbol)}>
-                  {SYMBOL_GLYPH[symbol]} {cost}
+                  <GenesysSymbol kind={symbol} decorative /> {cost}
                 </button>
               ))}
             </span>

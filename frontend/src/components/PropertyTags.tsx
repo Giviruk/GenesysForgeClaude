@@ -4,6 +4,7 @@ import { parseProperties, qualityName, type ItemQuality, type ParsedProperty } f
 import { t } from '../i18n'
 import { localizedDescription } from '../utils/labels'
 import { useTooltipPosition } from './useTooltipPosition'
+import { RuleText } from './RuleText'
 
 type QualityDefinition = Pick<Quality,
   'code' | 'nameRu' | 'nameEn' | 'description' | 'safeDescription' | 'descriptionEn' | 'hasRating'>
@@ -106,7 +107,7 @@ function PropertyTag({ property, qualityDefinitions }: {
             {title !== englishName && <span className="prop-tooltip-en"> · {t(englishName, title)}</span>}
             {hasRating && <span className="prop-tooltip-en"> · {t('рейтинг', 'rated')}</span>}
           </span>
-          {description && <span className="prop-tooltip-body">{description}</span>}
+          {description && <span className="prop-tooltip-body"><RuleText text={description} symbolsOnly /></span>}
         </span>
       )}
     </span>

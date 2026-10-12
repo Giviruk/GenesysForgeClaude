@@ -1,12 +1,14 @@
 import { useState } from 'react'
 import {
   DIE_KINDS, SYMBOL_ORDER, applyDifficultyUpgrades, emptyPool, poolSize, rollPool, summarize,
-  type DieKind, type DieSymbol, type RollPool, type RollSymbols, type RollOutcome,
+  type DieKind, type RollPool, type RollSymbols, type RollOutcome,
 } from '../utils/diceRoller'
 import { t } from '../i18n'
+import { GENESYS_SYMBOL_LABELS } from '../data/genesysSymbols'
 import type { AdvantageSpendContext, AdvantageSpendOption } from '../utils/advantageSpends'
 import { OutcomeSpendGuide } from './OutcomeSpendGuide'
 import { DicePoolView } from './DicePoolView'
+import { GenesysSymbol } from './GenesysSymbol'
 
 /** Заявка на запись броска в лог стола. */
 export interface RollLogRequest {
@@ -38,36 +40,12 @@ interface Props {
   advantageSpends?: AdvantageSpendOption[]
 }
 
-const DIE_META: Record<DieKind, { label: string; glyph: string }> = t({
-  ability: { label: 'Способности (зел. d8)', glyph: '◆' },
-  proficiency: { label: 'Мастерство (жёлт. d12)', glyph: '⬣' },
-  difficulty: { label: 'Сложность (фиол. d8)', glyph: '◆' },
-  challenge: { label: 'Вызов (красн. d12)', glyph: '⬣' },
-  boost: { label: 'Бонус (син. d6)', glyph: '◻' },
-  setback: { label: 'Помеха (чёрн. d6)', glyph: '◻' },
+const DIE_DETAIL: Record<DieKind, string> = t({
+  ability: 'зел. d8', proficiency: 'жёлт. d12', difficulty: 'фиол. d8',
+  challenge: 'красн. d12', boost: 'син. d6', setback: 'чёрн. d6',
 }, {
-  ability: { label: 'Ability (green d8)', glyph: '◆' },
-  proficiency: { label: 'Proficiency (yellow d12)', glyph: '⬣' },
-  difficulty: { label: 'Difficulty (purple d8)', glyph: '◆' },
-  challenge: { label: 'Challenge (red d12)', glyph: '⬣' },
-  boost: { label: 'Boost (blue d6)', glyph: '◻' },
-  setback: { label: 'Setback (black d6)', glyph: '◻' },
-})
-
-const SYMBOL_META: Record<DieSymbol, { label: string; glyph: string }> = t({
-  success: { label: 'Успех', glyph: '✶' },
-  failure: { label: 'Провал', glyph: '✸' },
-  advantage: { label: 'Преимущество', glyph: '▲' },
-  threat: { label: 'Угроза', glyph: '▼' },
-  triumph: { label: 'Триумф', glyph: '★' },
-  despair: { label: 'Отчаяние', glyph: '☠' },
-}, {
-  success: { label: 'Success', glyph: '✶' },
-  failure: { label: 'Failure', glyph: '✸' },
-  advantage: { label: 'Advantage', glyph: '▲' },
-  threat: { label: 'Threat', glyph: '▼' },
-  triumph: { label: 'Triumph', glyph: '★' },
-  despair: { label: 'Despair', glyph: '☠' },
+  ability: 'green d8', proficiency: 'yellow d12', difficulty: 'purple d8',
+  challenge: 'red d12', boost: 'blue d6', setback: 'black d6',
 })
 
 export function DiceRoller({
@@ -111,8 +89,8 @@ export function DiceRoller({
     <div className="dice-roller">
       <div className="dr-pool">
         {DIE_KINDS.map(kind => (
-          <div key={kind} className={`dr-die dr-${kind}`} title={DIE_META[kind].label}>
-            <span className="dr-die-glyph">{DIE_META[kind].glyph}</span>
+          <div key={kind} className={`dr-die dr-${kind}`} title={`${GENESYS_SYMBOL_LABELS[kind]} (${DIE_DETAIL[kind]})`}>
+            <GenesysSymbol title={false} kind={kind} className="dr-die-glyph" />
             <span className="dr-die-count">{pool[kind]}</span>
             <span className="dr-die-btns">
               <button type="button" className="tiny" onClick={() => bump(kind, 1)} aria-label={`+${kind}`}>+</button>
@@ -177,8 +155,8 @@ export function RollSymbolsView({ symbols }: { symbols: RollSymbols }) {
   return (
     <span className="dr-symbols">
       {shown.map(s => (
-        <span key={s} className={`roll-sym roll-${s}`} title={SYMBOL_META[s].label}>
-          {SYMBOL_META[s].glyph} {symbols[s]}
+        <span key={s} className={`roll-sym roll-${s}`} title={GENESYS_SYMBOL_LABELS[s]}>
+          <GenesysSymbol kind={s} /> {symbols[s]}
         </span>
       ))}
     </span>

@@ -3,8 +3,8 @@ import type { Quality } from '../api/types'
 import { combatTotal, expandDamage, isHit, qualitiesFromProperties, resolveQualityCosts } from './combat'
 
 describe('expandDamage — раскрытие урона оружия', () => {
-  it('«+N» в ближнем бою = Мощь + N', () => {
-    expect(expandDamage('+2', 3)).toEqual({ base: 5, text: '5 (Мощь +2)' })
+  it('«+N» в ближнем бою = Сила + N', () => {
+    expect(expandDamage('+2', 3)).toEqual({ base: 5, text: '5 (Сила +2)' })
   })
   it('абсолютное число — как есть', () => {
     expect(expandDamage('7', 3)).toEqual({ base: 7, text: '7' })

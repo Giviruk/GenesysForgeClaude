@@ -1,3 +1,4 @@
+import { rangeBandLabel } from '../../utils/labels'
 import { BookReference } from '../BookReference'
 import { useEffect, useState } from 'react'
 import { api } from '../../api/client'
@@ -136,15 +137,15 @@ export function CharacterSheetPrint({ sheet, loadNotes = true }: {
               {sheet.heroicUpgradeRank > 0 && t(` · улучшение ${sheet.heroicUpgradeRank}`, ` · upgrade ${sheet.heroicUpgradeRank}`)}
             </span>
             <BookReference source={h.source} />
-            {localizedDescription(h) && <div className="sheet-desc">{localizedDescription(h)}</div>}
+            {localizedDescription(h) && <div className="sheet-desc"><RuleText symbolsOnly text={localizedDescription(h)} /></div>}
             {h.upgrades.filter(u => u.level <= sheet.heroicUpgradeRank).map(u => (
               <div key={u.level} className="sheet-desc">
-                ↑ {u.level === 1 ? t('Улучшенная', 'Improved') : t('Высшая', 'Supreme')}: {localizedDescription(u)} <BookReference source={u.source || h.source} />
+                ↑ {u.level === 1 ? t('Улучшенная', 'Improved') : t('Высшая', 'Supreme')}: <RuleText symbolsOnly text={localizedDescription(u)} /> <BookReference source={u.source || h.source} />
               </div>
             ))}
             {sheet.heroicUpgrades.secondaryEffects.map(effect => (
               <div key={effect.id} className="sheet-desc">
-                ↑ {localizedName(effect)}: {localizedDescription(effect)} <BookReference source={effect.source} />
+                ↑ {localizedName(effect)}: <RuleText symbolsOnly text={localizedDescription(effect)} /> <BookReference source={effect.source} />
               </div>
             ))}
           </div>
@@ -172,7 +173,7 @@ export function CharacterSheetPrint({ sheet, loadNotes = true }: {
                 const profile = i.attackProfiles?.find(p => p.isDefault)
                 const damageText = profile?.baseDamage != null ? String(profile.baseDamage) : i.damage
                 const critText = profile ? String(profile.crit) : i.crit
-                const combat = [damageText && t(`урон ${damageText}`, `damage ${damageText}`), critText && t(`крит ${critText}`, `crit ${critText}`), i.rangeBand, weaponSkillLabel]
+                const combat = [damageText && t(`урон ${damageText}`, `damage ${damageText}`), critText && t(`крит ${critText}`, `crit ${critText}`), rangeBandLabel(i.rangeBand), weaponSkillLabel]
                   .filter(Boolean).join(', ')
                 const armor = [
                   i.soakBonus ? t(`поглощение +${i.soakBonus}`, `soak +${i.soakBonus}`) : '',

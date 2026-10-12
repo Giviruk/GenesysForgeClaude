@@ -330,7 +330,7 @@ public class ResolveCraftingHandler(IAppDbContext db)
         // Описание результата — то же, что попадает в предмет: игрок должен видеть каждый свой
         // выбор словами, потому что половина трат приложением не исполняется.
         var lines = new List<string> { $"Изготовлено персонажем: {project.TargetName}." };
-        if (project.RoughSurvival) lines.Add("Грубая работа Выживанием: ведущий может сломать её на отчаянии.");
+        if (project.RoughSurvival) lines.Add("Грубая работа Выживанием: ведущий может сломать её при крахе.");
         if (!string.IsNullOrWhiteSpace(project.Intent)) lines.Add($"Замысел: {project.Intent}");
         lines.AddRange(outcome.Notes);
         var note = string.Join("\n", lines);

@@ -1,5 +1,6 @@
 import type { DicePool } from '../api/types'
 import { t } from '../i18n'
+import { GenesysSymbol } from './GenesysSymbol'
 
 /**
  * Жёлтые (Proficiency) и зелёные (Ability) кубы пула, а также чёрные кости помех, которые
@@ -31,22 +32,22 @@ export function DicePoolView({
   return (
     <span className="dice-pool" title={setbackTitle ? `${poolTitle}\n${setbackTitle}` : poolTitle}>
       {Array.from({ length: pool.proficiency }).map((_, i) => (
-        <span key={`p${i}`} className={`die proficiency${previousPool && i >= previousPool.proficiency ? ' rd-preview-die' : ''}`}>⬣</span>
+        <GenesysSymbol title={false} key={`p${i}`} kind="proficiency" className={`die proficiency${previousPool && i >= previousPool.proficiency ? ' rd-preview-die' : ''}`} />
       ))}
       {Array.from({ length: pool.ability }).map((_, i) => (
-        <span key={`a${i}`} className={`die ability${previousPool && i >= previousPool.ability ? ' rd-preview-die' : ''}`}>◆</span>
+        <GenesysSymbol title={false} key={`a${i}`} kind="ability" className={`die ability${previousPool && i >= previousPool.ability ? ' rd-preview-die' : ''}`} />
       ))}
       {Array.from({ length: Math.max(0, boost) }).map((_, i) => (
-        <span key={`b${i}`} className="die boost">□</span>
+        <GenesysSymbol title={false} key={`b${i}`} kind="boost" className="die boost" />
       ))}
       {Array.from({ length: Math.max(0, setback) }).map((_, i) => (
-        <span key={`s${i}`} className="die setback">■</span>
+        <GenesysSymbol title={false} key={`s${i}`} kind="setback" className="die setback" />
       ))}
       {Array.from({ length: Math.max(0, difficulty) }).map((_, i) => (
-        <span key={`d${i}`} className="die difficulty">◆</span>
+        <GenesysSymbol title={false} key={`d${i}`} kind="difficulty" className="die difficulty" />
       ))}
       {Array.from({ length: Math.max(0, challenge) }).map((_, i) => (
-        <span key={`c${i}`} className="die challenge">⬣</span>
+        <GenesysSymbol title={false} key={`c${i}`} kind="challenge" className="die challenge" />
       ))}
       {difficultyUpgrades > 0 && (
         <span className="die-upgrade" title={t(

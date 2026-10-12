@@ -69,7 +69,7 @@ public static class RuleEffectApplier
                     r.Manual.Add($"Добавьте {e.Amount} куб(а) бонуса к следующей проверке.");
                     break;
                 case RuleEffectKind.AddSetbackNextCheck:
-                    r.Manual.Add($"Добавьте {e.Amount} куб(а) помехи к следующей проверке.");
+                    r.Manual.Add($"Кости штрафа к следующей проверке: +{e.Amount}.");
                     break;
                 case RuleEffectKind.SpendStoryPoint:
                     r.Manual.Add("Потратьте очко сюжета.");

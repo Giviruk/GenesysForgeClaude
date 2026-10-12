@@ -617,7 +617,7 @@ function QuickBuildPanel({ enc, onRun }: {
         </select>
       </div>
       <div className="form-row">
-        <label className="inline-label">{t('Количество (для группы миньонов)', 'Count (for a minion group)')}
+        <label className="inline-label">{t('Количество (для группы приспешников)', 'Count (for a minion group)')}
           <input className="ranks-input" type="number" min={1} value={quantity}
             onChange={e => setQuantity(Math.max(1, +e.target.value))} />
         </label>

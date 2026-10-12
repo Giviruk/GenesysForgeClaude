@@ -11,6 +11,62 @@ public class SeedDataTests
             .UseInMemoryDatabase($"seed-{Guid.NewGuid():N}").Options);
 
     [Fact]
+    public void Apply_UsesRussianCoreNames_AndReseedPreservesIdsAndCustomNames()
+    {
+        using var db = NewDb();
+        SeedData.Apply(db);
+        // Table I.3-1 of the Russian Core Rulebook, p. 53.
+        var expected = new Dictionary<string, string>
+        {
+            ["Discipline"] = "Выдержка", ["Operating"] = "Управление", ["Perception"] = "Внимание",
+            ["Resilience"] = "Стойкость", ["Skulduggery"] = "Жульничество", ["Streetwise"] = "Уличная интуиция",
+            ["Brawl"] = "Грубая сила", ["Gunnery"] = "Артиллерия", ["Coercion"] = "Запугивание",
+            ["Ranged (Heavy)"] = "Дальний бой (тяжёлое оружие)",
+            ["Ranged (Light)"] = "Дальний бой (лёгкое оружие)",
+            ["Arcana"] = "Магия", ["Divine"] = "Вера", ["Primal"] = "Природа",
+        };
+        var builtin = db.SkillDefs.Where(s => s.OwnerUserId == null && s.System == GameSystem.GenesysCore)
+            .ToDictionary(s => s.Name);
+        var ids = builtin.ToDictionary(p => p.Key, p => p.Value.Id);
+        foreach (var (name, russian) in expected) Assert.Equal(russian, builtin[name].NameRu);
+
+        builtin["Perception"].NameRu = "Внимательность";
+        var custom = new Domain.Entities.SkillDef
+        {
+            Id = Guid.NewGuid(), System = GameSystem.GenesysCore, Name = "Perception",
+            NameRu = "Особая внимательность", OwnerUserId = Guid.NewGuid(),
+            Characteristic = CharacteristicType.Cunning, Kind = SkillKind.General,
+        };
+        db.SkillDefs.Add(custom);
+        db.SaveChanges();
+        SeedData.Apply(db);
+
+        Assert.Equal("Внимание", builtin["Perception"].NameRu);
+        Assert.Equal("Особая внимательность", db.SkillDefs.Single(s => s.Id == custom.Id).NameRu);
+        foreach (var (name, id) in ids)
+            Assert.Equal(id, db.SkillDefs.Single(s => s.OwnerUserId == null
+                && s.System == GameSystem.GenesysCore && s.Name == name).Id);
+    }
+
+    [Fact]
+    public void Apply_ReseedsCoreDifficultyLabels_WithoutReplacingIds()
+    {
+        using var db = NewDb();
+        SeedData.Apply(db);
+        var rows = db.RuleTableEntries.Where(r => r.Kind == Domain.Entities.RuleTableKind.Difficulty)
+            .OrderBy(r => r.SortOrder).ToList();
+        var ids = rows.Select(r => r.Id).ToList();
+        var expected = new[] { "Элементарная", "Лёгкая", "Обычная", "Сложная", "Пугающая", "Запредельная" };
+        Assert.Equal(expected, rows.Select(r => r.NameRu));
+        rows[0].NameRu = "Простая";
+        rows[3].NameRu = "Трудная";
+        db.SaveChanges();
+        SeedData.Apply(db);
+        Assert.Equal(expected, rows.Select(r => r.NameRu));
+        Assert.Equal(ids, rows.Select(r => r.Id));
+    }
+
+    [Fact]
     public void Apply_IsIdempotent_NoDuplicatesOnSecondRun()
     {
         using var db = NewDb();

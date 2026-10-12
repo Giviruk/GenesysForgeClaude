@@ -3,6 +3,7 @@ import { findQuality, ITEM_QUALITIES, type ItemQuality } from '../data/itemQuali
 import { localizedDescription } from '../utils/labels'
 import { t } from '../i18n'
 import { InfoTip } from './InfoTip'
+import { RuleText } from './RuleText'
 
 type QualityLike = Pick<Quality, 'nameRu' | 'nameEn' | 'description' | 'safeDescription' | 'descriptionEn' | 'hasRating'>
 
@@ -24,25 +25,25 @@ export function PropertyText({ text, qualities = [] }: { text: string; qualities
   if (!text) return null
 
   const matches = findMatches(text, descriptors(qualities))
-  if (matches.length === 0) return <>{text}</>
+  if (matches.length === 0) return <RuleText text={text} symbolsOnly />
 
   const parts: React.ReactNode[] = []
   let cursor = 0
   for (const match of matches) {
-    if (match.start > cursor) parts.push(text.slice(cursor, match.start))
+    if (match.start > cursor) parts.push(<RuleText key={`text-${cursor}`} text={text.slice(cursor, match.start)} symbolsOnly />)
     const displayName = t(match.quality.nameRu, match.quality.nameEn)
     const alternateName = t(match.quality.nameEn, match.quality.nameRu)
     parts.push(
       <InfoTip key={`${match.start}-${match.end}`} label={displayName}
         title={displayName === alternateName ? displayName : `${displayName} · ${alternateName}`}
         className="spell-property">
-        {match.quality.description}
+        <RuleText text={match.quality.description} symbolsOnly />
         {match.quality.hasRating && t(' Рейтинг свойства указывается в эффекте.', ' The quality rating is shown in the effect.')}
       </InfoTip>,
     )
     cursor = match.end
   }
-  if (cursor < text.length) parts.push(text.slice(cursor))
+  if (cursor < text.length) parts.push(<RuleText key={`text-${cursor}`} text={text.slice(cursor)} symbolsOnly />)
   return <>{parts}</>
 }
 

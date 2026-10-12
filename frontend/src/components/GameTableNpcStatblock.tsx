@@ -1,3 +1,4 @@
+import { RuleText } from './RuleText'
 import { useEffect, useMemo, useState } from 'react'
 import { api } from '../api/client'
 import type { Characteristic, GameParticipant, NpcDetail, Reference, UpdateParticipantRequest } from '../api/types'
@@ -109,7 +110,7 @@ export function GameTableNpcStatblock({ participant, campaignId, isGm,
               <h3>{npc.name}</h3>
               <span className="muted">{SYSTEM_LABELS[npc.system]} · {NPC_KIND_LABELS[npc.kind]} · {NPC_ROLE_LABELS[npc.role]}</span>
             </div>
-            {npc.description && <p className="npc-desc">{npc.description}</p>}
+            {npc.description && <p className="npc-desc"><RuleText symbolsOnly text={npc.description} /></p>}
 
             <div className="npc-char-row">
               {chars.map(([characteristic, value]) => (
@@ -127,8 +128,8 @@ export function GameTableNpcStatblock({ participant, campaignId, isGm,
               <span><b>{t('Бл. защита', 'Melee def.')}</b> {npc.meleeDefense}</span>
               <span><b>{t('Дал. защита', 'Ranged def.')}</b> {npc.rangedDefense}</span>
               <span><b>{t('Силуэт', 'Silhouette')}</b> {npc.silhouette}</span>
-              <span><b>{t('Бусты', 'Boosts')}</b> {participant.boostDice}</span>
-              <span><b>{t('Сетбеки', 'Setbacks')}</b> {participant.setbackDice}</span>
+              <span><b>{t('Кости бонуса', 'Boosts')}</b> {participant.boostDice}</span>
+              <span><b>{t('Кости штрафа', 'Setbacks')}</b> {participant.setbackDice}</span>
             </div>
 
             {isGm && (
@@ -159,7 +160,7 @@ export function GameTableNpcStatblock({ participant, campaignId, isGm,
                 <h4>{npc.kind === 'minion' ? t('Групповые навыки', 'Group skills') : t('Навыки', 'Skills')}</h4>
                 <ul className="npc-skill-list gt-npc-roll-list">
                   {skills.map(skill => (
-                    <li key={skill.name} className="npc-skill-row">
+                    <li key={skill.key} className="npc-skill-row">
                       <span className="npc-skill-name">
                         {skill.name} <span className="muted">{skill.ranks}</span>
                         {skill.characteristic && <span className="muted small-text"> · {CHARACTERISTIC_LABELS[skill.characteristic]}</span>}
@@ -218,14 +219,14 @@ export function GameTableNpcStatblock({ participant, campaignId, isGm,
                           className="small-text"
                           qualityDefinitions={reference?.qualities ?? []} />
                       )}
-                      {attack.notes && <div className="muted small-text">{attack.notes}</div>}
+                      {attack.notes && <div className="muted small-text"><RuleText symbolsOnly text={attack.notes} /></div>}
                     </li>
                   ))}
                 </ul>
               </section>
             )}
 
-            {npc.abilities.length > 0 && <section className="npc-section"><h4>{t('Способности', 'Abilities')}</h4><ul>{npc.abilities.map((a, i) => <li key={i}><b>{a.name}.</b> {a.description}</li>)}</ul></section>}
+            {npc.abilities.length > 0 && <section className="npc-section"><h4>{t('Способности', 'Abilities')}</h4><ul>{npc.abilities.map((a, i) => <li key={i}><b>{a.name}.</b> <RuleText symbolsOnly text={a.description} /></li>)}</ul></section>}
             {npc.talents.length > 0 && <section className="npc-section"><h4>{t('Таланты', 'Talents')}</h4><div className="chips">{npc.talents.map((talent, i) => <span key={i} className="chip">{talent}</span>)}</div></section>}
             {npc.equipment.length > 0 && <section className="npc-section"><h4>{t('Снаряжение', 'Gear')}</h4><div className="chips">{npc.equipment.map((item, i) => <span key={i} className="chip">{item}</span>)}</div></section>}
             {npc.tactics && <section className="npc-section"><h4>{t('Тактика', 'Tactics')}</h4><p className="npc-desc">{npc.tactics}</p></section>}
