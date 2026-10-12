@@ -1,5 +1,6 @@
-import { useEffect, useId, useRef, useState } from 'react'
+import { Children, useEffect, useId, useRef, useState } from 'react'
 import { useTooltipPosition } from './useTooltipPosition'
+import { RuleText } from './RuleText'
 
 /**
  * Памятка в тултипе: короткий значок, за которым лежит правило целиком.
@@ -63,7 +64,8 @@ export function InfoTip({ label, title, children, className }: {
       {open && (
         <span ref={tipRef} id={tipId} role="tooltip" className="prop-tooltip" onClick={e => e.stopPropagation()}>
           <span className="prop-tooltip-title">{title}</span>
-          <span className="prop-tooltip-body">{children}</span>
+          <span className="prop-tooltip-body">{Children.map(children, child =>
+            typeof child === 'string' ? <RuleText text={child} symbolsOnly /> : child)}</span>
         </span>
       )}
     </span>

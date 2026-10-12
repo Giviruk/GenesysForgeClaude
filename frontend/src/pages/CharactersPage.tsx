@@ -431,7 +431,7 @@ export function CreateCharacterForm({ onCancel, onCreated, campaignId, closedSys
           <div className="hint">
             {CHARACTERISTICS.map(c => `${CHARACTERISTIC_LABELS[c]} ${archetype[c]}`).join(' · ')}
             <br />{t(
-              `Раны ${archetype.woundBase}+Мощь · Усталость ${archetype.strainBase}+Воля · Старт. XP ${archetype.startingXp}`,
+              `Раны ${archetype.woundBase}+Сила · Усталость ${archetype.strainBase}+Воля · Старт. XP ${archetype.startingXp}`,
               `Wounds ${archetype.woundBase}+Brawn · Strain ${archetype.strainBase}+Willpower · Starting XP ${archetype.startingXp}`,
             )}
             {fixedStartingSkills.length > 0 && (

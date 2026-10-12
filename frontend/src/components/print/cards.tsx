@@ -1,6 +1,7 @@
+import { rangeBandLabel } from '../../utils/labels'
 import { BookReference } from '../BookReference'
 import type {
-  Characteristic, EncounterDetail, NpcDetail, SheetItem, SheetTalent,
+  Characteristic, EncounterDetail, NpcDetail, Reference, SheetItem, SheetTalent, SkillDef,
 } from '../../api/types'
 import {
   CHARACTERISTIC_LABELS, ENCOUNTER_TYPE_LABELS, IMPLEMENT_MATERIAL_LABELS,
@@ -12,31 +13,36 @@ import {
 import type { PrintVersion } from './PrintPreview'
 import { t } from '../../i18n'
 import { RuleText } from '../RuleText'
+import { GenesysSymbol } from '../GenesysSymbol'
+import { npcAttackSkill, npcSkillLabel, skillIndex } from '../../utils/npcStats'
 
 const CHARS: Characteristic[] = ['brawn', 'agility', 'intellect', 'cunning', 'willpower', 'presence']
 
 /** Однострочный статблок атаки NPC для печати: имя [навык], Урон/Крит/Дистанция, качества. */
-function attackLine(a: NpcDetail['attacks'][number]): string {
+function attackLine(a: NpcDetail['attacks'][number], index: Map<string, SkillDef>): string {
+  const skill = npcAttackSkill(a.skillName, index)
+  const skillLabel = skill ? localizedName(skill) : a.skillName
   const stats = [
-    a.skillName && t(`навык ${a.skillName}`, `skill ${a.skillName}`),
+    a.skillName && t(`навык ${skillLabel}`, `skill ${skillLabel}`),
     a.damage && t(`Урон ${a.damage}`, `Damage ${a.damage}`),
     a.critical && t(`Крит ${a.critical}`, `Crit ${a.critical}`),
-    a.rangeBand,
+    rangeBandLabel(a.rangeBand),
     ...a.qualities.map(q => (q.nameRu || q.qualityCode) + (q.rating != null ? ` ${q.rating}` : '')),
   ].filter(Boolean)
   return `${a.name}${stats.length ? ` (${stats.join(', ')})` : ''}`
 }
 
 /** Карточка NPC (§3.1). Версия игрока скрывает stats/заметки/способности. */
-export function AdversaryCard({ npc, version }: { npc: NpcDetail; version: PrintVersion }) {
+export function AdversaryCard({ npc, version, reference }: { npc: NpcDetail; version: PrintVersion; reference: Reference | null }) {
   const gm = version === 'gm'
+  const index = skillIndex(reference)
   return (
     <article className="print-card">
       <header className="pcard-head">
         <h3>{npc.name}</h3>
         <span className="pcard-sub">{SYSTEM_LABELS[npc.system]} · {NPC_KIND_LABELS[npc.kind]} · {NPC_ROLE_LABELS[npc.role]}</span>
       </header>
-      {npc.description && <p>{npc.description}</p>}
+      {npc.description && <p><RuleText text={npc.description} symbolsOnly /></p>}
       {gm ? (
         <>
           <div className="pcard-chars">
@@ -50,17 +56,17 @@ export function AdversaryCard({ npc, version }: { npc: NpcDetail; version: Print
             <span><b>{t('Дал.защ', 'R.Def')}</b> {npc.rangedDefense}</span>
             {npc.silhouette !== 1 && <span><b>{t('Силуэт', 'Silhouette')}</b> {npc.silhouette}</span>}
           </div>
-          {npc.skills.length > 0 && <p><b>{t('Навыки:', 'Skills:')}</b> {npc.skills.map(s => `${s.name} ${s.ranks}`).join(' · ')}</p>}
+          {npc.skills.length > 0 && <p><b>{t('Навыки:', 'Skills:')}</b> {npc.skills.map(s => `${npcSkillLabel(s.name, index)} ${s.ranks}`).join(' · ')}</p>}
           {npc.attacks.length > 0 && (
             <div>
               <b>{t('Атаки:', 'Attacks:')}</b>
-              <ul>{npc.attacks.map((a, i) => <li key={i}>{attackLine(a)}</li>)}</ul>
+              <ul>{npc.attacks.map((a, i) => <li key={i}>{attackLine(a, index)}</li>)}</ul>
             </div>
           )}
           {npc.abilities.length > 0 && (
             <div>
               <b>{t('Способности:', 'Abilities:')}</b>
-              <ul>{npc.abilities.map((a, i) => <li key={i}>{a.name}{a.description && ` — ${a.description}`}</li>)}</ul>
+              <ul>{npc.abilities.map((a, i) => <li key={i}>{a.name}{a.description && <> — <RuleText text={a.description} symbolsOnly /></>}</li>)}</ul>
             </div>
           )}
           {npc.talents.length > 0 && <p><b>{t('Таланты:', 'Talents:')}</b> {npc.talents.join(' · ')}</p>}
@@ -137,12 +143,12 @@ export function MagicActionCard({ data }: { data: MagicCardData }) {
         {t('Сложность:', 'Difficulty:')} <b>{data.totalDifficulty}</b> ({difficultyLabel(data.totalDifficulty)})
         {data.totalDifficulty !== data.baseDifficulty && <> {t('— базовая', '— base')} {data.baseDifficulty}</>}
       </p>
-      {data.pool && <p>{t('Пул:', 'Pool:')} {data.pool.proficiency}⬣ + {data.pool.ability}◆</p>}
-      {data.description && <p>{data.description}</p>}
+      {data.pool && <p>{t('Набор костей:', 'Pool:')} {data.pool.proficiency}<GenesysSymbol kind="proficiency" /> + {data.pool.ability}<GenesysSymbol kind="ability" /></p>}
+      {data.description && <p><RuleText text={data.description} symbolsOnly /></p>}
       {data.effects.length > 0 && (
         <div>
           <b>{t('Дополнительные эффекты:', 'Additional effects:')}</b>
-          <ul>{data.effects.map((e, i) => <li key={i}>{t(e.ru, e.en)} ({t(e.en, e.ru)}) {e.difficulty} — {e.summary}</li>)}</ul>
+          <ul>{data.effects.map((e, i) => <li key={i}>{t(e.ru, e.en)} ({t(e.en, e.ru)}) {e.difficulty} — <RuleText text={e.summary} symbolsOnly /></li>)}</ul>
         </div>
       )}
       {data.sources.length > 0 && <footer className="pcard-src">{t('Источники:', 'Sources:')} {data.sources.join('; ')}</footer>}
@@ -184,7 +190,7 @@ export function ItemCard({ item, skillLabel }: { item: SheetItem; skillLabel?: s
           {item.skillName && <span><b>{t('Навык', 'Skill')}</b> {skillLabel || item.skillName}</span>}
           {damage && <span><b>{t('Урон', 'Damage')}</b> {damage}</span>}
           {crit && <span><b>{t('Крит', 'Crit')}</b> {crit}</span>}
-          {item.rangeBand && <span><b>{t('Дистанция', 'Range')}</b> {item.rangeBand}</span>}
+          {item.rangeBand && <span><b>{t('Дистанция', 'Range')}</b> {rangeBandLabel(item.rangeBand)}</span>}
         </div>
       )}
       {item.kind === 'armor' && (

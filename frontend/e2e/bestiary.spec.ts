@@ -121,7 +121,7 @@ test('quick draft uses actual preview, saves only from manual editor, honors min
   await page.goto('/npcs/new?mode=draft')
   await page.locator('.bt-role-grid > button').filter({ hasText: 'Командир' }).click()
   await page.getByRole('button', { name: /Далее: тип и сила/ }).click()
-  await page.locator('.bt-kind-cards > button').filter({ hasText: 'Миньон' }).click()
+  await page.locator('.bt-kind-cards > button').filter({ hasText: 'Приспешник' }).click()
   await page.getByRole('button', { name: /Далее: уточнения/ }).click()
   await page.getByLabel('Имя (необязательно)').fill(`${unique}-draft`)
   await expect(page.getByRole('button', { name: 'Создать черновик', exact: true }).last()).toBeEnabled()
@@ -131,10 +131,10 @@ test('quick draft uses actual preview, saves only from manual editor, honors min
   await page.getByRole('tab', { name: 'Статы', exact: true }).click()
   await expect(page.getByLabel('Усталость', { exact: true })).toBeDisabled()
   const soak = Number(await page.getByLabel('Поглощение', { exact: true }).inputValue())
-  await page.getByRole('button', { name: 'Увеличить: Мощь' }).click()
+  await page.getByRole('button', { name: 'Увеличить: Сила' }).click()
   await expect(page.getByLabel('Поглощение', { exact: true })).toHaveValue(String(soak + 1))
   await page.getByLabel('Поглощение', { exact: true }).fill('9')
-  await page.getByRole('button', { name: 'Уменьшить: Мощь' }).click()
+  await page.getByRole('button', { name: 'Уменьшить: Сила' }).click()
   await expect(page.getByLabel('Поглощение', { exact: true })).toHaveValue('9')
   await page.getByRole('button', { name: 'Карточка', exact: true }).click()
   const preview = page.getByRole('dialog', { name: 'Карточка NPC', exact: true })
@@ -200,7 +200,7 @@ test('manual editor updates dice immediately, reports server errors, guards brow
   await page.goto(`/npcs/${copy.id}`)
   await page.getByRole('button', { name: 'Редактировать', exact: true }).click()
   const skill = reference.skills.find(s => s.kind === 'combat')!
-  const labels = { brawn: 'Мощь', agility: 'Ловкость', intellect: 'Интеллект', cunning: 'Хитрость', willpower: 'Воля', presence: 'Харизма' }
+  const labels = { brawn: 'Сила', agility: 'Ловкость', intellect: 'Интеллект', cunning: 'Смекалка', willpower: 'Воля', presence: 'Харизма' }
   const label = labels[skill.characteristic]
   const skillRow = page.locator('.bt-skill-edit').first()
   const stat = copy[skill.characteristic]
@@ -248,19 +248,19 @@ test('cancel editing returns to the selected card with filters on desktop and mo
 test('unnamed manual changes stay guarded across draft/manual mode switches', async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 900 })
   await page.goto('/npcs/new?mode=manual')
-  await page.getByRole('button', { name: 'Увеличить: Мощь', exact: true }).click()
+  await page.getByRole('button', { name: 'Увеличить: Сила', exact: true }).click()
   await page.locator('.bt-mode').getByRole('button', { name: 'Быстрый черновик', exact: true }).click()
   page.once('dialog', d => d.dismiss())
   await page.locator('.bt-back').click()
   await expect(page).toHaveURL(/\/npcs\/new\?mode=draft$/)
   await page.locator('.bt-mode').getByRole('button', { name: 'Вручную', exact: true }).click()
   await expect(page.getByLabel('Имя', { exact: true })).toHaveValue('')
-  await expect(page.getByRole('spinbutton', { name: 'Мощь', exact: true })).toHaveValue('3')
+  await expect(page.getByRole('spinbutton', { name: 'Сила', exact: true })).toHaveValue('3')
   await expect(page.locator('.bt-builder-title')).toContainText('не сохранён')
   page.once('dialog', d => d.dismiss())
   await page.getByRole('button', { name: 'Отмена', exact: true }).click()
   await expect(page).toHaveURL(/\/npcs\/new\?mode=manual$/)
-  await expect(page.getByRole('spinbutton', { name: 'Мощь', exact: true })).toHaveValue('3')
+  await expect(page.getByRole('spinbutton', { name: 'Сила', exact: true })).toHaveValue('3')
   page.once('dialog', d => d.accept())
   await page.getByRole('button', { name: 'Отмена', exact: true }).click()
   await expect(page).toHaveURL(/\/npcs$/)

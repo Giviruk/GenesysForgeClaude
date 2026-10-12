@@ -9,6 +9,7 @@ import {
   localizedDescription, localizedName, secondaryName, SKILL_KIND_LABELS,
 } from '../utils/labels'
 import { DicePoolView } from './DicePoolView'
+import { GenesysSymbol } from './GenesysSymbol'
 import { CriticalInjuriesSection } from './CriticalInjuriesSection'
 import { useDiceRoller } from '../dice-roller-store'
 import { Icon } from './Icon'
@@ -17,6 +18,7 @@ import { VitalCard } from './content/VitalCard'
 import { readSkillProgress, writeSkillProgress } from '../utils/uiPreferences'
 import { MAX_SKILL_RANK_AT_CREATION } from '../utils/rules'
 import { t } from '../i18n'
+import { genesysCountLabel } from '../data/genesysSymbols'
 
 interface Props {
   sheet: CharacterSheet
@@ -57,7 +59,7 @@ function setbackTitle(skill: SheetSkill): string | undefined {
     const parts: string[] = []
     if (s.setback !== 0) {
       const sign = s.setback > 0 ? '+' : '−'
-      parts.push(`${sign}${Math.abs(s.setback)} ${t('помех', 'setback')}`)
+      parts.push(`${sign}${genesysCountLabel(Math.abs(s.setback), 'setback')}`)
     }
     if ((s.difficulty ?? 0) !== 0) parts.push(`+${s.difficulty} ${t('сложности', 'difficulty')}`)
     if ((s.difficultyUpgrades ?? 0) !== 0) {
@@ -66,14 +68,14 @@ function setbackTitle(skill: SheetSkill): string | undefined {
     const boost = s.boost ?? 0
     if (boost !== 0) {
       const sign = boost > 0 ? '+' : '−'
-      parts.push(`${sign}${Math.abs(boost)} ${t('бонусных', 'boost')}`)
+      parts.push(`${sign}${genesysCountLabel(Math.abs(boost), 'boost')}`)
     }
     if (s.removeBoosts) parts.push(t('без бонусных костей', 'no boost dice'))
     const body = `${modifierSourceName(s)}: ${parts.join(', ')}`
     return s.condition ? `${body} (${t('только', 'only')} ${s.condition})` : body
   }
   const head = t(
-    `Модификаторы проверки: ${skill.setbackDice} помех, +${skill.difficultyDice ?? 0} сложности, +${skill.difficultyUpgrades ?? 0} усил.`,
+    `Модификаторы проверки: ${genesysCountLabel(skill.setbackDice, 'setback')}, +${skill.difficultyDice ?? 0} сложности, +${skill.difficultyUpgrades ?? 0} усил.`,
     `Check modifiers: ${skill.setbackDice} setback, +${skill.difficultyDice ?? 0} difficulty, +${skill.difficultyUpgrades ?? 0} upgrades`,
   )
   return [head, ...sources.map(line)].join('\n')
@@ -171,7 +173,7 @@ export function SheetTab({ sheet, onError, refresh, updateBaseOptimistically, re
 
       <section className={`rd-skills${progress ? ' progress' : ''}`} style={skillStyle}>
         <header className="rd-skills-title"><h3>{t('Навыки', 'Skills')}</h3><span className="rd-heading-line" />
-          <div className="rd-skill-legend"><span><i className="rd-career-mark active" />{t('карьерный', 'career')}</span><span className="ability">◆ {t('способность', 'ability')}</span><span className="proficiency">⬣ {t('мастерство', 'proficiency')}</span></div>
+          <div className="rd-skill-legend"><span><i className="rd-career-mark active" />{t('карьерный', 'career')}</span><span className="ability"><GenesysSymbol kind="ability" decorative /> {t('способность', 'ability')}</span><span className="proficiency"><GenesysSymbol kind="proficiency" decorative /> {t('мастерство', 'proficiency')}</span></div>
           {!readOnly && <FilterChip active={progress} onClick={() => {
             const next = !progress; setProgress({ id: sheet.id, value: next }); setPreviewSkill(null)
             writeSkillProgress(sheet.id, next)
@@ -331,7 +333,7 @@ function encumbranceWarning(d: Derived): string | undefined {
   if (!d.encumbered) return undefined
   const e = d.encumbrance
   if (!e) return t('Перегружен!', 'Encumbered!')
-  const dice = t(`Перегруз: +${e.setbackDice} помех`, `Encumbered: +${e.setbackDice} setback`)
+  const dice = t(`Перегруз: +${genesysCountLabel(e.setbackDice, 'setback')}`, `Encumbered: +${e.setbackDice} setback`)
   return e.hasFreeManoeuvre
     ? dice
     : `${dice}, ${t(`манёвр — ${e.strainPerManoeuvre} усталости`, `each manoeuvre costs ${e.strainPerManoeuvre} strain`)}`

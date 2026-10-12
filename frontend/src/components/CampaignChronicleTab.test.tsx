@@ -18,6 +18,7 @@ const npc = (id: string, name: string, overrides: Partial<NpcListItem> = {}): Np
 const campaignChronicleMock = vi.fn()
 const npcsMock = vi.fn()
 const npcMock = vi.fn()
+const referenceMock = vi.fn()
 const uploadChronicleImageMock = vi.fn()
 const deleteChronicleChapterMock = vi.fn()
 const characterId = '11111111-1111-1111-1111-111111111111'
@@ -28,6 +29,7 @@ vi.mock('../api/client', () => ({
     campaignChronicle: (...args: unknown[]) => campaignChronicleMock(...args),
     npcs: (...args: unknown[]) => npcsMock(...args),
     npc: (...args: unknown[]) => npcMock(...args),
+    reference: (...args: unknown[]) => referenceMock(...args),
     uploadChronicleImage: (...args: unknown[]) => uploadChronicleImageMock(...args),
     deleteChronicleChapter: (...args: unknown[]) => deleteChronicleChapterMock(...args),
   },
@@ -37,6 +39,7 @@ vi.mock('../router', () => ({ navigate: vi.fn() }))
 
 describe('CampaignChronicleTab — links', () => {
   beforeEach(() => {
+    referenceMock.mockResolvedValue({ skills: [] })
     campaignChronicleMock.mockResolvedValue([chapter])
     npcsMock.mockResolvedValue([
       npc('npc-goblin', 'Гоблин'),
@@ -148,6 +151,29 @@ describe('CampaignChronicleTab — links', () => {
     expect(npcMock).toHaveBeenCalledWith(linkedNpcId)
     expect(within(dialog).getByText('Хитрый противник.')).toBeTruthy()
     expect(window.location.pathname).toBe('/')
+  })
+
+  it('uses canonical skills, attack fallback, range labels and safe symbols in the chronicle modal', async () => {
+    campaignChronicleMock.mockResolvedValue([{ ...chapter, content: `[Гоблин](npc:${linkedNpcId})` }])
+    const base = await npcMock()
+    npcMock.mockResolvedValue({ ...base, description: 'А потом он сбегает. * пометка.',
+      skills: [{ name: 'Рукопашный бой', ranks: 2 }],
+      attacks: [{ name: 'Меч', skillName: 'Melee (Light)', damage: '+1', critical: '3', rangeBand: 'Engaged', notes: '✶', qualities: [] }],
+      abilities: [{ name: 'Сила', description: '☠' }],
+    })
+    referenceMock.mockResolvedValue({ skills: [
+      { name: 'Brawl', nameRu: 'Грубая сила', characteristic: 'brawn', isCustom: false },
+      { name: 'Melee', nameRu: 'Ближний бой', characteristic: 'brawn', isCustom: false },
+    ] })
+    renderTab()
+    fireEvent.click(await screen.findByRole('link', { name: 'Гоблин' }))
+    const dialog = await screen.findByRole('dialog', { name: 'Карточка NPC: Гоблин' })
+    expect(await within(dialog).findByText('Грубая сила 2')).toBeTruthy()
+    expect(within(dialog).getByText('Ближний бой')).toBeTruthy()
+    expect(within(dialog).getByText('Вплотную')).toBeTruthy()
+    expect(within(dialog).getByText('А потом он сбегает. * пометка.')).toBeTruthy()
+    expect(within(dialog).getByRole('img', { name: 'Крах' })).toBeTruthy()
+    expect(referenceMock).toHaveBeenCalledWith('realmsOfTerrinoth', { campaignId: 'campaign-1' })
   })
 
   it('загружает изображение и вставляет Markdown в позицию курсора', async () => {

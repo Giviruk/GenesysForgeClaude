@@ -56,17 +56,17 @@ describe('SpellsTab — матрица доступности', () => {
 
     const heal = screen.getByRole('row', { name: /Лечение/ })
     // Вера лечит, Магия — нет.
-    expect(within(heal).getByLabelText(/Божественная \(Divine\): доступно/)).toBeTruthy()
-    expect(within(heal).getByLabelText(/Тайная \(Arcana\): недоступно/)).toBeTruthy()
+    expect(within(heal).getByLabelText(/Вера \(Divine\): доступно/)).toBeTruthy()
+    expect(within(heal).getByLabelText(/Магия \(Arcana\): недоступно/)).toBeTruthy()
 
     const curse = screen.getByRole('row', { name: /Проклятье/ })
-    expect(within(curse).getByLabelText(/Тайная \(Arcana\): доступно/)).toBeTruthy()
+    expect(within(curse).getByLabelText(/Магия \(Arcana\): доступно/)).toBeTruthy()
   })
 
   it('выбор недоступного действия переключает направление', async () => {
     render(<SpellsTab system="realmsOfTerrinoth" onError={() => {}} />)
     fireEvent.click(await screen.findByRole('button', { name: /Лечение/ }))
-    expect(screen.getByRole('button', { name: /Божественная/ }).getAttribute('aria-pressed')).toBe('true')
+    expect(screen.getByRole('button', { name: /Вера/ }).getAttribute('aria-pressed')).toBe('true')
     expect(document.querySelector('.magic-reference-detail')?.textContent).toContain('Лечение')
   })
 
@@ -83,7 +83,7 @@ describe('SpellsTab — матрица доступности', () => {
     await screen.findByText(/Действия по направлениям/)
 
     const doom = screen.getByText('Рок').closest('article')!
-    expect(within(doom).getByText(/Тайная \(Arcana\)/)).toBeTruthy()
+    expect(within(doom).getByText(/Магия \(Arcana\)/)).toBeTruthy()
 
     // Имя строки начинается с названия эффекта: «Отчаяние» упоминается и в соседней строке.
     const despair = screen.getByText('Отчаяние', { selector: 'strong' }).closest('article')!
@@ -103,7 +103,7 @@ describe('SpellsTab — active school action metadata', () => {
     expect(action.textContent).toContain('(1)')
     expect(action.textContent).not.toContain('EPG')
     expect(document.querySelector('.magic-reference-detail')?.textContent).toContain('Описание школы Arcana')
-    fireEvent.click(screen.getByRole('button', { name: /Божественная/ }))
+    fireEvent.click(screen.getByRole('button', { name: /Вера/ }))
     expect(action.textContent).toContain('(3)')
     expect(action.textContent).toContain('EPG')
     expect(document.querySelector('.magic-reference-detail')?.textContent).toContain('Описание школы Divine')

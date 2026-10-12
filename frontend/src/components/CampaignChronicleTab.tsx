@@ -295,7 +295,7 @@ export function CampaignChronicleTab({ campaignId, members, refreshSignal, onOpe
   }
 
   return <div className="chronicle-layout">
-    {openNpcId && <ChronicleNpcModal npcId={openNpcId} onClose={() => setOpenNpcId(null)} />}
+    {openNpcId && <ChronicleNpcModal key={openNpcId} npcId={openNpcId} campaignId={campaignId} onClose={() => setOpenNpcId(null)} />}
     <aside className="chronicle-toc">
       <div className="chronicle-toc-head"><b>{t('Оглавление', 'Contents')}</b>
         <button className="small primary" onClick={() => void createChapter()} disabled={creating}>＋ {t('Глава', 'Chapter')}</button>

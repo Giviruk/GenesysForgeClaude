@@ -143,14 +143,14 @@ describe('GameTableTab — статблок и броски NPC', () => {
     expect(token.title).toContain('Средняя')
 
     fireEvent.click(within(token).getByTitle('Дальше'))
-    expect((document.querySelector('.ring-token.npc') as HTMLElement).title).toContain('Дальняя')
+    expect((document.querySelector('.ring-token.npc') as HTMLElement).title).toContain('Длинная')
     first.unmount()
 
     render(<GameTableTab campaignId="campaign-1" isGm members={[ownMember]} />)
     await screen.findByText('Засада')
     const restored = document.querySelector('.ring-token.npc') as HTMLElement
-    expect(restored.title).toContain('Дальняя')
-    expect(screen.getByText(/Средняя → Дальняя/)).toBeTruthy()
+    expect(restored.title).toContain('Длинная')
+    expect(screen.getByText(/Средняя → Длинная/)).toBeTruthy()
   })
 
   it('не сдвигает токены, когда мастер скрывает участника от игроков', async () => {
@@ -202,7 +202,7 @@ describe('GameTableTab — статблок и броски NPC', () => {
 
     view.rerender(<GameTableTab campaignId="campaign-1" isGm members={[]} refreshSignal={1} />)
 
-    await waitFor(() => expect(token.getAttribute('title')).toContain('Дальняя'))
+    await waitFor(() => expect(token.getAttribute('title')).toContain('Длинная'))
   })
 
   it('убирает участника после realtime-перезагрузки скрытой сцены', async () => {
@@ -322,11 +322,11 @@ describe('GameTableTab — статблок и броски NPC', () => {
     fireEvent.click(within(dialog).getByRole('button', { name: '🎲 Бросить' }))
     const request = openRollerMock.mock.calls[0][0] as Extract<DiceRollerRequest, { kind: 'roll' }>
     expect(request.initialPool).toEqual({ ability: 1, proficiency: 2, boost: 2, setback: 1 })
-    expect(request.label).toBe('Melee')
+    expect(request.label).toBe('Ближний бой')
 
-    request.onLog?.({ poolJson: '{}', resultJson: '{}', summary: 'ok', label: 'Melee', isSecret: false })
+    request.onLog?.({ poolJson: '{}', resultJson: '{}', summary: 'ok', label: request.label!, isSecret: false })
     await waitFor(() => expect(createRollMock).toHaveBeenCalledWith('campaign-1', expect.objectContaining({
-      actorName: 'Гоблины', label: 'Melee',
+      actorName: 'Гоблины', label: 'Ближний бой',
     })))
   })
 
@@ -397,7 +397,7 @@ describe('GameTableTab — статблок и броски NPC', () => {
     updateParticipantMock.mockResolvedValue(updated)
     render(<GameTableTab campaignId="campaign-1" isGm members={[]} />)
 
-    fireEvent.click(await screen.findByRole('button', { name: 'Добавить буст Гоблины' }))
+    fireEvent.click(await screen.findByRole('button', { name: 'Добавить кость бонуса Гоблины' }))
     await waitFor(() => expect(updateParticipantMock).toHaveBeenCalledWith(
       'campaign-1', 'participant-1', { boostDice: 3 },
     ))
@@ -426,8 +426,8 @@ describe('GameTableTab — статблок и броски NPC', () => {
     updateParticipantMock.mockResolvedValueOnce(afterBoost).mockResolvedValueOnce(afterSetback)
     render(<GameTableTab campaignId="campaign-1" isGm={false} members={[ownMember, otherMember]} />)
 
-    const ownBoost = await screen.findByRole('button', { name: 'Добавить буст Элира' }) as HTMLButtonElement
-    const otherBoost = screen.getByRole('button', { name: 'Добавить буст Торен' }) as HTMLButtonElement
+    const ownBoost = await screen.findByRole('button', { name: 'Добавить кость бонуса Элира' }) as HTMLButtonElement
+    const otherBoost = screen.getByRole('button', { name: 'Добавить кость бонуса Торен' }) as HTMLButtonElement
     expect(ownBoost.disabled).toBe(false)
     expect(otherBoost.disabled).toBe(true)
 
@@ -436,7 +436,7 @@ describe('GameTableTab — статблок и броски NPC', () => {
       'campaign-1', 'participant-pc', { boostDice: 1 },
     ))
 
-    fireEvent.click(screen.getByRole('button', { name: 'Добавить сетбек Элира' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Добавить кость штрафа Элира' }))
     await waitFor(() => expect(updateParticipantMock).toHaveBeenCalledWith(
       'campaign-1', 'participant-pc', { setbackDice: 1 },
     ))
@@ -478,7 +478,7 @@ describe('GameTableTab — статблок и броски NPC', () => {
     updateParticipantMock.mockReturnValue(new Promise((_resolve, reject) => { rejectUpdate = reject }))
     render(<GameTableTab campaignId="campaign-1" isGm members={[]} />)
 
-    fireEvent.click(await screen.findByRole('button', { name: 'Добавить буст Гоблины' }))
+    fireEvent.click(await screen.findByRole('button', { name: 'Добавить кость бонуса Гоблины' }))
     fireEvent.click(screen.getByRole('button', { name: 'Бросок участника Гоблины' }))
     expect(openRollerMock).toHaveBeenLastCalledWith(expect.objectContaining({
       initialPool: { boost: 3, setback: 1 },

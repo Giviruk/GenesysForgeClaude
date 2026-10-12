@@ -16,10 +16,10 @@ public static class CharacterAudit
     /// <summary>Русские метки характеристик (как на фронте) для summary истории.</summary>
     public static string CharacteristicLabel(CharacteristicType type) => type switch
     {
-        CharacteristicType.Brawn => "Мощь",
+        CharacteristicType.Brawn => "Сила",
         CharacteristicType.Agility => "Ловкость",
         CharacteristicType.Intellect => "Интеллект",
-        CharacteristicType.Cunning => "Хитрость",
+        CharacteristicType.Cunning => "Смекалка",
         CharacteristicType.Willpower => "Воля",
         CharacteristicType.Presence => "Харизма",
         _ => type.ToString(),

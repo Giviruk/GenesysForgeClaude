@@ -1,7 +1,8 @@
 import { t } from '../../i18n'
+import type { ReactNode } from 'react'
 
 export function NumberStepper({ label, value, onChange, glyph, className = '', disabled = false, min = 0, max, suffix }: {
-  label: string; value: number; onChange: (value: number) => void; glyph?: string; className?: string; disabled?: boolean; min?: number; max?: number; suffix?: string
+  label: string; value: number; onChange: (value: number) => void; glyph?: ReactNode; className?: string; disabled?: boolean; min?: number; max?: number; suffix?: string
 }) {
   return <div className={`sheet-stepper ${className}`} role="group" aria-label={label}>
     <span>{glyph && <b>{glyph}</b>} {label}</span>

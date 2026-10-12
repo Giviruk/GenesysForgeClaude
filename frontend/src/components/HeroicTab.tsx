@@ -1,3 +1,4 @@
+import { RuleText } from './RuleText'
 import { BookReference } from './BookReference'
 import { useState } from 'react'
 import { api } from '../api/client'
@@ -74,7 +75,7 @@ export function HeroicTab({ sheet, reference, onError, refresh }: Props) {
             return (
               <div className="heroic-ability-preview">
                 {description && <div className="hint small-text"><b>{t('Что даёт способность:', 'What the ability gives:')}</b></div>}
-                {description && <p className="hint">{description}</p>}
+                {description && <p className="hint"><RuleText symbolsOnly text={description} /></p>}
                 <BookReference source={h.source} />
               </div>
             )
@@ -137,7 +138,7 @@ function HeroicAbilityCard({ sheet, reference, run }: {
           <h4 className="icon-text"><Icon name="crown" className="button-icon" />{t('Героическая способность · Terrinoth', 'Heroic ability · Terrinoth')}</h4>
           <h3>{sheet.heroicIdentity?.customName || localizedName(h)}</h3>
           <p className="muted small-text">{t('Эффект:', 'Effect:')} {localizedName(h)} · {h.source}</p>
-          {localizedDescription(h) && <p>{localizedDescription(h)}</p>}
+          {localizedDescription(h) && <p><RuleText symbolsOnly text={localizedDescription(h)} /></p>}
           <BookReference source={h.source} />
           <div className="heroic-meta-grid">{meta.map(m => <div key={m.label}><small>{m.label}</small><strong>{m.value}</strong>{m.improved && <span>{m.improved}</span>}</div>)}</div>
           {h.requirement && h.requirement !== '—' && <p className="hint small-text">{t('Требование:', 'Requirement:')} {h.requirement}</p>}
@@ -174,7 +175,7 @@ function HeroicAbilityCard({ sheet, reference, run }: {
             </p>
           )}
           <h4>{t('Сила', 'Power')}</h4>
-          <div className="heroic-power-level bought"><span className="heroic-level-dot"><Icon name="check" /></span><div><strong>{t('Базовая', 'Basic')}</strong> <small className="muted">{t('есть всегда', 'always available')}</small>{localizedDescription(h) && <p className="small-text muted">{localizedDescription(h)}</p>}</div></div>
+          <div className="heroic-power-level bought"><span className="heroic-level-dot"><Icon name="check" /></span><div><strong>{t('Базовая', 'Basic')}</strong> <small className="muted">{t('есть всегда', 'always available')}</small>{localizedDescription(h) && <p className="small-text muted"><RuleText symbolsOnly text={localizedDescription(h)} /></p>}</div></div>
           {h.upgrades.map(u => {
             const purchased = rank >= u.level
             const isNext = u.level === rank + 1
@@ -202,7 +203,7 @@ function HeroicAbilityCard({ sheet, reference, run }: {
                   )}
                 </div>
                 <BookReference source={u.source || h.source} />
-                {localizedDescription(u) && <p>{localizedDescription(u)}</p>}
+                {localizedDescription(u) && <p><RuleText symbolsOnly text={localizedDescription(u)} /></p>}
                 {u.notes && <p className="hint small-text">{u.notes}</p>}
                 {purchased && <HeroicParameterSection sheet={sheet} reference={reference} run={run} section={u.level === 1 ? 'improved' : 'supreme'} />}
               </div></div>
@@ -257,7 +258,7 @@ function HeroicAbilityCard({ sheet, reference, run }: {
                     {selected && sheet.isCreationPhase && <button className="small" onClick={() => run(() => save({ secondaryEffects: upgrades.secondaryEffects.filter(x => x.id !== effect.id) }))}>{t('Вернуть', 'Refund')}</button>}
                   </div>
                   <BookReference source={effect.source} />
-                  {localizedDescription(effect) && <p>{localizedDescription(effect)}</p>}
+                  {localizedDescription(effect) && <p><RuleText symbolsOnly text={localizedDescription(effect)} /></p>}
                 </div>
               )
             })}

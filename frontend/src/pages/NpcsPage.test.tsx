@@ -28,17 +28,43 @@ const builtInDetail: NpcDetail = {
 const npcsMock = vi.fn().mockResolvedValue([builtInItem, mineItem])
 const npcMock = vi.fn().mockResolvedValue(builtInDetail)
 const duplicateMock = vi.fn().mockResolvedValue({ ...builtInDetail, id: 'c1', isMine: true, isBuiltIn: false, visibility: 'private' })
+const referenceMock = vi.fn()
+const updateMock = vi.fn()
 vi.mock('../api/client', () => ({
   api: {
     npcs: (...a: unknown[]) => npcsMock(...a),
     npc: (...a: unknown[]) => npcMock(...a),
-    reference: () => Promise.reject(new Error('no ref')),
+    reference: (...a: unknown[]) => referenceMock(...a),
+    updateNpc: (...a: unknown[]) => updateMock(...a),
     duplicateNpc: (...a: unknown[]) => duplicateMock(...a),
   },
 }))
 
 describe('NpcsPage — встроенный бестиарий', () => {
-  beforeEach(() => window.history.replaceState(null, '', '/npcs'))
+  beforeEach(() => {
+    window.history.replaceState(null, '', '/npcs')
+    npcMock.mockResolvedValue(builtInDetail)
+    referenceMock.mockRejectedValue(new Error('no ref'))
+  })
+  it('edits a legacy skill as a reference skill and saves its stable English name', async () => {
+    const saved = { ...builtInDetail, isMine: true, isBuiltIn: false,
+      skills: [{ name: 'Рукопашный бой', ranks: 2 }] }
+    npcMock.mockResolvedValue(saved)
+    updateMock.mockResolvedValue(saved)
+    referenceMock.mockResolvedValue({ skills: [{ id: 'brawl', name: 'Brawl', nameRu: 'Грубая сила',
+      characteristic: 'brawn', kind: 'combat', isCustom: false }], items: [], talents: [], qualities: [] })
+    const { container } = render(<NpcsPage openId="b1" edit onOpen={() => {}} onBack={() => {}} />)
+    const select = await screen.findByRole('combobox', { name: 'Навык 1' }) as HTMLSelectElement
+    await waitFor(() => expect(select.value).toBe('Brawl'))
+    expect(select.selectedOptions[0].textContent).toBe('Грубая сила / Brawl')
+    expect(screen.queryByText(/вне справочника/)).toBeNull()
+    expect(container.querySelector('.bt-skill-pool .genesys-symbol')).toBeTruthy()
+    expect(container.querySelector('.bt-rank-stepper')?.textContent).toContain('Ранг: Грубая сила')
+    fireEvent.submit(container.querySelector('form')!)
+    await waitFor(() => expect(updateMock).toHaveBeenCalledWith('b1', expect.objectContaining({
+      skills: [{ name: 'Brawl', ranks: 2 }],
+    })))
+  })
   it('помечает встроенных существ и фильтрует по источнику', async () => {
     render(<NpcsPage openId={null} onOpen={() => {}} onBack={() => {}} />)
 

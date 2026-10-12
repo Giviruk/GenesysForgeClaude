@@ -1,8 +1,9 @@
-import { useEffect, useState } from 'react'
+import { Fragment, useEffect, useState } from 'react'
 import { api } from '../api/client'
 import type { RuleTableEntry } from '../api/types'
 import { t } from '../i18n'
 import type { RollSymbols } from '../utils/diceRoller'
+import { GenesysSymbol } from './GenesysSymbol'
 import {
   affordableExtraOutcomeSpends,
   affordableOutcomeRuleSpends,
@@ -13,23 +14,15 @@ import {
   type SymbolPayment,
 } from '../utils/advantageSpends'
 
-const GLYPH: Record<SymbolPayment['symbol'], string> = {
-  success: '✶',
-  failure: '✸',
-  advantage: '▲',
-  threat: '▼',
-  triumph: '★',
-  despair: '☠',
+function paymentLabel(payment: SymbolPayment) {
+  return <>{payment.mode === 'additional' && '+'}<GenesysSymbol kind={payment.symbol} />
+    {payment.mode === 'scaling' ? '×' : payment.mode === 'additional' ? '' : ` ${payment.cost}`}</>
 }
 
-function paymentLabel(payment: SymbolPayment): string {
-  if (payment.mode === 'additional') return `+${GLYPH[payment.symbol]}`
-  if (payment.mode === 'scaling') return `${GLYPH[payment.symbol]}×`
-  return `${GLYPH[payment.symbol]} ${payment.cost}`
-}
-
-function costLabel(payments: SymbolPayment[]): string {
-  return payments.map(paymentLabel).join(` ${t('или', 'or')} `)
+function costLabel(payments: SymbolPayment[]) {
+  return payments.map((payment, index) => <Fragment key={`${payment.symbol}-${index}`}>
+    {index > 0 && ` ${t('или', 'or')} `}{paymentLabel(payment)}
+  </Fragment>)
 }
 
 function SpendSection({
@@ -111,7 +104,7 @@ export function OutcomeSpendGuide({
       )}
 
       <SpendSection kind="negative"
-        titleRu="Возможные последствия угроз и крахов:"
+        titleRu="Возможные последствия осложнений и крахов:"
         titleEn="Possible Threat and Despair consequences:"
         options={negative} />
       {hasNegativeSymbols && negative.length === 0 && (

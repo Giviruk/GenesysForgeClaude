@@ -1,8 +1,14 @@
 import { describe, expect, it } from 'vitest'
 import {
   difficultyLabel, dualName, magicSkillLabel, MAX_SPELL_DIFFICULTY, parseDifficulty, secondaryName,
-  spellDifficulty, TALENT_CATEGORY_LABELS, wouldExceedSpellCap,
+  localizeSymbolCost, rangeBandLabel, spellDifficulty, TALENT_CATEGORY_LABELS, wouldExceedSpellCap,
 } from './labels'
+
+it('localizes both catalog and English alternative operators without changing words', () => {
+  expect(localizeSymbolCost('2 Threat или 1 Despair')).toBe('2 Threat или 1 Despair')
+  expect(localizeSymbolCost('2 Threat or 1 Despair')).toBe('2 Threat или 1 Despair')
+  expect(localizeSymbolCost('Фамилия, order')).toBe('Фамилия, order')
+})
 
 describe('RU/ENG отображение (secondaryName / dualName)', () => {
   it('показывает английское название вторичным, когда оно отличается', () => {
@@ -71,14 +77,25 @@ describe('parseDifficulty', () => {
 
 describe('difficultyLabel', () => {
   it('подписывает уровни сложности', () => {
-    expect(difficultyLabel(0)).toBe('Простая')
-    expect(difficultyLabel(2)).toBe('Средняя')
-    expect(difficultyLabel(5)).toBe('Грозная')
+    expect(difficultyLabel(0)).toBe('Элементарная')
+    expect(difficultyLabel(2)).toBe('Обычная')
+    expect(difficultyLabel(5)).toBe('Запредельная')
   })
 
   it('ограничивает диапазон 0..5', () => {
-    expect(difficultyLabel(7)).toBe('Грозная')
-    expect(difficultyLabel(-1)).toBe('Простая')
+    expect(difficultyLabel(7)).toBe('Запредельная')
+    expect(difficultyLabel(-1)).toBe('Элементарная')
+  })
+})
+
+describe('rangeBandLabel', () => {
+  it('uses the book range labels for stored English codes', () => {
+    expect(['Engaged', 'Short', 'Medium', 'Long', 'Extreme'].map(rangeBandLabel))
+      .toEqual(['Вплотную', 'Короткая', 'Средняя', 'Длинная', 'Экстремальная'])
+  })
+
+  it('preserves custom range text', () => {
+    expect(rangeBandLabel('Дистанция особого оружия')).toBe('Дистанция особого оружия')
   })
 })
 

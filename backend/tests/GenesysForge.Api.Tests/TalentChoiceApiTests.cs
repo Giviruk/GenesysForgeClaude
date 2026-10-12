@@ -142,7 +142,7 @@ public class TalentChoiceApiTests(ApiFactory factory) : IClassFixture<ApiFactory
         var owned = Assert.Single((await SheetAsync(client, id)).Talents!, t => t.TalentDefId == heroicWill.Id);
         var chosen = owned.Choices!.OrderBy(c => c.Value, StringComparer.Ordinal).ToList();
         Assert.Equal(["Brawn", "Willpower"], chosen.Select(c => c.Value));
-        Assert.Equal(["Мощь", "Воля"], chosen.Select(c => c.DisplayName));
+        Assert.Equal(["Сила", "Воля"], chosen.Select(c => c.DisplayName));
         Assert.All(owned.Choices!, c => Assert.Equal(0, c.RankIndex));
     }
 

@@ -19,6 +19,13 @@ const sheet = {
 } as unknown as CharacterSheet
 
 describe('campaign member read-only tabs', () => {
+  it('localizes a weapon profile range code in read-only inventory', () => {
+    render(<ReadOnlyInventoryTab sheet={{ ...sheet, items: [{ ...sheet.items[0],
+      attackProfiles: [{ isDefault: true, range: 'engaged', baseDamage: 5, crit: 3 }],
+    }] } as CharacterSheet} />)
+    expect(screen.getByText('Вплотную')).toBeTruthy()
+    expect(screen.queryByText('engaged')).toBeNull()
+  })
   it('shows talents, inventory and bio without mutation controls', () => {
     const talents = render(<ReadOnlyTalentsTab sheet={sheet} />)
     expect(screen.getByText('Закалённый')).toBeTruthy()

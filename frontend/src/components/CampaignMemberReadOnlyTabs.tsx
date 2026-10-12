@@ -2,7 +2,7 @@ import type { CharacterAttachment, CharacterSheet, SheetItem, SheetTalent } from
 import { lang, t } from '../i18n'
 import {
   ITEM_DAMAGE_STATE_LABELS, ITEM_KIND_LABELS, ITEM_STATE_LABELS, localizedDescription,
-  localizedName, MOVEMENT_MODE_LABELS, secondaryName, TRANSPORT_KIND_LABELS,
+  localizedName, rangeBandLabel, MOVEMENT_MODE_LABELS, secondaryName, TRANSPORT_KIND_LABELS,
 } from '../utils/labels'
 import { BookReference } from './BookReference'
 import { PropertyTags } from './PropertyTags'
@@ -75,7 +75,7 @@ function ReadOnlyItem({ item }: { item: SheetItem }) {
     {item.kind === 'weapon' && <div className="weapon-line">
       <span className="weapon-stat">{t('Урон', 'Damage')} <b>{profile?.baseDamage ?? (item.damage || '—')}</b></span>
       <span className="weapon-stat">{t('Крит', 'Crit')} <b>{profile?.crit ?? (item.crit || '—')}</b></span>
-      <span className="weapon-stat">{profile?.range ?? item.rangeBand}</span>
+      <span className="weapon-stat">{rangeBandLabel(profile?.range ?? item.rangeBand)}</span>
     </div>}
     {item.kind === 'armor' && <div className="muted small-text">
       {t('Поглощение', 'Soak')} +{item.soakBonus} · {t('Защита', 'Defense')} {item.meleeDefense}/{item.rangedDefense}
@@ -86,7 +86,7 @@ function ReadOnlyItem({ item }: { item: SheetItem }) {
     {item.attachments.length > 0 && <div className="muted small-text">
       {t('Улучшения', 'Attachments')}: {item.attachments.map(value => localizedName(value)).join(' · ')}
     </div>}
-    {localizedDescription(item) && <div className="inv-card-desc">{localizedDescription(item)}</div>}
+    {localizedDescription(item) && <div className="inv-card-desc"><RuleText symbolsOnly text={localizedDescription(item)} /></div>}
     <div className="muted small-text">{t('Вес', 'Load')}: {item.load}</div>
   </div>
 }
@@ -104,7 +104,7 @@ export function ReadOnlyHeroicTab({ sheet }: { sheet: CharacterSheet }) {
         <span className="badge">{ability.frequency}</span>
         <span className="badge">{ability.duration}</span>
       </div>
-      {localizedDescription(ability) && <p>{localizedDescription(ability)}</p>}
+      {localizedDescription(ability) && <p><RuleText symbolsOnly text={localizedDescription(ability)} /></p>}
       <BookReference source={ability.source} />
       <div className="muted small-text">
         {t('Очки улучшений', 'Upgrade points')}: {sheet.heroicUpgradePointsSpent}/{sheet.heroicUpgradePointsTotal}

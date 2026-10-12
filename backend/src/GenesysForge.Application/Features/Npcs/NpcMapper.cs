@@ -1,4 +1,5 @@
 using GenesysForge.Application.Abstractions;
+using GenesysForge.Application.Common;
 using GenesysForge.Application.Dtos;
 using GenesysForge.Domain;
 using GenesysForge.Domain.Entities;
@@ -129,6 +130,19 @@ public static class NpcMapper
                     }).ToList(),
             }).ToList();
         npc.UpdatedAt = DateTime.UtcNow;
+    }
+
+    /// <summary>Resolve known skill labels on save without rewriting existing NPCs in a seed pass.</summary>
+    public static async Task ResolveSkillsAsync(IAppDbContext db, Npc npc, Guid userId, CancellationToken ct)
+    {
+        var policy = await CampaignContentPolicy.LoadAsync(db, userId, npc.System, ct: ct);
+        var defs = await db.SkillDefs.AsNoTracking()
+            .Where(s => s.System == npc.System
+                && (s.OwnerUserId == null || s.OwnerUserId == userId || policy.CustomIds.Contains(s.Id))).ToListAsync(ct);
+        foreach (var skill in npc.Skills)
+            skill.Name = NpcSkillNames.Resolve(defs, skill.Name)?.Name ?? skill.Name;
+        foreach (var attack in npc.Attacks)
+            attack.SkillName = NpcSkillNames.Resolve(defs, attack.SkillName)?.Name ?? attack.SkillName;
     }
 
     /// <summary>
