@@ -117,7 +117,9 @@ export function CharactersPage({ onOpen }: Props) {
 
       <div className="card-grid">
         {characters?.map(c => (
-          <div key={c.id} className="char-card" onClick={() => onOpen(c.id)}>
+          <div key={c.id} className="char-card plate" role="link" tabIndex={0} aria-label={c.name}
+            onKeyDown={e => { if (e.target === e.currentTarget && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); onOpen(c.id) } }}
+            onClick={() => onOpen(c.id)}>
             <div className="char-card-identity">
               <div className="char-portrait">{initials(c.name)}</div>
               <div className="char-title-block">
