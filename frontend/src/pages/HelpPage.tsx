@@ -1,3 +1,4 @@
+import { PublicHeader } from '../components/PublicHeader'
 import type { ReactNode } from 'react'
 import { Footer } from '../components/Footer'
 import { navigate } from '../router'
@@ -87,6 +88,7 @@ const GUIDE_SECTIONS = GUIDE_BLOCKS.filter((b): b is GuideHeading => b.kind === 
 export function HelpPage({ loggedIn, showFooter = true }: { loggedIn: boolean; showFooter?: boolean }) {
   return (
     <div className="page help-page">
+      {!loggedIn && <PublicHeader />}
       <div className="panel">
         <div className="page-head">
           <div>

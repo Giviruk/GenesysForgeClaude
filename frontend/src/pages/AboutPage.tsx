@@ -1,3 +1,4 @@
+import { PublicHeader } from '../components/PublicHeader'
 import { navigate } from '../router'
 import { Footer } from '../components/Footer'
 import { t } from '../i18n'
@@ -8,6 +9,7 @@ const LICENSE_URL = 'https://www.apache.org/licenses/LICENSE-2.0'
 export function AboutPage({ loggedIn }: { loggedIn: boolean }) {
   return (
     <div className="page about-page">
+      <PublicHeader />
       <div className="panel">
         <div className="page-head">
           <h2>{t('О проекте', 'About')}</h2>

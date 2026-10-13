@@ -1,3 +1,4 @@
+import { PublicHeader } from '../components/PublicHeader'
 import { useEffect, useState } from 'react'
 import { api } from '../api/client'
 import type { CharacterSheet } from '../api/types'
@@ -22,6 +23,7 @@ export function SharedSheetPage({ token, loggedIn }: { token: string; loggedIn: 
 
   return (
     <div className="page shared-sheet-page">
+      <PublicHeader />
       <div className="page-head no-print">
         <div>
           <button onClick={() => navigate(loggedIn ? '/characters' : '/login')}>

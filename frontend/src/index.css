@@ -5039,3 +5039,53 @@ button.rd-switch:not(.linklike):not(.back-link) { min-height:1.25rem; justify-co
   .shop-modal-options { grid-template-columns:1fr; }
   .library-system-switch .rd-filter-chip { min-height:44px; }
 }
+
+/* GEN-V5-11: auth, public/read-only screens, reference, roller and consent. */
+@media screen {
+  .auth-page { background:#fff; gap:20px; align-content:center; }
+  .auth-card { width:min(420px,100%); padding:24px; border:1px solid var(--line); background:#fff; box-shadow:none; }
+  .auth-header { padding:20px 24px; margin:-24px -24px 24px; }
+  .auth-brand { color:var(--orange-on-navy); font:300 26px/1.1 var(--font-brand); letter-spacing:.12em; text-transform:uppercase; margin:0 0 8px; }
+  .auth-header p.muted { color:var(--on-navy-muted); font:13px/1.45 var(--font-ui); margin:0; }
+  .public-topbar { display:flex; align-items:center; padding:18px 24px; margin-bottom:24px; background:var(--navy); border-radius:0 0 20px 0; color:var(--orange-on-navy); font:300 17px var(--font-brand); letter-spacing:.14em; }
+  .about-page,.legal-page,.shared-sheet-page { max-width:1080px; margin:auto; padding:24px 32px; }
+  .about-page>.panel,.legal-page>.panel { max-width:760px; margin:18px auto; font:15px/1.65 var(--font-ui); color:var(--ink-2); }
+  .about-page h3,.help-content h3 { color:var(--blue); font:600 22px var(--font-head); border-bottom:1px solid var(--line); padding-bottom:4px; }
+  .help-toc { background:var(--surface-3); border-color:var(--line); }
+  .help-toc a { color:var(--t-blue-ink); }
+  .help-content { color:var(--ink-2); font:15px/1.65 var(--font-ui); }
+  .ref-table thead th { color:#fff; background:var(--navy); font:600 13px var(--font-head); text-transform:uppercase; }
+  .ref-table td { border-bottom:1px solid var(--line-soft); font:14px/1.45 var(--font-ui); padding:8px 10px; }
+  .ref-source { font:12px var(--font-ui); color:var(--muted); }
+  .ref-row,.ref-result { border-color:var(--line-soft); background:#fff; }
+  .dice-drawer { background:#fff; border-left:2px solid var(--navy); padding:16px; box-shadow:none; }
+  .dice-drawer-head { background:var(--navy); color:#fff; margin:-16px -16px 0; padding:16px; border:0; border-radius:0 0 26px 0;
+    box-shadow:inset 0 0 0 5px var(--navy),inset 0 0 0 6px var(--on-navy-line); }
+  .dice-drawer-head h3 { color:var(--orange-on-navy); font:600 24px var(--font-head); }
+  .dice-drawer-head .muted { color:var(--on-navy-muted); }
+  .dice-drawer-head button { background:none; color:#fff; border-color:var(--on-navy-line); }
+  .dr-die { background:#fff; border-color:var(--line); padding:6px 8px; }
+  .dr-die-count { color:var(--navy); font:700 22px var(--font-head); }
+  .dr-die-glyph { font-size:24px; }
+  .dr-die-btns button { min-height:26px; padding:0; width:26px; height:26px; }
+  .dr-summary.ok,.roll-success { color:var(--t-green-ink); }
+  .dr-summary.fail,.roll-failure { color:var(--red-ink); }
+  .roll-advantage { color:var(--t-blue-ink); border-color:var(--t-blue-line); }
+  .roll-threat { color:var(--red-ink); border-color:var(--t-red-line); }
+  .advantage-cost,.outcome-spend-positive .outcome-symbol-cost { color:var(--t-blue-ink); }
+  .outcome-spend-negative .outcome-symbol-cost { color:var(--red-ink); }
+  .analytics-consent { background:#fff; color:var(--ink-2); border:0; border-top:2px solid var(--navy); box-shadow:none; }
+  .shared-sheet-page .sheet-doc { border:0; color:var(--ink); font-family:var(--font-ui); }
+  .shared-sheet-page .sheet-doc h2 { color:var(--blue); font:600 38px var(--font-head); }
+  .shared-sheet-page .sheet-section h3 { color:var(--blue); font:600 22px var(--font-head); border-color:var(--line); }
+  .shared-sheet-page .sheet-char-box { background:var(--navy); color:#fff; border:0; border-radius:0 0 18px 0; }
+  .shared-sheet-page .sheet-char-box .sheet-char-value { color:#fff; font:700 42px var(--font-head); }
+  .shared-sheet-page .sheet-char-box .sheet-char-label { color:var(--orange-on-navy); }
+}
+@media screen and (max-width:767px) {
+  .about-page,.legal-page,.shared-sheet-page { padding:14px; }
+  .public-topbar { padding:14px; margin:-14px -14px 18px; font-size:14px; }
+  .auth-card { padding:18px; }
+  .auth-header { margin:-18px -18px 18px; padding:20px; }
+  .dr-die-btns button { width:44px; height:44px; min-height:44px; }
+}

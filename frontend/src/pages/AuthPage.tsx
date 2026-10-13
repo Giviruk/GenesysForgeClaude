@@ -119,8 +119,8 @@ export function AuthPage() {
     return (
       <div className="auth-page">
         <div className="auth-card auth-landing">
-          <h1 className="logo auth-brand">Genesys Forge</h1>
-          <p className="muted auth-brand-sub">{t('Листы персонажей для Genesys Core и Realms of Terrinoth', 'Character sheets for Genesys Core and Realms of Terrinoth')}</p>
+          <header className="auth-header plate"><h1 className="logo auth-brand">Genesys Forge</h1>
+          <p className="muted auth-brand-sub">{t('Листы персонажей для Genesys Core и Realms of Terrinoth', 'Character sheets for Genesys Core and Realms of Terrinoth')}</p></header>
 
           {sessionExpired && (
             <div className="notice warn">{t('Сессия истекла — войдите снова.', 'Session expired — sign in again.')}</div>
@@ -153,8 +153,8 @@ export function AuthPage() {
   return (
     <div className="auth-page">
       <div className="auth-card">
-        <h1 className="logo auth-brand">Genesys Forge</h1>
-        <p className="muted">{t('Листы персонажей для Genesys Core и Realms of Terrinoth', 'Character sheets for Genesys Core and Realms of Terrinoth')}</p>
+        <header className="auth-header plate"><h1 className="logo auth-brand">Genesys Forge</h1>
+        <p className="muted">{t('Листы персонажей для Genesys Core и Realms of Terrinoth', 'Character sheets for Genesys Core and Realms of Terrinoth')}</p></header>
 
         {sessionExpired && mode === 'login' && !info && (
           <div className="notice warn">
