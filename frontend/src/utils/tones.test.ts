@@ -11,6 +11,11 @@ describe('v5 visual catalogue', () => {
       'rarity-common', 'rarity-common', 'rarity-uncommon', 'rarity-rare', 'rarity-rare', 'rarity-exotic', 'rarity-exotic',
     ])
   })
+  it('colours activation metadata with timing and ranked qualifiers', () => {
+    expect(entityTone('activation', 'Out-of-turn Incidental')).toBe('orange')
+    expect(entityTone('activation', 'Maneuver (Ranked)')).toBe('green')
+    expect(entityTone('activation', 'Passive (Ranked)')).toBe('grey')
+  })
   it('provides safe neutral styling for unknown content', () => {
     expect(toneClass('npc', 'unknown')).toBe('tone-grey')
     expect(toneClass('unknown', 'unknown')).toBe('tone-grey')

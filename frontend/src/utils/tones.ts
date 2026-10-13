@@ -30,6 +30,13 @@ const catalogue: Record<string, Record<string, Tone>> = {
 export function entityTone(entity: string, value: string | number): Tone {
   const entries = catalogue[entity]
   const key = String(value)
+  if (entity === 'activation') {
+    const activation = key.toLowerCase()
+    if (/passive|пассив/.test(activation)) return 'grey'
+    if (/incidental|инцидент|свободн/.test(activation)) return 'orange'
+    if (/maneuver|manoeuvre|манёвр|маневр/.test(activation)) return 'green'
+    if (/action|действие/.test(activation)) return 'blue'
+  }
   return entries?.[key] ?? entries?.[key.toLowerCase()] ?? 'grey'
 }
 

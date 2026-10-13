@@ -371,8 +371,8 @@ function ShopRow({ item, money, run, sheetId, qualityDefinitions, open, onToggle
                 ? item.price : `${item.price} → ${unitPrice}`}`}
             {item.rarity == null
               ? t(' · без обычной редкости', ' · no ordinary rarity')
-              : ` · ${t('редкость', 'rarity')} ${unitRarity === item.rarity
-                ? item.rarity : `${item.rarity} → ${unitRarity}`}`}
+              : <span className={`item-rarity ${rarityClass(unitRarity ?? item.rarity)}`}> · {t('редкость', 'rarity')} {unitRarity === item.rarity
+                ? item.rarity : `${item.rarity} → ${unitRarity}`}</span>}
             {item.isCustom && t(' · кастом', ' · custom')}
             {weaponStats && t(` · урон ${weaponStats.damage}, крит ${weaponStats.crit}`, ` · damage ${weaponStats.damage}, crit ${weaponStats.crit}`)}
             {item.kind === 'armor' && t(` · поглощение +${item.soakBonus}`, ` · soak +${item.soakBonus}`)}
