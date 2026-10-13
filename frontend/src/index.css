@@ -603,7 +603,7 @@ td.right button.small + button.small { margin-left: 0.3rem; }
 .skill-kind { margin: 0.8rem 0 0.3rem; color: var(--orange); }
 table.skills { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
 table.skills th { text-align: left; color: var(--muted); font-weight: 500; padding: 0.3rem 0.5rem; border-bottom: 1px solid var(--line); }
-table.skills td { padding: 0.3rem 0.5rem; border-bottom: 1px solid rgba(58, 49, 72, 0.5); }
+table.skills td { padding: 0.3rem 0.5rem; border-bottom: 1px solid var(--line-soft); }
 
 /* Навыки в две колонки; внутри — единая сетка колонок во всех разделах */
 .skills-grid {
@@ -665,7 +665,7 @@ table.ref-table th {
   text-align: left; color: var(--muted); font-weight: 500;
   padding: 0.3rem 0.5rem; border-bottom: 1px solid var(--line); vertical-align: top;
 }
-table.ref-table td { padding: 0.4rem 0.5rem; border-bottom: 1px solid rgba(58, 49, 72, 0.5); vertical-align: top; }
+table.ref-table td { padding: 0.4rem 0.5rem; border-bottom: 1px solid var(--line-soft); vertical-align: top; }
 table.ref-table td.ref-first { white-space: nowrap; font-weight: 600; }
 table.ref-table td.ref-cost { white-space: nowrap; color: var(--orange); }
 .ref-notes { font-size: 0.82rem; margin-top: 0.25rem; }
@@ -766,7 +766,7 @@ table.ref-table td.ref-cost { white-space: nowrap; color: var(--orange); }
 .effect-descriptions { margin-top: 0.5rem; }
 .effect-descriptions summary { cursor: pointer; color: var(--muted); font-size: 0.85rem; }
 .effect-descriptions ul { list-style: none; margin: 0.5rem 0 0; padding: 0; display: flex; flex-direction: column; gap: 0.5rem; }
-.effect-descriptions li { border-bottom: 1px solid rgba(58, 49, 72, 0.5); padding-bottom: 0.45rem; }
+.effect-descriptions li { border-bottom: 1px solid var(--line-soft); padding-bottom: 0.45rem; }
 
 /* Вторичное (английское) название в RU/ENG отображении справочных сущностей. */
 .name-secondary { font-weight: 400; white-space: nowrap; }
@@ -847,7 +847,7 @@ table.ref-table td.ref-cost { white-space: nowrap; color: var(--orange); }
 .custom-list { margin-top: 1.2rem; border-top: 1px solid var(--line); padding-top: 0.6rem; }
 .custom-list-row {
   display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap;
-  padding: 0.35rem 0; border-bottom: 1px solid rgba(58, 49, 72, 0.5); font-size: 0.9rem;
+  padding: 0.35rem 0; border-bottom: 1px solid var(--line-soft); font-size: 0.9rem;
 }
 .custom-list-actions { display: flex; gap: 0.4rem; flex-shrink: 0; flex-wrap: wrap; }
 
@@ -942,7 +942,7 @@ table.ref-table td.ref-cost { white-space: nowrap; color: var(--orange); }
 .campaign-npc-row {
   display: grid; grid-template-columns: minmax(0, 1fr) 6rem 6.6rem;
   align-items: center; gap: 0.5rem; padding: 0.3rem 0;
-  border-bottom: 1px solid rgba(58, 49, 72, 0.5);
+  border-bottom: 1px solid var(--line-soft);
 }
 .campaign-npc-row:last-child { border-bottom: none; }
 .campaign-npc-name { font-size: 0.82rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -1824,7 +1824,7 @@ button.tiny { font-size: 0.75rem; padding: 0.05rem 0.4rem 0.15rem; }
 .rb-token-move { display: flex; gap: 0.25rem; margin-top: 0.25rem; }
 .rb-log { padding: 0.4rem 0.6rem; display: flex; flex-direction: column; gap: 0.12rem; border-top: 1px solid var(--line); }
 .rb-log-head { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; margin-bottom: 0.05rem; }
-.rb-log-entry { border-bottom: 1px solid rgba(58, 49, 72, 0.4); padding-bottom: 0.15rem; }
+.rb-log-entry { border-bottom: 1px solid var(--line-soft); padding-bottom: 0.15rem; }
 .range-log-modal { max-width: 36rem; }
 .range-log-list { display: flex; flex-direction: column; gap: 0.35rem; max-height: 60vh; overflow-y: auto; padding-right: 0.2rem; }
 .ring-focus-switch {
@@ -2137,21 +2137,6 @@ button.tiny { font-size: 0.75rem; padding: 0.05rem 0.4rem 0.15rem; }
 .note-row strong { color: var(--navy); }
 .note-row p { margin: 0.2rem 0 0; color: var(--muted); font-size: 0.78rem; }
 
-@media (max-width: 78rem) {
-  .table-shell {
-    grid-template-columns: minmax(15rem, 18rem) minmax(0, 1fr);
-    grid-template-rows: auto auto auto auto;
-  }
-  .command-panel { grid-template-columns: minmax(0, 1fr) auto; }
-  .scene-command-actions { grid-column: 1 / -1; justify-content: flex-start; }
-  .left-rail { grid-column: 1; grid-row: 2; }
-  .center-stage { grid-column: 2; grid-row: 2; }
-  .right-rail { grid-column: 1 / -1; grid-row: 3; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
-  .participants-strip { grid-row: 4; }
-  .quick-main { grid-template-columns: 1fr; }
-  .quick-controls { justify-content: flex-start; }
-}
-
 @media (max-width: 48rem) {
   .table-shell, .right-rail { display: flex; flex-direction: column; }
   .command-panel { display: flex; flex-direction: column; align-items: stretch; }
@@ -2285,7 +2270,7 @@ button.tiny { font-size: 0.75rem; padding: 0.05rem 0.4rem 0.15rem; }
 .enc-side-panels { display: flex; flex-direction: column; gap: 0.7rem; }
 .participant-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
 .participant-table th { text-align: left; color: var(--muted); font-weight: 500; font-size: 0.75rem; padding: 0.3rem 0.45rem; border-bottom: 1px solid var(--line); }
-.participant-table td { padding: 0.35rem 0.45rem; border-bottom: 1px solid rgba(58, 49, 72, 0.5); vertical-align: top; }
+.participant-table td { padding: 0.35rem 0.45rem; border-bottom: 1px solid var(--line-soft); vertical-align: top; }
 .participant-table tr.defeated { opacity: 0.55; }
 .participant-table .right { text-align: right; }
 .participant-table .nowrap { white-space: nowrap; }
@@ -3308,7 +3293,7 @@ textarea {
   }
   .skill-block {
     padding: 0.15rem 0 0.4rem;
-    border-bottom: 1px solid rgba(58, 49, 72, 0.6);
+    border-bottom: 1px solid var(--line-soft);
   }
   .skill-block:last-child {
     border-bottom: 0;
@@ -4939,8 +4924,9 @@ button.rd-switch:not(.linklike):not(.back-link) { min-height:1.25rem; justify-co
   .campaign-players-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
   .table-shell { grid-template-columns:repeat(2,minmax(0,1fr)); }
   .table-shell .center-stage { grid-column:1/-1; grid-row:2; }
-  .table-shell .left-rail,.table-shell .right-rail { grid-row:3; grid-column:auto; }
-  .participants-strip { grid-column:1/-1; }
+  .table-shell .left-rail { grid-row:3; grid-column:1; }
+  .table-shell .right-rail { grid-row:3; grid-column:2; }
+  .table-shell .participants-strip { grid-column:1/-1; grid-row:4; }
 }
 @media screen and (max-width:900px) { .chronicle-layout,.enc-workbench,.campaign-wide-grid { grid-template-columns:1fr; } }
 @media screen and (max-width:767px) {
@@ -5052,7 +5038,7 @@ button.rd-switch:not(.linklike):not(.back-link) { min-height:1.25rem; justify-co
   .help-toc a { color:var(--t-blue-ink); }
   .help-content { color:var(--ink-2); font:15px/1.65 var(--font-ui); }
   .ref-table thead th { color:#fff; background:var(--navy); font:600 13px var(--font-head); text-transform:uppercase; }
-  .ref-table td { border-bottom:1px solid var(--line-soft); font:14px/1.45 var(--font-ui); padding:8px 10px; }
+  table.ref-table td { border-bottom:1px solid var(--line-soft); font:14px/1.45 var(--font-ui); padding:8px 10px; }
   .ref-source { font:12px var(--font-ui); color:var(--muted); }
   .ref-row,.ref-result { border-color:var(--line-soft); background:#fff; }
   .dice-drawer { background:#fff; border-left:2px solid var(--navy); padding:16px; box-shadow:none; }
@@ -5112,25 +5098,24 @@ button.rd-switch:not(.linklike):not(.back-link) { min-height:1.25rem; justify-co
 
 /* Compact mobile cards retain the two management actions absent from the mockup. */
 @media screen and (max-width:767px) {
-  .char-card { display:grid; grid-template-columns:1fr 1fr; gap:4px 16px; }
-  .char-card-identity,.char-card .tag-row,.char-card .card-actions { grid-column:1/-1; }
-  .char-card .char-portrait { display:none; }
-  .char-card-identity { padding-right:70px; }
-  .char-card .char-xp-row { position:absolute; top:12px; right:14px; padding:0; border:0; }
-  .char-card .char-xp-row>span { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); }
-  .char-card .char-xp-row>b::after { content:' XP'; font-size:13px; }
-  .char-card .vital-meta { white-space:nowrap; }
-  .char-card .card-actions { margin-top:2px; }
+  .characters-page .char-card:not(.skeleton-card) { display:grid; grid-template-columns:1fr 1fr; gap:4px 16px; }
+  .characters-page .char-card-identity,.characters-page .char-card:not(.skeleton-card) .tag-row,.characters-page .char-card:not(.skeleton-card) .card-actions { grid-column:1/-1; }
+  .characters-page .char-card:not(.skeleton-card) .char-portrait { display:none; }
+  .characters-page .char-card-identity { padding-right:70px; }
+  .characters-page .char-card:not(.skeleton-card) .char-xp-row { position:absolute; top:12px; right:14px; padding:0; border:0; }
+  .characters-page .char-card:not(.skeleton-card) .char-xp-row>span { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); }
+  .characters-page .char-card:not(.skeleton-card) .char-xp-row>b::after { content:' XP'; font-size:13px; }
+  .characters-page .char-card:not(.skeleton-card) .vital-meta { white-space:nowrap; }
+  .characters-page .char-card:not(.skeleton-card) .card-actions { margin-top:2px; }
 }
 @media screen {
-  .rd-rank-legend { width:7px; height:7px; background:var(--navy); transform:rotate(45deg); }
   .rd-skill-actions button.rd-buy,.rd-skill-actions button.rd-roll,.rd-skill-actions button.rd-refund { min-height:24px; height:24px; }
 }
 @media screen and (max-width:767px) {
   .rd-skill-actions button.rd-buy,.rd-skill-actions button.rd-roll,.rd-skill-actions button.rd-refund { min-height:44px; height:44px; }
 }
 
-/* QA: explicit rails supersede the old 1280px cockpit breakpoint. */
+/* Game-table panels use the v5 layout at desktop and tablet widths. */
 @media screen {
   .badge.danger,.badge.danger-badge { background:var(--red); color:#fff; }
   .command-panel .round-box { background:transparent; color:#fff; border:1px solid var(--on-navy-line); }
@@ -5144,7 +5129,7 @@ button.rd-switch:not(.linklike):not(.back-link) { min-height:1.25rem; justify-co
   .story-side b { color:var(--navy); font:700 24px var(--font-head); }
   .story-controls>.story-side:last-child b { color:var(--red-ink); }
 }
-@media screen and (min-width:1101px) {
+@media screen and (width > 1100px) {
   .table-shell>.left-rail { grid-column:1; grid-row:2; }
   .table-shell>.center-stage { grid-column:2; grid-row:2; }
   .table-shell>.right-rail { grid-column:3; grid-row:2; display:flex; flex-direction:column; }
@@ -5162,4 +5147,16 @@ button.rd-switch:not(.linklike):not(.back-link) { min-height:1.25rem; justify-co
   .shop-product-name { display:block; }
   .shop-product-name>strong,.shop-product-name>.name-secondary { display:inline; }
   .shop-product-category { display:block; }
+}
+
+/* Preserve the pre-v5 game-symbol palette on paper; screen colours remain v5. */
+@media print {
+  .genesys-success,.rule-success,.genesys-ability,.rule-ability,.die.ability { color:#4fa864; }
+  .genesys-failure,.rule-failure,.genesys-challenge,.rule-challenge,.die.challenge,.die-upgrade { color:#c9585a; }
+  .genesys-advantage,.rule-advantage { color:#6fb3e8; }
+  .genesys-threat,.rule-threat { color:#e8a36f; }
+  .genesys-despair,.rule-despair { color:#d36f6f; }
+  .genesys-triumph,.rule-triumph,.genesys-proficiency,.rule-proficiency,.die.proficiency { color:#e0b62c; }
+  .genesys-boost,.rule-boost,.die.boost { color:#4aa3df; }
+  .genesys-difficulty,.rule-difficulty,.die.difficulty { color:#a06cd5; }
 }

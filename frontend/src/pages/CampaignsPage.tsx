@@ -19,6 +19,7 @@ import {
 import { useCampaignHub, type CampaignHubStatus } from '../useCampaignHub'
 import { lang, t } from '../i18n'
 import { readSheetTab, writeSheetTab, type CharacterSheetTab } from '../utils/uiPreferences'
+import { activateLinkOnKey } from '../utils/linkActivation'
 
 export type CampaignView = 'overview' | 'chronicle' | 'encounters' | 'table' | 'content' | 'settings'
 
@@ -75,8 +76,8 @@ export function CampaignsPage({
       {campaigns?.length === 0 && <p className="muted">{t('Пока нет кампаний — создайте свою или присоединитесь по коду.', 'No campaigns yet — create your own or join with a code.')}</p>}
       <div className="card-grid">
         {campaigns?.map(c => (
-          <div key={c.id} className="char-card plate" role="link" tabIndex={0} aria-label={c.name}
-            onKeyDown={e => { if (e.target === e.currentTarget && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); onOpen(c.id) } }}
+          <div key={c.id} className="char-card plate" role="link" tabIndex={0}
+            onKeyDown={e => activateLinkOnKey(e, () => onOpen(c.id))}
             onClick={() => onOpen(c.id)}>
             <div className="char-card-head">
               <strong>{c.name}</strong>

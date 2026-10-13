@@ -1,4 +1,4 @@
-import { toneClass } from '../utils/tones'
+import { activationKey, toneClass } from '../utils/tones'
 import { BookReference } from './BookReference'
 import { useState } from 'react'
 import { api } from '../api/client'
@@ -30,11 +30,6 @@ interface Props {
 }
 
 const TIERS = [1, 2, 3, 4, 5] as const
-// Активация хранится строкой данных (обычно по-русски) — проверяем оба языка.
-const isPassiveActivation = (activation: string) => {
-  const a = activation.toLowerCase()
-  return a.startsWith('пассив') || a.startsWith('passive')
-}
 const ANIMAL_COMPANION_TAGS = new Set(['animal', 'животное', 'зверь'])
 const isAnimalCompanion = (npc: NpcListItem) =>
   npc.tags.some(tag => ANIMAL_COMPANION_TAGS.has(tag.trim().toLocaleLowerCase()))
@@ -265,7 +260,7 @@ export function TalentsTab({ sheet, reference, onError, refresh }: Props) {
                 <div className="tier-label">{t('Тир', 'Tier')} {tier} <span className="muted">({slots})</span></div>
                 <div className="tier-cells">
                   {cards.map(c => {
-                    const isPassive = isPassiveActivation(c.activation)
+                    const isPassive = activationKey(c.activation) === 'passive'
                     return (
                       <div key={c.key} className="pyramid-card">
                         <div className="owned-talent-head">
@@ -314,7 +309,7 @@ export function TalentsTab({ sheet, reference, onError, refresh }: Props) {
             {sheet.talents
               .toSorted((a, b) => a.tier - b.tier || localizedName(a).localeCompare(localizedName(b), lang))
               .map(tal => {
-                const isPassive = isPassiveActivation(tal.activation)
+                const isPassive = activationKey(tal.activation) === 'passive'
                 const bonuses = talentBonusSummary(tal, tal.ranks)
                 return (
                   <div key={tal.talentDefId} className={`owned-talent ${toneClass('tier', tal.tier)}`}>

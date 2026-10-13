@@ -7,6 +7,7 @@ import { Icon } from '../components/Icon'
 import { CHARACTERISTICS, CHARACTERISTIC_LABELS, dualName, localizedDescription, localizedName, SYSTEM_LABELS } from '../utils/labels'
 import { MAX_FREE_CAREER_SKILLS, MAX_SKILL_RANK_AT_CREATION, STANDARD_STARTING_MONEY } from '../utils/rules'
 import { t } from '../i18n'
+import { activateLinkOnKey } from '../utils/linkActivation'
 
 interface Props {
   onOpen: (id: string) => void
@@ -65,7 +66,7 @@ export function CharactersPage({ onOpen }: Props) {
   const isEmpty = characters?.length === 0 && !creating
 
   return (
-    <div className="page">
+    <div className="page characters-page">
       <div className="page-head">
         <div>
           <h2>{t('Ваши персонажи', 'Your characters')}</h2>
@@ -118,7 +119,7 @@ export function CharactersPage({ onOpen }: Props) {
       <div className="card-grid">
         {characters?.map(c => (
           <div key={c.id} className="char-card plate" role="link" tabIndex={0} aria-label={c.name}
-            onKeyDown={e => { if (e.target === e.currentTarget && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); onOpen(c.id) } }}
+            onKeyDown={e => activateLinkOnKey(e, () => onOpen(c.id))}
             onClick={() => onOpen(c.id)}>
             <div className="char-card-identity">
               <div className="char-portrait">{initials(c.name)}</div>

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { entityTone, rarityClass, toneClass } from './tones'
+import { activationKey, entityTone, rarityClass, toneClass } from './tones'
 
 describe('v5 visual catalogue', () => {
   it('keeps the approved rival exception limited to encounters and the table', () => {
@@ -15,6 +15,19 @@ describe('v5 visual catalogue', () => {
     expect(entityTone('activation', 'Out-of-turn Incidental')).toBe('orange')
     expect(entityTone('activation', 'Maneuver (Ranked)')).toBe('green')
     expect(entityTone('activation', 'Passive (Ranked)')).toBe('grey')
+  })
+  it('normalizes bilingual activation metadata before looking up its colour', () => {
+    const cases = [
+      [' Passive (Ranked) ', 'passive', 'grey'], ['Пассивный', 'passive', 'grey'],
+      ['Out-of-turn Incidental', 'incidental', 'orange'], ['Свободное действие', 'incidental', 'orange'],
+      ['Manoeuvre', 'maneuver', 'green'], ['Манёвр', 'maneuver', 'green'],
+      ['Action', 'action', 'blue'], ['Действие', 'action', 'blue'],
+      ['Unknown', null, 'grey'],
+    ] as const
+    for (const [value, key, tone] of cases) {
+      expect(activationKey(value)).toBe(key)
+      expect(entityTone('activation', value)).toBe(tone)
+    }
   })
   it('provides safe neutral styling for unknown content', () => {
     expect(toneClass('npc', 'unknown')).toBe('tone-grey')

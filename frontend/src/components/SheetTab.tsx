@@ -173,7 +173,7 @@ export function SheetTab({ sheet, onError, refresh, updateBaseOptimistically, re
 
       <section className={`rd-skills${progress ? ' progress' : ''}`} style={skillStyle}>
         <header className="rd-skills-title"><h3>{t('Навыки', 'Skills')}</h3><span className="rd-heading-line" />
-          <div className="rd-skill-legend"><span><i className="rd-career-mark active" />{t('карьерный', 'career')}</span><span><i className="rd-rank-legend" />{t('ранг', 'rank')}</span><span className="ability"><GenesysSymbol kind="ability" decorative /> {t('способность', 'ability')}</span><span className="proficiency"><GenesysSymbol kind="proficiency" decorative /> {t('мастерство', 'proficiency')}</span></div>
+          <div className="rd-skill-legend"><span><i className="rd-career-mark active" />{t('карьерный', 'career')}</span><span><span className="rd-rank-diamonds" aria-hidden="true"><i className="filled" /></span>{t('ранг', 'rank')}</span><span className="ability"><GenesysSymbol kind="ability" decorative /> {t('способность', 'ability')}</span><span className="proficiency"><GenesysSymbol kind="proficiency" decorative /> {t('мастерство', 'proficiency')}</span></div>
           {!readOnly && <FilterChip active={progress} onClick={() => {
             const next = !progress; setProgress({ id: sheet.id, value: next }); setPreviewSkill(null)
             writeSkillProgress(sheet.id, next)
