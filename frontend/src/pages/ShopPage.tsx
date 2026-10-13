@@ -1,3 +1,4 @@
+import { toneClass, rarityClass } from '../utils/tones'
 import { useEffect, useMemo, useState } from 'react'
 import { api } from '../api/client'
 import type {
@@ -227,7 +228,7 @@ export function ShopPage() {
               : products.filter(product => product.category === value).length
             return (
               <button key={value} type="button"
-                className={category === value ? 'shop-category active' : 'shop-category'}
+                className={`shop-category ${toneClass('shop', value)}${category === value ? ' active' : ''}`}
                 onClick={() => setCategory(value)}>
                 <span>{CATEGORY_LABELS[value]}</span>
                 <span className="muted">{count}</span>
@@ -244,7 +245,7 @@ export function ShopPage() {
               <p className="muted">{t('В этой категории ничего не найдено.', 'Nothing found in this category.')}</p>
             )}
             {filtered.map(product => (
-              <button key={product.key} type="button" className="shop-product-row"
+              <button key={product.key} type="button" className={`shop-product-row ${toneClass('shop', product.category)}`}
                 onClick={() => setSelected(product)}>
                 <span className="shop-product-name">
                   <strong>{productName(product)}</strong>
@@ -278,9 +279,9 @@ export function ShopPage() {
                     <strong>{productPrice(product) == null ? '—' : productPrice(product)}</strong>
                     {' '}{CURRENCY_LABEL}
                   </span>
-                  <span>
+                  <span className={productRarity(product) == null ? 'rarity-unknown' : rarityClass(productRarity(product)!)}>
                     {t('Редкость', 'Rarity')}{' '}
-                    <strong>{productRarity(product) ?? '—'}</strong>
+                    <strong className="rarity-number">{productRarity(product) ?? '—'}</strong>
                   </span>
                 </span>
               </button>
@@ -409,13 +410,14 @@ function ProductModal({ product, character, qualityDefinitions, onClose }: {
       <div className="modal wide shop-product-modal" role="dialog" aria-modal="true"
         aria-labelledby="shop-product-title" onClick={event => event.stopPropagation()}>
         <div className="modal-header">
-          <h3 id="shop-product-title">{productName(product)}</h3>
+          <div>
+            <div className="shop-modal-category">{CATEGORY_LABELS[product.category]}</div>
+            <h3 id="shop-product-title">{productName(product)}</h3>
+            {productSecondaryName(product) && <p className="shop-modal-secondary">{productSecondaryName(product)}</p>}
+          </div>
           <button type="button" className="small" onClick={onClose}>{t('Закрыть', 'Close')}</button>
         </div>
 
-        {productSecondaryName(product) && (
-          <p className="muted">{productSecondaryName(product)}</p>
-        )}
         <p>{productDescription(product) || t('Описание отсутствует.', 'No description available.')}</p>
         {(item?.kind === 'weapon' || item?.kind === 'armor')
           && item && (item.properties || qualityProperties(item.qualities)) && (
@@ -426,12 +428,12 @@ function ProductModal({ product, character, qualityDefinitions, onClose }: {
 
         <div className="shop-modal-facts">
           <div><span>{t('Категория', 'Category')}</span><strong>{CATEGORY_LABELS[product.category]}</strong></div>
-          <div><span>{t('Цена', 'Price')}</span><strong>{effectivePrice ?? '—'} {CURRENCY_LABEL}</strong></div>
-          <div><span>{t('Редкость', 'Rarity')}</span><strong>{effectiveRarity ?? '—'}</strong></div>
+          <div className="tone-orange"><span>{t('Цена', 'Price')}</span><strong>{effectivePrice ?? '—'} {CURRENCY_LABEL}</strong></div>
+          <div className={effectiveRarity == null ? 'rarity-unknown' : rarityClass(effectiveRarity)}><span>{t('Редкость', 'Rarity')}</span><strong>{effectiveRarity ?? '—'}</strong></div>
           {weaponStats && (
             <>
-              <div><span>{t('Урон', 'Damage')}</span><strong>{weaponStats.damage}</strong></div>
-              <div><span>{t('Крит', 'Crit')}</span><strong>{weaponStats.crit}</strong></div>
+              <div className="tone-red"><span>{t('Урон', 'Damage')}</span><strong>{weaponStats.damage}</strong></div>
+              <div className="tone-red"><span>{t('Крит', 'Crit')}</span><strong>{weaponStats.crit}</strong></div>
             </>
           )}
           {item?.kind === 'armor' && (
@@ -455,8 +457,6 @@ function ProductModal({ product, character, qualityDefinitions, onClose }: {
         </div>
 
         <div className="shop-modal-options">
-          <p>{t('Персонаж', 'Character')}: {character?.name ?? t('Не выбран', 'Not selected')}</p>
-
           {isImplement && (
             <label>
               {t('Материал', 'Material')}
@@ -485,21 +485,28 @@ function ProductModal({ product, character, qualityDefinitions, onClose }: {
             </label>
           )}
 
-          {!attachment && !mount && (
-            <label>
-              {t('Количество', 'Quantity')}
-              <input type="number" min={1} value={quantity}
-                onChange={event =>
-                  setQuantity(Math.max(1, Math.trunc(Number(event.target.value)) || 1))} />
-            </label>
-          )}
+          <div className="shop-modal-buyer">
+            <p>{t('Персонаж', 'Character')}: <strong>{character?.name ?? t('Не выбран', 'Not selected')}</strong></p>
+            {!attachment && !mount && (
+              <label>
+                {t('Количество', 'Quantity')}
+                <input type="number" min={1} value={quantity}
+                  onChange={event =>
+                    setQuantity(Math.max(1, Math.trunc(Number(event.target.value)) || 1))} />
+              </label>
+            )}
+          </div>
         </div>
 
         {sheet && (
-          <p className="shop-funds">
-            {t('Доступно персонажу', 'Available to character')}: <strong>{funds} {CURRENCY_LABEL}</strong>
-            {total != null && <> · {t('Итого', 'Total')}: <strong>{total} {CURRENCY_LABEL}</strong></>}
-          </p>
+          <div className="shop-funds">
+            <div><span>{t('Доступно персонажу', 'Available to character')}</span><strong>{funds} {CURRENCY_LABEL}</strong></div>
+            {total != null && <div><span>{t('Итого', 'Total')}</span><strong>{total} {CURRENCY_LABEL}</strong>
+              <small className={funds < total ? 'shop-shortfall' : 'muted'}>{funds < total
+                ? `${t('Не хватает', 'Short by')} ${total - funds}`
+                : `${t('Останется', 'Remaining')} ${funds - total}`}</small>
+            </div>}
+          </div>
         )}
         {mount && (
           <p className="hint">

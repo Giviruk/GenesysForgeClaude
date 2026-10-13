@@ -135,16 +135,16 @@ function HeroicAbilityCard({ sheet, reference, run }: {
     <div className="heroic sheet-two-column">
       <div className="heroic-main">
         <section className="heroic-ability-card">
-          <h4 className="icon-text"><Icon name="crown" className="button-icon" />{t('Героическая способность · Terrinoth', 'Heroic ability · Terrinoth')}</h4>
+          <header className="heroic-plate plate"><h4 className="icon-text"><Icon name="crown" className="button-icon" />{t('Героическая способность · Terrinoth', 'Heroic ability · Terrinoth')}</h4>
           <h3>{sheet.heroicIdentity?.customName || localizedName(h)}</h3>
-          <p className="muted small-text">{t('Эффект:', 'Effect:')} {localizedName(h)} · {h.source}</p>
+          <p className="muted small-text">{t('Эффект:', 'Effect:')} {localizedName(h)} · {h.source}</p></header>
           {localizedDescription(h) && <p><RuleText symbolsOnly text={localizedDescription(h)} /></p>}
           <BookReference source={h.source} />
           <div className="heroic-meta-grid">{meta.map(m => <div key={m.label}><small>{m.label}</small><strong>{m.value}</strong>{m.improved && <span>{m.improved}</span>}</div>)}</div>
           {h.requirement && h.requirement !== '—' && <p className="hint small-text">{t('Требование:', 'Requirement:')} {h.requirement}</p>}
           {h.notes && <p className="hint small-text">{h.notes}</p>}
           <div className="heroic-activate">
-            <button className="heroic-activate-button" disabled={activating || !remaining} onClick={() => void activate()}><Icon name="bolt" className="button-icon" />{t('Активировать', 'Activate')}</button>
+            <button className="heroic-activate-button primary" disabled={activating || !remaining} onClick={() => void activate()}><Icon name="bolt" className="button-icon" />{t('Активировать', 'Activate')}</button>
             <div className="heroic-uses"><span className="heroic-dots" aria-hidden="true">{Array.from({ length: usesTotal }, (_, i) => <i className={i < remaining ? 'filled' : ''} key={i} />)}</span>
               <small role="status">{remaining ? t(`осталось ${remaining} из ${usesTotal}`, `${remaining} of ${usesTotal} remaining`) : t('применения исчерпаны', 'uses exhausted')}</small></div>
             <button className="heroic-session-reset" disabled={activating} onClick={() => { writeHeroicUses(sheet.id, 0); setUsed(0); setOutcome(null) }}>{t('Новая сессия', 'New session')}</button>
@@ -182,7 +182,7 @@ function HeroicAbilityCard({ sheet, reference, run }: {
             const canBuy = isNext && available >= u.cost && !upgradesLocked && !weaponNeedsChoice
             const isTop = purchased && u.level === rank
             return (
-              <div key={u.level} className={`heroic-upgrade heroic-power-level${purchased ? ' bought' : isNext ? ' next' : ''}`}><span className="heroic-level-dot">{purchased ? <Icon name="check" /> : u.level + 1}</span><div>
+              <div key={u.level} className={`heroic-upgrade tone-red heroic-power-level${purchased ? ' bought' : isNext ? ' next' : ''}`}><span className="heroic-level-dot">{purchased ? <Icon name="check" /> : u.level + 1}</span><div>
                 <div className="heroic-upgrade-head">
                   <strong>{HEROIC_UPGRADE_LABELS[u.level] ?? t(`Уровень ${u.level}`, `Level ${u.level}`)}</strong>
                   <span className="hint"> · {u.cost} {t('очк.', 'pts')}</span>
@@ -211,7 +211,7 @@ function HeroicAbilityCard({ sheet, reference, run }: {
           })}
 
           <h4>{t('Параметры', 'Parameters')}</h4>
-          <div className="heroic-upgrade">
+          <div className="heroic-upgrade tone-blue">
             <div className="heroic-upgrade-head">
               <strong>{t('Длительность', 'Duration')}</strong>
               <span className="hint"> · 1 {t('очк. за ранг', 'pt per rank')} · {t(`рангов: ${upgrades.durationRanks}`, `ranks: ${upgrades.durationRanks}`)}</span>
@@ -222,7 +222,7 @@ function HeroicAbilityCard({ sheet, reference, run }: {
             <p className="hint small-text">{t('Каждый ранг продлевает эффект ещё на один ход.', 'Each rank extends the effect by one turn.')}</p>
           </div>
 
-          <div className="heroic-upgrade">
+          <div className="heroic-upgrade tone-green">
             <div className="heroic-upgrade-head">
               <strong>{t('Частота', 'Frequency')}</strong>
               <span className="hint"> · 2 {t('очк. за ранг', 'pts per rank')} · {t(`рангов: ${upgrades.frequencyRanks}`, `ranks: ${upgrades.frequencyRanks}`)}</span>
@@ -233,7 +233,7 @@ function HeroicAbilityCard({ sheet, reference, run }: {
             <p className="hint small-text">{t('Каждый ранг даёт ещё одно применение за сессию.', 'Each rank grants one additional use per session.')}</p>
           </div>
 
-          <div className={upgrades.story ? 'heroic-upgrade bought' : 'heroic-upgrade'}>
+          <div className={upgrades.story ? 'heroic-upgrade tone-orange bought' : 'heroic-upgrade tone-orange'}>
             <div className="heroic-upgrade-head">
               <strong>{t('Сюжет', 'Story')}</strong><span className="hint"> · 1 {t('очк.', 'pt')}</span>
               {upgrades.story && <span className="badge">{t('куплено', 'purchased')}</span>}

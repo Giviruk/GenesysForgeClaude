@@ -49,7 +49,7 @@ export function NotesTab({ characterId, onError }: { characterId: string; onErro
     {open && editor}
     {notes === null && <p className="muted">{t('Загрузка…', 'Loading…')}</p>}
     {notes?.length === 0 && <p className="muted">{t('Заметок пока нет', 'No notes yet')}</p>}
-    <div className="notes-list">{notes?.map(n => <div key={n.id} className="note-card">
+    <div className="notes-list">{notes?.map(n => <div key={n.id} className="note-card tone-orange">
       {editing?.id === n.id ? editor : <><div className="note-card-head"><strong>{n.title}</strong><span className="note-actions">
         <button className="small" disabled={busy} onClick={() => startEdit(n)}>{t('Изменить', 'Edit')}</button>
         <button className="small" disabled={busy} onClick={() => setDeleting(n.id)}>{t('Удалить', 'Delete')}</button></span></div>

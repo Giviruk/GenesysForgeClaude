@@ -1,0 +1,392 @@
+[
+  {
+    "width": 1440,
+    "path": "/characters",
+    "actual": 1440,
+    "overflow": 0
+  },
+  {
+    "width": 1440,
+    "path": "/campaigns/:campaignId",
+    "actual": 1440,
+    "overflow": 0
+  },
+  {
+    "width": 1440,
+    "path": "/campaigns/:campaignId/chronicle",
+    "actual": 1440,
+    "overflow": 0
+  },
+  {
+    "width": 1440,
+    "path": "/campaigns/:campaignId/encounters/:encounterId",
+    "actual": 1440,
+    "overflow": 0
+  },
+  {
+    "width": 1440,
+    "path": "/campaigns/:campaignId/table",
+    "actual": 1440,
+    "overflow": 0
+  },
+  {
+    "width": 1440,
+    "path": "/campaigns/:campaignId/content",
+    "actual": 1440,
+    "overflow": 0
+  },
+  {
+    "width": 1440,
+    "path": "/campaigns/:campaignId/settings",
+    "actual": 1440,
+    "overflow": 0
+  },
+  {
+    "width": 1440,
+    "path": "/library",
+    "actual": 1440,
+    "overflow": 0
+  },
+  {
+    "width": 1440,
+    "path": "/shop",
+    "actual": 1440,
+    "overflow": 0
+  },
+  {
+    "width": 1440,
+    "path": "/magic",
+    "actual": 1440,
+    "overflow": 0
+  },
+  {
+    "width": 1440,
+    "path": "/account",
+    "actual": 1440,
+    "overflow": 0
+  },
+  {
+    "width": 1440,
+    "path": "/reference",
+    "actual": 1440,
+    "overflow": 0
+  },
+  {
+    "width": 1440,
+    "path": "/help",
+    "actual": 1440,
+    "overflow": 0
+  },
+  {
+    "width": 1240,
+    "path": "/characters",
+    "actual": 1240,
+    "overflow": 0
+  },
+  {
+    "width": 1240,
+    "path": "/campaigns/:campaignId",
+    "actual": 1240,
+    "overflow": 0
+  },
+  {
+    "width": 1240,
+    "path": "/campaigns/:campaignId/chronicle",
+    "actual": 1240,
+    "overflow": 0
+  },
+  {
+    "width": 1240,
+    "path": "/campaigns/:campaignId/encounters/:encounterId",
+    "actual": 1240,
+    "overflow": 0
+  },
+  {
+    "width": 1240,
+    "path": "/campaigns/:campaignId/table",
+    "actual": 1240,
+    "overflow": 0
+  },
+  {
+    "width": 1240,
+    "path": "/campaigns/:campaignId/content",
+    "actual": 1240,
+    "overflow": 0
+  },
+  {
+    "width": 1240,
+    "path": "/campaigns/:campaignId/settings",
+    "actual": 1240,
+    "overflow": 0
+  },
+  {
+    "width": 1240,
+    "path": "/library",
+    "actual": 1240,
+    "overflow": 0
+  },
+  {
+    "width": 1240,
+    "path": "/shop",
+    "actual": 1240,
+    "overflow": 0
+  },
+  {
+    "width": 1240,
+    "path": "/magic",
+    "actual": 1240,
+    "overflow": 0
+  },
+  {
+    "width": 1240,
+    "path": "/account",
+    "actual": 1240,
+    "overflow": 0
+  },
+  {
+    "width": 1240,
+    "path": "/reference",
+    "actual": 1240,
+    "overflow": 0
+  },
+  {
+    "width": 1240,
+    "path": "/help",
+    "actual": 1240,
+    "overflow": 0
+  },
+  {
+    "width": 1024,
+    "path": "/characters",
+    "actual": 1024,
+    "overflow": 0
+  },
+  {
+    "width": 1024,
+    "path": "/campaigns/:campaignId",
+    "actual": 1024,
+    "overflow": 0
+  },
+  {
+    "width": 1024,
+    "path": "/campaigns/:campaignId/chronicle",
+    "actual": 1024,
+    "overflow": 0
+  },
+  {
+    "width": 1024,
+    "path": "/campaigns/:campaignId/encounters/:encounterId",
+    "actual": 1024,
+    "overflow": 0
+  },
+  {
+    "width": 1024,
+    "path": "/campaigns/:campaignId/table",
+    "actual": 1024,
+    "overflow": 0
+  },
+  {
+    "width": 1024,
+    "path": "/campaigns/:campaignId/content",
+    "actual": 1024,
+    "overflow": 0
+  },
+  {
+    "width": 1024,
+    "path": "/campaigns/:campaignId/settings",
+    "actual": 1024,
+    "overflow": 0
+  },
+  {
+    "width": 1024,
+    "path": "/library",
+    "actual": 1024,
+    "overflow": 0
+  },
+  {
+    "width": 1024,
+    "path": "/shop",
+    "actual": 1024,
+    "overflow": 0
+  },
+  {
+    "width": 1024,
+    "path": "/magic",
+    "actual": 1024,
+    "overflow": 0
+  },
+  {
+    "width": 1024,
+    "path": "/account",
+    "actual": 1024,
+    "overflow": 0
+  },
+  {
+    "width": 1024,
+    "path": "/reference",
+    "actual": 1024,
+    "overflow": 0
+  },
+  {
+    "width": 1024,
+    "path": "/help",
+    "actual": 1024,
+    "overflow": 0
+  },
+  {
+    "width": 768,
+    "path": "/characters",
+    "actual": 768,
+    "overflow": 0
+  },
+  {
+    "width": 768,
+    "path": "/campaigns/:campaignId",
+    "actual": 768,
+    "overflow": 0
+  },
+  {
+    "width": 768,
+    "path": "/campaigns/:campaignId/chronicle",
+    "actual": 768,
+    "overflow": 0
+  },
+  {
+    "width": 768,
+    "path": "/campaigns/:campaignId/encounters/:encounterId",
+    "actual": 768,
+    "overflow": 0
+  },
+  {
+    "width": 768,
+    "path": "/campaigns/:campaignId/table",
+    "actual": 768,
+    "overflow": 0
+  },
+  {
+    "width": 768,
+    "path": "/campaigns/:campaignId/content",
+    "actual": 768,
+    "overflow": 0
+  },
+  {
+    "width": 768,
+    "path": "/campaigns/:campaignId/settings",
+    "actual": 768,
+    "overflow": 0
+  },
+  {
+    "width": 768,
+    "path": "/library",
+    "actual": 768,
+    "overflow": 0
+  },
+  {
+    "width": 768,
+    "path": "/shop",
+    "actual": 768,
+    "overflow": 0
+  },
+  {
+    "width": 768,
+    "path": "/magic",
+    "actual": 768,
+    "overflow": 0
+  },
+  {
+    "width": 768,
+    "path": "/account",
+    "actual": 768,
+    "overflow": 0
+  },
+  {
+    "width": 768,
+    "path": "/reference",
+    "actual": 768,
+    "overflow": 0
+  },
+  {
+    "width": 768,
+    "path": "/help",
+    "actual": 768,
+    "overflow": 0
+  },
+  {
+    "width": 375,
+    "path": "/characters",
+    "actual": 375,
+    "overflow": 0
+  },
+  {
+    "width": 375,
+    "path": "/campaigns/:campaignId",
+    "actual": 375,
+    "overflow": 0
+  },
+  {
+    "width": 375,
+    "path": "/campaigns/:campaignId/chronicle",
+    "actual": 375,
+    "overflow": 0
+  },
+  {
+    "width": 375,
+    "path": "/campaigns/:campaignId/encounters/:encounterId",
+    "actual": 375,
+    "overflow": 0
+  },
+  {
+    "width": 375,
+    "path": "/campaigns/:campaignId/table",
+    "actual": 375,
+    "overflow": 0
+  },
+  {
+    "width": 375,
+    "path": "/campaigns/:campaignId/content",
+    "actual": 375,
+    "overflow": 0
+  },
+  {
+    "width": 375,
+    "path": "/campaigns/:campaignId/settings",
+    "actual": 375,
+    "overflow": 0
+  },
+  {
+    "width": 375,
+    "path": "/library",
+    "actual": 375,
+    "overflow": 0
+  },
+  {
+    "width": 375,
+    "path": "/shop",
+    "actual": 375,
+    "overflow": 0
+  },
+  {
+    "width": 375,
+    "path": "/magic",
+    "actual": 375,
+    "overflow": 0
+  },
+  {
+    "width": 375,
+    "path": "/account",
+    "actual": 375,
+    "overflow": 0
+  },
+  {
+    "width": 375,
+    "path": "/reference",
+    "actual": 375,
+    "overflow": 0
+  },
+  {
+    "width": 375,
+    "path": "/help",
+    "actual": 375,
+    "overflow": 0
+  }
+]

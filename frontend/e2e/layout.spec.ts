@@ -245,10 +245,10 @@ for (const width of [320, 390, 768, 1280, 1440]) {
       await spacedElements(page, '.heroic-secondary-effects > *', secondaryEffectCount + 1)
       await expect(page.locator('.heroic-secondary-effects')).toHaveCSS('opacity', '1')
       await expect(page.locator('.heroic-secondary-effects > .bought').first()).toHaveCSS('opacity', '1')
-      await expect(page.locator('.heroic-secondary-effects > .heroic-upgrade:not(.bought)').first()).toHaveCSS('opacity', '0.75')
+      await expect(page.locator('.heroic-secondary-effects > .heroic-upgrade:not(.bought)').first()).toHaveCSS('opacity', '1')
       await spacedElements(page, '.heroic-upgrade-head:has(.heroic-plus[aria-label*="Duration"], .heroic-plus[aria-label*="Длительность"]) > button', 2)
       await iconHasSpace(page, '.heroic-activate-button', 1)
-      await iconHasSpace(page, '.heroic-ability-card > h4', 1)
+      await iconHasSpace(page, '.heroic-plate > h4', 1)
       await fitsViewport(page)
       if (language === 'ru' && width === 1280) {
         await page.locator('.heroic-ability-reset').scrollIntoViewIfNeeded()
@@ -281,7 +281,7 @@ for (const width of [320, 390, 768, 1280, 1440]) {
       await spacedElements(page, '.modal > label:nth-of-type(1), .modal > label:nth-of-type(2), .modal > label:nth-of-type(3)', 3)
       await fitsViewport(page)
       await navigateWithinApp(page, `/campaigns/${spacingCampaignId}/characters/${spacingCharacterId}`)
-      await page.locator('.main-tabs').getByRole('button', { name: label('Лист', 'Sheet'), exact: true }).click()
+      await tab(page, 'sheet', label('Лист', 'Sheet'))
       await spacedElements(page, '.heroic-summary > .heroic-upgrade', 4)
       await fitsViewport(page)
       await navigateWithinApp(page, '/library')
@@ -397,7 +397,7 @@ for (const width of [320, 390, 768, 1280, 1440]) {
     await spacedElements(page, 'form .form-actions > button', 2)
     await fitsViewport(page)
     await page.goto(`/campaigns/${campaignId}/characters/${characterId}`)
-    await page.locator('.main-tabs').getByRole('button', { name: 'Инвентарь', exact: true }).click()
+    await tab(page, 'inventory', 'Инвентарь')
     await expect(page.getByRole('heading', { name: 'Инвентарь', exact: true })).toBeVisible()
     await fitsViewport(page)
     for (const path of ['/campaigns', '/npcs']) {
@@ -485,7 +485,7 @@ for (const width of [320, 390, 768, 1280, 1440]) {
     await expect(page.getByText('Приватная заметка', { exact: true })).toBeVisible()
     await fitsViewport(page)
     await page.goto(`/campaigns/${campaignId}/characters/${characterId}`)
-    await page.locator('.main-tabs').getByRole('button', { name: 'Bio', exact: true }).click()
+    await tab(page, 'bio', 'Bio')
     await expect(page.locator('.bio-background')).toBeVisible()
     await expect(page.getByText('Приватная заметка', { exact: true })).toHaveCount(0)
     await fitsViewport(page)
@@ -494,3 +494,126 @@ for (const width of [320, 390, 768, 1280, 1440]) {
     await fitsViewport(page)
   })
 }
+
+async function reviewLogin(page: Page) {
+  await page.addInitScript(value => {
+    localStorage.setItem('genesysforge.token', value)
+    localStorage.setItem('genesysforge.lang', 'ru')
+    localStorage.setItem('genesysforge.analytics-consent', 'denied')
+  }, token)
+}
+
+test('GEN-V5-12 review: ordinary Cyrillic titles use only the Cyrillic font subset', async ({ page }) => {
+  await reviewLogin(page)
+  await page.goto('/characters')
+  await expect(page.getByRole('heading', { name: 'Ваши персонажи' })).toBeVisible()
+  await page.evaluate(() => document.fonts.ready)
+  const fonts = await page.evaluate(() => performance.getEntriesByType('resource').map(entry => entry.name))
+  expect(fonts.some(name => /fira-v5-cyrillic-700(?:-[\w-]+)?\.woff2/.test(name))).toBe(true)
+  expect(fonts.some(name => /fira-v5-cyrillic-ext-\d+(?:-[\w-]+)?\.woff2/.test(name))).toBe(false)
+})
+
+test('GEN-V5-12 review: reference cells apply light dividers and v5 padding', async ({ page }) => {
+  await reviewLogin(page)
+  await page.goto('/reference')
+  const cell = page.locator('.ref-table tbody td').first()
+  await expect(cell).toBeVisible()
+  await expect(cell).toHaveCSS('border-bottom-color', 'rgb(227, 227, 230)')
+  await expect(cell).toHaveCSS('padding-top', '8px')
+  await expect(cell).toHaveCSS('padding-right', '10px')
+})
+
+test('GEN-V5-12 review: mobile campaign cards retain full-width identity and accessible metadata', async ({ page }) => {
+  await page.setViewportSize({ width: 375, height: 900 })
+  await reviewLogin(page)
+  await page.goto('/campaigns')
+  const card = page.getByRole('link', { name: /Проверка интерфейса.*Мастер.*Персонажей: 1/ })
+  await expect(card).toBeVisible()
+  const sizes = await card.evaluate(element => ({
+    card: element.getBoundingClientRect().width,
+    identity: element.querySelector('.char-card-head')!.getBoundingClientRect().width,
+  }))
+  expect(sizes.identity).toBeGreaterThan(sizes.card * 0.85)
+  await fitsViewport(page)
+  await card.press('Enter')
+  await expect(page).toHaveURL(new RegExp(`/campaigns/${campaignId}$`))
+})
+
+test('GEN-V5-12 review: table panels stay readable at tablet and fractional widths', async ({ page, request }) => {
+  await api(request, `/api/campaigns/${campaignId}/session/`, {
+    name: 'Сцена для проверки планшета', description: '', playerStoryPoints: 2, gmStoryPoints: 2,
+  })
+  await reviewLogin(page)
+  await page.goto(`/campaigns/${campaignId}/table`)
+  const rail = page.locator('.table-shell > .right-rail')
+  await expect(rail).toBeVisible()
+  for (const width of [1240, 1100, 1024, 900, 800, 769]) {
+    await page.setViewportSize({ width, height: 900 })
+    await expect(rail).toHaveCSS('display', 'flex')
+    await expect(rail).toHaveCSS('flex-direction', 'column')
+    const sizes = await rail.evaluate(element => ({
+      rail: element.getBoundingClientRect().width,
+      panels: [...element.children].map(child => child.getBoundingClientRect().width),
+    }))
+    expect(sizes.panels.length).toBeGreaterThan(1)
+    for (const width of sizes.panels) {
+      expect(width).toBeGreaterThan(sizes.rail * 0.9)
+      expect(width).toBeGreaterThan(200)
+    }
+    if (width <= 1100) {
+      const layout = await page.locator('.table-shell').evaluate(element => ({
+        columns: getComputedStyle(element).gridTemplateColumns.split(' ').length,
+        width: element.getBoundingClientRect().width,
+        fullWidthBlocks: ['.command-panel', '.center-stage', '.participants-strip'].map(selector =>
+          element.querySelector(selector)!.getBoundingClientRect().width),
+      }))
+      expect(layout.columns).toBe(2)
+      for (const block of layout.fullWidthBlocks) expect(block).toBeGreaterThan(layout.width * 0.95)
+    }
+    await fitsViewport(page)
+  }
+  // An iframe supplies a fractional CSS viewport without rounding setViewportSize's integer API.
+  await page.setViewportSize({ width: 1440, height: 900 })
+  await page.evaluate(path => {
+    const frame = document.createElement('iframe')
+    frame.name = 'fractional-table'
+    frame.style.cssText = 'width:1100.5px;height:900px;border:0'
+    frame.src = path
+    document.body.replaceChildren(frame)
+  }, `/campaigns/${campaignId}/table`)
+  const frame = page.frameLocator('iframe[name="fractional-table"]')
+  await expect(frame.locator('.table-shell')).toBeVisible()
+  const columns = await frame.locator('.table-shell').evaluate(element => getComputedStyle(element).gridTemplateColumns.split(' '))
+  expect(columns).toHaveLength(3)
+  await expect(frame.locator('.right-rail')).toHaveCSS('display', 'flex')
+})
+
+test('GEN-V5-12 review: printed symbols keep the pre-v5 palette', async ({ page }) => {
+  await page.goto('/about')
+  await expect(page.getByRole('heading', { name: 'О проекте', exact: true })).toBeVisible()
+  const palette = { success: '#4fa864', failure: '#c9585a', advantage: '#6fb3e8', threat: '#e8a36f',
+    triumph: '#e0b62c', despair: '#d36f6f', ability: '#4fa864', proficiency: '#e0b62c',
+    difficulty: '#a06cd5', challenge: '#c9585a', boost: '#4aa3df' }
+  await page.evaluate(kinds => {
+    const sample = document.createElement('div')
+    sample.className = 'print-area'
+    for (const kind of kinds) {
+      for (const prefix of ['genesys', 'rule']) {
+        const symbol = document.createElement('span')
+        symbol.className = `${prefix}-${kind}`
+        symbol.dataset.testid = `print-${prefix}-${kind}`
+        symbol.textContent = 's'
+        sample.append(symbol)
+      }
+    }
+    document.body.append(sample)
+  }, Object.keys(palette))
+  await expect(page.getByTestId('print-genesys-threat')).toHaveCSS('color', 'rgb(226, 83, 42)')
+  await page.emulateMedia({ media: 'print' })
+  for (const [kind, hex] of Object.entries(palette)) {
+    const rgb = hex.slice(1).match(/../g)!.map(value => parseInt(value, 16))
+    for (const prefix of ['genesys', 'rule']) {
+      await expect(page.getByTestId(`print-${prefix}-${kind}`)).toHaveCSS('color', `rgb(${rgb.join(', ')})`)
+    }
+  }
+})

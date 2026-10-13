@@ -130,7 +130,7 @@ export function SheetTab({ sheet, onError, refresh, updateBaseOptimistically, re
     <div>
       <section className="stat-row">
         {CHARACTERISTICS.map(c => (
-          <div key={c} className="stat-box characteristic">
+          <div key={c} className="stat-box characteristic plate plate-xs">
             <div className="stat-value">{sheet.characteristics[c]}</div>
             <div className="stat-label">{CHARACTERISTIC_LABELS[c]}</div>
             {!readOnly && sheet.isCreationPhase && (
@@ -173,7 +173,7 @@ export function SheetTab({ sheet, onError, refresh, updateBaseOptimistically, re
 
       <section className={`rd-skills${progress ? ' progress' : ''}`} style={skillStyle}>
         <header className="rd-skills-title"><h3>{t('Навыки', 'Skills')}</h3><span className="rd-heading-line" />
-          <div className="rd-skill-legend"><span><i className="rd-career-mark active" />{t('карьерный', 'career')}</span><span className="ability"><GenesysSymbol kind="ability" decorative /> {t('способность', 'ability')}</span><span className="proficiency"><GenesysSymbol kind="proficiency" decorative /> {t('мастерство', 'proficiency')}</span></div>
+          <div className="rd-skill-legend"><span><i className="rd-career-mark active" />{t('карьерный', 'career')}</span><span><span className="rd-rank-diamonds" aria-hidden="true"><i className="filled" /></span>{t('ранг', 'rank')}</span><span className="ability"><GenesysSymbol kind="ability" decorative /> {t('способность', 'ability')}</span><span className="proficiency"><GenesysSymbol kind="proficiency" decorative /> {t('мастерство', 'proficiency')}</span></div>
           {!readOnly && <FilterChip active={progress} onClick={() => {
             const next = !progress; setProgress({ id: sheet.id, value: next }); setPreviewSkill(null)
             writeSkillProgress(sheet.id, next)
@@ -183,7 +183,7 @@ export function SheetTab({ sheet, onError, refresh, updateBaseOptimistically, re
         <div className="rd-skills-grid">{SKILL_COLUMNS.map((kinds, i) => <div key={i} className="rd-skill-column">{kinds.map(kind => {
           const skills = sheet.skills.filter(s => s.kind === kind && (!s.unavailableReason || s.ranks > 0))
           if (!skills.length) return null
-          return <section key={kind} className="rd-skill-group"><header className="rd-skill-grid-row"><strong>{SKILL_KIND_LABELS[kind]}</strong><span>{t('Ранг', 'Rank')}</span><span>{t('Пул', 'Pool')}</span><span>{progress ? 'XP' : ''}</span></header>
+          return <section key={kind} className="rd-skill-group"><header className="rd-skill-grid-row"><strong>{SKILL_KIND_LABELS[kind]}</strong><span>{t('Хар.', 'Char.')}</span><span>{t('Ранг', 'Rank')}</span><span>{t('Пул', 'Pool')}</span><span>{progress ? 'XP' : ''}</span></header>
             {skills.map(s => {
               const label = localizedName(s), original = secondaryName(s)
               const unavailableReason = s.unavailableReason ? t(s.unavailableReason, 'Content is disabled in the campaign; new purchases are unavailable.') : undefined
@@ -195,8 +195,7 @@ export function SheetTab({ sheet, onError, refresh, updateBaseOptimistically, re
               return <div className={`rd-skill-grid-row${s.unavailableReason ? ' unavailable' : ''}${preview ? ' rd-skill-preview' : ''}`} key={s.skillDefId}>
                 <div className="rd-skill-name"><i className={`rd-career-mark${s.isCareer ? ' active' : ''}`} title={careerSourcesTitle(s.careerSources)} />
                   <span title={[original ? `${label} / ${original}` : label, unavailableReason].filter(Boolean).join('\n')}>{label}</span>
-                  <small title={CHARACTERISTIC_LABELS[s.characteristic]}>{CHARACTERISTIC_SHORT_LABELS[s.characteristic]}</small>
-                </div><div className="rd-rank-diamonds" aria-label={t(`Ранги: ${s.ranks}`, `Ranks: ${s.ranks}`)}>{Array.from({ length: 5 }, (_, rank) => <i key={rank}
+                  </div><small className="rd-skill-characteristic" title={CHARACTERISTIC_LABELS[s.characteristic]}>{CHARACTERISTIC_SHORT_LABELS[s.characteristic]}</small><div className="rd-rank-diamonds" aria-label={t(`Ранги: ${s.ranks}`, `Ranks: ${s.ranks}`)}>{Array.from({ length: 5 }, (_, rank) => <i key={rank}
                   className={rank < s.ranks ? 'filled' : preview && rank === s.ranks ? 'preview' : ''} />)}</div>
                 <div className="rd-skill-pool"><DicePoolView pool={nextPool} previousPool={preview ? s.pool : undefined} setback={s.setbackDice} boost={s.boostDice}
                   difficulty={s.difficultyDice} difficultyUpgrades={s.difficultyUpgrades} setbackTitle={setbackTitle(s)} /></div>

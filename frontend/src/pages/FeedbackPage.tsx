@@ -1,3 +1,4 @@
+import { PublicHeader } from '../components/PublicHeader'
 import { useState, type FormEvent } from 'react'
 import { api } from '../api/client'
 import { Footer } from '../components/Footer'
@@ -35,6 +36,7 @@ export function FeedbackPage({ loggedIn }: { loggedIn: boolean }) {
 
   return (
     <div className="page about-page">
+      <PublicHeader />
       <div className="panel">
         <div className="page-head">
           <h2>{t('Обратная связь', 'Feedback')}</h2>

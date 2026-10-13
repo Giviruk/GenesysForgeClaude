@@ -233,6 +233,9 @@ describe('Инвентарь: качество изготовления (ROT-WPN
     const shop = document.querySelector('.shop-list')!
     expect(shop.textContent).toContain('Руна магического заряда')
     expect(shop.textContent).toContain('без обычной цены')
+    expect(shop.textContent).toContain('без обычной редкости')
+    expect(shop.querySelector('.shop-row')?.classList.contains('rarity-unknown')).toBe(true)
+    expect(shop.querySelector('.shop-row')?.classList.contains('rarity-common')).toBe(false)
     expect(within(shop as HTMLElement).queryByRole('button', { name: 'Купить' })).toBeNull()
     expect(within(shop as HTMLElement).getByRole('button', { name: '+ Добавить' })).toBeTruthy()
 

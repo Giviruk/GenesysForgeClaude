@@ -1,3 +1,4 @@
+import { toneClass } from '../utils/tones'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { api } from '../api/client'
 import type {
@@ -268,7 +269,7 @@ export function CraftingTab({ sheet, reference, onError, refresh }: Props) {
     <div className="crafting-tab">
       <div className="crafting-kind-grid" role="tablist" aria-label={t('Вид работы', 'Work type')}>
         {(['item', 'potion', 'enchantment'] as CraftingKind[]).map(k => <button key={k} role="tab" aria-selected={kind === k}
-          className={`sheet-choice-card crafting-kind${kind === k ? ' selected' : ''}`} onClick={() => changeKind(k)}>
+          className={`sheet-choice-card crafting-kind ${toneClass('crafting', k)}${kind === k ? ' selected' : ''}`} onClick={() => changeKind(k)}>
           <Icon name={kindIcons[k]} /><span><strong>{KIND_LABELS[k]}</strong><small>{k === 'item' ? t('Оружие, броня, снаряжение', 'Weapons, armor and gear') : k === 'potion' ? t('Зелья и эликсиры', 'Potions and elixirs') : t('Чары на вещь из инвентаря', 'Enchant an inventory item')}</small></span>
         </button>)}
       </div>
@@ -304,7 +305,7 @@ export function CraftingTab({ sheet, reference, onError, refresh }: Props) {
           </details>
         </section>
         <aside className="sheet-sticky sheet-result-card crafting-calculation">
-          <h4>{t('Расчёт', 'Calculation')}</h4><h3>{shownPreview?.targetName ?? t('Новый проект', 'New project')}</h3>
+          <header className="crafting-plate plate"><h4>{t('Расчёт', 'Calculation')}</h4><h3>{shownPreview?.targetName ?? t('Новый проект', 'New project')}</h3></header>
           {shownPreview && <><div className="sheet-difficulty"><div><small>{t('Сложность', 'Difficulty')}</small><strong>{DIFFICULTY_LABELS[shownPreview.difficulty] ?? shownPreview.difficulty} ({shownPreview.difficulty})</strong>
             {shownPreview.difficulty !== shownPreview.baseDifficulty && <small>{t('по правилу', 'by rule')} — {shownPreview.baseDifficulty}</small>}</div><span aria-hidden="true">{Array.from({ length: shownPreview.difficulty }, (_, i) => <GenesysSymbol key={i} kind="difficulty" decorative />)}</span></div>
             <dl className="sheet-result-stats"><dt>{t('Навык', 'Skill')}</dt><dd>{shownPreview.skillName}</dd><dt>{t('Время', 'Time')}</dt><dd>{shownPreview.time} {shownPreview.timeUnit === 'hours' ? t('ч', 'h') : t('дн', 'd')}</dd>

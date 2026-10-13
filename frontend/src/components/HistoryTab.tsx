@@ -1,3 +1,4 @@
+import { toneClass } from '../utils/tones'
 import { useCallback, useEffect, useState } from 'react'
 import { api } from '../api/client'
 import type { CharacterAuditAction, CharacterAuditEntry } from '../api/types'
@@ -132,7 +133,7 @@ export function HistoryTab({ characterId, onError, refresh, readOnly = false, lo
                 {entries.map(e => (
                   <tr key={e.id}>
                     <td className="muted small-text nowrap">{new Date(e.createdAt).toLocaleString(lang === 'ru' ? 'ru-RU' : 'en-US')}</td>
-                    <td><span className="badge">{ACTION_LABELS[e.action]}</span></td>
+                    <td><span className={`badge ${toneClass('history', e.action)}`}>{ACTION_LABELS[e.action]}</span></td>
                     <td>{e.summary}</td>
                     <td className="right">
                       {e.xpDelta != null && e.xpDelta !== 0 && (
