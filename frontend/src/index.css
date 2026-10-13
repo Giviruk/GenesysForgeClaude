@@ -4108,7 +4108,7 @@ select {
 }
 @media print {
   .rd-skill-actions,.rd-skills-title .rd-filter-chip,.rd-vital header>button { display:none; }
-  .rd-skills .rd-skill-grid-row,.rd-skills.progress .rd-skill-grid-row { grid-template-columns:minmax(0,1fr) 4.3rem var(--skill-pool-width,4.6rem) 0; }
+  .rd-skills .rd-skill-grid-row,.rd-skills.progress .rd-skill-grid-row { grid-template-columns:minmax(0,1fr) 2.1rem 4.3rem var(--skill-pool-width,4.6rem) 0; }
 }
 
 /* Match the handoff's narrow picker and full-height editor. */
@@ -4613,7 +4613,6 @@ button.rd-switch:not(.linklike):not(.back-link) { min-height:1.25rem; justify-co
   .rd-skills-grid { grid-template-columns:1fr; gap:16px; }
   .rd-skill-grid-row,.rd-skills.progress .rd-skill-grid-row { grid-template-columns:minmax(0,1fr) 28px 40px 52px 44px; gap:5px; min-height:44px; padding:0 6px; }
   .rd-skills.progress .rd-skill-grid-row:not(header) .rd-skill-actions { grid-column:1/-1; padding:0 0 6px; }
-  .rd-skill-name .rd-career-mark { display:none; }
   .rd-skill-name>span { font-size:13px; }
   .rd-rank-diamonds { gap:3px; }
   .rd-rank-diamonds>i { width:5px; height:5px; }
