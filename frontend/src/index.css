@@ -5129,12 +5129,6 @@ button.rd-switch:not(.linklike):not(.back-link) { min-height:1.25rem; justify-co
   .story-side b { color:var(--navy); font:700 24px var(--font-head); }
   .story-controls>.story-side:last-child b { color:var(--red-ink); }
 }
-@media screen and (width > 1100px) {
-  .table-shell>.left-rail { grid-column:1; grid-row:2; }
-  .table-shell>.center-stage { grid-column:2; grid-row:2; }
-  .table-shell>.right-rail { grid-column:3; grid-row:2; display:flex; flex-direction:column; }
-  .table-shell>.participants-strip { grid-column:1/-1; grid-row:3; }
-}
 @media screen and (max-width:767px) {
   #sheet-tab-select { min-height:44px; border:1.5px solid var(--navy); background-color:#fff; color:var(--navy); font:600 15px var(--font-head); text-transform:uppercase; }
   .sheet-name-line { display:block; }
