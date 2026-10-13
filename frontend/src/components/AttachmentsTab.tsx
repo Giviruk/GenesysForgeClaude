@@ -1,3 +1,4 @@
+import { toneClass } from '../utils/tones'
 import { useMemo, useState, type ReactNode } from 'react'
 import { api } from '../api/client'
 import type {
@@ -119,7 +120,7 @@ export function AttachmentsTab({ sheet, reference, onError, refresh }: Props) {
           <span className="prop-tooltip-paragraph">{INSTALL_HINT}</span>{sheet.system === 'realmsOfTerrinoth' && <span className="prop-tooltip-paragraph">{ENCHANTMENT_HINT}</span>}
         </InfoTip></small></h3>
       {hosts.length === 0 && <p className="muted">{t('Нет предметов со слотами улучшений.', 'No items with attachment slots.')}</p>}
-      {hosts.map(i => <article key={i.id} className={`attachment-host-card${host?.id === i.id ? ' selected' : ''}`}>
+      {hosts.map(i => <article key={i.id} className={`attachment-host-card ${toneClass('item', i.kind)}${host?.id === i.id ? ' selected' : ''}`}>
         <button className="attachment-host-select" aria-pressed={host?.id === i.id} onClick={() => { setHostId(i.id); setReason('') }}>
           <Icon name={i.kind === 'weapon' ? 'sword' : 'shield'} /><span><strong>{localizedName(i)}</strong><small>{ITEM_KIND_LABELS[i.kind]}</small></span>
           <span className="attachment-slots" aria-label={t(`Слоты ${i.usedHardPoints}/${i.hardPoints ?? 0}`, `Slots ${i.usedHardPoints}/${i.hardPoints ?? 0}`)}>
@@ -188,7 +189,7 @@ function AttachmentRow({ attachment, def, qualityDefinitions, funds, onDetach, o
   onRepair?: (opts: { netAdvantages: number } | { costOverride: number; overrideReason: string }) => void
 }) {
   return (
-    <div className={`attach-row${unavailable ? ' unavailable' : ''}`}>
+    <div className={`attach-row ${toneClass('item', def?.hostKind ?? 'gear')}${unavailable ? ' unavailable' : ''}`}>
       <div>
         <strong>{localizedName(attachment)}</strong>
         {attachment.damageState !== 'undamaged' && (

@@ -1,3 +1,4 @@
+import { toneClass } from '../utils/tones'
 import { useState } from 'react'
 import { api } from '../api/client'
 import type { CharacterMount, CharacterSheet, MountDef, Reference, SheetItem } from '../api/types'
@@ -256,7 +257,7 @@ function MountCard({ mount, sheet, busy, run, qualityLabel, qualityDefinitions, 
   // Погрузить можно то, что сейчас при персонаже.
   const loadable = sheet.items.filter(i => i.carriedByMountId == null)
 
-  return <article className={`panel mount-card${mount.isActive ? ' active' : ''}`}>
+  return <article className={`panel mount-card ${toneClass('transport', def.transportKind)}${mount.isActive ? ' active' : ''}`}>
     <div className="mount-card-head">
       <span className="mount-icon"><Icon name={isVehicle ? 'truck' : def.movementMode === 'flight' ? 'feather' : 'horse'} /></span>
       <div className="mount-card-name"><input className="mount-name-input" value={name} maxLength={120} placeholder={mountName(def)} aria-label={t('Название', 'Name')} disabled={busy}
@@ -269,7 +270,7 @@ function MountCard({ mount, sheet, busy, run, qualityLabel, qualityDefinitions, 
     <div className="mount-card-body">
       <div><VitalCard kind="wounds" label={isVehicle ? t('Повреждения', 'Damage') : t('Ранения', 'Wounds')} current={mount.woundsCurrent} threshold={def.woundThreshold} disabled={busy}
         onChange={woundsCurrent => void run(() => api.updateMount(sheet.id, mount.id, { woundsCurrent }))} />
-        <div className="mount-stat-tiles">{[[t('Погл.', 'Soak'), mount.soak], [t('Защита', 'Defense'), `${mount.meleeDefense}/${mount.rangedDefense}`], [t('Силуэт', 'Silhouette'), def.silhouette], [isVehicle ? t('Системы', 'Systems') : t('Движение', 'Movement'), isVehicle ? def.strainThreshold : MOVEMENT_MODE_LABELS[def.movementMode]]].map(([k,v]) => <div key={k}><small>{k}</small><b>{v}</b></div>)}</div>
+        <div className="mount-stat-tiles">{[[t('Погл.', 'Soak'), mount.soak], [t('Защита', 'Defense'), `${mount.meleeDefense}/${mount.rangedDefense}`], [t('Силуэт', 'Silhouette'), def.silhouette], [isVehicle ? t('Системы', 'Systems') : t('Движение', 'Movement'), isVehicle ? def.strainThreshold : MOVEMENT_MODE_LABELS[def.movementMode]]].map(([k,v], index) => <div key={k} className={toneClass('transportStat', index)}><small>{k}</small><b>{v}</b></div>)}</div>
         <MountStatline def={def} qualityLabel={qualityLabel} qualityDefinitions={qualityDefinitions} />
       </div>
       <div>{def.requiresTraction && <section className="mount-traction"><h4>{t('Тяга', 'Drawn by')}</h4><div className="sheet-chips">

@@ -1,3 +1,4 @@
+import { toneClass } from '../utils/tones'
 import { useState, type FormEvent } from 'react'
 import { api } from '../api/client'
 import type { CharacterSheet } from '../api/types'
@@ -54,12 +55,12 @@ export function BioTab({ sheet, onError, refresh, onPortraitClick, readOnly = fa
         {readOnly ? <div className="bio-portrait">{portrait}</div> : <button type="button" className="bio-portrait" onClick={onPortraitClick}
           title={t('Загрузить портрет (JPEG/PNG/WebP, до 5 МБ)', 'Upload portrait (JPEG/PNG/WebP, up to 5 MB)')}>{portrait}</button>}
         <div><h3>{sheet.name}</h3><p className="muted small-text">{sheet.archetype && localizedName(sheet.archetype)} · {sheet.career && localizedName(sheet.career)}</p>
-          <div className="bio-progress"><div className="bio-progress-track"><i style={{ width: `${filled * 20}%`, background: filled === 5 ? 'var(--green)' : 'var(--accent)' }} /></div>
+          <div className="bio-progress"><div className={`bio-progress-track${filled === 5 ? ' complete' : ''}`}><i style={{ width: `${filled * 20}%` }} /></div>
             <small>{filled === 5 ? t('Образ заполнен', 'Bio complete') : t(`Заполнено ${filled} из 5`, `Completed ${filled} of 5`)}</small></div>
         </div>
       </section>
       <h3 className="sheet-section-title">{t('Мотивации', 'Motivations')}</h3>
-      <div className="bio-motivations">{MOTIVATIONS.map(m => <label key={m.key} className={`bio-motivation ${m.key}`}>
+      <div className="bio-motivations">{MOTIVATIONS.map(m => <label key={m.key} className={`bio-motivation ${m.key} ${toneClass('motivation', m.key)}`}>
         <span><Icon name={m.icon as IconName} />{m.label}</span>
         <textarea aria-label={m.label} value={shown[m.key]} readOnly={readOnly} disabled={busy} onChange={e => change(m.key, e.target.value)} rows={2} maxLength={300} placeholder={m.hint} />
       </label>)}</div>
