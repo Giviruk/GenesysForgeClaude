@@ -22,7 +22,7 @@ const catalogue: Record<string, Record<string, Tone>> = {
   range: { engaged: 'red', short: 'blue', medium: 'teal', long: 'orange', extreme: 'grey' },
   result: { success: 'green', failure: 'red', triumph: 'orange' },
   content: { disabledInUse: 'red', pendingItem: 'purple', pendingPack: 'purple', pendingEntries: 'purple', changedPack: 'orange', conflict: 'red', proposal: 'purple', update: 'orange', enabled: 'green', gear: 'teal', talent: 'orange' },
-  role: { shooter: 'teal', special: 'grey', brute: 'red', skirmisher: 'green', ranged: 'teal', mage: 'purple', leader: 'orange',
+  role: { brute: 'red', skirmisher: 'green', archer: 'teal', caster: 'purple', leader: 'orange',
     social: 'navy', support: 'red', monster: 'grey', custom: 'grey' },
   system: { genesysCore: 'blue', realmsOfTerrinoth: 'purple' },
 }
