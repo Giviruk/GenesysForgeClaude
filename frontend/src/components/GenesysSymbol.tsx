@@ -11,7 +11,7 @@ export function GenesysSymbol({ kind, className = '', decorative = false, title 
 }) {
   const die = DIE_KINDS.includes(kind as DieKind)
   return (
-    <span className={`glyph genesys-symbol genesys-${kind}${die ? ' genesys-die' : ''}${className ? ` ${className}` : ''}`}
+    <span className={`genesys-symbol genesys-${kind}${die ? ' genesys-die' : ''}${className ? ` ${className}` : ''}`}
       role={decorative ? undefined : 'img'} aria-hidden={decorative || undefined}
       aria-label={decorative ? undefined : GENESYS_SYMBOL_LABELS[kind]}
       title={decorative || title === false ? undefined : title ?? GENESYS_SYMBOL_LABELS[kind]}>
