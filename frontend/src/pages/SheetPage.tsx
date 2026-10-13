@@ -3,6 +3,7 @@ import { api, setActiveSlices, takeFreshSlices } from '../api/client'
 import type { BaseSheet, CharacterSheet, Reference, SheetSliceName, SheetSlices } from '../api/types'
 import { SYSTEM_LABELS } from '../utils/labels'
 import { SheetTab } from '../components/SheetTab'
+import { CharacterSheetNavigation } from '../components/CharacterSheetNavigation'
 import { TalentsTab } from '../components/TalentsTab'
 import { HeroicTab } from '../components/HeroicTab'
 import { InventoryTab } from '../components/InventoryTab'
@@ -466,35 +467,7 @@ export function SheetPage({ characterId, printing, onOpenPrint, onClosePrint, on
         </div>
       )}
 
-      <div className="tabs main-tabs">
-        <button className={tab === 'sheet' ? 'tab active' : 'tab'} onClick={() => selectTab('sheet')}>{t('Лист', 'Sheet')}</button>
-        <button className={tab === 'talents' ? 'tab active' : 'tab'} onClick={() => selectTab('talents')}>{t('Таланты', 'Talents')}</button>
-        <button className={tab === 'inventory' ? 'tab active' : 'tab'} onClick={() => selectTab('inventory')}>{t('Инвентарь', 'Inventory')}</button>
-        <button className={tab === 'magic' ? 'tab active' : 'tab'} onClick={() => selectTab('magic')}>{t('Магия', 'Magic')}</button>
-        <span className="sheet-tab-divider" aria-hidden="true" />
-        {sheet.system === 'realmsOfTerrinoth' && (
-          <button className={`sheet-secondary-tab ${tab === 'heroic' ? 'tab active' : 'tab'}`} onClick={() => selectTab('heroic')}>{t('Героика', 'Heroic')}</button>
-        )}
-        <button className={`sheet-secondary-tab ${tab === 'workshop' ? 'tab active' : 'tab'}`} onClick={() => selectTab('workshop')}>{t('Мастерская', 'Workshop')}</button>
-        <button className={`sheet-secondary-tab ${tab === 'transport' ? 'tab active' : 'tab'}`} onClick={() => selectTab('transport')}>{t('Транспорт', 'Transport')}</button>
-        <button className={`sheet-secondary-tab ${tab === 'bio' ? 'tab active' : 'tab'}`} onClick={() => selectTab('bio')}>{t('Образ и заметки', 'Bio and notes')}</button>
-        <button className={`sheet-secondary-tab ${tab === 'history' ? 'tab active' : 'tab'}`} onClick={() => selectTab('history')}>{t('История', 'History')}</button>
-      </div>
-      <div className="sheet-tab-select-wrap">
-        <label htmlFor="sheet-tab-select">{t('Раздел листа', 'Sheet section')}</label>
-        <select id="sheet-tab-select" className="sheet-tab-select" value={tab}
-          onChange={e => selectTab(e.target.value as CharacterSheetTab)}>
-          <option value="sheet">{t('Лист', 'Sheet')}</option>
-          <option value="talents">{t('Таланты', 'Talents')}</option>
-          <option value="inventory">{t('Инвентарь', 'Inventory')}</option>
-          <option value="magic">{t('Магия', 'Magic')}</option>
-          {sheet.system === 'realmsOfTerrinoth' && <option value="heroic">{t('Героика', 'Heroic')}</option>}
-          <option value="workshop">{t('Мастерская', 'Workshop')}</option>
-          <option value="transport">{t('Транспорт', 'Transport')}</option>
-          <option value="bio">{t('Образ и заметки', 'Bio and notes')}</option>
-          <option value="history">{t('История', 'History')}</option>
-        </select>
-      </div>
+      <CharacterSheetNavigation system={sheet.system} tab={tab} onSelect={selectTab} />
 
       {/* Шапка уже на экране — ждём только те части, которые нужны самой вкладке. */}
       {!ready ? <p className="muted">{t('Загрузка…', 'Loading…')}</p> : (
