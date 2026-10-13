@@ -4511,3 +4511,106 @@ button.rd-switch:not(.linklike):not(.back-link) { min-height:1.25rem; justify-co
   .page-head>.head-actions { display:grid; grid-template-columns:1fr 1.4fr; gap:8px; width:100%; }
   .page-head>.head-actions button { width:100%; padding:8px; }
 }
+
+/* GEN-V5-05: the sheet header, stats, thresholds and skills. */
+@media screen {
+  .sheet-title-row { gap:14px; }
+  .sheet-title-row h2 { color:var(--blue); font:600 38px/1 var(--font-head); }
+  button.linklike.sheet-name-button { font:inherit; color:inherit; text-transform:none; letter-spacing:0; text-decoration:none; }
+  .sheet-name-input { color:var(--blue); border:0; border-bottom:1px dashed var(--faint); padding:2px 0; font:inherit; background:none; }
+  .sheet-portrait { width:60px; height:60px; border:1.5px solid var(--navy); background:var(--surface-3); }
+  .sheet-portrait-placeholder { width:26px; height:26px; color:var(--faint); }
+  .sheet-title-copy .page-sub { font:14px var(--font-ui); margin-top:2px; }
+  .sheet-head-controls { gap:8px; }
+  .xp-block { color:var(--navy); font-size:15px; gap:5px; }
+  .xp-block button.linklike { font:700 19px var(--font-head); color:var(--navy); }
+  .xp-block .xp-available { color:var(--red-ink); font:700 15px var(--font-head); }
+  .stat-row { grid-template-columns:repeat(6,minmax(0,1fr)); gap:10px; margin:0 0 12px; }
+  .stat-box.characteristic { border:0; padding:10px 8px 12px; }
+  .stat-box.characteristic .stat-value { color:#fff; font:700 42px/1 var(--font-head); min-height:42px; }
+  .stat-box.characteristic .stat-label { color:var(--orange-on-navy); font:400 14px var(--font-head); text-transform:uppercase; letter-spacing:.06em; margin-top:2px; }
+  .stat-box.characteristic .buy-row { margin-top:6px; }
+  .stat-box.characteristic button { font-size:12px; min-height:24px; padding:3px 6px; border:1px solid var(--on-navy-line); }
+  .rd-derived-grid { grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; margin:0 0 22px; }
+  .rd-vital,.rd-defense-card { background:var(--ice); border:1px solid var(--ice-line); }
+  .rd-vital { padding:12px 14px; gap:6px; --vital-color:var(--red); }
+  .rd-vital.strain { --vital-color:var(--orange); }
+  .rd-vital>header { gap:7px; }
+  .rd-vital>header>svg { width:18px; height:18px; }
+  .rd-vital>header>span { color:var(--label); font:600 14px var(--font-head); letter-spacing:.06em; }
+  .rd-vital header>button { width:30px; height:30px; min-height:30px; padding:0; border:1px solid var(--ice-btn-line); }
+  .rd-vital header>div { min-width:66px; }
+  .rd-vital header b { color:var(--navy); font:700 26px var(--font-head); }
+  .rd-vital header div>span { font:500 15px var(--font-head); color:var(--muted); }
+  .rd-vital-segments { height:6px; gap:2px; margin-top:4px; }
+  .rd-vital-segments>i { background:var(--ice-line); }
+  .rd-vital>small { font:13px var(--font-ui); }
+  .rd-vital.near>small,.rd-vital.threshold>small { color:var(--warn-ink); font-weight:700; }
+  .rd-defense-card>div { padding:12px 6px; gap:5px; border-color:var(--ice-line); }
+  .rd-defense-card svg { color:var(--navy); width:18px; height:18px; }
+  .rd-defense-card b { color:var(--navy); font:700 24px/1.1 var(--font-head); }
+  .rd-defense-card small { font:12px/1.3 var(--font-ui); }
+  .rd-defense-card .rd-bar { background:var(--ice-line); height:3px; }
+  .rd-defense-card .rd-bar>i { background:var(--navy); }
+  .rd-skills-title h3 { color:var(--blue); font:600 24px var(--font-head); }
+  .rd-skill-legend { font:13px var(--font-ui); }
+  .rd-skills-grid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:20px 28px; }
+  .rd-skill-grid-row,.rd-skills.progress .rd-skill-grid-row { grid-template-columns:minmax(0,1fr) 34px 58px 70px 28px; gap:6px;
+    min-height:36px; padding:0 8px; border:1px solid var(--line); border-top:0; }
+  .rd-skills.progress .rd-skill-grid-row { grid-template-columns:minmax(0,1fr) 34px 58px 70px 98px; }
+  .rd-skill-group>header { background:var(--orange); color:#fff; border:0; padding:5px 8px; font:600 13px var(--font-head); }
+  .rd-skill-group>header>strong { color:#fff; font:inherit; }
+  .rd-skill-name>span { font:14px var(--font-ui); }
+  .rd-skill-characteristic { font:700 12px var(--font-head); color:var(--muted); text-transform:uppercase; text-align:center; }
+  .rd-career-mark { border-color:var(--orange); }
+  .rd-rank-diamonds { gap:5px; }
+  .rd-rank-diamonds>i { width:7px; height:7px; border:1px solid var(--faint); }
+  .rd-rank-diamonds>i.filled { background:var(--navy); border-color:var(--navy); }
+  .rd-rank-diamonds>i.preview { border-color:var(--navy); background:var(--navy); opacity:.5; box-shadow:none; }
+  .rd-skill-pool .die { width:auto; font-size:0!important; -webkit-text-stroke:0; }
+  .rd-skill-pool .die::before { content:''; display:block; background:currentColor; }
+  .rd-skill-pool .die.ability::before,.rd-skill-pool .die.difficulty::before { width:7px; height:7px; transform:rotate(45deg); margin:2px; }
+  .rd-skill-pool .die.proficiency::before,.rd-skill-pool .die.challenge::before { width:11px; height:11px; clip-path:polygon(25% 0,75% 0,100% 50%,75% 100%,25% 100%,0 50%); }
+  .rd-skill-pool .die.proficiency { color:#f2c51d; }
+  .rd-skill-pool .die.boost::before,.rd-skill-pool .die.setback::before { width:8px; height:8px; }
+  .rd-skill-pool .dice-pool { gap:3px; }
+  .rd-skill-actions button { height:24px; min-height:24px; border:1px solid var(--line); padding:0; }
+  .rd-skill-actions .rd-roll { width:28px; }
+  .rd-skill-actions .rd-refund { width:24px; }
+  .rd-skill-actions .rd-buy { width:36px; min-width:36px; background:var(--navy); border-color:var(--navy); color:#fff; font:600 13px var(--font-head); }
+  .rd-skill-actions .rd-buy:hover:not(:disabled),.rd-skill-actions .rd-buy:focus-visible:not(:disabled) { color:#fff; background:var(--blue); }
+  .critical-injuries { border:0; padding:0; margin:0 0 22px; }
+  .critical-injuries>h3 { color:var(--blue); font:600 22px var(--font-head); border-bottom:1px solid var(--line); padding-bottom:8px; }
+  .crit-item { border:0; border-bottom:1px solid var(--line-soft); padding:10px 4px; background:none; }
+  .crit-item-label strong { color:var(--navy); font:600 18px var(--font-head); }
+  .crit-item-effect { font:14px/1.45 var(--font-ui); color:var(--ink-2); }
+  .crit-item>button { border:0; background:none; color:var(--red-ink); }
+}
+@media screen and (max-width:1100px) { .rd-skills-grid { grid-template-columns:1fr; } .rd-derived-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } .rd-defense-card { grid-column:1/-1; } }
+@media screen and (max-width:767px) {
+  .sheet-title-row { flex-wrap:nowrap; gap:10px; }
+  .sheet-title-row h2 { font-size:28px; }
+  .sheet-portrait { width:48px; height:48px; }
+  .sheet-title-copy .page-sub { font-size:12px; }
+  .stat-row { grid-template-columns:repeat(3,minmax(0,1fr)); gap:6px; }
+  .stat-box.characteristic { --plate-r:12px; padding:8px 4px; box-shadow:none; }
+  .stat-box.characteristic .stat-value { font-size:32px; min-height:32px; }
+  .stat-box.characteristic .stat-label { font-size:12px; }
+  .stat-box.characteristic button { min-height:44px; }
+  .rd-derived-grid { grid-template-columns:1fr; gap:6px; margin-bottom:16px; }
+  .rd-vital { padding:6px 10px; }
+  .rd-vital header>button { width:44px; height:44px; min-height:44px; }
+  .rd-vital header b { font-size:22px; }
+  .rd-vital-segments,.rd-vital>small { display:none; }
+  .rd-defense-card b { font-size:20px; }
+  .rd-defense-card small { font-size:11px; }
+  .rd-skills-title h3 { font-size:22px; }
+  .rd-skills-grid { grid-template-columns:1fr; gap:16px; }
+  .rd-skill-grid-row,.rd-skills.progress .rd-skill-grid-row { grid-template-columns:minmax(0,1fr) 28px 40px 52px 44px; gap:5px; min-height:44px; padding:0 6px; }
+  .rd-skills.progress .rd-skill-grid-row:not(header) .rd-skill-actions { grid-column:1/-1; padding:0 0 6px; }
+  .rd-skill-name .rd-career-mark { display:none; }
+  .rd-skill-name>span { font-size:13px; }
+  .rd-rank-diamonds { gap:3px; }
+  .rd-rank-diamonds>i { width:5px; height:5px; }
+  .rd-skill-actions button,.rd-skill-actions .rd-roll,.rd-skill-actions .rd-refund,.rd-skill-actions .rd-buy { width:44px; height:44px; min-height:44px; }
+}

@@ -81,7 +81,7 @@ export function CriticalInjuriesSection({ sheet, onError, refresh, readOnly = fa
   const injuries = sheet.criticalInjuries
 
   return (
-    <section className="panel">
+    <section className="panel critical-injuries">
       <h3>{t('Критические ранения', 'Critical injuries')} {injuries.length > 0 ? `(${injuries.length})` : ''}</h3>
       <p className="muted small-text">
         {t('Сохраняются до лечения; каждое добавляет +10 к будущим броскам критических ранений (см. справочник правил).', 'They persist until healed; each adds +10 to future critical injury rolls (see the rules reference).')}
