@@ -22,4 +22,6 @@
 
 - [x] Каталог использует реальные `NpcRole`: archer → teal, caster → purple; неиспользуемые shooter/ranged/mage/special удалены.
 - [x] Unit-регрессия покрывает все девять ролей из API-типа.
-- [ ] Vitest, реальная палитра кнопок черновика, lint/build и передача вверх по стеку.
+- [x] Vitest, реальная палитра кнопок черновика, lint/build и передача вверх по стеку.
+
+Приёмка итогового состояния: lint/build, 666 Vitest, 37 Playwright на production-сборке. [Отчёт](https://github.com/Giviruk/GenesysForgeClaude/blob/feature/gen-v5-11-other-screens/docs/redesign-v5-stack-review.md).
