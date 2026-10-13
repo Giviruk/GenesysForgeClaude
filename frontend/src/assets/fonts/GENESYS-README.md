@@ -20,3 +20,7 @@ despair `d`; solid square `j`, solid diamond `k`, solid hexagon `l`.
 Hollow overprint glyphs have zero advance and are not used as standalone icons.
 Only isolated glyph spans select the font. Ordinary text and numbers keep the
 application's existing fonts, and accessible labels name every non-decorative icon.
+
+V5: использование разрешено владельцем продукта 13.10.2026. Вместо повторной
+копии TTF макета используется уже лицензированный WOFF2 из master (4,268 байт).
+`GenesysSymbol` общий для DicePoolView, RuleText, результатов и роллера.
