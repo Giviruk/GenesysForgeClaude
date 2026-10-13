@@ -10,6 +10,7 @@ import { CampaignContentTab } from '../components/content/CampaignContentTab'
 import { CampaignChronicleTab } from '../components/CampaignChronicleTab'
 import { CreateCharacterForm } from './CharactersPage'
 import { SheetTab } from '../components/SheetTab'
+import { CharacterSheetNavigation } from '../components/CharacterSheetNavigation'
 import { MagicTab } from '../components/MagicTab'
 import { HistoryTab } from '../components/HistoryTab'
 import {
@@ -449,24 +450,7 @@ function CampaignMemberSheetPage({ campaignId, characterId, campaignName, onBack
       </div>
     </div>
     {error && <div className="error floating">{error}</div>}
-    <div className="tabs main-tabs">
-      <button className={tab === 'sheet' ? 'tab active' : 'tab'} onClick={() => selectTab('sheet')}>{t('Лист', 'Sheet')}</button>
-      <button className={tab === 'talents' ? 'tab active' : 'tab'} onClick={() => selectTab('talents')}>{t('Таланты', 'Talents')}</button>
-      <button className={tab === 'inventory' ? 'tab active' : 'tab'} onClick={() => selectTab('inventory')}>{t('Инвентарь', 'Inventory')}</button>
-      <button className={tab === 'magic' ? 'tab active' : 'tab'} onClick={() => selectTab('magic')}>{t('Магия', 'Magic')}</button>
-      <span className="sheet-tab-divider" aria-hidden="true" />
-      {sheet.system === 'realmsOfTerrinoth' && <button
-        className={`sheet-secondary-tab ${tab === 'heroic' ? 'tab active' : 'tab'}`}
-        onClick={() => selectTab('heroic')}>{t('Героика', 'Heroic')}</button>}
-      <button className={`sheet-secondary-tab ${tab === 'workshop' ? 'tab active' : 'tab'}`}
-        onClick={() => selectTab('workshop')}>{t('Мастерская', 'Workshop')}</button>
-      <button className={`sheet-secondary-tab ${tab === 'transport' ? 'tab active' : 'tab'}`}
-        onClick={() => selectTab('transport')}>{t('Транспорт', 'Transport')}</button>
-      <button className={`sheet-secondary-tab ${tab === 'bio' ? 'tab active' : 'tab'}`}
-        onClick={() => selectTab('bio')}>{t('Образ', 'Bio')}</button>
-      <button className={`sheet-secondary-tab ${tab === 'history' ? 'tab active' : 'tab'}`}
-        onClick={() => selectTab('history')}>{t('История', 'History')}</button>
-    </div>
+    <CharacterSheetNavigation system={sheet.system} tab={tab} onSelect={selectTab} bioLabel={t('Образ', 'Bio')} />
     {tab === 'sheet' && <SheetTab sheet={sheet} onError={setError} refresh={refresh} readOnly />}
     {tab === 'inventory' && <ReadOnlyInventoryTab sheet={sheet} />}
     {tab === 'talents' && <ReadOnlyTalentsTab sheet={sheet} />}
