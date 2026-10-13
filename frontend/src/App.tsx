@@ -130,7 +130,6 @@ function Shell() {
             <button key={item.area} type="button"
               className={route.area === item.area ? 'side-nav-item active' : 'side-nav-item'}
               onClick={() => navigateFromShell(item.path)}>
-              <Icon name={item.icon} className="side-nav-icon" />
               {item.label}
             </button>
           ))}
@@ -140,17 +139,14 @@ function Shell() {
             <button key={item.area} type="button"
               className={route.area === item.area ? 'side-nav-item active' : 'side-nav-item'}
               onClick={() => navigateFromShell(item.path)}>
-              <Icon name={item.icon} className="side-nav-icon" />
               {item.label}
             </button>
           ))}
           <button type="button" className="side-nav-item"
             onClick={() => { setMobileNavOpen(false); setLang(lang === 'ru' ? 'en' : 'ru') }}>
-            <Icon name="globe" className="side-nav-icon" />
             {lang === 'ru' ? 'English' : 'Русский'}
           </button>
           <button type="button" className="side-nav-item" onClick={() => { setMobileNavOpen(false); navigate('/login'); if (currentPath() === '/login') logout() }}>
-            <Icon name="logout" className="side-nav-icon" />
             {t('Выйти', 'Sign out')}
           </button>
         </div>

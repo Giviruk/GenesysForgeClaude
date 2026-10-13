@@ -4310,3 +4310,50 @@ button.rd-switch:not(.linklike):not(.back-link) { min-height:1.25rem; justify-co
 .genesys-triumph,.rule-triumph { color:#d18a00; }
 .genesys-failure,.rule-failure,.genesys-threat,.rule-threat { color:var(--red); }
 .genesys-despair,.rule-despair { color:#b3261e; }
+
+/* GEN-V5-02: book-inspired navigation and page headings. */
+@media screen {
+  .app-shell { grid-template-columns:232px minmax(0,1fr); background:var(--surface); }
+  .app-sidebar { background:var(--navy); color:#fff; padding:22px 18px; gap:16px; border:0; border-radius:0 0 34px 0;
+    box-shadow:inset 0 0 0 7px var(--navy), inset 0 0 0 8px rgba(255,255,255,.45); }
+  .app-sidebar-head { min-height:0; background:var(--navy); }
+  .app-brand { padding:4px 6px 16px; border:0; border-bottom:1px solid rgba(255,255,255,.35); color:var(--orange-on-navy);
+    font:300 17px/1 var(--font-brand); letter-spacing:.14em; background:none; min-height:0; }
+  .app-brand:hover:not(:disabled) { color:var(--orange-on-navy); border-bottom-color:var(--on-navy-line); }
+  .side-nav { gap:2px; }
+  .side-nav-item { font:400 17px/1.2 var(--font-head); text-transform:none; padding:9px 12px; color:#fff; border:0; min-height:38px; }
+  .side-nav-item:hover:not(:disabled) { background:rgba(255,255,255,.08); }
+  .side-nav-item.active { color:var(--orange-on-navy); background:rgba(243,154,30,.16); box-shadow:inset 3px 0 0 var(--orange); font-weight:600; }
+  .side-nav-footer { gap:2px; border-top:1px solid rgba(255,255,255,.35); padding-top:12px; opacity:.85; }
+  .side-nav-footer .side-nav-item { font-size:16px; padding:7px 12px; }
+  .shell { position:relative; isolation:isolate; overflow:hidden; padding:24px 32px 32px; }
+  .shell::before { content:''; position:absolute; z-index:-1; right:-170px; top:-170px; width:480px; height:480px; border:1px solid rgba(27,135,201,.15); border-radius:50%; pointer-events:none; }
+  .page-head,.rd-page-head { gap:16px; align-items:center; }
+  .display-title,.page-head > div > h2:not(.inline-title),.page-head > h2:not(.inline-title),.rd-page-head h2 { font:700 52px/.9 var(--font-head); text-transform:uppercase;
+    color:var(--blue); -webkit-text-stroke:1.2px var(--blue); overflow-wrap:anywhere; }
+  @supports ((-webkit-background-clip:text) or (background-clip:text)) {
+    .display-title,.page-head > div > h2:not(.inline-title),.page-head > h2:not(.inline-title),.rd-page-head h2 { color:transparent;
+      background:repeating-linear-gradient(118deg,var(--blue) 0 1.5px,transparent 1.5px 4px); -webkit-background-clip:text; background-clip:text; }
+  }
+  .page-sub,.page-head>div>p,.rd-page-head>div>p { font:14px/1.45 var(--font-ui); color:var(--muted); margin:8px 0 0; max-width:560px; }
+  .app-footer { font:12px/1.5 var(--font-ui); color:var(--muted); border-color:var(--line-soft); }
+  .footer-links a { color:var(--t-blue-ink); }
+}
+@media screen and (prefers-contrast:more) {
+  .display-title,.page-head > div > h2:not(.inline-title),.page-head > h2:not(.inline-title),.rd-page-head h2 { color:var(--blue); background:none; }
+}
+@media screen and (max-width:767px) {
+  .app-shell { display:block; }
+  .shell { padding:14px 14px 24px; }
+  .shell::before { display:none; }
+  .mobile-topbar { background:var(--navy); color:#fff; border:0; border-radius:0 0 20px 0; padding:10px 14px;
+    margin:-14px -14px 14px; gap:12px; }
+  .mobile-menu-trigger,.mobile-nav-close { background:transparent; color:#fff; border:1px solid var(--on-navy-line); min-height:44px; font:600 14px var(--font-head); }
+  .mobile-topbar-brand { font:300 14px var(--font-brand); letter-spacing:.12em; color:var(--orange-on-navy); padding:0; border:0; background:none; }
+  .mobile-topbar-title { color:#fff; opacity:.85; font:400 14px var(--font-head); }
+  .mobile-nav-backdrop { background:rgba(31,42,92,.55); }
+  .mobile-nav-open .app-sidebar { background:var(--navy); padding:22px 18px; }
+  .side-nav-item { min-height:44px; }
+  .display-title,.page-head > div > h2:not(.inline-title),.page-head > h2:not(.inline-title),.rd-page-head h2 { font-size:36px; -webkit-text-stroke:1px var(--blue); }
+  .page-sub,.page-head>div>p,.rd-page-head>div>p { font-size:13px; margin-top:4px; }
+}
