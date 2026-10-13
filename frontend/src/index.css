@@ -4471,3 +4471,15 @@ button.rd-switch:not(.linklike):not(.back-link) { min-height:1.25rem; justify-co
   .sheet-mobile-tab-select { min-height:44px; border:1.5px solid var(--navy); font:600 15px var(--font-head); text-transform:uppercase; color:var(--navy); }
   .modal { width:calc(100% - 16px); }
 }
+/* Stack acceptance: footer links share the same readable colour. */
+@media screen {
+  .footer-links button.linklike { color:var(--t-blue-ink); font:inherit; text-transform:none; letter-spacing:0; }
+}
+
+/* Stack acceptance: shared selects preserve native arrow clearance. */
+@media screen {
+  select { appearance:none; padding-right:36px;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%235b5b66' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat:no-repeat; background-position:right 10px center; background-size:14px; }
+  .bt-inline-filters select,.shop-toolbar select { padding-right:36px; }
+}
