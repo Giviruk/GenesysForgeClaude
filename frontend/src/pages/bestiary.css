@@ -2281,3 +2281,137 @@
   flex: 1;
   min-width: 0;
 }
+
+/* GEN-V5-09: light rulebook bestiary, preserving builder and mobile behaviours. */
+@media screen {
+  .shell.shell-bestiary { padding:24px 32px 32px; }
+  .bt-page { grid-template-columns:300px minmax(0,1fr); grid-template-rows:auto minmax(0,1fr); gap:20px 22px; height:auto; min-height:calc(100dvh - 100px); font:14px/1.45 var(--font-ui); }
+  .bt-page>.bt-list-heading { grid-column:1/-1; display:flex; gap:16px; }
+  .bt-list-heading h2 { font:700 52px/.9 var(--font-head); }
+  .bt-list-heading .bt-actions { flex-wrap:wrap; }
+  .bt-draft-button { width:auto; }
+  .bt-draft-button>span { display:inline; }
+  .bt-list { padding:0; gap:8px; border:0; max-height:calc(100dvh - 190px); position:sticky; top:16px; }
+  .bt-items { border:0; margin:0; }
+  .bt-items>li>button { padding:9px 10px; border:0; border-bottom:1px solid var(--line-soft); background:#fff; color:var(--ink); }
+  .bt-items>li>button.selected { background:var(--select-bg); box-shadow:inset 3px 0 0 var(--orange); }
+  .bt-item-title { gap:8px; }
+  .bt-item-title strong { font:700 15px var(--font-ui); color:var(--ink); }
+  .bt-item-meta { color:var(--muted); font:12px var(--font-ui); }
+  .bt-page button,.bt-builder button { font-family:var(--font-head); }
+  .bt-page button.primary,.bt-builder button.primary { background:var(--orange); color:#fff; border-color:transparent; }
+  .bt-page :is(button,input,select):focus-visible,.bt-builder :is(button,input,select,textarea):focus-visible { outline-color:var(--blue); }
+  .bt-pills button { background:#fff; border:1px solid var(--line-ctrl); color:var(--navy); font:600 13px var(--font-head); padding:4px 9px; min-height:28px; text-transform:uppercase; }
+  .bt-pills button[aria-pressed=true],.bt-pills button[aria-selected=true] { background:var(--navy); border-color:var(--navy); color:#fff; }
+  .bt-kind { background:none; color:var(--tone-ink); border:1px solid currentColor; padding:1px 6px; font:600 11px var(--font-head); text-transform:uppercase; }
+  .bt-kind.kind-minion,.kind-minion { color:var(--t-green-ink); }
+  .bt-kind.kind-rival,.kind-rival { color:var(--t-blue-ink); }
+  .bt-kind.kind-nemesis,.kind-nemesis { color:var(--red-ink); }
+  .bt-core { color:var(--t-blue-ink); }
+  .bt-terrinoth { color:var(--t-purple-ink); }
+  .bt-inline-filters { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:6px; }
+  .bt-inline-filters select { font-size:12px; padding:6px; min-height:34px; }
+  .bt-detail { padding:0; background:#fff; overflow:visible; }
+  .bt-card-view { border:1px solid var(--line); background:#fff; }
+  .bt-detail-head { padding:12px 18px; background:var(--navy); color:#fff; border:0; }
+  .bt-detail-head h3 { color:var(--orange-on-navy); font:600 26px var(--font-head); }
+  .bt-detail-head .bt-kind.kind-minion { color:#9be3ae; }
+  .bt-detail-head .bt-kind.kind-rival { color:#8fc8ff; }
+  .bt-detail-head .bt-kind.kind-nemesis { color:var(--danger-on-navy); }
+  .bt-detail-head .bt-core { color:#8fc8ff; }
+  .bt-detail-head .bt-terrinoth { color:#c8a6ff; }
+  .bt-detail-head .bt-meta-badge { color:var(--on-navy-muted); }
+  .bt-card-actions button:not(.primary) { color:#fff; background:none; border-color:var(--on-navy-line); }
+  .bt-card-actions button.danger { color:var(--danger-on-navy); border-color:var(--danger-on-navy); }
+  .bt-card { padding:14px 18px 18px; background:#fff; border:0; }
+  .bt-card .npc-desc { color:var(--ink-3); font:15px/1.5 var(--font-ui); }
+  .bt-card-chars { border:1px solid var(--line); gap:0; margin:12px 0; }
+  .bt-card-chars .npc-char { background:#fff; border:0; border-right:1px solid var(--line); padding:6px 2px 8px; }
+  .bt-card-chars .npc-char:last-child { border:0; }
+  .bt-card-chars .npc-char-label { font:600 12px var(--font-head); color:var(--muted); letter-spacing:.05em; text-transform:uppercase; }
+  .bt-card-chars .npc-char-val { font:700 30px/1 var(--font-head); color:var(--navy); }
+  .bt-card-derived { background:var(--ice); border:1px solid var(--ice-line); gap:0; padding:0; margin-bottom:16px; }
+  .bt-card-derived>span { border-right:1px solid var(--ice-line); padding:8px 6px; }
+  .bt-card-derived strong { font:700 22px var(--font-head); color:var(--navy); }
+  .bt-card-derived small { font:12px var(--font-ui); color:var(--muted); }
+  .bt-card-sections { display:block; }
+  .bt-card-left,.bt-card-right { display:block; }
+  .bt-card-sections :is(.bt-card-left,.bt-card-right)>.npc-section { padding:8px 0; border:0; border-top:1px solid var(--line-soft); }
+  .bt-card .npc-section h4 { color:var(--blue); font:600 18px var(--font-head); margin:0 0 8px; }
+  .npc-weapon-table { width:100%; border-collapse:collapse; font:13px/1.4 var(--font-ui); }
+  .npc-weapon-table th { background:var(--orange); color:#fff; text-transform:uppercase; font:600 13px var(--font-head); padding:5px 8px; text-align:left; }
+  .npc-weapon-table td { border:1px solid var(--line); padding:6px 8px; vertical-align:top; }
+  .npc-weapon-table .npc-weapon { display:table-row; background:#fff; border:0; padding:0; }
+  .npc-weapon-table .weapon-pool { display:flex; flex-wrap:wrap; }
+  .npc-weapon-table td>strong { color:var(--navy); font:600 16px var(--font-head); }
+  .npc-weapon-table button { min-height:26px; padding:4px 8px; font-size:12px; color:#fff; background:var(--orange); border:0; }
+  .bt-card .npc-skill-row { border-color:var(--line-faint); }
+  .bt-builder { background:#fff; font:14px/1.45 var(--font-ui); }
+  .bt-builder-head { padding:0 0 14px; margin-bottom:18px; border-bottom:2px solid var(--navy); }
+  .bt-builder-title h2 { font:600 30px/1 var(--font-head); color:var(--navy); }
+  .bt-mode,.bt-power-grid,.bt-system-options { display:flex; gap:0; border:1.5px solid var(--navy); }
+  .bt-mode button,.bt-power-grid button,.bt-system-options button { flex:1; border:0; background:#fff; padding:7px 12px; color:var(--navy); font:600 14px var(--font-head); }
+  .bt-mode button[aria-pressed=true],.bt-power-grid button[aria-pressed=true],.bt-system-options button[aria-pressed=true] { background:var(--navy); color:#fff; }
+  .bt-draft-layout { grid-template-columns:minmax(0,1fr) 320px; gap:24px; }
+  .bt-draft-form { padding:0; }
+  .bt-draft-step h3 { color:var(--navy); font:600 19px var(--font-head); text-transform:uppercase; letter-spacing:.04em; }
+  .bt-draft-step h3>b { display:inline-grid; place-items:center; width:26px; height:26px; color:#fff; background:var(--blue); font:700 15px var(--font-head); }
+  .bt-role-grid>button { background:#fff; border:1.5px solid var(--line-ctrl); padding:10px 12px; }
+  .bt-role-grid>button[aria-pressed=true] { background:var(--tone-bg); border-color:var(--tone); }
+  .bt-role-grid svg { width:38px; height:38px; padding:8px; color:var(--tone-ink); background:var(--tone-bg); }
+  .bt-role-grid>button[aria-pressed=true] svg { background:var(--tone); color:#fff; }
+  .bt-role-grid strong { color:var(--navy); font:600 17px var(--font-head); text-transform:none; }
+  .bt-role-grid small { font:12px/1.35 var(--font-ui); text-transform:none; }
+  .bt-kind-cards button { background:#fff; border:1.5px solid var(--line-ctrl); padding:10px 12px; }
+  .bt-kind-cards button[aria-pressed=true] { background:var(--tone-bg); border-color:var(--tone); }
+  .bt-kind-cards strong { color:var(--tone-ink); font:600 17px var(--font-head); }
+  .bt-kind-cards small { font:12px/1.4 var(--font-ui); text-transform:none; }
+  .bt-refinement-grid { grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; }
+  .bt-draft-preview,.ne-preview { border:1px solid var(--line); background:#fff; padding:0; }
+  .bt-draft-preview>.label-line,.bt-draft-preview .npc-card-head,.ne-preview>.label-line,.ne-preview>.npc-card-head { background:var(--navy); color:var(--on-navy-muted); padding:12px 16px; }
+  .bt-draft-preview .npc-card-head h3,.ne-preview .npc-card-head h3 { color:var(--orange-on-navy); font:600 26px var(--font-head); }
+  .bt-draft-preview .npc-card-head { border-radius:0 0 24px 0; box-shadow:inset 0 0 0 4px var(--navy),inset 0 0 0 5px var(--on-navy-line); }
+  .bt-draft-counts>div { background:var(--t-blue-bg); border-color:var(--t-blue-line); }
+  .bt-draft-counts b { color:var(--t-blue-ink); font:700 18px var(--font-head); }
+  .bt-editor-body { padding:0; }
+  .bt-editor-section { border:1px solid var(--line); padding:14px 16px 16px; margin-bottom:14px; background:#fff; }
+  .bt-editor-section h4 { color:var(--navy); font:600 19px var(--font-head); text-transform:uppercase; }
+  .bt-section-nav button[aria-current=true],.bt-section-nav button.active { background:var(--navy); color:#fff; }
+  .bt-stat-stepper { background:var(--surface-off); border:1px solid var(--line-soft); padding:8px 6px; }
+  .bt-stat-stepper b { font:700 28px var(--font-head); color:var(--navy); }
+  .bt-derived-grid label:nth-child(1) input { background:var(--t-red-bg); border-color:var(--t-red-line); }
+  .bt-derived-grid label:nth-child(n+3):nth-child(-n+5) input { background:var(--t-blue-bg); border-color:var(--t-blue-line); }
+  .bt-derived-grid input { font:700 17px var(--font-head); color:var(--navy); }
+  .bt-template { background:var(--t-purple-bg); color:var(--t-purple-ink); border-color:var(--t-purple-line); }
+  .bt-template button { background:var(--t-purple); color:#fff; border:0; }
+  .bt-stat-note { background:var(--t-blue-bg); border:1px solid var(--t-blue-line); color:var(--t-blue-ink); }
+  .bt-editor-attacks .ability-edit { background:var(--t-red-bg); border:1px solid var(--t-red-line); }
+  .bt-filters-dialog,.bt-preview-dialog { background:#fff; border:1px solid var(--line); box-shadow:0 24px 60px rgba(0,0,0,.3); }
+  .bt-filters-dialog::backdrop,.bt-preview-dialog::backdrop { background:rgba(31,42,92,.55); }
+  .bt-filter-head { background:var(--navy); color:#fff; }
+  .bt-filter-head h3 { color:var(--orange-on-navy); }
+  .bt-filter-head button { color:#fff; border-color:var(--on-navy-line); background:none; }
+}
+@media screen and (max-width:1100px) { .bt-role-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } .bt-refinement-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+@media screen and (max-width:900px) { .bt-draft-layout { grid-template-columns:1fr; } }
+@media screen and (max-width:767px) {
+  .shell.shell-bestiary { padding:14px 14px 24px; }
+  .bestiary-shell .mobile-topbar { margin:-14px -14px 14px; }
+  .bt-page { grid-template-columns:1fr; min-height:0; }
+  .bt-page>.bt-list-heading { grid-column:auto; }
+  .bt-page>.bt-list-heading h2 { font-size:36px; }
+  .bt-list { position:static; max-height:none; }
+  .bt-inline-filters { display:none; }
+  .bt-create-desktop { display:none; }
+  .bt-draft-button { display:inline-flex; width:44px; padding:8px; }
+  .bt-draft-button>span { display:none; }
+  .bt-fab { position:static; width:100%; }
+  .bt-builder-head { padding:0 0 14px; }
+  .bt-builder-title h2 { font-size:24px; }
+  .bt-page button,.bt-builder button,.bt-pills button,.npc-weapon-table button { min-height:44px; }
+  .bt-card { padding:12px; }
+  .bt-card-chars .npc-char-val { font-size:24px; }
+  .bt-role-grid,.bt-refinement-grid { grid-template-columns:1fr; }
+  .bt-stat-stepper { padding:6px 4px; }
+  .bt-draft-form { padding:0; }
+}
