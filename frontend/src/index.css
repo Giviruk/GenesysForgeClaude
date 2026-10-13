@@ -4108,7 +4108,7 @@ select {
 }
 @media print {
   .rd-skill-actions,.rd-skills-title .rd-filter-chip,.rd-vital header>button { display:none; }
-  .rd-skills .rd-skill-grid-row,.rd-skills.progress .rd-skill-grid-row { grid-template-columns:minmax(0,1fr) 4.3rem var(--skill-pool-width,4.6rem) 0; }
+  .rd-skills .rd-skill-grid-row,.rd-skills.progress .rd-skill-grid-row { grid-template-columns:minmax(0,1fr) 2.1rem 4.3rem var(--skill-pool-width,4.6rem) 0; }
 }
 
 /* Match the handoff's narrow picker and full-height editor. */
@@ -4477,6 +4477,11 @@ button.rd-switch:not(.linklike):not(.back-link) { min-height:1.25rem; justify-co
   .card-grid { grid-template-columns:repeat(3,minmax(0,1fr)); gap:16px; margin-top:20px; }
   .char-card { position:relative; padding:16px 18px 14px; gap:10px; border:0; }
   .char-card:hover,.char-card:focus-visible { --plate-frame:var(--orange-on-navy); }
+  .char-card-link,.char-card-link:hover { color:inherit; text-decoration:none; }
+  .char-card-link::after { content:''; position:absolute; inset:0; z-index:1; border-radius:inherit; }
+  .char-card-link:focus-visible { outline:0; }
+  .char-card-link:focus-visible::after { outline:2px solid var(--blue); outline-offset:2px; }
+  .char-card .card-actions { position:relative; z-index:2; }
   .char-card-identity { gap:12px; }
   .char-portrait { width:44px; height:44px; border:1px solid var(--on-navy-line); background:transparent; color:var(--orange-on-navy); font:700 17px var(--font-head); }
   .char-title-block strong { font:600 21px/1.05 var(--font-head); color:var(--orange-on-navy); }
@@ -4608,7 +4613,6 @@ button.rd-switch:not(.linklike):not(.back-link) { min-height:1.25rem; justify-co
   .rd-skills-grid { grid-template-columns:1fr; gap:16px; }
   .rd-skill-grid-row,.rd-skills.progress .rd-skill-grid-row { grid-template-columns:minmax(0,1fr) 28px 40px 52px 44px; gap:5px; min-height:44px; padding:0 6px; }
   .rd-skills.progress .rd-skill-grid-row:not(header) .rd-skill-actions { grid-column:1/-1; padding:0 0 6px; }
-  .rd-skill-name .rd-career-mark { display:none; }
   .rd-skill-name>span { font-size:13px; }
   .rd-rank-diamonds { gap:3px; }
   .rd-rank-diamonds>i { width:5px; height:5px; }
@@ -4835,6 +4839,13 @@ button.rd-switch:not(.linklike):not(.back-link) { min-height:1.25rem; justify-co
 }
 
 /* Stack acceptance: shared selects preserve native arrow clearance. */
+/* Every character-sheet section remains reachable by pointer on tablet widths. */
+@media screen and (max-width:1100px) {
+  .main-tabs:has(+ .sheet-tab-select-wrap) { display:none; }
+  .sheet-tab-select-wrap { display:flex; align-items:center; gap:8px; width:100%; margin:12px 0; }
+  .sheet-tab-select { min-width:0; flex:1 1 auto; }
+}
+
 @media screen {
   select { appearance:none; padding-right:36px;
     background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%235b5b66' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
