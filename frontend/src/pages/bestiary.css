@@ -32,7 +32,7 @@
 
 .bt-page button.primary, .bt-builder button.primary {
   background: linear-gradient(180deg, var(--accent), var(--accent-dark));
-  color: #241b08;
+  color: #fff;
   border-color: var(--accent);
   font-weight: 700;
 }
@@ -66,7 +66,7 @@
 .bt-list-heading h2 {
   margin: 0;
   font: 700 25px/1.15 var(--heading-font);
-  color: #f1ead9;
+  color: var(--navy);
 }
 
 .bt-list-heading small {
@@ -128,7 +128,7 @@
   align-items: center;
   justify-content: center;
   gap: 5px;
-  border-radius: 999px;
+  border-radius: 0;
   min-height: 32px;
   padding: 4px 10px;
   font-size: 13px;
@@ -142,7 +142,7 @@
 .bt-pills > button:is([aria-pressed=true], [aria-selected=true], [aria-current=step]), .bt-kind-cards > button[aria-pressed=true], .bt-role-grid > button[aria-pressed=true], .bt-power-grid > button[aria-pressed=true] {
   border-color: var(--accent);
   color: var(--accent-2);
-  background: rgba(201,162,74,.08);
+  background: var(--select-bg);
 }
 
 .bt-source-pills {
@@ -235,7 +235,7 @@
   align-items: center;
   background: var(--bg);
   text-align: left;
-  border-radius: 8px;
+  border-radius: 0;
   padding: 8px 10px;
 }
 
@@ -246,7 +246,7 @@
 .bt-item.active {
   background: var(--panel-2);
   border-color: var(--accent);
-  box-shadow: inset 0 0 0 1px var(--accent);
+  box-shadow: none;
 }
 
 .bt-item-copy {
@@ -277,7 +277,7 @@
   line-height: 1.2;
   padding: 2px 7px 3px;
   border: 1px solid var(--border);
-  border-radius: 999px;
+  border-radius: 0;
   font-size: 10.5px;
 }
 
@@ -361,7 +361,7 @@
 .bt-skeleton {
   flex-shrink: 0;
   height: 62px;
-  border-radius: 8px;
+  border-radius: 0;
   border: 1px solid var(--border);
   background: linear-gradient(100deg, var(--panel), var(--panel-2), var(--panel));
   background-size: 200% 100%;
@@ -399,7 +399,7 @@
 
 .bt-detail-head h3 {
   font: 700 30px/1.15 var(--heading-font);
-  color: #f1ead9;
+  color: var(--navy);
   margin: 0 0 6px;
   overflow-wrap: anywhere;
 }
@@ -482,7 +482,7 @@
   gap: 0 6px;
   padding: 7px 8px;
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: 0;
   min-width: 0;
 }
 
@@ -566,7 +566,7 @@
 .bt-card-sections .npc-weapon {
   padding: 10px 12px;
   background: var(--panel);
-  border-radius: 8px;
+  border-radius: 0;
 }
 
 .bt-card-sections .npc-weapon-list {
@@ -593,7 +593,7 @@
   padding: 7px 10px;
   background: var(--bg);
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: 0;
 }
 
 .bt-section-abilities li {
@@ -617,7 +617,7 @@
   font-size: 12.5px;
   min-height: 28px;
   padding: 3px 10px;
-  border-radius: 999px;
+  border-radius: 0;
   white-space: normal;
   overflow-wrap: anywhere;
 }
@@ -627,7 +627,7 @@
   align-items: stretch;
   max-width: 100%;
   border: 1px solid var(--border);
-  border-radius: 999px;
+  border-radius: 0;
   overflow: hidden;
 }
 
@@ -668,8 +668,8 @@
   padding: 9px 11px;
   background: var(--panel);
   border: 1px solid var(--accent);
-  border-radius: 8px;
-  box-shadow: 0 12px 30px rgba(0,0,0,.45);
+  border-radius: 0;
+  box-shadow: none;
   font: 13px/1.45 var(--ui-font);
 }
 
@@ -699,7 +699,7 @@
   color: var(--text);
   background: var(--panel);
   border: 1px solid var(--border);
-  border-radius: 12px;
+  border-radius: 0;
   padding: 20px;
   width: min(480px, calc(100vw - 24px));
   max-height: calc(100dvh - 24px);
@@ -785,7 +785,7 @@
   font: 700 26px/1.15 var(--heading-font);
   margin: 0;
   overflow-wrap: anywhere;
-  color: #f1ead9;
+  color: var(--navy);
 }
 
 .bt-builder-title small {
@@ -835,7 +835,7 @@
 
 .bt-editor-section {
   border: 1px solid var(--border);
-  border-radius: 10px;
+  border-radius: 0;
   background: var(--panel);
   padding: 14px 16px;
   display: flex;
@@ -892,7 +892,7 @@
 
 .bt-system-options button {
   font-size: 13px;
-  border-radius: 6px;
+  border-radius: 0;
   padding: 4px;
 }
 
@@ -941,7 +941,7 @@
   align-items: center;
   padding: 10px 12px;
   border: 1px dashed var(--border);
-  border-radius: 8px;
+  border-radius: 0;
   font-size: 13px;
 }
 
@@ -962,7 +962,7 @@
   padding: 8px 10px;
   background: var(--bg);
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: 0;
   min-width: 0;
   align-items: center;
 }
@@ -994,7 +994,7 @@
   width: 32px;
   min-height: 32px;
   padding: 0;
-  border-radius: 6px;
+  border-radius: 0;
 }
 
 .bt-derived-grid {
@@ -1024,7 +1024,7 @@
   background: rgba(224,182,44,.08);
   border: 1px solid var(--yellow);
   color: var(--yellow);
-  border-radius: 8px;
+  border-radius: 0;
   padding: 8px 10px;
   font-size: 12.5px;
 }
@@ -1312,7 +1312,7 @@
 .bt-draft-preview .npc-card {
   background: var(--bg);
   padding: 14px;
-  border-radius: 10px;
+  border-radius: 0;
   margin: 0;
   min-width: 0;
 }
@@ -1389,7 +1389,7 @@
   background: var(--panel-2);
   padding: 7px 9px;
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: 0;
   min-width: 0;
 }
 
@@ -1477,7 +1477,7 @@
     height: 100dvh;
     overflow-y: auto;
     transform: translateX(-105%);
-    box-shadow: 0 18px 44px rgba(0,0,0,.42);
+    box-shadow: none;
   }
   .bestiary-shell.mobile-nav-open .app-sidebar {
     transform: translateX(0);
@@ -1555,10 +1555,10 @@
     top: -5px;
     right: -5px;
     background: var(--accent);
-    color: #241b08;
+    color: #fff;
     min-width: 17px;
     height: 17px;
-    border-radius: 9px;
+    border-radius: 0;
     font-size: 10.5px;
     display: grid;
     place-items: center;
@@ -1612,10 +1612,10 @@
     bottom: calc(28px + env(safe-area-inset-bottom));
     height: 52px;
     padding: 0 20px;
-    border-radius: 26px;
+    border-radius: 0;
     font-size: 15px !important;
     z-index: 5;
-    box-shadow: 0 10px 24px rgba(0,0,0,.45);
+    box-shadow: none;
   }
   .bt-page.has-selection .bt-list {
     display: none;
@@ -1766,7 +1766,7 @@
     width: 100%;
     max-width: none;
     max-height: 90dvh;
-    border-radius: 18px 18px 0 0;
+    border-radius: 0;
     padding: 8px max(18px,env(safe-area-inset-right)) max(24px,env(safe-area-inset-bottom)) max(18px,env(safe-area-inset-left));
   }
   .bt-sheet-handle {
@@ -1784,7 +1784,7 @@
     left: 12px;
     height: 4px;
     width: 36px;
-    border-radius: 2px;
+    border-radius: 0;
     background: var(--border);
   }
   .bt-filters-dialog button {
@@ -1895,7 +1895,7 @@
     grid-template-rows: 28px 20px;
     gap: 0 2px;
     padding: 6px 4px;
-    border-radius: 10px;
+    border-radius: 0;
   }
   .bt-stat-grid .sheet-stepper > span {
     grid-column: 2;
@@ -2032,7 +2032,7 @@
     flex-direction: column;
     min-height: 92px;
     padding: 11px 12px;
-    border-radius: 10px;
+    border-radius: 0;
     gap: 4px;
   }
   .bt-role-grid svg {
@@ -2062,7 +2062,7 @@
   }
   .bt-wizard-progress span {
     height: 3px;
-    border-radius: 2px;
+    border-radius: 0;
     background: var(--border);
   }
   .bt-wizard-progress .active {
@@ -2226,7 +2226,7 @@
 .bt-meta-badge {
   padding: 2px 7px;
   border: 1px solid var(--border);
-  border-radius: 999px;
+  border-radius: 0;
   font-size: 12px;
   color: var(--muted);
 }
@@ -2264,8 +2264,8 @@
     padding: 8px;
     background: var(--panel);
     border: 1px solid var(--border);
-    border-radius: 8px;
-    box-shadow: 0 10px 24px rgba(0,0,0,.45);
+    border-radius: 0;
+    box-shadow: none;
   }
   .bt-more-popup button {
     justify-content: flex-start;
