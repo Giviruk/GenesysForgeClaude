@@ -1,3 +1,4 @@
+import { toneClass } from '../utils/tones'
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react'
 import { api } from '../api/client'
 import type {
@@ -80,10 +81,10 @@ export function EncountersTab({
       {error && <div className="error">{error}</div>}
 
       <div className="enc-strip" aria-label={t('Состояние энкаунтеров', 'Encounter status')}>
-        <div className="enc-strip-card"><b>{stats.total}</b><span>{t('всего сцен', 'total scenes')}</span></div>
-        <div className="enc-strip-card"><b>{stats.ready}</b><span>{t('с участниками', 'with participants')}</span></div>
-        <div className="enc-strip-card"><b>{stats.visible}</b><span>{t('видны игрокам', 'visible to players')}</span></div>
-        <div className="enc-strip-card"><b>{stats.participants}</b><span>{t('участников в подготовке', 'participants in prep')}</span></div>
+        <div className="enc-strip-card tone-navy"><b>{stats.total}</b><span>{t('всего сцен', 'total scenes')}</span></div>
+        <div className="enc-strip-card tone-green"><b>{stats.ready}</b><span>{t('с участниками', 'with participants')}</span></div>
+        <div className="enc-strip-card tone-blue"><b>{stats.visible}</b><span>{t('видны игрокам', 'visible to players')}</span></div>
+        <div className="enc-strip-card tone-orange"><b>{stats.participants}</b><span>{t('участников в подготовке', 'participants in prep')}</span></div>
       </div>
 
       <div className="enc-toolbar">
@@ -132,7 +133,7 @@ export function EncountersTab({
           <div className="enc-queue-list">
             {filtered?.map(e => (
               <button type="button" key={e.id}
-                className={`enc-row${e.id === openEncounterId ? ' active' : ''}`}
+                className={`enc-row ${toneClass('scene', e.type)}${e.id === openEncounterId ? ' active' : ''}`}
                 onClick={() => onOpenEncounter(e.id)}>
                 <span className="enc-row-main">
                   <span className="enc-row-title">{e.name}</span>
@@ -322,7 +323,7 @@ function EncounterSceneHead({ enc, isGm, onBack, onRun, onPrint, onSentToTable }
         ) : (
           <>
             <h3 className="inline-title">{enc.name}</h3>
-            <span className="badge">{ENCOUNTER_TYPE_LABELS[enc.type]}</span>
+            <span className={`badge ${toneClass('scene', enc.type)}`}>{ENCOUNTER_TYPE_LABELS[enc.type]}</span>
             <span className="badge tier">{THREAT_LEVEL_LABELS[enc.threatLevel]}</span>
           </>
         )}

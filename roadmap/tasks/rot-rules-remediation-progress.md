@@ -37,6 +37,7 @@ scope сессии/encounter и единый check context: их нет в пр�
   GEN-V5-01: локальные шрифты, токены, тона, геометрия и PWA.
   Осталось: каркас, примитивы, все экраны и визуальная приёмка.
   [План основания](gen-v5-01-tokens-fonts.md).
+  [GEN-V5-08: все разделы кампании v5](gen-v5-08-campaigns.md) — реализовано, финальная QA в GEN-V5-12.
   [GEN-V5-07: остальные вкладки листа v5](gen-v5-07-sheet-heroic-workshop-transport-bio-history.md) — реализовано, финальная QA в GEN-V5-12.
   [GEN-V5-06: таланты, инвентарь и магия v5](gen-v5-06-sheet-talents-inventory-magic.md) — реализовано, финальная QA в GEN-V5-12.
   [GEN-V5-05: основной лист персонажа v5](gen-v5-05-sheet-main.md) — реализовано, финальная QA в GEN-V5-12.

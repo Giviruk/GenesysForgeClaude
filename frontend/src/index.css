@@ -4829,3 +4829,146 @@ button.rd-switch:not(.linklike):not(.back-link) { min-height:1.25rem; justify-co
 @media screen and (max-width:1100px) { .crafting-targets { grid-template-columns:repeat(2,minmax(0,1fr)); } .attachments-layout,.transport-layout { grid-template-columns:minmax(0,1fr); } }
 @media screen and (max-width:900px) { .heroic.sheet-two-column,.crafting-new-layout,.bio-layout { grid-template-columns:1fr; } }
 @media screen and (max-width:767px) { .crafting-kind-grid { grid-template-columns:1fr; } .bio-motivations { grid-template-columns:1fr; } }
+
+/* GEN-V5-08: campaign overview, chronicle, encounters, table, content and settings. */
+@media screen {
+  .page-head h2.campaign-title { font-size:46px; line-height:1; margin:0 14px; }
+  .system-switch.campaign-tabs { display:flex; flex-wrap:nowrap; gap:20px; border:0; border-bottom:1px solid var(--line); background:none; padding:0; margin:16px 0 18px; overflow-x:auto; scrollbar-width:none; }
+  .system-switch.campaign-tabs>button.tab { padding:7px 0; background:none; color:var(--muted); border:0; white-space:nowrap; font:600 15px var(--font-head); }
+  .system-switch.campaign-tabs>button.tab.active { background:none; color:var(--navy); box-shadow:inset 0 -3px 0 var(--orange); }
+  .campaign-section-label { font:600 13px var(--font-head); color:var(--blue); text-transform:uppercase; letter-spacing:.08em; }
+  .campaign-players-grid { grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; }
+  .campaign-pc-card { padding:12px 14px; border:0; gap:6px; }
+  .campaign-pc-card.crit { --plate-frame:var(--red); }
+  .campaign-pc-card.warn { --plate-frame:var(--orange-on-navy); }
+  .campaign-pc-name { color:var(--orange-on-navy); font:600 19px var(--font-head); }
+  .campaign-pc-role,.campaign-pc-fallback { color:var(--on-navy-muted); font:12px var(--font-ui); }
+  .campaign-bar-meta { color:#fff; font:13px var(--font-head); }
+  .campaign-bar-meta b { color:#fff; }
+  .campaign-bar-track { height:4px; background:rgba(255,255,255,.2); }
+  .campaign-bar-fill.strain { background:var(--orange-on-navy); }
+  .campaign-pc-foot { color:#fff; border-color:rgba(255,255,255,.3); font:12px var(--font-ui); }
+  .campaign-pc-foot b { color:var(--orange-on-navy); }
+  .campaign-pc-actions button { padding:0; border:0; background:none; min-height:24px; font:600 13px var(--font-head); }
+  .campaign-wide-grid { grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; }
+  .campaign-bottom-grid { gap:10px; }
+  .campaign-dash-block { padding:12px 14px; }
+  .campaign-dash-block h4,.panel-head h3,.panel-head-row h3 { font:600 19px var(--font-head); color:var(--blue); }
+  .campaign-dash-title { color:var(--navy); font:600 22px var(--font-head); }
+  .campaign-story-count b { font:700 26px var(--font-head); color:var(--navy); }
+  .campaign-story-count.right b { color:var(--red); }
+  .campaign-pips { gap:5px; }
+  .campaign-pips .pip { width:8px; height:8px; border-radius:0; transform:rotate(45deg); }
+  .campaign-stat-val { color:var(--navy); font:700 28px var(--font-head); }
+  .campaign-stat-lbl { font:12px var(--font-head); text-transform:uppercase; }
+  .chronicle-layout { grid-template-columns:230px minmax(0,1fr); gap:18px; }
+  .chronicle-toc { padding:0; }
+  .chronicle-toc-head { padding:10px 12px; margin:0; background:var(--t-navy-bg); border-bottom:1px solid var(--t-navy-line); }
+  .chronicle-toc-head h3 { margin:0; color:var(--navy); font:600 17px var(--font-head); text-transform:uppercase; }
+  .chronicle-chapter { padding:8px 12px; border-bottom:1px solid var(--line-faint); font:600 15px var(--font-head); color:var(--ink-3); text-transform:none; }
+  .chronicle-chapter.active { background:var(--t-orange-bg); color:var(--navy); box-shadow:inset 3px 0 0 var(--orange); }
+  .chronicle-heading { color:var(--t-blue-ink); font:12px var(--font-ui); }
+  .chronicle-workspace { padding:0; border:0; }
+  .chronicle-title-row input { border:1.5px solid var(--navy); color:var(--navy); font:600 20px var(--font-head); height:38px; }
+  .chronicle-toolbar { background:var(--surface-3); border:1px solid var(--line-ctrl); gap:4px; margin:12px 0 0; padding:6px; }
+  .chronicle-toolbar button { min-height:28px; padding:0 9px; border:1px solid var(--line-ctrl); font:600 12px var(--font-head); }
+  .chronicle-mode>button.active { color:#fff; background:var(--navy); }
+  .chronicle-editor,.chronicle-preview,.chronicle-editor textarea { min-height:400px; }
+  .chronicle-editor textarea { background:#fbfbfc; font:13px/1.7 var(--font-ui); color:var(--ink-3); }
+  .chronicle-preview { font:15px/1.65 var(--font-ui); }
+  .chronicle-history { padding:12px 14px; border-color:var(--line-soft); }
+  .enc-strip { gap:8px; margin-bottom:12px; }
+  .enc-strip-card { background:var(--tone-bg); border:1px solid var(--tone-line); padding:8px 14px; }
+  .enc-strip-card b { color:var(--tone-ink); font:700 26px var(--font-head); }
+  .enc-strip-card span { color:var(--ink-3); font:12px var(--font-ui); }
+  .enc-toolbar { gap:8px; }
+  .enc-workbench { grid-template-columns:250px minmax(0,1fr); gap:16px; }
+  .enc-queue { padding:0; }
+  .enc-queue>.panel-head-row { background:var(--t-navy-bg); padding:10px 12px; border-bottom:1px solid var(--t-navy-line); }
+  .enc-row { border:0; border-bottom:1px solid var(--line-faint); padding:9px 12px; background:#fff; color:var(--navy); text-transform:none; }
+  .enc-row.active { background:var(--select-bg); box-shadow:inset 3px 0 0 var(--orange); }
+  .enc-row-title { font:600 15px var(--font-head); }
+  .enc-row-meta { font:11px var(--font-ui); }
+  .enc-row .badge { color:var(--tone-ink); background:var(--tone-bg); }
+  .enc-scene-head { border:0; border-bottom:2px solid var(--navy); padding:0 0 14px; }
+  .enc-head-name { font:600 26px var(--font-head); color:var(--navy); }
+  .copy-box { background:var(--t-blue-bg); border-color:var(--t-blue-line); }
+  .copy-box.private { background:var(--t-red-bg); border-color:var(--t-red-line); }
+  .participant-table thead th { background:var(--navy); color:#fff; font:600 12px var(--font-head); padding:7px 8px; }
+  .participant-table td { padding:8px; border-bottom:1px solid var(--line-soft); }
+  .enc-init-list,.initiative-list { background:#fff; }
+  .badge.slot-player { background:var(--t-blue-bg); color:var(--t-blue-ink); }
+  .badge.slot-npc { background:var(--t-red-bg); color:var(--red-ink); }
+  .table-shell { grid-template-columns:236px minmax(0,1fr) 250px; gap:12px; }
+  .command-panel { padding:12px 16px; border:0; }
+  .scene-now h3 { color:var(--orange-on-navy); font:600 24px/1.1 var(--font-head); }
+  .scene-now .page-sub { color:var(--on-navy-muted); font:13px var(--font-ui); }
+  .round-box { border-color:var(--on-navy-line); }
+  .round-value { color:#fff; font:700 28px var(--font-head); }
+  .command-panel button.danger { color:var(--danger-on-navy); border-color:var(--danger-on-navy); }
+  .game-table .panel { padding:12px; }
+  .game-table .command-panel { padding:12px 16px; }
+  .game-table .panel-head h3,.range-head h3 { font:600 18px var(--font-head); color:var(--blue); }
+  .range-rings { background:#fff; border:1px solid var(--line-ctrl); }
+  .range-ring { border:1.5px solid var(--tone-line); background:var(--tone-bg); color:var(--tone-ink); }
+  .range-ring>span { font:600 10px var(--font-head); letter-spacing:.06em; padding:0 4px; color:var(--tone-ink); background:#fff; }
+  .range-cell-grid { background:repeating-conic-gradient(from 0deg,transparent 0deg 29.4deg,rgba(31,42,92,.16) 29.4deg 30deg); }
+  .ring-side { color:var(--faint); font:600 10px var(--font-head); }
+  .ring-left,.ring-right { writing-mode:vertical-rl; }
+  .ring-token { width:28px; height:28px; background:var(--t-red-bg); color:var(--red-ink); border-color:var(--red); font:700 11px var(--font-head); }
+  .ring-token.pc { background:var(--t-blue-bg); color:var(--t-blue-ink); border-color:var(--blue); }
+  .ring-token.selected { background:var(--blue); color:#fff; border-color:var(--blue); box-shadow:0 0 0 2px #fff,0 0 0 4px var(--orange); }
+  .ring-token-actions button { min-height:20px; height:20px; width:20px; padding:0; font-size:10px; }
+  .range-distance-panel { border-color:var(--t-orange-line); background:#fef7ec; }
+  .range-distance-head { color:var(--t-orange-ink); font:600 12px var(--font-head); }
+  .ring-focus-switch button.active { background:var(--orange); color:#fff; border-color:var(--orange); }
+  .participants-grid { grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; }
+  .participant-control-card { padding:0; border:1.5px solid var(--line-ctrl); background:#fff; }
+  .participant-control-card .pc-name { padding:7px 10px; background:var(--tone-bg); border-bottom:1px solid var(--tone-line); color:var(--navy); font:600 15px var(--font-head); }
+  .participant-control-card .pc-stats,.participant-control-grid,.participant-card-footer { padding:7px 10px; }
+  .participant-control-card .pc-name .badge { background:var(--tone); color:#fff; }
+  .participant-card-footer { border-top:1px solid var(--line-faint); }
+  .participant-vital .bar { background:var(--t-red-bg); }
+  .participant-vital .bar>.strain { background:var(--orange); }
+  .roll-entry { border-color:var(--line-soft); padding:9px 0; }
+  .roll-actor strong { color:var(--navy); }
+  .rd-content-nav { gap:8px; }
+  .rd-section-link { background:#fff; border:1.5px solid var(--line-ctrl); padding:10px 12px; }
+  .rd-section-link.active { background:var(--t-navy-bg); border-color:var(--navy); }
+  .rd-section-link>svg { color:var(--navy); }
+  .rd-section-link strong { color:var(--navy); font:600 16px var(--font-head); }
+  .rd-section-link small { font:11px var(--font-ui); text-transform:none; }
+  .rd-alert { background:var(--tone-bg); border-color:var(--tone-line); color:var(--tone-ink); font:13px var(--font-ui); text-transform:none; }
+  .rd-alert svg { color:var(--tone-ink); }
+  .rd-bar { background:var(--line-faint); height:6px; }
+  .rd-category-bar .rd-bar>i { background:var(--green); }
+  .rd-category-bar.incomplete .rd-bar>i { background:var(--orange); }
+  .rd-warning { color:var(--warn-ink)!important; }
+  .rd-campaign-content>.rd-page-head>span { padding:10px 14px; background:var(--t-green-bg); border:1px solid var(--t-green-line); color:var(--t-green-ink); }
+  .rd-campaign-content>.rd-page-head>span>b { font:700 26px var(--font-head); color:var(--navy); }
+  .campaign-players-panel { padding:14px; }
+  .campaign-players-list>.page-head { padding:10px 0; border-bottom:1px solid var(--line-faint); }
+  .join-code { background:var(--t-orange-bg); border-color:var(--t-orange-line); color:var(--navy); font:700 26px var(--font-head); letter-spacing:.12em; }
+}
+@media screen and (max-width:1100px) {
+  .campaign-players-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .table-shell { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .table-shell .center-stage { grid-column:1/-1; grid-row:2; }
+  .table-shell .left-rail,.table-shell .right-rail { grid-row:3; grid-column:auto; }
+  .participants-strip { grid-column:1/-1; }
+}
+@media screen and (max-width:900px) { .chronicle-layout,.enc-workbench,.campaign-wide-grid { grid-template-columns:1fr; } }
+@media screen and (max-width:767px) {
+  .page-head h2.campaign-title { font-size:32px; margin:10px 0; }
+  .system-switch.campaign-tabs { display:grid; grid-template-columns:1fr 1fr; gap:6px; border:0; overflow:visible; }
+  .system-switch.campaign-tabs>button.tab { border:1px solid var(--line); padding:12px 5px; font-size:14px; min-height:44px; white-space:normal; }
+  .system-switch.campaign-tabs>button.tab.active { background:var(--navy); color:#fff; box-shadow:none; border-color:var(--navy); }
+  .campaign-players-grid,.campaign-bottom-grid,.table-shell,.participants-grid { grid-template-columns:1fr; }
+  .table-shell .center-stage,.table-shell .left-rail,.table-shell .right-rail { grid-column:auto; grid-row:auto; }
+  .campaign-pc-card { --plate-r:16px; box-shadow:none; }
+  .campaign-pc-name { font-size:17px; }
+  .campaign-bar-track { display:none; }
+  .enc-strip { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .ring-token { width:32px; height:32px; }
+  .chronicle-toolbar button,.ring-focus-switch button,.campaign-pc-actions button { min-height:44px; }
+}
