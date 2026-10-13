@@ -21,4 +21,6 @@
 ## Ревью PR #284, 13.10.2026
 
 - [x] Удалён неиспользуемый класс `glyph`; реальные классы символов и доступные подписи сохранены.
-- [ ] Lint/build и передача исправления во все вышестоящие ветки.
+- [x] Lint/build и передача исправления во все вышестоящие ветки.
+
+Приёмка итогового состояния: lint/build, 666 Vitest, 37 Playwright на production-сборке. [Отчёт](https://github.com/Giviruk/GenesysForgeClaude/blob/feature/gen-v5-11-other-screens/docs/redesign-v5-stack-review.md).
