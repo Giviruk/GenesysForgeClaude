@@ -245,10 +245,10 @@ for (const width of [320, 390, 768, 1280, 1440]) {
       await spacedElements(page, '.heroic-secondary-effects > *', secondaryEffectCount + 1)
       await expect(page.locator('.heroic-secondary-effects')).toHaveCSS('opacity', '1')
       await expect(page.locator('.heroic-secondary-effects > .bought').first()).toHaveCSS('opacity', '1')
-      await expect(page.locator('.heroic-secondary-effects > .heroic-upgrade:not(.bought)').first()).toHaveCSS('opacity', '0.75')
+      await expect(page.locator('.heroic-secondary-effects > .heroic-upgrade:not(.bought)').first()).toHaveCSS('opacity', '1')
       await spacedElements(page, '.heroic-upgrade-head:has(.heroic-plus[aria-label*="Duration"], .heroic-plus[aria-label*="Длительность"]) > button', 2)
       await iconHasSpace(page, '.heroic-activate-button', 1)
-      await iconHasSpace(page, '.heroic-ability-card > h4', 1)
+      await iconHasSpace(page, '.heroic-plate > h4', 1)
       await fitsViewport(page)
       if (language === 'ru' && width === 1280) {
         await page.locator('.heroic-ability-reset').scrollIntoViewIfNeeded()
