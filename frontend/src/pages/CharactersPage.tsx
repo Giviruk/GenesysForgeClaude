@@ -7,7 +7,6 @@ import { Icon } from '../components/Icon'
 import { CHARACTERISTICS, CHARACTERISTIC_LABELS, dualName, localizedDescription, localizedName, SYSTEM_LABELS } from '../utils/labels'
 import { MAX_FREE_CAREER_SKILLS, MAX_SKILL_RANK_AT_CREATION, STANDARD_STARTING_MONEY } from '../utils/rules'
 import { t } from '../i18n'
-import { activateLinkOnKey } from '../utils/linkActivation'
 
 interface Props {
   onOpen: (id: string) => void
@@ -118,13 +117,14 @@ export function CharactersPage({ onOpen }: Props) {
 
       <div className="card-grid">
         {characters?.map(c => (
-          <div key={c.id} className="char-card plate" role="link" tabIndex={0} aria-label={c.name}
-            onKeyDown={e => activateLinkOnKey(e, () => onOpen(c.id))}
-            onClick={() => onOpen(c.id)}>
+          <div key={c.id} className="char-card plate">
             <div className="char-card-identity">
               <div className="char-portrait">{initials(c.name)}</div>
               <div className="char-title-block">
-                <strong>{c.name}</strong>
+                <strong><a className="char-card-link" href={`/characters/${c.id}`} onClick={e => {
+                  if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return
+                  e.preventDefault(); onOpen(c.id)
+                }}>{c.name}</a></strong>
                 <div className="muted">{c.archetype} · {c.career}</div>
               </div>
             </div>
