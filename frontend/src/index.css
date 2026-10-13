@@ -4357,3 +4357,7 @@ button.rd-switch:not(.linklike):not(.back-link) { min-height:1.25rem; justify-co
   .display-title,.page-head > div > h2:not(.inline-title),.page-head > h2:not(.inline-title),.rd-page-head h2 { font-size:36px; -webkit-text-stroke:1px var(--blue); }
   .page-sub,.page-head>div>p,.rd-page-head>div>p { font-size:13px; margin-top:4px; }
 }
+/* Stack acceptance: footer links share the same readable colour. */
+@media screen {
+  .footer-links button.linklike { color:var(--t-blue-ink); font:inherit; text-transform:none; letter-spacing:0; }
+}
