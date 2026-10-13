@@ -1,3 +1,4 @@
+import { toneClass, rarityClass } from '../utils/tones'
 import { useEffect, useMemo, useState } from 'react'
 import { api } from '../api/client'
 import type {
@@ -227,7 +228,7 @@ export function ShopPage() {
               : products.filter(product => product.category === value).length
             return (
               <button key={value} type="button"
-                className={category === value ? 'shop-category active' : 'shop-category'}
+                className={`shop-category ${toneClass('shop', value)}${category === value ? ' active' : ''}`}
                 onClick={() => setCategory(value)}>
                 <span>{CATEGORY_LABELS[value]}</span>
                 <span className="muted">{count}</span>
@@ -244,7 +245,7 @@ export function ShopPage() {
               <p className="muted">{t('В этой категории ничего не найдено.', 'Nothing found in this category.')}</p>
             )}
             {filtered.map(product => (
-              <button key={product.key} type="button" className="shop-product-row"
+              <button key={product.key} type="button" className={`shop-product-row ${toneClass('shop', product.category)}`}
                 onClick={() => setSelected(product)}>
                 <span className="shop-product-name">
                   <strong>{productName(product)}</strong>
@@ -278,9 +279,9 @@ export function ShopPage() {
                     <strong>{productPrice(product) == null ? '—' : productPrice(product)}</strong>
                     {' '}{CURRENCY_LABEL}
                   </span>
-                  <span>
+                  <span className={productRarity(product) == null ? '' : rarityClass(productRarity(product)!)}>
                     {t('Редкость', 'Rarity')}{' '}
-                    <strong>{productRarity(product) ?? '—'}</strong>
+                    <strong className="rarity-number">{productRarity(product) ?? '—'}</strong>
                   </span>
                 </span>
               </button>
@@ -426,12 +427,12 @@ function ProductModal({ product, character, qualityDefinitions, onClose }: {
 
         <div className="shop-modal-facts">
           <div><span>{t('Категория', 'Category')}</span><strong>{CATEGORY_LABELS[product.category]}</strong></div>
-          <div><span>{t('Цена', 'Price')}</span><strong>{effectivePrice ?? '—'} {CURRENCY_LABEL}</strong></div>
-          <div><span>{t('Редкость', 'Rarity')}</span><strong>{effectiveRarity ?? '—'}</strong></div>
+          <div className="tone-orange"><span>{t('Цена', 'Price')}</span><strong>{effectivePrice ?? '—'} {CURRENCY_LABEL}</strong></div>
+          <div className={effectiveRarity == null ? '' : rarityClass(effectiveRarity)}><span>{t('Редкость', 'Rarity')}</span><strong>{effectiveRarity ?? '—'}</strong></div>
           {weaponStats && (
             <>
-              <div><span>{t('Урон', 'Damage')}</span><strong>{weaponStats.damage}</strong></div>
-              <div><span>{t('Крит', 'Crit')}</span><strong>{weaponStats.crit}</strong></div>
+              <div className="tone-red"><span>{t('Урон', 'Damage')}</span><strong>{weaponStats.damage}</strong></div>
+              <div className="tone-red"><span>{t('Крит', 'Crit')}</span><strong>{weaponStats.crit}</strong></div>
             </>
           )}
           {item?.kind === 'armor' && (

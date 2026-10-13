@@ -90,7 +90,7 @@ export function LibraryPage() {
         <button className="primary" onClick={() => setEditor({})}><Icon name="plus" />{t('Создать контент', 'Create content')}</button></div>
     </header>
     {error && <p className="error" role="alert">{error}</p>}{notice && <p className="notice" role="status">{notice}</p>}
-    <div className="rd-toolbar">{(['genesysCore', 'realmsOfTerrinoth'] as GameSystem[]).map(x => <FilterChip key={x} active={system === x}
+    <div className="rd-toolbar library-system-switch">{(['genesysCore', 'realmsOfTerrinoth'] as GameSystem[]).map(x => <FilterChip key={x} active={system === x}
       onClick={() => { setSystem(x); select('all') }}>{SYSTEM_LABELS[x]} <small>{entries?.filter(e => e.system === x).length ?? 0}</small></FilterChip>)}</div>
     {!entries ? <p>{t('Загрузка…', 'Loading…')}</p> : <div className="rd-two-panel">
       <nav className="rd-sidebar" aria-label={t('Библиотека', 'Library')}><h4>{t('Контент', 'Content')}</h4>
