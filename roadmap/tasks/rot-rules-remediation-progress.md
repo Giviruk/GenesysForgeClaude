@@ -37,7 +37,7 @@ scope сессии/encounter и единый check context: их нет в пр�
   Реализованы каркас, примитивы, все экраны, мобильные варианты и локальные шрифты.
   Пройдены lint/build, 652 Vitest, 34 Playwright и 65 измерений на пяти ширинах.
   [План приёмки](gen-v5-12-cleanup-qa.md), [отчёт и снимки](../../docs/redesign-v5-qa.md).
-  [Стек PR #281–292](../../docs/redesign-v5-qa.md#стек-pr); итоговый PR GEN-V5-12 готовится.
+  [Стек PR #281–293](../../docs/redesign-v5-qa.md#стек-pr); [итоговый PR #293](https://github.com/Giviruk/GenesysForgeClaude/pull/293) открыт.
   Осталось: ревью и последовательное слияние стека. `[x]` ставится после слияния.
 
 - [~] **GEN-UI-SYMBOLS** — формы игровых символов через локальный Genesys Glyphs and Dice
