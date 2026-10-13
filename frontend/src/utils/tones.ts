@@ -3,7 +3,7 @@ export type Tone = 'blue' | 'green' | 'orange' | 'red' | 'purple' | 'grey' | 'te
 
 const catalogue: Record<string, Record<string, Tone>> = {
   tier: { '1': 'blue', '2': 'green', '3': 'orange', '4': 'red', '5': 'purple' },
-  activation: { passive: 'grey', incidental: 'orange', action: 'blue', maneuver: 'green', manoeuvre: 'green' },
+  activation: { passive: 'grey', incidental: 'orange', action: 'blue', maneuver: 'green' },
   item: { weapon: 'red', armor: 'blue', gear: 'green', consumable: 'purple' },
   shop: { all: 'orange', weaponLight: 'red', weaponHeavy: 'red', weaponRanged: 'red',
     magicImplement: 'purple', magicItem: 'purple', weaponAttachment: 'orange', weaponEnchantment: 'orange',
@@ -27,9 +27,18 @@ const catalogue: Record<string, Record<string, Tone>> = {
   system: { genesysCore: 'blue', realmsOfTerrinoth: 'purple' },
 }
 
+export function activationKey(value: string): 'passive' | 'incidental' | 'maneuver' | 'action' | null {
+  const activation = value.trim().toLowerCase()
+  if (/passive|пассив/.test(activation)) return 'passive'
+  if (/incidental|инцидент|свободн/.test(activation)) return 'incidental'
+  if (/maneuver|manoeuvre|манёвр|маневр/.test(activation)) return 'maneuver'
+  if (/action|действие/.test(activation)) return 'action'
+  return null
+}
+
 export function entityTone(entity: string, value: string | number): Tone {
   const entries = catalogue[entity]
-  const key = String(value)
+  const key = entity === 'activation' ? activationKey(String(value)) ?? '' : String(value)
   return entries?.[key] ?? entries?.[key.toLowerCase()] ?? 'grey'
 }
 

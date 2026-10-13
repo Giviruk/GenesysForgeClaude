@@ -9,6 +9,55 @@
 - React Testing Library
 - CSS in `frontend/src/index.css`
 
+## Design v5: CSS, fonts and primitives
+
+The whole service uses the light theme from [the v5 specification](../redesign_v5_tz/TZ_redesign_v5.md).
+The shared rules live in `frontend/src/index.css`; NPC-specific layouts live in
+`frontend/src/pages/bestiary.css`. The `GEN-V5-*` screen sections refine existing layouts
+without changing purchases, permissions or backend calculations.
+
+`index.css` defines the tokens once in `:root`:
+
+| Token group | Role |
+|---|---|
+| `--navy`, `--blue`, `--orange`, `--orange-on-navy` | Navigation, titles, primary actions, text on navy plates |
+| `--ink`, `--ink-2`, `--ink-3`, `--muted`, `--faint`, `--label` | Text hierarchy |
+| `--surface*`, `--line*`, `--ice*` | White surfaces, dividers, fields and sheet thresholds |
+| `--t-<tone>`, `--t-<tone>-bg`, `--t-<tone>-line`, `--t-<tone>-ink` | Eight semantic palettes |
+| `--font-ui`, `--font-head`, `--font-brand` | Golos Text, Fira Sans Extra Condensed, Jost |
+
+The semantic palettes are blue, green, orange, red, purple, grey, teal and navy.
+Classes such as `.tone-red` assign `--tone`, `--tone-bg`, `--tone-line` and
+`--tone-ink` for descendants. Obtain the class with `toneClass(entity, value)` from
+`src/utils/tones.ts`, which follows appendix C of the specification. Unknown values use
+grey. `rarityClass` separately maps 0–2 to green, 3 to amber, 4–5 to red and 6+ to purple;
+an absent value uses `.rarity-unknown`. These helpers only select presentation.
+
+Shared primitives:
+
+- `.plate` gives a navy surface, a single rounded lower-right corner and an inset white
+  frame. `.plate-xl/lg/sm/xs` set its geometry; `.plate-flat` omits the frame.
+- `.display-title` and page headings use uppercase striped blue letters. A solid blue
+  fallback is defined for browsers without text clipping support.
+- Buttons, inputs, selects, tabs, badges, property tags, tables, dialogs and drawers use
+  the same token palette. `.primary` remains the orange action; destructive actions use red.
+- Existing sheet, inventory, campaign, NPC and library classes retain their meaning;
+  they inherit the shared primitives and add their own grid layouts.
+
+Fonts are self-hosted WOFF2 with `font-display: swap` and adjacent SIL OFL licenses in
+`src/assets/fonts`. Golos is variable 400–700; Fira has 400/500/600/700 subsets for Latin
+and Cyrillic; Jost 300 contains the brand characters. Fira falls back to Golos for uncommon
+characters. The UI font payload is 410,396 bytes (about 401 KiB); the existing MIT-licensed
+Genesys glyph font adds 4,268 bytes. See [the font notes](../frontend/src/assets/fonts/README.md).
+`GenesysSymbol` supplies the existing accessible labels; skill rank pips remain CSS shapes.
+
+Screen refinements are guarded with `@media screen`. The existing `@media print` blocks
+and printable document styles are preserved; only preview controls use v5 styling.
+At narrow widths the sidebar becomes a menu, grids stack, controls have touch targets
+and wide data tables scroll within their containers. RU and EN share these layouts.
+The orange/white primary button contrast is the explicit product choice in the specification.
+See [the acceptance report and screenshots](redesign-v5-qa.md).
+
 ## Folder structure
 
 ```text

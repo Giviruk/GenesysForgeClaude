@@ -358,7 +358,7 @@ function ShopRow({ item, money, run, sheetId, qualityDefinitions, open, onToggle
   const weaponStats = item.kind === 'weapon' ? catalogWeaponStats(item) : null
   const properties = item.properties || qualityProperties(item.qualities)
   return (
-    <div className={`shop-row ${toneClass('item', item.kind)} ${rarityClass(unitRarity ?? 0)}`}>
+    <div className={`shop-row ${toneClass('item', item.kind)} ${unitRarity == null ? 'rarity-unknown' : rarityClass(unitRarity)}`}>
       <div className="shop-row-head">
         <div className="shop-row-info">
           <strong>{itemLabel}</strong>
@@ -369,10 +369,10 @@ function ShopRow({ item, money, run, sheetId, qualityDefinitions, open, onToggle
               ? t(' · без обычной цены', ' · no ordinary price')
               : ` · ${t('цена', 'price')} ${unitPrice === item.price
                 ? item.price : `${item.price} → ${unitPrice}`}`}
-            {item.rarity == null
+            {unitRarity == null
               ? t(' · без обычной редкости', ' · no ordinary rarity')
-              : ` · ${t('редкость', 'rarity')} ${unitRarity === item.rarity
-                ? item.rarity : `${item.rarity} → ${unitRarity}`}`}
+              : <> · <span className="item-rarity">{t('редкость', 'rarity')} {unitRarity === item.rarity
+                ? item.rarity : `${item.rarity} → ${unitRarity}`}</span></>}
             {item.isCustom && t(' · кастом', ' · custom')}
             {weaponStats && t(` · урон ${weaponStats.damage}, крит ${weaponStats.crit}`, ` · damage ${weaponStats.damage}, crit ${weaponStats.crit}`)}
             {item.kind === 'armor' && t(` · поглощение +${item.soakBonus}`, ` · soak +${item.soakBonus}`)}

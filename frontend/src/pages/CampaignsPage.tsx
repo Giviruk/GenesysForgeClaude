@@ -19,6 +19,7 @@ import {
 import { useCampaignHub, type CampaignHubStatus } from '../useCampaignHub'
 import { lang, t } from '../i18n'
 import { readSheetTab, writeSheetTab, type CharacterSheetTab } from '../utils/uiPreferences'
+import { activateLinkOnKey } from '../utils/linkActivation'
 
 export type CampaignView = 'overview' | 'chronicle' | 'encounters' | 'table' | 'content' | 'settings'
 
@@ -75,10 +76,12 @@ export function CampaignsPage({
       {campaigns?.length === 0 && <p className="muted">{t('Пока нет кампаний — создайте свою или присоединитесь по коду.', 'No campaigns yet — create your own or join with a code.')}</p>}
       <div className="card-grid">
         {campaigns?.map(c => (
-          <div key={c.id} className="char-card plate" onClick={() => onOpen(c.id)}>
+          <div key={c.id} className="char-card plate" role="link" tabIndex={0}
+            onKeyDown={e => activateLinkOnKey(e, () => onOpen(c.id))}
+            onClick={() => onOpen(c.id)}>
             <div className="char-card-head">
               <strong>{c.name}</strong>
-              <span className={c.isGm ? 'badge tier' : 'badge'}>{c.isGm ? t('Мастер', 'GM') : t('Игрок', 'Player')}</span>
+              <span className={c.isGm ? 'badge solid tone-orange' : 'badge solid tone-blue'}>{c.isGm ? t('Мастер', 'GM') : t('Игрок', 'Player')}</span>
             </div>
             <div className="muted">{t('Персонажей:', 'Characters:')} {c.characterCount}</div>
           </div>
@@ -254,7 +257,7 @@ function CampaignDetailView({ campaignId, view, openEncounterId, openCharacterId
         <div>
           <button onClick={onBack}>{t('← Кампании', '← Campaigns')}</button>
           <h2 className="inline-title display-title campaign-title">{c.name}</h2>
-          <span className={c.isGm ? 'badge tier' : 'badge'}>{c.isGm ? t('Мастер', 'GM') : t('Игрок', 'Player')}</span>
+          <span className={c.isGm ? 'badge solid tone-orange' : 'badge solid tone-blue'}>{c.isGm ? t('Мастер', 'GM') : t('Игрок', 'Player')}</span>
           {/* Состояние связи показываем, только когда оно влияет на ожидания (нет live-обновлений). */}
           {hubStatus !== 'connected' && (
             <span className="badge warn live-badge" title={t('Обновления в реальном времени недоступны — обновите вручную', 'Live updates are unavailable — refresh manually')}>
