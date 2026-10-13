@@ -2281,3 +2281,20 @@
   flex: 1;
   min-width: 0;
 }
+
+/* QA: native steppers keep labels outside number/control hit areas. */
+@media screen {
+  .bt-items>li>button { text-transform:none; letter-spacing:normal; }
+  .bt-stat-stepper.sheet-stepper { display:grid; grid-template-columns:28px minmax(0,1fr) 28px; grid-template-rows:auto auto; gap:4px; }
+  .bt-stat-stepper.sheet-stepper>span { grid-column:1/-1; grid-row:1; position:static; transform:none; text-align:center; font:600 12px var(--font-head); text-transform:uppercase; color:var(--label); }
+  .bt-stat-stepper.sheet-stepper>button { grid-row:2; width:28px; height:32px; min-height:32px; padding:0; }
+  .bt-stat-stepper.sheet-stepper>button:first-of-type { grid-column:1; }
+  .bt-stat-stepper.sheet-stepper>button:last-of-type { grid-column:3; }
+  .bt-stat-stepper.sheet-stepper>input { grid-column:2; grid-row:2; position:static; height:32px; min-height:32px; width:100%; padding:0; font:700 28px/1 var(--font-head); color:var(--navy); }
+}
+@media screen and (max-width:767px) {
+  .bt-items { max-height:calc(100dvh - 330px); min-height:180px; overflow-y:auto; }
+  .bt-stat-stepper.sheet-stepper { grid-template-columns:44px minmax(0,1fr) 44px; }
+  .bt-stat-stepper.sheet-stepper>button,.bt-stat-stepper.sheet-stepper>input { height:44px; min-height:44px; }
+  .bt-stat-stepper.sheet-stepper>button { width:44px; }
+}
