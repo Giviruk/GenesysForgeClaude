@@ -23,4 +23,6 @@
 ## Ревью PR #282, 13.10.2026
 
 - [x] Удалены неиспользуемые `icon` и `IconName` из навигационных каталогов.
-- [ ] Исправление проверено lint/build и передано во все вышестоящие ветки.
+- [x] Исправление проверено lint/build и передано во все вышестоящие ветки.
+
+Приёмка итогового состояния: lint/build, 666 Vitest, 37 Playwright на production-сборке. [Отчёт](https://github.com/Giviruk/GenesysForgeClaude/blob/feature/gen-v5-11-other-screens/docs/redesign-v5-stack-review.md).
