@@ -1,3 +1,4 @@
+import { toneClass } from '../utils/tones'
 import type { Characteristic } from '../api/types'
 import { t } from '../i18n'
 import { CHARACTERISTIC_LABELS, magicSkillLabel } from '../utils/labels'
@@ -11,7 +12,7 @@ export function MagicDirectionChips({ skills, activeSkill, onChange, characterSk
     {skills.map(skill => {
       const own = characterSkills?.find(s => s.name === skill)
       const hint = characterSkills ? own ? t(`Ваш навык: ${CHARACTERISTIC_LABELS[own.characteristic as Characteristic] ?? own.characteristic} ${own.characteristicValue} · ранг ${own.ranks}`, `Your skill: ${CHARACTERISTIC_LABELS[own.characteristic as Characteristic] ?? own.characteristic} ${own.characteristicValue} · rank ${own.ranks}`) : t('Навыка нет у персонажа', 'The character has no such skill') : undefined
-      return <span key={skill} title={hint}><FilterChip active={activeSkill === skill} onClick={() => onChange(skill)}>{magicSkillLabel(skill)}
+      return <span key={skill} title={hint} className={toneClass('magic', skill)}><FilterChip active={activeSkill === skill} onClick={() => onChange(skill)}>{magicSkillLabel(skill)}
         {characterSkills && <i className={`magic-skill-dot ${own ? own.isCareer ? 'career' : 'owned' : 'missing'}`} />}</FilterChip></span>
     })}
   </div></div>

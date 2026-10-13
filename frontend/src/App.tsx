@@ -3,7 +3,7 @@ import { AuthProvider } from './auth'
 import { useAuth } from './auth-context'
 import { AnalyticsConsent } from './components/AnalyticsConsent'
 import { Footer } from './components/Footer'
-import { Icon, type IconName } from './components/Icon'
+import { Icon } from './components/Icon'
 import { currentPath, navigate, parseRoute, usePath, type AppArea } from './router'
 import { t, useLang } from './i18n'
 import { useSeo } from './seo'
@@ -31,19 +31,19 @@ const SharedSheetPage = lazy(() => import('./pages/SharedSheetPage').then(module
 const campaignView = (sub: string | null): CampaignView =>
   sub === 'chronicle' || sub === 'table' || sub === 'encounters' || sub === 'content' || sub === 'settings' ? sub : sub === 'custom' ? 'content' : 'overview'
 
-const NAV_ITEMS: Array<{ area: AppArea; label: string; path: string; icon: IconName }> = [
-  { area: 'characters', label: t('Персонажи', 'Characters'), path: '/characters', icon: 'users' },
-  { area: 'npcs', label: t('Бестиарий', 'Bestiary'), path: '/npcs', icon: 'skull' },
-  { area: 'campaigns', label: t('Кампании', 'Campaigns'), path: '/campaigns', icon: 'map' },
-  { area: 'magic', label: t('Магия', 'Magic'), path: '/magic', icon: 'flame' },
-  { area: 'library', label: t('Моя библиотека', 'My library'), path: '/library', icon: 'book' },
-  { area: 'shop', label: t('Магазин', 'Shop'), path: '/shop', icon: 'shop' },
+const NAV_ITEMS: Array<{ area: AppArea; label: string; path: string }> = [
+  { area: 'characters', label: t('Персонажи', 'Characters'), path: '/characters' },
+  { area: 'npcs', label: t('Бестиарий', 'Bestiary'), path: '/npcs' },
+  { area: 'campaigns', label: t('Кампании', 'Campaigns'), path: '/campaigns' },
+  { area: 'magic', label: t('Магия', 'Magic'), path: '/magic' },
+  { area: 'library', label: t('Моя библиотека', 'My library'), path: '/library' },
+  { area: 'shop', label: t('Магазин', 'Shop'), path: '/shop' },
 ]
 
-const FOOTER_NAV_ITEMS: Array<{ area: AppArea; label: string; path: string; icon: IconName }> = [
-  { area: 'reference', label: t('Справочник', 'Reference'), path: '/reference', icon: 'book' },
-  { area: 'account', label: t('Профиль', 'Profile'), path: '/account', icon: 'user' },
-  { area: 'help', label: t('Справка', 'Help'), path: '/help', icon: 'help' },
+const FOOTER_NAV_ITEMS: Array<{ area: AppArea; label: string; path: string }> = [
+  { area: 'reference', label: t('Справочник', 'Reference'), path: '/reference' },
+  { area: 'account', label: t('Профиль', 'Profile'), path: '/account' },
+  { area: 'help', label: t('Справка', 'Help'), path: '/help' },
 ]
 
 function Shell() {
@@ -130,7 +130,6 @@ function Shell() {
             <button key={item.area} type="button"
               className={route.area === item.area ? 'side-nav-item active' : 'side-nav-item'}
               onClick={() => navigateFromShell(item.path)}>
-              <Icon name={item.icon} className="side-nav-icon" />
               {item.label}
             </button>
           ))}
@@ -140,17 +139,14 @@ function Shell() {
             <button key={item.area} type="button"
               className={route.area === item.area ? 'side-nav-item active' : 'side-nav-item'}
               onClick={() => navigateFromShell(item.path)}>
-              <Icon name={item.icon} className="side-nav-icon" />
               {item.label}
             </button>
           ))}
           <button type="button" className="side-nav-item"
             onClick={() => { setMobileNavOpen(false); setLang(lang === 'ru' ? 'en' : 'ru') }}>
-            <Icon name="globe" className="side-nav-icon" />
             {lang === 'ru' ? 'English' : 'Русский'}
           </button>
           <button type="button" className="side-nav-item" onClick={() => { setMobileNavOpen(false); navigate('/login'); if (currentPath() === '/login') logout() }}>
-            <Icon name="logout" className="side-nav-icon" />
             {t('Выйти', 'Sign out')}
           </button>
         </div>

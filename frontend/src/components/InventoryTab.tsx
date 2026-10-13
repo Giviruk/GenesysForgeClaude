@@ -1,3 +1,5 @@
+import { toneClass, rarityClass } from '../utils/tones'
+import { Icon } from './Icon'
 import { useMemo, useState } from 'react'
 import { api } from '../api/client'
 import type {
@@ -356,7 +358,7 @@ function ShopRow({ item, money, run, sheetId, qualityDefinitions, open, onToggle
   const weaponStats = item.kind === 'weapon' ? catalogWeaponStats(item) : null
   const properties = item.properties || qualityProperties(item.qualities)
   return (
-    <div className="shop-row">
+    <div className={`shop-row ${toneClass('item', item.kind)} ${unitRarity == null ? 'rarity-unknown' : rarityClass(unitRarity)}`}>
       <div className="shop-row-head">
         <div className="shop-row-info">
           <strong>{itemLabel}</strong>
@@ -367,10 +369,10 @@ function ShopRow({ item, money, run, sheetId, qualityDefinitions, open, onToggle
               ? t(' · без обычной цены', ' · no ordinary price')
               : ` · ${t('цена', 'price')} ${unitPrice === item.price
                 ? item.price : `${item.price} → ${unitPrice}`}`}
-            {item.rarity == null
+            {unitRarity == null
               ? t(' · без обычной редкости', ' · no ordinary rarity')
-              : ` · ${t('редкость', 'rarity')} ${unitRarity === item.rarity
-                ? item.rarity : `${item.rarity} → ${unitRarity}`}`}
+              : <> · <span className="item-rarity">{t('редкость', 'rarity')} {unitRarity === item.rarity
+                ? item.rarity : `${item.rarity} → ${unitRarity}`}</span></>}
             {item.isCustom && t(' · кастом', ' · custom')}
             {weaponStats && t(` · урон ${weaponStats.damage}, крит ${weaponStats.crit}`, ` · damage ${weaponStats.damage}, crit ${weaponStats.crit}`)}
             {item.kind === 'armor' && t(` · поглощение +${item.soakBonus}`, ` · soak +${item.soakBonus}`)}
@@ -506,8 +508,9 @@ function InventoryCard({ item, sheet, skillNames, run, reference, funds, sellOpe
   }
 
   return (
-    <div className={`inv-card${item.state === 'equipped' ? ' equipped' : ''}${item.isUsable ? '' : ' broken'}`}>
+    <div className={`inv-card ${toneClass('item', catalogueDef?.shopCategory === 'consumable' ? 'consumable' : item.kind)}${item.state === 'equipped' ? ' equipped' : ''}${item.isUsable ? '' : ' broken'}`}>
       <div className="inv-card-head">
+        <span className="inv-item-icon" aria-hidden="true"><Icon name={item.kind === 'weapon' ? 'sword' : item.kind === 'armor' ? 'shield' : 'package'} /></span>
         <div className="inv-card-title">
           <strong>{itemLabel}</strong>
           {/* Состояние видно сразу в заголовке: сломанная вещь не должна выглядеть как целая. */}

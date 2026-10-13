@@ -29,7 +29,7 @@ describe('redesigned sheet',()=>{
   const modifiers=()=>view.container.querySelectorAll('.die.boost,.die.setback,.die.difficulty,.die-upgrade').length
   expect(modifiers()).toBe(5)
   fireEvent.mouseEnter(view.container.querySelector('.rd-buy')!)
-  expect(view.container.querySelectorAll('.rd-rank-diamonds i')).toHaveLength(5)
+  expect(view.container.querySelectorAll('.rd-skill-grid-row .rd-rank-diamonds i')).toHaveLength(5)
   expect(view.container.querySelector('.rd-rank-diamonds .preview')).toBeTruthy()
   expect(view.container.querySelectorAll('.die.proficiency')).toHaveLength(3)
   expect(modifiers()).toBe(5)

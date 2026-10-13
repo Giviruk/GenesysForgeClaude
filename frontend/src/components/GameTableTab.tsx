@@ -1,3 +1,4 @@
+import { toneClass } from '../utils/tones'
 import {
   useCallback, useEffect, useRef, useState, type FormEvent, type MouseEvent,
   type PointerEvent as ReactPointerEvent,
@@ -102,7 +103,7 @@ export function GameTableTab({ campaignId, isGm, members, onOpenMemberSheet, ref
     <div className="game-table table-shell">
       {error && <div className="error floating">{error}</div>}
 
-      <section className="panel command-panel">
+      <section className="panel command-panel plate">
         <div className="scene-now">
           <h3>{session.name} <span className="badge danger">{t('активная сцена', 'active scene')}</span></h3>
           <div className="page-sub">
@@ -426,7 +427,7 @@ function RangeBandTracker({ campaignId, session, isGm, members, onRun }: {
         onPointerMove={continueDrag} onPointerUp={finishDrag} onPointerCancel={cancelDrag}>
         <div className="range-cell-grid" aria-hidden="true" />
         {RANGE_ZONES.slice().reverse().map(zone => (
-          <div key={zone.id} className={`range-ring ring-${zone.id}`}>
+          <div key={zone.id} className={`range-ring ring-${zone.id} ${toneClass('range', zone.id)}`}>
             <span>{zoneName(zone)}</span>
           </div>
         ))}
@@ -674,7 +675,7 @@ function ParticipantCard({ p, campaignId, isGm, canEditVitals, onRun, onUpdatePa
       ? t(`Открыть лист персонажа ${p.displayName}`, `Open character sheet ${p.displayName}`)
       : undefined
   return (
-    <article className={`pc-card participant-control-card${onOpen ? ' clickable' : ''}${p.isDefeated ? ' defeated' : ''}${p.criticalInjuries > 0 ? ' crit' : ''}`}
+    <article className={`pc-card participant-control-card ${toneClass('participant', p.participantType)}${onOpen ? ' clickable' : ''}${p.isDefeated ? ' defeated' : ''}${p.criticalInjuries > 0 ? ' crit' : ''}`}
       role={onOpen ? 'button' : undefined} tabIndex={onOpen ? 0 : undefined} aria-label={label}
       onClick={onOpen}
       onKeyDown={e => { if (onOpen && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); onOpen() } }}>

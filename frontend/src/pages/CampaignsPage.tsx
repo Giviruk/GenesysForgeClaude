@@ -10,6 +10,7 @@ import { CampaignContentTab } from '../components/content/CampaignContentTab'
 import { CampaignChronicleTab } from '../components/CampaignChronicleTab'
 import { CreateCharacterForm } from './CharactersPage'
 import { SheetTab } from '../components/SheetTab'
+import { CharacterSheetNavigation } from '../components/CharacterSheetNavigation'
 import { MagicTab } from '../components/MagicTab'
 import { HistoryTab } from '../components/HistoryTab'
 import {
@@ -19,6 +20,7 @@ import {
 import { useCampaignHub, type CampaignHubStatus } from '../useCampaignHub'
 import { lang, t } from '../i18n'
 import { readSheetTab, writeSheetTab, type CharacterSheetTab } from '../utils/uiPreferences'
+import { activateLinkOnKey } from '../utils/linkActivation'
 
 export type CampaignView = 'overview' | 'chronicle' | 'encounters' | 'table' | 'content' | 'settings'
 
@@ -75,10 +77,12 @@ export function CampaignsPage({
       {campaigns?.length === 0 && <p className="muted">{t('Пока нет кампаний — создайте свою или присоединитесь по коду.', 'No campaigns yet — create your own or join with a code.')}</p>}
       <div className="card-grid">
         {campaigns?.map(c => (
-          <div key={c.id} className="char-card" onClick={() => onOpen(c.id)}>
+          <div key={c.id} className="char-card plate" role="link" tabIndex={0}
+            onKeyDown={e => activateLinkOnKey(e, () => onOpen(c.id))}
+            onClick={() => onOpen(c.id)}>
             <div className="char-card-head">
               <strong>{c.name}</strong>
-              <span className={c.isGm ? 'badge tier' : 'badge'}>{c.isGm ? t('Мастер', 'GM') : t('Игрок', 'Player')}</span>
+              <span className={c.isGm ? 'badge solid tone-orange' : 'badge solid tone-blue'}>{c.isGm ? t('Мастер', 'GM') : t('Игрок', 'Player')}</span>
             </div>
             <div className="muted">{t('Персонажей:', 'Characters:')} {c.characterCount}</div>
           </div>
@@ -253,8 +257,8 @@ function CampaignDetailView({ campaignId, view, openEncounterId, openCharacterId
       <div className="page-head">
         <div>
           <button onClick={onBack}>{t('← Кампании', '← Campaigns')}</button>
-          <h2 className="inline-title">{c.name}</h2>
-          <span className={c.isGm ? 'badge tier' : 'badge'}>{c.isGm ? t('Мастер', 'GM') : t('Игрок', 'Player')}</span>
+          <h2 className="inline-title display-title campaign-title">{c.name}</h2>
+          <span className={c.isGm ? 'badge solid tone-orange' : 'badge solid tone-blue'}>{c.isGm ? t('Мастер', 'GM') : t('Игрок', 'Player')}</span>
           {/* Состояние связи показываем, только когда оно влияет на ожидания (нет live-обновлений). */}
           {hubStatus !== 'connected' && (
             <span className="badge warn live-badge" title={t('Обновления в реальном времени недоступны — обновите вручную', 'Live updates are unavailable — refresh manually')}>
@@ -449,24 +453,7 @@ function CampaignMemberSheetPage({ campaignId, characterId, campaignName, onBack
       </div>
     </div>
     {error && <div className="error floating">{error}</div>}
-    <div className="tabs main-tabs">
-      <button className={tab === 'sheet' ? 'tab active' : 'tab'} onClick={() => selectTab('sheet')}>{t('Лист', 'Sheet')}</button>
-      <button className={tab === 'talents' ? 'tab active' : 'tab'} onClick={() => selectTab('talents')}>{t('Таланты', 'Talents')}</button>
-      <button className={tab === 'inventory' ? 'tab active' : 'tab'} onClick={() => selectTab('inventory')}>{t('Инвентарь', 'Inventory')}</button>
-      <button className={tab === 'magic' ? 'tab active' : 'tab'} onClick={() => selectTab('magic')}>{t('Магия', 'Magic')}</button>
-      <span className="sheet-tab-divider" aria-hidden="true" />
-      {sheet.system === 'realmsOfTerrinoth' && <button
-        className={`sheet-secondary-tab ${tab === 'heroic' ? 'tab active' : 'tab'}`}
-        onClick={() => selectTab('heroic')}>{t('Героика', 'Heroic')}</button>}
-      <button className={`sheet-secondary-tab ${tab === 'workshop' ? 'tab active' : 'tab'}`}
-        onClick={() => selectTab('workshop')}>{t('Мастерская', 'Workshop')}</button>
-      <button className={`sheet-secondary-tab ${tab === 'transport' ? 'tab active' : 'tab'}`}
-        onClick={() => selectTab('transport')}>{t('Транспорт', 'Transport')}</button>
-      <button className={`sheet-secondary-tab ${tab === 'bio' ? 'tab active' : 'tab'}`}
-        onClick={() => selectTab('bio')}>{t('Образ', 'Bio')}</button>
-      <button className={`sheet-secondary-tab ${tab === 'history' ? 'tab active' : 'tab'}`}
-        onClick={() => selectTab('history')}>{t('История', 'History')}</button>
-    </div>
+    <CharacterSheetNavigation system={sheet.system} tab={tab} onSelect={selectTab} bioLabel={t('Образ', 'Bio')} />
     {tab === 'sheet' && <SheetTab sheet={sheet} onError={setError} refresh={refresh} readOnly />}
     {tab === 'inventory' && <ReadOnlyInventoryTab sheet={sheet} />}
     {tab === 'talents' && <ReadOnlyTalentsTab sheet={sheet} />}
@@ -575,7 +562,7 @@ function CampaignMemberCard({ member, sheet, isGm, onOpenSheet, onRemove }: {
   const strainRatio = sheet ? ratio(sheet.strainCurrent, sheet.derived.strainThreshold) : 0
   const cardClass = woundRatio >= 0.9 ? 'campaign-pc-card crit' : woundRatio >= 0.7 || strainRatio >= 0.75 ? 'campaign-pc-card warn' : 'campaign-pc-card'
   return (
-    <div className={cardClass}>
+    <div className={`${cardClass} plate plate-sm`}>
       <div className="campaign-pc-name">{member.characterName}{member.isMine && <span className="badge custom">{t('мой', 'mine')}</span>}</div>
       <div className="campaign-pc-role">{member.career} · {member.archetype}</div>
       {sheet ? (

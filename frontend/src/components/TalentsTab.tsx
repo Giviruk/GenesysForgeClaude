@@ -1,3 +1,4 @@
+import { activationKey, toneClass } from '../utils/tones'
 import { BookReference } from './BookReference'
 import { useState } from 'react'
 import { api } from '../api/client'
@@ -29,11 +30,6 @@ interface Props {
 }
 
 const TIERS = [1, 2, 3, 4, 5] as const
-// Активация хранится строкой данных (обычно по-русски) — проверяем оба языка.
-const isPassiveActivation = (activation: string) => {
-  const a = activation.toLowerCase()
-  return a.startsWith('пассив') || a.startsWith('passive')
-}
 const ANIMAL_COMPANION_TAGS = new Set(['animal', 'животное', 'зверь'])
 const isAnimalCompanion = (npc: NpcListItem) =>
   npc.tags.some(tag => ANIMAL_COMPANION_TAGS.has(tag.trim().toLocaleLowerCase()))
@@ -239,7 +235,7 @@ export function TalentsTab({ sheet, reference, onError, refresh }: Props) {
   }
 
   return (
-    <div>
+    <div className="talents-v5-layout">
       <section className="panel">
         <div className="section-title-line">
           <h3>{t('Пирамида талантов', 'Talent pyramid')}</h3>
@@ -260,17 +256,17 @@ export function TalentsTab({ sheet, reference, onError, refresh }: Props) {
             const slots = sheet.talentTierCounts[String(tier)] ?? 0
             const cards = cardsByTier.get(tier)!
             return (
-              <div key={tier} className="pyramid-tier">
+              <div key={tier} className={`pyramid-tier ${toneClass('tier', tier)}`}>
                 <div className="tier-label">{t('Тир', 'Tier')} {tier} <span className="muted">({slots})</span></div>
                 <div className="tier-cells">
                   {cards.map(c => {
-                    const isPassive = isPassiveActivation(c.activation)
+                    const isPassive = activationKey(c.activation) === 'passive'
                     return (
                       <div key={c.key} className="pyramid-card">
                         <div className="owned-talent-head">
                           <strong>{c.name}</strong>
                           {c.rankNo && <span className="badge">{t('ранг', 'rank')} {c.rankNo}</span>}
-                          <span className={isPassive ? 'badge passive' : 'badge active'}>
+                          <span className={`badge ${isPassive ? 'tone-grey' : 'tone-orange'}`}>
                             {isPassive ? t('Пассивный', 'Passive') : `${t('Активный', 'Active')} · ${c.activation}`}
                           </span>
                         </div>
@@ -313,15 +309,15 @@ export function TalentsTab({ sheet, reference, onError, refresh }: Props) {
             {sheet.talents
               .toSorted((a, b) => a.tier - b.tier || localizedName(a).localeCompare(localizedName(b), lang))
               .map(tal => {
-                const isPassive = isPassiveActivation(tal.activation)
+                const isPassive = activationKey(tal.activation) === 'passive'
                 const bonuses = talentBonusSummary(tal, tal.ranks)
                 return (
-                  <div key={tal.talentDefId} className="owned-talent">
+                  <div key={tal.talentDefId} className={`owned-talent ${toneClass('tier', tal.tier)}`}>
                     <div className="owned-talent-head">
                       <strong>{localizedName(tal)}</strong>
                       <span className="badge tier">{t('Тир', 'Tier')} {tal.tier}</span>
                       {tal.isRanked && <span className="badge">{t('Ранги:', 'Ranks:')} {tal.ranks}</span>}
-                      <span className={isPassive ? 'badge passive' : 'badge active'}>
+                      <span className={`badge ${isPassive ? 'tone-grey' : 'tone-orange'}`}>
                         {isPassive ? t('Пассивный', 'Passive') : tal.activation}
                       </span>
                     </div>
@@ -415,7 +411,7 @@ export function TalentsTab({ sheet, reference, onError, refresh }: Props) {
                     : t('Не осталось вариантов для выбора', 'No options left to choose'))
                   : null
                 return (
-                  <div key={tal.id} className="talent-row">
+                  <div key={tal.id} className={`talent-row ${toneClass('tier', tal.tier)}${reason ? ' unavailable' : ''}`}>
                     <div className="talent-info">
                       <strong>
                         {localizedName(tal)}
@@ -426,7 +422,7 @@ export function TalentsTab({ sheet, reference, onError, refresh }: Props) {
                         <span className="badge">{TALENT_CATEGORY_LABELS[tal.category]}</span>
                         {tal.isRanked && <span className="badge">{t('Ранговый', 'Ranked')}{ranksOwned > 0 ? `: ${ranksOwned}` : ''}</span>}
                         {tal.isCustom && <span className="badge custom">{t('Кастом', 'Custom')}</span>}
-                        <span className="badge">{tal.activation}</span>
+                        <span className={`badge ${toneClass('activation', tal.activationEn)}`}>{tal.activation}</span>
                         {tal.canUseOutOfTurn && <span className="badge">{t('Вне хода', 'Out of turn')}</span>}
                         {tal.usesPerScope > 0 && (
                           <span className="badge">{usesLabel(tal.usesPerScope, tal.useScope)}</span>
@@ -457,7 +453,7 @@ export function TalentsTab({ sheet, reference, onError, refresh }: Props) {
                           </button>
                         )
                       })()}
-                      <button className="small" disabled={!!reason} title={reason ?? ''}
+                      <button className="primary small" disabled={!!reason} title={reason ?? ''}
                         onClick={() => startPurchase(tal)}>
                         {maxedOut ? t('Куплен', 'Purchased') : t(`Купить (${cost} XP${tal.isRanked && ranksOwned > 0 ? `, тир ${effectiveTier}` : ''})`, `Buy (${cost} XP${tal.isRanked && ranksOwned > 0 ? `, tier ${effectiveTier}` : ''})`)}
                       </button>

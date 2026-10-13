@@ -1,3 +1,4 @@
+import { toneClass } from '../utils/tones'
 import { RuleText } from '../components/RuleText'
 import { useEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } from 'react'
 import { api } from '../api/client'
@@ -73,22 +74,28 @@ function BestiaryPage({ openId, filters, onOpen, onBack }: Props & { filters: Fi
   const count = Number(!!filters.system) + Number(!!filters.role) + filters.kinds.length + Number(!!filters.source) + Number(filters.sort !== 'createdAt')
   const sources = filterBestiary(npcs ?? [], { ...filters, source: '' })
   return <div className={`bt-page${openId ? ' has-selection' : ''}`}>
-    <aside className="bt-list" aria-label={t('Список NPC', 'NPC list')}>
-      <div className="bt-list-heading"><div><h2>{t('Бестиарий', 'Bestiary')}</h2><small className="muted">{npcs ? t(`${npcs.length} NPC · ${npcs.filter(n => n.isMine).length} моих`, `${npcs.length} NPCs · ${npcs.filter(n => n.isMine).length} mine`) : '…'}</small></div>
+    <div className="page-head bt-list-heading"><div><h2 className="display-title">{t('Бестиарий', 'Bestiary')}</h2><small className="muted">{npcs ? t(`${npcs.length} NPC · ${npcs.filter(n => n.isMine).length} моих`, `${npcs.length} NPCs · ${npcs.filter(n => n.isMine).length} mine`) : '…'}</small></div>
         <div className="bt-actions"><button type="button" className="bt-draft-button" title={t('Быстрый черновик', 'Quick draft')} aria-label={t('Быстрый черновик', 'Quick draft')} onClick={() => create('draft')}><Icon name="bolt" /><span>{t('Черновик', 'Draft')}</span></button>
         <button type="button" className="primary bt-create-desktop" aria-label={t('Создать NPC', 'Create NPC')} onClick={() => create('manual')}><Icon name="plus" />{t('Создать', 'Create')}</button></div></div>
+    <aside className="bt-list" aria-label={t('Список NPC', 'NPC list')}>
       <div className="bt-search-row"><input type="search" aria-label={t('Поиск по имени', 'Search by name')} placeholder={t('Поиск по имени…', 'Search by name…')} value={filters.search} onChange={e => updateFilters({ ...filters, search: e.target.value })} />
         <button type="button" className="bt-mobile-filter bt-icon" aria-label={t('Фильтры', 'Filters')} aria-expanded={filterOpen} onClick={() => setFilterOpen(true)}><Icon name="adjustments" />{count > 0 && <span className="bt-filter-count">{count}</span>}</button></div>
       <div className="bt-filter-pills"><div className="bt-pills bt-source-pills">{(['', 'mine', 'builtin'] as const).map(source => <button key={source} type="button" aria-pressed={filters.source === source} onClick={() => updateFilters({ ...filters, source })}>{source === 'mine' ? t('Мои', 'Mine') : source === 'builtin' ? t('Встроенные', 'Built-in') : t('Все', 'All')}{source !== 'builtin' && <small>{source === 'mine' ? sources.filter(n => n.isMine).length : sources.length}</small>}</button>)}</div>
-      <div className="bt-pills bt-kind-pills">{NPC_KINDS.map(kind => <button key={kind} type="button" className={`kind-${kind}`} aria-pressed={filters.kinds.includes(kind)} onClick={() => updateFilters({ ...filters, kinds: filters.kinds.includes(kind) ? filters.kinds.filter(k => k !== kind) : [...filters.kinds, kind] })}>{NPC_KIND_LABELS[kind]}</button>)}
+      <div className="bt-pills bt-kind-pills">{NPC_KINDS.map(kind => <button key={kind} type="button" className={`kind-${kind} ${toneClass('npc', kind)}`} aria-pressed={filters.kinds.includes(kind)} onClick={() => updateFilters({ ...filters, kinds: filters.kinds.includes(kind) ? filters.kinds.filter(k => k !== kind) : [...filters.kinds, kind] })}>{NPC_KIND_LABELS[kind]}</button>)}
         <button type="button" className="bt-desktop-filter" aria-expanded={filterOpen} onClick={() => setFilterOpen(true)}><Icon name="adjustments" />{t('Фильтры', 'Filters')}{count > 0 && <small>{count}</small>}</button></div></div>
+      <div className="bt-inline-filters">
+        <select aria-label={t('Система', 'System')} value={filters.system} onChange={e => updateFilters({ ...filters, system: e.target.value as Filters['system'] })}>
+          <option value="">{t('Все системы', 'All systems')}</option>{SYSTEMS.map(system => <option key={system} value={system}>{SYSTEM_LABELS[system]}</option>)}</select>
+        <select aria-label={t('Роль', 'Role')} value={filters.role} onChange={e => updateFilters({ ...filters, role: e.target.value as Filters['role'] })}>
+          <option value="">{t('Все роли', 'All roles')}</option>{NPC_ROLES.map(role => <option key={role} value={role}>{NPC_ROLE_LABELS[role]}</option>)}</select>
+      </div>
       <div className="bt-filter-summary"><div className="bt-pills">{filters.system && <button type="button" onClick={() => updateFilters({ ...filters, system: '' })}>{SYSTEM_LABELS[filters.system]} ×</button>}{filters.role && <button type="button" onClick={() => updateFilters({ ...filters, role: '' })}>{NPC_ROLE_LABELS[filters.role]} ×</button>}</div>
         <select aria-label={t('Сортировка', 'Sort')} value={filters.sort} onChange={e => updateFilters({ ...filters, sort: e.target.value as Filters['sort'] })}><option value="createdAt">{t('Сначала новые', 'Newest first')}</option><option value="name">{t('По имени', 'By name')}</option></select></div>
       {error && <div className="error" role="alert">{error}<button onClick={() => setVersion(v => v + 1)}>{t('Повторить', 'Retry')}</button></div>}
       <ul className="bt-items" ref={listRef} onScroll={e => sessionStorage.setItem(scrollKey, String(e.currentTarget.scrollTop))}>
         {!npcs && !error && Array.from({ length: 6 }, (_, i) => <li key={i} className="bt-skeleton" aria-label={t('Загрузка NPC', 'Loading NPC')} />)}
         {npcs && shown.map(n => <li key={n.id}><button type="button" className={`bt-item${openId === n.id ? ' active' : ''}`} aria-current={openId === n.id ? 'true' : undefined} onClick={() => onOpen(n.id)}>
-          <div className="bt-item-copy"><div className="bt-item-title"><strong>{n.name}</strong><span className={`bt-kind kind-${n.kind}`}>{NPC_KIND_LABELS[n.kind]}</span></div>
+          <div className="bt-item-copy"><div className="bt-item-title"><strong>{n.name}</strong><span className={`bt-kind kind-${n.kind} ${toneClass('npc', n.kind)}`}>{NPC_KIND_LABELS[n.kind]}</span></div>
           <small className="bt-item-meta">{NPC_ROLE_LABELS[n.role]} · <span className={n.system === 'genesysCore' ? 'bt-core' : 'bt-terrinoth'}>{n.system === 'genesysCore' ? 'Core' : 'Terrinoth'}</span> · <i>{n.isBuiltIn ? t('встроенный', 'built-in') : n.isMine ? t('мой', 'mine') : t('кампания', 'campaign')}</i></small></div>
           <div className="bt-item-stats"><span title={t('Поглощение', 'Soak')}><Icon name="shield" />{n.soak}</span><span title={t('Раны', 'Wounds')}><Icon name="heart" />{n.woundThreshold}</span></div><Icon className="bt-row-chevron" name="chevron-right" /></button></li>)}
         {npcs && !shown.length && <li className="bt-empty"><Icon name="skull" /><p>{npcs.length ? t('Ничего не найдено', 'No matches found') : t('В бестиарии пока нет NPC', 'No NPCs yet')}</p><button type="button" onClick={() => npcs.length ? updateFilters({ ...EMPTY_FILTERS }) : create('manual')}>{npcs.length ? t('Сбросить фильтры', 'Reset filters') : t('Создать NPC', 'Create NPC')}</button></li>}
@@ -174,7 +181,7 @@ function NpcDetailView({ npcId, reloadToken, onBack, onEdit, onDuplicated, onDel
         <div className="npc-card-head">
           <h3>{n.name}</h3>
           <span className="bt-card-meta">
-            <span className={`bt-kind kind-${n.kind}`}>{NPC_KIND_LABELS[n.kind]}</span>
+            <span className={`bt-kind kind-${n.kind} ${toneClass('npc', n.kind)}`}>{NPC_KIND_LABELS[n.kind]}</span>
             <span className="bt-meta-badge">{NPC_ROLE_LABELS[n.role]}</span>
             <span className={n.system === 'genesysCore' ? 'bt-core' : 'bt-terrinoth'}>{SYSTEM_LABELS[n.system]}</span>
             {n.isBuiltIn && <span className="badge builtin"> {t('встроенный · только чтение', 'built-in · read-only')}</span>}
@@ -261,18 +268,24 @@ function NpcCard({ npc: n, reference, canAttack = true }: { npc: NpcDetail; refe
         {attacks.length > 0 && (
           <div className="npc-section bt-section-attacks">
             <h4>{t('Атаки', 'Attacks')}</h4>
-            <ul className="npc-weapon-list">
-              {attacks.map((w, i) => (
-                <li key={i} className="npc-weapon">
-                  <div className="npc-weapon-head">
-                    <strong>{w.name}</strong>
-                    {w.pool
+            <div className="table-wrap"><table className="npc-weapon-table"><thead><tr>
+              <th>{t('Название', 'Name')}</th><th>{t('Навык', 'Skill')}</th><th>{t('Урон', 'Damage')}</th>
+              <th>{t('Крит', 'Crit')}</th><th>{t('Дистанция', 'Range')}</th><th>{t('Качества', 'Qualities')}</th><th>{t('Действие', 'Action')}</th>
+            </tr></thead><tbody>{attacks.map((w, i) => <tr key={i} className="npc-weapon">
+              <td><strong>{w.name}</strong></td><td>{w.pool
                       ? <span className="weapon-pool" title={w.skillLabel ? t(`Бросок: ${w.skillLabel}`, `Roll: ${w.skillLabel}`) : undefined}>
                           <DicePoolView pool={w.pool} />
                           {w.skillLabel && <span className="muted small-text">{w.skillLabel}</span>}
                         </span>
                       : w.skillLabel === null && <span className="muted small-text">{t('навык не указан', 'no skill set')}</span>}
-                    {canAttack && <button type="button" className="small no-print" onClick={() => openRoller({
+                    </td><td>{w.damageText}</td><td>{w.crit || '—'}</td><td>{w.rangeBand || '—'}</td>
+              <td>{w.qualities.length > 0 && (
+                    <PropertyTags
+                      properties={w.qualities.map(q => q.label).join(', ')}
+                      className="weapon-props small-text"
+                      qualityDefinitions={reference?.qualities ?? []} />
+                  )}
+                  {w.notes && <div className="muted small-text"><RuleText symbolsOnly text={w.notes} /></div>}</td><td>{canAttack && <button type="button" className="small no-print" onClick={() => openRoller({
                       kind: 'combat',
                       title: w.name,
                       skillLabel: w.skillLabel,
@@ -288,23 +301,8 @@ function NpcCard({ npc: n, reference, canAttack = true }: { npc: NpcDetail; refe
                         ? (req => { void api.createRoll(n.campaignId!, req) })
                         : undefined,
                       canSecret: n.isMine,
-                    })}><Icon name="dice" />{t('Атаковать', 'Attack')}</button>}
-                  </div>
-                  <div className="npc-weapon-stats">
-                    <span className="weapon-stat">{t('Урон', 'Damage')} <strong>{w.damageText}</strong></span>
-                    {w.crit && <span className="weapon-stat">{t('Крит', 'Crit')} <strong>{w.crit}</strong></span>}
-                    {w.rangeBand && <span className="weapon-stat">{w.rangeBand}</span>}
-                  </div>
-                  {w.qualities.length > 0 && (
-                    <PropertyTags
-                      properties={w.qualities.map(q => q.label).join(', ')}
-                      className="weapon-props small-text"
-                      qualityDefinitions={reference?.qualities ?? []} />
-                  )}
-                  {w.notes && <div className="muted small-text"><RuleText symbolsOnly text={w.notes} /></div>}
-                </li>
-              ))}
-            </ul>
+                    })}><Icon name="dice" />{t('Атаковать', 'Attack')}</button>}</td>
+            </tr>)}</tbody></table></div>
           </div>
         )}
 
@@ -438,7 +436,7 @@ const MOBILE_SECTIONS = [t('Основа', 'Basics'), t('Статы', 'Stats'), 
 const KIND_HINTS = { minion: t('группа, без усталости', 'group, no strain'), rival: t('одиночный противник', 'single adversary'), nemesis: t('босс, усталость', 'boss, has strain') }
 
 function KindCards({ value, onChange }: { value: NpcKind; onChange: (kind: NpcKind) => void }) {
-  return <div className="bt-kind-cards">{NPC_KINDS.map(kind => <button key={kind} type="button" aria-pressed={value === kind} onClick={() => onChange(kind)}><strong className={`kind-${kind}`}>{NPC_KIND_LABELS[kind]}</strong><small className="muted">{KIND_HINTS[kind]}</small></button>)}</div>
+  return <div className="bt-kind-cards">{NPC_KINDS.map(kind => <button className={toneClass('npc', kind)} key={kind} type="button" aria-pressed={value === kind} onClick={() => onChange(kind)}><strong className={`kind-${kind} ${toneClass('npc', kind)}`}>{NPC_KIND_LABELS[kind]}</strong><small className="muted">{KIND_HINTS[kind]}</small></button>)}</div>
 }
 
 function NpcCreationPage({ id, query, onBack, onSaved }: { id: string | null; query: string; onBack: () => void; onSaved: (n: NpcDetail) => void }) {
@@ -642,7 +640,7 @@ function NpcInputPreview({ npc, reference, onClose }: { npc: NpcDetail; referenc
   return <dialog ref={dialog} className="bt-preview-dialog" onCancel={onClose} aria-label={t('Карточка NPC', 'NPC card')}>
     <div className="bt-detail-head"><h3>{npc.name || t('Новый NPC', 'New NPC')}</h3>
       <button type="button" className="bt-icon" aria-label={t('Закрыть карточку', 'Close card')} onClick={onClose}><Icon name="close" /></button></div>
-    <span className="bt-card-meta"><span className={`bt-kind kind-${npc.kind}`}>{NPC_KIND_LABELS[npc.kind]}</span>
+    <span className="bt-card-meta"><span className={`bt-kind kind-${npc.kind} ${toneClass('npc', npc.kind)}`}>{NPC_KIND_LABELS[npc.kind]}</span>
       <span className="bt-meta-badge">{NPC_ROLE_LABELS[npc.role]}</span><span className={npc.system === 'genesysCore' ? 'bt-core' : 'bt-terrinoth'}>{SYSTEM_LABELS[npc.system]}</span></span>
     <NpcCard npc={npc} reference={reference} canAttack={false} />
   </dialog>
@@ -918,7 +916,7 @@ function QuickDraftForm({ req, onRequestChange, onCancel, onCreated, onModeChang
     <div className="bt-wizard-progress" aria-label={t(`Шаг ${step + 1} из 3`, `Step ${step + 1} of 3`)}>{[0, 1, 2].map(i => <span key={i} className={i <= step ? 'active' : ''} />)}</div>
     {error && <div role="alert" className="error bt-save-error">{error}<button type="button" onClick={() => setRetry(v => v + 1)}>{t('Повторить', 'Retry')}</button></div>}
     <div className="bt-draft-layout"><div className="bt-draft-form">
-      <section className="bt-draft-step bt-draft-roles"><h3><b>1</b> {t('Роль', 'Role')}</h3><p className="muted small-text">{t('Роль задаёт характеристики, навыки и стиль боя', 'The role defines characteristics, skills and combat style')}</p><div className="bt-role-grid">{NPC_ROLES.map(role => <button type="button" key={role} aria-pressed={req.role === role} onClick={() => pickRole(role)}><Icon name={ROLE_ICONS[role]} /><span><strong>{NPC_ROLE_LABELS[role]}</strong><small>{ROLE_HINTS[role].sub}</small></span></button>)}</div></section>
+      <section className="bt-draft-step bt-draft-roles"><h3><b>1</b> {t('Роль', 'Role')}</h3><p className="muted small-text">{t('Роль задаёт характеристики, навыки и стиль боя', 'The role defines characteristics, skills and combat style')}</p><div className="bt-role-grid">{NPC_ROLES.map(role => <button type="button" className={toneClass('role', role)} key={role} aria-pressed={req.role === role} onClick={() => pickRole(role)}><Icon name={ROLE_ICONS[role]} /><span><strong>{NPC_ROLE_LABELS[role]}</strong><small>{ROLE_HINTS[role].sub}</small></span></button>)}</div></section>
       <section className="bt-draft-step bt-draft-power"><h3><b>2</b> {t('Тип и сила', 'Type and power')}</h3><KindCards value={req.kind} onChange={kind => set('kind', kind)} /><div className="bt-power-grid">{powerLevels.map(power => <button type="button" key={power} aria-pressed={req.powerLevel === power} onClick={() => set('powerLevel', power)}>{NPC_POWER_LABELS[power]}</button>)}</div></section>
       <section className="bt-draft-step bt-draft-refinements"><h3><b>3</b> {t('Уточнения', 'Refinements')} <small className="muted">{t('необязательно', 'optional')}</small></h3><div className="bt-refinement-grid">
         <label>{t('Система', 'System')}<select value={req.system} onChange={e => set('system', e.target.value as GameSystem)}>{SYSTEMS.map(system => <option key={system} value={system}>{SYSTEM_LABELS[system]}</option>)}</select></label>
@@ -945,7 +943,7 @@ function QuickDraftForm({ req, onRequestChange, onCancel, onCreated, onModeChang
             <button className="primary bt-create-draft-desktop" type="submit" disabled={busy || !previewCurrent}>{t('Создать черновик', 'Create draft')}</button><p className="muted small-text">{t('Откроется редактор. Сохраните NPC после проверки.', 'The editor opens next. Save the NPC after reviewing it.')}</p>
           </aside>
     </div>
-    <div className="bt-wizard-actions"><div className="bt-wizard-summary" aria-live="polite"><span className={`bt-kind kind-${req.kind}`}>{NPC_KIND_LABELS[req.kind]}</span><span>{NPC_ROLE_LABELS[req.role]} · {CHARACTERISTIC_LABELS[req.primaryCharacteristic ?? ROLE_PRIMARY[req.role]]}</span><small>{previewCurrent && preview ? t(`${preview.woundThreshold} ран · погл. ${preview.soak}`, `${preview.woundThreshold} wounds · soak ${preview.soak}`) : t('Обновляется…', 'Updating…')}</small></div><div className="bt-actions">{step > 0 ? <button type="button" onClick={() => setStep(step - 1)}>{t('Назад', 'Back')}</button> : <button type="button" onClick={() => setStep(1)}>{t('Пропустить', 'Skip')}</button>}{step < 2 ? <button type="button" className="primary" onClick={() => setStep(step + 1)}>{step === 0 ? t('Далее: тип и сила', 'Next: type and power') : t('Далее: уточнения', 'Next: refinements')}<Icon name="chevron-right" /></button> : <button type="submit" className="primary" disabled={busy || !previewCurrent}>{t('Создать черновик', 'Create draft')}</button>}</div></div>
+    <div className="bt-wizard-actions"><div className="bt-wizard-summary" aria-live="polite"><span className={`bt-kind kind-${req.kind}`}>{NPC_KIND_LABELS[req.kind]}</span><span>{NPC_ROLE_LABELS[req.role]} · {CHARACTERISTIC_LABELS[req.primaryCharacteristic ?? ROLE_PRIMARY[req.role]]}</span><small>{previewCurrent && preview ? t(`${preview.woundThreshold} ран · погл. ${preview.soak}`, `${preview.woundThreshold} wounds · soak ${preview.soak}`) : t('Обновляется…', 'Updating…')}</small></div><div className="bt-actions">{step > 0 ? <button type="button" onClick={() => setStep(step - 1)}>{t('Назад', 'Back')}</button> : <button type="button" onClick={() => setStep(1)}>{t('Пропустить', 'Skip')}</button>}{step < 2 ? <button type="button" className="primary" onClick={event => { event.preventDefault(); setStep(step + 1) }}>{step === 0 ? t('Далее: тип и сила', 'Next: type and power') : t('Далее: уточнения', 'Next: refinements')}<Icon name="chevron-right" /></button> : <button type="submit" className="primary" disabled={busy || !previewCurrent}>{t('Создать черновик', 'Create draft')}</button>}</div></div>
   </form>
 }
 

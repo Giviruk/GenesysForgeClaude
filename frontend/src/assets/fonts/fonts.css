@@ -1,65 +1,11 @@
-/* cyrillic-ext */
-@font-face {
-  font-family: 'Fira Sans Extra Condensed';
-  font-style: normal;
-  font-weight: 400;
-  font-display: swap;
-  src: url(./fira-extra-condensed-d5ef17772ebe.woff2) format('woff2');
-  unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
-}
-/* cyrillic */
-@font-face {
-  font-family: 'Fira Sans Extra Condensed';
-  font-style: normal;
-  font-weight: 400;
-  font-display: swap;
-  src: url(./fira-extra-condensed-3ee2a5543c10.woff2) format('woff2');
-  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
-}
-/* latin-ext */
-@font-face {
-  font-family: 'Fira Sans Extra Condensed';
-  font-style: normal;
-  font-weight: 400;
-  font-display: swap;
-  src: url(./fira-extra-condensed-bc2c77144d34.woff2) format('woff2');
-  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
-}
 /* latin */
 @font-face {
   font-family: 'Fira Sans Extra Condensed';
   font-style: normal;
   font-weight: 400;
   font-display: swap;
-  src: url(./fira-extra-condensed-c2c3772339fe.woff2) format('woff2');
-  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
-}
-/* cyrillic-ext */
-@font-face {
-  font-family: 'Fira Sans Extra Condensed';
-  font-style: normal;
-  font-weight: 500;
-  font-display: swap;
-  src: url(./fira-extra-condensed-19f271bec8bc.woff2) format('woff2');
-  unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
-}
-/* cyrillic */
-@font-face {
-  font-family: 'Fira Sans Extra Condensed';
-  font-style: normal;
-  font-weight: 500;
-  font-display: swap;
-  src: url(./fira-extra-condensed-75840735250b.woff2) format('woff2');
-  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
-}
-/* latin-ext */
-@font-face {
-  font-family: 'Fira Sans Extra Condensed';
-  font-style: normal;
-  font-weight: 500;
-  font-display: swap;
-  src: url(./fira-extra-condensed-48ecfe3d4512.woff2) format('woff2');
-  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
+  src: url(./fira-v5-latin-400.woff2) format('woff2');
+  unicode-range: U+20-7e, U+a0-ac, U+ae-ff, U+300-308, U+2010-2027;
 }
 /* latin */
 @font-face {
@@ -67,35 +13,8 @@
   font-style: normal;
   font-weight: 500;
   font-display: swap;
-  src: url(./fira-extra-condensed-cca81c9ba595.woff2) format('woff2');
-  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
-}
-/* cyrillic-ext */
-@font-face {
-  font-family: 'Fira Sans Extra Condensed';
-  font-style: normal;
-  font-weight: 600;
-  font-display: swap;
-  src: url(./fira-extra-condensed-c76caa0885d8.woff2) format('woff2');
-  unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
-}
-/* cyrillic */
-@font-face {
-  font-family: 'Fira Sans Extra Condensed';
-  font-style: normal;
-  font-weight: 600;
-  font-display: swap;
-  src: url(./fira-extra-condensed-34ce8ba0e46b.woff2) format('woff2');
-  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
-}
-/* latin-ext */
-@font-face {
-  font-family: 'Fira Sans Extra Condensed';
-  font-style: normal;
-  font-weight: 600;
-  font-display: swap;
-  src: url(./fira-extra-condensed-a1d28cd5d5d0.woff2) format('woff2');
-  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
+  src: url(./fira-v5-latin-500.woff2) format('woff2');
+  unicode-range: U+20-7e, U+a0-ac, U+ae-ff, U+300-308, U+2010-2027;
 }
 /* latin */
 @font-face {
@@ -103,35 +22,8 @@
   font-style: normal;
   font-weight: 600;
   font-display: swap;
-  src: url(./fira-extra-condensed-5b3482b347cd.woff2) format('woff2');
-  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
-}
-/* cyrillic-ext */
-@font-face {
-  font-family: 'Fira Sans Extra Condensed';
-  font-style: normal;
-  font-weight: 700;
-  font-display: swap;
-  src: url(./fira-extra-condensed-049dd9515567.woff2) format('woff2');
-  unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
-}
-/* cyrillic */
-@font-face {
-  font-family: 'Fira Sans Extra Condensed';
-  font-style: normal;
-  font-weight: 700;
-  font-display: swap;
-  src: url(./fira-extra-condensed-d261b89ebd1c.woff2) format('woff2');
-  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
-}
-/* latin-ext */
-@font-face {
-  font-family: 'Fira Sans Extra Condensed';
-  font-style: normal;
-  font-weight: 700;
-  font-display: swap;
-  src: url(./fira-extra-condensed-72e67c004e7e.woff2) format('woff2');
-  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
+  src: url(./fira-v5-latin-600.woff2) format('woff2');
+  unicode-range: U+20-7e, U+a0-ac, U+ae-ff, U+300-308, U+2010-2027;
 }
 /* latin */
 @font-face {
@@ -139,159 +31,160 @@
   font-style: normal;
   font-weight: 700;
   font-display: swap;
-  src: url(./fira-extra-condensed-fe4f426859e1.woff2) format('woff2');
-  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+  src: url(./fira-v5-latin-700.woff2) format('woff2');
+  unicode-range: U+20-7e, U+a0-ac, U+ae-ff, U+300-308, U+2010-2027;
 }
-/* cyrillic-ext */
+/* latin-ext */
 @font-face {
-  font-family: 'Golos Text';
+  font-family: 'Fira Sans Extra Condensed';
   font-style: normal;
   font-weight: 400;
   font-display: swap;
-  src: url(./golos-d3534b8d279e.woff2) format('woff2');
-  unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+  src: url(./fira-v5-latin-ext-400.woff2) format('woff2');
+  unicode-range: U+100-1ff;
+}
+/* latin-ext */
+@font-face {
+  font-family: 'Fira Sans Extra Condensed';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url(./fira-v5-latin-ext-500.woff2) format('woff2');
+  unicode-range: U+100-1ff;
+}
+/* latin-ext */
+@font-face {
+  font-family: 'Fira Sans Extra Condensed';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url(./fira-v5-latin-ext-600.woff2) format('woff2');
+  unicode-range: U+100-1ff;
+}
+/* latin-ext */
+@font-face {
+  font-family: 'Fira Sans Extra Condensed';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url(./fira-v5-latin-ext-700.woff2) format('woff2');
+  unicode-range: U+100-1ff;
 }
 /* cyrillic */
 @font-face {
-  font-family: 'Golos Text';
+  font-family: 'Fira Sans Extra Condensed';
   font-style: normal;
   font-weight: 400;
   font-display: swap;
-  src: url(./golos-d324f9941b3a.woff2) format('woff2');
-  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+  src: url(./fira-v5-cyrillic-400.woff2) format('woff2');
+  unicode-range: U+0300-0301, U+0306, U+0308, U+0400-045F;
 }
-/* latin-ext */
+/* cyrillic */
 @font-face {
-  font-family: 'Golos Text';
+  font-family: 'Fira Sans Extra Condensed';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url(./fira-v5-cyrillic-500.woff2) format('woff2');
+  unicode-range: U+0300-0301, U+0306, U+0308, U+0400-045F;
+}
+/* cyrillic */
+@font-face {
+  font-family: 'Fira Sans Extra Condensed';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url(./fira-v5-cyrillic-600.woff2) format('woff2');
+  unicode-range: U+0300-0301, U+0306, U+0308, U+0400-045F;
+}
+/* cyrillic */
+@font-face {
+  font-family: 'Fira Sans Extra Condensed';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url(./fira-v5-cyrillic-700.woff2) format('woff2');
+  unicode-range: U+0300-0301, U+0306, U+0308, U+0400-045F;
+}
+/* cyrillic-ext */
+@font-face {
+  font-family: 'Fira Sans Extra Condensed';
   font-style: normal;
   font-weight: 400;
   font-display: swap;
-  src: url(./golos-44e514ae89e3.woff2) format('woff2');
-  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
-}
-/* latin */
-@font-face {
-  font-family: 'Golos Text';
-  font-style: normal;
-  font-weight: 400;
-  font-display: swap;
-  src: url(./golos-e0c165192dac.woff2) format('woff2');
-  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+  src: url(./fira-v5-cyrillic-ext-400.woff2) format('woff2');
+  unicode-range: U+0304, U+0306, U+0308, U+030B, U+030F, U+0460-052F, U+1C80-1C88;
 }
 /* cyrillic-ext */
 @font-face {
-  font-family: 'Golos Text';
+  font-family: 'Fira Sans Extra Condensed';
   font-style: normal;
   font-weight: 500;
   font-display: swap;
-  src: url(./golos-d3534b8d279e.woff2) format('woff2');
-  unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
-}
-/* cyrillic */
-@font-face {
-  font-family: 'Golos Text';
-  font-style: normal;
-  font-weight: 500;
-  font-display: swap;
-  src: url(./golos-d324f9941b3a.woff2) format('woff2');
-  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
-}
-/* latin-ext */
-@font-face {
-  font-family: 'Golos Text';
-  font-style: normal;
-  font-weight: 500;
-  font-display: swap;
-  src: url(./golos-44e514ae89e3.woff2) format('woff2');
-  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
-}
-/* latin */
-@font-face {
-  font-family: 'Golos Text';
-  font-style: normal;
-  font-weight: 500;
-  font-display: swap;
-  src: url(./golos-e0c165192dac.woff2) format('woff2');
-  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+  src: url(./fira-v5-cyrillic-ext-500.woff2) format('woff2');
+  unicode-range: U+0304, U+0306, U+0308, U+030B, U+030F, U+0460-052F, U+1C80-1C88;
 }
 /* cyrillic-ext */
 @font-face {
-  font-family: 'Golos Text';
+  font-family: 'Fira Sans Extra Condensed';
   font-style: normal;
   font-weight: 600;
   font-display: swap;
-  src: url(./golos-d3534b8d279e.woff2) format('woff2');
-  unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
-}
-/* cyrillic */
-@font-face {
-  font-family: 'Golos Text';
-  font-style: normal;
-  font-weight: 600;
-  font-display: swap;
-  src: url(./golos-d324f9941b3a.woff2) format('woff2');
-  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
-}
-/* latin-ext */
-@font-face {
-  font-family: 'Golos Text';
-  font-style: normal;
-  font-weight: 600;
-  font-display: swap;
-  src: url(./golos-44e514ae89e3.woff2) format('woff2');
-  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
-}
-/* latin */
-@font-face {
-  font-family: 'Golos Text';
-  font-style: normal;
-  font-weight: 600;
-  font-display: swap;
-  src: url(./golos-e0c165192dac.woff2) format('woff2');
-  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+  src: url(./fira-v5-cyrillic-ext-600.woff2) format('woff2');
+  unicode-range: U+0304, U+0306, U+0308, U+030B, U+030F, U+0460-052F, U+1C80-1C88;
 }
 /* cyrillic-ext */
 @font-face {
-  font-family: 'Golos Text';
+  font-family: 'Fira Sans Extra Condensed';
   font-style: normal;
   font-weight: 700;
   font-display: swap;
-  src: url(./golos-d3534b8d279e.woff2) format('woff2');
-  unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+  src: url(./fira-v5-cyrillic-ext-700.woff2) format('woff2');
+  unicode-range: U+0304, U+0306, U+0308, U+030B, U+030F, U+0460-052F, U+1C80-1C88;
 }
-/* cyrillic */
-@font-face {
-  font-family: 'Golos Text';
-  font-style: normal;
-  font-weight: 700;
-  font-display: swap;
-  src: url(./golos-d324f9941b3a.woff2) format('woff2');
-  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
-}
-/* latin-ext */
-@font-face {
-  font-family: 'Golos Text';
-  font-style: normal;
-  font-weight: 700;
-  font-display: swap;
-  src: url(./golos-44e514ae89e3.woff2) format('woff2');
-  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
-}
-/* latin */
-@font-face {
-  font-family: 'Golos Text';
-  font-style: normal;
-  font-weight: 700;
-  font-display: swap;
-  src: url(./golos-e0c165192dac.woff2) format('woff2');
-  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
-}
-/* latin */
+/* Jost: brand characters only; UI families use separate Unicode subsets. */
 @font-face {
   font-family: 'Jost';
   font-style: normal;
   font-weight: 300;
   font-display: swap;
-  src: url(./jost-28ec4a3094f8.woff2) format('woff2');
+  src: url(./jost-v5-brand.woff2) format('woff2');
+  unicode-range: U+20, U+45-47, U+4e-4f, U+52-53, U+59;
+}
+
+/* cyrillic-ext */
+@font-face {
+  font-family: 'Golos Text';
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url(./golos-v5-cyrillic-ext.woff2) format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+/* cyrillic */
+@font-face {
+  font-family: 'Golos Text';
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url(./golos-v5-cyrillic.woff2) format('woff2');
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+/* latin-ext */
+@font-face {
+  font-family: 'Golos Text';
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url(./golos-v5-latin-ext.woff2) format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* latin */
+@font-face {
+  font-family: 'Golos Text';
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url(./golos-v5-latin.woff2) format('woff2');
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
