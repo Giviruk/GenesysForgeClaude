@@ -456,10 +456,11 @@ function ProductModal({ product, character, qualityDefinitions, onClose }: {
           )}
         </div>
 
+        <p className="shop-modal-character">{t('Персонаж', 'Character')}: <strong>{character?.name ?? t('Не выбран', 'Not selected')}</strong></p>
         <div className="shop-modal-options">
           {isImplement && (
             <label>
-              {t('Материал', 'Material')}
+              <span>{t('Материал', 'Material')}</span>
               <select value={material}
                 title={IMPLEMENT_MATERIAL_HINTS[material]}
                 onChange={event => setMaterial(event.target.value as ImplementMaterial)}>
@@ -473,7 +474,7 @@ function ProductModal({ product, character, qualityDefinitions, onClose }: {
 
           {hasCraftsmanship && (
             <label>
-              {t('Материал / качество изготовления', 'Material / craftsmanship')}
+              <span>{t('Материал / качество изготовления', 'Material / craftsmanship')}</span>
               <select value={craftsmanship}
                 title={WEAPON_CRAFTSMANSHIP_HINTS[craftsmanship]}
                 onChange={event => setCraftsmanship(event.target.value as WeaponCraftsmanship)}>
@@ -485,17 +486,14 @@ function ProductModal({ product, character, qualityDefinitions, onClose }: {
             </label>
           )}
 
-          <div className="shop-modal-buyer">
-            <p>{t('Персонаж', 'Character')}: <strong>{character?.name ?? t('Не выбран', 'Not selected')}</strong></p>
             {!attachment && !mount && (
               <label>
-                {t('Количество', 'Quantity')}
+                <span>{t('Количество', 'Quantity')}</span>
                 <input type="number" min={1} value={quantity}
                   onChange={event =>
                     setQuantity(Math.max(1, Math.trunc(Number(event.target.value)) || 1))} />
               </label>
             )}
-          </div>
         </div>
 
         {sheet && (

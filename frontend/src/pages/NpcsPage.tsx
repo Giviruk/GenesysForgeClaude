@@ -431,8 +431,8 @@ function toInput(n: NpcDetail): NpcInput {
   return rest
 }
 
-const SECTIONS = [t('Основа', 'Basics'), t('Статы', 'Stats'), t('Навыки и атаки', 'Skills and attacks'), t('Способности', 'Abilities'), t('Снаряжение', 'Gear'), t('Тактика', 'Tactics')]
-const MOBILE_SECTIONS = [t('Основа', 'Basics'), t('Статы', 'Stats'), t('Навыки', 'Skills'), t('Атаки', 'Attacks'), t('Ещё', 'More')]
+const SECTIONS = [t('Основные данные', 'Basic information'), t('Характеристики', 'Characteristics'), t('Навыки и атаки', 'Skills and attacks'), t('Способности', 'Abilities'), t('Снаряжение', 'Gear'), t('Тактика', 'Tactics')]
+const MOBILE_SECTIONS = [t('Основные данные', 'Basic information'), t('Характеристики', 'Characteristics'), t('Навыки', 'Skills'), t('Атаки', 'Attacks'), t('Ещё', 'More')]
 const KIND_HINTS = { minion: t('группа, без усталости', 'group, no strain'), rival: t('одиночный противник', 'single adversary'), nemesis: t('босс, усталость', 'boss, has strain') }
 
 function KindCards({ value, onChange }: { value: NpcKind; onChange: (kind: NpcKind) => void }) {
@@ -500,8 +500,10 @@ function NpcEditor({ initial, savedId, dirty, onCancel, onSaved, onChange, onKin
   const [initialForm] = useState(initial)
   const reference = loaded?.system === form.system ? loaded.data : null
   const weaponMap = useMemo(() => weaponsByLabel(reference), [reference])
+  const index = useMemo(() => skillIndex(reference), [reference])
   const naturalSoak = !savedId && reference ? Math.max(0, initialForm.soak - suggestedNpcSoak(initialForm, reference)) : 0
   const minion = form.kind === 'minion'
+  const hasStrain = form.kind === 'nemesis'
   function change(next: NpcInput) { setForm(next); setError(null); setInvalidSection(null); onChange(next) }
   const set = <K extends keyof NpcInput>(key: K, value: NpcInput[K]) => {
     const next = { ...form, [key]: value }
@@ -537,7 +539,7 @@ function NpcEditor({ initial, savedId, dirty, onCancel, onSaved, onChange, onKin
   async function applyTemplate() {
     if (template === 'none') return
     setApplying(true); setError(null)
-    try { setManualSoak(true); change(toInput(await api.applyNpcTemplate({ ...form, strainThreshold: minion ? null : form.strainThreshold }, template))) }
+    try { setManualSoak(true); change(toInput(await api.applyNpcTemplate({ ...form, strainThreshold: hasStrain ? form.strainThreshold : null }, template))) }
     catch (err) { setError(err instanceof Error ? err.message : t('Ошибка применения шаблона', 'Failed to apply template')) }
     finally { setApplying(false) }
   }
@@ -546,8 +548,7 @@ function NpcEditor({ initial, savedId, dirty, onCancel, onSaved, onChange, onKin
     if (busy || !form.name.trim()) return
     setBusy(true); setError(null)
     try {
-      const index = skillIndex(reference)
-      const payload = { ...form, strainThreshold: minion ? null : form.strainThreshold,
+      const payload = { ...form, strainThreshold: hasStrain ? form.strainThreshold : null,
         skills: form.skills.map(s => ({ ...s, name: npcSkillName(s.name, index), ranks: minion ? 0 : s.ranks })) }
       const n = savedId ? await api.updateNpc(savedId, payload) : await api.createNpc(payload)
       onSaved(n)
@@ -570,8 +571,8 @@ function NpcEditor({ initial, savedId, dirty, onCancel, onSaved, onChange, onKin
     if (i > 2) setExpanded(x => [...new Set([...x, i])])
     requestAnimationFrame(() => document.getElementById(`npc-section-${i}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' }))
   }
-  const preview: NpcDetail = { ...form, strainThreshold: minion ? null : form.strainThreshold, id: '', isMine: true, isBuiltIn: false, warnings: [], createdAt: '', updatedAt: '' }
-  const completed = [!!form.name.trim(), true, form.skills.some(s => s.name) || !!form.attacks.length, !!form.abilities.length, !!(form.equipment.length || form.talents.length), !!(form.tactics || form.tags.length || form.source)]
+  const preview: NpcDetail = { ...form, strainThreshold: hasStrain ? form.strainThreshold : null, id: '', isMine: true, isBuiltIn: false, warnings: [], createdAt: '', updatedAt: '' }
+  const completed = [!!form.name.trim(), true, form.skills.some(s => s.name) || !!form.attacks.length, !!(form.abilities.length || form.talents.length), !!form.equipment.length, !!(form.tactics || form.tags.length || form.source)]
   return <form ref={element} className={`bt-builder bt-manual mobile-tab-${mobileTab}`} onSubmit={submit} onInvalid={e => {
       e.preventDefault()
       if (invalidPending.current) return
@@ -593,8 +594,8 @@ function NpcEditor({ initial, savedId, dirty, onCancel, onSaved, onChange, onKin
     <nav className="bt-pills bt-section-nav" aria-label={t('Разделы редактора', 'Editor sections')}>{SECTIONS.map((label, i) => <button type="button" key={label} aria-current={activeSection === i ? 'step' : undefined} onClick={() => goSection(i)}><b>{i + 1}</b>{label}{completed[i] && <Icon name="check" />}</button>)}</nav>
     <div className="bt-pills bt-editor-tabs" role="tablist" aria-label={t('Вкладки редактора', 'Editor tabs')}>{MOBILE_SECTIONS.map((label, i) => <button type="button" role="tab" key={label} aria-selected={mobileTab === i} onClick={() => setMobileTab(i)}>{label}</button>)}</div>
     {error && <div className="error bt-save-error" role="alert">{error}</div>}
-    <div className="bt-editor-body" data-invalid-section={invalidSection ?? undefined}>
-      <section id="npc-section-0" data-section="0" className="bt-editor-section bt-editor-basics"><h4>1 · {t('Основа', 'Basics')}</h4>
+    <div className="bt-manual-layout"><div className="bt-editor-body" data-invalid-section={invalidSection ?? undefined}>
+      <section id="npc-section-0" data-section="0" className="bt-editor-section bt-editor-basics"><h4>1 · {t('Основные данные', 'Basic information')}</h4>
         <div className="bt-base-grid"><label>{t('Имя', 'Name')}<input name="npc-name" aria-invalid={!!error && !form.name.trim()} required value={form.name} onChange={e => set('name', e.target.value)} /></label>
           <div><span className="bt-field-label">{t('Система', 'System')}</span><div className="bt-system-options">{SYSTEMS.map(system => <button type="button" key={system} aria-pressed={form.system === system} onClick={() => set('system', system)}>{system === 'genesysCore' ? 'Genesys Core' : 'Terrinoth'}</button>)}</div></div></div>
         <div><span className="bt-field-label">{t('Тип', 'Type')}</span><KindCards value={form.kind} onChange={kind => set('kind', kind)} /></div>
@@ -607,31 +608,48 @@ function NpcEditor({ initial, savedId, dirty, onCancel, onSaved, onChange, onKin
         <div className="bt-stat-grid">{CHARACTERISTICS.map(c => <NumberStepper key={c} className="bt-stat-stepper" label={CHARACTERISTIC_LABELS[c]} value={form[c]} min={1} max={6} onChange={v => set(c, v)} />)}</div>
         <div className="bt-derived-grid">
           <label>{t('Раны', 'Wounds')}<input type="number" inputMode="numeric" min={1} value={form.woundThreshold} onChange={e => set('woundThreshold', Math.max(1, +e.target.value))} /></label>
-          <label>{t('Усталость', 'Strain')}<input type="number" inputMode="numeric" min={form.kind === 'nemesis' ? 1 : 0} required={form.kind === 'nemesis'} disabled={minion} value={minion ? '' : form.strainThreshold ?? ''} placeholder={minion ? '—' : ''} onChange={e => set('strainThreshold', e.target.value === '' ? null : Math.max(0, +e.target.value))} /></label>
+          <label>{t('Усталость', 'Strain')}<input type="number" inputMode="numeric" min={form.kind === 'nemesis' ? 1 : 0} required={form.kind === 'nemesis'} disabled={!hasStrain} value={hasStrain ? form.strainThreshold ?? '' : ''} placeholder={hasStrain ? '' : '—'} onChange={e => set('strainThreshold', e.target.value === '' ? null : Math.max(0, +e.target.value))} /></label>
           <label>{t('Поглощение', 'Soak')}<input type="number" inputMode="numeric" min={0} value={form.soak} onChange={e => set('soak', Math.max(0, +e.target.value))} /></label>
           <label>{t('Бл. защита', 'Melee def.')}<input aria-invalid={invalidSection === 1 && /защит|defense/i.test(error ?? '')} type="number" inputMode="numeric" min={0} value={form.meleeDefense} onChange={e => set('meleeDefense', Math.max(0, +e.target.value))} /></label>
           <label>{t('Дал. защита', 'Ranged def.')}<input aria-invalid={invalidSection === 1 && /защит|defense/i.test(error ?? '')} type="number" inputMode="numeric" min={0} value={form.rangedDefense} onChange={e => set('rangedDefense', Math.max(0, +e.target.value))} /></label>
           <label>{t('Силуэт', 'Silhouette')}<input type="number" inputMode="numeric" min={0} max={10} value={form.silhouette} onChange={e => set('silhouette', clamp(+e.target.value, 0, 10))} /></label>
         </div>
-        <div className="bt-stat-note"><Icon name="info-circle" /><span>{manualSoak ? t('Поглощение задано вручную.', 'Soak is set manually.') : naturalSoak ? t('Поглощение учитывает Силу, броню и природный бонус черновика.', 'Soak includes Brawn, armor and the draft’s natural bonus.') : t('Поглощение пересчитывается из Силы и бонусов брони.', 'Soak follows Brawn and armor bonuses.')} {t('У приспешника усталость отключена.', 'Strain is disabled for minions.')}</span><button type="button" onClick={() => { setManualSoak(false); change({ ...form, soak: suggestedNpcSoak(form, reference) + naturalSoak }) }}>{t('Авто', 'Auto')}</button></div>
+        <div className="bt-stat-note"><Icon name="info-circle" /><span>{manualSoak ? t('Поглощение задано вручную.', 'Soak is set manually.') : naturalSoak ? t('Поглощение учитывает Силу, броню и природный бонус черновика.', 'Soak includes Brawn, armor and the draft’s natural bonus.') : t('Поглощение пересчитывается из Силы и бонусов брони.', 'Soak follows Brawn and armor bonuses.')} {t('Усталость доступна только главарю.', 'Only nemeses have strain.')}</span><button type="button" onClick={() => { setManualSoak(false); change({ ...form, soak: suggestedNpcSoak(form, reference) + naturalSoak }) }}>{t('Авто', 'Auto')}</button></div>
       </section>
       <section id="npc-section-2" data-section="2" className="bt-editor-section bt-editor-combat"><h4>3 · {t('Навыки и атаки', 'Skills and attacks')}</h4>
         <div className="bt-editor-skills"><SkillsEditor skills={form.skills} available={reference?.skills ?? []} characteristics={form} groupSkills={minion} onChange={s => set('skills', s)} /></div>
         <div className="bt-editor-attacks"><AttacksEditor attacks={form.attacks} skills={reference?.skills ?? []} qualities={reference?.qualities ?? []} onChange={a => set('attacks', a)} /></div>
       </section>
       {[3, 4, 5].map(i => <section id={`npc-section-${i}`} data-section={i} key={i} className={`bt-editor-section bt-editor-more${expanded.includes(i) ? ' expanded' : ''}`}>
-        <button type="button" className="bt-accordion" aria-expanded={expanded.includes(i)} onClick={() => setExpanded(x => x.includes(i) ? x.filter(n => n !== i) : [...x, i])}><h4>{i + 1} · {SECTIONS[i]}</h4><small className="muted">{i === 3 ? form.abilities.length : i === 4 ? `${form.talents.length} / ${form.equipment.length}` : form.tags.length}</small><Icon name={expanded.includes(i) ? 'chevron-down' : 'chevron-right'} /></button>
-        <div className="bt-accordion-content">{i === 3 ? <AbilitiesEditor abilities={form.abilities} onChange={a => set('abilities', a)} /> : i === 4 ? <>
+        <button type="button" className="bt-accordion" aria-expanded={expanded.includes(i)} onClick={() => setExpanded(x => x.includes(i) ? x.filter(n => n !== i) : [...x, i])}><h4>{i + 1} · {SECTIONS[i]}</h4><small className="muted">{i === 3 ? form.abilities.length + form.talents.length : i === 4 ? form.equipment.length : form.tags.length}</small><Icon name={expanded.includes(i) ? 'chevron-down' : 'chevron-right'} /></button>
+        <div className="bt-accordion-content">{i === 3 ? <><AbilitiesEditor abilities={form.abilities} onChange={a => set('abilities', a)} />
           <PickListEditor label={t('Таланты', 'Talents')} values={form.talents} options={reference?.talents ?? []} onChange={v => set('talents', v)} placeholder={t('Выберите талант из списка', 'Pick a talent from the list')}>
             <TalentTags values={form.talents} talents={reference?.talents ?? []} onRemove={i => set('talents', form.talents.filter((_, j) => j !== i))} />
-          </PickListEditor>
+          </PickListEditor></> : i === 4 ? <>
           <PickListEditor label={t('Снаряжение', 'Gear')} values={form.equipment} options={reference?.items ?? []} onChange={setEquipment} placeholder={t('Выберите предмет из списка', 'Pick an item from the list')} />
         </> : <><label>{t('Тактика (1–3 раунда)', 'Tactics (1–3 rounds)')}<textarea rows={2} value={form.tactics} onChange={e => set('tactics', e.target.value)} /></label><StringListEditor label={t('Теги', 'Tags')} values={form.tags} onChange={v => set('tags', v)} placeholder={t('Тег', 'Tag')} /><label>{t('Источник', 'Source')}<input value={form.source} onChange={e => set('source', e.target.value)} /></label></>}</div>
       </section>)}
     </div>
+    <aside className="bt-manual-preview"><NpcEditorSummary npc={preview} index={index} title={t('Карточка NPC', 'NPC card')} /></aside></div>
     <div className="bt-mobile-save"><button type="button" onClick={() => setPreviewOpen(true)}>{t('Карточка', 'Card')}</button><button className="primary" type="submit" disabled={busy || !form.name.trim()}>{t('Сохранить', 'Save')}</button></div>
     {previewOpen && <NpcInputPreview npc={preview} reference={reference} onClose={() => setPreviewOpen(false)} />}
   </form>
+}
+
+function NpcEditorSummary({ npc, index, title }: { npc: NpcDetail; index: Map<string, SkillDef>; title: string }) {
+  const skills = npcSkillViews(npc, index)
+  return <div className="npc-editor-summary">
+    <header className="npc-preview-plate plate"><small>{title}</small><h3>{npc.name.trim() || t('Новый NPC', 'New NPC')}</h3>
+      <p>{NPC_KIND_LABELS[npc.kind]} · {NPC_ROLE_LABELS[npc.role]} · {SYSTEM_LABELS[npc.system]}</p></header>
+    <div className="npc-preview-chars">{CHARACTERISTICS.map(c => <div key={c}><small>{CHARACTERISTIC_LABELS[c]}</small><strong>{npc[c]}</strong></div>)}</div>
+    <div className="npc-preview-derived">{[[t('Раны', 'Wounds'), npc.woundThreshold], [t('Усталость', 'Strain'), npc.strainThreshold ?? '—'], [t('Поглощение', 'Soak'), npc.soak], [t('Защита', 'Defense'), `${npc.meleeDefense} / ${npc.rangedDefense}`]].map(([label, value]) => <div key={label}><strong>{value}</strong><small>{label}</small></div>)}</div>
+    <dl className="npc-preview-details">
+      <div><dt>{t('Навыки', 'Skills')}</dt><dd>{skills.map(s => s.name).join(', ') || '—'}</dd></div>
+      <div><dt>{t('Атаки', 'Attacks')}</dt><dd>{npc.attacks.map(a => a.name).join(', ') || '—'}</dd></div>
+      <div><dt>{t('Таланты', 'Talents')}</dt><dd>{npc.talents.join(', ') || '—'}</dd></div>
+      <div><dt>{t('Снаряжение', 'Gear')}</dt><dd>{npc.equipment.join(', ') || '—'}</dd></div>
+    </dl>
+  </div>
 }
 
 function NpcInputPreview({ npc, reference, onClose }: { npc: NpcDetail; reference: Reference | null; onClose: () => void }) {
@@ -893,7 +911,6 @@ function QuickDraftForm({ req, onRequestChange, onCancel, onCreated, onModeChang
   const requestKey = JSON.stringify(req)
   const previewCurrent = result?.request === requestKey
   const preview = result?.npc ?? null
-  const previewBusy = !previewCurrent
   useEffect(() => {
     let cancelled = false
     const timer = setTimeout(() => {
@@ -916,7 +933,7 @@ function QuickDraftForm({ req, onRequestChange, onCancel, onCreated, onModeChang
     <div className="bt-wizard-progress" aria-label={t(`Шаг ${step + 1} из 3`, `Step ${step + 1} of 3`)}>{[0, 1, 2].map(i => <span key={i} className={i <= step ? 'active' : ''} />)}</div>
     {error && <div role="alert" className="error bt-save-error">{error}<button type="button" onClick={() => setRetry(v => v + 1)}>{t('Повторить', 'Retry')}</button></div>}
     <div className="bt-draft-layout"><div className="bt-draft-form">
-      <section className="bt-draft-step bt-draft-roles"><h3><b>1</b> {t('Роль', 'Role')}</h3><p className="muted small-text">{t('Роль задаёт характеристики, навыки и стиль боя', 'The role defines characteristics, skills and combat style')}</p><div className="bt-role-grid">{NPC_ROLES.map(role => <button type="button" className={toneClass('role', role)} key={role} aria-pressed={req.role === role} onClick={() => pickRole(role)}><Icon name={ROLE_ICONS[role]} /><span><strong>{NPC_ROLE_LABELS[role]}</strong><small>{ROLE_HINTS[role].sub}</small></span></button>)}</div></section>
+      <section className="bt-draft-step bt-draft-roles"><h3><b>1</b> {t('Роль', 'Role')}</h3><p className="muted small-text">{t('Роль задаёт характеристики, навыки и стиль боя', 'The role defines characteristics, skills and combat style')}</p><div className="bt-role-grid">{NPC_ROLES.map(role => <button type="button" className={toneClass('role', role)} key={role} aria-pressed={req.role === role} onClick={() => pickRole(role)}><span className="bt-role-icon"><Icon name={ROLE_ICONS[role]} /></span><span><strong>{NPC_ROLE_LABELS[role]}</strong><small>{ROLE_HINTS[role].sub}</small></span></button>)}</div></section>
       <section className="bt-draft-step bt-draft-power"><h3><b>2</b> {t('Тип и сила', 'Type and power')}</h3><KindCards value={req.kind} onChange={kind => set('kind', kind)} /><div className="bt-power-grid">{powerLevels.map(power => <button type="button" key={power} aria-pressed={req.powerLevel === power} onClick={() => set('powerLevel', power)}>{NPC_POWER_LABELS[power]}</button>)}</div></section>
       <section className="bt-draft-step bt-draft-refinements"><h3><b>3</b> {t('Уточнения', 'Refinements')} <small className="muted">{t('необязательно', 'optional')}</small></h3><div className="bt-refinement-grid">
         <label>{t('Система', 'System')}<select value={req.system} onChange={e => set('system', e.target.value as GameSystem)}>{SYSTEMS.map(system => <option key={system} value={system}>{SYSTEM_LABELS[system]}</option>)}</select></label>
@@ -929,16 +946,8 @@ function QuickDraftForm({ req, onRequestChange, onCancel, onCreated, onModeChang
       </div></section>
     </div>
           <aside className="qd-preview bt-draft-preview">
-            <div className="label-line">
-              {t('Предпросмотр', 'Preview')} {previewBusy && <span className="muted small-text">{t('обновляется…', 'updating…')}</span>}
-            </div>
-            {(!preview || !previewCurrent) && <div className="bt-skeleton bt-card-skeleton" aria-label={t('Загрузка предпросмотра', 'Loading preview')} />}
-            {preview && previewCurrent && <div className="qd-preview-card">
-              <div className="npc-card-head"><h3>{preview.name}</h3><span className="muted small-text">
-                {NPC_KIND_LABELS[preview.kind]} · {NPC_ROLE_LABELS[preview.role]} · {SYSTEM_LABELS[preview.system]}
-              </span></div>
-              <NpcCard npc={preview} reference={reference} canAttack={false} />
-            </div>}
+            {(!preview || !previewCurrent) && <><div className="npc-preview-loading">{t('Предпросмотр · обновляется…', 'Preview · updating…')}</div><div className="bt-skeleton bt-card-skeleton" aria-label={t('Загрузка предпросмотра', 'Loading preview')} /></>}
+            {preview && previewCurrent && <NpcEditorSummary npc={preview} index={index} title={t('Предпросмотр', 'Preview')} />}
             {preview && previewCurrent && <><div className="muted small-text">{t('Будет добавлено ролью и стилем', 'Added by role and style')}</div><div className="bt-draft-counts">{[[preview.skills.length, t('навыков', 'skills'), previewSkills.map(s => s.name).join(', ')], [preview.equipment.length, t('предметов', 'items'), preview.equipment.join(', ')], [preview.abilities.length, t('способностей', 'abilities'), preview.abilities.map(a => a.name).join(', ')]].map(([count, label, names]) => <div key={label}><b>{count} {label}</b><small>{names || '—'}</small></div>)}</div></>}
             <button className="primary bt-create-draft-desktop" type="submit" disabled={busy || !previewCurrent}>{t('Создать черновик', 'Create draft')}</button><p className="muted small-text">{t('Откроется редактор. Сохраните NPC после проверки.', 'The editor opens next. Save the NPC after reviewing it.')}</p>
           </aside>

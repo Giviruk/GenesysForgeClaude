@@ -173,7 +173,7 @@ export function ReferencePage({ onNavigate }: { onNavigate: (to: string) => void
   }, [hits])
 
   return (
-    <div className="page">
+    <div className="page reference-page">
       <div className="page-head">
         <h2>{t('Справочник правил', 'Rules reference')}</h2>
         <div className="system-switch">

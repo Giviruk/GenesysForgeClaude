@@ -28,7 +28,7 @@ public class DuplicateNpcHandler(IAppDbContext db) : ICommandHandler<DuplicateNp
             Willpower = src.Willpower,
             Presence = src.Presence,
             WoundThreshold = src.WoundThreshold,
-            StrainThreshold = src.StrainThreshold,
+            StrainThreshold = src.Kind == Domain.NpcKind.Nemesis ? src.StrainThreshold : null,
             Soak = src.Soak,
             MeleeDefense = src.MeleeDefense,
             RangedDefense = src.RangedDefense,

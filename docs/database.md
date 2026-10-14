@@ -481,6 +481,10 @@ User-owned, campaign-linked, or built-in adversaries.
 
 Fields include owner/campaign visibility, `System`, `Kind`, `Role`, characteristics, derived combat stats, `Silhouette`, `Tactics`, free-text talent/equipment arrays and `Tags` (`text[]` in PostgreSQL).
 
+`StrainThreshold` is persisted and exposed only for `Kind = Nemesis`. Create/update/copy
+normalize it to null for rivals/minions. Game Table snapshots and patches apply the same rule;
+manual single participants and player characters retain their own strain thresholds.
+
 `Code` is the stable seed key of a built-in adversary (empty for user NPCs); it — not the display name — identifies the row, so an official profile can be renamed without creating a duplicate (ROT-BEST-01). `Retired` marks a built-in that left the active bestiary of its system (the nine Haunted City profiles, ROT-CLEAN-3.6): it is filtered out of the library list, but stays reachable by id for existing encounters and duplicates. Duplicating a built-in produces user content with an empty `Code` and `Retired = false`.
 
 Indexes:
@@ -759,6 +763,12 @@ Found migrations:
   to `GameParticipants` so distance-band token positions are persisted and shared through the
   existing Game Table realtime invalidation. Non-destructive; existing participants keep nulls and
   continue to use the previous type-based default position.
+
+- `20261014100143_NormalizeNpcStrain` (GEN-V5-13 review) is a data-only cleanup:
+  clears `Npcs.StrainThreshold` for minions/rivals and clears the threshold/current strain of
+  their linked `GameParticipants` and minion groups. Nemeses, PCs and manual single NPCs
+  retain their strain. No tables/columns or entities are removed. `Down` intentionally does
+  not recreate invalid legacy values. The API normalizes create/update/copy and table patches.
 
 Startup behavior:
 

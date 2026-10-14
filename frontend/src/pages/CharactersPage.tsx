@@ -401,7 +401,7 @@ export function CreateCharacterForm({ onCancel, onCreated, campaignId, closedSys
 
   return (
     <div className="modal-backdrop" onClick={onCancel}>
-      <form className="modal" onClick={e => e.stopPropagation()} onSubmit={submit}>
+      <form className="modal character-create-modal" onClick={e => e.stopPropagation()} onSubmit={submit}>
         <h3>{t('Новый персонаж', 'New character')}</h3>
 
         <label>

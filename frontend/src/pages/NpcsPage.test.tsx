@@ -42,9 +42,36 @@ vi.mock('../api/client', () => ({
 
 describe('NpcsPage — встроенный бестиарий', () => {
   beforeEach(() => {
+    vi.clearAllMocks()
     window.history.replaceState(null, '', '/npcs')
     npcMock.mockResolvedValue(builtInDetail)
     referenceMock.mockRejectedValue(new Error('no ref'))
+  })
+  it.each(['minion', 'rival'] as const)('keeps %s strain disabled and saves no hidden threshold', async kind => {
+    const saved = { ...builtInDetail, kind, isMine: true, isBuiltIn: false }
+    npcMock.mockResolvedValue(saved)
+    updateMock.mockResolvedValue({ ...saved, strainThreshold: null })
+    const { container } = render(<NpcsPage openId="b1" edit onOpen={() => {}} onBack={() => {}} />)
+    const strain = await screen.findByLabelText('Усталость', { exact: true }) as HTMLInputElement
+    expect(strain.disabled).toBe(true)
+    expect(strain.value).toBe('')
+    expect(strain.placeholder).toBe('—')
+    fireEvent.submit(container.querySelector('form')!)
+    await waitFor(() => expect(updateMock).toHaveBeenCalledWith('b1', expect.objectContaining({ strainThreshold: null })))
+  })
+  it('keeps nemesis strain editable and places talents with abilities', async () => {
+    const saved = { ...builtInDetail, isMine: true, isBuiltIn: false, talents: ['Тестовый талант'] }
+    npcMock.mockResolvedValue(saved)
+    referenceMock.mockResolvedValue({ skills: [], items: [], qualities: [], talents: [{ name: 'Test talent', nameRu: 'Тестовый талант' }] })
+    const { container } = render(<NpcsPage openId="b1" edit onOpen={() => {}} onBack={() => {}} />)
+    const strain = await screen.findByLabelText('Усталость', { exact: true }) as HTMLInputElement
+    expect(strain.disabled).toBe(false)
+    expect(strain.value).toBe('29')
+    expect(container.querySelector('.bt-section-nav button:nth-child(4) svg')).toBeTruthy()
+    expect(container.querySelector('.bt-section-nav button:nth-child(5) svg')).toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: /^4 · Способности/ }))
+    expect(container.querySelector('#npc-section-3 select[aria-label="Таланты"]')).toBeTruthy()
+    expect(container.querySelector('#npc-section-4 select[aria-label="Таланты"]')).toBeNull()
   })
   it('edits a legacy skill as a reference skill and saves its stable English name', async () => {
     const saved = { ...builtInDetail, isMine: true, isBuiltIn: false,

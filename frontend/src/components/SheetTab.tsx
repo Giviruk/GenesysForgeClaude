@@ -1,12 +1,11 @@
-import { BookReference } from './BookReference'
 import { useState, type CSSProperties } from 'react'
 import { api } from '../api/client'
 import type {
   BaseSheet, CareerSkillSource, CharacterSheet, CheckModifierSource, DefenseBreakdown, Derived, SheetSkill, SkillKind,
 } from '../api/types'
 import {
-  CHARACTERISTICS, CHARACTERISTIC_LABELS, CHARACTERISTIC_SHORT_LABELS, HEROIC_UPGRADE_LABELS,
-  localizedDescription, localizedName, secondaryName, SKILL_KIND_LABELS,
+  CHARACTERISTICS, CHARACTERISTIC_LABELS, CHARACTERISTIC_SHORT_LABELS,
+  localizedName, secondaryName, SKILL_KIND_LABELS,
 } from '../utils/labels'
 import { DicePoolView } from './DicePoolView'
 import { GenesysSymbol } from './GenesysSymbol'
@@ -169,8 +168,6 @@ export function SheetTab({ sheet, onError, refresh, updateBaseOptimistically, re
 
       <CriticalInjuriesSection sheet={sheet} onError={onError} refresh={refresh} readOnly={readOnly} />
 
-      {sheet.system === 'realmsOfTerrinoth' && <HeroicSummary sheet={sheet} />}
-
       <section className={`rd-skills${progress ? ' progress' : ''}`} style={skillStyle}>
         <header className="rd-skills-title"><h3>{t('Навыки', 'Skills')}</h3><span className="rd-heading-line" />
           <div className="rd-skill-legend"><span><i className="rd-career-mark active" />{t('карьерный', 'career')}</span><span><span className="rd-rank-diamonds" aria-hidden="true"><i className="filled" /></span>{t('ранг', 'rank')}</span><span className="ability"><GenesysSymbol kind="ability" decorative /> {t('способность', 'ability')}</span><span className="proficiency"><GenesysSymbol kind="proficiency" decorative /> {t('мастерство', 'proficiency')}</span></div>
@@ -223,80 +220,6 @@ export function SheetTab({ sheet, onError, refresh, updateBaseOptimistically, re
 function statTitle(breakdown: Derived['soakBreakdown'], total: number): string | undefined {
   if (!breakdown) return undefined
   return `${t('Основа', 'Base')} ${breakdown.base}${breakdown.sources.map(x => ` + ${x.sourceName === 'Base' ? t('Базовый бонус', 'Base bonus') : x.sourceName} ${x.value}`).join('')} = ${total}`
-}
-
-/**
- * Краткая сводка героической способности на листе: базовый эффект и только уже купленные
- * улучшения. Полное описание, покупка и настройка живут на отдельной вкладке — лист не должен
- * тонуть в тексте ещё не приобретённых улучшений.
- */
-function HeroicSummary({ sheet }: { sheet: CharacterSheet }) {
-  const h = sheet.heroicAbility
-  const upgrades = sheet.heroicUpgrades
-
-  if (!h) {
-    return (
-      <section className="panel">
-        <h3>{t('Героическая способность', 'Heroic ability')}</h3>
-        <p className="hint">
-          {t('Не выбрана — откройте вкладку «Героика».', 'Not chosen — open the “Heroic” tab.')}
-        </p>
-      </section>
-    )
-  }
-
-  const meta = [
-    upgrades.story ? t('1 очко сюжета', '1 Story Point') : h.activationCost,
-    h.activation,
-    upgrades.durationRanks > 0
-      ? t(`${h.duration} · +${upgrades.durationRanks} ход.`, `${h.duration} · +${upgrades.durationRanks} turn(s)`)
-      : h.duration,
-    upgrades.frequencyRanks > 0
-      ? t(`${1 + upgrades.frequencyRanks} раз за сессию`, `${1 + upgrades.frequencyRanks} times per session`)
-      : h.frequency,
-  ].filter(Boolean).join(' · ')
-
-  const purchased = h.upgrades.filter(u => u.level <= upgrades.powerRank)
-
-  return (
-    <section className="panel">
-      <h3>{t('Героическая способность', 'Heroic ability')}</h3>
-      <div className="heroic heroic-summary">
-        <strong>{sheet.heroicIdentity?.customName || localizedName(h)}</strong>
-        {sheet.heroicIdentity?.customName && (
-          <div className="hint small-text">{t('Эффект:', 'Effect:')} {localizedName(h)}</div>
-        )}
-        {localizedDescription(h) && <p>{localizedDescription(h)}</p>}
-        <BookReference source={h.source} />
-        {meta && <div className="hint small-text">{meta}</div>}
-
-        {purchased.map(u => (
-          <div key={u.level} className="heroic-upgrade bought">
-            <div className="heroic-upgrade-head">
-              <strong>{HEROIC_UPGRADE_LABELS[u.level] ?? t(`Уровень ${u.level}`, `Level ${u.level}`)}</strong>
-            </div>
-            {localizedDescription(u) && <p>{localizedDescription(u)}</p>}
-            <BookReference source={u.source || h.source} />
-          </div>
-        ))}
-
-        {upgrades.secondaryEffects.map(effect => (
-          <div key={effect.id} className="heroic-upgrade bought">
-            <div className="heroic-upgrade-head"><strong>{localizedName(effect)}</strong></div>
-            {localizedDescription(effect) && <p>{localizedDescription(effect)}</p>}
-            <BookReference source={effect.source} />
-          </div>
-        ))}
-
-        {(sheet.heroicIdentityIncomplete || sheet.heroicConfigurationIncomplete) && (
-          <p className="hint small-text">
-            {t('Способность настроена не до конца — откройте вкладку «Героика».',
-              'The ability is not fully set up — open the “Heroic” tab.')}
-          </p>
-        )}
-      </div>
-    </section>
-  )
 }
 
 /**

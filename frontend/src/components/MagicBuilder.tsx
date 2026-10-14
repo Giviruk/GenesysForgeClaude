@@ -597,6 +597,15 @@ export function MagicBuilder({
       </div>
       {selectedEffect && (
         <section className="sheet-result-card sheet-sticky magic-result">
+          <header className="magic-result-plate plate">
+          <h4>{magicSkillLabel(activeSkill)} · {t('магическое действие', 'magic action')}</h4>
+          <div className="spell-detail-head">
+            <h3>{t(selectedEffect.nameRu, selectedEffect.nameEn)} <span className="muted">· {t(selectedEffect.nameEn, selectedEffect.nameRu)}</span></h3>
+            <span className="difficulty-badge big">
+              {t('Сложность:', 'Difficulty:')} {totalDifficulty} · {difficultyLabel(totalDifficulty)}
+            </span>
+          </div>
+          </header>
           {buildInvalid && (
             <div className="damage-warn">
               {shardRequired
@@ -606,13 +615,6 @@ export function MagicBuilder({
                     'Invalid build: a mandatory free effect is missing or conflicts with a selected effect.')}
             </div>
           )}
-          <h4>{magicSkillLabel(activeSkill)} · {t('магическое действие', 'magic action')}</h4>
-          <div className="spell-detail-head">
-            <h3>{t(selectedEffect.nameRu, selectedEffect.nameEn)} <span className="muted">· {t(selectedEffect.nameEn, selectedEffect.nameRu)}</span></h3>
-            <span className="difficulty-badge big">
-              {t('Сложность:', 'Difficulty:')} {totalDifficulty} · {difficultyLabel(totalDifficulty)}
-            </span>
-          </div>
           <div className="difficulty-dice" aria-label={t(`${totalDifficulty} кубов сложности`, `${totalDifficulty} difficulty dice`)}>
             {Array.from({ length: totalDifficulty }).map((_, i) => <GenesysSymbol key={i} kind="difficulty" className="die difficulty" />)}
             {totalDifficulty === 0 && <span className="muted">{t('— (простая проверка)', '— (simple check)')}</span>}

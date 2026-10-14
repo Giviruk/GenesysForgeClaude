@@ -174,7 +174,6 @@ function HeroicAbilityCard({ sheet, reference, run }: {
                 'Upgrades are locked until the ability parameter is chosen.')}
             </p>
           )}
-          <h4>{t('Сила', 'Power')}</h4>
           <div className="heroic-power-level bought"><span className="heroic-level-dot"><Icon name="check" /></span><div><strong>{t('Базовая', 'Basic')}</strong> <small className="muted">{t('есть всегда', 'always available')}</small>{localizedDescription(h) && <p className="small-text muted"><RuleText symbolsOnly text={localizedDescription(h)} /></p>}</div></div>
           {h.upgrades.map(u => {
             const purchased = rank >= u.level
@@ -210,7 +209,7 @@ function HeroicAbilityCard({ sheet, reference, run }: {
             )
           })}
 
-          <h4>{t('Параметры', 'Parameters')}</h4>
+          <h4 className="heroic-parameters-title sheet-section-title">{t('Параметры', 'Parameters')}</h4>
           <div className="heroic-upgrade tone-blue">
             <div className="heroic-upgrade-head">
               <strong>{t('Длительность', 'Duration')}</strong>

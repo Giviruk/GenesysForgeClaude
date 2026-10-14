@@ -72,7 +72,7 @@ test('list/card/editor and wizard fit seven widths in RU and EN without overlapp
       }
       await page.goto(`/npcs/${npc.id}/edit`)
       await expect(page.locator('input[name=npc-name]')).toHaveValue(unique)
-      if (width < 760) await page.getByRole('tab', { name: /Статы|Stats/, exact: true }).click()
+      if (width < 760) await page.getByRole('tab', { name: /Характеристики|Characteristics/, exact: true }).click()
       await noOverlap(page, '.bt-stat-grid .sheet-stepper', 6)
       await noOverlap(page, '.bt-derived-grid', 1)
       await fits(page)
@@ -80,7 +80,7 @@ test('list/card/editor and wizard fit seven widths in RU and EN without overlapp
       await page.goto('/npcs/new?mode=draft')
       await expect(page.locator('.bt-role-grid > button')).toHaveCount(9)
       await fits(page)
-      await expect(page.locator('.bt-draft-preview .npc-card')).toBeAttached()
+      await expect(page.locator('.bt-draft-preview .npc-editor-summary')).toBeAttached()
       if (width === 1280 && lang === 'ru') await page.screenshot({ path: '../.tmp/bestiary-draft-1280.png', fullPage: true })
       if (width === 390 && lang === 'ru') await page.screenshot({ path: '../.tmp/bestiary-draft-390.png', fullPage: true })
     }
@@ -132,7 +132,7 @@ test('quick draft uses actual preview, saves only from manual editor, honors min
   expect((await api<NpcDetail[]>(request, '/api/npcs/')).length).toBe(before.length)
   // Armor bonuses become available when the editor's reference has loaded.
   await expect.poll(() => page.locator('.bt-skill-edit select').first().locator('option').count()).toBeGreaterThan(2)
-  await page.getByRole('tab', { name: 'Статы', exact: true }).click()
+  await page.getByRole('tab', { name: 'Характеристики', exact: true }).click()
   await expect(page.getByLabel('Усталость', { exact: true })).toBeDisabled()
   const soak = Number(await page.getByLabel('Поглощение', { exact: true }).inputValue())
   await page.getByRole('button', { name: 'Увеличить: Сила' }).click()
@@ -277,8 +277,8 @@ test('talents have one removable list with descriptions and can be added again',
     await page.goto(`/npcs/${copy.id}/edit`)
     await expect(page.getByLabel('Имя', { exact: true })).toHaveValue(copy.name)
     if (width < 760) await page.getByRole('tab', { name: 'Ещё', exact: true }).click()
-    await page.locator('#npc-section-4 .bt-accordion').click()
-    const editor = page.locator('#npc-section-4 .list-editor').first()
+    await page.locator('#npc-section-3 .bt-accordion').click()
+    const editor = page.locator('#npc-section-3 .list-editor').filter({ has: page.getByLabel('Таланты', { exact: true }) })
     await expect(editor.getByRole('button', { name: talentName, exact: true })).toHaveCount(1)
     await expect(editor.locator('.chip.removable')).toHaveCount(0)
     await editor.getByRole('button', { name: talentName, exact: true }).click()

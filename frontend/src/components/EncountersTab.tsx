@@ -138,7 +138,9 @@ export function EncountersTab({
                 <span className="enc-row-main">
                   <span className="enc-row-title">{e.name}</span>
                   <span className="enc-row-meta muted">
-                    {ENCOUNTER_TYPE_LABELS[e.type]} · {THREAT_LEVEL_LABELS[e.threatLevel]} · {t('участников:', 'participants:')} {e.participantCount}
+                    <span className={`badge ${toneClass('scene', e.type)}`}>{ENCOUNTER_TYPE_LABELS[e.type]}</span>
+                    <span className={`enc-threat${e.threatLevel === 'deadly' ? ' deadly' : ''}`} aria-hidden="true">{Array.from({ length: 4 }, (_, i) => <i key={i} className={i < THREAT_LEVELS.indexOf(e.threatLevel) ? 'filled' : ''} />)}</span>
+                    <span>{THREAT_LEVEL_LABELS[e.threatLevel]} · {t('участников:', 'participants:')} {e.participantCount}</span>
                   </span>
                   {(e.tags.length > 0 || !e.isVisibleToPlayers) && (
                     <span className="tag-row">
@@ -255,8 +257,8 @@ function EncounterEditor({ encounterId, isGm, members, onBack, onChanged, onSent
             <InitiativePreview enc={enc} />
           </div>
           <div className="enc-builder-row">
-            <QuickBuildPanel enc={enc} onRun={run} />
             <EncounterNotesPanel key={`notes-${enc.updatedAt}`} enc={enc} onRun={run} />
+            <QuickBuildPanel enc={enc} onRun={run} />
           </div>
         </>
       ) : (
