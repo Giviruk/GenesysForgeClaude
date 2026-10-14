@@ -5385,6 +5385,7 @@ button.rd-switch:not(.linklike):not(.back-link) { min-height:1.25rem; justify-co
   .shop-row-icon svg { width:18px; height:18px; }
   .shop-row-head .shop-row-actions { grid-column:2; display:flex; flex-direction:row; flex-wrap:wrap; justify-content:flex-start; gap:6px; margin:4px 0 0; }
   .shop-row-actions :is(button,select) { width:auto; max-width:100%; min-height:24px; height:24px; padding:2px 6px; font-size:12px; }
+  .shop-row-actions select,.damage-select { padding-right:36px; }
 
   /* D-26…33: unbroken magic labels, original glyphs and short heroic metadata. */
   .magic-actions .sheet-choice-card { overflow-wrap:normal; hyphens:auto; }

@@ -470,6 +470,32 @@ describe('GameTableTab — статблок и броски NPC', () => {
     ))
   })
 
+  it('disables participant flags until the preceding mutation is saved, then accepts the next flag', async () => {
+    const initial = { ...session, participants: [playerParticipant] }
+    const wounded = applyParticipantPatch(initial, 'participant-pc', { woundsCurrent: 2 })
+    let finishWound!: (value: GameSession) => void
+    sessionMock.mockResolvedValue(initial)
+    updateParticipantMock
+      .mockImplementationOnce(() => new Promise<GameSession>(resolve => { finishWound = resolve }))
+      .mockResolvedValueOnce(applyParticipantPatch(wounded, 'participant-pc', { isHiddenFromPlayers: true }))
+    render(<GameTableTab campaignId="campaign-1" isGm members={[ownMember]} />)
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Добавить рану Элира' }))
+    const hidden = screen.getByRole('checkbox', { name: 'скрыт' }) as HTMLInputElement
+    const defeated = screen.getByRole('checkbox', { name: 'повержен' }) as HTMLInputElement
+    expect(hidden.disabled).toBe(true)
+    expect(defeated.disabled).toBe(true)
+
+    await act(async () => { finishWound(wounded) })
+    await waitFor(() => expect(hidden.disabled).toBe(false))
+    expect(defeated.disabled).toBe(false)
+    fireEvent.click(hidden)
+    await waitFor(() => expect(updateParticipantMock).toHaveBeenLastCalledWith(
+      'campaign-1', 'participant-pc', { isHiddenFromPlayers: true },
+    ))
+    await waitFor(() => expect(hidden.checked).toBe(true))
+  })
+
   it('позволяет мастеру удалить NPC и персонажа прямо с их карточек', async () => {
     sessionMock.mockResolvedValue({ ...session, participants: [session.participants[0], playerParticipant] })
     vi.spyOn(window, 'confirm').mockReturnValue(true)

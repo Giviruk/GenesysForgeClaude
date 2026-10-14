@@ -734,9 +734,9 @@ function ParticipantCard({ p, campaignId, isGm, canEditVitals, onRun, onUpdatePa
           onClick={stop(() => update({ setbackDice: p.setbackDice + 1 }))}><Icon name="plus" className="button-icon" /><span className="visually-hidden">+</span></button>
       </div>
       <div className="participant-card-footer" onClick={e => e.stopPropagation()}>
-        {isGm && <label><input type="checkbox" checked={p.isDefeated}
+        {isGm && <label><input type="checkbox" checked={p.isDefeated} disabled={updatePending}
           onChange={e => update({ isDefeated: e.target.checked })} />{t('повержен', 'defeated')}</label>}
-        {isGm && <label><input type="checkbox" checked={p.isHiddenFromPlayers}
+        {isGm && <label><input type="checkbox" checked={p.isHiddenFromPlayers} disabled={updatePending}
           onChange={e => update({ isHiddenFromPlayers: e.target.checked })} />{t('скрыт', 'hidden')}</label>}
         <span className="participant-card-actions">
           {onOpen && <button type="button" className="tiny" onClick={onOpenNpc ?? onOpenCharacter}>

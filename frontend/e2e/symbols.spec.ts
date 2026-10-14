@@ -54,7 +54,9 @@ for (const lang of ['ru', 'en'] as const) {
       await page.goto('/npcs/symbol-preview')
       await expect(page.getByRole('heading', { name: npc.name, exact: true })).toBeVisible()
       await expect(page.locator('.npc-card')).toBeVisible()
-      await expect(page.getByText(lang === 'ru' ? 'Сила' : 'Brawn', { exact: true })).toBeVisible()
+      const brawnLabel = page.locator('.bt-card-chars').getByTitle(lang === 'ru' ? 'Сила' : 'Brawn', { exact: true })
+      await expect(brawnLabel).toBeVisible()
+      await expect(brawnLabel).toHaveText(lang === 'ru' ? 'Сил' : 'Br')
       await expect(page.locator('.npc-skill-name').filter({ hasText: lang === 'ru' ? 'Грубая сила' : 'Brawl' })).toBeVisible()
       await expect(page.locator('.npc-skill-name').filter({ hasText: lang === 'ru' ? 'Дальний бой (лёгкое оружие)' : 'Ranged (Light)' })).toBeVisible()
 
