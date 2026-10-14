@@ -1,5 +1,4 @@
 import { expect, test, type APIRequestContext, type Locator, type Page } from '@playwright/test'
-import { writeFileSync } from 'node:fs'
 import type { GameSession, NpcDetail, Reference } from '../src/api/types'
 
 let token: string
@@ -23,6 +22,7 @@ async function fits(page: Page) {
 }
 async function rect(locator: Locator) {
   await expect(locator).toBeVisible()
+  await locator.evaluate(() => document.fonts.ready.then(() => undefined))
   return (await locator.boundingBox())!
 }
 async function sheetTab(page: Page, key: string, label: string) {
@@ -53,6 +53,8 @@ test.beforeAll(async ({ request }) => {
   })).id
   await api(request, `/api/characters/${characterId}`, { totalXp: 800, money: 10000, desire: 'Защитить путешественников', fear: 'Потерять друзей', strength: 'Терпение', flaw: 'Упрямство', background: 'Собственный тестовый персонаж для приёмки интерфейса.' }, 'PATCH')
   await api(request, `/api/characters/${characterId}/items`, { itemDefId: weapon.id, quantity: 1, state: 'equipped', free: true })
+  const inventory = await api<{ items: Array<{ id: string }> }>(request, `/api/characters/${characterId}`)
+  await api(request, `/api/characters/${characterId}/items/${inventory.items[0].id}/damage-state`, { state: 'minor' }, 'PUT')
   await api(request, `/api/characters/${characterId}/notes`, { title: 'Заметка экспедиции', body: 'Собственный текст проверки.' })
   for (const nameRu of ['След от царапины', 'Ушиб плеча']) await api(request, `/api/characters/${characterId}/critical-injuries`, { nameRu, severity: 'Лёгкая', notes: 'Тест интерфейса.' })
   await api(request, `/api/characters/${characterId}/heroic-ability`, { heroicAbilityId: reference.heroicAbilities.find(h => h.code === 'rot.heroic.influential')!.id }, 'PUT')
@@ -81,7 +83,6 @@ test.beforeAll(async ({ request }) => {
     gmDescription: 'Собственные заметки мастера.', playerDescription: 'Мост закрыт караулом.', playerGoals: 'Договориться о проходе.', npcGoals: 'Охранять мост.', location: 'Северный мост', environment: 'Горный перевал', complications: 'Тестовое осложнение.', rewards: 'Тестовая награда.', tags: ['приёмка'],
   })).id
   await api(request, `/api/encounters/${encounterId}/participants`, { npcId, participantType: 'npc', count: 1 })
-  writeFileSync('/tmp/genesys-v5-followup-fixture.json', JSON.stringify({ email, password, characterId, campaignId, encounterId, npcId }))
 })
 
 for (const language of ['ru', 'en']) {
@@ -122,6 +123,9 @@ for (const language of ['ru', 'en']) {
       await noOverlap(page.locator('.crafting-project>.sheet-card-heading'))
       await expect(page.locator('.crafting-spends')).toHaveCount(2)
       await expect(page.locator('.crafting-row')).toHaveCount(craftSpendCount)
+      if (width === 375) {
+        for (const chip of await page.locator('.crafting-costs>.chip').all()) expect((await rect(chip)).height).toBeGreaterThanOrEqual(44)
+      }
       await sheetTab(page, 'bio', l('Образ и заметки', 'Bio and notes'))
       if (width > 900) {
         const identity = await rect(page.locator('.bio-identity'))
@@ -131,6 +135,16 @@ for (const language of ['ru', 'en']) {
       await page.getByLabel(l('Стремление', 'Desire'), { exact: true }).click()
       await expect(page.getByLabel(l('Стремление', 'Desire'), { exact: true })).toHaveCSS('outline-style', 'none')
       await noOverlap(page.locator('.bio-save'))
+      await page.locator('.bio-notes').getByRole('button', { name: l('Новая', 'New'), exact: true }).click()
+      await page.locator('.bio-notes .note-editor input').press('Tab')
+      await expect(page.locator('.bio-notes .note-editor textarea')).toBeFocused()
+      await expect(page.locator('.bio-notes .note-editor textarea')).toHaveCSS('outline-width', '2px')
+      await fits(page)
+      await page.goto(`/campaigns/${campaignId}/characters/${characterId}`)
+      await sheetTab(page, 'inventory', l('Инвентарь', 'Inventory'))
+      expect((await rect(page.locator('.inv-card-title').first())).width).toBeGreaterThan(75)
+      await expect(page.locator('.inv-card-head>.damage-badge')).toBeVisible()
+      await noOverlap(page.locator('.inv-card-head'))
       await fits(page)
     }
     await page.goto('/magic')
@@ -170,6 +184,27 @@ for (const language of ['ru', 'en']) {
       await expect(page.locator('.roll-entry')).toContainText('Элира')
       await expect(page.locator('.roll-entry-result')).toContainText(l('Успех', 'Success'))
       await expect(page.locator('.roll-entry time')).toBeVisible()
+      if (width === 375) {
+        for (const control of await page.locator('.init-row>button,.participant-remove-button').all()) {
+          const box = await rect(control)
+          expect(box.width).toBeGreaterThanOrEqual(44)
+          expect(box.height).toBeGreaterThanOrEqual(44)
+        }
+        const pc = page.locator('.participant-control-card').filter({ has: page.getByRole('button', { name: l('Добавить рану Элира — хранительница перевала', 'Add wound to Элира — хранительница перевала'), exact: true }) })
+        const currentWounds = Number((await pc.locator('.participant-vital').first().innerText()).split('/')[0].trim())
+        await pc.getByRole('button', { name: l('Добавить рану Элира — хранительница перевала', 'Add wound to Элира — хранительница перевала'), exact: true }).press('Enter')
+        await expect(pc.locator('.participant-vital').first()).toContainText(`${currentWounds + 1} /`)
+        const removeWound = pc.getByRole('button', { name: l('Убрать рану у Элира — хранительница перевала', 'Remove wound from Элира — хранительница перевала'), exact: true })
+        await expect(removeWound).toBeEnabled()
+        await removeWound.press('Space')
+        await expect(pc.locator('.participant-vital').first()).toContainText(`${currentWounds} /`)
+        await pc.getByRole('checkbox', { name: l('скрыт', 'hidden'), exact: true }).press('Space')
+        await expect(pc.getByRole('checkbox', { name: l('скрыт', 'hidden'), exact: true })).toBeChecked()
+        await expect(page.getByRole('dialog')).toHaveCount(0)
+        await expect(pc.getByRole('checkbox', { name: l('скрыт', 'hidden'), exact: true })).toBeEnabled()
+        await pc.getByRole('checkbox', { name: l('скрыт', 'hidden'), exact: true }).press('Space')
+        await expect(pc.getByRole('checkbox', { name: l('скрыт', 'hidden'), exact: true })).not.toBeChecked()
+      }
       await fits(page)
     }
   })

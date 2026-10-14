@@ -500,6 +500,7 @@ function NpcEditor({ initial, savedId, dirty, onCancel, onSaved, onChange, onKin
   const [initialForm] = useState(initial)
   const reference = loaded?.system === form.system ? loaded.data : null
   const weaponMap = useMemo(() => weaponsByLabel(reference), [reference])
+  const index = useMemo(() => skillIndex(reference), [reference])
   const naturalSoak = !savedId && reference ? Math.max(0, initialForm.soak - suggestedNpcSoak(initialForm, reference)) : 0
   const minion = form.kind === 'minion'
   const hasStrain = form.kind === 'nemesis'
@@ -547,7 +548,6 @@ function NpcEditor({ initial, savedId, dirty, onCancel, onSaved, onChange, onKin
     if (busy || !form.name.trim()) return
     setBusy(true); setError(null)
     try {
-      const index = skillIndex(reference)
       const payload = { ...form, strainThreshold: hasStrain ? form.strainThreshold : null,
         skills: form.skills.map(s => ({ ...s, name: npcSkillName(s.name, index), ranks: minion ? 0 : s.ranks })) }
       const n = savedId ? await api.updateNpc(savedId, payload) : await api.createNpc(payload)
@@ -572,7 +572,7 @@ function NpcEditor({ initial, savedId, dirty, onCancel, onSaved, onChange, onKin
     requestAnimationFrame(() => document.getElementById(`npc-section-${i}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' }))
   }
   const preview: NpcDetail = { ...form, strainThreshold: hasStrain ? form.strainThreshold : null, id: '', isMine: true, isBuiltIn: false, warnings: [], createdAt: '', updatedAt: '' }
-  const completed = [!!form.name.trim(), true, form.skills.some(s => s.name) || !!form.attacks.length, !!form.abilities.length, !!(form.equipment.length || form.talents.length), !!(form.tactics || form.tags.length || form.source)]
+  const completed = [!!form.name.trim(), true, form.skills.some(s => s.name) || !!form.attacks.length, !!(form.abilities.length || form.talents.length), !!form.equipment.length, !!(form.tactics || form.tags.length || form.source)]
   return <form ref={element} className={`bt-builder bt-manual mobile-tab-${mobileTab}`} onSubmit={submit} onInvalid={e => {
       e.preventDefault()
       if (invalidPending.current) return
@@ -630,14 +630,14 @@ function NpcEditor({ initial, savedId, dirty, onCancel, onSaved, onChange, onKin
         </> : <><label>{t('Тактика (1–3 раунда)', 'Tactics (1–3 rounds)')}<textarea rows={2} value={form.tactics} onChange={e => set('tactics', e.target.value)} /></label><StringListEditor label={t('Теги', 'Tags')} values={form.tags} onChange={v => set('tags', v)} placeholder={t('Тег', 'Tag')} /><label>{t('Источник', 'Source')}<input value={form.source} onChange={e => set('source', e.target.value)} /></label></>}</div>
       </section>)}
     </div>
-    <aside className="bt-manual-preview"><NpcEditorSummary npc={preview} reference={reference} title={t('Карточка NPC', 'NPC card')} /></aside></div>
+    <aside className="bt-manual-preview"><NpcEditorSummary npc={preview} index={index} title={t('Карточка NPC', 'NPC card')} /></aside></div>
     <div className="bt-mobile-save"><button type="button" onClick={() => setPreviewOpen(true)}>{t('Карточка', 'Card')}</button><button className="primary" type="submit" disabled={busy || !form.name.trim()}>{t('Сохранить', 'Save')}</button></div>
     {previewOpen && <NpcInputPreview npc={preview} reference={reference} onClose={() => setPreviewOpen(false)} />}
   </form>
 }
 
-function NpcEditorSummary({ npc, reference, title }: { npc: NpcDetail; reference: Reference | null; title: string }) {
-  const skills = npcSkillViews(npc, skillIndex(reference))
+function NpcEditorSummary({ npc, index, title }: { npc: NpcDetail; index: Map<string, SkillDef>; title: string }) {
+  const skills = npcSkillViews(npc, index)
   return <div className="npc-editor-summary">
     <header className="npc-preview-plate plate"><small>{title}</small><h3>{npc.name.trim() || t('Новый NPC', 'New NPC')}</h3>
       <p>{NPC_KIND_LABELS[npc.kind]} · {NPC_ROLE_LABELS[npc.role]} · {SYSTEM_LABELS[npc.system]}</p></header>
@@ -947,7 +947,7 @@ function QuickDraftForm({ req, onRequestChange, onCancel, onCreated, onModeChang
     </div>
           <aside className="qd-preview bt-draft-preview">
             {(!preview || !previewCurrent) && <><div className="npc-preview-loading">{t('Предпросмотр · обновляется…', 'Preview · updating…')}</div><div className="bt-skeleton bt-card-skeleton" aria-label={t('Загрузка предпросмотра', 'Loading preview')} /></>}
-            {preview && previewCurrent && <NpcEditorSummary npc={preview} reference={reference} title={t('Предпросмотр', 'Preview')} />}
+            {preview && previewCurrent && <NpcEditorSummary npc={preview} index={index} title={t('Предпросмотр', 'Preview')} />}
             {preview && previewCurrent && <><div className="muted small-text">{t('Будет добавлено ролью и стилем', 'Added by role and style')}</div><div className="bt-draft-counts">{[[preview.skills.length, t('навыков', 'skills'), previewSkills.map(s => s.name).join(', ')], [preview.equipment.length, t('предметов', 'items'), preview.equipment.join(', ')], [preview.abilities.length, t('способностей', 'abilities'), preview.abilities.map(a => a.name).join(', ')]].map(([count, label, names]) => <div key={label}><b>{count} {label}</b><small>{names || '—'}</small></div>)}</div></>}
             <button className="primary bt-create-draft-desktop" type="submit" disabled={busy || !previewCurrent}>{t('Создать черновик', 'Create draft')}</button><p className="muted small-text">{t('Откроется редактор. Сохраните NPC после проверки.', 'The editor opens next. Save the NPC after reviewing it.')}</p>
           </aside>

@@ -672,7 +672,7 @@ function ParticipantCard({ p, campaignId, isGm, canEditVitals, onRun, onUpdatePa
     <article className={`pc-card participant-control-card ${toneClass('participant', p.participantType)}${onOpen ? ' clickable' : ''}${p.isDefeated ? ' defeated' : ''}${p.criticalInjuries > 0 ? ' crit' : ''}`}
       role={onOpen ? 'button' : undefined} tabIndex={onOpen ? 0 : undefined} aria-label={label}
       onClick={onOpen}
-      onKeyDown={e => { if (onOpen && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); onOpen() } }}>
+      onKeyDown={e => { if (e.target === e.currentTarget && onOpen && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); onOpen() } }}>
 
       <div className="pc-name">
         <span className="pc-identity">
@@ -688,7 +688,6 @@ function ParticipantCard({ p, campaignId, isGm, canEditVitals, onRun, onUpdatePa
         </span>
       {isGm && <button type="button" className="participant-remove-button"
         aria-label={t(`Удалить ${visibleName} из сцены`, `Remove ${visibleName} from scene`)}
-        onKeyDown={event => event.stopPropagation()}
         onClick={stop(() => {
           if (confirm(t(`Удалить ${visibleName} из сцены?`, `Remove ${visibleName} from the scene?`)))
             void onRun(() => api.removeParticipant(campaignId, p.id))
@@ -908,12 +907,14 @@ function RollSection({ campaignId, isGm, refreshSignal }: { campaignId: string; 
         {rolls.length === 0 && <p className="muted">{t('Бросков пока нет.', 'No rolls yet.')}</p>}
         {rolls.map(r => {
           const symbols = parseSymbols(r.resultJson)
+          const created = new Date(r.createdAt)
+          const today = created.toDateString() === new Date().toDateString()
           return (
           <div key={r.id} className="roll-entry">
             <div className="roll-entry-head"><span className="roll-actor"><strong>{r.actorName}</strong>{r.label && <span className="muted"> · {r.label}</span>}</span>
-              <time dateTime={r.createdAt}>{new Date(r.createdAt).toLocaleTimeString(lang === 'ru' ? 'ru-RU' : 'en-US', { hour: '2-digit', minute: '2-digit' })}</time></div>
-            <div className="roll-entry-result"><RollSymbolsView symbols={symbols} />
-              <span className={`badge ${symbols.success > 0 ? 'tone-green' : 'tone-red'}`}>{symbols.success > 0 ? t('Успех', 'Success') : t('Провал', 'Failure')}</span></div>
+              <time dateTime={r.createdAt}>{created.toLocaleString(lang === 'ru' ? 'ru-RU' : 'en-US', { timeStyle: 'short', ...(today ? {} : { dateStyle: 'short' }) })}</time></div>
+            {symbols && <div className="roll-entry-result"><RollSymbolsView symbols={symbols} />
+              <span className={`badge ${symbols.success > 0 ? 'tone-green' : 'tone-red'}`}>{symbols.success > 0 ? t('Успех', 'Success') : t('Провал', 'Failure')}</span></div>}
             {r.isSecret && <span className="badge tier" title={t('Виден только мастеру', 'Visible only to the GM')}>{t('секретно', 'secret')}</span>}
           </div>
           )
@@ -923,12 +924,14 @@ function RollSection({ campaignId, isGm, refreshSignal }: { campaignId: string; 
   )
 }
 
-function parseSymbols(json: string): RollSymbols {
+function parseSymbols(json: string): RollSymbols | null {
   const empty: RollSymbols = { success: 0, failure: 0, advantage: 0, threat: 0, triumph: 0, despair: 0 }
   try {
-    return { ...empty, ...(JSON.parse(json) as Partial<RollSymbols>) }
+    const result = JSON.parse(json) as Partial<RollSymbols> | null
+    if (!result || !Object.keys(empty).some(key => Object.hasOwn(result, key))) return null
+    return { ...empty, ...result }
   } catch {
-    return empty
+    return null
   }
 }
 

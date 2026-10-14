@@ -59,6 +59,14 @@ public class UpdateParticipantHandler(IAppDbContext db) : ICommandHandler<Update
             if (r.Notes is not null) p.Notes = r.Notes;
             if (r.InitiativeSlotType is { } slot) p.InitiativeSlotType = slot;
         }
+        // Neither old clients nor explicit GM patches may reintroduce strain on a rival/minion.
+        var withoutStrain = p.ParticipantType == ParticipantType.MinionGroup
+            || p.NpcId is { } npcId && await db.Npcs.AnyAsync(n => n.Id == npcId && n.Kind != NpcKind.Nemesis, ct);
+        if (withoutStrain)
+        {
+            p.StrainThreshold = null;
+            p.StrainCurrent = 0;
+        }
         session.UpdatedAt = DateTime.UtcNow;
 
         await db.SaveChangesAsync(ct);

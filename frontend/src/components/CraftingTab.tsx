@@ -472,7 +472,7 @@ function ResolveForm({ project, sheet, onCancel, onResolved, onError }: {
       {project.requirements && <p className="small-text muted">{project.requirements}</p>}
 
       <div className="crafting-symbols">
-        <NumberStepper label={t('Успехи', 'Successes')} glyph={<GenesysSymbol kind="success" decorative />} className="successes" value={successes} onChange={setSuccesses} disabled={busy} />
+        <NumberStepper label={t('Успехи', 'Successes')} hint={t('Итог после отмены успехов провалами. Например, 2 успеха и 2 провала дают 0.', 'Net result after failures cancel successes. For example, 2 successes and 2 failures give 0.')} glyph={<GenesysSymbol kind="success" decorative />} className="successes" value={successes} onChange={setSuccesses} disabled={busy} />
         {(Object.keys(SYMBOL_LABELS) as CraftingSymbol[]).map(symbol => <NumberStepper key={symbol} label={SYMBOL_LABELS[symbol]} glyph={<GenesysSymbol kind={symbol} decorative />} className={symbol} value={symbols[symbol]} min={spent[symbol]} disabled={busy}
           onChange={value => setSymbols(prev => ({ ...prev, [symbol]: value }))} />)}
       </div>
@@ -506,9 +506,12 @@ function ResolveForm({ project, sheet, onCancel, onResolved, onError }: {
       )}
 
       <div className="crafting-table">
-        {[false, true].map(negative => <section key={String(negative)} className={negative ? 'crafting-spends negative' : 'crafting-spends'}>
+        {[false, true].map(negative => {
+          const spends = table.filter(def => def.isNegative === negative)
+          if (spends.length === 0) return null
+          return <section key={String(negative)} className={negative ? 'crafting-spends negative' : 'crafting-spends'}>
           <h5>{negative ? t('Угрозы и крахи — выбирает мастер', 'Threats and Despair — GM chooses') : t('Успехи и преимущества — выбирает игрок', 'Successes and Advantages — player chooses')}</h5>
-        {table.filter(def => def.isNegative === negative).map(def => (
+        {spends.map(def => (
           <div key={def.code} className={`crafting-row${def.isNegative ? ' negative' : ''}${choices.some(c => c.code === def.code) ? ' selected' : ''}`}>
             <span>
               <strong>{t(def.nameRu, def.nameEn)}</strong>
@@ -523,6 +526,7 @@ function ResolveForm({ project, sheet, onCancel, onResolved, onError }: {
               {payments(def).map(([symbol, cost]) => (
                 <button key={symbol} className="chip"
                   aria-label={`${SYMBOL_LABELS[symbol]} ${cost}`}
+                  aria-pressed={choices.some(c => c.code === def.code && c.paidWith === symbol)}
                   disabled={busy || !affordable(def, symbol, cost)}
                   title={t('Оплатить', 'Pay with')}
                   onClick={() => add(def, symbol)}>
@@ -532,7 +536,7 @@ function ResolveForm({ project, sheet, onCancel, onResolved, onError }: {
             </span>
           </div>
         ))}
-        </section>)}
+        </section>})}
       </div>
 
       <div className="price-row">

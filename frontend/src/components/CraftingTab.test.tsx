@@ -100,7 +100,7 @@ const reference = {
 
 /** Кнопка оплаты триумфом в строке таблицы: строки платятся разными символами. */
 const triumphChip = (rowName: string): HTMLButtonElement => {
-  const row = screen.getByText(rowName).closest('.crafting-row')!
+  const row = screen.getAllByText(rowName).map(node => node.closest('.crafting-row')).find(Boolean)!
   return [...row.querySelectorAll('button')]
     .find(b => b.getAttribute('aria-label')?.startsWith('Триумфы ')) as HTMLButtonElement
 }
@@ -228,9 +228,38 @@ describe('Ремесло (ROT-CRAFT-01, ROT-ALCH-02, ROT-CRAFT-MAGIC-01)', () =>
     craftingMock.mockResolvedValue([draft])
     renderTab()
     expect(await screen.findByText(/Провал: предмет не создаётся/)).toBeTruthy()
+    expect(screen.getByRole('spinbutton', { name: 'Успехи' }).getAttribute('aria-description')).toContain('2 успеха и 2 провала дают 0')
 
     fireEvent.change(screen.getByRole('spinbutton', { name: 'Успехи' }), { target: { value: '1' } })
     expect(await screen.findByText(/Успех: предмет будет создан/)).toBeTruthy()
+  })
+
+  it('marks only the symbol paid for repeatable and disabled one-time spends', async () => {
+    craftingMock.mockResolvedValue([draft])
+    renderTab()
+    await screen.findByText('Превосходное')
+    fireEvent.change(screen.getByRole('spinbutton', { name: 'Преимущества' }), { target: { value: '3' } })
+    fireEvent.change(screen.getByRole('spinbutton', { name: 'Триумфы' }), { target: { value: '2' } })
+    const fasterRow = screen.getByText('Сократить время на день').closest('.crafting-row')!
+    const advantage = fasterRow.querySelector<HTMLButtonElement>('button[aria-label="Преимущества 1"]')!
+    fireEvent.click(advantage)
+    expect(advantage.getAttribute('aria-pressed')).toBe('true')
+    expect(triumphChip('Сократить время на день').getAttribute('aria-pressed')).toBe('false')
+    fireEvent.click(triumphChip('Превосходное'))
+    expect(triumphChip('Превосходное').disabled).toBe(true)
+    expect(triumphChip('Превосходное').getAttribute('aria-pressed')).toBe('true')
+    fireEvent.click(screen.getByRole('button', { name: 'Убрать трату: Превосходное' }))
+    expect(triumphChip('Превосходное').getAttribute('aria-pressed')).toBe('false')
+  })
+
+  it.each([false, true])('hides empty spend groups when preview is empty or fails (%s)', async fails => {
+    craftingMock.mockResolvedValue([draft])
+    if (fails) previewMock.mockRejectedValue(new Error('Preview unavailable'))
+    else previewMock.mockResolvedValue({ ...preview, spends: [] })
+    const { container } = renderTab()
+    await screen.findByRole('spinbutton', { name: 'Успехи' })
+    await waitFor(() => expect(previewMock).toHaveBeenCalled())
+    expect(container.querySelectorAll('.crafting-spends')).toHaveLength(0)
   })
 
   it('зачарование требует согласованной способности', async () => {

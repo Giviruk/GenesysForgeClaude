@@ -14,7 +14,7 @@ public static class NpcMapper
     public static NpcDetailDto ToDetail(Npc npc, Guid userId) => new(
         npc.Id, npc.Name, npc.System, npc.Kind, npc.Role, npc.Description, npc.Source,
         npc.Brawn, npc.Agility, npc.Intellect, npc.Cunning, npc.Willpower, npc.Presence,
-        npc.WoundThreshold, npc.StrainThreshold, npc.Soak, npc.MeleeDefense, npc.RangedDefense,
+        npc.WoundThreshold, npc.Kind == NpcKind.Nemesis ? npc.StrainThreshold : null, npc.Soak, npc.MeleeDefense, npc.RangedDefense,
         npc.Silhouette, npc.Tactics,
         npc.Visibility, npc.CampaignId, npc.OwnerUserId == userId, npc.IsBuiltIn,
         npc.Skills.OrderBy(s => s.Name).Select(s => new NpcSkillDto(s.Name, s.Ranks)).ToList(),
@@ -28,7 +28,7 @@ public static class NpcMapper
 
     public static NpcListItemDto ToListItem(Npc npc, Guid userId) => new(
         npc.Id, npc.Name, npc.System, npc.Kind, npc.Role, npc.Silhouette, npc.Soak, npc.WoundThreshold,
-        npc.StrainThreshold, npc.Visibility, npc.CampaignId, npc.OwnerUserId == userId, npc.IsBuiltIn,
+        npc.Kind == NpcKind.Nemesis ? npc.StrainThreshold : null, npc.Visibility, npc.CampaignId, npc.OwnerUserId == userId, npc.IsBuiltIn,
         npc.Skills.OrderBy(s => s.Name).Select(s => new NpcSkillDto(s.Name, s.Ranks)).ToList(),
         npc.Tags, npc.CreatedAt);
 
@@ -85,7 +85,7 @@ public static class NpcMapper
         npc.Willpower = input.Willpower;
         npc.Presence = input.Presence;
         npc.WoundThreshold = input.WoundThreshold;
-        npc.StrainThreshold = input.Kind == NpcKind.Minion ? null : input.StrainThreshold;
+        npc.StrainThreshold = input.Kind == NpcKind.Nemesis ? input.StrainThreshold : null;
         npc.Soak = input.Soak;
         npc.MeleeDefense = input.MeleeDefense;
         npc.RangedDefense = input.RangedDefense;

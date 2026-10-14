@@ -128,6 +128,34 @@ describe('GameTableTab — статблок и броски NPC', () => {
     expect(screen.getByText('Быстрые действия')).toBeTruthy()
   })
 
+  it('keeps ability activations free of result badges and dates older rolls', async () => {
+    const today = new Date().toISOString()
+    rollsMock.mockResolvedValue([
+      { id: 'activation', actorName: 'GM', label: 'Активация без проверки', poolJson: '{}', resultJson: '{}', createdAt: today },
+      { id: 'zero-roll', actorName: 'GM', label: 'Настоящий нулевой бросок', poolJson: '{}', resultJson: '{"success":0,"failure":0}', createdAt: today },
+      { id: 'past-roll', actorName: 'GM', label: 'Старый бросок', poolJson: '{}', resultJson: '{"success":1}', createdAt: '2020-03-02T10:15:00Z' },
+    ])
+    render(<GameTableTab campaignId="campaign-1" isGm members={[]} />)
+    const activation = (await screen.findByText(/Активация без проверки/)).closest('.roll-entry')!
+    expect(within(activation as HTMLElement).queryByText('Провал')).toBeNull()
+    expect(activation.querySelector('.roll-entry-result')).toBeNull()
+    const zero = screen.getByText(/Настоящий нулевой бросок/).closest('.roll-entry')!
+    expect(within(zero as HTMLElement).getByText('Провал')).toBeTruthy()
+    expect(zero.querySelector('time')?.textContent).toMatch(/^\d{1,2}:\d{2}$/)
+    const past = screen.getByText(/Старый бросок/).closest('.roll-entry')!
+    expect(past.querySelector('time')?.textContent).toContain('02.03.2020')
+  })
+
+  it.each(['Enter', ' '])('opens the card only when the card itself receives %s', async key => {
+    render(<GameTableTab campaignId="campaign-1" isGm members={[]} />)
+    const card = await screen.findByRole('button', { name: 'Открыть статблок NPC Гоблины' })
+    const controls = card.querySelectorAll('button,input')
+    for (const control of controls) fireEvent.keyDown(control, { key })
+    expect(npcMock).not.toHaveBeenCalled()
+    fireEvent.keyDown(card, { key })
+    await waitFor(() => expect(npcMock).toHaveBeenCalledWith('npc-1'))
+  })
+
   it('сохраняет позиции трекера дистанций при повторном открытии игрового стола', async () => {
     const rangeSession = { ...session, participants: [playerParticipant, session.participants[0]] }
     const restoredSession = {

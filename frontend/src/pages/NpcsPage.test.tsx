@@ -67,6 +67,8 @@ describe('NpcsPage — встроенный бестиарий', () => {
     const strain = await screen.findByLabelText('Усталость', { exact: true }) as HTMLInputElement
     expect(strain.disabled).toBe(false)
     expect(strain.value).toBe('29')
+    expect(container.querySelector('.bt-section-nav button:nth-child(4) svg')).toBeTruthy()
+    expect(container.querySelector('.bt-section-nav button:nth-child(5) svg')).toBeNull()
     fireEvent.click(screen.getByRole('button', { name: /^4 · Способности/ }))
     expect(container.querySelector('#npc-section-3 select[aria-label="Таланты"]')).toBeTruthy()
     expect(container.querySelector('#npc-section-4 select[aria-label="Таланты"]')).toBeNull()
