@@ -52,7 +52,8 @@ scope сессии/encounter и единый check context: их нет в пр�
 
 - [~] **GEN-V5-13** — 30 замечаний визуальной приёмки от 14.10.2026:
   лист, магия, героика, ремесло, образ, кампании/стол, NPC, магазин и справочник.
-  [План](gen-v5-13-ui-followup.md). Реализовано и проверено: 669 Vitest, 45 Playwright, lint/build.
+  [План](gen-v5-13-ui-followup.md). Реализовано; исправлены 15 замечаний ревью: 675 Vitest,
+  773 Domain, 959 API, 2 PostgreSQL migration tests, 45 Playwright, lint/build.
   [Отчёт и снимки](../../docs/redesign-v5-ui-followup.md), [PR #295](https://github.com/Giviruk/GenesysForgeClaude/pull/295); `[x]` ставится после слияния PR.
 
 - [~] **GEN-UI-SYMBOLS** — формы игровых символов через локальный Genesys Glyphs and Dice
@@ -279,6 +280,16 @@ ROT-TAL-05, ROT-HA-08/10, ROT-MAG-05/07/08 и ROT-EQP-AMMO-01 — всем, чт
 План: [gen-v5-13-ui-followup.md](gen-v5-13-ui-followup.md),
 отчёт: [redesign-v5-ui-followup.md](../../docs/redesign-v5-ui-followup.md).
 Статус GEN-V5-13 остаётся [~] до слияния [PR #295](https://github.com/Giviruk/GenesysForgeClaude/pull/295).
+
+Ревью #295: устранены 13 инлайн-замечаний и два общих. Сетка инвентаря ограничена
+карточками с иконкой; клавиатурные действия участника не открывают лист; журнал различает
+активацию и бросок, показывает дату старых записей. Исправлены галочки/индекс навыков NPC,
+фокус заметок, мобильные кнопки, выбор оплаченного символа и пояснение нетто-успехов.
+CSS объединён с правилами компонентов, мёртвые стили и запись credentials в /tmp удалены.
+Правило усталости только немезиды применено на сервере; data-only миграция
+`20261014100143_NormalizeNpcStrain` очищает legacy-пороги NPC/участников и сохраняет сущности.
+Оба PostgreSQL Up/Down теста прошли отдельно; 773 Domain, 959 API, 675 Vitest,
+45 Playwright RU/EN, lint/build и EF без pending model changes.
 
 ### GEN-V5-01–12: редизайн всего сервиса
 
