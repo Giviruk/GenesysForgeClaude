@@ -208,7 +208,7 @@ describe('Ремесло (ROT-CRAFT-01, ROT-ALCH-02, ROT-CRAFT-MAGIC-01)', () =>
     renderTab()
     await screen.findByText('Разрешить проект')
 
-    fireEvent.change(screen.getByRole('spinbutton', { name: 'Нетто-успехов' }), { target: { value: '2' } })
+    fireEvent.change(screen.getByRole('spinbutton', { name: 'Успехи' }), { target: { value: '2' } })
     fireEvent.change(screen.getByRole('spinbutton', { name: 'Триумфы' }), { target: { value: '1' } })
     fireEvent.click(triumphChip('Превосходное'))
     fireEvent.click(screen.getByText('Разрешить проект'))
@@ -229,7 +229,7 @@ describe('Ремесло (ROT-CRAFT-01, ROT-ALCH-02, ROT-CRAFT-MAGIC-01)', () =>
     renderTab()
     expect(await screen.findByText(/Провал: предмет не создаётся/)).toBeTruthy()
 
-    fireEvent.change(screen.getByRole('spinbutton', { name: 'Нетто-успехов' }), { target: { value: '1' } })
+    fireEvent.change(screen.getByRole('spinbutton', { name: 'Успехи' }), { target: { value: '1' } })
     expect(await screen.findByText(/Успех: предмет будет создан/)).toBeTruthy()
   })
 

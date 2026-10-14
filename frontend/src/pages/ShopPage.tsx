@@ -456,6 +456,7 @@ function ProductModal({ product, character, qualityDefinitions, onClose }: {
           )}
         </div>
 
+        <p className="shop-modal-character">{t('Персонаж', 'Character')}: <strong>{character?.name ?? t('Не выбран', 'Not selected')}</strong></p>
         <div className="shop-modal-options">
           {isImplement && (
             <label>
@@ -486,7 +487,6 @@ function ProductModal({ product, character, qualityDefinitions, onClose }: {
           )}
 
           <div className="shop-modal-buyer">
-            <p>{t('Персонаж', 'Character')}: <strong>{character?.name ?? t('Не выбран', 'Not selected')}</strong></p>
             {!attachment && !mount && (
               <label>
                 {t('Количество', 'Quantity')}

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type FormEvent } from 'react'
+import { Fragment, useEffect, useMemo, useState, type FormEvent } from 'react'
 import { api } from '../api/client'
 import type { CharacterSheet, RuleTableEntry } from '../api/types'
 import { t } from '../i18n'
@@ -89,12 +89,14 @@ export function CriticalInjuriesSection({ sheet, onError, refresh, readOnly = fa
 
       {injuries.length === 0 && <p className="muted">{t('Ранений нет.', 'No injuries.')}</p>}
       <div className="crit-list">
-        {injuries.map(ci => {
+        {injuries.map((ci, index) => {
           const rule = rulesByCode.get(ci.ruleCode ?? '')
           const effect = ci.effect || rule?.body
           const effectEn = ci.effectEn || rule?.bodyEn || effect
           return (
-            <div key={ci.id} className="crit-item">
+            <Fragment key={ci.id}>
+              {index > 0 && <div className="crit-ornament" aria-hidden="true"><i /><i /><i /></div>}
+            <div className="crit-item">
               <div className="crit-item-main">
                 <div className="crit-item-label">
                   {ci.severity && <span className="badge tier">{ci.severity}</span>}
@@ -111,6 +113,7 @@ export function CriticalInjuriesSection({ sheet, onError, refresh, readOnly = fa
               </div>
               {!readOnly && <button className="danger small" onClick={() => void remove(ci.id, ci.nameRu)}>{t('Снять', 'Remove')}</button>}
             </div>
+            </Fragment>
           )
         })}
       </div>

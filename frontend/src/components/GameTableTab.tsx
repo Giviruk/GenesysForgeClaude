@@ -12,7 +12,7 @@ import { SLOT_TYPE_LABELS } from '../utils/labels'
 import { RollSymbolsView, type RollLogRequest } from './DiceRoller'
 import type { RollSymbols } from '../utils/diceRoller'
 import { useDiceRoller } from '../dice-roller-store'
-import { t } from '../i18n'
+import { lang, t } from '../i18n'
 import { RANGE_LABELS } from '../utils/labels'
 import { GameTableNpcStatblock } from './GameTableNpcStatblock'
 import { applyParticipantPatch, participantNameWithCount, participantRollPool } from '../utils/gameTable'
@@ -417,12 +417,6 @@ function RangeBandTracker({ campaignId, session, isGm, members, onRun }: {
         <h3>{t('Дистанции и позиции', 'Ranges and positions')}</h3>
         <span className="muted small-text">{t('синхронизировано с игровым столом', 'synced with the game table')}</span>
       </div>
-      <div className="ring-focus-switch">
-        <span className="muted small-text">{t('Показать расстояния от:', 'Show distances from:')}</span>
-        {participants.map(p => <button type="button" key={p.id}
-          className={focus?.id === p.id ? 'tiny active' : 'tiny'}
-          onClick={() => setFocusParticipantId(p.id)}>{participantNameWithCount(p)}</button>)}
-      </div>
       <div ref={rangeBoardRef} data-testid="range-board" className={`range-rings${dragId ? ' dragging' : ''}`}
         onPointerMove={continueDrag} onPointerUp={finishDrag} onPointerCancel={cancelDrag}>
         <div className="range-cell-grid" aria-hidden="true" />
@@ -679,12 +673,7 @@ function ParticipantCard({ p, campaignId, isGm, canEditVitals, onRun, onUpdatePa
       role={onOpen ? 'button' : undefined} tabIndex={onOpen ? 0 : undefined} aria-label={label}
       onClick={onOpen}
       onKeyDown={e => { if (onOpen && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); onOpen() } }}>
-      {isGm && <button type="button" className="participant-remove-button"
-        aria-label={t(`Удалить ${visibleName} из сцены`, `Remove ${visibleName} from scene`)}
-        onClick={stop(() => {
-          if (confirm(t(`Удалить ${visibleName} из сцены?`, `Remove ${visibleName} from the scene?`)))
-            void onRun(() => api.removeParticipant(campaignId, p.id))
-        })}>×</button>}
+
       <div className="pc-name">
         <span className="pc-identity">
           {portraitUrl && <img className="participant-portrait" src={portraitUrl}
@@ -697,6 +686,13 @@ function ParticipantCard({ p, campaignId, isGm, canEditVitals, onRun, onUpdatePa
             {p.participantType === 'playerCharacter' ? 'PC' : 'NPC'}
           </span>
         </span>
+      {isGm && <button type="button" className="participant-remove-button"
+        aria-label={t(`Удалить ${visibleName} из сцены`, `Remove ${visibleName} from scene`)}
+        onKeyDown={event => event.stopPropagation()}
+        onClick={stop(() => {
+          if (confirm(t(`Удалить ${visibleName} из сцены?`, `Remove ${visibleName} from the scene?`)))
+            void onRun(() => api.removeParticipant(campaignId, p.id))
+        })}>×</button>}
       </div>
       <div className="pc-stats">
         <div className="mini-stat">{t('Погл.', 'Soak')} <b>{p.soak}</b></div>
@@ -910,13 +906,18 @@ function RollSection({ campaignId, isGm, refreshSignal }: { campaignId: string; 
       {error && <div className="error">{error}</div>}
       <div className="roll-log">
         {rolls.length === 0 && <p className="muted">{t('Бросков пока нет.', 'No rolls yet.')}</p>}
-        {rolls.map(r => (
+        {rolls.map(r => {
+          const symbols = parseSymbols(r.resultJson)
+          return (
           <div key={r.id} className="roll-entry">
-            <span className="roll-actor"><strong>{r.actorName}</strong>{r.label && <span className="muted"> · {r.label}</span>}</span>
-            <RollSymbolsView symbols={parseSymbols(r.resultJson)} />
+            <div className="roll-entry-head"><span className="roll-actor"><strong>{r.actorName}</strong>{r.label && <span className="muted"> · {r.label}</span>}</span>
+              <time dateTime={r.createdAt}>{new Date(r.createdAt).toLocaleTimeString(lang === 'ru' ? 'ru-RU' : 'en-US', { hour: '2-digit', minute: '2-digit' })}</time></div>
+            <div className="roll-entry-result"><RollSymbolsView symbols={symbols} />
+              <span className={`badge ${symbols.success > 0 ? 'tone-green' : 'tone-red'}`}>{symbols.success > 0 ? t('Успех', 'Success') : t('Провал', 'Failure')}</span></div>
             {r.isSecret && <span className="badge tier" title={t('Виден только мастеру', 'Visible only to the GM')}>{t('секретно', 'secret')}</span>}
           </div>
-        ))}
+          )
+        })}
       </div>
     </section>
   )

@@ -72,6 +72,6 @@ export function BioTab({ sheet, onError, refresh, onPortraitClick, readOnly = fa
         <span role="status" className={dirty ? 'warn-text small-text icon-text' : 'muted small-text icon-text'}><Icon name={dirty ? 'point-filled' : 'check'} className="button-icon" />
           {dirty ? t('Есть несохранённые изменения', 'Unsaved changes') : saved ? t('Сохранено', 'Saved') : t('Все изменения сохранены', 'All changes saved')}</span></div>}
     </form>
-    {!readOnly && onError && <aside className="sheet-sticky"><NotesTab key={sheet.id} characterId={sheet.id} onError={onError} /></aside>}
+    {!readOnly && onError && <aside className="bio-notes"><NotesTab key={sheet.id} characterId={sheet.id} onError={onError} /></aside>}
   </div>
 }

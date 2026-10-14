@@ -72,7 +72,7 @@ test('list/card/editor and wizard fit seven widths in RU and EN without overlapp
       }
       await page.goto(`/npcs/${npc.id}/edit`)
       await expect(page.locator('input[name=npc-name]')).toHaveValue(unique)
-      if (width < 760) await page.getByRole('tab', { name: /Статы|Stats/, exact: true }).click()
+      if (width < 760) await page.getByRole('tab', { name: /Характеристики|Characteristics/, exact: true }).click()
       await noOverlap(page, '.bt-stat-grid .sheet-stepper', 6)
       await noOverlap(page, '.bt-derived-grid', 1)
       await fits(page)
@@ -132,7 +132,7 @@ test('quick draft uses actual preview, saves only from manual editor, honors min
   expect((await api<NpcDetail[]>(request, '/api/npcs/')).length).toBe(before.length)
   // Armor bonuses become available when the editor's reference has loaded.
   await expect.poll(() => page.locator('.bt-skill-edit select').first().locator('option').count()).toBeGreaterThan(2)
-  await page.getByRole('tab', { name: 'Статы', exact: true }).click()
+  await page.getByRole('tab', { name: 'Характеристики', exact: true }).click()
   await expect(page.getByLabel('Усталость', { exact: true })).toBeDisabled()
   const soak = Number(await page.getByLabel('Поглощение', { exact: true }).inputValue())
   await page.getByRole('button', { name: 'Увеличить: Сила' }).click()

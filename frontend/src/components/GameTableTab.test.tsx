@@ -450,7 +450,6 @@ describe('GameTableTab — статблок и броски NPC', () => {
     const removeNpc = await screen.findByRole('button', { name: 'Удалить Гоблины из сцены' })
     expect(removeNpc.classList.contains('participant-remove-button')).toBe(true)
     expect(removeNpc.textContent).toBe('×')
-    expect(removeNpc.parentElement?.tagName).toBe('ARTICLE')
     fireEvent.click(removeNpc)
     await waitFor(() => expect(removeParticipantMock).toHaveBeenCalledWith('campaign-1', 'participant-1'))
     fireEvent.click(screen.getByRole('button', { name: 'Удалить Элира из сцены' }))

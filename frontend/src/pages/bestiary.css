@@ -2432,3 +2432,68 @@
   .bt-stat-stepper.sheet-stepper>button,.bt-stat-stepper.sheet-stepper>input { height:44px; min-height:44px; }
   .bt-stat-stepper.sheet-stepper>button { width:44px; }
 }
+
+/* GEN-V5-13: manual editor alignment and shared compact preview. */
+@media screen {
+  .bt-builder .bt-mode { padding:0; margin:0; gap:0; align-items:stretch; }
+  .bt-builder .bt-mode>button { margin:0; border:0; border-radius:0; }
+  .bt-section-nav { padding:12px 0; }
+  .bt-section-nav button[aria-current=step] { background:var(--navy); color:#fff; border-color:var(--navy); }
+  .bt-manual-layout { display:grid; grid-template-columns:minmax(0,1fr) 300px; gap:24px; align-items:start; }
+  .bt-manual .bt-editor-body { width:100%; max-width:none; gap:14px; padding:0; }
+  .bt-editor-body>.bt-editor-section { margin:0; }
+  .bt-manual-preview { position:sticky; top:16px; min-width:0; border:1px solid var(--line); }
+  .bt-editor-combat { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1.2fr); gap:16px; align-items:start; }
+  .bt-editor-combat>h4 { grid-column:1/-1; }
+  .bt-editor-combat .bt-skill-edit { display:grid; grid-template-columns:minmax(0,1fr) 24px; gap:6px; padding:8px 0; align-items:center; border-bottom:1px solid var(--line-soft); }
+  .bt-editor-combat .bt-skill-edit>.bt-remove { grid-column:2; grid-row:1; }
+  .bt-editor-combat .bt-rank-stepper,.bt-editor-combat .bt-skill-pool { grid-column:1/-1; }
+  .bt-editor-combat .bt-rank-stepper { display:flex; flex-wrap:wrap; justify-content:flex-start; gap:5px; border:0; background:none; padding:0; }
+  .bt-editor-combat .bt-rank-stepper>span { width:100%; font:600 11px var(--font-head); text-transform:uppercase; }
+  .bt-editor-combat .bt-rank-stepper>button { width:24px; height:24px; min-height:24px; }
+  .bt-editor-combat .bt-rank-stepper>input { min-height:24px; height:24px; width:40px; font-size:15px; }
+  .bt-editor-combat .bt-skill-pool { display:flex; align-items:center; justify-content:space-between; gap:6px; }
+  .bt-editor-combat .bt-skill-pool>small { font:11px var(--font-ui); }
+  .bt-editor-combat .ability-edit { padding:8px 10px; gap:8px; }
+  .bt-editor-combat .ability-edit .form-row { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:6px; }
+  .bt-editor-combat .ability-edit label { margin:0; min-width:0; }
+  .bt-editor-combat .ability-edit input { width:100%; min-width:0; }
+  .bt-role-grid>button { display:grid; grid-template-columns:38px minmax(0,1fr); align-items:start; gap:10px; text-align:left; }
+  .bt-role-icon { display:grid; place-items:center; width:38px; height:38px; color:var(--tone-ink); background:var(--tone-bg); }
+  .bt-role-icon>svg { width:22px; height:22px; }
+  .bt-role-grid>button[aria-pressed=true] .bt-role-icon { background:var(--tone); color:#fff; }
+  .npc-editor-summary { min-width:0; }
+  .npc-preview-plate { margin:0; padding:12px 16px; }
+  .npc-preview-plate>small { color:#8fc8ff; font:600 12px var(--font-head); text-transform:uppercase; letter-spacing:.05em; }
+  .npc-preview-plate>h3 { margin:5px 0; font:600 26px/1.05 var(--font-head); overflow-wrap:anywhere; }
+  .npc-preview-plate>p { margin:0; font:12px/1.4 var(--font-ui); color:var(--on-navy-muted); }
+  .npc-preview-chars { display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); border-bottom:1px solid var(--line-soft); padding:10px 6px; }
+  .npc-preview-chars>div { text-align:center; }
+  .npc-preview-chars small { display:block; font:600 10px var(--font-head); color:var(--muted); text-transform:uppercase; overflow-wrap:anywhere; }
+  .npc-preview-chars strong { font:700 24px var(--font-head); color:var(--navy); }
+  .npc-preview-derived { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); background:var(--t-blue-bg); border-bottom:1px solid var(--t-blue-line); }
+  .npc-preview-derived>div { padding:8px 3px; text-align:center; }
+  .npc-preview-derived strong { display:block; font:700 19px var(--font-head); color:var(--navy); }
+  .npc-preview-derived>div:first-child>strong { color:var(--red-ink); }
+  .npc-preview-derived small { font:11px var(--font-ui); color:var(--muted); }
+  .npc-preview-details { margin:0; padding:8px 14px; }
+  .npc-preview-details>div { display:grid; grid-template-columns:78px minmax(0,1fr); gap:8px; padding:7px 0; border-bottom:1px solid var(--line-soft); }
+  .npc-preview-details>div:last-child { border:0; }
+  .npc-preview-details dt { font:600 12px var(--font-head); color:var(--blue); text-transform:uppercase; }
+  .npc-preview-details dd { margin:0; overflow-wrap:anywhere; font:12px/1.5 var(--font-ui); }
+  .bt-draft-preview>.muted,.bt-draft-preview>p { margin:12px 16px; }
+  .bt-draft-preview>.bt-create-draft-desktop { margin:0 16px; width:calc(100% - 32px); }
+  .bt-draft-preview .bt-draft-counts { padding:0 16px 14px; }
+  .bt-draft-preview .npc-preview-loading { background:var(--navy); color:var(--on-navy-muted); padding:12px 16px; }
+}
+@media screen and (max-width:1100px) {
+  .bt-manual-layout { grid-template-columns:1fr; }
+  .bt-manual-preview { position:static; }
+}
+@media screen and (max-width:767px) {
+  .bt-manual-preview { display:none; }
+  .bt-editor-combat { grid-template-columns:1fr; }
+  .bt-editor-combat .bt-rank-stepper>button,.bt-editor-combat .bt-rank-stepper>input { height:44px; min-height:44px; }
+  .bt-editor-combat .bt-rank-stepper>button { width:44px; }
+  .bt-editor-combat .ability-edit .form-row { grid-template-columns:1fr; }
+}
