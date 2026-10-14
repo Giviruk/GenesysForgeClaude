@@ -257,8 +257,8 @@ function EncounterEditor({ encounterId, isGm, members, onBack, onChanged, onSent
             <InitiativePreview enc={enc} />
           </div>
           <div className="enc-builder-row">
-            <QuickBuildPanel enc={enc} onRun={run} />
             <EncounterNotesPanel key={`notes-${enc.updatedAt}`} enc={enc} onRun={run} />
+            <QuickBuildPanel enc={enc} onRun={run} />
           </div>
         </>
       ) : (

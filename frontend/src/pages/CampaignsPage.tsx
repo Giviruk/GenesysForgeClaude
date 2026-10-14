@@ -563,7 +563,7 @@ function CampaignMemberCard({ member, sheet, isGm, onOpenSheet, onRemove }: {
   const cardClass = woundRatio >= 0.9 ? 'campaign-pc-card crit' : woundRatio >= 0.7 || strainRatio >= 0.75 ? 'campaign-pc-card warn' : 'campaign-pc-card'
   return (
     <div className={`${cardClass} plate plate-sm`}>
-      <div className="campaign-pc-name">{member.characterName}{member.isMine && <span className="badge custom">{t('мой', 'mine')}</span>}</div>
+      <div className="campaign-pc-name"><span className="campaign-pc-title">{member.characterName}</span>{member.isMine && <span className="badge custom">{t('мой', 'mine')}</span>}</div>
       <div className="campaign-pc-role">{member.career} · {member.archetype}</div>
       {sheet ? (
         <div className="campaign-bars">

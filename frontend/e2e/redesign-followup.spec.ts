@@ -150,6 +150,12 @@ for (const language of ['ru', 'en']) {
       await fits(page)
       await page.goto(`/campaigns/${campaignId}/encounters/${encounterId}`)
       await expect(page.locator('.enc-scene-content')).toBeVisible()
+      if (width > 900) {
+        const stage = await rect(page.locator('.enc-stage-grid'))
+        const content = await rect(page.locator('.enc-scene-content'))
+        expect(Math.abs(content.width - stage.width)).toBeLessThanOrEqual(2)
+        expect((await rect(page.locator('.enc-participants'))).y).toBeGreaterThan(content.y + content.height)
+      }
       await noOverlap(page.locator('.enc-scene-title'))
       await expect(page.locator('.enc-queue>h4')).toHaveCSS('background-color', 'rgb(232, 234, 243)')
       await fits(page)
@@ -192,6 +198,11 @@ for (const language of ['ru', 'en']) {
       await expect(page.locator('.bt-role-icon')).toHaveCount(9)
       const boxes = await page.locator('.bt-role-icon').evaluateAll(nodes => nodes.map(n => ({ width: n.getBoundingClientRect().width, height: n.getBoundingClientRect().height })))
       expect(boxes.every(b => b.width === 38 && b.height === 38)).toBe(true)
+      const offsets = await page.locator('.bt-role-icon').evaluateAll(nodes => nodes.map(n => {
+        const a = n.getBoundingClientRect(), b = n.querySelector('svg')!.getBoundingClientRect()
+        return [Math.abs(a.x + a.width / 2 - b.x - b.width / 2), Math.abs(a.y + a.height / 2 - b.y - b.height / 2)]
+      }))
+      expect(offsets.every(values => values.every(v => v <= 1))).toBe(true)
       await fits(page)
     }
     await page.setViewportSize({ width: 1240, height: 900 })
