@@ -53,7 +53,7 @@ scope сессии/encounter и единый check context: их нет в пр�
 - [~] **GEN-V5-13** — 30 замечаний визуальной приёмки от 14.10.2026:
   лист, магия, героика, ремесло, образ, кампании/стол, NPC, магазин и справочник.
   [План](gen-v5-13-ui-followup.md). Реализовано и проверено: 669 Vitest, 45 Playwright, lint/build.
-  [Отчёт и снимки](../../docs/redesign-v5-ui-followup.md); `[x]` ставится после слияния PR.
+  [Отчёт и снимки](../../docs/redesign-v5-ui-followup.md), [PR #295](https://github.com/Giviruk/GenesysForgeClaude/pull/295); `[x]` ставится после слияния PR.
 
 - [~] **GEN-UI-SYMBOLS** — формы игровых символов через локальный Genesys Glyphs and Dice
   и базовая русская терминология Core: характеристики, кости, результаты, сложности,
@@ -278,7 +278,7 @@ ROT-TAL-05, ROT-HA-08/10, ROT-MAG-05/07/08 и ROT-EQP-AMMO-01 — всем, чт
 предпросмотра 2/2; визуальная сверка с макетами, снимки desktop/mobile до/после.
 План: [gen-v5-13-ui-followup.md](gen-v5-13-ui-followup.md),
 отчёт: [redesign-v5-ui-followup.md](../../docs/redesign-v5-ui-followup.md).
-Статус GEN-V5-13 остаётся [~] до слияния PR.
+Статус GEN-V5-13 остаётся [~] до слияния [PR #295](https://github.com/Giviruk/GenesysForgeClaude/pull/295).
 
 ### GEN-V5-01–12: редизайн всего сервиса
 
