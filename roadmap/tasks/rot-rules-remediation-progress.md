@@ -56,6 +56,10 @@ scope сессии/encounter и единый check context: их нет в пр�
   773 Domain, 959 API, 2 PostgreSQL migration tests, 45 Playwright, lint/build.
   [Отчёт и снимки](../../docs/redesign-v5-ui-followup.md), [PR #295](https://github.com/Giviruk/GenesysForgeClaude/pull/295); `[x]` ставится после слияния PR.
 
+- [ ] **GEN-V5-14** — 56 замечаний по дизайну после сверки прода `839e804`: шкала размеров,
+  мобильная шапка, таланты, энкаунтеры, стол, библиотека и остальные экраны.
+  [ТЗ](../../redesign_v5_tz/TZ_design_remarks_v5.md), [план](gen-v5-14-design-remarks.md).
+
 - [~] **GEN-UI-SYMBOLS** — формы игровых символов через локальный Genesys Glyphs and Dice
   и базовая русская терминология Core: характеристики, кости, результаты, сложности,
   дистанции, типы NPC и встроенные навыки. Старые имена NPC-навыков поддержаны алиасами;
