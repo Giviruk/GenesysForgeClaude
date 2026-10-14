@@ -1,3 +1,4 @@
+import { Icon } from './Icon'
 import { toneClass } from '../utils/tones'
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react'
 import { api } from '../api/client'
@@ -334,7 +335,7 @@ function EncounterSceneHead({ enc, isGm, onBack, onRun, onPrint, onSentToTable }
       </div>
       <div className="row-actions enc-head-actions">
         {isGm && <button className="primary small" onClick={send} disabled={!name.trim()}>{t('Запустить', 'Launch')}</button>}
-        <button className="small" onClick={onPrint}>{t('🖨 Печать', '🖨 Print')}</button>
+        <button className="small" onClick={onPrint}><Icon name="printer" className="button-icon" />{t('Печать', 'Print')}</button>
       </div>
     </div>
   )
@@ -477,6 +478,14 @@ function PlayerEncounterView({ enc }: { enc: EncounterDetail }) {
 function ParticipantsSection({ enc, isGm, members, onRun }: {
   enc: EncounterDetail; isGm: boolean; members: CampaignMember[]; onRun: (a: () => Promise<unknown>) => Promise<void>
 }) {
+  const [npcKinds, setNpcKinds] = useState<Record<string, string>>({})
+  useEffect(() => {
+    let cancelled = false
+    api.npcs({ system: enc.system }).then(npcs => {
+      if (!cancelled) setNpcKinds(Object.fromEntries(npcs.map(npc => [npc.id, npc.kind])))
+    }).catch(() => { /* The participant's type remains a safe fallback. */ })
+    return () => { cancelled = true }
+  }, [enc.system, enc.campaignId])
   return (
     <section className="panel enc-participants">
       <div className="panel-head-row">
@@ -500,7 +509,7 @@ function ParticipantsSection({ enc, isGm, members, onRun }: {
             </thead>
             <tbody>
               {enc.participants.map(p => (
-                <ParticipantRow key={p.id} enc={enc} p={p} isGm={isGm} onRun={onRun} />
+                <ParticipantRow key={p.id} enc={enc} p={p} npcKind={p.npcId ? npcKinds[p.npcId] : undefined} isGm={isGm} onRun={onRun} />
               ))}
             </tbody>
           </table>
@@ -511,8 +520,9 @@ function ParticipantsSection({ enc, isGm, members, onRun }: {
   )
 }
 
-function ParticipantRow({ enc, p, isGm, onRun }: {
+function ParticipantRow({ enc, p, npcKind, isGm, onRun }: {
   enc: EncounterDetail; p: EncounterParticipant; isGm: boolean; onRun: (a: () => Promise<unknown>) => Promise<void>
+  npcKind?: string
 }) {
   const patch = (body: Parameters<typeof api.updateEncounterParticipant>[2]) =>
     onRun(() => api.updateEncounterParticipant(enc.id, p.id, body))
@@ -523,18 +533,18 @@ function ParticipantRow({ enc, p, isGm, onRun }: {
         <div className="participant-name">{p.displayName}{p.quantity > 1 ? ` ×${p.quantity}` : ''}</div>
         {isGm && p.notes && <div className="participant-note muted small-text">{p.notes}</div>}
       </td>
-      <td><span className="badge">{PARTICIPANT_TYPE_LABELS[p.participantType]}</span></td>
+      <td><span className={`badge ${toneClass('participant', npcKind ?? p.participantType)}`}>{PARTICIPANT_TYPE_LABELS[p.participantType]}</span></td>
       <td>{SLOT_TYPE_LABELS[p.initiativeSide]}</td>
       <td className="nowrap">{start}</td>
       {isGm && (
         <td className="right nowrap">
           <button className="small" title={p.startsHidden ? t('Показать в начале', 'Reveal at start') : t('Скрыть в начале', 'Hide at start')}
             aria-label={p.startsHidden ? t('Показать в начале', 'Reveal at start') : t('Скрыть в начале', 'Hide at start')}
-            onClick={() => patch({ startsHidden: !p.startsHidden })}>{p.startsHidden ? t('Показ.', 'Reveal') : t('Скрыть', 'Hide')}</button>
+            onClick={() => patch({ startsHidden: !p.startsHidden })}><Icon name={p.startsHidden ? 'eye' : 'eye-off'} className="button-icon" /></button>
           <button className="small" title={p.startsDefeated ? t('Сделать активным', 'Make active') : t('Повержен в начале', 'Defeated at start')}
             aria-label={p.startsDefeated ? t('Сделать активным', 'Make active') : t('Повержен в начале', 'Defeated at start')}
-            onClick={() => patch({ startsDefeated: !p.startsDefeated })}>{p.startsDefeated ? t('Актив.', 'Active') : t('Поверж.', 'Defeat')}</button>
-          <button className="danger small"
+            onClick={() => patch({ startsDefeated: !p.startsDefeated })}><Icon name={p.startsDefeated ? 'user' : 'skull'} className="button-icon" /></button>
+          <button className="danger small" aria-label={t('Убрать участника', 'Remove participant')}
             onClick={() => { if (confirm(t(`Убрать «${p.displayName}»?`, `Remove "${p.displayName}"?`))) void onRun(() => api.removeEncounterParticipant(enc.id, p.id)) }}>×</button>
         </td>
       )}

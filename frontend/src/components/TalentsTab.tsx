@@ -1,3 +1,4 @@
+import { CompactDescription } from './CompactDescription'
 import { activationKey, toneClass } from '../utils/tones'
 import { BookReference } from './BookReference'
 import { useState } from 'react'
@@ -342,24 +343,24 @@ export function TalentsTab({ sheet, reference, onError, refresh }: Props) {
           <h3>{t('Доступные таланты', 'Available talents')}</h3>
           <span className="section-count">{visibleTalents.length} {t('из', 'of')} {reference.talents.length}</span>
         </div>
-        <div className="tabs">
-          <button className={categoryFilter === 'all' ? 'tab active' : 'tab'} onClick={() => setCategoryFilter('all')}>
+        <div className="talent-filter-chips">
+          <button className={categoryFilter === 'all' ? 'rd-filter-chip active' : 'rd-filter-chip'} onClick={() => setCategoryFilter('all')}>
             {t('Все', 'All')} <span className="muted">({reference.talents.length})</span>
           </button>
           {TALENT_CATEGORIES.map(category => {
             const count = reference.talents.filter(t => t.category === category).length
             return (
               <button key={category}
-                className={categoryFilter === category ? 'tab active' : 'tab'}
+                className={categoryFilter === category ? 'rd-filter-chip active' : 'rd-filter-chip'}
                 onClick={() => setCategoryFilter(category)}>
                 {TALENT_CATEGORY_LABELS[category]} <span className="muted">({count})</span>
               </button>
             )
           })}
         </div>
-        <div className="tabs">
+        <div className="talent-filter-chips">
           <button
-            className={activeTier === 'all' ? 'tab active' : 'tab'}
+            className={activeTier === 'all' ? 'rd-filter-chip active' : 'rd-filter-chip'}
             onClick={() => setActiveTier('all')}>
             {t('Все тиры', 'All tiers')} <span className="muted">({reference.talents.filter(matchesCategory).length})</span>
           </button>
@@ -367,7 +368,7 @@ export function TalentsTab({ sheet, reference, onError, refresh }: Props) {
             const count = reference.talents.filter(t => t.tier === tier && matchesCategory(t)).length
             return (
               <button key={tier}
-                className={activeTier === tier ? 'tab active' : 'tab'}
+                className={`rd-filter-chip ${toneClass('tier', tier)}${activeTier === tier ? ' active' : ''}`}
                 onClick={() => setActiveTier(tier)}>
                 {t('Тир', 'Tier')} {tier} <span className="muted">({count})</span>
               </button>
@@ -412,6 +413,7 @@ export function TalentsTab({ sheet, reference, onError, refresh }: Props) {
                   : null
                 return (
                   <div key={tal.id} className={`talent-row ${toneClass('tier', tal.tier)}${reason ? ' unavailable' : ''}`}>
+                    <span className="talent-tier-square" aria-label={t(`Тир ${tal.tier}`, `Tier ${tal.tier}`)}>{tal.tier}</span>
                     <div className="talent-info">
                       <strong>
                         {localizedName(tal)}
@@ -435,8 +437,7 @@ export function TalentsTab({ sheet, reference, onError, refresh }: Props) {
                         )}
                       </div>
                       {tal.trigger && <p className="hint">{t('Триггер:', 'Trigger:')} {tal.trigger}</p>}
-                      {localizedDescription(tal) && <p className="muted"><RuleText text={localizedDescription(tal)} /></p>}
-                      <BookReference source={tal.source} />
+                      <CompactDescription source={tal.source}>{localizedDescription(tal) && <RuleText text={localizedDescription(tal)} />}</CompactDescription>
                     </div>
                     <div className="talent-actions">
                       {sheet.isCreationPhase && ranksOwned > 0 && (() => {

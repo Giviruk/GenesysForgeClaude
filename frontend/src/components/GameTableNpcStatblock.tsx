@@ -1,3 +1,4 @@
+import { Icon } from './Icon'
 import { RuleText } from './RuleText'
 import { useEffect, useMemo, useState } from 'react'
 import { api } from '../api/client'
@@ -174,7 +175,7 @@ export function GameTableNpcStatblock({ participant, campaignId, isGm,
                           initialPool: participantRollPool(skill.pool ?? {}, participant),
                           onLog: logAsNpc(participant.displayName),
                           canSecret: isGm,
-                        })}>{t('🎲 Бросить', '🎲 Roll')}</button>
+                        })}><Icon name="dice" className="button-icon" />{t('Бросить', 'Roll')}</button>
                       </> : <span className="muted small-text">{t('пул не определён', 'pool undefined')}</span>}
                     </li>
                   ))}
@@ -206,7 +207,7 @@ export function GameTableNpcStatblock({ participant, campaignId, isGm,
                           ),
                           onLog: logAsNpc(participant.displayName),
                           canSecret: isGm,
-                        })}>{t('🎲 Атаковать', '🎲 Attack')}</button>
+                        })}><Icon name="dice" className="button-icon" />{t('Атаковать', 'Attack')}</button>
                       </div>
                       <div className="npc-weapon-stats">
                         <span className="weapon-stat">{t('Урон', 'Damage')} <strong>{attack.damageText}</strong></span>

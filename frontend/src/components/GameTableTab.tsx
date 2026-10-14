@@ -1,3 +1,4 @@
+import { Icon } from './Icon'
 import { toneClass } from '../utils/tones'
 import {
   useCallback, useEffect, useRef, useState, type FormEvent, type MouseEvent,
@@ -193,7 +194,7 @@ function StoryPoints({ session, isGm, onRun, campaignId }: BlockProps) {
           <b>{player}</b>
           <span>{t('игроки', 'players')}</span>
           {isGm && <button className="tiny" disabled={player <= 0} onClick={() => set({ playerStoryPoints: player - 1 })}>−</button>}
-          {isGm && <button className="tiny" onClick={() => set({ playerStoryPoints: player + 1 })}>+</button>}
+          {isGm && <button className="tiny" onClick={() => set({ playerStoryPoints: player + 1 })}><Icon name="plus" className="button-icon" /><span className="visually-hidden">+</span></button>}
         </div>
         <div className="story-transfer">
           {isGm && (
@@ -216,7 +217,7 @@ function StoryPoints({ session, isGm, onRun, campaignId }: BlockProps) {
           <b>{gm}</b>
           <span>{t('мастер', 'GM')}</span>
           {isGm && <button className="tiny" disabled={gm <= 0} onClick={() => set({ gmStoryPoints: gm - 1 })}>−</button>}
-          {isGm && <button className="tiny" onClick={() => set({ gmStoryPoints: gm + 1 })}>+</button>}
+          {isGm && <button className="tiny" onClick={() => set({ gmStoryPoints: gm + 1 })}><Icon name="plus" className="button-icon" /><span className="visually-hidden">+</span></button>}
         </div>
       </div>
       {isGm && (
@@ -705,7 +706,7 @@ function ParticipantCard({ p, campaignId, isGm, canEditVitals, onRun, onUpdatePa
           onClick={stop(() => update({ woundsCurrent: Math.max(0, p.woundsCurrent - 1) }))}>−</button>
         <button type="button" className="tiny" disabled={updatePending || !canEditVitals}
           aria-label={t(`Добавить рану ${p.displayName}`, `Add wound to ${p.displayName}`)}
-          onClick={stop(() => update({ woundsCurrent: p.woundsCurrent + 1 }))}>+</button>
+          onClick={stop(() => update({ woundsCurrent: p.woundsCurrent + 1 }))}><Icon name="plus" className="button-icon" /><span className="visually-hidden">+</span></button>
 
         <span>{t('Устал.', 'Strain')}</span>
         <div className="participant-vital"><b>{p.strainThreshold == null ? '—' : `${p.strainCurrent} / ${p.strainThreshold}`}</b>{p.strainThreshold != null && <div className="bar"><span className="strain" style={{ width: `${ratio(p.strainCurrent, p.strainThreshold) * 100}%` }} /></div>}</div>
@@ -714,7 +715,7 @@ function ParticipantCard({ p, campaignId, isGm, canEditVitals, onRun, onUpdatePa
           onClick={stop(() => update({ strainCurrent: Math.max(0, p.strainCurrent - 1) }))}>−</button>
         <button type="button" className="tiny" disabled={updatePending || !canEditVitals || p.strainThreshold == null}
           aria-label={t(`Добавить усталость ${p.displayName}`, `Add strain to ${p.displayName}`)}
-          onClick={stop(() => update({ strainCurrent: p.strainCurrent + 1 }))}>+</button>
+          onClick={stop(() => update({ strainCurrent: p.strainCurrent + 1 }))}><Icon name="plus" className="button-icon" /><span className="visually-hidden">+</span></button>
 
         <span className="boost-label">{t('Кости бонуса', 'Boosts')}</span><b>{p.boostDice}</b>
         <button type="button" className="tiny" disabled={updatePending || !canEditVitals || p.boostDice <= 0}
@@ -722,7 +723,7 @@ function ParticipantCard({ p, campaignId, isGm, canEditVitals, onRun, onUpdatePa
           onClick={stop(() => update({ boostDice: p.boostDice - 1 }))}>−</button>
         <button type="button" className="tiny" disabled={updatePending || !canEditVitals || p.boostDice >= 20}
           aria-label={t(`Добавить кость бонуса ${p.displayName}`, `Add boost to ${p.displayName}`)}
-          onClick={stop(() => update({ boostDice: p.boostDice + 1 }))}>+</button>
+          onClick={stop(() => update({ boostDice: p.boostDice + 1 }))}><Icon name="plus" className="button-icon" /><span className="visually-hidden">+</span></button>
 
         <span className="setback-label">{t('Кости штрафа', 'Setbacks')}</span><b>{p.setbackDice}</b>
         <button type="button" className="tiny" disabled={updatePending || !canEditVitals || p.setbackDice <= 0}
@@ -730,7 +731,7 @@ function ParticipantCard({ p, campaignId, isGm, canEditVitals, onRun, onUpdatePa
           onClick={stop(() => update({ setbackDice: p.setbackDice - 1 }))}>−</button>
         <button type="button" className="tiny" disabled={updatePending || !canEditVitals || p.setbackDice >= 20}
           aria-label={t(`Добавить кость штрафа ${p.displayName}`, `Add setback to ${p.displayName}`)}
-          onClick={stop(() => update({ setbackDice: p.setbackDice + 1 }))}>+</button>
+          onClick={stop(() => update({ setbackDice: p.setbackDice + 1 }))}><Icon name="plus" className="button-icon" /><span className="visually-hidden">+</span></button>
       </div>
       <div className="participant-card-footer" onClick={e => e.stopPropagation()}>
         {isGm && <label><input type="checkbox" checked={p.isDefeated}
@@ -748,7 +749,7 @@ function ParticipantCard({ p, campaignId, isGm, canEditVitals, onRun, onUpdatePa
             label: t('Бросок участника', 'Participant roll'), initialPool: participantRollPool({}, p),
             onLog: req => { void onRun(() => api.createRoll(campaignId, { ...req, actorName: p.displayName })) },
             canSecret: isGm,
-          })}>🎲</button>
+          })}><Icon name="dice" className="button-icon" /></button>
         </span>
       </div>
     </article>

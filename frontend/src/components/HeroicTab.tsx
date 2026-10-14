@@ -1,3 +1,5 @@
+import { CompactDescription } from './CompactDescription'
+import { localizeHeroicMeta } from '../utils/designPresentation'
 import { RuleText } from './RuleText'
 import { BookReference } from './BookReference'
 import { useState } from 'react'
@@ -140,7 +142,7 @@ function HeroicAbilityCard({ sheet, reference, run }: {
           <p className="muted small-text">{t('Эффект:', 'Effect:')} {localizedName(h)} · {h.source}</p></header>
           {localizedDescription(h) && <p><RuleText symbolsOnly text={localizedDescription(h)} /></p>}
           <BookReference source={h.source} />
-          <div className="heroic-meta-grid">{meta.map(m => <div key={m.label}><small>{m.label}</small><strong>{m.value}</strong>{m.improved && <span>{m.improved}</span>}</div>)}</div>
+          <div className="heroic-meta-grid">{meta.map(m => <div key={m.label}><small>{m.label}</small><strong>{localizeHeroicMeta(m.value).split(/[;；]/)[0].replace(/^По умолчанию\s+/i, '')}</strong>{m.value.includes(';') && <p className="heroic-meta-explanation">{localizeHeroicMeta(m.value).split(/[;；]/).slice(1).join('; ').trim()}</p>}{m.improved && <span>{m.improved}</span>}</div>)}</div>
           {h.requirement && h.requirement !== '—' && <p className="hint small-text">{t('Требование:', 'Requirement:')} {h.requirement}</p>}
           {h.notes && <p className="hint small-text">{h.notes}</p>}
           <div className="heroic-activate">
@@ -214,7 +216,7 @@ function HeroicAbilityCard({ sheet, reference, run }: {
             <div className="heroic-upgrade-head">
               <strong>{t('Длительность', 'Duration')}</strong>
               <span className="hint"> · 1 {t('очк. за ранг', 'pt per rank')} · {t(`рангов: ${upgrades.durationRanks}`, `ranks: ${upgrades.durationRanks}`)}</span>
-              <button className="heroic-plus small" aria-label={t('Купить Длительность', 'Buy Duration')} title={available < 1 ? t('Не хватает очков', 'Not enough points') : undefined} disabled={available < 1 || upgradesLocked} onClick={() => run(() => save({ durationRanks: upgrades.durationRanks + 1 }))}>+</button>
+              <button className="heroic-plus small" aria-label={t('Купить Длительность', 'Buy Duration')} title={available < 1 ? t('Не хватает очков', 'Not enough points') : undefined} disabled={available < 1 || upgradesLocked} onClick={() => run(() => save({ durationRanks: upgrades.durationRanks + 1 }))}><Icon name="plus" className="button-icon" /><span className="visually-hidden">+</span></button>
               {sheet.isCreationPhase && upgrades.durationRanks > 0 && <button className="small" onClick={() => run(() => save({ durationRanks: upgrades.durationRanks - 1 }))}>{t('Вернуть', 'Refund')}</button>}
             </div>
             <BookReference source="Realms of Terrinoth, с. 79" />
@@ -225,7 +227,7 @@ function HeroicAbilityCard({ sheet, reference, run }: {
             <div className="heroic-upgrade-head">
               <strong>{t('Частота', 'Frequency')}</strong>
               <span className="hint"> · 2 {t('очк. за ранг', 'pts per rank')} · {t(`рангов: ${upgrades.frequencyRanks}`, `ranks: ${upgrades.frequencyRanks}`)}</span>
-              <button className="heroic-plus small" aria-label={t('Купить Частоту', 'Buy Frequency')} title={available < 2 ? t('Не хватает очков', 'Not enough points') : undefined} disabled={available < 2 || upgradesLocked} onClick={() => run(() => save({ frequencyRanks: upgrades.frequencyRanks + 1 }))}>+</button>
+              <button className="heroic-plus small" aria-label={t('Купить Частоту', 'Buy Frequency')} title={available < 2 ? t('Не хватает очков', 'Not enough points') : undefined} disabled={available < 2 || upgradesLocked} onClick={() => run(() => save({ frequencyRanks: upgrades.frequencyRanks + 1 }))}><Icon name="plus" className="button-icon" /><span className="visually-hidden">+</span></button>
               {sheet.isCreationPhase && upgrades.frequencyRanks > 0 && <button className="small" onClick={() => run(() => save({ frequencyRanks: upgrades.frequencyRanks - 1 }))}>{t('Вернуть', 'Refund')}</button>}
             </div>
             <BookReference source="Realms of Terrinoth, с. 79" />
@@ -236,7 +238,7 @@ function HeroicAbilityCard({ sheet, reference, run }: {
             <div className="heroic-upgrade-head">
               <strong>{t('Сюжет', 'Story')}</strong><span className="hint"> · 1 {t('очк.', 'pt')}</span>
               {upgrades.story && <span className="badge">{t('куплено', 'purchased')}</span>}
-              {!upgrades.story && <button className="heroic-plus small" aria-label={t('Купить Сюжет', 'Buy Story')} title={available < 1 ? t('Не хватает очков', 'Not enough points') : undefined} disabled={available < 1 || upgradesLocked} onClick={() => run(() => save({ story: true }))}>+</button>}
+              {!upgrades.story && <button className="heroic-plus small" aria-label={t('Купить Сюжет', 'Buy Story')} title={available < 1 ? t('Не хватает очков', 'Not enough points') : undefined} disabled={available < 1 || upgradesLocked} onClick={() => run(() => save({ story: true }))}><Icon name="plus" className="button-icon" /><span className="visually-hidden">+</span></button>}
               {sheet.isCreationPhase && upgrades.story && <button className="small" onClick={() => run(() => save({ story: false }))}>{t('Вернуть', 'Refund')}</button>}
             </div>
             <BookReference source="Realms of Terrinoth, с. 79" />
@@ -251,13 +253,12 @@ function HeroicAbilityCard({ sheet, reference, run }: {
               return (
                 <div key={effect.id} className={selected ? 'heroic-upgrade bought' : 'heroic-upgrade'}>
                   <div className="heroic-upgrade-head">
-                    <strong>{localizedName(effect)}</strong><span className="hint"> · 1 {t('очк.', 'pt')}</span>
+                    <strong>{localizedName(effect)}</strong>
                     {selected && <span className="badge">{t('куплено', 'purchased')}</span>}
-                    {!selected && <button className="small" disabled={!canBuy} onClick={() => run(() => save({ secondaryEffects: [...upgrades.secondaryEffects, effect] }))}>{t('1 очк.', '1 pt')}</button>}
+                    {!selected && <button className="small" disabled={!canBuy} onClick={() => run(() => save({ secondaryEffects: [...upgrades.secondaryEffects, effect] }))}><span className="heroic-effect-radio" aria-hidden="true" />{t('Купить · 1 очк.', 'Buy · 1 pt')}</button>}
                     {selected && sheet.isCreationPhase && <button className="small" onClick={() => run(() => save({ secondaryEffects: upgrades.secondaryEffects.filter(x => x.id !== effect.id) }))}>{t('Вернуть', 'Refund')}</button>}
                   </div>
-                  <BookReference source={effect.source} />
-                  {localizedDescription(effect) && <p><RuleText symbolsOnly text={localizedDescription(effect)} /></p>}
+                  <CompactDescription source={effect.source}>{localizedDescription(effect) && <RuleText symbolsOnly text={localizedDescription(effect)} />}</CompactDescription>
                 </div>
               )
             })}
@@ -300,17 +301,19 @@ export function HeroicIdentitySection({ sheet, run }: {
 
   return (
     <div className="heroic-identity">
-      <div className="label-line">{t('Название и происхождение', 'Name and origin')}</div>
+      <div className="label-line">{t('Параметры', 'Parameters')}</div>
 
       {identity?.complete && (
-        <div className="hint small-text">
-          <b>{t('Происхождение:', 'Origin:')}</b> {originSummary(identity)}
+        <dl className="heroic-identity-summary">
+          <dt>{t('Название', 'Name')}</dt><dd>{identity.customName}</dd>
+          <dt>{t('Происхождение', 'Origin')}</dt><dd>{originSummary(identity)}
           {identity.originRolls.length > 0 && (
             <> · {t('броски d10:', 'd10 rolls:')} {identity.originRolls.join(', ')}
               {identity.originRolls.includes(0)
                 && ` (${t('0 — бросить ещё дважды', '0 — roll twice more')})`}</>
           )}
-        </div>
+          </dd>
+        </dl>
       )}
 
       {sheet.heroicIdentityIncomplete && !sheet.isCreationPhase && (

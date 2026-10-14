@@ -1,3 +1,5 @@
+import { CompactDescription } from './CompactDescription'
+import { localizedReferenceTerm } from '../utils/designPresentation'
 import { toneClass } from '../utils/tones'
 import { useState } from 'react'
 import { api } from '../api/client'
@@ -90,6 +92,7 @@ export function TransportTab({ sheet, reference, onError, refresh }: Props) {
                 <MountCard key={mount.id} mount={mount} sheet={sheet} busy={busy} run={run}
                   qualityLabel={qualityLabel}
                   qualityDefinitions={reference.qualities}
+                  skills={reference.skills}
                   sellOpen={openSell === mount.id}
                   onToggleSell={() => setOpenSell(openSell === mount.id ? null : mount.id)} />
               ))}
@@ -120,10 +123,7 @@ export function TransportTab({ sheet, reference, onError, refresh }: Props) {
                       {` · ${t('вместимость', 'capacity')} ${def.capacity}`}
                     </div>
                     <div className="transport-catalog-tags"><span>{t('груз', 'cargo')} {def.capacity}</span><span>{t('погл.', 'soak')} {def.soak}</span><span>{def.transportKind === 'vehicle' ? t('прочн.', 'hull') : t('ран.', 'wounds')} {def.woundThreshold}</span>{def.movementMode === 'flight' && <span>{t('полёт', 'flight')}</span>}{def.requiresTraction && <span>{t('нужна тяга', 'needs traction')}</span>}{def.code === 'rot.mount.war-mount' && <span>{t('боевой', 'war mount')}</span>}</div>
-                    <details className="transport-details"><summary>{t('Подробнее', 'Details')}</summary><MountStatline def={def} qualityLabel={qualityLabel} qualityDefinitions={reference.qualities} /></details>
-                    {mountDescription(def) &&
-                      <div className="muted small-text shop-desc">{mountDescription(def)}</div>}
-                    <BookReference source={def.source} />
+                    <CompactDescription source={def.source} details={<MountStatline def={def} qualityLabel={qualityLabel} qualityDefinitions={reference.qualities} skills={reference.skills} />}>{mountDescription(def)}</CompactDescription>
                   </div>
                   <div className="shop-row-actions">
                     {def.price != null && (
@@ -158,17 +158,18 @@ export function TransportTab({ sheet, reference, onError, refresh }: Props) {
 }
 
 /** Статблок профиля одной строкой: характеристики, пороги, защита, навыки, атака, способности. */
-function MountStatline({ def, qualityLabel, qualityDefinitions }: {
+function MountStatline({ def, qualityLabel, qualityDefinitions, skills }: {
   def: MountDef
   qualityLabel: (code: string) => string
   qualityDefinitions: Reference['qualities']
+  skills: Reference['skills']
 }) {
   const isVehicle = def.transportKind === 'vehicle'
   return (
     <div className="mount-statline small-text">
       {/* У повозки характеристик нет вовсе — показывать шесть нулей нечестно. */}
       {!isVehicle && (
-        <div>
+        <div className="mount-characteristics">
           {CHARACTERISTICS.map(key => (
             <span key={key} className="mount-char">
               {CHARACTERISTIC_LABELS[key]} <strong>{def.characteristics[key]}</strong>
@@ -189,8 +190,8 @@ function MountStatline({ def, qualityLabel, qualityDefinitions }: {
       {def.skills.length > 0 && (
         <div className="muted">
           {t('Навыки', 'Skills')}: {def.skills.map(s => s.isGroupSkill
-            ? `${s.name} (${t('групповой', 'group')})`
-            : `${s.name} ${s.ranks}`).join(', ')}
+            ? `${localizedReferenceTerm(s.name, skills)} (${t('групповой', 'group')})`
+            : `${localizedReferenceTerm(s.name, skills)} ${s.ranks}`).join(', ')}
         </div>
       )}
       {def.attacks.map(attack => (
@@ -231,13 +232,14 @@ function MountStatline({ def, qualityLabel, qualityDefinitions }: {
 }
 
 /** Карточка транспорта: состояние, тяга, груз, установленное снаряжение, продажа и удаление. */
-function MountCard({ mount, sheet, busy, run, qualityLabel, qualityDefinitions, sellOpen, onToggleSell }: {
+function MountCard({ mount, sheet, busy, run, qualityLabel, qualityDefinitions, skills, sellOpen, onToggleSell }: {
   mount: CharacterMount
   sheet: CharacterSheet
   busy: boolean
   run: (action: () => Promise<unknown>) => Promise<void>
   qualityLabel: (code: string) => string
   qualityDefinitions: Reference['qualities']
+  skills: Reference['skills']
   sellOpen: boolean
   onToggleSell: () => void
 }) {
@@ -271,7 +273,7 @@ function MountCard({ mount, sheet, busy, run, qualityLabel, qualityDefinitions, 
       <div><VitalCard kind="wounds" label={isVehicle ? t('Повреждения', 'Damage') : t('Ранения', 'Wounds')} current={mount.woundsCurrent} threshold={def.woundThreshold} disabled={busy}
         onChange={woundsCurrent => void run(() => api.updateMount(sheet.id, mount.id, { woundsCurrent }))} />
         <div className="mount-stat-tiles">{[[t('Погл.', 'Soak'), mount.soak], [t('Защита', 'Defense'), `${mount.meleeDefense}/${mount.rangedDefense}`], [t('Силуэт', 'Silhouette'), def.silhouette], [isVehicle ? t('Системы', 'Systems') : t('Движение', 'Movement'), isVehicle ? def.strainThreshold : MOVEMENT_MODE_LABELS[def.movementMode]]].map(([k,v], index) => <div key={k} className={toneClass('transportStat', index)}><small>{k}</small><b>{v}</b></div>)}</div>
-        <MountStatline def={def} qualityLabel={qualityLabel} qualityDefinitions={qualityDefinitions} />
+        <MountStatline def={def} qualityLabel={qualityLabel} qualityDefinitions={qualityDefinitions} skills={skills} />
       </div>
       <div>{def.requiresTraction && <section className="mount-traction"><h4>{t('Тяга', 'Drawn by')}</h4><div className="sheet-chips">
         <FilterChip active={!mount.drawnByMountId} disabled={busy} onClick={() => void run(() => api.updateMount(sheet.id, mount.id, { clearDrawnBy: true }))}>{t('Не запряжён', 'Unhitched')}</FilterChip>

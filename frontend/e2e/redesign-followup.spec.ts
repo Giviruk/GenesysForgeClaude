@@ -179,7 +179,10 @@ for (const language of ['ru', 'en']) {
       await expect(page.locator('.range-rings')).toHaveCSS('border-top-width', '0px')
       const board = await rect(page.locator('.range-rings'))
       expect(Math.abs(board.width - board.height)).toBeLessThanOrEqual(1)
-      if (width === 1240) expect(board.height).toBeGreaterThan(440)
+      if (width === 1240) {
+        expect(board.height).toBeGreaterThan(350)
+        expect((await rect(page.locator('.right-rail'))).width).toBeGreaterThanOrEqual(280)
+      }
       await noOverlap(page.locator('.quick-panel .form-row, .quick-panel .quick-main, .participant-control-card .pc-name, .init-row'))
       await expect(page.locator('.roll-entry')).toContainText('Элира')
       await expect(page.locator('.roll-entry-result')).toContainText(l('Успех', 'Success'))

@@ -347,7 +347,7 @@ describe('GameTableTab — статблок и броски NPC', () => {
     expect(within(dialog).getByText('Небольшой опасный противник.')).toBeTruthy()
     expect(within(dialog).getByText('Держатся группой.')).toBeTruthy()
 
-    fireEvent.click(within(dialog).getByRole('button', { name: '🎲 Бросить' }))
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Бросить' }))
     const request = openRollerMock.mock.calls[0][0] as Extract<DiceRollerRequest, { kind: 'roll' }>
     expect(request.initialPool).toEqual({ ability: 1, proficiency: 2, boost: 2, setback: 1 })
     expect(request.label).toBe('Ближний бой')
@@ -377,7 +377,7 @@ describe('GameTableTab — статблок и броски NPC', () => {
     expect(screen.getAllByText('Гоблины ×2/3').length).toBeGreaterThanOrEqual(2)
 
     openRollerMock.mockReset()
-    fireEvent.click(within(dialog).getByRole('button', { name: '🎲 Бросить' }))
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Бросить' }))
     expect(openRollerMock).toHaveBeenCalledWith(expect.objectContaining({
       kind: 'roll', initialPool: { ability: 2, proficiency: 1, boost: 2, setback: 1 },
     }))
@@ -411,7 +411,7 @@ describe('GameTableTab — статблок и броски NPC', () => {
     fireEvent.click(await screen.findByRole('button', { name: 'Открыть статблок NPC Гоблины' }))
     const dialog = await screen.findByRole('dialog', { name: 'Статблок NPC: Гоблины' })
 
-    fireEvent.click(await within(dialog).findByRole('button', { name: '🎲 Атаковать' }))
+    fireEvent.click(await within(dialog).findByRole('button', { name: 'Атаковать' }))
     expect(openRollerMock).toHaveBeenCalledWith(expect.objectContaining({
       kind: 'combat', title: 'Клинок', basePool: { ability: 1, proficiency: 2, boost: 2, setback: 1 }, canSecret: true,
     }))

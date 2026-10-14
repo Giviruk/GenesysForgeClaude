@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent } from 'react'
 import { api, setActiveSlices, takeFreshSlices } from '../api/client'
 import type { BaseSheet, CharacterSheet, Reference, SheetSliceName, SheetSlices } from '../api/types'
-import { SYSTEM_LABELS } from '../utils/labels'
+import { localizedName, SYSTEM_LABELS } from '../utils/labels'
 import { SheetTab } from '../components/SheetTab'
 import { CharacterSheetNavigation } from '../components/CharacterSheetNavigation'
 import { TalentsTab } from '../components/TalentsTab'
@@ -376,7 +376,7 @@ export function SheetPage({ characterId, printing, onOpenPrint, onClosePrint, on
 
   return (
     <div className="page">
-      <div className="page-head">
+      <div className="page-head sheet-page-head">
         <div>
           <button className="back-link" onClick={onBack}>
             <Icon name="arrow-left" className="button-icon" />
@@ -404,7 +404,7 @@ export function SheetPage({ characterId, printing, onOpenPrint, onClosePrint, on
                     onClick={() => setNameEdit(sheet.name)}>{sheet.name}</button>}</h2>
                 <span className={`badge ${sheet.system}`}>{SYSTEM_LABELS[sheet.system]}</span>
               </div>
-              <div className="page-sub">{sheet.archetype.name} · {sheet.career.name}</div>
+              <div className="page-sub">{localizedName(sheet.archetype)} · {localizedName(sheet.career)}</div>
             </div>
           </div>
         </div>
@@ -430,11 +430,12 @@ export function SheetPage({ characterId, printing, onOpenPrint, onClosePrint, on
                 {completing ? t('Завершение…', 'Completing…') : t('Завершить создание', 'Complete creation')}
               </button>
             )}
+            <button type="button" className="small sheet-print-button" onClick={onOpenPrint}><Icon name="printer" className="button-icon" />{t('Печать', 'Print')}</button>
             <div className="sheet-actions-menu" ref={actionsMenuRef}>
               <button type="button" className="small sheet-actions-trigger"
                 aria-label={t('Дополнительные действия', 'More actions')}
                 aria-haspopup="menu" aria-expanded={actionsOpen}
-                onClick={() => setActionsOpen(open => !open)}>•••</button>
+                onClick={() => setActionsOpen(open => !open)}><span className="sheet-actions-label">{t('Действия', 'Actions')}</span><Icon name="chevron-down" className="button-icon sheet-actions-chevron" /><span className="sheet-actions-mobile" aria-hidden="true">•••</span></button>
               {actionsOpen && (
                 <div className="sheet-actions-popover" role="menu">
                   <button type="button" role="menuitem" onClick={() => { setActionsOpen(false); onOpenPrint() }}>
@@ -482,7 +483,7 @@ export function SheetPage({ characterId, printing, onOpenPrint, onClosePrint, on
           {tab === 'transport' && <TransportTab sheet={sheet} reference={reference} onError={setError} refresh={refresh} />}
           {tab === 'magic' && <MagicTab sheet={sheet} onError={setError} refresh={refresh} qualities={reference.qualities} />}
           {tab === 'bio' && <BioTab key={sheet.id} sheet={sheet} onError={setError} refresh={refresh} onPortraitClick={() => portraitFileRef.current?.click()} />}
-          {tab === 'history' && <HistoryTab characterId={sheet.id} onError={setError} refresh={refresh} />}
+          {tab === 'history' && <HistoryTab reference={reference} characterId={sheet.id} onError={setError} refresh={refresh} />}
         </>
       )}
 

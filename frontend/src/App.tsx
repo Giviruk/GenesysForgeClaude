@@ -226,7 +226,7 @@ function NotFound() {
 }
 
 function PageFallback() {
-  return <div className="page"><div className="panel muted">{t('Загрузка…', 'Loading…')}</div></div>
+  return <div className="app-loading" role="status"><span className="app-loading-logo">GENESYSFORGE</span><span className="app-loading-bar" aria-hidden="true" /><span>{t('Загрузка…', 'Loading…')}</span></div>
 }
 
 export default function App() {

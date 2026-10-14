@@ -1,3 +1,4 @@
+import { Icon } from './Icon'
 import { useState } from 'react'
 import { t } from '../i18n'
 
@@ -66,7 +67,7 @@ export function BuyControl({ unitPrice, money, onConfirm }: {
         </label>
         <span className="price-total">
           {!hasOwnPrice && percent !== 100 && `${percent}% · `}
-          {t('Цена', 'Price')} {effectiveUnit} × {qty} = <strong className={tooExpensive ? 'error' : ''}>{total}</strong> 🪙
+          {t('Цена', 'Price')} {effectiveUnit} × {qty} = <strong className={tooExpensive ? 'error' : ''}>{total}</strong> <Icon name="coin" className="button-icon" />
         </span>
         <button className="primary small" disabled={tooExpensive || needsReason}
           title={needsReason
@@ -167,9 +168,9 @@ export function SellControl({ unitPrice, maxQuantity, onConfirm }: {
         )}
         <span className="price-total">
           {mode === 'override'
-            ? <><strong>{preview}</strong> 🪙</>
+            ? <><strong>{preview}</strong> <Icon name="coin" className="button-icon" /></>
             : effectivePercent > 0
-              ? <>{effectivePercent}% · <strong>{preview}</strong> 🪙</>
+              ? <>{effectivePercent}% · <strong>{preview}</strong> <Icon name="coin" className="button-icon" /></>
               : <span className="error">{t('провал — сделки нет', 'failure — no sale')}</span>}
         </span>
         <button className="primary small" disabled={!canSell}

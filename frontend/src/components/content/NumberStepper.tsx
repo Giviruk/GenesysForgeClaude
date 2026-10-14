@@ -1,3 +1,4 @@
+import { Icon } from '../Icon'
 import { t } from '../../i18n'
 import type { ReactNode } from 'react'
 
@@ -9,6 +10,6 @@ export function NumberStepper({ label, value, onChange, glyph, className = '', d
     <button type="button" disabled={disabled || value <= min} aria-label={t(`Уменьшить: ${label}`, `Decrease ${label}`)} onClick={() => onChange(Math.max(min, value - 1))}>−</button>
     <input type="number" aria-label={label} aria-description={hint} title={hint} value={value} min={min} max={max} disabled={disabled} onChange={e => onChange(Math.min(max ?? Infinity, Math.max(min, Math.trunc(Number(e.target.value)) || 0)))} />
     {suffix && <small>{suffix}</small>}
-    <button type="button" disabled={disabled || (max !== undefined && value >= max)} aria-label={t(`Увеличить: ${label}`, `Increase ${label}`)} onClick={() => onChange(Math.min(max ?? Infinity, value + 1))}>+</button>
+    <button type="button" disabled={disabled || (max !== undefined && value >= max)} aria-label={t(`Увеличить: ${label}`, `Increase ${label}`)} onClick={() => onChange(Math.min(max ?? Infinity, value + 1))}><Icon name="plus" className="button-icon" /><span className="visually-hidden">+</span></button>
   </div>
 }

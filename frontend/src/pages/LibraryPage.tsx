@@ -1,3 +1,5 @@
+import { displayPackName, preferredLibrarySystem } from '../utils/designPresentation'
+import { readLibrarySystem, writeLibrarySystem } from '../utils/uiPreferences'
 import { useCallback, useEffect, useId, useState } from 'react'
 import { api } from '../api/client'
 import type { BaseCatalogEntry, CustomEntryType, GameSystem, HomebrewPackDocument, HomebrewPackListItem, LibraryEntry, LibraryProposal, Reference } from '../api/types'
@@ -13,7 +15,7 @@ import { PROPOSAL_LABELS } from '../components/content/contentLabels'
 import { contentKey, contentMeta, type PickerRow } from '../utils/contentLibrary'
 
 export function LibraryPage() {
-  const [system, setSystem] = useState<GameSystem>('genesysCore')
+  const [system, setSystem] = useState<GameSystem>(() => readLibrarySystem() ?? 'genesysCore')
   const [entries, setEntries] = useState<LibraryEntry[] | null>(null)
   const [packs, setPacks] = useState<HomebrewPackListItem[]>([])
   const [proposals, setProposals] = useState<LibraryProposal[]>([])
@@ -41,7 +43,7 @@ export function LibraryPage() {
   useEffect(() => {
     let cancelled = false
     Promise.all([api.library(), api.homebrewPacks(), api.libraryProposals()]).then(([e, p, statuses]) => {
-      if (!cancelled) { setEntries(e); setPacks(p); setProposals(statuses) }
+      if (!cancelled) { setSystem(preferredLibrarySystem(e, p, readLibrarySystem())); setEntries(e); setPacks(p); setProposals(statuses) }
     }).catch(err => { if (!cancelled) setError(err instanceof Error ? err.message : t('Ошибка', 'Error')) })
     return () => { cancelled = true }
   }, [])
@@ -91,16 +93,16 @@ export function LibraryPage() {
     </header>
     {error && <p className="error" role="alert">{error}</p>}{notice && <p className="notice" role="status">{notice}</p>}
     <div className="rd-toolbar library-system-switch">{(['genesysCore', 'realmsOfTerrinoth'] as GameSystem[]).map(x => <FilterChip key={x} active={system === x}
-      onClick={() => { setSystem(x); select('all') }}>{SYSTEM_LABELS[x]} <small>{entries?.filter(e => e.system === x).length ?? 0}</small></FilterChip>)}</div>
+      onClick={() => { setSystem(x); writeLibrarySystem(x); select('all') }}>{SYSTEM_LABELS[x]} <small>{entries?.filter(e => e.system === x).length ?? 0}</small></FilterChip>)}</div>
     {!entries ? <p>{t('Загрузка…', 'Loading…')}</p> : <div className="rd-two-panel">
       <nav className="rd-sidebar" aria-label={t('Библиотека', 'Library')}><h4>{t('Контент', 'Content')}</h4>
         <SideNavRow active={view === 'all'} onClick={() => select('all')} count={systemEntries.length}>{t('Все элементы', 'All entries')}</SideNavRow>
         <SideNavRow active={view === 'loose'} onClick={() => select('loose')} count={systemEntries.filter(x => !x.packIds.length).length}>{t('Вне наборов', 'Unpacked')}</SideNavRow>
-        <h4>{t('Наборы', 'Packs')}</h4>{systemPacks.map(x => <SideNavRow key={x.id} active={view === x.id} onClick={() => select(x.id)} count={x.entryCount}>{x.name}</SideNavRow>)}
+        <h4>{t('Наборы', 'Packs')}</h4>{systemPacks.map(x => <SideNavRow key={x.id} active={view === x.id} onClick={() => select(x.id)} count={x.entryCount}>{displayPackName(x.name)}</SideNavRow>)}
         <button className="rd-dashed" onClick={() => setPackEditor({})}>+ {t('Новый набор', 'New pack')}</button>
         <p className="hint">{t('Наборы добавляют свой контент и задают ограничения книг для кампаний.', 'Packs add custom content and define book restrictions for campaigns.')}</p>
       </nav><main className="rd-workspace">
-        {pack && <section className="rd-pack-head"><div className="rd-page-head"><div><h3>{pack.name}</h3><p>{pack.description}</p>
+        {pack && <section className="rd-pack-head"><div className="rd-page-head"><div><h3>{displayPackName(pack.name)}</h3><p>{pack.description}</p>
           <div className="rd-chips"><span className="badge">{t(`${pack.entryCount} элементов · ${pack.exclusionCount} ограничений`, `${pack.entryCount} entries · ${pack.exclusionCount} exclusions`)}</span>
             {pack.campaigns?.map(c => <a key={c.id} className="badge" href={`/campaigns/${c.id}`}>{c.name}</a>)}
             {!pack.campaigns?.length && <span className="hint">{t('Не подключён к кампаниям', 'Not connected to campaigns')}</span>}
@@ -131,11 +133,11 @@ export function LibraryPage() {
             <div className="rd-entry-description"><strong>{localizedName(entry)}</strong><span className="muted small-text"> · {ENTRY_LABELS[entry.entryType]}</span>
               <small>{contentMeta(entry.meta)} <CustomEditedDate at={entry.lastEditedAt} /></small>
               {proposals.filter(x => x.kind === 'item' && x.targetId === entry.id).map(x => <small key={x.campaignId}>{x.campaignName} · {PROPOSAL_LABELS[x.status]}</small>)}
-            </div><div className="rd-chips">{entry.packIds.filter(id => id !== pack?.id).map(id => <button className="rd-filter-chip" key={id} onClick={() => select(id)}>{packs.find(x => x.id === id)?.name}</button>)}
+            </div><div className="rd-chips">{entry.packIds.filter(id => id !== pack?.id).map(id => <button className="rd-pack-tag" key={id} onClick={() => select(id)}>{displayPackName(packs.find(x => x.id === id)?.name ?? '')}</button>)}
               {!entry.packIds.length && <span className="badge">{t('Вне наборов', 'Unpacked')}</span>}</div>
             <div className="rd-actions">{pack && <button disabled={busy} aria-label={t('Убрать из набора', 'Remove from pack')} onClick={() => void run(() => api.changeHomebrewPackEntries(pack.id, [{ entryType: entry.entryType, entryId: entry.id }], true))}>−</button>}
               <button aria-label={t('Выбрать наборы', 'Select packs')} onClick={() => setMembership(entry)}><Icon name="book" /></button>
-              {EDITABLE_TYPES.includes(entry.entryType) && <button onClick={() => setEditor({ entry })}>{t('Изменить', 'Edit')}</button>}
+              {EDITABLE_TYPES.includes(entry.entryType) && <button className="rd-icon-button" aria-label={t('Изменить', 'Edit')} onClick={() => setEditor({ entry })}><Icon name="edit" /></button>}
               <details className="rd-row-menu"><summary aria-label={t('Действия с элементом', 'Entry actions')}>⋯</summary><div>
                 <button onClick={() => setProposal({ entry })}>{t('Предложить мастеру', 'Propose to GM')}</button>
                 {EDITABLE_TYPES.includes(entry.entryType) && <button onClick={() => void removeEntry(entry)}>{t('Удалить', 'Delete')}</button>}

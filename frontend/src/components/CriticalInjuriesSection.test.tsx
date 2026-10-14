@@ -56,11 +56,14 @@ describe('CriticalInjuriesSection (U-23)', () => {
     render(<CriticalInjuriesSection sheet={baseSheet} onError={() => {}} refresh={refresh} />)
 
     // дождаться загрузки таблицы (optgroup из criticalInjury, без difficulty)
+    expect(screen.queryByLabelText('Крит-ранение')).toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: 'Добавить' }))
     await waitFor(() => expect(screen.getByRole('option', { name: /Небольшая царапина/ })).toBeTruthy())
     fireEvent.change(screen.getByLabelText('Крит-ранение'), { target: { value: 'crit-ci_001_005' } })
     fireEvent.click(screen.getByRole('button', { name: 'Добавить' }))
 
     await waitFor(() => expect(addMock).toHaveBeenCalledWith('char-1', expect.objectContaining({ ruleCode: 'crit-ci_001_005' })))
+    await waitFor(() => expect(screen.queryByLabelText('Крит-ранение')).toBeNull())
   })
 
   it('в read-only листе показывает ранения без действий управления', () => {

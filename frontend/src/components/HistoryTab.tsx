@@ -1,11 +1,13 @@
+import { localizedAuditSummary } from '../utils/designPresentation'
 import { toneClass } from '../utils/tones'
 import { useCallback, useEffect, useState } from 'react'
 import { api } from '../api/client'
-import type { CharacterAuditAction, CharacterAuditEntry } from '../api/types'
+import type { CharacterAuditAction, CharacterAuditEntry, Reference } from '../api/types'
 import { lang, t } from '../i18n'
 
 interface Props {
   characterId: string
+  reference?: Reference
   onError: (message: string) => void
   /** Перечитать лист (после выдачи XP меняется totalXp в шапке). */
   refresh: () => Promise<void>
@@ -53,7 +55,7 @@ const ACTION_LABELS: Record<CharacterAuditAction, string> = t({
   manualEdit: 'Edit',
 })
 
-export function HistoryTab({ characterId, onError, refresh, readOnly = false, loadEntries }: Props) {
+export function HistoryTab({ characterId, reference, onError, refresh, readOnly = false, loadEntries }: Props) {
   const [entries, setEntries] = useState<CharacterAuditEntry[] | null>(null)
   const [amount, setAmount] = useState('')
   const [note, setNote] = useState('')
@@ -94,12 +96,14 @@ export function HistoryTab({ characterId, onError, refresh, readOnly = false, lo
     }
   }
 
+  const definitions = reference ? [...(reference.items ?? []), ...(reference.talents ?? []), ...(reference.attachments ?? []), ...(reference.skills ?? []), ...(reference.heroicAbilities ?? [])] : []
   const showUndo = !readOnly && entries?.some(entry => entry.canUndo) === true
 
   return (
     <div className="history-tab">
       {!readOnly && <section className="panel award-xp">
         <h3>{t('Выдать XP', 'Award XP')}</h3>
+        {entries?.[0] && <div className="history-xp-summary"><span>{t('получено', 'received')} <b>{entries[0].totalXpAfter}</b></span><span>{t('потрачено', 'spent')} <b>{entries[0].spentXpAfter}</b></span><span>{t('доступно', 'available')} <b>{entries[0].totalXpAfter - entries[0].spentXpAfter}</b></span></div>}
         <div className="form-row">
           <input className="ranks-input" type="number" placeholder="±XP" value={amount}
             onChange={e => setAmount(e.target.value)} title={t('Сколько XP выдать (можно отрицательное для коррекции)', 'How much XP to award (negative values allowed for corrections)')} />
@@ -107,7 +111,7 @@ export function HistoryTab({ characterId, onError, refresh, readOnly = false, lo
             onChange={e => setNote(e.target.value)} />
           <button className="primary small" onClick={() => void award()}
             disabled={!Number.isFinite(Number(amount)) || Math.trunc(Number(amount)) === 0}>
-            {t('Выдать', 'Award')}
+            {t('Выдать XP', 'Award XP')}
           </button>
         </div>
       </section>}
@@ -132,9 +136,9 @@ export function HistoryTab({ characterId, onError, refresh, readOnly = false, lo
               <tbody>
                 {entries.map(e => (
                   <tr key={e.id}>
-                    <td className="muted small-text nowrap">{new Date(e.createdAt).toLocaleString(lang === 'ru' ? 'ru-RU' : 'en-US')}</td>
-                    <td><span className={`badge ${toneClass('history', e.action)}`}>{ACTION_LABELS[e.action]}</span></td>
-                    <td>{e.summary}</td>
+                    <td className="muted small-text nowrap">{new Date(e.createdAt).toLocaleString(lang === 'ru' ? 'ru-RU' : 'en-US', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</td>
+                    <td><span className={`badge ${toneClass('history', e.action)}`}>{ACTION_LABELS[e.action] ?? (/craft|project/i.test(e.action) ? t('Ремесло', 'Crafting') : /install/i.test(e.action) ? t('Установка', 'Installation') : t('Улучшение', 'Attachment'))}</span></td>
+                    <td>{localizedAuditSummary(e.summary, definitions)}</td>
                     <td className="right">
                       {e.xpDelta != null && e.xpDelta !== 0 && (
                         <span className={e.xpDelta > 0 ? 'xp-pos' : 'xp-neg'}>

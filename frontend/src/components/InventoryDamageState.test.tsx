@@ -100,10 +100,10 @@ describe('Инвентарь: состояние предмета и ремон�
       `Переносимый вес ${encumbered ? 12 : 1}/8 ${encumbered ? 'перегружен! ' : ''}Поглощение 3 Защита 0/0`)
   })
 
-  it('меняет состояние отдельной кнопкой, не трогая «используется»', async () => {
+  it('меняет состояние компактным селектом, не трогая «используется»', async () => {
     renderTab(sheetWith(sword()))
 
-    fireEvent.click(screen.getByRole('button', { name: 'Умеренное' }))
+    fireEvent.change(screen.getByRole('combobox', { name: 'Состояние предмета' }), { target: { value: 'moderate' } })
 
     await waitFor(() => expect(setDamageStateMock).toHaveBeenCalledWith('char-1', 'item-1', 'moderate'))
     // Переключатель места остался своим: «в рюкзаке» и «сломано» — разные вещи.

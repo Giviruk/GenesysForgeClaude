@@ -170,13 +170,13 @@ describe('Улучшения предметов (SHEET-02)', () => {
     for (const button of [
       ...screen.getAllByRole('button', { name: 'Снять' }),
       ...screen.getAllByRole('button', { name: 'Испорчено при снятии' }),
-      ...screen.getAllByRole('button', { name: 'Незначительное' }),
       screen.getByRole('button', { name: /Починить/ }),
       screen.getByRole('button', { name: 'Убрать из запаса' }),
     ]) {
       expect(button).toHaveProperty('disabled', true)
       fireEvent.click(button)
     }
+    for (const select of screen.getAllByRole('combobox', { name: 'Состояние предмета' })) expect(select).toHaveProperty('disabled', true)
     expect(detachMock).toHaveBeenCalledOnce()
     expect(repairMock).not.toHaveBeenCalled()
     expect(damageMock).not.toHaveBeenCalled()

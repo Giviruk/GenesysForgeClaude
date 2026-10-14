@@ -7,7 +7,7 @@ import type {
   NpcKind, NpcListItem, NpcPowerLevel, NpcRole, NpcVisibility, Quality, QuickDraftRequest, Reference, SkillDef,
 } from '../api/types'
 import {
-  CHARACTERISTICS, CHARACTERISTIC_LABELS, CREATURE_TEMPLATE_LABELS, CREATURE_TEMPLATES, dualName,
+  CHARACTERISTICS, CHARACTERISTIC_LABELS, CHARACTERISTIC_SHORT_LABELS, CREATURE_TEMPLATE_LABELS, CREATURE_TEMPLATES, dualName,
   ITEM_KIND_LABELS, localizedDescription, NPC_COMBAT_STYLE_LABELS, NPC_KIND_LABELS, NPC_KINDS, NPC_POWER_LABELS,
   NPC_ROLE_LABELS, NPC_ROLES, NPC_VISIBILITY_LABELS, secondaryName, SYSTEM_LABELS,
 } from '../utils/labels'
@@ -237,7 +237,7 @@ function NpcCard({ npc: n, reference, canAttack = true }: { npc: NpcDetail; refe
           {chars.map(([c, v]) => (
             <div key={c} className="npc-char">
               <span className="npc-char-val">{v}</span>
-              <span className="npc-char-label">{CHARACTERISTIC_LABELS[c]}</span>
+              <span className="npc-char-label" title={CHARACTERISTIC_LABELS[c]}>{CHARACTERISTIC_SHORT_LABELS[c]}</span>
             </div>
           ))}
         </div>
@@ -641,7 +641,7 @@ function NpcEditorSummary({ npc, index, title }: { npc: NpcDetail; index: Map<st
   return <div className="npc-editor-summary">
     <header className="npc-preview-plate plate"><small>{title}</small><h3>{npc.name.trim() || t('Новый NPC', 'New NPC')}</h3>
       <p>{NPC_KIND_LABELS[npc.kind]} · {NPC_ROLE_LABELS[npc.role]} · {SYSTEM_LABELS[npc.system]}</p></header>
-    <div className="npc-preview-chars">{CHARACTERISTICS.map(c => <div key={c}><small>{CHARACTERISTIC_LABELS[c]}</small><strong>{npc[c]}</strong></div>)}</div>
+    <div className="npc-preview-chars">{CHARACTERISTICS.map(c => <div key={c}><small title={CHARACTERISTIC_LABELS[c]}>{CHARACTERISTIC_SHORT_LABELS[c]}</small><strong>{npc[c]}</strong></div>)}</div>
     <div className="npc-preview-derived">{[[t('Раны', 'Wounds'), npc.woundThreshold], [t('Усталость', 'Strain'), npc.strainThreshold ?? '—'], [t('Поглощение', 'Soak'), npc.soak], [t('Защита', 'Defense'), `${npc.meleeDefense} / ${npc.rangedDefense}`]].map(([label, value]) => <div key={label}><strong>{value}</strong><small>{label}</small></div>)}</div>
     <dl className="npc-preview-details">
       <div><dt>{t('Навыки', 'Skills')}</dt><dd>{skills.map(s => s.name).join(', ') || '—'}</dd></div>

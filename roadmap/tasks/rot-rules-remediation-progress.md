@@ -56,9 +56,12 @@ scope сессии/encounter и единый check context: их нет в пр�
   773 Domain, 959 API, 2 PostgreSQL migration tests, 45 Playwright, lint/build.
   [Отчёт и снимки](../../docs/redesign-v5-ui-followup.md), [PR #295](https://github.com/Giviruk/GenesysForgeClaude/pull/295); `[x]` ставится после слияния PR.
 
-- [ ] **GEN-V5-14** — 56 замечаний по дизайну после сверки прода `839e804`: шкала размеров,
+- [~] **GEN-V5-14** — 56 замечаний по дизайну после сверки прода `839e804`: шкала размеров,
   мобильная шапка, таланты, энкаунтеры, стол, библиотека и остальные экраны.
   [ТЗ](../../redesign_v5_tz/TZ_design_remarks_v5.md), [план](gen-v5-14-design-remarks.md).
+  Реализовано в исходной ветке [PR #296](https://github.com/Giviruk/GenesysForgeClaude/pull/296):
+  685 Vitest, 13 сценариев Playwright (RU/EN), lint/build;
+  [отчёт и снимки](../../docs/design-review/gen-v5-14/README.md). `[x]` — после слияния PR.
 
 - [~] **GEN-UI-SYMBOLS** — формы игровых символов через локальный Genesys Glyphs and Dice
   и базовая русская терминология Core: характеристики, кости, результаты, сложности,
@@ -1470,3 +1473,10 @@ InMemory API и действующим rate limiting. Полные backend/Postg
 снятия Disabled, согласие игрока для отдельных элементов, перенос legacy NULL-pack использованного
 контента, единый индексированный каталог на запрос, фильтрация поиска в SQL, серверный nextPool
 и централизованное хранение skillProgress. Все шесть checks [CI](https://github.com/Giviruk/GenesysForgeClaude/actions/runs/37980506997) прошли: 760 Domain, 941 API, 540 frontend, миграции/E2E обоих режимов. Локальная PostgreSQL-регрессия с legacy-данными и Up/Down — 1/1, целевые API — 14/14. На восемь комментариев даны ответы; слияние не разрешено.
+
+### GEN-V5-14 — 56 замечаний по дизайну
+
+Исправлены сетка талантов и sticky-шапка, плотность и типографика контролов, локализованные имена,
+таблица участников и стол, инвентарь/магия/героика/мастерская/транспорт, заметки и история,
+библиотека и магазин. План и приёмка — в [отчёте](../../docs/design-review/gen-v5-14/README.md).
+Изменения находятся в [PR #296](https://github.com/Giviruk/GenesysForgeClaude/pull/296); общий пункт остаётся `[~]` до слияния.

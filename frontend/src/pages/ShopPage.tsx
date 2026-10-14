@@ -1,3 +1,5 @@
+import { Icon } from '../components/Icon'
+import { NumberStepper } from '../components/content/NumberStepper'
 import { toneClass, rarityClass } from '../utils/tones'
 import { useEffect, useMemo, useState } from 'react'
 import { api } from '../api/client'
@@ -8,7 +10,7 @@ import type {
 import {
   CURRENCY_LABEL, IMPLEMENT_MATERIAL_HINTS, IMPLEMENT_MATERIAL_LABELS, NPC_KIND_LABELS,
   WEAPON_CRAFTSMANSHIP_HINTS, WEAPON_CRAFTSMANSHIP_LABELS, WEAPON_CRAFTSMANSHIPS,
-  localizedDescription, localizedName, secondaryName,
+  itemDescription, localizedName, secondaryName,
 } from '../utils/labels'
 import {
   craftsmanshipApplies, craftsmanshipPrice, craftsmanshipRarity,
@@ -82,7 +84,7 @@ const productSecondaryName = (product: ShopProduct): string =>
 
 const productDescription = (product: ShopProduct): string =>
   product.type === 'item'
-    ? localizedDescription(product.item)
+    ? itemDescription({ ...product.item, properties: product.item.properties || qualityProperties(product.item.qualities) })
     : product.type === 'mount'
       ? (lang === 'ru'
           ? product.mount.description
@@ -274,10 +276,8 @@ export function ShopPage() {
                       <strong>+{product.item.soakBonus}</strong>
                     </span>
                   )}
-                  <span>
-                    {t('Цена', 'Price')}{' '}
-                    <strong>{productPrice(product) == null ? '—' : productPrice(product)}</strong>
-                    {' '}{CURRENCY_LABEL}
+                  <span className="shop-price-tag" aria-label={t('Цена', 'Price')}>
+                    <Icon name="coin" className="button-icon" /><strong>{productPrice(product) == null ? '—' : productPrice(product)}</strong>
                   </span>
                   <span className={productRarity(product) == null ? 'rarity-unknown' : rarityClass(productRarity(product)!)}>
                     {t('Редкость', 'Rarity')}{' '}
@@ -418,7 +418,7 @@ function ProductModal({ product, character, qualityDefinitions, onClose }: {
           <button type="button" className="small" onClick={onClose}>{t('Закрыть', 'Close')}</button>
         </div>
 
-        <p>{productDescription(product) || t('Описание отсутствует.', 'No description available.')}</p>
+<>{productDescription(product) && <p>{productDescription(product)}</p>}</>
         {(item?.kind === 'weapon' || item?.kind === 'armor')
           && item && (item.properties || qualityProperties(item.qualities)) && (
           <PropertyTags properties={item.properties || qualityProperties(item.qualities)} className="shop-props"
@@ -487,12 +487,7 @@ function ProductModal({ product, character, qualityDefinitions, onClose }: {
           )}
 
             {!attachment && !mount && (
-              <label>
-                <span>{t('Количество', 'Quantity')}</span>
-                <input type="number" min={1} value={quantity}
-                  onChange={event =>
-                    setQuantity(Math.max(1, Math.trunc(Number(event.target.value)) || 1))} />
-              </label>
+<NumberStepper label={t('Количество', 'Quantity')} min={1} value={quantity} onChange={setQuantity} />
             )}
         </div>
 
