@@ -6,14 +6,16 @@ const RANGE_CELL_OFFSET = RANGE_CELL_ANGLE / 2
 
 /** Центры кольцевых диапазонов в процентах от радиуса доски. */
 export const RANGE_ZONE_RADII_PERCENT: Record<RangeZone, number> = {
-  engaged: 4.9,
-  short: 14.7,
-  medium: 24.5,
-  long: 34.3,
-  extreme: 44.1,
+  engaged: 6.35,
+  short: 19.05,
+  medium: 30.3,
+  long: 38.65,
+  extreme: 45.55,
 }
 
-const ZONE_BOUNDARIES_PERCENT = [9.8, 19.6, 29.4, 39.2]
+// Внешний край доски — 49%. Длинная и экстремальная полосы (6,9%) на 30% уже средней (9,8%),
+// вплотную и короткая (12,7%) — шире; диаметры колец в CSS (.ring-*) равны удвоенным границам.
+const ZONE_BOUNDARIES_PERCENT = [12.7, 25.4, 35.2, 42.1]
 const ZONES: RangeZone[] = ['engaged', 'short', 'medium', 'long', 'extreme']
 
 export interface RangeCellPosition {

@@ -66,7 +66,9 @@ export function Select({ value, onChange, children, required, name, disabled, id
       const rect = field.current?.getBoundingClientRect()
       if (!rect) return
       const width = Math.min(Math.max(180, rect.width), 360, innerWidth - 32)
-      const desiredHeight = Math.min(320, innerHeight * .6, list.current?.scrollHeight ?? 320)
+      // scrollHeight не учитывает рамку списка — без неё появляется лишняя прокрутка на 2px.
+      const fullHeight = popup ? popup.scrollHeight + popup.offsetHeight - popup.clientHeight : 320
+      const desiredHeight = Math.min(320, innerHeight * .6, fullHeight)
       const below = innerHeight - rect.bottom - 12
       const above = rect.top - 12
       const upwards = below < desiredHeight && above > below

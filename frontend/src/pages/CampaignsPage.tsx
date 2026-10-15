@@ -5,7 +5,7 @@ import { api, ApiError } from '../api/client'
 import type {
   CampaignDetail, CampaignListItem, CampaignMember, CharacterListItem, CharacterSheet, GameSession,
 } from '../api/types'
-import { localizedName, PARTICIPANT_TYPE_LABELS, SLOT_TYPE_LABELS, SYSTEM_LABELS } from '../utils/labels'
+import { localizedName, PARTICIPANT_TYPE_LABELS, SYSTEM_LABELS } from '../utils/labels'
 import { GameTableTab } from '../components/GameTableTab'
 import { EncountersTab } from '../components/EncountersTab'
 import { CampaignContentTab } from '../components/content/CampaignContentTab'
@@ -534,11 +534,6 @@ function CampaignOverview({ campaign, session, sessionLoaded, memberSheets, onVi
       <div className="campaign-bottom-grid">
         <CurrentSceneBlock session={session} sessionLoaded={sessionLoaded} onView={onView} />
         <StoryPointsBlock session={session} isGm={campaign.isGm} onSessionRun={onSessionRun} />
-        <InitiativeBlock session={session} isGm={campaign.isGm} onView={onView} onSessionRun={onSessionRun} />
-      </div>
-
-      <div className="campaign-wide-grid">
-        <CampaignNotesSection campaign={campaign} onRun={onCampaignRun} variant="dashboard" />
         <div className="campaign-dash-block campaign-party-stats">
           <h4>{t('Статистика группы', 'Party stats')}</h4>
           <div className="campaign-stats-grid">
@@ -548,6 +543,9 @@ function CampaignOverview({ campaign, session, sessionLoaded, memberSheets, onVi
             <div className="campaign-stat"><div className="campaign-stat-val">{session?.currentRound ?? '—'}</div><div className="campaign-stat-lbl">{t('текущий раунд', 'current round')}</div></div>
           </div>
         </div>
+        {/* Заметки занимают место под сюжетными очками и статистикой, чтобы высокая сцена слева
+            не оставляла под ними пустоту. */}
+        <CampaignNotesSection campaign={campaign} onRun={onCampaignRun} variant="dashboard" />
       </div>
     </div>
   )
@@ -674,37 +672,6 @@ function StoryPointsBlock({ session, isGm, onSessionRun }: {
       </div>
       <div className="campaign-pips" aria-hidden="true">{Array.from({ length: total }, (_, i) => <span key={i} className={i < player ? 'campaign-pip player' : i < player + gm ? 'campaign-pip gm' : 'campaign-pip empty'} />)}</div>
       {!session && <p className="muted">{t('Сюжетные очки появятся после запуска сцены.', 'Story points appear once a scene is running.')}</p>}
-    </div>
-  )
-}
-
-function InitiativeBlock({ session, isGm, onView, onSessionRun }: {
-  session: GameSession | null
-  isGm: boolean
-  onView: (view: CampaignView) => void
-  onSessionRun: (a: () => Promise<unknown>) => Promise<void>
-}) {
-  const nameOf = (participantId: string | null) =>
-    session?.participants.find(p => p.id === participantId)?.displayName ?? t('— абстрактный —', '— unassigned —')
-  return (
-    <div className="campaign-dash-block">
-      <h4>{t('Инициатива', 'Initiative')}</h4>
-      {!session || session.slots.length === 0 ? (
-        <p className="muted">{t('Слотов инициативы пока нет.', 'No initiative slots yet.')}</p>
-      ) : (
-        <div className="campaign-init-list">
-          {session.slots.slice(0, 5).map((slot, i) => (
-            <div key={slot.id} className={i === session.currentTurnIndex ? 'campaign-init-slot current' : 'campaign-init-slot'}>
-              <span className="campaign-init-num">{i + 1}</span>
-              <span className="campaign-init-name">{nameOf(slot.assignedParticipantId)}</span>
-              <span className={`badge slot-${slot.slotType}`}>{slot.slotType === 'npc' ? t('НПС', 'NPC') : SLOT_TYPE_LABELS[slot.slotType]}</span>
-            </div>
-          ))}
-        </div>
-      )}
-      {session && isGm
-        ? <button className="small campaign-init-next" onClick={() => onSessionRun(() => api.nextTurn(session.campaignId))}>{t('→ Следующий ход', '→ Next turn')}</button>
-        : <button className="small campaign-init-next" onClick={() => onView('table')}>{t('Игровой стол', 'Game table')}</button>}
     </div>
   )
 }

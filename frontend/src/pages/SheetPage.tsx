@@ -430,7 +430,6 @@ export function SheetPage({ characterId, printing, onOpenPrint, onClosePrint, on
                 {completing ? t('Завершение…', 'Completing…') : t('Завершить создание', 'Complete creation')}
               </button>
             )}
-            <button type="button" className="small sheet-print-button" onClick={onOpenPrint}><Icon name="printer" className="button-icon" />{t('Печать', 'Print')}</button>
             <div className="sheet-actions-menu" ref={actionsMenuRef}>
               <button type="button" className="small sheet-actions-trigger"
                 aria-label={t('Дополнительные действия', 'More actions')}

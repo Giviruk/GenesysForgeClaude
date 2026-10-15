@@ -500,6 +500,9 @@ function InventoryCard({ item, sheet, skillNames, run, reference, funds, sellOpe
   const properties = item.properties || (item.kind === 'armor' ? qualityProperties(catalogueDef?.qualities) : '')
   const skill = skillName ? sheet.skills.find(s => s.name === skillName) ?? null : null
   const skillLabel = skill ? localizedName(skill) : item.skillName
+  // Профиль атаки общий для строки характеристик и кнопки «Атаковать» в подвале карточки.
+  const [profileCode, setProfileCode] = useState(item.attackProfiles?.find(p => p.isDefault)?.code ?? '')
+  const weapon = { item, sheet, skill, skillLabel, reference, run, profileCode, onProfileChange: setProfileCode }
 
   if (printing) {
     return (
@@ -514,22 +517,7 @@ function InventoryCard({ item, sheet, skillNames, run, reference, funds, sellOpe
       <div className="inv-card-head">
         <span className="inv-item-icon" aria-hidden="true"><Icon name={item.kind === 'weapon' ? 'sword' : item.kind === 'armor' ? 'shield' : 'package'} /></span>
         <div className="inv-card-title">
-          <div className="inv-title-line"><strong>{itemLabel}</strong>
-        <div className="state-switch">
-          {/* Верёвку и провизию не берут «в руки»: состояние ничего не даёт и путается с «носит». */}
-          {STATES.filter(s => s !== 'equipped' || item.canEquip).map(s => {
-            // Одна броня и две руки (ROT-EQP-01): сервер всё равно откажет, но лучше сказать заранее.
-            const blocked = s === 'equipped' && item.state !== 'equipped' ? equipBlockReason(item, sheet) : null
-            return (
-              <button key={s} className={`chip state-${s}${item.state === s ? ' active' : ''}`}
-                disabled={blocked !== null} title={blocked ?? undefined}
-                onClick={() => item.state !== s && run(() => api.updateItem(sheet.id, item.id, { state: s }))}>
-                {ITEM_STATE_LABELS[s]}
-              </button>
-            )
-          })}
-        </div>
-          </div>
+          <div className="inv-title-line"><strong>{itemLabel}</strong></div>
           {/* Состояние видно сразу в заголовке: сломанная вещь не должна выглядеть как целая. */}
           {item.damageState !== 'undamaged' && (
             <span className={`chip damage-badge ${item.damageState}`}
@@ -547,19 +535,35 @@ function InventoryCard({ item, sheet, skillNames, run, reference, funds, sellOpe
             {item.craftsmanship !== 'steel' && ` · ${WEAPON_CRAFTSMANSHIP_LABELS[item.craftsmanship]}`}
           </span>
         </div>
-        <div className="inv-card-qty">
-          <button className="tiny" aria-label={t('Уменьшить количество', 'Decrease quantity')} disabled={item.quantity <= 1} onClick={() => item.quantity > 1 &&
-            run(() => api.updateItem(sheet.id, item.id, { quantity: item.quantity - 1 }))}>−</button>
-          <span>×{item.quantity}</span>
-          <button className="tiny" aria-label={t('Увеличить количество', 'Increase quantity')} onClick={() =>
-            run(() => api.updateItem(sheet.id, item.id, { quantity: item.quantity + 1 }))}><Icon name="plus" className="button-icon" /></button>
+        <div className="inv-card-controls">
+          <div className="state-switch">
+            {/* Верёвку и провизию не берут «в руки»: состояние ничего не даёт и путается с «носит». */}
+            {STATES.filter(s => s !== 'equipped' || item.canEquip).map(s => {
+              // Одна броня и две руки (ROT-EQP-01): сервер всё равно откажет, но лучше сказать заранее.
+              const blocked = s === 'equipped' && item.state !== 'equipped' ? equipBlockReason(item, sheet) : null
+              return (
+                <button key={s} className={`chip state-${s}${item.state === s ? ' active' : ''}`}
+                  disabled={blocked !== null} title={blocked ?? undefined}
+                  onClick={() => item.state !== s && run(() => api.updateItem(sheet.id, item.id, { state: s }))}>
+                  {ITEM_STATE_LABELS[s]}
+                </button>
+              )
+            })}
+          </div>
+          <div className="inv-card-qty">
+            <button className="tiny" aria-label={t('Уменьшить количество', 'Decrease quantity')} disabled={item.quantity <= 1} onClick={() => item.quantity > 1 &&
+              run(() => api.updateItem(sheet.id, item.id, { quantity: item.quantity - 1 }))}>−</button>
+            <span>×{item.quantity}</span>
+            <button className="tiny" aria-label={t('Увеличить количество', 'Increase quantity')} onClick={() =>
+              run(() => api.updateItem(sheet.id, item.id, { quantity: item.quantity + 1 }))}><Icon name="plus" className="button-icon" /></button>
+          </div>
+          <button className="danger small inv-card-remove" title={t('Убрать без выручки', 'Remove without proceeds')}
+            aria-label={t('Убрать без выручки', 'Remove without proceeds')}
+            onClick={() => run(() => api.removeItem(sheet.id, item.id))}>✕</button>
         </div>
       </div>
 
-      {item.kind === 'weapon' && (
-        <WeaponLine item={item} sheet={sheet} skill={skill} skillLabel={skillLabel}
-          reference={reference} run={run} />
-      )}
+      {item.kind === 'weapon' && <WeaponLine {...weapon} part="stats" />}
 
       {item.kind !== 'weapon' && properties && (
         <PropertyTags properties={properties} className="small-text" qualityDefinitions={reference.qualities} />
@@ -741,9 +745,8 @@ function InventoryCard({ item, sheet, skillNames, run, reference, funds, sellOpe
           {item.sellable && (
             <button className="small" onClick={onToggleSell}>{sellOpen ? t('Отмена', 'Cancel') : t('Продать', 'Sell')}</button>
           )}
-          <button className="danger small" title={t('Убрать без выручки', 'Remove without proceeds')}
-            onClick={() => run(() => api.removeItem(sheet.id, item.id))}>✕</button>
         </div>
+        {item.kind === 'weapon' && <WeaponLine {...weapon} part="actions" />}
       </div>
 
       {sellOpen && item.sellable && item.price != null && (
@@ -770,14 +773,16 @@ function profileLabel(p: WeaponAttackProfile): string {
  * и метают, — поэтому урон, навык, крит и дистанция берутся из выбранного профиля, а не из
  * общих полей предмета. Базовый урон считает сервер: клиент строку «+3» больше не разбирает.
  */
-function WeaponLine({ item, sheet, skill, skillLabel, reference, run }: {
+function WeaponLine({ item, sheet, skill, skillLabel, reference, run, profileCode, onProfileChange: setProfileCode, part }: {
   item: SheetItem; sheet: CharacterSheet; skill: CharacterSheet['skills'][number] | null
   skillLabel: string; reference: Reference; run: Run
+  profileCode: string; onProfileChange: (code: string) => void
+  /** Характеристики идут под заголовком карточки, кнопки атаки — в её подвале. */
+  part: 'stats' | 'actions'
 }) {
   const { openRoller } = useDiceRoller()
   const itemLabel = localizedName(item)
   const profiles = item.attackProfiles ?? []
-  const [profileCode, setProfileCode] = useState(profiles.find(p => p.isDefault)?.code ?? '')
   const profile = profiles.find(p => p.code === profileCode) ?? profiles[0] ?? null
 
   // Навык броска берётся из профиля: метательный кинжал бросается Дальним боем, а не Ближним.
@@ -816,58 +821,8 @@ function WeaponLine({ item, sheet, skill, skillLabel, reference, run }: {
     })].join('\n')
     : undefined
 
-  return (
-    <div className="weapon-line">
-      {profiles.length > 1 && (
-        <span className="weapon-profiles no-print">
-          {profiles.map(p => (
-            <button key={p.code} type="button"
-              className={`tiny${p.code === profile?.code ? ' active' : ''}`}
-              onClick={() => setProfileCode(p.code)}>
-              {profileLabel(p)}
-            </button>
-          ))}
-        </span>
-      )}
-      <span className="weapon-stat">{t('Урон', 'Damage')} <strong>{damageText || '—'}</strong></span>
-      {critText && <span className="weapon-stat">{t('Крит', 'Crit')} <strong>{critText}</strong></span>}
-      {rangeText && <span className="weapon-stat">{rangeText}</span>}
-      {/* Оружие, которое не достаёт вплотную и задаёт свою сложность (пика). */}
-      {profile?.cannotAttackEngaged && (
-        <span className="weapon-stat warn" title={t('Пика бьёт только на короткой дистанции.',
-          'A pike only reaches at short range.')}>
-          {t('не бьёт вплотную', 'not engaged')}
-        </span>
-      )}
-      {profile?.fixedDifficulty != null && (
-        <span className="weapon-stat">
-          {t('Сложность', 'Difficulty')} <strong>{DIFFICULTY_LABELS[profile.fixedDifficulty] ?? profile.fixedDifficulty}</strong>
-        </span>
-      )}
-      {profileSkill ? (
-        <span className="weapon-pool"
-          title={[t(`Бросок: ${profileSkillLabel}`, `Roll: ${profileSkillLabel}`), modsTitle]
-            .filter(Boolean).join('\n')}>
-          <DicePoolView pool={profileSkill.pool}
-            setback={profileSkill.setbackDice + (mods?.setback ?? 0)}
-            boost={profileSkill.removeBoosts ? 0 : (mods?.boost ?? 0)}
-            difficulty={(profileSkill.difficultyDice ?? 0) + (mods?.difficultyIncrease ?? 0)}
-            difficultyUpgrades={profileSkill.difficultyUpgrades} />
-          {' '}<span className="muted small-text">{profileSkillLabel}</span>
-          {(mods?.automaticAdvantage ?? 0) > 0 && (
-            <span className="muted small-text">
-              {' '}{t(`+${mods!.automaticAdvantage} преим.`, `+${mods!.automaticAdvantage} adv.`)}
-            </span>
-          )}
-        </span>
-      ) : profileSkillLabel ? (
-        <span className="muted small-text">
-          {t(`навык ${profileSkillLabel} не освоен`, `skill ${profileSkillLabel} not trained`)}
-        </span>
-      ) : null}
-      {qualities && <PropertyTags properties={qualities} className="weapon-props"
-        qualityDefinitions={reference.qualities} />}
-
+  if (part === 'actions') return (
+    <div className="weapon-actions">
       {!item.isUsable ? (
         // Сломанным оружием не атакуют: кнопки броска нет вовсе, чтобы её нельзя было нажать
         // по привычке (GEN-EQP-DMG-01).
@@ -928,6 +883,61 @@ function WeaponLine({ item, sheet, skill, skillLabel, reference, run }: {
           )}
         </>
       )}
+    </div>
+  )
+
+  return (
+    <div className="weapon-line">
+      {profiles.length > 1 && (
+        <span className="weapon-profiles no-print">
+          {profiles.map(p => (
+            <button key={p.code} type="button"
+              className={`tiny${p.code === profile?.code ? ' active' : ''}`}
+              onClick={() => setProfileCode(p.code)}>
+              {profileLabel(p)}
+            </button>
+          ))}
+        </span>
+      )}
+      <span className="weapon-stat">{t('Урон', 'Damage')} <strong>{damageText || '—'}</strong></span>
+      {critText && <span className="weapon-stat">{t('Крит', 'Crit')} <strong>{critText}</strong></span>}
+      {rangeText && <span className="weapon-stat">{rangeText}</span>}
+      {/* Оружие, которое не достаёт вплотную и задаёт свою сложность (пика). */}
+      {profile?.cannotAttackEngaged && (
+        <span className="weapon-stat warn" title={t('Пика бьёт только на короткой дистанции.',
+          'A pike only reaches at short range.')}>
+          {t('не бьёт вплотную', 'not engaged')}
+        </span>
+      )}
+      {profile?.fixedDifficulty != null && (
+        <span className="weapon-stat">
+          {t('Сложность', 'Difficulty')} <strong>{DIFFICULTY_LABELS[profile.fixedDifficulty] ?? profile.fixedDifficulty}</strong>
+        </span>
+      )}
+      {profileSkill ? (
+        <span className="weapon-pool"
+          title={[t(`Бросок: ${profileSkillLabel}`, `Roll: ${profileSkillLabel}`), modsTitle]
+            .filter(Boolean).join('\n')}>
+          <DicePoolView pool={profileSkill.pool}
+            setback={profileSkill.setbackDice + (mods?.setback ?? 0)}
+            boost={profileSkill.removeBoosts ? 0 : (mods?.boost ?? 0)}
+            difficulty={(profileSkill.difficultyDice ?? 0) + (mods?.difficultyIncrease ?? 0)}
+            difficultyUpgrades={profileSkill.difficultyUpgrades} />
+          {' '}<span className="muted small-text">{profileSkillLabel}</span>
+          {(mods?.automaticAdvantage ?? 0) > 0 && (
+            <span className="muted small-text">
+              {' '}{t(`+${mods!.automaticAdvantage} преим.`, `+${mods!.automaticAdvantage} adv.`)}
+            </span>
+          )}
+        </span>
+      ) : profileSkillLabel ? (
+        <span className="muted small-text">
+          {t(`навык ${profileSkillLabel} не освоен`, `skill ${profileSkillLabel} not trained`)}
+        </span>
+      ) : null}
+      {qualities && <PropertyTags properties={qualities} className="weapon-props"
+        qualityDefinitions={reference.qualities} />}
+
     </div>
   )
 }

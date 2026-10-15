@@ -14,9 +14,9 @@ describe('range tracker geometry', () => {
 
   it('places drops inside the five range bands', () => {
     expect(rangeZoneFromRadius(4)).toBe('engaged')
-    expect(rangeZoneFromRadius(12)).toBe('short')
-    expect(rangeZoneFromRadius(24)).toBe('medium')
-    expect(rangeZoneFromRadius(35)).toBe('long')
+    expect(rangeZoneFromRadius(16)).toBe('short')
+    expect(rangeZoneFromRadius(30)).toBe('medium')
+    expect(rangeZoneFromRadius(39)).toBe('long')
     expect(rangeZoneFromRadius(47)).toBe('extreme')
   })
 
@@ -25,8 +25,8 @@ describe('range tracker geometry', () => {
     expect(rangeCellFromBoardPoint(300, 50 + 200 - 30, board)).toEqual({
       zone: 'engaged', angle: 285, leftPercent: 50, topPercent: 42.5,
     })
-    expect(rangeCellFromBoardPoint(300 + 50, 250, board)).toEqual({
-      zone: 'short', angle: 15, leftPercent: 62.5, topPercent: 50,
+    expect(rangeCellFromBoardPoint(300 + 70, 250, board)).toEqual({
+      zone: 'short', angle: 15, leftPercent: 67.5, topPercent: 50,
     })
     expect(rangeCellFromBoardPoint(300 - 190, 250, board)).toEqual({
       zone: 'extreme', angle: 195, leftPercent: 2.5, topPercent: 50,

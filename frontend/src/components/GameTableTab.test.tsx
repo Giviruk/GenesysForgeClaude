@@ -125,7 +125,9 @@ describe('GameTableTab — статблок и броски NPC', () => {
     expect(screen.queryByText('— участник для способности —')).toBeNull()
     expect(screen.queryByText('— способность —')).toBeNull()
     expect(screen.queryByRole('button', { name: 'Активировать' })).toBeNull()
-    expect(screen.getByText('Быстрые действия')).toBeTruthy()
+    // GEN-V5-16: блока «Быстрые действия» нет, добавление участника — в шапке «Участники сцены».
+    expect(screen.queryByText('Быстрые действия')).toBeNull()
+    expect(screen.getByRole('button', { name: '+ Участник' })).toBeTruthy()
   })
 
   it('keeps ability activations free of result badges and dates older rolls', async () => {
@@ -289,13 +291,13 @@ describe('GameTableTab — статблок и броски NPC', () => {
     const preview = document.querySelector('.ring-token.drag-preview') as HTMLElement
     expect(Number.parseFloat(preview.style.left)).toBeCloseTo(57.5, 4)
     expect(Number.parseFloat(preview.style.top)).toBeCloseTo(50, 4)
-    expect(Number.parseFloat((document.querySelector('.drag-cell-target') as HTMLElement).style.left)).toBeCloseTo(54.73, 2)
+    expect(Number.parseFloat((document.querySelector('.drag-cell-target') as HTMLElement).style.left)).toBeCloseTo(56.13, 2)
 
     fireEvent.pointerUp(board, { button: 0, pointerId: 1, clientX: 330, clientY: 250 })
 
     expect(npcToken.title).toContain('Вплотную, справа')
-    expect(Number.parseFloat(npcToken.style.left)).toBeCloseTo(54.73, 2)
-    expect(Number.parseFloat(npcToken.style.top)).toBeCloseTo(51.268, 2)
+    expect(Number.parseFloat(npcToken.style.left)).toBeCloseTo(56.13, 2)
+    expect(Number.parseFloat(npcToken.style.top)).toBeCloseTo(51.64, 2)
   })
 
   it('разрешает игроку перемещать только своего персонажа', async () => {
