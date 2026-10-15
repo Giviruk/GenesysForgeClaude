@@ -21,7 +21,8 @@ button.select-control:focus-visible { outline:2px solid var(--blue); outline-off
 .select-option[aria-disabled=true] { color:var(--faint); cursor:not-allowed; background:#fff; box-shadow:none; }
 .select-group { padding:6px 10px; font:600 11px/1.3 var(--font-head); letter-spacing:.06em; text-transform:uppercase; color:var(--muted); background:var(--surface-3); }
 @media (width < 768px) {
-  :is(select,:where(button.select-control)) { height:44px; min-height:44px; }
+  /* Compact desktop contexts still need full touch targets on phones. */
+  button.select-control:not(.linklike):not(.back-link) { height:44px; min-height:44px; }
   .select-option { min-height:44px; padding:12px 10px; }
 }
 @media print { .select-popup,.select-chevron { display:none!important; } }

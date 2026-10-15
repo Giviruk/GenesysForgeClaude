@@ -434,6 +434,9 @@ for (const language of ['ru', 'en']) test(`GEN-V5-15 second review in ${language
       if (width >= 768) {
         await expect(quickChoice).toHaveCSS('height', '30px')
         await expect(page.locator('.gt-slot-form>.select-control')).toHaveCSS('height', '28px')
+      } else {
+        await expect(quickChoice).toHaveCSS('height', '44px')
+        await expect(page.locator('.gt-slot-form>.select-control')).toHaveCSS('height', '44px')
       }
       if (width === 1024) {
         const left = await rect(page.locator('.left-rail'))
