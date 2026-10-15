@@ -1,3 +1,4 @@
+import { Select } from './Select'
 import { Icon } from './Icon'
 import { useState } from 'react'
 import type { ItemDamageState, ItemRepair } from '../api/types'
@@ -95,10 +96,10 @@ export function DamageStateControls({ state, repair, funds, reinforced, onSetSta
   return (
     <div className="damage-row small-text">
       <span className="muted">{t('Состояние', 'Condition')}</span>
-      <select className="damage-select" aria-label={t('Состояние предмета', 'Item condition')} value={state} disabled={disabled}
-        title={ITEM_DAMAGE_STATE_HINTS[state]} onChange={e => onSetState(e.target.value as ItemDamageState)}>
+      <Select className="damage-select" aria-label={t('Состояние предмета', 'Item condition')} value={state} disabled={disabled}
+        title={ITEM_DAMAGE_STATE_HINTS[state]} onChange={value => onSetState(value as ItemDamageState)}>
         {ITEM_DAMAGE_STATES.map(s => <option key={s} value={s}>{ITEM_DAMAGE_STATE_LABELS[s]}</option>)}
-      </select>
+      </Select>
 
       {repair.canRepair && !needsGmQuote && (
         <label className="damage-adv" title={t(

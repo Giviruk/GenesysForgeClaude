@@ -6,7 +6,7 @@ import type { Characteristic, GameParticipant, NpcDetail, Reference, UpdateParti
 import { useDiceRoller } from '../dice-roller-store'
 import { t } from '../i18n'
 import {
-  CHARACTERISTIC_LABELS, NPC_KIND_LABELS, NPC_ROLE_LABELS, SYSTEM_LABELS,
+  rangeBandLabel, CHARACTERISTIC_LABELS, NPC_KIND_LABELS, NPC_ROLE_LABELS, SYSTEM_LABELS,
 } from '../utils/labels'
 import { npcAttackViews, npcSkillViews, skillIndex } from '../utils/npcStats'
 import { resolveQualityCosts } from '../utils/combat'
@@ -212,7 +212,7 @@ export function GameTableNpcStatblock({ participant, campaignId, isGm,
                       <div className="npc-weapon-stats">
                         <span className="weapon-stat">{t('Урон', 'Damage')} <strong>{attack.damageText}</strong></span>
                         {attack.crit && <span className="weapon-stat">{t('Крит', 'Crit')} <strong>{attack.crit}</strong></span>}
-                        {attack.rangeBand && <span className="weapon-stat">{attack.rangeBand}</span>}
+                        {attack.rangeBand && <span className="weapon-stat">{rangeBandLabel(attack.rangeBand)}</span>}
                       </div>
                       {attack.qualities.length > 0 && (
                         <PropertyTags

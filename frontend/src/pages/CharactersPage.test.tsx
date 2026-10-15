@@ -1,3 +1,4 @@
+import { chooseSelect, waitForSelectOption } from '../test/select'
 import { render, screen, waitFor, fireEvent } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 import type { Archetype, ArchetypeAbility, Reference } from '../api/types'
@@ -103,10 +104,10 @@ vi.mock('../api/client', () => ({
 describe('CreateCharacterForm — стартовые навыки вида (U-12)', () => {
   it('показывает фиксированные стартовые навыки выбранного вида', async () => {
     render(<CreateCharacterForm onCancel={() => {}} onCreated={() => {}} />)
-    await waitFor(() => expect(screen.getByRole('option', { name: 'Трудяга' })).toBeTruthy())
+    await waitForSelectOption(screen.getAllByRole('combobox')[0], { name: 'Трудяга' })
 
     const [archetypeSelect] = screen.getAllByRole('combobox')
-    fireEvent.change(archetypeSelect, { target: { value: 'arch-fixed' } })
+    chooseSelect(archetypeSelect, 'arch-fixed')
 
     expect(screen.getByText(/Стартовые навыки: Атлетика/)).toBeTruthy()
     // у фиксированного вида пикера выбора нет
@@ -116,12 +117,12 @@ describe('CreateCharacterForm — стартовые навыки вида (U-12
   it('требует выбрать N некарьерных навыков и передаёт их при создании', async () => {
     createCharacterMock.mockClear()
     render(<CreateCharacterForm onCancel={() => {}} onCreated={() => {}} />)
-    await waitFor(() => expect(screen.getByRole('option', { name: 'Обыватель' })).toBeTruthy())
+    await waitForSelectOption(screen.getAllByRole('combobox')[0], { name: 'Обыватель' })
 
     fireEvent.change(screen.getByLabelText('Имя персонажа'), { target: { value: 'Герой' } })
     const [archetypeSelect, careerSelect] = screen.getAllByRole('combobox')
-    fireEvent.change(archetypeSelect, { target: { value: 'arch-choice' } })
-    fireEvent.change(careerSelect, { target: { value: 'career-soldier' } })
+    chooseSelect(archetypeSelect, 'arch-choice')
+    chooseSelect(careerSelect, 'career-soldier')
 
     // способность вида показана
     expect(screen.getByText('Готов ко всему')).toBeTruthy()
@@ -147,11 +148,11 @@ describe('CreateCharacterForm — стартовые навыки вида (U-12
 describe('CreateCharacterForm — видовые карьерные навыки (ROT-CRE-01)', () => {
   it('добавляет видовую выдачу в список карьерных навыков и блокирует её при ранге 2', async () => {
     render(<CreateCharacterForm onCancel={() => {}} onCreated={() => {}} />)
-    await waitFor(() => expect(screen.getByRole('option', { name: 'Тёмный эльф' })).toBeTruthy())
+    await waitForSelectOption(screen.getAllByRole('combobox')[0], { name: 'Тёмный эльф' })
 
     const [archetypeSelect, careerSelect] = screen.getAllByRole('combobox')
-    fireEvent.change(archetypeSelect, { target: { value: 'arch-grantor' } })
-    fireEvent.change(careerSelect, { target: { value: 'career-soldier' } })
+    chooseSelect(archetypeSelect, 'arch-grantor')
+    chooseSelect(careerSelect, 'career-soldier')
 
     // Stealth не входит в careerSkillNames карьеры, но вид сделал его карьерным.
     const stealth = screen.getByRole('button', { name: /Скрытность/ })
@@ -165,12 +166,12 @@ describe('CreateCharacterForm — видовые карьерные навыки
   it('позволяет отметить видовой карьерный навык, если у него только 1 ранг', async () => {
     createCharacterMock.mockClear()
     render(<CreateCharacterForm onCancel={() => {}} onCreated={() => {}} />)
-    await waitFor(() => expect(screen.getByRole('option', { name: 'Высокий эльф' })).toBeTruthy())
+    await waitForSelectOption(screen.getAllByRole('combobox')[0], { name: 'Высокий эльф' })
 
     fireEvent.change(screen.getByLabelText('Имя персонажа'), { target: { value: 'Эльф' } })
     const [archetypeSelect, careerSelect] = screen.getAllByRole('combobox')
-    fireEvent.change(archetypeSelect, { target: { value: 'arch-grantor-1' } })
-    fireEvent.change(careerSelect, { target: { value: 'career-soldier' } })
+    chooseSelect(archetypeSelect, 'arch-grantor-1')
+    chooseSelect(careerSelect, 'career-soldier')
 
     const stealth = screen.getByRole('button', { name: /Скрытность/ })
     expect(stealth).toHaveProperty('disabled', false)
@@ -186,12 +187,12 @@ describe('CreateCharacterForm — обязательный видовой выб
   it('блокирует создание, пока выбор не сделан, и передаёт выбранный код', async () => {
     createCharacterMock.mockClear()
     render(<CreateCharacterForm onCancel={() => {}} onCreated={() => {}} />)
-    await waitFor(() => expect(screen.getByRole('option', { name: 'Полукотолюд' })).toBeTruthy())
+    await waitForSelectOption(screen.getAllByRole('combobox')[0], { name: 'Полукотолюд' })
 
     fireEvent.change(screen.getByLabelText('Имя персонажа'), { target: { value: 'Полукот' } })
     const [archetypeSelect, careerSelect] = screen.getAllByRole('combobox')
-    fireEvent.change(archetypeSelect, { target: { value: 'arch-half-catfolk' } })
-    fireEvent.change(careerSelect, { target: { value: 'career-soldier' } })
+    chooseSelect(archetypeSelect, 'arch-half-catfolk')
+    chooseSelect(careerSelect, 'career-soldier')
 
     expect(screen.getByText(/выберите одну способность/)).toBeTruthy()
     expect(screen.getByRole('button', { name: 'Создать' })).toHaveProperty('disabled', true)
@@ -207,23 +208,23 @@ describe('CreateCharacterForm — обязательный видовой выб
 
   it('у вида без обязательного выбора пикер не показывается', async () => {
     render(<CreateCharacterForm onCancel={() => {}} onCreated={() => {}} />)
-    await waitFor(() => expect(screen.getByRole('option', { name: 'Котолюд' })).toBeTruthy())
+    await waitForSelectOption(screen.getAllByRole('combobox')[0], { name: 'Котолюд' })
 
     const [archetypeSelect] = screen.getAllByRole('combobox')
-    fireEvent.change(archetypeSelect, { target: { value: 'arch-catfolk' } })
+    chooseSelect(archetypeSelect, 'arch-catfolk')
 
     expect(screen.queryByText(/выберите одну способность/)).toBeNull()
   })
 
   it('смена вида сбрасывает сделанный выбор', async () => {
     render(<CreateCharacterForm onCancel={() => {}} onCreated={() => {}} />)
-    await waitFor(() => expect(screen.getByRole('option', { name: 'Полукотолюд' })).toBeTruthy())
+    await waitForSelectOption(screen.getAllByRole('combobox')[0], { name: 'Полукотолюд' })
 
     const [archetypeSelect] = screen.getAllByRole('combobox')
-    fireEvent.change(archetypeSelect, { target: { value: 'arch-half-catfolk' } })
+    chooseSelect(archetypeSelect, 'arch-half-catfolk')
     fireEvent.click(screen.getByRole('button', { name: 'Когти' }))
-    fireEvent.change(archetypeSelect, { target: { value: 'arch-catfolk' } })
-    fireEvent.change(archetypeSelect, { target: { value: 'arch-half-catfolk' } })
+    chooseSelect(archetypeSelect, 'arch-catfolk')
+    chooseSelect(archetypeSelect, 'arch-half-catfolk')
 
     expect(screen.getByRole('button', { name: 'Когти' }).className).not.toContain('active')
   })
@@ -234,14 +235,14 @@ describe('CreateCharacterForm — стартовое снаряжение кар
   function pickWarrior() {
     fireEvent.change(screen.getByLabelText('Имя персонажа'), { target: { value: 'Герой' } })
     const [archetypeSelect, careerSelect] = screen.getAllByRole('combobox')
-    fireEvent.change(archetypeSelect, { target: { value: 'arch-fixed' } })
-    fireEvent.change(careerSelect, { target: { value: 'career-warrior' } })
+    chooseSelect(archetypeSelect, 'arch-fixed')
+    chooseSelect(careerSelect, 'career-warrior')
   }
 
   it('по умолчанию использует стандартные деньги: комплект не выдаётся и выбор не гейтит', async () => {
     createCharacterMock.mockClear()
     render(<CreateCharacterForm onCancel={() => {}} onCreated={() => {}} />)
-    await waitFor(() => expect(screen.getByRole('option', { name: 'Воин' })).toBeTruthy())
+    await waitForSelectOption(screen.getAllByRole('combobox')[1], { name: 'Воин' })
     pickWarrior()
 
     expect(screen.getByText(/Стандартные деньги: 500 монет/)).toBeTruthy()
@@ -260,7 +261,7 @@ describe('CreateCharacterForm — стартовое снаряжение кар
   it('в режиме комплекта показывает деньги/снаряжение, гейтит выбор и передаёт его', async () => {
     createCharacterMock.mockClear()
     render(<CreateCharacterForm onCancel={() => {}} onCreated={() => {}} />)
-    await waitFor(() => expect(screen.getByRole('option', { name: 'Воин' })).toBeTruthy())
+    await waitForSelectOption(screen.getAllByRole('combobox')[1], { name: 'Воин' })
     pickWarrior()
 
     fireEvent.click(screen.getByRole('button', { name: /Карьерный комплект/ }))
@@ -283,15 +284,15 @@ describe('CreateCharacterForm — стартовое снаряжение кар
 
   it('смена карьеры сбрасывает режим и устаревшие выборы', async () => {
     render(<CreateCharacterForm onCancel={() => {}} onCreated={() => {}} />)
-    await waitFor(() => expect(screen.getByRole('option', { name: 'Воин' })).toBeTruthy())
+    await waitForSelectOption(screen.getAllByRole('combobox')[1], { name: 'Воин' })
     pickWarrior()
 
     fireEvent.click(screen.getByRole('button', { name: /Карьерный комплект/ }))
     fireEvent.click(screen.getByRole('button', { name: 'алебарда' }))
 
     const [, careerSelect] = screen.getAllByRole('combobox')
-    fireEvent.change(careerSelect, { target: { value: 'career-soldier' } })
-    fireEvent.change(careerSelect, { target: { value: 'career-warrior' } })
+    chooseSelect(careerSelect, 'career-soldier')
+    chooseSelect(careerSelect, 'career-warrior')
 
     expect(screen.getByText(/Стандартные деньги: 500 монет/)).toBeTruthy()      // режим сброшен
     expect(screen.queryByRole('button', { name: 'алебарда' })).toBeNull()
@@ -299,15 +300,15 @@ describe('CreateCharacterForm — стартовое снаряжение кар
 
   it('смена карьеры очищает бесплатные навыки и не мешает выбрать четыре навыка новой карьеры', async () => {
     render(<CreateCharacterForm onCancel={() => {}} onCreated={() => {}} />)
-    await waitFor(() => expect(screen.getByRole('option', { name: 'Универсал' })).toBeTruthy())
+    await waitForSelectOption(screen.getAllByRole('combobox')[1], { name: 'Универсал' })
 
     const [archetypeSelect, careerSelect] = screen.getAllByRole('combobox')
-    fireEvent.change(archetypeSelect, { target: { value: 'arch-fixed' } })
-    fireEvent.change(careerSelect, { target: { value: 'career-soldier' } })
+    chooseSelect(archetypeSelect, 'arch-fixed')
+    chooseSelect(careerSelect, 'career-soldier')
     fireEvent.click(screen.getByRole('button', { name: /Атлетика/ }))
     fireEvent.click(screen.getByRole('button', { name: /Хладнокровие/ }))
 
-    fireEvent.change(careerSelect, { target: { value: 'career-generalist' } })
+    chooseSelect(careerSelect, 'career-generalist')
     for (const name of ['Атлетика', 'Хладнокровие', 'Скрытность', 'Координация']) {
       expect(screen.getByRole('button', { name: new RegExp(name) }).className).not.toContain('active')
       fireEvent.click(screen.getByRole('button', { name: new RegExp(name) }))
@@ -323,12 +324,12 @@ it('creates inside the selected campaign using its reference context', async () 
   const onCreated = vi.fn()
   referenceMock.mockClear(); createCharacterMock.mockClear()
   render(<CreateCharacterForm campaignId="campaign" onCancel={() => {}} onCreated={onCreated} />)
-  await waitFor(() => expect(screen.getByRole('option', { name: 'Трудяга' })).toBeTruthy())
+  await waitForSelectOption(screen.getAllByRole('combobox')[0], { name: 'Трудяга' })
   expect(referenceMock).toHaveBeenCalledWith('genesysCore', { campaignId: 'campaign' })
   fireEvent.change(screen.getByLabelText('Имя персонажа'), { target: { value: 'Герой кампании' } })
   const [archetypeSelect, careerSelect] = screen.getAllByRole('combobox')
-  fireEvent.change(archetypeSelect, { target: { value: 'arch-fixed' } })
-  fireEvent.change(careerSelect, { target: { value: 'career-soldier' } })
+  chooseSelect(archetypeSelect, 'arch-fixed')
+  chooseSelect(careerSelect, 'career-soldier')
   fireEvent.click(screen.getByRole('button', { name: 'Создать' }))
   await waitFor(() => expect(onCreated).toHaveBeenCalledWith('new-id'))
   expect(createCharacterMock.mock.calls[0][10]).toBe('campaign')

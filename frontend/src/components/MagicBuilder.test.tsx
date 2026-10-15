@@ -1,3 +1,4 @@
+import { chooseSelect } from '../test/select'
 import { fireEvent, render, screen } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { SheetTalent, Spell } from '../api/types'
@@ -248,7 +249,7 @@ describe('MagicBuilder — рейтинг по Знанию', () => {
     // По умолчанию — навык из правил системы, а не самый выгодный.
     expect(screen.getByRole('checkbox', { name: /Огненный/ }).closest('.magic-effect-row')?.textContent).toContain('Жжение 2')
 
-    fireEvent.change(screen.getByLabelText(/Рейтинг по навыку/), { target: { value: 'Knowledge (Forbidden)' } })
+    chooseSelect(screen.getByLabelText(/Рейтинг по навыку/), 'Knowledge (Forbidden)')
     expect(screen.getByRole('checkbox', { name: /Огненный/ }).closest('.magic-effect-row')?.textContent).toContain('Жжение 4')
     expect(screen.getByRole('checkbox', { name: /Ядовитый/ }).closest('.magic-effect-row')?.textContent).toContain('по Знанию 4')
   })

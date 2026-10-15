@@ -1,3 +1,4 @@
+import { chooseSelect } from '../test/select'
 import { render, screen, waitFor, fireEvent } from '@testing-library/react'
 import { describe, expect, it, vi, beforeEach } from 'vitest'
 import type { CharacterSheet, ItemDef, ItemRepair, Reference, SheetItem } from '../api/types'
@@ -103,7 +104,7 @@ describe('Инвентарь: состояние предмета и ремон�
   it('меняет состояние компактным селектом, не трогая «используется»', async () => {
     renderTab(sheetWith(sword()))
 
-    fireEvent.change(screen.getByRole('combobox', { name: 'Состояние предмета' }), { target: { value: 'moderate' } })
+    chooseSelect(screen.getByRole('combobox', { name: 'Состояние предмета' }), 'moderate')
 
     await waitFor(() => expect(setDamageStateMock).toHaveBeenCalledWith('char-1', 'item-1', 'moderate'))
     // Переключатель места остался своим: «в рюкзаке» и «сломано» — разные вещи.

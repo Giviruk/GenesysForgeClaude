@@ -5,6 +5,7 @@ using GenesysForge.Domain;
 using GenesysForge.Domain.Entities;
 using GenesysForge.Domain.Rules;
 using Microsoft.EntityFrameworkCore;
+using System.Text.Json;
 
 namespace GenesysForge.Application.Features.Characters;
 
@@ -14,8 +15,8 @@ namespace GenesysForge.Application.Features.Characters;
 /// </summary>
 /// <remarks>
 /// Требования по ресурсам — инструменты, компоненты, ингредиенты — по решению владельца остаются
-/// описанием: наличие не проверяется и ничего не списывается. Стоимость считается и записывается,
-/// но кошелька не касается, поэтому проект нельзя «не потянуть».
+/// описанием: наличие не проверяется. Денежная стоимость компонентов списывается при старте,
+/// а при отмене незавершённого оплаченного проекта возвращается полностью.
 /// </remarks>
 public static class CraftingCalc
 {
@@ -175,7 +176,7 @@ public class PreviewCraftingHandler(IAppDbContext db) : IQueryHandler<PreviewCra
     }
 }
 
-/// <summary>Начало проекта. Денег не списывает и наличия материалов не проверяет.</summary>
+/// <summary>Начало проекта с оплатой компонентов; наличие отдельных материалов не проверяет.</summary>
 public class StartCraftingHandler(IAppDbContext db) : ICommandHandler<StartCraftingCommand, Guid>
 {
     public async Task<Guid> Handle(StartCraftingCommand command, CancellationToken ct = default)
@@ -204,6 +205,9 @@ public class StartCraftingHandler(IAppDbContext db) : ICommandHandler<StartCraft
 
         var n = CraftingCalc.Compute(def, req);
         var skill = await CraftingCalc.SkillAsync(db, command.UserId, c, req, ct);
+        if (c.Money < n.Cost)
+            throw new DomainRuleException("Недостаточно денег для компонентов.", "character.funds.insufficient");
+        c.Money -= n.Cost;
         var project = new CraftingProject
         {
             Id = Guid.NewGuid(),
@@ -238,9 +242,10 @@ public class StartCraftingHandler(IAppDbContext db) : ICommandHandler<StartCraft
         var unit = CraftingCalc.TimeUnit(req.Kind) == "hours" ? "ч" : "дн";
         CharacterAudit.Record(db, c, command.UserId, CharacterAuditAction.CraftingStarted,
             $"Начат проект «{def.Name}»: сложность {project.Difficulty}, {project.Time} {unit}, "
-            + $"компоненты {project.Cost}", null,
+            + $"списано за компоненты {project.Cost}", null,
             new
             {
+                projectId = project.Id, chargedCost = project.Cost,
                 kind = project.Kind.ToString(), target = def.Name, skill = project.SkillName,
                 baseDifficulty = project.BaseDifficulty, difficulty = project.Difficulty,
                 difficultyReason = project.DifficultyReason,
@@ -443,6 +448,21 @@ public class CancelCraftingHandler(IAppDbContext db) : ICommandHandler<CancelCra
             throw new DomainRuleException(
                 "Разрешённый проект не отменяется — он уже история.", "crafting.project_not_draft");
 
+        // Старые проекты не оплачивались. Только новая запись старта подтверждает списание;
+        // её ID проекта не позволяет вернуть стоимость другого проекта с тем же предметом.
+        var projectKey = $"\"projectId\":\"{project.Id}\"";
+        var payment = await db.CharacterAuditEntries.AsNoTracking()
+            .Where(e => e.CharacterId == c.Id && e.Action == CharacterAuditAction.CraftingStarted
+                && e.DataJson.Contains(projectKey))
+            .Select(e => e.DataJson).FirstOrDefaultAsync(ct);
+        if (payment is not null)
+        {
+            using var document = JsonDocument.Parse(payment);
+            var data = document.RootElement;
+            if (data.TryGetProperty("projectId", out var id) && id.GetGuid() == project.Id
+                && data.TryGetProperty("chargedCost", out var cost) && cost.TryGetInt32(out var paid) && paid > 0)
+                c.Money = checked(c.Money + paid);
+        }
         project.Status = CraftingProjectStatus.Cancelled;
         await db.SaveChangesAsync(ct);
         return Unit.Value;

@@ -1,3 +1,4 @@
+import { Select } from './Select'
 import { useState, type FormEvent } from 'react'
 import { api } from '../api/client'
 import type { Archetype, Career, CustomArchetypeInput, CustomCareerInput, GameSystem,
@@ -30,18 +31,18 @@ export function SkillForm({ campaignId, system, run, editing, onDone, packIds, f
       {editing && <div className="editing-banner">{t('Редактирование:', 'Editing:')} {editing.name}</div>}
       <label>{t('Название', 'Name')}<input value={name} onChange={e => setName(e.target.value)} required /></label>
       <label>{t('Характеристика', 'Characteristic')}
-        <select value={characteristic} onChange={e => setCharacteristic(e.target.value)}>
+        <Select value={characteristic} onChange={value => setCharacteristic(value)}>
           {CHARACTERISTICS.map(c => <option key={c} value={c}>{CHARACTERISTIC_LABELS[c]}</option>)}
-        </select>
+        </Select>
       </label>
       <label>{t('Категория', 'Category')}
-        <select value={kind} onChange={e => setKind(e.target.value)}>
+        <Select value={kind} onChange={value => setKind(value)}>
           <option value="general">{t('Общий', 'General')}</option>
           <option value="combat">{t('Боевой', 'Combat')}</option>
           <option value="social">{t('Социальный', 'Social')}</option>
           <option value="knowledge">{t('Знание', 'Knowledge')}</option>
           <option value="magic">{t('Магия', 'Magic')}</option>
-        </select>
+        </Select>
       </label>
       <div className="form-actions">
         <button className="primary" type="submit">{editing ? t('Сохранить', 'Save') : t('Создать навык', 'Create skill')}</button>
@@ -98,17 +99,17 @@ export function TalentForm({ campaignId, system, run, editing, onDone, packIds, 
         {t('Ранговый (можно покупать несколько раз, каждый ранг — на тир выше)', 'Ranked (can be bought multiple times, each rank one tier higher)')}
       </label>
       <label>{t('Категория', 'Category')}
-        <select value={category} onChange={e => setCategory(e.target.value as TalentCategory)}>
+        <Select value={category} onChange={value => setCategory(value as TalentCategory)}>
           {TALENT_CATEGORIES.map(c => <option key={c} value={c}>{TALENT_CATEGORY_LABELS[c]}</option>)}
-        </select>
+        </Select>
       </label>
       <label>{t('Активация', 'Activation')}
-        <select value={activation} onChange={e => setActivation(e.target.value)}>
+        <Select value={activation} onChange={value => setActivation(value)}>
           <option>{t('Пассивный', 'Passive')}</option>
           <option>{t('Действие', 'Action')}</option>
           <option>{t('Манёвр', 'Maneuver')}</option>
           <option>{t('Инцидент', 'Incidental')}</option>
-        </select>
+        </Select>
       </label>
       <label>{t('Описание', 'Description')}<textarea value={description} onChange={e => setDescription(e.target.value)} rows={3} /></label>
       <div className="label-line">{t('Пассивные бонусы (применяются автоматически):', 'Passive bonuses (applied automatically):')}</div>
@@ -176,22 +177,22 @@ export function ItemForm({ campaignId, system, reference, run, editing, onDone, 
       {editing && <div className="editing-banner">{t('Редактирование:', 'Editing:')} {editing.name}</div>}
       <label>{t('Название', 'Name')}<input value={name} onChange={e => setName(e.target.value)} required /></label>
       <label>{t('Тип', 'Type')}
-        <select value={kind} onChange={e => setKind(e.target.value)}>
+        <Select value={kind} onChange={value => setKind(value)}>
           <option value="weapon">{t('Оружие', 'Weapon')}</option>
           <option value="armor">{t('Броня', 'Armor')}</option>
           <option value="gear">{t('Снаряжение', 'Gear')}</option>
-        </select>
+        </Select>
       </label>
       {kind === 'weapon' && (
         <>
           <div className="label-line">{t('Боевые характеристики оружия:', 'Weapon combat stats:')}</div>
           <label>{t('Навык броска', 'Roll skill')}
-            <select value={weapon.skillName} onChange={e => setWeapon(w => ({ ...w, skillName: e.target.value }))}>
+            <Select value={weapon.skillName} onChange={value => setWeapon(w => ({ ...w, skillName: value }))}>
               <option value="">{t('— не задан —', '— not set —')}</option>
               {reference.skills.filter(s => s.kind === 'combat').map(s => (
                 <option key={s.id} value={s.name}>{dualName(s)}</option>
               ))}
-            </select>
+            </Select>
           </label>
           <div className="bonus-grid">
             <label>{t('Урон (например «+3» или «7»)', 'Damage (e.g. "+3" or "7")')}
@@ -250,14 +251,14 @@ function QualityPicker({ qualities, onAdd }: { qualities: Quality[]; onAdd: (tok
   if (items.length === 0) return null
   return (
     <div className="form-row quality-picker">
-      <select className="grow" value={code} onChange={e => setCode(e.target.value)}>
+      <Select className="grow" value={code} onChange={value => setCode(value)}>
         <option value="">{t('— добавить свойство из справочника —', '— add a property from the reference —')}</option>
         {items.map(q => (
           <option key={q.code} value={q.code} title={q.safeDescription}>
             {t(q.nameRu, q.nameEn || q.nameRu)}{q.hasRating ? t(' (рейтинг)', ' (rated)') : ''}
           </option>
         ))}
-      </select>
+      </Select>
       {selected?.hasRating && (
         <input className="ranks-input" type="number" min={1} value={rating}
           onChange={e => setRating(Math.max(1, +e.target.value))} title={t('Рейтинг свойства', 'Property rating')} />

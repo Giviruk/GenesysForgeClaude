@@ -1,3 +1,4 @@
+import { Select } from './Select'
 import { CompactDescription } from './CompactDescription'
 import { toneClass, rarityClass } from '../utils/tones'
 import { Icon } from './Icon'
@@ -389,24 +390,24 @@ function ShopRow({ item, money, run, sheetId, qualityDefinitions, open, onToggle
         <div className="shop-row-actions">
           {/* Работа выбирается до любого из действий: и покупка, и бесплатная выдача берут её. */}
           {isImplement && (
-            <select className="shop-craftsmanship-select" value={material}
+            <Select className="shop-craftsmanship-select" value={material}
               aria-label={t('Материал', 'Material')}
               title={IMPLEMENT_MATERIAL_HINTS[material]}
-              onChange={e => setMaterial(e.target.value as ImplementMaterial)}>
+              onChange={value => setMaterial(value as ImplementMaterial)}>
               {IMPLEMENT_MATERIALS.map(m => (
                 <option key={m} value={m}>{IMPLEMENT_MATERIAL_LABELS[m]}</option>
               ))}
-            </select>
+            </Select>
           )}
           {canChoose && (
-            <select className="shop-craftsmanship-select" value={craftsmanship}
+            <Select className="shop-craftsmanship-select" value={craftsmanship}
               aria-label={t('Качество изготовления', 'Craftsmanship')}
               title={WEAPON_CRAFTSMANSHIP_HINTS[craftsmanship]}
-              onChange={e => setCraftsmanship(e.target.value as WeaponCraftsmanship)}>
+              onChange={value => setCraftsmanship(value as WeaponCraftsmanship)}>
               {WEAPON_CRAFTSMANSHIPS.map(c => (
                 <option key={c} value={c}>{WEAPON_CRAFTSMANSHIP_LABELS[c]}</option>
               ))}
-            </select>
+            </Select>
           )}
           {item.purchasable && (
             <button className="primary tiny" onClick={onToggle}>{open ? t('Отмена', 'Cancel') : t('Купить', 'Buy')}</button>

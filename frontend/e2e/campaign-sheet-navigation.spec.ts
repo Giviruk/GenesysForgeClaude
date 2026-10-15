@@ -1,3 +1,4 @@
+import { chooseSelect } from './select'
 import { expect, test, type APIRequestContext } from '@playwright/test'
 import type { GameSystem, Reference } from '../src/api/types'
 
@@ -47,16 +48,18 @@ for (const language of ['ru', 'en']) {
         await page.setViewportSize({ width, height: 900 })
         await expect(select).toBeVisible()
         await expect(page.locator('.main-tabs')).toBeHidden()
-        await expect(select.locator('option')).toHaveCount(character.system === 'realmsOfTerrinoth' ? 9 : 8)
-        await select.selectOption('history')
+        await select.click()
+        await expect(page.getByRole('listbox').getByRole('option')).toHaveCount(character.system === 'realmsOfTerrinoth' ? 9 : 8)
+        await select.press('Escape')
+        await chooseSelect(select, 'history')
         await expect(page.locator('.history-tab')).toBeVisible()
-        await select.selectOption('bio')
+        await chooseSelect(select, 'bio')
         await expect(page.locator('.bio-background')).toBeVisible()
         await expect(page.getByText(privateNote, { exact: true })).toHaveCount(0)
         await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1)
       }
       await page.reload()
-      await expect(select).toHaveValue('bio')
+      await expect(select).toHaveJSProperty('value', 'bio')
       await expect(page.locator('.bio-background')).toBeVisible()
       await page.setViewportSize({ width: 1101, height: 900 })
       await expect(select).toBeHidden()
@@ -68,8 +71,8 @@ for (const language of ['ru', 'en']) {
       await expect(page.locator('.history-tab')).toBeVisible()
       await page.setViewportSize({ width: 800, height: 900 })
       await page.goto(`/characters/${character.id}`)
-      await expect(select).toHaveValue('history')
-      await select.selectOption('bio')
+      await expect(select).toHaveJSProperty('value', 'history')
+      await chooseSelect(select, 'bio')
       await expect(page.getByText(privateNote, { exact: true })).toBeVisible()
     }
   })

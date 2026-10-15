@@ -1,3 +1,4 @@
+import { Select } from './Select'
 import { Fragment, useEffect, useMemo, useState, type FormEvent } from 'react'
 import { api } from '../api/client'
 import type { CharacterSheet, RuleTableEntry } from '../api/types'
@@ -131,7 +132,7 @@ export function CriticalInjuriesSection({ sheet, onError, refresh, readOnly = fa
       </div>
 
       {!readOnly && adding && <form className="crit-form" onSubmit={submit}>
-        <select value={code} onChange={e => setCode(e.target.value)} aria-label={t('Крит-ранение', 'Critical injury')}>
+        <Select value={code} onChange={value => setCode(value)} aria-label={t('Крит-ранение', 'Critical injury')}>
           <option value="" disabled>{t('— выберите ранение —', '— pick an injury —')}</option>
           {groups.map(([group, entries]) => (
             <optgroup key={group} label={group}>
@@ -141,7 +142,7 @@ export function CriticalInjuriesSection({ sheet, onError, refresh, readOnly = fa
             </optgroup>
           ))}
           <option value={MANUAL}>{t('— вручную —', '— manual —')}</option>
-        </select>
+        </Select>
         {code === MANUAL && (
           <input value={manualName} onChange={e => setManualName(e.target.value)}
             maxLength={200} placeholder={t('Название ранения', 'Injury name')} aria-label={t('Название ранения', 'Injury name')} />

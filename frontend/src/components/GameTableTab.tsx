@@ -1,3 +1,4 @@
+import { Select } from './Select'
 import { Icon } from './Icon'
 import { toneClass } from '../utils/tones'
 import {
@@ -567,11 +568,11 @@ function InitiativeTracker({ session, isGm, onRun, campaignId }: BlockProps) {
             onDragEnd={() => { setDraggedSlotId(null); setDragOverSlotId(null) }}>
             <span className="init-num">{i + 1}</span>
             {isGm ? (
-              <select className="slot-assign" value={slot.assignedParticipantId ?? ''}
-                onChange={e => onRun(() => api.updateSlot(campaignId, slot.id, { assignedParticipantId: e.target.value || '00000000-0000-0000-0000-000000000000' }))}>
+              <Select className="slot-assign" value={slot.assignedParticipantId ?? ''}
+                onChange={value => onRun(() => api.updateSlot(campaignId, slot.id, { assignedParticipantId: value || '00000000-0000-0000-0000-000000000000' }))}>
                 <option value="">{t('— абстрактный —', '— unassigned —')}</option>
                 {session.participants.map(p => <option key={p.id} value={p.id}>{p.displayName}</option>)}
-              </select>
+              </Select>
             ) : (
               <span className="init-name">{nameOf(slot.assignedParticipantId) ?? t('— абстрактный —', '— unassigned —')}</span>
             )}
@@ -582,9 +583,9 @@ function InitiativeTracker({ session, isGm, onRun, campaignId }: BlockProps) {
       </ol>
       {isGm && (
         <div className="form-row gt-slot-form">
-          <select value={slotType} onChange={e => setSlotType(e.target.value as InitiativeSlotType)}>
+          <Select value={slotType} onChange={value => setSlotType(value as InitiativeSlotType)}>
             {(['player', 'npc', 'neutral'] as InitiativeSlotType[]).map(t => <option key={t} value={t}>{SLOT_TYPE_LABELS[t]}</option>)}
-          </select>
+          </Select>
         </div>
       )}
     </section>
@@ -768,10 +769,10 @@ function QuickActionsPanel({ session, isGm, members, onRun, campaignId }:
       </div>
       {isGm && <AddParticipant members={members} onRun={onRun} campaignId={campaignId} />}
       {isGm && <div className="quick-main remove-participant">
-        <select className="grow" value={removeParticipantId} onChange={e => setRemoveParticipantId(e.target.value)}>
+        <Select className="grow" value={removeParticipantId} onChange={value => setRemoveParticipantId(value)}>
           <option value="">{t('— участник для удаления —', '— participant to remove —')}</option>
           {session.participants.map(p => <option key={p.id} value={p.id}>{participantNameWithCount(p)}</option>)}
-        </select>
+        </Select>
         <button className="danger small" disabled={!removeParticipantId}
           onClick={() => void onRun(() => api.removeParticipant(campaignId, removeParticipantId))}>{t('Убрать', 'Remove')}</button>
       </div>}
@@ -814,17 +815,17 @@ function AddParticipant({ members, onRun, campaignId }: {
       </div>
       <div className="form-row">
         {mode === 'character' && (
-          <select className="grow" value={characterId} onChange={e => setCharacterId(e.target.value)}>
+          <Select className="grow" value={characterId} onChange={value => setCharacterId(value)}>
             <option value="">{t('— выберите персонажа —', '— pick a character —')}</option>
             {members.map(m => <option key={m.characterId} value={m.characterId}>{m.characterName}</option>)}
-          </select>
+          </Select>
         )}
         {mode === 'npc' && (
           <>
-            <select className="grow" value={npcId} onChange={e => setNpcId(e.target.value)}>
+            <Select className="grow" value={npcId} onChange={value => setNpcId(value)}>
               <option value="">{t('— выберите NPC —', '— pick an NPC —')}</option>
               {npcs.map(n => <option key={n.id} value={n.id}>{n.name}</option>)}
-            </select>
+            </Select>
             <input className="ranks-input" type="number" min={1} value={count} onChange={e => setCount(Math.max(1, +e.target.value))} title={t('Количество (группа приспешников)', 'Count (minion group)')} />
           </>
         )}

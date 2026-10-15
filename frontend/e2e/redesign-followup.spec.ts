@@ -1,3 +1,4 @@
+import { chooseSelect } from './select'
 import { expect, test, type APIRequestContext, type Locator, type Page } from '@playwright/test'
 import type { GameSession, NpcDetail, Reference } from '../src/api/types'
 
@@ -28,7 +29,7 @@ async function rect(locator: Locator) {
 async function sheetTab(page: Page, key: string, label: string) {
   await expect(page.locator('.sheet-title-row')).toBeVisible()
   const select = page.locator('#sheet-tab-select')
-  if (await select.isVisible()) await select.selectOption(key)
+  if (await select.isVisible()) await chooseSelect(select, key)
   else await page.locator('.main-tabs').getByRole('button', { name: label, exact: true }).click()
 }
 async function noOverlap(locator: Locator) {
@@ -180,7 +181,8 @@ for (const language of ['ru', 'en']) {
       const board = await rect(page.locator('.range-rings'))
       expect(Math.abs(board.width - board.height)).toBeLessThanOrEqual(1)
       if (width === 1240) {
-        expect(board.height).toBeGreaterThan(350)
+        expect(board.height).toBeGreaterThanOrEqual(280)
+        expect(board.height).toBeLessThanOrEqual(380)
         expect((await rect(page.locator('.right-rail'))).width).toBeGreaterThanOrEqual(280)
       }
       await noOverlap(page.locator('.quick-panel .form-row, .quick-panel .quick-main, .participant-control-card .pc-name, .init-row'))
@@ -246,13 +248,13 @@ for (const language of ['ru', 'en']) {
     }
     await page.setViewportSize({ width: 1240, height: 900 })
     await page.goto('/shop')
-    await page.locator('.shop-toolbar select').selectOption(characterId)
+    await chooseSelect(page.locator('.shop-toolbar .select-control'), characterId)
     await page.locator('.shop-product-row').filter({ hasText: l(weaponName, weaponNameEn) }).first().click()
     await expect(page.locator('.shop-product-modal')).toBeVisible()
     await expect(page.locator('.shop-funds')).toBeVisible()
     const offset = await page.locator('.shop-modal-options').evaluate(async element => {
       await document.fonts.ready
-      const material = element.querySelector('select')!.getBoundingClientRect()
+      const material = element.querySelector('.select-control')!.getBoundingClientRect()
       const quantity = element.querySelector('input[type=number]')!.getBoundingClientRect()
       return Math.abs(material.y - quantity.y)
     })

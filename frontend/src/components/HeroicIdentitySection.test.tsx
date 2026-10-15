@@ -1,3 +1,4 @@
+import { chooseSelect } from '../test/select'
 import { render, screen, waitFor, fireEvent } from '@testing-library/react'
 import { describe, expect, it, vi, beforeEach } from 'vitest'
 import type { CharacterSheet, HeroicIdentity } from '../api/types'
@@ -47,7 +48,7 @@ describe('HeroicIdentitySection (ROT-HA-01)', () => {
     fireEvent.change(screen.getByPlaceholderText('Личное название'), { target: { value: 'Клинок рассвета' } })
     expect(save.disabled).toBe(true) // происхождение ещё не выбрано
 
-    fireEvent.change(screen.getByRole('combobox'), { target: { value: 'destiny' } })
+    chooseSelect(screen.getByRole('combobox'), 'destiny')
     expect(save.disabled).toBe(false)
 
     fireEvent.click(save)

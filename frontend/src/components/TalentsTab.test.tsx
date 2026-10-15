@@ -1,3 +1,4 @@
+import { waitForSelectOption } from '../test/select'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { CharacterSheet, Reference, SkillDef, SkillKind, Spell, TalentCategory, TalentDef } from '../api/types'
@@ -130,7 +131,7 @@ describe('TalentsTab', () => {
     fireEvent.click(screen.getByRole('button', { name: /Купить/ }))
     expect(buyTalentMock).not.toHaveBeenCalled()
     expect(screen.getByRole('heading', { name: /выбор спутника/ })).toBeTruthy()
-    await screen.findByRole('option', { name: /Серый сокол/ })
+    await waitForSelectOption(await screen.findByRole('combobox'), { name: /Серый сокол/ })
     expect(screen.queryByRole('option', { name: /Городской стражник/ })).toBeNull()
     fireEvent.click(screen.getByRole('button', { name: 'Подтвердить и купить' }))
 
@@ -252,7 +253,7 @@ describe('TalentsTab', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /Купить/ }))
     expect(screen.getByRole('heading', { name: /выбор заклинания/ })).toBeTruthy()
-    expect(((await screen.findByRole('option', { name: 'Атака' })) as HTMLOptionElement).selected).toBe(true)
+    await waitFor(() => expect(screen.getByRole('combobox')).toHaveProperty('value', 'Attack'))
     const confirm = screen.getByRole('button', { name: 'Подтвердить и купить' }) as HTMLButtonElement
     expect(confirm.disabled).toBe(true)
 

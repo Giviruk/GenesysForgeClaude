@@ -70,8 +70,8 @@ describe('NpcsPage — встроенный бестиарий', () => {
     expect(container.querySelector('.bt-section-nav button:nth-child(4) svg')).toBeTruthy()
     expect(container.querySelector('.bt-section-nav button:nth-child(5) svg')).toBeNull()
     fireEvent.click(screen.getByRole('button', { name: /^4 · Способности/ }))
-    expect(container.querySelector('#npc-section-3 select[aria-label="Таланты"]')).toBeTruthy()
-    expect(container.querySelector('#npc-section-4 select[aria-label="Таланты"]')).toBeNull()
+    expect(container.querySelector('#npc-section-3 [role=combobox][aria-label="Таланты"]')).toBeTruthy()
+    expect(container.querySelector('#npc-section-4 [role=combobox][aria-label="Таланты"]')).toBeNull()
   })
   it('edits a legacy skill as a reference skill and saves its stable English name', async () => {
     const saved = { ...builtInDetail, isMine: true, isBuiltIn: false,
@@ -81,9 +81,9 @@ describe('NpcsPage — встроенный бестиарий', () => {
     referenceMock.mockResolvedValue({ skills: [{ id: 'brawl', name: 'Brawl', nameRu: 'Грубая сила',
       characteristic: 'brawn', kind: 'combat', isCustom: false }], items: [], talents: [], qualities: [] })
     const { container } = render(<NpcsPage openId="b1" edit onOpen={() => {}} onBack={() => {}} />)
-    const select = await screen.findByRole('combobox', { name: 'Навык 1' }) as HTMLSelectElement
+    const select = await screen.findByRole('combobox', { name: 'Навык 1' }) as HTMLButtonElement
     await waitFor(() => expect(select.value).toBe('Brawl'))
-    expect(select.selectedOptions[0].textContent).toBe('Грубая сила / Brawl')
+    expect(select.textContent).toBe('Грубая сила / Brawl')
     expect(screen.queryByText(/вне справочника/)).toBeNull()
     expect(container.querySelector('.bt-skill-pool .genesys-symbol')).toBeTruthy()
     expect(container.querySelector('.bt-rank-stepper')?.textContent).toContain('Ранг: Грубая сила')

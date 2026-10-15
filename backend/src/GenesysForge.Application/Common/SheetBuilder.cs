@@ -463,7 +463,8 @@ public static class SheetBuilder
                 supremeAttachment,
                 // Работа вне нынешнего списка бывает только у персонажа, созданного до правила:
                 // сервер её не переписывает, а показывает — решение за ведущим.
-                !HeroicParameterRules.SignatureCraftsmanshipChoices.Contains(w.Craftsmanship));
+                !HeroicParameterRules.SignatureCraftsmanshipChoices.Contains(w.Craftsmanship),
+                spec.DamageKind, damageValue);
         }
 
         // Скрытый позднее кастомный навык не подменяется другим: остаётся снимок имени и предупреждение.

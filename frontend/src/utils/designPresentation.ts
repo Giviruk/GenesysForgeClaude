@@ -59,3 +59,10 @@ export function criticalSeverityDifficulty(group: string): number {
   if (/easy|л[её]гк/.test(normalized)) return 1
   return 0
 }
+
+/** Structured signature-weapon damage; retain compatibility with older sheet responses. */
+export function signatureWeaponDamage(weapon: { damage: string; damageKind?: 'brawnPlus' | 'fixed' | null; damageValue?: number | null }): string {
+  if (weapon.damageValue != null && weapon.damageKind)
+    return weapon.damageKind === 'brawnPlus' ? `${t('Сила', 'Brawn')} +${weapon.damageValue}` : String(weapon.damageValue)
+  return weapon.damage.replace(/^Brawn\s*\+\s*/i, `${t('Сила', 'Brawn')} +`)
+}

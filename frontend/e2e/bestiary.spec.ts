@@ -1,3 +1,4 @@
+import { chooseSelect } from './select'
 import { expect, test, type APIRequestContext, type Page } from '@playwright/test'
 import type { NpcDetail, Reference } from '../src/api/types'
 let token: string
@@ -132,7 +133,7 @@ test('quick draft uses actual preview, saves only from manual editor, honors min
   await expect(page.locator('input[name=npc-name]')).toHaveValue(`${unique}-draft`)
   expect((await api<NpcDetail[]>(request, '/api/npcs/')).length).toBe(before.length)
   // Armor bonuses become available when the editor's reference has loaded.
-  await expect.poll(() => page.locator('.bt-skill-edit select').first().locator('option').count()).toBeGreaterThan(2)
+  await expect.poll(() => page.locator('.bt-skill-edit .select-native').first().locator('option').count()).toBeGreaterThan(2)
   await page.getByRole('tab', { name: 'Характеристики', exact: true }).click()
   await expect(page.getByLabel('Усталость', { exact: true })).toBeDisabled()
   const soak = Number(await page.getByLabel('Поглощение', { exact: true }).inputValue())
@@ -291,7 +292,7 @@ test('talents have one removable list with descriptions and can be added again',
     await remove.click()
     await expect(page.getByRole('tooltip')).toHaveCount(0)
     await expect(editor.getByRole('button', { name: talentName, exact: true })).toHaveCount(0)
-    await editor.getByLabel('Таланты', { exact: true }).selectOption(talentName)
+    await chooseSelect(editor.getByLabel('Таланты', { exact: true }), talentName)
     await expect(editor.getByRole('button', { name: talentName, exact: true })).toHaveCount(1)
     await fits(page)
     await page.getByRole('button', { name: 'Сохранить', exact: true }).last().click()

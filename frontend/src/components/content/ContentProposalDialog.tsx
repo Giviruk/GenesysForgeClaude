@@ -1,3 +1,4 @@
+import { Select } from '../Select'
 import { PROPOSAL_LABELS } from './contentLabels'
 import { useEffect, useState } from 'react'
 import { api } from '../../api/client'
@@ -40,10 +41,10 @@ export function ContentProposalDialog({ system, name, proposal, proposals, onClo
     {error && <p className="error" role="alert">{error}</p>}
     {!campaigns && <p>{t('Загрузка…', 'Loading…')}</p>}
     {campaigns?.length === 0 && <p className="rd-empty">{t('Нет кампаний с открытой системой, где вы участвуете как игрок.', 'No campaigns with this system open where you are a player.')}</p>}
-    {!!campaigns?.length && <label>{t('Кампания', 'Campaign')}<select value={selected} onChange={e => setSelected(e.target.value)} disabled={busy}>
+    {!!campaigns?.length && <label>{t('Кампания', 'Campaign')}<Select value={selected} onChange={value => setSelected(value)} disabled={busy}>
       <option value="">{t('Выберите кампанию', 'Choose a campaign')}</option>
       {campaigns.map(x => <option key={x.id} value={x.id}>{x.name}</option>)}
-    </select></label>}
+    </Select></label>}
     {statuses.map(x => <div key={x.campaignId} className="rd-content-row"><span>{x.campaignName} · <b>{PROPOSAL_LABELS[x.status]}</b></span>
       {x.status === 'pending' && <button disabled={busy} onClick={() => void run(() => api.withdrawCampaignContent(x.campaignId, kind, targetId))}>{t('Отозвать', 'Withdraw')}</button>}
     </div>)}

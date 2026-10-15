@@ -247,6 +247,8 @@ export interface SignatureWeapon {
   isLost: boolean
   skillName: string
   damage: string
+  damageKind?: DamageKind | null
+  damageValue?: number | null
   crit: number
   rangeBand: string
   encumbrance: number

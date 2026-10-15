@@ -72,7 +72,7 @@ const draft: CraftingProject = {
 }
 
 const sheet = {
-  id: 'char-1', system: 'realmsOfTerrinoth',
+  id: 'char-1', system: 'realmsOfTerrinoth', money: 10000,
   items: [
     { id: 'item-axe', itemDefId: 'def-axe', name: 'Axe', nameRu: 'Топор' },
     { id: 'item-rune', itemDefId: 'def-rune', name: 'Lesser Rune', nameRu: 'Малая руна' },
@@ -118,9 +118,9 @@ describe('Ремесло (ROT-CRAFT-01, ROT-ALCH-02, ROT-CRAFT-MAGIC-01)', () =>
     cancelMock.mockReset().mockResolvedValue(undefined)
   })
 
-  it('показывает, что ресурсы — только описание и ничего не списывается', async () => {
+  it('объясняет списание компонентов при старте и возврат при отмене', async () => {
     renderTab()
-    expect(await screen.findByText(/не списывает и наличия не проверяет/)).toBeTruthy()
+    expect(await screen.findByText(/Стоимость компонентов спишется при старте проекта; при отмене вернётся/)).toBeTruthy()
   })
 
   it('шлёт выбранную долю стоимости в предпросмотр', async () => {
@@ -131,6 +131,20 @@ describe('Ремесло (ROT-CRAFT-01, ROT-ALCH-02, ROT-CRAFT-MAGIC-01)', () =>
     fireEvent.click(screen.getByText('150%'))
     await waitFor(() => expect(previewMock).toHaveBeenLastCalledWith(
       'char-1', expect.objectContaining({ costPercent: 150, costOverride: null })))
+  })
+
+  it('blocks an unaffordable project and waits for the price of the current input', async () => {
+    render(<CraftingTab sheet={{ ...sheet, money: 74 }} reference={reference} onError={vi.fn()} refresh={vi.fn()} />)
+    fireEvent.click(await screen.findByRole('button', { name: /Топор/ }))
+    await screen.findByText('Недостаточно денег для компонентов')
+    const start = screen.getByRole('button', { name: 'Начать проект' })
+    expect(start).toHaveProperty('disabled', true)
+    expect(screen.getByText(/Доступно персонажу 74/)).toBeTruthy()
+    previewMock.mockImplementationOnce(() => new Promise(() => {}))
+    fireEvent.click(screen.getByText('50%'))
+    expect(start).toHaveProperty('disabled', true)
+    fireEvent.click(start)
+    expect(startMock).not.toHaveBeenCalled()
   })
 
   it('передаёт материал обычного и магического снаряжения в расчёт стоимости', async () => {
@@ -297,7 +311,7 @@ describe('Ремесло (ROT-CRAFT-01, ROT-ALCH-02, ROT-CRAFT-MAGIC-01)', () =>
     fireEvent.click(screen.getByRole('button', { name: /Топор/ }))
     fireEvent.change(screen.getByLabelText(/Согласованная способность/), { target: { value: 'Согласованный тестовый эффект' } })
     expect(screen.getByRole('button', { name: /Аркана · 0/ })).toBeTruthy()
-    expect(screen.getByRole('button', { name: 'Начать проект' })).toHaveProperty('disabled', false)
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Начать проект' })).toHaveProperty('disabled', false))
     fireEvent.click(screen.getByRole('button', { name: 'Начать проект' }))
     await waitFor(() => expect(startMock).toHaveBeenCalledWith('char-1', expect.objectContaining({ kind: 'enchantment', skillName: 'Arcana' })))
   })

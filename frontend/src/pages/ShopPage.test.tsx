@@ -1,3 +1,4 @@
+import { chooseSelect } from '../test/select'
 import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { CharacterListItem, CharacterSheet, ItemDef, Reference } from '../api/types'
@@ -159,8 +160,7 @@ describe('Общий магазин', () => {
     await waitFor(() => expect(
       (within(dialog).getByRole('button', { name: 'Купить' }) as HTMLButtonElement).disabled,
     ).toBe(false))
-    fireEvent.change(within(dialog).getByLabelText(/Материал \/ качество изготовления/),
-      { target: { value: 'iron' } })
+    chooseSelect(within(dialog).getByLabelText(/Материал \/ качество изготовления/), 'iron')
     expect(within(dialog).getAllByText(/50 монеты/)).toHaveLength(2)
     fireEvent.click(within(dialog).getByRole('button', { name: 'Купить' }))
     await waitFor(() => expect(addItemMock).toHaveBeenLastCalledWith(
@@ -173,7 +173,7 @@ describe('Общий магазин', () => {
     await waitFor(() => expect(
       (within(dialog).getByRole('button', { name: 'Купить' }) as HTMLButtonElement).disabled,
     ).toBe(false))
-    fireEvent.change(within(dialog).getByLabelText(/^Материал/), { target: { value: 'willow' } })
+    chooseSelect(within(dialog).getByLabelText(/^Материал/), 'willow')
     expect(within(dialog).getAllByText(/800 монеты/)).toHaveLength(2)
     fireEvent.click(within(dialog).getByRole('button', { name: 'Купить' }))
     await waitFor(() => expect(addItemMock).toHaveBeenLastCalledWith(
@@ -278,7 +278,7 @@ describe('Магазин — контекст выбранного персон�
     render(<ShopPage />)
     await screen.findByRole('button', { name: /Верёвка/ })
     expect(referenceMock).toHaveBeenCalledWith('realmsOfTerrinoth', { characterId: 'char-1' })
-    fireEvent.change(screen.getByLabelText('Персонаж для покупок'), { target: { value: 'char-2' } })
+    chooseSelect(screen.getByLabelText('Персонаж для покупок'), 'char-2')
     const product = await screen.findByRole('button', { name: /Снаряжение мастера/ })
     expect(referenceMock).toHaveBeenLastCalledWith('realmsOfTerrinoth', { characterId: 'char-2' })
     expect(screen.queryByRole('button', { name: /Верёвка/ })).toBeNull()
@@ -297,7 +297,7 @@ describe('Магазин — контекст выбранного персон�
       ? old : Promise.resolve({ ...reference, items: [gmItem] }))
     render(<ShopPage />)
     await waitFor(() => expect(referenceMock).toHaveBeenCalledWith('realmsOfTerrinoth', { characterId: 'char-1' }))
-    fireEvent.change(screen.getByLabelText('Персонаж для покупок'), { target: { value: 'char-2' } })
+    chooseSelect(screen.getByLabelText('Персонаж для покупок'), 'char-2')
     await screen.findByRole('button', { name: /Снаряжение мастера/ })
     await act(async () => { resolveOld({ ...reference, items: [rope] }) })
     expect(screen.queryByRole('button', { name: /Верёвка/ })).toBeNull()

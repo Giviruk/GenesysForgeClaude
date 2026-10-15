@@ -59,7 +59,9 @@ public record SignatureWeaponDto(
     /// Работа выбрана вне нынешнего списка способности (железная или древняя у персонажа,
     /// созданного до этого правила). Сервер её не переписывает — решение за ведущим.
     /// </summary>
-    bool CraftsmanshipOutOfRules = false);
+    bool CraftsmanshipOutOfRules = false,
+    DamageKind? DamageKind = null,
+    int? DamageValue = null);
 
 /// <summary>
 /// Базовое улучшение именного оружия. Цена и слоты не приводятся намеренно: у героической копии

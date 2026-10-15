@@ -1,3 +1,4 @@
+import { Select } from './Select'
 import { Icon } from './Icon'
 import { toneClass } from '../utils/tones'
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react'
@@ -91,19 +92,19 @@ export function EncountersTab({
       <div className="enc-toolbar">
         <input type="search" placeholder={t('Поиск по названию или тегу…', 'Search by name or tag…')} value={search}
           onChange={e => setSearch(e.target.value)} aria-label={t('Поиск энкаунтеров', 'Search encounters')} />
-        <select value={typeFilter} onChange={e => setTypeFilter(e.target.value as EncounterType | '')} aria-label={t('Тип', 'Type')}>
+        <Select value={typeFilter} onChange={value => setTypeFilter(value as EncounterType | '')} aria-label={t('Тип', 'Type')}>
           <option value="">{t('Все типы', 'All types')}</option>
           {ENCOUNTER_TYPES.map(t => <option key={t} value={t}>{ENCOUNTER_TYPE_LABELS[t]}</option>)}
-        </select>
-        <select value={threatFilter} onChange={e => setThreatFilter(e.target.value as ThreatLevel | '')} aria-label={t('Сложность', 'Threat')}>
+        </Select>
+        <Select value={threatFilter} onChange={value => setThreatFilter(value as ThreatLevel | '')} aria-label={t('Сложность', 'Threat')}>
           <option value="">{t('Любая сложность', 'Any threat')}</option>
           {THREAT_LEVELS.map(t => <option key={t} value={t}>{THREAT_LEVEL_LABELS[t]}</option>)}
-        </select>
-        <select value={visibilityFilter} onChange={e => setVisibilityFilter(e.target.value as VisibilityFilter)} aria-label={t('Видимость', 'Visibility')}>
+        </Select>
+        <Select value={visibilityFilter} onChange={value => setVisibilityFilter(value as VisibilityFilter)} aria-label={t('Видимость', 'Visibility')}>
           <option value="">{t('Все', 'All')}</option>
           <option value="hidden">{t('Скрытые', 'Hidden')}</option>
           <option value="visible">{t('Видны игрокам', 'Visible to players')}</option>
-        </select>
+        </Select>
         {isGm && (
           <button className="primary" onClick={() => setCreating(v => !v)}>
             {creating ? t('Отмена', 'Cancel') : t('+ Энкаунтер', '+ Encounter')}
@@ -186,19 +187,19 @@ function CreateEncounterForm({ onCreate }: { onCreate: (input: EncounterInput) =
       <label>{t('Название', 'Name')}<input value={name} onChange={e => setName(e.target.value)} required /></label>
       <div className="form-row">
         <label className="grow">{t('Система', 'System')}
-          <select value={system} onChange={e => setSystem(e.target.value as GameSystem)}>
+          <Select value={system} onChange={value => setSystem(value as GameSystem)}>
             {(['realmsOfTerrinoth', 'genesysCore'] as GameSystem[]).map(s => <option key={s} value={s}>{SYSTEM_LABELS[s]}</option>)}
-          </select>
+          </Select>
         </label>
         <label className="grow">{t('Тип', 'Type')}
-          <select value={type} onChange={e => setType(e.target.value as EncounterType)}>
+          <Select value={type} onChange={value => setType(value as EncounterType)}>
             {ENCOUNTER_TYPES.map(t => <option key={t} value={t}>{ENCOUNTER_TYPE_LABELS[t]}</option>)}
-          </select>
+          </Select>
         </label>
         <label className="grow">{t('Сложность', 'Threat')}
-          <select value={threatLevel} onChange={e => setThreatLevel(e.target.value as ThreatLevel)}>
+          <Select value={threatLevel} onChange={value => setThreatLevel(value as ThreatLevel)}>
             {THREAT_LEVELS.map(t => <option key={t} value={t}>{THREAT_LEVEL_LABELS[t]}</option>)}
-          </select>
+          </Select>
         </label>
       </div>
       <button className="primary" type="submit" disabled={!name.trim()}>{t('Создать и открыть', 'Create and open')}</button>
@@ -314,26 +315,30 @@ function EncounterSceneHead({ enc, isGm, onBack, onRun, onPrint, onSentToTable }
           <>
             <input className="enc-head-name" aria-label={t('Название энкаунтера', 'Encounter name')} value={name}
               onChange={e => setName(e.target.value)} />
-            <select className="enc-head-select" value={type} onChange={e => setType(e.target.value as EncounterType)}
+            <div className="enc-scene-controls">
+            {!enc.isVisibleToPlayers && <span className="badge">{t('скрыт', 'hidden')}</span>}
+            <Select className="enc-head-select" value={type} onChange={value => setType(value as EncounterType)}
               aria-label={t('Тип энкаунтера', 'Encounter type')}>
               {ENCOUNTER_TYPES.map(t => <option key={t} value={t}>{ENCOUNTER_TYPE_LABELS[t]}</option>)}
-            </select>
-            <select className="enc-head-select" value={threatLevel}
-              onChange={e => setThreatLevel(e.target.value as ThreatLevel)} aria-label={t('Сложность энкаунтера', 'Encounter threat')}>
+            </Select>
+            <Select className="enc-head-select" value={threatLevel}
+              onChange={value => setThreatLevel(value as ThreatLevel)} aria-label={t('Сложность энкаунтера', 'Encounter threat')}>
               {THREAT_LEVELS.map(t => <option key={t} value={t}>{THREAT_LEVEL_LABELS[t]}</option>)}
-            </select>
+            </Select>
+            </div>
           </>
         ) : (
           <>
             <h3 className="inline-title">{enc.name}</h3>
+            <div className="enc-scene-controls">
             <span className={`badge ${toneClass('scene', enc.type)}`}>{ENCOUNTER_TYPE_LABELS[enc.type]}</span>
             <span className="badge tier">{THREAT_LEVEL_LABELS[enc.threatLevel]}</span>
+            </div>
           </>
         )}
-        {!enc.isVisibleToPlayers && <span className="badge">{t('скрыт', 'hidden')}</span>}
-        {isGm && dirty && <button className="primary small" onClick={save} disabled={!name.trim()}>{t('Сохранить', 'Save')}</button>}
       </div>
       <div className="row-actions enc-head-actions">
+        {isGm && dirty && <button className="primary small" onClick={save} disabled={!name.trim()}>{t('Сохранить', 'Save')}</button>}
         {isGm && <button className="primary small" onClick={send} disabled={!name.trim()}>{t('Запустить', 'Launch')}</button>}
         <button className="small" onClick={onPrint}><Icon name="printer" className="button-icon" />{t('Печать', 'Print')}</button>
       </div>
@@ -569,17 +574,17 @@ function AddEncounterParticipant({ enc, members, onRun }: {
       </div>
       <div className="form-row">
         {mode === 'character' && (
-          <select className="grow" value={characterId} onChange={e => setCharacterId(e.target.value)}>
+          <Select className="grow" value={characterId} onChange={value => setCharacterId(value)}>
             <option value="">{t('— выберите персонажа —', '— pick a character —')}</option>
             {members.map(m => <option key={m.characterId} value={m.characterId}>{m.characterName}</option>)}
-          </select>
+          </Select>
         )}
         {mode === 'manual' && (
           <>
             <input className="grow" placeholder={t('Название', 'Name')} value={manualName} onChange={e => setManualName(e.target.value)} />
-            <select value={manualType} onChange={e => setManualType(e.target.value as ParticipantType)}>
+            <Select value={manualType} onChange={value => setManualType(value as ParticipantType)}>
               {(['hazard', 'npc'] as ParticipantType[]).map(t => <option key={t} value={t}>{PARTICIPANT_TYPE_LABELS[t]}</option>)}
-            </select>
+            </Select>
           </>
         )}
         <button className="primary small" onClick={add}>{t('Добавить', 'Add')}</button>
@@ -614,11 +619,11 @@ function QuickBuildPanel({ enc, onRun }: {
       <div className="form-row">
         <input className="grow" type="search" placeholder={t('Поиск NPC…', 'Search NPCs…')} value={search}
           onChange={e => setSearch(e.target.value)} aria-label={t('Поиск NPC', 'Search NPCs')} />
-        <select value={source} onChange={e => setSource(e.target.value as '' | 'mine' | 'builtin')} aria-label={t('Источник', 'Source')}>
+        <Select value={source} onChange={value => setSource(value as '' | 'mine' | 'builtin')} aria-label={t('Источник', 'Source')}>
           <option value="">{t('Все источники', 'All sources')}</option>
           <option value="builtin">{t('Встроенный бестиарий', 'Built-in bestiary')}</option>
           <option value="mine">{t('Свои NPC', 'My NPCs')}</option>
-        </select>
+        </Select>
       </div>
       <div className="form-row">
         <label className="inline-label">{t('Количество (для группы приспешников)', 'Count (for a minion group)')}
