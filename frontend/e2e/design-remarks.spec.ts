@@ -427,18 +427,15 @@ for (const language of ['ru', 'en']) test(`GEN-V5-15 second review in ${language
     await expect(page.locator('.range-rings')).toBeVisible()
     if (!baseline) {
       expect((await rect(page.locator('.range-rings'))).width).toBeLessThanOrEqual(width === 1024 ? 420.1 : 380.1)
-      const quickChoice = page.locator('.quick-panel .form-row>.select-control')
-      await expect(quickChoice).toHaveCSS('grid-column', '1 / -1')
-      const choiceWidth = (await rect(quickChoice)).width
-      expect(choiceWidth).toBeCloseTo((await rect(page.locator('.quick-panel .form-row'))).width, 0)
-      if (width >= 768) {
-        await expect(quickChoice).toHaveCSS('height', '30px')
-        await expect(page.locator('.gt-slot-form>.select-control')).toHaveCSS('height', '28px')
-      } else {
-        await expect(quickChoice).toHaveCSS('height', '44px')
-        await expect(page.locator('.gt-slot-form>.select-control')).toHaveCSS('height', '44px')
-        await expect(page.locator('.quick-panel .form-row>button:not(.select-control)')).toHaveCSS('height', '44px')
-      }
+      // GEN-V5-16: «Быстрых действий» нет; участник добавляется из шапки «Участники сцены».
+      await expect(page.locator('.quick-panel')).toHaveCount(0)
+      await page.locator('.participants-head').getByRole('button', { name: ru ? '+ Участник' : '+ Participant', exact: true }).click()
+      const addChoice = await rect(page.locator('.add-participant .form-row>.select-control'))
+      const addButton = await rect(page.locator('.add-participant .form-row>button:not(.select-control)'))
+      expect(Math.abs(addChoice.height - addButton.height)).toBeLessThanOrEqual(1)
+      expect(Math.abs(addChoice.y - addButton.y)).toBeLessThanOrEqual(1)
+      expect(addChoice.height).toBeCloseTo(width >= 768 ? 36 : 44, 0)
+      await expect(page.locator('.gt-slot-form>.select-control')).toHaveCSS('height', width >= 768 ? '28px' : '44px')
       if (width === 1024) {
         const left = await rect(page.locator('.left-rail'))
         const center = await rect(page.locator('.center-stage'))
@@ -538,9 +535,10 @@ test('GEN-V5-15 review: Select respects contextual styles and the first invalid 
   await page.goto(`/campaigns/${campaignId}/table`)
   const slot = page.locator('.init-row .slot-assign').first()
   for (const [name, value] of Object.entries(field)) await expect(slot).toHaveCSS(name, value)
+  await page.locator('.participants-head').getByRole('button', { name: '+ Участник', exact: true }).click()
   await page.locator('.add-participant .system-switch').getByRole('button', { name: 'NPC', exact: true }).click()
-  const npcChoice = await rect(page.locator('.quick-panel .form-row>.select-control'))
-  const count = await rect(page.locator('.quick-panel .form-row>.ranks-input'))
+  const npcChoice = await rect(page.locator('.add-participant .form-row>.select-control'))
+  const count = await rect(page.locator('.add-participant .form-row>.ranks-input'))
   expect(Math.abs(count.y - npcChoice.y)).toBeLessThanOrEqual(1)
   expect(count.x).toBeGreaterThanOrEqual(npcChoice.x + npcChoice.width)
   await page.goto('/shop')

@@ -538,7 +538,6 @@ export function MagicBuilder({
           </div>
         )}
 
-        <h4 className="sheet-section-title">{t('Дополнительные эффекты', 'Additional effects')} <small>{t(`выбрано ${chosen.length} из ${additional.length}`, `${chosen.length} of ${additional.length} selected`)}</small></h4>
         {/* Откуда берётся рейтинг свойств (ROT-MAG-10). Выбор показывается только тогда, когда он
             действительно есть: «Тёмное прозрение» разрешает считать по Запретному знанию. */}
         {activeRating && ratingMatters && (
@@ -570,6 +569,7 @@ export function MagicBuilder({
               )}
           </div>
         )}
+        <h4 className="sheet-section-title">{t('Дополнительные эффекты', 'Additional effects')} <small>{t(`выбрано ${chosen.length} из ${additional.length}`, `${chosen.length} of ${additional.length} selected`)}</small></h4>
 
 
         {!additional.length && <p className="muted">{t('У этого базового эффекта нет дополнительных эффектов.', 'This base effect has no additional effects.')}</p>}

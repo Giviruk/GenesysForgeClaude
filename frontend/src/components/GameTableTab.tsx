@@ -98,9 +98,6 @@ export function GameTableTab({ campaignId, isGm, members, onOpenMemberSheet, ref
   }
 
   const currentSlot = session.slots[session.currentTurnIndex]
-  const currentActor = currentSlot?.assignedParticipantId
-    ? session.participants.find(p => p.id === currentSlot.assignedParticipantId) ?? null
-    : null
   return (
     <div className="game-table table-shell">
       {error && <div className="error floating">{error}</div>}
@@ -108,13 +105,7 @@ export function GameTableTab({ campaignId, isGm, members, onOpenMemberSheet, ref
       <section className="panel command-panel plate">
         <div className="scene-now">
           <h3>{session.name} <span className="badge danger">{t('активная сцена', 'active scene')}</span></h3>
-          <div className="page-sub">
-            {session.description || t('Описание сцены не задано', 'No scene description')}
-            {currentSlot && (
-              <> · {t('текущий слот:', 'current slot:')} <span className={`badge slot-${currentSlot.slotType}`}>{SLOT_TYPE_LABELS[currentSlot.slotType]}</span></>
-            )}
-            {currentActor && <> · <strong>{currentActor.displayName}</strong></>}
-          </div>
+          <div className="page-sub">{session.description || t('Описание сцены не задано', 'No scene description')}</div>
         </div>
 
         <div className="round-box" aria-label={t('Раунд и ход', 'Round and turn')}>
@@ -146,8 +137,6 @@ export function GameTableTab({ campaignId, isGm, members, onOpenMemberSheet, ref
 
       <aside className="right-rail">
         <RollSection campaignId={campaignId} isGm={isGm} refreshSignal={refreshSignal} />
-        <QuickActionsPanel session={session} isGm={isGm} members={members}
-          onRun={run} campaignId={campaignId} />
         <NotesBlock session={session} isGm={isGm} onRun={run} campaignId={campaignId} />
       </aside>
 
@@ -576,7 +565,6 @@ function InitiativeTracker({ session, isGm, onRun, campaignId }: BlockProps) {
             ) : (
               <span className="init-name">{nameOf(slot.assignedParticipantId) ?? t('— абстрактный —', '— unassigned —')}</span>
             )}
-            <span className={`badge slot-${slot.slotType}`}>{SLOT_TYPE_LABELS[slot.slotType]}</span>
             {isGm && <button className="danger tiny" onClick={() => onRun(() => api.removeSlot(campaignId, slot.id))}>×</button>}
           </li>
         ))}
@@ -605,6 +593,7 @@ function ParticipantsStrip({ session, campaignId, isGm, members, onRun,
   onOpenMemberSheet?: (characterId: string, name: string) => void
 }) {
   const [openNpcId, setOpenNpcId] = useState<string | null>(null)
+  const [adding, setAdding] = useState(false)
   const openNpc = session.participants.find(p => p.id === openNpcId) ?? null
   return (
     <>
@@ -612,7 +601,9 @@ function ParticipantsStrip({ session, campaignId, isGm, members, onRun,
         <div className="panel-head participants-head">
           <h3>{t('Участники сцены', 'Scene participants')}</h3>
           <span className="muted small-text">{t('раны · кости бонуса · кости штрафа — прямо на карточке', 'wounds · boosts · setbacks — directly on cards')}</span>
+          {isGm && <button className="small" aria-expanded={adding} onClick={() => setAdding(v => !v)}>{t('+ Участник', '+ Participant')}</button>}
         </div>
+        {isGm && adding && <AddParticipant members={members} onRun={onRun} campaignId={campaignId} />}
         <div className="participants-grid">
           {session.participants.length === 0 && <p className="muted">{t('Участников пока нет.', 'No participants yet.')}</p>}
           {session.participants.map(p => {
@@ -757,29 +748,6 @@ function ParticipantCard({ p, campaignId, isGm, canEditVitals, onRun, onUpdatePa
   )
 }
 
-function QuickActionsPanel({ session, isGm, members, onRun, campaignId }:
-  BlockProps & { members: CampaignMember[] }) {
-  const [removeParticipantId, setRemoveParticipantId] = useState('')
-
-  return (
-    <section className="panel quick-panel">
-      <div className="panel-head">
-        <h3>{t('Быстрые действия', 'Quick actions')}</h3>
-        <span className="muted small-text">{t('состав сцены', 'scene roster')}</span>
-      </div>
-      {isGm && <AddParticipant members={members} onRun={onRun} campaignId={campaignId} />}
-      {isGm && <div className="quick-main remove-participant">
-        <Select className="grow" value={removeParticipantId} onChange={value => setRemoveParticipantId(value)}>
-          <option value="">{t('— участник для удаления —', '— participant to remove —')}</option>
-          {session.participants.map(p => <option key={p.id} value={p.id}>{participantNameWithCount(p)}</option>)}
-        </Select>
-        <button className="danger small" disabled={!removeParticipantId}
-          onClick={() => void onRun(() => api.removeParticipant(campaignId, removeParticipantId))}>{t('Убрать', 'Remove')}</button>
-      </div>}
-    </section>
-  )
-}
-
 function ratio(value: number, max: number): number {
   if (!Number.isFinite(value) || !Number.isFinite(max) || max <= 0) return 0
   return Math.max(0, Math.min(1, value / max))
@@ -835,7 +803,7 @@ function AddParticipant({ members, onRun, campaignId }: {
             <input className="ranks-input" type="number" min={1} value={manualWt} onChange={e => setManualWt(Math.max(1, +e.target.value))} title={t('Порог ран', 'Wound threshold')} />
           </>
         )}
-        <button className="primary small" onClick={add}>{t('Добавить', 'Add')}</button>
+        <button className="primary" onClick={add}>{t('Добавить', 'Add')}</button>
       </div>
     </div>
   )

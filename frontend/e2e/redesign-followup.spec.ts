@@ -185,7 +185,7 @@ for (const language of ['ru', 'en']) {
         expect(board.height).toBeLessThanOrEqual(380)
         expect((await rect(page.locator('.right-rail'))).width).toBeGreaterThanOrEqual(280)
       }
-      await noOverlap(page.locator('.quick-panel .form-row, .quick-panel .quick-main, .participant-control-card .pc-name, .init-row'))
+      await noOverlap(page.locator('.participant-control-card .pc-name, .init-row'))
       await expect(page.locator('.roll-entry')).toContainText('Элира')
       await expect(page.locator('.roll-entry-result')).toContainText(l('Успех', 'Success'))
       await expect(page.locator('.roll-entry time')).toBeVisible()

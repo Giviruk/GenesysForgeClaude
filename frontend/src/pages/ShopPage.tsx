@@ -428,7 +428,6 @@ function ProductModal({ product, character, qualityDefinitions, onClose }: {
         {productSource(product) && <p className="muted small-text">{productSource(product)}</p>}
 
         <div className="shop-modal-facts">
-          <div><span>{t('Категория', 'Category')}</span><strong>{CATEGORY_LABELS[product.category]}</strong></div>
           <div className="tone-orange"><span>{t('Цена', 'Price')}</span><strong>{effectivePrice ?? '—'} {CURRENCY_LABEL}</strong></div>
           <div className={effectiveRarity == null ? 'rarity-unknown' : rarityClass(effectiveRarity)}><span>{t('Редкость', 'Rarity')}</span><strong>{effectiveRarity ?? '—'}</strong></div>
           {weaponStats && (
