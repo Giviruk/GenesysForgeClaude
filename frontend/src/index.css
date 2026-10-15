@@ -5467,7 +5467,7 @@ button.rd-switch:not(.linklike):not(.back-link) { min-height:1.25rem; justify-co
   .campaign-story-stepper button,.campaign-story-transfers button { --control-height:24px; --mobile-control-height:44px; min-height:24px; width:24px; height:24px; padding:2px; }
   .campaign-story-transfers { display:grid; gap:6px; }
   .campaign-story-transfers .to-gm svg { transform:rotate(180deg); }
-  .campaign-pips { justify-content:center; flex-wrap:nowrap; margin:10px 0; gap:4px; }
+  .campaign-pips { justify-content:center; flex-wrap:nowrap; margin:10px 0; gap:4px; max-width:none; }
   .live-badge { display:inline-flex; align-items:center; gap:5px; margin-left:10px; padding:0; border:0; background:none; font:13px var(--font-ui); text-transform:none; color:var(--muted); }
   .live-badge::before { content:''; width:6px; height:6px; border-radius:50%; background:currentColor; }
   .live-badge.connected { color:var(--green); }
