@@ -881,6 +881,11 @@ POST   /api/encounters/{id}/send-to-table
 
 List supports optional `search`, `type` and `tag` query filters. `send-to-table` uses `SendToTableRequest` with mode `replace` or `append`.
 
+Encounter detail and participant mutation responses include nullable `participants[].npcKind`
+(`minion`, `rival`, `nemesis`). It is read from the linked NPC, so clients can render the kind
+without fetching the bestiary. Manual participants and missing NPCs return `null`.
+Players still receive only visible participants; hidden participant IDs and kinds are omitted.
+
 ## Feedback
 
 ```text

@@ -102,7 +102,7 @@ export function TransportTab({ sheet, reference, onError, refresh }: Props) {
 
       <aside className="panel sheet-sticky transport-stable">
         <h3 className="sheet-card-heading">{t('Конюшня', 'Stable')}<span className="sheet-wallet"><Icon name="coin" />{funds}</span></h3>
-        <div className="sheet-chips">{(['all', 'mount', 'vehicle'] as const).map(k => <FilterChip key={k} active={filter === k} onClick={() => setFilter(k)}>{k === 'all' ? t('Все', 'All') : k === 'mount' ? t('Скакуны', 'Mounts') : t('Повозки', 'Wagons')} {allCatalog.filter(d => k === 'all' || d.transportKind === k).length}</FilterChip>)}</div>
+        <div className="sheet-chips category-filter-chips">{(['all', 'mount', 'vehicle'] as const).map(k => <FilterChip key={k} active={filter === k} onClick={() => setFilter(k)}>{k === 'all' ? t('Все', 'All') : k === 'mount' ? t('Скакуны', 'Mounts') : t('Повозки', 'Wagons')} {allCatalog.filter(d => k === 'all' || d.transportKind === k).length}</FilterChip>)}</div>
         {catalog.length === 0
           ? <p className="muted">{allCatalog.length === 0 ? t('В этой системе транспорта нет.', 'This system has no transport.') : t('Ничего не найдено по фильтру.', 'No matches for this filter.')}</p>
           : <div className="mount-catalog-list">

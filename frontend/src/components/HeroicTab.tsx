@@ -1,5 +1,5 @@
 import { CompactDescription } from './CompactDescription'
-import { localizeHeroicMeta } from '../utils/designPresentation'
+import { heroicMetaParts } from '../utils/designPresentation'
 import { RuleText } from './RuleText'
 import { BookReference } from './BookReference'
 import { useState } from 'react'
@@ -142,7 +142,12 @@ function HeroicAbilityCard({ sheet, reference, run }: {
           <p className="muted small-text">{t('Эффект:', 'Effect:')} {localizedName(h)} · {h.source}</p></header>
           {localizedDescription(h) && <p><RuleText symbolsOnly text={localizedDescription(h)} /></p>}
           <BookReference source={h.source} />
-          <div className="heroic-meta-grid">{meta.map(m => <div key={m.label}><small>{m.label}</small><strong>{localizeHeroicMeta(m.value).split(/[;；]/)[0].replace(/^По умолчанию\s+/i, '')}</strong>{m.value.includes(';') && <p className="heroic-meta-explanation">{localizeHeroicMeta(m.value).split(/[;；]/).slice(1).join('; ').trim()}</p>}{m.improved && <span>{m.improved}</span>}</div>)}</div>
+          <div className="heroic-meta-grid">{meta.map(m => {
+            const parts = heroicMetaParts(m.value)
+            return <div key={m.label}><small>{m.label}</small><strong>{parts.value}</strong>
+              {parts.explanation && <p className="heroic-meta-explanation">{parts.explanation}</p>}
+              {m.improved && <span>{m.improved}</span>}</div>
+          })}</div>
           {h.requirement && h.requirement !== '—' && <p className="hint small-text">{t('Требование:', 'Requirement:')} {h.requirement}</p>}
           {h.notes && <p className="hint small-text">{h.notes}</p>}
           <div className="heroic-activate">
@@ -301,7 +306,7 @@ export function HeroicIdentitySection({ sheet, run }: {
 
   return (
     <div className="heroic-identity">
-      <div className="label-line">{t('Параметры', 'Parameters')}</div>
+      <div className="label-line">{t('Название и происхождение', 'Name and origin')}</div>
 
       {identity?.complete && (
         <dl className="heroic-identity-summary">

@@ -10,6 +10,6 @@ public class GetEncounterHandler(IAppDbContext db) : IQueryHandler<GetEncounterQ
     public async Task<EncounterDetailDto> Handle(GetEncounterQuery q, CancellationToken ct = default)
     {
         var (encounter, isGm) = await EncounterMapper.GetViewableAsync(db, q.UserId, q.Id, ct);
-        return EncounterMapper.ToDetail(encounter, isGm);
+        return await EncounterMapper.ToDetailAsync(db, encounter, isGm, ct);
     }
 }

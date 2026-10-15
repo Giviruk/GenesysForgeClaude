@@ -1,6 +1,6 @@
-import { localizedAuditSummary } from '../utils/designPresentation'
+import { localizedAuditSummary, referenceNameIndex } from '../utils/designPresentation'
 import { toneClass } from '../utils/tones'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { api } from '../api/client'
 import type { CharacterAuditAction, CharacterAuditEntry, Reference } from '../api/types'
 import { lang, t } from '../i18n'
@@ -34,6 +34,23 @@ const ACTION_LABELS: Record<CharacterAuditAction, string> = t({
   activeArmorChanged: 'Активная броня',
   creationCompleted: 'Создание',
   manualEdit: 'Правка',
+  abilityActivated: 'Активация',
+  characterCreated: 'Создание персонажа',
+  itemThrownChanged: 'Метательное оружие',
+  attachmentBought: 'Улучшение +',
+  attachmentInstalled: 'Установка',
+  attachmentDetached: 'Снятие улучшения',
+  itemDamageStateChanged: 'Повреждение',
+  itemRepaired: 'Ремонт',
+  implementConfigured: 'Магический инструмент',
+  shardConfigured: 'Настройка руны',
+  craftingStarted: 'Начало ремесла',
+  craftingResolved: 'Результат ремесла',
+  serviceBought: 'Услуга',
+  mountBought: 'Скакун +',
+  mountSold: 'Продажа скакуна',
+  mountRemoved: 'Скакун −',
+  cargoMoved: 'Перенос груза',
 }, {
   xpAwarded: 'XP award',
   characteristicBought: 'Characteristic',
@@ -53,6 +70,23 @@ const ACTION_LABELS: Record<CharacterAuditAction, string> = t({
   activeArmorChanged: 'Active armor',
   creationCompleted: 'Creation',
   manualEdit: 'Edit',
+  abilityActivated: 'Activation',
+  characterCreated: 'Character creation',
+  itemThrownChanged: 'Thrown weapon',
+  attachmentBought: 'Attachment +',
+  attachmentInstalled: 'Installation',
+  attachmentDetached: 'Attachment removal',
+  itemDamageStateChanged: 'Damage',
+  itemRepaired: 'Repair',
+  implementConfigured: 'Magic implement',
+  shardConfigured: 'Rune configuration',
+  craftingStarted: 'Crafting started',
+  craftingResolved: 'Crafting result',
+  serviceBought: 'Service',
+  mountBought: 'Mount +',
+  mountSold: 'Mount sale',
+  mountRemoved: 'Mount −',
+  cargoMoved: 'Cargo transfer',
 })
 
 export function HistoryTab({ characterId, reference, onError, refresh, readOnly = false, loadEntries }: Props) {
@@ -96,7 +130,10 @@ export function HistoryTab({ characterId, reference, onError, refresh, readOnly 
     }
   }
 
-  const definitions = reference ? [...(reference.items ?? []), ...(reference.talents ?? []), ...(reference.attachments ?? []), ...(reference.skills ?? []), ...(reference.heroicAbilities ?? [])] : []
+  const names = useMemo(() => referenceNameIndex(reference ? [
+    ...(reference.items ?? []), ...(reference.talents ?? []), ...(reference.attachments ?? []),
+    ...(reference.skills ?? []), ...(reference.heroicAbilities ?? []), ...(reference.mounts ?? []),
+  ] : []), [reference])
   const showUndo = !readOnly && entries?.some(entry => entry.canUndo) === true
 
   return (
@@ -137,8 +174,8 @@ export function HistoryTab({ characterId, reference, onError, refresh, readOnly 
                 {entries.map(e => (
                   <tr key={e.id}>
                     <td className="muted small-text nowrap">{new Date(e.createdAt).toLocaleString(lang === 'ru' ? 'ru-RU' : 'en-US', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</td>
-                    <td><span className={`badge ${toneClass('history', e.action)}`}>{ACTION_LABELS[e.action] ?? (/craft|project/i.test(e.action) ? t('Ремесло', 'Crafting') : /install/i.test(e.action) ? t('Установка', 'Installation') : t('Улучшение', 'Attachment'))}</span></td>
-                    <td>{localizedAuditSummary(e.summary, definitions)}</td>
+                    <td><span className={`badge ${toneClass('history', e.action)}`}>{ACTION_LABELS[e.action] ?? t('Действие', 'Action')}</span></td>
+                    <td>{localizedAuditSummary(e.summary, names)}</td>
                     <td className="right">
                       {e.xpDelta != null && e.xpDelta !== 0 && (
                         <span className={e.xpDelta > 0 ? 'xp-pos' : 'xp-neg'}>
@@ -150,7 +187,7 @@ export function HistoryTab({ characterId, reference, onError, refresh, readOnly 
                       {e.totalXpAfter - e.spentXpAfter} / {e.totalXpAfter}
                     </td>
                     {showUndo && <td>
-                      {e.canUndo && <button className="small danger" onClick={() => void undo(e)}
+                      {e.canUndo && <button className="link-btn audit-undo" onClick={() => void undo(e)}
                         title={t('Вернуть XP за эту покупку', 'Return XP for this purchase')}>
                         {t('Отменить', 'Undo')}
                       </button>}

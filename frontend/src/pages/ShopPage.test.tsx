@@ -125,7 +125,7 @@ const sheet = {
 
 describe('Общий магазин', () => {
   beforeEach(() => {
-    vi.clearAllMocks()
+    vi.resetAllMocks()
     charactersMock.mockResolvedValue([character])
     referenceMock.mockResolvedValue(reference)
     sheetMock.mockResolvedValue(sheet)
@@ -135,9 +135,10 @@ describe('Общий магазин', () => {
   })
 
   it('покупает физический предмет в инвентарь выбранного персонажа', async () => {
-    render(<ShopPage />)
+    await act(async () => { render(<ShopPage />) })
 
-    fireEvent.click(await screen.findByRole('button', { name: /Верёвка/ }))
+    expect(referenceMock).toHaveBeenCalledWith('realmsOfTerrinoth', { characterId: 'char-1' })
+    fireEvent.click(screen.getByRole('button', { name: /Верёвка/ }))
     const dialog = screen.getByRole('dialog')
     await waitFor(() => expect(
       (within(dialog).getByRole('button', { name: 'Купить' }) as HTMLButtonElement).disabled,

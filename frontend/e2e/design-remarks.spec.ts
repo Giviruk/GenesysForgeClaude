@@ -1,6 +1,8 @@
 import { expect, test, type APIRequestContext, type Locator, type Page } from '@playwright/test'
 import type { GameSession, NpcDetail, Reference } from '../src/api/types'
 
+test.use({ serviceWorkers: 'block' })
+
 let token: string
 let characterId: string
 let campaignId: string
@@ -9,6 +11,8 @@ let npcId: string
 let weaponName: string
 let weaponNameEn: string
 let craftSpendCount: number
+let mountName: string
+let mountNameRu: string
 const email = `v5-followup-${Date.now()}@example.test`
 const password = 'VisualFollowup!2026'
 
@@ -36,6 +40,8 @@ test.beforeAll(async ({ request }) => {
   expect(account.ok()).toBe(true)
   token = (await account.json()).token
   const reference = await api<Reference>(request, '/api/reference/realmsOfTerrinoth')
+  mountName = reference.mounts[0].name
+  mountNameRu = reference.mounts[0].nameRu || mountName
   const weapon = reference.items.find(i => i.kind === 'weapon' && i.purchasable)!
   weaponName = weapon.nameRu || weapon.name
   weaponNameEn = weapon.name
@@ -93,6 +99,12 @@ for (const language of ['ru', 'en']) {
       localStorage.setItem('genesysforge.analytics-consent', 'denied')
     }, { token, language })
     const baseline = process.env.DESIGN_BASELINE === '1'
+    let npcLists = 0
+    page.on('request', request => { if (/\/api\/(?:v1\/)?npcs\/?$/.test(new URL(request.url()).pathname)) npcLists++ })
+    if (!baseline) await page.route(/\/audit(?:\?|$)/, route => route.fulfill({ json: [
+      { id: 'review-undo', action: 'skillRankBought', summary: 'Куплен навык', xpDelta: -5, totalXpAfter: 800, spentXpAfter: 5, canUndo: true, createdAt: '2026-10-15T00:00:00Z' },
+      { id: 'review-mount', action: 'mountBought', summary: `Приобретён скакун «${mountName}»`, xpDelta: null, totalXpAfter: 800, spentXpAfter: 5, canUndo: false, createdAt: '2026-10-15T00:00:00Z' },
+    ] }))
     const sections = [['sheet', 'Лист', 'Sheet'], ['talents', 'Таланты', 'Talents'],
       ['inventory', 'Инвентарь', 'Inventory'], ['magic', 'Магия', 'Magic'],
       ['heroic', 'Героика', 'Heroic'], ['workshop', 'Мастерская', 'Workshop'],
@@ -103,6 +115,9 @@ for (const language of ['ru', 'en']) {
       if (!baseline && width === 375) {
         await sheetTab(page, 'sheet', language === 'ru' ? 'Лист' : 'Sheet')
         await expect(page.locator('.mobile-menu-trigger span')).toHaveCSS('position', 'static')
+        await expect(page.locator('.mobile-topbar-brand')).toHaveCSS('font-size', '14px')
+        await expect(page.locator('.mobile-topbar-brand')).toHaveCSS('font-weight', '300')
+        expect(parseFloat(await page.locator('.mobile-topbar-brand').evaluate(el => getComputedStyle(el).letterSpacing))).toBeCloseTo(1.68, 1)
         await page.evaluate(() => window.scrollTo(0, 600))
         await expect.poll(async () => Math.abs((await page.locator('.mobile-topbar').boundingBox())!.y)).toBeLessThanOrEqual(1)
         await page.evaluate(() => window.scrollTo(0, 0))
@@ -121,8 +136,15 @@ for (const language of ['ru', 'en']) {
             expect((await rect(filters.first().getByRole('button').first())).height).toBeLessThanOrEqual(28)
             expect((await rect(page.locator('.talent-list'))).height).toBeLessThan(900)
           }
+          await expect.poll(() => page.locator('.talent-list .compact-description').evaluateAll(nodes => nodes.filter(node => {
+            const text = node.querySelector('.compact-description-text')!
+            return Boolean(node.querySelector('.compact-description-toggle')) !== (text.scrollHeight > text.clientHeight + 1)
+          }).length)).toBe(0)
         }
         if (!baseline && key === 'sheet') {
+          const progress = page.getByRole('button', { name: language === 'ru' ? 'Прокачка' : 'Progression', exact: true })
+          await expect(progress).toBeVisible()
+          expect(await progress.evaluate(el => getComputedStyle(el, '::before').content)).toMatch(/^(none|normal)$/)
           await expect(page.locator('.rd-defense-card .rd-bar.overloaded>i')).toHaveCSS('background-color', 'rgb(226, 83, 42)')
           if (width === 375) await expect(page.locator('label[for=sheet-tab-select]')).toHaveCSS('clip-path', 'inset(50%)')
         }
@@ -136,14 +158,36 @@ for (const language of ['ru', 'en']) {
           const tiles = await page.locator('.mount-stat-tiles').evaluate(el => getComputedStyle(el).gridTemplateColumns.split(' ').length)
           expect(tiles).toBe(2)
         }
+        if (!baseline && key === 'history') {
+          const rows = page.locator('.audit-table tbody tr')
+          if (language === 'ru') {
+            await expect(rows.nth(1)).toContainText(mountNameRu)
+            await expect(rows.nth(1).locator('.badge')).toHaveText('Скакун +')
+          }
+          if (width === 1240) {
+            const undo = page.locator('.audit-undo')
+            expect((await rect(undo)).height).toBe(24)
+            const heights = await rows.evaluateAll(nodes => nodes.map(node => node.getBoundingClientRect().height))
+            expect(Math.abs(heights[0] - heights[1])).toBeLessThanOrEqual(1)
+            await expect(undo).toHaveCSS('text-transform', 'uppercase')
+            await expect(undo).toHaveCSS('font-size', '13px')
+          }
+        }
         await page.screenshot({ path: testInfo.outputPath(`${width}-${key}.png`), fullPage: false })
+        if (language === 'ru' && ((width === 1240 && ['history', 'heroic'].includes(key)) || (width === 375 && key === 'sheet'))) {
+          await page.evaluate(() => window.scrollTo(0, 0))
+          await page.screenshot({ path: testInfo.outputPath(`review-${key}-${width}.png`), fullPage: false,
+            mask: [page.locator('.compact-description-text,.heroic-ability-card>p,.heroic-power-level p')], maskColor: '#b7bcc5' })
+        }
       }
+      const beforeNpcLists = npcLists
       await page.goto(`/campaigns/${campaignId}/encounters/${encounterId}`)
       await expect(page.locator('.enc-detail')).toBeVisible()
       if (!baseline) await fits(page)
       if (!baseline) {
         expect(await page.locator('.enc-participants .table-wrap').evaluate(el => el.scrollWidth - el.clientWidth)).toBeLessThanOrEqual(1)
         await expect(page.locator('.participant-table .badge')).toHaveClass(/tone-orange/)
+        await expect.poll(() => npcLists - beforeNpcLists).toBe(1)
       }
       await page.screenshot({ path: testInfo.outputPath(`${width}-encounter.png`), fullPage: false })
       if (!baseline) {
@@ -151,7 +195,23 @@ for (const language of ['ru', 'en']) {
           await page.goto(`/campaigns/${campaignId}${view}`)
           await expect(page.locator('.campaign-tabs')).toBeVisible()
           await fits(page)
+          if (view === '') for (const button of await page.locator('.campaign-story-stepper button,.campaign-story-transfers button').all()) {
+            const box = await rect(button)
+            expect(box.width).toBe(width < 768 ? 44 : 24)
+            expect(box.height).toBe(width < 768 ? 44 : 24)
+          }
+          if (view === '/table' && width === 1240) {
+            expect((await rect(page.locator('.left-rail'))).width).toBeGreaterThanOrEqual(210)
+            expect(await page.locator('.story-title').evaluate(el => el.getBoundingClientRect().height)).toBeLessThan(24)
+            for (const button of await page.locator('.story-transfer button').all()) {
+              expect(await button.evaluate(el => el.scrollHeight)).toBeLessThan(48)
+            }
+          }
           await page.screenshot({ path: testInfo.outputPath(`${width}-campaign-${view.slice(1) || 'overview'}.png`), fullPage: false })
+          if (language === 'ru' && width === 1240 && ['', '/table'].includes(view)) {
+            await page.screenshot({ path: testInfo.outputPath(`review-campaign-${view.slice(1) || 'overview'}-${width}.png`),
+              mask: [page.locator('.rule-text,.compact-description-text')], maskColor: '#b7bcc5' })
+          }
         }
         for (const route of [`/npcs/${npcId}`, '/npcs/new?mode=draft', '/npcs/new?mode=manual']) {
           await page.goto(route)
@@ -162,6 +222,7 @@ for (const language of ['ru', 'en']) {
         await page.goto('/library')
         await expect(page.locator('.rd-entry-description')).toContainText('Контроль пути')
         await expect(page.locator('.library-system-switch .active')).toContainText('Realms of Terrinoth')
+        expect(await page.locator('.library-system-switch .rd-filter-chip').evaluateAll(nodes => nodes.some(node => !['none', 'normal'].includes(getComputedStyle(node, '::before').content)))).toBe(false)
         await fits(page)
         await page.screenshot({ path: testInfo.outputPath(`${width}-library.png`), fullPage: false })
         await page.goto('/shop')
@@ -186,3 +247,26 @@ for (const language of ['ru', 'en']) {
     }
   })
 }
+
+test('keeps navigation visible while a lazy page chunk is loading', async ({ page }) => {
+  await page.addInitScript(token => {
+    localStorage.setItem('genesysforge.token', token)
+    localStorage.setItem('genesysforge.lang', 'ru')
+    localStorage.setItem('genesysforge.analytics-consent', 'denied')
+  }, token)
+  let release!: () => void
+  const chunkReady = new Promise<void>(resolve => { release = resolve })
+  await page.route(/\/(?:src\/pages\/NpcsPage\.tsx|assets\/NpcsPage-[^/]+\.js)(?:\?|$)/, async route => {
+    await chunkReady
+    await route.continue()
+  })
+  await page.goto('/characters')
+  await expect(page.locator('.characters-page')).toBeVisible()
+  try {
+    await page.locator('.app-sidebar .side-nav').getByRole('button', { name: 'Бестиарий', exact: true }).click()
+    await expect(page.locator('.page-content-loading')).toBeVisible()
+    await expect(page.locator('.app-sidebar')).toBeVisible()
+    await expect(page.locator('.app-loading')).toHaveCount(0)
+  } finally { release() }
+  await expect(page.locator('.bt-items')).toBeVisible()
+})

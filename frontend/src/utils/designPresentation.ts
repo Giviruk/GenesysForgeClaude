@@ -3,6 +3,17 @@ import { lang, t } from '../i18n'
 import { localizedName, SYSTEM_LABELS } from './labels'
 
 type NamedDefinition = { name: string; nameRu?: string }
+export type ReferenceNameIndex = ReadonlyMap<string, string>
+
+export function referenceNameIndex(definitions: readonly NamedDefinition[]): ReferenceNameIndex {
+  const index = new Map<string, string>()
+  for (const definition of definitions) {
+    for (const name of [definition.name, definition.nameRu]) {
+      if (name && !index.has(name.toLocaleLowerCase())) index.set(name.toLocaleLowerCase(), localizedName(definition))
+    }
+  }
+  return index
+}
 
 export function localizedReferenceTerm(name: string, definitions: readonly NamedDefinition[] = []): string {
   const definition = definitions.find(value => value.name.toLocaleLowerCase() === name.toLocaleLowerCase())
@@ -10,13 +21,18 @@ export function localizedReferenceTerm(name: string, definitions: readonly Named
 }
 
 /** Audit text stays intact; only complete quoted catalogue names are translated. */
-export function localizedAuditSummary(summary: string, definitions: readonly NamedDefinition[]): string {
+export function localizedAuditSummary(summary: string, names: ReferenceNameIndex): string {
   if (lang !== 'ru') return summary
   return summary.replace(/«([^»]+)»|"([^"\n]+)"/g, (quoted, ru: string | undefined, en: string | undefined) => {
     const name = ru ?? en ?? ''
-    const translated = localizedReferenceTerm(name, definitions)
+    const translated = names.get(name.toLocaleLowerCase()) ?? name
     return translated === name ? quoted : `«${translated}»`
   })
+}
+
+export function heroicMetaParts(value: string): { value: string; explanation: string } {
+  const [primary, ...explanation] = localizeHeroicMeta(value).split(/[;；]/)
+  return { value: primary.trim(), explanation: explanation.join('; ').trim() }
 }
 
 export function localizeHeroicMeta(value: string): string {

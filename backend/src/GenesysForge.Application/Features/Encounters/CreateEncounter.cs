@@ -23,6 +23,6 @@ public class CreateEncounterHandler(IAppDbContext db) : ICommandHandler<CreateEn
 
         db.Encounters.Add(encounter);
         await db.SaveChangesAsync(ct);
-        return EncounterMapper.ToDetail(encounter, isGm: true);
+        return await EncounterMapper.ToDetailAsync(db, encounter, isGm: true, ct);
     }
 }

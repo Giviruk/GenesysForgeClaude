@@ -125,7 +125,7 @@ export function LibraryPage() {
             {items.map(x => <div className="rd-content-row rd-exclusion-row" key={x.key}><div><strong>{localizedName(x)}</strong><small>{contentMeta(x.meta)}</small></div>
               <button disabled={busy} aria-label={t(`Вернуть ${localizedName(x)}`, `Restore ${localizedName(x)}`)} onClick={() => void run(() => api.changeHomebrewPackExclusions(pack.id, [{ category: cat, key: x.key }], true))}>×</button></div>)}
           </section> : null })}</div> : <>
-          <div className="rd-toolbar"><div className="rd-chips"><FilterChip active={type === 'all'} onClick={() => setType('all')}>{t('Все', 'All')} {baseEntries.length}</FilterChip>
+          <div className="rd-toolbar"><div className="rd-chips category-filter-chips"><FilterChip active={type === 'all'} onClick={() => setType('all')}>{t('Все', 'All')} {baseEntries.length}</FilterChip>
             {ENTRY_TYPES.filter(x => baseEntries.some(e => e.entryType === x)).map(x => <FilterChip key={x} active={type === x} onClick={() => setType(x)}>{ENTRY_LABELS[x]} <small>{baseEntries.filter(e => e.entryType === x).length}</small></FilterChip>)}</div>
             <input type="search" aria-label={t('Поиск в библиотеке', 'Search library')} placeholder={t('Поиск…', 'Search…')} value={search} onChange={e => setSearch(e.target.value)} /></div>
           {!rows.length && <div className="rd-empty rd-dashed">{t('Подходящих элементов нет. Создайте контент или добавьте его из библиотеки.', 'No matching entries. Create content or add it from the library.')}</div>}

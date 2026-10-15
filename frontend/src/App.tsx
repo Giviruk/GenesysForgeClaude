@@ -171,6 +171,7 @@ function Shell() {
           <span className="mobile-topbar-title">{activeNavItem?.label}</span>
         </header>
 
+        <Suspense fallback={<PageContentFallback />}>
         {route.unknown
           ? <NotFound />
           : route.area === 'characters'
@@ -207,6 +208,7 @@ function Shell() {
                   : route.area === 'help'
                     ? <HelpPage loggedIn showFooter={false} />
                     : <ReferencePage onNavigate={navigate} />}
+        </Suspense>
         <Footer />
       </div>
     </div>
@@ -227,6 +229,13 @@ function NotFound() {
 
 function PageFallback() {
   return <div className="app-loading" role="status"><span className="app-loading-logo">GENESYSFORGE</span><span className="app-loading-bar" aria-hidden="true" /><span>{t('Загрузка…', 'Loading…')}</span></div>
+}
+
+function PageContentFallback() {
+  return <div className="page-content-loading" role="status">
+    <span>{t('Загрузка…', 'Loading…')}</span>
+    <div className="page-content-skeleton" aria-hidden="true"><i /><i /><i /></div>
+  </div>
 }
 
 export default function App() {

@@ -478,14 +478,6 @@ function PlayerEncounterView({ enc }: { enc: EncounterDetail }) {
 function ParticipantsSection({ enc, isGm, members, onRun }: {
   enc: EncounterDetail; isGm: boolean; members: CampaignMember[]; onRun: (a: () => Promise<unknown>) => Promise<void>
 }) {
-  const [npcKinds, setNpcKinds] = useState<Record<string, string>>({})
-  useEffect(() => {
-    let cancelled = false
-    api.npcs({ system: enc.system }).then(npcs => {
-      if (!cancelled) setNpcKinds(Object.fromEntries(npcs.map(npc => [npc.id, npc.kind])))
-    }).catch(() => { /* The participant's type remains a safe fallback. */ })
-    return () => { cancelled = true }
-  }, [enc.system, enc.campaignId])
   return (
     <section className="panel enc-participants">
       <div className="panel-head-row">
@@ -509,7 +501,7 @@ function ParticipantsSection({ enc, isGm, members, onRun }: {
             </thead>
             <tbody>
               {enc.participants.map(p => (
-                <ParticipantRow key={p.id} enc={enc} p={p} npcKind={p.npcId ? npcKinds[p.npcId] : undefined} isGm={isGm} onRun={onRun} />
+                <ParticipantRow key={p.id} enc={enc} p={p} isGm={isGm} onRun={onRun} />
               ))}
             </tbody>
           </table>
@@ -520,9 +512,8 @@ function ParticipantsSection({ enc, isGm, members, onRun }: {
   )
 }
 
-function ParticipantRow({ enc, p, npcKind, isGm, onRun }: {
+function ParticipantRow({ enc, p, isGm, onRun }: {
   enc: EncounterDetail; p: EncounterParticipant; isGm: boolean; onRun: (a: () => Promise<unknown>) => Promise<void>
-  npcKind?: string
 }) {
   const patch = (body: Parameters<typeof api.updateEncounterParticipant>[2]) =>
     onRun(() => api.updateEncounterParticipant(enc.id, p.id, body))
@@ -533,7 +524,7 @@ function ParticipantRow({ enc, p, npcKind, isGm, onRun }: {
         <div className="participant-name">{p.displayName}{p.quantity > 1 ? ` ×${p.quantity}` : ''}</div>
         {isGm && p.notes && <div className="participant-note muted small-text">{p.notes}</div>}
       </td>
-      <td><span className={`badge ${toneClass('participant', npcKind ?? p.participantType)}`}>{PARTICIPANT_TYPE_LABELS[p.participantType]}</span></td>
+      <td><span className={`badge ${toneClass('participant', p.npcKind ?? p.participantType)}`}>{PARTICIPANT_TYPE_LABELS[p.participantType]}</span></td>
       <td>{SLOT_TYPE_LABELS[p.initiativeSide]}</td>
       <td className="nowrap">{start}</td>
       {isGm && (
