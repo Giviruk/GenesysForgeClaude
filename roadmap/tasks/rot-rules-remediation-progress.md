@@ -70,7 +70,7 @@ scope сессии/encounter и единый check context: их нет в пр�
 
 - [~] **GEN-V5-16** — 12 замечаний по дизайну после сверки прода `79de6ff`: магия, карточка товара, библиотека,
   игровой стол без «Быстрых действий», обзор кампании, штриховка заголовков, селекты, лист и инвентарь.
-  [ТЗ](../../redesign_v5_tz/TZ_design_remarks_v5_3.md), [план](gen-v5-16-design-remarks-3.md). `[x]` — после слияния.
+  [ТЗ](../../redesign_v5_tz/TZ_design_remarks_v5_3.md), [план](gen-v5-16-design-remarks-3.md), [PR #298](https://github.com/Giviruk/GenesysForgeClaude/pull/298). `[x]` — после слияния.
 
 - [~] **GEN-UI-SYMBOLS** — формы игровых символов через локальный Genesys Glyphs and Dice
   и базовая русская терминология Core: характеристики, кости, результаты, сложности,
