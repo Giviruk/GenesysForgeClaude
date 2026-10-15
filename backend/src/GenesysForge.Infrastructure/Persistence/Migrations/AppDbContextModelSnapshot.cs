@@ -896,6 +896,7 @@ namespace GenesysForge.Infrastructure.Persistence.Migrations
                         .HasColumnType("boolean");
 
                     b.Property<int>("Money")
+                        .IsConcurrencyToken()
                         .HasColumnType("integer");
 
                     b.Property<string>("Name")
@@ -1562,6 +1563,9 @@ namespace GenesysForge.Infrastructure.Persistence.Migrations
                         .HasMaxLength(4000)
                         .HasColumnType("character varying(4000)");
 
+                    b.Property<int?>("PaidCost")
+                        .HasColumnType("integer");
+
                     b.Property<string>("Requirements")
                         .IsRequired()
                         .HasMaxLength(2000)
@@ -1579,6 +1583,7 @@ namespace GenesysForge.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(80)");
 
                     b.Property<int>("Status")
+                        .IsConcurrencyToken()
                         .HasColumnType("integer");
 
                     b.Property<string>("TargetName")

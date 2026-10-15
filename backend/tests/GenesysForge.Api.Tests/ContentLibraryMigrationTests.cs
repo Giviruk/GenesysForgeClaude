@@ -24,6 +24,7 @@ public sealed class PostgresMigrationFactAttribute : FactAttribute
     }
 }
 
+[Collection("PostgreSQL migrations")]
 public class ContentLibraryMigrationTests
 {
     private sealed class QueryLog : DbCommandInterceptor

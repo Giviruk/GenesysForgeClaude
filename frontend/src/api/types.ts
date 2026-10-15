@@ -1848,7 +1848,7 @@ export type CharacterAuditAction =
   | 'abilityActivated' | 'characterCreated' | 'itemThrownChanged'
   | 'attachmentBought' | 'attachmentInstalled' | 'attachmentDetached'
   | 'itemDamageStateChanged' | 'itemRepaired' | 'implementConfigured' | 'shardConfigured'
-  | 'craftingStarted' | 'craftingResolved' | 'serviceBought'
+  | 'craftingStarted' | 'craftingResolved' | 'craftingCancelled' | 'serviceBought'
   | 'mountBought' | 'mountSold' | 'mountRemoved' | 'cargoMoved'
 
 export interface CharacterAuditEntry {

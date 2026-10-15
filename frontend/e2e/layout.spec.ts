@@ -547,7 +547,7 @@ test('GEN-V5-12 review: table panels stay readable at tablet and fractional widt
   await page.goto(`/campaigns/${campaignId}/table`)
   const rail = page.locator('.table-shell > .right-rail')
   await expect(rail).toBeVisible()
-  for (const width of [1240, 1100, 1024, 900, 800, 769]) {
+  for (const width of [1240, 1100, 1024, 900, 800, 769, 768]) {
     await page.setViewportSize({ width, height: 900 })
     await expect(rail).toHaveCSS('display', 'flex')
     await expect(rail).toHaveCSS('flex-direction', 'column')
@@ -591,6 +591,13 @@ test('GEN-V5-12 review: table panels stay readable at tablet and fractional widt
   await page.locator('iframe[name="fractional-table"]').evaluate(el => { (el as HTMLIFrameElement).style.width = '1240.5px' })
   await expect.poll(() => frame.locator('.table-shell').evaluate(element => getComputedStyle(element).gridTemplateColumns.split(' ').length)).toBe(3)
   await expect(frame.locator('.right-rail')).toHaveCSS('display', 'flex')
+  for (const width of [767.25, 767.75, 768.25]) {
+    await page.locator('iframe[name="fractional-table"]').evaluate((el, width) => { (el as HTMLIFrameElement).style.width = `${width}px` }, width)
+    const count = await frame.locator('body').evaluate(() => matchMedia('(min-width:768px)').matches ? 2 : 1)
+    await expect.poll(() => frame.locator('.table-shell').evaluate(element => getComputedStyle(element).gridTemplateColumns.split(' ').length)).toBe(count)
+    const overflow = await frame.locator('body').evaluate(el => el.scrollWidth > el.clientWidth + 1)
+    expect(overflow).toBe(false)
+  }
 })
 
 test('GEN-V5-12 review: printed symbols keep the pre-v5 palette', async ({ page }) => {

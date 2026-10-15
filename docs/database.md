@@ -511,7 +511,12 @@ with their override reasons, the component cost with its
 percent/override mode, free-text `Requirements`, the roll symbols the client reported, the chosen
 spends and the resulting `CharacterItemId`. `BaseCharacterItemId` is the enchanted instance —
 enchanting upgrades an existing item rather than creating one. Indexes on `CharacterId` and
-`(CharacterId, Status)`.
+`(CharacterId, Status)`. Nullable `PaidCost` stores the actual charged amount: null identifies an unpaid
+legacy project; zero is an explicitly free project. Cancellation refunds it once, with a
+`CraftingCancelled` audit entry. `Characters.Money` and `CraftingProjects.Status` are EF optimistic
+concurrency tokens using the existing columns: a stale write rolls back the whole transaction and
+returns HTTP 409. Start audit data contains bounded identifiers/numbers, while free text lives on the
+project itself, avoiding the audit column's 2000-character limit.
 
 ### NpcAttacks / NpcAttackQualities
 
@@ -837,3 +842,9 @@ pack links, definition IDs and character references remain unchanged; built-ins 
 Rollback retains the repair because reverting links cannot safely distinguish migrated rows
 from later library content. A read-only check on 07.10.2026 found one unpacked custom career
 in the private production database and none in the public database.
+
+- `AddCraftingPaidCost` (GEN-V5-15 review R1–R6) adds nullable integer `CraftingProjects.PaidCost`.
+  Unpaid legacy rows stay null. Confirmed payments from the earlier PR implementation are backfilled
+  only when a valid audit JSON object matches character, project ID and exact charged cost; malformed
+  historical JSON is ignored. Up preserves projects and content. Down removes only this new column
+  (payment tracking is lost on downgrade). No seed/content changes.

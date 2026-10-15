@@ -1,5 +1,7 @@
 using System.Net;
 using System.Net.Http.Json;
+using System.Text.Json;
+using Microsoft.EntityFrameworkCore;
 using GenesysForge.Application.Dtos;
 using GenesysForge.Domain;
 using GenesysForge.Domain.Rules;
@@ -263,6 +265,30 @@ public class RotCraftingApiTests(ApiFactory factory) : IClassFixture<ApiFactory>
         }
         (await client.DeleteAsync($"/api/characters/{id}/crafting/{legacy}")).EnsureSuccessStatusCode();
         Assert.Equal(before, (await SheetAsync(client, id)).Money);
+    }
+
+    [Fact]
+    public async Task Crafting_PaymentSurvivesMissingAudit_AndCancellationRecordsRefund()
+    {
+        var (client, reference, id) = await CreateAsync();
+        var before = (await SheetAsync(client, id)).Money;
+        var project = await StartAsync(client, id, new CraftingProjectInput(Weapon(reference).Id,
+            CostOverride: 75, CostOverrideReason: "agreed"));
+        using (var scope = factory.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            Assert.Equal(75, (await db.CraftingProjects.SingleAsync(p => p.Id == project)).PaidCost);
+            db.CharacterAuditEntries.RemoveRange(await db.CharacterAuditEntries.Where(a => a.CharacterId == id).ToListAsync());
+            await db.SaveChangesAsync();
+        }
+        (await client.DeleteAsync($"/api/characters/{id}/crafting/{project}")).EnsureSuccessStatusCode();
+        Assert.Equal(before, (await SheetAsync(client, id)).Money);
+        using var finalScope = factory.Services.CreateScope();
+        var savedDb = finalScope.ServiceProvider.GetRequiredService<AppDbContext>();
+        var audit = await savedDb.CharacterAuditEntries.SingleAsync(a => a.CharacterId == id && a.Action == CharacterAuditAction.CraftingCancelled);
+        using var data = JsonDocument.Parse(audit.DataJson);
+        Assert.Equal(75, data.RootElement.GetProperty("refundedCost").GetInt32());
+        Assert.Contains("75", audit.Summary);
     }
 
     [Fact]

@@ -467,8 +467,8 @@ project of the character, newest first. Available to whoever owns the sheet — 
 separate GM mode.
 
 **Resources are description only.** Tools, components and ingredients are free text: the application
-neither consumes them nor checks that the character has them, and no project ever touches money.
-The component cost is computed and recorded, and that is all it does.
+neither consumes them nor checks that the character has them. Monetary component cost is charged
+at start and refunded on cancellation; preview itself changes nothing.
 
 ### `POST /api/characters/{id}/crafting/preview`
 
@@ -534,7 +534,9 @@ which is also returned as the project's result.
 Protected. Cancels a project that has not been resolved. A resolved project is history and is not
 cancelled (`crafting.project_not_draft`). Response: `204`.
 Cancellation refunds the amount recorded as charged at start, in full and only once. Legacy projects
-without a payment record are neither charged retroactively nor given a refund.
+with `PaidCost = null` are neither charged retroactively nor given a refund. Cancellation records
+`craftingCancelled` with the project ID and refunded amount in character history. Concurrent wallet
+or project-state edits return `409`; reload the sheet before retrying.
 
 ### `PATCH /api/characters/{id}/items/{itemId}/location`
 

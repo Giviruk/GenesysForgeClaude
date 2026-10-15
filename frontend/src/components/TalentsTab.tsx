@@ -422,6 +422,7 @@ export function TalentsTab({ sheet, reference, onError, refresh }: Props) {
                       </strong>
                       <div className="tag-row compact">
                         <span className="badge tier">{t('Тир', 'Tier')} {tal.tier}</span>
+                        {tal.isRanked && ranksOwned > 0 && <span className="badge">{t(`Следующий ранг: тир ${effectiveTier}`, `Next rank: tier ${effectiveTier}`)}</span>}
                         <span className="badge">{TALENT_CATEGORY_LABELS[tal.category]}</span>
                         {tal.isRanked && <span className="badge">{t('Ранговый', 'Ranked')}{ranksOwned > 0 ? `: ${ranksOwned}` : ''}</span>}
                         {tal.isCustom && <span className="badge custom">{t('Кастом', 'Custom')}</span>}

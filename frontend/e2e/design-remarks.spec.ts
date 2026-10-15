@@ -427,6 +427,14 @@ for (const language of ['ru', 'en']) test(`GEN-V5-15 second review in ${language
     await expect(page.locator('.range-rings')).toBeVisible()
     if (!baseline) {
       expect((await rect(page.locator('.range-rings'))).width).toBeLessThanOrEqual(width === 1024 ? 420.1 : 380.1)
+      const quickChoice = page.locator('.quick-panel .form-row>.select-control')
+      await expect(quickChoice).toHaveCSS('grid-column', '1 / -1')
+      const choiceWidth = (await rect(quickChoice)).width
+      expect(choiceWidth).toBeCloseTo((await rect(page.locator('.quick-panel .form-row'))).width, 0)
+      if (width >= 768) {
+        await expect(quickChoice).toHaveCSS('height', '30px')
+        await expect(page.locator('.gt-slot-form>.select-control')).toHaveCSS('height', '28px')
+      }
       if (width === 1024) {
         const left = await rect(page.locator('.left-rail'))
         const center = await rect(page.locator('.center-stage'))
@@ -506,4 +514,38 @@ test('GEN-V5-15 component payment updates the wallet and cancellation refunds it
   await page.getByRole('button', { name: 'Отменить проект', exact: true }).click()
   await page.getByRole('button', { name: 'Да, отменить проект', exact: true }).click()
   await expect(page.locator('.crafting-funds')).toContainText(String(before))
+})
+
+test('GEN-V5-15 review: Select respects contextual styles and the first invalid form field', async ({ page }) => {
+  await page.addInitScript(token => {
+    localStorage.setItem('genesysforge.token', token)
+    localStorage.setItem('genesysforge.lang', 'ru')
+    localStorage.setItem('genesysforge.analytics-consent', 'denied')
+  }, token)
+  await page.setViewportSize({ width: 1240, height: 900 })
+  await page.goto('/shop')
+  const customer = page.locator('.shop-toolbar .select-control')
+  await expect(customer).toBeVisible()
+  await expect(customer).toHaveCSS('font-size', '16px')
+  await expect(customer).toHaveCSS('font-weight', '600')
+  await expect(customer).toHaveCSS('border-top-color', 'rgb(31, 42, 92)')
+  await page.goto(`/characters/${characterId}`)
+  await sheetTab(page, 'inventory', 'Инвентарь')
+  const damage = page.locator('.shop-row-actions .select-control').first()
+  await expect(damage).toHaveCSS('height', '24px')
+  await page.setViewportSize({ width: 375, height: 900 })
+  await expect(damage).toHaveCSS('height', '44px')
+  await page.goto('/characters')
+  await page.getByRole('button', { name: 'Новый персонаж', exact: true }).first().click()
+  const form = page.locator('.character-create-modal')
+  const name = form.getByRole('textbox', { name: 'Имя персонажа', exact: true })
+  expect(await form.evaluate(el => (el as HTMLFormElement).reportValidity())).toBe(false)
+  await expect(name).toBeFocused()
+  await expect(page.getByRole('listbox')).toHaveCount(0)
+  await name.fill('Собственный тест валидации')
+  expect(await form.evaluate(el => (el as HTMLFormElement).reportValidity())).toBe(false)
+  const archetype = form.getByRole('combobox').first()
+  await expect(archetype).toBeFocused()
+  await expect(page.getByRole('listbox')).toHaveCount(1)
+  await expect(page.getByRole('listbox')).toHaveAttribute('aria-labelledby', (await archetype.getAttribute('id'))!)
 })

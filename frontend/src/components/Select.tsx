@@ -3,45 +3,43 @@ import { createPortal } from 'react-dom'
 import { Icon } from './Icon'
 import './Select.css'
 
-export interface SelectOption { value: string | number; label: string; disabled?: boolean; group?: string }
 type Props = Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'value' | 'onChange' | 'children' | 'type'> & {
   value: string | number; onChange: (value: string) => void; required?: boolean; name?: string
-  placeholder?: string; options?: readonly SelectOption[]; children?: ReactNode
+  children?: ReactNode
 }
-type Option = { value: string; label: string; disabled: boolean; group?: string }
+type Option = { value: string; label: string; disabled: boolean; group?: string; title?: string }
 
 function text(node: ReactNode): string {
   return Children.toArray(node).map(child => isValidElement<{ children?: ReactNode }>(child) ? text(child.props.children) : String(child)).join('')
 }
 function readOptions(children: ReactNode, group?: string, disabled = false): Option[] {
   return Children.toArray(children).flatMap(child => {
-    if (!isValidElement<{ value?: string | number; children?: ReactNode; label?: string; disabled?: boolean }>(child)) return []
+    if (!isValidElement<{ value?: string | number; children?: ReactNode; label?: string; disabled?: boolean; title?: string }>(child)) return []
     if (child.type === Fragment) return readOptions(child.props.children, group, disabled)
     if (child.type === 'optgroup') return readOptions(child.props.children, child.props.label, disabled || !!child.props.disabled)
     if (child.type !== 'option') return []
     const label = child.props.label ?? text(child.props.children)
-    return [{ value: String(child.props.value ?? label), label, group, disabled: disabled || !!child.props.disabled }]
+    return [{ value: String(child.props.value ?? label), label, group, title: child.props.title, disabled: disabled || !!child.props.disabled }]
   })
 }
 
 /** Select-only combobox. The offscreen native control participates only in form submission/validation. */
-export function Select({ value, onChange, options, children, required, name, placeholder, disabled, id: suppliedId, className = '', title, onKeyDown, ...props }: Props) {
+export function Select({ value, onChange, children, required, name, disabled, id: suppliedId, className = '', title, onKeyDown, ...props }: Props) {
   const generatedId = useId()
   const id = suppliedId ?? `select-${generatedId}`
   const listId = `${id}-list`
   const field = useRef<HTMLButtonElement>(null)
   const list = useRef<HTMLDivElement>(null)
+  const native = useRef<HTMLSelectElement>(null)
   const prefix = useRef({ value: '', time: 0 })
   const [open, setOpen] = useState(false)
   const [portalHost, setPortalHost] = useState<HTMLElement | null>(null)
   const [active, setActive] = useState(-1)
   const [invalid, setInvalid] = useState(false)
   const [position, setPosition] = useState({ left: 16, top: 0, width: 180, maxHeight: 320 })
-  const rows = useMemo<Option[]>(() => options
-    ? options.map(o => ({ ...o, value: String(o.value), disabled: !!o.disabled }))
-    : readOptions(children), [options, children])
+  const rows = useMemo(() => readOptions(children), [children])
   const chosen = rows.findIndex(o => o.value === String(value))
-  const label = rows[chosen]?.label ?? placeholder ?? ''
+  const label = rows[chosen]?.label ?? ''
   const enabled = rows.map((o, i) => o.disabled ? -1 : i).filter(i => i >= 0)
 
   function show(index = chosen) {
@@ -73,8 +71,10 @@ export function Select({ value, onChange, options, children, required, name, pla
       const above = rect.top - 12
       const upwards = below < desiredHeight && above > below
       const maxHeight = Math.max(32, Math.min(desiredHeight, upwards ? above : below))
-      setPosition({ width, maxHeight, left: Math.max(16, Math.min(rect.left, innerWidth - width - 16)),
-        top: upwards ? Math.max(8, rect.top - maxHeight - 4) : rect.bottom + 4 })
+      const next = { width, maxHeight, left: Math.max(16, Math.min(rect.left, innerWidth - width - 16)),
+        top: upwards ? Math.max(8, rect.top - maxHeight - 4) : rect.bottom + 4 }
+      setPosition(previous => previous.width === next.width && previous.maxHeight === next.maxHeight
+        && previous.left === next.left && previous.top === next.top ? previous : next)
     }
     place()
     window.addEventListener('resize', place)
@@ -92,9 +92,18 @@ export function Select({ value, onChange, options, children, required, name, pla
       const target = event.target as Node
       if (!field.current?.contains(target) && !list.current?.contains(target)) setOpen(false)
     }
+    const invalidForm = () => { if (firstInvalid() !== native.current) setOpen(false) }
     document.addEventListener('pointerdown', outside)
-    return () => document.removeEventListener('pointerdown', outside)
+    document.addEventListener('invalid', invalidForm, true)
+    return () => { document.removeEventListener('pointerdown', outside); document.removeEventListener('invalid', invalidForm, true) }
   }, [open])
+
+  function firstInvalid() {
+    const control = native.current
+    return control?.form ? Array.from(control.form.elements).find(element =>
+      'willValidate' in element && element.willValidate && 'validity' in element
+      && !(element as HTMLInputElement).validity.valid) : control
+  }
 
   function keyDown(event: React.KeyboardEvent<HTMLButtonElement>) {
     onKeyDown?.(event)
@@ -142,10 +151,17 @@ export function Select({ value, onChange, options, children, required, name, pla
       onClick={() => open ? setOpen(false) : show()} onKeyDown={keyDown}>
       <span className="select-value">{label || '\u00a0'}</span><Icon name="chevron-down" className="select-chevron" />
     </button>
-    <select className="select-native" tabIndex={-1} aria-hidden="true" name={name} value={value}
+    <select ref={native} className="select-native" tabIndex={-1} aria-hidden="true" name={name} value={chosen < 0 ? '' : value}
       disabled={disabled} required={required} onChange={event => { setInvalid(false); onChange(event.target.value) }}
-      onInvalid={event => { event.preventDefault(); setInvalid(true); field.current?.focus(); show() }}>
-      {rows.map((o, i) => <option key={i} value={o.value} disabled={o.disabled}>{o.label}</option>)}
+      onInvalid={event => {
+        event.preventDefault()
+        setInvalid(true)
+        // Native validation visits every invalid control. Only the first one owns focus.
+        if (firstInvalid() === event.currentTarget) { field.current?.focus(); show() }
+        else setOpen(false)
+      }}>
+      {chosen < 0 && <option value="" disabled hidden />}
+      {rows.map((o, i) => <option key={i} value={o.value} title={o.title} disabled={o.disabled}>{o.label}</option>)}
     </select>
     {open && !disabled && portalHost && createPortal(<div ref={list} id={listId} role="listbox" aria-labelledby={id}
       popover={portalHost.tagName === 'DIALOG' ? 'manual' : undefined}
@@ -153,7 +169,7 @@ export function Select({ value, onChange, options, children, required, name, pla
       {rows.map((o, i) => <Fragment key={`${o.value}-${i}`}>
         {o.group && (i === 0 || rows[i - 1].group !== o.group) && <div className="select-group" role="presentation">{o.group}</div>}
         <div id={`${id}-option-${i}`} role="option" aria-selected={i === chosen} aria-disabled={o.disabled || undefined}
-          data-value={o.value} className={`select-option${i === active ? ' active' : ''}`}
+          data-value={o.value} title={o.title} className={`select-option${i === active ? ' active' : ''}`}
           onMouseDown={event => event.preventDefault()} onMouseMove={() => { if (!o.disabled) setActive(i) }} onClick={() => choose(i)}>{o.label}</div>
       </Fragment>)}
     </div>, portalHost)}

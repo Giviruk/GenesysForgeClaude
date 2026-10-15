@@ -147,6 +147,17 @@ describe('Ремесло (ROT-CRAFT-01, ROT-ALCH-02, ROT-CRAFT-MAGIC-01)', () =>
     expect(startMock).not.toHaveBeenCalled()
   })
 
+  it('shows a preview error and clears it when corrected input succeeds', async () => {
+    previewMock.mockRejectedValueOnce(new Error('Сложность не может быть выше 5'))
+    renderTab()
+    fireEvent.click(await screen.findByRole('button', { name: /Топор/ }))
+    expect(await screen.findByText('Сложность не может быть выше 5')).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Начать проект' })).toHaveProperty('disabled', true)
+    fireEvent.click(screen.getByRole('button', { name: /Железо/ }))
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Начать проект' })).toHaveProperty('disabled', false))
+    expect(screen.queryByText('Сложность не может быть выше 5')).toBeNull()
+  })
+
   it('передаёт материал обычного и магического снаряжения в расчёт стоимости', async () => {
     renderTab()
     fireEvent.click(await screen.findByRole('button', { name: /Топор/ }))

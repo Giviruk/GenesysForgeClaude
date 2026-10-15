@@ -96,6 +96,15 @@ describe('TalentsTab', () => {
     }])
   })
 
+  it('shows the effective tier for the next rank alongside its XP cost', () => {
+    const ranked = { ...talent('ranked', 'Тестовый ранговый', 'general'), isRanked: true }
+    const rankedSheet = { ...sheet, talents: [{ ...ranked, talentDefId: ranked.id, ranks: 2, choices: [], grantedCharacteristics: [] }],
+      talentTierCounts: { '1': 4, '2': 2 } } as unknown as CharacterSheet
+    render(<TalentsTab sheet={rankedSheet} reference={{ ...reference, talents: [ranked] }} onError={() => {}} refresh={async () => {}} />)
+    expect(screen.getByText('Следующий ранг: тир 3')).toBeTruthy()
+    expect(screen.getByRole('button', { name: '15 XP · Купить' })).toBeTruthy()
+  })
+
   it('фильтрует доступные таланты по категории', () => {
     render(<TalentsTab sheet={sheet} reference={reference} onError={() => {}} refresh={() => Promise.resolve()} />)
 
