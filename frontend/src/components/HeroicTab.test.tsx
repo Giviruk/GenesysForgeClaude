@@ -68,7 +68,7 @@ describe('Heroic tab uses and purchases', () => {
     renderTab()
     fireEvent.click(within(document.querySelector('.heroic-power-level.next')!).getByRole('button', { name: 'Купить' }))
     await waitFor(() => expect(api.setHeroicUpgrades).toHaveBeenCalledWith('heroic-test', expect.objectContaining({ powerRank: 1 })))
-    fireEvent.click(screen.getByRole('button', { name: '1 очк.' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Купить · 1 очк.' }))
     await waitFor(() => expect(api.setHeroicUpgrades).toHaveBeenCalledWith('heroic-test', expect.objectContaining({ secondaryEffectIds: ['s1'] })))
   })
   it('shows the complete origin only once', () => {

@@ -24,7 +24,7 @@ export function CharacterSheetNavigation({ system, tab, onSelect, bioLabel = t('
       </Fragment>)}
     </div>
     <div className="sheet-tab-select-wrap">
-      <label htmlFor="sheet-tab-select">{t('Раздел листа', 'Sheet section')}</label>
+      <label className="visually-hidden" htmlFor="sheet-tab-select">{t('Раздел листа', 'Sheet section')}</label>
       <select id="sheet-tab-select" className="sheet-tab-select" value={tab}
         onChange={event => onSelect(event.target.value as CharacterSheetTab)}>
         {tabs.map(key => <option key={key} value={key}>{labels[key]}</option>)}

@@ -1,3 +1,4 @@
+import { Icon } from './Icon'
 import { useState } from 'react'
 import type { ItemDamageState, ItemRepair } from '../api/types'
 import {
@@ -94,16 +95,10 @@ export function DamageStateControls({ state, repair, funds, reinforced, onSetSta
   return (
     <div className="damage-row small-text">
       <span className="muted">{t('Состояние', 'Condition')}</span>
-      <span className="damage-switch">
-        {ITEM_DAMAGE_STATES.map(s => (
-          <button key={s} type="button" className={state === s ? 'chip active' : 'chip'}
-            disabled={disabled}
-            title={ITEM_DAMAGE_STATE_HINTS[s]}
-            onClick={() => state !== s && onSetState(s)}>
-            {ITEM_DAMAGE_STATE_LABELS[s]}
-          </button>
-        ))}
-      </span>
+      <select className="damage-select" aria-label={t('Состояние предмета', 'Item condition')} value={state} disabled={disabled}
+        title={ITEM_DAMAGE_STATE_HINTS[state]} onChange={e => onSetState(e.target.value as ItemDamageState)}>
+        {ITEM_DAMAGE_STATES.map(s => <option key={s} value={s}>{ITEM_DAMAGE_STATE_LABELS[s]}</option>)}
+      </select>
 
       {repair.canRepair && !needsGmQuote && (
         <label className="damage-adv" title={t(
@@ -146,8 +141,8 @@ export function DamageStateControls({ state, repair, funds, reinforced, onSetSta
           onClick={() => onRepair(needsGmQuote
             ? { costOverride: gmPriceNum, overrideReason: gmReason.trim() }
             : { netAdvantages: advantages })}>
-          🔧 {t('Починить', 'Repair')}
-          {cost != null && <> — {cost} 🪙</>}
+          <Icon name="hammer" className="button-icon" /> {t('Починить', 'Repair')}
+          {cost != null && <> — {cost} <Icon name="coin" className="button-icon" /></>}
         </button>
       )}
       {state === 'destroyed' && (

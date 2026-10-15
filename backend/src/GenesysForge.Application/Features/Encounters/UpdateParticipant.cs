@@ -31,6 +31,6 @@ public class UpdateEncounterParticipantHandler(IAppDbContext db)
 
         encounter.UpdatedAt = DateTime.UtcNow;
         await db.SaveChangesAsync(ct);
-        return EncounterMapper.ToDetail(encounter, isGm: true);
+        return await EncounterMapper.ToDetailAsync(db, encounter, isGm: true, ct);
     }
 }

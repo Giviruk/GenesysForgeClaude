@@ -132,19 +132,19 @@ export function CharactersPage({ onOpen }: Props) {
               <span className={`badge ${c.system}`}>{SYSTEM_LABELS[c.system]}</span>
               {c.isCreationPhase && <span className="badge creation">{t('Создание', 'Creation')}</span>}
             </div>
+<div className="char-vitals">
             <VitalBar label={t('Раны', 'Wounds')} current={c.woundsCurrent} threshold={c.woundThreshold} tone="wound" />
             <VitalBar label={t('Стресс', 'Strain')} current={c.strainCurrent} threshold={c.strainThreshold} tone="strain" />
+            </div>
             <div className="char-xp-row">
               <span>{t('Доступно XP', 'Available XP')}</span>
               <b>{c.availableXp}</b>
             </div>
             <div className="card-actions">
               <button className="small" onClick={e => { e.stopPropagation(); void duplicate(c.id) }}>
-                <Icon name="copy" className="button-icon" />
                 {t('Клонировать', 'Duplicate')}
               </button>
               <button className="danger small" onClick={e => { e.stopPropagation(); void remove(c.id, c.name) }}>
-                <Icon name="trash" className="button-icon" />
                 {t('Удалить', 'Delete')}
               </button>
             </div>

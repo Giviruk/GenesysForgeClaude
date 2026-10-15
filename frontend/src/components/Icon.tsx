@@ -1,6 +1,9 @@
 import type { SVGProps } from 'react'
 
 export type IconName =
+  | 'edit'
+  | 'eye'
+  | 'eye-off'
   | 'adjustments'
   | 'hammer'
   | 'sword'
@@ -61,6 +64,9 @@ export type IconName =
   | 'users'
 
 const paths: Record<IconName, string[]> = {
+  edit: ['m4 16 12-12 4 4-12 12H4v-4Z', 'm14 6 4 4'],
+  eye: ['M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12Z', 'M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6Z'],
+  'eye-off': ['M3 3l18 18', 'M6 6c-3 2-4 6-4 6s4 7 10 7c2 0 4-1 6-3', 'M10 5h2c6 0 10 7 10 7s-1 2-3 4', 'M9 9a4 4 0 0 0 6 6'],
   'adjustments': ['M4 7h16', 'M4 17h16', 'M8 4v6', 'M16 14v6'],
   'hammer': ['m14 3 7 7-3 3-3-3L5 20l-3-3L12 7 9 4l5-1Z'],
   'sword': ['m4 20 13-13', 'M14 3h7v7L8 20l-4-4L14 3Z', 'm3 13 8 8'],

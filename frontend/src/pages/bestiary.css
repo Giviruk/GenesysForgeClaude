@@ -2502,3 +2502,36 @@
   .bt-editor-combat .bt-rank-stepper>button { width:44px; }
   .bt-editor-combat .ability-edit .form-row { grid-template-columns:1fr; }
 }
+
+/* GEN-V5-14 D-48…51: readable filters, stat labels and draft/editor controls. */
+@media screen {
+  .bt-filters button { min-height:28px; padding:4px 8px; font:600 13px var(--font-head); }
+  .bt-filters button.active :is(.muted,small) { color:var(--orange-on-navy); }
+  .bt-items>li>button.active,.bt-items>li.active>button { background:var(--t-orange-bg); border-bottom-color:var(--line-soft); box-shadow:inset 3px 0 var(--orange); }
+  .bt-card-derived>span { grid-template-columns:1fr; padding:6px 4px; }
+  .bt-card-derived>span>svg { display:none; }
+  .bt-card-derived .npc-derived-label { white-space:normal; overflow:visible; text-overflow:clip; font-size:11px; line-height:1.3; }
+  .npc-char-label,.npc-preview-chars small { font-size:11px; overflow-wrap:normal; }
+  .bt-mode button { white-space:nowrap; font-size:13px; }
+  .bt-mode { flex-wrap:wrap; }
+  .bt-draft-counts b,.npc-preview-details dd { overflow-wrap:normal; hyphens:auto; }
+  .bt-draft-step>h3>small { font:12px var(--font-ui); text-transform:none; }
+  .bt-builder label { font:600 12px var(--font-head); text-transform:uppercase; }
+  .bt-builder label :is(input,select,textarea) { text-transform:none; font-family:var(--font-ui); }
+  .bt-builder select { min-width:0; text-overflow:ellipsis; }
+  .bt-draft-preview { align-self:start; height:auto; }
+  .bt-stat-stepper.sheet-stepper>button { height:28px; min-height:28px; }
+}
+@media screen and (max-width:767px) {
+  .bt-filters button { min-height:36px; }
+  .bt-mode button { min-height:44px; }
+  .bt-stat-stepper.sheet-stepper>button { height:44px; min-height:44px; }
+}
+@media screen {
+  .bt-filter-pills .bt-pills button { min-height:28px; padding:4px 8px; font:600 13px var(--font-head); }
+  .bt-filter-pills .bt-pills button::before { content:''; width:8px; height:8px; border-radius:50%; background:var(--tone,var(--faint)); }
+  .bt-filter-pills .bt-pills button[aria-pressed=true] small { color:var(--orange-on-navy); }
+  .bt-card-derived>span>small { white-space:normal; overflow:visible; text-overflow:clip; font-size:11px; line-height:1.3; }
+}
+@media screen and (max-width:767px) { .bt-filter-pills .bt-pills button { min-height:36px; } }
+@media screen { .bt-items>li>button.bt-item.active { border-bottom:1px solid var(--line-soft); } }

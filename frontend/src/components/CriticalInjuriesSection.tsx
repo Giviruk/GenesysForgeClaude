@@ -2,6 +2,9 @@ import { Fragment, useEffect, useMemo, useState, type FormEvent } from 'react'
 import { api } from '../api/client'
 import type { CharacterSheet, RuleTableEntry } from '../api/types'
 import { t } from '../i18n'
+import { Icon } from './Icon'
+import { GenesysSymbol } from './GenesysSymbol'
+import { criticalSeverityDifficulty } from '../utils/designPresentation'
 
 interface Props {
   sheet: CharacterSheet
@@ -20,6 +23,7 @@ export function CriticalInjuriesSection({ sheet, onError, refresh, readOnly = fa
   const [roll, setRoll] = useState('')
   const [notes, setNotes] = useState('')
   const [busy, setBusy] = useState(false)
+  const [adding, setAdding] = useState(false)
 
   useEffect(() => {
     api.rules()
@@ -60,6 +64,7 @@ export function CriticalInjuriesSection({ sheet, onError, refresh, readOnly = fa
         notes: notes.trim() || undefined,
       })
       setCode(''); setManualName(''); setRoll(''); setNotes('')
+      setAdding(false)
       await refresh()
     } catch (err) {
       onError(err instanceof Error ? err.message : t('Ошибка добавления ранения', 'Failed to add injury'))
@@ -82,7 +87,13 @@ export function CriticalInjuriesSection({ sheet, onError, refresh, readOnly = fa
 
   return (
     <section className="panel critical-injuries">
-      <h3>{t('Критические ранения', 'Critical injuries')} {injuries.length > 0 ? `(${injuries.length})` : ''}</h3>
+      <header className="section-title-line"><h3>{t('Критические ранения', 'Critical injuries')}</h3>
+        {injuries.length > 0 && <span className="badge tone-red">{injuries.length}</span>}
+        <span className="rd-heading-line" />
+        {!readOnly && <button type="button" className="link-btn" aria-expanded={adding} onClick={() => setAdding(value => !value)}>
+          <Icon name="plus" className="button-icon" />{adding ? t('Отмена', 'Cancel') : t('Добавить', 'Add')}
+        </button>}
+      </header>
       <p className="muted small-text">
         {t('Сохраняются до лечения; каждое добавляет +10 к будущим броскам критических ранений (см. справочник правил).', 'They persist until healed; each adds +10 to future critical injury rolls (see the rules reference).')}
       </p>
@@ -99,7 +110,8 @@ export function CriticalInjuriesSection({ sheet, onError, refresh, readOnly = fa
             <div className="crit-item">
               <div className="crit-item-main">
                 <div className="crit-item-label">
-                  {ci.severity && <span className="badge tier">{ci.severity}</span>}
+                  {rule?.rollRange && <span className="crit-range">d100 {rule.rollRange}</span>}
+                  {ci.severity && <span className="crit-severity">{Array.from({ length: criticalSeverityDifficulty(rule?.groupEn || rule?.groupRu || ci.severity) }, (_, i) => <GenesysSymbol kind="difficulty" key={i} />)} {rule ? t(rule.groupRu, rule.groupEn || ci.severity) : ci.severity}</span>}
                   <strong>{ci.nameRu}</strong>
                   {ci.rollResult != null && <span className="muted small-text">{t('Бросок', 'Roll')} {ci.rollResult}</span>}
                 </div>
@@ -111,14 +123,14 @@ export function CriticalInjuriesSection({ sheet, onError, refresh, readOnly = fa
                 )}
                 {ci.notes && <div className="muted small-text">{t('Заметки:', 'Notes:')} {ci.notes}</div>}
               </div>
-              {!readOnly && <button className="danger small" onClick={() => void remove(ci.id, ci.nameRu)}>{t('Снять', 'Remove')}</button>}
+              {!readOnly && <button className="link-btn small" onClick={() => void remove(ci.id, ci.nameRu)}>{t('Снять', 'Remove')}</button>}
             </div>
             </Fragment>
           )
         })}
       </div>
 
-      {!readOnly && <form className="crit-form" onSubmit={submit}>
+      {!readOnly && adding && <form className="crit-form" onSubmit={submit}>
         <select value={code} onChange={e => setCode(e.target.value)} aria-label={t('Крит-ранение', 'Critical injury')}>
           <option value="" disabled>{t('— выберите ранение —', '— pick an injury —')}</option>
           {groups.map(([group, entries]) => (

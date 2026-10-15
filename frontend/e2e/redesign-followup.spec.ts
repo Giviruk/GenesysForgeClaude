@@ -179,7 +179,10 @@ for (const language of ['ru', 'en']) {
       await expect(page.locator('.range-rings')).toHaveCSS('border-top-width', '0px')
       const board = await rect(page.locator('.range-rings'))
       expect(Math.abs(board.width - board.height)).toBeLessThanOrEqual(1)
-      if (width === 1240) expect(board.height).toBeGreaterThan(440)
+      if (width === 1240) {
+        expect(board.height).toBeGreaterThan(350)
+        expect((await rect(page.locator('.right-rail'))).width).toBeGreaterThanOrEqual(280)
+      }
       await noOverlap(page.locator('.quick-panel .form-row, .quick-panel .quick-main, .participant-control-card .pc-name, .init-row'))
       await expect(page.locator('.roll-entry')).toContainText('Элира')
       await expect(page.locator('.roll-entry-result')).toContainText(l('Успех', 'Success'))
@@ -198,6 +201,7 @@ for (const language of ['ru', 'en']) {
         await expect(removeWound).toBeEnabled()
         await removeWound.press('Space')
         await expect(pc.locator('.participant-vital').first()).toContainText(`${currentWounds} /`)
+        await expect(pc.getByRole('checkbox', { name: l('скрыт', 'hidden'), exact: true })).toBeEnabled()
         await pc.getByRole('checkbox', { name: l('скрыт', 'hidden'), exact: true }).press('Space')
         await expect(pc.getByRole('checkbox', { name: l('скрыт', 'hidden'), exact: true })).toBeChecked()
         await expect(page.getByRole('dialog')).toHaveCount(0)
@@ -245,9 +249,14 @@ for (const language of ['ru', 'en']) {
     await page.locator('.shop-toolbar select').selectOption(characterId)
     await page.locator('.shop-product-row').filter({ hasText: l(weaponName, weaponNameEn) }).first().click()
     await expect(page.locator('.shop-product-modal')).toBeVisible()
-    const material = await rect(page.locator('.shop-modal-options select'))
-    const quantity = await rect(page.locator('.shop-modal-options input[type=number]'))
-    expect(Math.abs(material.y - quantity.y)).toBeLessThanOrEqual(1)
+    await expect(page.locator('.shop-funds')).toBeVisible()
+    const offset = await page.locator('.shop-modal-options').evaluate(async element => {
+      await document.fonts.ready
+      const material = element.querySelector('select')!.getBoundingClientRect()
+      const quantity = element.querySelector('input[type=number]')!.getBoundingClientRect()
+      return Math.abs(material.y - quantity.y)
+    })
+    expect(offset).toBeLessThanOrEqual(1)
     expect((await rect(page.locator('.shop-funds'))).height).toBeLessThan(90)
     await page.goto('/reference')
     await expect(page.locator('.reference-page .section-switch>.tab').first()).toBeVisible()

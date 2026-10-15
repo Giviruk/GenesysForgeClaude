@@ -1,9 +1,10 @@
+import { Icon } from '../components/Icon'
 import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react'
 import { api, ApiError } from '../api/client'
 import type {
   CampaignDetail, CampaignListItem, CampaignMember, CharacterListItem, CharacterSheet, GameSession,
 } from '../api/types'
-import { PARTICIPANT_TYPE_LABELS, SLOT_TYPE_LABELS, SYSTEM_LABELS } from '../utils/labels'
+import { localizedName, PARTICIPANT_TYPE_LABELS, SLOT_TYPE_LABELS, SYSTEM_LABELS } from '../utils/labels'
 import { GameTableTab } from '../components/GameTableTab'
 import { EncountersTab } from '../components/EncountersTab'
 import { CampaignContentTab } from '../components/content/CampaignContentTab'
@@ -259,10 +260,10 @@ function CampaignDetailView({ campaignId, view, openEncounterId, openCharacterId
           <button onClick={onBack}>{t('← Кампании', '← Campaigns')}</button>
           <h2 className="inline-title display-title campaign-title">{c.name}</h2>
           <span className={c.isGm ? 'badge solid tone-orange' : 'badge solid tone-blue'}>{c.isGm ? t('Мастер', 'GM') : t('Игрок', 'Player')}</span>
-          {/* Состояние связи показываем, только когда оно влияет на ожидания (нет live-обновлений). */}
-          {hubStatus !== 'connected' && (
-            <span className="badge warn live-badge" title={t('Обновления в реальном времени недоступны — обновите вручную', 'Live updates are unavailable — refresh manually')}>
-              {hubStatus === 'connecting' ? t('подключение…', 'connecting…') : t('офлайн', 'offline')}
+          {/* Статус связи стоит отдельно от роли пользователя. */}
+          {(
+            <span className={`live-badge${hubStatus === 'connected' ? ' connected' : ''}`} title={hubStatus === 'connected' ? t('Связь установлена', 'Connected') : t('Обновления в реальном времени недоступны — обновите вручную', 'Live updates are unavailable — refresh manually')}>
+              {hubStatus === 'connected' ? t('онлайн', 'online') : hubStatus === 'connecting' ? t('подключение…', 'connecting…') : t('офлайн', 'offline')}
             </span>
           )}
         </div>
@@ -446,7 +447,7 @@ function CampaignMemberSheetPage({ campaignId, characterId, campaignName, onBack
           <span className={`badge ${sheet.system}`}>{SYSTEM_LABELS[sheet.system]}</span>
           <span className="badge">{t('Только просмотр', 'Read only')}</span>
         </div>
-        <div className="page-sub">{campaignName} · {sheet.archetype.name} · {sheet.career.name}</div>
+        <div className="page-sub">{campaignName} · {localizedName(sheet.archetype)} · {localizedName(sheet.career)}</div>
       </div>
       <div className="xp-block">
         XP: {sheet.totalXp} · <span className="muted">{t('доступно', 'available')} {sheet.availableXp}</span>
@@ -505,7 +506,7 @@ function CampaignOverview({ campaign, session, sessionLoaded, memberSheets, onVi
 
       <div className="campaign-dash-head">
         <div className="campaign-dash-title">
-          <h3>{campaign.description || t('Кампания без описания', 'Campaign without a description')}</h3>
+          {campaign.description && <h3>{campaign.description}</h3>}
           <div className="campaign-sub">
             {campaign.isGm && campaign.joinCode
               ? <>{t('Код:', 'Code:')} <code className="join-code compact">{campaign.joinCode}</code> · </>
@@ -657,28 +658,21 @@ function StoryPointsBlock({ session, isGm, onSessionRun }: {
     <div className="campaign-dash-block">
       <h4>{t('Сюжетные очки', 'Story points')}</h4>
       <div className="campaign-story-head">
-        <div className="campaign-story-count"><b>{player}</b>{t('игроки', 'players')}</div>
-        <div className="campaign-pips">
-          {Array.from({ length: total }, (_, i) => (
-            <span key={i} className={i < player ? 'campaign-pip player' : i < player + gm ? 'campaign-pip gm' : 'campaign-pip empty'} />
-          ))}
-        </div>
-        <div className="campaign-story-count right"><b>{gm}</b>{t('мастер', 'GM')}</div>
+        <div className="campaign-story-count"><span>{t('игроки', 'players')}</span><div className="campaign-story-stepper">
+          {session && isGm && <button aria-label={t('− Игроки', '− Players')} disabled={player <= 0} onClick={() => set({ playerStoryPoints: player - 1 })}>−</button>}
+          <b>{player}</b>{session && isGm && <button aria-label={t('+ Игроки', '+ Players')} onClick={() => set({ playerStoryPoints: player + 1 })}><Icon name="plus" className="button-icon" /></button>}
+        </div></div>
+        <div className="campaign-story-transfers">{session && isGm && <>
+          <button className="to-gm" aria-label={t('⇄ Мастеру', '⇄ To GM')} title={t('Игроки → мастер', 'Players → GM')} disabled={player <= 0} onClick={() => set({ playerStoryPoints: player - 1, gmStoryPoints: gm + 1 })}><Icon name="arrow-left" className="button-icon" /></button>
+          <button aria-label={t('⇄ Игрокам', '⇄ To players')} title={t('Мастер → игроки', 'GM → players')} disabled={gm <= 0} onClick={() => set({ gmStoryPoints: gm - 1, playerStoryPoints: player + 1 })}><Icon name="arrow-left" className="button-icon" /></button>
+        </>}</div>
+        <div className="campaign-story-count right"><span>{t('мастер', 'GM')}</span><div className="campaign-story-stepper">
+          {session && isGm && <button aria-label={t('− Мастер', '− GM')} disabled={gm <= 0} onClick={() => set({ gmStoryPoints: gm - 1 })}>−</button>}
+          <b>{gm}</b>{session && isGm && <button aria-label={t('+ Мастер', '+ GM')} onClick={() => set({ gmStoryPoints: gm + 1 })}><Icon name="plus" className="button-icon" /></button>}
+        </div></div>
       </div>
-      {session && isGm ? (
-        <div className="campaign-story-actions">
-          <button className="small" onClick={() => set({ playerStoryPoints: player + 1 })}>{t('+ Игроки', '+ Players')}</button>
-          <button className="small" onClick={() => set({ gmStoryPoints: gm + 1 })}>{t('+ Мастер', '+ GM')}</button>
-          <button className="small" disabled={player <= 0} onClick={() => set({ playerStoryPoints: player - 1 })}>{t('− Игроки', '− Players')}</button>
-          <button className="small" disabled={gm <= 0} onClick={() => set({ gmStoryPoints: gm - 1 })}>{t('− Мастер', '− GM')}</button>
-          <button className="small" disabled={player <= 0} title={t('Игроки → мастер', 'Players → GM')}
-            onClick={() => set({ playerStoryPoints: player - 1, gmStoryPoints: gm + 1 })}>{t('⇄ Мастеру', '⇄ To GM')}</button>
-          <button className="small" disabled={gm <= 0} title={t('Мастер → игроки', 'GM → players')}
-            onClick={() => set({ gmStoryPoints: gm - 1, playerStoryPoints: player + 1 })}>{t('⇄ Игрокам', '⇄ To players')}</button>
-        </div>
-      ) : (
-        <p className="muted">{t('Сюжетные очки появятся после запуска сцены.', 'Story points appear once a scene is running.')}</p>
-      )}
+      <div className="campaign-pips" aria-hidden="true">{Array.from({ length: total }, (_, i) => <span key={i} className={i < player ? 'campaign-pip player' : i < player + gm ? 'campaign-pip gm' : 'campaign-pip empty'} />)}</div>
+      {!session && <p className="muted">{t('Сюжетные очки появятся после запуска сцены.', 'Story points appear once a scene is running.')}</p>}
     </div>
   )
 }
@@ -727,17 +721,18 @@ function CampaignNotesSection({ campaign, onRun, variant = 'panel' }: {
   const [title, setTitle] = useState('')
   const [body, setBody] = useState('')
   const [isPrivate, setIsPrivate] = useState(true)
+  const [adding, setAdding] = useState(false)
 
   const fmt = (iso: string) => new Date(iso).toLocaleString(lang === 'ru' ? 'ru-RU' : 'en-US', { dateStyle: 'short', timeStyle: 'short' })
 
   return (
     <section className={variant === 'dashboard' ? 'campaign-dash-block campaign-notes-dash' : 'panel'}>
-      <h3>{t('Заметки кампании', 'Campaign notes')}</h3>
+      <div className="panel-head-row"><h3>{t('Заметки кампании', 'Campaign notes')}</h3>{campaign.isGm && <button className="link-btn" aria-expanded={adding} onClick={() => setAdding(value => !value)}><Icon name="plus" className="button-icon" />{adding ? t('Отмена', 'Cancel') : t('Заметка', 'Note')}</button>}</div>
       {!campaign.isGm && <p className="hint">{t('Здесь видны только общие заметки мастера.', 'Only the GM’s shared notes are visible here.')}</p>}
-      {campaign.isGm && (
+      {campaign.isGm && adding && (
         <form className="custom-form" onSubmit={e => {
           e.preventDefault()
-          void onRun(async () => { await api.createCampaignNote(campaign.id, { title, body, isPrivate }); setTitle(''); setBody('') })
+          void onRun(async () => { await api.createCampaignNote(campaign.id, { title, body, isPrivate }); setTitle(''); setBody(''); setAdding(false) })
         }}>
           <label>{t('Заголовок', 'Title')}<input value={title} onChange={e => setTitle(e.target.value)} required /></label>
           <label>{t('Текст', 'Text')}<textarea value={body} onChange={e => setBody(e.target.value)} rows={3} /></label>

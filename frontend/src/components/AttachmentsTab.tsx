@@ -115,14 +115,14 @@ export function AttachmentsTab({ sheet, reference, onError, refresh }: Props) {
   }
   return <div className="attachments-layout sheet-two-column">
     <section>
-      <h3 className="sheet-section-title">{t('Предметы со слотами', 'Items with slots')}<small>
+      <h3 className="sheet-section-title">{t('Предметы со слотами', 'Items with slots')}<small className="icon-text"><Icon name="info-circle" className="button-icon" />
         <InfoTip label={t('Как проходит установка', 'How installation works')} title={t('Правила установки', 'Installation rules')}>
           <span className="prop-tooltip-paragraph">{INSTALL_HINT}</span>{sheet.system === 'realmsOfTerrinoth' && <span className="prop-tooltip-paragraph">{ENCHANTMENT_HINT}</span>}
         </InfoTip></small></h3>
       {hosts.length === 0 && <p className="muted">{t('Нет предметов со слотами улучшений.', 'No items with attachment slots.')}</p>}
       {hosts.map(i => <article key={i.id} className={`attachment-host-card ${toneClass('item', i.kind)}${host?.id === i.id ? ' selected' : ''}`}>
         <button className="attachment-host-select" aria-pressed={host?.id === i.id} onClick={() => { setHostId(i.id); setReason('') }}>
-          <Icon name={i.kind === 'weapon' ? 'sword' : 'shield'} /><span><strong>{localizedName(i)}</strong><small>{ITEM_KIND_LABELS[i.kind]}</small></span>
+          <Icon name={i.kind === 'weapon' ? 'sword' : i.kind === 'armor' ? 'shield' : 'package'} /><span><strong>{localizedName(i)}</strong><small>{ITEM_KIND_LABELS[i.kind]}</small>{host?.id === i.id && <span className="badge tone-orange">{t('выбран', 'selected')}</span>}</span>
           <span className="attachment-slots" aria-label={t(`Слоты ${i.usedHardPoints}/${i.hardPoints ?? 0}`, `Slots ${i.usedHardPoints}/${i.hardPoints ?? 0}`)}>
             {Array.from({ length: i.hardPoints ?? 0 }, (_, n) => <i key={n} className={n < i.usedHardPoints ? 'filled' : ''} />)}<small>{i.usedHardPoints}/{i.hardPoints ?? 0}</small></span>
         </button>
@@ -136,7 +136,7 @@ export function AttachmentsTab({ sheet, reference, onError, refresh }: Props) {
           {host?.id === i.id && t(' — установите из запаса', ' — install from reserve')}</div>}
       </article>)}
     </section>
-    <aside className="sheet-sticky"><SectionCard title={t('Улучшения', 'Attachments')} icon="adjustments">
+    <aside className="sheet-sticky"><SectionCard className="attachments-catalog-panel" title={t('Улучшения', 'Attachments')} icon="adjustments" actions={<span className="sheet-wallet"><Icon name="coin" />{sheet.money}</span>}>
       <div className="sheet-segment" role="group" aria-label={t('Запас и лавка', 'Reserve and shop')}>
         <button aria-pressed={mode === 'reserve'} onClick={() => setMode('reserve')}>{t('Запас', 'Reserve')} {spare.length}</button>
         <button aria-pressed={mode === 'shop'} onClick={() => setMode('shop')}>{t('Лавка', 'Shop')} {allDefs.length}</button>

@@ -78,7 +78,7 @@ describe('HeroicIdentitySection (ROT-HA-01)', () => {
     }
     render(<HeroicIdentitySection sheet={sheetWith(complete)} run={run} />)
 
-    const summary = screen.getByText(/Покровительство/, { selector: '.hint' })
+    const summary = screen.getByText(/Покровительство/, { selector: '.heroic-identity-summary dd' })
     expect(summary.textContent).toContain('Благословение либо проклятие')
     expect(summary.textContent).toContain('0, 4, 7')
     expect(summary.textContent).toContain('0 — бросить ещё дважды')

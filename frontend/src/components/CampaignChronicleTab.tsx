@@ -1,3 +1,4 @@
+import { Icon } from './Icon'
 import { useCallback, useEffect, useId, useMemo, useRef, useState, type ChangeEvent, type KeyboardEvent } from 'react'
 import { api } from '../api/client'
 import type { CampaignChronicleChapter, CampaignChronicleRevision, CampaignMember, NpcListItem } from '../api/types'
@@ -334,11 +335,11 @@ export function CampaignChronicleTab({ campaignId, members, refreshSignal, onOpe
           <button onClick={() => insert('\n## Новая сцена\n', 'Новая сцена')}>H2 {t('Раздел', 'Section')}</button>
           <button onClick={() => insert('\n\nНовый абзац\n\n', 'Новый абзац')}>¶ {t('Абзац', 'Paragraph')}</button>
           <button onClick={() => insert('\n- Первый пункт\n- Второй пункт\n', 'Первый пункт')}>• {t('Список', 'List')}</button>
-          <button onClick={insertWebLink}>🔗 {t('Ссылка', 'Link')}</button>
+          <button onClick={insertWebLink}><Icon name="link" className="button-icon" /> {t('Ссылка', 'Link')}</button>
           <input ref={imageInput} type="file" accept="image/jpeg,image/png,image/webp" hidden
             data-testid="chronicle-image-file" onChange={event => void uploadImage(event)} />
           <button onClick={chooseImage} disabled={uploadingImage}>
-            🖼 {uploadingImage ? t('Загрузка…', 'Uploading…') : t('Изображение', 'Image')}
+            <Icon name="photo-plus" className="button-icon" /> {uploadingImage ? t('Загрузка…', 'Uploading…') : t('Изображение', 'Image')}
           </button>
           <span className="chronicle-picker"><select aria-label={t('Персонаж для ссылки', 'Character link')}
             value={characterTarget} onChange={event => setCharacterTarget(event.target.value)}>

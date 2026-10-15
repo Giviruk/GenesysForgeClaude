@@ -248,7 +248,7 @@ describe('Инвентарь: качество изготовления (ROT-WPN
     render(<InventoryTab sheet={sheet} reference={reference} onError={() => {}}
       refresh={() => Promise.resolve()} />)
 
-    fireEvent.change(screen.getByRole('combobox'), { target: { value: 'dwarven' } })
+    fireEvent.change(screen.getByRole('combobox', { name: 'Качество изготовления' }), { target: { value: 'dwarven' } })
 
     // Цена и редкость меняются уже в строке каталога, а не только внутри раскрытой покупки.
     expect(document.querySelector('.shop-row')?.textContent).toContain('цена 5000 → 10000')
@@ -289,7 +289,7 @@ describe('Инвентарь: качество изготовления (ROT-WPN
       refresh={() => Promise.resolve()} />)
 
     // Выбор работы доступен сразу: бесплатная выдача не должна требовать открытия магазина.
-    fireEvent.change(screen.getByRole('combobox'), { target: { value: 'elven' } })
+    fireEvent.change(screen.getByRole('combobox', { name: 'Качество изготовления' }), { target: { value: 'elven' } })
     fireEvent.click(screen.getByRole('button', { name: '+ Добавить' }))
 
     await waitFor(() => expect(addItemMock).toHaveBeenCalledWith(

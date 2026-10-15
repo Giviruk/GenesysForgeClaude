@@ -1,11 +1,13 @@
+import { localizedAuditSummary, referenceNameIndex } from '../utils/designPresentation'
 import { toneClass } from '../utils/tones'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { api } from '../api/client'
-import type { CharacterAuditAction, CharacterAuditEntry } from '../api/types'
+import type { CharacterAuditAction, CharacterAuditEntry, Reference } from '../api/types'
 import { lang, t } from '../i18n'
 
 interface Props {
   characterId: string
+  reference?: Reference
   onError: (message: string) => void
   /** Перечитать лист (после выдачи XP меняется totalXp в шапке). */
   refresh: () => Promise<void>
@@ -32,6 +34,23 @@ const ACTION_LABELS: Record<CharacterAuditAction, string> = t({
   activeArmorChanged: 'Активная броня',
   creationCompleted: 'Создание',
   manualEdit: 'Правка',
+  abilityActivated: 'Активация',
+  characterCreated: 'Создание персонажа',
+  itemThrownChanged: 'Метательное оружие',
+  attachmentBought: 'Улучшение +',
+  attachmentInstalled: 'Установка',
+  attachmentDetached: 'Снятие улучшения',
+  itemDamageStateChanged: 'Повреждение',
+  itemRepaired: 'Ремонт',
+  implementConfigured: 'Магический инструмент',
+  shardConfigured: 'Настройка руны',
+  craftingStarted: 'Начало ремесла',
+  craftingResolved: 'Результат ремесла',
+  serviceBought: 'Услуга',
+  mountBought: 'Скакун +',
+  mountSold: 'Продажа скакуна',
+  mountRemoved: 'Скакун −',
+  cargoMoved: 'Перенос груза',
 }, {
   xpAwarded: 'XP award',
   characteristicBought: 'Characteristic',
@@ -51,9 +70,26 @@ const ACTION_LABELS: Record<CharacterAuditAction, string> = t({
   activeArmorChanged: 'Active armor',
   creationCompleted: 'Creation',
   manualEdit: 'Edit',
+  abilityActivated: 'Activation',
+  characterCreated: 'Character creation',
+  itemThrownChanged: 'Thrown weapon',
+  attachmentBought: 'Attachment +',
+  attachmentInstalled: 'Installation',
+  attachmentDetached: 'Attachment removal',
+  itemDamageStateChanged: 'Damage',
+  itemRepaired: 'Repair',
+  implementConfigured: 'Magic implement',
+  shardConfigured: 'Rune configuration',
+  craftingStarted: 'Crafting started',
+  craftingResolved: 'Crafting result',
+  serviceBought: 'Service',
+  mountBought: 'Mount +',
+  mountSold: 'Mount sale',
+  mountRemoved: 'Mount −',
+  cargoMoved: 'Cargo transfer',
 })
 
-export function HistoryTab({ characterId, onError, refresh, readOnly = false, loadEntries }: Props) {
+export function HistoryTab({ characterId, reference, onError, refresh, readOnly = false, loadEntries }: Props) {
   const [entries, setEntries] = useState<CharacterAuditEntry[] | null>(null)
   const [amount, setAmount] = useState('')
   const [note, setNote] = useState('')
@@ -94,12 +130,17 @@ export function HistoryTab({ characterId, onError, refresh, readOnly = false, lo
     }
   }
 
+  const names = useMemo(() => referenceNameIndex(reference ? [
+    ...(reference.items ?? []), ...(reference.talents ?? []), ...(reference.attachments ?? []),
+    ...(reference.skills ?? []), ...(reference.heroicAbilities ?? []), ...(reference.mounts ?? []),
+  ] : []), [reference])
   const showUndo = !readOnly && entries?.some(entry => entry.canUndo) === true
 
   return (
     <div className="history-tab">
       {!readOnly && <section className="panel award-xp">
         <h3>{t('Выдать XP', 'Award XP')}</h3>
+        {entries?.[0] && <div className="history-xp-summary"><span>{t('получено', 'received')} <b>{entries[0].totalXpAfter}</b></span><span>{t('потрачено', 'spent')} <b>{entries[0].spentXpAfter}</b></span><span>{t('доступно', 'available')} <b>{entries[0].totalXpAfter - entries[0].spentXpAfter}</b></span></div>}
         <div className="form-row">
           <input className="ranks-input" type="number" placeholder="±XP" value={amount}
             onChange={e => setAmount(e.target.value)} title={t('Сколько XP выдать (можно отрицательное для коррекции)', 'How much XP to award (negative values allowed for corrections)')} />
@@ -107,7 +148,7 @@ export function HistoryTab({ characterId, onError, refresh, readOnly = false, lo
             onChange={e => setNote(e.target.value)} />
           <button className="primary small" onClick={() => void award()}
             disabled={!Number.isFinite(Number(amount)) || Math.trunc(Number(amount)) === 0}>
-            {t('Выдать', 'Award')}
+            {t('Выдать XP', 'Award XP')}
           </button>
         </div>
       </section>}
@@ -132,9 +173,9 @@ export function HistoryTab({ characterId, onError, refresh, readOnly = false, lo
               <tbody>
                 {entries.map(e => (
                   <tr key={e.id}>
-                    <td className="muted small-text nowrap">{new Date(e.createdAt).toLocaleString(lang === 'ru' ? 'ru-RU' : 'en-US')}</td>
-                    <td><span className={`badge ${toneClass('history', e.action)}`}>{ACTION_LABELS[e.action]}</span></td>
-                    <td>{e.summary}</td>
+                    <td className="muted small-text nowrap">{new Date(e.createdAt).toLocaleString(lang === 'ru' ? 'ru-RU' : 'en-US', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</td>
+                    <td><span className={`badge ${toneClass('history', e.action)}`}>{ACTION_LABELS[e.action] ?? t('Действие', 'Action')}</span></td>
+                    <td>{localizedAuditSummary(e.summary, names)}</td>
                     <td className="right">
                       {e.xpDelta != null && e.xpDelta !== 0 && (
                         <span className={e.xpDelta > 0 ? 'xp-pos' : 'xp-neg'}>
@@ -146,7 +187,7 @@ export function HistoryTab({ characterId, onError, refresh, readOnly = false, lo
                       {e.totalXpAfter - e.spentXpAfter} / {e.totalXpAfter}
                     </td>
                     {showUndo && <td>
-                      {e.canUndo && <button className="small danger" onClick={() => void undo(e)}
+                      {e.canUndo && <button className="link-btn audit-undo" onClick={() => void undo(e)}
                         title={t('Вернуть XP за эту покупку', 'Return XP for this purchase')}>
                         {t('Отменить', 'Undo')}
                       </button>}

@@ -1546,6 +1546,7 @@ export interface EncounterParticipant {
   id: string
   characterId: string | null
   npcId: string | null
+  npcKind?: NpcKind | null
   displayName: string
   participantType: ParticipantType
   initiativeSide: InitiativeSlotType
@@ -1842,6 +1843,11 @@ export type CharacterAuditAction =
   | 'heroicAbilityChanged' | 'creationCompleted' | 'manualEdit'
   | 'heroicIdentitySet' | 'heroicOriginRolled'
   | 'heroicParameterSet' | 'signatureWeaponReplaced' | 'activeArmorChanged'
+  | 'abilityActivated' | 'characterCreated' | 'itemThrownChanged'
+  | 'attachmentBought' | 'attachmentInstalled' | 'attachmentDetached'
+  | 'itemDamageStateChanged' | 'itemRepaired' | 'implementConfigured' | 'shardConfigured'
+  | 'craftingStarted' | 'craftingResolved' | 'serviceBought'
+  | 'mountBought' | 'mountSold' | 'mountRemoved' | 'cargoMoved'
 
 export interface CharacterAuditEntry {
   id: string

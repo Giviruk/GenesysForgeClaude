@@ -44,7 +44,18 @@ public static class EncounterMapper
         e.Id, e.Name, e.System, e.Type, e.ThreatLevel, e.IsVisibleToPlayers,
         e.Participants.Count, e.Tags, e.CreatedAt, e.UpdatedAt);
 
-    public static EncounterDetailDto ToDetail(Encounter e, bool isGm)
+    public static async Task<EncounterDetailDto> ToDetailAsync(
+        IAppDbContext db, Encounter e, bool isGm, CancellationToken ct)
+    {
+        var npcIds = e.Participants.Where(p => isGm || !p.StartsHidden)
+            .Where(p => p.NpcId.HasValue).Select(p => p.NpcId!.Value).Distinct().ToArray();
+        var kinds = npcIds.Length == 0 ? new Dictionary<Guid, NpcKind>()
+            : await db.Npcs.AsNoTracking().Where(n => npcIds.Contains(n.Id))
+                .Select(n => new { n.Id, n.Kind }).ToDictionaryAsync(n => n.Id, n => n.Kind, ct);
+        return ToDetail(e, isGm, kinds);
+    }
+
+    public static EncounterDetailDto ToDetail(Encounter e, bool isGm, IReadOnlyDictionary<Guid, NpcKind>? npcKinds = null)
     {
         // Игрок видит только публичных участников и публичные поля (§7).
         var participants = e.Participants
@@ -53,7 +64,8 @@ public static class EncounterMapper
             .Select(p => new EncounterParticipantDto(
                 p.Id, p.CharacterId, p.NpcId, p.DisplayName, p.ParticipantType, p.InitiativeSide,
                 p.Quantity, isGm ? p.Notes : "", p.StartsHidden, p.StartsDefeated,
-                p.StartingWoundsOverride, p.StartingStrainOverride, p.Order))
+                p.StartingWoundsOverride, p.StartingStrainOverride, p.Order,
+                p.NpcId is Guid npcId && npcKinds is not null && npcKinds.TryGetValue(npcId, out var kind) ? kind : null))
             .ToList();
 
         return new EncounterDetailDto(

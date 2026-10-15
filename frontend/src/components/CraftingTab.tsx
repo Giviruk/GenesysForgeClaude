@@ -283,7 +283,7 @@ export function CraftingTab({ sheet, reference, onError, refresh }: Props) {
               className={`sheet-choice-card${baseItemId === i.id ? ' selected' : ''}`} onClick={() => setBaseItemId(i.id)}><strong>{localizedName(i)}</strong><small>{ITEM_KIND_LABELS[i.kind]} · {t('из инвентаря', 'from inventory')}</small></button>)
               : [...candidates, ...unavailableCandidates].filter(i => localizedName(i).toLowerCase().includes(search.toLowerCase())).map(i => <button key={i.id} aria-pressed={targetId === i.id}
                 disabled={unavailableCandidates.includes(i)} title={unavailableCandidates.includes(i) ? t('Услуги не создаются ремеслом', 'Services cannot be crafted') : undefined}
-                className={`sheet-choice-card${targetId === i.id ? ' selected' : ''}`} onClick={() => setTargetId(i.id)}><strong>{localizedName(i)}</strong><small>{ITEM_KIND_LABELS[i.kind]} · {t(`${i.price} зол. · редк. ${i.rarity}`, `${i.price} coins · rarity ${i.rarity}`)}</small></button>)}
+                className={`sheet-choice-card${targetId === i.id ? ' selected' : ''}`} onClick={() => setTargetId(i.id)}><strong>{localizedName(i)}</strong><small>{ITEM_KIND_LABELS[i.kind]} · {t(`${i.price} зол. · редк.\u00a0${i.rarity}`, `${i.price} coins · rarity\u00a0${i.rarity}`)}</small></button>)}
           </div>
           {kind === 'enchantment' && <>
             <label>{t('Согласованная способность', 'Agreed ability')}<textarea value={intent} maxLength={2000} rows={2} placeholder={t('что именно должно получиться', 'what exactly the enchantment does')} onChange={e => setIntent(e.target.value)} /></label>

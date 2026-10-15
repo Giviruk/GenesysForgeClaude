@@ -1,3 +1,4 @@
+import { Icon } from './Icon'
 import { useState } from 'react'
 import {
   DIE_KINDS, SYMBOL_ORDER, applyDifficultyUpgrades, emptyPool, poolSize, rollPool, summarize,
@@ -93,7 +94,7 @@ export function DiceRoller({
             <GenesysSymbol title={false} kind={kind} className="dr-die-glyph" />
             <span className="dr-die-count">{pool[kind]}</span>
             <span className="dr-die-btns">
-              <button type="button" className="tiny" onClick={() => bump(kind, 1)} aria-label={`+${kind}`}>+</button>
+              <button type="button" className="tiny" onClick={() => bump(kind, 1)} aria-label={`+${kind}`}><Icon name="plus" className="button-icon" /><span className="visually-hidden">+</span></button>
               <button type="button" className="tiny" onClick={() => bump(kind, -1)} aria-label={`-${kind}`}>−</button>
             </span>
           </div>
@@ -108,7 +109,7 @@ export function DiceRoller({
         <span className="dr-die-count">{upgrades}</span>
         <span className="dr-die-btns">
           <button type="button" className="tiny" onClick={() => bumpUpgrades(1)}
-            aria-label={t('+усиление сложности', '+difficulty upgrade')}>+</button>
+            aria-label={t('+усиление сложности', '+difficulty upgrade')}><Icon name="plus" className="button-icon" /><span className="visually-hidden">+</span></button>
           <button type="button" className="tiny" onClick={() => bumpUpgrades(-1)}
             aria-label={t('−усиление сложности', '−difficulty upgrade')}>−</button>
         </span>
@@ -124,7 +125,7 @@ export function DiceRoller({
 
       <div className="dr-actions">
         <button type="button" className="primary" onClick={roll} disabled={total === 0}>
-          {t('🎲 Бросить', '🎲 Roll')}{total > 0 ? ` (${total})` : ''}
+          <Icon name="dice" className="button-icon" />{t('Бросить', 'Roll')}{total > 0 ? ` (${total})` : ''}
         </button>
         <button type="button" className="small" onClick={reset}>{t('Сброс', 'Reset')}</button>
         {canSecret && (

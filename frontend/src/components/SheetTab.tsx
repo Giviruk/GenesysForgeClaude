@@ -160,7 +160,7 @@ export function SheetTab({ sheet, onError, refresh, updateBaseOptimistically, re
           <div title={defenseTitle(d)}><Icon name="shield" /><b>{d.meleeDefense} / {d.rangedDefense}</b><small>{t('Защита ближ. / дальн.', 'Defense melee / ranged')}</small></div>
           <div className={d.encumbered ? 'rd-warning' : ''} title={[statTitle(d.encumbranceThresholdBreakdown, d.encumbranceThreshold), encumbranceWarning(d)].filter(Boolean).join('\n')}>
             <Icon name="package" /><b>{d.encumbranceLoad} / {d.encumbranceThreshold}</b><small>{t('Переносимый вес', 'Encumbrance')}</small>
-            <span className="rd-bar"><i style={{ width: `${Math.min(100, d.encumbranceThreshold > 0 ? d.encumbranceLoad / d.encumbranceThreshold * 100 : 100)}%` }} /></span>
+            <span className={`rd-bar${d.encumbered ? ' overloaded' : d.encumbranceLoad >= d.encumbranceThreshold ? ' near' : ''}`}><i style={{ width: `${Math.min(100, d.encumbranceThreshold > 0 ? d.encumbranceLoad / d.encumbranceThreshold * 100 : 100)}%` }} /></span>
           </div>
         </div>
         {d.encumbered && <p className="rd-encumbrance-warning">{encumbranceWarning(d)}</p>}

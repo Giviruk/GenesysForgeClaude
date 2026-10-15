@@ -15,7 +15,8 @@ public record EncounterParticipantDto(
     bool StartsDefeated,
     int? StartingWoundsOverride,
     int? StartingStrainOverride,
-    int Order);
+    int Order,
+    NpcKind? NpcKind = null);
 
 public record EncounterListItemDto(
     Guid Id,

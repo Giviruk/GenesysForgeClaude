@@ -347,7 +347,7 @@ describe('GameTableTab — статблок и броски NPC', () => {
     expect(within(dialog).getByText('Небольшой опасный противник.')).toBeTruthy()
     expect(within(dialog).getByText('Держатся группой.')).toBeTruthy()
 
-    fireEvent.click(within(dialog).getByRole('button', { name: '🎲 Бросить' }))
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Бросить' }))
     const request = openRollerMock.mock.calls[0][0] as Extract<DiceRollerRequest, { kind: 'roll' }>
     expect(request.initialPool).toEqual({ ability: 1, proficiency: 2, boost: 2, setback: 1 })
     expect(request.label).toBe('Ближний бой')
@@ -377,7 +377,7 @@ describe('GameTableTab — статблок и броски NPC', () => {
     expect(screen.getAllByText('Гоблины ×2/3').length).toBeGreaterThanOrEqual(2)
 
     openRollerMock.mockReset()
-    fireEvent.click(within(dialog).getByRole('button', { name: '🎲 Бросить' }))
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Бросить' }))
     expect(openRollerMock).toHaveBeenCalledWith(expect.objectContaining({
       kind: 'roll', initialPool: { ability: 2, proficiency: 1, boost: 2, setback: 1 },
     }))
@@ -411,7 +411,7 @@ describe('GameTableTab — статблок и броски NPC', () => {
     fireEvent.click(await screen.findByRole('button', { name: 'Открыть статблок NPC Гоблины' }))
     const dialog = await screen.findByRole('dialog', { name: 'Статблок NPC: Гоблины' })
 
-    fireEvent.click(await within(dialog).findByRole('button', { name: '🎲 Атаковать' }))
+    fireEvent.click(await within(dialog).findByRole('button', { name: 'Атаковать' }))
     expect(openRollerMock).toHaveBeenCalledWith(expect.objectContaining({
       kind: 'combat', title: 'Клинок', basePool: { ability: 1, proficiency: 2, boost: 2, setback: 1 }, canSecret: true,
     }))
@@ -468,6 +468,32 @@ describe('GameTableTab — статблок и броски NPC', () => {
     await waitFor(() => expect(updateParticipantMock).toHaveBeenCalledWith(
       'campaign-1', 'participant-pc', { setbackDice: 1 },
     ))
+  })
+
+  it('disables participant flags until the preceding mutation is saved, then accepts the next flag', async () => {
+    const initial = { ...session, participants: [playerParticipant] }
+    const wounded = applyParticipantPatch(initial, 'participant-pc', { woundsCurrent: 2 })
+    let finishWound!: (value: GameSession) => void
+    sessionMock.mockResolvedValue(initial)
+    updateParticipantMock
+      .mockImplementationOnce(() => new Promise<GameSession>(resolve => { finishWound = resolve }))
+      .mockResolvedValueOnce(applyParticipantPatch(wounded, 'participant-pc', { isHiddenFromPlayers: true }))
+    render(<GameTableTab campaignId="campaign-1" isGm members={[ownMember]} />)
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Добавить рану Элира' }))
+    const hidden = screen.getByRole('checkbox', { name: 'скрыт' }) as HTMLInputElement
+    const defeated = screen.getByRole('checkbox', { name: 'повержен' }) as HTMLInputElement
+    expect(hidden.disabled).toBe(true)
+    expect(defeated.disabled).toBe(true)
+
+    await act(async () => { finishWound(wounded) })
+    await waitFor(() => expect(hidden.disabled).toBe(false))
+    expect(defeated.disabled).toBe(false)
+    fireEvent.click(hidden)
+    await waitFor(() => expect(updateParticipantMock).toHaveBeenLastCalledWith(
+      'campaign-1', 'participant-pc', { isHiddenFromPlayers: true },
+    ))
+    await waitFor(() => expect(hidden.checked).toBe(true))
   })
 
   it('позволяет мастеру удалить NPC и персонажа прямо с их карточек', async () => {

@@ -51,8 +51,8 @@ export function NotesTab({ characterId, onError }: { characterId: string; onErro
     {notes?.length === 0 && <p className="muted">{t('Заметок пока нет', 'No notes yet')}</p>}
     <div className="notes-list">{notes?.map(n => <div key={n.id} className="note-card tone-orange">
       {editing?.id === n.id ? editor : <><div className="note-card-head"><strong>{n.title}</strong><span className="note-actions">
-        <button className="small" disabled={busy} onClick={() => startEdit(n)}>{t('Изменить', 'Edit')}</button>
-        <button className="small" disabled={busy} onClick={() => setDeleting(n.id)}>{t('Удалить', 'Delete')}</button></span></div>
+        <button className="rd-icon-button" aria-label={t('Изменить', 'Edit')} disabled={busy} onClick={() => startEdit(n)}><Icon name="edit" /></button>
+        <button className="rd-icon-button" aria-label={t('Удалить', 'Delete')} disabled={busy} onClick={() => setDeleting(n.id)}><Icon name="trash" /></button></span></div>
         {n.body && <p className="note-body">{n.body}</p>}<div className="muted small-text">{t('обновлено', 'updated')} {fmt(n.updatedAt)}</div></>}
       {deleting === n.id && <div className="form-actions note-delete-confirm"><span>{t('Удалить заметку?', 'Delete note?')}</span>
         <button className="danger small" disabled={busy} onClick={() => void remove(n)}>{t('Удалить', 'Delete')}</button><button className="small" disabled={busy} onClick={() => setDeleting(null)}>{t('Отмена', 'Cancel')}</button></div>}

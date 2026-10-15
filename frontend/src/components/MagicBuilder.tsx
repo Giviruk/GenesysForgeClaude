@@ -1,3 +1,4 @@
+import { CompactDescription } from './CompactDescription'
 import { magicActions } from '../utils/magicActions'
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { api } from '../api/client'
@@ -414,7 +415,7 @@ export function MagicBuilder({
           const available = baseEffects.some(e => e.nameEn === a.nameEn)
           return <button key={a.nameEn} className={`sheet-choice-card${a.nameEn === activeEffectCode ? ' selected' : ''}`} aria-pressed={a.nameEn === activeEffectCode} disabled={!available}
             title={available ? localizedDescription(a) : t(`Направление «${magicSkillLabel(activeSkill)}» этого не умеет`, `The ${magicSkillLabel(activeSkill)} school cannot do this`)} onClick={() => setEffectCode(a.nameEn)}>
-            <strong>{t(a.nameRu, a.nameEn)}{a.isOptional && ' · EPG'}</strong><small className={available ? '' : 'danger-text'}>{available ? `${difficultyLabel(a.difficultyIncrease)} (${a.difficultyIncrease})` : t('недоступно', 'unavailable')}</small>
+            <strong>{t(a.nameRu, a.nameEn)}{a.isOptional && ' · EPG'}</strong><small className={available ? '' : 'danger-text'}>{available ? <><span className="inline-difficulty" aria-hidden="true">{Array.from({ length: a.difficultyIncrease }, (_, i) => <GenesysSymbol key={i} kind="difficulty" />)}</span> {difficultyLabel(a.difficultyIncrease)} ({a.difficultyIncrease})</> : t('недоступно', 'unavailable')}</small>
           </button>
         })}</div>
         <h4>{t('Инструмент в руках', 'Implement in hand')}</h4>
@@ -586,12 +587,13 @@ export function MagicBuilder({
           return <div key={a.id} className={`magic-effect-row${blocked ? ' blocked' : ''}`}>
             <CheckRow checked={count > 0} disabled={blocked} label={t(a.nameRu, a.nameEn)} onChange={on => { if (on) add(a); else { setCounts(prev => ({ ...prev, [a.id]: 0 })) } }}
               meta={<><span className="accent-text">{ratingLabel(a) && <PropertyText text={ratingLabel(a)} qualities={qualities} />}{free && t(' · бесплатно', ' · free')}{a.repeatable && t(' · повторяемый', ' · repeatable')}{mandatory && t(' · обязательно', ' · mandatory')}</span>
-                {reason ? <span className="warn-text icon-text"><Icon name="lock" className="button-icon" />{reason}</span> : <PropertyText text={localizedDescription(a)} qualities={qualities} />}
+                {reason ? <span className="warn-text icon-text"><Icon name="lock" className="button-icon" />{reason}</span> : null}
                 {free && <span>{talentFreeEffectCodes.includes(a.nameEn) ? t('Талант делает этот эффект бесплатным.', 'A talent makes this effect free.') : t('Инструмент делает этот эффект бесплатным.', 'The implement makes this effect free.')}</span>}
-                <BookReference source={a.source} /></>}
-              suffix={<div className="magic-effect-cost">{free ? <s>{a.difficulty}</s> : <strong>{a.difficulty}</strong>}
+                </>}
+              suffix={<div className="magic-effect-cost">{free ? <s>{a.difficulty}</s> : <strong><span className="visually-hidden">{a.difficulty}</span><span className="inline-difficulty" aria-hidden="true">{Array.from({ length: a.difficultyIncrease }, (_, i) => <GenesysSymbol key={i} kind="difficulty" />)}</span></strong>}
                 {a.repeatable && count > 0 && <div className="form-actions"><button aria-label={t(`Убрать эффект «${a.nameRu}»`, `Remove effect “${a.nameEn}”`)} disabled={mandatory} onClick={() => remove(a)}>−</button><span>×{count}</span>
-                  <button aria-label={t(`Повторить эффект «${a.nameRu}»`, `Repeat effect “${a.nameEn}”`)} disabled={buildInvalid || unavailable || conflicting.length > 0 || overCap} onClick={() => add(a)}>+</button></div>}</div>} />
+                  <button aria-label={t(`Повторить эффект «${a.nameRu}»`, `Repeat effect “${a.nameEn}”`)} disabled={buildInvalid || unavailable || conflicting.length > 0 || overCap} onClick={() => add(a)}><Icon name="plus" className="button-icon" /><span className="visually-hidden">+</span></button></div>}</div>} />
+            <CompactDescription source={a.source}><PropertyText text={localizedDescription(a)} qualities={qualities} /></CompactDescription>
           </div>
         })}</div>
       </div>

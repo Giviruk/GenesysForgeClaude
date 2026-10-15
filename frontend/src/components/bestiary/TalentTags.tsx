@@ -56,11 +56,14 @@ export function TalentTags({ values, talents, onRemove }: { values: string[]; ta
   </div>
   return <div ref={root} className="bt-talents">
     <div className="bt-pills">{values.map((value, i) => {
+      const matched = findNpcTalent(value, talents)
+      const rank = value.match(/\s+(\d+)$/)?.[1]
+      const label = matched ? `${localizedName(matched)}${rank ? ` ${rank}` : ''}` : value.replace(/^Adversary\b/i, t('Противник', 'Adversary'))
       const trigger = <button type="button" ref={el => { triggers.current[i] = el }}
       className={`bt-talent${active === i && pinned ? ' pinned' : ''}`} aria-describedby={active === i ? id : undefined} aria-expanded={active === i}
       onMouseEnter={() => { if (!mobile && !pinned) setActive(i) }} onMouseLeave={() => { if (!mobile && !pinned) setActive(null) }}
       onFocus={() => { if (!mobile && !pinned) setActive(i) }} onBlur={() => { if (!mobile && !pinned) setActive(null) }}
-      onClick={() => { const close = active === i && pinned; setActive(close ? null : i); setPinned(!close) }}>{value}</button>
+      onClick={() => { const close = active === i && pinned; setActive(close ? null : i); setPinned(!close) }}>{label}</button>
       return onRemove ? <span key={`${value}-${i}`} className="bt-talent-chip removable">{trigger}
         <button type="button" className="bt-talent-remove" aria-label={t(`Удалить талант: ${value}`, `Remove talent: ${value}`)} onClick={() => { setActive(null); setPinned(false); onRemove(i) }}><Icon name="close" /></button>
       </span> : <Fragment key={`${value}-${i}`}>{trigger}</Fragment>

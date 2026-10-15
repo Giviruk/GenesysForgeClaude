@@ -12,6 +12,6 @@ public class UpdateEncounterHandler(IAppDbContext db) : ICommandHandler<UpdateEn
         var (encounter, _) = await EncounterMapper.GetAsGmAsync(db, command.UserId, command.Id, ct, tracking: true);
         EncounterMapper.Apply(encounter, command.Input);
         await db.SaveChangesAsync(ct);
-        return EncounterMapper.ToDetail(encounter, isGm: true);
+        return await EncounterMapper.ToDetailAsync(db, encounter, isGm: true, ct);
     }
 }

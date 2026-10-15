@@ -1,3 +1,4 @@
+import { CompactDescription } from './CompactDescription'
 import { toneClass, rarityClass } from '../utils/tones'
 import { Icon } from './Icon'
 import { useMemo, useState } from 'react'
@@ -169,7 +170,7 @@ export function InventoryTab({ sheet, reference, onError, refresh, updateBaseOpt
             <div className="chips shop-filters" role="group"
               aria-label={t('Фильтр инвентаря', 'Inventory filter')}>
               {KIND_FILTERS.map(k => (
-                <button key={k} className={ownedFilter === k ? 'chip active' : 'chip'}
+                <button key={k} className={`rd-filter-chip ${toneClass('shop', k === 'weapon' ? 'weaponLight' : k === 'implement' ? 'magicImplement' : k === 'shard' ? 'magicItem' : k)}${ownedFilter === k ? ' active' : ''}`}
                   onClick={() => setOwnedFilter(k)}>{SHOP_FILTER_LABELS[k]}</button>
               ))}
             </div>
@@ -246,7 +247,7 @@ export function InventoryTab({ sheet, reference, onError, refresh, updateBaseOpt
           <div className="shop-filters" role="group"
             aria-label={t('Фильтр каталога', 'Catalogue filter')}>
             {KIND_FILTERS.map(k => (
-              <button key={k} className={kindFilter === k ? 'chip active' : 'chip'}
+              <button key={k} className={`rd-filter-chip ${toneClass('shop', k === 'weapon' ? 'weaponLight' : k === 'implement' ? 'magicImplement' : k === 'shard' ? 'magicItem' : k)}${kindFilter === k ? ' active' : ''}`}
                 onClick={() => setKindFilter(k)}>
                 {SHOP_FILTER_LABELS[k]}
               </button>
@@ -308,7 +309,7 @@ function MoneyPanel({ sheet, onError, updateBaseOptimistically, d }: {
   return (
     <section className="panel money-panel">
       <div className="money-balance">
-        <span className="coin">🪙</span>
+        <Icon name="coin" className="coin" />
         {edit !== null ? (
           <input autoFocus className="money-input" value={edit}
             onChange={e => setEdit(e.target.value)}
@@ -327,7 +328,7 @@ function MoneyPanel({ sheet, onError, updateBaseOptimistically, d }: {
         <button className="small" onClick={() => adjust(-1)} disabled={!delta || busy}>{t('− Списать', '− Spend')}</button>
       </div>
       <div className="money-derived muted">
-        <span className="money-encumbrance">{t('Переносимый вес', 'Encumbrance')} <strong className={d.encumbered ? 'error' : ''}>{d.encumbranceLoad}/{d.encumbranceThreshold}</strong></span>{' '}
+        <span className="money-encumbrance">{t('Переносимый вес', 'Encumbrance')} <strong className={d.encumbered ? 'error' : ''}>{d.encumbranceLoad}/{d.encumbranceThreshold}</strong><span className={`encumbrance-meter${d.encumbered ? ' overloaded' : d.encumbranceLoad >= d.encumbranceThreshold ? ' near' : ''}`} aria-hidden="true"><i style={{ width: `${Math.min(100, d.encumbranceLoad / Math.max(1, d.encumbranceThreshold) * 100)}%` }} /></span></span>{' '}
         {d.encumbered && <><span className="error">{t('перегружен!', 'encumbered!')}</span>{' '}</>}
         <span>{t('Поглощение', 'Soak')} {d.soak}</span>{' '}
         <span>{t('Защита', 'Defense')} {d.meleeDefense}/{d.rangedDefense}</span>
@@ -360,6 +361,7 @@ function ShopRow({ item, money, run, sheetId, qualityDefinitions, open, onToggle
   return (
     <div className={`shop-row ${toneClass('item', item.kind)} ${unitRarity == null ? 'rarity-unknown' : rarityClass(unitRarity)}`}>
       <div className="shop-row-head">
+        <span className="shop-row-icon" aria-hidden="true"><Icon name={item.kind === 'weapon' ? 'sword' : item.kind === 'armor' ? 'shield' : 'package'} /></span>
         <div className="shop-row-info">
           <strong>{itemLabel}</strong>
           {itemOriginal && <span className="muted small-text name-secondary"> · {itemOriginal}</span>}
@@ -380,8 +382,7 @@ function ShopRow({ item, money, run, sheetId, qualityDefinitions, open, onToggle
                 спрятать кнопку «Купить» (ROT-MITEM-01). */}
             {!item.purchasable && t(' · выдаёт ведущий', ' · GM award only')}
           </div>
-          {itemDescription(item) &&
-            <div className="muted small-text shop-desc">{itemDescription(item)}</div>}
+          <CompactDescription source={item.source}>{itemDescription(item)}</CompactDescription>
           {properties && <PropertyTags properties={properties} className="shop-props small-text"
             qualityDefinitions={qualityDefinitions} />}
         </div>
@@ -512,7 +513,22 @@ function InventoryCard({ item, sheet, skillNames, run, reference, funds, sellOpe
       <div className="inv-card-head">
         <span className="inv-item-icon" aria-hidden="true"><Icon name={item.kind === 'weapon' ? 'sword' : item.kind === 'armor' ? 'shield' : 'package'} /></span>
         <div className="inv-card-title">
-          <strong>{itemLabel}</strong>
+          <div className="inv-title-line"><strong>{itemLabel}</strong>
+        <div className="state-switch">
+          {/* Верёвку и провизию не берут «в руки»: состояние ничего не даёт и путается с «носит». */}
+          {STATES.filter(s => s !== 'equipped' || item.canEquip).map(s => {
+            // Одна броня и две руки (ROT-EQP-01): сервер всё равно откажет, но лучше сказать заранее.
+            const blocked = s === 'equipped' && item.state !== 'equipped' ? equipBlockReason(item, sheet) : null
+            return (
+              <button key={s} className={`chip state-${s}${item.state === s ? ' active' : ''}`}
+                disabled={blocked !== null} title={blocked ?? undefined}
+                onClick={() => item.state !== s && run(() => api.updateItem(sheet.id, item.id, { state: s }))}>
+                {ITEM_STATE_LABELS[s]}
+              </button>
+            )
+          })}
+        </div>
+          </div>
           {/* Состояние видно сразу в заголовке: сломанная вещь не должна выглядеть как целая. */}
           {item.damageState !== 'undamaged' && (
             <span className={`chip damage-badge ${item.damageState}`}
@@ -521,8 +537,8 @@ function InventoryCard({ item, sheet, skillNames, run, reference, funds, sellOpe
             </span>
           )}
           <span className="muted small-text">
-            {secondaryName(item) && ` · ${secondaryName(item)}`}
-            {` · ${ITEM_KIND_LABELS[item.kind]}`}{item.price != null && item.price > 0 && ` · ${item.price} 🪙`}
+            {secondaryName(item) && `${secondaryName(item)} · `}
+            {ITEM_KIND_LABELS[item.kind]}{item.price != null && item.price > 0 && <> · {item.price} <Icon name="coin" className="button-icon" /></>}
             {/* Слоты улучшений берутся из таблицы книги; null — значения нет (ROT-ARM-01).
                 Занятые показываются рядом: иначе непонятно, куда делись свободные (ROT-EQP-ATT-01). */}
             {item.hardPoints != null && ` · HP ${item.usedHardPoints}/${item.hardPoints}`}
@@ -531,11 +547,11 @@ function InventoryCard({ item, sheet, skillNames, run, reference, funds, sellOpe
           </span>
         </div>
         <div className="inv-card-qty">
-          <button className="tiny" onClick={() => item.quantity > 1 &&
+          <button className="tiny" aria-label={t('Уменьшить количество', 'Decrease quantity')} disabled={item.quantity <= 1} onClick={() => item.quantity > 1 &&
             run(() => api.updateItem(sheet.id, item.id, { quantity: item.quantity - 1 }))}>−</button>
-          {' '}×{item.quantity}{' '}
-          <button className="tiny" onClick={() =>
-            run(() => api.updateItem(sheet.id, item.id, { quantity: item.quantity + 1 }))}>+</button>
+          <span>×{item.quantity}</span>
+          <button className="tiny" aria-label={t('Увеличить количество', 'Increase quantity')} onClick={() =>
+            run(() => api.updateItem(sheet.id, item.id, { quantity: item.quantity + 1 }))}><Icon name="plus" className="button-icon" /></button>
         </div>
       </div>
 
@@ -717,23 +733,10 @@ function InventoryCard({ item, sheet, skillNames, run, reference, funds, sellOpe
       )}
 
       <div className="inv-card-foot">
-        <div className="state-switch">
-          {/* Верёвку и провизию не берут «в руки»: состояние ничего не даёт и путается с «носит». */}
-          {STATES.filter(s => s !== 'equipped' || item.canEquip).map(s => {
-            // Одна броня и две руки (ROT-EQP-01): сервер всё равно откажет, но лучше сказать заранее.
-            const blocked = s === 'equipped' && item.state !== 'equipped' ? equipBlockReason(item, sheet) : null
-            return (
-              <button key={s} className={item.state === s ? 'chip active' : 'chip'}
-                disabled={blocked !== null} title={blocked ?? undefined}
-                onClick={() => item.state !== s && run(() => api.updateItem(sheet.id, item.id, { state: s }))}>
-                {ITEM_STATE_LABELS[s]}
-              </button>
-            )
-          })}
-        </div>
+
         <div className="inv-card-end">
           <span className="muted small-text">{t('вес', 'load')} {item.load}</span>
-          <button className="small" title={t('Печать карточки предмета', 'Print the item card')} onClick={() => setPrinting(true)}>🖨</button>
+          <button className="small" title={t('Печать карточки предмета', 'Print the item card')} onClick={() => setPrinting(true)}><Icon name="printer" className="button-icon" /></button>
           {item.sellable && (
             <button className="small" onClick={onToggleSell}>{sellOpen ? t('Отмена', 'Cancel') : t('Продать', 'Sell')}</button>
           )}
@@ -912,7 +915,7 @@ function WeaponLine({ item, sheet, skill, skillLabel, reference, run }: {
             crit: critText,
             rangeBand: rangeText,
             qualities: qualitiesFromProperties(qualities, reference),
-          })}>{t('🎲 Атаковать', '🎲 Attack')}</button>
+          })}><Icon name="dice" className="button-icon" />{t('Атаковать', 'Attack')}</button>
           {/* Метательный профиль расходует сам экземпляр: оружие остаётся у цели (ROT-WPN-01). */}
           {profiles.some(p => p.qualities.some(q => q.code === 'limited-ammo')) && (
             <button type="button" className="small no-print"

@@ -1,4 +1,14 @@
-import type { RangeZone } from '../api/types'
+import type { GameSystem, RangeZone } from '../api/types'
+
+export function readLibrarySystem(): GameSystem | null {
+  try {
+    const value = localStorage.getItem('genesysforge.library-system')
+    return value === 'genesysCore' || value === 'realmsOfTerrinoth' ? value : null
+  } catch { return null }
+}
+export function writeLibrarySystem(system: GameSystem): void {
+  try { localStorage.setItem('genesysforge.library-system', system) } catch { /* storage unavailable */ }
+}
 
 export const SHEET_TABS = [
   'sheet', 'talents', 'inventory', 'magic', 'heroic', 'workshop', 'transport', 'bio', 'history',

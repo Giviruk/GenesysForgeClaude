@@ -46,6 +46,7 @@ test('list/card/editor and wizard fit seven widths in RU and EN without overlapp
   test.setTimeout(150_000)
   page.on('dialog', dialog => dialog.accept())
   for (const lang of ['ru', 'en']) {
+    const localizedTalentName = lang === 'ru' ? talentName : reference.talents[0].name
     await page.addInitScript(value => localStorage.setItem('genesysforge.lang', value), lang)
     for (const width of [360, 390, 768, 820, 1024, 1280, 1440]) {
       await page.setViewportSize({ width, height: 900 })
@@ -57,14 +58,14 @@ test('list/card/editor and wizard fit seven widths in RU and EN without overlapp
       await fits(page)
       await expect(page.locator('.bt-section-stats .npc-skill-row').first()).toBeVisible()
       if (width < 760) await page.getByRole('tab', { name: /Способности и снаряжение|Abilities and gear/ }).click()
-      await page.getByRole('button', { name: talentName, exact: true }).click()
+      await page.getByRole('button', { name: localizedTalentName, exact: true }).click()
       await expect(page.getByRole('tooltip')).toBeVisible()
       const tip = await page.getByRole('tooltip').boundingBox()
       expect(tip!.x).toBeGreaterThanOrEqual(0)
       expect(tip!.x + tip!.width).toBeLessThanOrEqual(width + 1)
       await page.keyboard.press('Escape')
       if (width === 1280 && lang === 'ru') {
-        await page.getByRole('button', { name: talentName, exact: true }).focus()
+        await page.getByRole('button', { name: localizedTalentName, exact: true }).focus()
         await page.keyboard.press('Enter')
         await expect(page.getByRole('tooltip')).toBeVisible()
         await page.locator('.bt-detail-head h3').click()

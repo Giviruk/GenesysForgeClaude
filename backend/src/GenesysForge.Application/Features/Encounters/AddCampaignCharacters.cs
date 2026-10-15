@@ -54,6 +54,6 @@ public class AddCampaignCharactersHandler(IAppDbContext db)
         await db.SaveChangesAsync(ct);
 
         var fresh = await EncounterMapper.LoadAsync(db, encounter.Id, ct);
-        return EncounterMapper.ToDetail(fresh, isGm: true);
+        return await EncounterMapper.ToDetailAsync(db, fresh, isGm: true, ct);
     }
 }
