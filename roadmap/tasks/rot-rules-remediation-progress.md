@@ -56,12 +56,16 @@ scope сессии/encounter и единый check context: их нет в пр�
   773 Domain, 959 API, 2 PostgreSQL migration tests, 45 Playwright, lint/build.
   [Отчёт и снимки](../../docs/redesign-v5-ui-followup.md), [PR #295](https://github.com/Giviruk/GenesysForgeClaude/pull/295); `[x]` ставится после слияния PR.
 
-- [~] **GEN-V5-14** — 56 замечаний по дизайну после сверки прода `839e804`: шкала размеров,
+- [x] **GEN-V5-14** — 56 замечаний по дизайну после сверки прода `839e804`: шкала размеров,
   мобильная шапка, таланты, энкаунтеры, стол, библиотека и остальные экраны.
   [ТЗ](../../redesign_v5_tz/TZ_design_remarks_v5.md), [план](gen-v5-14-design-remarks.md).
   Исправлены замечания ревью от 15.10.2026 в исходной ветке [PR #296](https://github.com/Giviruk/GenesysForgeClaude/pull/296):
   691 Vitest, 773 Domain, 962 API, все 61 применимый сценарий Playwright (RU/EN), lint/build;
-  [отчёт и снимки](../../docs/design-review/gen-v5-14/README.md). `[x]` — после слияния PR.
+  [отчёт и снимки](../../docs/design-review/gen-v5-14/README.md). PR #296 слит 15.10.2026 (`f2f3bfd`), выкачен на прод.
+
+- [ ] **GEN-V5-15** — 17 замечаний по дизайну после сверки прода `f2f3bfd`: списание денег в ремесле,
+  локализация именного оружия, редактор атак NPC, статблок на столе, пропорции стола, выпадающие списки и экраны.
+  [ТЗ](../../redesign_v5_tz/TZ_design_remarks_v5_2.md), [план](gen-v5-15-design-remarks-2.md).
 
 - [~] **GEN-UI-SYMBOLS** — формы игровых символов через локальный Genesys Glyphs and Dice
   и базовая русская терминология Core: характеристики, кости, результаты, сложности,
