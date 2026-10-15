@@ -749,8 +749,8 @@ Found migrations:
   `CraftingProjectSpends` (cascade FK to its project), plus per-instance crafting columns on
   `CharacterItems`: `CraftingProjectId`, `CraftedEncumbrance`, `CraftedHardPoints`,
   `CraftedQualities`, `CraftedFragile`, `CraftNote`. No existing row is touched. Materials, tools
-  and ingredients are description only — the project records a computed component cost but never
-  charges money and never checks inventory, so there is nothing to reserve or consume.
+  and ingredients are description only. At this revision projects recorded cost without charging
+  money; GEN-V5-15 later introduced payment and PaidCost. Physical inventory is still not consumed.
 - `20260803113917_RotBest01NpcCodeAndRetired` — ROT-CLEAN-3.6 / ROT-BEST-01. Adds `Npcs.Code`
   (`varchar(80)`, non-unique index; empty for user NPCs) and `Npcs.Retired` (`bool`, default
   `false`). Purely additive. `SeedBestiary` back-fills `Code` on already-seeded built-ins by the

@@ -5023,7 +5023,7 @@ button.rd-switch:not(.linklike):not(.back-link) { min-height:1.25rem; justify-co
   .quick-panel .form-row { display:grid; grid-template-columns:minmax(0,1fr) 44px; align-items:center; gap:6px; }
   .quick-panel .form-row>:is(:is(select,:where(.select-control)),input) { width:100%; min-width:0; min-height:30px; height:30px; padding:4px 6px; font-size:12px; }
   .quick-panel .form-row>.select-control { grid-column:1/-1; }
-  .quick-panel .form-row>button:not(.select-control) { grid-column:1/-1; min-height:30px; width:100%; }
+  .quick-panel .form-row>button:where(:not(.select-control)) { grid-column:1/-1; min-height:30px; width:100%; }
   .quick-panel .quick-main { grid-template-columns:minmax(0,1fr) auto; gap:6px; }
   .quick-panel .quick-main>:is(:is(select,:where(.select-control)),button) { min-width:0; height:30px; min-height:30px; padding:4px 6px; font-size:12px; }
   .gt-rolls { min-height:140px; flex:none; }
