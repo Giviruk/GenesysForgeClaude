@@ -1,3 +1,4 @@
+import { Select } from './Select'
 import { useEffect, useMemo, useState } from 'react'
 import { api } from '../api/client'
 import type { GameSystem, SkillKind, Spell } from '../api/types'
@@ -158,9 +159,9 @@ export function SignatureSpellDialog({ title, system, characterId, onConfirm, on
         ) : (
           <>
             <label>{t('Магическое действие', 'Magic action')}
-              <select value={activeAction} onChange={e => chooseAction(e.target.value)}>
+              <Select value={activeAction} onChange={value => chooseAction(value)}>
                 {actions.map(a => <option key={a.nameEn} value={a.nameEn}>{name(a.nameEn)}</option>)}
-              </select>
+              </Select>
             </label>
             <div className="talent-group-title">{t('Дополнительные эффекты', 'Additional effects')}</div>
             <div className="chips">

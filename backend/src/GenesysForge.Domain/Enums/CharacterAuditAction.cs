@@ -82,4 +82,7 @@ public enum CharacterAuditAction
     /// (ROT-TRANSPORT-01). Записывается всегда: по этой строке видно, у кого вещь сейчас.
     /// </summary>
     CargoMoved,
+
+    /// <summary>Проект отменён, оплата компонентов возвращена в кошелёк.</summary>
+    CraftingCancelled,
 }

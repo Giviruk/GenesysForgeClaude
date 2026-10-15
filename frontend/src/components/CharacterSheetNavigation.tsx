@@ -1,3 +1,4 @@
+import { Select } from './Select'
 import { Fragment } from 'react'
 import type { GameSystem } from '../api/types'
 import { t } from '../i18n'
@@ -25,10 +26,10 @@ export function CharacterSheetNavigation({ system, tab, onSelect, bioLabel = t('
     </div>
     <div className="sheet-tab-select-wrap">
       <label className="visually-hidden" htmlFor="sheet-tab-select">{t('Раздел листа', 'Sheet section')}</label>
-      <select id="sheet-tab-select" className="sheet-tab-select" value={tab}
-        onChange={event => onSelect(event.target.value as CharacterSheetTab)}>
+      <Select id="sheet-tab-select" className="sheet-tab-select" value={tab}
+        onChange={value => onSelect(value as CharacterSheetTab)}>
         {tabs.map(key => <option key={key} value={key}>{labels[key]}</option>)}
-      </select>
+      </Select>
     </div>
   </>
 }

@@ -1,3 +1,4 @@
+import { Select } from './Select'
 import { CompactDescription } from './CompactDescription'
 import { magicActions } from '../utils/magicActions'
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
@@ -546,13 +547,13 @@ export function MagicBuilder({
               ? (
                 <>
                   <label className="inline-label">{t('Рейтинг по навыку', 'Rating from')}
-                    <select value={activeRating.skill} onChange={e => setRatingSkill(e.target.value)}>
+                    <Select value={activeRating.skill} onChange={value => setRatingSkill(value)}>
                       {ratingOptions.map(o => (
                         <option key={o.skill} value={o.skill}>
                           {t(o.skillRu, o.skill)} · {o.ranks}
                         </option>
                       ))}
-                    </select>
+                    </Select>
                   </label>
                   <span className="muted magic-rating-note">
                     {t('«Тёмное прозрение» разрешает считать рейтинг по Запретному знанию.',
@@ -827,11 +828,11 @@ function LesserRuneConfigurator({ shard, effects, actionCode, onConfigure, onErr
       <textarea value={activation} minLength={3} maxLength={500}
         placeholder={t('Описание активации (3–500 символов)', 'Activation description (3–500 characters)')}
         onChange={e => setActivation(e.target.value)} />
-      <select value={selected} onChange={e => setEffectCode(e.target.value)}>
+      <Select value={selected} onChange={value => setEffectCode(value)}>
         {allowed.map(e => (
           <option key={e.id} value={e.nameEn}>{t(e.nameRu, e.nameEn)} · {e.difficulty}</option>
         ))}
-      </select>
+      </Select>
       <button type="button" className="primary small"
         disabled={busy || activation.trim().length < 3 || !selected}
         onClick={() => {

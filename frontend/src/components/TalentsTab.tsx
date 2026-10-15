@@ -1,3 +1,4 @@
+import { Select } from './Select'
 import { CompactDescription } from './CompactDescription'
 import { activationKey, toneClass } from '../utils/tones'
 import { BookReference } from './BookReference'
@@ -421,6 +422,7 @@ export function TalentsTab({ sheet, reference, onError, refresh }: Props) {
                       </strong>
                       <div className="tag-row compact">
                         <span className="badge tier">{t('Тир', 'Tier')} {tal.tier}</span>
+                        {tal.isRanked && ranksOwned > 0 && <span className="badge">{t(`Следующий ранг: тир ${effectiveTier}`, `Next rank: tier ${effectiveTier}`)}</span>}
                         <span className="badge">{TALENT_CATEGORY_LABELS[tal.category]}</span>
                         {tal.isRanked && <span className="badge">{t('Ранговый', 'Ranked')}{ranksOwned > 0 ? `: ${ranksOwned}` : ''}</span>}
                         {tal.isCustom && <span className="badge custom">{t('Кастом', 'Custom')}</span>}
@@ -456,10 +458,10 @@ export function TalentsTab({ sheet, reference, onError, refresh }: Props) {
                       })()}
                       <button className="primary small" disabled={!!reason} title={reason ?? ''}
                         onClick={() => startPurchase(tal)}>
-                        {maxedOut ? t('Куплен', 'Purchased') : t(`Купить (${cost} XP${tal.isRanked && ranksOwned > 0 ? `, тир ${effectiveTier}` : ''})`, `Buy (${cost} XP${tal.isRanked && ranksOwned > 0 ? `, tier ${effectiveTier}` : ''})`)}
+                        {maxedOut ? t('Куплен', 'Purchased') : t(`${cost} XP · Купить`, `${cost} XP · Buy`)}
                       </button>
                       {ownedRow && (
-                        <button className="small" title={t('Печать карточки таланта', 'Print the talent card')}
+                        <button className="small talent-print" aria-label={t('Печать карточки таланта', 'Print the talent card')} title={t('Печать карточки таланта', 'Print the talent card')}
                           onClick={() => setPrintTalent(ownedRow)}>
                           <Icon name="printer" className="button-icon" />
                         </button>
@@ -527,13 +529,13 @@ export function TalentsTab({ sheet, reference, onError, refresh }: Props) {
               </p>
             ) : (
               <label>{t('Спутник', 'Companion')}
-                <select autoFocus value={companionId} onChange={e => setCompanionId(e.target.value)}>
+                <Select autoFocus value={companionId} onChange={value => setCompanionId(value)}>
                   {companionOptions.map(npc => (
                     <option key={npc.id} value={npc.id}>
                       {npc.name} · {t('силуэт', 'silhouette')} {npc.silhouette}
                     </option>
                   ))}
-                </select>
+                </Select>
               </label>
             )}
             <div className="modal-actions">

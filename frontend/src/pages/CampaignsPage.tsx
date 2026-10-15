@@ -1,3 +1,4 @@
+import { Select } from '../components/Select'
 import { Icon } from '../components/Icon'
 import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react'
 import { api, ApiError } from '../api/client'
@@ -139,10 +140,10 @@ function JoinCampaignForm({ onDone, onError }: { onDone: (id: string) => void; o
       <h3>{t('Присоединиться по коду', 'Join with a code')}</h3>
       <label>{t('Код кампании', 'Campaign code')}<input value={code} onChange={e => setCode(e.target.value)} required /></label>
       <label>{t('Мой персонаж', 'My character')}
-        <select value={characterId} onChange={e => setCharacterId(e.target.value)}>
+        <Select value={characterId} onChange={value => setCharacterId(value)}>
           <option value="">{t('Без персонажа — создать позже', 'Without a character — create later')}</option>
           {characters.map(c => <option key={c.id} value={c.id}>{c.name} ({SYSTEM_LABELS[c.system]})</option>)}
-        </select>
+        </Select>
       </label>
       <button className="primary" type="submit" disabled={!code.trim()}>{t('Присоединиться', 'Join')}</button>
     </form>
@@ -375,10 +376,10 @@ function CampaignPlayersPanel({ campaign, onChanged, onLeave, onError }: {
         onClick={() => setCreating(true)}>{t('Создать персонажа', 'Create character')}</button>
     </div>
     {adding && <form className="campaign-character-form" onSubmit={e => void add(e)}>
-      <label>{t('Мой персонаж', 'My character')}<select value={selected} onChange={e => setSelected(e.target.value)}>
+      <label>{t('Мой персонаж', 'My character')}<Select value={selected} onChange={value => setSelected(value)}>
         <option value="">{t('— выберите —', '— select —')}</option>
         {characters.map(char => <option key={char.id} value={char.id}>{char.name}</option>)}
-      </select></label>
+      </Select></label>
       <div className="form-actions">
         <button type="submit" disabled={busy || !selected}>{t('Добавить', 'Add')}</button>
         <button type="button" onClick={() => setAdding(false)}>{t('Отмена', 'Cancel')}</button>

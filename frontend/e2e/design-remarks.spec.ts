@@ -1,3 +1,4 @@
+import { chooseSelect } from './select'
 import { expect, test, type APIRequestContext, type Locator, type Page } from '@playwright/test'
 import type { GameSession, NpcDetail, Reference } from '../src/api/types'
 
@@ -8,6 +9,8 @@ let characterId: string
 let campaignId: string
 let encounterId: string
 let npcId: string
+let signatureCharacterId: string
+let reference: Reference
 let weaponName: string
 let weaponNameEn: string
 let craftSpendCount: number
@@ -32,17 +35,17 @@ async function rect(locator: Locator) {
 async function sheetTab(page: Page, key: string, label: string) {
   await expect(page.locator('.sheet-title-row')).toBeVisible()
   const select = page.locator('#sheet-tab-select')
-  if (await select.isVisible()) await select.selectOption(key)
+  if (await select.isVisible()) await chooseSelect(select, key)
   else await page.locator('.main-tabs').getByRole('button', { name: label, exact: true }).click()
 }
 test.beforeAll(async ({ request }) => {
   const account = await request.post('/api/auth/register', { data: { email, password, displayName: 'Визуальная приёмка v5' } })
   expect(account.ok()).toBe(true)
   token = (await account.json()).token
-  const reference = await api<Reference>(request, '/api/reference/realmsOfTerrinoth')
+  reference = await api<Reference>(request, '/api/reference/realmsOfTerrinoth')
   mountName = reference.mounts[0].name
   mountNameRu = reference.mounts[0].nameRu || mountName
-  const weapon = reference.items.find(i => i.kind === 'weapon' && i.purchasable)!
+  const weapon = reference.items.find(i => i.name === 'Halberd') ?? reference.items.find(i => i.kind === 'weapon' && i.purchasable)!
   weaponName = weapon.nameRu || weapon.name
   weaponNameEn = weapon.name
   characterId = (await api<{ id: string }>(request, '/api/characters/', {
@@ -53,8 +56,13 @@ test.beforeAll(async ({ request }) => {
   const cargo = reference.items.find(item => item.kind === 'gear' && item.encumbrance === 1 && item.purchasable)!
   await api(request, `/api/characters/${characterId}/items`, { itemDefId: cargo.id, quantity: 9, state: 'carried', free: true })
   await api(request, `/api/characters/${characterId}/mounts`, { mountDefId: reference.mounts.find(mount => mount.transportKind === 'mount')!.id, free: true, name: 'Северный ветер' })
-  const pack = await api<{ id: string }>(request, '/api/homebrew-packs', { name: 'Тест (RealmsOfTerrinoth)', description: 'Собственный тестовый набор.', system: 'realmsOfTerrinoth' })
+  const pack = await api<{ id: string }>(request, '/api/homebrew-packs', { name: 'Тени расширения — собственный тестовый набор (RealmsOfTerrinoth)', description: 'Собственный тестовый набор.', system: 'realmsOfTerrinoth' })
   await api(request, '/api/custom/skills', { name: 'Контроль пути', system: 'realmsOfTerrinoth', characteristic: 'cunning', kind: 'general', packIds: [pack.id] })
+  const talent = await api<{ id: string }>(request, '/api/custom/talents', {
+    name: 'Тестовый талант печати', system: 'realmsOfTerrinoth', tier: 1, isRanked: false,
+    category: 'general', activation: 'Passive', description: 'Собственный тестовый талант.', packIds: [pack.id],
+  })
+  await api(request, `/api/characters/${characterId}/talents/buy`, { talentDefId: talent.id })
   await api(request, `/api/characters/${characterId}/items`, { itemDefId: weapon.id, quantity: 1, state: 'equipped', free: true })
   const inventory = await api<{ items: Array<{ id: string }> }>(request, `/api/characters/${characterId}`)
   await api(request, `/api/characters/${characterId}/items/${inventory.items[0].id}/damage-state`, { state: 'minor' }, 'PUT')
@@ -66,17 +74,18 @@ test.beforeAll(async ({ request }) => {
   craftSpendCount = (await api<{ spends: unknown[] }>(request, `/api/characters/${characterId}/crafting/preview`, { itemDefId: weapon.id, kind: 'item' })).spends.length
   expect(craftSpendCount).toBeGreaterThan(0)
   campaignId = (await api<{ id: string }>(request, '/api/campaigns/', { name: 'Экспедиция к перевалу', description: 'Собственные тестовые данные визуальной приёмки.' })).id
+  await api(request, `/api/campaigns/${campaignId}/homebrew-packs/${pack.id}`, { isEnabled: true }, 'PUT')
   await api(request, `/api/campaigns/${campaignId}/characters`, { characterId })
   await api(request, `/api/campaigns/${campaignId}/chronicle/chapters`, { title: 'Дорога к перевалу', content: '# Первый день\n\nСобственный текст для проверки редактора и превью.' })
   const npc = await api<NpcDetail>(request, '/api/npcs/', {
     name: 'Страж северных ворот', system: 'realmsOfTerrinoth', kind: 'rival', role: 'brute', visibility: 'private', campaignId: null,
     description: 'Собственный тестовый NPC.', source: 'UI test', brawn: 3, agility: 2, intellect: 2, cunning: 2, willpower: 2, presence: 2,
     woundThreshold: 14, strainThreshold: null, soak: 3, meleeDefense: 1, rangedDefense: 0, silhouette: 1, tactics: '',
-    skills: [{ name: reference.skills.find(s => s.kind === 'combat')!.name, ranks: 2 }], attacks: [{ name: 'Тестовая атака', skillName: reference.skills.find(s => s.kind === 'combat')!.name, damage: '+3', critical: '2', rangeBand: 'Вплотную', notes: '', qualities: [], sourceWeapon: '' }],
+    skills: [{ name: reference.skills.find(s => s.kind === 'combat')!.name, ranks: 2 }], attacks: [{ name: 'Тестовая атака', skillName: reference.skills.find(s => s.kind === 'combat')!.name, damage: '+3', critical: '2', rangeBand: 'Вплотную', notes: '', qualities: reference.qualities.filter(q => q.hasRating).slice(0, 5).map(q => ({ qualityCode: q.code, nameRu: q.nameRu, rating: 2 })), sourceWeapon: '' }],
     talents: [reference.talents[0].nameRu || reference.talents[0].name], equipment: [], abilities: [{ name: 'Тестовая способность', description: 'Собственное описание.' }], tags: [],
   })
   npcId = npc.id
-  const minion = await api<NpcDetail>(request, '/api/npcs/', { ...npc, id: undefined, name: 'Караул на мосту', kind: 'minion', strainThreshold: null, skills: [] })
+  const minion = await api<NpcDetail>(request, '/api/npcs/', { ...npc, id: undefined, name: 'Дозор у переправы', kind: 'minion', strainThreshold: null, skills: [] })
   await api(request, `/api/campaigns/${campaignId}/session/`, { name: 'Караул у старого моста', description: 'Собственная тестовая сцена.', playerStoryPoints: 3, gmStoryPoints: 2 })
   await api(request, `/api/campaigns/${campaignId}/session/participants`, { characterId })
   const session = await api<GameSession>(request, `/api/campaigns/${campaignId}/session/participants`, { npcId: minion.id, count: 3, participantType: 'minionGroup' })
@@ -220,7 +229,7 @@ for (const language of ['ru', 'en']) {
           await page.screenshot({ path: testInfo.outputPath(`${width}-${route.includes('new') ? route.split('=')[1] : 'npc'}.png`), fullPage: false })
         }
         await page.goto('/library')
-        await expect(page.locator('.rd-entry-description')).toContainText('Контроль пути')
+        await expect(page.locator('.rd-entry-description').filter({ hasText: 'Контроль пути' })).toContainText('Контроль пути')
         await expect(page.locator('.library-system-switch .active')).toContainText('Realms of Terrinoth')
         expect(await page.locator('.library-system-switch .rd-filter-chip').evaluateAll(nodes => nodes.some(node => !['none', 'normal'].includes(getComputedStyle(node, '::before').content)))).toBe(false)
         await fits(page)
@@ -269,4 +278,294 @@ test('keeps navigation visible while a lazy page chunk is loading', async ({ pag
     await expect(page.locator('.app-loading')).toHaveCount(0)
   } finally { release() }
   await expect(page.locator('.bt-items')).toBeVisible()
+})
+
+async function setupSignatureCharacter(request: APIRequestContext) {
+  if (!signatureCharacterId) {
+    signatureCharacterId = (await api<{ id: string }>(request, '/api/characters/', {
+      name: 'Мастеровой с именным оружием', system: 'realmsOfTerrinoth', archetypeId: reference.archetypes[0].id,
+      careerId: reference.careers[0].id, freeCareerSkillNames: [], archetypeSkillChoices: [], careerGearChoices: [],
+    })).id
+    await api(request, `/api/characters/${signatureCharacterId}`, { money: 1000 }, 'PATCH')
+    await api(request, `/api/characters/${signatureCharacterId}/heroic-ability`, { heroicAbilityId: reference.heroicAbilities.find(h => h.code === 'rot.heroic.signature-weapon')!.id }, 'PUT')
+    await api(request, `/api/characters/${signatureCharacterId}/heroic-identity`, { customName: 'Наручи мастера', originMode: 'standard', originPrimary: 'destiny' }, 'PUT')
+    await api(request, `/api/characters/${signatureCharacterId}/heroic-configuration`, {
+      weaponProfile: 'brawl', craftsmanship: 'steel', narrativeForm: 'Наручи мастера', formTraits: 'bluntOrCrushing',
+      baseAttachmentDefId: reference.attachments.find(a => a.code.endsWith('.runic-thunder'))!.id,
+    }, 'PUT')
+  }
+}
+
+for (const language of ['ru', 'en']) test(`GEN-V5-15 second review in ${language}`, async ({ page, request }, testInfo) => {
+  test.setTimeout(240_000)
+  page.setDefaultTimeout(15_000)
+  const ru = language === 'ru'
+  const baseline = process.env.DESIGN_BASELINE === '1'
+  await page.addInitScript(({ token, language }) => {
+    localStorage.setItem('genesysforge.token', token)
+    localStorage.setItem('genesysforge.lang', language)
+    localStorage.setItem('genesysforge.analytics-consent', 'denied')
+  }, { token, language })
+  await setupSignatureCharacter(request)
+  async function shot(name: string, width: number) {
+    if (ru && width !== 1024 && name === 'statblock') {
+      await page.locator('.modal-header').screenshot({ path: testInfo.outputPath(`${baseline ? 'before' : 'after'}-${name}-${width}.png`) })
+      return
+    }
+    if (ru && width !== 1024) await page.screenshot({ path: testInfo.outputPath(`${baseline ? 'before' : 'after'}-${name}-${width}.png`),
+      mask: [page.locator('p:not(.crafting-funds),.compact-description-text,.crafting-table')], maskColor: '#b7bcc5' })
+  }
+  for (const width of [1240, 1024, 375, 1440]) {
+    await page.setViewportSize({ width, height: 900 })
+    await page.goto(`/characters/${characterId}`)
+    await sheetTab(page, 'inventory', ru ? 'Инвентарь' : 'Inventory')
+    await expect(page.locator('.inv-title-line>strong').first()).toBeVisible()
+    await page.evaluate(() => document.fonts.ready)
+    if (!baseline) {
+      await fits(page)
+      const titles = page.locator('.inv-title-line>strong')
+      expect(await titles.evaluateAll(nodes => nodes.every(el => el.getBoundingClientRect().width >= Math.min(159, el.parentElement!.clientWidth)))).toBe(true)
+      await expect(titles.last()).toHaveCSS('overflow-wrap', 'normal')
+    }
+    await shot('inventory', width)
+    await sheetTab(page, 'sheet', ru ? 'Лист' : 'Sheet')
+    if (!baseline) {
+      expect(await page.locator('.rd-skill-name>span').evaluateAll(nodes => nodes.every(el => el.getBoundingClientRect().height <= 44))).toBe(true)
+      for (const badge of await page.locator('.sheet-page-head .badge').all()) expect(parseFloat(await badge.evaluate(el => getComputedStyle(el).fontSize))).toBeGreaterThanOrEqual(11)
+      const critical = page.locator('.critical-injuries>.section-title-line')
+      expect(await critical.evaluate(el => getComputedStyle(el, '::after').content)).toBe('none')
+    }
+    await sheetTab(page, 'talents', ru ? 'Таланты' : 'Talents')
+    if (!baseline) for (const button of await page.locator('.talent-actions>button').all()) {
+      expect(await button.evaluate(el => getComputedStyle(el).whiteSpace)).toBe('nowrap')
+    }
+    if (!baseline) {
+      expect(await page.locator('.talent-actions>button').evaluateAll((nodes, maxHeight) =>
+        nodes.every(el => el.getBoundingClientRect().height <= maxHeight), width < 768 ? 44.1 : 38.1)).toBe(true)
+      const print = page.locator('.talent-print').first()
+      const bounds = await rect(print)
+      expect(bounds.width).toBeCloseTo(width < 768 ? 44 : 28, 1)
+      expect(bounds.height).toBeCloseTo(width < 768 ? 44 : 28, 1)
+    }
+    await page.goto(`/characters/${signatureCharacterId}`)
+    await sheetTab(page, 'heroic', ru ? 'Героика' : 'Heroic')
+    if (!baseline) {
+      await expect(page.locator('.heroic-weapon-stats')).toContainText(ru ? 'Сила +2' : 'Brawn +2')
+      await expect(page.locator('.heroic-weapon-stats')).toContainText(ru ? 'Вплотную' : 'Engaged')
+      expect(await page.locator('.heroic-weapon-stats small').evaluateAll(nodes => nodes.every(el => parseFloat(getComputedStyle(el).fontSize) >= 11))).toBe(true)
+    }
+    await page.locator('.heroic-weapon-stats').scrollIntoViewIfNeeded()
+    await shot('signature', width)
+    await page.goto(`/npcs/${npcId}/edit`)
+    if (width < 768) await page.getByRole('tab', { name: ru ? 'Атаки' : 'Attacks', exact: true }).click()
+    await expect(page.locator('.npc-attack-qualities').or(page.locator('.ability-edit .chips')).first()).toBeAttached()
+    const qualities = page.locator('.npc-attack-qualities .chip')
+    if (!baseline) {
+      await expect(qualities).toHaveCount(5)
+      for (const chip of await qualities.all()) {
+        expect((await rect(chip)).height).toBeLessThanOrEqual(28.1)
+        await expect(chip).toHaveCSS('white-space', 'nowrap')
+        expect((await rect(chip.locator('input'))).width).toBeCloseTo(44, 1)
+      }
+      await expect(page.locator('.bt-field-label').first()).toHaveCSS('font-size', '12px')
+    }
+    await page.locator('.npc-attack-qualities,.ability-edit .chips').first().scrollIntoViewIfNeeded()
+    await shot('npc-qualities', width)
+    if (!baseline) {
+      const picker = page.locator('.ability-edit .select-control').last()
+      await expect(picker).toBeEnabled()
+      await picker.evaluate(el => el.scrollIntoView({ block: 'end' }))
+      const before = await rect(picker)
+      await picker.press('ArrowDown')
+      const popup = page.getByRole('listbox')
+      const bounds = await rect(popup)
+      expect(await popup.evaluate(el => el.parentElement === document.body)).toBe(true)
+      expect(bounds.x).toBeGreaterThanOrEqual(15)
+      expect(bounds.x + bounds.width).toBeLessThanOrEqual(width - 15)
+      expect(bounds.y).toBeGreaterThanOrEqual(0)
+      expect(bounds.y + bounds.height).toBeLessThanOrEqual(900)
+      if (900 - before.y - before.height < bounds.height) expect(bounds.y + bounds.height).toBeLessThanOrEqual(before.y)
+      await expect(popup.getByRole('option').first()).toHaveCSS('font-size', '14px')
+      expect((await rect(popup.getByRole('option').first())).height).toBeGreaterThanOrEqual(width < 768 ? 43.9 : 31.9)
+      await picker.press('End')
+      await picker.press('Escape')
+      await expect(picker).toHaveJSProperty('value', '')
+      await expect(picker).toBeFocused()
+    }
+    await page.goto('/npcs/new?mode=draft')
+    if (!baseline && width === 375) {
+      await page.getByRole('button', { name: ru ? 'Далее: тип и сила' : 'Next: type and power', exact: true }).click()
+      await expect(page.locator('.bt-kind-cards>button').first()).toBeVisible()
+      const cards = await page.locator('.bt-kind-cards>button').evaluateAll(nodes => nodes.map(el => el.getBoundingClientRect().x))
+      expect(new Set(cards).size).toBe(1)
+    }
+    if (!baseline) {
+      await page.goto('/npcs')
+      const npcTitle = page.locator('.bt-item-title strong').first()
+      await expect(npcTitle).toBeVisible()
+      await expect(npcTitle).toHaveCSS('-webkit-line-clamp', '2')
+      expect(await npcTitle.getAttribute('title')).toBe(await npcTitle.textContent())
+      await page.goto(`/campaigns/${campaignId}`)
+      const footer = page.locator('.campaign-pc-foot').first()
+      await expect(footer).toBeVisible()
+      await expect(footer.locator(':scope>span').first()).toHaveCSS('white-space', 'nowrap')
+      const actions = await footer.locator('button').evaluateAll(nodes => nodes.map(el => el.getBoundingClientRect().top))
+      expect(actions).toHaveLength(2)
+      expect(Math.abs(actions[0] - actions[1])).toBeLessThanOrEqual(1)
+    }
+    await page.goto(`/campaigns/${campaignId}/encounters/${encounterId}`)
+    await expect(page.locator('.enc-detail')).toBeVisible()
+    if (!baseline) {
+      await expect(page.locator('.enc-head-name')).toHaveCSS('font-size', '28px')
+      if (width > 767) {
+        const tops = await page.locator('.enc-scene-controls>.select-control').evaluateAll(nodes => nodes.map(el => el.getBoundingClientRect().top))
+        expect(Math.abs(tops[0] - tops[1])).toBeLessThanOrEqual(1)
+      }
+      await fits(page)
+    }
+    await page.goto(`/campaigns/${campaignId}/table`)
+    await expect(page.locator('.range-rings')).toBeVisible()
+    if (!baseline) {
+      expect((await rect(page.locator('.range-rings'))).width).toBeLessThanOrEqual(width === 1024 ? 420.1 : 380.1)
+      const quickChoice = page.locator('.quick-panel .form-row>.select-control')
+      await expect(quickChoice).toHaveCSS('grid-column', '1 / -1')
+      const choiceWidth = (await rect(quickChoice)).width
+      expect(choiceWidth).toBeCloseTo((await rect(page.locator('.quick-panel .form-row'))).width, 0)
+      if (width >= 768) {
+        await expect(quickChoice).toHaveCSS('height', '30px')
+        await expect(page.locator('.gt-slot-form>.select-control')).toHaveCSS('height', '28px')
+      } else {
+        await expect(quickChoice).toHaveCSS('height', '44px')
+        await expect(page.locator('.gt-slot-form>.select-control')).toHaveCSS('height', '44px')
+        await expect(page.locator('.quick-panel .form-row>button:not(.select-control)')).toHaveCSS('height', '44px')
+      }
+      if (width === 1024) {
+        const left = await rect(page.locator('.left-rail'))
+        const center = await rect(page.locator('.center-stage'))
+        const right = await rect(page.locator('.right-rail'))
+        expect(center.x - left.x - left.width).toBeGreaterThanOrEqual(11)
+        expect(Math.abs(center.y - left.y)).toBeLessThanOrEqual(1)
+        expect(right.y).toBeGreaterThanOrEqual(Math.max(left.y + left.height, center.y + center.height))
+      }
+      if (width === 1240) {
+        expect((await rect(page.locator('.left-rail'))).width).toBeCloseTo(280, 1)
+        const shortName = page.locator('.init-row .select-value').filter({ hasText: /^Дозор у переправы ×3$/ })
+        await expect(shortName).toHaveText('Дозор у переправы ×3')
+        const nameBounds = await shortName.evaluate(el => ({ label: el.textContent!, available: el.clientWidth, content: el.scrollWidth }))
+        expect(nameBounds.label).toHaveLength(20)
+        expect(nameBounds.content, JSON.stringify(nameBounds)).toBeLessThanOrEqual(nameBounds.available)
+        for (const button of await page.locator('.story-transfer button').all()) expect((await rect(button)).height).toBeLessThanOrEqual(38.1)
+        expect((await rect(page.locator('.left-rail'))).height).toBeLessThanOrEqual((await rect(page.locator('.center-stage'))).height)
+      }
+      await fits(page)
+    }
+    await shot('table', width)
+    await page.getByRole('button', { name: ru ? 'Статблок' : 'Stat block', exact: true }).first().click()
+    if (!baseline) {
+      await expect(page.locator('.modal-header h3')).toHaveCSS('color', 'rgb(245, 161, 28)')
+      await expect(page.locator('.modal-header .muted').first()).toHaveCSS('color', 'rgb(201, 205, 224)')
+    }
+    await shot('statblock', width)
+    await page.keyboard.press('Escape')
+    await page.goto('/library')
+    await expect(page.locator('.rd-pack-tag').first()).toBeVisible()
+    if (!baseline) {
+      await expect(page.locator('.rd-pack-tag').first()).toHaveCSS('white-space', 'nowrap')
+      expect(await page.locator('.rd-pack-tag').first().getAttribute('title')).toContain('Тени расширения')
+      await fits(page)
+      await page.locator('.rd-pack-tag').first().click()
+      await page.getByRole('button', { name: ru ? 'Добавить из библиотеки' : 'Add from library', exact: true }).click()
+      const dialog = page.getByRole('dialog')
+      const sort = dialog.getByRole('combobox', { name: ru ? 'Сортировка' : 'Sort' })
+      await sort.click()
+      const popup = page.getByRole('listbox')
+      await expect(popup).toBeVisible()
+      expect(await popup.evaluate(el => el.parentElement?.tagName)).toBe('DIALOG')
+      expect(await popup.evaluate(el => el.matches(':popover-open'))).toBe(true)
+      if (ru && width !== 1024) await popup.screenshot({ path: testInfo.outputPath(`after-select-dialog-${width}.png`) })
+      await popup.locator('[data-value=name]').click()
+      await expect(sort).toHaveJSProperty('value', 'name')
+      await expect(sort).toBeFocused()
+      await sort.press('ArrowDown')
+      await expect(popup).toBeVisible()
+      await sort.press('Escape')
+      await expect(popup).toBeHidden()
+      await expect(dialog).toBeVisible()
+      await expect(sort).toBeFocused()
+    }
+  }
+})
+
+test('GEN-V5-15 component payment updates the wallet and cancellation refunds it in the UI', async ({ page, request }) => {
+  test.skip(process.env.DESIGN_BASELINE === '1')
+  await page.addInitScript(token => {
+    localStorage.setItem('genesysforge.token', token)
+    localStorage.setItem('genesysforge.lang', 'ru')
+    localStorage.setItem('genesysforge.analytics-consent', 'denied')
+  }, token)
+  await setupSignatureCharacter(request)
+  await page.goto(`/characters/${signatureCharacterId}`)
+  await sheetTab(page, 'workshop', 'Мастерская')
+  await page.locator('.workshop-tab .sheet-segment').getByRole('button', { name: 'Ремесло', exact: true }).click()
+  await page.locator('.crafting-targets').getByRole('button').filter({ hasText: weaponName }).first().click()
+  await page.locator('.crafting-corrections>summary').click()
+  await page.getByLabel('Своя стоимость', { exact: true }).fill('20')
+  await page.getByLabel('Причина', { exact: true }).first().fill('Стоимость для проверки интерфейса')
+  await expect(page.getByRole('button', { name: 'Начать проект', exact: true })).toBeEnabled()
+  const before = (await api<{ money: number }>(request, `/api/characters/${signatureCharacterId}`)).money
+  await page.getByRole('button', { name: 'Начать проект', exact: true }).click()
+  await expect(page.locator('.crafting-funds')).toContainText(String(before - 20))
+  await page.getByRole('button', { name: 'Отменить проект', exact: true }).click()
+  await page.getByRole('button', { name: 'Да, отменить проект', exact: true }).click()
+  await expect(page.locator('.crafting-funds')).toContainText(String(before))
+})
+
+test('GEN-V5-15 review: Select respects contextual styles and the first invalid form field', async ({ page }) => {
+  await page.addInitScript(token => {
+    localStorage.setItem('genesysforge.token', token)
+    localStorage.setItem('genesysforge.lang', 'ru')
+    localStorage.setItem('genesysforge.analytics-consent', 'denied')
+  }, token)
+  await page.setViewportSize({ width: 1240, height: 900 })
+  // Select renders a <button>: contextual button rules must not repaint it as a button.
+  const field = { 'background-color': 'rgb(255, 255, 255)', 'border-top-width': '1px' }
+  await page.goto(`/npcs/${npcId}/edit`)
+  const template = page.locator('.bt-template .select-control')
+  for (const [name, value] of Object.entries(field)) await expect(template).toHaveCSS(name, value)
+  await template.hover()
+  await expect(template).toHaveCSS('background-color', 'rgb(255, 255, 255)')
+  await expect(page.locator('.bt-skill-edit .select-control').first()).toHaveCSS('font-family', /^"Golos Text"/)
+  await page.goto(`/campaigns/${campaignId}/table`)
+  const slot = page.locator('.init-row .slot-assign').first()
+  for (const [name, value] of Object.entries(field)) await expect(slot).toHaveCSS(name, value)
+  await page.locator('.add-participant .system-switch').getByRole('button', { name: 'NPC', exact: true }).click()
+  const npcChoice = await rect(page.locator('.quick-panel .form-row>.select-control'))
+  const count = await rect(page.locator('.quick-panel .form-row>.ranks-input'))
+  expect(Math.abs(count.y - npcChoice.y)).toBeLessThanOrEqual(1)
+  expect(count.x).toBeGreaterThanOrEqual(npcChoice.x + npcChoice.width)
+  await page.goto('/shop')
+  const customer = page.locator('.shop-toolbar .select-control')
+  await expect(customer).toBeVisible()
+  await expect(customer).toHaveCSS('font-size', '16px')
+  await expect(customer).toHaveCSS('font-weight', '600')
+  await expect(customer).toHaveCSS('border-top-color', 'rgb(31, 42, 92)')
+  await page.goto(`/characters/${characterId}`)
+  await sheetTab(page, 'inventory', 'Инвентарь')
+  const damage = page.locator('.shop-row-actions .select-control').first()
+  await expect(damage).toHaveCSS('height', '24px')
+  await page.setViewportSize({ width: 375, height: 900 })
+  await expect(damage).toHaveCSS('height', '44px')
+  await page.goto('/characters')
+  await page.getByRole('button', { name: 'Новый персонаж', exact: true }).first().click()
+  const form = page.locator('.character-create-modal')
+  const name = form.getByRole('textbox', { name: 'Имя персонажа', exact: true })
+  expect(await form.evaluate(el => (el as HTMLFormElement).reportValidity())).toBe(false)
+  await expect(name).toBeFocused()
+  await expect(page.getByRole('listbox')).toHaveCount(0)
+  await name.fill('Собственный тест валидации')
+  expect(await form.evaluate(el => (el as HTMLFormElement).reportValidity())).toBe(false)
+  const archetype = form.getByRole('combobox').first()
+  await expect(archetype).toBeFocused()
+  await expect(page.getByRole('listbox')).toHaveCount(1)
+  await expect(page.getByRole('listbox')).toHaveAttribute('aria-labelledby', (await archetype.getAttribute('id'))!)
 })

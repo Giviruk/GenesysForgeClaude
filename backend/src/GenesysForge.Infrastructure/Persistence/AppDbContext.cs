@@ -1,4 +1,5 @@
 using GenesysForge.Application.Abstractions;
+using GenesysForge.Application.Exceptions;
 using GenesysForge.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
@@ -6,6 +7,15 @@ namespace GenesysForge.Infrastructure.Persistence;
 
 public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(options), IAppDbContext
 {
+    public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+    {
+        try { return await base.SaveChangesAsync(cancellationToken); }
+        catch (DbUpdateConcurrencyException)
+        {
+            throw new ConflictException("Данные уже изменились. Обновите лист и повторите действие.");
+        }
+    }
+
     public DbSet<User> Users => Set<User>();
     public DbSet<PasswordResetToken> PasswordResetTokens => Set<PasswordResetToken>();
     public DbSet<ExternalAuthIdentity> ExternalAuthIdentities => Set<ExternalAuthIdentity>();
@@ -117,6 +127,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
 
         b.Entity<Character>(e =>
         {
+            // Guard every wallet write, including purchases made alongside crafting.
+            e.Property(c => c.Money).IsConcurrencyToken();
             e.Property(c => c.PortraitUrl).HasMaxLength(1000);
             e.HasOne(c => c.Archetype).WithMany().OnDelete(DeleteBehavior.Restrict);
             e.HasOne(c => c.Career).WithMany().OnDelete(DeleteBehavior.Restrict);
@@ -456,6 +468,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
 
         b.Entity<CraftingProject>(e =>
         {
+            e.Property(p => p.Status).IsConcurrencyToken();
             e.HasIndex(p => p.CharacterId);
             e.HasIndex(p => new { p.CharacterId, p.Status });
             e.Property(p => p.TargetName).HasMaxLength(200);

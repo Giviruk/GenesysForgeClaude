@@ -1,3 +1,4 @@
+import { chooseSelect } from '../test/select'
 import { render, screen, waitFor, fireEvent } from '@testing-library/react'
 import { describe, expect, it, vi, beforeEach } from 'vitest'
 import type { CharacterSheet, HeroicConfiguration, Quality, Reference, SignatureWeapon } from '../api/types'
@@ -108,7 +109,7 @@ describe('HeroicParameterSection (ROT-HA-02)', () => {
       sheet={sheetWith({ ...emptyConfig, kind: 'paragonSkill', complete: false })}
       reference={reference} run={run} />)
 
-    fireEvent.change(screen.getByRole('combobox'), { target: { value: 'skill-2' } })
+    chooseSelect(screen.getByRole('combobox'), 'skill-2')
     fireEvent.click(screen.getByRole('button', { name: 'Сохранить' }))
 
     await waitFor(() => expect(setConfigMock)
@@ -143,7 +144,7 @@ describe('HeroicParameterSection (ROT-HA-02)', () => {
       sheet={sheetWith({ ...emptyConfig, kind: 'signatureWeapon', complete: false })}
       reference={reference} run={run} />)
 
-    fireEvent.change(screen.getByLabelText('Профиль оружия'), { target: { value: 'twoHanded' } })
+    chooseSelect(screen.getByLabelText('Профиль оружия'), 'twoHanded')
     const traitPicker = screen.getByRole('button', { name: 'Признаки формы' })
     expect(screen.queryByRole('option', { name: 'дробящее' })).toBeNull()
     fireEvent.click(traitPicker)
@@ -152,7 +153,7 @@ describe('HeroicParameterSection (ROT-HA-02)', () => {
     // Ближней форме предлагают только подходящее улучшение: дальнобойного в списке нет.
     const attachmentPicker = screen.getByLabelText('Базовое улучшение')
     expect(screen.queryByRole('option', { name: 'Взрывной снаряд' })).toBeNull()
-    fireEvent.change(attachmentPicker, { target: { value: 'att-thunder' } })
+    chooseSelect(attachmentPicker, 'att-thunder')
 
     fireEvent.click(screen.getByRole('button', { name: 'Сохранить' }))
 
@@ -171,9 +172,11 @@ describe('HeroicParameterSection (ROT-HA-02)', () => {
       reference={reference} run={run} />)
 
     // Железа книга именному оружию не даёт, древняя работа приходит улучшением (ROT-HA-05).
+    fireEvent.click(screen.getByLabelText('Качество изготовления'))
     expect(screen.queryByRole('option', { name: 'Железо' })).toBeNull()
     expect(screen.queryByRole('option', { name: 'Древняя работа' })).toBeNull()
     expect(screen.getByRole('option', { name: 'Гномья работа' })).toBeTruthy()
+    fireEvent.keyDown(screen.getByLabelText('Качество изготовления'), { key: 'Escape' })
   })
 
   it('показывает свойства выбранного качества изготовления', () => {
@@ -183,7 +186,7 @@ describe('HeroicParameterSection (ROT-HA-02)', () => {
 
     expect(screen.getByText(/Без изменений: базовые характеристики профиля/)).toBeTruthy()
 
-    fireEvent.change(screen.getByLabelText('Качество изготовления'), { target: { value: 'dwarven' } })
+    chooseSelect(screen.getByLabelText('Качество изготовления'), 'dwarven')
     expect(screen.getByText(/Урон \+1, вес \+1, редкость \+2/)).toBeTruthy()
   })
 
@@ -192,7 +195,7 @@ describe('HeroicParameterSection (ROT-HA-02)', () => {
       sheet={sheetWith({ ...emptyConfig, kind: 'signatureWeapon', complete: false })}
       reference={reference} run={run} />)
 
-    fireEvent.change(screen.getByLabelText('Базовое улучшение'), { target: { value: 'att-thunder' } })
+    chooseSelect(screen.getByLabelText('Базовое улучшение'), 'att-thunder')
 
     expect(screen.getByText(/Добавляет свойство/)).toBeTruthy()
   })

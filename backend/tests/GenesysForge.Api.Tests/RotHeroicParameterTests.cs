@@ -159,6 +159,8 @@ public class RotHeroicParameterTests(ApiFactory factory) : IClassFixture<ApiFact
         // Профиль даёт «Brawn + 5» и крит 3, эльфийская работа снимает по единице с обоих
         // (ROT-WPN-02): у именного оружия те же правила, что у любого другого.
         Assert.Equal("Brawn + 4", weapon.Damage);
+        Assert.Equal(DamageKind.BrawnPlus, weapon.DamageKind);
+        Assert.Equal(4, weapon.DamageValue);
         Assert.Equal(2, weapon.Crit);
         Assert.Equal("Engaged", weapon.RangeBand);
         Assert.Equal(3, weapon.Encumbrance);
@@ -285,6 +287,8 @@ public class RotHeroicParameterTests(ApiFactory factory) : IClassFixture<ApiFact
         Assert.Equal(SignatureWeaponProfile.Ranged, weapon.Profile);
         // Дальнобойный профиль — урон 8, эльфийская работа уменьшает его на единицу (ROT-WPN-02).
         Assert.Equal("7", weapon.Damage);
+        Assert.Equal(DamageKind.Fixed, weapon.DamageKind);
+        Assert.Equal(7, weapon.DamageValue);
         Assert.Equal("Эльфийский лук", weapon.NarrativeForm);
     }
 

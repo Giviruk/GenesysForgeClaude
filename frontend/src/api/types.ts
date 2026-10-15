@@ -247,6 +247,8 @@ export interface SignatureWeapon {
   isLost: boolean
   skillName: string
   damage: string
+  damageKind?: DamageKind | null
+  damageValue?: number | null
   crit: number
   rangeBand: string
   encumbrance: number
@@ -1846,7 +1848,7 @@ export type CharacterAuditAction =
   | 'abilityActivated' | 'characterCreated' | 'itemThrownChanged'
   | 'attachmentBought' | 'attachmentInstalled' | 'attachmentDetached'
   | 'itemDamageStateChanged' | 'itemRepaired' | 'implementConfigured' | 'shardConfigured'
-  | 'craftingStarted' | 'craftingResolved' | 'serviceBought'
+  | 'craftingStarted' | 'craftingResolved' | 'craftingCancelled' | 'serviceBought'
   | 'mountBought' | 'mountSold' | 'mountRemoved' | 'cargoMoved'
 
 export interface CharacterAuditEntry {

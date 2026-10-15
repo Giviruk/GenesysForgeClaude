@@ -1,3 +1,4 @@
+import { Select } from '../components/Select'
 import { useCallback, useEffect, useRef, useState, type ChangeEvent, type FormEvent } from 'react'
 import { api } from '../api/client'
 import type {
@@ -424,11 +425,11 @@ export function CreateCharacterForm({ onCancel, onCreated, campaignId, closedSys
 
         <label>
           {system === 'realmsOfTerrinoth' ? t('Раса (архетип)', 'Species (archetype)') : t('Архетип', 'Archetype')}
-          <select value={archetypeId}
-            onChange={e => { setArchetypeId(e.target.value); setSkillChoices({}); setSpeciesChoice('') }} required>
+          <Select value={archetypeId}
+            onChange={value => { setArchetypeId(value); setSkillChoices({}); setSpeciesChoice('') }} required>
             <option value="" disabled>{t('— выберите —', '— select —')}</option>
             {reference?.archetypes.map(a => <option key={a.id} value={a.id}>{localizedName(a)}</option>)}
-          </select>
+          </Select>
         </label>
         {archetype && (
           <div className="hint">
@@ -495,8 +496,8 @@ export function CreateCharacterForm({ onCancel, onCreated, campaignId, closedSys
 
         <label>
           {t('Карьера', 'Career')}
-          <select value={careerId} onChange={e => {
-            setCareerId(e.target.value)
+          <Select value={careerId} onChange={value => {
+            setCareerId(value)
             setFreeSkills([])
             setSkillChoices({})
             setGearChoices({})
@@ -504,7 +505,7 @@ export function CreateCharacterForm({ onCancel, onCreated, campaignId, closedSys
           }} required>
             <option value="" disabled>{t('— выберите —', '— select —')}</option>
             {reference?.careers.map(c => <option key={c.id} value={c.id}>{localizedName(c)}</option>)}
-          </select>
+          </Select>
         </label>
 
         {career && (

@@ -1,3 +1,4 @@
+import { chooseSelect } from './select'
 import { expect, test } from '@playwright/test'
 
 let token: string
@@ -37,9 +38,9 @@ test('PR #283: every sheet section is reachable through the tablet select', asyn
     await page.setViewportSize({ width, height: 900 })
     await expect(select).toBeVisible()
     await expect(page.locator('.main-tabs')).toBeHidden()
-    await select.selectOption('history')
+    await chooseSelect(select, 'history')
     await expect(page.locator('.history-tab')).toBeVisible()
-    await select.selectOption('bio')
+    await chooseSelect(select, 'bio')
     await expect(page.locator('.bio-background')).toBeVisible()
   }
   await page.setViewportSize({ width: 1101, height: 900 })
@@ -87,7 +88,7 @@ test('PR #285: character links and management buttons have separate keyboard act
 test('PR #286: mobile career skills keep visible markers matching the legend', async ({ page }) => {
   await page.setViewportSize({ width: 375, height: 900 })
   await page.goto(`/characters/${characterId}`)
-  await page.getByLabel('Раздел листа').selectOption('sheet')
+  await chooseSelect(page.getByLabel('Раздел листа'), 'sheet')
   for (const width of [320, 375, 767]) {
     await page.setViewportSize({ width, height: 900 })
     const career = page.locator('.rd-skill-grid-row .rd-career-mark.active')

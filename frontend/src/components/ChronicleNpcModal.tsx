@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { api } from '../api/client'
 import type { Characteristic, NpcDetail, Reference } from '../api/types'
 import { t } from '../i18n'
-import { CHARACTERISTIC_LABELS, NPC_KIND_LABELS, NPC_ROLE_LABELS, SYSTEM_LABELS } from '../utils/labels'
+import { rangeBandLabel, CHARACTERISTIC_LABELS, NPC_KIND_LABELS, NPC_ROLE_LABELS, SYSTEM_LABELS } from '../utils/labels'
 import { npcAttackViews, npcSkillViews, skillIndex } from '../utils/npcStats'
 import { RuleText } from './RuleText'
 
@@ -90,7 +90,7 @@ export function ChronicleNpcModal({ npcId, campaignId, onClose }: Props) {
               {npc.attacks[index].skillName && <span>{attack.skillLabel ?? npc.attacks[index].skillName}</span>}
               {attack.damageText && <span>{t('Урон', 'Damage')} <b>{attack.damageText}</b></span>}
               {attack.crit && <span>{t('Крит', 'Crit')} <b>{attack.crit}</b></span>}
-              {attack.rangeBand && <span>{attack.rangeBand}</span>}
+              {attack.rangeBand && <span>{rangeBandLabel(attack.rangeBand)}</span>}
             </div>
             {attack.notes && <div className="muted small-text"><RuleText text={attack.notes} symbolsOnly /></div>}
           </li>)}</ul>

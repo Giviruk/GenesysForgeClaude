@@ -1,3 +1,4 @@
+import { Select } from '../components/Select'
 import { toneClass } from '../utils/tones'
 import { RuleText } from '../components/RuleText'
 import { useEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } from 'react'
@@ -84,18 +85,18 @@ function BestiaryPage({ openId, filters, onOpen, onBack }: Props & { filters: Fi
       <div className="bt-pills bt-kind-pills">{NPC_KINDS.map(kind => <button key={kind} type="button" className={`kind-${kind} ${toneClass('npc', kind)}`} aria-pressed={filters.kinds.includes(kind)} onClick={() => updateFilters({ ...filters, kinds: filters.kinds.includes(kind) ? filters.kinds.filter(k => k !== kind) : [...filters.kinds, kind] })}>{NPC_KIND_LABELS[kind]}</button>)}
         <button type="button" className="bt-desktop-filter" aria-expanded={filterOpen} onClick={() => setFilterOpen(true)}><Icon name="adjustments" />{t('Фильтры', 'Filters')}{count > 0 && <small>{count}</small>}</button></div></div>
       <div className="bt-inline-filters">
-        <select aria-label={t('Система', 'System')} value={filters.system} onChange={e => updateFilters({ ...filters, system: e.target.value as Filters['system'] })}>
-          <option value="">{t('Все системы', 'All systems')}</option>{SYSTEMS.map(system => <option key={system} value={system}>{SYSTEM_LABELS[system]}</option>)}</select>
-        <select aria-label={t('Роль', 'Role')} value={filters.role} onChange={e => updateFilters({ ...filters, role: e.target.value as Filters['role'] })}>
-          <option value="">{t('Все роли', 'All roles')}</option>{NPC_ROLES.map(role => <option key={role} value={role}>{NPC_ROLE_LABELS[role]}</option>)}</select>
+        <Select aria-label={t('Система', 'System')} value={filters.system} onChange={value => updateFilters({ ...filters, system: value as Filters['system'] })}>
+          <option value="">{t('Все системы', 'All systems')}</option>{SYSTEMS.map(system => <option key={system} value={system}>{SYSTEM_LABELS[system]}</option>)}</Select>
+        <Select aria-label={t('Роль', 'Role')} value={filters.role} onChange={value => updateFilters({ ...filters, role: value as Filters['role'] })}>
+          <option value="">{t('Все роли', 'All roles')}</option>{NPC_ROLES.map(role => <option key={role} value={role}>{NPC_ROLE_LABELS[role]}</option>)}</Select>
       </div>
       <div className="bt-filter-summary"><div className="bt-pills">{filters.system && <button type="button" onClick={() => updateFilters({ ...filters, system: '' })}>{SYSTEM_LABELS[filters.system]} ×</button>}{filters.role && <button type="button" onClick={() => updateFilters({ ...filters, role: '' })}>{NPC_ROLE_LABELS[filters.role]} ×</button>}</div>
-        <select aria-label={t('Сортировка', 'Sort')} value={filters.sort} onChange={e => updateFilters({ ...filters, sort: e.target.value as Filters['sort'] })}><option value="createdAt">{t('Сначала новые', 'Newest first')}</option><option value="name">{t('По имени', 'By name')}</option></select></div>
+        <Select aria-label={t('Сортировка', 'Sort')} value={filters.sort} onChange={value => updateFilters({ ...filters, sort: value as Filters['sort'] })}><option value="createdAt">{t('Сначала новые', 'Newest first')}</option><option value="name">{t('По имени', 'By name')}</option></Select></div>
       {error && <div className="error" role="alert">{error}<button onClick={() => setVersion(v => v + 1)}>{t('Повторить', 'Retry')}</button></div>}
       <ul className="bt-items" ref={listRef} onScroll={e => sessionStorage.setItem(scrollKey, String(e.currentTarget.scrollTop))}>
         {!npcs && !error && Array.from({ length: 6 }, (_, i) => <li key={i} className="bt-skeleton" aria-label={t('Загрузка NPC', 'Loading NPC')} />)}
         {npcs && shown.map(n => <li key={n.id}><button type="button" className={`bt-item${openId === n.id ? ' active' : ''}`} aria-current={openId === n.id ? 'true' : undefined} onClick={() => onOpen(n.id)}>
-          <div className="bt-item-copy"><div className="bt-item-title"><strong>{n.name}</strong><span className={`bt-kind kind-${n.kind} ${toneClass('npc', n.kind)}`}>{NPC_KIND_LABELS[n.kind]}</span></div>
+          <div className="bt-item-copy"><div className="bt-item-title"><strong title={n.name}>{n.name}</strong><span className={`bt-kind kind-${n.kind} ${toneClass('npc', n.kind)}`}>{NPC_KIND_LABELS[n.kind]}</span></div>
           <small className="bt-item-meta">{NPC_ROLE_LABELS[n.role]} · <span className={n.system === 'genesysCore' ? 'bt-core' : 'bt-terrinoth'}>{n.system === 'genesysCore' ? 'Core' : 'Terrinoth'}</span> · <i>{n.isBuiltIn ? t('встроенный', 'built-in') : n.isMine ? t('мой', 'mine') : t('кампания', 'campaign')}</i></small></div>
           <div className="bt-item-stats"><span title={t('Поглощение', 'Soak')}><Icon name="shield" />{n.soak}</span><span title={t('Раны', 'Wounds')}><Icon name="heart" />{n.woundThreshold}</span></div><Icon className="bt-row-chevron" name="chevron-right" /></button></li>)}
         {npcs && !shown.length && <li className="bt-empty"><Icon name="skull" /><p>{npcs.length ? t('Ничего не найдено', 'No matches found') : t('В бестиарии пока нет NPC', 'No NPCs yet')}</p><button type="button" onClick={() => npcs.length ? updateFilters({ ...EMPTY_FILTERS }) : create('manual')}>{npcs.length ? t('Сбросить фильтры', 'Reset filters') : t('Создать NPC', 'Create NPC')}</button></li>}
@@ -561,7 +562,7 @@ function NpcEditor({ initial, savedId, dirty, onCancel, onSaved, onChange, onKin
       setMobileTab(section === 2 ? (attackError ? 3 : 2) : section)
       requestAnimationFrame(() => {
         const panel = document.getElementById(`npc-section-${section}`)
-        panel?.querySelector<HTMLElement>('[aria-invalid=true],input:not(:disabled),select,textarea')?.focus()
+        panel?.querySelector<HTMLElement>('[aria-invalid=true],input:not(:disabled),button[role=combobox]:not(:disabled),textarea')?.focus()
         panel?.scrollIntoView({ block: 'center', behavior: 'smooth' })
       })
     } finally { setBusy(false) }
@@ -599,10 +600,10 @@ function NpcEditor({ initial, savedId, dirty, onCancel, onSaved, onChange, onKin
         <div className="bt-base-grid"><label>{t('Имя', 'Name')}<input name="npc-name" aria-invalid={!!error && !form.name.trim()} required value={form.name} onChange={e => set('name', e.target.value)} /></label>
           <div><span className="bt-field-label">{t('Система', 'System')}</span><div className="bt-system-options">{SYSTEMS.map(system => <button type="button" key={system} aria-pressed={form.system === system} onClick={() => set('system', system)}>{system === 'genesysCore' ? 'Genesys Core' : 'Terrinoth'}</button>)}</div></div></div>
         <div><span className="bt-field-label">{t('Тип', 'Type')}</span><KindCards value={form.kind} onChange={kind => set('kind', kind)} /></div>
-        <div className="bt-two-fields"><label>{t('Роль', 'Role')}<select value={form.role} onChange={e => set('role', e.target.value as NpcRole)}>{NPC_ROLES.map(role => <option key={role} value={role}>{NPC_ROLE_LABELS[role]}</option>)}</select></label>
-          <label>{t('Видимость', 'Visibility')}<select value={form.visibility} onChange={e => set('visibility', e.target.value as NpcVisibility)}>{(['private', 'campaignVisible', 'publicTemplate'] as NpcVisibility[]).map(v => <option key={v} value={v}>{NPC_VISIBILITY_LABELS[v]}</option>)}</select></label></div>
+        <div className="bt-two-fields"><label>{t('Роль', 'Role')}<Select value={form.role} onChange={value => set('role', value as NpcRole)}>{NPC_ROLES.map(role => <option key={role} value={role}>{NPC_ROLE_LABELS[role]}</option>)}</Select></label>
+          <label>{t('Видимость', 'Visibility')}<Select value={form.visibility} onChange={value => set('visibility', value as NpcVisibility)}>{(['private', 'campaignVisible', 'publicTemplate'] as NpcVisibility[]).map(v => <option key={v} value={v}>{NPC_VISIBILITY_LABELS[v]}</option>)}</Select></label></div>
         <label>{t('Описание', 'Description')}<textarea rows={2} value={form.description} onChange={e => set('description', e.target.value)} /></label>
-        <div className="bt-template"><Icon name="sparkles" /><span className="muted">{t('Шаблон добавит теги, способности и природную атаку', 'A template adds tags, abilities and a natural attack')}</span><select aria-label={t('Тип существа (шаблон)', 'Creature type (template)')} value={template} onChange={e => setTemplate(e.target.value as CreatureTemplate)}>{CREATURE_TEMPLATES.map(c => <option key={c} value={c}>{CREATURE_TEMPLATE_LABELS[c]}</option>)}</select><button type="button" disabled={template === 'none' || applying} onClick={() => void applyTemplate()}>{t('Применить', 'Apply')}</button></div>
+        <div className="bt-template"><Icon name="sparkles" /><span className="muted">{t('Шаблон добавит теги, способности и природную атаку', 'A template adds tags, abilities and a natural attack')}</span><Select aria-label={t('Тип существа (шаблон)', 'Creature type (template)')} value={template} onChange={value => setTemplate(value as CreatureTemplate)}>{CREATURE_TEMPLATES.map(c => <option key={c} value={c}>{CREATURE_TEMPLATE_LABELS[c]}</option>)}</Select><button type="button" disabled={template === 'none' || applying} onClick={() => void applyTemplate()}>{t('Применить', 'Apply')}</button></div>
       </section>
       <section id="npc-section-1" data-section="1" className="bt-editor-section bt-editor-stats"><h4>2 · {t('Характеристики и пороги', 'Characteristics and thresholds')}</h4>
         <div className="bt-stat-grid">{CHARACTERISTICS.map(c => <NumberStepper key={c} className="bt-stat-stepper" label={CHARACTERISTIC_LABELS[c]} value={form[c]} min={1} max={6} onChange={v => set(c, v)} />)}</div>
@@ -686,12 +687,12 @@ function SkillsEditor({ skills, available, characteristics, groupSkills = false,
         const label = def ? refLabel(def) : s.name || String(i + 1)
         return (
           <div key={i} className="bt-skill-edit">
-            <select required aria-label={t(`Навык ${i + 1}`, `Skill ${i + 1}`)} className="grow" value={def?.name ?? s.name}
-              onChange={e => onChange(skills.map((x, j) => j === i ? { ...x, name: e.target.value } : x))}>
+            <Select required aria-label={t(`Навык ${i + 1}`, `Skill ${i + 1}`)} className="grow" value={def?.name ?? s.name}
+              onChange={value => onChange(skills.map((x, j) => j === i ? { ...x, name: value } : x))}>
               <option value="">{t('— выберите навык —', '— pick a skill —')}</option>
               {orphan && <option value={s.name}>{s.name} {t('(вне справочника)', '(not in reference)')}</option>}
               {available.map(sk => <option key={sk.id} value={sk.name}>{dualName(sk)}</option>)}
-            </select>
+            </Select>
             {!groupSkills && <NumberStepper className="bt-rank-stepper" label={t(`Ранг: ${label}`, `Rank: ${label}`)} value={s.ranks} min={0} max={5} onChange={ranks => onChange(skills.map((x, j) => j === i ? { ...x, ranks } : x))} />}
             {def ? <span className="bt-skill-pool"><small>{CHARACTERISTIC_LABELS[def.characteristic]}</small><DicePoolView pool={buildPool(characteristics[def.characteristic], groupSkills ? 0 : s.ranks)} /></span> : <span className="muted small-text">—</span>}
             <button type="button" className="danger bt-remove" aria-label={t(`Удалить навык ${i + 1}`, `Remove skill ${i + 1}`)} onClick={() => onChange(skills.filter((_, j) => j !== i))}>×</button>
@@ -722,14 +723,14 @@ function PickListEditor({ label, values, options, onChange, placeholder, childre
           </span>
         ))}
       </div>}
-      <select className="grow" aria-label={label} value="" disabled={remaining.length === 0}
-        onChange={e => { if (e.target.value) onChange([...values, e.target.value]) }}>
+      <Select className="grow" aria-label={label} value="" disabled={remaining.length === 0}
+        onChange={value => { if (value) onChange([...values, value]) }}>
         <option value="">
           {options.length === 0 ? t('Справочник загружается…', 'Reference loading…')
             : remaining.length === 0 ? t('Все доступные уже добавлены', 'Everything available is already added') : placeholder}
         </option>
         {remaining.map(o => <option key={o.name} value={refLabel(o)}>{dualName(o)}</option>)}
-      </select>
+      </Select>
     </div>
   )
 }
@@ -774,21 +775,21 @@ function AttacksEditor({ attacks, skills, qualities, onChange }: {
         const derived = a.sourceWeapon !== ''
         return (
           <div key={i} className="ability-edit">
-            {derived && <div className="muted small-text">{t(`🗡 из снаряжения: «${a.sourceWeapon}» (убрать — удалить оружие из инвентаря)`, `🗡 from gear: "${a.sourceWeapon}" (to remove it, delete the weapon from gear)`)}</div>}
+            {derived && <div className="muted small-text icon-text"><Icon name="sword" className="button-icon" />{t(`из снаряжения: «${a.sourceWeapon}» (убрать — удалить оружие из инвентаря)`, `from gear: "${a.sourceWeapon}" (to remove it, delete the weapon from gear)`)}</div>}
             <div className="form-row">
               <input required className="grow" placeholder={t('Название атаки/оружия', 'Attack/weapon name')} value={a.name}
                 onChange={e => upd(i, { name: e.target.value })} />
               {!derived && <button type="button" className="danger small" onClick={() => onChange(attacks.filter((_, j) => j !== i))}>×</button>}
             </div>
             <div className="form-row">
-              <select required aria-label={t(`Навык атаки ${i + 1}`, `Attack skill ${i + 1}`)} className="grow" value={a.skillName} onChange={e => upd(i, { skillName: e.target.value })}>
+              <Select required aria-label={t(`Навык атаки ${i + 1}`, `Attack skill ${i + 1}`)} className="grow" value={a.skillName} onChange={value => upd(i, { skillName: value })}>
                 <option value="">{t('— навык броска —', '— roll skill —')}</option>
                 {a.skillName !== '' && !skills.some(s => s.name === a.skillName) &&
                   <option value={a.skillName}>{a.skillName} {t('(вне справочника)', '(not in reference)')}</option>}
                 {skills.filter(s => s.kind === 'combat' || s.kind === 'magic').map(s => (
                   <option key={s.name} value={s.name}>{dualName(s)}</option>
                 ))}
-              </select>
+              </Select>
             </div>
             <div className="form-row">
               <label className="char-input">{t('Урон', 'Damage')}<input required value={a.damage} placeholder="+3 / 7"
@@ -798,7 +799,7 @@ function AttacksEditor({ attacks, skills, qualities, onChange }: {
               <label className="char-input grow">{t('Дистанция', 'Range')}<input required value={a.rangeBand} placeholder={t('Вплотную', 'Engaged')}
                 onChange={e => upd(i, { rangeBand: e.target.value })} /></label>
             </div>
-            <div className="chips">
+            <div className="chips npc-attack-qualities">
               {a.qualities.map((q, k) => (
                 <span key={k} className="chip removable">
                   {q.nameRu || q.qualityCode}
@@ -808,14 +809,14 @@ function AttacksEditor({ attacks, skills, qualities, onChange }: {
                 </span>
               ))}
             </div>
-            <select className="grow" value="" disabled={remaining.length === 0}
-              onChange={e => {
-                const q = qualities.find(x => x.code === e.target.value)
+            <Select className="grow" value="" disabled={remaining.length === 0}
+              onChange={value => {
+                const q = qualities.find(x => x.code === value)
                 if (q) upd(i, { qualities: [...a.qualities, { qualityCode: q.code, nameRu: q.nameRu || q.nameEn, rating: q.hasRating ? 1 : null }] })
               }}>
               <option value="">{qualities.length === 0 ? t('Справочник качеств загружается…', 'Qualities reference loading…') : remaining.length === 0 ? t('Все качества добавлены', 'All qualities added') : t('Добавить качество', 'Add quality')}</option>
               {remaining.map(q => <option key={q.code} value={q.code}>{t(q.nameRu || q.nameEn, q.nameEn || q.nameRu)}</option>)}
-            </select>
+            </Select>
             <input placeholder={t('Заметки по атаке', 'Attack notes')} value={a.notes}
               onChange={e => upd(i, { notes: e.target.value })} />
           </div>
@@ -936,13 +937,13 @@ function QuickDraftForm({ req, onRequestChange, onCancel, onCreated, onModeChang
       <section className="bt-draft-step bt-draft-roles"><h3><b>1</b> {t('Роль', 'Role')}</h3><p className="muted small-text">{t('Роль задаёт характеристики, навыки и стиль боя', 'The role defines characteristics, skills and combat style')}</p><div className="bt-role-grid">{NPC_ROLES.map(role => <button type="button" className={toneClass('role', role)} key={role} aria-pressed={req.role === role} onClick={() => pickRole(role)}><span className="bt-role-icon"><Icon name={ROLE_ICONS[role]} /></span><span><strong>{NPC_ROLE_LABELS[role]}</strong><small>{ROLE_HINTS[role].sub}</small></span></button>)}</div></section>
       <section className="bt-draft-step bt-draft-power"><h3><b>2</b> {t('Тип и сила', 'Type and power')}</h3><KindCards value={req.kind} onChange={kind => set('kind', kind)} /><div className="bt-power-grid">{powerLevels.map(power => <button type="button" key={power} aria-pressed={req.powerLevel === power} onClick={() => set('powerLevel', power)}>{NPC_POWER_LABELS[power]}</button>)}</div></section>
       <section className="bt-draft-step bt-draft-refinements"><h3><b>3</b> {t('Уточнения', 'Refinements')} <small className="muted">{t('необязательно', 'optional')}</small></h3><div className="bt-refinement-grid">
-        <label>{t('Система', 'System')}<select value={req.system} onChange={e => set('system', e.target.value as GameSystem)}>{SYSTEMS.map(system => <option key={system} value={system}>{SYSTEM_LABELS[system]}</option>)}</select></label>
-        <label>{t('Боевой стиль', 'Combat style')}<select value={req.combatStyle} onChange={e => set('combatStyle', e.target.value as NpcCombatStyle)}>{(['melee', 'ranged', 'magic', 'social'] as NpcCombatStyle[]).map(style => <option key={style} value={style}>{NPC_COMBAT_STYLE_LABELS[style]}</option>)}</select></label>
-        <label>{t('Основная характеристика', 'Primary characteristic')}<select value={req.primaryCharacteristic ?? ''} onChange={e => set('primaryCharacteristic', (e.target.value || null) as Characteristic | null)}><option value="">{t('По роли:', 'By role:')} {CHARACTERISTIC_LABELS[ROLE_PRIMARY[req.role]]}</option>{CHARACTERISTICS.map(c => <option key={c} value={c}>{CHARACTERISTIC_LABELS[c]}</option>)}</select></label>
-        <label>{t('Тип существа', 'Creature type')}<select value={req.template ?? 'none'} onChange={e => set('template', e.target.value as CreatureTemplate)}>{CREATURE_TEMPLATES.map(c => <option key={c} value={c}>{CREATURE_TEMPLATE_LABELS[c]}</option>)}</select></label>
+        <label>{t('Система', 'System')}<Select value={req.system} onChange={value => set('system', value as GameSystem)}>{SYSTEMS.map(system => <option key={system} value={system}>{SYSTEM_LABELS[system]}</option>)}</Select></label>
+        <label>{t('Боевой стиль', 'Combat style')}<Select value={req.combatStyle} onChange={value => set('combatStyle', value as NpcCombatStyle)}>{(['melee', 'ranged', 'magic', 'social'] as NpcCombatStyle[]).map(style => <option key={style} value={style}>{NPC_COMBAT_STYLE_LABELS[style]}</option>)}</Select></label>
+        <label>{t('Основная характеристика', 'Primary characteristic')}<Select value={req.primaryCharacteristic ?? ''} onChange={value => set('primaryCharacteristic', (value || null) as Characteristic | null)}><option value="">{t('По роли:', 'By role:')} {CHARACTERISTIC_LABELS[ROLE_PRIMARY[req.role]]}</option>{CHARACTERISTICS.map(c => <option key={c} value={c}>{CHARACTERISTIC_LABELS[c]}</option>)}</Select></label>
+        <label>{t('Тип существа', 'Creature type')}<Select value={req.template ?? 'none'} onChange={value => set('template', value as CreatureTemplate)}>{CREATURE_TEMPLATES.map(c => <option key={c} value={c}>{CREATURE_TEMPLATE_LABELS[c]}</option>)}</Select></label>
         <label>{t('Имя (необязательно)', 'Name (optional)')}<input value={name} onChange={e => set('name', e.target.value || null)} placeholder={t('Сгенерируется автоматически', 'Generated automatically')} /></label>
         <label>{t('Окружение / тег (необязательно)', 'Environment / tag (optional)')}<input value={req.environment ?? ''} onChange={e => set('environment', e.target.value || null)} placeholder={t('лес, подземелье…', 'forest, dungeon…')} /></label>
-        {req.combatStyle === 'magic' && <label>{t('Магшкола', 'Magic school')}<select value={req.magicSkill ?? ''} onChange={e => set('magicSkill', e.target.value || null)}><option value="">{t('По умолчанию', 'Default')}</option>{magicSkills.map(s => <option key={s.name} value={s.name}>{dualName(s)}</option>)}</select></label>}
+        {req.combatStyle === 'magic' && <label>{t('Магшкола', 'Magic school')}<Select value={req.magicSkill ?? ''} onChange={value => set('magicSkill', value || null)}><option value="">{t('По умолчанию', 'Default')}</option>{magicSkills.map(s => <option key={s.name} value={s.name}>{dualName(s)}</option>)}</Select></label>}
       </div></section>
     </div>
           <aside className="qd-preview bt-draft-preview">

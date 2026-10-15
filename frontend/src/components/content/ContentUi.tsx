@@ -1,3 +1,4 @@
+import { Select } from '../Select'
 import { useEffect, useId, useRef, useState, type ReactNode } from 'react'
 import type { GameSystem } from '../../api/types'
 import { t } from '../../i18n'
@@ -95,9 +96,9 @@ export function PickerModal({ title, rows, onConfirm, onClose, busy = false, hin
         {rows.find(x => x.group === g)!.groupLabel}</SideNavRow>)}
     </nav><div className="rd-picker-main"><div className="rd-toolbar">
       <input type="search" aria-label={t('Поиск контента', 'Search content')} placeholder={t('Поиск по названию…', 'Search by name…')} value={search} onChange={e => setSearch(e.target.value)} />
-      <select aria-label={t('Сортировка', 'Sort')} value={sort} onChange={e => setSort(e.target.value as typeof sort)}>
+      <Select aria-label={t('Сортировка', 'Sort')} value={sort} onChange={value => setSort(value as typeof sort)}>
         <option value="type">{t('По типу', 'By type')}</option><option value="name">{t('По имени', 'By name')}</option><option value="recent">{t('По изменению', 'Recently edited')}</option>
-      </select></div>
+      </Select></div>
       <CheckRow label={allChecked ? t('Снять видимые', 'Deselect visible') : t(`Выбрать видимые (${visible.length})`, `Select visible (${visible.length})`)} checked={allChecked} disabled={!visible.length || saving}
         onChange={on => setSelected(prev => toggleSelection(prev, visible.map(x => x.key), on))} />
       {!visible.length && <p className="rd-empty">{rows.length ? t('Ничего не найдено по фильтру.','No matches for this filter.') : t('Всё уже добавлено.','Everything is already added.')}</p>}

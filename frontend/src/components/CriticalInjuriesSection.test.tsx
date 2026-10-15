@@ -1,3 +1,4 @@
+import { chooseSelect, waitForSelectOption } from '../test/select'
 import { render, screen, waitFor, fireEvent } from '@testing-library/react'
 import { describe, expect, it, vi, beforeEach } from 'vitest'
 import type { CharacterSheet, RulesResponse } from '../api/types'
@@ -58,8 +59,8 @@ describe('CriticalInjuriesSection (U-23)', () => {
     // дождаться загрузки таблицы (optgroup из criticalInjury, без difficulty)
     expect(screen.queryByLabelText('Крит-ранение')).toBeNull()
     fireEvent.click(screen.getByRole('button', { name: 'Добавить' }))
-    await waitFor(() => expect(screen.getByRole('option', { name: /Небольшая царапина/ })).toBeTruthy())
-    fireEvent.change(screen.getByLabelText('Крит-ранение'), { target: { value: 'crit-ci_001_005' } })
+    await waitForSelectOption(screen.getByLabelText('Крит-ранение'), { name: /Небольшая царапина/ })
+    chooseSelect(screen.getByLabelText('Крит-ранение'), 'crit-ci_001_005')
     fireEvent.click(screen.getByRole('button', { name: 'Добавить' }))
 
     await waitFor(() => expect(addMock).toHaveBeenCalledWith('char-1', expect.objectContaining({ ruleCode: 'crit-ci_001_005' })))

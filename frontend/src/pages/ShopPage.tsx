@@ -1,3 +1,4 @@
+import { Select } from '../components/Select'
 import { Icon } from '../components/Icon'
 import { NumberStepper } from '../components/content/NumberStepper'
 import { toneClass, rarityClass } from '../utils/tones'
@@ -209,14 +210,14 @@ export function ShopPage() {
       <section className="panel shop-catalogue">
         <div className="shop-toolbar">
           <label>{t('Персонаж для покупок', 'Shopping character')}
-            <select value={characterId} onChange={event => {
-              setSelectedCharacterId(event.target.value)
+            <Select value={characterId} onChange={value => {
+              setSelectedCharacterId(value)
               setSelected(null)
               setError(null)
             }}>
               {matchingCharacters.length === 0 && <option value="">{t('Нет персонажа этой системы', 'No character for this system')}</option>}
               {matchingCharacters.map(character => <option key={character.id} value={character.id}>{character.name}</option>)}
-            </select>
+            </Select>
           </label>
           <input className="shop-search" value={search}
             placeholder={t('Поиск по названию, описанию и свойствам…', 'Search names, descriptions, and properties…')}
@@ -461,13 +462,13 @@ function ProductModal({ product, character, qualityDefinitions, onClose }: {
           {isImplement && (
             <label>
               <span>{t('Материал', 'Material')}</span>
-              <select value={material}
+              <Select value={material}
                 title={IMPLEMENT_MATERIAL_HINTS[material]}
-                onChange={event => setMaterial(event.target.value as ImplementMaterial)}>
+                onChange={value => setMaterial(value as ImplementMaterial)}>
                 {IMPLEMENT_MATERIALS.map(value => (
                   <option key={value} value={value}>{IMPLEMENT_MATERIAL_LABELS[value]}</option>
                 ))}
-              </select>
+              </Select>
               <span className="muted small-text">{IMPLEMENT_MATERIAL_HINTS[material]}</span>
             </label>
           )}
@@ -475,13 +476,13 @@ function ProductModal({ product, character, qualityDefinitions, onClose }: {
           {hasCraftsmanship && (
             <label>
               <span>{t('Материал / качество изготовления', 'Material / craftsmanship')}</span>
-              <select value={craftsmanship}
+              <Select value={craftsmanship}
                 title={WEAPON_CRAFTSMANSHIP_HINTS[craftsmanship]}
-                onChange={event => setCraftsmanship(event.target.value as WeaponCraftsmanship)}>
+                onChange={value => setCraftsmanship(value as WeaponCraftsmanship)}>
                 {WEAPON_CRAFTSMANSHIPS.map(value => (
                   <option key={value} value={value}>{WEAPON_CRAFTSMANSHIP_LABELS[value]}</option>
                 ))}
-              </select>
+              </Select>
               <span className="muted small-text">{WEAPON_CRAFTSMANSHIP_HINTS[craftsmanship]}</span>
             </label>
           )}

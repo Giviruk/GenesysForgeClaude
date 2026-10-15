@@ -1,3 +1,4 @@
+import { chooseSelect } from '../test/select'
 import { render, screen, waitFor, fireEvent, within } from '@testing-library/react'
 import { describe, expect, it, vi, beforeEach } from 'vitest'
 import type { CharacterSheet, ItemDef, Reference, SheetItem } from '../api/types'
@@ -248,7 +249,7 @@ describe('Инвентарь: качество изготовления (ROT-WPN
     render(<InventoryTab sheet={sheet} reference={reference} onError={() => {}}
       refresh={() => Promise.resolve()} />)
 
-    fireEvent.change(screen.getByRole('combobox', { name: 'Качество изготовления' }), { target: { value: 'dwarven' } })
+    chooseSelect(screen.getByRole('combobox', { name: 'Качество изготовления' }), 'dwarven')
 
     // Цена и редкость меняются уже в строке каталога, а не только внутри раскрытой покупки.
     expect(document.querySelector('.shop-row')?.textContent).toContain('цена 5000 → 10000')
@@ -270,8 +271,7 @@ describe('Инвентарь: качество изготовления (ROT-WPN
       refresh={() => Promise.resolve()} />)
 
     const staffRow = screen.getByText('Магический посох').closest('.shop-row') as HTMLElement
-    fireEvent.change(within(staffRow).getByRole('combobox', { name: 'Материал' }),
-      { target: { value: 'willow' } })
+    chooseSelect(within(staffRow).getByRole('combobox', { name: 'Материал' }), 'willow')
 
     expect(staffRow.textContent).toContain('цена 400 → 800')
     expect(staffRow.textContent).toContain('редкость 6 → 8')
@@ -289,7 +289,7 @@ describe('Инвентарь: качество изготовления (ROT-WPN
       refresh={() => Promise.resolve()} />)
 
     // Выбор работы доступен сразу: бесплатная выдача не должна требовать открытия магазина.
-    fireEvent.change(screen.getByRole('combobox', { name: 'Качество изготовления' }), { target: { value: 'elven' } })
+    chooseSelect(screen.getByRole('combobox', { name: 'Качество изготовления' }), 'elven')
     fireEvent.click(screen.getByRole('button', { name: '+ Добавить' }))
 
     await waitFor(() => expect(addItemMock).toHaveBeenCalledWith(

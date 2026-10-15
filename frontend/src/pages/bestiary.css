@@ -37,7 +37,7 @@
   font-weight: 700;
 }
 
-.bt-page :is(button, input, select):focus-visible, .bt-builder :is(button, input, select, textarea):focus-visible, .bt-filters-dialog button:focus-visible, .bt-talent:focus-visible {
+.bt-page :is(button, input, :is(select,:where(.select-control))):focus-visible, .bt-builder :is(button, input, :is(select,:where(.select-control)), textarea):focus-visible, .bt-filters-dialog button:focus-visible, .bt-talent:focus-visible {
   outline: 2px solid var(--orange);
   outline-offset: 2px;
 }
@@ -199,7 +199,7 @@
   flex-wrap: wrap;
 }
 
-.bt-filter-summary select {
+.bt-filter-summary :is(select,:where(.select-control)) {
   width: auto;
   margin-left: auto;
   max-width: 100%;
@@ -862,7 +862,7 @@
   font-size: 13px;
 }
 
-.bt-builder :is(input, select, textarea) {
+.bt-builder :is(input, :is(select,:where(.select-control)), textarea) {
   width: 100%;
   min-width: 0;
   font-size: 14px;
@@ -1062,7 +1062,7 @@
   gap: 8px;
 }
 
-.bt-builder .form-row > input.grow, .bt-builder .form-row > select.grow {
+.bt-builder .form-row > input.grow, .bt-builder .form-row > :is(select,:where(.select-control)).grow {
   width: auto;
   flex: 1 1 150px;
 }
@@ -1086,7 +1086,7 @@
   align-items: center;
 }
 
-.bt-skill-edit > select {
+.bt-skill-edit > :is(select,:where(.select-control)) {
   max-width: 100%;
 }
 
@@ -1856,7 +1856,7 @@
     padding: 12px;
     scroll-margin-top: 120px;
   }
-  .bt-builder :is(input,select,textarea) {
+  .bt-builder :is(input,:is(select,:where(.select-control)),textarea) {
     font-size: 16px;
     min-height: 44px;
   }
@@ -1883,7 +1883,7 @@
     grid-template-columns: auto minmax(0,1fr);
     gap: 8px;
   }
-  .bt-template select, .bt-template button {
+  .bt-template :is(select,:where(.select-control)), .bt-template button {
     grid-column: 1/-1;
     width: 100%;
   }
@@ -1947,7 +1947,7 @@
     padding-bottom: 10px;
     border-bottom: 1px solid var(--line);
   }
-  .bt-skill-edit > select {
+  .bt-skill-edit > :is(select,:where(.select-control)) {
     grid-column: 1;
     grid-row: 1;
   }
@@ -2235,7 +2235,7 @@
   display: none;
 }
 
-.bt-builder :is(input,select,textarea):user-invalid {
+.bt-builder :is(input,:is(select,:where(.select-control)),textarea):user-invalid {
   border-color: var(--red);
 }
 
@@ -2298,9 +2298,9 @@
   .bt-item-title { gap:8px; }
   .bt-item-title strong { font:700 15px var(--font-ui); color:var(--ink); }
   .bt-item-meta { color:var(--muted); font:12px var(--font-ui); }
-  .bt-page button,.bt-builder button { font-family:var(--font-head); }
+  .bt-page button:where(:not(.select-control)),.bt-builder button:where(:not(.select-control)) { font-family:var(--font-head); }
   .bt-page button.primary,.bt-builder button.primary { background:var(--orange); color:#fff; border-color:transparent; }
-  .bt-page :is(button,input,select):focus-visible,.bt-builder :is(button,input,select,textarea):focus-visible { outline-color:var(--blue); }
+  .bt-page :is(button,input,:is(select,:where(.select-control))):focus-visible,.bt-builder :is(button,input,:is(select,:where(.select-control)),textarea):focus-visible { outline-color:var(--blue); }
   .bt-pills button { background:#fff; border:1px solid var(--line-ctrl); color:var(--navy); font:600 13px var(--font-head); padding:4px 9px; min-height:28px; text-transform:uppercase; }
   .bt-pills button[aria-pressed=true],.bt-pills button[aria-selected=true] { background:var(--navy); border-color:var(--navy); color:#fff; }
   .bt-kind { background:none; color:var(--tone-ink); border:1px solid currentColor; padding:1px 6px; font:600 11px var(--font-head); text-transform:uppercase; }
@@ -2310,7 +2310,7 @@
   .bt-core { color:var(--t-blue-ink); }
   .bt-terrinoth { color:var(--t-purple-ink); }
   .bt-inline-filters { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:6px; }
-  .bt-inline-filters select { font-size:12px; padding:6px; min-height:34px; }
+  .bt-inline-filters :is(select,:where(.select-control)) { font-size:12px; padding:6px; min-height:34px; }
   .bt-detail { padding:0; background:#fff; overflow:visible; }
   .bt-card-view { border:1px solid var(--line); background:#fff; }
   .bt-detail-head { padding:12px 18px; background:var(--navy); color:#fff; border:0; }
@@ -2383,7 +2383,7 @@
   .bt-derived-grid label:nth-child(n+3):nth-child(-n+5) input { background:var(--t-blue-bg); border-color:var(--t-blue-line); }
   .bt-derived-grid input { font:700 17px var(--font-head); color:var(--navy); }
   .bt-template { background:var(--t-purple-bg); color:var(--t-purple-ink); border-color:var(--t-purple-line); }
-  .bt-template button { background:var(--t-purple); color:#fff; border:0; }
+  .bt-template button:where(:not(.select-control)) { background:var(--t-purple); color:#fff; border:0; }
   .bt-stat-note { background:var(--t-blue-bg); border:1px solid var(--t-blue-line); color:var(--t-blue-ink); }
   .bt-editor-attacks .ability-edit { background:var(--t-red-bg); border:1px solid var(--t-red-line); }
   .bt-filters-dialog,.bt-preview-dialog { background:#fff; border:1px solid var(--line); box-shadow:0 24px 60px rgba(0,0,0,.3); }
@@ -2517,8 +2517,8 @@
   .bt-draft-counts b,.npc-preview-details dd { overflow-wrap:normal; hyphens:auto; }
   .bt-draft-step>h3>small { font:12px var(--font-ui); text-transform:none; }
   .bt-builder label { font:600 12px var(--font-head); text-transform:uppercase; }
-  .bt-builder label :is(input,select,textarea) { text-transform:none; font-family:var(--font-ui); }
-  .bt-builder select { min-width:0; text-overflow:ellipsis; }
+  .bt-builder label :is(input,:is(select,:where(.select-control)),textarea) { text-transform:none; font-family:var(--font-ui); }
+  .bt-builder :is(select,:where(.select-control)) { min-width:0; text-overflow:ellipsis; }
   .bt-draft-preview { align-self:start; height:auto; }
   .bt-stat-stepper.sheet-stepper>button { height:28px; min-height:28px; }
 }
@@ -2535,3 +2535,13 @@
 }
 @media screen and (max-width:767px) { .bt-filter-pills .bt-pills button { min-height:36px; } }
 @media screen { .bt-items>li>button.bt-item.active { border-bottom:1px solid var(--line-soft); } }
+
+/* GEN-V5-15 E-08/E-15/E-17. */
+@media screen {
+  .bt-item-title strong { display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; white-space:normal; overflow:hidden; line-height:1.3; }
+  .bt-field-label { color:var(--label); font:600 12px/1.3 var(--font-head); letter-spacing:.06em; text-transform:uppercase; }
+}
+@media screen and (max-width:480px) {
+  .bt-kind-cards { grid-template-columns:1fr; }
+  .bt-kind-cards strong { font-size:15px; white-space:nowrap; overflow-wrap:normal; }
+}

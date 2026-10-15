@@ -1,3 +1,4 @@
+import { Select } from './Select'
 import { Icon } from './Icon'
 import { useCallback, useEffect, useId, useMemo, useRef, useState, type ChangeEvent, type KeyboardEvent } from 'react'
 import { api } from '../api/client'
@@ -341,11 +342,11 @@ export function CampaignChronicleTab({ campaignId, members, refreshSignal, onOpe
           <button onClick={chooseImage} disabled={uploadingImage}>
             <Icon name="photo-plus" className="button-icon" /> {uploadingImage ? t('Загрузка…', 'Uploading…') : t('Изображение', 'Image')}
           </button>
-          <span className="chronicle-picker"><select aria-label={t('Персонаж для ссылки', 'Character link')}
-            value={characterTarget} onChange={event => setCharacterTarget(event.target.value)}>
+          <span className="chronicle-picker"><Select aria-label={t('Персонаж для ссылки', 'Character link')}
+            value={characterTarget} onChange={value => setCharacterTarget(value)}>
             <option value="">{t('Персонаж…', 'Character…')}</option>
             {members.map(member => <option key={member.characterId} value={member.characterId}>{member.characterName}</option>)}
-          </select><button onClick={insertCharacter} disabled={!characterTarget}>＋</button></span>
+          </Select><button onClick={insertCharacter} disabled={!characterTarget}>＋</button></span>
           <span className="chronicle-picker chronicle-npc-picker">
             <NpcCombobox key={npcPickerReset} items={npcs} value={npcTarget} onChange={setNpcTarget} />
             <button onClick={insertNpc} disabled={!npcTarget}>＋</button>

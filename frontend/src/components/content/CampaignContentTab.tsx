@@ -1,3 +1,4 @@
+import { Select } from '../Select'
 import { toneClass } from '../../utils/tones'
 import { useCallback, useEffect, useState } from 'react'
 import { api } from '../../api/client'
@@ -131,7 +132,7 @@ export function CampaignContentTab({ campaignId, refreshSignal = 0 }: { campaign
       </SectionCard>
       <fieldset disabled={!selectedSystem.isOpen} className={`rd-book-layout${selectedSystem.isOpen ? '' : ' rd-book-closed'}`}><nav className="rd-sidebar" aria-label={t('Категории книг', 'Book categories')}>{selectedSystem.categories.map(c => <SideNavRow key={c.category} active={view.category === c.category} onClick={() => change({ category:c.category })}>{CATEGORY_LABELS[c.category]} {c.enabled}/{c.total}</SideNavRow>)}</nav><main className="rd-workspace">
       <div className="rd-toolbar"><input type="search" aria-label={t('Поиск в книгах', 'Search books')} placeholder={t('Поиск…', 'Search…')} value={search} onChange={e => setSearch(e.target.value)} />
-        <select value={source} onChange={e => setSource(e.target.value)} aria-label={t('Источник ограничения', 'Restriction source')}><option value="all">{t('Все источники', 'All sources')}</option><option value="disabled">{t('Отключённые', 'Disabled')}</option><option value="pack">{t('Наборы', 'Packs')}</option><option value="manual">{t('Ручные', 'Manual')}</option><option value="restored">{t('Возвращённые', 'Restored')}</option></select>
+        <Select value={source} onChange={value => setSource(value)} aria-label={t('Источник ограничения', 'Restriction source')}><option value="all">{t('Все источники', 'All sources')}</option><option value="disabled">{t('Отключённые', 'Disabled')}</option><option value="pack">{t('Наборы', 'Packs')}</option><option value="manual">{t('Ручные', 'Manual')}</option><option value="restored">{t('Возвращённые', 'Restored')}</option></Select>
         {view.system === 'realmsOfTerrinoth' && <><FilterChip active={bookSource === 'all'} onClick={() => setBookSource('all')}>{t('Все', 'All')}</FilterChip><FilterChip active={bookSource === 'rot'} onClick={() => setBookSource('rot')}>{t('Только Terrinoth', 'Terrinoth only')}</FilterChip><FilterChip active={bookSource === 'core'} onClick={() => setBookSource('core')}>{t('Общее с Core', 'Shared with Core')}</FilterChip></>}
         <button disabled={busy || !visibleBase.length} onClick={() => setBaseEntries(visibleBase, true)}>{t('Включить видимые', 'Enable visible')}</button><button disabled={busy || !visibleBase.length} onClick={() => setBaseEntries(visibleBase, false)}>{t('Отключить видимые', 'Disable visible')}</button>
       </div>

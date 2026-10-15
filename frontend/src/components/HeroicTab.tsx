@@ -1,5 +1,6 @@
+import { Select } from './Select'
 import { CompactDescription } from './CompactDescription'
-import { heroicMetaParts } from '../utils/designPresentation'
+import { heroicMetaParts, signatureWeaponDamage } from '../utils/designPresentation'
 import { RuleText } from './RuleText'
 import { BookReference } from './BookReference'
 import { useState } from 'react'
@@ -11,7 +12,7 @@ import type {
 import {
   CONFIRMABLE_WEAPON_TRAITS, formatWeaponTraits, HEROIC_ORIGIN_LABELS, HEROIC_ORIGIN_TYPES,
   HEROIC_UPGRADE_LABELS, heroicOriginFace, isAttachmentCompatible, localizedDescription, localizedName,
-  parseWeaponTraits, signatureWeaponTraits,
+  parseWeaponTraits, signatureWeaponTraits, rangeBandLabel,
   SIGNATURE_WEAPON_CRAFTSMANSHIPS, SIGNATURE_WEAPON_IMPROVEMENT_LABELS, SUPREME_ATTACHMENT_MAX_RARITY,
   SIGNATURE_WEAPON_PROFILE_LABELS, WEAPON_CRAFTSMANSHIP_LABELS,
   WEAPON_TRAIT_LABELS, SIGNATURE_WEAPON_CRAFTSMANSHIP_HINTS,
@@ -59,12 +60,12 @@ export function HeroicTab({ sheet, reference, onError, refresh }: Props) {
       ) : (
         <section className="heroic-ability-card panel"><h3 className="icon-text"><Icon name="crown" className="button-icon" />{t('Героическая способность', 'Heroic ability')}</h3>
           <div className="inline-form">
-            <select value={heroicPick} onChange={e => setHeroicPick(e.target.value)}>
+            <Select value={heroicPick} onChange={value => setHeroicPick(value)}>
               <option value="" disabled>{t('— выберите способность —', '— pick an ability —')}</option>
               {reference.heroicAbilities.map(h => (
                 <option key={h.id} value={h.id}>{localizedName(h)}{h.isCustom ? t(' (кастом)', ' (custom)') : ''}</option>
               ))}
-            </select>
+            </Select>
             <button className="primary" disabled={!heroicPick}
               onClick={() => run(() => api.setHeroicAbility(sheet.id, heroicPick))}>
               {t('Выбрать', 'Choose')}
@@ -333,13 +334,13 @@ export function HeroicIdentitySection({ sheet, run }: {
           <input value={name} maxLength={120} placeholder={t('Личное название', 'Personal name')}
             onChange={e => setName(e.target.value)} />
 
-          <select aria-label={t('Происхождение', 'Origin')} value={origin}
-            onChange={e => setOrigin(e.target.value as HeroicOriginType)}>
+          <Select aria-label={t('Происхождение', 'Origin')} value={origin}
+            onChange={value => setOrigin(value as HeroicOriginType)}>
             <option value="" disabled>{t('— категория происхождения —', '— origin category —')}</option>
             {HEROIC_ORIGIN_TYPES.map(x => (
               <option key={x} value={x}>{heroicOriginFace(x)} — {HEROIC_ORIGIN_LABELS[x]}</option>
             ))}
-          </select>
+          </Select>
 
           <button className="small primary heroic-identity-save" disabled={!canSave} onClick={() => run(save)}>
             {t('Сохранить', 'Save')}
@@ -466,7 +467,7 @@ export function HeroicParameterSection({ sheet, reference, run, section = 'all' 
       {weapon && (
         <div className="hint small-text">
           <div className="sheet-card-heading"><strong>{weapon.narrativeForm}</strong><span className={weapon.isLost ? 'danger-text' : 'success-text'}>{weapon.isLost ? t('потеряно', 'lost') : t('в руках', 'in hand')}</span></div>
-          <div className="heroic-weapon-stats">{[[t('Урон', 'Damage'), weapon.damage], [t('Крит', 'Crit'), weapon.crit], [t('Дистанция', 'Range'), weapon.rangeBand], [t('Вес', 'Load'), weapon.encumbrance], [t('Слоты', 'Slots'), weapon.hardPoints]].map(([k, v]) => <div key={k}><small>{k}</small><b>{v}</b></div>)}</div>
+          <div className="heroic-weapon-stats">{[[t('Урон', 'Damage'), signatureWeaponDamage(weapon)], [t('Крит', 'Crit'), weapon.crit], [t('Дистанция', 'Range'), rangeBandLabel(weapon.rangeBand)], [t('Вес', 'Load'), weapon.encumbrance], [t('Слоты', 'Slots'), weapon.hardPoints]].map(([k, v]) => <div key={k}><small>{k}</small><b>{v}</b></div>)}</div>
           {SIGNATURE_WEAPON_PROFILE_LABELS[weapon.profile]}
           {' · '}{WEAPON_CRAFTSMANSHIP_LABELS[weapon.craftsmanship]}
           {' · '}{weapon.skillName}
@@ -558,12 +559,12 @@ export function HeroicParameterSection({ sheet, reference, run, section = 'all' 
 
       {editable && config.kind === 'paragonSkill' && (
         <div className="inline-form">
-          <select value={skillId} onChange={e => setSkillId(e.target.value)}>
+          <Select value={skillId} onChange={value => setSkillId(value)}>
             <option value="" disabled>{t('— выберите навык —', '— pick a skill —')}</option>
             {reference.skills.map(s => (
               <option key={s.id} value={s.id}>{localizedName(s)}</option>
             ))}
-          </select>
+          </Select>
           <button className="small primary" disabled={!skillId}
             onClick={() => run(() => api.setHeroicConfiguration(sheet.id, { paragonSkillDefId: skillId }))}>
             {t('Сохранить', 'Save')}
@@ -585,18 +586,18 @@ export function HeroicParameterSection({ sheet, reference, run, section = 'all' 
       {config.kind === 'signatureWeapon' && (editable || weapon?.isLost) && (
         <div className="heroic-weapon-form">
           <div className="inline-form">
-            <select aria-label={t('Профиль оружия', 'Weapon profile')} value={profile}
-              onChange={e => setProfile(e.target.value as SignatureWeaponProfile)}>
+            <Select aria-label={t('Профиль оружия', 'Weapon profile')} value={profile}
+              onChange={value => setProfile(value as SignatureWeaponProfile)}>
               {Object.entries(SIGNATURE_WEAPON_PROFILE_LABELS).map(([value, label]) => (
                 <option key={value} value={value}>{label}</option>
               ))}
-            </select>
-            <select aria-label={t('Качество изготовления', 'Craftsmanship')} value={craftsmanship}
-              onChange={e => setCraftsmanship(e.target.value as WeaponCraftsmanship)}>
+            </Select>
+            <Select aria-label={t('Качество изготовления', 'Craftsmanship')} value={craftsmanship}
+              onChange={value => setCraftsmanship(value as WeaponCraftsmanship)}>
               {SIGNATURE_WEAPON_CRAFTSMANSHIPS.map(c => (
                 <option key={c} value={c}>{WEAPON_CRAFTSMANSHIP_LABELS[c]}</option>
               ))}
-            </select>
+            </Select>
           </div>
           <p className="hint small-text craftsmanship-hint">
             <b>{t('Что даёт качество:', 'What the craftsmanship gives:')}</b>{' '}
@@ -611,13 +612,13 @@ export function HeroicParameterSection({ sheet, reference, run, section = 'all' 
               'The GM confirms the form traits: attachment compatibility follows them, not the name.')}
           </p>
           <div className="inline-form">
-            <select value={baseAttachmentId} aria-label={t('Базовое улучшение', 'Base attachment')}
-              onChange={e => setBaseAttachmentId(e.target.value)}>
+            <Select value={baseAttachmentId} aria-label={t('Базовое улучшение', 'Base attachment')}
+              onChange={value => setBaseAttachmentId(value)}>
               <option value="" disabled>{t('— базовое улучшение —', '— base attachment —')}</option>
               {compatibleAttachments.map(a => (
                 <option key={a.id} value={a.id}>{localizedName(a)}</option>
               ))}
-            </select>
+            </Select>
           </div>
           {selectedBaseAttachment?.description && (
             <p className="hint small-text">

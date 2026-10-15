@@ -57,10 +57,8 @@ const SYMBOL_LABELS: Record<CraftingSymbol, string> = {
 
 
 const RESOURCES_HINT = t(
-  'Инструменты, компоненты и ингредиенты — описание: приложение их не списывает и наличия не '
-  + 'проверяет. Стоимость считается и попадает в историю, но кошелька не касается.',
-  'Tools, components and ingredients are description only: the app neither consumes them nor checks '
-  + 'that you have them. The cost is computed and recorded in history, but never charged.',
+  'Стоимость компонентов спишется при старте проекта; при отмене вернётся. Инструменты и ингредиенты остаются описанием.',
+  'Component cost is charged when the project starts and refunded on cancellation. Tools and ingredients remain descriptive.',
 )
 
 const ROLL_HINT = t(
@@ -106,7 +104,7 @@ function payments(def: CraftingSpend): Array<[CraftingSymbol, number]> {
  * Ремесло: изготовление, варка и зачарование (ROT-CRAFT-01, ROT-ALCH-02, ROT-CRAFT-MAGIC-01).
  *
  * <p>Вкладка доступна и игроку, и ведущему — отдельного gm-режима у ремесла нет. Требования по
- * ресурсам остаются текстом: приложение ничего не списывает и наличия не проверяет.</p>
+ * ресурсам остаются текстом: наличие отдельных материалов не проверяется; стоимость оплачивается при старте.</p>
  */
 export function CraftingTab({ sheet, reference, onError, refresh }: Props) {
   const [projects, setProjects] = useState<CraftingProject[]>([])
@@ -127,7 +125,8 @@ export function CraftingTab({ sheet, reference, onError, refresh }: Props) {
   const [rough, setRough] = useState(false)
   const [craftsmanship, setCraftsmanship] = useState<WeaponCraftsmanship>('steel')
   const [material, setMaterial] = useState<ImplementMaterial>('oak')
-  const [preview, setPreview] = useState<CraftingPreview | null>(null)
+  const [previewError, setPreviewError] = useState<{ input: CraftingProjectInput; message: string } | null>(null)
+  const [preview, setPreview] = useState<{ input: CraftingProjectInput; value: CraftingPreview } | null>(null)
   const [busy, setBusy] = useState(false)
   const [search, setSearch] = useState('')
 
@@ -206,14 +205,15 @@ export function CraftingTab({ sheet, reference, onError, refresh }: Props) {
     if (!input) return
     let cancelled = false
     void api.craftingPreview(sheet.id, input)
-      .then(p => { if (!cancelled) setPreview(p) })
-      .catch(() => { if (!cancelled) setPreview(null) })
+      .then(p => { if (!cancelled) { setPreview({ input, value: p }); setPreviewError(null) } })
+      .catch((error: Error) => { if (!cancelled) { setPreview(null); setPreviewError({ input, message: error.message }) } })
     return () => { cancelled = true }
   }, [sheet.id, input])
-  const shownPreview = input ? preview : null
+  const shownPreview = preview?.input === input ? preview?.value : null
+  const insufficientFunds = !!shownPreview && sheet.money < shownPreview.cost
 
   async function start() {
-    if (!input) return
+    if (!input || !shownPreview || insufficientFunds || busy) return
     setBusy(true)
     try {
       await api.startCrafting(sheet.id, input)
@@ -241,7 +241,7 @@ export function CraftingTab({ sheet, reference, onError, refresh }: Props) {
   const drafts = projects.filter(p => p.status === 'draft')
   const done = projects.filter(p => p.status !== 'draft')
   const hasOwnCost = ownCost.trim() !== ''
-  const canStart = !!input && !busy
+  const canStart = !!input && !!shownPreview && !insufficientFunds && !busy
     && (!hasOwnCost || costReason.trim() !== '')
     && (difficulty.trim() === '' || difficultyReason.trim() !== '')
     && (time.trim() === '' || timeReason.trim() !== '')
@@ -263,7 +263,10 @@ export function CraftingTab({ sheet, reference, onError, refresh }: Props) {
     : (hasOwnCost && !costReason.trim()) || (difficulty.trim() && !difficultyReason.trim()) || (time.trim() && !timeReason.trim())
       ? t('Укажите причину поправки', 'Give a reason for the adjustment')
       : kind === 'enchantment' && !intent.trim() ? t('Опишите согласованную способность', 'Describe the agreed ability')
-        : kind === 'enchantment' && !effectiveMagicSkillName ? t('Выберите магический навык', 'Choose a magic skill') : ''
+        : kind === 'enchantment' && !effectiveMagicSkillName ? t('Выберите магический навык', 'Choose a magic skill')
+          : previewError?.input === input ? previewError.message
+            : insufficientFunds ? t('Недостаточно денег для компонентов', 'Not enough money for components')
+              : !shownPreview ? t('Расчёт стоимости…', 'Calculating cost…') : ''
   const kindIcons: Record<CraftingKind, IconName> = { item: 'hammer', potion: 'flask', enchantment: 'sparkles' }
   return (
     <div className="crafting-tab">
@@ -310,8 +313,9 @@ export function CraftingTab({ sheet, reference, onError, refresh }: Props) {
             {shownPreview.difficulty !== shownPreview.baseDifficulty && <small>{t('по правилу', 'by rule')} — {shownPreview.baseDifficulty}</small>}</div><span aria-hidden="true">{Array.from({ length: shownPreview.difficulty }, (_, i) => <GenesysSymbol key={i} kind="difficulty" decorative />)}</span></div>
             <dl className="sheet-result-stats"><dt>{t('Навык', 'Skill')}</dt><dd>{shownPreview.skillName}</dd><dt>{t('Время', 'Time')}</dt><dd>{shownPreview.time} {shownPreview.timeUnit === 'hours' ? t('ч', 'h') : t('дн', 'd')}</dd>
               <dt>{t('Цена предмета', 'Item price')}</dt><dd>{shownPreview.targetPrice ?? '—'}</dd><dt>{t('Компоненты', 'Components')}</dt><dd>{shownPreview.cost} {shownPreview.costOverride === null && shownPreview.costPercent !== 100 && <small>({shownPreview.costPercent}% {t('от', 'of')} {shownPreview.listedCost})</small>}</dd></dl></>}
+          <p className="crafting-funds">{t('Доступно персонажу', 'Character funds')} {sheet.money}</p>
           <button className="primary" disabled={!canStart} onClick={() => void start()}>{t('Начать проект', 'Start the project')}</button>
-          {startReason && <p className="warn-text small-text">{startReason}</p>}
+          {startReason && <p className={`${insufficientFunds ? 'danger-text' : 'warn-text'} small-text`}>{startReason}</p>}
           <p className="hint small-text icon-text"><Icon name="info-circle" className="button-icon" />{RESOURCES_HINT}</p>
         </aside>
       </div>

@@ -1,8 +1,13 @@
 using System.Net;
 using System.Net.Http.Json;
+using System.Text.Json;
+using Microsoft.EntityFrameworkCore;
 using GenesysForge.Application.Dtos;
 using GenesysForge.Domain;
 using GenesysForge.Domain.Rules;
+using GenesysForge.Domain.Entities;
+using GenesysForge.Infrastructure.Persistence;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace GenesysForge.Api.Tests;
 
@@ -28,6 +33,7 @@ public class RotCraftingApiTests(ApiFactory factory) : IClassFixture<ApiFactory>
             "Мастеровой", GameSystem.RealmsOfTerrinoth, human.Id, career.Id, null,
             [new ArchetypeSkillChoice("any-noncareer", nonCareer)]), Json.Options);
         var id = (await resp.Content.ReadFromJsonAsync<Dictionary<string, Guid>>(Json.Options))!["id"];
+        (await client.PatchAsJsonAsync($"/api/characters/{id}", new { money = 10000 }, Json.Options)).EnsureSuccessStatusCode();
         return (client, reference, id);
     }
 
@@ -210,18 +216,79 @@ public class RotCraftingApiTests(ApiFactory factory) : IClassFixture<ApiFactory>
         Assert.Single((await SheetAsync(client, id)).Items!, i => i.Provenance == ItemProvenance.Crafted);
     }
 
-    /// <summary>Ресурсы — только описание: кошелёк проекта не касается.</summary>
     [Fact]
-    public async Task Crafting_NeverTouchesMoney()
+    public async Task Crafting_ChargesAtStart_AndDoesNotChargeAgainOnResolve()
     {
         var (client, reference, id) = await CreateAsync();
         var before = (await SheetAsync(client, id)).Money;
+        var project = await StartAsync(client, id, new CraftingProjectInput(Weapon(reference).Id,
+            CostOverride: 75, CostOverrideReason: "agreed cost"));
+        Assert.Equal(before - 75, (await SheetAsync(client, id)).Money);
+        (await ResolveAsync(client, id, project, new CraftingResolveInput(3))).EnsureSuccessStatusCode();
+        Assert.Equal(before - 75, (await SheetAsync(client, id)).Money);
+    }
 
-        var project = await StartAsync(client, id, new CraftingProjectInput(
-            Weapon(reference).Id, Requirements: "кузница, слиток стали, мех"));
-        await ResolveAsync(client, id, project, new CraftingResolveInput(3));
+    [Fact]
+    public async Task Crafting_InsufficientFunds_DoesNotCreateAProjectOrCharge()
+    {
+        var (client, reference, id) = await CreateAsync();
+        (await client.PatchAsJsonAsync($"/api/characters/{id}", new { money = 2 }, Json.Options)).EnsureSuccessStatusCode();
+        var response = await client.PostAsJsonAsync($"/api/characters/{id}/crafting",
+            new CraftingProjectInput(Weapon(reference).Id, CostOverride: 75, CostOverrideReason: "agreed"), Json.Options);
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.Equal("character.funds.insufficient", (await response.Content.ReadFromJsonAsync<ErrorResponse>(Json.Options))!.ReasonCode);
+        Assert.Equal(2, (await SheetAsync(client, id)).Money);
+        Assert.Empty((await client.GetFromJsonAsync<List<CraftingProjectDto>>($"/api/characters/{id}/crafting", Json.Options))!);
+    }
 
+    [Fact]
+    public async Task Crafting_CancelRefundsExactlyOnce_AndLeavesLegacyProjectsUncharged()
+    {
+        var (client, reference, id) = await CreateAsync();
+        var before = (await SheetAsync(client, id)).Money;
+        var project = await StartAsync(client, id, new CraftingProjectInput(Weapon(reference).Id,
+            CostOverride: 75, CostOverrideReason: "agreed cost"));
+        var other = await StartAsync(client, id, new CraftingProjectInput(Weapon(reference).Id,
+            CostOverride: 25, CostOverrideReason: "another project", Requirements: project.ToString()));
+        (await client.DeleteAsync($"/api/characters/{id}/crafting/{project}")).EnsureSuccessStatusCode();
+        Assert.Equal(before - 25, (await SheetAsync(client, id)).Money);
+        Assert.Equal(HttpStatusCode.BadRequest, (await client.DeleteAsync($"/api/characters/{id}/crafting/{project}")).StatusCode);
+        (await client.DeleteAsync($"/api/characters/{id}/crafting/{other}")).EnsureSuccessStatusCode();
         Assert.Equal(before, (await SheetAsync(client, id)).Money);
+        var legacy = Guid.NewGuid();
+        using (var scope = factory.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            db.CraftingProjects.Add(new CraftingProject { Id = legacy, CharacterId = id,
+                ItemDefId = Weapon(reference).Id, Cost = 999, TargetName = "Legacy project" });
+            await db.SaveChangesAsync();
+        }
+        (await client.DeleteAsync($"/api/characters/{id}/crafting/{legacy}")).EnsureSuccessStatusCode();
+        Assert.Equal(before, (await SheetAsync(client, id)).Money);
+    }
+
+    [Fact]
+    public async Task Crafting_PaymentSurvivesMissingAudit_AndCancellationRecordsRefund()
+    {
+        var (client, reference, id) = await CreateAsync();
+        var before = (await SheetAsync(client, id)).Money;
+        var project = await StartAsync(client, id, new CraftingProjectInput(Weapon(reference).Id,
+            CostOverride: 75, CostOverrideReason: "agreed"));
+        using (var scope = factory.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            Assert.Equal(75, (await db.CraftingProjects.SingleAsync(p => p.Id == project)).PaidCost);
+            db.CharacterAuditEntries.RemoveRange(await db.CharacterAuditEntries.Where(a => a.CharacterId == id).ToListAsync());
+            await db.SaveChangesAsync();
+        }
+        (await client.DeleteAsync($"/api/characters/{id}/crafting/{project}")).EnsureSuccessStatusCode();
+        Assert.Equal(before, (await SheetAsync(client, id)).Money);
+        using var finalScope = factory.Services.CreateScope();
+        var savedDb = finalScope.ServiceProvider.GetRequiredService<AppDbContext>();
+        var audit = await savedDb.CharacterAuditEntries.SingleAsync(a => a.CharacterId == id && a.Action == CharacterAuditAction.CraftingCancelled);
+        using var data = JsonDocument.Parse(audit.DataJson);
+        Assert.Equal(75, data.RootElement.GetProperty("refundedCost").GetInt32());
+        Assert.Contains("75", audit.Summary);
     }
 
     [Fact]

@@ -133,7 +133,7 @@ export function LibraryPage() {
             <div className="rd-entry-description"><strong>{localizedName(entry)}</strong><span className="muted small-text"> · {ENTRY_LABELS[entry.entryType]}</span>
               <small>{contentMeta(entry.meta)} <CustomEditedDate at={entry.lastEditedAt} /></small>
               {proposals.filter(x => x.kind === 'item' && x.targetId === entry.id).map(x => <small key={x.campaignId}>{x.campaignName} · {PROPOSAL_LABELS[x.status]}</small>)}
-            </div><div className="rd-chips">{entry.packIds.filter(id => id !== pack?.id).map(id => <button className="rd-pack-tag" key={id} onClick={() => select(id)}>{displayPackName(packs.find(x => x.id === id)?.name ?? '')}</button>)}
+            </div><div className="rd-chips">{entry.packIds.filter(id => id !== pack?.id).map(id => <button className="rd-pack-tag" title={displayPackName(packs.find(x => x.id === id)?.name ?? '')} key={id} onClick={() => select(id)}>{displayPackName(packs.find(x => x.id === id)?.name ?? '')}</button>)}
               {!entry.packIds.length && <span className="badge">{t('Вне наборов', 'Unpacked')}</span>}</div>
             <div className="rd-actions">{pack && <button disabled={busy} aria-label={t('Убрать из набора', 'Remove from pack')} onClick={() => void run(() => api.changeHomebrewPackEntries(pack.id, [{ entryType: entry.entryType, entryId: entry.id }], true))}>−</button>}
               <button aria-label={t('Выбрать наборы', 'Select packs')} onClick={() => setMembership(entry)}><Icon name="book" /></button>

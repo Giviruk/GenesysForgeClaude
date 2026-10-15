@@ -1,3 +1,4 @@
+import { chooseSelect } from './select'
 import { expect, test, type APIRequestContext, type Page } from '@playwright/test'
 
 interface Reference {
@@ -33,7 +34,7 @@ async function fitsViewport(page: Page) {
 }
 
 async function spacedElements(page: Page, selector: string, count: number) {
-  const elements = page.locator(selector)
+  const elements = page.locator(selector).and(page.locator(':not(.select-native)'))
   await expect(elements).toHaveCount(count)
   await expect(elements.first()).toBeVisible()
   const gaps = await elements.evaluateAll(nodes => nodes.slice(1).map((node, i) => {
@@ -80,21 +81,21 @@ async function navigateWithinApp(page: Page, path: string) {
 
 async function tab(page: Page, key: string, name: string) {
   await expect(page.locator('.sheet-title-row')).toBeVisible()
-  if (await page.locator('#sheet-tab-select').isVisible()) await page.locator('#sheet-tab-select').selectOption(key)
+  if (await page.locator('#sheet-tab-select').isVisible()) await chooseSelect(page.locator('#sheet-tab-select'), key)
   else await page.locator('.main-tabs').getByRole('button', { name, exact: true }).click()
 }
 
 async function arrowHasSpace(page: Page, selector: string) {
   const controls = page.locator(selector)
   await expect(controls.first()).toBeVisible()
-  const styles = await controls.evaluateAll(elements => elements.map(element => {
-    const style = getComputedStyle(element)
-    return { image: style.backgroundImage, padding: parseFloat(style.paddingRight) }
+  const gaps = await controls.evaluateAll(elements => elements.map(element => {
+    const label = element.querySelector('.select-value')!.getBoundingClientRect()
+    const chevron = element.querySelector('.select-chevron')!.getBoundingClientRect()
+    return { gap: chevron.left - label.right, width: chevron.width }
   }))
-  for (const style of styles) {
-    expect(style.image).not.toBe('none')
-    // Chevron width + right inset + a gap between the selected text and the icon.
-    expect(style.padding).toBeGreaterThanOrEqual(36)
+  for (const item of gaps) {
+    expect(item.gap).toBeGreaterThanOrEqual(6)
+    expect(item.width).toBeGreaterThanOrEqual(13)
   }
 }
 
@@ -260,7 +261,7 @@ for (const width of [320, 390, 768, 1280, 1440]) {
       await navigateWithinApp(page, `/characters/${signatureCharacterId}`)
       await tab(page, 'heroic', label('Героика', 'Heroic'))
       await spacedElements(page, '.heroic-weapon-form > *', 7)
-      await spacedElements(page, '.heroic-weapon-form > .inline-form:first-child > select', 2)
+      await spacedElements(page, '.heroic-weapon-form > .inline-form:first-child > .select-control', 2)
       await iconHasSpace(page, '.heroic-parameter > h3', 1)
       await fitsViewport(page)
       await navigateWithinApp(page, `/campaigns/${spacingCampaignId}/settings`)
@@ -546,7 +547,7 @@ test('GEN-V5-12 review: table panels stay readable at tablet and fractional widt
   await page.goto(`/campaigns/${campaignId}/table`)
   const rail = page.locator('.table-shell > .right-rail')
   await expect(rail).toBeVisible()
-  for (const width of [1240, 1100, 1024, 900, 800, 769]) {
+  for (const width of [1240, 1100, 1024, 900, 800, 769, 768]) {
     await page.setViewportSize({ width, height: 900 })
     await expect(rail).toHaveCSS('display', 'flex')
     await expect(rail).toHaveCSS('flex-direction', 'column')
@@ -563,28 +564,40 @@ test('GEN-V5-12 review: table panels stay readable at tablet and fractional widt
       const layout = await page.locator('.table-shell').evaluate(element => ({
         columns: getComputedStyle(element).gridTemplateColumns.split(' ').length,
         width: element.getBoundingClientRect().width,
-        fullWidthBlocks: ['.command-panel', '.center-stage', '.participants-strip'].map(selector =>
+        fullWidthBlocks: ['.command-panel', '.right-rail', '.participants-strip'].map(selector =>
           element.querySelector(selector)!.getBoundingClientRect().width),
+        left: element.querySelector('.left-rail')!.getBoundingClientRect().right,
+        center: element.querySelector('.center-stage')!.getBoundingClientRect().left,
       }))
       expect(layout.columns).toBe(2)
+      expect(layout.center - layout.left).toBeGreaterThanOrEqual(11)
       for (const block of layout.fullWidthBlocks) expect(block).toBeGreaterThan(layout.width * 0.95)
     }
     await fitsViewport(page)
   }
-  // An iframe supplies a fractional CSS viewport without rounding setViewportSize's integer API.
+  // Fractional iframe sizes straddle the breakpoint; Chromium rounds its embedded viewport.
   await page.setViewportSize({ width: 1440, height: 900 })
   await page.evaluate(path => {
     const frame = document.createElement('iframe')
     frame.name = 'fractional-table'
-    frame.style.cssText = 'width:1100.5px;height:900px;border:0'
+    frame.style.cssText = 'width:1239.25px;height:900px;border:0'
     frame.src = path
     document.body.replaceChildren(frame)
   }, `/campaigns/${campaignId}/table`)
   const frame = page.frameLocator('iframe[name="fractional-table"]')
   await expect(frame.locator('.table-shell')).toBeVisible()
   const columns = await frame.locator('.table-shell').evaluate(element => getComputedStyle(element).gridTemplateColumns.split(' '))
-  expect(columns).toHaveLength(3)
+  expect(columns).toHaveLength(2)
+  await page.locator('iframe[name="fractional-table"]').evaluate(el => { (el as HTMLIFrameElement).style.width = '1240.5px' })
+  await expect.poll(() => frame.locator('.table-shell').evaluate(element => getComputedStyle(element).gridTemplateColumns.split(' ').length)).toBe(3)
   await expect(frame.locator('.right-rail')).toHaveCSS('display', 'flex')
+  for (const width of [767.25, 767.75, 768.25]) {
+    await page.locator('iframe[name="fractional-table"]').evaluate((el, width) => { (el as HTMLIFrameElement).style.width = `${width}px` }, width)
+    const count = await frame.locator('body').evaluate(() => matchMedia('(min-width:768px)').matches ? 2 : 1)
+    await expect.poll(() => frame.locator('.table-shell').evaluate(element => getComputedStyle(element).gridTemplateColumns.split(' ').length)).toBe(count)
+    const overflow = await frame.locator('body').evaluate(el => el.scrollWidth > el.clientWidth + 1)
+    expect(overflow).toBe(false)
+  }
 })
 
 test('GEN-V5-12 review: printed symbols keep the pre-v5 palette', async ({ page }) => {

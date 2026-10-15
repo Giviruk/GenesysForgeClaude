@@ -228,6 +228,10 @@ Protected. Returns `CharacterSheetDto`:
   `descriptionEn`, so clients can use the same language/content-mode fallback as the reference
   catalogue.
 
+The sheet's `heroicConfiguration.signatureWeapon` returns nullable `damageKind`
+(`brawnPlus`/`fixed`) and `damageValue` for client localization. The existing `damage` string remains
+available for older clients; all damage calculations stay on the server.
+
 ### `PATCH /api/characters/{id}`
 
 Protected. Request: `UpdateCharacterRequest`.
@@ -463,8 +467,8 @@ project of the character, newest first. Available to whoever owns the sheet — 
 separate GM mode.
 
 **Resources are description only.** Tools, components and ingredients are free text: the application
-neither consumes them nor checks that the character has them, and no project ever touches money.
-The component cost is computed and recorded, and that is all it does.
+neither consumes them nor checks that the character has them. Monetary component cost is charged
+at start and refunded on cancellation; preview itself changes nothing.
 
 ### `POST /api/characters/{id}/crafting/preview`
 
@@ -498,7 +502,10 @@ direct request is rejected with `crafting.target_not_craftable`.
 ### `POST /api/characters/{id}/crafting`
 
 Protected. Starts a project from the same body the preview accepts. Response: `201` with
-`CreatedInCharacterResponse`. Enchanting additionally requires `baseCharacterItemId` — an item the
+`CreatedInCharacterResponse`. The final component cost (including percentage/GM override) is deducted
+from character money atomically with the project and its audit entry. Insufficient funds return
+`character.funds.insufficient` without creating a project. Resolving never charges again.
+Enchanting additionally requires `baseCharacterItemId` — an item the
 character owns that already has the `Superior` quality (`crafting.base_not_superior`) — and an
 `intent` agreed in advance (`crafting.intent_required`). A priceless relic cannot be crafted at all
 (`crafting.target_priceless`).
@@ -526,6 +533,10 @@ which is also returned as the project's result.
 
 Protected. Cancels a project that has not been resolved. A resolved project is history and is not
 cancelled (`crafting.project_not_draft`). Response: `204`.
+Cancellation refunds the amount recorded as charged at start, in full and only once. Legacy projects
+with `PaidCost = null` are neither charged retroactively nor given a refund. Cancellation records
+`craftingCancelled` with the project ID and refunded amount in character history. Concurrent wallet
+or project-state edits return `409`; reload the sheet before retrying.
 
 ### `PATCH /api/characters/{id}/items/{itemId}/location`
 

@@ -8,6 +8,7 @@ using Npgsql;
 
 namespace GenesysForge.Api.Tests;
 
+[Collection("PostgreSQL migrations")]
 public class NpcStrainMigrationTests
 {
     [PostgresMigrationFact]

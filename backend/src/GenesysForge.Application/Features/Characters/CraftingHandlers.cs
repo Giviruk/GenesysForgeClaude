@@ -14,8 +14,8 @@ namespace GenesysForge.Application.Features.Characters;
 /// </summary>
 /// <remarks>
 /// Требования по ресурсам — инструменты, компоненты, ингредиенты — по решению владельца остаются
-/// описанием: наличие не проверяется и ничего не списывается. Стоимость считается и записывается,
-/// но кошелька не касается, поэтому проект нельзя «не потянуть».
+/// описанием: наличие не проверяется. Денежная стоимость компонентов списывается при старте,
+/// а при отмене незавершённого оплаченного проекта возвращается полностью.
 /// </remarks>
 public static class CraftingCalc
 {
@@ -175,7 +175,7 @@ public class PreviewCraftingHandler(IAppDbContext db) : IQueryHandler<PreviewCra
     }
 }
 
-/// <summary>Начало проекта. Денег не списывает и наличия материалов не проверяет.</summary>
+/// <summary>Начало проекта с оплатой компонентов; наличие отдельных материалов не проверяет.</summary>
 public class StartCraftingHandler(IAppDbContext db) : ICommandHandler<StartCraftingCommand, Guid>
 {
     public async Task<Guid> Handle(StartCraftingCommand command, CancellationToken ct = default)
@@ -204,6 +204,11 @@ public class StartCraftingHandler(IAppDbContext db) : ICommandHandler<StartCraft
 
         var n = CraftingCalc.Compute(def, req);
         var skill = await CraftingCalc.SkillAsync(db, command.UserId, c, req, ct);
+        var charge = MoneyRules.Charge(n.Cost, c.Money)
+            ?? throw new DomainRuleException(
+                $"Недостаточно средств: нужно {n.Cost}, доступно {c.Money} монет.",
+                "character.funds.insufficient");
+        c.Money -= charge;
         var project = new CraftingProject
         {
             Id = Guid.NewGuid(),
@@ -229,6 +234,7 @@ public class StartCraftingHandler(IAppDbContext db) : ICommandHandler<StartCraft
             CostOverride = req.CostOverride,
             CostOverrideReason = req.CostOverrideReason?.Trim() ?? "",
             Cost = n.Cost,
+            PaidCost = charge,
             Requirements = req.Requirements?.Trim() ?? "",
             Intent = req.Intent?.Trim() ?? "",
             RoughSurvival = req.RoughSurvival && req.Kind == CraftingKind.Item,
@@ -238,22 +244,14 @@ public class StartCraftingHandler(IAppDbContext db) : ICommandHandler<StartCraft
         var unit = CraftingCalc.TimeUnit(req.Kind) == "hours" ? "ч" : "дн";
         CharacterAudit.Record(db, c, command.UserId, CharacterAuditAction.CraftingStarted,
             $"Начат проект «{def.Name}»: сложность {project.Difficulty}, {project.Time} {unit}, "
-            + $"компоненты {project.Cost}", null,
+            + $"списано за компоненты {project.Cost}", null,
             new
             {
-                kind = project.Kind.ToString(), target = def.Name, skill = project.SkillName,
-                baseDifficulty = project.BaseDifficulty, difficulty = project.Difficulty,
-                difficultyReason = project.DifficultyReason,
-                baseTime = project.BaseTime, time = project.Time, timeReason = project.TimeReason,
-                listedCost = project.ListedCost, percent = project.CostPercent,
-                costOverride = project.CostOverride, costOverrideReason = project.CostOverrideReason,
-                cost = project.Cost,
-                craftsmanship = project.Craftsmanship.ToString(),
-                material = project.ImplementMaterial.ToString(),
-                mode = project.CostOverride is not null ? "override"
-                    : project.CostPercent != 100 ? "haggle" : "direct",
-                requirements = project.Requirements, intent = project.Intent,
-                roughSurvival = project.RoughSurvival,
+                projectId = project.Id, chargedCost = project.Cost,
+                kind = project.Kind.ToString(), itemDefId = project.ItemDefId,
+                // Full text and calculation details live on the project. Keep the varchar(2000)
+                // audit payload bounded even for the maximum-length Cyrillic input.
+                difficulty = project.Difficulty, time = project.Time,
             });
 
         await db.SaveChangesAsync(ct);
@@ -387,13 +385,13 @@ public class ResolveCraftingHandler(IAppDbContext db)
             + (success ? $", создано ×{Math.Max(1, outcome.Quantity)}" : ""), null,
             new
             {
-                kind = project.Kind.ToString(), target = project.TargetName,
+                projectId = project.Id, kind = project.Kind.ToString(),
                 netSuccesses = req.NetSuccesses, advantages = req.Advantages, threats = req.Threats,
                 triumphs = req.Triumphs, despairs = req.Despairs,
                 difficulty = project.Difficulty, time = project.Time, cost = project.Cost,
                 craftsmanship = project.Craftsmanship.ToString(),
                 material = project.ImplementMaterial.ToString(),
-                spends = project.Spends.Select(s => new { s.SpendCode, s.Count, s.Parameter, s.PaidWith }),
+                spendCount = project.Spends.Count, // detailed choices remain on the project
                 createdItemId = project.CreatedCharacterItemId,
             });
 
@@ -443,7 +441,16 @@ public class CancelCraftingHandler(IAppDbContext db) : ICommandHandler<CancelCra
             throw new DomainRuleException(
                 "Разрешённый проект не отменяется — он уже история.", "crafting.project_not_draft");
 
+        // Null identifies an unpaid legacy project. The persisted payment is independent
+        // of audit formatting and of later catalogue/price changes.
+        var refund = project.PaidCost ?? 0;
+        if ((long)c.Money + refund > int.MaxValue)
+            throw new DomainRuleException("Возврат превышает допустимый размер кошелька.", "character.funds.overflow");
+        c.Money += refund;
         project.Status = CraftingProjectStatus.Cancelled;
+        CharacterAudit.Record(db, c, command.UserId, CharacterAuditAction.CraftingCancelled,
+            $"Отменён проект «{project.TargetName}»: возвращено за компоненты {refund}", null,
+            new { projectId = project.Id, refundedCost = refund });
         await db.SaveChangesAsync(ct);
         return Unit.Value;
     }
