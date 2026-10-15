@@ -85,7 +85,7 @@ test.beforeAll(async ({ request }) => {
     talents: [reference.talents[0].nameRu || reference.talents[0].name], equipment: [], abilities: [{ name: 'Тестовая способность', description: 'Собственное описание.' }], tags: [],
   })
   npcId = npc.id
-  const minion = await api<NpcDetail>(request, '/api/npcs/', { ...npc, id: undefined, name: 'Караул на мосту', kind: 'minion', strainThreshold: null, skills: [] })
+  const minion = await api<NpcDetail>(request, '/api/npcs/', { ...npc, id: undefined, name: 'Дозор у переправы', kind: 'minion', strainThreshold: null, skills: [] })
   await api(request, `/api/campaigns/${campaignId}/session/`, { name: 'Караул у старого моста', description: 'Собственная тестовая сцена.', playerStoryPoints: 3, gmStoryPoints: 2 })
   await api(request, `/api/campaigns/${campaignId}/session/participants`, { characterId })
   const session = await api<GameSession>(request, `/api/campaigns/${campaignId}/session/participants`, { npcId: minion.id, count: 3, participantType: 'minionGroup' })
@@ -229,7 +229,7 @@ for (const language of ['ru', 'en']) {
           await page.screenshot({ path: testInfo.outputPath(`${width}-${route.includes('new') ? route.split('=')[1] : 'npc'}.png`), fullPage: false })
         }
         await page.goto('/library')
-        await expect(page.locator('.rd-entry-description')).toContainText('Контроль пути')
+        await expect(page.locator('.rd-entry-description').filter({ hasText: 'Контроль пути' })).toContainText('Контроль пути')
         await expect(page.locator('.library-system-switch .active')).toContainText('Realms of Terrinoth')
         expect(await page.locator('.library-system-switch .rd-filter-chip').evaluateAll(nodes => nodes.some(node => !['none', 'normal'].includes(getComputedStyle(node, '::before').content)))).toBe(false)
         await fits(page)
@@ -437,12 +437,11 @@ for (const language of ['ru', 'en']) test(`GEN-V5-15 second review in ${language
       }
       if (width === 1240) {
         expect((await rect(page.locator('.left-rail'))).width).toBeCloseTo(280, 1)
-        expect(await page.locator('.init-row .select-value').first().evaluate(el => {
-          const context = document.createElement('canvas').getContext('2d')!
-          const style = getComputedStyle(el)
-          context.font = `${style.fontSize} ${style.fontFamily}`
-          return context.measureText('Страж северных ворот').width <= el.clientWidth
-        })).toBe(true)
+        const shortName = page.locator('.init-row .select-value').filter({ hasText: /^Дозор у переправы ×3$/ })
+        await expect(shortName).toHaveText('Дозор у переправы ×3')
+        const nameBounds = await shortName.evaluate(el => ({ label: el.textContent!, available: el.clientWidth, content: el.scrollWidth }))
+        expect(nameBounds.label).toHaveLength(20)
+        expect(nameBounds.content, JSON.stringify(nameBounds)).toBeLessThanOrEqual(nameBounds.available)
         for (const button of await page.locator('.story-transfer button').all()) expect((await rect(button)).height).toBeLessThanOrEqual(38.1)
         expect((await rect(page.locator('.left-rail'))).height).toBeLessThanOrEqual((await rect(page.locator('.center-stage'))).height)
       }

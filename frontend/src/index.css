@@ -5712,9 +5712,9 @@ button.rd-switch:not(.linklike):not(.back-link) { min-height:1.25rem; justify-co
   .table-shell { grid-template-columns:280px minmax(340px,1fr) 290px; }
   .init-row { grid-template-columns:16px minmax(0,1fr) 20px; }
   .init-row>.init-num { grid-column:1; grid-row:1; }
-  .init-row>.slot-assign,.init-row>.init-name { grid-column:2; grid-row:1; }
+  .init-row>.slot-assign,.init-row>.init-name { grid-column:2/-1; grid-row:1; }
   .init-row>.badge { grid-column:2; grid-row:2; justify-self:start; }
-  .init-row>button:not(.slot-assign) { grid-column:3; grid-row:1; }
+  .init-row>button:not(.slot-assign) { grid-column:3; grid-row:2; }
   .range-rings { width:min(100%,380px); max-width:380px; margin-inline:auto; }
   .story-transfer button:not(.linklike):not(.back-link) { white-space:nowrap; padding-inline:3px; }
   .badge,.sheet-page-head .badge,.badge.slot-player { font-size:11px; }
@@ -5740,6 +5740,8 @@ button.rd-switch:not(.linklike):not(.back-link) { min-height:1.25rem; justify-co
   .enc-head-actions { grid-column:2/-1; grid-row:3; }
   .table-shell { grid-template-columns:minmax(0,1fr); }
   .init-row { grid-template-columns:16px minmax(0,1fr) 44px; }
+  .init-row>.slot-assign,.init-row>.init-name { grid-column:2; }
+  .init-row>button:not(.slot-assign) { grid-row:1; }
   .table-shell .left-rail,.table-shell .center-stage,.table-shell .right-rail { grid-column:1; grid-row:auto; }
   .table-shell .participants-strip { grid-row:auto; }
   .rd-skill-grid-row { min-height:44px; }
