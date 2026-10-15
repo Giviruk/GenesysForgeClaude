@@ -2298,7 +2298,7 @@
   .bt-item-title { gap:8px; }
   .bt-item-title strong { font:700 15px var(--font-ui); color:var(--ink); }
   .bt-item-meta { color:var(--muted); font:12px var(--font-ui); }
-  .bt-page button,.bt-builder button { font-family:var(--font-head); }
+  .bt-page button:where(:not(.select-control)),.bt-builder button:where(:not(.select-control)) { font-family:var(--font-head); }
   .bt-page button.primary,.bt-builder button.primary { background:var(--orange); color:#fff; border-color:transparent; }
   .bt-page :is(button,input,:is(select,:where(.select-control))):focus-visible,.bt-builder :is(button,input,:is(select,:where(.select-control)),textarea):focus-visible { outline-color:var(--blue); }
   .bt-pills button { background:#fff; border:1px solid var(--line-ctrl); color:var(--navy); font:600 13px var(--font-head); padding:4px 9px; min-height:28px; text-transform:uppercase; }
@@ -2383,7 +2383,7 @@
   .bt-derived-grid label:nth-child(n+3):nth-child(-n+5) input { background:var(--t-blue-bg); border-color:var(--t-blue-line); }
   .bt-derived-grid input { font:700 17px var(--font-head); color:var(--navy); }
   .bt-template { background:var(--t-purple-bg); color:var(--t-purple-ink); border-color:var(--t-purple-line); }
-  .bt-template button { background:var(--t-purple); color:#fff; border:0; }
+  .bt-template button:where(:not(.select-control)) { background:var(--t-purple); color:#fff; border:0; }
   .bt-stat-note { background:var(--t-blue-bg); border:1px solid var(--t-blue-line); color:var(--t-blue-ink); }
   .bt-editor-attacks .ability-edit { background:var(--t-red-bg); border:1px solid var(--t-red-line); }
   .bt-filters-dialog,.bt-preview-dialog { background:#fff; border:1px solid var(--line); box-shadow:0 24px 60px rgba(0,0,0,.3); }
