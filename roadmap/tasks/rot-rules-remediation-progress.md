@@ -74,7 +74,7 @@ scope сессии/encounter и единый check context: их нет в пр�
 
 - [~] **GEN-V5-17** — 11 замечаний по дизайну после GEN-V5-16: строка навыка, таланты, селект состояния,
   чекбоксы магии, русские названия в мастерской, редактор атак и карточка NPC, сюжетные очки.
-  [ТЗ](../../redesign_v5_tz/TZ_design_remarks_v5_4.md), [план](gen-v5-17-design-remarks-4.md). `[x]` — после слияния.
+  [ТЗ](../../redesign_v5_tz/TZ_design_remarks_v5_4.md), [план](gen-v5-17-design-remarks-4.md), [PR #299](https://github.com/Giviruk/GenesysForgeClaude/pull/299). `[x]` — после слияния.
 
 - [~] **GEN-UI-SYMBOLS** — формы игровых символов через локальный Genesys Glyphs and Dice
   и базовая русская терминология Core: характеристики, кости, результаты, сложности,
