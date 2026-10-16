@@ -654,7 +654,7 @@ function StoryPointsBlock({ session, isGm, onSessionRun }: {
     session && onSessionRun(() => api.updateSession(session.campaignId, patch))
 
   return (
-    <div className="campaign-dash-block">
+    <div className="campaign-dash-block campaign-story-dash">
       <h4>{t('Сюжетные очки', 'Story points')}</h4>
       <div className="campaign-story-head">
         <div className="campaign-story-count"><span>{t('игроки', 'players')}</span><div className="campaign-story-stepper">

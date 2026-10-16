@@ -365,7 +365,10 @@ for (const language of ['ru', 'en']) test(`GEN-V5-15 second review in ${language
       for (const chip of await qualities.all()) {
         expect((await rect(chip)).height).toBeLessThanOrEqual(28.1)
         await expect(chip).toHaveCSS('white-space', 'nowrap')
-        expect((await rect(chip.locator('input'))).width).toBeCloseTo(44, 1)
+        // GEN-V5-17: рейтинг вписывается прямо в строку свойства — без рамки и стрелок.
+        const rating = chip.locator('input')
+        await expect(rating).toHaveCSS('border-top-width', '0px')
+        expect((await rect(rating)).width).toBeLessThan(30)
       }
       await expect(page.locator('.bt-field-label').first()).toHaveCSS('font-size', '12px')
     }
