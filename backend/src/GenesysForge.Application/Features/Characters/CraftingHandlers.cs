@@ -19,6 +19,9 @@ namespace GenesysForge.Application.Features.Characters;
 /// </remarks>
 public static class CraftingCalc
 {
+    /// <summary>Русское название цели для русских текстов истории и результата (GEN-V5-17).</summary>
+    public static string RuName(ItemDef def) => string.IsNullOrWhiteSpace(def.NameRu) ? def.Name : def.NameRu;
+
     /// <summary>Рекомендованная сложность зачарования: для большинства магических вещей Formidable.</summary>
     public const int EnchantmentDifficulty = 5;
 
@@ -243,7 +246,7 @@ public class StartCraftingHandler(IAppDbContext db) : ICommandHandler<StartCraft
 
         var unit = CraftingCalc.TimeUnit(req.Kind) == "hours" ? "ч" : "дн";
         CharacterAudit.Record(db, c, command.UserId, CharacterAuditAction.CraftingStarted,
-            $"Начат проект «{def.Name}»: сложность {project.Difficulty}, {project.Time} {unit}, "
+            $"Начат проект «{CraftingCalc.RuName(def)}»: сложность {project.Difficulty}, {project.Time} {unit}, "
             + $"списано за компоненты {project.Cost}", null,
             new
             {
@@ -327,7 +330,7 @@ public class ResolveCraftingHandler(IAppDbContext db)
 
         // Описание результата — то же, что попадает в предмет: игрок должен видеть каждый свой
         // выбор словами, потому что половина трат приложением не исполняется.
-        var lines = new List<string> { $"Изготовлено персонажем: {project.TargetName}." };
+        var lines = new List<string> { $"Изготовлено персонажем: {CraftingCalc.RuName(def)}." };
         if (project.RoughSurvival) lines.Add("Грубая работа Выживанием: ведущий может сломать её при крахе.");
         if (!string.IsNullOrWhiteSpace(project.Intent)) lines.Add($"Замысел: {project.Intent}");
         lines.AddRange(outcome.Notes);
@@ -381,7 +384,7 @@ public class ResolveCraftingHandler(IAppDbContext db)
 
         var verdict = success ? "успех" : "провал";
         CharacterAudit.Record(db, c, command.UserId, CharacterAuditAction.CraftingResolved,
-            $"Проект «{project.TargetName}» — {verdict}"
+            $"Проект «{CraftingCalc.RuName(def)}» — {verdict}"
             + (success ? $", создано ×{Math.Max(1, outcome.Quantity)}" : ""), null,
             new
             {
@@ -448,8 +451,10 @@ public class CancelCraftingHandler(IAppDbContext db) : ICommandHandler<CancelCra
             throw new DomainRuleException("Возврат превышает допустимый размер кошелька.", "character.funds.overflow");
         c.Money += refund;
         project.Status = CraftingProjectStatus.Cancelled;
+        var nameRu = await db.ItemDefs.Where(i => i.Id == project.ItemDefId)
+            .Select(i => i.NameRu).FirstOrDefaultAsync(ct);
         CharacterAudit.Record(db, c, command.UserId, CharacterAuditAction.CraftingCancelled,
-            $"Отменён проект «{project.TargetName}»: возвращено за компоненты {refund}", null,
+            $"Отменён проект «{(string.IsNullOrWhiteSpace(nameRu) ? project.TargetName : nameRu)}»: возвращено за компоненты {refund}", null,
             new { projectId = project.Id, refundedCost = refund });
         await db.SaveChangesAsync(ct);
         return Unit.Value;

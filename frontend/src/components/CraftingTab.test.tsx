@@ -375,4 +375,13 @@ describe('Ремесло (ROT-CRAFT-01, ROT-ALCH-02, ROT-CRAFT-MAGIC-01)', () =>
     await waitFor(() => expect(cancelMock).toHaveBeenCalledExactlyOnceWith('char-1', 'proj-1'))
   })
 
+  it('показывает проекты и историю под названиями из справочника, а не английским снимком', async () => {
+    craftingMock.mockResolvedValue([draft, { ...draft, id: 'proj-2', status: 'cancelled' }])
+    renderTab()
+    expect(await screen.findByText('Топор — Изготовление')).toBeTruthy()
+    expect(screen.getByText('Топор', { selector: '.crafting-history strong' })).toBeTruthy()
+    expect(screen.getByText(/Механика · сложность/)).toBeTruthy()
+    expect(screen.queryByText(/^Axe/)).toBeNull()
+  })
+
 })

@@ -2386,6 +2386,9 @@
   .bt-template button:where(:not(.select-control)) { background:var(--t-purple); color:#fff; border:0; }
   .bt-stat-note { background:var(--t-blue-bg); border:1px solid var(--t-blue-line); color:var(--t-blue-ink); }
   .bt-editor-attacks .ability-edit { background:var(--t-red-bg); border:1px solid var(--t-red-line); }
+  /* GEN-V5-17: свойства, их выбор и заметки атаки не слипаются. */
+  .bt-editor-attacks .ability-edit { display:grid; gap:8px; }
+  .bt-editor-attacks .ability-edit>.form-row { margin-bottom:0; }
   .bt-filters-dialog,.bt-preview-dialog { background:#fff; border:1px solid var(--line); box-shadow:0 24px 60px rgba(0,0,0,.3); }
   .bt-filters-dialog::backdrop,.bt-preview-dialog::backdrop { background:rgba(31,42,92,.55); }
   .bt-filter-head { background:var(--navy); color:#fff; }
@@ -2508,7 +2511,7 @@
   .bt-filters button { min-height:28px; padding:4px 8px; font:600 13px var(--font-head); }
   .bt-filters button.active :is(.muted,small) { color:var(--orange-on-navy); }
   .bt-items>li>button.active,.bt-items>li.active>button { background:var(--t-orange-bg); border-bottom-color:var(--line-soft); box-shadow:inset 3px 0 var(--orange); }
-  .bt-card-derived>span { grid-template-columns:1fr; padding:6px 4px; }
+  .bt-card-derived>span { grid-template-columns:1fr; padding:6px 10px; }
   .bt-card-derived>span>svg { display:none; }
   .bt-card-derived .npc-derived-label { white-space:normal; overflow:visible; text-overflow:clip; font-size:11px; line-height:1.3; }
   .npc-char-label,.npc-preview-chars small { font-size:11px; overflow-wrap:normal; }

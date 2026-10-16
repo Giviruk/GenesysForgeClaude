@@ -633,8 +633,8 @@ table.skills .die { letter-spacing: 0; }
 tr.equipped-row td { background: rgba(200, 162, 74, 0.07); }
 
 /* Горизонтальный скролл таблиц на узких экранах */
-/* overflow-x:auto делает обрезку и по вертикали: всплывающие подсказки (.prop-tooltip)
-   внутри такой обёртки будут обрезаны — не кладите их в ячейки прокручиваемых таблиц. */
+/* overflow-x:auto обрезает и по вертикали, поэтому .prop-tooltip позиционируется fixed
+   (useTooltipPosition) и из такой обёртки не обрезается. */
 .table-wrap { width: 100%; overflow-x: auto; }
 td.nowrap, th.nowrap { white-space: nowrap; }
 
@@ -931,6 +931,9 @@ table.ref-table td.ref-cost { white-space: nowrap; color: var(--orange); }
 .campaign-bottom-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; grid-template-rows: auto 1fr; gap: 0.6rem; align-items: stretch; }
 .campaign-bottom-grid > :first-child { grid-row: span 2; }
 .campaign-bottom-grid > .campaign-notes-dash { grid-column: 2 / -1; }
+/* Блок растянут по высоте строки: счётчики и шкала — по центру свободного места под заголовком. */
+.campaign-story-dash > .campaign-story-head { margin-top: auto; }
+.campaign-story-dash > .campaign-pips { margin-bottom: auto; }
 .campaign-dash-block {
   background: var(--surface); border: 1px solid var(--line); border-radius: 0;
   padding: 0.7rem 0.85rem; display: flex; flex-direction: column; gap: 0.5rem; min-width: 0;
@@ -4307,7 +4310,7 @@ button.rd-switch:not(.linklike):not(.back-link) { min-height:1.25rem; justify-co
   input,:is(select,:where(.select-control)),textarea { border:1px solid var(--line); border-radius:0; background:var(--surface); color:var(--ink); font:14px/1.5 var(--font-ui); padding:7px 10px; min-height:36px; }
   input::placeholder,textarea::placeholder { color:var(--faint); }
   input:focus,:is(select,:where(.select-control)):focus,textarea:focus { border-color:var(--navy); }
-  input[type=checkbox],input[type=radio] { width:18px; height:18px; min-height:18px; accent-color:var(--orange); flex-shrink:0; }
+  input[type=checkbox],input[type=radio] { width:18px; height:18px; min-height:18px; padding:0; accent-color:var(--orange); flex-shrink:0; }
   label { color:var(--label); font-family:var(--font-head); font-size:13px; font-weight:600; letter-spacing:.03em; }
   label input,label :is(select,:where(.select-control)),label textarea { letter-spacing:normal; font-weight:400; }
   .panel,.campaign-dash-block,.rd-section-card { background:var(--surface); border:1px solid var(--line); padding:14px 16px 16px; box-shadow:none; }
@@ -4488,7 +4491,7 @@ button.rd-switch:not(.linklike):not(.back-link) { min-height:1.25rem; justify-co
   .rd-skills-title h3 { color:var(--blue); font:600 24px var(--font-head); }
   .rd-skill-legend { font:13px var(--font-ui); }
   .rd-skills-grid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:20px 28px; }
-  .rd-skill-grid-row,.rd-skills.progress .rd-skill-grid-row { grid-template-columns:minmax(0,1fr) 34px 58px 70px 28px; gap:6px 10px;
+  .rd-skill-grid-row,.rd-skills.progress .rd-skill-grid-row { grid-template-columns:minmax(0,1fr) 34px 58px 70px 28px; gap:6px 16px;
     min-height:36px; padding:0 8px; border:1px solid var(--line); border-top:0; }
   .rd-skills.progress .rd-skill-grid-row { grid-template-columns:minmax(0,1fr) 34px 58px 70px 98px; }
   .rd-skill-group>header { background:var(--orange); color:#fff; border:0; padding:5px 8px; font:600 13px var(--font-head); }
@@ -5201,7 +5204,7 @@ button.rd-switch:not(.linklike):not(.back-link) { min-height:1.25rem; justify-co
   :is(select,:where(.select-control)) { appearance:none; padding-right:36px;
     background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%235b5b66' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
     background-repeat:no-repeat; background-position:right 10px center; background-size:14px; }
-  .bt-inline-filters :is(select,:where(.select-control)),.shop-toolbar :is(select,:where(.select-control)) { padding-right:36px; }
+  .bt-inline-filters select,.shop-toolbar select { padding-right:36px; }
 }
 @media screen and (width < 768px) {
   button.rd-switch:not(.linklike):not(.back-link) { position:relative; width:44px; min-width:44px; height:44px; min-height:44px; padding:0; background:none; }
@@ -5306,6 +5309,9 @@ button.rd-switch:not(.linklike):not(.back-link) { min-height:1.25rem; justify-co
   .talent-filter-chips { display:flex; flex-wrap:wrap; gap:6px; margin:10px 0; }
   .talent-row { display:grid; grid-template-columns:30px minmax(0,1fr) auto; gap:10px; align-items:start; }
   .talent-tier-square { display:grid; place-items:center; height:30px; width:30px; background:var(--tone); color:#fff; font:700 18px var(--font-head); }
+  /* GEN-V5-17: название и теги начинаются вровень с квадратом тира и кнопкой. */
+  .talent-row>.talent-info>strong { display:block; line-height:1; }
+  .talent-row>.talent-info>.tag-row { margin-top:4px; }
   .talent-actions { max-width:115px; }
   .talent-actions button { white-space:normal; }
   .compact-description { margin:5px 0; font:13px/1.45 var(--font-ui); color:var(--ink-3); min-width:0; }
@@ -5361,7 +5367,8 @@ button.rd-switch:not(.linklike):not(.back-link) { min-height:1.25rem; justify-co
   .shop-row-icon svg { width:18px; height:18px; }
   .shop-row-head .shop-row-actions { grid-column:2; display:flex; flex-direction:row; flex-wrap:wrap; justify-content:flex-start; gap:6px; margin:4px 0 0; }
   .shop-row-actions :is(button,:is(select,:where(.select-control))) { width:auto; max-width:100%; min-height:24px; height:24px; padding:2px 6px; font-size:12px; }
-  .shop-row-actions :is(select,:where(.select-control)),.damage-select { padding-right:36px; }
+  /* GEN-V5-17: у общего Select стрелка своя — отступ 10px, как у остальных полей выбора. */
+  .shop-row-actions .select-control,.damage-select { padding-right:10px; }
 
   /* D-26…33: unbroken magic labels, original glyphs and short heroic metadata. */
   .magic-actions .sheet-choice-card { overflow-wrap:normal; hyphens:auto; }
@@ -5669,7 +5676,9 @@ button.rd-switch:not(.linklike):not(.back-link) { min-height:1.25rem; justify-co
   .modal-header .muted { color:var(--on-navy-muted); }
   .npc-attack-qualities { display:flex; flex-wrap:wrap; gap:4px; }
   .npc-attack-qualities .chip { display:inline-flex; align-items:center; flex-wrap:nowrap; gap:4px; white-space:nowrap; min-height:24px; height:28px; padding:1px 4px; font-size:12px; }
-  .bt-builder .npc-attack-qualities input.ranks-input { flex:none; width:44px; min-width:44px; min-height:24px; height:24px; padding:0 2px; text-align:center; font:12px var(--font-ui); }
+  /* GEN-V5-17: рейтинг вписывается прямо в строку свойства — поле без рамки, фона и стрелок. */
+  .bt-builder .npc-attack-qualities input.ranks-input { flex:none; width:3ch; min-width:0; min-height:0; height:auto; padding:0; border:0; background:transparent; color:inherit; text-align:center; font:inherit; appearance:textfield; -moz-appearance:textfield; }
+  .bt-builder .npc-attack-qualities input.ranks-input::-webkit-inner-spin-button,.bt-builder .npc-attack-qualities input.ranks-input::-webkit-outer-spin-button { -webkit-appearance:none; margin:0; }
   .npc-attack-qualities .chip button { --control-height:20px; --mobile-control-height:20px; flex:none; min-height:20px; height:20px; width:20px; padding:0; }
   .inv-title-line>strong { flex:1 1 160px; min-width:min(160px,100%); overflow-wrap:normal; word-break:normal; hyphens:auto; }
   .enc-scene-head { display:grid; grid-template-columns:28px minmax(0,1fr) auto; gap:6px 8px; align-items:start; }

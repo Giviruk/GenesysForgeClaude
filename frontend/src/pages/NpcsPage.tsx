@@ -766,12 +766,15 @@ function AttacksEditor({ attacks, skills, qualities, onChange }: {
 }) {
   const upd = (i: number, patch: Partial<NpcAttackEntry>) =>
     onChange(attacks.map((x, j) => j === i ? { ...x, ...patch } : x))
+  // В справочнике рядом с качествами оружия лежат эффекты заклинаний; к атаке применимы
+  // только качества оружия (GEN-V5-17).
+  const attackQualities = qualities.filter(q => q.kind === 'itemQuality' && q.category.startsWith('Оружие'))
   return (
     <div className="list-editor">
       <div className="label-line">{t('Атаки', 'Attacks')}</div>
       <div className="muted small-text">{t('Оружие из «Снаряжения» добавляет атаку автоматически; «+ Атака» — кастомная.', 'Weapons from “Gear” add an attack automatically; “+ Attack” is custom.')}</div>
       {attacks.map((a, i) => {
-        const remaining = qualities.filter(q => !a.qualities.some(x => x.qualityCode === q.code))
+        const remaining = attackQualities.filter(q => !a.qualities.some(x => x.qualityCode === q.code))
         const derived = a.sourceWeapon !== ''
         return (
           <div key={i} className="ability-edit">
@@ -803,8 +806,12 @@ function AttacksEditor({ attacks, skills, qualities, onChange }: {
               {a.qualities.map((q, k) => (
                 <span key={k} className="chip removable">
                   {q.nameRu || q.qualityCode}
-                  {q.rating != null && <input type="number" min={1} className="ranks-input" value={q.rating}
-                    onChange={e => upd(i, { qualities: a.qualities.map((x, m) => m === k ? { ...x, rating: Math.max(1, +e.target.value) } : x) })} />}
+                  {/* Пустое поле на время ввода: иначе стереть «1» и вписать своё число нельзя. */}
+                  {q.rating != null && <input type="number" min={1} className="ranks-input" value={q.rating || ''}
+                    aria-label={t(`Рейтинг: ${q.nameRu || q.qualityCode}`, `Rating: ${q.nameRu || q.qualityCode}`)}
+                    onFocus={e => e.target.select()}
+                    onChange={e => upd(i, { qualities: a.qualities.map((x, m) => m === k ? { ...x, rating: Math.max(0, Math.trunc(+e.target.value) || 0) } : x) })}
+                    onBlur={() => (q.rating ?? 0) < 1 && upd(i, { qualities: a.qualities.map((x, m) => m === k ? { ...x, rating: 1 } : x) })} />}
                   <button type="button" onClick={() => upd(i, { qualities: a.qualities.filter((_, m) => m !== k) })}>×</button>
                 </span>
               ))}

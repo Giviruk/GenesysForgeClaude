@@ -78,6 +78,17 @@ const ENCHANT_HINT = t(
 )
 
 /** Сколько символов уже расписано по тратам — чтобы не обещать больше, чем выпало. */
+/** Сервер хранит в проекте снимок английского названия (ItemDef.Name) — показываем справочное на языке интерфейса. */
+function targetLabel(items: ItemDef[], target: { targetName: string; itemDefId?: string }): string {
+  const def = items.find(i => target.itemDefId ? i.id === target.itemDefId : i.name === target.targetName)
+  return def ? localizedName(def) : target.targetName
+}
+
+function skillLabel(sheet: CharacterSheet, name: string): string {
+  const skill = sheet.skills.find(s => s.name === name)
+  return skill ? localizedName(skill) : name
+}
+
 function spentSymbols(choices: CraftingSpendChoice[], spends: CraftingSpend[]): Record<CraftingSymbol, number> {
   const spent: Record<CraftingSymbol, number> = { advantage: 0, threat: 0, triumph: 0, despair: 0 }
   for (const choice of choices) {
@@ -308,10 +319,10 @@ export function CraftingTab({ sheet, reference, onError, refresh }: Props) {
           </details>
         </section>
         <aside className="sheet-sticky sheet-result-card crafting-calculation">
-          <header className="crafting-plate plate"><h4>{t('Расчёт', 'Calculation')}</h4><h3>{shownPreview?.targetName ?? t('Новый проект', 'New project')}</h3></header>
+          <header className="crafting-plate plate"><h4>{t('Расчёт', 'Calculation')}</h4><h3>{shownPreview ? targetLabel(reference.items, shownPreview) : t('Новый проект', 'New project')}</h3></header>
           {shownPreview && <><div className="sheet-difficulty"><div><small>{t('Сложность', 'Difficulty')}</small><strong>{DIFFICULTY_LABELS[shownPreview.difficulty] ?? shownPreview.difficulty} ({shownPreview.difficulty})</strong>
             {shownPreview.difficulty !== shownPreview.baseDifficulty && <small>{t('по правилу', 'by rule')} — {shownPreview.baseDifficulty}</small>}</div><span aria-hidden="true">{Array.from({ length: shownPreview.difficulty }, (_, i) => <GenesysSymbol key={i} kind="difficulty" decorative />)}</span></div>
-            <dl className="sheet-result-stats"><dt>{t('Навык', 'Skill')}</dt><dd>{shownPreview.skillName}</dd><dt>{t('Время', 'Time')}</dt><dd>{shownPreview.time} {shownPreview.timeUnit === 'hours' ? t('ч', 'h') : t('дн', 'd')}</dd>
+            <dl className="sheet-result-stats"><dt>{t('Навык', 'Skill')}</dt><dd>{skillLabel(sheet, shownPreview.skillName)}</dd><dt>{t('Время', 'Time')}</dt><dd>{shownPreview.time} {shownPreview.timeUnit === 'hours' ? t('ч', 'h') : t('дн', 'd')}</dd>
               <dt>{t('Цена предмета', 'Item price')}</dt><dd>{shownPreview.targetPrice ?? '—'}</dd><dt>{t('Компоненты', 'Components')}</dt><dd>{shownPreview.cost} {shownPreview.costOverride === null && shownPreview.costPercent !== 100 && <small>({shownPreview.costPercent}% {t('от', 'of')} {shownPreview.listedCost})</small>}</dd></dl></>}
           <p className="crafting-funds">{t('Доступно персонажу', 'Character funds')} {sheet.money}</p>
           <button className="primary" disabled={!canStart} onClick={() => void start()}>{t('Начать проект', 'Start the project')}</button>
@@ -325,7 +336,7 @@ export function CraftingTab({ sheet, reference, onError, refresh }: Props) {
           <h3 className="sheet-section-title">{t('В работе', 'In progress')}</h3>
           <p className="hint small-text">{ROLL_HINT}</p>
           {drafts.map(p => (
-            <ResolveForm key={p.id} project={p} sheet={sheet}
+            <ResolveForm key={p.id} project={p} sheet={sheet} name={targetLabel(reference.items, p)}
               onCancel={() => cancel(p.id)}
               onResolved={async () => { await loadProjects(); await refresh() }}
               onError={onError} />
@@ -339,7 +350,7 @@ export function CraftingTab({ sheet, reference, onError, refresh }: Props) {
           <ul className="crafting-history">
             {done.map(p => (
               <li key={p.id} className={p.status === 'cancelled' ? 'cancelled' : p.netSuccesses > 0 ? 'success' : 'failure'}>
-                <strong>{p.targetName}</strong> — {KIND_LABELS[p.kind]}
+                <strong>{targetLabel(reference.items, p)}</strong> — {KIND_LABELS[p.kind]}
                 {p.status === 'cancelled'
                   ? <span className="muted"> · {t('отменён', 'cancelled')}</span>
                   : <span className="muted">
@@ -362,9 +373,10 @@ export function CraftingTab({ sheet, reference, onError, refresh }: Props) {
  * Разрешение проекта: символы броска и интерактивный выбор трат. Каждая выбранная трата попадёт
  * в описание созданного предмета, поэтому здесь же видно, что именно будет записано.
  */
-function ResolveForm({ project, sheet, onCancel, onResolved, onError }: {
+function ResolveForm({ project, sheet, name, onCancel, onResolved, onError }: {
   project: CraftingProject
   sheet: CharacterSheet
+  name: string
   onCancel: () => Promise<void>
   onResolved: () => Promise<void>
   onError: (message: string) => void
@@ -448,16 +460,16 @@ function ResolveForm({ project, sheet, onCancel, onResolved, onError }: {
     <article className="crafting-project">
       <header className="sheet-card-heading">
         <div className="crafting-project-title"><span className="crafting-project-icon"><Icon name={project.kind === 'item' ? 'hammer' : project.kind === 'potion' ? 'flask' : 'sparkles'} /></span>
-        <div><strong>{project.targetName} — {KIND_LABELS[project.kind]}</strong>
+        <div><strong>{name} — {KIND_LABELS[project.kind]}</strong>
         <span className="muted crafting-project-meta">
-          {' · '}{project.skillName}
+          {' · '}{skillLabel(sheet, project.skillName)}
           {' · '}{t('сложность', 'difficulty')} {project.difficulty}
           {' · '}{project.time} {project.timeUnit === 'hours' ? t('ч', 'h') : t('дн', 'd')}
           {' · '}{project.cost} <Icon name="coin" className="button-icon" />
         </span></div></div>
         <div className="form-actions"><button className="small" onClick={() => {
           const sk = sheet.skills.find(s => s.name === project.skillName)
-          openRoller({ kind: 'roll', title: t('Проверка ремесла', 'Crafting check'), label: project.targetName,
+          openRoller({ kind: 'roll', title: t('Проверка ремесла', 'Crafting check'), label: name,
             difficultyUpgrades: sk?.difficultyUpgrades ?? 0,
             initialPool: { ability: sk?.pool?.ability ?? 0, proficiency: sk?.pool?.proficiency ?? 0,
               boost: sk?.removeBoosts ? 0 : sk?.boostDice ?? 0, setback: sk?.setbackDice ?? 0,

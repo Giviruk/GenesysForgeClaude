@@ -68,9 +68,13 @@ scope сессии/encounter и единый check context: их нет в пр�
   [ТЗ](../../redesign_v5_tz/TZ_design_remarks_v5_2.md), [план](gen-v5-15-design-remarks-2.md).
   Реализация готова к ревью в [PR #297](https://github.com/Giviruk/GenesysForgeClaude/pull/297): списание/возврат компонентов, структурированный урон, 64 списка переведены на общий Select, экраны исправлены. Повторное ревью из 15 пунктов: PaidCost с миграцией, конкурентность кошелька/статуса, аудит отмены, валидация и стили Select, границы сетки. 710 Vitest, 773 Domain и 965 API успешны; после ревью Chromium 5/5 и Firefox 4/4; актуальная полная матрица CI — в Checks PR. Ограничение проверки Safari/реальных мобильных устройств описано в [отчёте со снимками](../../docs/design-review/gen-v5-15/README.md). PR #297 слит 16.10.2026 (`79de6ff`).
 
-- [~] **GEN-V5-16** — 12 замечаний по дизайну после сверки прода `79de6ff`: магия, карточка товара, библиотека,
+- [x] **GEN-V5-16** — 12 замечаний по дизайну после сверки прода `79de6ff`: магия, карточка товара, библиотека,
   игровой стол без «Быстрых действий», обзор кампании, штриховка заголовков, селекты, лист и инвентарь.
-  [ТЗ](../../redesign_v5_tz/TZ_design_remarks_v5_3.md), [план](gen-v5-16-design-remarks-3.md), [PR #298](https://github.com/Giviruk/GenesysForgeClaude/pull/298). `[x]` — после слияния.
+  [ТЗ](../../redesign_v5_tz/TZ_design_remarks_v5_3.md), [план](gen-v5-16-design-remarks-3.md), [PR #298](https://github.com/Giviruk/GenesysForgeClaude/pull/298) слит 16.10.2026 (`ff8874a`).
+
+- [~] **GEN-V5-17** — 11 замечаний по дизайну после GEN-V5-16: строка навыка, таланты, селект состояния,
+  чекбоксы магии, русские названия в мастерской, редактор атак и карточка NPC, сюжетные очки.
+  [ТЗ](../../redesign_v5_tz/TZ_design_remarks_v5_4.md), [план](gen-v5-17-design-remarks-4.md), [PR #299](https://github.com/Giviruk/GenesysForgeClaude/pull/299). `[x]` — после слияния.
 
 - [~] **GEN-UI-SYMBOLS** — формы игровых символов через локальный Genesys Glyphs and Dice
   и базовая русская терминология Core: характеристики, кости, результаты, сложности,
