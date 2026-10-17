@@ -32,6 +32,6 @@ public class NextTurnHandler(IAppDbContext db) : ICommandHandler<NextTurnCommand
         session.UpdatedAt = DateTime.UtcNow;
 
         await db.SaveChangesAsync(ct);
-        return GameTableMapper.ToDto(session, isGm: true);
+        return await GameTableMapper.ToDtoAsync(db, session, isGm: true, ct);
     }
 }

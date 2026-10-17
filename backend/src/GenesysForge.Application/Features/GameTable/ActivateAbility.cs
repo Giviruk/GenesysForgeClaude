@@ -113,7 +113,7 @@ public class ActivateAbilityHandler(IAppDbContext db) : ICommandHandler<Activate
         });
 
         await db.SaveChangesAsync(ct);
-        return new ActivateAbilityResult(GameTableMapper.ToDto(session, isGm), name, result.Applied, result.Manual);
+        return new ActivateAbilityResult(await GameTableMapper.ToDtoAsync(db, session, isGm, ct), name, result.Applied, result.Manual);
     }
 
     private static string Trim(string s, int max) => s.Length <= max ? s : s[..max];

@@ -1312,6 +1312,7 @@ export interface NpcAttackEntry {
 
 
 export interface NpcListItem {
+  portraitUrl?: string | null
   id: string
   name: string
   system: GameSystem
@@ -1331,6 +1332,7 @@ export interface NpcListItem {
 }
 
 export interface NpcDetail {
+  portraitUrl?: string | null
   id: string
   name: string
   system: GameSystem
@@ -1424,6 +1426,7 @@ export type InitiativeSlotType = 'player' | 'npc' | 'neutral'
 export type RangeZone = 'engaged' | 'short' | 'medium' | 'long' | 'extreme'
 
 export interface GameParticipant {
+  portraitUrl?: string | null
   id: string
   characterId: string | null
   npcId: string | null

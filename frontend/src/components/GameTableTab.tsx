@@ -1,3 +1,4 @@
+import { Portrait } from './Portrait'
 import { Select } from './Select'
 import { Icon } from './Icon'
 import { toneClass } from '../utils/tones'
@@ -431,7 +432,7 @@ function RangeBandTracker({ campaignId, session, isGm, members, onRun }: {
             onClick={() => setFocusParticipantId(p.id)}
             onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setFocusParticipantId(p.id) } }}
             onPointerDown={e => beginDrag(e, p)}>
-            <span>{initials(p)}</span>
+            <TokenPortrait participant={p} initials={initials(p)} />
             {isGm && <span className="ring-token-actions" onPointerDown={e => e.stopPropagation()}>
               <button type="button" className="tiny" disabled={zi === 0}
                 title={t('Ближе', 'Closer')} onClick={e => { e.stopPropagation(); shift(p, -1) }}>▲</button>
@@ -449,7 +450,7 @@ function RangeBandTracker({ campaignId, session, isGm, members, onRun }: {
             })} aria-hidden="true" />
             <div className={`ring-token drag-preview${participant.participantType === 'playerCharacter' ? ' pc' : ' npc'}`}
               style={{ left: `${dragPreview.leftPercent}%`, top: `${dragPreview.topPercent}%` }} aria-hidden="true">
-              <span>{initials(participant)}</span>
+              <TokenPortrait participant={participant} initials={initials(participant)} />
             </div>
           </>
         })()}
@@ -620,7 +621,7 @@ function ParticipantsStrip({ session, campaignId, isGm, members, onRun,
             return <ParticipantCard key={p.id} p={p} campaignId={campaignId} isGm={isGm}
               canEditVitals={isGm || Boolean(session.allowPlayerEdits && member?.isMine)}
               onRun={onRun} onUpdateParticipant={onUpdateParticipant} updatePending={updatePending}
-              characterName={member?.characterName} portraitUrl={member?.portraitUrl}
+              characterName={member?.characterName}
               onOpenCharacter={onOpenCharacter}
               onOpenNpc={p.npcId ? () => setOpenNpcId(p.id) : undefined} />
           })}
@@ -634,7 +635,7 @@ function ParticipantsStrip({ session, campaignId, isGm, members, onRun,
 }
 
 function ParticipantCard({ p, campaignId, isGm, canEditVitals, onRun, onUpdateParticipant,
-  updatePending, characterName, portraitUrl, onOpenNpc, onOpenCharacter }: {
+  updatePending, characterName, onOpenNpc, onOpenCharacter }: {
   p: GameParticipant
   campaignId: string
   isGm: boolean
@@ -643,7 +644,6 @@ function ParticipantCard({ p, campaignId, isGm, canEditVitals, onRun, onUpdatePa
   onUpdateParticipant: (participantId: string, patch: UpdateParticipantRequest) => Promise<void>
   updatePending: boolean
   characterName?: string
-  portraitUrl?: string | null
   onOpenNpc?: () => void
   onOpenCharacter?: () => void
 }) {
@@ -669,8 +669,7 @@ function ParticipantCard({ p, campaignId, isGm, canEditVitals, onRun, onUpdatePa
 
       <div className="pc-name">
         <span className="pc-identity">
-          {portraitUrl && <img className="participant-portrait" src={portraitUrl}
-            alt={t(`Портрет: ${visibleName}`, `Portrait: ${visibleName}`)} />}
+          <Portrait url={p.portraitUrl} name={p.displayName} className="participant-portrait" />
           <span>{participantNameWithCount({ ...p, displayName: visibleName })}</span>
         </span>
         <span className="pc-name-badges">
@@ -910,4 +909,14 @@ interface BlockProps {
   isGm: boolean
   onRun: (a: () => Promise<unknown>) => Promise<void>
   campaignId: string
+}
+
+function TokenPortrait({ participant, initials }: { participant: GameParticipant; initials: string }) {
+  return <span className="ring-token-content">
+    <Portrait url={participant.portraitUrl} name={participant.displayName}
+      fallback={<span>{initials}</span>} className="ring-token-portrait">
+    {participant.participantType === 'minionGroup' &&
+      <span className="ring-token-count">{participant.remainingCount ?? participant.count}</span>}
+    </Portrait>
+  </span>
 }

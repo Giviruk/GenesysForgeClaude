@@ -24,13 +24,13 @@ public static class NpcMapper
             a.SourceWeapon)).ToList(),
         npc.Talents, npc.Equipment, npc.Tags,
         NpcValidator.Validate(npc).Warnings,
-        npc.CreatedAt, npc.UpdatedAt);
+        npc.CreatedAt, npc.UpdatedAt, npc.PortraitUrl);
 
     public static NpcListItemDto ToListItem(Npc npc, Guid userId) => new(
         npc.Id, npc.Name, npc.System, npc.Kind, npc.Role, npc.Silhouette, npc.Soak, npc.WoundThreshold,
         npc.Kind == NpcKind.Nemesis ? npc.StrainThreshold : null, npc.Visibility, npc.CampaignId, npc.OwnerUserId == userId, npc.IsBuiltIn,
         npc.Skills.OrderBy(s => s.Name).Select(s => new NpcSkillDto(s.Name, s.Ranks)).ToList(),
-        npc.Tags, npc.CreatedAt);
+        npc.Tags, npc.CreatedAt, npc.PortraitUrl);
 
     /// <summary>Загружает NPC с коллекциями или бросает «не найден».</summary>
     public static async Task<Npc> LoadAsync(IAppDbContext db, Guid id, CancellationToken ct, bool tracking = false)

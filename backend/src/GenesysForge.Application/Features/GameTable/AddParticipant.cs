@@ -20,6 +20,6 @@ public class AddParticipantHandler(IAppDbContext db) : ICommandHandler<AddPartic
         await db.SaveChangesAsync(ct);
 
         var fresh = await GameTableMapper.RequireActiveAsync(db, command.CampaignId, ct);
-        return GameTableMapper.ToDto(fresh, isGm: true);
+        return await GameTableMapper.ToDtoAsync(db, fresh, isGm: true, ct);
     }
 }

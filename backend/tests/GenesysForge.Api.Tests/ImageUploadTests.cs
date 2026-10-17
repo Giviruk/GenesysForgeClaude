@@ -228,4 +228,177 @@ public class ImageUploadTests : IClassFixture<ApiFactory>
         Assert.Equal(HttpStatusCode.BadRequest, rejected.StatusCode);
         Assert.Single(storage.Uploaded);
     }
+    private static NpcInput PortraitNpcInput => new(
+        "Portrait NPC", GameSystem.GenesysCore, NpcKind.Minion, NpcRole.Skirmisher, null, null,
+        2, 2, 2, 2, 2, 2, 5, null, 2, 0, 0, 1, null, NpcVisibility.PublicTemplate,
+        null, null, null, null, null, null, null);
+
+    private static async Task<NpcDetailDto> CreateNpcAsync(HttpClient client)
+    {
+        var response = await client.PostAsJsonAsync("/api/npcs/", PortraitNpcInput, Json.Options);
+        response.EnsureSuccessStatusCode();
+        return (await response.Content.ReadFromJsonAsync<NpcDetailDto>(Json.Options))!;
+    }
+
+    [Theory]
+    [InlineData("png")]
+    [InlineData("jpg")]
+    [InlineData("webp")]
+    public async Task NpcPortrait_UploadReplaceDelete_UpdatesDetailAndList(string extension)
+    {
+        var (factory, storage) = WithFakeStorage();
+        using var ownedFactory = factory;
+        var owner = await RegisterAsync(factory);
+        var npc = await CreateNpcAsync(owner);
+        var bytes = extension switch { "jpg" => ImageSignatureTests.Jpeg, "webp" => ImageSignatureTests.Webp, _ => ImageSignatureTests.Png };
+        var response = await owner.PostAsync($"/api/v1/npcs/{npc.Id}/portrait", ImageContent(bytes));
+        response.EnsureSuccessStatusCode();
+        var url = (await response.Content.ReadFromJsonAsync<Dictionary<string, string>>())!["portraitUrl"];
+        Assert.EndsWith($".{extension}", url);
+        Assert.Contains($"/npc-portraits/{npc.Id}/", url);
+        var detail = (await owner.GetFromJsonAsync<NpcDetailDto>($"/api/npcs/{npc.Id}", Json.Options))!;
+        Assert.Equal(url, detail.PortraitUrl);
+        var list = (await owner.GetFromJsonAsync<List<NpcListItemDto>>("/api/npcs/", Json.Options))!;
+        Assert.Equal(url, list.Single(n => n.Id == npc.Id).PortraitUrl);
+        var viewer = await RegisterAsync(factory);
+        Assert.Equal(url, (await viewer.GetFromJsonAsync<NpcDetailDto>($"/api/npcs/{npc.Id}", Json.Options))!.PortraitUrl);
+
+        (await owner.PostAsync($"/api/npcs/{npc.Id}/portrait", ImageContent(ImageSignatureTests.Webp))).EnsureSuccessStatusCode();
+        Assert.Contains(url, storage.Deleted);
+        Assert.Equal(2, storage.Uploaded.Count);
+        Assert.NotEqual(url, storage.Uploaded[1]);
+        (await owner.DeleteAsync($"/api/v1/npcs/{npc.Id}/portrait")).EnsureSuccessStatusCode();
+        Assert.Contains(storage.Uploaded[1], storage.Deleted);
+        Assert.Null((await owner.GetFromJsonAsync<NpcDetailDto>($"/api/npcs/{npc.Id}", Json.Options))!.PortraitUrl);
+        // Removing an absent portrait is safe and does not issue another object deletion.
+        (await owner.DeleteAsync($"/api/npcs/{npc.Id}/portrait")).EnsureSuccessStatusCode();
+        Assert.Equal(2, storage.Deleted.Count);
+    }
+
+    [Fact]
+    public async Task NpcPortrait_RejectsNonOwnerAndBuiltIn_WithoutStorageChanges()
+    {
+        var (factory, storage) = WithFakeStorage();
+        using var ownedFactory = factory;
+        var owner = await RegisterAsync(factory);
+        var npc = await CreateNpcAsync(owner);
+        (await owner.PostAsync($"/api/npcs/{npc.Id}/portrait", ImageContent(ImageSignatureTests.Png))).EnsureSuccessStatusCode();
+        var stranger = await RegisterAsync(factory);
+        Assert.Equal(HttpStatusCode.BadRequest, (await stranger.PostAsync($"/api/npcs/{npc.Id}/portrait", ImageContent(ImageSignatureTests.Png))).StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, (await stranger.DeleteAsync($"/api/npcs/{npc.Id}/portrait")).StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, (await stranger.DeleteAsync($"/api/npcs/{npc.Id}")).StatusCode);
+
+        // Even a built-in with a legacy owner must remain read-only for portrait operations.
+        using (var scope = factory.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<IAppDbContext>();
+            var entity = await db.Npcs.FindAsync(npc.Id);
+            entity!.IsBuiltIn = true;
+            await db.SaveChangesAsync();
+        }
+        Assert.Equal(HttpStatusCode.BadRequest, (await owner.PostAsync($"/api/npcs/{npc.Id}/portrait", ImageContent(ImageSignatureTests.Png))).StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, (await owner.DeleteAsync($"/api/npcs/{npc.Id}/portrait")).StatusCode);
+        Assert.Single(storage.Uploaded);
+        Assert.Empty(storage.Deleted);
+    }
+
+    [Theory]
+    [InlineData("oversize", "Файл больше 5 МБ.")]
+    [InlineData("svg", "Поддерживаются только изображения JPEG, PNG и WebP.")]
+    [InlineData("empty", "Файл пуст.")]
+    public async Task NpcPortrait_RejectsInvalidFiles_AndPreservesPrevious(string kind, string message)
+    {
+        var (factory, storage) = WithFakeStorage();
+        using var ownedFactory = factory;
+        var owner = await RegisterAsync(factory);
+        var npc = await CreateNpcAsync(owner);
+        (await owner.PostAsync($"/api/npcs/{npc.Id}/portrait", ImageContent(ImageSignatureTests.Png))).EnsureSuccessStatusCode();
+        var bytes = kind switch { "oversize" => new byte[ImageSignature.MaxBytes + 1], "svg" => "<svg/>"u8.ToArray(), _ => [] };
+        var response = await owner.PostAsync($"/api/npcs/{npc.Id}/portrait", ImageContent(bytes));
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.Equal(message, (await response.Content.ReadFromJsonAsync<Dictionary<string, string>>())!["message"]);
+        Assert.Single(storage.Uploaded);
+        Assert.Empty(storage.Deleted);
+        Assert.Equal(storage.Uploaded[0], (await owner.GetFromJsonAsync<NpcDetailDto>($"/api/npcs/{npc.Id}", Json.Options))!.PortraitUrl);
+    }
+
+    [Fact]
+    public async Task NpcPortrait_AcceptsExactLimit_AndRejectsDisabledStorage()
+    {
+        var disabled = await RegisterAsync(_factory);
+        var disabledNpc = await CreateNpcAsync(disabled);
+        Assert.Equal(HttpStatusCode.BadRequest, (await disabled.PostAsync($"/api/npcs/{disabledNpc.Id}/portrait", ImageContent(ImageSignatureTests.Png))).StatusCode);
+        var (factory, storage) = WithFakeStorage();
+        using var ownedFactory = factory;
+        var owner = await RegisterAsync(factory);
+        var npc = await CreateNpcAsync(owner);
+        var bytes = new byte[ImageSignature.MaxBytes];
+        ImageSignatureTests.Png.CopyTo(bytes, 0);
+        (await owner.PostAsync($"/api/npcs/{npc.Id}/portrait", ImageContent(bytes))).EnsureSuccessStatusCode();
+        Assert.Single(storage.Uploaded);
+    }
+
+    [Fact]
+    public async Task NpcPortrait_DuplicateAndTemplateDoNotCopy_DeleteNpcCleansFile()
+    {
+        var (factory, storage) = WithFakeStorage();
+        using var ownedFactory = factory;
+        var owner = await RegisterAsync(factory);
+        var npc = await CreateNpcAsync(owner);
+        (await owner.PostAsync($"/api/npcs/{npc.Id}/portrait", ImageContent(ImageSignatureTests.Png))).EnsureSuccessStatusCode();
+        var duplicate = await owner.PostAsync($"/api/npcs/{npc.Id}/duplicate", null);
+        duplicate.EnsureSuccessStatusCode();
+        var copy = (await duplicate.Content.ReadFromJsonAsync<NpcDetailDto>(Json.Options))!;
+        Assert.Null(copy.PortraitUrl);
+        var template = await owner.PostAsJsonAsync("/api/npcs/apply-template",
+            new ApplyTemplateRequest(PortraitNpcInput, CreatureTemplate.None), Json.Options);
+        template.EnsureSuccessStatusCode();
+        Assert.Null((await template.Content.ReadFromJsonAsync<NpcDetailDto>(Json.Options))!.PortraitUrl);
+        (await owner.DeleteAsync($"/api/npcs/{copy.Id}")).EnsureSuccessStatusCode();
+        Assert.Empty(storage.Deleted);
+        (await owner.DeleteAsync($"/api/npcs/{npc.Id}")).EnsureSuccessStatusCode();
+        Assert.Equal(storage.Uploaded, storage.Deleted);
+    }
+
+    [Fact]
+    public async Task GameTablePortraits_UseCurrentSourceUrls_AndExcludeHiddenNpcForPlayers()
+    {
+        var (factory, storage) = WithFakeStorage();
+        using var ownedFactory = factory;
+        var gm = await RegisterAsync(factory);
+        var player = await RegisterAsync(factory);
+        var characterId = await CreateCharacterAsync(player);
+        (await player.PostAsync($"/api/characters/{characterId}/portrait", ImageContent(ImageSignatureTests.Png))).EnsureSuccessStatusCode();
+        var pcUrl = storage.Uploaded.Last();
+        var npc = await CreateNpcAsync(gm);
+        (await gm.PostAsync($"/api/npcs/{npc.Id}/portrait", ImageContent(ImageSignatureTests.Webp))).EnsureSuccessStatusCode();
+        var npcUrl = storage.Uploaded.Last();
+        var created = await gm.PostAsJsonAsync("/api/campaigns/", new CreateCampaignRequest("Portrait scene", ""), Json.Options);
+        var campaign = (await created.Content.ReadFromJsonAsync<CampaignDetailDto>(Json.Options))!;
+        (await player.PostAsJsonAsync("/api/campaigns/join", new JoinCampaignRequest(campaign.JoinCode!, characterId), Json.Options)).EnsureSuccessStatusCode();
+        var route = $"/api/campaigns/{campaign.Id}/session";
+        (await gm.PostAsJsonAsync(route, new CreateSessionRequest("Portraits", null, 1, 1), Json.Options)).EnsureSuccessStatusCode();
+        (await gm.PostAsJsonAsync(route + "/participants", new AddParticipantRequest(characterId, null, null, null, null, null, null, null, null, null, null), Json.Options)).EnsureSuccessStatusCode();
+        var added = await gm.PostAsJsonAsync(route + "/participants", new AddParticipantRequest(null, npc.Id, null, ParticipantType.MinionGroup, null, 3, null, null, null, null, null), Json.Options);
+        added.EnsureSuccessStatusCode();
+        var scene = (await added.Content.ReadFromJsonAsync<GameSessionDto>(Json.Options))!;
+        Assert.Equal(pcUrl, scene.Participants.Single(p => p.CharacterId == characterId).PortraitUrl);
+        var npcParticipant = scene.Participants.Single(p => p.NpcId == npc.Id);
+        Assert.Equal(npcUrl, npcParticipant.PortraitUrl);
+        Assert.Equal(npcUrl, (await player.GetFromJsonAsync<GameSessionDto>(route, Json.Options))!.Participants.Single(p => p.NpcId == npc.Id).PortraitUrl);
+
+        (await gm.PostAsync($"/api/npcs/{npc.Id}/portrait", ImageContent(ImageSignatureTests.Jpeg))).EnsureSuccessStatusCode();
+        npcUrl = storage.Uploaded.Last();
+        var hidden = await gm.PatchAsJsonAsync(route + $"/participants/{npcParticipant.Id}", new { isHiddenFromPlayers = true });
+        hidden.EnsureSuccessStatusCode();
+        Assert.Equal(npcUrl, (await hidden.Content.ReadFromJsonAsync<GameSessionDto>(Json.Options))!.Participants.Single(p => p.NpcId == npc.Id).PortraitUrl);
+        var playerResponse = await player.GetAsync(route);
+        var visible = (await playerResponse.Content.ReadFromJsonAsync<GameSessionDto>(Json.Options))!;
+        Assert.Equal(pcUrl, Assert.Single(visible.Participants).PortraitUrl);
+        Assert.DoesNotContain(npcUrl, await playerResponse.Content.ReadAsStringAsync());
+
+        (await gm.DeleteAsync($"/api/npcs/{npc.Id}/portrait")).EnsureSuccessStatusCode();
+        Assert.Null((await gm.GetFromJsonAsync<GameSessionDto>(route, Json.Options))!.Participants.Single(p => p.NpcId == npc.Id).PortraitUrl);
+    }
+
 }

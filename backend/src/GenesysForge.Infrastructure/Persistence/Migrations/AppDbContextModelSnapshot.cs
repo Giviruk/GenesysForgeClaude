@@ -2960,6 +2960,10 @@ namespace GenesysForge.Infrastructure.Persistence.Migrations
                     b.Property<Guid?>("OwnerUserId")
                         .HasColumnType("uuid");
 
+                    b.Property<string>("PortraitUrl")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
                     b.Property<int>("Presence")
                         .HasColumnType("integer");
 

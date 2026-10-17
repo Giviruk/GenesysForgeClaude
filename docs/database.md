@@ -479,6 +479,14 @@ Indexes: non-unique `ItemDefId`, `QualityDefId`. Cascade FKs to `ItemDefs` and `
 
 User-owned, campaign-linked, or built-in adversaries.
 
+`PortraitUrl` is nullable `varchar(1000)` (migration `20261017081413_AddNpcPortrait`).
+Existing NPCs start without a portrait. Uploaded images use the object-storage key
+`npc-portraits/{npcId}/{guid}.{ext}` under the deployment prefix. Replacement and removal
+clean up the old file after saving; deleting the NPC also deletes its portrait. Duplicates
+and template-generated NPCs do not inherit a URL. Built-in NPCs cannot upload portraits.
+The public URL is exposed in NPC list/detail DTOs and resolved from source NPC/character
+records for visible Game Table participants; no portrait snapshot column is added to the table.
+
 Fields include owner/campaign visibility, `System`, `Kind`, `Role`, characteristics, derived combat stats, `Silhouette`, `Tactics`, free-text talent/equipment arrays and `Tags` (`text[]` in PostgreSQL).
 
 `StrainThreshold` is persisted and exposed only for `Kind = Nemesis`. Create/update/copy
@@ -650,6 +658,8 @@ Migration folder:
 `backend/src/GenesysForge.Infrastructure/Persistence/Migrations`
 
 Found migrations:
+
+- `20261017081413_AddNpcPortrait` — adds nullable `Npcs.PortraitUrl` (`varchar(1000)`); existing rows remain null. No backfill or seed changes.
 
 - `20260612172325_InitialCreate`
 - `20260613194614_AddCharacterNotes`

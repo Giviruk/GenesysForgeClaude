@@ -13,6 +13,6 @@ public class GetSessionHandler(IAppDbContext db) : IQueryHandler<GetSessionQuery
     {
         var campaign = await CampaignMapper.GetAccessibleAsync(db, query.UserId, query.CampaignId, ct);
         var session = await GameTableMapper.LoadActiveAsync(db, campaign.Id, ct);
-        return session is null ? null : GameTableMapper.ToDto(session, campaign.GmUserId == query.UserId);
+        return session is null ? null : await GameTableMapper.ToDtoAsync(db, session, campaign.GmUserId == query.UserId, ct);
     }
 }

@@ -63,6 +63,21 @@ public static class NpcEndpoints
                 ICommandHandler<UpdateNpcCommand, NpcDetailDto> handler, CancellationToken ct) =>
             Results.Ok(await handler.Handle(new UpdateNpcCommand(user.UserId(), id, input), ct)));
 
+        group.MapPost("/{id:guid}/portrait", async (Guid id, HttpRequest request, ClaimsPrincipal user,
+            ICommandHandler<UploadNpcPortraitCommand, string> handler, CancellationToken ct) =>
+        {
+            var content = await UploadBody.ReadImageAsync(request, ct);
+            var url = await handler.Handle(new UploadNpcPortraitCommand(user.UserId(), id, content), ct);
+            return Results.Ok(new { PortraitUrl = url });
+        }).RequireRateLimiting(AuthRateLimiting.SessionPolicy);
+
+        group.MapDelete("/{id:guid}/portrait", async (Guid id, ClaimsPrincipal user,
+            ICommandHandler<DeleteNpcPortraitCommand, Unit> handler, CancellationToken ct) =>
+        {
+            await handler.Handle(new DeleteNpcPortraitCommand(user.UserId(), id), ct);
+            return Results.NoContent();
+        }).RequireRateLimiting(AuthRateLimiting.SessionPolicy);
+
         group.MapDelete("/{id:guid}", async (Guid id, ClaimsPrincipal user,
             ICommandHandler<DeleteNpcCommand, Unit> handler, CancellationToken ct) =>
         {

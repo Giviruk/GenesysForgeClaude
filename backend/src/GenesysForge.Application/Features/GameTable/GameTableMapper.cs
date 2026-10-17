@@ -27,11 +27,18 @@ public static class GameTableMapper
         await LoadActiveAsync(db, campaignId, ct, tracking)
         ?? throw new DomainRuleException("Активная сцена не найдена.");
 
-    public static GameSessionDto ToDto(GameSession s, bool isGm)
+    public static async Task<GameSessionDto> ToDtoAsync(
+        IAppDbContext db, GameSession s, bool isGm, CancellationToken ct = default)
     {
+        var visible = s.Participants.Where(p => isGm || !p.IsHiddenFromPlayers).ToList();
+        var characterIds = visible.Where(p => p.CharacterId != null).Select(p => p.CharacterId!.Value).Distinct().ToList();
+        var npcIds = visible.Where(p => p.NpcId != null).Select(p => p.NpcId!.Value).Distinct().ToList();
+        var characters = await db.Characters.AsNoTracking().Where(c => characterIds.Contains(c.Id))
+            .Select(c => new { c.Id, c.PortraitUrl }).ToDictionaryAsync(c => c.Id, c => c.PortraitUrl, ct);
+        var npcs = await db.Npcs.AsNoTracking().Where(n => npcIds.Contains(n.Id))
+            .Select(n => new { n.Id, n.PortraitUrl }).ToDictionaryAsync(n => n.Id, n => n.PortraitUrl, ct);
         // Игрок не видит скрытых участников, заметок мастера и приватных заметок участников.
-        var participants = s.Participants
-            .Where(p => isGm || !p.IsHiddenFromPlayers)
+        var participants = visible
             .OrderBy(p => p.Order).ThenBy(p => p.DisplayName)
             .Select(p =>
             {
@@ -43,7 +50,9 @@ public static class GameTableMapper
                     p.WoundsCurrent, p.WoundsThreshold, p.StrainCurrent, p.StrainThreshold,
                     p.Soak, p.MeleeDefense, p.RangedDefense, p.BoostDice, p.SetbackDice,
                     p.CriticalInjuries, p.IsActive, p.IsDefeated,
-                    p.IsHiddenFromPlayers, isGm ? p.Notes : "", p.RangeZone, p.RangeAngle, p.Order);
+                    p.IsHiddenFromPlayers, isGm ? p.Notes : "", p.RangeZone, p.RangeAngle, p.Order,
+                    p.CharacterId is { } characterId ? characters.GetValueOrDefault(characterId)
+                        : p.NpcId is { } npcId ? npcs.GetValueOrDefault(npcId) : null);
             })
             .ToList();
 
