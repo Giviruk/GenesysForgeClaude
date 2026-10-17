@@ -1,3 +1,4 @@
+import { Portrait } from './Portrait'
 import { useEffect, useState } from 'react'
 import { api } from '../api/client'
 import type { Characteristic, NpcDetail, Reference } from '../api/types'
@@ -62,6 +63,7 @@ export function ChronicleNpcModal({ npcId, campaignId, onClose }: Props) {
       {error && <div className="error">{error}</div>}
       {!npc && !error && <p className="muted">{t('Загрузка…', 'Loading…')}</p>}
       {npc && <div className="npc-card">
+            <Portrait url={npc.portraitUrl} name={npc.name} className="npc-portrait" />
         {npc.description && <p className="npc-desc"><RuleText text={npc.description} symbolsOnly /></p>}
         <div className="npc-char-row">
           {characteristics.map(([key, value]) => <div className="npc-char" key={key}>

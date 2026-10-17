@@ -85,6 +85,19 @@ describe('api client — обработка 401', () => {
     expect((init?.headers as Record<string, string>).Authorization).toBe('Bearer ok-token')
   })
 
+  it('uploads NPC portraits as raw files and deletes through the portrait endpoint', async () => {
+    const fetchMock = vi.spyOn(globalThis, 'fetch')
+      .mockResolvedValueOnce(new Response(JSON.stringify({ portraitUrl: '/npc.webp' }), { status: 200 }))
+      .mockResolvedValueOnce(new Response(null, { status: 204 }))
+    const file = new File(['image'], 'npc.webp', { type: 'image/webp' })
+    expect(await api.uploadNpcPortrait('npc-1', file)).toEqual({ portraitUrl: '/npc.webp' })
+    await api.deleteNpcPortrait('npc-1')
+    expect(fetchMock.mock.calls[0][0]).toBe('/api/npcs/npc-1/portrait')
+    expect(fetchMock.mock.calls[0][1]).toMatchObject({ method: 'POST', body: file })
+    expect(fetchMock.mock.calls[1][0]).toBe('/api/npcs/npc-1/portrait')
+    expect(fetchMock.mock.calls[1][1]).toMatchObject({ method: 'DELETE' })
+  })
+
   it('character clone/share methods use the expected endpoints', async () => {
     const fetchMock = vi.spyOn(globalThis, 'fetch')
       .mockResolvedValueOnce(new Response(JSON.stringify({ id: 'copy-id' }), { status: 200 }))

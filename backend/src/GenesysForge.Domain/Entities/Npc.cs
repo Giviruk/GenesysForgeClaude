@@ -27,6 +27,7 @@ public class Npc
 
     public GameSystem System { get; set; }
     public required string Name { get; set; }
+    public string? PortraitUrl { get; set; }
     public NpcKind Kind { get; set; }
     public NpcRole Role { get; set; }
     public string Description { get; set; } = "";

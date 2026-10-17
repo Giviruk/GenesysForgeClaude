@@ -172,6 +172,8 @@ public static class DependencyInjection
         services.AddScoped<ICommandHandler<CreateNpcCommand, NpcDetailDto>, CreateNpcHandler>();
         services.AddScoped<ICommandHandler<UpdateNpcCommand, NpcDetailDto>, UpdateNpcHandler>();
         services.AddScoped<ICommandHandler<DeleteNpcCommand, Unit>, DeleteNpcHandler>();
+        services.AddScoped<ICommandHandler<UploadNpcPortraitCommand, string>, UploadNpcPortraitHandler>();
+        services.AddScoped<ICommandHandler<DeleteNpcPortraitCommand, Unit>, DeleteNpcPortraitHandler>();
         services.AddScoped<ICommandHandler<DuplicateNpcCommand, NpcDetailDto>, DuplicateNpcHandler>();
         services.AddScoped<ICommandHandler<QuickDraftNpcCommand, NpcDetailDto>, QuickDraftNpcHandler>();
         services.AddScoped<IQueryHandler<PreviewQuickDraftNpcQuery, NpcDetailDto>, PreviewQuickDraftNpcHandler>();

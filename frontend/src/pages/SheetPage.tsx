@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent } from 'react'
+import { usePortraitUpload } from '../hooks/usePortraitUpload'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { api, setActiveSlices, takeFreshSlices } from '../api/client'
 import type { BaseSheet, CharacterSheet, Reference, SheetSliceName, SheetSlices } from '../api/types'
 import { localizedName, SYSTEM_LABELS } from '../utils/labels'
@@ -249,6 +250,13 @@ export function SheetPage({ characterId, printing, onOpenPrint, onClosePrint, on
     }
   }, [actionsOpen])
 
+  const { uploadPortrait, uploading } = usePortraitUpload(async file => {
+    if (!sheet) return
+    const { portraitUrl } = await api.uploadCharacterPortrait(sheet.id, file)
+    mergeSlices({ base: { ...sheet, portraitUrl } })
+    setNotice(t('Портрет обновлён.', 'Portrait updated.'))
+  }, setError)
+
   if (!sheet || !reference) {
     return (
       <div className="page">
@@ -281,20 +289,6 @@ export function SheetPage({ characterId, printing, onOpenPrint, onClosePrint, on
       navigate(`/characters/${copy.id}`)
     } catch (err) {
       setError(err instanceof Error ? err.message : t('Ошибка клонирования', 'Failed to duplicate'))
-    }
-  }
-
-  async function uploadPortrait(e: ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0]
-    e.target.value = '' // повторный выбор того же файла снова вызывает onChange
-    if (!file || !sheet) return
-    if (file.size > 5 * 1024 * 1024) { setError(t('Файл больше 5 МБ.', 'File is larger than 5 MB.')); return }
-    try {
-      const { portraitUrl } = await api.uploadCharacterPortrait(sheet.id, file)
-      mergeSlices({ base: { ...sheet, portraitUrl } })
-      setNotice(t('Портрет обновлён.', 'Portrait updated.'))
-    } catch (err) {
-      setError(err instanceof Error ? err.message : t('Ошибка загрузки портрета', 'Portrait upload failed'))
     }
   }
 
@@ -383,7 +377,7 @@ export function SheetPage({ characterId, printing, onOpenPrint, onClosePrint, on
             {t('Персонажи', 'Characters')}
           </button>
           <div className="sheet-title-row">
-            <button type="button" className="sheet-portrait" title={t('Загрузить портрет (JPEG/PNG/WebP, до 5 МБ)', 'Upload portrait (JPEG/PNG/WebP, up to 5 MB)')}
+            <button type="button" className="sheet-portrait" disabled={uploading} title={t('Загрузить портрет (JPEG/PNG/WebP, до 5 МБ)', 'Upload portrait (JPEG/PNG/WebP, up to 5 MB)')}
               onClick={() => portraitFileRef.current?.click()}>
               {sheet.portraitUrl
                 ? <img src={sheet.portraitUrl} alt={t(`Портрет: ${sheet.name}`, `Portrait: ${sheet.name}`)} />

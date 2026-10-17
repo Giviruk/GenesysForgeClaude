@@ -1,3 +1,4 @@
+import { Portrait } from './Portrait'
 import { Icon } from './Icon'
 import { RuleText } from './RuleText'
 import { useEffect, useMemo, useState } from 'react'
@@ -107,6 +108,7 @@ export function GameTableNpcStatblock({ participant, campaignId, isGm,
 
         {npc && (
           <div className="npc-card gt-npc-card">
+            <Portrait url={npc.portraitUrl} name={npc.name} className="npc-portrait" />
             <div className="npc-card-head">
               <h3>{npc.name}</h3>
               <span className="muted">{SYSTEM_LABELS[npc.system]} · {NPC_KIND_LABELS[npc.kind]} · {NPC_ROLE_LABELS[npc.role]}</span>

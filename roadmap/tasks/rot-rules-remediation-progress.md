@@ -6,6 +6,13 @@
 - **PR:** — (после создания)
 - **Статус:** 🚧 In progress
 
+## Изображения NPC и токены (issue #303)
+
+- [~] **Issue #303 / C4** — пользовательские портреты NPC, загрузка/удаление и очистка файлов,
+  портреты персонажей/NPC на токенах и карточках стола; миграция `AddNpcPortrait`.
+  Реализация готова: backend 773 domain + 975 API (3 PostgreSQL tests skipped), Vitest 718, lint/build и Chromium-проверки пройдены. До `[x]` остаётся слияние [PR #305](https://github.com/Giviruk/GenesysForgeClaude/pull/305) в master.
+  [План](issue-303-npc-portraits.md).
+
 ## Контекст
 
 ТЗ содержит ~95 задач (`ROT-*`) по 11 разделам: каждая требует правила в Domain/Application,

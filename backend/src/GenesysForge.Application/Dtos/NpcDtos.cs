@@ -32,7 +32,8 @@ public record NpcListItemDto(
     bool IsBuiltIn,
     IReadOnlyList<NpcSkillDto> Skills,
     IReadOnlyList<string> Tags,
-    DateTime CreatedAt);
+    DateTime CreatedAt,
+    string? PortraitUrl = null);
 
 /// <summary>Полная карточка NPC.</summary>
 public record NpcDetailDto(
@@ -68,7 +69,8 @@ public record NpcDetailDto(
     IReadOnlyList<string> Tags,
     IReadOnlyList<string> Warnings,
     DateTime CreatedAt,
-    DateTime UpdatedAt);
+    DateTime UpdatedAt,
+    string? PortraitUrl = null);
 
 /// <summary>Тело создания/редактирования NPC.</summary>
 public record NpcInput(

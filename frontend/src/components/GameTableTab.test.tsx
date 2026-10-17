@@ -1,3 +1,4 @@
+import '@testing-library/jest-dom/vitest'
 import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { CampaignMember, GameParticipant, GameSession, NpcDetail, Reference } from '../api/types'
@@ -84,7 +85,7 @@ const reference = {
 
 const playerParticipant: GameParticipant = {
   ...session.participants[0], id: 'participant-pc', characterId: 'character-1', npcId: null,
-  displayName: 'Элира', participantType: 'playerCharacter', initiativeSlotType: 'player', count: 1,
+  portraitUrl: '/portraits/character-1/current.webp', displayName: 'Элира', participantType: 'playerCharacter', initiativeSlotType: 'player', count: 1,
   woundsCurrent: 1, woundsThreshold: 12, strainCurrent: 2, strainThreshold: 11,
   soak: 2, meleeDefense: 1, rangedDefense: 0, boostDice: 0, setbackDice: 0, order: 1,
 }
@@ -159,7 +160,7 @@ describe('GameTableTab — статблок и броски NPC', () => {
   })
 
   it('сохраняет позиции трекера дистанций при повторном открытии игрового стола', async () => {
-    const rangeSession = { ...session, participants: [playerParticipant, session.participants[0]] }
+    const rangeSession = { ...session, participants: [playerParticipant, { ...session.participants[0], portraitUrl: '/goblin.webp' }] }
     const restoredSession = {
       ...rangeSession,
       participants: rangeSession.participants.map(participant => participant.id === 'participant-1'
@@ -200,7 +201,7 @@ describe('GameTableTab — статблок и броски NPC', () => {
   })
 
   it('показывает расстояния от выбранного участника, не переставляя токены', async () => {
-    const rangeSession = { ...session, participants: [playerParticipant, session.participants[0]] }
+    const rangeSession = { ...session, participants: [playerParticipant, { ...session.participants[0], portraitUrl: '/goblin.webp' }] }
     sessionMock.mockResolvedValue(rangeSession)
     render(<GameTableTab campaignId="campaign-1" isGm members={[ownMember]} />)
 
@@ -271,7 +272,7 @@ describe('GameTableTab — статблок и броски NPC', () => {
   })
 
   it('перетаскивает токен указателем в центр выбранной ячейки', async () => {
-    const rangeSession = { ...session, participants: [playerParticipant, session.participants[0]] }
+    const rangeSession = { ...session, participants: [playerParticipant, { ...session.participants[0], portraitUrl: '/goblin.webp' }] }
     sessionMock.mockResolvedValue(rangeSession)
     render(<GameTableTab campaignId="campaign-1" isGm members={[ownMember]} />)
 
@@ -289,6 +290,9 @@ describe('GameTableTab — статблок и броски NPC', () => {
     fireEvent.pointerMove(board, { buttons: 1, pointerId: 1, clientX: 330, clientY: 250 })
 
     const preview = document.querySelector('.ring-token.drag-preview') as HTMLElement
+    expect(preview.querySelector('img')).toHaveAttribute('src', '/goblin.webp')
+    expect(preview.querySelector('img')).toHaveAttribute('alt', 'Гоблины')
+    expect(preview.querySelector('.ring-token-count')).toHaveTextContent('3')
     expect(Number.parseFloat(preview.style.left)).toBeCloseTo(57.5, 4)
     expect(Number.parseFloat(preview.style.top)).toBeCloseTo(50, 4)
     expect(Number.parseFloat((document.querySelector('.drag-cell-target') as HTMLElement).style.left)).toBeCloseTo(56.13, 2)
@@ -512,12 +516,48 @@ describe('GameTableTab — статблок и броски NPC', () => {
     await waitFor(() => expect(removeParticipantMock).toHaveBeenCalledWith('campaign-1', 'participant-pc'))
   })
 
+  it('shows NPC portrait and remaining count, then falls back to initials on image error', async () => {
+    sessionMock.mockResolvedValue({ ...session, participants: [{ ...session.participants[0], portraitUrl: '/npc.webp', remainingCount: 2 }] })
+    render(<GameTableTab campaignId="campaign-1" isGm members={[]} />)
+    await screen.findByText('Засада')
+    const token = document.querySelector('.ring-token.npc') as HTMLElement
+    const image = within(token).getByRole('img', { name: 'Гоблины' })
+    expect(image).toHaveAttribute('src', '/npc.webp')
+    expect(token.querySelector('.ring-token-count')).toHaveTextContent('2')
+    fireEvent.click(token)
+    expect(token).toHaveClass('selected')
+    fireEvent.error(image)
+    expect(within(token).queryByRole('img')).toBeNull()
+    expect(token).toHaveTextContent('Г×2')
+    expect(token.querySelector('.ring-token-count')).toBeNull()
+  })
+
+  it('keeps zero remaining minions in the portrait badge', async () => {
+    sessionMock.mockResolvedValue({ ...session, participants: [{ ...session.participants[0], portraitUrl: '/npc.webp', remainingCount: 0 }] })
+    render(<GameTableTab campaignId="campaign-1" isGm members={[]} />)
+    await screen.findByText('Засада')
+    expect(document.querySelector('.ring-token-count')).toHaveTextContent('0')
+  })
+
+  it('shows initials without a portrait and falls back for a broken PC portrait', async () => {
+    sessionMock.mockResolvedValue({ ...session, participants: [playerParticipant, session.participants[0]] })
+    render(<GameTableTab campaignId="campaign-1" isGm members={[ownMember]} />)
+    await screen.findByText('Засада')
+    const npcToken = document.querySelector('.ring-token.npc') as HTMLElement
+    expect(within(npcToken).queryByRole('img')).toBeNull()
+    expect(npcToken).toHaveTextContent('Г×3')
+    const pcToken = document.querySelector('.ring-token.pc') as HTMLElement
+    fireEvent.error(within(pcToken).getByRole('img', { name: 'Элира' }))
+    expect(pcToken).toHaveTextContent('Э')
+  })
+
   it('показывает портрет персонажа на его карточке сцены', async () => {
     sessionMock.mockResolvedValue({ ...session, participants: [playerParticipant] })
     render(<GameTableTab campaignId="campaign-1" isGm members={[ownMember]} />)
 
-    const portrait = await screen.findByRole('img', { name: 'Портрет: Элира' }) as HTMLImageElement
-    expect(portrait.getAttribute('src')).toBe('/portraits/character-1/hero.webp')
+    const portraits = await screen.findAllByRole('img', { name: 'Элира' })
+    expect(portraits).toHaveLength(2)
+    portraits.forEach(portrait => expect(portrait.getAttribute('src')).toBe('/portraits/character-1/current.webp'))
   })
 
   it('не показывает игроку удаление участников со сцены', async () => {

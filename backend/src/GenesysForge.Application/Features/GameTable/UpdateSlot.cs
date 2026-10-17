@@ -48,6 +48,6 @@ public class UpdateSlotHandler(IAppDbContext db) : ICommandHandler<UpdateSlotCom
         session.UpdatedAt = DateTime.UtcNow;
 
         await db.SaveChangesAsync(ct);
-        return GameTableMapper.ToDto(session, isGm: true);
+        return await GameTableMapper.ToDtoAsync(db, session, isGm: true, ct);
     }
 }

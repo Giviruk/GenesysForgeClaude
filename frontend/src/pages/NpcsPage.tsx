@@ -1,3 +1,5 @@
+import { Portrait } from '../components/Portrait'
+import { NpcPortraitEditor } from '../components/NpcPortraitEditor'
 import { Select } from '../components/Select'
 import { toneClass } from '../utils/tones'
 import { RuleText } from '../components/RuleText'
@@ -96,6 +98,7 @@ function BestiaryPage({ openId, filters, onOpen, onBack }: Props & { filters: Fi
       <ul className="bt-items" ref={listRef} onScroll={e => sessionStorage.setItem(scrollKey, String(e.currentTarget.scrollTop))}>
         {!npcs && !error && Array.from({ length: 6 }, (_, i) => <li key={i} className="bt-skeleton" aria-label={t('Загрузка NPC', 'Loading NPC')} />)}
         {npcs && shown.map(n => <li key={n.id}><button type="button" className={`bt-item${openId === n.id ? ' active' : ''}`} aria-current={openId === n.id ? 'true' : undefined} onClick={() => onOpen(n.id)}>
+          <Portrait url={n.portraitUrl} name={n.name} className="npc-portrait-thumbnail" />
           <div className="bt-item-copy"><div className="bt-item-title"><strong title={n.name}>{n.name}</strong><span className={`bt-kind kind-${n.kind} ${toneClass('npc', n.kind)}`}>{NPC_KIND_LABELS[n.kind]}</span></div>
           <small className="bt-item-meta">{NPC_ROLE_LABELS[n.role]} · <span className={n.system === 'genesysCore' ? 'bt-core' : 'bt-terrinoth'}>{n.system === 'genesysCore' ? 'Core' : 'Terrinoth'}</span> · <i>{n.isBuiltIn ? t('встроенный', 'built-in') : n.isMine ? t('мой', 'mine') : t('кампания', 'campaign')}</i></small></div>
           <div className="bt-item-stats"><span title={t('Поглощение', 'Soak')}><Icon name="shield" />{n.soak}</span><span title={t('Раны', 'Wounds')}><Icon name="heart" />{n.woundThreshold}</span></div><Icon className="bt-row-chevron" name="chevron-right" /></button></li>)}
@@ -232,6 +235,7 @@ function NpcCard({ npc: n, reference, canAttack = true }: { npc: NpcDetail; refe
 
   return (
       <div className={`npc-card bt-card tab-${tab}`}>
+        <Portrait url={n.portraitUrl} name={n.name} className="npc-portrait" />
         {n.description && <p className="npc-desc"><RuleText symbolsOnly text={n.description} /></p>}
 
         <div className="npc-char-row bt-card-chars">
@@ -427,8 +431,8 @@ const EMPTY_INPUT: NpcInput = {
 }
 
 function toInput(n: NpcDetail): NpcInput {
-  const { id, isMine, isBuiltIn, createdAt, updatedAt, warnings, ...rest } = n
-  void id; void isMine; void isBuiltIn; void createdAt; void updatedAt; void warnings
+  const { id, isMine, isBuiltIn, createdAt, updatedAt, warnings, portraitUrl, ...rest } = n
+  void id; void isMine; void isBuiltIn; void createdAt; void updatedAt; void warnings; void portraitUrl
   return rest
 }
 
@@ -470,18 +474,19 @@ function NpcCreationPage({ id, query, onBack, onSaved }: { id: string | null; qu
   }, [id])
   if (error) return <div className="bt-builder"><button onClick={onBack}>{t('← Бестиарий', '← Bestiary')}</button><p role="alert" className="error">{error}</p></div>
   if (id && loaded?.id !== id) return <div className="bt-skeleton bt-card-skeleton" aria-label={t('Загрузка NPC', 'Loading NPC')} />
-  if (id && !loaded?.npc.isMine) return <div className="bt-builder"><button onClick={onBack}>{t('← Бестиарий', '← Bestiary')}</button><p>{t('Этот NPC доступен только для чтения. Создайте копию в библиотеке.', 'This NPC is read-only. Clone it into your library first.')}</p></div>
+  if (id && (!loaded?.npc.isMine || loaded.npc.isBuiltIn)) return <div className="bt-builder"><button onClick={onBack}>{t('← Бестиарий', '← Bestiary')}</button><p>{t('Этот NPC доступен только для чтения. Создайте копию в библиотеке.', 'This NPC is read-only. Clone it into your library first.')}</p></div>
   return mode === 'draft' ? <QuickDraftForm req={request} onRequestChange={setRequest} onModeChange={changeMode} onCancel={onBack}
     onCreated={n => { const input = toInput(n); setWorking(input); setCreationBaseline(input); changeMode('manual') }} />
-    : <NpcEditor key={id ?? 'new'} initial={id ? toInput(loaded!.npc) : working ?? { ...EMPTY_INPUT, kind: request.kind }} savedId={id}
+    : <NpcEditor key={id ?? 'new'} initial={id ? toInput(loaded!.npc) : working ?? { ...EMPTY_INPUT, kind: request.kind }} savedId={id} initialPortraitUrl={loaded?.npc.portraitUrl}
       dirty={dirty} onChange={setWorking} onKindChange={kind => setRequest(r => ({ ...r, kind }))} onModeChange={id ? undefined : changeMode}
       onCancel={id ? () => navigate(`/npcs/${id}${bestiaryQuery(readBestiaryFilters(query))}`) : onBack}
       onSaved={n => { saved.current = true; onSaved(n) }} />
 }
 
-function NpcEditor({ initial, savedId, dirty, onCancel, onSaved, onChange, onKindChange, onModeChange }: {
+function NpcEditor({ initial, savedId, initialPortraitUrl, dirty, onCancel, onSaved, onChange, onKindChange, onModeChange }: {
   initial: NpcInput; savedId: string | null; onCancel: () => void; onSaved: (saved: NpcDetail) => void
   dirty: boolean
+  initialPortraitUrl?: string | null
   onChange: (input: NpcInput) => void; onKindChange: (kind: NpcKind) => void; onModeChange?: (mode: string) => void
 }) {
   const [form, setForm] = useState<NpcInput>(initial)
@@ -597,6 +602,8 @@ function NpcEditor({ initial, savedId, dirty, onCancel, onSaved, onChange, onKin
     {error && <div className="error bt-save-error" role="alert">{error}</div>}
     <div className="bt-manual-layout"><div className="bt-editor-body" data-invalid-section={invalidSection ?? undefined}>
       <section id="npc-section-0" data-section="0" className="bt-editor-section bt-editor-basics"><h4>1 · {t('Основные данные', 'Basic information')}</h4>
+        {savedId ? <NpcPortraitEditor npcId={savedId} name={form.name} initialUrl={initialPortraitUrl} />
+          : <p className="muted">{t('Сохраните NPC, чтобы загрузить портрет.', 'Save the NPC to upload a portrait.')}</p>}
         <div className="bt-base-grid"><label>{t('Имя', 'Name')}<input name="npc-name" aria-invalid={!!error && !form.name.trim()} required value={form.name} onChange={e => set('name', e.target.value)} /></label>
           <div><span className="bt-field-label">{t('Система', 'System')}</span><div className="bt-system-options">{SYSTEMS.map(system => <button type="button" key={system} aria-pressed={form.system === system} onClick={() => set('system', system)}>{system === 'genesysCore' ? 'Genesys Core' : 'Terrinoth'}</button>)}</div></div></div>
         <div><span className="bt-field-label">{t('Тип', 'Type')}</span><KindCards value={form.kind} onChange={kind => set('kind', kind)} /></div>

@@ -70,7 +70,7 @@ public class UpdateParticipantHandler(IAppDbContext db) : ICommandHandler<Update
         session.UpdatedAt = DateTime.UtcNow;
 
         await db.SaveChangesAsync(ct);
-        return GameTableMapper.ToDto(session, isGm);
+        return await GameTableMapper.ToDtoAsync(db, session, isGm, ct);
     }
 
     private static void ApplyVitals(GameParticipant p, UpdateParticipantRequest r)

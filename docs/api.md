@@ -813,6 +813,8 @@ POST   /api/npcs/quick-draft/preview
 POST   /api/npcs/{id}/duplicate
 PUT    /api/npcs/{id}
 DELETE /api/npcs/{id}
+POST   /api/npcs/{id}/portrait
+DELETE /api/npcs/{id}/portrait
 ```
 
 List supports optional query filters used by the frontend: `search`, `system`, `kind`, `role`,
@@ -824,6 +826,16 @@ Create/update use `NpcInput`; its legacy `campaignId` field is accepted for comp
 on save. Quick draft uses `QuickDraftRequest` and is deterministic for
 the same request. `quick-draft/preview` runs the same generator and returns the resulting
 `NpcDetail` without persisting anything — the quick draft form uses it for live preview.
+
+NPC list/detail responses include nullable `portraitUrl`. `POST /api/npcs/{id}/portrait`
+accepts a raw JPEG/PNG/WebP body up to 5 MiB (signature checked independently of MIME/name),
+returns `{ "portraitUrl": "..." }`, and deletes the previous object after saving. `DELETE`
+on the same route clears the URL and removes the object, returning `204`; repeated deletion
+is safe. Both operations require the NPC owner, reject built-ins, and use `SessionPolicy`
+rate limiting. Invalid files, unavailable storage and denied ownership return `400` with
+`message`. The `/api/v1` aliases are also available. NPC deletion removes the portrait;
+duplicating or applying a template never copies a source image URL. URLs are public to
+anyone who has the link, matching character portraits. NPC read access stays unchanged.
 
 ## Game Table
 
@@ -851,6 +863,11 @@ DELETE /api/campaigns/{campaignId}/session/slots/{slotId}
 Initiative slots are returned in `order` sequence. GMs can change a slot's `order` through the
 participant-independent slot `PATCH`; the Game Table exposes this as drag-and-drop reordering and
 keeps the currently active slot selected after a move.
+
+Each `GameParticipant` includes nullable `portraitUrl`, resolved from its linked character
+or NPC on every response (including refresh after realtime events). Hidden participants are
+excluded entirely from player responses before loading their portraits. Manual participants
+without a source or portrait receive null.
 
 Each `GameParticipant` includes the initial `count`, authoritative derived `remainingCount`, and
 nullable `perMemberWoundThreshold`. For a valid minion-group snapshot the individual threshold is

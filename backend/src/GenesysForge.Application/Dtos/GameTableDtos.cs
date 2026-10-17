@@ -31,7 +31,8 @@ public record GameParticipantDto(
     string Notes,
     string? RangeZone,
     double? RangeAngle,
-    int Order);
+    int Order,
+    string? PortraitUrl = null);
 
 public record GameSessionDto(
     Guid Id,

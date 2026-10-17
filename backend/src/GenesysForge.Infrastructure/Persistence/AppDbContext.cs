@@ -498,6 +498,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
 
         b.Entity<Npc>(e =>
         {
+            e.Property(n => n.PortraitUrl).HasMaxLength(1000);
             e.HasIndex(n => n.OwnerUserId);
             e.HasIndex(n => n.CampaignId);
             e.HasIndex(n => n.IsBuiltIn);
